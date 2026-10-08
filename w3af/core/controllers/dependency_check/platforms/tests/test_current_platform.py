@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from ..current_platform import get_current_platform
@@ -30,6 +31,7 @@ class TestCurrentPlatform(unittest.TestCase):
     def test_get_current_platform_default(self):
         default = get_current_platform([])
         self.assertIsInstance(default, DefaultPlatform)
+        self.assertEqual(default.PIP_CMD, "python -m pip")
 
     def test_get_current_platform_choose_match(self):
         default = get_current_platform([ChooseMe, NotMe])

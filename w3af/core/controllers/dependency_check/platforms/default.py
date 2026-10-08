@@ -19,18 +19,18 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from .base_platform import Platform
 from ..requirements import CORE, GUI
 
 
 class DefaultPlatform(Platform):
-    PIP_CMD = 'pip'
+    PIP_CMD = "python -m pip"
 
     # Should never be used since we have an empty SYSTEM_PACKAGES
-    PKG_MANAGER_CMD = ''
+    PKG_MANAGER_CMD = ""
 
-    SYSTEM_PACKAGES = {CORE: [],
-                       GUI: []}
+    SYSTEM_PACKAGES = {CORE: [], GUI: []}
 
     @staticmethod
     def is_current_platform():
