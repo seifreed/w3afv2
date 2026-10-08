@@ -81,7 +81,6 @@ CORE_PIP_PACKAGES = [
     PIPDependency("github", "PyGithub", _version("PyGithub")),
     PIPDependency("git.util", "GitPython", _version("GitPython")),
     PIPDependency("phply", "phply", _version("phply")),
-    PIPDependency("nltk", "nltk", _version("nltk")),
     PIPDependency("chardet", "chardet", _version("chardet")),
     PIPDependency("tblib", "tblib", _version("tblib")),
     PIPDependency("pdfminer", "pdfminer.six", _version("pdfminer.six")),

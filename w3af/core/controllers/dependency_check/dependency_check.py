@@ -231,7 +231,6 @@ def dependency_check(dependency_set=CORE, exit_on_failure=True):
 
 
 def disable_warnings():
-    # nltk raises a warning... which I want to ignore...
     warnings.filterwarnings(
         "ignore",
         ".*",

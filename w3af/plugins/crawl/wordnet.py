@@ -19,20 +19,19 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from itertools import chain, repeat
 
-from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_not_equal
-
-from w3af.core.data.fuzzer.utils import rand_alpha
+from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.fuzzer.mutants.filename_mutant import FileNameMutant
 from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
-from w3af.core.data.nltk_wrapper.nltk_wrapper import wn
+from w3af.core.data.fuzzer.utils import rand_alpha
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from functools import cmp_to_key
+from w3af.core.data.wordnet_reader import wn
 
 
 class wordnet(CrawlPlugin):
@@ -76,15 +75,15 @@ class wordnet(CrawlPlugin):
             return
 
         if fuzzy_not_equal(original_response.body, response.body, 0.85):
-            
+
             # Verify against something random
             rand = rand_alpha()
             rand_mutant = mutant.copy()
             rand_mutant.set_token_value(rand)
             rand_response = self._uri_opener.send_mutant(rand_mutant)
-            
+
             if fuzzy_not_equal(response.body, rand_response.body, 0.85):
-                
+
                 fr = FuzzableRequest(response.get_uri())
                 self.output_queue.put(fr)
 
@@ -95,8 +94,9 @@ class wordnet(CrawlPlugin):
 
         :return: A list of mutants.
         """
-        return chain(self._generate_fname(fuzzable_request),
-                     self._generate_qs(fuzzable_request))
+        return chain(
+            self._generate_fname(fuzzable_request), self._generate_qs(fuzzable_request)
+        )
 
     def _generate_qs(self, fuzzable_request):
         """
@@ -104,15 +104,14 @@ class wordnet(CrawlPlugin):
         :return: A list of mutants.
         """
         query_string = fuzzable_request.get_uri().querystring
-        
+
         for token in query_string.iter_tokens():
             wordnet_results = self._search_wn(token.get_value())
 
-            mutants = QSMutant.create_mutants(fuzzable_request, wordnet_results,
-                                              [token.get_name()], False, {})
-
-            for mutant in mutants:
-                yield mutant
+            mutants = QSMutant.create_mutants(
+                fuzzable_request, wordnet_results, [token.get_name()], False, {}
+            )
+            yield from mutants
 
     def _search_wn(self, word):
         """
@@ -121,7 +120,7 @@ class wordnet(CrawlPlugin):
         :return: A list of related words.
         """
         result = []
-        
+
         if not word or word.isdigit():
             return result
 
@@ -129,16 +128,16 @@ class wordnet(CrawlPlugin):
             # Now the magic that gets me a lot of results:
             try:
                 result.extend(wn.synsets(word)[0].hypernyms()[0].hyponyms())
-            except:
+            except IndexError:
                 pass
-    
+
             synset_list = wn.synsets(word)
-    
+
             for synset in synset_list:
-    
+
                 # first I add the synset as it is:
                 result.append(synset)
-    
+
                 # Now some variations...
                 result.extend(synset.hypernyms())
                 result.extend(synset.hyponyms())
@@ -148,11 +147,11 @@ class wordnet(CrawlPlugin):
         # Now I have a results list filled up with a lot of words, the problem
         # is that this words are really Synset objects, so I'll transform them
         # to strings:
-        result = [i.name().split('.')[0] for i in result]
+        result = [i.name().split(".")[0] for i in result]
 
         # Another problem with Synsets is that the name is "underscore
         # separated" so, for example: "big dog" is "big_dog"
-        result = [i.replace('_', ' ') for i in result]
+        result = [i.replace("_", " ") for i in result]
 
         # Now I make a "uniq"
         result = list(set(result))
@@ -164,7 +163,7 @@ class wordnet(CrawlPlugin):
         result = self._popularity_contest(result)
 
         # Respect the user settings
-        result = result[:self._wordnet_results]
+        result = result[: self._wordnet_results]
 
         return result
 
@@ -173,13 +172,7 @@ class wordnet(CrawlPlugin):
         :param results: The result map of the wordnet search.
         :return: The same result map, but each item is ordered by popularity
         """
-        def sort_function(i, j):
-            """
-            Compare the lengths of the objects.
-            """
-            return cmp(len(i), len(j))
-
-        result.sort(key=cmp_to_key(sort_function))
+        result.sort(key=len)
 
         return result
 
@@ -190,26 +183,26 @@ class wordnet(CrawlPlugin):
         """
         url = fuzzable_request.get_url()
         fname_ext = url.get_file_name()
-        splitted_fname_ext = fname_ext.split('.')
-        
-        if not len(splitted_fname_ext) == 2:
+        splitted_fname_ext = fname_ext.split(".")
+
+        if len(splitted_fname_ext) != 2:
             return []
-        
+
         name = splitted_fname_ext[0]
 
         wordnet_result = self._search_wn(name)
-        
+
         # Given that we're going to be testing these as filenames, we're
         # going to remove the ones with spaces, since that's very strange
         # to find online
-        wordnet_result = [word for word in wordnet_result if ' ' not in word]
-        
-        fuzzer_config = {'fuzz_url_filenames': True}
+        wordnet_result = [word for word in wordnet_result if " " not in word]
 
-        mutants = FileNameMutant.create_mutants(fuzzable_request,
-                                                wordnet_result, [0], False,
-                                                fuzzer_config)
-        
+        fuzzer_config = {"fuzz_url_filenames": True}
+
+        mutants = FileNameMutant.create_mutants(
+            fuzzable_request, wordnet_result, [0], False, fuzzer_config
+        )
+
         return mutants
 
     def get_options(self):
@@ -218,8 +211,8 @@ class wordnet(CrawlPlugin):
         """
         ol = OptionList()
 
-        d = 'Only use the first wnResults (wordnet results) from each category.'
-        o = opt_factory('wn_results', self._wordnet_results, d, 'integer')
+        d = "Only use the first wnResults (wordnet results) from each category."
+        o = opt_factory("wn_results", self._wordnet_results, d, "integer")
         ol.add(o)
 
         return ol
@@ -232,7 +225,7 @@ class wordnet(CrawlPlugin):
         :param options_list: A dictionary with the options for the plugin.
         :return: No value is returned.
         """
-        self._wordnet_results = options_list['wn_results'].get_value()
+        self._wordnet_results = options_list["wn_results"].get_value()
 
     def get_long_desc(self):
         """

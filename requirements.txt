@@ -20,7 +20,6 @@ Markdown==3.11
 mitmproxy @ git+https://github.com/mitmproxy/mitmproxy.git@5253dcbd1d8f0522de097bfe56918fe12a0f267a
 msgpack==1.2.3
 ndg-httpsclient==0.5.1
-nltk==3.10.3
 packaging==26.3
 pdfminer.six==20260107
 pebble==5.2.3
