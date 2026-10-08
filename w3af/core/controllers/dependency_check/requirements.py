@@ -89,7 +89,9 @@ CORE_PIP_PACKAGES = [
     PIPDependency("pyasn1", "pyasn1", _version("pyasn1")),
     PIPDependency("lxml", "lxml", _version("lxml")),
     PIPDependency("scapy.config", "scapy", _version("scapy")),
-    PIPDependency("guess_language", "guess-language", _version("guess-language")),
+    PIPDependency(
+        "guess_language", "guess-language-spirit", _version("guess-language-spirit")
+    ),
     PIPDependency("cluster", "cluster", _version("cluster")),
     PIPDependency("msgpack", "msgpack", _version("msgpack")),
     PIPDependency("spnego", "pyspnego", _version("pyspnego")),
