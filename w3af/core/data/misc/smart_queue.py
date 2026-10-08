@@ -20,11 +20,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import time
 import queue
+import time
 
 
-class QueueSpeedMeasurement(object):
+class QueueSpeedMeasurement:
 
     MAX_SIZE = 20000
     MAX_SECONDS_IN_THE_PAST = 600
@@ -104,7 +104,7 @@ class SmartQueue(QueueSpeedMeasurement):
     """
 
     def __init__(self, maxsize=0, name="Unknown"):
-        super(SmartQueue, self).__init__()
+        super().__init__()
         self.q = queue.Queue(maxsize=maxsize)
 
         self._name = name

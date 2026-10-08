@@ -22,16 +22,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
+from unittest.mock import Mock
 
-from mock import Mock
-
-from w3af.core.controllers.w3afCore import w3afCore
 from w3af.core.controllers.core_helpers.status import (
-    CoreStatus,
-    STOPPED,
-    RUNNING,
     PAUSED,
+    STOPPED,
+    CoreStatus,
 )
+from w3af.core.controllers.w3afCore import w3afCore
 
 
 class TestStatus(unittest.TestCase):

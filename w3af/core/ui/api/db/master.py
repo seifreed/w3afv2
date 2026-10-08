@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 SCANS = {}
 
 
-class ScanInfo(object):
+class ScanInfo:
     def __init__(self):
         self.w3af_core = None
         self.output = None

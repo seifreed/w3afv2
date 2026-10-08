@@ -20,24 +20,23 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import re
-import json
 import collections
+import json
+import re
 
 import vulners
 
 import w3af.core.controllers.output_manager as om
-
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
-from w3af.core.data.quick_match.multi_re import MultiRE
-from w3af.core.data.kb.vuln import Vuln
-from w3af.core.data.options.opt_factory import opt_factory
-from w3af.core.data.options.option_types import STRING
-from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.kb.info_set import InfoSet
-from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.misc.cvss import cvss_to_severity
+from w3af.core.data.options.opt_factory import opt_factory
+from w3af.core.data.options.option_list import OptionList
+from w3af.core.data.options.option_types import STRING
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.quick_match.multi_re import MultiRE
 
 
 class vulners_db(GrepPlugin):

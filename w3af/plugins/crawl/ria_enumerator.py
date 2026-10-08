@@ -25,19 +25,17 @@ import xml.dom.minidom
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
-import w3af.core.data.constants.severity as severity
-
 from w3af import ROOT_PATH
-
-from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
+from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.misc.decorators import runonce
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
+from w3af.core.data.constants import severity
+from w3af.core.data.kb.info import Info
+from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
-from w3af.core.data.kb.vuln import Vuln
-from w3af.core.data.kb.info import Info
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
 class ria_enumerator(CrawlPlugin):

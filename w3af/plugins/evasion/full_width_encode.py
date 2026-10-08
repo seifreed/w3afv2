@@ -20,7 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import urllib.request, urllib.parse, urllib.error
+import urllib.error
+import urllib.parse
+import urllib.request
 
 from w3af.core.controllers.plugins.evasion_plugin import EvasionPlugin
 from w3af.core.data.parsers.doc.url import parse_qs

@@ -1,7 +1,7 @@
-import unittest
-import subprocess
 import shlex
+import subprocess
 import sys
+import unittest
 
 from nose.plugins.attrib import attr
 

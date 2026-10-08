@@ -29,12 +29,12 @@ class XPathTemplate(BaseTemplate):
     """
 
     def __init__(self):
-        super(XPathTemplate, self).__init__()
+        super().__init__()
 
         self.name = self.get_vulnerability_name()
 
     def create_vuln(self):
-        v = super(XPathTemplate, self).create_vuln()
+        v = super().create_vuln()
 
         mutant = self.create_mutant_from_params()
         mutant.set_dc(self.data)

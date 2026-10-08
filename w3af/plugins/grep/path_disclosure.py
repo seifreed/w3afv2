@@ -20,16 +20,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.data.kb.knowledge_base as kb
-import w3af.core.data.constants.severity as severity
-import w3af.core.data.parsers.parser_cache as parser_cache
-
-from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
-from w3af.core.data.kb.vuln import Vuln
-from w3af.core.data.db.disk_list import DiskList
-from w3af.core.data.quick_match.multi_re import MultiRE
-from w3af.core.data.constants.common_directories import get_common_directories
 from functools import cmp_to_key
+
+import w3af.core.data.kb.knowledge_base as kb
+from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
+from w3af.core.data.constants import severity
+from w3af.core.data.constants.common_directories import get_common_directories
+from w3af.core.data.db.disk_list import DiskList
+from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.parsers import parser_cache
+from w3af.core.data.quick_match.multi_re import MultiRE
 
 
 class path_disclosure(GrepPlugin):
@@ -56,7 +56,7 @@ class path_disclosure(GrepPlugin):
         all_signatures = []
 
         for common_directory in get_common_directories():
-            regex_string = "[^A-Za-z0-9\._\-\\/\+~](%s.*?)[^A-Za-z0-9\._\-\\/\+~]"
+            regex_string = "[^A-Za-z0-9\\._\\-\\/\\+~](%s.*?)[^A-Za-z0-9\\._\\-\\/\\+~]"
             regex_string = regex_string % common_directory
             all_signatures.append(regex_string)
 
@@ -165,7 +165,7 @@ class path_disclosure(GrepPlugin):
         return False
 
     def _is_attr_value(self, path_disclosure_string, response):
-        """
+        r"""
         This method was created to remove some false positives.
 
         This method consumes 99% of the CPU usage of the plugin, but there
@@ -285,7 +285,7 @@ class path_disclosure(GrepPlugin):
         return """
         This plugin greps every page for path disclosure vulnerabilities like:
 
-            - C:\\www\\files\...
+            - C:\\www\\files\\...
             - /var/www/htdocs/...
 
         The results are saved to the KB, and used by all the plugins that need

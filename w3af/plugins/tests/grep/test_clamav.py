@@ -23,19 +23,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import time
 import unittest
 from itertools import repeat
+from unittest.mock import Mock, patch
 
 import pyclamd
-from mock import patch, Mock
 
 import w3af.core.data.kb.knowledge_base as kb
-from w3af.plugins.grep.clamav import clamav
-from w3af.plugins.tests.helper import PluginTest, PluginConfig
-from w3af.core.data.url.HTTPResponse import HTTPResponse
-from w3af.core.data.dc.headers import Headers
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.controllers.threads.threadpool import Pool
 from w3af.core.controllers.ci.moth import get_moth_http
+from w3af.core.controllers.threads.threadpool import Pool
+from w3af.core.data.dc.headers import Headers
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.plugins.grep.clamav import clamav
+from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 
 class TestClamAV(unittest.TestCase):
@@ -169,10 +169,10 @@ class TestClamAVScan(PluginTest):
 
     def setUp(self):
         self.plugin = clamav()
-        super(TestClamAVScan, self).setUp()
+        super().setUp()
 
     def tearDown(self):
-        super(TestClamAVScan, self).tearDown()
+        super().tearDown()
         self.plugin.end()
 
     def test_found_vuln(self):

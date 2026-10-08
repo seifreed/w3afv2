@@ -20,17 +20,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import socket
 import time
-
-from w3af.core.controllers.exceptions import BaseFrameworkException
+from functools import cmp_to_key
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
-from functools import cmp_to_key
+from w3af.core.controllers.exceptions import BaseFrameworkException
 
 
-class extrusionServer(object):
+class extrusionServer:
     """
     This class defines a simple server that listens on the current interface
     for connections made from the extrusionClient.
@@ -101,7 +99,7 @@ class extrusionServer(object):
         self._sniffing = True
         try:
             packets = sniff(filter=filter, iface=self._iface, timeout=5)
-        except socket.error:
+        except OSError:
             msg = (
                 'Failed to sniff on interface: "%s". Hints: Are you root?'
                 " Does this interface exist?"
@@ -127,10 +125,7 @@ class extrusionServer(object):
         Analyze a list of packets for interesting traffic when the host is
         unknown.
         """
-        from scapy.all import get_if_addr
-        from scapy.all import IP
-        from scapy.all import TCP
-        from scapy.all import UDP
+        from scapy.all import IP, TCP, UDP, get_if_addr
 
         # This is hard to do...
         possible_packets = []
@@ -208,9 +203,7 @@ class extrusionServer(object):
         from it and which ports are the ones that can be used for reverse shell
         connections.
         """
-        from scapy.all import IP
-        from scapy.all import TCP
-        from scapy.all import UDP
+        from scapy.all import IP, TCP, UDP
 
         good_ports = []
 

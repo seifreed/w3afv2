@@ -21,23 +21,24 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 from multiprocessing.dummy import Process
+
 from flask import jsonify, request
 
+from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.controllers.w3afCore import w3afCore
+from w3af.core.data.parsers.doc.url import URL
 from w3af.core.ui.api import app
-from w3af.core.ui.api.utils.error import abort
-from w3af.core.ui.api.utils.auth import requires_auth
 from w3af.core.ui.api.db.master import SCANS, ScanInfo
+from w3af.core.ui.api.utils.auth import requires_auth
+from w3af.core.ui.api.utils.error import abort
 from w3af.core.ui.api.utils.log_handler import RESTAPIOutput
 from w3af.core.ui.api.utils.scans import (
-    get_scan_info_from_id,
-    start_scan_helper,
-    get_new_scan_id,
     create_temp_profile,
+    get_new_scan_id,
+    get_scan_info_from_id,
     remove_temp_profile,
+    start_scan_helper,
 )
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.controllers.w3afCore import w3afCore
-from w3af.core.controllers.exceptions import BaseFrameworkException
 
 
 @app.route("/scans/", methods=["POST"])

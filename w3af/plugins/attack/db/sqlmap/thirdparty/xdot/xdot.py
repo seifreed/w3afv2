@@ -21,20 +21,20 @@
 __author__ = "Jose Fonseca et al"
 
 
-import os
-import sys
-import subprocess
-import math
 import colorsys
-import time
-import re
+import math
 import optparse
+import os
+import re
+import subprocess
+import sys
+import time
 
+import cairo
 import gobject
 import gtk
 import gtk.gdk
 import gtk.keysyms
-import cairo
 import pango
 import pangocairo
 
@@ -335,7 +335,7 @@ class CompoundShape(Shape):
         return False
 
 
-class Url(object):
+class Url:
 
     def __init__(self, item, url, highlight=None):
         self.item = item
@@ -345,7 +345,7 @@ class Url(object):
         self.highlight = highlight
 
 
-class Jump(object):
+class Jump:
 
     def __init__(self, item, x, y, highlight=None):
         self.item = item
@@ -389,7 +389,7 @@ class Node(Element):
         self.url = url
 
     def is_inside(self, x, y):
-        return self.x1 <= x and x <= self.x2 and self.y1 <= y and y <= self.y2
+        return self.x1 <= x <= self.x2 and self.y1 <= y <= self.y2
 
     def get_url(self, x, y):
         if self.url is None:
@@ -1076,7 +1076,7 @@ class DotParser(Parser):
                 while self.lookahead.type == EDGE_OP:
                     node_ids.append(self.parse_node_id())
                 attrs = self.parse_attrs()
-                for i in range(0, len(node_ids) - 1):
+                for i in range(len(node_ids) - 1):
                     self.handle_edge(node_ids[i], node_ids[i + 1], attrs)
             elif self.lookahead.type == EQUAL:
                 self.consume()
@@ -1259,7 +1259,7 @@ class XDotParser(DotParser):
         return x, y
 
 
-class Animation(object):
+class Animation:
 
     step = 0.03  # seconds
 
@@ -1350,7 +1350,7 @@ class ZoomToAnimation(MoveToAnimation):
         MoveToAnimation.animate(self, t)
 
 
-class DragAction(object):
+class DragAction:
 
     def __init__(self, dot_widget):
         self.dot_widget = dot_widget
@@ -1582,7 +1582,7 @@ class DotWidget(gtk.DrawingArea):
                 fp = open(self.openfilename, "rt")
                 self.set_dotcode(fp.read(), self.openfilename)
                 fp.close()
-            except IOError:
+            except OSError:
                 pass
 
     def update(self):
@@ -2073,7 +2073,7 @@ class DotWindow(gtk.Window):
             fp = open(filename, "rt")
             self.set_dotcode(fp.read(), filename)
             fp.close()
-        except IOError as ex:
+        except OSError as ex:
             dlg = gtk.MessageDialog(
                 type=gtk.MESSAGE_ERROR, message_format=str(ex), buttons=gtk.BUTTONS_OK
             )

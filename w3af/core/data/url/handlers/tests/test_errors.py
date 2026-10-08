@@ -21,16 +21,18 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
-import urllib.request, urllib.error, urllib.parse
+import urllib.error
+import urllib.parse
+import urllib.request
 
 from nose.plugins.attrib import attr
 
-from w3af.core.controllers.misc.number_generator import consecutive_number_generator
 from w3af.core.controllers.ci.moth import get_moth_http
-from w3af.core.data.parsers.doc.url import URL
+from w3af.core.controllers.misc.number_generator import consecutive_number_generator
 from w3af.core.data.constants.response_codes import NOT_FOUND
-from w3af.core.data.url.HTTPRequest import HTTPRequest
+from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url import opener_settings
+from w3af.core.data.url.HTTPRequest import HTTPRequest
 
 
 class TestErrorHandler(unittest.TestCase):

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 plain.py
 
@@ -21,8 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from w3af.core.data.dc.generic.data_container import DataContainer
 from w3af.core.data.constants.encodings import UTF8
+from w3af.core.data.dc.generic.data_container import DataContainer
 
 
 class PlainContainer(DataContainer):
@@ -39,7 +38,7 @@ class PlainContainer(DataContainer):
     """
 
     def __init__(self, plain_data, content_type=None, encoding=UTF8):
-        super(PlainContainer, self).__init__(encoding=encoding)
+        super().__init__(encoding=encoding)
         self.plain_data = plain_data
         self.content_type_header_value = content_type
 

@@ -22,13 +22,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import w3af.core.controllers.output_manager as om
 
+from .core_stats import start_core_profiling, stop_core_profiling
 from .cpu_usage import start_cpu_profiling, stop_cpu_profiling
 from .memory_usage import start_memory_profiling, stop_memory_profiling
-from .core_stats import start_core_profiling, stop_core_profiling
-from .thread_activity import start_thread_stack_dump, stop_thread_stack_dump
 from .processes import start_process_dump, stop_process_dump
 from .psutil_stats import start_psutil_dump, stop_psutil_dump
 from .pytracemalloc import start_tracemalloc_dump, stop_tracemalloc_dump
+from .thread_activity import start_thread_stack_dump, stop_thread_stack_dump
 
 
 def start_profiling(w3af_core):

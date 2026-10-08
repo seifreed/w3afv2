@@ -34,7 +34,7 @@ def _speaker_beep():
 
     try:
         sys.stdout.flush()
-    except IOError:
+    except OSError:
         pass
 
 

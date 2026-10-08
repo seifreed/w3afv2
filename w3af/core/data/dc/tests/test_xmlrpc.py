@@ -20,8 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
 import copy
+import unittest
 
 from w3af.core.data.dc.xmlrpc import XmlRpcContainer
 from w3af.core.data.parsers.doc.tests.test_xmlrpc import (

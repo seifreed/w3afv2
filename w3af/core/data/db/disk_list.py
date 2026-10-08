@@ -22,21 +22,20 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 # magic
 import builtins
-
 import hashlib
 import pickle
 
-from w3af.core.data.misc.cpickle_dumps import cpickle_dumps
-from w3af.core.data.db.disk_item import DiskItem
 from w3af.core.data.db.dbms import get_default_temp_db_instance
+from w3af.core.data.db.disk_item import DiskItem
 from w3af.core.data.fuzzer.utils import rand_alpha
+from w3af.core.data.misc.cpickle_dumps import cpickle_dumps
 
 # Disk list states
 OPEN = 1
 CLOSED = 2
 
 
-class DiskList(object):
+class DiskList:
     """
     A DiskList is a sqlite3 wrapper which has the following features:
         - Implements a list-like API
@@ -152,19 +151,13 @@ class DiskList(object):
         return result
 
     def _is_builtin(self, value):
-        if type(value).__name__ in builtins.__dict__:
-            return True
-
-        elif value is None:
+        if type(value).__name__ in builtins.__dict__ or value is None:
             return True
 
         return False
 
     def _can_handle_attr(self, value):
-        if self._is_builtin(value):
-            return True
-
-        elif isinstance(value, DiskItem):
+        if self._is_builtin(value) or isinstance(value, DiskItem):
             return True
 
         return False

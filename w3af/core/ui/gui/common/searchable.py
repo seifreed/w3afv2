@@ -21,10 +21,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import gtk
+
 from w3af.core.ui.gui.entries import SemiStockButton
 
 
-class Searchable(object):
+class Searchable:
     """Class that gives the machinery to search to a TextView.
 
     Just inheritate it from the box that has the textview to extend.

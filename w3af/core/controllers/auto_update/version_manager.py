@@ -23,14 +23,13 @@ import weakref
 from datetime import date
 
 import w3af.core.controllers.output_manager as om
-
-from w3af.core.controllers.misc.home_dir import W3AF_LOCAL_PATH
 from w3af.core.controllers.auto_update.git_client import GitClient, GitClientError
+from w3af.core.controllers.auto_update.utils import get_commit_id_date, to_short_id
+from w3af.core.controllers.misc.home_dir import W3AF_LOCAL_PATH
 from w3af.core.data.db.startup_cfg import StartUpConfig
-from w3af.core.controllers.auto_update.utils import to_short_id, get_commit_id_date
 
 
-class VersionMgr(object):
+class VersionMgr:
     """
     Perform git w3af code update and commit. When an instance is created loads
     data from a .conf file that will be used when actions are executed.
@@ -259,7 +258,6 @@ class VersionMgr(object):
         But both failed. What I want to avoid are bugs like the ones related to
         the "complex type needs to implement..." DiskList.
         """
-        pass
 
     def register(self, event, func, msg):
         """

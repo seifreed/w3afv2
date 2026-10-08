@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
+import argparse
 import os
 import re
 import sys
-import argparse
 
 try:
     from terminaltables import AsciiTable
@@ -17,12 +17,13 @@ except ImportError:
 ROOT_PATH = os.path.realpath(os.path.join(__file__, "../../../../../"))
 sys.path.append(ROOT_PATH)
 
-from w3af.core.controllers.core_helpers.status import CoreStatus, Adjustment
+from w3af.core.controllers.core_helpers.status import Adjustment, CoreStatus
+
 from .scan_log_analysis import (
-    get_first_timestamp,
-    get_line_epoch,
     CRAWL_INFRA_FINISHED,
     JOIN_TIMES,
+    get_first_timestamp,
+    get_line_epoch,
 )
 
 HELP = """\
@@ -40,9 +41,9 @@ This tool requires a scan log for a finished scan!
 
 
 CALCULATED_ETA = re.compile(
-    "Calculated (.*?) ETA: (.*?) seconds. \(input speed:(.*?),"
+    r"Calculated (.*?) ETA: (.*?) seconds. \(input speed:(.*?),"
     " output speed:(.*?), queue size: (.*?), adjustment known: (.*?),"
-    " adjustment unknown: (.*?), average: (.*?), run time: .*?\)"
+    r" adjustment unknown: (.*?), average: (.*?), run time: .*?\)"
 )
 
 CRAWL = "crawl"
@@ -67,7 +68,7 @@ TABLE_HEADER = [
 ]
 
 
-class CalculatedETA(object):
+class CalculatedETA:
     def __init__(
         self,
         phase,
@@ -247,8 +248,8 @@ def create_eta_table(scan):
     # Print the tables!
     for phase in (GREP, AUDIT, CRAWL):
         print(phase)
-        print(("=" * len(phase)))
-        print("")
+        print("=" * len(phase))
+        print()
 
         table_data = [TABLE_HEADER]
 
@@ -291,9 +292,9 @@ def create_eta_table(scan):
             table_data.append(data)
 
         table = AsciiTable(table_data)
-        print((table.table))
-        print("")
-        print("")
+        print(table.table)
+        print()
+        print()
 
 
 if __name__ == "__main__":

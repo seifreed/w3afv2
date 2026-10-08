@@ -20,10 +20,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
-import urllib.request, urllib.parse, urllib.error
+import urllib.error
+import urllib.parse
+import urllib.request
 
-from w3af.plugins.tests.helper import PluginTest, PluginConfig, MockResponse
 from w3af.plugins.audit.sqli import sqli
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 
 class TestGenericOnly(PluginTest):

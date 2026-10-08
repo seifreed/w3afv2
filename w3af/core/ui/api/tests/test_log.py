@@ -24,8 +24,8 @@ import json
 
 from w3af.core.ui.api.tests.utils.api_unittest import APIUnitTest
 from w3af.core.ui.api.tests.utils.test_profile import (
-    get_test_profile,
     SLOW_TEST_PROFILE,
+    get_test_profile,
 )
 
 

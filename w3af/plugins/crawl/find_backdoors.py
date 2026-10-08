@@ -23,16 +23,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.constants.severity as severity
 import w3af.core.data.kb.knowledge_base as kb
-
 from w3af import CRAWL_PATH
-from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
+from w3af.core.data.constants import severity
 from w3af.core.data.kb.vuln import Vuln
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.quick_match.multi_re import MultiRE
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
 class find_backdoors(CrawlPlugin):

@@ -3,10 +3,12 @@
 # This is a sample implementation of an editor.
 
 import os
-from . import pluginEditorDialogs
+
 import gtk
 
 from w3af import ROOT_PATH
+
+from . import pluginEditorDialogs
 
 BLOCK_SIZE = 2048
 RESPONSE_FORWARD = 1
@@ -43,7 +45,6 @@ class EditWindow(gtk.Window):
         self.dirname = None
         self.search_string = None
         self.last_search_iter = None
-        return
 
     def load_file(self, fname):
         try:
@@ -69,7 +70,6 @@ class EditWindow(gtk.Window):
             )
             resp = dlg.run()
             dlg.hide()
-        return
 
     def create_menu(self):
         ui_string = """<ui>
@@ -239,19 +239,15 @@ class EditWindow(gtk.Window):
 
     def edit_cut(self, mi):
         self.buffer.cut_clipboard(self.clipboard, True)
-        return
 
     def edit_copy(self, mi):
         self.buffer.copy_clipboard(self.clipboard)
-        return
 
     def edit_paste(self, mi):
         self.buffer.paste_clipboard(self.clipboard, None, True)
-        return
 
     def edit_clear(self, mi):
         self.buffer.delete_selection(True, True)
-        return
 
     def _search(self, search_string, iter=None):
         if iter is None:
@@ -314,7 +310,6 @@ class EditWindow(gtk.Window):
         )
         dlg.run()
         dlg.hide()
-        return
 
 
 class pluginEditor:
@@ -335,7 +330,6 @@ class pluginEditor:
         w.set_size_request(600, 400)
 
         gtk.main()
-        return
 
     def _quit_cb(self, widget):
         """

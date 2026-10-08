@@ -22,13 +22,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 import sys
-import time
 import threading
+import time
 import traceback
 
 import w3af.core.controllers.output_manager as om
-
 from w3af.core.data.misc.encoding import smart_str_ignore
+
 from .strategy_observer import StrategyObserver
 
 
@@ -41,12 +41,12 @@ class ThreadStateObserver(StrategyObserver):
     STACK_TRACE_MIN_TIME = 120
     DISCOVER_WORKER_RE = re.compile(
         "<bound method CrawlInfrastructure._discover_worker"
-        " of <CrawlInfrastructure\(CrawlInfraController,"
-        " started daemon .*?\)>>"
+        r" of <CrawlInfrastructure\(CrawlInfraController,"
+        r" started daemon .*?\)>>"
     )
 
     def __init__(self):
-        super(ThreadStateObserver, self).__init__()
+        super().__init__()
 
         self.should_stop = False
 

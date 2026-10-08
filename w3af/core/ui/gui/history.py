@@ -19,13 +19,14 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import pickle
-import msgpack
 import operator
 import os
+import pickle
+
+import msgpack
 
 
-class HistorySuggestion(object):
+class HistorySuggestion:
     """Handles the history of any text, providing suggestions.
 
     :param filename: Name of the file where the info is stored

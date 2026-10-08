@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import time
+
 import w3af.core.controllers.output_manager as om
 
 # Define two internal variables

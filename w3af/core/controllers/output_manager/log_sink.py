@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import functools
 
 
-class LogSink(object):
+class LogSink:
     """
     The log sink receives log messages in different threads/processes and sends
     them over a multiprocessing queue to the main process where they are handled
@@ -43,7 +43,7 @@ class LogSink(object):
     METHODS = None
 
     def __init__(self, om_queue):
-        super(LogSink, self).__init__()
+        super().__init__()
         self.om_queue = om_queue
         self.METHODS = dict(
             (method, functools.partial(self._add_to_queue, method))
@@ -64,7 +64,7 @@ class LogSink(object):
     def _add_to_queue(self, *args, **kwargs):
         try:
             self.om_queue.put((args, kwargs))
-        except IOError:
+        except OSError:
             print(
                 "LogSink queue communication lost." " Some log messages will be lost."
             )

@@ -1,10 +1,10 @@
 import re
-import plotille
 
+import plotille
 from utils.graph import num_formatter
 from utils.utils import get_first_timestamp, get_last_timestamp, get_line_epoch
 
-GREP_DISK_DICT = re.compile("The current GrepIn DiskDict size is (\d*)\.")
+GREP_DISK_DICT = re.compile(r"The current GrepIn DiskDict size is (\d*)\.")
 
 
 def get_queue_size_grep_data(scan_log_filename, scan):
@@ -38,8 +38,8 @@ def draw_queue_size_grep(scan_log_filename, scan):
         return
 
     print("Grep consumer queue size")
-    print(("    Latest queue size value: %s" % grep_queue_sizes[-1]))
-    print("")
+    print("    Latest queue size value: %s" % grep_queue_sizes[-1])
+    print()
 
     fig = plotille.Figure()
     fig.width = 90
@@ -54,5 +54,5 @@ def draw_queue_size_grep(scan_log_filename, scan):
 
     fig.plot(grep_queue_timestamps, grep_queue_sizes, label="Grep")
 
-    print((fig.show()))
-    print("")
+    print(fig.show())
+    print()

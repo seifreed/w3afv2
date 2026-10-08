@@ -22,12 +22,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import os
 import csv
+import os
+import subprocess
 import sys
 
-import subprocess
-import lxml.etree as etree
+from lxml import etree
 
 URL = "https://data.phishtank.com/data/online-valid/"
 XML_DB_FILE = "w3af/plugins/crawl/phishtank/index.xml"
@@ -35,7 +35,7 @@ CSV_DB_FILE = "w3af/plugins/crawl/phishtank/index.csv"
 DOWNLOAD_CMD = "wget -q %s -O %s"
 
 
-class PhishTankHandler(object):
+class PhishTankHandler:
     """
     <entry>
         <url><![CDATA[http://cbisis...paypal.support/]]></url>
@@ -85,8 +85,6 @@ class PhishTankHandler(object):
             self.inside_detail = True
             # But when it sends the information in data(), it uses unicode
             self.phish_detail_url = ""
-
-        return
 
     def data(self, ch):
         if self.inside_URL:

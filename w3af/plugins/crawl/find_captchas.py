@@ -21,16 +21,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import hashlib
-
 from collections import namedtuple
 
 import w3af.core.controllers.output_manager as om
-
 import w3af.core.data.kb.knowledge_base as kb
 import w3af.core.data.parsers.document_parser as DocumentParser
-
-from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.db.disk_set import DiskSet
 from w3af.core.data.kb.info import Info
 

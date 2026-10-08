@@ -2,7 +2,6 @@ import re
 
 from w3af.core.data.constants.common_directories import get_common_directories
 from w3af.core.ui.console.tables import table
-
 from w3af.plugins.attack.payloads.base_payload import Payload
 
 
@@ -103,8 +102,7 @@ class spider(Payload):
             for key in keyword_list:
                 if key in filename or key in file_content:
                     return True
-            else:
-                return False
+            return False
 
         try:
             recursion_level = int(recursion_level)

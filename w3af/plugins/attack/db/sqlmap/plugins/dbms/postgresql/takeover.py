@@ -7,17 +7,12 @@ See the file 'LICENSE' for copying permission
 
 import os
 
-from lib.core.common import Backend
-from lib.core.common import checkFile
-from lib.core.common import decloakToTemp
-from lib.core.common import randomStr
-from lib.core.data import kb
-from lib.core.data import logger
-from lib.core.data import paths
+from lib.core.common import Backend, checkFile, decloakToTemp, randomStr
+from lib.core.data import kb, logger, paths
 from lib.core.enums import OS
-from lib.core.exception import SqlmapSystemException
-from lib.core.exception import SqlmapUnsupportedFeatureException
+from lib.core.exception import SqlmapSystemException, SqlmapUnsupportedFeatureException
 from lib.request import inject
+
 from plugins.generic.takeover import Takeover as GenericTakeover
 
 

@@ -25,17 +25,17 @@ import msgpack
 from w3af.core.controllers.core_helpers.not_found.get_clean_body import get_clean_body
 
 
-class FourOhFourResponse(object):
+class FourOhFourResponse:
     __slots__ = (
-        "_http_response",
         "_clean_body",
+        "_http_response",
+        "code",
         "content_type",
-        "normalized_path",
-        "url",
         "diff",
         "diff_with_id",
         "id",
-        "code",
+        "normalized_path",
+        "url",
     )
 
     def __init__(

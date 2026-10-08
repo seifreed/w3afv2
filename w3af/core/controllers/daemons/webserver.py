@@ -20,13 +20,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import os
-import time
-import socket
-import select
-import threading
-import mimetypes
 import http.server
+import mimetypes
+import os
+import select
+import socket
+import threading
+import time
 
 import w3af.core.controllers.output_manager as om
 
@@ -92,7 +92,7 @@ class HTTPServer(http.server.HTTPServer):
 
         try:
             request, client_address = self.get_request()
-        except socket.error:
+        except OSError:
             return
 
         if self.verify_request(request, client_address):
@@ -126,7 +126,7 @@ class WebHandler(http.server.BaseHTTPRequestHandler):
         else:
             try:
                 f = open(self.server.webroot + os.path.sep + self.path[1:])
-            except IOError:
+            except OSError:
                 try:
                     self.send_error(404, "File Not Found: %s" % self.path)
                 except Exception as e:
@@ -153,7 +153,6 @@ class WebHandler(http.server.BaseHTTPRequestHandler):
             self.close_connection = 1
             self.rfile.close()
             self.wfile.close()
-        return
 
     def log_message(self, fmt, *args):
         """

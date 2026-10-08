@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 test_HTTPResponse.py
 
@@ -20,20 +19,20 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import unittest
-import pickle
 import os
+import pickle
+import unittest
 from random import choice
 
 import msgpack
 from nose.plugins.attrib import attr
 from nose.plugins.skip import SkipTest
 
-from w3af.core.data.url.HTTPResponse import HTTPResponse, DEFAULT_CHARSET
-from w3af.core.data.misc.encoding import smart_unicode, ESCAPED_CHAR
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.dc.headers import Headers
 from w3af import ROOT_PATH
+from w3af.core.data.dc.headers import Headers
+from w3af.core.data.misc.encoding import ESCAPED_CHAR, smart_unicode
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.url.HTTPResponse import DEFAULT_CHARSET, HTTPResponse
 
 TEST_RESPONSES = {
     "hebrew": ("ולהכיר טוב יותר את המוסכמות, האופי", "Windows-1255"),
@@ -265,7 +264,7 @@ class TestHTTPResponse(unittest.TestCase):
         msg = "D\xe9plac\xe9 Temporairement"
         resp = HTTPResponse(200, "", headers, url, url, msg=msg)
 
-        expected_dump = "HTTP/1.1 200 Déplacé Temporairement\r\n".encode("utf8")
+        expected_dump = "HTTP/1.1 200 Déplacé Temporairement\r\n".encode()
 
         self.assertEqual(resp.dump_response_head(), expected_dump)
 

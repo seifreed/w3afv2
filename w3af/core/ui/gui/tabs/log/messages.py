@@ -21,10 +21,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import gtk
 
-from w3af.core.ui.gui.output.message_consumer import MessageConsumer
+from w3af.core.data.db.disk_list import DiskList
 from w3af.core.ui.gui import entries
 from w3af.core.ui.gui.common.searchable import Searchable
-from w3af.core.data.db.disk_list import DiskList
+from w3af.core.ui.gui.output.message_consumer import MessageConsumer
 
 
 class _LineScroller(gtk.TextView, MessageConsumer):
@@ -88,7 +88,7 @@ class _LineScroller(gtk.TextView, MessageConsumer):
         :param msg: The message to add to the textview
         @returns: None
         """
-        yield super(_LineScroller, self).handle_message(msg)
+        yield super().handle_message(msg)
 
         textbuff = self.textbuffer
 

@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os.path
-
 from string import Template
 from xml.dom.minidom import *
 
@@ -43,7 +42,7 @@ except ImportError:
 from w3af import ROOT_PATH
 
 
-class helpRepository(object):
+class helpRepository:
     """
     This class wraps a help file and allows to extract context-related help objects
 
@@ -112,7 +111,7 @@ class helpRepository(object):
 helpMainRepository = helpRepository()
 
 
-class HelpContainer(object):
+class HelpContainer:
     """
     Container for help items.
     """

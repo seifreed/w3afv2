@@ -23,11 +23,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import queue
 
 import w3af.core.controllers.output_manager as om
+from w3af.core.controllers.profiling.took_helper import TookLine
+from w3af.core.data.fuzzer.utils import rand_alnum
 
 from .base_consumer import BaseConsumer, task_decorator
-from .constants import POISON_PILL, FORCE_LOGIN
-from w3af.core.data.fuzzer.utils import rand_alnum
-from w3af.core.controllers.profiling.took_helper import TookLine
+from .constants import FORCE_LOGIN, POISON_PILL
 
 
 class auth(BaseConsumer):
@@ -41,7 +41,7 @@ class auth(BaseConsumer):
         :param w3af_core: The w3af core that we'll use for status reporting
         :param timeout: The time to wait between each login check
         """
-        super(auth, self).__init__(
+        super().__init__(
             auth_plugins, w3af_core, thread_name=self.get_name(), create_pool=False
         )
 

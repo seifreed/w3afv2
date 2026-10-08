@@ -26,19 +26,19 @@ from nose.plugins.attrib import attr
 from w3af.core.controllers.misc_settings import MiscSettings
 from w3af.core.data.options.option_types import (
     BOOL,
-    INT,
+    COMBO,
     FLOAT,
-    STRING,
-    URL,
+    FORM_ID_LIST,
+    INPUT_FILE,
+    INT,
     IPPORT,
     LIST,
-    REGEX,
-    COMBO,
-    INPUT_FILE,
     OUTPUT_FILE,
     PORT,
+    REGEX,
+    STRING,
+    URL,
     URL_LIST,
-    FORM_ID_LIST,
 )
 
 OPTION_TYPES = (

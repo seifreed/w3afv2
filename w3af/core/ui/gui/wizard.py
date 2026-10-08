@@ -20,17 +20,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import gtk
-import os
 import cgi
+import os
+
+import gtk
 
 from w3af import ROOT_PATH
-from w3af.core.ui.gui import GUI_DATA_PATH
-from w3af.core.ui.gui import entries, confpanel, helpers
 from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.ui.gui import GUI_DATA_PATH, confpanel, entries, helpers
 
 
-class Quest(object):
+class Quest:
     def __init__(self, quest):
         self.quest = quest
         self.ptype = self.pname = None
@@ -44,7 +44,7 @@ class QuestOptions(gtk.VBox):
     def __init__(self, w3af, wizard):
         self.w3af = w3af
         self.wizard = wizard
-        super(QuestOptions, self).__init__()
+        super().__init__()
 
         self.widg = gtk.Label("")
         self.pack_start(self.widg)
@@ -126,7 +126,7 @@ class Wizard(entries.RememberingWindow):
     """
 
     def __init__(self, w3af, wizard):
-        super(Wizard, self).__init__(
+        super().__init__(
             w3af,
             "wizard",
             "w3af Wizard: " + wizard.get_name(),
@@ -255,7 +255,7 @@ class SimpleRadioButton(gtk.VBox):
     """Simple to use radiobutton."""
 
     def __init__(self, callback):
-        super(SimpleRadioButton, self).__init__()
+        super().__init__()
         self.selected = None
         self._rb = None
         self.callback = callback
@@ -281,7 +281,7 @@ class WizardChooser(entries.RememberingWindow):
     """
 
     def __init__(self, w3af):
-        super(WizardChooser, self).__init__(
+        super().__init__(
             w3af, "wizardchooser", "w3af - Wizard Chooser", "Wizards", guessResize=False
         )
         self.w3af = w3af

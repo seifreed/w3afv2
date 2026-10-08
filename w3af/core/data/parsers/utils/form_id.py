@@ -21,11 +21,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import json
-
 from collections import OrderedDict
 
 
-class FormID(object):
+class FormID:
     """
     This class describes the form attributes. This is usually used to call
     FormID.matches(FormIDMatcher) to verify if a form should be crawled or

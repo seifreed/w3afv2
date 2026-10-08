@@ -1,4 +1,3 @@
-# -*- coding: utf8 -*-
 """
 factory.py
 
@@ -21,18 +20,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import json
-
 import w3af.core.controllers.output_manager as om
-
-from w3af.core.data.dc.urlencoded_form import URLEncodedForm
-from w3af.core.data.dc.json_container import JSONContainer
-from w3af.core.data.dc.xmlrpc import XmlRpcContainer
-from w3af.core.data.dc.multipart_container import MultipartContainer
-from w3af.core.data.dc.headers import Headers
 from w3af.core.data.dc.generic.plain import PlainContainer
-from w3af.core.data.parsers.utils.form_params import FormParameters
+from w3af.core.data.dc.headers import Headers
+from w3af.core.data.dc.json_container import JSONContainer
+from w3af.core.data.dc.multipart_container import MultipartContainer
+from w3af.core.data.dc.urlencoded_form import URLEncodedForm
 from w3af.core.data.dc.utils.json_encoder import DateTimeJSONEncoder
+from w3af.core.data.dc.xmlrpc import XmlRpcContainer
+from w3af.core.data.parsers.utils.form_params import FormParameters
 
 POST_DATA_CONTAINERS = (
     MultipartContainer,
@@ -56,14 +52,13 @@ def dc_from_hdrs_post(headers, post_data):
     for pdc_klass in POST_DATA_CONTAINERS:
         try:
             return pdc_klass.from_postdata(headers, post_data)
-        except (ValueError, TypeError) as e:
+        except (ValueError, TypeError):
             pass
-    else:
-        content_type, _ = headers.iget("content-type", "None")
-        msg = 'Unknown post-data. Content-type: "%s" and/or post-data "%s"'
-        om.out.debug(msg % (content_type, post_data[:50]))
+    content_type, _ = headers.iget("content-type", "None")
+    msg = 'Unknown post-data. Content-type: "%s" and/or post-data "%s"'
+    om.out.debug(msg % (content_type, post_data[:50]))
 
-        return PlainContainer.from_postdata(headers, post_data)
+    return PlainContainer.from_postdata(headers, post_data)
 
 
 def dc_from_form_params(form_parameters):

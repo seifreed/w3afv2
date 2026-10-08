@@ -20,16 +20,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import inspect
 import copy
+import inspect
 import threading
 
-import w3af.core.data.kb.knowledge_base as kb
 import w3af.core.controllers.output_manager as om
-
-from w3af.core.controllers.plugins.plugin import Plugin
-from w3af.core.controllers.misc.safe_deepcopy import safe_deepcopy
+import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import FourOhFourDetectionException
+from w3af.core.controllers.misc.safe_deepcopy import safe_deepcopy
+from w3af.core.controllers.plugins.plugin import Plugin
 from w3af.core.data.fuzzer.utils import rand_alnum
 
 
@@ -108,7 +107,7 @@ class AuditPlugin(Plugin):
             if self._audit_return_vulns_in_caller():
                 self._newly_found_vulns.append(info)
 
-        return super(AuditPlugin, self).kb_append_uniq(location_a, location_b, info)
+        return super().kb_append_uniq(location_a, location_b, info)
 
     def kb_append(self, location_a, location_b, info):
         """
@@ -118,7 +117,7 @@ class AuditPlugin(Plugin):
             if self._audit_return_vulns_in_caller():
                 self._newly_found_vulns.append(info)
 
-        super(AuditPlugin, self).kb_append(location_a, location_b, info)
+        super().kb_append(location_a, location_b, info)
 
     def audit_with_copy(self, fuzzable_request, orig_resp, debugging_id):
         """

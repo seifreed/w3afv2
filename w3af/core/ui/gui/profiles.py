@@ -19,12 +19,13 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import gtk
 import cgi
 
-from w3af.core.ui.gui import helpers, entries
+import gtk
+
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.profile.profile import profile as profile
+from w3af.core.ui.gui import entries, helpers
 
 
 class ProfileList(gtk.TreeView):
@@ -39,7 +40,7 @@ class ProfileList(gtk.TreeView):
     def __init__(self, w3af, initial=None):
         self.w3af = w3af
 
-        super(ProfileList, self).__init__()
+        super().__init__()
 
         # A list to store the several "initial" profiles
         self._parameter_profile = initial

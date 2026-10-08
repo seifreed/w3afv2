@@ -22,12 +22,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import copy
 
-import w3af.core.data.constants.severity as severity
-
-from w3af.core.data.kb.vuln import Vuln
-from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
+from w3af.core.controllers.exceptions import HTTPRequestException, ScanMustStopException
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal
-from w3af.core.controllers.exceptions import ScanMustStopException, HTTPRequestException
+from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
+from w3af.core.data.constants import severity
+from w3af.core.data.kb.vuln import Vuln
 
 
 class un_ssl(AuditPlugin):

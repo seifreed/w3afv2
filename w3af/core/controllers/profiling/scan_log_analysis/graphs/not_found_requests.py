@@ -1,7 +1,6 @@
 import plotille
-
 from utils.graph import num_formatter
-from utils.utils import get_line_epoch, InvalidTimeStamp
+from utils.utils import InvalidTimeStamp, get_line_epoch
 
 NOT_FOUND_REQUEST = "Received response for 404 URL"
 
@@ -36,7 +35,7 @@ def draw_not_found_requests_over_time(scan_log_filename, scan):
     requests_by_minute = get_not_found_requests_over_time_data(scan_log_filename, scan)
 
     print("HTTP requests sent by is_404() by minute")
-    print("")
+    print()
 
     fig = plotille.Figure()
     fig.width = 90
@@ -51,5 +50,5 @@ def draw_not_found_requests_over_time(scan_log_filename, scan):
 
     fig.plot(range(len(requests_by_minute)), requests_by_minute)
 
-    print((fig.show()))
-    print("")
+    print(fig.show())
+    print()

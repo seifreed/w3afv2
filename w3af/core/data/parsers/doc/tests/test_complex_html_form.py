@@ -25,11 +25,10 @@ import os
 import unittest
 
 import w3af.core.data.kb.config as cf
-
 from w3af import ROOT_PATH
 from w3af.core.data.parsers.doc.html import HTMLParser
-from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.doc.tests.test_sgml import build_http_response
+from w3af.core.data.parsers.doc.url import URL
 
 
 class RaiseHTMLParser(HTMLParser):

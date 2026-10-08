@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 test_xurllib_timeout.py
 
@@ -20,28 +19,28 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import socketserver
 import time
 import unittest
-import socketserver
+from unittest.mock import Mock
 
 from nose.plugins.attrib import attr
-from mock import Mock
 
-from w3af.core.data.url.extended_urllib import ExtendedUrllib
+from w3af.core.controllers.exceptions import HTTPRequestException, ScanMustStopException
+from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.constants import (
-    MAX_ERROR_COUNT,
     DEFAULT_TIMEOUT,
+    MAX_ERROR_COUNT,
     MIN_TIMEOUT,
     TIMEOUT_ADJUST_LIMIT,
     TIMEOUT_MULT_CONST,
     TIMEOUT_UPDATE_ELAPSED_MIN,
 )
+from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.data.url.handlers.keepalive.connection_manager import ConnectionManager
-from w3af.core.data.url.tests.helpers.upper_daemon import UpperDaemon
 from w3af.core.data.url.tests.helpers.ssl_daemon import RawSSLDaemon
+from w3af.core.data.url.tests.helpers.upper_daemon import UpperDaemon
 from w3af.core.data.url.tests.test_xurllib import TimeoutTCPHandler
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.controllers.exceptions import HTTPRequestException, ScanMustStopException
 
 
 @attr("moth")

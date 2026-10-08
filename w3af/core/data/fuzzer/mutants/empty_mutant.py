@@ -20,9 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from w3af.core.data.dc.generic.nr_kv_container import NonRepeatKeyValueContainer
 from w3af.core.data.fuzzer.mutants.mutant import Mutant
 from w3af.core.data.request.empty_request import EmptyFuzzableRequest
-from w3af.core.data.dc.generic.nr_kv_container import NonRepeatKeyValueContainer
 
 
 class EmptyMutant(Mutant):
@@ -35,7 +35,7 @@ class EmptyMutant(Mutant):
         self._dc = NonRepeatKeyValueContainer()
 
         freq = freq or EmptyFuzzableRequest()
-        super(EmptyMutant, self).__init__(freq)
+        super().__init__(freq)
 
     def set_dc(self, data_container):
         self._dc = data_container

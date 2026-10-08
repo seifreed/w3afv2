@@ -19,13 +19,12 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import unittest
 import os
+import unittest
 
 from nose.plugins.attrib import attr
 
 from w3af import ROOT_PATH
-from w3af.core.controllers.w3afCore import w3afCore
 from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.controllers.plugins.auth_plugin import AuthPlugin
@@ -36,26 +35,25 @@ from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.controllers.plugins.mangle_plugin import ManglePlugin
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
-
+from w3af.core.controllers.w3afCore import w3afCore
 from w3af.core.data.options.option_types import (
     BOOL,
-    INT,
+    COMBO,
     FLOAT,
-    STRING,
-    URL,
+    HEADER,
+    INPUT_FILE,
+    INT,
+    IP,
     IPPORT,
     LIST,
-    REGEX,
-    COMBO,
-    INPUT_FILE,
     OUTPUT_FILE,
     PORT,
-    IP,
     QUERY_STRING,
-    HEADER,
+    REGEX,
+    STRING,
+    URL,
 )
-
-from w3af.plugins.tests.helper import PluginTest, PluginConfig
+from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 PLUGIN_TYPES = {
     "attack": AttackPlugin,

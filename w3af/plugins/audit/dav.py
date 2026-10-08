@@ -22,14 +22,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import copy
 
-import w3af.core.data.constants.severity as severity
-
-from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
-from w3af.core.data.fuzzer.utils import rand_alpha, rand_alnum
-from w3af.core.data.dc.headers import Headers
-from w3af.core.data.kb.vuln import Vuln
-from w3af.core.data.kb.info import Info
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
+from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
+from w3af.core.data.constants import severity
+from w3af.core.data.dc.headers import Headers
+from w3af.core.data.fuzzer.utils import rand_alnum, rand_alpha
+from w3af.core.data.kb.info import Info
+from w3af.core.data.kb.vuln import Vuln
 
 
 class dav(AuditPlugin):

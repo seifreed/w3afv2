@@ -21,18 +21,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import w3af.core.data.kb.knowledge_base as kb
-import w3af.core.data.constants.severity as severity
-
-from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
-from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.controllers.configurable import Configurable
 from w3af.core.controllers.misc.number_generator import consecutive_number_generator
+from w3af.core.data.constants import severity
+from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
+from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
+from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
-from w3af.core.data.parsers.doc.url import parse_qs
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.parsers.doc.url import URL, parse_qs
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
 class BaseTemplate(Configurable):

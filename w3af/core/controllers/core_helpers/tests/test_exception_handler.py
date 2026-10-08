@@ -21,23 +21,23 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import sys
 import pickle
-import unittest
+import sys
 import threading
+import unittest
 
 from nose.plugins.attrib import attr
 
-from w3af.core.controllers.w3afCore import w3afCore
 from w3af.core.controllers.core_helpers.exception_handler import (
-    ExceptionHandler,
     ExceptionData,
+    ExceptionHandler,
 )
 from w3af.core.controllers.core_helpers.status import CoreStatus
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.dc.headers import Headers
+from w3af.core.controllers.w3afCore import w3afCore
 from w3af.core.data.dc.generic.kv_container import KeyValueContainer
+from w3af.core.data.dc.headers import Headers
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
 class TestExceptionHandler(unittest.TestCase):

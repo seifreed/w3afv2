@@ -101,7 +101,7 @@ def get_payload_desc(payload_name):
     'This payload shows TCP socket information'
     """
 
-    class FakePayload(object):
+    class FakePayload:
         def __init__(self):
             self.worker_pool = None
 

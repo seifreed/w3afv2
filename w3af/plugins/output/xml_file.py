@@ -20,39 +20,36 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import base64
 import os
+import subprocess
 import sys
 import time
-import base64
-import jinja2
-
-import subprocess
-
-import lz4.frame
-
-from jinja2 import Environment, FileSystemLoader, StrictUndefined
-from unicodedata import category
-from tempfile import NamedTemporaryFile
 from functools import wraps
+from tempfile import NamedTemporaryFile
+from unicodedata import category
 
+import jinja2
+import lz4.frame
+from jinja2 import Environment, FileSystemLoader, StrictUndefined
+
+import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
-import w3af.core.controllers.output_manager as om
-
 from w3af import ROOT_PATH
-from w3af.core.controllers.plugins.output_plugin import OutputPlugin
-from w3af.core.controllers.misc import get_w3af_version
 from w3af.core.controllers.exceptions import DBException
+from w3af.core.controllers.misc import get_w3af_version
 from w3af.core.controllers.misc.temp_dir import get_temp_dir
-from w3af.core.data.db.url_tree import URLTree
-from w3af.core.data.db.history import HistoryItem, TraceReadException
-from w3af.core.data.db.disk_list import DiskList
-from w3af.core.data.options.opt_factory import opt_factory
-from w3af.core.data.options.option_types import OUTPUT_FILE
-from w3af.core.data.options.option_list import OptionList
-from w3af.core.data.misc.encoding import smart_str_ignore, smart_unicode
-from w3af.core.data.misc.dotdict import dotdict
+from w3af.core.controllers.plugins.output_plugin import OutputPlugin
 from w3af.core.data.constants.encodings import DEFAULT_ENCODING
+from w3af.core.data.db.disk_list import DiskList
+from w3af.core.data.db.history import HistoryItem, TraceReadException
+from w3af.core.data.db.url_tree import URLTree
+from w3af.core.data.misc.dotdict import dotdict
+from w3af.core.data.misc.encoding import smart_str_ignore, smart_unicode
+from w3af.core.data.options.opt_factory import opt_factory
+from w3af.core.data.options.option_list import OptionList
+from w3af.core.data.options.option_types import OUTPUT_FILE
 
 TIME_FORMAT = "%a %b %d %H:%M:%S %Y"
 
@@ -491,7 +488,7 @@ class xml_file(OutputPlugin):
         """
 
 
-class FindingsCache(object):
+class FindingsCache:
 
     COMPRESSION_LEVEL = 2
 
@@ -514,7 +511,7 @@ class FindingsCache(object):
 
         try:
             node = lz4.frame.decompress(open(filename, "rb").read())
-        except (IOError, RuntimeError):
+        except (OSError, RuntimeError):
             return None
 
         return node.decode("utf-8")
@@ -534,7 +531,7 @@ class FindingsCache(object):
         return os.listdir(FindingsCache.get_cache_path())
 
 
-class XMLNode(object):
+class XMLNode:
 
     TEMPLATE = None
     TEMPLATE_INST = None
@@ -575,7 +572,7 @@ class CachedXMLNode(XMLNode):
 
         try:
             node = lz4.frame.decompress(open(filename, "rb").read())
-        except (IOError, RuntimeError):
+        except (OSError, RuntimeError):
             return None
 
         return node.decode("utf-8")
@@ -597,7 +594,7 @@ class HTTPTransaction(CachedXMLNode):
                     information from the cache and return the XML node.
 
         """
-        super(HTTPTransaction, self).__init__(jinja2_env)
+        super().__init__(jinja2_env)
         self._id = _id
 
     def get_cache_key(self):
@@ -688,7 +685,7 @@ class ScanInfo(CachedXMLNode):
         :param plugins_dict: The plugins which were enabled
         :param options_dict: The options for each plugin
         """
-        super(ScanInfo, self).__init__(jinja2_env)
+        super().__init__(jinja2_env)
         self._scan_target = scan_target
         self._plugins_dict = plugins_dict
         self._options_dict = options_dict
@@ -725,7 +722,7 @@ class ScanStatus(XMLNode):
         :param status: The w3af status as reported by the w3af core
         :param total_urls: The number of identified URLs
         """
-        super(ScanStatus, self).__init__(jinja2_env)
+        super().__init__(jinja2_env)
         self._status = status
         self._total_urls = total_urls
         self._known_urls = known_urls
@@ -783,7 +780,7 @@ class Finding(XMLNode):
         Represents a finding in the w3af framework, which will be serialized
         as an XML node
         """
-        super(Finding, self).__init__(jinja2_env)
+        super().__init__(jinja2_env)
         self._info = info
 
     def to_string(self):

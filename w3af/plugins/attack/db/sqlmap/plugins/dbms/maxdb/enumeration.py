@@ -5,22 +5,23 @@ Copyright (c) 2006-2017 sqlmap developers (http://sqlmap.org/)
 See the file 'LICENSE' for copying permission
 """
 
-from lib.core.common import randomStr
-from lib.core.common import readInput
-from lib.core.common import safeSQLIdentificatorNaming
-from lib.core.common import unsafeSQLIdentificatorNaming
-from lib.core.data import conf
-from lib.core.data import kb
-from lib.core.data import logger
-from lib.core.data import paths
-from lib.core.data import queries
+from lib.core.common import (
+    randomStr,
+    readInput,
+    safeSQLIdentificatorNaming,
+    unsafeSQLIdentificatorNaming,
+)
+from lib.core.data import conf, kb, logger, paths, queries
 from lib.core.enums import DBMS
-from lib.core.exception import SqlmapMissingMandatoryOptionException
-from lib.core.exception import SqlmapNoneDataException
-from lib.core.exception import SqlmapUserQuitException
+from lib.core.exception import (
+    SqlmapMissingMandatoryOptionException,
+    SqlmapNoneDataException,
+    SqlmapUserQuitException,
+)
 from lib.core.settings import CURRENT_DB
 from lib.utils.brute import columnExists
 from lib.utils.pivotdumptable import pivotDumpTable
+
 from plugins.generic.enumeration import Enumeration as GenericEnumeration
 
 

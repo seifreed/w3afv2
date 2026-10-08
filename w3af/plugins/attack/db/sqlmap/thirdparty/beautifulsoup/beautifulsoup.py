@@ -82,12 +82,12 @@ __version__ = "3.2.1"
 __copyright__ = "Copyright (c) 2004-2012 Leonard Richardson"
 __license__ = "New-style BSD"
 
-from sgmllib import SGMLParser, SGMLParseError
-import codecs
 import _markupbase
-import types
+import codecs
 import re
+
 import sgmllib
+from sgmllib import SGMLParseError, SGMLParser
 
 try:
     from html.entities import name2codepoint
@@ -113,7 +113,7 @@ def _match_css_class(str):
 # First, the classes that represent markup elements.
 
 
-class PageElement(object):
+class PageElement:
     """Contains the navigational information for some part of the page
     (either a tag or a piece of text)"""
 
@@ -440,7 +440,7 @@ class PageElement(object):
         return s
 
     BARE_AMPERSAND_OR_BRACKET = re.compile(
-        "([<>]|" + "&(?!#\d+;|#x[0-9a-fA-F]+;|\w+;)" + ")"
+        "([<>]|" + r"&(?!#\d+;|#x[0-9a-fA-F]+;|\w+;)" + ")"
     )
 
     def _sub_entity(self, x):
@@ -569,7 +569,7 @@ class Tag(PageElement):
         # Convert any HTML, XML, or numeric entities in the attribute values.
         convert = lambda k_val: (
             k_val[0],
-            re.sub("&(#\d+|#x[0-9a-fA-F]+|\w+);", self._convertEntities, k_val[1]),
+            re.sub(r"&(#\d+|#x[0-9a-fA-F]+|\w+);", self._convertEntities, k_val[1]),
         )
         self.attrs = list(map(convert, self.attrs))
 
@@ -644,7 +644,7 @@ class Tag(PageElement):
         self._getAttrMap()
         self.attrMap[key] = value
         found = False
-        for i in range(0, len(self.attrs)):
+        for i in range(len(self.attrs)):
             if self.attrs[i][0] == key:
                 self.attrs[i] = (key, value)
                 found = True
@@ -696,7 +696,7 @@ class Tag(PageElement):
             or len(self) != len(other)
         ):
             return False
-        for i in range(0, len(self.contents)):
+        for i in range(len(self.contents)):
             if self.contents[i] != other.contents[i]:
                 return False
         return True
@@ -890,7 +890,7 @@ class Tag(PageElement):
     def _getAttrMap(self):
         """Initializes a map representation of this tag's attributes,
         if not already initialized."""
-        if not getattr(self, "attrMap"):
+        if not self.attrMap:
             self.attrMap = {}
             for key, value in self.attrs:
                 self.attrMap[key] = value
@@ -1092,7 +1092,7 @@ class BeautifulStoneSoup(Tag, SGMLParser):
 
     MARKUP_MASSAGE = [
         (re.compile("(<[^<>]*)/>"), lambda x: x.group(1) + " />"),
-        (re.compile("<!\s+([^<>]*)>"), lambda x: "<!" + x.group(1) + ">"),
+        (re.compile(r"<!\s+([^<>]*)>"), lambda x: "<!" + x.group(1) + ">"),
     ]
 
     ROOT_TAG_NAME = "[document]"
@@ -1329,7 +1329,7 @@ class BeautifulStoneSoup(Tag, SGMLParser):
         if not inclusivePop:
             numPops = numPops - 1
 
-        for i in range(0, numPops):
+        for i in range(numPops):
             mostRecentTag = self.popTag()
         return mostRecentTag
 
@@ -1655,7 +1655,7 @@ class BeautifulSoup(BeautifulStoneSoup):
     )
 
     # Used to detect the charset in a META tag; see start_meta
-    CHARSET_RE = re.compile("((^|;)\s*charset=)([^;]*)", re.M)
+    CHARSET_RE = re.compile(r"((^|;)\s*charset=)([^;]*)", re.MULTILINE)
 
     def start_meta(self, attrs):
         """Beautiful Soup can detect a charset included in a META tag,
@@ -1666,7 +1666,7 @@ class BeautifulSoup(BeautifulStoneSoup):
         contentTypeIndex = None
         tagNeedsEncodingSubstitution = False
 
-        for i in range(0, len(attrs)):
+        for i in range(len(attrs)):
             key, value = attrs[i]
             key = key.lower()
             if key == "http-equiv":
@@ -1701,7 +1701,6 @@ class BeautifulSoup(BeautifulStoneSoup):
                         self.declaredHTMLEncoding = newCharset
                         self._feed(self.declaredHTMLEncoding)
                         raise StopParsing
-                    pass
         tag = self.unknown_starttag("meta", attrs)
         if tag and tagNeedsEncodingSubstitution:
             tag.containsSubstitutions = True
@@ -1958,7 +1957,7 @@ class UnicodeDammit:
             u = self._toUnicode(markup, proposed)
             self.markup = u
             self.originalEncoding = proposed
-        except Exception as e:
+        except Exception:
             # print "That didn't work!"
             # print e
             return None
@@ -2043,14 +2042,13 @@ class UnicodeDammit:
                 xml_data = str(xml_data[3:], "utf-8").encode("utf-8")
             else:
                 sniffed_xml_encoding = "ascii"
-                pass
         except:
             xml_encoding_match = None
-        xml_encoding_match = re.compile("^<\?.*encoding=['\"](.*?)['\"].*\?>").match(
+        xml_encoding_match = re.compile("^<\\?.*encoding=['\"](.*?)['\"].*\\?>").match(
             xml_data
         )
         if not xml_encoding_match and isHTML:
-            regexp = re.compile("<\s*meta[^>]+charset=([^>]*?)[;'\">]", re.I)
+            regexp = re.compile("<\\s*meta[^>]+charset=([^>]*?)[;'\">]", re.IGNORECASE)
             xml_encoding_match = regexp.search(xml_data)
         if xml_encoding_match is not None:
             xml_encoding = xml_encoding_match.groups()[0].lower()
@@ -2358,7 +2356,6 @@ class UnicodeDammit:
                 254,
                 255,
             )
-            import string
 
             c.EBCDIC_TO_ASCII_MAP = str.maketrans(
                 "".join(map(chr, list(range(256)))), "".join(map(chr, emap))
@@ -2409,4 +2406,4 @@ if __name__ == "__main__":
     import sys
 
     soup = BeautifulSoup(sys.stdin)
-    print((soup.prettify()))
+    print(soup.prettify())

@@ -20,8 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from .ubuntu1204 import Ubuntu1204
 from .system_info import distribution_matches
+from .ubuntu1204 import Ubuntu1204
 
 
 class Debian80(Ubuntu1204):

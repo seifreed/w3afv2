@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 
 from w3af import ROOT_PATH
-from w3af.plugins.tests.helper import PluginTest, PluginConfig, MockResponse
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 
 class TestPHPInfo516(PluginTest):

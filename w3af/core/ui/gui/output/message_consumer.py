@@ -19,21 +19,21 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import gobject
 import queue
 
-from w3af.core.ui.gui.output.gtk_output import subscribe_to_messages
-from w3af.core.ui.gui.output.gtk_output import Message
+import gobject
+
+from w3af.core.ui.gui.output.gtk_output import Message, subscribe_to_messages
 
 
-class MessageConsumer(object):
+class MessageConsumer:
     """Defines a base message consumer
 
     :author: Andres Riancho <andres.riancho@gmail.com>
     """
 
     def __init__(self):
-        super(MessageConsumer, self).__init__()
+        super().__init__()
 
         # get the messages
         subscribe_to_messages(self._message_observer)

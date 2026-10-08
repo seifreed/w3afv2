@@ -1,10 +1,12 @@
 import re
-
-from utils.utils import get_path
-from utils.output import ListOutput, ListOutputItem
 from functools import cmp_to_key
 
-HTTP_METHOD_URL_RE = re.compile('\] (.*?) (.*?) (with data: ".*?" )?returned HTTP code')
+from utils.output import ListOutput, ListOutputItem
+from utils.utils import get_path
+
+HTTP_METHOD_URL_RE = re.compile(
+    r'\] (.*?) (.*?) (with data: ".*?" )?returned HTTP code'
+)
 HTTP_CODE_RE = re.compile('returned HTTP code "(.*?)"')
 FROM_CACHE = "from_cache=1"
 

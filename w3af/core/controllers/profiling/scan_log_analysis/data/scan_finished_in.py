@@ -1,7 +1,7 @@
 import re
 
 from utils.output import KeyValueOutput
-from utils.utils import get_first_timestamp, get_last_timestamp, epoch_to_string
+from utils.utils import epoch_to_string, get_first_timestamp, get_last_timestamp
 
 SCAN_FINISHED_IN = re.compile("Scan finished in (.*).")
 

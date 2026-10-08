@@ -20,12 +20,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
-import urllib.request, urllib.parse, urllib.error
-
-from nose.plugins.attrib import attr
+import urllib.error
+import urllib.parse
+import urllib.request
 from email.header import decode_header
 
-from w3af.plugins.tests.helper import PluginTest, PluginConfig, MockResponse
+from nose.plugins.attrib import attr
+
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 
 class ResponseSplittingMockResponse(MockResponse):

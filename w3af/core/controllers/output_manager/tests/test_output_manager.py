@@ -1,4 +1,3 @@
-# -*- coding: utf8 -*-
 """
 test_output_manager.py
 
@@ -20,18 +19,17 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import unittest
 import multiprocessing
+import unittest
+from unittest.mock import MagicMock, Mock
 
-from mock import MagicMock, Mock
 from nose.plugins.attrib import attr
 from tblib.decorators import Error
 
 import w3af.core.controllers.output_manager as om
-
-from w3af.core.controllers.w3afCore import w3afCore
 from w3af.core.controllers.output_manager import log_sink_factory
 from w3af.core.controllers.threads.decorators import apply_with_return_error
+from w3af.core.controllers.w3afCore import w3afCore
 
 
 def send_log_message(msg):
@@ -130,7 +128,7 @@ class TestOutputManager(unittest.TestCase):
         plugin_action = MagicMock()
         plugin_get_name = MagicMock(return_value="fake")
         setattr(plugin, action, plugin_action)
-        setattr(plugin, "get_name", plugin_get_name)
+        plugin.get_name = plugin_get_name
 
         # Invoke action
         om.manager._output_plugin_instances = [
@@ -148,7 +146,7 @@ class TestOutputManager(unittest.TestCase):
 
     def test_error_handling(self):
 
-        class InvalidPlugin(object):
+        class InvalidPlugin:
             def flush(self):
                 pass
 

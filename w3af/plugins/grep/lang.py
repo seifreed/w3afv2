@@ -24,9 +24,8 @@ import guess_language
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
-
-from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
+from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 
 UNKNOWN = "unknown"
 

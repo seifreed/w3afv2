@@ -21,12 +21,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
-import time
 import shelve
 import tempfile
+import time
 
-from w3af.core.data.constants.severity import MEDIUM
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
+from w3af.core.data.constants.severity import MEDIUM
 
 DEBUG = "debug"
 INFORMATION = "information"
@@ -44,7 +44,7 @@ class RESTAPIOutput(OutputPlugin):
     """
 
     def __init__(self):
-        super(RESTAPIOutput, self).__init__()
+        super().__init__()
 
         self._db_backend = None
         self._log_id = -1
@@ -139,7 +139,7 @@ class RESTAPIOutput(OutputPlugin):
         self.log[_id] = m
 
 
-class Message(object):
+class Message:
     def __init__(self, msg_type, msg, _id):
         """
         :param msg_type: console, information, vulnerability, etc

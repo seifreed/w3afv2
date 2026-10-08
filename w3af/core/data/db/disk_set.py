@@ -33,7 +33,7 @@ class DiskSet(DiskList):
     """
 
     def __init__(self, table_prefix=None):
-        super(DiskSet, self).__init__(table_prefix=table_prefix)
+        super().__init__(table_prefix=table_prefix)
 
         self.lock = threading.RLock()
 
@@ -50,7 +50,7 @@ class DiskSet(DiskList):
             if self.__contains__(value):
                 return False
             else:
-                super(DiskSet, self).append(value)
+                super().append(value)
                 return True
 
     def update(self, value_list):

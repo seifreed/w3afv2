@@ -20,10 +20,13 @@ def detect(get_page):
         page, headers, code = get_page(get=vector)
         retval = (
             code in (400, 403, 501)
-            and re.search(r"Reference #[0-9a-f.]+", page or "", re.I) is not None
+            and re.search(r"Reference #[0-9a-f.]+", page or "", re.IGNORECASE)
+            is not None
         )
         retval |= (
-            re.search(r"AkamaiGHost", headers.get(HTTP_HEADER.SERVER, ""), re.I)
+            re.search(
+                r"AkamaiGHost", headers.get(HTTP_HEADER.SERVER, ""), re.IGNORECASE
+            )
             is not None
         )
         if retval:

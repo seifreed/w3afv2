@@ -1,8 +1,10 @@
-import urllib.request, urllib.error, urllib.parse
 import os
-import zipfile
 import shelve
 import sys
+import urllib.error
+import urllib.parse
+import urllib.request
+import zipfile
 
 ALEXA_TOP1M = "http://s3.amazonaws.com/alexa-static/top-1m.csv.zip"
 ALEXA_FILE = "top-1m.csv"

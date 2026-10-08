@@ -19,7 +19,9 @@ def detect(get_page):
         page, _, _ = get_page(get=vector)
         retval = (
             re.search(
-                r"has been blocked in accordance with company policy", page or "", re.I
+                r"has been blocked in accordance with company policy",
+                page or "",
+                re.IGNORECASE,
             )
             is not None
         )

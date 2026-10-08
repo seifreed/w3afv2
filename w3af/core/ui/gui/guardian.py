@@ -19,23 +19,19 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import gtk
 import gobject
+import gtk
 
-import w3af.core.data.kb.knowledge_base as kb
 import w3af.core.data.kb
-
+import w3af.core.data.kb.knowledge_base as kb
+from w3af.core.data.constants.severity import HIGH, INFORMATION, LOW, MEDIUM
+from w3af.core.data.kb.kb_observer import KBObserver
+from w3af.core.data.kb.shell import Shell
 from w3af.core.ui.gui import helpers
 from w3af.core.ui.gui.exception_handling import handled
 
-from w3af.core.data.kb.vuln import Vuln
-from w3af.core.data.kb.info import Info
-from w3af.core.data.kb.shell import Shell
-from w3af.core.data.kb.kb_observer import KBObserver
-from w3af.core.data.constants.severity import INFORMATION, MEDIUM, HIGH, LOW
 
-
-class _Guarded(object):
+class _Guarded:
     """Helper for the guardian."""
 
     def __init__(self, objtype):
@@ -61,7 +57,7 @@ class FoundObjectsGuardian(gtk.HBox):
 
         :author: Facundo Batista <facundobatista =at= taniquetil.com.ar>
         """
-        super(FoundObjectsGuardian, self).__init__()
+        super().__init__()
         self.w3af = _w3af
 
         # tooltip
@@ -120,7 +116,7 @@ class FoundExceptionsStatusBar(gtk.EventBox):
     """
 
     def __init__(self, w3af):
-        super(FoundExceptionsStatusBar, self).__init__()
+        super().__init__()
         self.w3af = w3af
 
         self.hbox = gtk.HBox()
@@ -139,7 +135,7 @@ class FoundExceptionsStatusBar(gtk.EventBox):
     def show_all(self, num):
         """Updates the object and shows all."""
         self.exceptions.inc()
-        super(FoundExceptionsStatusBar, self).show_all()
+        super().show_all()
 
     def _report_bug(self, widg, evt):
         """User clicked on me, he wants to report a bug"""

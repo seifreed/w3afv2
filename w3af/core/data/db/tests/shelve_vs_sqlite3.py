@@ -1,6 +1,6 @@
-import time
 import shelve
 import sqlite3
+import time
 
 
 def _sqlite3_inserts():
@@ -11,7 +11,7 @@ def _sqlite3_inserts():
         "[key] VARCHAR(255) PRIMARY KEY NOT NULL, "
         "[value] VARCHAR(255) NOT NULL)"
     )
-    for i in range(0, 1000000):
+    for i in range(1000000):
         cur.execute(
             "INSERT INTO [mydict] (key, value) VALUES (?, ?)", (str(i), str(i * 2))
         )
@@ -22,7 +22,7 @@ def _sqlite3_inserts():
 
 def _shelve_inserts():
     d = shelve.open("debug.shelf")
-    for i in range(0, 1000000):
+    for i in range(1000000):
         d[str(i)] = str(i * 2)
     d.close()
 
@@ -33,7 +33,7 @@ def measure(what, func):
     func()
     end = time.time()
 
-    print(("%s took %s seconds" % (what, end - start)))
+    print("%s took %s seconds" % (what, end - start))
 
 
 if __name__ == "__main__":

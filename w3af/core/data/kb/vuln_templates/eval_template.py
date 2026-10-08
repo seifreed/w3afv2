@@ -29,7 +29,7 @@ class EvalTemplate(BaseTemplate):
     """
 
     def __init__(self):
-        super(EvalTemplate, self).__init__()
+        super().__init__()
         self.name = self.get_vulnerability_name()
 
     def get_kb_location(self):

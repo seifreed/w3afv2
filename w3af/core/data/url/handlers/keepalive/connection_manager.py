@@ -1,14 +1,14 @@
 import time
+from functools import cmp_to_key
+
 import OpenSSL
 
 import w3af.core.controllers.output_manager as om
-
-from w3af.core.data.url.handlers.keepalive.utils import debug
 from w3af.core.controllers.exceptions import ConnectionPoolException
-from functools import cmp_to_key
+from w3af.core.data.url.handlers.keepalive.utils import debug
 
 
-class ConnectionManager(object):
+class ConnectionManager:
     """
     The connection manager must be able to:
         * Keep track of all existing HTTPConnections
@@ -468,9 +468,7 @@ class ConnectionManager(object):
         conns = set()
 
         for conn in self.iter_all_connections():
-            if host_port is None:
-                conns.add(conn)
-            elif conn.host_port == host_port:
+            if host_port is None or conn.host_port == host_port:
                 conns.add(conn)
 
         return conns

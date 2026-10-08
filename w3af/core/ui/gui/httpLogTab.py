@@ -20,24 +20,25 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import gtk
 import gobject
+import gtk
 import pango
 
-# The elements to create the req/res viewer
-from w3af.core.ui.gui.reqResViewer import ReqResViewer
+from w3af.core.controllers.exceptions import BaseFrameworkException, DBException
+from w3af.core.data.db.history import HistoryItem
+from w3af.core.data.options.opt_factory import opt_factory
+from w3af.core.data.options.option_list import OptionList
+from w3af.core.data.options.preferences import Preferences
 from w3af.core.ui.gui.entries import (
     EasyTable,
     RememberingHPaned,
     RememberingVPaned,
-    wrapperWidgets,
     TextInput,
+    wrapperWidgets,
 )
-from w3af.core.controllers.exceptions import BaseFrameworkException, DBException
-from w3af.core.data.db.history import HistoryItem
-from w3af.core.data.options.preferences import Preferences
-from w3af.core.data.options.opt_factory import opt_factory
-from w3af.core.data.options.option_list import OptionList
+
+# The elements to create the req/res viewer
+from w3af.core.ui.gui.reqResViewer import ReqResViewer
 
 
 class httpLogTab(RememberingHPaned):
@@ -49,7 +50,7 @@ class httpLogTab(RememberingHPaned):
 
     def __init__(self, w3af, padding=10, time_refresh=False):
         """Init object."""
-        super(httpLogTab, self).__init__(w3af, "pane-httplogtab", 300)
+        super().__init__(w3af, "pane-httplogtab", 300)
         self.w3af = w3af
         self._padding = padding
         self._lastId = 0
@@ -298,7 +299,6 @@ class httpLogTab(RememberingHPaned):
         historyItem = HistoryItem()
         historyItem.load(model[path][0])
         historyItem.toggle_mark(True)
-        return
 
     def edit_tag(self, cell, path, new_text, model):
         """Edit tag."""
@@ -306,7 +306,6 @@ class httpLogTab(RememberingHPaned):
         historyItem = HistoryItem()
         historyItem.load(model[path][0])
         historyItem.update_tag(new_text, True)
-        return
 
     def _showHideFilterBox(self, widget):
         """Show/hide advanced options."""
@@ -320,9 +319,8 @@ class httpLogTab(RememberingHPaned):
         self._searchText.set_text("")
         try:
             self.find_request_response()
-        except BaseFrameworkException as w3:
+        except BaseFrameworkException:
             self._empty_results()
-        return
 
     def refresh_results(self):
         """
@@ -401,7 +399,7 @@ class httpLogTab(RememberingHPaned):
             searchResultObjects = self._historyItem.find(
                 search_data, result_limit=5001, order_data=[("id", "")]
             )
-        except BaseFrameworkException as w3:
+        except BaseFrameworkException:
             self._empty_results()
             return
         if len(searchResultObjects) == 0:
@@ -506,7 +504,7 @@ class httpLogTab(RememberingHPaned):
             # from disk and if they aren't there an exception will rise
             history_item.request
             history_item.response
-        except IOError as ioe:
+        except OSError as ioe:
             self._show_message(_("Error"), str(ioe))
             return
 
@@ -533,7 +531,7 @@ class FilterOptions(gtk.HBox, Preferences):
     def show(self):
         # Init options
         self._init_optionsView()
-        super(FilterOptions, self).show()
+        super().show()
 
     def _init_optionsView(self):
         for section, optList in list(self.options.items()):

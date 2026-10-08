@@ -27,8 +27,8 @@
 ######################### END LICENSE BLOCK #########################
 
 from .charsetprober import CharSetProber
-from .constants import eNotMe
 from .compat import wrap_ord
+from .constants import eNotMe
 
 FREQ_CAT_NUM = 4
 
@@ -409,8 +409,7 @@ class Latin1Prober(CharSetProber):
             confidence = 0.0
         else:
             confidence = (self._mFreqCounter[3] - self._mFreqCounter[1] * 20.0) / total
-        if confidence < 0.0:
-            confidence = 0.0
+        confidence = max(confidence, 0.0)
         # lower the confidence of latin1 so that other more accurate
         # detector can take priority.
         confidence = confidence * 0.73

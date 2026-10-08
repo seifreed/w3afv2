@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from w3af.core.controllers.exceptions import BaseFrameworkException
 
 
-class BasePwdProfilingPlugin(object):
+class BasePwdProfilingPlugin:
     """
     This is the base plugin for all password profiling plugins.
 

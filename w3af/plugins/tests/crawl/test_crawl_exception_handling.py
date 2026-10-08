@@ -1,4 +1,3 @@
-# coding: utf8
 """
 test_crawl_exception_handling.py
 
@@ -26,9 +25,9 @@ import shutil
 from nose.plugins.attrib import attr
 
 from w3af import ROOT_PATH
-from w3af.plugins.tests.helper import PluginTest, PluginConfig
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.controllers.misc.file_lock import FileLock
+from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 
 @attr("smoke")
@@ -68,7 +67,7 @@ class TestCrawlExceptions(PluginTest):
 
         shutil.copy(self.src, self.dst)
 
-        super(TestCrawlExceptions, self).setUp()
+        super().setUp()
 
     def tearDown(self):
         if os.path.exists(self.dst):
@@ -80,7 +79,7 @@ class TestCrawlExceptions(PluginTest):
         # Allow others to create the failing_spider.py file
         self.lock.release()
 
-        super(TestCrawlExceptions, self).tearDown()
+        super().tearDown()
 
     def test_spider_found_urls(self):
         cfg = self._run_configs["cfg"]

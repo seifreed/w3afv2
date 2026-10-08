@@ -20,8 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import re
 import json
+import re
 
 FORM_ID_FORMAT_ERROR = """\
 The provided form-id JSON is incorrect. Form ids must be JSON objects with the
@@ -44,7 +44,7 @@ the form-id setting.
 """
 
 
-class FormIDMatcher(object):
+class FormIDMatcher:
     """
     This class describes the form attributes that the user wants to match.
 

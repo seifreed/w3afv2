@@ -1,10 +1,9 @@
 import os
 
 import w3af.core.controllers.output_manager as om
-
 from w3af import ROOT_PATH
-from w3af.core.ui.console.tables import table
 from w3af.core.controllers.threads.threadpool import return_args
+from w3af.core.ui.console.tables import table
 from w3af.plugins.attack.payloads.base_payload import Payload
 
 

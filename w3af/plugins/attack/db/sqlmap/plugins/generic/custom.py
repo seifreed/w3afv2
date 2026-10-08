@@ -8,18 +8,18 @@ See the file 'LICENSE' for copying permission
 import re
 import sys
 
-from lib.core.common import Backend
-from lib.core.common import dataToStdout
-from lib.core.common import getSQLSnippet
-from lib.core.common import getUnicode
-from lib.core.common import isStackingAvailable
-from lib.core.data import conf
-from lib.core.data import logger
+from lib.core.common import (
+    Backend,
+    dataToStdout,
+    getSQLSnippet,
+    getUnicode,
+    isStackingAvailable,
+)
+from lib.core.data import conf, logger
 from lib.core.dicts import SQL_STATEMENTS
 from lib.core.enums import AUTOCOMPLETE_TYPE
 from lib.core.exception import SqlmapNoneDataException
-from lib.core.settings import NULL
-from lib.core.settings import PARAMETER_SPLITTING_REGEX
+from lib.core.settings import NULL, PARAMETER_SPLITTING_REGEX
 from lib.core.shell import autoCompletion
 from lib.request import inject
 

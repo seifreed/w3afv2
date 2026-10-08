@@ -21,25 +21,24 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
-import random
+import gzip
 import os
+import random
+import re
 import shelve
 import time
-import re
-import gzip
-
-from string import printable
+import unittest
 from io import StringIO
+from string import printable
 
 from nose.plugins.skip import SkipTest
 
+from w3af.core.controllers.core_helpers.fingerprint_404 import IS_EQUAL_RATIO
+from w3af.core.controllers.core_helpers.not_found.get_clean_body import get_clean_body
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal
+from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.HTTPResponse import HTTPResponse
-from w3af.core.data.dc.headers import Headers
-from w3af.core.controllers.core_helpers.not_found.get_clean_body import get_clean_body
-from w3af.core.controllers.core_helpers.fingerprint_404 import IS_EQUAL_RATIO
 
 FAILED_FILENAME = "not-ex1st.html"
 
@@ -127,16 +126,18 @@ class Test404FuzzyStringMatch(unittest.TestCase):
         perc_fail = len(failed_domains) / total
         func_name = fuzzy_func.__name__
 
-        print(("%s fail rate: %s" % (func_name, perc_fail)))
-        print(("Total time: %ss" % (end - start)))
-        print(("Analyzed samples: %s" % total))
+        print("%s fail rate: %s" % (func_name, perc_fail))
+        print("Total time: %ss" % (end - start))
+        print("Analyzed samples: %s" % total)
 
         output = "/tmp/%s.txt" % func_name
         output_fh = open(output, "w")
-        for domain_a, domain_b in sorted(failed_domains):
-            output_fh.write("%s - %s\n" % (domain_a, domain_b))
+        output_fh.writelines(
+            "%s - %s\n" % (domain_a, domain_b)
+            for domain_a, domain_b in sorted(failed_domains)
+        )
 
-        print(("Failed domains stored at %s" % output))
+        print("Failed domains stored at %s" % output)
 
     def generic_fuzzy_string_diff_runner_against_404(self, fuzzy_func, ratio):
         """
@@ -165,16 +166,16 @@ class Test404FuzzyStringMatch(unittest.TestCase):
         perc_fail = len(failed_domains) / total
         func_name = fuzzy_func.__name__
 
-        print(("%s fail rate: %s" % (func_name, perc_fail)))
-        print(("Total time: %ss" % (end - start)))
-        print(("Analyzed samples: %s" % total))
+        print("%s fail rate: %s" % (func_name, perc_fail))
+        print("Total time: %ss" % (end - start))
+        print("Analyzed samples: %s" % total)
 
         output = "/tmp/%s.txt" % func_name
         output_fh = open(output, "w")
         for domain in sorted(failed_domains):
             output_fh.write("%s\n" % domain)
 
-        print(("Failed domains stored at %s" % output))
+        print("Failed domains stored at %s" % output)
         #
         #   Hah! At some point I thought this was possible!
         #
@@ -227,16 +228,16 @@ class Test404FuzzyStringMatch(unittest.TestCase):
         perc_fail = len(failed_domains) / total
         func_name = fuzzy_func.__name__
 
-        print(("%s fail rate: %s" % (func_name, perc_fail)))
-        print(("Total time: %ss" % (end - start)))
-        print(("Analyzed samples: %s" % total))
+        print("%s fail rate: %s" % (func_name, perc_fail))
+        print("Total time: %ss" % (end - start))
+        print("Analyzed samples: %s" % total)
 
         output = "/tmp/%s.txt" % func_name
         output_fh = open(output, "w")
         for domain in sorted(failed_domains):
             output_fh.write("%s\n" % domain)
 
-        print(("Failed domains stored at %s" % output))
+        print("Failed domains stored at %s" % output)
 
     def test_fuzzy_equal(self):
         """
@@ -328,8 +329,8 @@ class Test404FuzzyStringMatch(unittest.TestCase):
         """
 
         def tokenized_set(str_a, str_b, ratio):
-            set_a = set(re.split("(\w+)", str_a))
-            set_b = set(re.split("(\w+)", str_b))
+            set_a = set(re.split(r"(\w+)", str_a))
+            set_b = set(re.split(r"(\w+)", str_b))
             maxl = max(len(set_a), len(set_b))
             return (len(set_a.intersection(set_b)) / maxl) > ratio
 

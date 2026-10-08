@@ -22,15 +22,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 # For window creation
 import gtk
 import gtk.gdk
-import gobject
 import xdot
 
-from w3af.core.controllers.misc.fuzzy_string_cmp import relative_distance
 from w3af.core.controllers.exceptions import BaseFrameworkException
-
+from w3af.core.controllers.misc.fuzzy_string_cmp import relative_distance
+from w3af.core.ui.gui import entries
 from w3af.core.ui.gui.constants import W3AF_ICON
 from w3af.core.ui.gui.reqResViewer import reqResWindow
-from w3af.core.ui.gui import entries
 
 # Constants that define the distance available distance functions
 LEVENSHTEIN = 0
@@ -79,7 +77,7 @@ class distance_function_selector(entries.RememberingWindow):
     """
 
     def __init__(self, w3af, response_list):
-        super(distance_function_selector, self).__init__(
+        super().__init__(
             w3af,
             "distance_function_selector",
             "w3af - Select distance function",

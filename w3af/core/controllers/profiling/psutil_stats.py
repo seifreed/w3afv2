@@ -20,12 +20,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import json
 import os
 import sys
-import json
 
-from .utils.ps_mem import get_memory_usage, cmd_with_count
-from .utils import get_filename_fmt, dump_data_every_thread, cancel_thread
+from .utils import cancel_thread, dump_data_every_thread, get_filename_fmt
+from .utils.ps_mem import cmd_with_count, get_memory_usage
 
 PROFILING_OUTPUT_FMT = "/tmp/w3af-%s-%s.psutil"
 DELAY_MINUTES = 2
@@ -46,7 +46,7 @@ if user_wants_psutil():
         # User's don't need this module
         import psutil
     except ImportError as ie:
-        print(("Failed to import psutil: %s" % ie))
+        print("Failed to import psutil: %s" % ie)
         sys.exit(-1)
 
 

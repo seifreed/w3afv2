@@ -21,18 +21,18 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-from w3af.core.ui.gui.tools.helpers.fuzzygen import FuzzyGenerator, FuzzyError
+from w3af.core.ui.gui.tools.helpers.fuzzygen import FuzzyError, FuzzyGenerator
 
 
 class TestAll(unittest.TestCase):
     def test_simple_doubledollar(self):
-        fg = FuzzyGenerator("Hola \$mundo\ncruel", "")
+        fg = FuzzyGenerator("Hola \\$mundo\ncruel", "")
         self.assertEqual(fg.sane1, ["Hola $mundo\ncruel"])
 
-        fg = FuzzyGenerator("Hola \$mundo\ncruel\$", "")
+        fg = FuzzyGenerator("Hola \\$mundo\ncruel\\$", "")
         self.assertEqual(fg.sane1, ["Hola $mundo\ncruel$"])
 
-        fg = FuzzyGenerator("Hola \$mundo\ncruel\$asdfg\$\$gh", "")
+        fg = FuzzyGenerator("Hola \\$mundo\ncruel\\$asdfg\\$\\$gh", "")
         self.assertEqual(fg.sane1, ["Hola $mundo\ncruel$asdfg$$gh"])
 
     def test_quantities(self):
@@ -78,7 +78,7 @@ class TestAll(unittest.TestCase):
         self.assertRaises(FuzzyError, FuzzyGenerator, "", "aa $[].extend([1,2])$ bb")
 
     def test_inside_doubledollar(self):
-        fg = FuzzyGenerator("GET http://localhost/$['aaa\$b', 'b\$ccc']$ HTTP/1.0", "")
+        fg = FuzzyGenerator(r"GET http://localhost/$['aaa\$b', 'b\$ccc']$ HTTP/1.0", "")
         self.assertEqual(
             list(fg.generate()),
             [

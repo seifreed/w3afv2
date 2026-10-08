@@ -21,11 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import time
-
 from operator import xor
 
 import w3af.core.controllers.output_manager as om
-
 from w3af.core.controllers.misc.epoch_to_string import epoch_to_string
 from w3af.core.controllers.misc.number_generator import consecutive_number_generator
 
@@ -38,7 +36,7 @@ CRAWL = "crawl"
 GREP = "grep"
 
 
-class CoreStatus(object):
+class CoreStatus:
     """
     This class maintains the status of the w3afCore. During scan the different
     phases of the process will change the status (set) and the UI will be
@@ -856,7 +854,7 @@ class CoreStatus(object):
         return status_str % data
 
 
-class Adjustment(object):
+class Adjustment:
     def __init__(self, known=1.0, unknown=1.0, average=True):
         """
         Used to adjust the ETA calculations for two cases:

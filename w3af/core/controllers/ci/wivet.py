@@ -27,7 +27,7 @@ DEFAULT_WIVET = "wivet-fallback:80"
 def get_wivet_http(path="/"):
     try:
         wivet_netloc = open(HTTP_WIVET).read().strip()
-    except IOError:
+    except OSError:
         wivet_netloc = DEFAULT_WIVET
 
     return "http://%s%s" % (wivet_netloc, path)

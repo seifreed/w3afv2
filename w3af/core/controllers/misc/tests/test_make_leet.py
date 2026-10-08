@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """
 test_make_leet.py
 

@@ -22,9 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 import subprocess
 
+from w3af.core.data.db.startup_cfg import StartUpConfig
 from w3af.core.ui.tests.gui import GUI_TEST_ROOT_PATH
 from w3af.core.ui.tests.wrappers.xpresser_unittest import XpresserUnittest
-from w3af.core.data.db.startup_cfg import StartUpConfig
 
 
 class TestDisclaimer(XpresserUnittest):

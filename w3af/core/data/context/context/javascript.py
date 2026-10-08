@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from io import StringIO
 
-from w3af.core.data.context.context.base import BaseContext
 from w3af.core.data.context.constants import CONTEXT_DETECTOR
+from w3af.core.data.context.context.base import BaseContext
 
 STRING_DELIMITERS = {'"', "'"}
 

@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import io
 
 from pdfminer.converter import HTMLConverter
-from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
+from pdfminer.pdfinterp import PDFPageInterpreter, PDFResourceManager
 from pdfminer.pdfpage import PDFPage
 from pdfminer.pdfparser import PDFSyntaxError
 
@@ -41,7 +41,7 @@ class PDFParser(BaseParser):
     """
 
     def __init__(self, http_response):
-        super(PDFParser, self).__init__(http_response)
+        super().__init__(http_response)
 
         self._re_urls = set()
 
@@ -146,4 +146,3 @@ def pdf_to_text(pdf_string):
 class NoPageHTMLConverter(HTMLConverter):
     def write_footer(self):
         self.write("</body></html>\n")
-        return

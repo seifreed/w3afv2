@@ -20,10 +20,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import os
-import sys
 import gc
+import os
 import pickle
+import sys
 
 
 def user_wants_pytracemalloc():
@@ -41,11 +41,11 @@ if user_wants_pytracemalloc():
         # http://pytracemalloc.readthedocs.org/install.html
         import tracemalloc
     except ImportError as ie:
-        print(("Failed to import tracemalloc: %s" % ie))
+        print("Failed to import tracemalloc: %s" % ie)
         sys.exit(-1)
 
 
-from .utils import get_filename_fmt, dump_data_every_thread, cancel_thread
+from .utils import cancel_thread, dump_data_every_thread, get_filename_fmt
 
 PROFILING_OUTPUT_FMT = "/tmp/w3af-%s-%s.tracemalloc"
 DELAY_MINUTES = 2

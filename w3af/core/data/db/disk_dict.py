@@ -22,12 +22,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import pickle
 
-from w3af.core.data.misc.cpickle_dumps import cpickle_dumps
-from w3af.core.data.fuzzer.utils import rand_alpha
 from w3af.core.data.db.dbms import get_default_temp_db_instance
+from w3af.core.data.fuzzer.utils import rand_alpha
+from w3af.core.data.misc.cpickle_dumps import cpickle_dumps
 
 
-class DiskDict(object):
+class DiskDict:
     """
     It's a dict that stores items in a sqlite3 database and has the following
     features:

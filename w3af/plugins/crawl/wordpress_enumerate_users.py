@@ -24,10 +24,9 @@ import re
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
-
-from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
-from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
+from w3af.core.controllers.exceptions import RunOnce
+from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.kb.info import Info
 
 
@@ -113,7 +112,7 @@ class wordpress_enumerate_users(CrawlPlugin):
         #    <title>admin | moth</title>
         #    <title>admin | Bonsai - Information Security Blog</title>
         title_search = re.search(
-            "<title>(.*?)</title>", response_author.get_body(), re.I
+            "<title>(.*?)</title>", response_author.get_body(), re.IGNORECASE
         )
         if title_search:
             title = title_search.group(1)

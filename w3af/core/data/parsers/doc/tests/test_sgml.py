@@ -31,12 +31,12 @@ from nose.plugins.attrib import attr
 from nose.plugins.skip import SkipTest
 
 from w3af import ROOT_PATH
+from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.sgml import SGMLParser, Tag
+from w3af.core.data.parsers.doc.tests.data.constants import *
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.HTTPResponse import HTTPResponse
 from w3af.core.data.url.tests.test_HTTPResponse import TEST_RESPONSES
-from w3af.core.data.dc.headers import Headers
-from w3af.core.data.parsers.doc.tests.data.constants import *
 
 
 def build_http_response(url, body_content, headers=Headers()):
@@ -124,16 +124,16 @@ class TestSGMLParser(unittest.TestCase):
         p = SGMLParser(build_http_response(self.url, body_content))
 
         # Assert parser has these attrs correctly initialized
-        self.assertFalse(getattr(p, "_inside_form"))
-        self.assertFalse(getattr(p, "_inside_select"))
-        self.assertFalse(getattr(p, "_inside_text_area"))
-        self.assertFalse(getattr(p, "_inside_script"))
+        self.assertFalse(p._inside_form)
+        self.assertFalse(p._inside_select)
+        self.assertFalse(p._inside_text_area)
+        self.assertFalse(p._inside_script)
 
-        self.assertEqual(set(), getattr(p, "_tag_and_url"))
-        self.assertEqual([], getattr(p, "_forms"))
-        self.assertEqual([], getattr(p, "_comments_in_doc"))
-        self.assertEqual([], getattr(p, "_meta_redirs"))
-        self.assertEqual([], getattr(p, "_meta_tags"))
+        self.assertEqual(set(), p._tag_and_url)
+        self.assertEqual([], p._forms)
+        self.assertEqual([], p._comments_in_doc)
+        self.assertEqual([], p._meta_redirs)
+        self.assertEqual([], p._meta_tags)
 
     def test_baseurl(self):
         body = HTML_DOC % {"head": BASE_TAG, "body": ""}

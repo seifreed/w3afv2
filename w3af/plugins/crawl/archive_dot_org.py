@@ -24,14 +24,14 @@ import re
 from itertools import repeat
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
-from w3af.core.controllers.misc.is_private_site import is_private_site
+from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.exceptions import RunOnce
+from w3af.core.controllers.misc.is_private_site import is_private_site
+from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
+from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
@@ -45,7 +45,7 @@ class archive_dot_org(CrawlPlugin):
 
     ARCHIVE_START_URL = "http://web.archive.org/web/*/%s"
     INTERESTING_URLS_RE = (
-        '<a href="(http://web\.archive\.org/web/\d*?/https?://%s/.*?)"'
+        r'<a href="(http://web\.archive\.org/web/\d*?/https?://%s/.*?)"'
     )
     NOT_IN_ARCHIVE = "<p>Wayback Machine doesn&apos;t have that page archived.</p>"
 

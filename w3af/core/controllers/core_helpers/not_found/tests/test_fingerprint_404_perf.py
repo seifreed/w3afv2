@@ -20,12 +20,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
-import time
 import random
+import time
 import unittest
-
-from mock import Mock
-
+from unittest.mock import Mock
 
 from w3af import ROOT_PATH
 from w3af.core.controllers.core_helpers.fingerprint_404 import Fingerprint404

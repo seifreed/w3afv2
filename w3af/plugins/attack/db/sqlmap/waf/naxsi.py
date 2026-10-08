@@ -19,7 +19,9 @@ def detect(get_page):
     for vector in WAF_ATTACK_VECTORS:
         _, headers, _ = get_page(get=vector)
         retval = (
-            re.search(r"naxsi/waf", headers.get(HTTP_HEADER.X_DATA_ORIGIN, ""), re.I)
+            re.search(
+                r"naxsi/waf", headers.get(HTTP_HEADER.X_DATA_ORIGIN, ""), re.IGNORECASE
+            )
             is not None
         )
         if retval:

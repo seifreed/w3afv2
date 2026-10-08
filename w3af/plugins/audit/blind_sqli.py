@@ -20,18 +20,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.data.kb.knowledge_base as kb
 import w3af.core.controllers.output_manager as om
-
+import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.controllers.sql_tools.blind_sqli_response_diff import (
     BlindSqliResponseDiff,
 )
 from w3af.core.controllers.sql_tools.blind_sqli_time_delay import BlindSQLTimeDelay
-
+from w3af.core.data.fuzzer.fuzzer import create_mutants
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
-from w3af.core.data.fuzzer.fuzzer import create_mutants
 
 
 class blind_sqli(AuditPlugin):

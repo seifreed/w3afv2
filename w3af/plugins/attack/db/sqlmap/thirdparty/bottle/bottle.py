@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 Bottle is a fast and simple micro-framework for small web applications. It
 offers request dispatching (Routes) with URL parameter support, templates,
@@ -78,12 +77,25 @@ if __name__ == "__main__":
 ###############################################################################
 
 
-import base64, cgi, email.utils, functools, hmac, imp, itertools, mimetypes, os, re, tempfile, threading, time, warnings
-
-from types import FunctionType
-from datetime import date as datedate, datetime, timedelta
+import base64
+import cgi
+import email.utils
+import functools
+import hmac
+import imp
+import itertools
+import mimetypes
+import os
+import re
+import tempfile
+import threading
+import time
+import warnings
+from datetime import date as datedate
+from datetime import datetime, timedelta
 from tempfile import TemporaryFile
 from traceback import format_exc, print_exc
+from types import FunctionType
 from unicodedata import normalize
 
 # inspect.getargspec was removed in Python 3.6, use
@@ -109,13 +121,16 @@ except ImportError:
     from inspect import getargspec
 
 try:
-    from simplejson import dumps as json_dumps, loads as json_lds
+    from simplejson import dumps as json_dumps
+    from simplejson import loads as json_lds
 except ImportError:  # pragma: no cover
     try:
-        from json import dumps as json_dumps, loads as json_lds
+        from json import dumps as json_dumps
+        from json import loads as json_lds
     except ImportError:
         try:
-            from django.utils.simplejson import dumps as json_dumps, loads as json_lds
+            from django.utils.simplejson import dumps as json_dumps
+            from django.utils.simplejson import loads as json_lds
         except ImportError:
 
             def json_dumps(data):
@@ -141,23 +156,24 @@ def _e():
 # and a fallback for mod_wsgi (resticts stdout/err attribute access)
 try:
     _stdout, _stderr = sys.stdout.write, sys.stderr.write
-except IOError:
+except OSError:
     _stdout = lambda x: sys.stdout.write(x)
     _stderr = lambda x: sys.stderr.write(x)
 
 # Lots of stdlib and builtin differences.
 if py3k:
-    import http.client as httplib
-    import _thread as thread
-    from urllib.parse import urljoin, SplitResult as UrlSplitResult
-    from urllib.parse import urlencode, quote as urlquote, unquote as urlunquote
+    from urllib.parse import SplitResult as UrlSplitResult
+    from urllib.parse import quote as urlquote
+    from urllib.parse import unquote as urlunquote
+    from urllib.parse import urlencode, urljoin
 
     urlunquote = functools.partial(urlunquote, encoding="latin1")
-    from http.cookies import SimpleCookie
-    from collections import MutableMapping as DictMixin
     import pickle
+    from collections.abc import MutableMapping as DictMixin
+    from configparser import ConfigParser
+    from configparser import Error as ConfigParserError
+    from http.cookies import SimpleCookie
     from io import BytesIO
-    from configparser import ConfigParser, Error as ConfigParserError
 
     str = str
     str = str
@@ -169,18 +185,21 @@ if py3k:
         raise a[0](a[1]).with_traceback(a[2])
 
 else:  # 2.x
-    import http.client
     import _thread
-    from urllib.parse import urljoin, SplitResult as UrlSplitResult
-    from urllib.parse import urlencode, quote as urlquote, unquote as urlunquote
-    from http.cookies import SimpleCookie
-
+    import http.client
     import pickle as pickle
-    from io import StringIO as BytesIO
     from configparser import (
-        SafeConfigParser as ConfigParser,
         Error as ConfigParserError,
     )
+    from configparser import (
+        SafeConfigParser as ConfigParser,
+    )
+    from http.cookies import SimpleCookie
+    from io import StringIO as BytesIO
+    from urllib.parse import SplitResult as UrlSplitResult
+    from urllib.parse import quote as urlquote
+    from urllib.parse import unquote as urlunquote
+    from urllib.parse import urlencode, urljoin
 
     if py25:
         msg = "Python 2.5 support may be dropped in future versions of Bottle."
@@ -192,7 +211,7 @@ else:  # 2.x
 
         bytes = str
     else:  # 2.6, 2.7
-        from collections import MutableMapping as DictMixin
+        from collections.abc import MutableMapping as DictMixin
     str = str
     json_loads = json_lds
     eval(compile("def _raise(*a): raise a[0], a[1], a[2]", "<py3fix>", "exec"))
@@ -247,7 +266,7 @@ def makelist(data):  # This is just too handy
         return []
 
 
-class DictProperty(object):
+class DictProperty:
     """Property that maps to a key in a local dict-like attribute."""
 
     def __init__(self, attr, key=None, read_only=False):
@@ -277,13 +296,13 @@ class DictProperty(object):
         del getattr(obj, self.attr)[self.key]
 
 
-class cached_property(object):
+class cached_property:
     """A property that is only computed once per instance and then replaces
     itself with an ordinary attribute. Deleting the attribute resets the
     property."""
 
     def __init__(self, func):
-        self.__doc__ = getattr(func, "__doc__")
+        self.__doc__ = func.__doc__
         self.func = func
 
     def __get__(self, obj, cls):
@@ -293,7 +312,7 @@ class cached_property(object):
         return value
 
 
-class lazy_attribute(object):
+class lazy_attribute:
     """A property that caches itself to the class object."""
 
     def __init__(self, func):
@@ -313,8 +332,6 @@ class lazy_attribute(object):
 
 class BottleException(Exception):
     """A base class for exceptions used by bottle."""
-
-    pass
 
 
 ###############################################################################
@@ -356,7 +373,7 @@ def _re_flatten(p):
     )
 
 
-class Router(object):
+class Router:
     """A Router is an ordered collection of route->target pairs. It is used to
     efficiently match WSGI requests against a number of routes and return
     the first target that satisfies the request. The target may be anything,
@@ -563,7 +580,7 @@ class Router(object):
         raise HTTPError(404, "Not found: " + repr(path))
 
 
-class Route(object):
+class Route:
     """This class wraps a route callback along with route specific metadata and
     configuration and applies Plugins on demand. It is also responsible for
     turing an URL path rule into a regular expression usable by the Router.
@@ -688,7 +705,7 @@ class Route(object):
 ###############################################################################
 
 
-class Bottle(object):
+class Bottle:
     """Each Bottle object represents a single, distinct web application and
     consists of routes, callbacks, plugins, resources and configuration.
     Instances are callable WSGI applications.
@@ -1167,7 +1184,7 @@ class Bottle(object):
 ###############################################################################
 
 
-class BaseRequest(object):
+class BaseRequest:
     """A wrapper for WSGI environment dictionaries that adds a lot of
     convenient access methods and properties. Most of them are read-only.
 
@@ -1625,7 +1642,7 @@ def _hkey(s):
     return s.title().replace("_", "-")
 
 
-class HeaderProperty(object):
+class HeaderProperty:
     def __init__(self, name, reader=None, writer=str, default=""):
         self.name, self.default = name, default
         self.reader, self.writer = reader, writer
@@ -1644,7 +1661,7 @@ class HeaderProperty(object):
         del obj.headers[self.name]
 
 
-class BaseResponse(object):
+class BaseResponse:
     """Storage class for a response body as well as headers and cookies.
 
     This class does support dict-like case-insensitive item-access to
@@ -1954,7 +1971,7 @@ Response = BaseResponse
 
 class HTTPResponse(Response, BottleException):
     def __init__(self, body="", status=None, headers=None, **more_headers):
-        super(HTTPResponse, self).__init__(body, status, headers, **more_headers)
+        super().__init__(body, status, headers, **more_headers)
 
     def apply(self, other):
         other._status_code = self._status_code
@@ -1972,7 +1989,7 @@ class HTTPError(HTTPResponse):
     ):
         self.exception = exception
         self.traceback = traceback
-        super(HTTPError, self).__init__(body, status, **more_headers)
+        super().__init__(body, status, **more_headers)
 
 
 ###############################################################################
@@ -1984,7 +2001,7 @@ class PluginError(BottleException):
     pass
 
 
-class JSONPlugin(object):
+class JSONPlugin:
     name = "json"
     api = 2
 
@@ -2016,7 +2033,7 @@ class JSONPlugin(object):
         return wrapper
 
 
-class TemplatePlugin(object):
+class TemplatePlugin:
     """This plugin applies the :func:`view` decorator to all routes with a
     `template` config parameter. If the parameter is a tuple, the second
     element must be a dict with additional options (e.g. `template_engine`)
@@ -2039,7 +2056,7 @@ class TemplatePlugin(object):
 
 
 #: Not a plugin, but part of the plugin API. TODO: Find a better place.
-class _ImportRedirect(object):
+class _ImportRedirect:
     def __init__(self, name, impmask):
         """Create a virtual package that redirects imports (see PEP 302)."""
         self.name = name
@@ -2221,7 +2238,7 @@ class FormsDict(MultiDict):
     def __getattr__(self, name, default=str()):
         # Without this guard, pickle generates a cryptic TypeError:
         if name.startswith("__") and name.endswith("__"):
-            return super(FormsDict, self).__getattr__(name)
+            return super().__getattr__(name)
         return self.getunicode(name, default=default)
 
 
@@ -2454,7 +2471,7 @@ class AppStack(list):
         return value
 
 
-class WSGIFileWrapper(object):
+class WSGIFileWrapper:
     def __init__(self, fp, buffer_size=1024 * 64):
         self.fp, self.buffer_size = fp, buffer_size
         for attr in ("fileno", "close", "read", "readlines", "tell", "seek"):
@@ -2470,7 +2487,7 @@ class WSGIFileWrapper(object):
             yield part
 
 
-class _closeiter(object):
+class _closeiter:
     """This only exists to be able to attach a .close method to iterators that
     do not support attribute assignment (most of itertools)."""
 
@@ -2486,7 +2503,7 @@ class _closeiter(object):
             func()
 
 
-class ResourceManager(object):
+class ResourceManager:
     """This class manages a list of search paths and helps to find and open
     application-bound resources (files).
 
@@ -2572,11 +2589,11 @@ class ResourceManager(object):
         """Find a resource and return a file object, or raise IOError."""
         fname = self.lookup(name)
         if not fname:
-            raise IOError("Resource %r not found." % name)
+            raise OSError("Resource %r not found." % name)
         return self.opener(fname, mode=mode, *args, **kwargs)
 
 
-class FileUpload(object):
+class FileUpload:
     def __init__(self, fileobj, name, filename, headers=None):
         """Wrapper for file uploads."""
         #: Open file(-like) object (BytesIO buffer or temporary file)
@@ -2633,7 +2650,7 @@ class FileUpload(object):
             if os.path.isdir(destination):
                 destination = os.path.join(destination, self.filename)
             if not overwrite and os.path.exists(destination):
-                raise IOError("File exists.")
+                raise OSError("File exists.")
             with open(destination, "wb") as fp:
                 self._copy_file(fp, chunk_size)
         else:
@@ -2981,7 +2998,7 @@ url = make_default_app_wrapper("get_url")
 ###############################################################################
 
 
-class ServerAdapter(object):
+class ServerAdapter:
     quiet = False
 
     def __init__(self, host="127.0.0.1", port=8080, **options):
@@ -3022,9 +3039,8 @@ class FlupFCGIServer(ServerAdapter):
 
 class WSGIRefServer(ServerAdapter):
     def run(self, app):  # pragma: no cover
-        from wsgiref.simple_server import make_server
-        from wsgiref.simple_server import WSGIRequestHandler, WSGIServer
         import socket
+        from wsgiref.simple_server import WSGIRequestHandler, WSGIServer, make_server
 
         class FixedHandler(WSGIRequestHandler):
             def address_string(self):  # Prevent reverse DNS lookups please.
@@ -3038,7 +3054,7 @@ class WSGIRefServer(ServerAdapter):
         server_cls = self.options.get("server_class", WSGIServer)
 
         if ":" in self.host:  # Fix wsgiref for IPv6 addresses.
-            if getattr(server_cls, "address_family") == socket.AF_INET:
+            if server_cls.address_family == socket.AF_INET:
 
                 class server_cls(server_cls):
                     address_family = socket.AF_INET6
@@ -3132,7 +3148,9 @@ class TornadoServer(ServerAdapter):
     """The super hyped asynchronous server by facebook. Untested."""
 
     def run(self, handler):  # pragma: no cover
-        import tornado.wsgi, tornado.httpserver, tornado.ioloop
+        import tornado.httpserver
+        import tornado.ioloop
+        import tornado.wsgi
 
         container = tornado.wsgi.WSGIContainer(handler)
         server = tornado.httpserver.HTTPServer(container)
@@ -3160,9 +3178,9 @@ class TwistedServer(ServerAdapter):
     """Untested."""
 
     def run(self, handler):
-        from twisted.web import server, wsgi
-        from twisted.python.threadpool import ThreadPool
         from twisted.internet import reactor
+        from twisted.python.threadpool import ThreadPool
+        from twisted.web import server, wsgi
 
         thread_pool = ThreadPool()
         thread_pool.start()
@@ -3192,7 +3210,7 @@ class GeventServer(ServerAdapter):
     """
 
     def run(self, handler):
-        from gevent import wsgi, pywsgi, local
+        from gevent import local, pywsgi, wsgi
 
         if not isinstance(threading.local(), local.local):
             msg = "Bottle requires gevent.monkey.patch_all() (before import)"
@@ -3247,7 +3265,7 @@ class EventletServer(ServerAdapter):
     """
 
     def run(self, handler):
-        from eventlet import wsgi, listen, patcher
+        from eventlet import listen, patcher, wsgi
 
         if not patcher.is_monkey_patched(os):
             msg = "Bottle requires eventlet.monkey_patch() (before import)"
@@ -3295,6 +3313,7 @@ class AiohttpServer(ServerAdapter):
 
     def run(self, handler):
         import asyncio
+
         from aiohttp.wsgi import WSGIServerHttpProtocol
 
         self.loop = asyncio.new_event_loop()
@@ -3578,7 +3597,7 @@ class TemplateError(HTTPError):
         HTTPError.__init__(self, 500, message)
 
 
-class BaseTemplate(object):
+class BaseTemplate:
     """Base class and minimal API for template adapters"""
 
     extensions = ["tpl", "html", "thtml", "stpl"]
@@ -3664,8 +3683,8 @@ class BaseTemplate(object):
 
 class MakoTemplate(BaseTemplate):
     def prepare(self, **options):
-        from mako.template import Template
         from mako.lookup import TemplateLookup
+        from mako.template import Template
 
         options.update({"input_encoding": self.encoding})
         options.setdefault("format_exceptions", bool(DEBUG))
@@ -3819,7 +3838,7 @@ class StplSyntaxError(TemplateError):
     pass
 
 
-class StplParser(object):
+class StplParser:
     """Parser for stpl templates."""
 
     _re_cache = {}  #: Cache for compiled re patterns
@@ -4189,7 +4208,7 @@ if __name__ == "__main__":
                 config.load_config(cfile)
         except ConfigParserError:
             _cli_error(str(_e()))
-        except IOError:
+        except OSError:
             _cli_error("Unable to read config file %r" % cfile)
         except (UnicodeError, TypeError, ValueError):
             _cli_error("Unable to parse config file %r: %s" % (cfile, _e()))

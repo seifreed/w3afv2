@@ -23,15 +23,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 
 from w3af import ROOT_PATH
-from w3af.core.controllers.misc.decorators import memoized
 from w3af.core.controllers.auto_update.utils import (
-    is_git_repo,
-    to_short_id,
+    get_current_branch,
     get_latest_commit,
     get_latest_commit_date,
-    get_current_branch,
     is_dirty_repo,
+    is_git_repo,
+    to_short_id,
 )
+from w3af.core.controllers.misc.decorators import memoized
 
 VERSION_FILE = os.path.join(ROOT_PATH, "core", "data", "constants", "version.txt")
 

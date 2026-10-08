@@ -31,7 +31,7 @@ class TestFileSeekBloomFilterLarge(GenericFilterTest):
     ERROR_RATE = 0.001
 
     def setUp(self):
-        super(TestFileSeekBloomFilterLarge, self).setUp()
+        super().setUp()
         temp_file = GenericBloomFilter.get_temp_file()
         self.filter = FileSeekBloomFilter(self.CAPACITY, self.ERROR_RATE, temp_file)
 
@@ -42,6 +42,6 @@ class TestFileSeekBloomFilterSmall(GenericFilterTest):
     ERROR_RATE = 0.001
 
     def setUp(self):
-        super(TestFileSeekBloomFilterSmall, self).setUp()
+        super().setUp()
         temp_file = GenericBloomFilter.get_temp_file()
         self.filter = FileSeekBloomFilter(self.CAPACITY, self.ERROR_RATE, temp_file)

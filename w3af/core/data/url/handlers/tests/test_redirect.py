@@ -20,17 +20,20 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import urllib.request, urllib.error, urllib.parse
 import unittest
+import urllib.error
+import urllib.parse
+import urllib.request
+
 import httpretty
 
 from w3af.core.controllers.misc.number_generator import consecutive_number_generator
-from w3af.core.data.url.extended_urllib import ExtendedUrllib
+from w3af.core.data.constants.response_codes import FOUND, MOVED_PERMANENTLY, OK
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.constants.response_codes import FOUND, OK, MOVED_PERMANENTLY
+from w3af.core.data.url import opener_settings
+from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.data.url.handlers.redirect import HTTP30XHandler
 from w3af.core.data.url.HTTPRequest import HTTPRequest
-from w3af.core.data.url import opener_settings
 
 
 class TestRedirectHandlerLowLevel(unittest.TestCase):

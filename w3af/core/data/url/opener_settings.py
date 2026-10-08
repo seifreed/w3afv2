@@ -20,42 +20,41 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import urllib.request, urllib.error, urllib.parse
-import urllib.parse
 import http.cookiejar
+import urllib.error
+import urllib.parse
+import urllib.request
 
 import w3af.core.controllers.output_manager as om
-
 from w3af.core.controllers.configurable import Configurable
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.kb.config import cf as cfg
+from w3af.core.data.misc.cookie_jar import ImprovedMozillaCookieJar
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
+from w3af.core.data.options.option_types import (
+    BOOL,
+    INT,
+    POSITIVE_INT,
+    STRING,
+    URL_LIST,
+)
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.constants import MAX_HTTP_RETRIES, USER_AGENT
 from w3af.core.data.url.director import CustomOpenerDirector, build_opener
-from w3af.core.data.url.handlers.ntlm_auth import HTTPNtlmAuthHandler
-from w3af.core.data.url.handlers.fast_basic_auth import FastHTTPBasicAuthHandler
+from w3af.core.data.url.handlers.blacklist import BlacklistHandler
+from w3af.core.data.url.handlers.cache import CacheHandler
 from w3af.core.data.url.handlers.cookie_handler import CookieHandler
+from w3af.core.data.url.handlers.errors import ErrorHandler, NoOpErrorHandler
+from w3af.core.data.url.handlers.fast_basic_auth import FastHTTPBasicAuthHandler
 from w3af.core.data.url.handlers.gzip_handler import HTTPGzipProcessor
-from w3af.core.data.url.handlers.keepalive import HTTPHandler
-from w3af.core.data.url.handlers.keepalive import HTTPSHandler
+from w3af.core.data.url.handlers.keepalive import HTTPHandler, HTTPSHandler
+from w3af.core.data.url.handlers.mangle import MangleHandler
+from w3af.core.data.url.handlers.normalize import NormalizeHandler
+from w3af.core.data.url.handlers.ntlm_auth import HTTPNtlmAuthHandler
 from w3af.core.data.url.handlers.output_manager import OutputManagerHandler
 from w3af.core.data.url.handlers.redirect import HTTP30XHandler
 from w3af.core.data.url.handlers.url_parameter import URLParameterHandler
-from w3af.core.data.url.handlers.cache import CacheHandler
-from w3af.core.data.url.handlers.blacklist import BlacklistHandler
-from w3af.core.data.url.handlers.mangle import MangleHandler
-from w3af.core.data.url.handlers.normalize import NormalizeHandler
-from w3af.core.data.url.handlers.errors import ErrorHandler, NoOpErrorHandler
-from w3af.core.data.options.option_types import (
-    POSITIVE_INT,
-    INT,
-    STRING,
-    URL_LIST,
-    BOOL,
-)
-from w3af.core.data.misc.cookie_jar import ImprovedMozillaCookieJar
 
 USER_AGENT_HEADER = "User-Agent"
 
@@ -213,7 +212,7 @@ class OpenerSettings(Configurable):
                 msg = 'Error while loading cookiejar file. Description: "%s".'
                 raise BaseFrameworkException(msg % cle)
             # pylint: enable=E1101
-        except IOError:
+        except OSError:
             msg = "The specified cookie jar file does not exist."
             raise BaseFrameworkException(msg)
         else:

@@ -26,11 +26,12 @@
 ######################### END LICENSE BLOCK #########################
 
 import sys
+
 from . import constants
-from .mbcharsetprober import MultiByteCharSetProber
-from .codingstatemachine import CodingStateMachine
 from .chardistribution import EUCJPDistributionAnalysis
+from .codingstatemachine import CodingStateMachine
 from .jpcntx import EUCJPContextAnalysis
+from .mbcharsetprober import MultiByteCharSetProber
 from .mbcssm import EUCJPSMModel
 
 
@@ -51,7 +52,7 @@ class EUCJPProber(MultiByteCharSetProber):
 
     def feed(self, aBuf):
         aLen = len(aBuf)
-        for i in range(0, aLen):
+        for i in range(aLen):
             # PY3K: aBuf is a byte array, so aBuf[i] is an int, not a byte
             codingState = self._mCodingSM.next_state(aBuf[i])
             if codingState == constants.eError:

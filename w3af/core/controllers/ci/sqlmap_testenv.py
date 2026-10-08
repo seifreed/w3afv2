@@ -27,7 +27,7 @@ DEFAULT_SQLMAP_TESTENV = "sqlmap-testenv-fallback:80"
 def get_sqlmap_testenv_http(path="/"):
     try:
         sqlmap_testenv_netloc = open(HTTP_SQLMAP_TESTENV).read().strip()
-    except IOError:
+    except OSError:
         sqlmap_testenv_netloc = DEFAULT_SQLMAP_TESTENV
 
     return "http://%s%s" % (sqlmap_testenv_netloc, path)

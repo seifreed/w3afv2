@@ -21,7 +21,7 @@ def detect(get_page):
             re.search(
                 r"Unauthorized Activity Has Been Detected.+Case Number:",
                 page or "",
-                re.I | re.S,
+                re.IGNORECASE | re.DOTALL,
             )
             is not None
         )

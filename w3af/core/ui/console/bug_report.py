@@ -21,16 +21,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import w3af.core.controllers.output_manager as om
-
-from w3af.core.ui.console.menu import menu
-from w3af.core.ui.console.util import suggest
 from w3af.core.controllers.easy_contribution.github_issues import (
-    GithubIssues,
-    OAUTH_TOKEN,
     OAUTH_AUTH_FAILED,
+    OAUTH_TOKEN,
+    GithubIssues,
     LoginFailed,
     OAuthTokenInvalid,
 )
+from w3af.core.ui.console.menu import menu
+from w3af.core.ui.console.util import suggest
 
 
 class bug_report_menu(menu):

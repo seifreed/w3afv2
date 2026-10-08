@@ -19,10 +19,10 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from mock import patch
+from unittest.mock import patch
 
-from w3af.plugins.tests.helper import PluginTest, PluginConfig, MockResponse
 from w3af.core.controllers.ci.php_moth import get_php_moth_http as moth
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 
 class TestFileUpload(PluginTest):

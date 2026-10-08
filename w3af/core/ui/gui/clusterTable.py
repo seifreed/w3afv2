@@ -21,14 +21,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import threading
 
-import gtk
 import gobject
-from w3af.core.ui.gui import helpers, entries
+import gtk
 
 # The clustering stuff
 from cluster import HierarchicalClustering
 
 from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.ui.gui import entries, helpers
 
 
 class ClusterCellWindow(entries.RememberingWindow):
@@ -48,7 +48,7 @@ class ClusterCellWindow(entries.RememberingWindow):
         self._level = 50
 
         # Create a new window
-        super(ClusterCellWindow, self).__init__(
+        super().__init__(
             w3af, "clusterWindow", "w3af - HTTP Response Clustering", "cluster"
         )
         self.set_size_request(400, 400)
@@ -91,7 +91,6 @@ class ClusterCellWindow(entries.RememberingWindow):
         self.vbox.pack_start(main_vbox)
         self.vbox.pack_start(self._progressHBox)
         self.show_all()
-        return
 
     def _createClusterCellDataWidget(self):
         self._showThrobber()
@@ -234,7 +233,7 @@ class clusterCellData(gtk.TreeView):
         # assume distance = length of longest string (worst case)
         dist = m[0]
         # reduce the distance for each char match in shorter string
-        for i in range(0, n[0]):
+        for i in range(n[0]):
             if m[1][i] == n[1][i]:
                 dist -= 1
 
@@ -400,7 +399,7 @@ class clusterCellData(gtk.TreeView):
         """
         try:
             obj = [i for i in self._data if i.get_id() == int(id)][0]
-        except Exception as e:
+        except Exception:
             return ""
         else:
             msg = (

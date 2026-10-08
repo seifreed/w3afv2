@@ -20,23 +20,23 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import re
-import zlib
 import copy
 import http.client
-import urllib.request, urllib.error, urllib.parse
+import re
 import threading
-
+import urllib.error
+import urllib.parse
+import urllib.request
+import zlib
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.parsers.parser_cache as parser_cache
-
 from w3af.core.controllers.exceptions import BaseFrameworkException
-from w3af.core.data.misc.encoding import smart_unicode, smart_str_ignore, ESCAPED_CHAR
 from w3af.core.data.constants.encodings import DEFAULT_ENCODING
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.dc.headers import Headers
 from w3af.core.data.db.disk_item import DiskItem
+from w3af.core.data.dc.headers import Headers
+from w3af.core.data.misc.encoding import ESCAPED_CHAR, smart_str_ignore, smart_unicode
+from w3af.core.data.parsers import parser_cache
+from w3af.core.data.parsers.doc.url import URL
 
 DEFAULT_CHARSET = DEFAULT_ENCODING
 CR = "\r"
@@ -47,8 +47,8 @@ SP = " "
 CONTENT_TYPE = "content-type"
 STATUS_LINE = "HTTP/1.1 %s %s" + CRLF
 
-CHARSET_EXTRACT_RE = re.compile("charset=\s*?([\w-]+)")
-CHARSET_META_RE = re.compile('<meta.*?content=".*?charset=\s*?([\w-]+)".*?>')
+CHARSET_EXTRACT_RE = re.compile(r"charset=\s*?([\w-]+)")
+CHARSET_META_RE = re.compile(r'<meta.*?content=".*?charset=\s*?([\w-]+)".*?>')
 DEFAULT_WAIT_TIME = 0.2
 
 
@@ -61,27 +61,27 @@ class HTTPResponse(DiskItem):
     DOC_TYPE_OTHER = "DOC_TYPE_OTHER"
 
     __slots__ = (
-        "_code",
-        "_charset",
-        "_headers",
-        "_body",
-        "_raw_body",
-        "_binary_response",
-        "_content_type",
-        "_dom",
-        "id",
-        "_from_cache",
-        "_info",
-        "_realurl",
-        "_uri",
-        "_redirected_url",
-        "_redirected_uri",
-        "_msg",
-        "_time",
         "_alias",
-        "_doc_type",
+        "_binary_response",
+        "_body",
         "_body_lock",
+        "_charset",
+        "_code",
+        "_content_type",
         "_debugging_id",
+        "_doc_type",
+        "_dom",
+        "_from_cache",
+        "_headers",
+        "_info",
+        "_msg",
+        "_raw_body",
+        "_realurl",
+        "_redirected_uri",
+        "_redirected_url",
+        "_time",
+        "_uri",
+        "id",
     )
 
     def __init__(
@@ -722,7 +722,7 @@ class HTTPResponse(DiskItem):
     def guess_charset(self, raw_body, headers):
         # Start with the headers
         content_type, _ = headers.iget(CONTENT_TYPE, None)
-        charset_mo = CHARSET_EXTRACT_RE.search(content_type, re.I)
+        charset_mo = CHARSET_EXTRACT_RE.search(content_type, re.IGNORECASE)
         if charset_mo:
             # Seems like the response's headers contain a charset
             charset = charset_mo.groups()[0].lower().strip()

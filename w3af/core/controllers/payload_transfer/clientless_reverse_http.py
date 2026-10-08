@@ -22,11 +22,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 
-import w3af.core.controllers.daemons.webserver as webserver
 import w3af.core.data.kb.config as cf
-
-from w3af.core.controllers.misc.temp_dir import get_temp_dir
+from w3af.core.controllers.daemons import webserver
 from w3af.core.controllers.intrusion_tools.execMethodHelpers import get_remote_temp_file
+from w3af.core.controllers.misc.temp_dir import get_temp_dir
 from w3af.core.controllers.payload_transfer.base_payload_transfer import (
     BasePayloadTransfer,
 )
@@ -44,7 +43,7 @@ class ClientlessReverseHTTP(BasePayloadTransfer):
     """
 
     def __init__(self, exec_method, os, inbound_port):
-        super(ClientlessReverseHTTP, self).__init__(exec_method, os)
+        super().__init__(exec_method, os)
         self._exec_method = exec_method
         self._os = os
         self._inbound_port = inbound_port

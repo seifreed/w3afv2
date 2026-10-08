@@ -24,13 +24,12 @@ import os
 
 from nose.plugins.attrib import attr
 
-from w3af.core.controllers.w3afCore import w3afCore
 from w3af.core.controllers.misc.factory import factory
-
+from w3af.core.controllers.w3afCore import w3afCore
 from w3af.core.data.options.option_list import OptionList
 
 
-class test_questions(object):
+class test_questions:
 
     unique_question_ids = []
 

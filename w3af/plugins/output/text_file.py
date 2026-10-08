@@ -20,20 +20,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import time
 import os
+import time
 
-import w3af.core.data.kb.config as cf
-import w3af.core.data.constants.severity as severity
 import w3af.core.controllers.output_manager as om
-
-from w3af.core.controllers.plugins.output_plugin import OutputPlugin
+import w3af.core.data.kb.config as cf
 from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.controllers.plugins.output_plugin import OutputPlugin
+from w3af.core.data.constants import severity
 from w3af.core.data.misc.encoding import smart_str_ignore
 from w3af.core.data.options.opt_factory import opt_factory
+from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.options.option_types import OUTPUT_FILE
 from w3af.core.data.options.output_file_option import DEV_NULL
-from w3af.core.data.options.option_list import OptionList
 
 REQUEST_HEADER_FMT = "=" * 40 + "Request %s - %s " + "=" * 40 + "\n"
 RESPONSE_HEADER_FMT = "\n" + "=" * 40 + "Response %s - %s " + "=" * 39 + "\n"
@@ -77,7 +76,7 @@ class text_file(OutputPlugin):
 
         try:
             self._log = open(self._output_file_name, "w")
-        except IOError as io:
+        except OSError as io:
             msg = 'Can\'t open report file "%s" for writing, error: %s.'
             args = (os.path.abspath(self._output_file_name), io.strerror)
             raise BaseFrameworkException(msg % args)
@@ -94,7 +93,7 @@ class text_file(OutputPlugin):
             # Images aren't ascii, so this file that logs every request/response,
             # will be binary.
             self._http = open(self._http_file_name, "wb")
-        except IOError as io:
+        except OSError as io:
             msg = 'Can\'t open HTTP report file "%s" for writing, error: %s.'
             args = (os.path.abspath(self._http_file_name), io.strerror)
             raise BaseFrameworkException(msg % args)

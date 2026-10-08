@@ -13,10 +13,9 @@ except:
 import logging
 
 from lib.core.convert import utf8encode
-from lib.core.data import conf
-from lib.core.data import logger
-from lib.core.exception import SqlmapConnectionException
-from lib.core.exception import SqlmapMissingDependence
+from lib.core.data import conf, logger
+from lib.core.exception import SqlmapConnectionException, SqlmapMissingDependence
+
 from plugins.generic.connector import Connector as GenericConnector
 
 
@@ -48,7 +47,7 @@ class Connector(GenericConnector):
             cursor.execute("SELECT * FROM sqlite_master")
             cursor.close()
 
-        except (self.__sqlite.DatabaseError, self.__sqlite.OperationalError) as msg:
+        except (self.__sqlite.DatabaseError, self.__sqlite.OperationalError):
             warnMsg = "unable to connect using SQLite 3 library, trying with SQLite 2"
             logger.warn(warnMsg)
 
@@ -77,7 +76,7 @@ class Connector(GenericConnector):
             return self.cursor.fetchall()
         except self.__sqlite.OperationalError as msg:
             logger.log(
-                logging.WARN if conf.dbmsHandler else logging.DEBUG,
+                logging.WARNING if conf.dbmsHandler else logging.DEBUG,
                 "(remote) %s" % msg[0],
             )
             return None
@@ -87,7 +86,7 @@ class Connector(GenericConnector):
             self.cursor.execute(utf8encode(query))
         except self.__sqlite.OperationalError as msg:
             logger.log(
-                logging.WARN if conf.dbmsHandler else logging.DEBUG,
+                logging.WARNING if conf.dbmsHandler else logging.DEBUG,
                 "(remote) %s" % msg[0],
             )
         except self.__sqlite.DatabaseError as msg:

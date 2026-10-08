@@ -24,10 +24,10 @@ import unittest
 
 from w3af import ROOT_PATH
 from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.controllers.misc.temp_dir import create_temp_dir, remove_temp_dir
+from w3af.core.data.options.input_file_option import InputFileOption
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_types import INPUT_FILE
-from w3af.core.data.options.input_file_option import InputFileOption
-from w3af.core.controllers.misc.temp_dir import create_temp_dir, remove_temp_dir
 
 
 class TestInputFileOption(unittest.TestCase):

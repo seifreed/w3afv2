@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """
 test_levenshtein.py
 
@@ -23,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-from w3af.core.controllers.misc.fuzzy_string_cmp import relative_distance, fuzzy_equal
+from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal, relative_distance
 
 
 class TestFuzzyStringCompare(unittest.TestCase):

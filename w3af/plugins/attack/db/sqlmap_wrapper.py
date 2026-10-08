@@ -19,23 +19,22 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import errno
 import os
 import re
-import sys
-import errno
 import shlex
-import tempfile
 import subprocess
+import sys
+import tempfile
 
 import w3af.core.controllers.output_manager as om
-
 from w3af import ROOT_PATH
-from w3af.core.data.parsers.doc.url import URL
 from w3af.core.controllers.daemons.proxy import Proxy
 from w3af.core.controllers.misc.which import which
+from w3af.core.data.parsers.doc.url import URL
 
 
-class SQLMapWrapper(object):
+class SQLMapWrapper:
 
     OUTPUT_DIR = "%s/%s" % (tempfile.gettempdir(), os.getpid())
     DEBUG_ARGS = ["-v6"]
@@ -351,7 +350,7 @@ class SQLMapWrapper(object):
         return
 
 
-class Target(object):
+class Target:
     def __init__(self, uri, post_data=None):
         if not isinstance(uri, URL):
             fmt = "Invalid type %s for uri parameter in Target ctor."

@@ -8,6 +8,7 @@ See the file 'LICENSE' for copying permission
 from lib.core.enums import DBMS
 from lib.core.settings import MAXDB_SYSTEM_DBS
 from lib.core.unescaper import unescaper
+
 from plugins.dbms.maxdb.enumeration import Enumeration
 from plugins.dbms.maxdb.filesystem import Filesystem
 from plugins.dbms.maxdb.fingerprint import Fingerprint

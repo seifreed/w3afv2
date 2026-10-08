@@ -30,14 +30,14 @@ class OSCommandingTemplate(BaseTemplate):
     """
 
     def __init__(self):
-        super(OSCommandingTemplate, self).__init__()
+        super().__init__()
 
         self.name = self.get_vulnerability_name()
         self.operating_system = "linux"
         self.separator = "&"
 
     def get_options(self):
-        ol = super(OSCommandingTemplate, self).get_options()
+        ol = super().get_options()
 
         d = (
             "Command separator used for injecting commands. Usually one of"
@@ -53,12 +53,12 @@ class OSCommandingTemplate(BaseTemplate):
         return ol
 
     def set_options(self, options_list):
-        super(OSCommandingTemplate, self).set_options(options_list)
+        super().set_options(options_list)
         self.separator = options_list["separator"].get_value()
         self.operating_system = options_list["operating_system"].get_value()
 
     def create_vuln(self):
-        v = super(OSCommandingTemplate, self).create_vuln()
+        v = super().create_vuln()
 
         v["separator"] = self.separator
         v["os"] = self.operating_system

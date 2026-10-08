@@ -26,14 +26,13 @@ import uuid
 from vulndb import DBVuln
 
 import w3af.core.data.kb.config as cf
-
-from w3af.core.data.constants.severity import INFORMATION
-from w3af.core.data.fuzzer.mutants.mutant import Mutant
-from w3af.core.data.fuzzer.mutants.empty_mutant import EmptyMutant
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.constants.vulns import is_valid_name, VULNS
-from w3af.core.controllers.tests.running_tests import is_running_tests
 from w3af.core.controllers.ci.constants import ARTIFACTS_DIR
+from w3af.core.controllers.tests.running_tests import is_running_tests
+from w3af.core.data.constants.severity import INFORMATION
+from w3af.core.data.constants.vulns import VULNS, is_valid_name
+from w3af.core.data.fuzzer.mutants.empty_mutant import EmptyMutant
+from w3af.core.data.fuzzer.mutants.mutant import Mutant
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
 class Info(dict):
@@ -57,7 +56,7 @@ class Info(dict):
 
         :see: https://github.com/vulndb/data
         """
-        super(Info, self).__init__()
+        super().__init__()
 
         # Default values
         self._string_matches = set()
@@ -431,8 +430,7 @@ class Info(dict):
                  without the trailing comma.
         """
         res = self._convert_to_range(list_of_integers)
-        if res.endswith(","):
-            res = res[:-1]
+        res = res.removesuffix(",")
         return res
 
     def _convert_to_range(self, seq):

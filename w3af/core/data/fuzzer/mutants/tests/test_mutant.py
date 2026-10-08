@@ -20,25 +20,24 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
 import copy
+import unittest
+from unittest.mock import patch
 
-from mock import patch
-
-from w3af.core.data.fuzzer.mutants.mutant import Mutant
-from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.parsers.utils.form_params import FormParameters
-from w3af.core.data.dc.utils.token import DataToken
-from w3af.core.data.dc.query_string import QueryString
-from w3af.core.data.dc.urlencoded_form import URLEncodedForm
-from w3af.core.data.dc.multipart_container import MultipartContainer
+from w3af.core.controllers.misc.io import NamedStringIO
 from w3af.core.data.constants.file_templates.file_templates import (
     get_file_from_template,
 )
-from w3af.core.controllers.misc.io import NamedStringIO
+from w3af.core.data.dc.multipart_container import MultipartContainer
+from w3af.core.data.dc.query_string import QueryString
+from w3af.core.data.dc.urlencoded_form import URLEncodedForm
 from w3af.core.data.dc.utils.multipart import encode_as_multipart, get_boundary
+from w3af.core.data.dc.utils.token import DataToken
+from w3af.core.data.fuzzer.mutants.mutant import Mutant
+from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.parsers.utils.form_params import FormParameters
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
 class FakeMutant(Mutant):

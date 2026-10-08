@@ -1,4 +1,3 @@
-# -*- coding: utf8 -*-
 """
 test_xml_file.py
 
@@ -20,46 +19,44 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import os
 import base64
-import os.path
 import io
+import os
+import os.path
 import unittest
-import xml.etree.ElementTree as ElementTree
+from xml.etree import ElementTree
 
 from lxml import etree
 from nose.plugins.attrib import attr
 
-import w3af.core.data.constants.severity as severity
 import w3af.core.data.kb.knowledge_base as kb
-
 from w3af import ROOT_PATH
-
-from w3af.core.controllers.w3afCore import w3afCore
-from w3af.core.controllers.misc.temp_dir import create_temp_dir, remove_temp_dir
 from w3af.core.controllers.ci.moth import get_moth_http
-from w3af.core.data.kb.tests.test_vuln import MockVuln
-from w3af.core.data.kb.vuln import Vuln
+from w3af.core.controllers.misc.temp_dir import create_temp_dir, remove_temp_dir
+from w3af.core.controllers.w3afCore import w3afCore
+from w3af.core.data.constants import severity
 from w3af.core.data.db.history import HistoryItem
 from w3af.core.data.db.url_tree import URLTree
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.url.HTTPResponse import HTTPResponse
-from w3af.core.data.url.HTTPRequest import HTTPRequest
-from w3af.core.data.options.option_list import OptionList
+from w3af.core.data.kb.tests.test_vuln import MockVuln
+from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.options.opt_factory import opt_factory
+from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.options.option_types import OUTPUT_FILE
-from w3af.plugins.tests.helper import PluginTest, PluginConfig, MockResponse
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.url.HTTPRequest import HTTPRequest
+from w3af.core.data.url.HTTPResponse import HTTPResponse
 from w3af.plugins.output.xml_file import (
-    xml_file,
     CachedXMLNode,
+    Finding,
     FindingsCache,
     HTTPTransaction,
     ScanInfo,
     ScanStatus,
-    Finding,
     jinja2_attr_value_escape_filter,
+    xml_file,
 )
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 
 @attr("smoke")
@@ -111,7 +108,7 @@ class TestXMLOutput(PluginTest):
         self.assertEqual(validate_xml(open(self.FILENAME).read(), self.XSD), "")
 
     def tearDown(self):
-        super(TestXMLOutput, self).tearDown()
+        super().tearDown()
         try:
             os.remove(self.FILENAME)
         except:
@@ -200,7 +197,7 @@ class TestNoDuplicate(unittest.TestCase):
         self.assertEqual(len(file_vulns), 1, file_vulns)
 
 
-class XMLParser(object):
+class XMLParser:
 
     def __init__(self):
         self.vulns = []
@@ -332,7 +329,7 @@ class TestXMLOutputBinary(PluginTest):
             self.assertTrue(False, 'Generated invalid XML: "%s"' % e)
 
     def tearDown(self):
-        super(TestXMLOutputBinary, self).tearDown()
+        super().tearDown()
         try:
             os.remove(self.FILENAME)
         except:
@@ -388,7 +385,7 @@ class TestXML0x0B(PluginTest):
             self.assertTrue(False, 'Generated invalid XML: "%s"' % e)
 
     def tearDown(self):
-        super(TestXML0x0B, self).tearDown()
+        super().tearDown()
         try:
             os.remove(self.FILENAME)
         except:
@@ -440,7 +437,7 @@ class TestSpecialCharacterInURL(PluginTest):
             self.assertTrue(False, 'Generated invalid XML: "%s"' % e)
 
     def tearDown(self):
-        super(TestSpecialCharacterInURL, self).tearDown()
+        super().tearDown()
         try:
             os.remove(self.FILENAME)
         except:

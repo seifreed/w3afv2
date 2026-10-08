@@ -8,6 +8,7 @@ See the file 'LICENSE' for copying permission
 import re
 
 from lib.core.common import randomStr
+
 from plugins.generic.syntax import Syntax as GenericSyntax
 
 

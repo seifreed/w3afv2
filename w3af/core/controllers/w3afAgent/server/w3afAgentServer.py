@@ -20,15 +20,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import sys
 import os
 import socket
+import sys
 import threading
-
 from multiprocessing.dummy import Process
 
 import w3af.core.controllers.output_manager as om
-
 from w3af.core.controllers.exceptions import BaseFrameworkException
 
 
@@ -93,10 +91,10 @@ class ConnectionManager(Process):
         while self._keep_running:
             try:
                 newsock, address = self.sock.accept()
-            except KeyboardInterrupt as k:
+            except KeyboardInterrupt:
                 om.out.console("Exiting.")
                 break
-            except socket.error:
+            except OSError:
                 # This catches socket timeouts
                 pass
             else:
@@ -228,7 +226,7 @@ class TCPRelay(Process):
         while self._keep_running:
             try:
                 sock_cli, address = self.sock.accept()
-            except socket.error:
+            except OSError:
                 # This catches socket timeouts
                 pass
             else:

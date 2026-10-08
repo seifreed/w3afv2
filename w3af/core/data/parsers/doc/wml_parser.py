@@ -21,8 +21,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 from w3af.core.data.parsers.doc.sgml import SGMLParser
-from w3af.core.data.parsers.utils.form_params import FormParameters
 from w3af.core.data.parsers.utils.form_fields import get_value_by_key
+from w3af.core.data.parsers.utils.form_params import FormParameters
 
 WML_HEADER = "<!DOCTYPE wml PUBLIC".lower()
 

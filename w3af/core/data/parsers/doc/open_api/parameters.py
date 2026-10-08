@@ -21,8 +21,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import random
 import datetime
+import random
 
 from bravado_core.operation import Operation
 
@@ -33,7 +33,7 @@ class OpenAPIParamResolutionException(Exception):
     pass
 
 
-class ParameterHandler(object):
+class ParameterHandler:
 
     DEFAULT_VALUES_BY_TYPE = {
         "int64": 42,

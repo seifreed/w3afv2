@@ -21,12 +21,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import errno
-
 from time import time
+
 from psutil import disk_usage
 
-from .strategy_observer import StrategyObserver
 from w3af.core.controllers.misc.home_dir import get_home_dir
+
+from .strategy_observer import StrategyObserver
 
 
 class DiskSpaceObserver(StrategyObserver):
@@ -53,7 +54,7 @@ class DiskSpaceObserver(StrategyObserver):
     )
 
     def __init__(self):
-        super(DiskSpaceObserver, self).__init__()
+        super().__init__()
         self.last_call = 0
 
     def analyze_disk_space(self, *args):
@@ -75,6 +76,6 @@ class DiskSpaceObserver(StrategyObserver):
         if usage.free < self.MIN_FREE_BYTES:
             free_mb = usage.free / 1024 / 1024
             msg = self.LOW_DISK_SPACE_MESSAGE % (get_home_dir(), free_mb)
-            raise IOError(errno.ENOSPC, msg)
+            raise OSError(errno.ENOSPC, msg)
 
     crawl = audit = bruteforce = grep = analyze_disk_space

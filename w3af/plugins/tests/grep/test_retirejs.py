@@ -24,8 +24,8 @@ import unittest
 
 from w3af import ROOT_PATH
 from w3af.core.controllers.misc.temp_dir import create_temp_dir
-from w3af.plugins.tests.helper import PluginTest, PluginConfig, MockResponse
 from w3af.plugins.grep.retirejs import retirejs
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 
 class TestRetireJSNotAnalyzeHTMLContentType(PluginTest):

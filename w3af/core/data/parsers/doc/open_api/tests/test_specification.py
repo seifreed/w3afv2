@@ -21,32 +21,32 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
 import datetime
+import unittest
 
-from w3af.core.data.parsers.doc.open_api.parameters import ParameterHandler
-from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.parsers.doc.open_api.parameters import ParameterHandler
 from w3af.core.data.parsers.doc.open_api.specification import SpecificationHandler
 from w3af.core.data.parsers.doc.open_api.tests.example_specifications import (
-    NoParams,
-    IntParamQueryString,
-    IntParamPath,
-    StringParamQueryString,
-    StringParamJson,
-    StringParamHeader,
-    IntParamJson,
-    ArrayStringItemsQueryString,
     ArrayIntItemsQueryString,
-    IntParamNoModelJson,
+    ArrayModelItems,
+    ArrayStringItemsQueryString,
     ComplexDereferencedNestedModel,
     DereferencedPetStore,
-    NestedModel,
-    NestedLoopModel,
-    ArrayModelItems,
+    IntParamJson,
+    IntParamNoModelJson,
+    IntParamPath,
+    IntParamQueryString,
     MultiplePathsAndHeaders,
+    NestedLoopModel,
+    NestedModel,
+    NoParams,
+    StringParamHeader,
+    StringParamJson,
+    StringParamQueryString,
 )
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.url.HTTPResponse import HTTPResponse
 
 
 class TestSpecification(unittest.TestCase):

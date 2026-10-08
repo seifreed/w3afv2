@@ -1,7 +1,7 @@
 from w3af.core.data.db.disk_dict import DiskDict
 
 
-class DiskDeque(object):
+class DiskDeque:
     """
     The base code for this file comes from [0], I've modified it to use a
     DiskDict which stores the "self.data" dictionary to disk in order to save

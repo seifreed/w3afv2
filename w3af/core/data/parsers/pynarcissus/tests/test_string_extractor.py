@@ -20,13 +20,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
 import os
+import unittest
 
 from w3af.core.data.parsers.pynarcissus.string_extractor import StringExtractor
 
 
-class JSParserMixin(object):
+class JSParserMixin:
     DATA_PATH = "w3af/core/data/parsers/pynarcissus/tests/data/"
 
     def get_file_contents(self, filename):

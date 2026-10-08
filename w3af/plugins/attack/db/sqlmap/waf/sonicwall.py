@@ -21,10 +21,11 @@ def detect(get_page):
         retval = "This request is blocked by the SonicWALL" in (page or "")
         retval |= all(_ in page or "" for _ in ("#shd", "#nsa_banner"))
         retval |= (
-            re.search(r"Web Site Blocked.+\bnsa_banner", page or "", re.I) is not None
+            re.search(r"Web Site Blocked.+\bnsa_banner", page or "", re.IGNORECASE)
+            is not None
         )
         retval |= (
-            re.search(r"SonicWALL", headers.get(HTTP_HEADER.SERVER, ""), re.I)
+            re.search(r"SonicWALL", headers.get(HTTP_HEADER.SERVER, ""), re.IGNORECASE)
             is not None
         )
         if retval:

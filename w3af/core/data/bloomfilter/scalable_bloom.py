@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """
 scalable_bloom.py
 
@@ -24,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from w3af.core.data.bloomfilter.bloomfilter import BloomFilter
 
 
-class ScalableBloomFilter(object):
+class ScalableBloomFilter:
     SMALL_SET_GROWTH = 2  # slower, but takes up less memory
     LARGE_SET_GROWTH = 4  # faster, but takes up more memory faster
 

@@ -20,10 +20,13 @@ def detect(get_page):
         _, headers, _ = get_page(get=vector)
 
         retval |= (
-            re.search(r"cloudfront", headers.get(HTTP_HEADER.SERVER, ""), re.I)
+            re.search(r"cloudfront", headers.get(HTTP_HEADER.SERVER, ""), re.IGNORECASE)
             is not None
         )
-        retval |= re.search(r"cloudfront", headers.get("X-Cache", ""), re.I) is not None
+        retval |= (
+            re.search(r"cloudfront", headers.get("X-Cache", ""), re.IGNORECASE)
+            is not None
+        )
         retval |= headers.get("X-Amz-Cf-Id") is not None
 
         if retval:

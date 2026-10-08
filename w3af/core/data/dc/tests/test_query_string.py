@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 test_query_string.py
 
@@ -20,9 +19,9 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import unittest
 import copy
 import pickle
+import unittest
 
 from w3af.core.data.dc.query_string import QueryString
 

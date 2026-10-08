@@ -25,14 +25,13 @@ import time
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
-import w3af.core.data.constants.severity as severity
-
+from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.misc.epoch_to_string import epoch_to_string
 from w3af.core.controllers.plugins.bruteforce_plugin import BruteforcePlugin
-from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.data.constants import severity
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
 class basic_auth(BruteforcePlugin):

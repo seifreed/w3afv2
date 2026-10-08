@@ -21,24 +21,22 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
-import socket
 import textwrap
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
-import w3af.core.controllers.daemons.webserver as webserver
-import w3af.plugins.attack.payloads.shell_handler as shell_handler
-import w3af.core.data.constants.ports as ports
-
-from w3af.core.data.fuzzer.utils import rand_alnum
-from w3af.core.data.options.opt_factory import opt_factory
-from w3af.core.data.options.option_list import OptionList
-from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
+from w3af.core.controllers.daemons import webserver
 from w3af.core.controllers.exceptions import BaseFrameworkException
-from w3af.core.controllers.misc.home_dir import get_home_dir
 from w3af.core.controllers.misc.get_local_ip import get_local_ip
+from w3af.core.controllers.misc.home_dir import get_home_dir
+from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
+from w3af.core.data.constants import ports
+from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.kb.exec_shell import ExecShell
 from w3af.core.data.kb.shell import Shell
+from w3af.core.data.options.opt_factory import opt_factory
+from w3af.core.data.options.option_list import OptionList
+from w3af.plugins.attack.payloads import shell_handler
 from w3af.plugins.attack.payloads.decorators.exec_decorator import exec_debug
 
 NO_SUCCESS = 0
@@ -115,7 +113,7 @@ class rfi(AttackPlugin):
                 webserver.start_webserver(
                     self._listen_address, self._listen_port, webroot_path
                 )
-            except socket.error as se:
+            except OSError as se:
                 msg = (
                     "Failed to start the local web server to exploit the"
                     ' RFI vulnerability, the exception was: "%s".'
@@ -261,29 +259,28 @@ class rfi(AttackPlugin):
                     # Remove the file from the local webserver webroot
                     self._rm_file(url_to_include)
 
-        else:
-            #
-            #  We get here when it was impossible to create a RFI shell, but we
-            #  still might be able to do some interesting stuff through error
-            #  messages shown by the web application
-            #
-            mutant = vuln.get_mutant()
-            mutant = mutant.copy()
-            # A port that should "always" be closed
-            mutant.set_token_value("http://localhost:92/")
+        #
+        #  We get here when it was impossible to create a RFI shell, but we
+        #  still might be able to do some interesting stuff through error
+        #  messages shown by the web application
+        #
+        mutant = vuln.get_mutant()
+        mutant = mutant.copy()
+        # A port that should "always" be closed
+        mutant.set_token_value("http://localhost:92/")
 
-            try:
-                http_response = self._uri_opener.send_mutant(mutant)
-            except:
-                return False
-            else:
-                rfi_errors = [
-                    "php_network_getaddresses: getaddrinfo",
-                    "failed to open stream: Connection refused in",
-                ]
-                for error in rfi_errors:
-                    if error in http_response.get_body():
-                        return SUCCESS_OPEN_PORT
+        try:
+            http_response = self._uri_opener.send_mutant(mutant)
+        except:
+            return False
+        else:
+            rfi_errors = [
+                "php_network_getaddresses: getaddrinfo",
+                "failed to open stream: Connection refused in",
+            ]
+            for error in rfi_errors:
+                if error in http_response.get_body():
+                    return SUCCESS_OPEN_PORT
 
         return NO_SUCCESS
 
@@ -406,7 +403,7 @@ class PortScanShell(Shell):
         """
         Create the obj
         """
-        super(PortScanShell, self).__init__(vuln, uri_opener, worker_pool)
+        super().__init__(vuln, uri_opener, worker_pool)
         self._exploit_mutant = exploit_mutant
 
     def is_open_port(self, host, port):

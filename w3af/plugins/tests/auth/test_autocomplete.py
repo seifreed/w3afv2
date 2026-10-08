@@ -20,15 +20,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
+from unittest.mock import Mock
 
 from httpretty import httpretty
-from mock import Mock
 
 import w3af.core.data.kb.knowledge_base as kb
-
-from w3af.plugins.tests.helper import PluginTest, PluginConfig, MockResponse
-from w3af.plugins.auth.autocomplete import autocomplete
 from w3af.core.data.parsers.doc.url import URL
+from w3af.plugins.auth.autocomplete import autocomplete
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 USER = "user@mail.com"
 PASS = "passw0rd"

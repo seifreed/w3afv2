@@ -20,19 +20,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import re
 import copy
-
+import re
 from itertools import repeat
 
-from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
-from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_not_equal
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
-
+from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_not_equal
+from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
+from w3af.core.data.dc.headers import Headers
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
-from w3af.core.data.dc.headers import Headers
 
 DIGIT_REGEX = re.compile(r"(\d+)")
 
@@ -103,12 +101,10 @@ class digit_sum(CrawlPlugin):
         # We have different cases:
         #    - If the URLs are different, then there is nothing to think
         #      about, we simply found something new!
-        if response.get_url() != original_resp.get_url():
-            self.output_queue.put(fuzzable_request)
-
-        #    - If the content type changed, then there is no doubt that
-        #      we've found something new!
-        elif response.doc_type != original_resp.doc_type:
+        if (
+            response.get_url() != original_resp.get_url()
+            or response.doc_type != original_resp.doc_type
+        ):
             self.output_queue.put(fuzzable_request)
 
         #    - If we changed the query string parameters, we have to check

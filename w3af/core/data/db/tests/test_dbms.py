@@ -19,22 +19,22 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
+import os
 import string
 import time
-import os
-
+import unittest
 from itertools import repeat, starmap
 from random import choice
+
 from nose.plugins.skip import SkipTest
 
-from w3af.core.data.db.dbms import SQLiteDBMS, get_default_temp_db_instance
 from w3af.core.controllers.exceptions import DBException, NoSuchTableException
 from w3af.core.controllers.misc.temp_dir import (
-    get_temp_dir,
     create_temp_dir,
+    get_temp_dir,
     remove_temp_dir,
 )
+from w3af.core.data.db.dbms import SQLiteDBMS, get_default_temp_db_instance
 
 
 def get_temp_filename():

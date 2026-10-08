@@ -26,7 +26,7 @@ from w3af.core.data.db.disk_dict import DiskDict
 from w3af.core.data.fuzzer.utils import rand_alpha
 
 
-class CachedDiskDict(object):
+class CachedDiskDict:
     """
     This data structure keeps the `max_in_memory` most frequently accessed
     keys in memory and stores the rest on disk.
@@ -152,10 +152,7 @@ class CachedDiskDict(object):
             return key
 
     def __setitem__(self, key, value):
-        if key in self._in_memory:
-            self._in_memory[key] = value
-
-        elif len(self._in_memory) < self._max_in_memory:
+        if key in self._in_memory or len(self._in_memory) < self._max_in_memory:
             self._in_memory[key] = value
 
         else:

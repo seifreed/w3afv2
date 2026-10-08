@@ -12,9 +12,9 @@ except:
 
 import logging
 
-from lib.core.data import conf
-from lib.core.data import logger
+from lib.core.data import conf, logger
 from lib.core.exception import SqlmapConnectionException
+
 from plugins.generic.connector import Connector as GenericConnector
 
 
@@ -49,7 +49,7 @@ class Connector(GenericConnector):
             return self.cursor.fetchall()
         except ibm_db_dbi.ProgrammingError as msg:
             logger.log(
-                logging.WARN if conf.dbmsHandler else logging.DEBUG,
+                logging.WARNING if conf.dbmsHandler else logging.DEBUG,
                 "(remote) %s" % msg[1],
             )
             return None
@@ -59,7 +59,7 @@ class Connector(GenericConnector):
             self.cursor.execute(query)
         except (ibm_db_dbi.OperationalError, ibm_db_dbi.ProgrammingError) as msg:
             logger.log(
-                logging.WARN if conf.dbmsHandler else logging.DEBUG,
+                logging.WARNING if conf.dbmsHandler else logging.DEBUG,
                 "(remote) %s" % msg[1],
             )
         except ibm_db_dbi.InternalError as msg:

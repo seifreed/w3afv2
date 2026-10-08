@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """
 test_common_attack_methods.py
 

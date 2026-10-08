@@ -20,29 +20,26 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import re
 import codecs
-import os.path
 import itertools
-
+import os.path
+import re
 from collections import namedtuple
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
-import w3af.core.data.constants.severity as severity
-
 from w3af import ROOT_PATH
-from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
-from w3af.core.controllers.exceptions import BaseFrameworkException
-from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
-from w3af.core.data.kb.vuln import Vuln
-from w3af.core.data.fuzzer.utils import rand_alnum
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.options.opt_factory import opt_factory
-from w3af.core.data.options.option_types import INPUT_FILE, BOOL, LIST
-from w3af.core.data.options.option_list import OptionList
+from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
+from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
+from w3af.core.data.constants import severity
+from w3af.core.data.fuzzer.utils import rand_alnum
+from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.options.opt_factory import opt_factory
+from w3af.core.data.options.option_list import OptionList
+from w3af.core.data.options.option_types import BOOL, INPUT_FILE, LIST
+from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
@@ -333,7 +330,7 @@ NiktoTest = namedtuple(
 )
 
 
-class IsVulnerableHelper(object):
+class IsVulnerableHelper:
     def __init__(self, match_1, match_1_or, match_1_and, fail_1, fail_2):
         self.match_1 = match_1
         self.match_1_or = match_1_or
@@ -388,7 +385,7 @@ class IsVulnerableHelper(object):
         return True
 
 
-class NiktoTestParser(object):
+class NiktoTestParser:
     """
     A parser for the nikto tests file.
     """
@@ -399,7 +396,7 @@ class NiktoTestParser(object):
         self.url = url
 
         self._kb_server = None
-        self._junk_re = re.compile("JUNK\((.*?)\)")
+        self._junk_re = re.compile(r"JUNK\((.*?)\)")
         self.ignored = []
 
     def test_generator(self):
@@ -524,7 +521,7 @@ class NiktoTestParser(object):
                 splitted_line[test_index] = int(test_value)
 
             elif test_value:
-                flags = re.I | re.M | re.S
+                flags = re.IGNORECASE | re.MULTILINE | re.DOTALL
                 try:
                     splitted_line[test_index] = re.compile(test_value, flags)
                 except:

@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import w3af.core.controllers.output_manager as om
-
 from w3af.core.controllers.exceptions import BaseFrameworkException
 
 CTRL_CODES = list(range(1, 27))
@@ -96,8 +95,8 @@ def getch(buf=None):
 def ioctl_GWINSZ(fd):  # TABULATION FUNCTIONS
     try:  # Discover terminal width
         import fcntl
-        import termios
         import struct
+        import termios
 
         cr = struct.unpack("hh", fcntl.ioctl(fd, termios.TIOCGWINSZ, "1234"))
     except:
@@ -133,16 +132,13 @@ def terminal_width():
 
 
 try:
-    import tty
-    import termios
     from w3af.core.ui.console.io.unixctrl import *
 except Exception as e:
     # We aren't on unix !
     try:
-        import msvcrt
         from w3af.core.ui.console.io.winctrl import *
     except Exception as a:
-        print((str(e + "\n" + a)))
+        print(str(e + "\n" + a))
         # We arent on windows nor unix
         raise BaseFrameworkException(
             "w3af support for OS X isn't available yet! Please contribute."

@@ -20,10 +20,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import yaml
 import argparse
-
 from argparse import ArgumentTypeError
+
+import yaml
 
 # Global default values
 DEFAULTS = {
@@ -199,7 +199,7 @@ def process_cmd_args_config(app):
 
     if app.config["HOST"] != "127.0.0.1" and app.config["HOST"] != "localhost":
 
-        print("")
+        print()
         if "PASSWORD" not in app.config:
             print(
                 "WARNING! Running this API on a public IP might expose your"

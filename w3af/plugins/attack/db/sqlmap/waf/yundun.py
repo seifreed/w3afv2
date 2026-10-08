@@ -19,9 +19,12 @@ def detect(get_page):
     for vector in WAF_ATTACK_VECTORS:
         _, headers, _ = get_page(get=vector)
         retval = (
-            re.search(r"YUNDUN", headers.get(HTTP_HEADER.SERVER, ""), re.I) is not None
+            re.search(r"YUNDUN", headers.get(HTTP_HEADER.SERVER, ""), re.IGNORECASE)
+            is not None
         )
-        retval |= re.search(r"YUNDUN", headers.get("X-Cache", ""), re.I) is not None
+        retval |= (
+            re.search(r"YUNDUN", headers.get("X-Cache", ""), re.IGNORECASE) is not None
+        )
         if retval:
             break
 

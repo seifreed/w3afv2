@@ -20,27 +20,25 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import socket
 import errno
 import http.server
+import socket
 from functools import partial
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.constants.severity as severity
-import w3af.core.controllers.daemons.webserver as webserver
-import w3af.core.data.constants.ports as ports
-
-from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
+from w3af.core.controllers.daemons import webserver
+from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.misc.get_local_ip import get_local_ip
 from w3af.core.controllers.misc.is_private_site import is_private_site
-from w3af.core.controllers.exceptions import BaseFrameworkException
-from w3af.core.data.options.opt_factory import opt_factory
-from w3af.core.data.options.option_types import STRING, PORT, BOOL
-from w3af.core.data.options.option_list import OptionList
+from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
+from w3af.core.data.constants import ports, severity
 from w3af.core.data.fuzzer.fuzzer import create_mutants
 from w3af.core.data.fuzzer.utils import rand_alnum
-from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.options.opt_factory import opt_factory
+from w3af.core.data.options.option_list import OptionList
+from w3af.core.data.options.option_types import BOOL, PORT, STRING
+from w3af.core.data.parsers.doc.url import URL
 
 CONFIG_OK = "Ok"
 
@@ -185,7 +183,7 @@ class rfi(AuditPlugin):
                 bind_args = (listen_address, listen_port)
                 try:
                     s.bind(bind_args)
-                except socket.error as se:
+                except OSError as se:
                     msg = "Failed to bind to address %s:%s, error: %s"
                     fmt_args = list(bind_args)
                     fmt_args.append(se)
@@ -249,7 +247,7 @@ class rfi(AuditPlugin):
 
                 # Perform the real work
                 self._test_inclusion(freq, rfi_data, orig_response, debugging_id)
-            except socket.error as se:
+            except OSError as se:
                 errorcode = se[0]
                 if errorcode == errno.EADDRINUSE:
                     # We can't use this address because it is already in use
@@ -549,10 +547,9 @@ class RFIWebHandler(http.server.BaseHTTPRequestHandler):
 
         being printed to the console.
         """
-        pass
 
 
-class RFIData(object):
+class RFIData:
     def __init__(self, rfi_url, rfi_result_part_1, rfi_result_part_2, rfi_result):
         self.rfi_url = rfi_url
         self.rfi_result_part_1 = rfi_result_part_1

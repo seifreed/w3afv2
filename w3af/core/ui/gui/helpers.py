@@ -21,18 +21,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 # This module is a collection of useful code snippets for the GTK gui
 
-import threading
+import os
 import queue
 import textwrap
-import gtk
-import os
+import threading
 
-from w3af.core.ui.gui import GUI_DATA_PATH
+import gtk
+
 from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.ui.gui import GUI_DATA_PATH
 from w3af.core.ui.gui.constants import W3AF_ICON
 
 
-class PropagateBuffer(object):
+class PropagateBuffer:
     """Buffer to don't propagate signals when it's not necessary.
 
     :param target: the target to alert when the change *is* propagated.
@@ -66,7 +67,7 @@ class PropagateBuffer(object):
         return
 
 
-class PropagateBufferPayload(object):
+class PropagateBufferPayload:
     """Equal to PropagateBuffer, but sending a payload
 
     :param target: the target to alert when the change *is* propagated.
@@ -151,7 +152,7 @@ class RegistThread(threading.Thread):
         _threadPool.append(self)
         self.my_thread_ended = False
 
-        super(RegistThread, self).__init__()
+        super().__init__()
         self.name = "RegistThread"
         self.daemon = True
 
@@ -191,10 +192,9 @@ def FriendlyExceptionDlg(message):
     dlg.set_icon_from_file(W3AF_ICON)
     dlg.set_title("Error")
     dlg.dialog_run()
-    return
 
 
-class _Wrapper(object):
+class _Wrapper:
     """Wraps a call to the Core.
 
     If the core raises a friendly exception, it's not propagated but
@@ -259,8 +259,7 @@ class IteratedQueue(RegistThread):
 
     def get(self, start_idx=0):
         """Serves the elements taken from the queue."""
-        if start_idx > len(self.repository):
-            start_idx = len(self.repository)
+        start_idx = min(start_idx, len(self.repository))
 
         idx = start_idx
 
@@ -293,7 +292,7 @@ class IteratedQueue(RegistThread):
         return self.inputqueue.qsize()
 
 
-class BroadcastWrapper(object):
+class BroadcastWrapper:
     """Broadcast methods access to several widgets.
 
     Wraps objects to be able to have n widgets, and handle them
@@ -331,7 +330,7 @@ event_types = [i for i in list(vars(gtk.gdk).values()) if type(i) is gtk.gdk.Eve
 def debugHandler(widget, event, *a):
     """Just connect it to the 'event' event."""
     if event.type in event_types:
-        print((event.type.value_nick))
+        print(event.type.value_nick)
 
 
 class Throbber(gtk.ToolButton):
@@ -352,7 +351,7 @@ class Throbber(gtk.ToolButton):
         )
         self.img_animat.show()
 
-        super(Throbber, self).__init__(self.img_static, "")
+        super().__init__(self.img_static, "")
         self.set_sensitive(False)
         self.show()
 
@@ -405,7 +404,7 @@ def loadIcon(stock_item_id):
         return icon
 
 
-class SensitiveAnd(object):
+class SensitiveAnd:
     """'AND's some sensitive info for a widget.
 
     If all says it should be enable it is. If only one says it shouldn't
@@ -427,7 +426,7 @@ class SensitiveAnd(object):
         self.target.set_sensitive(sensit)
 
 
-import w3af.core.data.constants.severity as severity
+from w3af.core.data.constants import severity
 
 KB_ICONS = {
     ("excp", None): loadImage("warning-black-animated.gif"),
@@ -452,7 +451,7 @@ KB_COLORS = ["black", "orange", "red", "red"]
 class DrawingAreaStringRepresentation(gtk.DrawingArea):
 
     def __init__(self, str_repr=None, width=60, height=40):
-        super(DrawingAreaStringRepresentation, self).__init__()
+        super().__init__()
 
         self.width = width
         self.height = height

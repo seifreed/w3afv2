@@ -20,11 +20,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.plugins.attack.payloads.payload_handler as payload_handler
 import w3af.core.controllers.output_manager as om
-
-from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.kb.exploit_result import ExploitResult
+from w3af.core.data.kb.vuln import Vuln
+from w3af.plugins.attack.payloads import payload_handler
 
 
 class Shell(ExploitResult):
@@ -160,7 +159,6 @@ class Shell(ExploitResult):
         :param parameters: A list with the parameters for @command
         :return: The result of the command.
         """
-        pass
 
     def _payload(self, parameters):
         """
@@ -237,7 +235,6 @@ class Shell(ExploitResult):
 
         :return: None
         """
-        pass
 
     def get_name(self):
         """

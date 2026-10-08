@@ -21,8 +21,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import socketserver
 
-from w3af.plugins.tests.helper import PluginTest, PluginConfig, MockResponse
 from w3af.core.data.url.tests.helpers.upper_daemon import ThreadingUpperDaemon
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 
 class TestFindVhosts(PluginTest):

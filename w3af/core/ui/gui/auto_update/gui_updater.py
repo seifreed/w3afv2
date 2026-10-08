@@ -22,12 +22,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import gtk
 
-from w3af.core.ui.gui.constants import W3AF_ICON
-from w3af.core.ui.gui import entries
-
-from w3af.core.controllers.auto_update.version_manager import VersionMgr
 from w3af.core.controllers.auto_update.ui_wrapper import UIUpdater
-from w3af.core.controllers.auto_update.utils import to_short_id, get_commit_id_date
+from w3af.core.controllers.auto_update.utils import get_commit_id_date, to_short_id
+from w3af.core.controllers.auto_update.version_manager import VersionMgr
+from w3af.core.ui.gui import entries
+from w3af.core.ui.gui.constants import W3AF_ICON
 
 
 def ask(msg):
@@ -99,7 +98,7 @@ class GUIUpdater(UIUpdater):
         self._logger(message)
 
     def update(self):
-        super(GUIUpdater, self).update()
+        super().update()
 
     def _generate_report(self, changelog, local_commit_id, remote_commit_id):
         """

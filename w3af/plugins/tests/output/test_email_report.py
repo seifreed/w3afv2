@@ -19,11 +19,12 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from mock import patch
+from unittest.mock import patch
+
 from nose.plugins.attrib import attr
 
 from w3af.core.controllers.ci.moth import get_moth_http
-from w3af.plugins.tests.helper import PluginTest, PluginConfig
+from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 
 @attr("moth")
@@ -66,13 +67,13 @@ class TestEmailReport(PluginTest):
         # monkey-patch smtplib so we don't send actual emails
         inbox = []
 
-        class Message(object):
+        class Message:
             def __init__(self, from_address, to_address, fullmessage):
                 self.from_address = from_address
                 self.to_address = to_address
                 self.fullmessage = fullmessage
 
-        class DummySMTP(object):
+        class DummySMTP:
             def __init__(self):
                 smtp = self
 

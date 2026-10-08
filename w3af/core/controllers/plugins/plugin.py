@@ -20,23 +20,22 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import sys
 import queue
+import sys
 import threading
-
 from itertools import repeat
+
 from tblib.decorators import Error
 
-import w3af.core.data.kb.knowledge_base as kb
 import w3af.core.controllers.output_manager as om
-
+import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.configurable import Configurable
-from w3af.core.controllers.threads.threadpool import return_args
 from w3af.core.controllers.exceptions import HTTPRequestException
 from w3af.core.controllers.threads.decorators import apply_with_return_error
+from w3af.core.controllers.threads.threadpool import return_args
+from w3af.core.data.kb.info_set import InfoSet
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.url.helpers import new_no_content_resp
-from w3af.core.data.kb.info_set import InfoSet
 
 
 class Plugin(Configurable):
@@ -112,7 +111,6 @@ class Plugin(Configurable):
 
         :return: No value is returned.
         """
-        pass
 
     def get_options(self):
         """
@@ -196,7 +194,6 @@ class Plugin(Configurable):
         be used anymore. This is helpful to do some final tests, free some
         structures, etc.
         """
-        pass
 
     def get_type(self):
         return "plugin"
@@ -278,7 +275,7 @@ class Plugin(Configurable):
         return False, no_content_resp
 
 
-class UrlOpenerProxy(object):
+class UrlOpenerProxy:
     """
     Proxy class for urlopener objects such as ExtendedUrllib instances.
     """

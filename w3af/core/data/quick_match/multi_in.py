@@ -21,10 +21,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 from acora import AcoraBuilder
+
 from w3af.core.data.constants.encodings import DEFAULT_ENCODING
 
 
-class MultiIn(object):
+class MultiIn:
     def __init__(self, keywords_or_assoc):
         """
         :param keywords_or_assoc: A list with all the strings that we want

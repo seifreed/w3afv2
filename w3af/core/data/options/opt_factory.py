@@ -21,44 +21,43 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 from w3af.core.data.options.bool_option import BoolOption
-from w3af.core.data.options.integer_option import IntegerOption
-from w3af.core.data.options.positive_integer_option import PositiveIntegerOption
-from w3af.core.data.options.float_option import FloatOption
-from w3af.core.data.options.string_option import StringOption
-from w3af.core.data.options.url_option import URLOption
-from w3af.core.data.options.ipport_option import IPPortOption
-from w3af.core.data.options.ip_option import IPOption
-from w3af.core.data.options.port_option import PortOption
-from w3af.core.data.options.query_string_option import QueryStringOption
-from w3af.core.data.options.header_option import HeaderOption
-from w3af.core.data.options.list_option import ListOption
-from w3af.core.data.options.regex_option import RegexOption
 from w3af.core.data.options.combo_option import ComboOption
-from w3af.core.data.options.input_file_option import InputFileOption
-from w3af.core.data.options.output_file_option import OutputFileOption
-from w3af.core.data.options.url_list_option import URLListOption
+from w3af.core.data.options.float_option import FloatOption
 from w3af.core.data.options.form_id_list_option import FormIDListOption
-
+from w3af.core.data.options.header_option import HeaderOption
+from w3af.core.data.options.input_file_option import InputFileOption
+from w3af.core.data.options.integer_option import IntegerOption
+from w3af.core.data.options.ip_option import IPOption
+from w3af.core.data.options.ipport_option import IPPortOption
+from w3af.core.data.options.list_option import ListOption
 from w3af.core.data.options.option_types import (
     BOOL,
-    INT,
-    POSITIVE_INT,
+    COMBO,
     FLOAT,
-    STRING,
-    URL,
+    FORM_ID_LIST,
+    HEADER,
+    INPUT_FILE,
+    INT,
+    IP,
     IPPORT,
     LIST,
-    REGEX,
-    COMBO,
-    INPUT_FILE,
-    QUERY_STRING,
-    HEADER,
     OUTPUT_FILE,
     PORT,
-    IP,
+    POSITIVE_INT,
+    QUERY_STRING,
+    REGEX,
+    STRING,
+    URL,
     URL_LIST,
-    FORM_ID_LIST,
 )
+from w3af.core.data.options.output_file_option import OutputFileOption
+from w3af.core.data.options.port_option import PortOption
+from w3af.core.data.options.positive_integer_option import PositiveIntegerOption
+from w3af.core.data.options.query_string_option import QueryStringOption
+from w3af.core.data.options.regex_option import RegexOption
+from w3af.core.data.options.string_option import StringOption
+from w3af.core.data.options.url_list_option import URLListOption
+from w3af.core.data.options.url_option import URLOption
 
 
 def opt_factory(name, default_value, desc, _type, help="", tabid=""):

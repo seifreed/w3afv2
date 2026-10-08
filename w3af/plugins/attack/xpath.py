@@ -23,14 +23,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import difflib
 import re
 import textwrap
-
 from random import randint
 
 import w3af.core.controllers.output_manager as om
-
+from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
 from w3af.core.controllers.threads.threadpool import return_args
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.kb.shell import Shell
 
 ERROR_MSG = "Empty search result"
@@ -201,9 +199,8 @@ class xpath(AttackPlugin):
                     true_resp.get_body()
                 ):
                     return str_delim
-        else:
-            msg = "Failed to identify XPATH injection string delimiter."
-            raise BaseFrameworkException(msg)
+        msg = "Failed to identify XPATH injection string delimiter."
+        raise BaseFrameworkException(msg)
 
     def _configure_is_error_function(self, vuln, count):
         """
@@ -278,7 +275,7 @@ class XPathReader(Shell):
         self.TRUE_COND = true_xpath
         self.is_error_resp = is_error_resp
 
-        super(XPathReader, self).__init__(vuln, uri_opener, worker_pool)
+        super().__init__(vuln, uri_opener, worker_pool)
 
         self._rOS = "XML"
         self._rSystem = "XPATH Query"
@@ -473,9 +470,8 @@ class XPathReader(Shell):
             if not self.is_error_resp(dresp.get_body()):
                 om.out.console('Character found: "%s"' % hexcar)
                 return hexcar
-        else:
-            om.out.console("Character NOT found!")
-            return None
+        om.out.console("Character NOT found!")
+        return None
 
     def get_name(self):
         return "xpath_reader"
@@ -500,7 +496,7 @@ class XPathReader(Shell):
         )
 
 
-class IsErrorResponse(object):
+class IsErrorResponse:
     def __init__(self, vuln_obj, url_opener, use_difflib):
         self.vuln_obj = vuln_obj
         self.url_opener = url_opener

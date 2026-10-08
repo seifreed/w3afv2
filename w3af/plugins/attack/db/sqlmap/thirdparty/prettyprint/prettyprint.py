@@ -23,8 +23,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from xml.dom import minidom
-from xml.dom import Node
+from xml.dom import Node, minidom
 
 
 def format(text):

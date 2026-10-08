@@ -1,5 +1,3 @@
-# -*- coding: utf8 -*-
-
 """
 python_export.py
 

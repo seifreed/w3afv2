@@ -17,7 +17,10 @@ def detect(get_page):
 
     for vector in WAF_ATTACK_VECTORS:
         page, _, _ = get_page(get=vector)
-        retval = re.search(r"url\('/ks-waf-error\.png'\)", page or "", re.I) is not None
+        retval = (
+            re.search(r"url\('/ks-waf-error\.png'\)", page or "", re.IGNORECASE)
+            is not None
+        )
         if retval:
             break
 

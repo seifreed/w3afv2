@@ -20,7 +20,7 @@ def detect(get_page):
         _, headers, code = get_page(get=vector)
         retval = (
             code == 400
-            and re.search(r"\AECDF", headers.get(HTTP_HEADER.SERVER, ""), re.I)
+            and re.search(r"\AECDF", headers.get(HTTP_HEADER.SERVER, ""), re.IGNORECASE)
             is not None
         )
         if retval:

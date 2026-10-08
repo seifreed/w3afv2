@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 test_xurllib.py
 
@@ -21,35 +20,34 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
+import queue
+import socketserver
 import ssl
 import time
-import queue
-import types
 import unittest
-import socketserver
 from multiprocessing.dummy import Process
+from unittest.mock import patch
 
 import httpretty
 from nose.plugins.attrib import attr
-from mock import patch
 
 from w3af import ROOT_PATH
-from w3af.core.data.url.extended_urllib import ExtendedUrllib
-from w3af.core.data.url.constants import MAX_ERROR_COUNT
-from w3af.core.data.url.tests.helpers.upper_daemon import UpperDaemon
-from w3af.core.data.url.tests.helpers.ssl_daemon import RawSSLDaemon, SSLServer
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.dc.urlencoded_form import URLEncodedForm
-from w3af.core.data.dc.headers import Headers
-from w3af.core.data.url.HTTPResponse import DEFAULT_WAIT_TIME
-from w3af.core.controllers.misc.get_unused_port import get_unused_port
 from w3af.core.controllers.ci.moth import get_moth_http, get_moth_https
-from w3af.core.controllers.misc.temp_dir import get_temp_dir
 from w3af.core.controllers.exceptions import (
-    ScanMustStopByUserRequest,
     HTTPRequestException,
+    ScanMustStopByUserRequest,
     ScanMustStopException,
 )
+from w3af.core.controllers.misc.get_unused_port import get_unused_port
+from w3af.core.controllers.misc.temp_dir import get_temp_dir
+from w3af.core.data.dc.headers import Headers
+from w3af.core.data.dc.urlencoded_form import URLEncodedForm
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.url.constants import MAX_ERROR_COUNT
+from w3af.core.data.url.extended_urllib import ExtendedUrllib
+from w3af.core.data.url.HTTPResponse import DEFAULT_WAIT_TIME
+from w3af.core.data.url.tests.helpers.ssl_daemon import RawSSLDaemon, SSLServer
+from w3af.core.data.url.tests.helpers.upper_daemon import UpperDaemon
 
 
 @attr("moth")
@@ -231,7 +229,7 @@ class TestXUrllib(unittest.TestCase):
                 self.uri_opener.GET(url)
             except HTTPRequestException:
                 http_request_e += 1
-            except ScanMustStopException as smse:
+            except ScanMustStopException:
                 scan_must_stop_e += 1
                 break
             except Exception as e:

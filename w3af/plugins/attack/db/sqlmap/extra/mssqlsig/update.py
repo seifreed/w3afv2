@@ -8,9 +8,9 @@ See the file 'LICENSE' for copying permission
 import codecs
 import os
 import re
-import urllib.request, urllib.error, urllib.parse
+import urllib.error
 import urllib.parse
-
+import urllib.request
 from xml.dom.minidom import Document
 
 # Path to the XML file with signatures
@@ -50,9 +50,9 @@ def updateMSSQLXML():
         return
 
     releases = re.findall(
-        'class="BCC_DV_01DarkBlueTitle">SQL Server\s(.+?)\sBuilds',
+        r'class="BCC_DV_01DarkBlueTitle">SQL Server\s(.+?)\sBuilds',
         mssqlVersionsHtmlString,
-        re.I,
+        re.IGNORECASE,
     )
     releasesCount = len(releases)
 
@@ -63,7 +63,7 @@ def updateMSSQLXML():
     root = doc.createElement("root")
     doc.appendChild(root)
 
-    for index in range(0, releasesCount):
+    for index in range(releasesCount):
         release = releases[index]
 
         # Skip Microsoft SQL Server 6.5 because the HTML
@@ -89,14 +89,13 @@ def updateMSSQLXML():
 
         mssqlVersionsReleaseString = mssqlVersionsHtmlString[startIdx:stopIdx]
         servicepackVersion = re.findall(
-            "</td><td>(7\.0|2000|2005|2008|2008 R2)*(.*?)</td><td.*?([\d\.]+)</td>[\r]*\n",
+            "</td><td>(7\\.0|2000|2005|2008|2008 R2)*(.*?)</td><td.*?([\\d\\.]+)</td>[\r]*\n",
             mssqlVersionsReleaseString,
-            re.I,
+            re.IGNORECASE,
         )
 
         for servicePack, version in servicepackVersion:
-            if servicePack.startswith(" "):
-                servicePack = servicePack[1:]
+            servicePack = servicePack.removeprefix(" ")
             if "/" in servicePack:
                 servicePack = servicePack[: servicePack.index("/")]
             if "(" in servicePack:
@@ -119,8 +118,7 @@ def updateMSSQLXML():
             servicePack = servicePack.replace("+ ", "+")
             servicePack = servicePack.replace(" +", "+")
 
-            if servicePack.endswith(" "):
-                servicePack = servicePack[:-1]
+            servicePack = servicePack.removesuffix(" ")
 
             if servicePack and version:
                 # Create the main <card> element

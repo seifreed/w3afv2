@@ -5,22 +5,19 @@ Copyright (c) 2006-2017 sqlmap developers (http://sqlmap.org/)
 See the file 'LICENSE' for copying permission
 """
 
-from lib.core.common import getLimitRange
-from lib.core.common import isAdminFromPrivileges
-from lib.core.common import isInferenceAvailable
-from lib.core.common import isNoneValue
-from lib.core.common import isNumPosStrValue
-from lib.core.common import isTechniqueAvailable
-from lib.core.data import conf
-from lib.core.data import kb
-from lib.core.data import logger
-from lib.core.data import queries
-from lib.core.enums import CHARSET_TYPE
-from lib.core.enums import DBMS
-from lib.core.enums import EXPECTED
-from lib.core.enums import PAYLOAD
+from lib.core.common import (
+    getLimitRange,
+    isAdminFromPrivileges,
+    isInferenceAvailable,
+    isNoneValue,
+    isNumPosStrValue,
+    isTechniqueAvailable,
+)
+from lib.core.data import conf, kb, logger, queries
+from lib.core.enums import CHARSET_TYPE, DBMS, EXPECTED, PAYLOAD
 from lib.core.exception import SqlmapNoneDataException
 from lib.request import inject
+
 from plugins.generic.enumeration import Enumeration as GenericEnumeration
 
 
@@ -80,7 +77,7 @@ class Enumeration(GenericEnumeration):
                     user = None
                     roles = set()
 
-                    for count in range(0, len(value or [])):
+                    for count in range(len(value or [])):
                         # The first column is always the username
                         if count == 0:
                             user = value[count]

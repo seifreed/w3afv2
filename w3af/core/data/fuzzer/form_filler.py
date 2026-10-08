@@ -1,4 +1,3 @@
-# -*- coding: utf8 -*-
 """
 form_filler.py
 
@@ -22,16 +21,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
+from functools import cmp_to_key
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
-
-from w3af.core.controllers.misc.io import NamedStringIO
 from w3af.core.controllers.misc.decorators import memoized
+from w3af.core.controllers.misc.io import NamedStringIO
 from w3af.core.data.constants.file_templates.file_templates import (
     get_file_from_template,
 )
-from functools import cmp_to_key
 
 PARAM_NAME_KNOWLEDGE = {
     "John8212": [
@@ -280,11 +278,7 @@ def smart_fill(variable_name, db=PARAM_NAME_KNOWLEDGE, default="56"):
             if variable_name_db == variable_name:
                 return filled_value
 
-            if variable_name in variable_name_db:
-                match_rate = get_match_rate(variable_name, variable_name_db)
-                possible_results.append((filled_value, match_rate))
-
-            elif variable_name_db in variable_name:
+            if variable_name in variable_name_db or variable_name_db in variable_name:
                 match_rate = get_match_rate(variable_name, variable_name_db)
                 possible_results.append((filled_value, match_rate))
 

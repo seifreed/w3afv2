@@ -20,12 +20,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import os
-import math
-import random
 import hashlib
-import struct
+import math
 import mmap
+import os
+import random
+import struct
 
 from w3af.core.data.bloomfilter.wrappers import GenericBloomFilter
 

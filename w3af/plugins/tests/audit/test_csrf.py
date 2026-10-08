@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 test_csrf.py
 
@@ -22,17 +21,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-from w3af.plugins.tests.helper import PluginTest, PluginConfig, LOREM
-from w3af.plugins.audit.csrf import csrf
-from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.controllers.ci.w3af_moth import get_w3af_moth_http
+from w3af.core.data.dc.cookie import Cookie
+from w3af.core.data.dc.headers import Headers
+from w3af.core.data.dc.urlencoded_form import URLEncodedForm
 from w3af.core.data.parsers.doc.url import URL, parse_qs
 from w3af.core.data.parsers.utils.form_params import FormParameters
-from w3af.core.data.dc.headers import Headers
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.dc.urlencoded_form import URLEncodedForm
-from w3af.core.data.dc.cookie import Cookie
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
-from w3af.core.controllers.ci.w3af_moth import get_w3af_moth_http
+from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.plugins.audit.csrf import csrf
+from w3af.plugins.tests.helper import LOREM, PluginConfig, PluginTest
 
 
 class TestCSRF(PluginTest):
@@ -54,7 +53,7 @@ class TestCSRF(PluginTest):
     }
 
     def setUp(self):
-        super(TestCSRF, self).setUp()
+        super().setUp()
 
         self.csrf_plugin = csrf()
         self.uri_opener = ExtendedUrllib()
@@ -230,7 +229,7 @@ class TestCSRF(PluginTest):
 
 class TestLowLevelCSRF(unittest.TestCase):
     def setUp(self):
-        super(TestLowLevelCSRF, self).setUp()
+        super().setUp()
         self.csrf_plugin = csrf()
 
     def test_is_csrf_token_true_case01(self):

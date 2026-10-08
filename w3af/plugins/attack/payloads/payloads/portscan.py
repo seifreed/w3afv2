@@ -1,5 +1,5 @@
-from w3af.core.ui.console.tables import table
 from w3af.core.controllers.misc.is_private_site import is_private_site
+from w3af.core.ui.console.tables import table
 from w3af.plugins.attack.payloads.base_payload import Payload
 
 

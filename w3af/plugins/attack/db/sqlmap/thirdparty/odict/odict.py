@@ -33,7 +33,7 @@ INTP_VER = sys.version_info[:2]
 if INTP_VER < (2, 2):
     raise RuntimeError("Python v.2.2 or later required")
 
-import types, warnings
+import warnings
 
 
 class _OrderedDict(dict):
@@ -894,7 +894,7 @@ else:
     OrderedDict = _OrderedDict
 
 
-class Keys(object):
+class Keys:
     # FIXME: should this object be a subclass of list?
     """
     Custom object for accessing the keys of an OrderedDict.
@@ -1037,7 +1037,7 @@ class Keys(object):
         raise TypeError("Can't extend keys")
 
 
-class Items(object):
+class Items:
     """
     Custom object for accessing the items of an OrderedDict.
 
@@ -1182,7 +1182,7 @@ class Items(object):
         raise TypeError("Can't multiply items in place")
 
 
-class Values(object):
+class Values:
     """
     Custom object for accessing the values of an OrderedDict.
 

@@ -21,42 +21,40 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
-
 from itertools import repeat
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 import w3af.core.data.kb.config as cf
-import w3af.core.data.constants.severity as severity
-
-from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
+import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
+from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
+from w3af.core.data.constants import severity
 from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.plugins.crawl.phpinfo_analysis.analysis import (
-    register_globals,
     allow_url_fopen,
     allow_url_include,
-    display_errors,
-    expose_php,
-    lowest_privilege_test,
-    disable_functions,
-    curl_file_support,
     cgi_force_redirect,
+    curl_file_support,
+    default_charset,
+    disable_functions,
+    display_errors,
+    enable_dl,
+    expose_php,
+    file_uploads,
+    lowest_privilege_test,
+    magic_quotes_gpc,
+    memory_limit,
+    open_basedir,
+    post_max_size,
+    register_globals,
     session_cookie_httponly,
+    session_hash_function,
     session_save_path,
     session_use_trans,
-    default_charset,
-    enable_dl,
-    memory_limit,
-    post_max_size,
     upload_max_filesize,
     upload_tmp_dir,
-    file_uploads,
-    magic_quotes_gpc,
-    open_basedir,
-    session_hash_function,
 )
 
 PHP_INFO_FILES = {
@@ -124,9 +122,9 @@ class phpinfo(CrawlPlugin):
     PHP_VERSION_RE = re.compile(
         '(<tr class="h"><td>\n|alt="PHP Logo" /></a>)'
         '<h1 class="p">PHP Version (.*?)</h1>',
-        re.I,
+        re.IGNORECASE,
     )
-    SYSTEM_RE = re.compile('System </td><td class="v">(.*?)</td></tr>', re.I)
+    SYSTEM_RE = re.compile('System </td><td class="v">(.*?)</td></tr>', re.IGNORECASE)
 
     def __init__(self):
         CrawlPlugin.__init__(self)
@@ -192,8 +190,8 @@ class phpinfo(CrawlPlugin):
             return
 
         # Check if it is a phpinfo file
-        php_version = self.PHP_VERSION_RE.search(response.get_body(), re.I)
-        sysinfo = self.SYSTEM_RE.search(response.get_body(), re.I)
+        php_version = self.PHP_VERSION_RE.search(response.get_body(), re.IGNORECASE)
+        sysinfo = self.SYSTEM_RE.search(response.get_body(), re.IGNORECASE)
 
         if not php_version:
             return

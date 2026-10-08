@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import w3af.core.controllers.output_manager as om
-
 from w3af.core.controllers.auto_update.ui_wrapper import UIUpdater
 
 

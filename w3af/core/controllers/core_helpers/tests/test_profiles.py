@@ -21,16 +21,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
 import os
-
+import unittest
 from configparser import ConfigParser
+
 from nose.plugins.attrib import attr
 
 from w3af import ROOT_PATH
-from w3af.core.data.profile.profile import profile
-from w3af.core.controllers.w3afCore import w3afCore
 from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.controllers.w3afCore import w3afCore
+from w3af.core.data.profile.profile import profile
 
 
 class TestCoreProfiles(unittest.TestCase):
@@ -40,11 +40,11 @@ class TestCoreProfiles(unittest.TestCase):
     )
 
     def setUp(self):
-        super(TestCoreProfiles, self).setUp()
+        super().setUp()
         self.core = w3afCore()
 
     def tearDown(self):
-        super(TestCoreProfiles, self).tearDown()
+        super().tearDown()
         self.core.worker_pool.terminate_join()
 
     @attr("smoke")

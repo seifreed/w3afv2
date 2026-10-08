@@ -22,18 +22,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import json
-import yaml
 import logging
 
 from yaml import load
 
 try:
-    from yaml import CLoader as Loader, CDumper as Dumper
+    from yaml import CDumper as Dumper
+    from yaml import CLoader as Loader
 except ImportError:
-    from yaml import Loader, Dumper
+    from yaml import Loader
 
 import w3af.core.controllers.output_manager as om
-
 from w3af.core.data.parsers.doc.open_api.parameters import ParameterHandler
 from w3af.core.data.parsers.doc.open_api.relaxed_spec import RelaxedSpec
 
@@ -51,7 +50,7 @@ for to_silence in SILENCE:
     logger.setLevel(logging.ERROR)
 
 
-class SpecificationHandler(object):
+class SpecificationHandler:
     def __init__(self, http_response, validate_swagger_spec=False):
         self.http_response = http_response
         self.spec = None

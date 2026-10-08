@@ -6,6 +6,7 @@ See the file 'LICENSE' for copying permission
 """
 
 from lib.core.data import logger
+
 from plugins.generic.enumeration import Enumeration as GenericEnumeration
 
 
@@ -16,8 +17,6 @@ class Enumeration(GenericEnumeration):
     def getBanner(self):
         warnMsg = "on Microsoft Access it is not possible to get a banner"
         logger.warn(warnMsg)
-
-        return None
 
     def getCurrentUser(self):
         warnMsg = "on Microsoft Access it is not possible to enumerate the current user"

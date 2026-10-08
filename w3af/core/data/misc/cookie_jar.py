@@ -22,12 +22,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 import time
-
 from http.cookiejar import (
-    MozillaCookieJar,
-    LoadError,
-    _warn_unhandled_exception,
     Cookie,
+    LoadError,
+    MozillaCookieJar,
+    _warn_unhandled_exception,
 )
 
 
@@ -52,8 +51,7 @@ class ImprovedMozillaCookieJar(MozillaCookieJar):
                     break
 
                 # last field may be absent, so keep any trailing tab
-                if line.endswith("\n"):
-                    line = line[:-1]
+                line = line.removesuffix("\n")
 
                 # skip comments and blank lines XXX what is $ for?
                 if line.strip().startswith(("#", "$")) or line.strip() == "":
@@ -132,7 +130,7 @@ class ImprovedMozillaCookieJar(MozillaCookieJar):
                     continue
                 self.set_cookie(c)
 
-        except IOError:
+        except OSError:
             raise
         except Exception:
             _warn_unhandled_exception()

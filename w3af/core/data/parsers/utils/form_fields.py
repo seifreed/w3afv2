@@ -21,14 +21,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 from w3af.core.data.parsers.utils.form_constants import (
-    INPUT_TYPE_SELECT,
-    INPUT_TYPE_RADIO,
     INPUT_TYPE_CHECKBOX,
     INPUT_TYPE_FILE,
+    INPUT_TYPE_RADIO,
+    INPUT_TYPE_SELECT,
 )
 
 
-class FormFieldMixin(object):
+class FormFieldMixin:
     __slots__ = ("input_type", "name", "value")
 
     def __init__(self, input_type, name, value):
@@ -70,10 +70,10 @@ class GenericFormField(FormFieldMixin):
     Represent a "common" input type such as text, password, etc.
     """
 
-    __slots__ = ("input_type", "name", "value", "autocomplete")
+    __slots__ = ("autocomplete", "input_type", "name", "value")
 
     def __init__(self, input_type, name, value, autocomplete=False):
-        super(GenericFormField, self).__init__(input_type, name, value)
+        super().__init__(input_type, name, value)
         self.autocomplete = autocomplete
 
 
@@ -83,10 +83,10 @@ class ChooseFormField(FormFieldMixin):
     :param value: The currently selected/enabled value
     """
 
-    __slots__ = ("input_type", "name", "values", "value")
+    __slots__ = ("input_type", "name", "value", "values")
 
     def __init__(self, name, values):
-        super(ChooseFormField, self).__init__(None, name, None)
+        super().__init__(None, name, None)
         self.values = values
 
         if values:
@@ -124,10 +124,10 @@ class SelectFormField(ChooseFormField):
     The "values" attribute would hold "volvo", "saab", "mercedes", "audi".
     """
 
-    __slots__ = ("input_type", "name", "values", "value")
+    __slots__ = ("input_type", "name", "value", "values")
 
     def __init__(self, name, values):
-        super(SelectFormField, self).__init__(name, values)
+        super().__init__(name, values)
         self.input_type = INPUT_TYPE_SELECT
 
 
@@ -143,10 +143,10 @@ class RadioFormField(ChooseFormField):
     The "values" attribute would hold "male" and "female"
     """
 
-    __slots__ = ("input_type", "name", "values", "value")
+    __slots__ = ("input_type", "name", "value", "values")
 
     def __init__(self, name, values):
-        super(RadioFormField, self).__init__(name, values)
+        super().__init__(name, values)
         self.input_type = INPUT_TYPE_RADIO
 
 
@@ -163,10 +163,10 @@ class CheckboxFormField(ChooseFormField):
     The "values" attribute would hold "male" and "female"
     """
 
-    __slots__ = ("input_type", "name", "values", "value")
+    __slots__ = ("input_type", "name", "value", "values")
 
     def __init__(self, name, values):
-        super(CheckboxFormField, self).__init__(name, values)
+        super().__init__(name, values)
         self.input_type = INPUT_TYPE_CHECKBOX
 
 
@@ -175,10 +175,10 @@ class FileFormField(FormFieldMixin):
     Represent a "common" input type such as text, password, etc.
     """
 
-    __slots__ = ("input_type", "name", "value", "file_name")
+    __slots__ = ("file_name", "input_type", "name", "value")
 
     def __init__(self, name, value=None, file_name=None):
-        super(FileFormField, self).__init__(None, name, value)
+        super().__init__(None, name, value)
         self.input_type = INPUT_TYPE_FILE
         self.file_name = file_name
 

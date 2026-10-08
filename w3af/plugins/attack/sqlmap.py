@@ -24,18 +24,16 @@ import copy
 import queue
 import select
 import textwrap
-
 from multiprocessing.dummy import Process
 
 import w3af.core.controllers.output_manager as om
-
 from w3af.core.controllers.exceptions import OSDetectionException
-from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
 from w3af.core.controllers.intrusion_tools.readMethodHelpers import read_os_detection
-from w3af.core.data.kb.read_shell import ReadShell
-from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
+from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
 from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
-from w3af.plugins.attack.db.sqlmap_wrapper import Target, SQLMapWrapper
+from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
+from w3af.core.data.kb.read_shell import ReadShell
+from w3af.plugins.attack.db.sqlmap_wrapper import SQLMapWrapper, Target
 from w3af.plugins.attack.payloads.decorators.read_decorator import read_debug
 
 
@@ -191,7 +189,7 @@ class sqlmap(AttackPlugin):
 
 class RunFunctor(Process):
     def __init__(self, functor, params):
-        super(RunFunctor, self).__init__()
+        super().__init__()
         self.daemon = True
         self.name = "SQLMapWrapper"
 
@@ -199,7 +197,7 @@ class RunFunctor(Process):
         self.params = params
         self.user_input = queue.Queue()
 
-        class FakeProcess(object):
+        class FakeProcess:
             def poll(self):
                 return None
 
@@ -239,7 +237,7 @@ class SQLMapShell(ReadShell):
 
     def __init__(self, vuln, uri_opener, worker_pool, sqlmap):
         self.sqlmap = sqlmap
-        super(SQLMapShell, self).__init__(vuln, uri_opener, worker_pool)
+        super().__init__(vuln, uri_opener, worker_pool)
 
     def specific_user_input(self, command, params, return_err=True):
         # Call the parent in order to get read/download without duplicating
@@ -316,7 +314,7 @@ class SQLMapShell(ReadShell):
         Handle the help command.
         """
         if command in ("read", "download"):
-            return super(SQLMapShell, self).help(command)
+            return super().help(command)
 
         elif command == "sqlmap":
             _help = """\

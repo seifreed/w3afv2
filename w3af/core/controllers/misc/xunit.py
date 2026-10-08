@@ -21,12 +21,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from xml.dom.minidom import parseString
 from xml.sax import saxutils
-import os
 
 import w3af.core.controllers.output_manager as om
 
 
-class XunitGen(object):
+class XunitGen:
     """
     Generate an Xunit XML output file for w3af test scripts.
     Tools like Hudson will be able to parse the gen xunit files and display

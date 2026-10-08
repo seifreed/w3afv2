@@ -1,11 +1,11 @@
-import socket
 import os
-
+import socket
 from multiprocessing.dummy import Process
 from socketserver import ThreadingMixIn
-from werkzeug._internal import _log
-from werkzeug.serving import ForkingWSGIServer, BaseWSGIServer
+
 from flask import Flask
+from werkzeug._internal import _log
+from werkzeug.serving import BaseWSGIServer, ForkingWSGIServer
 
 
 class ThreadedFlask(Flask):

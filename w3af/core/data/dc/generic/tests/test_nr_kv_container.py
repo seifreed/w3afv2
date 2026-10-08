@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 test_nr_kv_container.py
 
@@ -20,9 +19,11 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import unittest
-import urllib.request, urllib.parse, urllib.error
 import copy
+import unittest
+import urllib.error
+import urllib.parse
+import urllib.request
 
 from w3af.core.data.dc.generic.nr_kv_container import NonRepeatKeyValueContainer
 

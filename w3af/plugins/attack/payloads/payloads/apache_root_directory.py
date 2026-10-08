@@ -1,9 +1,8 @@
 import re
 
 import w3af.core.data.kb.knowledge_base as kb
-
-from w3af.plugins.attack.payloads.base_payload import Payload
 from w3af.core.ui.console.tables import table
+from w3af.plugins.attack.payloads.base_payload import Payload
 
 
 class apache_root_directory(Payload):
@@ -16,7 +15,7 @@ class apache_root_directory(Payload):
         directory = []
 
         def parse_etc_passwd(etc_passwd, user):
-            root = re.search("(?<=" + user + ":/)(.*?)\:", etc_passwd)
+            root = re.search("(?<=" + user + r":/)(.*?)\:", etc_passwd)
             if root:
                 return root.group(1)
             else:

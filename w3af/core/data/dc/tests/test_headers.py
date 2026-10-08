@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 test_headers.py
 
@@ -20,8 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import unittest
 import copy
+import unittest
 
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.dc.utils.token import DataToken

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 html_file.py
 
@@ -21,26 +20,25 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import os
-import time
 import datetime
 import functools
+import os
+import time
+
 import markdown
+from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
-from jinja2 import StrictUndefined, Environment, FileSystemLoader
-
-import w3af.core.data.kb.knowledge_base as kb
 import w3af.core.data.kb.config as cf
-
+import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.controllers.exceptions import DBException
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
-from w3af.core.data.misc.encoding import smart_unicode
-from w3af.core.data.db.history import HistoryItem
 from w3af.core.data.db.disk_list import DiskList
+from w3af.core.data.db.history import HistoryItem
+from w3af.core.data.misc.encoding import smart_unicode
 from w3af.core.data.options.opt_factory import opt_factory
-from w3af.core.data.options.option_types import OUTPUT_FILE, INPUT_FILE
 from w3af.core.data.options.option_list import OptionList
+from w3af.core.data.options.option_types import INPUT_FILE, OUTPUT_FILE
 
 
 class html_file(OutputPlugin):

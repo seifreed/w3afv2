@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 token.py
 
@@ -24,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from w3af.core.data.misc.encoding import smart_str
 
 
-class DataToken(object):
+class DataToken:
     def __init__(self, name, value, path):
         self._name = name
         self._value = self._original_value = self._payload = value

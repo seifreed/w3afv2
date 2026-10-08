@@ -24,8 +24,8 @@ import os
 from nose.plugins.attrib import attr
 
 from w3af import ROOT_PATH
-from w3af.plugins.tests.helper import PluginTest, PluginConfig
 from w3af.core.data.url.tests.helpers.ssl_daemon import SSLServer
+from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 
 class TestSSLCertificate(PluginTest):

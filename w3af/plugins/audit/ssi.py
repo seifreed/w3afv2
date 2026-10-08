@@ -22,17 +22,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 
-import w3af.core.data.constants.severity as severity
-import w3af.core.data.kb.knowledge_base as kb
 import w3af.core.controllers.output_manager as om
-
-from w3af.core.data.fuzzer.utils import rand_alnum
+import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
-from w3af.core.data.quick_match.multi_in import MultiIn
-from w3af.core.data.fuzzer.fuzzer import create_mutants
-from w3af.core.data.fuzzer.utils import rand_number
+from w3af.core.data.constants import severity
 from w3af.core.data.db.disk_dict import DiskDict
+from w3af.core.data.fuzzer.fuzzer import create_mutants
+from w3af.core.data.fuzzer.utils import rand_alnum, rand_number
 from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.quick_match.multi_in import MultiIn
 
 
 class ssi(AuditPlugin):

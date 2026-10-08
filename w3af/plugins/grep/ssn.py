@@ -20,14 +20,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import re
 import itertools
+import re
 
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
+from w3af.core.data.constants import severity
 from w3af.core.data.kb.vuln import Vuln
 from w3af.plugins.grep.ssndata.ssnAreasGroups import areas_groups_map
-
-import w3af.core.data.constants.severity as severity
 
 
 class ssn(GrepPlugin):
@@ -39,8 +38,8 @@ class ssn(GrepPlugin):
 
     # match numbers of the form: 'nnn-nn-nnnn' with some extra restrictions
     regex = (
-        "(?:^|[^\d-])(?!(000|666))([0-6]\d{2}|7([0-6]\d|7[012]))"
-        " ?-? ?(?!00)(\d{2}) ?-? ?(?!0000)(\d{4})(?:^|[^\d-])"
+        r"(?:^|[^\d-])(?!(000|666))([0-6]\d{2}|7([0-6]\d|7[012]))"
+        r" ?-? ?(?!00)(\d{2}) ?-? ?(?!0000)(\d{4})(?:^|[^\d-])"
     )
     ssn_regex = re.compile(regex)
 

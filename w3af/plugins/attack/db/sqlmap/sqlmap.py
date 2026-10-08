@@ -16,6 +16,7 @@ except ImportError:
         "[!] wrong installation detected (missing modules). Visit 'https://github.com/sqlmapproject/sqlmap/#installation' for further details"
     )
 
+import _thread
 import bdb
 import distutils
 import glob
@@ -26,7 +27,6 @@ import os
 import re
 import shutil
 import sys
-import _thread
 import threading
 import time
 import traceback
@@ -40,33 +40,36 @@ warnings.filterwarnings(action="ignore", category=DeprecationWarning)
 from lib.core.data import logger
 
 try:
-    from lib.core.common import banner
-    from lib.core.common import checkIntegrity
-    from lib.core.common import createGithubIssue
-    from lib.core.common import dataToStdout
-    from lib.core.common import getSafeExString
-    from lib.core.common import getUnicode
-    from lib.core.common import maskSensitiveData
-    from lib.core.common import openFile
-    from lib.core.common import setPaths
-    from lib.core.common import weAreFrozen
-    from lib.core.data import cmdLineOptions
-    from lib.core.data import conf
-    from lib.core.data import kb
-    from lib.core.common import unhandledExceptionMessage
-    from lib.core.common import MKSTEMP_PREFIX
-    from lib.core.exception import SqlmapBaseException
-    from lib.core.exception import SqlmapShellQuitException
-    from lib.core.exception import SqlmapSilentQuitException
-    from lib.core.exception import SqlmapUserQuitException
-    from lib.core.option import initOptions
-    from lib.core.option import init
-    from lib.core.settings import GIT_PAGE
-    from lib.core.settings import IS_WIN
-    from lib.core.settings import LEGAL_DISCLAIMER
-    from lib.core.settings import THREAD_FINALIZATION_TIMEOUT
-    from lib.core.settings import UNICODE_ENCODING
-    from lib.core.settings import VERSION
+    from lib.core.common import (
+        MKSTEMP_PREFIX,
+        banner,
+        checkIntegrity,
+        createGithubIssue,
+        dataToStdout,
+        getSafeExString,
+        getUnicode,
+        maskSensitiveData,
+        openFile,
+        setPaths,
+        unhandledExceptionMessage,
+        weAreFrozen,
+    )
+    from lib.core.data import cmdLineOptions, conf, kb
+    from lib.core.exception import (
+        SqlmapBaseException,
+        SqlmapShellQuitException,
+        SqlmapSilentQuitException,
+        SqlmapUserQuitException,
+    )
+    from lib.core.option import init, initOptions
+    from lib.core.settings import (
+        GIT_PAGE,
+        IS_WIN,
+        LEGAL_DISCLAIMER,
+        THREAD_FINALIZATION_TIMEOUT,
+        UNICODE_ENCODING,
+        VERSION,
+    )
     from lib.parse.cmdline import cmdLineParser
 except KeyboardInterrupt:
     errMsg = "user aborted"
@@ -139,8 +142,7 @@ def main():
 
         if conf.get("api"):
             # heavy imports
-            from lib.utils.api import StdDbOut
-            from lib.utils.api import setRestAPILog
+            from lib.utils.api import StdDbOut, setRestAPILog
 
             # Overwrite system standard output and standard error to write
             # to an IPC database
@@ -325,10 +327,11 @@ def main():
                 logger.error(errMsg)
                 raise SystemExit
 
-            elif "valueStack.pop" in excMsg and kb.get("dumpKeyboardInterrupt"):
-                raise SystemExit
-
-            elif any(_ in excMsg for _ in ("Broken pipe",)):
+            elif (
+                "valueStack.pop" in excMsg
+                and kb.get("dumpKeyboardInterrupt")
+                or any(_ in excMsg for _ in ("Broken pipe",))
+            ):
                 raise SystemExit
 
             for match in re.finditer(r'File "(.+?)", line', excMsg):

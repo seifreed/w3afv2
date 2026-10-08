@@ -1,4 +1,3 @@
-# coding: utf8
 """
 test_variant_db.py
 
@@ -23,27 +22,27 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-from w3af.core.controllers.misc_settings import MiscSettings
 from w3af.core.controllers.misc.temp_dir import create_temp_dir
-from w3af.core.data.dc.json_container import JSONContainer
-from w3af.core.data.fuzzer.utils import rand_alnum
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.parsers.utils.form_params import FormParameters
-from w3af.core.data.dc.headers import Headers
-from w3af.core.data.dc.factory import dc_from_form_params
-from w3af.core.data.dc.generic.kv_container import KeyValueContainer
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.db.variant_db import (
-    VariantDB,
-    PARAMS_MAX_VARIANTS,
-    PATH_MAX_VARIANTS,
-    MAX_EQUAL_FORM_VARIANTS,
-)
+from w3af.core.controllers.misc_settings import MiscSettings
 from w3af.core.data.db.clean_dc import (
-    clean_fuzzable_request,
     FILENAME_TOKEN,
     PATH_TOKEN,
+    clean_fuzzable_request,
 )
+from w3af.core.data.db.variant_db import (
+    MAX_EQUAL_FORM_VARIANTS,
+    PARAMS_MAX_VARIANTS,
+    PATH_MAX_VARIANTS,
+    VariantDB,
+)
+from w3af.core.data.dc.factory import dc_from_form_params
+from w3af.core.data.dc.generic.kv_container import KeyValueContainer
+from w3af.core.data.dc.headers import Headers
+from w3af.core.data.dc.json_container import JSONContainer
+from w3af.core.data.fuzzer.utils import rand_alnum
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.parsers.utils.form_params import FormParameters
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
 def fr(url):

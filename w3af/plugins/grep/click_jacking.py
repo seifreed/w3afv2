@@ -20,13 +20,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.data.constants.severity as severity
-
-from w3af.core.data.db.disk_set import DiskSet
-from w3af.core.data.kb.vuln import Vuln
-from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.csp.utils import retrieve_csp_policies
+from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
+from w3af.core.data.constants import severity
+from w3af.core.data.db.disk_set import DiskSet
+from w3af.core.data.kb.vuln import Vuln
 
 
 class click_jacking(GrepPlugin):

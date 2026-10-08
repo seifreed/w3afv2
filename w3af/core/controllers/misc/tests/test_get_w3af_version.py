@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """
 test_get_w3af_version.py
 
@@ -24,9 +23,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import unittest
 
 from w3af.core.controllers.misc.get_w3af_version import (
-    get_w3af_version_as_dict,
     get_minimalistic_version,
     get_w3af_version,
+    get_w3af_version_as_dict,
 )
 
 

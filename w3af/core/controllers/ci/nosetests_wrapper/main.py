@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
 
+import logging
 import os
 import sys
 import time
-import logging
 
 # Need this hack in order to be able to re-add the current path to the
 # python-path, since running a script seems to change it (?)
@@ -12,30 +12,30 @@ sys.path.insert(0, os.path.abspath(os.curdir))
 
 from concurrent import futures
 
-from w3af.core.controllers.ci.utils import configure_logging
+from w3af.core.controllers.ci.nosetests_wrapper.constants import (
+    CHUNK_SIZE,
+    LOG_FILE,
+    MAX_WORKERS,
+    NOSE_PARAMS,
+    NOSE_RUN_SELECTOR,
+    NOSETESTS,
+)
 from w3af.core.controllers.ci.nosetests_wrapper.utils.nosetests import run_nosetests
+from w3af.core.controllers.ci.nosetests_wrapper.utils.output import (
+    get_run_id,
+    print_info_console,
+    print_status,
+    print_summary,
+    print_will_fail,
+)
 from w3af.core.controllers.ci.nosetests_wrapper.utils.test_stats import (
     get_all_tests,
+    get_ignored_tests,
     get_run_tests,
     get_test_ids,
     save_noseids_as_json,
-    get_ignored_tests,
 )
-from w3af.core.controllers.ci.nosetests_wrapper.constants import (
-    LOG_FILE,
-    MAX_WORKERS,
-    NOSETESTS,
-    NOSE_PARAMS,
-    NOSE_RUN_SELECTOR,
-    CHUNK_SIZE,
-)
-from w3af.core.controllers.ci.nosetests_wrapper.utils.output import (
-    print_info_console,
-    print_status,
-    print_will_fail,
-    print_summary,
-    get_run_id,
-)
+from w3af.core.controllers.ci.utils import configure_logging
 
 
 def summarize_exit_codes(exit_codes):

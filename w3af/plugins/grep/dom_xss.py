@@ -22,9 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 
-import w3af.core.data.constants.severity as severity
-
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
+from w3af.core.data.constants import severity
 from w3af.core.data.kb.vuln import Vuln
 
 
@@ -46,7 +45,7 @@ class dom_xss(GrepPlugin):
     )
 
     JS_FUNCTION_CALLS = [
-        re.compile(js_f + " *\((.*?)\)", re.IGNORECASE) for js_f in JS_FUNCTIONS
+        re.compile(js_f + r" *\((.*?)\)", re.IGNORECASE) for js_f in JS_FUNCTIONS
     ]
 
     DOM_USER_CONTROLLED = (

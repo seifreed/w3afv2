@@ -20,14 +20,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import os
-import sys
 import copy
-import pprint
-import tempfile
 import io
+import os
 import platform
-
+import pprint
+import sys
+import tempfile
 from itertools import chain
 
 from w3af.core.controllers.misc.get_w3af_version import get_w3af_version

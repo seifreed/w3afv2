@@ -22,19 +22,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
-import w3af.core.data.constants.severity as severity
-
-from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.controllers.csp.utils import site_protected_against_xss_by_csp
-
-from w3af.core.data.constants.file_extensions import JAVASCRIPT, CSS, FLASH, IMAGES
-from w3af.core.data.kb.vuln import Vuln
+from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
+from w3af.core.data.constants import severity
+from w3af.core.data.constants.file_extensions import CSS, FLASH, IMAGES, JAVASCRIPT
+from w3af.core.data.context.context import get_context_iter
 from w3af.core.data.db.disk_list import DiskList
 from w3af.core.data.fuzzer.fuzzer import create_mutants
 from w3af.core.data.fuzzer.utils import rand_alnum
+from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
-from w3af.core.data.context.context import get_context_iter
 
 RANDOMIZE = "RANDOMIZE"
 

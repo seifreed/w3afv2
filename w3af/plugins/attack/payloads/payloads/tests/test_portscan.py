@@ -20,10 +20,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 from nose.plugins.attrib import attr
+
+from w3af.plugins.attack.payloads.payload_handler import exec_payload
 from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper_exec import (
     PayloadTestHelperExec,
 )
-from w3af.plugins.attack.payloads.payload_handler import exec_payload
 
 
 class test_portscan(PayloadTestHelperExec):

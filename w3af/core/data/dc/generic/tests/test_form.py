@@ -1,4 +1,3 @@
-# -*- coding: utf8 -*-
 """
 test_form.py
 
@@ -21,14 +20,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
-import pickle
 import copy
+import pickle
+import unittest
 
 from nose.plugins.attrib import attr
 
-from w3af.core.data.dc.utils.token import DataToken
 from w3af.core.data.dc.generic.form import Form
+from w3af.core.data.dc.utils.token import DataToken
 from w3af.core.data.parsers.utils.form_constants import INPUT_TYPE_PASSWD
 from w3af.core.data.parsers.utils.form_params import FormParameters
 

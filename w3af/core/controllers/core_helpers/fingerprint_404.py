@@ -20,19 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.data.kb.config as cf
 import w3af.core.controllers.output_manager as om
-
-from w3af.core.data.fuzzer.utils import rand_alnum
-from w3af.core.data.url.helpers import is_no_content_response
-from w3af.core.data.db.cached_disk_dict import CachedDiskDict
-
-from w3af.core.controllers.misc.diff import chunked_diff
-from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal, MAX_FUZZY_LENGTH
-from w3af.core.controllers.core_helpers.not_found.response import FourOhFourResponse
-from w3af.core.controllers.core_helpers.not_found.generate_404 import (
-    send_request_generate_404,
-)
+import w3af.core.data.kb.config as cf
 from w3af.core.controllers.core_helpers.not_found.decorators import (
     LRUCache404,
     PreventMultipleThreads,
@@ -40,13 +29,22 @@ from w3af.core.controllers.core_helpers.not_found.decorators import (
 from w3af.core.controllers.core_helpers.not_found.fuzzy_equal_for_diff import (
     fuzzy_equal_for_diff,
 )
+from w3af.core.controllers.core_helpers.not_found.generate_404 import (
+    send_request_generate_404,
+)
+from w3af.core.controllers.core_helpers.not_found.response import FourOhFourResponse
+from w3af.core.controllers.misc.diff import chunked_diff
+from w3af.core.controllers.misc.fuzzy_string_cmp import MAX_FUZZY_LENGTH, fuzzy_equal
+from w3af.core.data.db.cached_disk_dict import CachedDiskDict
+from w3af.core.data.fuzzer.utils import rand_alnum
+from w3af.core.data.url.helpers import is_no_content_response
 
 IS_EQUAL_RATIO = 0.90
 NOT_404_RESPONSE_CODES = (200, 500, 301, 302, 303, 307, 401)
 MAX_404_IN_MEMORY = 50
 
 
-class Fingerprint404(object):
+class Fingerprint404:
     """
     Read the 404 page(s) returned by the server.
 

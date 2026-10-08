@@ -20,9 +20,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
-import OpenSSL
 import ssl
+import unittest
+
+import OpenSSL
 
 from w3af.core.data.url.openssl_wrapper.ssl_wrapper import OpenSSLReformattedError
 

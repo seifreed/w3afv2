@@ -2,6 +2,7 @@ import sys
 import time
 
 from utils.utils import clear_screen
+
 from .main import *
 
 
@@ -15,7 +16,7 @@ def watch(scan_log_filename, scan, function_name):
         except KeyboardInterrupt:
             sys.exit(0)
         except Exception as e:
-            print(("Exception: %s" % e))
+            print("Exception: %s" % e)
             sys.exit(1)
         else:
             if output is not None:

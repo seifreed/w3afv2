@@ -1,4 +1,3 @@
-# coding: utf8
 """
 test_webspider.py
 
@@ -20,22 +19,23 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import urllib.request, urllib.error, urllib.parse
-import re
 import os
+import re
+import urllib.error
+import urllib.parse
+import urllib.request
+
+from nose.plugins.attrib import attr
+from nose.plugins.skip import SkipTest
 
 import w3af.core.data.kb.config as cf
-
-from nose.plugins.skip import SkipTest
-from nose.plugins.attrib import attr
-
 from w3af import ROOT_PATH
-from w3af.plugins.tests.helper import PluginTest, PluginConfig, MockResponse
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.controllers.ci.wivet import get_wivet_http
 from w3af.core.controllers.misc_settings import EXCLUDE
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.utils.form_id_matcher_list import FormIDMatcherList
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 
 class TestWebSpider(PluginTest):
@@ -276,7 +276,7 @@ def extract_all_stats():
     index_page = response.read()
 
     result = []
-    SCAN_ID_RE = '<a href="statistics\.php\?id=(.*?)">'
+    SCAN_ID_RE = r'<a href="statistics\.php\?id=(.*?)">'
     SCAN_STATS = get_wivet_http("/offscanpages/statistics.php?id=")
 
     for scan_id in re.findall(SCAN_ID_RE, index_page):

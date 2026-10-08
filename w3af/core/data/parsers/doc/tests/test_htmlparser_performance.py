@@ -21,20 +21,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
+import os
 import resource
 import time
-import os
+import unittest
 
 from nose.plugins.attrib import attr
-from memory_profiler import profile
 
 from w3af import ROOT_PATH
-from w3af.core.data.url.HTTPResponse import HTTPResponse
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.html import HTMLParser
-from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.doc.tests.generate_html_file import OUTPUT_FILE
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.url.HTTPResponse import HTTPResponse
 
 
 class TestHTMLParserPerformance(unittest.TestCase):
@@ -72,7 +71,7 @@ class TestHTMLParserPerformance(unittest.TestCase):
 
     def measure_memory(self, _id):
         # pylint: disable=E0401
-        from meliae import scanner, loader
+        from meliae import loader, scanner
 
         # pylint: enable=E0401
         scanner.dump_all_objects(self.MEMORY_DUMP % _id)
@@ -95,7 +94,7 @@ class TestHTMLParserPerformance(unittest.TestCase):
 
         self_pid = psutil.Process()
         # pylint: disable=E1101
-        print((self_pid.memory_info()))
+        print(self_pid.memory_info())
 
 
 def test():

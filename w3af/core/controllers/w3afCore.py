@@ -20,30 +20,26 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import os
-import sys
-import time
 import errno
+import os
 import pprint
+import sys
 import threading
+import time
 import traceback
 
-import w3af.core.data.parsers.parser_cache as parser_cache
 import w3af.core.controllers.output_manager as om
-
-from w3af.core.controllers.threads.threadpool import Pool
-from w3af.core.controllers.threads.is_main_thread import is_main_thread
-from w3af.core.controllers.threads.monkey_patch_debug import (
-    monkey_patch_debug,
-    remove_monkey_patch_debug,
-)
-from w3af.core.controllers.misc.get_w3af_version import get_w3af_version_minimal
-from w3af.core.controllers.core_helpers.profiles import CoreProfiles
-from w3af.core.controllers.core_helpers.plugins import CorePlugins
-from w3af.core.controllers.core_helpers.target import CoreTarget
-from w3af.core.controllers.core_helpers.strategy import CoreStrategy
-from w3af.core.controllers.core_helpers.fingerprint_404 import fingerprint_404_singleton
 from w3af.core.controllers.core_helpers.exception_handler import ExceptionHandler
+from w3af.core.controllers.core_helpers.fingerprint_404 import fingerprint_404_singleton
+from w3af.core.controllers.core_helpers.plugins import CorePlugins
+from w3af.core.controllers.core_helpers.profiles import CoreProfiles
+from w3af.core.controllers.core_helpers.status import (
+    PAUSED,
+    RUNNING,
+    STOPPED,
+    CoreStatus,
+)
+from w3af.core.controllers.core_helpers.strategy import CoreStrategy
 from w3af.core.controllers.core_helpers.strategy_observers.disk_space_observer import (
     DiskSpaceObserver,
 )
@@ -53,40 +49,42 @@ from w3af.core.controllers.core_helpers.strategy_observers.thread_count_observer
 from w3af.core.controllers.core_helpers.strategy_observers.thread_state_observer import (
     ThreadStateObserver,
 )
-from w3af.core.controllers.core_helpers.status import (
-    CoreStatus,
-    STOPPED,
-    RUNNING,
-    PAUSED,
+from w3af.core.controllers.core_helpers.target import CoreTarget
+from w3af.core.controllers.exceptions import (
+    BaseFrameworkException,
+    HTTPRequestException,
+    ScanMustStopByUnknownReasonExc,
+    ScanMustStopByUserRequest,
+    ScanMustStopException,
+)
+from w3af.core.controllers.misc.dns_cache import enable_dns_cache
+from w3af.core.controllers.misc.epoch_to_string import epoch_to_string
+from w3af.core.controllers.misc.get_w3af_version import get_w3af_version_minimal
+from w3af.core.controllers.misc.home_dir import (
+    create_home_dir,
+    get_home_dir,
+    verify_dir_has_perm,
+)
+from w3af.core.controllers.misc.number_generator import consecutive_number_generator
+from w3af.core.controllers.misc.temp_dir import (
+    TEMP_DIR,
+    create_temp_dir,
+    remove_temp_dir,
 )
 from w3af.core.controllers.output_manager import (
     fresh_output_manager_inst,
     log_sink_factory,
 )
 from w3af.core.controllers.profiling import start_profiling, stop_profiling
-from w3af.core.controllers.misc.epoch_to_string import epoch_to_string
-from w3af.core.controllers.misc.dns_cache import enable_dns_cache
-from w3af.core.controllers.misc.number_generator import consecutive_number_generator
-from w3af.core.controllers.misc.home_dir import (
-    create_home_dir,
-    verify_dir_has_perm,
-    get_home_dir,
+from w3af.core.controllers.threads.is_main_thread import is_main_thread
+from w3af.core.controllers.threads.monkey_patch_debug import (
+    monkey_patch_debug,
+    remove_monkey_patch_debug,
 )
-from w3af.core.controllers.misc.temp_dir import (
-    create_temp_dir,
-    remove_temp_dir,
-    TEMP_DIR,
-)
-from w3af.core.controllers.exceptions import (
-    BaseFrameworkException,
-    HTTPRequestException,
-    ScanMustStopException,
-    ScanMustStopByUnknownReasonExc,
-    ScanMustStopByUserRequest,
-)
-
-from w3af.core.data.url.extended_urllib import ExtendedUrllib
+from w3af.core.controllers.threads.threadpool import Pool
 from w3af.core.data.kb.knowledge_base import kb
+from w3af.core.data.parsers import parser_cache
+from w3af.core.data.url.extended_urllib import ExtendedUrllib
 
 NO_MEMORY_MSG = (
     "The operating system was unable to allocate memory for"
@@ -98,7 +96,7 @@ NO_MEMORY_MSG = (
 )
 
 
-class w3afCore(object):
+class w3afCore:
     """
     This is the core of the framework, it calls all plugins, handles exceptions,
     coordinates all the work, creates threads, etc.
@@ -267,7 +265,7 @@ class w3afCore(object):
             else:
                 raise
 
-        except IOError as io_err:
+        except OSError as io_err:
             error_id, error_msg = io_err.args
 
             # https://github.com/andresriancho/w3af/issues/9653
@@ -288,7 +286,7 @@ class w3afCore(object):
         except threading.ThreadError as te:
             handle_threading_error(self.status.scans_completed, te)
 
-        except HTTPRequestException as hre:
+        except HTTPRequestException:
             # TODO: These exceptions should never reach this level
             #       adding the exception handler to raise them and fix any
             #       instances where it happens.

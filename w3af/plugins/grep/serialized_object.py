@@ -20,22 +20,20 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import itertools
 import re
 import zlib
-import itertools
-
 from collections import deque
 
-import w3af.core.data.constants.severity as severity
 import w3af.core.controllers.output_manager as om
-
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
-from w3af.core.data.misc.encoding import smart_str_ignore
-from w3af.core.data.misc.base64_nopadding import maybe_decode_base64
+from w3af.core.data.constants import severity
 from w3af.core.data.dc.cookie import Cookie
-from w3af.core.data.kb.vuln import Vuln
-from w3af.core.data.kb.info_set import InfoSet
 from w3af.core.data.dc.factory import dc_from_hdrs_post
+from w3af.core.data.kb.info_set import InfoSet
+from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.misc.base64_nopadding import maybe_decode_base64
+from w3af.core.data.misc.encoding import smart_str_ignore
 
 
 class serialized_object(GrepPlugin):
@@ -49,7 +47,7 @@ class serialized_object(GrepPlugin):
 
     SERIALIZED_OBJECT_RE = {
         "PHP": [
-            re.compile('^(a|O):\d{1,3}:({[sai]|")'),
+            re.compile(r'^(a|O):\d{1,3}:({[sai]|")'),
         ]
     }
 

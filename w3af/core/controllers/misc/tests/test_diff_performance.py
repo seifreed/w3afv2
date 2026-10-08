@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """
 test_diff_performance.py
 
@@ -24,10 +23,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 import time
 import unittest
+from functools import cmp_to_key
 
 from w3af import ROOT_PATH
-from w3af.core.controllers.misc.diff import chunked_diff, diff_difflib, diff_dmp
-from functools import cmp_to_key
+from w3af.core.controllers.misc.diff import chunked_diff, diff_dmp
 
 
 class TestDiffPerformance(unittest.TestCase):

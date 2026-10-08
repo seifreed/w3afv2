@@ -21,10 +21,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from nose.plugins.attrib import attr
 
-from w3af.plugins.tests.helper import PluginConfig, ExecExploitTest
 from w3af.core.controllers.ci.php_moth import get_php_moth_http
 from w3af.core.controllers.misc.get_unused_port import get_unused_port
 from w3af.core.data.kb.vuln_templates.rfi_template import RFITemplate
+from w3af.plugins.tests.helper import ExecExploitTest, PluginConfig
 
 
 @attr("smoke")

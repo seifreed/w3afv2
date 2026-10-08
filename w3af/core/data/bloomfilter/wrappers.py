@@ -27,7 +27,7 @@ from random import choice
 from w3af.core.controllers.misc.temp_dir import get_temp_dir
 
 
-class GenericBloomFilter(object):
+class GenericBloomFilter:
     """
     A simple "interface like" class to define how a bloom filter should look
     like, methods, attributes, etc.

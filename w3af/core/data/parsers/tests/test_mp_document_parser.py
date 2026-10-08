@@ -20,24 +20,24 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import os
-import time
-import random
-import unittest
 import multiprocessing
-
-from mock import patch, PropertyMock
-from nose.plugins.skip import SkipTest
+import os
+import random
+import time
+import unittest
 from concurrent.futures import TimeoutError
+from unittest.mock import PropertyMock, patch
+
+from nose.plugins.skip import SkipTest
 
 from w3af import ROOT_PATH
-from w3af.core.data.parsers.doc.sgml import Tag
-from w3af.core.data.parsers.mp_document_parser import MultiProcessingDocumentParser
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.url.HTTPResponse import HTTPResponse
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.html import HTMLParser
+from w3af.core.data.parsers.doc.sgml import Tag
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.parsers.mp_document_parser import MultiProcessingDocumentParser
 from w3af.core.data.parsers.tests.test_document_parser import _build_http_response
+from w3af.core.data.url.HTTPResponse import HTTPResponse
 
 
 class TestMPDocumentParser(unittest.TestCase):
@@ -412,7 +412,7 @@ def daemon_child(queue):
         queue.put(False)
 
 
-class DelayedParser(object):
+class DelayedParser:
     def __init__(self, http_response):
         self.http_response = http_response
 
@@ -427,7 +427,7 @@ class DelayedParser(object):
         return True
 
 
-class UseMemoryParser(object):
+class UseMemoryParser:
     def __init__(self, http_response):
         self.http_response = http_response
 
@@ -445,7 +445,7 @@ class UseMemoryParser(object):
         return True
 
 
-class HugeClassAttrValueParser(object):
+class HugeClassAttrValueParser:
     parse_was_called = False
 
     def __init__(self, http_response):

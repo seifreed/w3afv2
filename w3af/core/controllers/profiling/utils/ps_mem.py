@@ -73,11 +73,11 @@
 # FreeBSD is supported if linprocfs is mounted at /compat/linux/proc/
 # FreeBSD 8.0 supports up to a level of Linux 2.6.16
 
-import getopt
-import time
 import errno
+import getopt
 import os
 import sys
+import time
 
 try:
     # md5 module is deprecated on python 2.6
@@ -95,9 +95,11 @@ except ImportError:
 # while treating other exceptions as before.
 def std_exceptions(etype, value, tb):
     sys.excepthook = sys.__excepthook__
-    if issubclass(etype, KeyboardInterrupt):
-        pass
-    elif issubclass(etype, IOError) and value.errno == errno.EPIPE:
+    if (
+        issubclass(etype, KeyboardInterrupt)
+        or issubclass(etype, IOError)
+        and value.errno == errno.EPIPE
+    ):
         pass
     else:
         sys.__excepthook__(etype, value, tb)
@@ -129,7 +131,7 @@ class Proc:
     def open(self, *args):
         try:
             return open(self.path(*args))
-        except (IOError, OSError):
+        except OSError:
             val = sys.exc_info()[1]
             if (
                 val.errno == errno.ENOENT  # kernel thread or process gone
@@ -474,7 +476,7 @@ def verify_environment():
 
     try:
         kv = kernel_ver()
-    except (IOError, OSError):
+    except OSError:
         val = sys.exc_info()[1]
         if val.errno == errno.ENOENT:
             sys.stderr.write(
@@ -505,8 +507,7 @@ if __name__ == "__main__":
                 elif not only_total:
                     print_memory_usage(sorted_cmds, shareds, count, total)
                 time.sleep(watch)
-            else:
-                sys.stdout.write("Process does not exist anymore.\n")
+            sys.stdout.write("Process does not exist anymore.\n")
         except KeyboardInterrupt:
             pass
     else:

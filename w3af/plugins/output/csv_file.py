@@ -20,17 +20,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import os
-import csv
 import base64
+import csv
+import os
 
-import w3af.core.data.kb.knowledge_base as kb
 import w3af.core.controllers.output_manager as om
-
+import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
 from w3af.core.data.options.opt_factory import opt_factory
-from w3af.core.data.options.option_types import OUTPUT_FILE
 from w3af.core.data.options.option_list import OptionList
+from w3af.core.data.options.option_types import OUTPUT_FILE
 
 
 class csv_file(OutputPlugin):
@@ -62,7 +61,7 @@ class csv_file(OutputPlugin):
 
         try:
             output_handler = open(self.output_file, "wb")
-        except IOError as ioe:
+        except OSError as ioe:
             msg = 'Failed to open the output file for writing: "%s"'
             om.out.error(msg % ioe)
             return

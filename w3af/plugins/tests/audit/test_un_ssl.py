@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import httpretty
 
-from w3af.plugins.tests.helper import PluginTest, PluginConfig, MockResponse
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 
 class TestUnSSL(PluginTest):
@@ -46,7 +46,7 @@ class TestUnSSL(PluginTest):
     }
 
     def setUp(self):
-        super(TestUnSSL, self).setUp()
+        super().setUp()
         self._register_httpretty_uri("https", "httpretty", 443)
 
     def test_found_unssl(self):

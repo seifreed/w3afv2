@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 test_pykto.py
 
@@ -20,19 +19,19 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import unittest
-import re
 import os
+import re
+import unittest
 
 from nose.plugins.attrib import attr
 
 from w3af import ROOT_PATH
-from w3af.plugins.tests.helper import PluginTest, PluginConfig
-from w3af.plugins.crawl.pykto import NiktoTestParser, IsVulnerableHelper, Config
-from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.misc.file_utils import days_since_file_update
+from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.plugins.crawl.pykto import Config, IsVulnerableHelper, NiktoTestParser
+from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 
 class TestPykto(PluginTest):

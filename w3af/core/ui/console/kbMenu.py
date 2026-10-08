@@ -20,17 +20,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.data.kb.knowledge_base as kb
 import w3af.core.controllers.output_manager as om
-
+import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.kb.vuln_templates.utils import (
-    get_template_names,
     get_template_by_name,
+    get_template_names,
 )
+from w3af.core.ui.console.config import ConfigMenu
 from w3af.core.ui.console.menu import menu
 from w3af.core.ui.console.util import suggest
-from w3af.core.ui.console.config import ConfigMenu
 
 
 class kbMenu(menu):

@@ -20,38 +20,34 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import queue
 import sys
 import time
-import queue
-
 from multiprocessing import TimeoutError
 
+import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
-import w3af.core.controllers.output_manager as om
-
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.url.extended_urllib import MAX_ERROR_COUNT
-from w3af.core.data.kb.info import Info
-
-from w3af.core.controllers.core_helpers.consumers.grep import grep
-from w3af.core.controllers.core_helpers.consumers.auth import auth
 from w3af.core.controllers.core_helpers.consumers.audit import audit
+from w3af.core.controllers.core_helpers.consumers.auth import auth
 from w3af.core.controllers.core_helpers.consumers.bruteforce import bruteforce
-from w3af.core.controllers.core_helpers.consumers.seed import seed
+from w3af.core.controllers.core_helpers.consumers.constants import POISON_PILL
 from w3af.core.controllers.core_helpers.consumers.crawl_infrastructure import (
     CrawlInfrastructure,
 )
-from w3af.core.controllers.core_helpers.consumers.constants import POISON_PILL
+from w3af.core.controllers.core_helpers.consumers.grep import grep
+from w3af.core.controllers.core_helpers.consumers.seed import seed
 from w3af.core.controllers.core_helpers.exception_handler import ExceptionData
-
 from w3af.core.controllers.exceptions import (
-    ScanMustStopException,
     ScanMustStopByUserRequest,
+    ScanMustStopException,
 )
+from w3af.core.data.kb.info import Info
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.data.url.extended_urllib import MAX_ERROR_COUNT
 
 
-class CoreStrategy(object):
+class CoreStrategy:
     """
     This is the simplest scan strategy which follows this logic:
 

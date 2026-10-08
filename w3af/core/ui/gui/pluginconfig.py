@@ -19,16 +19,15 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import gtk
-import gobject
 import os
 
-from w3af.core.ui.gui import GUI_DATA_PATH
-from w3af.core.ui.gui import confpanel, entries, helpers
-from w3af.core.ui.gui.pluginEditor import pluginEditor
-from w3af.core.ui.gui.misc.text_wrap_label import WrapLabel
+import gobject
+import gtk
 
 from w3af.core.controllers.misc.home_dir import get_home_dir
+from w3af.core.ui.gui import GUI_DATA_PATH, confpanel, entries, helpers
+from w3af.core.ui.gui.misc.text_wrap_label import WrapLabel
+from w3af.core.ui.gui.pluginEditor import pluginEditor
 
 
 class OptionsPanel(gtk.VBox):
@@ -48,7 +47,7 @@ class OptionsPanel(gtk.VBox):
     """
 
     def __init__(self, plugin_tree, plugin, title, longdesc):
-        super(OptionsPanel, self).__init__()
+        super().__init__()
         self.set_spacing(5)
         self.plugin_tree = plugin_tree
 
@@ -104,7 +103,7 @@ class ConfigPanel(gtk.VBox):
     """
 
     def __init__(self, profile_description=None):
-        super(ConfigPanel, self).__init__(False, 0)
+        super().__init__(False, 0)
 
         if profile_description is not None:
             # put the description
@@ -264,7 +263,7 @@ class PluginTree(gtk.TreeView):
         self.config_status = {}
 
         # create the TreeView using treestore
-        super(PluginTree, self).__init__(self.treestore)
+        super().__init__(self.treestore)
         self.connect("cursor-changed", self.configure_plugin)
 
         # button events
@@ -599,7 +598,7 @@ class PluginConfigBody(gtk.VBox):
     """
 
     def __init__(self, mainwin, w3af):
-        super(PluginConfigBody, self).__init__()
+        super().__init__()
         self.w3af = w3af
         targetbox = gtk.HBox()
 
@@ -738,7 +737,7 @@ class PluginConfigBody(gtk.VBox):
         elif self.std_plugin_tree.is_focus():
             treeToUse = self.std_plugin_tree
         else:
-            return None
+            return
 
         # self.out_plugin_tree
         path, column = treeToUse.get_cursor()

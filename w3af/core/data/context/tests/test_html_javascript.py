@@ -21,12 +21,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-from w3af.core.data.context.context.main import get_context
 from w3af.core.data.context.context.html import (
-    ScriptText,
-    HtmlAttrSingleQuote,
     HtmlAttrDoubleQuote,
+    HtmlAttrSingleQuote,
+    ScriptText,
 )
+from w3af.core.data.context.context.main import get_context
 
 
 class TestJavaScriptInHTML(unittest.TestCase):

@@ -20,20 +20,20 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import gtk
-import gobject
 import threading
 
-from w3af.core.ui.gui import helpers, entries
-from w3af.core.ui.gui.reqResViewer import ReqResViewer
-from w3af.core.ui.gui.tools.helpers.threaded_impact import ThreadedURLImpact
+import gobject
+import gtk
 
 from w3af.core.controllers.exceptions import (
     BaseFrameworkException,
-    ScanMustStopException,
     HTTPRequestException,
     ProxyException,
+    ScanMustStopException,
 )
+from w3af.core.ui.gui import entries, helpers
+from w3af.core.ui.gui.reqResViewer import ReqResViewer
+from w3af.core.ui.gui.tools.helpers.threaded_impact import ThreadedURLImpact
 
 MANUAL_REQUEST_EXAMPLE = """\
 GET http://w3af.org/ HTTP/1.1
@@ -49,9 +49,7 @@ class ManualRequests(entries.RememberingWindow):
     """
 
     def __init__(self, w3af, initial_request=None):
-        super(ManualRequests, self).__init__(
-            w3af, "manualreq", "w3af - Manual Requests", "Manual_Requests"
-        )
+        super().__init__(w3af, "manualreq", "w3af - Manual Requests", "Manual_Requests")
         self.w3af = w3af
 
         #

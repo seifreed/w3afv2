@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from nose.plugins.attrib import attr
 
 from w3af.core.controllers.ci.moth import get_moth_http, get_moth_https
-from w3af.plugins.tests.helper import PluginTest, PluginConfig
+from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 
 @attr("ci_fails")

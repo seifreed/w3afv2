@@ -20,12 +20,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
-import tempfile
 import subprocess
+import tempfile
 
 from w3af import ROOT_PATH
-from w3af.core.ui.tests.wrappers.xvfb_server import XVFBServer
 from w3af.core.ui.tests.wrappers.constants import DISPLAY
+from w3af.core.ui.tests.wrappers.xvfb_server import XVFBServer
 
 
 class Gnome(XVFBServer):
@@ -63,7 +63,7 @@ class Gnome(XVFBServer):
 
         assert os.path.exists(self.XINITRC), "gnome.xinitrc is required."
 
-        gnome_start = super(Gnome, self).start_sync()
+        gnome_start = super().start_sync()
 
         metacity_start = self.run_x_process("metacity --replace")
 

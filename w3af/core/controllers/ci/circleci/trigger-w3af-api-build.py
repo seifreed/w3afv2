@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
-import os
 import json
+import os
+
 import requests
 
 if __name__ == "__main__":

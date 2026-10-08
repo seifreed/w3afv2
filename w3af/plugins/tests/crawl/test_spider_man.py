@@ -19,16 +19,17 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import time
 import socket
-import urllib.request, urllib.error, urllib.parse
-
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
 from multiprocessing.dummy import Process
 
-from w3af.core.controllers.misc.get_unused_port import get_unused_port
 from w3af.core.controllers.ci.moth import get_moth_http, get_moth_https
-from w3af.plugins.tests.helper import PluginTest, PluginConfig
+from w3af.core.controllers.misc.get_unused_port import get_unused_port
 from w3af.plugins.crawl.spider_man import TERMINATE_URL
+from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 BROWSE_URLS = (
     ("GET", "/audit/", None),
@@ -40,7 +41,7 @@ BROWSE_URLS = (
 class BrowserThread(Process):
 
     def __init__(self, url_resolver, proxy_port):
-        super(BrowserThread, self).__init__()
+        super().__init__()
         self.responses = []
         self.url_resolver = url_resolver
         self.proxy_port = proxy_port

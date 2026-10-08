@@ -20,22 +20,20 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import os
+import sys
 import termios
 import tty
-import sys
-import os
-
-from w3af.core.ui.console.io.common import (
-    KEY_UP,
-    KEY_DOWN,
-    KEY_RIGHT,
-    KEY_LEFT,
-    KEY_HOME,
-    KEY_END,
-    KEY_BACKSPACE,
-)
 
 import w3af.core.controllers.output_manager as om
+from w3af.core.ui.console.io.common import (
+    KEY_DOWN,
+    KEY_END,
+    KEY_HOME,
+    KEY_LEFT,
+    KEY_RIGHT,
+    KEY_UP,
+)
 
 LONGEST_SEQUENCE = 5
 

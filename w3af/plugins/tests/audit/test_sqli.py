@@ -21,10 +21,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from nose.plugins.attrib import attr
 
-from w3af.plugins.tests.helper import PluginTest, PluginConfig
 from w3af.core.controllers.ci.moth import get_moth_http
-from w3af.core.controllers.ci.wavsep import get_wavsep_http
 from w3af.core.controllers.ci.sqlmap_testenv import get_sqlmap_testenv_http
+from w3af.core.controllers.ci.wavsep import get_wavsep_http
+from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 
 @attr("smoke")

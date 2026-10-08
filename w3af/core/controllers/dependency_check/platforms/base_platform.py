@@ -20,11 +20,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from ..requirements import CORE_PIP_PACKAGES, GUI_PIP_PACKAGES, CORE, GUI
 from ..external.retirejs import retirejs_is_installed
+from ..requirements import CORE, CORE_PIP_PACKAGES, GUI, GUI_PIP_PACKAGES
 
 
-class Platform(object):
+class Platform:
     """
     Simple base class for defining platforms/operating systems for dependency
     checks.

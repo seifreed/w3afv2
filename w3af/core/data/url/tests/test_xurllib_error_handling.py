@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 test_xurllib_error_handling.py
 
@@ -20,22 +19,26 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import socketserver
 import time
 import unittest
-import socketserver
+from unittest.mock import Mock, call, patch
 
-from mock import Mock, patch, call
 from nose.plugins.attrib import attr
 
-from w3af.plugins.tests.helper import PluginTest, PluginConfig
-from w3af.core.controllers.exceptions import ScanMustStopByKnownReasonExc
-from w3af.core.controllers.exceptions import HTTPRequestException
-from w3af.core.data.url.tests.helpers.upper_daemon import ThreadingUpperDaemon
+from w3af.core.controllers.exceptions import (
+    HTTPRequestException,
+    ScanMustStopByKnownReasonExc,
+)
 from w3af.core.data.constants.file_patterns import FILE_PATTERNS
-from w3af.core.data.url.extended_urllib import ExtendedUrllib
-from w3af.core.data.url.tests.helpers.upper_daemon import UpperDaemon
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.url.extended_urllib import ExtendedUrllib
+from w3af.core.data.url.tests.helpers.upper_daemon import (
+    ThreadingUpperDaemon,
+    UpperDaemon,
+)
 from w3af.core.data.url.tests.test_xurllib import EmptyTCPHandler, TimeoutTCPHandler
+from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 TIMEOUT_SECS = 1
 
@@ -187,7 +190,7 @@ class TestXUrllibDelayOnError(unittest.TestCase):
                 self.uri_opener.GET(url, cache=False)
             except HTTPRequestException:
                 http_exception_count += 1
-            except ScanMustStopByKnownReasonExc as smse:
+            except ScanMustStopByKnownReasonExc:
                 break
             except Exception as e:
                 msg = 'Not expecting: "%s"'

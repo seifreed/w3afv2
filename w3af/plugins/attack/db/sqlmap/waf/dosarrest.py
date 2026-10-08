@@ -19,7 +19,7 @@ def detect(get_page):
     for vector in WAF_ATTACK_VECTORS:
         _, headers, _ = get_page(get=vector)
         retval = (
-            re.search(r"DOSarrest", headers.get(HTTP_HEADER.SERVER, ""), re.I)
+            re.search(r"DOSarrest", headers.get(HTTP_HEADER.SERVER, ""), re.IGNORECASE)
             is not None
         )
         retval |= headers.get("X-DIS-Request-ID") is not None

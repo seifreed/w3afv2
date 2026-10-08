@@ -24,11 +24,11 @@ import unittest
 
 from nose.plugins.attrib import attr
 
+from w3af.core.data.dc.generic.nr_kv_container import NonRepeatKeyValueContainer
+from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
 from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
-from w3af.core.data.dc.generic.nr_kv_container import NonRepeatKeyValueContainer
 
 
 class MockVuln(Vuln):
@@ -44,7 +44,7 @@ class MockVuln(Vuln):
         if long_desc is None:
             long_desc = "Foo bar spam eggs" * 10
 
-        super(MockVuln, self).__init__(name, long_desc, severity, _id, plugin_name)
+        super().__init__(name, long_desc, severity, _id, plugin_name)
 
 
 @attr("smoke")

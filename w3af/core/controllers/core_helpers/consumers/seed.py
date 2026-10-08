@@ -21,16 +21,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import traceback
-
+from multiprocessing.dummy import Process, Queue
 from queue import Empty
-from multiprocessing.dummy import Queue, Process
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
-
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.controllers.core_helpers.consumers.constants import POISON_PILL
-from w3af.core.controllers.exceptions import ScanMustStopException, HTTPRequestException
+from w3af.core.controllers.exceptions import HTTPRequestException, ScanMustStopException
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
 class seed(Process):
@@ -44,7 +42,7 @@ class seed(Process):
         """
         :param w3af_core: The w3af core that we'll use for status reporting
         """
-        super(seed, self).__init__(name="%sController" % self.get_name())
+        super().__init__(name="%sController" % self.get_name())
 
         self._w3af_core = w3af_core
 

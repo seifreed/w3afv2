@@ -24,25 +24,25 @@ import unittest
 
 from w3af import ROOT_PATH
 from w3af.core.controllers.exceptions import BaseFrameworkException
-from w3af.core.data.parsers.doc.url import URL as URL_KLASS
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_types import (
     BOOL,
-    INT,
-    POSITIVE_INT,
+    COMBO,
     FLOAT,
-    STRING,
+    INPUT_FILE,
+    INT,
+    IP,
     IPPORT,
     LIST,
-    REGEX,
-    COMBO,
-    INPUT_FILE,
     OUTPUT_FILE,
     PORT,
-    IP,
+    POSITIVE_INT,
+    REGEX,
+    STRING,
     URL,
     URL_LIST,
 )
+from w3af.core.data.parsers.doc.url import URL as URL_KLASS
 
 
 class TestOptionFactory(unittest.TestCase):

@@ -22,17 +22,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 import unittest
-import urllib.request, urllib.error, urllib.parse
+import urllib.error
+import urllib.parse
+import urllib.request
+
 import httpretty
 
 import w3af.core.data.kb.config as cf
-
 from w3af.core.controllers.misc.number_generator import consecutive_number_generator
-from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.constants.response_codes import NO_CONTENT
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.url import opener_settings
 from w3af.core.data.url.handlers.blacklist import BlacklistHandler
 from w3af.core.data.url.HTTPRequest import HTTPRequest
-from w3af.core.data.url import opener_settings
 
 
 class TestBlacklistHandler(unittest.TestCase):

@@ -1,6 +1,7 @@
 import re
-from w3af.plugins.attack.payloads.base_payload import Payload
+
 from w3af.core.ui.console.tables import table
+from w3af.plugins.attack.payloads.base_payload import Payload
 
 
 class kernel_version(Payload):
@@ -15,7 +16,7 @@ class kernel_version(Payload):
         paths = []
 
         def parse_proc_version(proc_version):
-            version = re.search("(?<=Linux version ).*?\)", proc_version)
+            version = re.search(r"(?<=Linux version ).*?\)", proc_version)
             if version:
                 return version.group(0)
             else:
@@ -23,7 +24,7 @@ class kernel_version(Payload):
 
         def parse_sched_debug(sched_debug):
             version = re.search(
-                "(?<=Sched Debug Version: )(v\d\.\d\d, )(.*)", sched_debug
+                r"(?<=Sched Debug Version: )(v\d\.\d\d, )(.*)", sched_debug
             )
             if version:
                 return version.group(2)

@@ -7,21 +7,18 @@ See the file 'LICENSE' for copying permission
 
 import os
 
-from lib.core.common import Backend
-from lib.core.common import isStackingAvailable
-from lib.core.common import readInput
-from lib.core.common import runningAsAdmin
-from lib.core.data import conf
-from lib.core.data import logger
-from lib.core.enums import DBMS
-from lib.core.enums import OS
-from lib.core.exception import SqlmapFilePathException
-from lib.core.exception import SqlmapMissingDependence
-from lib.core.exception import SqlmapMissingMandatoryOptionException
-from lib.core.exception import SqlmapMissingPrivileges
-from lib.core.exception import SqlmapNotVulnerableException
-from lib.core.exception import SqlmapUndefinedMethod
-from lib.core.exception import SqlmapUnsupportedDBMSException
+from lib.core.common import Backend, isStackingAvailable, readInput, runningAsAdmin
+from lib.core.data import conf, logger
+from lib.core.enums import DBMS, OS
+from lib.core.exception import (
+    SqlmapFilePathException,
+    SqlmapMissingDependence,
+    SqlmapMissingMandatoryOptionException,
+    SqlmapMissingPrivileges,
+    SqlmapNotVulnerableException,
+    SqlmapUndefinedMethod,
+    SqlmapUnsupportedDBMSException,
+)
 from lib.takeover.abstraction import Abstraction
 from lib.takeover.icmpsh import ICMPsh
 from lib.takeover.metasploit import Metasploit
@@ -126,8 +123,7 @@ class Takeover(Abstraction, Metasploit, ICMPsh, Registry, Miscellaneous):
                 raise SqlmapMissingPrivileges(errMsg)
 
             try:
-                from impacket import ImpactDecoder
-                from impacket import ImpactPacket
+                from impacket import ImpactDecoder, ImpactPacket
             except ImportError:
                 errMsg = "sqlmap requires 'python-impacket' third-party library "
                 errMsg += "in order to run icmpsh master. You can get it at "
@@ -398,7 +394,7 @@ class Takeover(Abstraction, Metasploit, ICMPsh, Registry, Miscellaneous):
         else:
             regVal = conf.regVal
 
-        infoMsg = "reading Windows registry path '%s\%s' " % (regKey, regVal)
+        infoMsg = r"reading Windows registry path '%s\%s' " % (regKey, regVal)
         logger.info(infoMsg)
 
         return self.readRegKey(regKey, regVal, True)
@@ -443,7 +439,7 @@ class Takeover(Abstraction, Metasploit, ICMPsh, Registry, Miscellaneous):
         else:
             regType = conf.regType
 
-        infoMsg = "adding Windows registry path '%s\%s' " % (regKey, regVal)
+        infoMsg = r"adding Windows registry path '%s\%s' " % (regKey, regVal)
         infoMsg += "with data '%s'. " % regData
         infoMsg += "This will work only if the user running the database "
         infoMsg += "process has privileges to modify the Windows registry."
@@ -475,12 +471,12 @@ class Takeover(Abstraction, Metasploit, ICMPsh, Registry, Miscellaneous):
             regVal = conf.regVal
 
         message = "are you sure that you want to delete the Windows "
-        message += "registry path '%s\%s? [y/N] " % (regKey, regVal)
+        message += r"registry path '%s\%s? [y/N] " % (regKey, regVal)
 
         if not readInput(message, default="N", boolean=True):
             return
 
-        infoMsg = "deleting Windows registry path '%s\%s'. " % (regKey, regVal)
+        infoMsg = r"deleting Windows registry path '%s\%s'. " % (regKey, regVal)
         infoMsg += "This will work only if the user running the database "
         infoMsg += "process has privileges to modify the Windows registry."
         logger.info(infoMsg)

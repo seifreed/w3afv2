@@ -21,12 +21,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import w3af.core.data.kb.knowledge_base as kb
-
+from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.db.disk_list import DiskList
+from w3af.core.data.kb.info import Info
 from w3af.core.data.quick_match.multi_in import MultiIn
 from w3af.core.data.quick_match.multi_re import MultiRE
-from w3af.core.data.kb.info import Info
-from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 
 
 class error_pages(GrepPlugin):
@@ -117,7 +116,7 @@ class error_pages(GrepPlugin):
         ("<address>(.*?)</address>", "Apache"),
         ('<HR size="1" noshade="noshade"><h3>(.*?)</h3></body>', "Apache Tomcat"),
         (
-            '<a href="http://www.microsoft.com/ContentRedirect.asp\?prd=iis&sbp=&pver=(.*?)&pid=&ID',
+            r'<a href="http://www.microsoft.com/ContentRedirect.asp\?prd=iis&sbp=&pver=(.*?)&pid=&ID',
             "IIS",
         ),
         # <b>Version Information:</b>&nbsp;Microsoft .NET Framework Version:1.1.4322.2300; ASP.NET Version:1.1.4322.2300

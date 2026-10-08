@@ -19,15 +19,15 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from w3af.core.data.context.tests.context_test import ContextTest
-from w3af.core.data.context.context.javascript import get_js_context
 from w3af.core.data.context.context.javascript import (
-    ScriptExecutableContext,
-    ScriptSingleQuoteString,
     ScriptDoubleQuoteString,
-    ScriptSingleLineComment,
+    ScriptExecutableContext,
     ScriptMultiLineComment,
+    ScriptSingleLineComment,
+    ScriptSingleQuoteString,
+    get_js_context,
 )
+from w3af.core.data.context.tests.context_test import ContextTest
 
 
 class TestJavaScript(ContextTest):

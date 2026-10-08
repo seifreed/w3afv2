@@ -20,12 +20,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import socketserver
-import threading
-import socket
-import time
-import ssl
 import os
+import socket
+import socketserver
+import ssl
+import threading
+import time
 
 from .upper_daemon import UpperDaemon, UpperTCPHandler
 
@@ -44,7 +44,7 @@ class RawSSLDaemon(UpperDaemon):
     """
 
     def __init__(self, handler=UpperTCPHandler, ssl_version=ssl.PROTOCOL_TLSv1):
-        super(RawSSLDaemon, self).__init__(handler=handler)
+        super().__init__(handler=handler)
         self.ssl_version = ssl_version
 
     def run(self):

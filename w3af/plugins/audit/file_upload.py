@@ -21,33 +21,28 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
-
-from itertools import repeat
 from collections import deque
+from functools import cmp_to_key
+from itertools import repeat
 from threading import RLock
 
-from w3af import ROOT_PATH
-
-import w3af.core.data.kb.knowledge_base as kb
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.constants.severity as severity
-import w3af.core.data.parsers.parser_cache as parser_cache
-
-from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
-from w3af.core.controllers.misc.io import NamedStringIO
+import w3af.core.data.kb.knowledge_base as kb
+from w3af import ROOT_PATH
 from w3af.core.controllers.exceptions import BaseFrameworkException
-
-from w3af.core.data.parsers.utils.re_extract import ReExtract
-from w3af.core.data.parsers.doc.url import URL
+from w3af.core.controllers.misc.io import NamedStringIO
+from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
+from w3af.core.data.constants import severity
 from w3af.core.data.constants.file_templates.file_templates import (
     get_template_with_payload,
 )
-from w3af.core.data.options.opt_factory import opt_factory
-from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.fuzzer.fuzzer import create_mutants
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.kb.vuln import Vuln
-from functools import cmp_to_key
+from w3af.core.data.options.opt_factory import opt_factory
+from w3af.core.data.options.option_list import OptionList
+from w3af.core.data.parsers import parser_cache
+from w3af.core.data.parsers.utils.re_extract import ReExtract
 
 
 class file_upload(AuditPlugin):
@@ -441,7 +436,7 @@ class file_upload(AuditPlugin):
         """
 
 
-class StopIterationLimitList(object):
+class StopIterationLimitList:
     def __init__(self, max_items):
         """
         A rather strange list which will raise StopIteration when storing

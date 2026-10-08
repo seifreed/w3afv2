@@ -24,13 +24,12 @@ import re
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
-import w3af.core.data.constants.severity as severity
-import w3af.core.data.parsers.parser_cache as parser_cache
-
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
+from w3af.core.data.constants import severity
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.parsers import parser_cache
 
 
 class http_auth_detect(GrepPlugin):
@@ -43,7 +42,7 @@ class http_auth_detect(GrepPlugin):
     def __init__(self):
         GrepPlugin.__init__(self)
 
-        self._auth_uri_regex = re.compile(".*://[\w%]*?:[\w%]*?@[\w\.]{3,40}")
+        self._auth_uri_regex = re.compile(r".*://[\w%]*?:[\w%]*?@[\w\.]{3,40}")
 
     def grep(self, request, response):
         """

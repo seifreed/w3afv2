@@ -45,9 +45,7 @@ def clean_data_container(data_container):
 
         if value is None:
             _type = "none"
-        elif isinstance(value, (int, float)):
-            _type = "number"
-        elif value.isdigit():
+        elif isinstance(value, (int, float)) or value.isdigit():
             _type = "number"
         else:
             _type = "string"

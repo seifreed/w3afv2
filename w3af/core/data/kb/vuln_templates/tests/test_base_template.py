@@ -21,8 +21,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
+from unittest.mock import Mock
 
-from mock import Mock
 from w3af.core.data.kb.vuln_templates.base_template import BaseTemplate
 
 

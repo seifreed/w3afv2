@@ -1,6 +1,7 @@
 import re
-from w3af.plugins.attack.payloads.base_payload import Payload
+
 from w3af.core.ui.console.tables import table
+from w3af.plugins.attack.payloads.base_payload import Payload
 
 
 class list_kernel_modules(Payload):
@@ -12,7 +13,7 @@ class list_kernel_modules(Payload):
         result = {}
 
         def parse_module_info(modules_file):
-            info = re.findall("(.*?)\s(\d{0,6}) \d\d? (.*?),? -?\s?Live", modules_file)
+            info = re.findall(r"(.*?)\s(\d{0,6}) \d\d? (.*?),? -?\s?Live", modules_file)
             return info
 
         for info in parse_module_info(self.shell.read("/proc/modules")):

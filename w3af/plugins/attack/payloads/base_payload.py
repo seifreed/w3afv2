@@ -23,15 +23,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import textwrap
 from functools import wraps
 
-import w3af.plugins.attack.payloads.payload_handler as payload_handler
 import w3af.core.controllers.output_manager as om
-
 from w3af.core.controllers.threads.threadpool import return_args
+from w3af.plugins.attack.payloads import payload_handler
 
 SYSCALL_LIST = ["read", "write", "execute", "unlink", "is_open_port"]
 
 
-class Payload(object):
+class Payload:
 
     def __init__(self, shell_obj):
         self.shell = shell_obj

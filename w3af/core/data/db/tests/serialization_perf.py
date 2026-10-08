@@ -77,10 +77,10 @@ tests = [
 ]
 
 if __name__ == "__main__":
-    import time
-    import msgpack
     import json
-    import pickle
+    import time
+
+    import msgpack
     import ujson
 
     for serializator_name, serializator_func in tests:
@@ -90,17 +90,13 @@ if __name__ == "__main__":
             time_spent = measure(serializator_func, 10000, test_object)
             total_time += time_spent
             print(
-                (
-                    "%s took %s seconds to complete %s"
-                    % (serializator_name, time_spent, test_object_name)
-                )
+                "%s took %s seconds to complete %s"
+                % (serializator_name, time_spent, test_object_name)
             )
 
         print(
-            (
-                "%s took %s seconds to complete all tests."
-                % (serializator_name, total_time)
-            )
+            "%s took %s seconds to complete all tests."
+            % (serializator_name, total_time)
         )
         print()
 

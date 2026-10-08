@@ -22,16 +22,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import pprint
 
-import w3af.core.data.kb.knowledge_base as kb
 import w3af.core.controllers.output_manager as om
-
+import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import BaseFrameworkException
-from w3af.core.ui.console.util import splitPath, suggest
+from w3af.core.ui.console.help import HelpContainer, helpMainRepository
 from w3af.core.ui.console.history import history
-from w3af.core.ui.console.help import helpMainRepository, HelpContainer
+from w3af.core.ui.console.util import splitPath, suggest
 
 
-class menu(object):
+class menu:
     """
     Menu objects handle the commands and completion requests.
     Menus form an hierarchy and are able to delegate requests to their children.
@@ -239,4 +238,3 @@ class menu(object):
         This is a abstract method to emulate the join
         method on a thread, by default DO NOTHING
         """
-        pass

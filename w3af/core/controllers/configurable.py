@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 
-class Configurable(object):
+class Configurable:
     """
     This is mostly "an interface", this "interface" states that all
     classes that implement it, should implement the following methods:

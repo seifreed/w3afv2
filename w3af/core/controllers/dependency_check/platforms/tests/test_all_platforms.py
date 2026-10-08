@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-from ..current_platform import KNOWN_PLATFORMS
 from ..base_platform import CORE, GUI
+from ..current_platform import KNOWN_PLATFORMS
 
 
 class TestAllPlatforms(unittest.TestCase):

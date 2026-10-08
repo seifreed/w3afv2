@@ -21,21 +21,21 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 
-from w3af.core.data.context.tests.context_test import ContextTest
 from w3af.core.data.context.context import get_context
 from w3af.core.data.context.context.html import (
-    HtmlTag,
     CSSText,
     HtmlAttr,
+    HtmlAttrBackticks,
+    HtmlAttrDoubleQuote,
+    HtmlAttrNoQuote,
+    HtmlAttrSingleQuote,
+    HtmlComment,
+    HtmlTag,
+    HtmlTagClose,
     HtmlText,
     ScriptText,
-    HtmlComment,
-    HtmlTagClose,
-    HtmlAttrNoQuote,
-    HtmlAttrBackticks,
-    HtmlAttrSingleQuote,
-    HtmlAttrDoubleQuote,
 )
+from w3af.core.data.context.tests.context_test import ContextTest
 
 
 class TestHTMLContext(ContextTest):

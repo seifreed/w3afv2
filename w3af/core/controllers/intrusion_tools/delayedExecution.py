@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import w3af.core.controllers.output_manager as om
 
 
-class delayedExecution(object):
+class delayedExecution:
     """
     This class is a base class for crontabHandler and atHandler.
     """

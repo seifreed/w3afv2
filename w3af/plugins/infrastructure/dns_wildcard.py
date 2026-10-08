@@ -25,14 +25,13 @@ import socket
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
-
-from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
 from w3af.core.controllers.misc.decorators import runonce
-from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_not_equal, fuzzy_equal
-from w3af.core.data.url.helpers import is_no_content_response
+from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal, fuzzy_not_equal
+from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.info import Info
+from w3af.core.data.url.helpers import is_no_content_response
 
 
 class dns_wildcard(InfrastructurePlugin):
@@ -41,7 +40,7 @@ class dns_wildcard(InfrastructurePlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    SIMPLE_IP_RE = re.compile("\d?\d?\d\.\d?\d?\d\.\d?\d?\d\.\d?\d?\d")
+    SIMPLE_IP_RE = re.compile(r"\d?\d?\d\.\d?\d?\d\.\d?\d?\d\.\d?\d?\d")
 
     @runonce(exc_class=RunOnce)
     def discover(self, fuzzable_request, debugging_id):
@@ -79,7 +78,7 @@ class dns_wildcard(InfrastructurePlugin):
         """
         try:
             ip_address = socket.gethostbyname(domain)
-        except socket.error:
+        except OSError:
             return
 
         url = original_response.get_url()

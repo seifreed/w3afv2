@@ -23,14 +23,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import sqlite3
 
 import w3af.core.controllers.output_manager as om
-
+from w3af.core.controllers.exceptions import ScanMustStopException
+from w3af.core.controllers.misc.temp_dir import create_temp_dir
 from w3af.core.data.db.history import HistoryItem
 from w3af.core.data.url.handlers.cache_backend.cached_response import CachedResponse
 from w3af.core.data.url.handlers.cache_backend.utils import gen_hash
 from w3af.core.data.url.HTTPResponse import HTTPResponse
-
-from w3af.core.controllers.misc.temp_dir import create_temp_dir
-from w3af.core.controllers.exceptions import ScanMustStopException
 
 
 class SQLCachedResponse(CachedResponse):

@@ -21,16 +21,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 from w3af.core.data.parsers.doc.sgml import SGMLParser
-from w3af.core.data.parsers.utils.re_extract import ReExtract
-from w3af.core.data.parsers.utils.form_fields import get_value_by_key
 from w3af.core.data.parsers.utils.form_constants import (
-    INPUT_TYPE_TEXTAREA,
     INPUT_TYPE_SELECT,
+    INPUT_TYPE_TEXTAREA,
 )
+from w3af.core.data.parsers.utils.form_fields import get_value_by_key
 from w3af.core.data.parsers.utils.form_params import (
-    FormParameters,
     DEFAULT_FORM_ENCODING,
+    FormParameters,
 )
+from w3af.core.data.parsers.utils.re_extract import ReExtract
 
 
 class HTMLParser(SGMLParser):
@@ -236,7 +236,7 @@ class HTMLParser(SGMLParser):
         self._text_area_data = None
 
     def clear(self):
-        super(HTMLParser, self).clear()
+        super().clear()
         self._html_internals_clear()
 
     def _handle_input_tag_inside_form(self, tag, tag_name, attrs):

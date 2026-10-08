@@ -20,19 +20,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
+from unittest.mock import call, patch
 
-from mock import patch, call
 from nose.plugins.attrib import attr
 
-from w3af.core.data.parsers.doc.url import URL
 from w3af.core.controllers.ci.moth import get_moth_http
-from w3af.core.controllers.w3afCore import w3afCore
-from w3af.core.controllers.misc.factory import factory
 from w3af.core.controllers.exceptions import (
-    ScanMustStopException,
     ScanMustStopByUnknownReasonExc,
     ScanMustStopByUserRequest,
+    ScanMustStopException,
 )
+from w3af.core.controllers.misc.factory import factory
+from w3af.core.controllers.w3afCore import w3afCore
+from w3af.core.data.parsers.doc.url import URL
 from w3af.plugins.tests.helper import create_target_option_list
 
 

@@ -20,15 +20,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import threading
 import time
 import unittest
-import threading
 
-from w3af.core.data.misc.ordered_cached_queue import OrderedCachedQueue
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.dc.generic.kv_container import KeyValueContainer
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.misc.ordered_cached_queue import OrderedCachedQueue
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
 class TestOrderedCachedQueue(unittest.TestCase):

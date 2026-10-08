@@ -22,14 +22,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import time
 
 import w3af.core.controllers.output_manager as om
-
 from w3af.core.controllers.profiling.thread_time import (
-    thread_active_time,
     CPU_TIME_IS_ACTIVE,
+    thread_active_time,
 )
 
 
-class TimeStamp(object):
+class TimeStamp:
     def __init__(self):
         if CPU_TIME_IS_ACTIVE:
             self.thread_cpu_time = thread_active_time()
@@ -39,7 +38,7 @@ class TimeStamp(object):
             self.wall_time = time.time()
 
 
-class TookLine(object):
+class TookLine:
     def __init__(
         self, w3af_core, plugin_name, method_name, debugging_id=None, method_params=None
     ):

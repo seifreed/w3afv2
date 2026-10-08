@@ -8,14 +8,12 @@ See the file 'LICENSE' for copying permission
 """
 
 import binascii
+import os
 import re
 import string
-import os
 import sys
-
-from optparse import OptionError
-from optparse import OptionParser
 from functools import reduce
+from optparse import OptionError, OptionParser
 
 # Regex used for recognition of hex encoded characters
 HEX_ENCODED_CHAR_REGEX = r"(?P<result>\\x[0-9A-Fa-f]{2})"
@@ -141,10 +139,7 @@ def main():
 
     if not os.path.isfile(args.inputFile):
         print(
-            (
-                "ERROR: the provided input file '%s' is not a regular file"
-                % args.inputFile
-            )
+            "ERROR: the provided input file '%s' is not a regular file" % args.inputFile
         )
         sys.exit(1)
 

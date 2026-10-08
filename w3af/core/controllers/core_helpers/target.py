@@ -20,14 +20,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import urllib.request, urllib.error, urllib.parse
+import urllib.error
+import urllib.parse
+import urllib.request
 
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.configurable import Configurable
 from w3af.core.controllers.exceptions import BaseFrameworkException
-from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
+from w3af.core.data.parsers.doc.url import URL
 
 cf.cf.save("targets", [])
 cf.cf.save("target_domains", set())

@@ -19,18 +19,16 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import datetime
+from unittest.mock import call, patch
 
-from nose.plugins.skip import SkipTest
 from nose.plugins.attrib import attr
-from mock import patch, call
 
-import w3af.core.data.constants.severity as severity
-from w3af.plugins.tests.helper import PluginTest, PluginConfig
-from w3af.plugins.crawl.ghdb import GoogleHack, google
-from w3af.core.data.search_engines.google import GoogleResult
-from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.constants import severity
 from w3af.core.data.misc.file_utils import days_since_file_update
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.search_engines.google import GoogleResult
+from w3af.plugins.crawl.ghdb import GoogleHack, google
+from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 
 class TestGHDB(PluginTest):

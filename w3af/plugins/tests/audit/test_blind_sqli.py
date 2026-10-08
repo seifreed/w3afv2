@@ -19,10 +19,10 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from w3af.plugins.tests.helper import PluginTest, PluginConfig
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.controllers.ci.w3af_moth import get_w3af_moth_http
 from w3af.core.controllers.ci.wavsep import get_wavsep_http
+from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 CONFIG = {
     "audit": (PluginConfig("blind_sqli"),),

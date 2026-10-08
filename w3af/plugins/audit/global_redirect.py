@@ -22,14 +22,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 
-import w3af.core.data.constants.severity as severity
-import w3af.core.data.parsers.parser_cache as parser_cache
-
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.fuzzer.fuzzer import create_mutants
-from w3af.core.data.kb.vuln import Vuln
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
+from w3af.core.data.constants import severity
+from w3af.core.data.fuzzer.fuzzer import create_mutants
+from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.parsers import parser_cache
+from w3af.core.data.parsers.doc.url import URL
 
 
 class global_redirect(AuditPlugin):
@@ -47,9 +46,9 @@ class global_redirect(AuditPlugin):
     META_URL_RE = re.compile(".*?; *?URL *?= *?(.*)", re.IGNORECASE | re.DOTALL)
 
     JS_REDIR_GENERIC_FMT = [
-        "window\.location.*?=.*?[\"'].*?%s.*?[\"']",
-        "(self|top)\.location.*?=.*?[\"'].*?%s.*?[\"']",
-        "window\.location\.(replace|assign)\([\"'].*?%s.*?[\"']\)",
+        "window\\.location.*?=.*?[\"'].*?%s.*?[\"']",
+        "(self|top)\\.location.*?=.*?[\"'].*?%s.*?[\"']",
+        "window\\.location\\.(replace|assign)\\([\"'].*?%s.*?[\"']\\)",
     ]
     REDIR_TO_TEST_DOMAIN_JS_RE = [
         re.compile(r % TEST_DOMAIN) for r in JS_REDIR_GENERIC_FMT

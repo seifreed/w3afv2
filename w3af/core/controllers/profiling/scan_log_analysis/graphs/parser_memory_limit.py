@@ -1,6 +1,6 @@
 import re
-import plotille
 
+import plotille
 from utils.graph import num_formatter
 from utils.output import KeyValueOutput
 from utils.utils import get_first_timestamp, get_last_timestamp, get_line_epoch
@@ -59,5 +59,5 @@ def draw_parser_process_memory_limit(scan_log_filename, scan):
 
     fig.plot(memory_limit_timestamps, memory_limit, label="Memory limit")
 
-    print((fig.show()))
-    print("")
+    print(fig.show())
+    print()

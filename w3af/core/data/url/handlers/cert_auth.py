@@ -20,8 +20,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import urllib.request, urllib.error, urllib.parse
 import http.client
+import urllib.error
+import urllib.parse
+import urllib.request
 
 import w3af.core.controllers.output_manager as om
 

@@ -21,37 +21,34 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
-import sys
-import shlex
 import random
+import shlex
+import sys
 import traceback
 
 from termcolor import colored
 
 try:
-    import w3af.core.ui.console.io.console as term
-    import w3af.core.ui.console.tables as tables
     import w3af.core.controllers.output_manager as om
-
-    from w3af.core.ui.console.rootMenu import rootMenu
-    from w3af.core.ui.console.callbackMenu import callbackMenu
-    from w3af.core.ui.console.util import commonPrefix
-    from w3af.core.ui.console.history import historyTable
-    from w3af.core.ui.console.auto_update.auto_update import ConsoleUIUpdater
-
-    from w3af.core.data.constants.disclaimer import DISCLAIMER
-    from w3af.core.data.db.startup_cfg import StartUpConfig
-
-    from w3af.core.controllers.w3afCore import w3afCore
+    import w3af.core.ui.console.io.console as term
     from w3af.core.controllers.exceptions import (
         BaseFrameworkException,
         ScanMustStopException,
     )
+    from w3af.core.controllers.w3afCore import w3afCore
+    from w3af.core.data.constants.disclaimer import DISCLAIMER
+    from w3af.core.data.db.startup_cfg import StartUpConfig
+    from w3af.core.ui.console import tables
+    from w3af.core.ui.console.auto_update.auto_update import ConsoleUIUpdater
+    from w3af.core.ui.console.callbackMenu import callbackMenu
+    from w3af.core.ui.console.history import historyTable
+    from w3af.core.ui.console.rootMenu import rootMenu
+    from w3af.core.ui.console.util import commonPrefix
 except KeyboardInterrupt:
     sys.exit(0)
 
 
-class ConsoleUI(object):
+class ConsoleUI:
     """
     This class represents the console.
     It handles the keys pressed and delegate the completion and execution tasks
@@ -126,7 +123,7 @@ class ConsoleUI(object):
         try:
             user_response = eval(input(msg))
         except (KeyboardInterrupt, EOFError):
-            print("")
+            print()
             user_response = ""
 
         user_response = user_response.lower()
@@ -233,7 +230,7 @@ class ConsoleUI(object):
                 self._handlers[key]()
             else:
                 self._paste(key)
-        except Exception as e:
+        except Exception:
             # TODO
             traceback.print_exc()
 

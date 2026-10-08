@@ -21,20 +21,20 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import base64
-import string
 import random
+import string
 
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.dc.headers import Headers
 from w3af.core.controllers.exceptions import (
     BaseFrameworkException,
     HTTPRequestException,
 )
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.constants.websockets import (
-    WEBSOCKET_UPGRADE_HEADERS,
     DEFAULT_PROTOCOL_VERSION,
+    WEBSOCKET_UPGRADE_HEADERS,
 )
+from w3af.core.data.dc.headers import Headers
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
 def gen_ws_sec_key():
@@ -97,7 +97,7 @@ def negotiate_websocket_version(uri_opener, websocket_url):
     :param websocket_url: The web socket URL instance
     :return: The websocket version to use
     """
-    for version in {13, 12, 14}:
+    for version in (13, 12, 14):
         upgrade_request = build_ws_upgrade_request(
             websocket_url, web_socket_version=version
         )

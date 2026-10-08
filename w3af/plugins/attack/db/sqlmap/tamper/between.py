@@ -56,7 +56,7 @@ def tamper(payload, **kwargs):
             retVal = retVal.replace(match.group(0), _)
         else:
             retVal = re.sub(
-                r"\s*>\s*(\d+|'[^']+'|\w+\(\d+\))", " NOT BETWEEN 0 AND \g<1>", payload
+                r"\s*>\s*(\d+|'[^']+'|\w+\(\d+\))", r" NOT BETWEEN 0 AND \g<1>", payload
             )
 
         if retVal == payload:

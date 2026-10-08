@@ -21,11 +21,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import w3af.core.controllers.output_manager as om
-import w3af.plugins.attack.payloads.shell_handler as shell_handler
-
-from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
 from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
 from w3af.core.data.kb.exec_shell import ExecShell
+from w3af.plugins.attack.payloads import shell_handler
 from w3af.plugins.attack.payloads.decorators.exec_decorator import exec_debug
 
 
@@ -140,7 +139,7 @@ class eval(AttackPlugin):
 class EvalShell(ExecShell):
 
     def __init__(self, vuln, uri_opener, worker_pool, shellcode_generator):
-        super(EvalShell, self).__init__(vuln, uri_opener, worker_pool)
+        super().__init__(vuln, uri_opener, worker_pool)
 
         self.shellcode_generator = shellcode_generator
 

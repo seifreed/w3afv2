@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 filter_printable.py
 
@@ -21,8 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import json
 import datetime
+import json
 
 
 class DateTimeJSONEncoder(json.JSONEncoder):
@@ -38,6 +37,6 @@ class DateTimeJSONEncoder(json.JSONEncoder):
         if isinstance(obj, (datetime.datetime, datetime.date)):
             return obj.isoformat()
         else:
-            return super(DateTimeJSONEncoder, self).default(obj)
+            return super().default(obj)
 
     # pylint: enable=E0202

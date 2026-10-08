@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import w3af.core.data.parsers.utils.encode_decode as enc_dec
-
 from w3af.core.data.constants.encodings import DEFAULT_ENCODING
 from w3af.core.data.dc.generic.kv_container import KeyValueContainer
 from w3af.core.data.dc.utils.token import DataToken
@@ -37,7 +36,7 @@ class QueryString(KeyValueContainer):
     """
 
     def __init__(self, init_val=(), encoding=DEFAULT_ENCODING):
-        super(QueryString, self).__init__(init_val, encoding)
+        super().__init__(init_val, encoding)
 
     def get_type(self):
         return "Query string"
@@ -56,4 +55,4 @@ class QueryString(KeyValueContainer):
             if not isinstance(sub_val, (str, DataToken)):
                 raise TypeError(ERR_MSG % value)
 
-        super(QueryString, self).__setitem__(key, value)
+        super().__setitem__(key, value)

@@ -1,4 +1,3 @@
-# -*- coding: utf8 -*-
 """
 form_params.py
 
@@ -21,42 +20,40 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import copy
 import operator
 import random
-import copy
-
 from collections import OrderedDict
+from functools import reduce
 from types import NoneType
 
 import w3af.core.controllers.output_manager as om
-
-from w3af.core.data.dc.utils.multipart import is_file_like
 from w3af.core.data.constants.encodings import DEFAULT_ENCODING
+from w3af.core.data.dc.utils.multipart import is_file_like
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.parsers.utils.form_id import FormID
-from w3af.core.data.parsers.utils.form_fields import (
-    FileFormField,
-    get_value_by_key,
-    SelectFormField,
-    GenericFormField,
-    RadioFormField,
-    CheckboxFormField,
-)
 from w3af.core.data.parsers.utils.form_constants import (
     DEFAULT_FORM_ENCODING,
     INPUT_TYPE_CHECKBOX,
-    INPUT_TYPE_RADIO,
-    INPUT_TYPE_TEXT,
-    INPUT_TYPE_SELECT,
-    INPUT_TYPE_PASSWD,
     INPUT_TYPE_FILE,
+    INPUT_TYPE_PASSWD,
+    INPUT_TYPE_RADIO,
+    INPUT_TYPE_SELECT,
+    INPUT_TYPE_TEXT,
     MODE_ALL,
+    MODE_B,
+    MODE_T,
     MODE_TB,
     MODE_TMB,
-    MODE_T,
-    MODE_B,
 )
-from functools import reduce
+from w3af.core.data.parsers.utils.form_fields import (
+    CheckboxFormField,
+    FileFormField,
+    GenericFormField,
+    RadioFormField,
+    SelectFormField,
+    get_value_by_key,
+)
+from w3af.core.data.parsers.utils.form_id import FormID
 
 
 class FormParameters(OrderedDict):
@@ -122,7 +119,7 @@ class FormParameters(OrderedDict):
         :param hosted_at_url: The URL where the form appeared
         """
         # pylint: disable=E1002
-        super(FormParameters, self).__init__(init_vals)
+        super().__init__(init_vals)
         # pylint: enable=E1002
 
         # Form parameter meta-data
@@ -680,11 +677,7 @@ class FormParameters(OrderedDict):
         text, passwd, other = self.get_parameter_type_count()
 
         # Classic login form
-        if text == 1 and passwd == 1:
-            return True
-
-        # Password-only login form
-        elif text == 0 and passwd == 1:
+        if text == 1 and passwd == 1 or text == 0 and passwd == 1:
             return True
 
         return False

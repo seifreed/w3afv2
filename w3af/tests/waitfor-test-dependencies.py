@@ -2,7 +2,9 @@
 
 import sys
 import time
-import urllib.request, urllib.error, urllib.parse
+import urllib.error
+import urllib.parse
+import urllib.request
 
 LOOPS = 25
 DELAY = 1
@@ -33,19 +35,19 @@ def is_online(url, match_string):
     except urllib.error.HTTPError as e:
         content = e.read()
     except Exception as e:
-        print(("%s is offline (%s)" % (url, e.__class__.__name__)))
+        print("%s is offline (%s)" % (url, e.__class__.__name__))
         return False
 
     if match_string is None:
-        print(("%s is UP" % url))
+        print("%s is UP" % url)
         return True
 
     elif match_string in content:
-        print(("%s is UP and matches string" % url))
+        print("%s is UP and matches string" % url)
         return True
 
     else:
-        print(("%s is UP but string does NOT match" % url))
+        print("%s is UP but string does NOT match" % url)
 
     return False
 

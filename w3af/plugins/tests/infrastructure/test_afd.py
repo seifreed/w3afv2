@@ -21,9 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 
-from w3af.plugins.tests.helper import PluginTest, PluginConfig, MockResponse
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
-BAD_SIG_URI = re.compile(".*(passwd|uname|passthru|xp_cmdshell|WINNT).*", re.I)
+BAD_SIG_URI = re.compile(".*(passwd|uname|passthru|xp_cmdshell|WINNT).*", re.IGNORECASE)
 
 
 class TestFoundAFD(PluginTest):
@@ -85,7 +85,7 @@ class TestAFDShortResponses(PluginTest):
     MOCK_RESPONSES = [
         MockResponse(target_url, "hello world"),
         MockResponse(BAD_SIG_URI, MOD_SECURITY_ANSWER, status=403),
-        MockResponse(re.compile(target_url + "\?.*"), "hello world"),
+        MockResponse(re.compile(target_url + r"\?.*"), "hello world"),
     ]
 
     def test_afd_found(self):

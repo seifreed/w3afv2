@@ -20,25 +20,24 @@
 #  You can reach me at <leed@cs.ucdavis.edu>
 ######################################################################
 
-import re
+import glob
 import os
+import re
+import select
+import socket
 import ssl
 import sys
-import glob
 import time
-import socket
-import select
+from functools import cmp_to_key
 
-import w3af.core.data.kb.config as cf
 import w3af.core.controllers.output_manager as om
-
+import w3af.core.data.kb.config as cf
 from w3af import ROOT_PATH
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.threads.threadpool import Pool
-from functools import cmp_to_key
 
 
-class request(object):
+class request:
     """
     Collect elements needed to send a Request to an HTTP server
     """
@@ -190,7 +189,7 @@ class request(object):
 ######################################################################
 
 
-class response(object):
+class response:
     """Read in Response from HTTP server and parse out elements of interest"""
 
     def __init__(self, raw_text):
@@ -205,7 +204,7 @@ class response(object):
             self.response_text = "NONE"
             return
 
-        if not re.search("^HTTP/1\.[01] [0-9]{3} [A-Z]{,10}", text):
+        if not re.search(r"^HTTP/1\.[01] [0-9]{3} [A-Z]{,10}", text):
             self.response_code = "NO_RESPONSE_CODE"  # HTTP/0.9 like
             self.response_text = "NONE"
             self.body = text
@@ -222,7 +221,7 @@ class response(object):
 
         response_lines = text.split(line_splitter)
         self.response_line = response_lines[0]
-        response_line_match = re.search("(HTTP/1\.[01]) ([0-9]{3}) ([^\r\n]*)", text)
+        response_line_match = re.search("(HTTP/1\\.[01]) ([0-9]{3}) ([^\r\n]*)", text)
         self.response_code, self.response_text = response_line_match.groups()[1:]
 
         blank_index = response_lines[:].index("")
@@ -238,18 +237,18 @@ class response(object):
         return self.response_code, self.response_text
 
     def describe(self):
-        print(("-" * 70))
+        print("-" * 70)
         print("RESPONSE LINE:")
         if hasattr(self, "response_line"):
-            print((self.response_line))
-        print(("-" * 70))
+            print(self.response_line)
+        print("-" * 70)
         print("HEADERS:")
         if hasattr(self, "headers"):
-            print((self.headers))
-        print(("-" * 70))
+            print(self.headers)
+        print("-" * 70)
         print("BODY:")
         if hasattr(self, "body"):
-            print((self.body))
+            print(self.body)
 
     def has_header(self, name):
         for h in self.headers:
@@ -519,10 +518,10 @@ def malformed_method_line(url):
         "GET %2F HTTP/1.0",  # 90
         "GET%20/ HTTP/1.0",
         "GET / FTP/1.0",
-        "GET \ HTTP/1.0",  # windows style
+        r"GET \ HTTP/1.0",  # windows style
         #'GET \./',
         #'GET \.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\.\. HTTP/1.0'
-        "GET C:\ HTTP/1.0",
+        r"GET C:\ HTTP/1.0",
         "HTTP/1.0 / GET",  # and other permutations
         # try various escape sequences from c etal
         # \a = bell
@@ -1066,7 +1065,7 @@ def testServer(ssl, server, port, matchCount, generateFP, threads):
         try:
             ### FIXME: This eval is awful, I should change it to pickle.
             ks = eval(ksf.read())
-        except Exception as e:
+        except Exception:
             raise BaseFrameworkException(
                 'The signature file "' + f + '" has an invalid syntax.'
             )

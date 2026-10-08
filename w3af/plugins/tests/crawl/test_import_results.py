@@ -22,9 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 
 from w3af import ROOT_PATH
-from w3af.plugins.tests.helper import PluginTest, PluginConfig
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.dc.multipart_container import MultipartContainer
+from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 
 class TestImportResults(PluginTest):

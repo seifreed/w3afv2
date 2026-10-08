@@ -20,9 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
-from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 
 CT_OPTIONS_HEADER = "X-Content-Type-Options"
 NOSNIFF = "nosniff"
@@ -37,7 +37,7 @@ class content_sniffing(GrepPlugin):
     """
 
     def __init__(self):
-        super(content_sniffing, self).__init__()
+        super().__init__()
         self._reports = 0
 
     def grep(self, request, response):

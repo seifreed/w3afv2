@@ -20,8 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
-
-from mock import patch
+from unittest.mock import patch
 
 from w3af.core.controllers.profiling.took_helper import TookLine
 from w3af.core.controllers.w3afCore import w3afCore
@@ -47,8 +46,8 @@ class TestTookHelper(unittest.TestCase):
 
             self.assertRegex(
                 sent_message,
-                'plugin_name.method_name\(test="yes",did="ML7aEYsa"\)'
-                " took .*? seconds to run \(.*? seconds / .*?% consuming CPU cycles\)",
+                r'plugin_name.method_name\(test="yes",did="ML7aEYsa"\)'
+                r" took .*? seconds to run \(.*? seconds / .*?% consuming CPU cycles\)",
             )
 
     def test_took_with_rtt(self):
@@ -73,7 +72,7 @@ class TestTookHelper(unittest.TestCase):
 
             self.assertRegex(
                 sent_message,
-                'plugin_name.method_name\(test="yes",did="ML7aEYsa"\)'
-                " took .*? seconds to run \(1.80 seconds / .*?% sending HTTP requests,"
-                " .*? seconds / .*?% consuming CPU cycles\)",
+                r'plugin_name.method_name\(test="yes",did="ML7aEYsa"\)'
+                r" took .*? seconds to run \(1.80 seconds / .*?% sending HTTP requests,"
+                r" .*? seconds / .*?% consuming CPU cycles\)",
             )

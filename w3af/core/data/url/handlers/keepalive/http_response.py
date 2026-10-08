@@ -5,9 +5,10 @@ try:
 except ImportError:
     from io import StringIO
 
-from .utils import debug
 from w3af.core.data.constants.response_codes import NO_CONTENT
 from w3af.core.data.kb.config import cf
+
+from .utils import debug
 
 
 def close_on_error(read_meth):

@@ -20,41 +20,41 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import ssl
-import socket
-import urllib.request, urllib.parse, urllib.error
-import urllib.request, urllib.error, urllib.parse
 import http.client
-import OpenSSL
 import itertools
-
-from w3af.core.controllers.misc.itertools_toolset import unique_everseen_hash
+import socket
+import ssl
+import urllib.error
+import urllib.parse
+import urllib.request
 from errno import (
     ECONNREFUSED,
-    EHOSTUNREACH,
     ECONNRESET,
+    EHOSTUNREACH,
     ENETDOWN,
     ENETUNREACH,
-    ETIMEDOUT,
     ENOSPC,
+    ETIMEDOUT,
 )
+from functools import cmp_to_key
 
-from w3af.core.data.misc.encoding import smart_unicode, PERCENT_ENCODE
+import OpenSSL
+
 from w3af.core.controllers.exceptions import HTTPRequestException
-from w3af.core.data.url.handlers.keepalive import URLTimeoutError
+from w3af.core.controllers.misc.itertools_toolset import unique_everseen_hash
+from w3af.core.controllers.misc.number_generator import consecutive_number_generator
 from w3af.core.data.constants.response_codes import NO_CONTENT
-from w3af.core.data.url.HTTPResponse import HTTPResponse
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.misc.encoding import PERCENT_ENCODE, smart_unicode
 from w3af.core.data.misc.web_encodings import (
-    URL_ENCODING_FUNCTIONS,
     HTML_ENCODING_FUNCTIONS,
     JSON_ENCODING_FUNCTIONS,
+    URL_ENCODING_FUNCTIONS,
     generate_html_encoding_functions,
     generate_url_encoding_functions,
 )
-
-from w3af.core.controllers.misc.number_generator import consecutive_number_generator
-from functools import cmp_to_key
+from w3af.core.data.url.handlers.keepalive import URLTimeoutError
+from w3af.core.data.url.HTTPResponse import HTTPResponse
 
 # Known reason errors. See errno module for more info on these errors
 EUNKNSERV = -2  # Name or service not known error

@@ -21,8 +21,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 
-from w3af.plugins.tests.helper import PluginTest, PluginConfig, MockResponse
 from w3af.core.data.parsers.doc.url import URL
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 CONFIG = {
     "audit": (PluginConfig("rosetta_flash"),),

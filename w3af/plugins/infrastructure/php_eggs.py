@@ -23,16 +23,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import hashlib
 import json
 import os.path
-
-from itertools import repeat
 from collections import namedtuple
+from itertools import repeat
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
-
 from w3af import ROOT_PATH
-from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.controllers.exceptions import NoMoreCalls
+from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.controllers.threads.threadpool import one_to_many
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.kb.info import Info
@@ -205,7 +203,7 @@ class php_eggs(InfrastructurePlugin):
         (which is then saved to the kb).
         """
         if not query_results:
-            return None
+            return
         else:
             desc_hashes = {}
 

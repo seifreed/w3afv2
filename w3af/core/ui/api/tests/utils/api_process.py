@@ -20,12 +20,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import subprocess
-import requests
-from hashlib import sha512
-import time
-import sys
 import os
+import subprocess
+import sys
+import time
+from hashlib import sha512
+
+import requests
 
 from w3af import ROOT_PATH
 from w3af.core.controllers.misc.get_unused_port import get_unused_port

@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import re
 import time
 
-from w3af.plugins.tests.helper import PluginTest, PluginConfig, MockResponse
 from w3af.core.data.parsers.doc.url import URL
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 
 class ReDosMockResponse(MockResponse):
@@ -60,7 +60,7 @@ class TestREDoS(PluginTest):
 
     MOCK_RESPONSES = [
         ReDosMockResponse(
-            url=re.compile("http://httpretty/re\?redos=.*"), body="dummy"
+            url=re.compile(r"http://httpretty/re\?redos=.*"), body="dummy"
         ),
     ]
 
@@ -88,7 +88,7 @@ class TestREDoSNegative(PluginTest):
 
     MOCK_RESPONSES = [
         MockResponse(
-            url=re.compile("http://httpretty/re\?redos=.*"), body="dummy", delay=0.1
+            url=re.compile(r"http://httpretty/re\?redos=.*"), body="dummy", delay=0.1
         ),
     ]
 

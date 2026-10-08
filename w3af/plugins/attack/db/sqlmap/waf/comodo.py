@@ -20,7 +20,9 @@ def detect(get_page):
         _, headers, _ = get_page(get=vector)
         retval = (
             re.search(
-                r"Protected by COMODO WAF", headers.get(HTTP_HEADER.SERVER, ""), re.I
+                r"Protected by COMODO WAF",
+                headers.get(HTTP_HEADER.SERVER, ""),
+                re.IGNORECASE,
             )
             is not None
         )

@@ -30,14 +30,14 @@ class LocalFileReadTemplate(BaseTemplate):
     """
 
     def __init__(self):
-        super(LocalFileReadTemplate, self).__init__()
+        super().__init__()
 
         self.name = self.get_vulnerability_name()
         self.payload = "/etc/passwd"
         self.file_pattern = "root:x:0:0:"
 
     def get_options(self):
-        ol = super(LocalFileReadTemplate, self).get_options()
+        ol = super().get_options()
 
         d = "Payload used to detect the vulnerability (i.e. ../../etc/passwd)"
         o = opt_factory("payload", self.payload, d, "string")
@@ -50,12 +50,12 @@ class LocalFileReadTemplate(BaseTemplate):
         return ol
 
     def set_options(self, options_list):
-        super(LocalFileReadTemplate, self).set_options(options_list)
+        super().set_options(options_list)
         self.payload = options_list["payload"].get_value()
         self.file_pattern = options_list["file_pattern"].get_value()
 
     def create_vuln(self):
-        v = super(LocalFileReadTemplate, self).create_vuln()
+        v = super().create_vuln()
 
         v.get_mutant().set_token_value(self.payload)
         v["file_pattern"] = self.file_pattern

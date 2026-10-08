@@ -1,11 +1,11 @@
 # Copyright Jonathan Hartley 2013. BSD 3-Clause license, see LICENSE file.
+import os
 import re
 import sys
-import os
 
-from .ansi import AnsiFore, AnsiBack, AnsiStyle, Style
-from .winterm import WinTerm, WinColor, WinStyle
-from .win32 import windll, winapi_test
+from .ansi import AnsiBack, AnsiFore, AnsiStyle, Style
+from .win32 import winapi_test, windll
+from .winterm import WinColor, WinStyle, WinTerm
 
 winterm = None
 if windll is not None:
@@ -20,7 +20,7 @@ def is_a_tty(stream):
     return hasattr(stream, "isatty") and stream.isatty()
 
 
-class StreamWrapper(object):
+class StreamWrapper:
     """
     Wraps a stream (such as stdout), acting as a transparent proxy for all
     attribute access apart from method 'write()', which is delegated to our
@@ -40,7 +40,7 @@ class StreamWrapper(object):
         self.__convertor.write(text)
 
 
-class AnsiToWin32(object):
+class AnsiToWin32:
     """
     Implements a 'write()' method which, on Windows, will strip ANSI character
     sequences from the text, and if outputting to a tty, will convert them into
@@ -48,10 +48,10 @@ class AnsiToWin32(object):
     """
 
     ANSI_CSI_RE = re.compile(
-        "\001?\033\[((?:\d|;)*)([a-zA-Z])\002?"
+        "\001?\033\\[((?:\\d|;)*)([a-zA-Z])\002?"
     )  # Control Sequence Introducer
     ANSI_OSC_RE = re.compile(
-        "\001?\033\]((?:.|;)*?)(\x07)\002?"
+        "\001?\033\\]((?:.|;)*?)(\x07)\002?"
     )  # Operating System Command
 
     def __init__(self, wrapped, convert=None, strip=None, autoreset=False):

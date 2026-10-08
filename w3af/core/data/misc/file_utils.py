@@ -20,10 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import string
 import shlex
-
-from datetime import datetime, date
+import string
+from datetime import date, datetime
 
 from git.cmd import Git, GitCommandError
 

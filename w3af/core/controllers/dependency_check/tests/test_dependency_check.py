@@ -21,14 +21,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
-
-from mock import patch
+from unittest.mock import patch
 
 from ..dependency_check import dependency_check
+from ..pip_dependency import PIPDependency
 from ..platforms.base_platform import CORE, GUI
 from ..platforms.default import DefaultPlatform
 from ..platforms.ubuntu1204 import Ubuntu1204
-from ..pip_dependency import PIPDependency
 
 
 class TestDependencyCheck(unittest.TestCase):

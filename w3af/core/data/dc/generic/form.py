@@ -1,4 +1,3 @@
-# -*- coding: utf8 -*-
 """
 form.py
 
@@ -21,17 +20,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from w3af.core.data.fuzzer.form_filler import smart_fill, smart_fill_file
 from w3af.core.data.dc.generic.kv_container import KeyValueContainer
 from w3af.core.data.dc.utils.token import DataToken
-from w3af.core.data.parsers.utils.form_params import FormParameters
+from w3af.core.data.fuzzer.form_filler import smart_fill, smart_fill_file
 from w3af.core.data.parsers.utils.form_constants import (
     INPUT_TYPE_CHECKBOX,
+    INPUT_TYPE_PASSWD,
     INPUT_TYPE_RADIO,
     INPUT_TYPE_SELECT,
     INPUT_TYPE_TEXT,
-    INPUT_TYPE_PASSWD,
 )
+from w3af.core.data.parsers.utils.form_params import FormParameters
 
 
 class Form(KeyValueContainer):
@@ -61,7 +60,7 @@ class Form(KeyValueContainer):
         # all magic methods (__getitem__, __setitem__, etc.) to the
         # self.form_params attribute, which helps keep the two (FormParameters
         # and Form) instances in sync
-        super(Form, self).__init__(init_val=(), encoding=form_params.get_encoding())
+        super().__init__(init_val=(), encoding=form_params.get_encoding())
 
     def get_form_params(self):
         return self.form_params

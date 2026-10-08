@@ -22,11 +22,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 
-import w3af.core.data.constants.severity as severity
-
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
-from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.constants import severity
 from w3af.core.data.kb.info_set import InfoSet
+from w3af.core.data.kb.vuln import Vuln
 
 
 class svn_users(GrepPlugin):
@@ -42,8 +41,8 @@ class svn_users(GrepPlugin):
     #   $Id: file name, version, timestamp, creator Exp $
     #
     SVN_RE = (
-        "\$.{1,12}: .*? .*? \d{4}[-/]\d{1,2}[-/]\d{1,2}"
-        " \d{1,2}:\d{1,2}:\d{1,2}.*? (.*?) (Exp )?\$"
+        r"\$.{1,12}: .*? .*? \d{4}[-/]\d{1,2}[-/]\d{1,2}"
+        r" \d{1,2}:\d{1,2}:\d{1,2}.*? (.*?) (Exp )?\$"
     )
     RE_LIST = [re.compile(SVN_RE)]
 

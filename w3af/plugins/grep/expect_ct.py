@@ -20,9 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
-from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 
 ECT_HEADER = "Expect-CT"
 MAX_REPORTS = 50
@@ -35,7 +35,7 @@ class expect_ct(GrepPlugin):
     """
 
     def __init__(self):
-        super(expect_ct, self).__init__()
+        super().__init__()
         self._reports = 0
 
     def grep(self, request, response):

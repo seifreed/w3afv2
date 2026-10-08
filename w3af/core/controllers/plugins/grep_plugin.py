@@ -21,9 +21,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import w3af.core.controllers.output_manager as om
-
-from w3af.core.controllers.plugins.plugin import Plugin
 from w3af.core.controllers.exceptions import FourOhFourDetectionException
+from w3af.core.controllers.plugins.plugin import Plugin
 
 
 class GrepPlugin(Plugin):
@@ -36,7 +35,7 @@ class GrepPlugin(Plugin):
     """
 
     def __init__(self):
-        super(GrepPlugin, self).__init__()
+        super().__init__()
 
     def grep_wrapper(self, fuzzable_request, response):
         """

@@ -1,6 +1,6 @@
 import re
-import plotille
 
+import plotille
 from utils.graph import num_formatter
 from utils.output import KeyValueOutput
 from utils.utils import get_first_timestamp, get_last_timestamp, get_line_epoch
@@ -48,7 +48,7 @@ def draw_extended_urllib_error_rate(scan_log_filename, scan):
 
     if not error_rate:
         print("No error rate information found")
-        print("")
+        print()
         return
 
     fig = plotille.Figure()
@@ -64,5 +64,5 @@ def draw_extended_urllib_error_rate(scan_log_filename, scan):
 
     fig.plot(error_rate_timestamps, error_rate, label="Error rate")
 
-    print((fig.show()))
-    print("")
+    print(fig.show())
+    print()

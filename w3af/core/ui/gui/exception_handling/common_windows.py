@@ -20,22 +20,23 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import gtk
 import queue
 import threading
-import gobject
 
-from w3af.core.ui.gui.helpers import end_threads, Throbber
-from w3af.core.ui.gui.entries import EmailEntry
-from w3af.core.ui.gui.constants import W3AF_ICON
+import gobject
+import gtk
+
 from w3af.core.controllers.easy_contribution.github_issues import (
-    GithubIssues,
-    OAUTH_TOKEN,
-    LoginFailed,
-    OAUTH_AUTH_FAILED,
-    OAuthTokenInvalid,
     DEFAULT_BUG_QUERY_TEXT,
+    OAUTH_AUTH_FAILED,
+    OAUTH_TOKEN,
+    GithubIssues,
+    LoginFailed,
+    OAuthTokenInvalid,
 )
+from w3af.core.ui.gui.constants import W3AF_ICON
+from w3af.core.ui.gui.entries import EmailEntry
+from w3af.core.ui.gui.helpers import Throbber, end_threads
 
 
 class SimpleBaseWindow(gtk.Window):
@@ -44,7 +45,7 @@ class SimpleBaseWindow(gtk.Window):
         """
         One simple class to create other windows.
         """
-        super(SimpleBaseWindow, self).__init__(type=type)
+        super().__init__(type=type)
 
         self.connect("delete-event", self._handle_cancel)
         self.connect("destroy", self._handle_cancel)
@@ -180,7 +181,7 @@ class report_bug_show_result(gtk.MessageDialog):
         self.show_all()
         self.done_icon.hide()
 
-        super(report_bug_show_result, self).run()
+        super().run()
         self.destroy()
 
         return self.reported_ids
@@ -385,7 +386,7 @@ class dlg_ask_credentials(gtk.MessageDialog):
 
         # Go go go!
         self.show_all()
-        gtk_response = super(dlg_ask_credentials, self).run()
+        gtk_response = super().run()
 
         # The user closed the dialog with the X
         if gtk_response == gtk.RESPONSE_DELETE_EVENT:
@@ -525,7 +526,7 @@ class dlg_ask_bug_info(gtk.MessageDialog):
         self.show_all()
 
         # Go go go
-        gtk_response = super(dlg_ask_bug_info, self).run()
+        gtk_response = super().run()
 
         # The user closed the dialog with the X
         if gtk_response == gtk.RESPONSE_DELETE_EVENT:
@@ -539,7 +540,7 @@ class dlg_ask_bug_info(gtk.MessageDialog):
         return False, summary, description
 
 
-class GithubBugReport(object):
+class GithubBugReport:
     """
     Class that models user interaction with Github to report ONE bug.
     """

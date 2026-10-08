@@ -20,7 +20,9 @@ def detect(get_page):
         _, headers, _ = get_page(get=vector)
         retval = (
             re.search(
-                r"\Ast8(id|_wat|_wlf)", headers.get(HTTP_HEADER.SET_COOKIE, ""), re.I
+                r"\Ast8(id|_wat|_wlf)",
+                headers.get(HTTP_HEADER.SET_COOKIE, ""),
+                re.IGNORECASE,
             )
             is not None
         )

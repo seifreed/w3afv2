@@ -19,16 +19,16 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import gtk
-import gobject
-import time
 import itertools
+import time
 
-import w3af.core.data.constants.severity as severity
+import gobject
+import gtk
 
-from w3af.core.ui.gui.output.message_consumer import MessageConsumer
+from w3af.core.controllers.exceptions import MalformedDBException, NoSuchTableException
+from w3af.core.data.constants import severity
 from w3af.core.data.db.disk_list import DiskList
-from w3af.core.controllers.exceptions import NoSuchTableException, MalformedDBException
+from w3af.core.ui.gui.output.message_consumer import MessageConsumer
 
 # margins (they have to be > 10)
 MIZQ = 20
@@ -99,7 +99,7 @@ class LogGraph(gtk.DrawingArea, MessageConsumer):
 
         @returns: True to keep calling it, and False when all it's done.
         """
-        yield super(LogGraph, self).handle_message(msg)
+        yield super().handle_message(msg)
 
         mmseg = int(msg.get_real_time() * 1000)
         mtype = msg.get_type()
@@ -179,8 +179,7 @@ class LogGraph(gtk.DrawingArea, MessageConsumer):
         for txt in txts:
             self.pangolayout.set_text(txt)
             tw, th = self.pangolayout.get_pixel_size()
-            if tw > maxw:
-                maxw = tw
+            maxw = max(maxw, tw)
         # 5 for the tick, 3 separating
         lm = self.realLeftMargin = int(maxw) + MIZQ + 8
 

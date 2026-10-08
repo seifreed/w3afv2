@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import w3af.core.controllers.output_manager as om
 
 
-class CacheStats(object):
+class CacheStats:
     """
     Useful for sub-classing and being able to capture cache stats
 

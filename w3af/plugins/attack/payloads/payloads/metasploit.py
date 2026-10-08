@@ -1,6 +1,6 @@
-from w3af.plugins.attack.payloads.base_payload import Payload
-from w3af.core.controllers.vdaemon.vdFactory import get_virtual_daemon
 from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.controllers.vdaemon.vdFactory import get_virtual_daemon
+from w3af.plugins.attack.payloads.base_payload import Payload
 
 
 class metasploit(Payload):

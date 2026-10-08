@@ -1,5 +1,5 @@
-import re
 import os
+import re
 
 from utils.output import KeyValueOutput
 

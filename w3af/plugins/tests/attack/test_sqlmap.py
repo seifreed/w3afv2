@@ -19,11 +19,10 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from w3af.core.controllers.ci.sqlmap_testenv import get_sqlmap_testenv_http
 from w3af.core.controllers.ci.moth import get_moth_http
-
-from w3af.plugins.tests.helper import PluginConfig, ReadExploitTest
+from w3af.core.controllers.ci.sqlmap_testenv import get_sqlmap_testenv_http
 from w3af.core.data.kb.vuln_templates.sql_injection_template import SQLiTemplate
+from w3af.plugins.tests.helper import PluginConfig, ReadExploitTest
 
 
 class TestSQLMapShell(ReadExploitTest):

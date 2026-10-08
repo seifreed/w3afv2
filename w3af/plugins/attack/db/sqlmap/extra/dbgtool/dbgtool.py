@@ -8,11 +8,9 @@ See the file 'LICENSE' for copying permission
 """
 
 import os
-import sys
 import struct
-
-from optparse import OptionError
-from optparse import OptionParser
+import sys
+from optparse import OptionError, OptionParser
 
 
 def convert(inputFile):
@@ -21,7 +19,7 @@ def convert(inputFile):
 
     if fileSize > 65280:
         print(
-            ("ERROR: the provided input file '%s' is too big for debug.exe" % inputFile)
+            "ERROR: the provided input file '%s' is too big for debug.exe" % inputFile
         )
         sys.exit(1)
 
@@ -63,7 +61,7 @@ def convert(inputFile):
 
 def main(inputFile, outputFile):
     if not os.path.isfile(inputFile):
-        print(("ERROR: the provided input file '%s' is not a regular file" % inputFile))
+        print("ERROR: the provided input file '%s' is not a regular file" % inputFile)
         sys.exit(1)
 
     script = convert(inputFile)

@@ -26,12 +26,13 @@
 ######################### END LICENSE BLOCK #########################
 
 import sys
-from .mbcharsetprober import MultiByteCharSetProber
-from .codingstatemachine import CodingStateMachine
-from .chardistribution import SJISDistributionAnalysis
-from .jpcntx import SJISContextAnalysis
-from .mbcssm import SJISSMModel
+
 from . import constants
+from .chardistribution import SJISDistributionAnalysis
+from .codingstatemachine import CodingStateMachine
+from .jpcntx import SJISContextAnalysis
+from .mbcharsetprober import MultiByteCharSetProber
+from .mbcssm import SJISSMModel
 
 
 class SJISProber(MultiByteCharSetProber):
@@ -51,7 +52,7 @@ class SJISProber(MultiByteCharSetProber):
 
     def feed(self, aBuf):
         aLen = len(aBuf)
-        for i in range(0, aLen):
+        for i in range(aLen):
             codingState = self._mCodingSM.next_state(aBuf[i])
             if codingState == constants.eError:
                 if constants._debug:

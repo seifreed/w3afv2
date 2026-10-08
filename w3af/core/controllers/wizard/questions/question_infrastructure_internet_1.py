@@ -20,9 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from w3af.core.controllers.wizard.question import question
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
-from w3af.core.controllers.wizard.question import question
 
 
 class question_infrastructure_internet_1(question):
@@ -61,5 +61,3 @@ class question_infrastructure_internet_1(question):
         old_discovery = self.w3af_core.plugins.get_enabled_plugins("infrastructure")
         plugin_list.extend(old_discovery)
         self.w3af_core.plugins.set_plugins(plugin_list, "infrastructure")
-
-        return None

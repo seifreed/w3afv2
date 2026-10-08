@@ -25,7 +25,7 @@ LINEARLY = 1
 EXPONENTIALLY = 2
 
 
-class AproxDelayController(object):
+class AproxDelayController:
     """
     Given that more than one vulnerability can be detected using time delays
     which are not 100% exact, just to name a couple: blind SQL injections using

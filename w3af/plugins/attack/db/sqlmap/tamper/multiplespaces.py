@@ -46,13 +46,13 @@ def tamper(payload, **kwargs):
 
         for word in words:
             retVal = re.sub(
-                "(?<=\W)%s(?=[^A-Za-z_(]|\Z)" % word,
+                r"(?<=\W)%s(?=[^A-Za-z_(]|\Z)" % word,
                 "%s%s%s"
                 % (" " * random.randrange(1, 4), word, " " * random.randrange(1, 4)),
                 retVal,
             )
             retVal = re.sub(
-                "(?<=\W)%s(?=[(])" % word,
+                r"(?<=\W)%s(?=[(])" % word,
                 "%s%s" % (" " * random.randrange(1, 4), word),
                 retVal,
             )

@@ -92,8 +92,8 @@ __all__ = [
 ]
 
 try:
-    import logging
     import inspect
+    import logging
 except ImportError:
 
     def debug(msg, *args, **kwds):
@@ -121,7 +121,13 @@ else:
         _logger.addHandler(handler)
 
 
-import sys, urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse, types, mimetools, copy, urllib.parse, html.entities, re, random
+import html.entities
+import random
+import re
+import sys
+import urllib.error
+import urllib.parse
+import urllib.request
 from io import StringIO
 
 import sgmllib
@@ -256,7 +262,7 @@ def unescape(data, entities, encoding=DEFAULT_ENCODING):
 
         repl = entities.get(ent)
         if repl is not None:
-            if type(repl) != type(""):
+            if type(repl) != str:
                 try:
                     repl = repl.encode(encoding)
                 except UnicodeError:
@@ -1001,8 +1007,6 @@ def _create_bs_classes(
     class RobustFormParser(_AbstractBSFormParser, bs):
         """Tries to be highly tolerant of incorrect HTML."""
 
-        pass
-
     RobustFormParser.bs_base_class = bs
 
     class NestingRobustFormParser(_AbstractBSFormParser, icbinbs):
@@ -1012,8 +1016,6 @@ def _create_bs_classes(
         above missing end tags (see BeautifulSoup docs).
 
         """
-
-        pass
 
     NestingRobustFormParser.bs_base_class = icbinbs
 
@@ -1030,7 +1032,7 @@ else:
     RobustFormParser, NestingRobustFormParser = _create_bs_classes(
         BeautifulSoup.BeautifulSoup, BeautifulSoup.ICantBelieveItsBeautifulSoup
     )
-    __all__ += ["RobustFormParser", "NestingRobustFormParser"]
+    __all__ += ["NestingRobustFormParser", "RobustFormParser"]
 
 
 # FormParser = XHTMLCompatibleFormParser  # testing hack

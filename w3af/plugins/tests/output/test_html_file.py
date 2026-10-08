@@ -26,13 +26,13 @@ from io import StringIO
 from lxml import etree
 
 from w3af.core.controllers.ci.moth import get_moth_http
+from w3af.core.data.db.history import HistoryItem
+from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.tests.test_vuln import MockVuln
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.db.history import HistoryItem
-from w3af.plugins.tests.helper import PluginTest, PluginConfig
-from w3af.core.data.dc.headers import Headers
-from w3af.core.data.url.HTTPResponse import HTTPResponse
 from w3af.core.data.url.HTTPRequest import HTTPRequest
+from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 
 class TestHTMLOutput(PluginTest):
@@ -118,7 +118,7 @@ class TestHTMLOutput(PluginTest):
                 self.assertFalse(len(parser.error_log), generate_msg(parser))
 
     def tearDown(self):
-        super(TestHTMLOutput, self).tearDown()
+        super().tearDown()
         try:
             os.remove(self.OUTPUT_FILE)
         except:
@@ -150,7 +150,7 @@ class TestHTMLRendering(PluginTest):
     }
 
     def setUp(self):
-        super(TestHTMLRendering, self).setUp()
+        super().setUp()
         self.plugin = self.w3afcore.plugins.get_plugin_inst("output", "html_file")
 
         HistoryItem().init()

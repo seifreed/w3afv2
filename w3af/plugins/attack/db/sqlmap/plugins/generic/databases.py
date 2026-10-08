@@ -6,45 +6,40 @@ See the file 'LICENSE' for copying permission
 """
 
 from lib.core.agent import agent
-from lib.core.common import arrayizeValue
-from lib.core.common import Backend
-from lib.core.common import extractRegexResult
-from lib.core.common import filterPairValues
-from lib.core.common import flattenValue
-from lib.core.common import getLimitRange
-from lib.core.common import isInferenceAvailable
-from lib.core.common import isListLike
-from lib.core.common import isNoneValue
-from lib.core.common import isNumPosStrValue
-from lib.core.common import isTechniqueAvailable
-from lib.core.common import parseSqliteTableSchema
-from lib.core.common import popValue
-from lib.core.common import pushValue
-from lib.core.common import randomStr
-from lib.core.common import readInput
-from lib.core.common import safeSQLIdentificatorNaming
-from lib.core.common import singleTimeWarnMessage
-from lib.core.common import unArrayizeValue
-from lib.core.common import unsafeSQLIdentificatorNaming
-from lib.core.data import conf
-from lib.core.data import kb
-from lib.core.data import logger
-from lib.core.data import paths
-from lib.core.data import queries
-from lib.core.dicts import FIREBIRD_TYPES
-from lib.core.dicts import INFORMIX_TYPES
-from lib.core.enums import CHARSET_TYPE
-from lib.core.enums import DBMS
-from lib.core.enums import EXPECTED
-from lib.core.enums import PAYLOAD
-from lib.core.exception import SqlmapMissingMandatoryOptionException
-from lib.core.exception import SqlmapNoneDataException
-from lib.core.exception import SqlmapUserQuitException
+from lib.core.common import (
+    Backend,
+    arrayizeValue,
+    extractRegexResult,
+    filterPairValues,
+    flattenValue,
+    getLimitRange,
+    isInferenceAvailable,
+    isListLike,
+    isNoneValue,
+    isNumPosStrValue,
+    isTechniqueAvailable,
+    parseSqliteTableSchema,
+    popValue,
+    pushValue,
+    randomStr,
+    readInput,
+    safeSQLIdentificatorNaming,
+    singleTimeWarnMessage,
+    unArrayizeValue,
+    unsafeSQLIdentificatorNaming,
+)
+from lib.core.data import conf, kb, logger, paths, queries
+from lib.core.dicts import FIREBIRD_TYPES, INFORMIX_TYPES
+from lib.core.enums import CHARSET_TYPE, DBMS, EXPECTED, PAYLOAD
+from lib.core.exception import (
+    SqlmapMissingMandatoryOptionException,
+    SqlmapNoneDataException,
+    SqlmapUserQuitException,
+)
 from lib.core.settings import CURRENT_DB
 from lib.request import inject
 from lib.techniques.union.use import unionUse
-from lib.utils.brute import columnExists
-from lib.utils.brute import tableExists
+from lib.utils.brute import columnExists, tableExists
 
 
 class Databases:
@@ -1208,7 +1203,7 @@ class Databases:
 
     def _tableGetCount(self, db, table):
         if not db or not table:
-            return None
+            return
 
         if Backend.getIdentifiedDbms() in (DBMS.ORACLE, DBMS.DB2):
             db = db.upper()

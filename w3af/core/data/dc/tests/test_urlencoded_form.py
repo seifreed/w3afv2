@@ -19,21 +19,23 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
-import urllib.request, urllib.parse, urllib.error
 import copy
 import pickle
+import unittest
+import urllib.error
+import urllib.parse
+import urllib.request
 
 from nose.plugins.attrib import attr
 
-from w3af.core.data.dc.urlencoded_form import URLEncodedForm
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.dc.urlencoded_form import URLEncodedForm
 from w3af.core.data.parsers.utils.form_constants import INPUT_TYPE_TEXT
 from w3af.core.data.parsers.utils.tests.test_form_params import (
-    form_with_radio,
-    form_with_checkbox,
-    form_select_cars,
     create_form_params_helper,
+    form_select_cars,
+    form_with_checkbox,
+    form_with_radio,
 )
 
 

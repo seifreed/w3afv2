@@ -23,9 +23,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import re
 
 import w3af.core.controllers.output_manager as om
-
-from w3af.core.data.parsers.doc.cookie_parser import parse_cookie
 from w3af.core.data.misc.encoding import smart_unicode
+from w3af.core.data.parsers.doc.cookie_parser import parse_cookie
 
 LINK_HEADER_RE = re.compile("<(.*?)>.*")
 

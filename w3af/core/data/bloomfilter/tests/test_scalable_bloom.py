@@ -23,8 +23,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from nose.plugins.attrib import attr
 
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
-from w3af.core.data.bloomfilter.tests.generic_filter_test import GenericFilterTest
 from w3af.core.data.bloomfilter.seekfile_bloom import FileSeekBloomFilter
+from w3af.core.data.bloomfilter.tests.generic_filter_test import GenericFilterTest
 from w3af.core.data.bloomfilter.wrappers import GenericBloomFilter
 
 
@@ -46,7 +46,7 @@ class TestScalableBloomFilterLargeCmmap(GenericFilterTest):
     CAPACITY = 20000
 
     def setUp(self):
-        super(TestScalableBloomFilterLargeCmmap, self).setUp()
+        super().setUp()
         self.filter = ScalableBloomFilter(mode=ScalableBloomFilter.LARGE_SET_GROWTH)
 
 
@@ -55,7 +55,7 @@ class TestScalableBloomfilterSmallCmmap(GenericFilterTest):
     CAPACITY = 500
 
     def setUp(self):
-        super(TestScalableBloomfilterSmallCmmap, self).setUp()
+        super().setUp()
         self.filter = ScalableBloomFilter(mode=ScalableBloomFilter.LARGE_SET_GROWTH)
 
 
@@ -64,7 +64,7 @@ class TestScalableBloomFilterLargeSeekFile(GenericFilterTest):
     CAPACITY = 20000
 
     def setUp(self):
-        super(TestScalableBloomFilterLargeSeekFile, self).setUp()
+        super().setUp()
         self.filter = ScalableBloomFilter(
             mode=ScalableBloomFilter.LARGE_SET_GROWTH,
             filter_impl=WrappedFileSeekBloomFilter,
@@ -77,7 +77,7 @@ class TestScalableBloomfilterSmallSeekFile(GenericFilterTest):
     CAPACITY = 500
 
     def setUp(self):
-        super(TestScalableBloomfilterSmallSeekFile, self).setUp()
+        super().setUp()
         self.filter = ScalableBloomFilter(
             mode=ScalableBloomFilter.LARGE_SET_GROWTH,
             filter_impl=WrappedFileSeekBloomFilter,

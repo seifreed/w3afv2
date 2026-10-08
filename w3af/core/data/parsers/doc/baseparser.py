@@ -21,7 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import urllib.request, urllib.parse, urllib.error
+import urllib.error
+import urllib.parse
+import urllib.request
 
 from w3af.core.data.constants.encodings import UTF8
 from w3af.core.data.misc.encoding import is_known_encoding
@@ -31,7 +33,7 @@ NOT_IMPLEMENTED_FMT = (
 )
 
 
-class BaseParser(object):
+class BaseParser:
     """
     This class is an abstract document parser.
 

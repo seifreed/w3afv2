@@ -19,8 +19,10 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import urllib.request, urllib.error, urllib.parse
 import sys
+import urllib.error
+import urllib.parse
+import urllib.request
 
 scan_db_url = "https://raw.github.com/sullo/nikto/master/program/databases/db_tests"
 target_path = "scan_database.db"

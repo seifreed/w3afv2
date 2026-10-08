@@ -19,15 +19,15 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import unittest
 import subprocess
+import unittest
+from unittest.mock import MagicMock
 
-from mock import MagicMock
 from nose.plugins.skip import SkipTest
 
-from w3af.core.controllers.misc.home_dir import W3AF_LOCAL_PATH
 from w3af.core.controllers.auto_update.git_client import GitClient
 from w3af.core.controllers.auto_update.utils import get_current_branch
+from w3af.core.controllers.misc.home_dir import W3AF_LOCAL_PATH
 
 
 class TestGitClient(unittest.TestCase):

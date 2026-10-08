@@ -21,18 +21,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
+from unittest.mock import PropertyMock, patch
 
-from mock import patch, PropertyMock
-
-from w3af.core.data.parsers.doc.html import HTMLParser
-from w3af.core.data.parsers.tests.test_document_parser import _build_http_response
-from w3af.core.data.parsers.parser_cache import ParserCache
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.parsers.doc.html import HTMLParser
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.parsers.parser_cache import ParserCache
+from w3af.core.data.parsers.tests.test_document_parser import _build_http_response
 from w3af.core.data.parsers.tests.test_mp_document_parser import DelayedParser
 from w3af.core.data.parsers.utils.response_uniq_id import get_response_unique_id
-from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.data.url.HTTPResponse import HTTPResponse
 
 
 class TestParserCache(unittest.TestCase):
@@ -73,7 +72,7 @@ class TestParserCache(unittest.TestCase):
 
     def test_issue_188_invalid_url(self):
         # https://github.com/andresriancho/w3af/issues/188
-        all_chars = "".join([chr(i) for i in range(0, 255)])
+        all_chars = "".join([chr(i) for i in range(255)])
         response = HTTPResponse(200, all_chars, self.headers, self.url, self.url)
         self.dpc.get_document_parser_for(response)
 

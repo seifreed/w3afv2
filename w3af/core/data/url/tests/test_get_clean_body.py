@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 test_get_clean_body.py
 
@@ -22,15 +21,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
-import urllib.request, urllib.parse, urllib.error
+import urllib.error
+import urllib.parse
+import urllib.request
 
-from w3af.core.data.url.helpers import get_clean_body, apply_multi_escape_table
+from w3af.core.data.dc.headers import Headers
+from w3af.core.data.fuzzer.mutants.tests.test_mutant import FakeMutant
 from w3af.core.data.misc.web_encodings import SPECIAL_CHARS
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.dc.headers import Headers
-from w3af.core.data.url.HTTPResponse import HTTPResponse
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.fuzzer.mutants.tests.test_mutant import FakeMutant
+from w3af.core.data.url.helpers import apply_multi_escape_table, get_clean_body
+from w3af.core.data.url.HTTPResponse import HTTPResponse
 
 
 class TestGetCleanBody(unittest.TestCase):

@@ -12,7 +12,6 @@ import subprocess
 import sys
 import time
 import traceback
-
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -66,7 +65,7 @@ def send_email(msg):
         s.quit()
     # Catch all for SMTP exceptions
     except smtplib.SMTPException as e:
-        print(("Failure to send email: %s" % str(e)))
+        print("Failure to send email: %s" % str(e))
 
 
 def failure_email(msg):
@@ -108,7 +107,7 @@ def main():
         failure_email("Execution of regression test failed with error:\n\n%s" % stderr)
 
     failed_tests = re.findall(
-        "running live test case: (.+?) \((\d+)\/\d+\)[\r]*\n.+test failed (at parsing items: (.+))?\s*\- scan folder: (\/.+) \- traceback: (.*?)( - SQL injection not detected)?[\r]*\n",
+        "running live test case: (.+?) \\((\\d+)\\/\\d+\\)[\r]*\n.+test failed (at parsing items: (.+))?\\s*\\- scan folder: (\\/.+) \\- traceback: (.*?)( - SQL injection not detected)?[\r]*\n",
         stdout,
     )
 
@@ -194,7 +193,7 @@ if __name__ == "__main__":
 
     try:
         main()
-    except Exception as e:
+    except Exception:
         log_fd.write("An exception has occurred:\n%s" % str(traceback.format_exc()))
 
     log_fd.write(

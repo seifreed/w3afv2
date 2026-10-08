@@ -1,4 +1,3 @@
-# -*- coding: utf8 -*-
 """
 test_factory.py
 
@@ -21,25 +20,25 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
 import json
+import unittest
 
-from w3af.core.data.dc.headers import Headers
-from w3af.core.data.dc.urlencoded_form import URLEncodedForm
-from w3af.core.data.dc.json_container import JSONContainer
-from w3af.core.data.dc.xmlrpc import XmlRpcContainer
-from w3af.core.data.dc.multipart_container import MultipartContainer
-from w3af.core.data.dc.generic.plain import PlainContainer
-from w3af.core.data.dc.utils.multipart import multipart_encode
-from w3af.core.data.dc.tests.test_xmlrpc import XML_WITH_FUZZABLE
-from w3af.core.data.dc.tests.test_json_container import COMPLEX_OBJECT
-from w3af.core.data.parsers.utils.form_params import FormParameters
-from w3af.core.data.fuzzer.form_filler import smart_fill_file
 from w3af.core.data.dc.factory import (
-    dc_from_hdrs_post,
-    dc_from_form_params,
     dc_from_content_type_and_raw_params,
+    dc_from_form_params,
+    dc_from_hdrs_post,
 )
+from w3af.core.data.dc.generic.plain import PlainContainer
+from w3af.core.data.dc.headers import Headers
+from w3af.core.data.dc.json_container import JSONContainer
+from w3af.core.data.dc.multipart_container import MultipartContainer
+from w3af.core.data.dc.tests.test_json_container import COMPLEX_OBJECT
+from w3af.core.data.dc.tests.test_xmlrpc import XML_WITH_FUZZABLE
+from w3af.core.data.dc.urlencoded_form import URLEncodedForm
+from w3af.core.data.dc.utils.multipart import multipart_encode
+from w3af.core.data.dc.xmlrpc import XmlRpcContainer
+from w3af.core.data.fuzzer.form_filler import smart_fill_file
+from w3af.core.data.parsers.utils.form_params import FormParameters
 
 
 class TestDCFactory(unittest.TestCase):

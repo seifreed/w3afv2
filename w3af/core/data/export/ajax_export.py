@@ -1,4 +1,3 @@
-# -*- coding: utf8 -*-
 """
 ajax_export.py
 

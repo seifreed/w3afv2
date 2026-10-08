@@ -1,5 +1,4 @@
-from astroid import MANAGER
-from astroid import scoped_nodes
+from astroid import MANAGER, scoped_nodes
 
 NEED_FIX = (
     "Headers",

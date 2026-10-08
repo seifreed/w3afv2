@@ -20,9 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from .ubuntu1604 import Ubuntu1604
 from ..requirements import CORE, GUI
 from .system_info import distribution_matches
+from .ubuntu1604 import Ubuntu1604
 
 
 class Ubuntu1804(Ubuntu1604):
@@ -38,7 +38,7 @@ class Ubuntu1804(Ubuntu1604):
     SYSTEM_PACKAGES = {CORE: CORE_SYSTEM_PACKAGES_18, GUI: GUI_SYSTEM_PACKAGEs_18}
 
     def __init__(self):
-        super(Ubuntu1804, self).__init__()
+        super().__init__()
 
     @staticmethod
     def is_current_platform():

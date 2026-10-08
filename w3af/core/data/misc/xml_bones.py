@@ -20,11 +20,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from lxml import etree
 from io import StringIO
 
-from w3af.core.data.misc.encoding import smart_str_ignore
+from lxml import etree
+
 from w3af.core.data.constants.encodings import DEFAULT_ENCODING
+from w3af.core.data.misc.encoding import smart_str_ignore
 
 ROUND = 20.0
 
@@ -66,7 +67,7 @@ def get_xml_bones(document):
     return "".join(parser.target.bones)
 
 
-class BoneCollector(object):
+class BoneCollector:
 
     __slots__ = ("bones",)
 

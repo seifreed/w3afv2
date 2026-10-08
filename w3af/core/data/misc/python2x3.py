@@ -37,7 +37,7 @@ if python_major() == 2:
         return binary
 
 elif python_major() == 3:
-    empty_bytes = "".encode("utf-8")
+    empty_bytes = b""
     null_byte = bytes([0])
     bytes_type = bytes
 

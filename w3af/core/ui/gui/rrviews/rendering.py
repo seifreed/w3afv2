@@ -90,11 +90,9 @@ class RenderingView(gtk.VBox):
 
     def get_object(self):
         """Return object (request or response)."""
-        pass
 
     def highlight(self, text, tag):
         """Highlight word in the text."""
-        pass
 
 
 class GtkHtmlRenderingView(RenderingView):
@@ -102,7 +100,7 @@ class GtkHtmlRenderingView(RenderingView):
 
     def __init__(self, w3af, parentView):
         """Make GtkHtmlRenderingView object."""
-        super(GtkHtmlRenderingView, self).__init__(w3af, parentView)
+        super().__init__(w3af, parentView)
         self._renderingWidget = gtkhtml2.View()
         sw_rendered_html = gtk.ScrolledWindow()
         sw_rendered_html.add(self._renderingWidget)
@@ -124,18 +122,17 @@ class GtkHtmlRenderingView(RenderingView):
             document.write_stream(obj.get_body())
             document.close_stream()
             self._renderingWidget.set_document(document)
-        except ValueError as ve:
+        except ValueError:
             # I get here when the mime type is an image or something that I
             # can't display
             pass
         except Exception as e:
             print((_("gtkhtml2 exception:"), type(e), str(e)))
-            print((_("Please report this issue here:")))
+            print(_("Please report this issue here:"))
             print("https://github.com/andresriancho/w3af/issues/new")
 
     def clear(self):
         """Clear view."""
-        pass
 
 
 class MozRenderingView(RenderingView):
@@ -143,7 +140,7 @@ class MozRenderingView(RenderingView):
 
     def __init__(self, w3af, parentView):
         """Make MozRenderingView object."""
-        super(MozRenderingView, self).__init__(w3af, parentView)
+        super().__init__(w3af, parentView)
         self._renderingWidget = gtkmozembed.MozEmbed()
 
         sw_rendered_html = gtk.ScrolledWindow()
@@ -157,12 +154,11 @@ class MozRenderingView(RenderingView):
         # mimeType = obj.content_type
         if obj.is_text_or_html():
             self._renderingWidget.render_data(
-                obj.get_body(), int(len(obj.get_body())), str(obj.get_uri()), mime_type
+                obj.get_body(), len(obj.get_body()), str(obj.get_uri()), mime_type
             )
 
     def clear(self):
         """Clear view."""
-        pass
 
 
 class WebKitRenderingView(RenderingView):
@@ -170,7 +166,7 @@ class WebKitRenderingView(RenderingView):
 
     def __init__(self, w3af, parentView):
         """Make WebKitRenderingView object."""
-        super(WebKitRenderingView, self).__init__(w3af, parentView)
+        super().__init__(w3af, parentView)
         self._renderingWidget = webkit.WebView()
         # Settings
         settings = self._renderingWidget.get_settings()
@@ -203,4 +199,3 @@ class WebKitRenderingView(RenderingView):
 
     def clear(self):
         """Clear view."""
-        pass

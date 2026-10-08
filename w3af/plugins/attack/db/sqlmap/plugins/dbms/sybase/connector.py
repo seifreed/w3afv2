@@ -14,9 +14,9 @@ except:
 import logging
 
 from lib.core.convert import utf8encode
-from lib.core.data import conf
-from lib.core.data import logger
+from lib.core.data import conf, logger
 from lib.core.exception import SqlmapConnectionException
+
 from plugins.generic.connector import Connector as GenericConnector
 
 
@@ -60,7 +60,7 @@ class Connector(GenericConnector):
             return self.cursor.fetchall()
         except (pymssql.Error, _mssql.MssqlDatabaseException) as msg:
             logger.log(
-                logging.WARN if conf.dbmsHandler else logging.DEBUG,
+                logging.WARNING if conf.dbmsHandler else logging.DEBUG,
                 "(remote) %s" % str(msg).replace("\n", " "),
             )
             return None
@@ -73,7 +73,7 @@ class Connector(GenericConnector):
             retVal = True
         except (pymssql.OperationalError, pymssql.ProgrammingError) as msg:
             logger.log(
-                logging.WARN if conf.dbmsHandler else logging.DEBUG,
+                logging.WARNING if conf.dbmsHandler else logging.DEBUG,
                 "(remote) %s" % str(msg).replace("\n", " "),
             )
         except pymssql.InternalError as msg:

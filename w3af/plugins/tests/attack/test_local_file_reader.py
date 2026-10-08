@@ -19,11 +19,11 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from w3af.plugins.tests.helper import PluginConfig, ReadExploitTest
+from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.kb.vuln_templates.local_file_read_template import (
     LocalFileReadTemplate,
 )
-from w3af.core.controllers.ci.moth import get_moth_http
+from w3af.plugins.tests.helper import PluginConfig, ReadExploitTest
 
 
 class TestFileReadShell(ReadExploitTest):

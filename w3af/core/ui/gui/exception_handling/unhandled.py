@@ -22,17 +22,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import sys
 import traceback
-
 from functools import partial
 
 import w3af.core.controllers.output_manager as om
-
-from w3af.core.ui.gui import helpers
-from w3af.core.ui.gui.exception_handling import unhandled_bug_report
-from w3af.core.controllers.exception_handling.helpers import create_crash_file
 from w3af.core.controllers.exception_handling.cleanup_bug_report import (
     cleanup_bug_report,
 )
+from w3af.core.controllers.exception_handling.helpers import create_crash_file
+from w3af.core.ui.gui import helpers
+from w3af.core.ui.gui.exception_handling import unhandled_bug_report
 
 DEBUG_THREADS = False
 
@@ -69,15 +67,15 @@ def handle_keyboardinterrupt(w3af_core):
     w3af_core.quit()
 
     if DEBUG_THREADS:
-        import threading
         import pprint
+        import threading
 
         def nice_thread_repr(alive_threads):
             repr_alive = [repr(x) for x in alive_threads]
             repr_alive.sort()
             return pprint.pformat(repr_alive)
 
-        print((nice_thread_repr(threading.enumerate())))
+        print(nice_thread_repr(threading.enumerate()))
 
     om.manager.set_output_plugins(["console"])
     om.out.console(_("\nStopping after Ctrl+C. Thanks for using w3af, bye!"))

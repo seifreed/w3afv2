@@ -22,7 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import re
 
 from nose.plugins.skip import SkipTest
-from w3af.plugins.tests.helper import PluginTest, PluginConfig, MockResponse
+
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 JS_RESOURCE = """
 $(function() {

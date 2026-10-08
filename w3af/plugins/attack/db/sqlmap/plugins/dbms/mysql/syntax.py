@@ -8,6 +8,7 @@ See the file 'LICENSE' for copying permission
 import binascii
 
 from lib.core.convert import utf8encode
+
 from plugins.generic.syntax import Syntax as GenericSyntax
 
 

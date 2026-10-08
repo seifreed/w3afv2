@@ -20,8 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import json
 import base64
+import json
 
 import requests
 
@@ -35,9 +35,9 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 from w3af.core.ui.api.tests.utils.integration_test import IntegrationTest
 from w3af.core.ui.api.tests.utils.test_profile import (
-    get_test_profile,
     get_expected_vuln_names,
     get_expected_vuln_urls,
+    get_test_profile,
 )
 
 

@@ -20,20 +20,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
-import os
 import cProfile
+import os
 import random
+import unittest
 from itertools import repeat
-
-from mock import patch
+from unittest.mock import patch
 
 from w3af import ROOT_PATH
 from w3af.core.controllers.w3afCore import w3afCore
-from w3af.core.data.url.HTTPResponse import HTTPResponse
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.data.url.HTTPResponse import HTTPResponse
 
 
 class test_all(unittest.TestCase):

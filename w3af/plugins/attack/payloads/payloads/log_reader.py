@@ -1,6 +1,7 @@
 import re
-from w3af.plugins.attack.payloads.base_payload import Payload
+
 from w3af.core.ui.console.tables import table
+from w3af.plugins.attack.payloads.base_payload import Payload
 
 
 class log_reader(Payload):
@@ -86,8 +87,8 @@ class log_reader(Payload):
         result = {}
 
         def parse_apache_logs(config_file):
-            error_log = re.search("(?<=ErrorLog )(.*?)\s", config_file)
-            custom_log = re.search("(?<=CustomLog )(.*?)\s", config_file)
+            error_log = re.search(r"(?<=ErrorLog )(.*?)\s", config_file)
+            custom_log = re.search(r"(?<=CustomLog )(.*?)\s", config_file)
             if error_log and custom_log:
                 return [error_log.group(1), custom_log.group(1)]
             elif error_log:

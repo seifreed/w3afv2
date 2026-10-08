@@ -24,7 +24,7 @@ from w3af.core.ui.console.history import history
 
 
 # TODO: extract a base class from this one and menu
-class callbackMenu(object):
+class callbackMenu:
     """
     This is a menu-wrapper which delegates the command execution
     to the callback agent.

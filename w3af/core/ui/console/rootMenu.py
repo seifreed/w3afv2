@@ -20,32 +20,29 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import sys
 import os
-import time
 import select
-
+import sys
+import time
 from multiprocessing.dummy import Process
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.ui.console.io.console as term
-
-from w3af.core.ui.console.menu import menu
-from w3af.core.ui.console.plugins import pluginsMenu
-from w3af.core.ui.console.profiles import ProfilesMenu
-from w3af.core.ui.console.exploit import exploit
-from w3af.core.ui.console.config import ConfigMenu
-from w3af.core.ui.console.kbMenu import kbMenu
-from w3af.core.ui.console.bug_report import bug_report_menu
-from w3af.core.ui.console.util import mapDict
-from w3af.core.ui.console.tables import table
-
-from w3af.core.controllers.misc.get_w3af_version import get_w3af_version
-from w3af.core.controllers.misc_settings import MiscSettings
 from w3af.core.controllers.exceptions import (
     BaseFrameworkException,
     ScanMustStopException,
 )
+from w3af.core.controllers.misc.get_w3af_version import get_w3af_version
+from w3af.core.controllers.misc_settings import MiscSettings
+from w3af.core.ui.console.bug_report import bug_report_menu
+from w3af.core.ui.console.config import ConfigMenu
+from w3af.core.ui.console.exploit import exploit
+from w3af.core.ui.console.kbMenu import kbMenu
+from w3af.core.ui.console.menu import menu
+from w3af.core.ui.console.plugins import pluginsMenu
+from w3af.core.ui.console.profiles import ProfilesMenu
+from w3af.core.ui.console.tables import table
+from w3af.core.ui.console.util import mapDict
 
 
 class rootMenu(menu):
@@ -198,7 +195,7 @@ class rootMenu(menu):
 
                 try:
                     read_ready, _, _ = select.select([sys.stdin], [], [], 0.5)
-                except select.error:
+                except OSError:
                     continue
 
                 if not read_ready:

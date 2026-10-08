@@ -23,27 +23,26 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import hashlib
 import os
 import socket
-import time
 import threading
+import time
 
-from w3af import ROOT_PATH
+import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
-import w3af.core.controllers.output_manager as om
-
+from w3af import ROOT_PATH
+from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.extrusion_scanning.server.extrusionServer import (
     extrusionServer,
 )
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.intrusion_tools.execMethodHelpers import (
-    os_detection_exec,
     get_remote_temp_file,
+    os_detection_exec,
 )
-from w3af.core.controllers.payload_transfer.echo_windows import EchoWindows
 from w3af.core.controllers.payload_transfer.echo_linux import EchoLinux
+from w3af.core.controllers.payload_transfer.echo_windows import EchoWindows
 
 
-class extrusionScanner(object):
+class extrusionScanner:
     """
     This class is a wrapper that performs this process:
         - sends extrusion client to compromised machine

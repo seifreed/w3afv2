@@ -22,9 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 import signal
 import subprocess
+import tempfile
 import time
 import unittest
-import tempfile
 
 from nose.plugins.attrib import attr
 

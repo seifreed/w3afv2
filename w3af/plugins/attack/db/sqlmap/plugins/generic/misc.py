@@ -8,24 +8,23 @@ See the file 'LICENSE' for copying permission
 import ntpath
 import re
 
-from lib.core.common import Backend
-from lib.core.common import hashDBWrite
-from lib.core.common import isStackingAvailable
-from lib.core.common import normalizePath
-from lib.core.common import ntToPosixSlashes
-from lib.core.common import posixToNtSlashes
-from lib.core.common import readInput
-from lib.core.common import singleTimeDebugMessage
-from lib.core.common import unArrayizeValue
-from lib.core.data import conf
-from lib.core.data import kb
-from lib.core.data import logger
-from lib.core.data import queries
-from lib.core.enums import DBMS
-from lib.core.enums import HASHDB_KEYS
-from lib.core.enums import OS
-from lib.core.exception import SqlmapNoneDataException
-from lib.core.exception import SqlmapUnsupportedFeatureException
+from lib.core.common import (
+    Backend,
+    hashDBWrite,
+    isStackingAvailable,
+    normalizePath,
+    ntToPosixSlashes,
+    posixToNtSlashes,
+    readInput,
+    singleTimeDebugMessage,
+    unArrayizeValue,
+)
+from lib.core.data import conf, kb, logger, queries
+from lib.core.enums import DBMS, HASHDB_KEYS, OS
+from lib.core.exception import (
+    SqlmapNoneDataException,
+    SqlmapUnsupportedFeatureException,
+)
 from lib.request import inject
 
 
@@ -71,7 +70,7 @@ class Miscellaneous:
             else:
                 conf.tmpPath = "/tmp"
 
-        if re.search(r"\A[\w]:[\/\\]+", conf.tmpPath, re.I):
+        if re.search(r"\A[\w]:[\/\\]+", conf.tmpPath, re.IGNORECASE):
             Backend.setOs(OS.WINDOWS)
 
         conf.tmpPath = normalizePath(conf.tmpPath)

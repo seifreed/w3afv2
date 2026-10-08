@@ -23,11 +23,8 @@ import itertools
 import sys
 import threading
 
-from phply import phplex
-from phply import phpparse
-
-import ply.yacc as yacc
-import phply.phpast as phpast
+from phply import phpast, phplex, phpparse
+from ply import yacc
 
 # TODO:
 #
@@ -76,7 +73,7 @@ class CodeSyntaxError(Exception):
     pass
 
 
-class PhpSCA(object):
+class PhpSCA:
     """
     PHP Static Code Analyzer class. Intended to detect and report code
     vulnerabilities given an php source input.
@@ -98,7 +95,7 @@ class PhpSCA(object):
         # Code AST
         try:
             self._ast_code = parser.parse(code, lexer=lexer)
-        except SyntaxError as se:
+        except SyntaxError:
             raise CodeSyntaxError("Error while parsing the code")
 
         # Convenient definition of new node type
@@ -114,7 +111,7 @@ class PhpSCA(object):
         # Define scope
         scope = Scope(self._global_pnode, parent_scope=None)
         scope._builtins = dict(
-            ((uv, VariableDef(uv, -1, scope)) for uv in VariableDef.USER_VARS)
+            (uv, VariableDef(uv, -1, scope)) for uv in VariableDef.USER_VARS
         )
         self._scopes = [scope]
         # FuncCall nodes
@@ -239,7 +236,7 @@ class PhpSCA(object):
         return stoponthis
 
 
-class NodeRep(object):
+class NodeRep:
     """
     Abstract Node representation for AST Nodes
     """
@@ -595,7 +592,7 @@ class FuncCall(NodeRep):
         return params
 
 
-class Scope(object):
+class Scope:
 
     def __init__(self, ast_node, parent_scope=None, builtins={}):
         """
@@ -635,7 +632,7 @@ class Scope(object):
         return "<Scope [%s]>" % ", ".join(v.name for v in self.get_all_vars())
 
 
-class Param(object):
+class Param:
 
     def __init__(self, node, scope):
         self.var = self._parse_me(node, scope)

@@ -19,23 +19,22 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import os
 import subprocess
 import unittest
-import os
-
-from w3af.plugins.attack.payloads.payload_handler import (
-    payload_to_file,
-    is_payload,
-    exec_payload,
-    runnable_payloads,
-    get_payload_instance,
-    get_payload_list,
-)
 
 from w3af import ROOT_PATH
 from w3af.core.data.kb.exec_shell import ExecShell
 from w3af.core.data.kb.read_shell import ReadShell
 from w3af.core.data.kb.tests.test_vuln import MockVuln
+from w3af.plugins.attack.payloads.payload_handler import (
+    exec_payload,
+    get_payload_instance,
+    get_payload_list,
+    is_payload,
+    payload_to_file,
+    runnable_payloads,
+)
 
 
 class TestPayloadHandler(unittest.TestCase):
@@ -139,7 +138,7 @@ class FakeExecShell(ExecShell):
 
     def __init__(self):
         vuln = MockVuln()
-        super(FakeExecShell, self).__init__(vuln, None, None)
+        super().__init__(vuln, None, None)
 
     def execute(self, command):
         return subprocess.getoutput(command)
@@ -157,7 +156,7 @@ class FakeReadShell(ReadShell):
 
     def __init__(self):
         vuln = MockVuln()
-        super(FakeReadShell, self).__init__(vuln, None, None)
+        super().__init__(vuln, None, None)
 
     def read(self, filename):
         return open(filename).read()

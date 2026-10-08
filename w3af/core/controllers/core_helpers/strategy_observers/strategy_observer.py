@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 
-class StrategyObserver(object):
+class StrategyObserver:
     """
     When you want to listen to the activity inside the CoreStrategy simply
     inherit from this class and call CoreStrategy.add_observer(). When the scan
@@ -47,4 +47,3 @@ class StrategyObserver(object):
 
         :return: None
         """
-        pass

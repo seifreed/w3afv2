@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 url.py
 
@@ -21,22 +20,21 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import re
 import copy
+import re
 import socket
 import urllib.parse
-
-from functools import wraps
 from collections import OrderedDict
+from functools import wraps
+
 from tldextract import TLDExtract
 
-from w3af.core.controllers.misc.is_ip_address import is_ip_address
 from w3af.core.controllers.exceptions import BaseFrameworkException
-
+from w3af.core.controllers.misc.is_ip_address import is_ip_address
 from w3af.core.data.constants.encodings import DEFAULT_ENCODING
+from w3af.core.data.db.disk_item import DiskItem
 from w3af.core.data.dc.generic.data_container import DataContainer
 from w3af.core.data.dc.query_string import QueryString
-from w3af.core.data.db.disk_item import DiskItem
 from w3af.core.data.misc.encoding import (
     is_known_encoding,
     smart_unicode,
@@ -168,7 +166,7 @@ def parse_qs(qstr, ignore_exc=True, encoding=DEFAULT_ENCODING):
                     [e.decode(encoding, "ignore") for e in item[1]],
                 )
 
-            qs.update((decode(item) for item in list(odict.items())))
+            qs.update(decode(item) for item in list(odict.items()))
 
     return qs
 
@@ -184,7 +182,7 @@ class URL(DiskItem):
     SAFE_CHARS = "%/:=&?~#+!$,;'@()*[]|"
 
     DOMAIN_LABEL_PATTERN = r"(?![0-9]+$)(?!-)[a-zA-Z0-9_-]{1,63}(?<!-)"
-    DOMAIN_PATTERN = r"^({label})(\.{label})*\.?$".format(label=DOMAIN_LABEL_PATTERN)
+    DOMAIN_PATTERN = rf"^({DOMAIN_LABEL_PATTERN})(\.{DOMAIN_LABEL_PATTERN})*\.?$"
     RE_DOMAIN = re.compile(DOMAIN_PATTERN)
     SET_DOMAIN_RE = re.compile("[a-z0-9-.]+([a-z0-9-]+)*$")
 
@@ -589,11 +587,11 @@ class URL(DiskItem):
             try:
                 # Check IPv4
                 socket.inet_aton(hostname)
-            except socket.error:
+            except OSError:
                 # not ipv4
                 try:
                     socket.inet_pton(socket.AF_INET6, hostname)
-                except socket.error:
+                except OSError:
                     # neither IPv6
                     return False
         return True

@@ -20,8 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import os
 import gettext
+import os
 
 ROOT_PATH = os.path.dirname(os.path.realpath(__file__))
 

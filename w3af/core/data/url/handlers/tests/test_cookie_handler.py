@@ -20,18 +20,20 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import os
-import urllib.request, urllib.error, urllib.parse
-import unittest
-import tempfile
 import http.cookiejar
+import os
+import tempfile
+import unittest
+import urllib.error
+import urllib.parse
+import urllib.request
 
 import httpretty
 
-from w3af.core.data.url.handlers.cookie_handler import CookieHandler
-from w3af.core.data.url.HTTPRequest import HTTPRequest
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
+from w3af.core.data.url.handlers.cookie_handler import CookieHandler
+from w3af.core.data.url.HTTPRequest import HTTPRequest
 
 
 class TestCookieHandler(unittest.TestCase):

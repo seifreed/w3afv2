@@ -19,15 +19,14 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import os
 import configparser
-
-from datetime import datetime, date, timedelta
+import os
+from datetime import date, datetime, timedelta
 
 from w3af.core.controllers.misc.home_dir import get_home_dir
 
 
-class StartUpConfig(object):
+class StartUpConfig:
     """
     Wrapper class for ConfigParser.ConfigParser.
     Holds the configuration for the VersionMgr update/commit process

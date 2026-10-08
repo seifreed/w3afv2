@@ -20,10 +20,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import urllib.request, urllib.error, urllib.parse
-import unittest
-import tempfile
 import os
+import tempfile
+import unittest
+import urllib.error
+import urllib.parse
+import urllib.request
 
 from w3af.core.controllers.daemons.webserver import (
     start_webserver,

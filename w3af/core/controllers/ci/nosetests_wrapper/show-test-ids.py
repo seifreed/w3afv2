@@ -2,18 +2,18 @@
 
 
 import os
-import sys
 import pickle
+import sys
 
 # Need this hack in order to be able to re-add the current path to the
 # python-path, since running a script seems to change it (?)
 sys.path.insert(0, os.path.abspath(os.curdir))
 
-from w3af.core.controllers.ci.nosetests_wrapper.utils.test_stats import get_test_ids
 from w3af.core.controllers.ci.nosetests_wrapper.constants import (
     ID_FILE,
     NOSE_RUN_SELECTOR,
 )
+from w3af.core.controllers.ci.nosetests_wrapper.utils.test_stats import get_test_ids
 
 
 def nose_strategy():

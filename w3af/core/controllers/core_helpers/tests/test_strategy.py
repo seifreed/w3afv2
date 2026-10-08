@@ -19,18 +19,18 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import subprocess
-import sys
 import os
 import re
+import subprocess
+import sys
 
 from nose.plugins.attrib import attr
 
+from w3af.core.controllers.ci.detect import is_running_on_ci
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.controllers.ci.wavsep import get_wavsep_http
-from w3af.plugins.tests.helper import PluginTest, PluginConfig
-from w3af.core.controllers.ci.detect import is_running_on_ci
 from w3af.core.data.db.startup_cfg import StartUpConfig
+from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 SCRIPT_PATH = "/tmp/script-1557.w3af"
 OUTPUT_PATH = "/tmp/1557-output-w3af.txt"
@@ -68,14 +68,14 @@ exit
 
 class TestStrategy(PluginTest):
     def setUp(self):
-        super(TestStrategy, self).setUp()
+        super().setUp()
 
         startup_cfg = StartUpConfig()
         startup_cfg.accepted_disclaimer = True
         startup_cfg.save()
 
     def tearDown(self):
-        super(TestStrategy, self).tearDown()
+        super().tearDown()
 
         if os.path.exists(SCRIPT_PATH):
             os.unlink(SCRIPT_PATH)
@@ -102,7 +102,7 @@ class TestStrategy(PluginTest):
         loops = 2 if is_running_on_ci() else 10
 
         for i in range(loops):
-            print(("Start run #%s" % i))
+            print("Start run #%s" % i)
             found_vulns = set()
 
             p = subprocess.Popen(
@@ -116,7 +116,7 @@ class TestStrategy(PluginTest):
 
             stdout, stderr = p.communicate()
             i_vuln_count = stdout.count(VULN_STRING)
-            print(("%s vulnerabilities found" % i_vuln_count))
+            print("%s vulnerabilities found" % i_vuln_count)
 
             self.assertNotEqual(i_vuln_count, 0, stdout)
 

@@ -6,16 +6,14 @@ See the file 'LICENSE' for copying permission
 """
 
 from lib.core.agent import agent
-from lib.core.common import Backend
-from lib.core.common import Format
-from lib.core.data import conf
-from lib.core.data import kb
-from lib.core.data import logger
+from lib.core.common import Backend, Format
+from lib.core.data import conf, kb, logger
 from lib.core.enums import DBMS
 from lib.core.session import setDbms
 from lib.core.settings import MAXDB_ALIASES
 from lib.request import inject
 from lib.request.connect import Connect as Request
+
 from plugins.generic.fingerprint import Fingerprint as GenericFingerprint
 
 
@@ -48,7 +46,7 @@ class Fingerprint(GenericFingerprint):
             if result:
                 major = version
 
-        for version in range(0, 10):
+        for version in range(10):
             result = inject.checkBooleanExpression(
                 "%d=(SELECT MINORVERSION FROM SYSINFO.VERSION)" % version
             )

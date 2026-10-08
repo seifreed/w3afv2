@@ -21,18 +21,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os.path
-
+from functools import cmp_to_key
 from itertools import chain
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
-
-from w3af.core.controllers.misc.make_leet import make_leet
 from w3af.core.controllers.misc.itertools_toolset import unique_everseen
-from functools import cmp_to_key
+from w3af.core.controllers.misc.make_leet import make_leet
 
 
-class PasswordBruteforcer(object):
+class PasswordBruteforcer:
     """
     This class is a helper for bruteforcing any login that provides passwords
     with an iterator API.
@@ -80,7 +78,7 @@ class PasswordBruteforcer(object):
             yield line.strip()
 
 
-class UserPasswordBruteforcer(object):
+class UserPasswordBruteforcer:
     """
     This class is a helper for bruteforcing any login that provides user and
     password combinations with an iterator API.

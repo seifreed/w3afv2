@@ -20,16 +20,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import traceback
 import json
-import sys
 import os
-
+import sys
+import traceback
 from functools import partial
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.number_generator import consecutive_number_generator
-from .utils import get_filename_fmt, dump_data_every_thread, cancel_thread
+
+from .utils import cancel_thread, dump_data_every_thread, get_filename_fmt
 
 PROFILING_OUTPUT_FMT = "/tmp/w3af-%s-%s.core"
 DELAY_MINUTES = 2
@@ -104,7 +104,7 @@ def stop_core_profiling(w3af_core):
 
 
 def get_parser_cache_stats():
-    import w3af.core.data.parsers.parser_cache as parser_cache
+    from w3af.core.data.parsers import parser_cache
     from w3af.core.data.parsers.mp_document_parser import mp_doc_parser
 
     r = {

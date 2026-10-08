@@ -22,10 +22,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 
-from w3af.core.data.context.context.javascript import get_js_context_iter
-from w3af.core.data.context.context.css import get_css_context_iter
+from w3af.core.data.context.constants import EXECUTABLE_ATTRS, JS_EVENTS
 from w3af.core.data.context.context.base import BaseContext
-from w3af.core.data.context.constants import JS_EVENTS, EXECUTABLE_ATTRS
+from w3af.core.data.context.context.css import get_css_context_iter
+from w3af.core.data.context.context.javascript import get_js_context_iter
 
 
 class HtmlTag(BaseContext):
@@ -75,7 +75,7 @@ class ScriptText(HtmlText):
 
     def can_break(self):
         # If we can break out of the context then we're done
-        if super(ScriptText, self).can_break():
+        if super().can_break():
             return True
 
         script_text = self.get_context_content()
@@ -107,7 +107,7 @@ class CSSText(HtmlText):
 
     def can_break(self):
         # If we can break out of the context then we're done
-        if super(CSSText, self).can_break():
+        if super().can_break():
             return True
 
         css_text = self.get_context_content()
@@ -148,7 +148,7 @@ class HTMLAttrQuoteGeneric(BaseContext):
         :param attr_name: The attribute name (<tag name=value">)
         :param attr_value: The attribute value (<tag name=value">)
         """
-        super(HTMLAttrQuoteGeneric, self).__init__(payload, attr_value)
+        super().__init__(payload, attr_value)
         self.name = attr_name
         self.value = attr_value
 
@@ -164,7 +164,7 @@ class HTMLAttrQuoteGeneric(BaseContext):
         # The most common break is to simply escape the attribute string
         # delimiter and add a new attribute
         #
-        if super(HTMLAttrQuoteGeneric, self).can_break():
+        if super().can_break():
             return True
 
         #

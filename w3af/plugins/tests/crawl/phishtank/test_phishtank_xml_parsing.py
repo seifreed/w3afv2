@@ -22,9 +22,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 import unittest
-import lxml.etree as etree
 
+from lxml import etree
 from nose.plugins.skip import SkipTest
+
 from w3af import ROOT_PATH
 
 PHISHTANK_DB = os.path.join(ROOT_PATH, "plugins", "crawl", "phishtank", "index.xml")

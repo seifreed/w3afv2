@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 test_url.py
 
@@ -21,19 +20,20 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import urllib.request, urllib.error, urllib.parse
 import pickle
-import warnings
 import unittest
-
+import urllib.error
+import urllib.parse
+import urllib.request
+import warnings
 from multiprocessing.queues import SimpleQueue
 
 from nose.plugins.skip import SkipTest
 
-from w3af.core.data.parsers.doc.url import URL, parse_qs
 from w3af.core.data.dc.query_string import QueryString
 from w3af.core.data.dc.urlencoded_form import URLEncodedForm
 from w3af.core.data.misc.encoding import smart_str
+from w3af.core.data.parsers.doc.url import URL, parse_qs
 
 # Be strict on unicode warnings
 warnings.filterwarnings("error", category=UnicodeWarning)

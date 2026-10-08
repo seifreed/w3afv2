@@ -1,9 +1,10 @@
 #!/usr/bin/python -u
 
 
-import requests
-import time
 import sys
+import time
+
+import requests
 
 
 def log(message):
@@ -40,20 +41,20 @@ if __name__ == "__main__":
         target = sys.argv[1]
     except:
         print("Target URL is missing")
-        print("")
+        print()
         print(
             "python w3af/core/controllers/profiling/send-request-record-rtt.py http://target.com/?rtt-measurement="
         )
-        print("")
+        print()
         sys.exit(1)
 
     if "?" not in target:
         print("Target URL requires a query string parameter")
-        print("")
+        print()
         print(
             "python w3af/core/controllers/profiling/send-request-record-rtt.py http://target.com/?rtt-measurement="
         )
-        print("")
+        print()
         sys.exit(1)
 
     try:

@@ -20,17 +20,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import string
 import functools
+import string
 
 from w3af.core.data.misc.constants.web_encodings import (
-    HEX_MAP,
-    HEX_FORMAT,
     DEC_FORMAT,
     DEC_PADDED_FORMAT,
-    URL_HEX_FORMAT,
-    SPECIAL_CHARS,
+    HEX_FORMAT,
+    HEX_MAP,
     HTML_ENCODE_NAMES,
+    SPECIAL_CHARS,
+    URL_HEX_FORMAT,
 )
 
 HTML_ENCODING_FUNCTIONS = []

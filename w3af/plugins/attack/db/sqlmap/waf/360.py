@@ -19,7 +19,9 @@ def detect(get_page):
         page, headers, code = get_page(get=vector)
         retval = (
             re.search(
-                r"wangzhan\.360\.cn", headers.get("X-Powered-By-360wzb", ""), re.I
+                r"wangzhan\.360\.cn",
+                headers.get("X-Powered-By-360wzb", ""),
+                re.IGNORECASE,
             )
             is not None
         )

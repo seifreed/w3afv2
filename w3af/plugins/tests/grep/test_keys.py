@@ -20,18 +20,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import os
-import unittest
-
 import w3af.core.data.kb.knowledge_base as kb
-
-from w3af.plugins.grep.keys import keys
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.url.HTTPResponse import HTTPResponse
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.kb.info import Info
+from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.plugins.grep.keys import keys
 from w3af.plugins.tests.helper import PluginTest
 
 

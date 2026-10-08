@@ -1,12 +1,12 @@
 import re
-import plotille
 
+import plotille
 from utils.graph import num_formatter
 from utils.utils import get_first_timestamp, get_last_timestamp, get_line_epoch
 
 SCAN_FINISHED_IN = re.compile("Scan finished in (.*).")
-JOIN_TIMES = re.compile("(.*?) took (.*?) seconds to join\(\)")
-SCAN_PROGRESS = re.compile("The scan will finish in .*? seconds \((.*?)% done\)")
+JOIN_TIMES = re.compile(r"(.*?) took (.*?) seconds to join\(\)")
+SCAN_PROGRESS = re.compile(r"The scan will finish in .*? seconds \((.*?)% done\)")
 CALCULATED_ETA = re.compile("Calculated (.*?) ETA: (.*?) seconds")
 CRAWL_INFRA_FINISHED = "Producer CrawlInfra has finished"
 
@@ -115,7 +115,7 @@ def show_progress_delta(scan_log_filename, scan):
     spent_time_epoch = finished_timestamp - first_timestamp
 
     print("Progress delta (estimated vs. real)")
-    print("")
+    print()
 
     if crawl_progress and crawl_end_timestamp is not None:
         fig = plotille.Figure()
@@ -148,9 +148,9 @@ def show_progress_delta(scan_log_filename, scan):
             crawl_real_progress_timestamps, crawl_real_progress, label="Crawl (real)"
         )
 
-        print((fig.show(legend=True)))
-        print("")
-        print("")
+        print(fig.show(legend=True))
+        print()
+        print()
 
     if audit_progress and audit_end_timestamp is not None:
         fig = plotille.Figure()
@@ -183,9 +183,9 @@ def show_progress_delta(scan_log_filename, scan):
             audit_real_progress_timestamps, audit_real_progress, label="Audit (real)"
         )
 
-        print((fig.show(legend=True)))
-        print("")
-        print("")
+        print(fig.show(legend=True))
+        print()
+        print()
 
     if grep_progress and grep_end_timestamp is not None:
         fig = plotille.Figure()
@@ -216,9 +216,9 @@ def show_progress_delta(scan_log_filename, scan):
 
         fig.plot(grep_real_progress_timestamps, grep_real_progress, label="Grep (real)")
 
-        print((fig.show(legend=True)))
-        print("")
-        print("")
+        print(fig.show(legend=True))
+        print()
+        print()
 
     if not progress:
         print(
@@ -250,6 +250,6 @@ def show_progress_delta(scan_log_filename, scan):
 
     fig.plot(progress_timestamps, real_progress, label="Overall (real)")
 
-    print((fig.show(legend=True)))
-    print("")
-    print("")
+    print(fig.show(legend=True))
+    print()
+    print()

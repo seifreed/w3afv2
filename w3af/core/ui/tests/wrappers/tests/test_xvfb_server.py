@@ -19,17 +19,17 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import unittest
 import os
 import time
+import unittest
+from unittest.mock import patch
 
-from PIL import Image
 from nose.plugins.attrib import attr
-from mock import patch
+from PIL import Image
 
 from w3af import ROOT_PATH
-from w3af.core.ui.tests.wrappers.xvfb_server import XVFBServer
 from w3af.core.ui.tests.wrappers.tests.utils import is_black_image
+from w3af.core.ui.tests.wrappers.xvfb_server import XVFBServer
 
 
 class TestEnvironment(unittest.TestCase):

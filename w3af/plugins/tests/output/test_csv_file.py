@@ -19,19 +19,19 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import os
 import csv
 import json
+import os
 
-from w3af.core.data.kb.vuln import Vuln
-from w3af.core.data.dc.urlencoded_form import URLEncodedForm
-from w3af.core.data.dc.headers import Headers
-from w3af.core.data.parsers.doc.url import URL
-from w3af.plugins.tests.helper import PluginTest, PluginConfig
 from w3af.core.controllers.ci.moth import get_moth_http
-from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
+from w3af.core.data.dc.headers import Headers
+from w3af.core.data.dc.urlencoded_form import URLEncodedForm
 from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
+from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
+from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 
 class TestCSVFile(PluginTest):

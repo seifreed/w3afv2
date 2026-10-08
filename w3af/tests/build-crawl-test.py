@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-import os
-import sys
 import getopt
 import hashlib
+import os
 import random
+import sys
 
 from jinja2 import Template
 
@@ -79,7 +79,7 @@ def _main():
         assert pages >= 1
     except:
         print("Error in --pages parameter")
-        print("")
+        print()
         print(USAGE)
         sys.exit(1)
 
@@ -88,7 +88,7 @@ def _main():
         assert parameters_per_page > 0
     except:
         print("Error in --parameters-per-page parameter")
-        print("")
+        print()
         print(USAGE)
         sys.exit(1)
 
@@ -97,7 +97,7 @@ def _main():
         assert forms > 0
     except:
         print("Error in --forms parameter")
-        print("")
+        print()
         print(USAGE)
         sys.exit(1)
 
@@ -106,7 +106,7 @@ def _main():
         assert form_params >= 1
     except:
         print("Error in --form-params parameter")
-        print("")
+        print()
         print(USAGE)
         sys.exit(1)
 
@@ -116,7 +116,7 @@ def _main():
         assert os.path.isdir(output)
     except:
         print("Error in --output parameter")
-        print("")
+        print()
         print(USAGE)
         sys.exit(1)
 
@@ -151,7 +151,7 @@ PAGE_TEMPLATE = Template("""\
 """)
 
 
-class Form(object):
+class Form:
     def __init__(self, action, params):
         self.action = action
         self.params = params

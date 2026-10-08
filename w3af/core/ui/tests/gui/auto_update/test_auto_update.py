@@ -19,14 +19,14 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import datetime
 import os
 import subprocess
-import datetime
 import sys
 
+from w3af.core.data.db.startup_cfg import StartUpConfig
 from w3af.core.ui.tests.gui import GUI_TEST_ROOT_PATH
 from w3af.core.ui.tests.wrappers.xpresser_unittest import XpresserUnittest
-from w3af.core.data.db.startup_cfg import StartUpConfig
 
 
 class TestAutoUpdate(XpresserUnittest):

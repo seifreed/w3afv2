@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import queue
 
 import w3af.core.controllers.output_manager as om
-
 from w3af.core.data.db.disk_dict import DiskDict
 from w3af.core.data.misc.smart_queue import QueueSpeedMeasurement
 

@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import time
 
-from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.controllers.ci.moth import get_moth_http
+from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.parsers.doc.url import URL
 
 

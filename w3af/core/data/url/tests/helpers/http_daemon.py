@@ -21,12 +21,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import http.server
-import threading
 import socketserver
+import threading
 import time
 
 
-class LoggedRequest(object):
+class LoggedRequest:
     def __init__(self, command, path, request_version, headers, request_body):
         self.command = command
         self.path = path
@@ -86,7 +86,7 @@ class HTTPDaemon(threading.Thread):
     """
 
     def __init__(self):
-        super(HTTPDaemon, self).__init__()
+        super().__init__()
         self.daemon = True
         self.server = None
 

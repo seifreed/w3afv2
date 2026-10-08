@@ -20,40 +20,39 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import os
-import psutil
-import signal
 import atexit
-import resource
-import threading
 import multiprocessing
-
+import os
+import resource
+import signal
+import threading
 from concurrent.futures import TimeoutError
-from tblib.decorators import Error
+
+import psutil
 from pebble import ProcessPool
 from pebble.common import ProcessExpired
+from tblib.decorators import Error
 
 import w3af.core.controllers.output_manager as om
-
-from w3af.core.controllers.profiling import start_profiling_no_core
-from w3af.core.controllers.threads.is_main_process import is_main_process
-from w3af.core.controllers.output_manager import log_sink_factory
-from w3af.core.controllers.exceptions import ScanMustStopException
 from w3af.core.controllers.ci.detect import is_running_on_ci
-from w3af.core.controllers.threads.decorators import apply_with_return_error
+from w3af.core.controllers.exceptions import ScanMustStopException
+from w3af.core.controllers.output_manager import log_sink_factory
+from w3af.core.controllers.profiling import start_profiling_no_core
 from w3af.core.controllers.profiling.core_stats import core_profiling_is_enabled
+from w3af.core.controllers.profiling.cpu_usage import user_wants_cpu_profiling
 from w3af.core.controllers.profiling.memory_usage import user_wants_memory_profiling
 from w3af.core.controllers.profiling.pytracemalloc import user_wants_pytracemalloc
-from w3af.core.controllers.profiling.cpu_usage import user_wants_cpu_profiling
+from w3af.core.controllers.threads.decorators import apply_with_return_error
+from w3af.core.controllers.threads.is_main_process import is_main_process
 from w3af.core.data.parsers.document_parser import DocumentParser
 from w3af.core.data.parsers.ipc.serialization import (
-    write_object_to_temp_file,
-    write_http_response_to_temp_file,
-    write_tags_to_temp_file,
-    load_object_from_temp_file,
     load_http_response_from_temp_file,
+    load_object_from_temp_file,
     load_tags_from_temp_file,
     remove_file_if_exists,
+    write_http_response_to_temp_file,
+    write_object_to_temp_file,
+    write_tags_to_temp_file,
 )
 
 # 128 MB
@@ -71,7 +70,7 @@ def get_memory_limit():
     return DEFAULT_MEMORY_LIMIT
 
 
-class MultiProcessingDocumentParser(object):
+class MultiProcessingDocumentParser:
     """
     A document parser that performs all it's tasks in different processes and
     returns results to the main process.

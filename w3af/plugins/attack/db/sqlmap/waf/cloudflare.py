@@ -19,13 +19,19 @@ def detect(get_page):
     for vector in WAF_ATTACK_VECTORS:
         page, headers, code = get_page(get=vector)
         retval = (
-            re.search(r"cloudflare-nginx", headers.get(HTTP_HEADER.SERVER, ""), re.I)
+            re.search(
+                r"cloudflare-nginx", headers.get(HTTP_HEADER.SERVER, ""), re.IGNORECASE
+            )
             is not None
         )
 
         if code >= 400:
             retval |= (
-                re.search(r"\A__cfduid=", headers.get(HTTP_HEADER.SET_COOKIE, ""), re.I)
+                re.search(
+                    r"\A__cfduid=",
+                    headers.get(HTTP_HEADER.SET_COOKIE, ""),
+                    re.IGNORECASE,
+                )
                 is not None
             )
             retval |= headers.get("cf-ray") is not None

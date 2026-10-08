@@ -21,10 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import w3af.core.data.kb.knowledge_base as kb
-
 from w3af.core.controllers.plugins.auth_plugin import AuthPlugin
-from w3af.core.data.misc.encoding import smart_str_ignore
 from w3af.core.data.kb.info import Info
+from w3af.core.data.misc.encoding import smart_str_ignore
 
 SESSIONS_FAILED_MSG = """\
 The authentication plugin identified that the user session was lost %i times
@@ -132,7 +131,7 @@ class AuthSessionPlugin(AuthPlugin):
         return logged_in
 
     def end(self):
-        super(AuthSessionPlugin, self).end()
+        super().end()
 
         if self._should_report_invalid_sessions():
             self._report_invalid_sessions()

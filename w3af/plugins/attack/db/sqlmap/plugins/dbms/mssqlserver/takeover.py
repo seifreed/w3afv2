@@ -11,6 +11,7 @@ from lib.core.common import Backend
 from lib.core.data import logger
 from lib.core.exception import SqlmapUnsupportedFeatureException
 from lib.request import inject
+
 from plugins.generic.takeover import Takeover as GenericTakeover
 
 

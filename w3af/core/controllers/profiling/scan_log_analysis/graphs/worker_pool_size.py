@@ -1,6 +1,6 @@
 import re
-import plotille
 
+import plotille
 from utils.graph import num_formatter
 from utils.utils import get_first_timestamp, get_last_timestamp, get_line_epoch
 
@@ -37,7 +37,7 @@ def draw_worker_pool_size(scan_log_filename, scan):
         return
 
     print("Worker pool size over time")
-    print("")
+    print()
 
     fig = plotille.Figure()
     fig.width = 90
@@ -52,5 +52,5 @@ def draw_worker_pool_size(scan_log_filename, scan):
 
     fig.plot(worker_pool_timestamps, worker_pool_sizes, label="Workers")
 
-    print((fig.show()))
-    print("")
+    print(fig.show())
+    print()

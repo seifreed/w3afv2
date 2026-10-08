@@ -20,12 +20,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
 import subprocess
-
-import w3af.core.data.kb.config as cf
+import unittest
 
 from nose.plugins.attrib import attr
+
+import w3af.core.data.kb.config as cf
 from w3af.core.controllers.extrusion_scanning.extrusionScanner import extrusionScanner
 from w3af.plugins.tests.helper import onlyroot
 
@@ -60,4 +60,3 @@ class TestExtrusionScanner(unittest.TestCase):
         Can't stop finding nosetests errors! It looks like SkipTest works except
         in the case where it is the last test discovered!
         """
-        pass

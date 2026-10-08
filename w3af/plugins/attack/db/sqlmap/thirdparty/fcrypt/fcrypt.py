@@ -119,7 +119,8 @@ __all__ = ["crypt"]
 # ----- END fcrypt.c LICENSE -----
 
 
-import string, struct
+import string
+import struct
 
 _ITERATIONS = 16
 
@@ -1534,7 +1535,9 @@ def crypt(password, salt):
 
 def _test():
     """Run doctest on fcrypt module."""
-    import doctest, fcrypt
+    import doctest
+
+    import fcrypt
 
     return doctest.testmod(fcrypt)
 

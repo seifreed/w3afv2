@@ -1,10 +1,6 @@
-# coding=utf-8
-
-
-import time
-import logging
 import hashlib
-
+import logging
+import time
 from itertools import filterfalse
 
 from w3af.core.controllers.ci.nosetests_wrapper.constants import (

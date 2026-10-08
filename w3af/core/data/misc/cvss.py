@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.data.constants.severity as severity
+from w3af.core.data.constants import severity
 
 
 def cvss_to_severity(cvss_score):

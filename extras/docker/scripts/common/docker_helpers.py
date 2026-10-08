@@ -1,8 +1,8 @@
-import subprocess
 import json
-import time
-import sys
 import os
+import subprocess
+import sys
+import time
 
 ROOT_PATH = os.path.dirname(os.path.realpath(__file__))
 DOCKER_RUN = (

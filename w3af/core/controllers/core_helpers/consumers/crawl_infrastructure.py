@@ -20,31 +20,29 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import time
 import queue
+import time
 
+import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
-import w3af.core.controllers.output_manager as om
-
-from w3af.core.data.db.variant_db import VariantDB
-from w3af.core.data.fuzzer.utils import rand_alnum
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.misc.ordered_cached_queue import OrderedCachedQueue
-from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
-
-from w3af.core.controllers.profiling.took_helper import TookLine
-from w3af.core.controllers.threads.threadpool import return_args
+from w3af.core.controllers.core_helpers.consumers.base_consumer import (
+    BaseConsumer,
+    task_decorator,
+)
 from w3af.core.controllers.core_helpers.consumers.constants import POISON_PILL
 from w3af.core.controllers.exceptions import (
     BaseFrameworkException,
     RunOnce,
     ScanMustStopException,
 )
-from w3af.core.controllers.core_helpers.consumers.base_consumer import (
-    BaseConsumer,
-    task_decorator,
-)
+from w3af.core.controllers.profiling.took_helper import TookLine
+from w3af.core.controllers.threads.threadpool import return_args
+from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
+from w3af.core.data.db.variant_db import VariantDB
+from w3af.core.data.fuzzer.utils import rand_alnum
+from w3af.core.data.misc.ordered_cached_queue import OrderedCachedQueue
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
 class CrawlInfrastructure(BaseConsumer):
@@ -63,7 +61,7 @@ class CrawlInfrastructure(BaseConsumer):
         :param max_discovery_time: The max time (in seconds) to use for the
                                    discovery phase
         """
-        super(CrawlInfrastructure, self).__init__(
+        super().__init__(
             crawl_infrastructure_plugins,
             w3af_core,
             thread_name=self.get_name(),
@@ -331,7 +329,7 @@ class CrawlInfrastructure(BaseConsumer):
         self.out_queue.put(POISON_PILL)
 
     def join(self):
-        super(CrawlInfrastructure, self).join()
+        super().join()
         self.cleanup()
         self.show_summary()
 

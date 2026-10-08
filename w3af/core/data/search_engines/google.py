@@ -20,15 +20,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import re
-import urllib.request, urllib.parse, urllib.error
 import json
+import re
+import urllib.error
+import urllib.parse
+import urllib.request
 
 from w3af.core.controllers import output_manager as om
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.search_engines.search_engine import SearchEngine
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.search_engines.search_engine import SearchEngine
 from w3af.core.data.user_agent.random_user_agent import get_random_user_agent
 
 GOOGLE_SORRY_PAGES = {
@@ -117,7 +119,7 @@ FINISHED_BAD = 2
 ##THERE_IS_MORE = 3
 
 
-class GoogleAPISearch(object):
+class GoogleAPISearch:
     """
     'Abstract' base class for the Google API search implementations. This class
     shouldn't be instantiated.
@@ -174,13 +176,11 @@ class GoogleAPISearch(object):
         Perform the google search based on implementation. This method has
         to be overridden by subclasses.
         """
-        pass
 
     def _extract_links(self, pages):
         """
         Return list of URLs found in pages. Must be overridden by subclasses.
         """
-        pass
 
 
 class GAjaxSearch(GoogleAPISearch):
@@ -274,7 +274,7 @@ class GStandardSearch(GoogleAPISearch):
     GOOGLE_SEARCH_URL = "http://www.google.com/search?"
 
     # TODO: Update this, it changes!!
-    REGEX_STRING = 'class="r"><a href="/url\?q=(.*?)&amp;sa=U'
+    REGEX_STRING = r'class="r"><a href="/url\?q=(.*?)&amp;sa=U'
 
     # Used to find out if google will return more items
     NEXT_PAGE_STR = "<strong>Next</strong></a></td>"
@@ -370,7 +370,7 @@ class GMobileSearch(GStandardSearch):
 
     # Used to extract URLs from Google responses
     # Keep me updated!
-    REGEX_STRING = 'class="r"><a href="/url\?q=(.*?)&amp;sa=U'
+    REGEX_STRING = r'class="r"><a href="/url\?q=(.*?)&amp;sa=U'
 
     # Used to find out if google will return more items.
     # Keep me updated!
@@ -417,7 +417,7 @@ class GMobileSearch(GStandardSearch):
         return res_pages
 
 
-class GoogleResult(object):
+class GoogleResult:
     """
     This is a dummy class that represents a search engine result.
     """

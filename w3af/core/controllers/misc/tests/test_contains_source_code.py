@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """
 test_contains_source_code.py
 
@@ -24,12 +23,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 import unittest
 
-from w3af.core.controllers.misc.contains_source_code import contains_source_code
-from w3af.core.controllers.misc.contains_source_code import PHP, PYTHON, RUBY, JAVA
-from w3af.core.data.url.HTTPResponse import HTTPResponse
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.dc.headers import Headers
 from w3af import ROOT_PATH
+from w3af.core.controllers.misc.contains_source_code import (
+    JAVA,
+    PHP,
+    PYTHON,
+    RUBY,
+    contains_source_code,
+)
+from w3af.core.data.dc.headers import Headers
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.url.HTTPResponse import HTTPResponse
 
 
 class TestContainsSourceCode(unittest.TestCase):
@@ -158,7 +162,7 @@ class TestContainsSourceCode(unittest.TestCase):
         self.assertEqual(match, None)
 
     def test_code_false_positive_ruby_04(self):
-        """
+        r"""
         Will not match because of the </a> before end. End requires a space (\s)
         before the token.
         """

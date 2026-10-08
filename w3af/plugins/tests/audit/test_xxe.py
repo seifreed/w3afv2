@@ -20,13 +20,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
-import urllib.request, urllib.parse, urllib.error
-
-from lxml import etree
+import urllib.error
+import urllib.parse
+import urllib.request
+from unittest.mock import patch
 from xml import sax
 
-from w3af.plugins.tests.helper import PluginTest, PluginConfig, MockResponse
-from mock import patch
+from lxml import etree
+
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 test_config = {
     "audit": (PluginConfig("xxe"),),
@@ -188,7 +190,7 @@ class TestXXENegativeNoError(PluginTest):
             try:
                 root = etree.fromstring(str(xml), parser=parser)
                 body = etree.tostring(root)
-            except Exception as e:
+            except Exception:
                 body = "Generic error here"
 
             return self.status, response_headers, body

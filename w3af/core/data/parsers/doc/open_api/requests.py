@@ -23,20 +23,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 
-from w3af.core.data.dc.headers import Headers
-from w3af.core.data.dc.query_string import QueryString
-from w3af.core.data.dc.json_container import JSONContainer
-from w3af.core.data.dc.factory import dc_from_content_type_and_raw_params
-from w3af.core.data.dc.urlencoded_form import URLEncodedForm
-from w3af.core.data.dc.multipart_container import MultipartContainer
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.parsers.doc.open_api.construct_request import construct_request
-
 import w3af.core.controllers.output_manager as om
+from w3af.core.data.dc.factory import dc_from_content_type_and_raw_params
+from w3af.core.data.dc.headers import Headers
+from w3af.core.data.dc.json_container import JSONContainer
+from w3af.core.data.dc.multipart_container import MultipartContainer
+from w3af.core.data.dc.query_string import QueryString
+from w3af.core.data.dc.urlencoded_form import URLEncodedForm
+from w3af.core.data.parsers.doc.open_api.construct_request import construct_request
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
-class RequestFactory(object):
+class RequestFactory:
 
     DEFAULT_CONTENT_TYPE = JSONContainer.JSON_CONTENT_TYPE
     URL_PARTS_RE = re.compile("({[^}]+})")
@@ -122,7 +121,7 @@ class RequestFactory(object):
         for seg in segments:
             if seg.startswith("{") and seg.endswith("}"):
                 name = seg[1:-1]
-                val = "{}".format(params.get(name, seg))
+                val = f"{params.get(name, seg)}"
                 parts.append((val, True))
             else:
                 parts.append((seg, False))

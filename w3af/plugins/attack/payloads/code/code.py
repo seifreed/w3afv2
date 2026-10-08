@@ -1,4 +1,6 @@
-import sys, subprocess, base64
+import base64
+import subprocess
+import sys
 
 sys.stdout.write("15825b40c6dace2a"[::-1])
 if "__CMD_TO_RUN__":

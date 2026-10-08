@@ -21,24 +21,23 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
-import struct
 import sqlite3
+import struct
 import tempfile
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
-import w3af.core.data.constants.severity as severity
-
-from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.misc.temp_dir import get_temp_dir
+from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
+from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
+from w3af.core.data.constants import severity
+from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.misc.encoding import smart_unicode
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
-from w3af.core.data.kb.vuln import Vuln
 
 
-class DVCSTest(object):
+class DVCSTest:
     def __init__(self, filename, name, method):
         self.filename = filename
         self.name = name
@@ -124,14 +123,11 @@ class find_dvcs(CrawlPlugin):
             # errors
             filename = smart_unicode(filename, errors="ignore")
 
-            if filename.startswith("/"):
-                filename = filename[1:]
+            filename = filename.removeprefix("/")
 
-            if filename.startswith("./"):
-                filename = filename[2:]
+            filename = filename.removeprefix("./")
 
-            if filename.endswith("/"):
-                filename = filename[:-1]
+            filename = filename.removesuffix("/")
 
             resources.add(filename)
 
@@ -287,11 +283,7 @@ class find_dvcs(CrawlPlugin):
         found = True
         for offset in range(len(body)):
             filename = body[offset - 2]
-            if body[offset] == "d":
-                if found:
-                    filenames.add(filename)
-                found = not found
-            elif body[offset] == "f":
+            if body[offset] == "d" or body[offset] == "f":
                 if found:
                     filenames.add(filename)
                 found = not found

@@ -20,11 +20,15 @@ def detect(get_page):
         page, headers, _ = get_page(get=vector)
         retval = (
             re.search(
-                r"incap_ses|visid_incap", headers.get(HTTP_HEADER.SET_COOKIE, ""), re.I
+                r"incap_ses|visid_incap",
+                headers.get(HTTP_HEADER.SET_COOKIE, ""),
+                re.IGNORECASE,
             )
             is not None
         )
-        retval |= re.search(r"Incapsula", headers.get("X-CDN", ""), re.I) is not None
+        retval |= (
+            re.search(r"Incapsula", headers.get("X-CDN", ""), re.IGNORECASE) is not None
+        )
         retval |= "Incapsula incident ID" in (page or "")
         if retval:
             break

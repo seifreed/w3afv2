@@ -31,7 +31,7 @@ class TestEncodeDecode(XpresserUnittest):
     EXTRA_IMAGES = os.path.join(GUI_TEST_ROOT_PATH, "tools_menu", "images")
 
     def setUp(self):
-        super(TestEncodeDecode, self).setUp()
+        super().setUp()
         self.xp.load_images(self.EXTRA_IMAGES)
 
     def test_encode_url_default(self):

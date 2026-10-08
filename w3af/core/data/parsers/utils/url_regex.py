@@ -1,6 +1,8 @@
 import re
 
-URL_RE = re.compile(r'((http|https)://([\w:@\-./]*?)[^ \0\n\r\t"\'<>]*)', re.U | re.I)
+URL_RE = re.compile(
+    r'((http|https)://([\w:@\-./]*?)[^ \0\n\r\t"\'<>]*)', re.UNICODE | re.IGNORECASE
+)
 
 RELATIVE_URL_RE = re.compile(
     r"((:?[/]{1,2}[\w\-~.%]+)+"
@@ -12,5 +14,5 @@ RELATIVE_URL_RE = re.compile(
     r"([\w\-~.%]*=[\w\-~.%]*))"
     # ampersand and more parameters
     r"((&)([\w\-~.%]*=[\w\-~.%]*))*)?)",
-    re.U | re.I,
+    re.UNICODE | re.IGNORECASE,
 )

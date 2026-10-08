@@ -8,6 +8,7 @@ See the file 'LICENSE' for copying permission
 from lib.core.enums import DBMS
 from lib.core.settings import HSQLDB_SYSTEM_DBS
 from lib.core.unescaper import unescaper
+
 from plugins.dbms.hsqldb.enumeration import Enumeration
 from plugins.dbms.hsqldb.filesystem import Filesystem
 from plugins.dbms.hsqldb.fingerprint import Fingerprint

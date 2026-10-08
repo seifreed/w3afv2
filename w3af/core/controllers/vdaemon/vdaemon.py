@@ -21,23 +21,21 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
-import tempfile
 import random
+import subprocess
+import tempfile
 import time
 
-import subprocess
-
-import w3af.core.data.kb.config as cf
 import w3af.core.controllers.output_manager as om
-
+import w3af.core.data.kb.config as cf
 from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.controllers.intrusion_tools.execMethodHelpers import get_remote_temp_file
 from w3af.core.controllers.payload_transfer.payload_transfer_factory import (
     payload_transfer_factory,
 )
-from w3af.core.controllers.intrusion_tools.execMethodHelpers import get_remote_temp_file
 
 
-class vdaemon(object):
+class vdaemon:
     """
     This class represents a virtual daemon that will run metasploit's
     msfpayload, create an executable file, upload it to the remote server, run

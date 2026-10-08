@@ -21,18 +21,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import subprocess
-import socket
 import tempfile
 import unittest
 
 import w3af.core.data.kb.config as cf
-
+from w3af.core.controllers.extrusion_scanning.extrusionScanner import extrusionScanner
+from w3af.core.controllers.misc.get_unused_port import get_unused_port
+from w3af.core.controllers.misc.temp_dir import create_temp_dir
 from w3af.core.controllers.payload_transfer.clientless_reverse_http import (
     ClientlessReverseHTTP,
 )
-from w3af.core.controllers.extrusion_scanning.extrusionScanner import extrusionScanner
-from w3af.core.controllers.misc.temp_dir import create_temp_dir
-from w3af.core.controllers.misc.get_unused_port import get_unused_port
 from w3af.plugins.tests.helper import onlyroot
 
 

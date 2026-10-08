@@ -24,19 +24,19 @@ import copy
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
-from w3af.core.controllers.plugins.plugin import Plugin
-from w3af.core.controllers.misc.common_attack_methods import CommonAttackMethods
 from w3af.core.controllers.exceptions import (
-    NoVulnerabilityFoundException,
     ExploitFailedException,
     HTTPRequestException,
-    ScanMustStopException,
+    NoVulnerabilityFoundException,
     ScanMustStopByUnknownReasonExc,
     ScanMustStopByUserRequest,
+    ScanMustStopException,
 )
+from w3af.core.controllers.misc.common_attack_methods import CommonAttackMethods
+from w3af.core.controllers.plugins.plugin import Plugin
+from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
 class AttackPlugin(Plugin, CommonAttackMethods):

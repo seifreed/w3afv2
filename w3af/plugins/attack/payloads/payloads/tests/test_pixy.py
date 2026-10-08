@@ -24,10 +24,10 @@ import tempfile
 from nose.plugins.attrib import attr
 from nose.plugins.skip import SkipTest
 
+from w3af.plugins.attack.payloads.payload_handler import exec_payload
 from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
     PayloadTestHelper,
 )
-from w3af.plugins.attack.payloads.payload_handler import exec_payload
 
 
 class test_pixy(PayloadTestHelper):

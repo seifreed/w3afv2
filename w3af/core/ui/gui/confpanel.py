@@ -24,8 +24,8 @@ import gtk
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.plugin import Plugin
 from w3af.core.data.options.option_list import OptionList
-from w3af.core.ui.gui.constants import W3AF_ICON
 from w3af.core.ui.gui import entries, helpers
+from w3af.core.ui.gui.constants import W3AF_ICON
 
 
 class OnlyOptions(gtk.VBox):
@@ -41,7 +41,7 @@ class OnlyOptions(gtk.VBox):
     """
 
     def __init__(self, parentwidg, w3af, plugin, save_btn, rvrt_btn, overwriter=None):
-        super(OnlyOptions, self).__init__()
+        super().__init__()
         if overwriter is None:
             overwriter = {}
         self.set_spacing(5)
@@ -293,7 +293,7 @@ class ConfigDialog(gtk.Dialog):
     """
 
     def __init__(self, title, w3af, plugin, overwriter=None, showDesc=False):
-        super(ConfigDialog, self).__init__(title, None, gtk.DIALOG_MODAL, ())
+        super().__init__(title, None, gtk.DIALOG_MODAL, ())
         self.set_icon_from_file(W3AF_ICON)
         if overwriter is None:
             overwriter = {}

@@ -23,16 +23,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.parsers.parser_cache as parser_cache
-
 from w3af import ROOT_PATH
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
-from w3af.core.data.options.opt_factory import opt_factory
-from w3af.core.data.options.option_types import INPUT_FILE
-from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.misc.encoding import smart_str_ignore
+from w3af.core.data.options.opt_factory import opt_factory
+from w3af.core.data.options.option_list import OptionList
+from w3af.core.data.options.option_types import INPUT_FILE
+from w3af.core.data.parsers import parser_cache
 from w3af.core.data.quick_match.multi_in import MultiIn
 
 

@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from w3af.core.controllers.exceptions import BaseFrameworkException
 
 
-class OptionList(object):
+class OptionList:
     """
     This class represents a list of options.
 
@@ -87,9 +87,8 @@ class OptionList(object):
             for o in self._internal_opt_list:
                 if o.get_name() == item_name:
                     return o
-            else:
-                msg = "The OptionList doesn't contain an option with the" ' name: "%s"'
-                raise BaseFrameworkException(msg % item_name)
+            msg = "The OptionList doesn't contain an option with the" ' name: "%s"'
+            raise BaseFrameworkException(msg % item_name)
         else:
             # An integer
             return self._internal_opt_list[item_name]

@@ -28,8 +28,8 @@ from nose.plugins.attrib import attr
 from vulndb import DBVuln
 
 from w3af import ROOT_PATH
-from w3af.core.data.constants.vulns import VULNS
 from w3af.core.controllers.ci.constants import ARTIFACTS_DIR
+from w3af.core.data.constants.vulns import VULNS
 
 
 class TestVulnsConstants(unittest.TestCase):

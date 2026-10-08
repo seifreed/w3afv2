@@ -1,7 +1,6 @@
-from bravado_core.param import Param
-from bravado_core.util import AliasKeyDict
-from bravado_core.util import sanitize_name
 from bravado_core import operation
+from bravado_core.param import Param
+from bravado_core.util import AliasKeyDict, sanitize_name
 
 
 def build_params_monkey_patch(op):

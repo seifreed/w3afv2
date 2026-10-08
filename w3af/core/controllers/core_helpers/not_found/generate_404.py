@@ -20,19 +20,18 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import itertools
 import random
 import string
-import itertools
 
 import w3af.core.controllers.output_manager as om
-
-from w3af.core.data.fuzzer.utils import rand_alnum
-from w3af.core.controllers.misc.decorators import retry
-from w3af.core.controllers.exceptions import (
-    HTTPRequestException,
-    FourOhFourDetectionException,
-)
 from w3af.core.controllers.core_helpers.not_found.response import FourOhFourResponse
+from w3af.core.controllers.exceptions import (
+    FourOhFourDetectionException,
+    HTTPRequestException,
+)
+from w3af.core.controllers.misc.decorators import retry
+from w3af.core.data.fuzzer.utils import rand_alnum
 
 
 def should_flip(index, seed):

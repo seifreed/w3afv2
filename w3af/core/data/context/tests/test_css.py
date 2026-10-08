@@ -19,14 +19,14 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from w3af.core.data.context.tests.context_test import ContextTest
-from w3af.core.data.context.context.css import get_css_context
 from w3af.core.data.context.context.css import (
     GenericStyleContext,
-    StyleSingleQuoteString,
-    StyleDoubleQuoteString,
     StyleComment,
+    StyleDoubleQuoteString,
+    StyleSingleQuoteString,
+    get_css_context,
 )
+from w3af.core.data.context.tests.context_test import ContextTest
 
 
 class TestCSSStyle(ContextTest):

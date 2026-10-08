@@ -22,12 +22,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 
-import w3af.core.data.kb.knowledge_base as kb
 import w3af.core.controllers.output_manager as om
-
-from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
+import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.misc.decorators import runonce
+from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.data.kb.info import Info
 
 
@@ -128,7 +127,7 @@ class detect_reverse_proxy(InfrastructurePlugin):
         """
         response_body = response.get_body().upper()
         # remove duplicated spaces from body
-        whitespace = re.compile("\s+")
+        whitespace = re.compile(r"\s+")
         response_body = re.sub(whitespace, " ", response_body)
 
         for proxy_header in self._proxy_header_list:

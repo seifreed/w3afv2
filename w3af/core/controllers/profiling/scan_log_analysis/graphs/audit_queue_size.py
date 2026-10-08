@@ -1,10 +1,10 @@
 import re
-import plotille
 
+import plotille
 from utils.graph import num_formatter
 from utils.utils import get_first_timestamp, get_last_timestamp, get_line_epoch
 
-AUDITOR_DISK_DICT = re.compile("The current AuditorIn DiskDict size is (\d*).")
+AUDITOR_DISK_DICT = re.compile(r"The current AuditorIn DiskDict size is (\d*).")
 
 
 def get_queue_size_audit_data(scan_log_filename, scan):
@@ -35,12 +35,12 @@ def draw_queue_size_audit(scan_log_filename, scan):
 
     if not auditor_queue_sizes:
         print("No audit consumer queue size data found")
-        print("")
+        print()
         return
 
     print("Audit consumer queue size")
-    print(("    Latest queue size value: %s" % auditor_queue_sizes[-1]))
-    print("")
+    print("    Latest queue size value: %s" % auditor_queue_sizes[-1])
+    print()
 
     fig = plotille.Figure()
     fig.width = 90
@@ -55,5 +55,5 @@ def draw_queue_size_audit(scan_log_filename, scan):
 
     fig.plot(auditor_queue_timestamps, auditor_queue_sizes, label="Audit")
 
-    print((fig.show()))
-    print("")
+    print(fig.show())
+    print()

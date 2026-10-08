@@ -22,9 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import gtk
 
-from w3af.core.ui.gui.constants import W3AF_ICON
-from w3af.core.data.db.startup_cfg import StartUpConfig
 from w3af.core.data.constants.disclaimer import DISCLAIMER
+from w3af.core.data.db.startup_cfg import StartUpConfig
+from w3af.core.ui.gui.constants import W3AF_ICON
 
 
 def ask(msg):
@@ -37,7 +37,7 @@ def ask(msg):
     return opt == gtk.RESPONSE_YES
 
 
-class DisclaimerController(object):
+class DisclaimerController:
     def accept_disclaimer(self):
         """
         :return: True/False depending on the user's answer to our disclaimer.

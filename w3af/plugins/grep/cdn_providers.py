@@ -239,9 +239,7 @@ class cdn_providers(GrepPlugin):
         """
         Save grep result to knowledge base
         """
-        description = "The URL {} is served using CDN provider: {}".format(
-            response.get_url(), provider_name
-        )
+        description = f"The URL {response.get_url()} is served using CDN provider: {provider_name}"
         info = Info(
             "Content Delivery Network Provider detected",
             description,

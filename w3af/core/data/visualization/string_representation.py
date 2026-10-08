@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 
-class StringRepresentation(object):
+class StringRepresentation:
     """
     Generates an image representation of any string. Very useful for comparing
     two or more strings in a split second. This representation can be used to

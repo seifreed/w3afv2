@@ -8,6 +8,7 @@ See the file 'LICENSE' for copying permission
 from lib.core.enums import DBMS
 from lib.core.settings import SYBASE_SYSTEM_DBS
 from lib.core.unescaper import unescaper
+
 from plugins.dbms.sybase.enumeration import Enumeration
 from plugins.dbms.sybase.filesystem import Filesystem
 from plugins.dbms.sybase.fingerprint import Fingerprint

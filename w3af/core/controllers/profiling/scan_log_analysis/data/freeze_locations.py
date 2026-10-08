@@ -1,5 +1,5 @@
-from utils.utils import get_line_epoch, InvalidTimeStamp
 from utils.output import KeyValueOutput
+from utils.utils import InvalidTimeStamp, get_line_epoch
 
 
 def get_freeze_locations(scan_log_filename, scan):

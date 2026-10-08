@@ -35,7 +35,7 @@ class ReverseFTP(BasePayloadTransfer):
     """
 
     def __init__(self, exec_method, os, inboundPort):
-        super(ReverseFTP, self).__init__(exec_method, os)
+        super().__init__(exec_method, os)
         self._exec_method = exec_method
         self._os = os
         self._inbound_port = inboundPort
@@ -52,7 +52,7 @@ class ReverseFTP(BasePayloadTransfer):
         """
         :return: An estimated transfer time for a file with the specified size.
         """
-        return int(3)
+        return 3
 
     def _serve(self, data_str):
         """

@@ -1,4 +1,3 @@
-# coding: utf8
 """
 sgml.py
 
@@ -21,26 +20,27 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import urllib.request, urllib.parse, urllib.error
+import io
 import re
 import traceback
-import io
+import urllib.error
+import urllib.parse
+import urllib.request
 
 from lxml import etree
 
-import w3af.core.data.kb.config as cf
 import w3af.core.controllers.output_manager as om
-
+import w3af.core.data.kb.config as cf
+from w3af.core.controllers.exceptions import ParserException
 from w3af.core.controllers.misc_settings import EXCLUDE, INCLUDE
-from w3af.core.data.parsers.doc.baseparser import BaseParser
-from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.constants.encodings import DEFAULT_ENCODING
 from w3af.core.data.misc.encoding import smart_unicode
-from w3af.core.controllers.exceptions import ParserException
+from w3af.core.data.parsers.doc.baseparser import BaseParser
+from w3af.core.data.parsers.doc.url import URL
 
 
-class Tag(object):
-    __slots__ = ("name", "attrib", "text")
+class Tag:
+    __slots__ = ("attrib", "name", "text")
 
     def __init__(self, name, attrib, text=None):
         self.name = name
@@ -83,10 +83,13 @@ class SGMLParser(BaseParser):
     ANY_TAG_MATCH = re.compile("(<.*?>)", re.UNICODE)
 
     EMAIL_RE = re.compile(
-        r"([\w.%-]{1,45}@([A-Z0-9.-]{1,45}\.){1,10}[A-Z]{2,4})", re.I | re.U
+        r"([\w.%-]{1,45}@([A-Z0-9.-]{1,45}\.){1,10}[A-Z]{2,4})",
+        re.IGNORECASE | re.UNICODE,
     )
 
-    META_URL_REDIR_RE = re.compile(r".*?URL.*?='?\"?([^'\"]*)'?\"?", re.I | re.U)
+    META_URL_REDIR_RE = re.compile(
+        r".*?URL.*?='?\"?([^'\"]*)'?\"?", re.IGNORECASE | re.UNICODE
+    )
 
     TAGS_WITH_URLS = {
         "go",
@@ -133,7 +136,6 @@ class SGMLParser(BaseParser):
         "?D=D",
         "?S=D",
         "?M=D",
-        "?N=D",
     }
 
     def __init__(self, http_resp):
@@ -153,7 +155,7 @@ class SGMLParser(BaseParser):
         self._emails = set()
 
     def clear(self):
-        super(SGMLParser, self).clear()
+        super().clear()
 
         # Internal containers
         self._tag_and_url.clear()
@@ -489,9 +491,12 @@ class SGMLParser(BaseParser):
                 form_id = form.get_form_id()
                 matches_one_config_filter = form_id.matches_one_of(form_id_list)
 
-                if matches_one_config_filter and form_id_action == INCLUDE:
-                    filtered_forms.append(form)
-                elif not matches_one_config_filter and form_id_action == EXCLUDE:
+                if (
+                    matches_one_config_filter
+                    and form_id_action == INCLUDE
+                    or not matches_one_config_filter
+                    and form_id_action == EXCLUDE
+                ):
                     filtered_forms.append(form)
 
             return filtered_forms

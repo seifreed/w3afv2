@@ -20,28 +20,26 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import string
 import base64
-import hashlib
 import collections
-
+import hashlib
+import string
 from itertools import chain
-from urllib.parse import unquote, quote, quote_plus
+from urllib.parse import quote, quote_plus, unquote
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
-
 from w3af.core.controllers.exceptions import BaseFrameworkException
-from w3af.core.data.dc.cookie import Cookie
-from w3af.core.data.dc.generic.data_container import DataContainer
-from w3af.core.data.dc.headers import Headers
-from w3af.core.data.dc.generic.kv_container import KeyValueContainer
-from w3af.core.data.dc.factory import dc_from_hdrs_post
+from w3af.core.data.constants.encodings import DEFAULT_ENCODING
 from w3af.core.data.db.disk_item import DiskItem
+from w3af.core.data.dc.cookie import Cookie
+from w3af.core.data.dc.factory import dc_from_hdrs_post
+from w3af.core.data.dc.generic.data_container import DataContainer
+from w3af.core.data.dc.generic.kv_container import KeyValueContainer
+from w3af.core.data.dc.headers import Headers
+from w3af.core.data.misc.encoding import smart_str_ignore
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.request_mixin import RequestMixIn
-from w3af.core.data.constants.encodings import DEFAULT_ENCODING
-from w3af.core.data.misc.encoding import smart_str_ignore
 
 ALL_CHARS = "".join(chr(i) for i in range(256))
 TRANS_TABLE = str.maketrans(ALL_CHARS, ALL_CHARS)
@@ -73,19 +71,19 @@ class FuzzableRequest(RequestMixIn, DiskItem):
     REMOVE_HEADERS = ("content-length",)
 
     __slots__ = (
-        "_method",
         "_cookie",
-        "_post_data",
-        "_headers",
-        "_uri",
-        "_url",
-        "_sent_info_comp",
         "_force_fuzzing_headers",
         "_force_fuzzing_url_parts",
+        "_headers",
+        "_method",
+        "_post_data",
+        "_sent_info_comp",
+        "_uri",
+        "_url",
     )
 
     def __init__(self, uri, method="GET", headers=None, cookie=None, post_data=None):
-        super(FuzzableRequest, self).__init__()
+        super().__init__()
 
         # Note: Do not check for the URI/Headers type here, since I'm doing it
         # in set_uri() and set_headers() already.

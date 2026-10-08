@@ -41,7 +41,7 @@ ST_UNKNOWN = "?"
 PRINT_LINES = 20
 
 
-class Commit(object):
+class Commit:
     """
     Wrapper around git.Commit for easy access to data.
     """
@@ -94,7 +94,7 @@ def get_affected_file(file_diff):
     return affected_file
 
 
-class ChangeLog(object):
+class ChangeLog:
     """
     Easy access to all changes performed between two commits in a branch.
     """

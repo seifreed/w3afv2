@@ -21,9 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import multiprocessing
+
 import w3af.core.controllers.output_manager as om
-import w3af.core.controllers.threads.threadpool as threadpool
-import w3af.core.controllers.threads.pool276 as pool276
+from w3af.core.controllers.threads import pool276, threadpool
 
 
 def new_debug(msg, *args):

@@ -20,27 +20,26 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import re
 import os
-import ssl
+import re
 import socket
+import ssl
+from datetime import date, datetime
+from pprint import pformat
+
 import OpenSSL
 
-from pprint import pformat
-from datetime import date, datetime
-
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.constants.severity as severity
-
 from w3af import ROOT_PATH
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
-from w3af.core.data.options.opt_factory import opt_factory
-from w3af.core.data.options.option_types import INPUT_FILE
-from w3af.core.data.options.option_list import OptionList
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.url.openssl_wrapper.ssl_wrapper import wrap_socket
+from w3af.core.data.constants import severity
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.options.opt_factory import opt_factory
+from w3af.core.data.options.option_list import OptionList
+from w3af.core.data.options.option_types import INPUT_FILE
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.url.openssl_wrapper.ssl_wrapper import wrap_socket
 
 
 class ssl_certificate(AuditPlugin):
@@ -274,7 +273,7 @@ class ssl_certificate(AuditPlugin):
 
         try:
             s.connect((domain, port))
-        except socket.error as se:
+        except OSError as se:
             msg = 'Failed to connect to %s:%s. Socket error: "%s"'
             args = (domain, port, se)
             om.out.debug(msg % args)
@@ -488,7 +487,7 @@ class ssl_certificate(AuditPlugin):
         """
 
 
-class Result(object):
+class Result:
     pass
 
 

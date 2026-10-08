@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from .jsparser import parse
 
 
-class StringExtractor(object):
+class StringExtractor:
     """
     This class was an experiment related with performance enhancements of w3af's
     parsers.
@@ -53,7 +53,7 @@ class StringExtractor(object):
 
         try:
             root = parse(js_source)
-        except Exception as e:
+        except Exception:
             pass
         else:
             self.visit(root)

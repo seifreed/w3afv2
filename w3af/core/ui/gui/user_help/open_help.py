@@ -20,9 +20,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import webbrowser
+
 import git
 
-from w3af.core.controllers.auto_update.utils import get_current_branch, DETACHED_HEAD
+from w3af.core.controllers.auto_update.utils import DETACHED_HEAD, get_current_branch
 
 DOC_ROOT_FMT = "http://docs.w3af.org/en/%s/gui/"
 DOC_ROUTER = {

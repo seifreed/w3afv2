@@ -1,5 +1,5 @@
-import os
 import multiprocessing
+import os
 
 from w3af.core.controllers.ci.detect import is_running_on_ci
 

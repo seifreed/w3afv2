@@ -20,9 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
-import time
 import queue
+import time
+import unittest
 
 from w3af.core.data.misc.smart_queue import SmartQueue
 

@@ -20,15 +20,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import sys
 import subprocess
+import sys
 
 from w3af.core.controllers.dependency_check.platforms.base_platform import Platform
 from w3af.core.controllers.dependency_check.requirements import (
-    CORE_PIP_PACKAGES,
-    GUI_PIP_EXTRAS,
     CORE,
+    CORE_PIP_PACKAGES,
     GUI,
+    GUI_PIP_EXTRAS,
 )
 
 TWO_PYTHON_MSG = """\
@@ -118,7 +118,7 @@ class MacOSX(Platform):
             # MacPorts Python keeps installed dependencies under /opt/local.
             pass
         else:
-            print((TWO_PYTHON_MSG % sys.executable))
+            print(TWO_PYTHON_MSG % sys.executable)
 
         # check if scapy is correctly installed/working on OSX
         try:

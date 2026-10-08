@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 file_token.py
 
@@ -22,17 +21,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import w3af.core.data.kb.config as cf
-
+from w3af.core.controllers.misc.io import NamedStringIO
 from w3af.core.data.constants.file_templates.file_templates import (
     get_template_with_payload,
 )
 from w3af.core.data.dc.utils.token import DataToken
-from w3af.core.controllers.misc.io import NamedStringIO
 
 
 class FileDataToken(DataToken):
     def __init__(self, name, value, filename, path):
-        super(FileDataToken, self).__init__(name, value, path)
+        super().__init__(name, value, path)
 
         default_extension = cf.cf.get("fuzzed_files_extension", "gif")
 

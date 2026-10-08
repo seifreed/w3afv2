@@ -20,15 +20,16 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import mimetools
+import io
 import mimetypes
 import os
 import stat
-import io
 import sys
-import urllib.request, urllib.parse, urllib.error
-import urllib.request, urllib.error, urllib.parse
+import urllib.error
+import urllib.parse
+import urllib.request
 
+import mimetools
 from lib.core.exception import SqlmapDataException
 
 

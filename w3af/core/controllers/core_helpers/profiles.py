@@ -23,16 +23,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 
 import w3af.core.data.kb.config as cf
-
-from w3af.core.controllers.misc_settings import MiscSettings
-from w3af.core.controllers.misc.get_local_ip import get_local_ip
-from w3af.core.controllers.misc.get_file_list import get_file_list
 from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.controllers.misc.get_file_list import get_file_list
+from w3af.core.controllers.misc.get_local_ip import get_local_ip
 from w3af.core.controllers.misc.home_dir import get_home_dir
+from w3af.core.controllers.misc_settings import MiscSettings
 from w3af.core.data.profile.profile import profile as profile
 
 
-class CoreProfiles(object):
+class CoreProfiles:
 
     def __init__(self, w3af_core):
         self._w3af_core = w3af_core

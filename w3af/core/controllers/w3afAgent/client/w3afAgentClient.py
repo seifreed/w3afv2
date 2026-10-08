@@ -1,13 +1,11 @@
 #!/usr/bin/env python
-import time
-import select
 import _thread
-import getopt
-import os
-import sys
+import select
 import socket
 import struct
+import sys
 import threading
+import time
 
 
 def is_routable(address):
@@ -455,7 +453,7 @@ class SocksHandler(threading.Thread):
                 # Collecting information about the socket to store it in the
                 # "waiting binds" list.
                 socket_ip, socket_port = remote.getsockname()
-            except socket.error:
+            except OSError:
                 # A "connection reset by peer" here means the client has closed
                 # the connection.
                 exception, value, traceback = sys.exc_info()
@@ -548,7 +546,7 @@ class SocksHandler(threading.Thread):
             # The only connection that can be reset here is the one of the
             # client, so we don't need to answer. Any other socket
             # exception forces us to try to answer to the client.
-            except socket.error:
+            except OSError:
                 exception, value, traceback = sys.exc_info()
                 if value[0] == ERR_CONNECTION_RESET_BY_PEER:
                     raise Client_Connection_Closed(
@@ -573,7 +571,7 @@ class SocksHandler(threading.Thread):
             # We don't have the right to "speak" to the client anymore.
             # So any socket failure means a "connection closed" and silent
             # exit.
-            except socket.error:
+            except OSError:
                 raise Connection_Closed
         # Mandatory closing of the remote socket.
         finally:
@@ -682,7 +680,7 @@ class SocksHandler(threading.Thread):
                             # This means a poorly detected connection close.
                             raise Connection_Closed
             # If one peer closes its conenction, we have finished our work.
-            except socket.error:
+            except OSError:
                 exception, value, traceback = sys.exc_info()
                 if value[0] == ERR_CONNECTION_RESET_BY_PEER:
                     raise Connection_Closed

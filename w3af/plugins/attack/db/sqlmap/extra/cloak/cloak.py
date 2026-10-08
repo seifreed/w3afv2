@@ -10,9 +10,7 @@ See the file 'LICENSE' for copying permission
 import os
 import sys
 import zlib
-
-from optparse import OptionError
-from optparse import OptionParser
+from optparse import OptionError, OptionParser
 
 
 def hideAscii(data):
@@ -42,10 +40,8 @@ def decloak(inputFile=None, data=None):
         data = zlib.decompress(hideAscii(data))
     except:
         print(
-            (
-                "ERROR: the provided input file '%s' does not contain valid cloaked content"
-                % inputFile
-            )
+            "ERROR: the provided input file '%s' does not contain valid cloaked content"
+            % inputFile
         )
         sys.exit(1)
     finally:
@@ -72,7 +68,7 @@ def main():
         parser.error(e)
 
     if not os.path.isfile(args.inputFile):
-        print(("ERROR: the provided input file '%s' is non existent" % args.inputFile))
+        print("ERROR: the provided input file '%s' is non existent" % args.inputFile)
         sys.exit(1)
 
     if not args.decrypt:

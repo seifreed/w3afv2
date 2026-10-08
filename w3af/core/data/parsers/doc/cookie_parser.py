@@ -50,7 +50,7 @@ class SerializableSimpleCookie(http.cookies.SimpleCookie):
                 # allow assignment of constructed Morsels (e.g. for pickling)
                 dict.__setitem__(self, key, value)
             else:
-                super(SerializableSimpleCookie, self).__setitem__(key, value)
+                super().__setitem__(key, value)
 
 
 def parse_cookie(cookie_header_value):

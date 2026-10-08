@@ -20,16 +20,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
 import pickle
+import unittest
 
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.fuzzer.mutants.urlparts_mutant import (
-    URLPartsMutant,
     TOKEN,
     URLPartsContainer,
+    URLPartsMutant,
 )
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
 class TestURLPartsMutant(unittest.TestCase):

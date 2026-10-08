@@ -20,8 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from .base_platform import Platform
 from ..requirements import CORE, GUI
+from .base_platform import Platform
 
 
 class DefaultPlatform(Platform):

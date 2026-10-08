@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 test_info_set.py
 
@@ -24,19 +23,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import copy
 import json
 import unittest
-
-from nose.plugins.attrib import attr
 from pickle import loads
 
-from w3af.core.data.parsers.doc.url import URL
+from nose.plugins.attrib import attr
+
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
-from w3af.core.data.misc.cpickle_dumps import cpickle_dumps
 from w3af.core.data.kb.tests.test_info import (
-    MockInfo,
     BLIND_SQLI_REFS,
     BLIND_SQLI_TOP10_REFS,
+    MockInfo,
 )
+from w3af.core.data.misc.cpickle_dumps import cpickle_dumps
+from w3af.core.data.parsers.doc.url import URL
 
 
 @attr("smoke")

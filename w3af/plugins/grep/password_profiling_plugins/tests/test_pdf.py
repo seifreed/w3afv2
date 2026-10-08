@@ -20,8 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
 import os
+import unittest
 
 from w3af import ROOT_PATH
 from w3af.plugins.grep.password_profiling_plugins.pdf import pdf

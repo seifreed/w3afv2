@@ -20,10 +20,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import urllib.request, urllib.error, urllib.parse
 import gzip
+import urllib.error
+import urllib.parse
+import urllib.request
 import zlib
-
 from io import StringIO
 
 from w3af.core.data.url.handlers.cache import SQLCachedResponse

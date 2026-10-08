@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 encode_decode.py
 
@@ -22,18 +21,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
-import urllib.request, urllib.parse, urllib.error
 import sys
-
+import urllib.error
+import urllib.parse
+import urllib.request
 from html.entities import name2codepoint
 
+from w3af.core.data.constants.encodings import DEFAULT_ENCODING
 from w3af.core.data.dc.utils.token import DataToken
 from w3af.core.data.misc.encoding import HTML_ENCODE
-from w3af.core.data.constants.encodings import DEFAULT_ENCODING
 
 # This pattern matches a character entity reference (a decimal numeric
 # references, a hexadecimal numeric reference, or a named reference).
-CHAR_REF_PATT = re.compile(r"&(#(\d+|x[\da-fA-F]+)|[\w.:-]+);?", re.U)
+CHAR_REF_PATT = re.compile(r"&(#(\d+|x[\da-fA-F]+)|[\w.:-]+);?", re.UNICODE)
 
 
 def htmldecode(text, use_repr=False):

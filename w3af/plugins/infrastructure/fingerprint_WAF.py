@@ -21,16 +21,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
-
 from itertools import repeat
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
-
-from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
-from w3af.core.controllers.exceptions import BaseFrameworkException
-from w3af.core.controllers.exceptions import RunOnce
+from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
 from w3af.core.controllers.misc.decorators import runonce
+from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.data.fuzzer.utils import rand_alpha
 from w3af.core.data.kb.info import Info
 
@@ -110,7 +107,6 @@ class fingerprint_WAF(InfrastructurePlugin):
         Try to verify if mod_security is installed or not AND try to get the
         installed version.
         """
-        pass
 
     def _fingerprint_Airlock(self, fuzzable_request):
         """

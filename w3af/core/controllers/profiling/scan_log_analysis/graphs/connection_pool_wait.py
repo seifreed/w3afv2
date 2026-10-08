@@ -1,6 +1,6 @@
 import re
-import plotille
 
+import plotille
 from utils.graph import num_formatter
 from utils.output import KeyValueOutput
 from utils.utils import get_first_timestamp, get_last_timestamp, get_line_epoch
@@ -66,9 +66,9 @@ def draw_connection_pool_wait(scan_log_filename, scan):
 
     fig.plot(connection_pool_timestamps, connection_pool_waits)
 
-    print((fig.show()))
-    print("")
-    print("")
+    print(fig.show())
+    print()
+    print()
 
     fig = plotille.Figure()
     fig.width = 90
@@ -86,7 +86,7 @@ def draw_connection_pool_wait(scan_log_filename, scan):
         return
 
     print("Time waiting for available TCP/IP connection")
-    print("")
-    print((plotille.hist(connection_pool_waits, bins=25)))
-    print("")
-    print("")
+    print()
+    print(plotille.hist(connection_pool_waits, bins=25))
+    print()
+    print()

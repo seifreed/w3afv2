@@ -20,14 +20,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
-
-from w3af.core.ui.console.io.console import terminal_width
-from w3af.core.ui.console.util import formatParagraph
 from functools import cmp_to_key
 
+import w3af.core.controllers.output_manager as om
+from w3af.core.ui.console.io.console import terminal_width
+from w3af.core.ui.console.util import formatParagraph
 
-class table(object):
+
+class table:
     """
     An utility class which stores the table-structured data and implements
     a clever method of drawing the tables. Ok, clever enough for our purposes.
@@ -153,7 +153,7 @@ class table(object):
 
         # width = sum(widthes) + (len(columns)-1)*3 + 4
         s = self._separator
-        for rowNum in range(0, maxHeight):
+        for rowNum in range(maxHeight):
             om.out.console(
                 s
                 + " "

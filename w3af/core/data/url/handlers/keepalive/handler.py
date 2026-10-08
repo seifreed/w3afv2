@@ -27,29 +27,32 @@ modifications are:
   - SNI support for SSL
 """
 
-import time
-import socket
-import urllib.request, urllib.error, urllib.parse
 import http.client
-import OpenSSL
+import socket
 import threading
-
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
 from email.base64mime import header_encode
-from http.client import _is_legal_header_name, _is_illegal_header_value
+from http.client import _is_illegal_header_value, _is_legal_header_name
 
-from .utils import debug, error, to_utf8_raw
-from .connection_manager import ConnectionManager
-from .connections import (
-    ProxyHTTPConnection,
-    ProxyHTTPSConnection,
-    HTTPConnection,
-    HTTPSConnection,
-)
+import OpenSSL
+
 from w3af.core.controllers.exceptions import (
     BaseFrameworkException,
-    HTTPRequestException,
     ConnectionPoolException,
+    HTTPRequestException,
 )
+
+from .connection_manager import ConnectionManager
+from .connections import (
+    HTTPConnection,
+    HTTPSConnection,
+    ProxyHTTPConnection,
+    ProxyHTTPSConnection,
+)
+from .utils import debug, error, to_utf8_raw
 
 DEFAULT_CONTENT_TYPE = "application/x-www-form-urlencoded"
 
@@ -70,7 +73,7 @@ class URLTimeoutError(urllib.error.URLError):
             return "HTTP timeout error"
 
 
-class KeepAliveHandler(object):
+class KeepAliveHandler:
 
     def __init__(self):
         # Create the connection pool instance
@@ -157,7 +160,7 @@ class KeepAliveHandler(object):
                     conn = self._cm.replace_connection(conn, req, conn_factory)
                     resp, start = self._get_response(conn, req)
 
-        except socket.timeout:
+        except TimeoutError:
             # We better discard this connection
             self._cm.remove_connection(conn, reason="socket timeout")
             raise URLTimeoutError()
@@ -188,7 +191,7 @@ class KeepAliveHandler(object):
             self._cm.remove_connection(conn, reason="OpenSSL.SSL.Error")
             raise
 
-        except (socket.error, http.client.HTTPException):
+        except (OSError, http.client.HTTPException):
             # We better discard this connection
             self._cm.remove_connection(conn, reason="socket error")
             raise
@@ -272,7 +275,7 @@ class KeepAliveHandler(object):
             resp = conn.getresponse()
             # note: just because we got something back doesn't mean it
             # worked.  We'll check the version below, too.
-        except (socket.error, http.client.HTTPException) as e:
+        except (OSError, http.client.HTTPException) as e:
             self._cm.remove_connection(conn, reason="socket error")
             resp = None
             reason = e

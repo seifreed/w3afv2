@@ -26,8 +26,8 @@ from w3af.core.controllers.exception_handling.cleanup_bug_report import (
     cleanup_bug_report,
 )
 from w3af.core.ui.gui.exception_handling.common_windows import (
-    SimpleBaseWindow,
     GithubBugReport,
+    SimpleBaseWindow,
 )
 
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 kv_container.py
 
@@ -21,16 +20,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from collections import OrderedDict
 from functools import partial
 
-from collections import OrderedDict
-
-from w3af.core.data.misc.encoding import smart_unicode
-from w3af.core.data.dc.generic.data_container import DataContainer
 from w3af.core.data.constants.encodings import UTF8
-from w3af.core.data.parsers.utils.encode_decode import urlencode
-from w3af.core.data.dc.utils.token import DataToken
+from w3af.core.data.dc.generic.data_container import DataContainer
 from w3af.core.data.dc.utils.filter_printable import filter_non_printable
+from w3af.core.data.dc.utils.token import DataToken
+from w3af.core.data.misc.encoding import smart_unicode
+from w3af.core.data.parsers.utils.encode_decode import urlencode
 
 ERR_MSG = 'Unsupported init_val "%s", expected format is [(u"b", [u"2", u"3"])]'
 

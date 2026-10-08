@@ -20,17 +20,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
+
 import gtk
 
-from w3af.core.ui.gui import GUI_DATA_PATH
-from w3af.core.ui.gui import entries
-from w3af.core.ui.gui.user_help.open_help import open_help
-from w3af.core.ui.gui.tools.fuzzy_requests import FuzzyRequests
-from w3af.core.ui.gui.tools.manual_requests import ManualRequests
-from w3af.core.ui.gui.comparator import comparator
+from w3af.core.ui.gui import GUI_DATA_PATH, entries
 
 # Alternative ways of seeing the data
 from w3af.core.ui.gui.clusterGraph import distance_function_selector
+from w3af.core.ui.gui.comparator import comparator
+from w3af.core.ui.gui.tools.fuzzy_requests import FuzzyRequests
+from w3af.core.ui.gui.tools.manual_requests import ManualRequests
+from w3af.core.ui.gui.user_help.open_help import open_help
 
 ui_menu = """
 <ui>

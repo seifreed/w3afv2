@@ -25,12 +25,12 @@ import unittest
 
 from nose.plugins.attrib import attr
 
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.controllers.misc.temp_dir import create_temp_dir
 from w3af.core.controllers.bruteforce.bruteforcer import (
     PasswordBruteforcer,
     UserPasswordBruteforcer,
 )
+from w3af.core.controllers.misc.temp_dir import create_temp_dir
+from w3af.core.data.parsers.doc.url import URL
 
 
 class TestPasswordBruteforcer(unittest.TestCase):
@@ -87,8 +87,9 @@ class TestUserPasswordBruteforcer(unittest.TestCase):
         combo_filename = os.path.join(self.temp_dir, "combo.txt")
         combo_fd = open(combo_filename, "w")
 
-        for user, password in expected_combinations:
-            combo_fd.write("%s:%s\n" % (user, password))
+        combo_fd.writelines(
+            "%s:%s\n" % (user, password) for user, password in expected_combinations
+        )
 
         combo_fd.close()
 

@@ -20,22 +20,21 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import os
-import json
 import base64
-
-import w3af.core.data.constants.severity as severity
+import json
+import os
 
 from w3af import ROOT_PATH
+from w3af.core.controllers.delay_detection.exact_delay import ExactDelay
 from w3af.core.controllers.delay_detection.exact_delay_controller import (
     ExactDelayController,
 )
-from w3af.core.controllers.delay_detection.exact_delay import ExactDelay
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
-from w3af.core.data.misc.base64_nopadding import maybe_decode_base64
-from w3af.core.data.fuzzer.fuzzer import create_mutants
+from w3af.core.data.constants import severity
 from w3af.core.data.dc.generic.form import Form
+from w3af.core.data.fuzzer.fuzzer import create_mutants
 from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.misc.base64_nopadding import maybe_decode_base64
 from w3af.core.data.parsers.utils.form_constants import (
     INPUT_TYPE_FILE,
     INPUT_TYPE_HIDDEN,
@@ -277,9 +276,7 @@ class DeserializationExactDelay(ExactDelay):
     """
 
     def __init__(self, delay_data, delta=0, mult=1):
-        super(DeserializationExactDelay, self).__init__(
-            delay_data, delta=delta, mult=mult
-        )
+        super().__init__(delay_data, delta=delta, mult=mult)
         self._delay_data = delay_data
 
     def _get_payload_and_offset(self, delay_len):
@@ -321,7 +318,5 @@ class B64DeserializationExactDelay(DeserializationExactDelay):
         Applies :param seconds to self._delay_fmt and returns a base64 encoded
         string.
         """
-        payload = super(B64DeserializationExactDelay, self).get_string_for_delay(
-            seconds
-        )
+        payload = super().get_string_for_delay(seconds)
         return base64.b64encode(payload)

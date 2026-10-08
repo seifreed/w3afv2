@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from w3af.core.data.options.option_list import OptionList
 
 
-class question(object):
+class question:
     """
     This class represents a question that is made to a user through a wizard.
 
@@ -90,7 +90,7 @@ class question(object):
                  user, based on the options_list. None if this is the last
                  question of the wizard.
         """
-        return None
+        return
 
     def __repr__(self):
         return "<question object " + self._question_id + ">"

@@ -23,13 +23,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import re
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.constants.severity as severity
-
-from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
+from w3af.core.controllers.delay_detection.exact_delay import ExactDelay
 from w3af.core.controllers.delay_detection.exact_delay_controller import (
     ExactDelayController,
 )
-from w3af.core.controllers.delay_detection.exact_delay import ExactDelay
+from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
+from w3af.core.data.constants import severity
 from w3af.core.data.fuzzer.fuzzer import create_mutants
 from w3af.core.data.fuzzer.utils import rand_alpha
 from w3af.core.data.kb.vuln import Vuln
@@ -204,7 +203,9 @@ class eval(AuditPlugin):
         """
         eval_error_list = self._find_eval_result(response)
         for eval_error in eval_error_list:
-            if not re.search(eval_error, mutant.get_original_response_body(), re.I):
+            if not re.search(
+                eval_error, mutant.get_original_response_body(), re.IGNORECASE
+            ):
 
                 desc = "eval() input injection was found at: %s"
                 desc = desc % mutant.found_at()

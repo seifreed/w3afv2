@@ -8,6 +8,7 @@ See the file 'LICENSE' for copying permission
 from lib.core.enums import DBMS
 from lib.core.settings import SQLITE_SYSTEM_DBS
 from lib.core.unescaper import unescaper
+
 from plugins.dbms.sqlite.enumeration import Enumeration
 from plugins.dbms.sqlite.filesystem import Filesystem
 from plugins.dbms.sqlite.fingerprint import Fingerprint

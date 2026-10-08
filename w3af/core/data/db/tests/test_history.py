@@ -19,24 +19,23 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import zipfile
+import os.path
 import random
 import unittest
-import os.path
+import zipfile
 
 from nose.plugins.attrib import attr
 
 import w3af.core.data.kb.knowledge_base as kb
-
 from w3af.core.controllers.exceptions import DBException
 from w3af.core.controllers.misc.temp_dir import create_temp_dir, remove_temp_dir
 from w3af.core.data.db.dbms import get_default_temp_db_instance
-from w3af.core.data.db.history import HistoryItem, TraceReadException
+from w3af.core.data.db.history import HistoryItem
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.url.HTTPResponse import HTTPResponse
 from w3af.core.data.url.HTTPRequest import HTTPRequest
+from w3af.core.data.url.HTTPResponse import HTTPResponse
 from w3af.plugins.tests.helper import LOREM
 
 
@@ -63,7 +62,7 @@ class TestHistoryItem(unittest.TestCase):
         url = URL("http://w3af.org/a/b/foobar.php?foo=123")
         tag_value = rand_alnum(10)
 
-        for i in range(0, 500):
+        for i in range(500):
             request = HTTPRequest(url, data="a=1")
             code = 200
             if i == find_id:
@@ -98,7 +97,7 @@ class TestHistoryItem(unittest.TestCase):
         mark_id = 3
         url = URL("http://w3af.org/a/b/c.php")
 
-        for i in range(0, 500):
+        for i in range(500):
             request = HTTPRequest(url, data="a=1")
             hdr = Headers([("Content-Type", "text/html")])
             res = HTTPResponse(200, "<html>", hdr, url, url)

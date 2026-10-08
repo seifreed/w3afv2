@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 
-class BaseContext(object):
+class BaseContext:
     CAN_BREAK = None
 
     def __init__(self, payload, context_content):

@@ -1,4 +1,3 @@
-# coding: utf8
 """
 test_export_requests.py
 
@@ -23,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 
 from w3af.core.controllers.ci.moth import get_moth_http
-from w3af.plugins.tests.helper import PluginTest, PluginConfig
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 
 class TestExportRequests(PluginTest):
@@ -68,7 +67,7 @@ class TestExportRequests(PluginTest):
             yield FuzzableRequest.from_base64(line)
 
     def tearDown(self):
-        super(TestExportRequests, self).tearDown()
+        super().tearDown()
         try:
             os.remove("output-fr.b64")
         except:

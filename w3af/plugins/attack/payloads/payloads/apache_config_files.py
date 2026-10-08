@@ -1,6 +1,6 @@
 import w3af.core.data.kb.knowledge_base as kb
-from w3af.plugins.attack.payloads.base_payload import Payload
 from w3af.core.ui.console.tables import table
+from w3af.plugins.attack.payloads.base_payload import Payload
 
 
 class apache_config_files(Payload):

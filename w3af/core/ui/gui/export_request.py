@@ -22,15 +22,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import gtk
 
-from w3af.core.ui.gui import entries
-from w3af.core.ui.gui.tools.encdec import SimpleTextView
-
+from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.export.ajax_export import ajax_export
 from w3af.core.data.export.html_export import html_export
 from w3af.core.data.export.python_export import python_export
 from w3af.core.data.export.ruby_export import ruby_export
-
-from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.ui.gui import entries
+from w3af.core.ui.gui.tools.encdec import SimpleTextView
 
 export_request_example = """\
 GET http://localhost/script.php HTTP/1.0
@@ -48,9 +46,7 @@ class export_request(entries.RememberingWindow):
     """
 
     def __init__(self, w3af, initial_request=None):
-        super(export_request, self).__init__(
-            w3af, "exportreq", "w3af - Export Requests", "Export_Requests"
-        )
+        super().__init__(w3af, "exportreq", "w3af - Export Requests", "Export_Requests")
         self.w3af = w3af
 
         # different ways of exporting data

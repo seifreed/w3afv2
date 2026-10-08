@@ -24,13 +24,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 SUCCESS = "Success"
 
 
-class ResponseMeta(object):
+class ResponseMeta:
     """
     Stores response meta-data to be able to track errors and timeouts in the
     extended urllib library.
     """
 
-    __slots__ = ("successful", "message", "rtt", "host")
+    __slots__ = ("host", "message", "rtt", "successful")
 
     def __init__(self, successful, message, rtt=None, host=None):
         self.successful = successful

@@ -20,22 +20,20 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import codecs
 import hashlib
 import os
 import re
-import codecs
-
 from collections import namedtuple
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
-
 from w3af import ROOT_PATH
-from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
-from w3af.core.controllers.exceptions import RunOnce, BaseFrameworkException
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
+from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
+from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.kb.info import Info
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
@@ -166,7 +164,7 @@ class wordpress_fingerprint(CrawlPlugin):
         response = self._uri_opener.GET(wp_readme_url, cache=True)
 
         # Find the string in the response html
-        find = "<br /> Version (\d\.\d\.?\d?)"
+        find = r"<br /> Version (\d\.\d\.?\d?)"
         m = re.search(find, response.get_body())
 
         # If string found, group version
@@ -197,7 +195,7 @@ class wordpress_fingerprint(CrawlPlugin):
         response = self._uri_opener.GET(wp_index_url, cache=True)
 
         # Find the string in the response html
-        find = '<meta name="generator" content="[Ww]ord[Pp]ress (\d\.\d\.?\d?)" />'
+        find = r'<meta name="generator" content="[Ww]ord[Pp]ress (\d\.\d\.?\d?)" />'
         m = re.search(find, response.get_body())
 
         # If string found, group version
@@ -342,7 +340,6 @@ class WPVersionsHandler(ContentHandler):
         elif name == "version":
             self.inside_version = True
             self.version = ""
-        return
 
     def characters(self, ch):
         if self.inside_version:

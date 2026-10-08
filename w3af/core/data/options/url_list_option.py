@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.options.list_option import ListOption
-from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.options.option_types import URL_LIST
+from w3af.core.data.parsers.doc.url import URL
 
 
 class URLListOption(ListOption):
@@ -31,10 +31,10 @@ class URLListOption(ListOption):
     _type = URL_LIST
 
     def set_value(self, value):
-        return super(URLListOption, self).set_value(value)
+        return super().set_value(value)
 
     def validate(self, value):
-        parsed_list = super(URLListOption, self).validate(value)
+        parsed_list = super().validate(value)
         res = []
 
         for input_url in parsed_list:

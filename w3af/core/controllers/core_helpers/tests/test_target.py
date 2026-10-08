@@ -19,30 +19,30 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import unittest
 import os
+import unittest
 
 from nose.plugins.attrib import attr
 
 import w3af.core.data.kb.config as cf
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.core_helpers.target import CoreTarget
-from w3af.core.data.parsers.doc.url import URL as URL_KLASS
+from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.options.option_types import (
     BOOL,
-    INT,
+    COMBO,
     FLOAT,
-    STRING,
-    URL,
+    INPUT_FILE,
+    INT,
     IPPORT,
     LIST,
-    REGEX,
-    COMBO,
-    INPUT_FILE,
     OUTPUT_FILE,
     PORT,
+    REGEX,
+    STRING,
+    URL,
     URL_LIST,
 )
+from w3af.core.data.parsers.doc.url import URL as URL_KLASS
 
 OPTION_TYPES = (
     BOOL,

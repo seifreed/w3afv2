@@ -1,4 +1,3 @@
-# -*- coding: utf8 -*-
 """
 test_github_issues.py
 
@@ -26,8 +25,8 @@ from github import Github
 from nose.plugins.attrib import attr
 
 from w3af.core.controllers.easy_contribution.github_issues import (
-    GithubIssues,
     OAUTH_TOKEN,
+    GithubIssues,
     OAuthTokenInvalid,
     UserCredentialsInvalid,
 )

@@ -21,12 +21,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.constants.severity as severity
-
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
+from w3af.core.data.constants import severity
 from w3af.core.data.fuzzer.fuzzer import create_mutants
-from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
+from w3af.core.data.kb.vuln import Vuln
 
 PATH_PARAM = "%3B/w3af.cmd%3B/w3af.cmd"
 EXEC_TOKEN = "w3afExecToken"

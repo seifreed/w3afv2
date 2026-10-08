@@ -22,8 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import unittest
 
 import w3af.core.data.kb.knowledge_base as kb
-
-from w3af.plugins.attack.payloads.shell_handler import get_webshells, get_shell_code
+from w3af.plugins.attack.payloads.shell_handler import get_shell_code, get_webshells
 
 
 class TestShellHandler(unittest.TestCase):

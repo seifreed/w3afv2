@@ -20,7 +20,7 @@ def detect(get_page):
         _, headers, _ = get_page(get=vector)
         retval = any(headers.get(_) for _ in ("x-binarysec-via", "x-binarysec-nocache"))
         retval |= (
-            re.search(r"BinarySec", headers.get(HTTP_HEADER.SERVER, ""), re.I)
+            re.search(r"BinarySec", headers.get(HTTP_HEADER.SERVER, ""), re.IGNORECASE)
             is not None
         )
         if retval:

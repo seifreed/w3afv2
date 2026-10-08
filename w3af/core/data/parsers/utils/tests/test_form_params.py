@@ -19,24 +19,24 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
-import pickle
 import copy
+import pickle
 import time
+import unittest
 
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.utils.form_constants import (
-    MODE_ALL,
-    MODE_TB,
-    MODE_B,
-    MODE_T,
-    MODE_TMB,
     INPUT_TYPE_RADIO,
     INPUT_TYPE_SELECT,
+    MODE_ALL,
+    MODE_B,
+    MODE_T,
+    MODE_TB,
+    MODE_TMB,
 )
 from w3af.core.data.parsers.utils.form_params import (
-    FormParameters,
     DEFAULT_FORM_ENCODING,
+    FormParameters,
 )
 
 form_with_radio = [

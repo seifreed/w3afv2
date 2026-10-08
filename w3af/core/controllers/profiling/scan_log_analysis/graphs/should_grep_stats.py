@@ -1,7 +1,7 @@
-import re
 import json
-import plotille
+import re
 
+import plotille
 from utils.graph import num_formatter
 from utils.utils import get_first_timestamp, get_last_timestamp, get_line_epoch
 
@@ -27,7 +27,7 @@ def get_should_grep_data(scan_log_filename, scan):
         try:
             stats_dict = to_dict(match.group(1))
         except:
-            print(("Warning: %s is not valid JSON" % match.group(1)))
+            print("Warning: %s is not valid JSON" % match.group(1))
             continue
         else:
             should_grep_data.append(stats_dict)
@@ -54,15 +54,15 @@ def draw_should_grep(scan_log_filename, scan):
     last_data = should_grep_data[-1]
 
     print("should_grep() stats")
-    print(("    Latest should_grep() count: %r" % last_data))
+    print("    Latest should_grep() count: %r" % last_data)
 
     # Calculate %
     last_data = should_grep_data[-1]
     total = sum(v for k, v in last_data.items())
     total = float(total)
     data_percent = dict((k, round((v / total) * 100)) for k, v in last_data.items())
-    print(("    Latest should_grep() percentages: %r" % data_percent))
-    print("")
+    print("    Latest should_grep() percentages: %r" % data_percent)
+    print()
 
     fig = plotille.Figure()
     fig.width = 90
@@ -92,5 +92,5 @@ def draw_should_grep(scan_log_filename, scan):
 
         fig.plot(should_grep_timestamps, key_slice, label=key)
 
-    print((fig.show(legend=True)))
-    print("")
+    print(fig.show(legend=True))
+    print()

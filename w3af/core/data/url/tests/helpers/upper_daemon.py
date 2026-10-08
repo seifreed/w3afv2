@@ -52,7 +52,7 @@ class UpperDaemon(threading.Thread):
     """
 
     def __init__(self, handler=UpperTCPHandler):
-        super(UpperDaemon, self).__init__()
+        super().__init__()
         self.daemon = True
         self.server = None
         self.handler = handler

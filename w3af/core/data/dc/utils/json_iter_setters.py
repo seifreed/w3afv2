@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import json
-import types
 
 from w3af.core.data.dc.utils.token import DataToken
 
@@ -56,12 +55,9 @@ def to_mutable(arbitrary_python_obj):
     if isinstance(arbitrary_python_obj, TO_WRAP_OBJS):
         return MutableWrapper(arbitrary_python_obj)
 
-    elif isinstance(arbitrary_python_obj, MutableWrapper):
-        value = to_mutable(arbitrary_python_obj.get_value())
-        arbitrary_python_obj.set_value(value)
-        return arbitrary_python_obj
-
-    elif isinstance(arbitrary_python_obj, DataToken):
+    elif isinstance(arbitrary_python_obj, MutableWrapper) or isinstance(
+        arbitrary_python_obj, DataToken
+    ):
         value = to_mutable(arbitrary_python_obj.get_value())
         arbitrary_python_obj.set_value(value)
         return arbitrary_python_obj
@@ -83,7 +79,7 @@ def to_mutable(arbitrary_python_obj):
     )
 
 
-class MutableWrapper(object):
+class MutableWrapper:
     """
     Wrapper around string, int and float which allows me to provide a setter
     around them. The
@@ -165,9 +161,7 @@ def _json_iter_setters(marbitrary_python_obj, key_names=None):
 
 def json_complex_str(arbitrary_json):
     def encode_complex(obj):
-        if isinstance(obj, DataToken):
-            return obj.get_value()
-        elif isinstance(obj, MutableWrapper):
+        if isinstance(obj, DataToken) or isinstance(obj, MutableWrapper):
             return obj.get_value()
 
         raise TypeError(repr(obj) + " is not JSON serializable")

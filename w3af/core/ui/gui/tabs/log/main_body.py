@@ -19,9 +19,9 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from w3af.core.ui.gui.entries import RememberingVPaned, RememberingHPaned
-from w3af.core.ui.gui.tabs.log.messages import Messages
+from w3af.core.ui.gui.entries import RememberingHPaned, RememberingVPaned
 from w3af.core.ui.gui.tabs.log.graph import LogGraph
+from w3af.core.ui.gui.tabs.log.messages import Messages
 from w3af.core.ui.gui.tabs.log.stats import StatsViewer
 
 
@@ -34,7 +34,7 @@ class LogBody(RememberingVPaned):
     """
 
     def __init__(self, w3af):
-        super(LogBody, self).__init__(w3af, "pane-logbody")
+        super().__init__(w3af, "pane-logbody")
         self.w3af = w3af
 
         # stats and graph hbox

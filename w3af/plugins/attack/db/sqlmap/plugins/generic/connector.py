@@ -7,10 +7,8 @@ See the file 'LICENSE' for copying permission
 
 import os
 
-from lib.core.data import conf
-from lib.core.data import logger
-from lib.core.exception import SqlmapFilePathException
-from lib.core.exception import SqlmapUndefinedMethod
+from lib.core.data import conf, logger
+from lib.core.exception import SqlmapFilePathException, SqlmapUndefinedMethod
 
 
 class Connector:

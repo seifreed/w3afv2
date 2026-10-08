@@ -22,11 +22,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import sys
 
-from w3af.core.controllers.misc.which import which
 from w3af.core.controllers.dependency_check.dependency_check import (
     dependency_check as mdep_check,
 )
 from w3af.core.controllers.dependency_check.platforms.base_platform import GUI
+from w3af.core.controllers.misc.which import which
 
 
 def dependency_check():
@@ -47,7 +47,6 @@ def dependency_check():
 
         pygtk.require("2.0")
         import gtk
-        import gobject
 
         assert gtk.gtk_version >= (2, 12)
         assert gtk.pygtk_version >= (2, 12)

@@ -21,20 +21,20 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import re
 import os
 import random
+import re
 import unittest
 
 import httpretty
 
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.url.HTTPResponse import HTTPResponse
-from w3af.core.data.dc.headers import Headers
-from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.controllers.core_helpers.fingerprint_404 import Fingerprint404
 from w3af.core.controllers.misc.fuzzy_string_cmp import MAX_FUZZY_LENGTH
 from w3af.core.data.db.dbms import clear_default_temp_db_instance
+from w3af.core.data.dc.headers import Headers
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.url.extended_urllib import ExtendedUrllib
+from w3af.core.data.url.HTTPResponse import HTTPResponse
 
 
 class Generic404Test(unittest.TestCase):
@@ -186,7 +186,7 @@ class Test404FalsePositiveLargeResponsesRandomShort(Generic404Test):
 class Test404With1ByteRandomShort(Generic404Test):
 
     def __init__(self):
-        super(Test404With1ByteRandomShort, self).__init__()
+        super().__init__()
         self.application_server_ids = [1, 2, 2]
         self.application_server_idx = 0
 
@@ -230,7 +230,7 @@ class Test404With1ByteRandomShort(Generic404Test):
 class Test404With1ByteRandomLarge(Generic404Test):
 
     def __init__(self):
-        super(Test404With1ByteRandomLarge, self).__init__()
+        super().__init__()
         self.application_server_ids = [1, 2, 2]
         self.application_server_idx = 0
 

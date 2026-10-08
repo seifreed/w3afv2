@@ -1,4 +1,3 @@
-# coding: utf8
 """
 test_wordnet.py
 
@@ -20,13 +19,12 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import w3af.core.data.kb.knowledge_base as kb
-
 from nose.plugins.attrib import attr
 
+import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.ci.moth import get_moth_http
-from w3af.plugins.tests.helper import PluginTest, PluginConfig
 from w3af.plugins.crawl.wordnet import wordnet
+from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 
 class TestWordnet(PluginTest):

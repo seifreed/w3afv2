@@ -56,11 +56,11 @@ __version__ = "1.5.7"
 
 import socket
 import struct
-from errno import EOPNOTSUPP, EINVAL, EAGAIN
+from base64 import b64encode
+from collections.abc import Callable
+from errno import EAGAIN, EINVAL, EOPNOTSUPP
 from io import BytesIO
 from os import SEEK_CUR
-from collections import Callable
-from base64 import b64encode
 
 PROXY_TYPE_SOCKS4 = SOCKS4 = 1
 PROXY_TYPE_SOCKS5 = SOCKS5 = 2
@@ -83,7 +83,7 @@ class ProxyError(IOError):
         self.socket_err = socket_err
 
         if socket_err:
-            self.msg += ": {0}".format(socket_err)
+            self.msg += f": {socket_err}"
 
     def __str__(self):
         return self.msg
@@ -248,7 +248,7 @@ def create_connection(
             sock.connect((remote_host, remote_port))
             return sock
 
-        except (socket.error, ProxyConnectionError) as e:
+        except (OSError, ProxyConnectionError) as e:
             err = e
             if sock:
                 sock.close()
@@ -257,7 +257,7 @@ def create_connection(
     if err:
         raise err
 
-    raise socket.error("gai returned empty list.")
+    raise OSError("gai returned empty list.")
 
 
 class _BaseSocket(socket.socket):
@@ -378,10 +378,10 @@ class socksocket(_BaseSocket):
             return _orig_socket.bind(self, *pos, **kw)
 
         if self._proxyconn:
-            raise socket.error(EINVAL, "Socket already bound to an address")
+            raise OSError(EINVAL, "Socket already bound to an address")
         if proxy_type != SOCKS5:
             msg = "UDP only supported by SOCKS5 proxy type"
-            raise socket.error(EOPNOTSUPP, msg)
+            raise OSError(EOPNOTSUPP, msg)
         _BaseSocket.bind(self, *pos, **kw)
 
         # Need to specify actual local port because
@@ -445,7 +445,7 @@ class socksocket(_BaseSocket):
         if self.proxy_peername:
             peerhost, peerport = self.proxy_peername
             if fromhost != peerhost or peerport not in (0, fromport):
-                raise socket.error(EAGAIN, "Packet filtered")
+                raise OSError(EAGAIN, "Packet filtered")
 
         return (buf.read(), (fromhost, fromport))
 
@@ -570,7 +570,7 @@ class socksocket(_BaseSocket):
             if status != 0x00:
                 # Connection failed: server returned an error
                 error = SOCKS5_ERRORS.get(status, "Unknown error")
-                raise SOCKS5Error("{0:#04x}: {1}".format(status, error))
+                raise SOCKS5Error(f"{status:#04x}: {error}")
 
             # Get the bound address/port
             bnd = self._read_SOCKS5_address(reader)
@@ -598,7 +598,7 @@ class socksocket(_BaseSocket):
                 host = socket.inet_ntop(family, addr_bytes)
                 file.write(struct.pack(">H", port))
                 return host, port
-            except socket.error:
+            except OSError:
                 continue
 
         # Well it's not an IP number, so it's probably a DNS name.
@@ -656,7 +656,7 @@ class socksocket(_BaseSocket):
             remote_resolve = False
             try:
                 addr_bytes = socket.inet_aton(dest_addr)
-            except socket.error:
+            except OSError:
                 # It's a DNS name. Check where it should be resolved.
                 if rdns:
                     addr_bytes = b"\x00\x00\x00\x01"
@@ -690,7 +690,7 @@ class socksocket(_BaseSocket):
             if status != 0x5A:
                 # Connection failed: server returned an error
                 error = SOCKS4_ERRORS.get(status, "Unknown error")
-                raise SOCKS4Error("{0:#04x}: {1}".format(status, error))
+                raise SOCKS4Error(f"{status:#04x}: {error}")
 
             # Get the bound address/port
             self.proxy_sockname = (
@@ -755,7 +755,7 @@ class socksocket(_BaseSocket):
             raise HTTPError("HTTP proxy server did not return a valid HTTP status")
 
         if status_code != 200:
-            error = "{0}: {1}".format(status_code, status_msg)
+            error = f"{status_code}: {status_msg}"
             if status_code in (400, 403, 405):
                 # It's likely that the HTTP proxy server does not support the CONNECT tunneling method
                 error += (
@@ -785,7 +785,7 @@ class socksocket(_BaseSocket):
             # Probably IPv6, not supported -- raise an error, and hope
             # Happy Eyeballs (RFC6555) makes sure at least the IPv4
             # connection works...
-            raise socket.error("PySocks doesn't support IPv6")
+            raise OSError("PySocks doesn't support IPv6")
 
         dest_addr, dest_port = dest_pair
 
@@ -825,16 +825,14 @@ class socksocket(_BaseSocket):
             # Initial connection to proxy server
             _BaseSocket.connect(self, proxy_addr)
 
-        except socket.error as error:
+        except OSError as error:
             # Error while connecting to proxy
             self.close()
             proxy_addr, proxy_port = proxy_addr
-            proxy_server = "{0}:{1}".format(proxy_addr, proxy_port)
+            proxy_server = f"{proxy_addr}:{proxy_port}"
             printable_type = PRINTABLE_PROXY_TYPES[proxy_type]
 
-            msg = "Error connecting to {0} proxy {1}".format(
-                printable_type, proxy_server
-            )
+            msg = f"Error connecting to {printable_type} proxy {proxy_server}"
             raise ProxyConnectionError(msg, error)
 
         else:
@@ -843,7 +841,7 @@ class socksocket(_BaseSocket):
                 # Calls negotiate_{SOCKS4, SOCKS5, HTTP}
                 negotiate = self._proxy_negotiators[proxy_type]
                 negotiate(self, dest_addr, dest_port)
-            except socket.error as error:
+            except OSError as error:
                 # Wrap socket errors
                 self.close()
                 raise GeneralProxyError("Socket error", error)

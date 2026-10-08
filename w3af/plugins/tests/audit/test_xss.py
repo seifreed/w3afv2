@@ -19,21 +19,20 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from nose.plugins.attrib import attr
 from unittest import TestCase
 
-from w3af.core.data.kb.config import cf
+from nose.plugins.attrib import attr
 
+from w3af.core.controllers.ci.moth import get_moth_http
+from w3af.core.controllers.ci.php_moth import get_php_moth_http
+from w3af.core.controllers.ci.wavsep import get_wavsep_http
+from w3af.core.data.constants import severity
+from w3af.core.data.context.context.css import ALL_CONTEXTS as ALL_CSS_CONTEXTS
 from w3af.core.data.context.context.html import ALL_CONTEXTS as ALL_HTML_CONTEXTS
 from w3af.core.data.context.context.javascript import ALL_CONTEXTS as ALL_JS_CONTEXTS
-from w3af.core.data.context.context.css import ALL_CONTEXTS as ALL_CSS_CONTEXTS
-from w3af.core.controllers.ci.moth import get_moth_http
-from w3af.core.controllers.ci.wavsep import get_wavsep_http
-from w3af.core.controllers.ci.php_moth import get_php_moth_http
-from w3af.plugins.tests.helper import PluginTest, PluginConfig
+from w3af.core.data.kb.config import cf
 from w3af.plugins.audit.xss import xss
-
-import w3af.core.data.constants.severity as severity
+from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 
 class TestXSS(PluginTest):

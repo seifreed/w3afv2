@@ -22,14 +22,13 @@ import os
 import re
 
 import w3af.core.controllers.output_manager as om
-
 from w3af import ROOT_PATH
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
-from w3af.core.data.options.opt_factory import opt_factory
-from w3af.core.data.options.option_types import INPUT_FILE, REGEX
-from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.kb.info import Info
+from w3af.core.data.options.opt_factory import opt_factory
+from w3af.core.data.options.option_list import OptionList
+from w3af.core.data.options.option_types import INPUT_FILE, REGEX
 
 
 class user_defined_regex(GrepPlugin):
@@ -140,7 +139,7 @@ class user_defined_regex(GrepPlugin):
                 for regex in f:
                     current_regex = regex.strip()
                     try:
-                        re_inst = re.compile(current_regex, re.I | re.DOTALL)
+                        re_inst = re.compile(current_regex, re.IGNORECASE | re.DOTALL)
                     except:
                         msg = 'Invalid regex in input file: "%s"'
                         raise BaseFrameworkException(msg % current_regex)
@@ -156,7 +155,7 @@ class user_defined_regex(GrepPlugin):
             # Please note that the regex compilation can not fail because
             # the option is of type REGEX and there is a validation made in
             # regex_option.py
-            re_inst = re.compile(self._single_regex, re.I | re.DOTALL)
+            re_inst = re.compile(self._single_regex, re.IGNORECASE | re.DOTALL)
 
             self._regexlist_compiled.append((re_inst, None))
             tmp_not_compiled_all.append(self._single_regex)

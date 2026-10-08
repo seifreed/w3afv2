@@ -19,19 +19,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
 import threading
+import unittest
 
 from nose.plugins.attrib import attr
 
 from w3af.core.controllers.misc.temp_dir import create_temp_dir
-from w3af.core.data.db.disk_set import DiskSet
-from w3af.core.data.parsers.utils.form_params import FormParameters
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.dc.headers import Headers
 from w3af.core.data.db.dbms import get_default_temp_db_instance
+from w3af.core.data.db.disk_set import DiskSet
 from w3af.core.data.dc.factory import dc_from_form_params
+from w3af.core.data.dc.headers import Headers
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.parsers.utils.form_params import FormParameters
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
 class TestDiskSet(unittest.TestCase):
@@ -129,7 +129,7 @@ class TestDiskSet(unittest.TestCase):
         for th in threads:
             th.join()
 
-        for i in range(0, 1000):
+        for i in range(1000):
             self.assertTrue(i in ds, i)
 
         ds_as_list = list(ds)

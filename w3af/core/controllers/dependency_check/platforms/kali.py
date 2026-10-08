@@ -20,8 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from .ubuntu1204 import Ubuntu1204
 from .system_info import distribution_matches
+from .ubuntu1204 import Ubuntu1204
 
 KALI_MESSAGE = """
 According to Kali's documentation [0] in order to avoid breaking the packaged\

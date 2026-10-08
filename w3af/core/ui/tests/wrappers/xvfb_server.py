@@ -19,14 +19,13 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import subprocess
-import subprocess
+import os
+import shlex
 import shutil
+import subprocess
 import tempfile
 import threading
 import time
-import shlex
-import os
 
 from w3af.core.ui.tests.wrappers.constants import DISPLAY
 from w3af.core.ui.tests.wrappers.utils import restore_original_display
@@ -59,7 +58,7 @@ class XVFBServer(threading.Thread):
     SCREEN_XWD_FILE_0 = "%s/Xvfb_screen0" % tempfile.gettempdir()
 
     def __init__(self):
-        super(XVFBServer, self).__init__()
+        super().__init__()
         self.name = "XVFBServer"
         self.daemon = True
 

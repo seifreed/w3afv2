@@ -25,11 +25,10 @@ import sys
 import textwrap
 
 import w3af.core.controllers.output_manager as om
-
-from w3af.core.ui.console.menu import menu
-from w3af.core.ui.console.config import ConfigMenu
-from w3af.core.ui.console.util import suggest
 from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.ui.console.config import ConfigMenu
+from w3af.core.ui.console.menu import menu
+from w3af.core.ui.console.util import suggest
 
 
 class pluginsMenu(menu):
@@ -96,8 +95,6 @@ class pluginsMenu(menu):
             self._cmd_help(["list"])
         else:
             subMenu._list(params[1:])
-
-        return None
 
     def _para_list(self, params, part):
         l = len(params)

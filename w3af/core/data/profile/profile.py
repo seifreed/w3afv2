@@ -20,20 +20,20 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import os
 import codecs
+import configparser
+import os
 import shutil
 import string
-import configparser
 
 from w3af.core.controllers.core_helpers.target import CoreTarget
+from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.misc.factory import factory
 from w3af.core.controllers.misc.home_dir import get_home_dir
 from w3af.core.data.constants.encodings import UTF8
-from w3af.core.controllers.exceptions import BaseFrameworkException
 
 
-class profile(object):
+class profile:
     """
     This class represents a profile.
 
@@ -358,7 +358,7 @@ class profile(object):
         Get the http settings options.
         :return: The http settings in an OptionList
         """
-        import w3af.core.data.url.opener_settings as opener_settings
+        from w3af.core.data.url import opener_settings
 
         url_settings = opener_settings.OpenerSettings()
         return self._get_x_settings("http-settings", url_settings)

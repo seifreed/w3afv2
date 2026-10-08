@@ -24,8 +24,9 @@ import os
 import re
 
 import gtk
-import pango
 import gtksourceview2 as gtksourceview
+import pango
+
 from w3af import ROOT_PATH
 from w3af.core.data.constants import severity
 from w3af.core.ui.gui.common.searchable import Searchable

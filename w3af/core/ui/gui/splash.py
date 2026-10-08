@@ -19,12 +19,13 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import gtk
 import os
 
-from w3af.core.ui.gui.constants import W3AF_ICON
-from w3af.core.controllers.dependency_check.platforms.mac import MacOSX
+import gtk
+
 from w3af import ROOT_PATH
+from w3af.core.controllers.dependency_check.platforms.mac import MacOSX
+from w3af.core.ui.gui.constants import W3AF_ICON
 
 
 class Splash(gtk.Window):
@@ -34,7 +35,7 @@ class Splash(gtk.Window):
     """
 
     def __init__(self):
-        super(Splash, self).__init__()
+        super().__init__()
 
         # These two lines are required here to make sure that unity shows the
         # correct information in the menu

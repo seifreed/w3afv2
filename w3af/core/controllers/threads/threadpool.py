@@ -20,27 +20,25 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import sys
-import time
 import queue
+import sys
 import threading
+import time
 import traceback
-
 from functools import partial
-
+from multiprocessing import cpu_count
 from multiprocessing.dummy import Process, current_process
 from multiprocessing.util import Finalize, debug
-from multiprocessing import cpu_count
 
-from .pool276 import ThreadPool, RUN, create_detailed_pickling_error, mapstar
-
-from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.controllers.threads.decorators import apply_with_return_error
+from w3af.core.data.fuzzer.utils import rand_alnum
 
-__all__ = ["Pool", "return_args", "one_to_many"]
+from .pool276 import RUN, ThreadPool, create_detailed_pickling_error, mapstar
+
+__all__ = ["Pool", "one_to_many", "return_args"]
 
 
-class one_to_many(object):
+class one_to_many:
     """
     This is a simple wrapper that translates one argument to many in a function
     call. Useful for passing to the threadpool map function.
@@ -57,7 +55,7 @@ class one_to_many(object):
         return self.func_orig(*args)
 
 
-class return_args(object):
+class return_args:
     """
     Utility function that returns the args in the result, useful when calling
     functions like imap_unordered().
@@ -78,7 +76,7 @@ class return_args(object):
 class DaemonProcess(Process):
 
     def __init__(self, group=None, target=None, name=None, args=(), kwargs={}):
-        super(DaemonProcess, self).__init__(group, target, name, args, kwargs)
+        super().__init__(group, target, name, args, kwargs)
         self.daemon = True
         self.worker = target
         self.name = name
@@ -191,9 +189,9 @@ def add_traceback_string(_exception):
     _exception.original_traceback_string = "".join(tb)
 
 
-class Worker(object):
+class Worker:
 
-    __slots__ = ("func", "args", "kwargs", "start_time", "job", "id")
+    __slots__ = ("args", "func", "id", "job", "kwargs", "start_time")
 
     def __init__(self):
         self.func = None
@@ -268,7 +266,7 @@ class Worker(object):
         while maxtasks is None or (maxtasks and completed < maxtasks):
             try:
                 task = get()
-            except (EOFError, IOError):
+            except (OSError, EOFError):
                 debug("worker got EOFError or IOError -- exiting")
                 break
 

@@ -20,10 +20,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
+from w3af.core.data.constants.http_messages import W3C_REASONS
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
-from w3af.core.data.constants.http_messages import W3C_REASONS
-from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 
 
 class strange_reason(GrepPlugin):

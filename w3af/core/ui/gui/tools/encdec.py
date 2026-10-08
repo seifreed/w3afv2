@@ -1,4 +1,3 @@
-# -*- coding: utf8 -*-
 """
 encdec.py
 
@@ -21,16 +20,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import threading
-import urllib.request, urllib.parse, urllib.error
 import base64
 import hashlib
 import random
+import threading
+import urllib.error
+import urllib.parse
+import urllib.request
 
-import gtk
 import gobject
-import w3af.core.data.parsers.utils.encode_decode as encode_decode
+import gtk
+
 from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.data.parsers.utils import encode_decode
 from w3af.core.ui.gui import entries
 
 
@@ -105,7 +107,7 @@ class EncodeDecode(entries.RememberingWindow):
     """
 
     def __init__(self, w3af):
-        super(EncodeDecode, self).__init__(
+        super().__init__(
             w3af, "encodedecode", _("w3af - Encode / Decode"), "Encode_and_Decode"
         )
         self.w3af = w3af

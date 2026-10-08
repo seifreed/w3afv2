@@ -10,8 +10,7 @@ import random
 import string
 
 from lib.core.common import singleTimeWarnMessage
-from lib.core.enums import DBMS
-from lib.core.enums import PRIORITY
+from lib.core.enums import DBMS, PRIORITY
 
 __priority__ = PRIORITY.LOW
 

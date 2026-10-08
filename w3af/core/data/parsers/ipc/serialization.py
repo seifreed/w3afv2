@@ -26,9 +26,8 @@ import tempfile
 
 import msgpack
 
-
-from w3af.core.data.parsers.doc.sgml import Tag
 from w3af.core.controllers.misc.temp_dir import get_temp_dir
+from w3af.core.data.parsers.doc.sgml import Tag
 
 
 def write_http_response_to_temp_file(http_response):

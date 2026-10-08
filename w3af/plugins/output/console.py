@@ -20,19 +20,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import sys
 import string
-
+import sys
 from errno import ENOSPC
 from functools import wraps
+
 from termcolor import colored
 
-from w3af.core.data.constants.severity import HIGH, MEDIUM, LOW, INFORMATION
-from w3af.core.controllers.plugins.output_plugin import OutputPlugin
 from w3af.core.controllers.exceptions import ScanMustStopByKnownReasonExc
+from w3af.core.controllers.plugins.output_plugin import OutputPlugin
+from w3af.core.data.constants.severity import HIGH, INFORMATION, LOW, MEDIUM
 from w3af.core.data.options.opt_factory import opt_factory
-from w3af.core.data.options.option_types import BOOL
 from w3af.core.data.options.option_list import OptionList
+from w3af.core.data.options.option_types import BOOL
 
 ERROR = "Error"
 

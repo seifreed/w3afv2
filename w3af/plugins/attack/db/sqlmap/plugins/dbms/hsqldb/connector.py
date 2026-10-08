@@ -13,11 +13,10 @@ except:
 
 import logging
 
-from lib.core.common import checkFile
-from lib.core.common import readInput
-from lib.core.data import conf
-from lib.core.data import logger
+from lib.core.common import checkFile, readInput
+from lib.core.data import conf, logger
 from lib.core.exception import SqlmapConnectionException
+
 from plugins.generic.connector import Connector as GenericConnector
 
 
@@ -62,7 +61,7 @@ class Connector(GenericConnector):
             return self.cursor.fetchall()
         except Exception as msg:
             logger.log(
-                logging.WARN if conf.dbmsHandler else logging.DEBUG,
+                logging.WARNING if conf.dbmsHandler else logging.DEBUG,
                 "(remote) %s" % msg[1],
             )
             return None
@@ -75,7 +74,7 @@ class Connector(GenericConnector):
             retVal = True
         except Exception as msg:  # todo fix with specific error
             logger.log(
-                logging.WARN if conf.dbmsHandler else logging.DEBUG,
+                logging.WARNING if conf.dbmsHandler else logging.DEBUG,
                 "(remote) %s" % msg[1],
             )
 

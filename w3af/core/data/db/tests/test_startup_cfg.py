@@ -20,12 +20,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 import unittest
-
 from datetime import date, timedelta
-from mock import Mock
 
-from w3af.core.data.db.startup_cfg import StartUpConfig
 from w3af.core.controllers.misc.home_dir import get_home_dir
+from w3af.core.data.db.startup_cfg import StartUpConfig
 
 
 class TestStartUpConfig(unittest.TestCase):

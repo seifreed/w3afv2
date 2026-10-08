@@ -20,19 +20,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import gtk
 import gobject
-
-from w3af.core.ui.gui import helpers, entries, httpLogTab
-from w3af.core.ui.gui.reqResViewer import ReqResViewer
-from w3af.core.ui.gui.entries import ConfigOptions, StatusBar
+import gtk
 
 from w3af.core.controllers.daemons.proxy import InterceptProxy
 from w3af.core.controllers.exceptions import BaseFrameworkException, ProxyException
-
 from w3af.core.data.options import option_types
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
+from w3af.core.ui.gui import entries, helpers, httpLogTab
+from w3af.core.ui.gui.entries import ConfigOptions, StatusBar
+from w3af.core.ui.gui.reqResViewer import ReqResViewer
 
 ui_proxy_menu = """
 <ui>
@@ -57,7 +55,7 @@ class ProxiedRequests(entries.RememberingWindow):
 
     def __init__(self, w3af):
         """Constructor."""
-        super(ProxiedRequests, self).__init__(
+        super().__init__(
             w3af,
             "proxytool",
             _("w3af - Proxy"),
@@ -228,7 +226,7 @@ class ProxiedRequests(entries.RememberingWindow):
 
         d = _("Ignored extensions")
         h = _("Filename extensions that will NOT be intercepted")
-        default_value = ".*\.(gif|jpg|png|css|js|ico|swf|axd|tif)$"
+        default_value = r".*\.(gif|jpg|png|css|js|ico|swf|axd|tif)$"
         o = opt_factory("notrap", default_value, d, option_types.REGEX, help=h)
         proxy_options.add(o)
 

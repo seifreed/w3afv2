@@ -20,13 +20,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import os.path
 import base64
 import functools
+import os.path
 
 import w3af.core.data.kb.knowledge_base as kb
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af import ROOT_PATH
+from w3af.core.controllers.exceptions import BaseFrameworkException
 
 SHELL_IDENTIFIER_1 = "15825b40c6dace2a"[::-1]
 SHELL_IDENTIFIER_2 = "7cf5d4ab8ed434d5"[::-1]

@@ -25,22 +25,19 @@ import random
 import xml.dom.minidom
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.constants.severity as severity
 import w3af.core.data.kb.knowledge_base as kb
-
 from w3af import ROOT_PATH
-
-from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
+from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.misc.is_private_site import is_private_site
-from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
-
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
+from w3af.core.data.constants import severity
+from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.search_engines.google import google as google
-from w3af.core.data.kb.vuln import Vuln
 
 
 class ghdb(CrawlPlugin):
@@ -165,7 +162,7 @@ class ghdb(CrawlPlugin):
             try:
                 query_string = signature.childNodes[4].childNodes[0].data
 
-            except Exception as e:
+            except Exception:
                 msg = (
                     "There is a corrupt signature in the GHDB. No query "
                     ' string was found in the following XML code: "%s".'
@@ -224,7 +221,7 @@ class ghdb(CrawlPlugin):
         """
 
 
-class GoogleHack(object):
+class GoogleHack:
     def __init__(self, search, desc):
         self.search = search
         self.desc = desc

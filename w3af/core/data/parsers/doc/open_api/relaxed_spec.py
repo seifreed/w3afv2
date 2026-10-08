@@ -21,9 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from bravado_core.spec import Spec
 from bravado_core import formatter
 from bravado_core.formatter import SwaggerFormat
+from bravado_core.spec import Spec
 
 
 class RelaxedSpec(Spec):

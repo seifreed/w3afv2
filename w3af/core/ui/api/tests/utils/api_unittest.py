@@ -20,10 +20,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import json
-import time
 import base64
 import hashlib
+import json
+import time
 import unittest
 
 from w3af.core.ui.api import app

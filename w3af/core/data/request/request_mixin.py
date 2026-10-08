@@ -28,7 +28,7 @@ CRLF = CR + LF
 SP = " "
 
 
-class RequestMixIn(object):
+class RequestMixIn:
 
     __slots__ = ()
 

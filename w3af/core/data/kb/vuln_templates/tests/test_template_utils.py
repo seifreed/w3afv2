@@ -24,8 +24,8 @@ import unittest
 
 from w3af.core.data.kb.vuln_templates.utils import (
     get_all_templates,
-    get_template_names,
     get_template_by_name,
+    get_template_names,
 )
 
 

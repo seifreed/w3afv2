@@ -21,7 +21,7 @@ def detect(get_page):
         retval = (
             code in (403, 500)
             and re.search(
-                r"\AX-Mapping-", headers.get(HTTP_HEADER.SET_COOKIE, ""), re.I
+                r"\AX-Mapping-", headers.get(HTTP_HEADER.SET_COOKIE, ""), re.IGNORECASE
             )
             is not None
         )

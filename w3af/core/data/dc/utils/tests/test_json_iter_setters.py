@@ -20,27 +20,25 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
 import json
+import unittest
 
 from w3af.core.data.dc.json_container import JSONContainer
-from w3af.core.data.dc.utils.json_iter_setters import (
-    json_iter_setters,
-    MutableWrapper,
-    json_complex_str,
-    KEY_NUMBER,
-    KEY_STRING,
-    KEY_BOOLEAN,
-    KEY_ARRAY,
-    KEY_OBJECT,
-    KEY_NULL,
-)
 from w3af.core.data.dc.tests.test_json_container import (
-    STRING,
     ARRAY,
+    COMPLEX_OBJECT,
     NUMBER,
     OBJECT,
-    COMPLEX_OBJECT,
+    STRING,
+)
+from w3af.core.data.dc.utils.json_iter_setters import (
+    KEY_ARRAY,
+    KEY_NUMBER,
+    KEY_OBJECT,
+    KEY_STRING,
+    MutableWrapper,
+    json_complex_str,
+    json_iter_setters,
 )
 
 

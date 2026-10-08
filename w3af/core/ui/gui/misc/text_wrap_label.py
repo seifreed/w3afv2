@@ -3,8 +3,8 @@ Original source code from http://people.gnome.org/~gianmt/busybox.py released
 under GNU's GPL v2.0.
 """
 
-import pango
 import gtk
+import pango
 
 
 class WrapLabel(gtk.Label):

@@ -21,15 +21,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
 import itertools
-
+import unittest
 from os import listdir as orig_listdir
-from nose.plugins.attrib import attr
-from mock import patch
+from unittest.mock import patch
 
-from w3af.core.controllers.w3afCore import w3afCore
+from nose.plugins.attrib import attr
+
 from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.controllers.w3afCore import w3afCore
 
 TEST_PLUGIN_NAME = "failing_spider"
 
@@ -38,7 +38,7 @@ TEST_PLUGIN_NAME = "failing_spider"
 class TestW3afCorePlugins(unittest.TestCase):
 
     def setUp(self):
-        super(TestW3afCorePlugins, self).setUp()
+        super().setUp()
 
         self.listdir_patch = patch("os.listdir")
         self.listdir_mock = self.listdir_patch.start()
@@ -47,7 +47,7 @@ class TestW3afCorePlugins(unittest.TestCase):
         self.core = w3afCore()
 
     def tearDown(self):
-        super(TestW3afCorePlugins, self).tearDown()
+        super().tearDown()
 
         self.listdir_patch.stop()
         self.core.worker_pool.terminate_join()

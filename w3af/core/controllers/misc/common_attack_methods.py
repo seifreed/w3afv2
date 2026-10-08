@@ -20,14 +20,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import re
 import difflib
+import re
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.exceptions import BodyCutException
 
 
-class CommonAttackMethods(object):
+class CommonAttackMethods:
 
     def __init__(self):
         self._header_length = None
@@ -187,7 +187,7 @@ class CommonAttackMethods(object):
             )
             raise ValueError(msg)
 
-        etc_passwd_re = re.compile("[\w_-]*:x:\d*?:\d*?:[\w_, -]*:[/\w_-]*:[/\w_-]*")
+        etc_passwd_re = re.compile(r"[\w_-]*:x:\d*?:\d*?:[\w_, -]*:[/\w_-]*:[/\w_-]*")
         mo = etc_passwd_re.search(body_a)
 
         if not mo:

@@ -19,27 +19,29 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import os
-import re
-import json
-import urllib.request, urllib.parse, urllib.error
-import pickle
 import base64
+import json
+import os
+import pickle
+import re
 import unittest
+import urllib.error
+import urllib.parse
+import urllib.request
 
-from w3af.plugins.tests.helper import PluginTest, PluginConfig, MockResponse
-from w3af.plugins.audit.deserialization import (
-    deserialization,
-    B64DeserializationExactDelay,
-)
-from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.dc.cookie import Cookie
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
-from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
-from w3af.core.data.fuzzer.mutants.cookie_mutant import CookieMutant
 from w3af.core.data.dc.urlencoded_form import URLEncodedForm
+from w3af.core.data.fuzzer.mutants.cookie_mutant import CookieMutant
+from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
+from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
+from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.utils.form_params import FormParameters
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.plugins.audit.deserialization import (
+    B64DeserializationExactDelay,
+    deserialization,
+)
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 test_config = {
     "audit": (PluginConfig("deserialization"),),

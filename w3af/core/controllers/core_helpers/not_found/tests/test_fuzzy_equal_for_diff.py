@@ -21,9 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import random
 import re
 import unittest
-import random
 
 from w3af.core.controllers.core_helpers.not_found.fuzzy_equal_for_diff import (
     fuzzy_equal_for_diff,

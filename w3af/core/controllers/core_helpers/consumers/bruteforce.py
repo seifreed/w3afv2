@@ -23,14 +23,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import time
 
 import w3af.core.controllers.output_manager as om
-
-from w3af.core.controllers.exceptions import ScanMustStopException
-from w3af.core.controllers.threads.threadpool import return_args
-from w3af.core.controllers.profiling.took_helper import TookLine
 from w3af.core.controllers.core_helpers.consumers.base_consumer import (
     BaseConsumer,
     task_decorator,
 )
+from w3af.core.controllers.exceptions import ScanMustStopException
+from w3af.core.controllers.profiling.took_helper import TookLine
+from w3af.core.controllers.threads.threadpool import return_args
 
 
 class bruteforce(BaseConsumer):
@@ -44,9 +43,7 @@ class bruteforce(BaseConsumer):
         :param bruteforce_plugins: Instances of bruteforce plugins in a list
         :param w3af_core: The w3af core that we'll use for status reporting
         """
-        super(bruteforce, self).__init__(
-            bruteforce_plugins, w3af_core, thread_name=self.get_name()
-        )
+        super().__init__(bruteforce_plugins, w3af_core, thread_name=self.get_name())
 
     def get_name(self):
         return "Bruteforcer"

@@ -20,9 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import hashlib
 import itertools
 import operator
-import hashlib
 
 from w3af.core.data.misc.encoding import smart_str_ignore
 

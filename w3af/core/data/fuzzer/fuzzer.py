@@ -20,17 +20,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.data.kb.config as cf
 import w3af.core.controllers.output_manager as om
-
-from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
-from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
-from w3af.core.data.fuzzer.mutants.filename_mutant import FileNameMutant
-from w3af.core.data.fuzzer.mutants.urlparts_mutant import URLPartsMutant
-from w3af.core.data.fuzzer.mutants.headers_mutant import HeadersMutant
-from w3af.core.data.fuzzer.mutants.json_mutant import JSONMutant
+import w3af.core.data.kb.config as cf
 from w3af.core.data.fuzzer.mutants.cookie_mutant import CookieMutant
 from w3af.core.data.fuzzer.mutants.filecontent_mutant import FileContentMutant
+from w3af.core.data.fuzzer.mutants.filename_mutant import FileNameMutant
+from w3af.core.data.fuzzer.mutants.headers_mutant import HeadersMutant
+from w3af.core.data.fuzzer.mutants.json_mutant import JSONMutant
+from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
+from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
+from w3af.core.data.fuzzer.mutants.urlparts_mutant import URLPartsMutant
 from w3af.core.data.fuzzer.mutants.xmlrpc_mutant import XmlRpcMutant
 
 ALL_MUTANTS = (

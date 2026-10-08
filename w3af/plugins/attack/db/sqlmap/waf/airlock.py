@@ -20,7 +20,9 @@ def detect(get_page):
         _, headers, _ = get_page(get=vector)
         retval = (
             re.search(
-                r"\AAL[_-]?(SESS|LB)=", headers.get(HTTP_HEADER.SET_COOKIE, ""), re.I
+                r"\AAL[_-]?(SESS|LB)=",
+                headers.get(HTTP_HEADER.SET_COOKIE, ""),
+                re.IGNORECASE,
             )
             is not None
         )

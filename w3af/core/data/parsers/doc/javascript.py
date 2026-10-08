@@ -34,7 +34,7 @@ class JavaScriptParser(BaseParser):
     PARSE_TYPES = ("javascript", "ecmascript", "jscript")
 
     def __init__(self, http_response):
-        super(JavaScriptParser, self).__init__(http_response)
+        super().__init__(http_response)
 
         self._re_urls = set()
 

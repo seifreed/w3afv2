@@ -20,9 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from w3af.core.data.parsers.pynarcissus.string_extractor import StringExtractor
-from w3af.core.data.parsers.utils.url_regex import URL_RE, RELATIVE_URL_RE
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.parsers.pynarcissus.string_extractor import StringExtractor
+from w3af.core.data.parsers.utils.url_regex import URL_RE
 
 
 class JSLinkExtractor(StringExtractor):

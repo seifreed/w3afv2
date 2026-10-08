@@ -28,11 +28,10 @@ from ds_store import DSStore
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
-import w3af.core.data.constants.severity as severity
-
-from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
+from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
+from w3af.core.data.constants import severity
 from w3af.core.data.db.disk_set import DiskSet
 from w3af.core.data.kb.vuln import Vuln
 
@@ -143,7 +142,7 @@ class dot_ds_store(CrawlPlugin):
         """
 
 
-class DsStore(object):
+class DsStore:
 
     def __init__(self, data):
         self._store = None

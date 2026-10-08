@@ -22,7 +22,7 @@ def check(module):
         pout = os.popen("pylint --rcfile=/dev/null %s" % module, "r")
         for line in pout:
             if re.match(r"\AE:", line):
-                print((line.strip()))
+                print(line.strip())
             if __RATING__ and "Your code has been rated at" in line:
                 print(line)
                 score = re.findall(r"\d.\d\d", line)[0]
@@ -32,7 +32,7 @@ def check(module):
 
 if __name__ == "__main__":
     try:
-        print((sys.argv))
+        print(sys.argv)
         BASE_DIRECTORY = sys.argv[1]
     except IndexError:
         print("no directory specified, defaulting to current working directory")
@@ -47,6 +47,6 @@ if __name__ == "__main__":
             check(filepath)
 
     if __RATING__:
-        print(("==" * 50))
-        print(("%d modules found" % count))
-        print(("AVERAGE SCORE = %.02f" % (total / count)))
+        print("==" * 50)
+        print("%d modules found" % count)
+        print("AVERAGE SCORE = %.02f" % (total / count))

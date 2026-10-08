@@ -21,12 +21,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
-
-from uuid import uuid4
 from tempfile import tempdir
+from uuid import uuid4
 
-from w3af.core.ui.api.db.master import SCANS
 import w3af.core.controllers.output_manager as om
+from w3af.core.ui.api.db.master import SCANS
 
 
 def get_scan_info_from_id(scan_id):
@@ -94,6 +93,6 @@ def start_scan_helper(scan_info):
 
         try:
             os.unlink(scan_info.profile_path)
-        except (AttributeError, IOError) as _:
+        except (OSError, AttributeError) as _:
             # Reduce some exceptions found during interpreter shutdown
             pass

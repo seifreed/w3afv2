@@ -22,17 +22,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import textwrap
 
-import w3af.plugins.attack.payloads.payload_handler as payload_handler
 import w3af.core.controllers.output_manager as om
-
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.intrusion_tools.execMethodHelpers import os_detection_exec
 from w3af.core.controllers.payload_transfer.payload_transfer_factory import (
     payload_transfer_factory,
 )
 from w3af.core.data.kb.shell import Shell
-from w3af.plugins.attack.payloads.decorators.read_decorator import read_debug
+from w3af.plugins.attack.payloads import payload_handler
 from w3af.plugins.attack.payloads.decorators.download_decorator import download_debug
+from w3af.plugins.attack.payloads.decorators.read_decorator import read_debug
 
 
 class ExecShell(Shell):
@@ -302,7 +301,6 @@ class ExecShell(Shell):
 
         :return: None
         """
-        pass
 
     def get_name(self):
         """
@@ -325,7 +323,7 @@ class ExecShell(Shell):
             self._rSystem = self.execute("uname -o -r -n -m -s").strip()
             self._rSystemName = self.execute("uname -n").strip()
         elif self._rOS == "windows":
-            self._rUser = self.execute("echo %USERDOMAIN%\%USERNAME%").strip()
+            self._rUser = self.execute(r"echo %USERDOMAIN%\%USERNAME%").strip()
             self._rSystem = self.execute(
                 "echo %COMPUTERNAME% - %OS% - %PROCESSOR_IDENTIFIER%"
             ).strip()

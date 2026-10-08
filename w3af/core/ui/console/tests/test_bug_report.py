@@ -27,12 +27,11 @@ from github import Github
 from nose.plugins.attrib import attr
 
 from w3af import ROOT_PATH
-from w3af.core.ui.console.console_ui import ConsoleUI
-from w3af.core.ui.console.tests.helper import ConsoleTestHelper
-
-from w3af.core.controllers.misc.file_lock import FileLock
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.controllers.easy_contribution.github_issues import OAUTH_TOKEN
+from w3af.core.controllers.misc.file_lock import FileLock
+from w3af.core.ui.console.console_ui import ConsoleUI
+from w3af.core.ui.console.tests.helper import ConsoleTestHelper
 
 
 @attr("moth")
@@ -62,7 +61,7 @@ class TestConsoleBugReport(ConsoleTestHelper):
 
         shutil.copy(self.src, self.dst)
 
-        super(TestConsoleBugReport, self).setUp()
+        super().setUp()
 
     def tearDown(self):
         if os.path.exists(self.dst):
@@ -75,7 +74,7 @@ class TestConsoleBugReport(ConsoleTestHelper):
         # Allow others to create the failing_spider.py file
         self.lock.release()
 
-        super(TestConsoleBugReport, self).tearDown()
+        super().tearDown()
 
     def test_buggy_scan(self):
         target = get_moth_http("/grep/csp/")
@@ -122,7 +121,7 @@ class TestConsoleBugReport(ConsoleTestHelper):
         self.console._w3af.exception_handler.clear()
 
         # Close issue from github
-        issue_id_re = re.compile("https://github.com/andresriancho/w3af/issues/(\d*)")
+        issue_id_re = re.compile(r"https://github.com/andresriancho/w3af/issues/(\d*)")
         for line in self._mock_stdout.messages:
             mo = issue_id_re.search(line)
             if mo is not None:

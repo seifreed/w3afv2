@@ -20,12 +20,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers import output_manager as om
+from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.dc.headers import Headers
 
 
-class SearchEngine(object):
+class SearchEngine:
     """
     This class represents a search engine .
 

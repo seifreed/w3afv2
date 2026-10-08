@@ -19,31 +19,30 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 """
 
-import os
-import sys
 import json
-import shlex
-import pickle
 import logging
+import os
+import pickle
+import shlex
 import subprocess
-
+import sys
 from xml.etree import ElementTree
 
-from .xunit import parse_xunit
-from .xunit import normalize_test_names
 from nose.tools import nottest
 
 from w3af.core.controllers.ci.nosetests_wrapper.constants import (
     ARTIFACT_DIR,
     ID_FILE,
     JSON_ID_FILE,
-    NOSETESTS,
-    NOSE_COLLECT_PARAMS,
-    NOSE_XUNIT_EXT,
-    NOSE_OUTPUT_PREFIX,
-    NOSE_IGNORE_SELECTOR,
     NOSE_COLLECT_IGNORE_PARAMS,
+    NOSE_COLLECT_PARAMS,
+    NOSE_IGNORE_SELECTOR,
+    NOSE_OUTPUT_PREFIX,
+    NOSE_XUNIT_EXT,
+    NOSETESTS,
 )
+
+from .xunit import normalize_test_names, parse_xunit
 
 
 @nottest

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """
 test_utils.py
 
@@ -23,38 +22,38 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-from w3af.core.data.url.HTTPResponse import HTTPResponse
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.dc.headers import Headers
 from w3af.core.controllers.csp.utils import (
-    unsafe_inline_enabled,
-    retrieve_csp_report_uri,
-    provides_csp_features,
-    retrieve_csp_policies,
-    find_vulns,
-    site_protected_against_xss_by_csp,
+    CSP_DIRECTIVE_CONNECTION,
+    CSP_DIRECTIVE_DEFAULT,
+    CSP_DIRECTIVE_FONT,
+    CSP_DIRECTIVE_FORM,
+    CSP_DIRECTIVE_FRAME,
+    CSP_DIRECTIVE_IMAGE,
+    CSP_DIRECTIVE_MEDIA,
+    CSP_DIRECTIVE_OBJECT,
+    CSP_DIRECTIVE_PLUGIN_TYPES,
+    CSP_DIRECTIVE_REPORT_URI,
+    CSP_DIRECTIVE_SANDBOX,
+    CSP_DIRECTIVE_SCRIPT,
+    CSP_DIRECTIVE_SCRIPT_NONCE,
+    CSP_DIRECTIVE_STYLE,
+    CSP_DIRECTIVE_VALUE_UNSAFE_INLINE,
+    CSP_DIRECTIVE_XSS,
     CSP_HEADER_CHROME,
     CSP_HEADER_FIREFOX,
     CSP_HEADER_W3C,
-    CSP_DIRECTIVE_OBJECT,
-    CSP_DIRECTIVE_DEFAULT,
-    CSP_DIRECTIVE_IMAGE,
-    CSP_DIRECTIVE_SCRIPT,
-    CSP_DIRECTIVE_CONNECTION,
     CSP_HEADER_W3C_REPORT_ONLY,
-    CSP_DIRECTIVE_REPORT_URI,
-    CSP_DIRECTIVE_VALUE_UNSAFE_INLINE,
-    CSP_DIRECTIVE_STYLE,
-    CSP_DIRECTIVE_FORM,
-    CSP_DIRECTIVE_SANDBOX,
-    CSP_DIRECTIVE_SCRIPT_NONCE,
-    CSP_DIRECTIVE_PLUGIN_TYPES,
-    CSP_DIRECTIVE_XSS,
-    CSP_DIRECTIVE_MEDIA,
-    CSP_DIRECTIVE_FRAME,
-    CSP_DIRECTIVE_FONT,
     CSP_MISSPELLED_DIRECTIVES,
+    find_vulns,
+    provides_csp_features,
+    retrieve_csp_policies,
+    retrieve_csp_report_uri,
+    site_protected_against_xss_by_csp,
+    unsafe_inline_enabled,
 )
+from w3af.core.data.dc.headers import Headers
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.url.HTTPResponse import HTTPResponse
 
 
 class TestUtils(unittest.TestCase):

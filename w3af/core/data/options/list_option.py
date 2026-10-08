@@ -31,8 +31,10 @@ class ListOption(BaseOption):
 
     _type = LIST
 
-    LST_VALIDATION_RE = re.compile("((\".*?\"|'.*?'|.*?),)*(\".*?\"|'.*?'|.*?)", re.U)
-    LST_PARSE_RE = re.compile("(\".*?\"|'.*?'|.*?),", re.U)
+    LST_VALIDATION_RE = re.compile(
+        "((\".*?\"|'.*?'|.*?),)*(\".*?\"|'.*?'|.*?)", re.UNICODE
+    )
+    LST_PARSE_RE = re.compile("(\".*?\"|'.*?'|.*?),", re.UNICODE)
 
     VALID_EXAMPLES = (
         "Examples of valid list specifications are:\n"

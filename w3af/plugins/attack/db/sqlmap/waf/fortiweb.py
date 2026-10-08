@@ -19,7 +19,11 @@ def detect(get_page):
     for vector in WAF_ATTACK_VECTORS:
         page, headers, _ = get_page(get=vector)
         retval = (
-            re.search(r"\AFORTIWAFSID=", headers.get(HTTP_HEADER.SET_COOKIE, ""), re.I)
+            re.search(
+                r"\AFORTIWAFSID=",
+                headers.get(HTTP_HEADER.SET_COOKIE, ""),
+                re.IGNORECASE,
+            )
             is not None
         )
         retval |= all(

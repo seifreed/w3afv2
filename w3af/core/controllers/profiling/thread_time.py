@@ -19,11 +19,11 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import ctypes
+import ctypes.util
 import os
 import sys
 import time
-import ctypes
-import ctypes.util
 
 """
 This file is a very hackish way to retrieve thread CPU time in Linux.
@@ -50,7 +50,7 @@ systems I just return the result of calling time.time().
 [1] https://github.com/atdt/monotonic/blob/master/monotonic.py
 """
 
-__all__ = ("thread_active_time", "CPU_TIME_IS_ACTIVE")
+__all__ = ("CPU_TIME_IS_ACTIVE", "thread_active_time")
 
 
 CPU_TIME_IS_ACTIVE = False

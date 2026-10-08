@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import gtk
-import gobject
 
 
 def create_generator_menu(text_view_obj):
@@ -44,10 +43,9 @@ def print_generator_text(widget, text_view_obj, generator_instance):
     """
     Print the generator name to the textview, in the position where the cursor is at.
     """
-    pass
 
 
-class generic_generator(object):
+class generic_generator:
     def __init__(self):
         """
         Provides generic methods and attributes for generators.

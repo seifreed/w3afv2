@@ -24,8 +24,8 @@ import gtk
 
 from w3af.core.controllers.exception_handling.helpers import gettempdir
 from w3af.core.ui.gui.exception_handling.common_windows import (
-    SimpleBaseWindow,
     GithubMultiBugReport,
+    SimpleBaseWindow,
 )
 
 

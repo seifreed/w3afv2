@@ -20,27 +20,25 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import os.path
 from itertools import repeat
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 import w3af.core.data.kb.config as cf
-
-from w3af.core.data.options.opt_factory import opt_factory
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.options.option_types import QUERY_STRING, HEADER, BOOL, INPUT_FILE
-from w3af.core.data.options.option_list import OptionList
-from w3af.core.data.parsers.doc.open_api import OpenAPI
-from w3af.core.data.db.disk_set import DiskSet
-from w3af.core.data.kb.info import Info
-from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
+import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
+from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
+from w3af.core.data.db.disk_set import DiskSet
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.dc.query_string import QueryString
+from w3af.core.data.kb.info import Info
+from w3af.core.data.options.opt_factory import opt_factory
+from w3af.core.data.options.option_list import OptionList
+from w3af.core.data.options.option_types import BOOL, HEADER, INPUT_FILE, QUERY_STRING
+from w3af.core.data.parsers.doc.open_api import OpenAPI
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.HTTPResponse import HTTPResponse
-
-import os.path
 
 
 class open_api(CrawlPlugin):

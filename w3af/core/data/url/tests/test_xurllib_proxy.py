@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 test_xurllib.py
 
@@ -24,11 +23,11 @@ import unittest
 
 from nose.plugins.attrib import attr
 
-from w3af.core.data.url.opener_settings import OpenerSettings
-from w3af.core.data.url.extended_urllib import ExtendedUrllib
-from w3af.core.data.parsers.doc.url import URL
 from w3af.core.controllers.ci.moth import get_moth_http, get_moth_https
 from w3af.core.controllers.daemons.proxy import Proxy, ProxyHandler
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.url.extended_urllib import ExtendedUrllib
+from w3af.core.data.url.opener_settings import OpenerSettings
 
 
 @attr("moth")

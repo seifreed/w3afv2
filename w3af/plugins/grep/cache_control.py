@@ -22,14 +22,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from collections import namedtuple
 
-import w3af.core.data.constants.severity as severity
-import w3af.core.data.parsers.parser_cache as parser_cache
-
+from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
+from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
+from w3af.core.data.constants import severity
 from w3af.core.data.db.disk_list import DiskList
 from w3af.core.data.kb.vuln import Vuln
-from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
-from w3af.core.controllers.exceptions import BaseFrameworkException
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
+from w3af.core.data.parsers import parser_cache
 
 CacheSettings = namedtuple("CacheSettings", ["type", "value"])
 

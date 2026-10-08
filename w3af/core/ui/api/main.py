@@ -20,12 +20,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import socket
 import argparse
 
 from w3af.core.ui.api import app
 from w3af.core.ui.api.utils.cli import process_cmd_args_config
-
 from w3af.core.ui.api.utils.digital_certificate import SSLCertificate
 
 
@@ -37,7 +35,7 @@ def main():
     try:
         args = process_cmd_args_config(app)
     except argparse.ArgumentTypeError as ate:
-        print(("%s" % ate))
+        print("%s" % ate)
         return 1
 
     # And finally start the app:
@@ -62,8 +60,8 @@ def main():
                 threaded=True,
                 ssl_context=cert_key,
             )
-    except socket.error as se:
-        print(("Failed to start REST API server: %s" % se.strerror))
+    except OSError as se:
+        print("Failed to start REST API server: %s" % se.strerror)
         return 1
 
     return 0

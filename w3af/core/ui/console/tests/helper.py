@@ -23,13 +23,12 @@ import os
 import re
 import sys
 import unittest
-
-from mock import MagicMock
+from unittest.mock import MagicMock
 
 import w3af.core.data.kb.knowledge_base as kb
 
 
-class mock_stdout(object):
+class mock_stdout:
     def __init__(self):
         self.messages = []
 
@@ -103,15 +102,13 @@ class ConsoleTestHelper(unittest.TestCase):
                     break
             else:
                 return False, self.generate_msg(line)
-        else:
-            return True, "OK"
+        return True, "OK"
 
     def all_expected_in_output(self, expected):
         for line in expected:
             if line not in self._mock_stdout.messages:
                 return False, self.generate_msg(line)
-        else:
-            return True, "OK"
+        return True, "OK"
 
     def all_expected_substring_in_output(self, expected):
         for e_substring in expected:
@@ -122,8 +119,7 @@ class ConsoleTestHelper(unittest.TestCase):
 
             else:
                 return False, self.generate_msg(e_substring)
-        else:
-            return True, "OK"
+        return True, "OK"
 
     def error_in_output(self, errors):
         for line in self._mock_stdout.messages:

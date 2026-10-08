@@ -20,14 +20,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import os
-import zlib
 import base64
+import os
 import tempfile
+import zlib
 
 from w3af import ROOT_PATH
-from w3af.core.controllers.misc.temp_dir import get_temp_dir
 from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.controllers.misc.temp_dir import get_temp_dir
 from w3af.core.data.options.baseoption import BaseOption
 from w3af.core.data.options.option_types import INPUT_FILE
 

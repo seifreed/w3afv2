@@ -14,14 +14,14 @@ license (basically they can't). So I'm choosing to use the original Apache
 License, Version 2.0 for this file.
 """
 
+import select
+import socket
 import ssl
 import time
-import socket
-import select
-import OpenSSL
-from OpenSSL.SSL import SysCallError
 
+import OpenSSL
 from ndg.httpsclient.subj_alt_name import SubjectAltName
+from OpenSSL.SSL import SysCallError
 from pyasn1.codec.der.decoder import decode as der_decoder
 
 CERT_NONE = ssl.CERT_NONE
@@ -35,7 +35,7 @@ _openssl_cert_reqs = {
 }
 
 
-class SSLSocket(object):
+class SSLSocket:
     """
     This class was required to avoid the issue of "Bad file descriptor" which
     is generated when the remote server returns a connection: close header,
@@ -151,7 +151,7 @@ class SSLSocket(object):
             except OpenSSL.SSL.WantWriteError:
                 _, wlist, _ = select.select([], [self.sock], [], self.sock.gettimeout())
                 if not wlist:
-                    raise socket.timeout()
+                    raise TimeoutError()
                 continue
 
     def sendall(self, data):

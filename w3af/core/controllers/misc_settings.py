@@ -23,27 +23,26 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from vulndb import DBVuln
 
 import w3af.core.data.kb.config as cf
-
 from w3af.core.controllers.configurable import Configurable
 from w3af.core.controllers.misc.get_local_ip import get_local_ip
 from w3af.core.controllers.misc.get_net_iface import get_net_iface
-from w3af.core.data.parsers.utils.form_id_matcher_list import FormIDMatcherList
+from w3af.core.data.db.variant_db import (
+    MAX_EQUAL_FORM_VARIANTS,
+    PARAMS_MAX_VARIANTS,
+    PATH_MAX_VARIANTS,
+)
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
-from w3af.core.data.db.variant_db import (
-    PATH_MAX_VARIANTS,
-    PARAMS_MAX_VARIANTS,
-    MAX_EQUAL_FORM_VARIANTS,
-)
 from w3af.core.data.options.option_types import (
-    URL_LIST,
-    COMBO,
     BOOL,
+    COMBO,
+    FORM_ID_LIST,
+    INT,
     LIST,
     STRING,
-    INT,
-    FORM_ID_LIST,
+    URL_LIST,
 )
+from w3af.core.data.parsers.utils.form_id_matcher_list import FormIDMatcherList
 
 EXCLUDE = "exclude"
 INCLUDE = "include"

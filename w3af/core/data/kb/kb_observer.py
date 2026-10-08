@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 
-class KBObserver(object):
+class KBObserver:
     """
     When you want to listen to KB changes the best way is to create a KBObserver
     instance and call kb.add_observer(kb_observer). Then, the KB will call the

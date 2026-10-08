@@ -25,10 +25,9 @@ import time
 from nose.plugins.attrib import attr
 
 import w3af.core.data.kb.config as cf
-
-from w3af.plugins.tests.helper import PluginTest, PluginConfig
-from w3af.core.controllers.w3afCore import w3afCore
 from w3af.core.controllers.ci.moth import get_moth_http
+from w3af.core.controllers.w3afCore import w3afCore
+from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 
 class TestTimeLimit(PluginTest):

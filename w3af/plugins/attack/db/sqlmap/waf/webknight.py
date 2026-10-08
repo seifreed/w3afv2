@@ -20,7 +20,7 @@ def detect(get_page):
         _, headers, code = get_page(get=vector)
         retval = code == 999
         retval |= (
-            re.search(r"WebKnight", headers.get(HTTP_HEADER.SERVER, ""), re.I)
+            re.search(r"WebKnight", headers.get(HTTP_HEADER.SERVER, ""), re.IGNORECASE)
             is not None
         )
         if retval:

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 test_json_container.py
 
@@ -20,9 +19,9 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import copy
 import pickle
 import unittest
-import copy
 
 from w3af.core.data.dc.json_container import JSONContainer
 from w3af.core.data.dc.utils.token import DataToken

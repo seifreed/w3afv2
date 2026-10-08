@@ -8,21 +8,21 @@ See the file 'LICENSE' for copying permission
 import ntpath
 import os
 
-from lib.core.common import getLimitRange
-from lib.core.common import isNumPosStrValue
-from lib.core.common import isTechniqueAvailable
-from lib.core.common import posixToNtSlashes
-from lib.core.common import randomStr
-from lib.core.common import readInput
-from lib.core.convert import base64encode
-from lib.core.convert import hexencode
-from lib.core.data import conf
-from lib.core.data import logger
-from lib.core.enums import CHARSET_TYPE
-from lib.core.enums import EXPECTED
-from lib.core.enums import PAYLOAD
-from lib.core.exception import SqlmapNoneDataException
-from lib.core.exception import SqlmapUnsupportedFeatureException
+from lib.core.common import (
+    getLimitRange,
+    isNumPosStrValue,
+    isTechniqueAvailable,
+    posixToNtSlashes,
+    randomStr,
+    readInput,
+)
+from lib.core.convert import base64encode, hexencode
+from lib.core.data import conf, logger
+from lib.core.enums import CHARSET_TYPE, EXPECTED, PAYLOAD
+from lib.core.exception import (
+    SqlmapNoneDataException,
+    SqlmapUnsupportedFeatureException,
+)
 from lib.request import inject
 
 from plugins.generic.filesystem import Filesystem as GenericFilesystem
@@ -69,13 +69,13 @@ class Filesystem(GenericFilesystem):
         fileScrLines = self._dataToScr(fileContent, chunkName)
 
         logger.debug(
-            "uploading debug script to %s\%s, please wait.." % (tmpPath, randScr)
+            r"uploading debug script to %s\%s, please wait.." % (tmpPath, randScr)
         )
 
         self.xpCmdshellWriteFile(fileScrLines, tmpPath, randScr)
 
         logger.debug(
-            "generating chunk file %s\%s from debug script %s"
+            r"generating chunk file %s\%s from debug script %s"
             % (tmpPath, chunkName, randScr)
         )
 
@@ -221,10 +221,10 @@ class Filesystem(GenericFilesystem):
 
         encodedFileContent = base64encode(wFileContent)
         encodedBase64File = "tmpf%s.txt" % randomStr(lowercase=True)
-        encodedBase64FilePath = "%s\%s" % (tmpPath, encodedBase64File)
+        encodedBase64FilePath = r"%s\%s" % (tmpPath, encodedBase64File)
 
         randPSScript = "tmpps%s.ps1" % randomStr(lowercase=True)
-        randPSScriptPath = "%s\%s" % (tmpPath, randPSScript)
+        randPSScriptPath = r"%s\%s" % (tmpPath, randPSScript)
 
         wFileSize = len(encodedFileContent)
         chunkMaxSize = 1024
@@ -268,19 +268,19 @@ class Filesystem(GenericFilesystem):
         logger.info(infoMsg)
 
         dFileName = ntpath.basename(dFile)
-        sFile = "%s\%s" % (tmpPath, dFileName)
+        sFile = r"%s\%s" % (tmpPath, dFileName)
         wFileSize = os.path.getsize(wFile)
         debugSize = 0xFF00
 
         if wFileSize < debugSize:
             chunkName = self._updateDestChunk(wFileContent, tmpPath)
 
-            debugMsg = "renaming chunk file %s\%s to %s " % (
+            debugMsg = r"renaming chunk file %s\%s to %s " % (
                 tmpPath,
                 chunkName,
                 fileType,
             )
-            debugMsg += "file %s\%s and moving it to %s" % (tmpPath, dFileName, dFile)
+            debugMsg += r"file %s\%s and moving it to %s" % (tmpPath, dFileName, dFile)
             logger.debug(debugMsg)
 
             commands = (
@@ -309,7 +309,7 @@ class Filesystem(GenericFilesystem):
                     debugMsg = "appending chunk "
                     copyCmd = "copy /B /Y %s+%s %s" % (dFileName, chunkName, dFileName)
 
-                debugMsg += "%s\%s to %s file %s\%s" % (
+                debugMsg += r"%s\%s to %s file %s\%s" % (
                     tmpPath,
                     chunkName,
                     fileType,
@@ -337,7 +337,7 @@ class Filesystem(GenericFilesystem):
 
         randVbs = "tmps%s.vbs" % randomStr(lowercase=True)
         randFile = "tmpf%s.txt" % randomStr(lowercase=True)
-        randFilePath = "%s\%s" % (tmpPath, randFile)
+        randFilePath = r"%s\%s" % (tmpPath, randFile)
 
         vbs = """Dim inputFilePath, outputFilePath
         inputFilePath = "%s"
@@ -404,7 +404,7 @@ class Filesystem(GenericFilesystem):
         self.xpCmdshellWriteFile(encodedFileContent, tmpPath, randFile)
 
         logger.debug(
-            "uploading a visual basic decoder stub %s\%s, please wait.."
+            r"uploading a visual basic decoder stub %s\%s, please wait.."
             % (tmpPath, randVbs)
         )
 
@@ -430,7 +430,7 @@ class Filesystem(GenericFilesystem):
         chunkMaxSize = 500
 
         randFile = "tmpf%s.txt" % randomStr(lowercase=True)
-        randFilePath = "%s\%s" % (tmpPath, randFile)
+        randFilePath = r"%s\%s" % (tmpPath, randFile)
 
         encodedFileContent = base64encode(wFileContent)
 

@@ -19,25 +19,19 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import unittest
-import time
-import subprocess
 import os
-
+import subprocess
+import time
+import unittest
 from functools import wraps
 
 from nose.plugins.attrib import attr
 
 from w3af.core.ui.tests.gui import GUI_TEST_ROOT_PATH
-from w3af.core.ui.tests.wrappers.gnome import Gnome
-from w3af.core.ui.tests.wrappers.utils import (
-    set_display_to_self,
-    restore_original_display,
-)
 
 try:
     from gi.repository import Notify
-    from xpresser import Xpresser, ImageNotFound
+    from xpresser import ImageNotFound, Xpresser
 except ImportError:
     # I'm mostly doing this to avoid import issues like:
     #

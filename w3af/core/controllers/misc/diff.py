@@ -20,8 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import string
 import difflib
+import string
+
 import diff_match_patch as dmp_module
 
 from w3af.core.data.misc.encoding import smart_str_ignore

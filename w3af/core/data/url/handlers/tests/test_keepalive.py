@@ -20,28 +20,29 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import socket
-import unittest
-import time
-import urllib.request, urllib.error, urllib.parse
 import os
+import socket
+import time
+import unittest
+import urllib.error
+import urllib.parse
+import urllib.request
+from unittest.mock import MagicMock, Mock
 
 import psutil
-
-from mock import MagicMock, Mock
 from nose.plugins.attrib import attr
 
 from w3af.core.controllers.ci.moth import get_moth_http
-from w3af.core.data.url.HTTPRequest import HTTPRequest
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.handlers.keepalive import (
-    KeepAliveHandler,
     ConnectionManager,
-    HTTPResponse,
-    URLTimeoutError,
     HTTPHandler,
+    HTTPResponse,
     HTTPSHandler,
+    KeepAliveHandler,
+    URLTimeoutError,
 )
+from w3af.core.data.url.HTTPRequest import HTTPRequest
 
 
 @attr("moth")
@@ -115,7 +116,7 @@ class TestKeepalive(unittest.TestCase):
         req.get_host = MagicMock(side_effect=[host, host])
 
         # Override KeepAliveHandler._start_transaction - raises timeout
-        kah._start_transaction = MagicMock(side_effect=socket.timeout())
+        kah._start_transaction = MagicMock(side_effect=TimeoutError())
 
         # The connection mgr
         conn_mgr = Mock()

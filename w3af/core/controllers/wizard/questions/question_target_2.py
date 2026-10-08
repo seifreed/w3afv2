@@ -20,9 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from w3af.core.controllers.wizard.question import question
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
-from w3af.core.controllers.wizard.question import question
 
 
 class question_target_2(question):
@@ -58,5 +58,3 @@ class question_target_2(question):
 
         internet = options_list["internet"].get_value()
         # FIXME: Do something with this value
-
-        return None

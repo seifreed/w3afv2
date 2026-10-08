@@ -20,18 +20,20 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import urllib.request, urllib.parse, urllib.error
 import copy
+import urllib.error
+import urllib.parse
+import urllib.request
 
-from w3af.core.data.fuzzer.mutants.mutant import Mutant
 from w3af.core.data.dc.generic.nr_kv_container import NonRepeatKeyValueContainer
+from w3af.core.data.fuzzer.mutants.mutant import Mutant
 
 TOKEN = "token"
 
 
 class URLPartsContainer(NonRepeatKeyValueContainer):
     def __init__(self, url_start, url_token, url_end):
-        super(URLPartsContainer, self).__init__(init_val=[(TOKEN, url_token)])
+        super().__init__(init_val=[(TOKEN, url_token)])
         self.url_start = url_start
         self.url_end = url_end
 

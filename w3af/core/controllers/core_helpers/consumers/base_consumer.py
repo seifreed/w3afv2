@@ -23,17 +23,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 import sys
 import time
-
-from queue import Empty
 from functools import wraps
 from multiprocessing.dummy import Process
+from queue import Empty
 
 import w3af.core.controllers.output_manager as om
-
-from w3af.core.controllers.exception_handling.helpers import pprint_plugins
+from w3af.core.controllers.core_helpers.consumers.constants import POISON_PILL
 from w3af.core.controllers.core_helpers.exception_handler import ExceptionData
 from w3af.core.controllers.core_helpers.status import CoreStatus
-from w3af.core.controllers.core_helpers.consumers.constants import POISON_PILL
+from w3af.core.controllers.exception_handling.helpers import pprint_plugins
 from w3af.core.controllers.threads.threadpool import Pool
 from w3af.core.data.misc.cached_queue import CachedQueue
 
@@ -89,7 +87,7 @@ class BaseConsumer(Process):
         :param thread_name: How to name the current thread, eg. Auditor
         :param create_pool: True to create a worker pool for this consumer
         """
-        super(BaseConsumer, self).__init__(name="%sController" % thread_name)
+        super().__init__(name="%sController" % thread_name)
 
         self.in_queue = CachedQueue(maxsize=max_in_queue_size, name=thread_name + "In")
 

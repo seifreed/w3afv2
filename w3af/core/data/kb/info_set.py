@@ -20,18 +20,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import uuid
-import textwrap
 import pprint
+import textwrap
+import uuid
 
-from jinja2 import StrictUndefined, Environment
+from jinja2 import Environment, StrictUndefined
 
 import w3af.core.controllers.output_manager as om
-
-from w3af.core.data.misc.encoding import smart_str, smart_unicode
+from w3af.core.controllers.misc.human_number import human_number
 from w3af.core.data.fuzzer.mutants.empty_mutant import EmptyMutant
 from w3af.core.data.kb.info import Info
-from w3af.core.controllers.misc.human_number import human_number
+from w3af.core.data.misc.encoding import smart_str, smart_unicode
 
 
 def sample_count(value):
@@ -47,7 +46,7 @@ def sample_count(value):
         return human_number(len_uris)
 
 
-class InfoSet(object):
+class InfoSet:
     """
     This class represents a set of Info instances which are grouped together
     by the plugin developer.
@@ -322,7 +321,7 @@ class InfoSet(object):
                  completely different values for it, and it's not possible to
                  return one that represents all.
         """
-        return None
+        return
 
     def get_token(self):
         """
@@ -330,7 +329,7 @@ class InfoSet(object):
                  completely different values for it, and it's not possible to
                  return one that represents all.
         """
-        return None
+        return
 
     def get_uniq_id(self):
         """

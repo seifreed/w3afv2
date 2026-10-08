@@ -28,7 +28,7 @@ from w3af.plugins.tests.helper import PluginConfig
 @attr("internet")
 @attr("slow")
 @attr("ci_fails")
-class TestScanVulnerableSite(object):
+class TestScanVulnerableSite:
 
     target_url = None
 

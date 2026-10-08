@@ -20,12 +20,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import os
 import mimetypes
+import os
 
 from w3af.core.controllers.misc.io import is_file_like
-from w3af.core.data.misc.encoding import smart_str
 from w3af.core.data.constants.encodings import DEFAULT_ENCODING
+from w3af.core.data.misc.encoding import smart_str
 
 
 def encode_as_multipart(multipart_container, boundary):

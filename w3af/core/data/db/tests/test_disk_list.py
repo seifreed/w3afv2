@@ -19,22 +19,21 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import itertools
 import random
 import string
-import unittest
 import threading
-import itertools
+import unittest
 
 import msgpack
-
 from nose.plugins.attrib import attr
 
 from w3af.core.controllers.misc.temp_dir import create_temp_dir
+from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.db.disk_list import DiskList
+from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.dc.headers import Headers
-from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.url.HTTPResponse import HTTPResponse
 
 
@@ -47,14 +46,14 @@ class TestDiskList(unittest.TestCase):
     def test_int(self):
         dl = DiskList()
 
-        for i in range(0, 1000):
+        for i in range(1000):
             _ = dl.append(i)
 
-        for i in range(0, 1000 / 2):
+        for i in range(1000 / 2):
             r = random.randint(0, 1000 - 1)
             self.assertEqual(r in dl, True)
 
-        for i in range(0, 1000 / 2):
+        for i in range(1000 / 2):
             r = random.randint(1000, 1000 * 2)
             self.assertEqual(r in dl, False)
 
@@ -70,7 +69,7 @@ class TestDiskList(unittest.TestCase):
     def test_string(self):
         dl = DiskList()
 
-        for i in range(0, 1000):
+        for i in range(1000):
             rnd = "".join(random.choice(string.ascii_letters) for i in range(40))
             _ = dl.append(rnd)
 
@@ -142,7 +141,7 @@ class TestDiskList(unittest.TestCase):
     def test_len(self):
         dl = DiskList()
 
-        for i in range(0, 100):
+        for i in range(100):
             _ = dl.append(i)
 
         self.assertEqual(len(dl), 100)
@@ -270,7 +269,7 @@ class TestDiskList(unittest.TestCase):
         for th in threads:
             th.join()
 
-        for i in range(0, 1000):
+        for i in range(1000):
             self.assertTrue(i in dl, i)
 
         dl_as_list = list(dl)
@@ -370,7 +369,7 @@ class TestDiskList(unittest.TestCase):
         count = 30000
         dl = DiskList()
 
-        for i in range(0, count):
+        for i in range(count):
             i_str = str(i)
 
             # This tests the serialization
@@ -389,7 +388,7 @@ class TestDiskList(unittest.TestCase):
         count = 30000
         dl = DiskList(load=lambda x: x, dump=lambda x: x)
 
-        for i in range(0, count):
+        for i in range(count):
             i_str = str(i)
 
             # This tests the serialization
@@ -410,7 +409,7 @@ class TestDiskList(unittest.TestCase):
         count = 30000
         dl = DiskList()
 
-        for i in range(0, count):
+        for i in range(count):
             # This tests the serialization
             dl.append(response)
 
@@ -436,7 +435,7 @@ class TestDiskList(unittest.TestCase):
         count = 30000
         dl = DiskList(dump=dump, load=load)
 
-        for i in range(0, count):
+        for i in range(count):
             # This tests the serialization
             dl.append(response)
 

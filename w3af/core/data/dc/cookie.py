@@ -37,7 +37,7 @@ class Cookie(KeyValueContainer):
 
     def __init__(self, cookie_str="", encoding=DEFAULT_ENCODING):
 
-        super(Cookie, self).__init__(encoding=encoding)
+        super().__init__(encoding=encoding)
 
         for k, v in KEY_VALUE_RE.findall(cookie_str + ";"):
             k = k.strip()
@@ -75,7 +75,7 @@ class Cookie(KeyValueContainer):
         return "; ".join(cookie_pairs)
 
     def __reduce__(self):
-        r = list(super(Cookie, self).__reduce__())
+        r = list(super().__reduce__())
         r[1] = (str(self),)
         return tuple(r)
 

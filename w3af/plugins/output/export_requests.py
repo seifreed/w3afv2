@@ -22,13 +22,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 
-import w3af.core.data.kb.knowledge_base as kb
 import w3af.core.controllers.output_manager as om
-
+import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
 from w3af.core.data.options.opt_factory import opt_factory
-from w3af.core.data.options.option_types import OUTPUT_FILE
 from w3af.core.data.options.option_list import OptionList
+from w3af.core.data.options.option_types import OUTPUT_FILE
 
 
 class export_requests(OutputPlugin):
@@ -61,14 +60,13 @@ class export_requests(OutputPlugin):
 
         try:
             out_file = open(filename, "w")
-        except IOError as ioe:
+        except OSError as ioe:
             msg = 'Failed to open the output file for writing: "%s"'
             om.out.error(msg % ioe)
             return
 
         try:
-            for fr in fuzzable_request_set:
-                out_file.write(fr.to_base64() + "\n")
+            out_file.writelines(fr.to_base64() + "\n" for fr in fuzzable_request_set)
 
         except Exception as e:
             msg = (

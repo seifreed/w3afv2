@@ -23,23 +23,22 @@ import threading
 import weakref
 
 import git
-
 from git.util import RemoteProgress
 
-from w3af.core.controllers.misc.decorators import retry
 from w3af.core.controllers.auto_update.changelog import ChangeLog
 from w3af.core.controllers.auto_update.utils import (
-    get_latest_commit,
     get_current_branch,
+    get_latest_commit,
     repo_has_conflicts,
 )
+from w3af.core.controllers.misc.decorators import retry
 
 
 class GitClientError(Exception):
     pass
 
 
-class GitClient(object):
+class GitClient:
     """
     Our wrapper for performing actions on the git repository.
     """

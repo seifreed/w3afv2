@@ -20,16 +20,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import errno
 import os
 import time
-import errno
 
 
 class FileLockException(Exception):
     pass
 
 
-class FileLock(object):
+class FileLock:
     """
     A file locking mechanism that has context-manager support so
     you can use it in a with statement. This should be relatively cross
@@ -145,4 +145,3 @@ class FileLockRead(FileLock):
         """
         Do nothing, as we don't create a lock in acquire()
         """
-        pass

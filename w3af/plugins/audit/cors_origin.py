@@ -19,22 +19,21 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 """
 
-import w3af.core.data.constants.severity as severity
-
-from w3af.core.data.kb.vuln import Vuln
-from w3af.core.data.kb.info_set import InfoSet
-from w3af.core.data.options.option_list import OptionList
-from w3af.core.data.options.opt_factory import opt_factory
-from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.cors.utils import (
+    ACCESS_CONTROL_ALLOW_CREDENTIALS,
+    ACCESS_CONTROL_ALLOW_METHODS,
+    ACCESS_CONTROL_ALLOW_ORIGIN,
     build_cors_request,
     provides_cors_features,
     retrieve_cors_header,
-    ACCESS_CONTROL_ALLOW_ORIGIN,
-    ACCESS_CONTROL_ALLOW_METHODS,
-    ACCESS_CONTROL_ALLOW_CREDENTIALS,
 )
+from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
+from w3af.core.data.constants import severity
+from w3af.core.data.kb.info_set import InfoSet
+from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.options.opt_factory import opt_factory
+from w3af.core.data.options.option_list import OptionList
 
 ACAO = ACCESS_CONTROL_ALLOW_ORIGIN
 ACAM = ACCESS_CONTROL_ALLOW_METHODS

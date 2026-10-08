@@ -25,7 +25,7 @@ import json
 from w3af.core.data.parsers.utils.form_id_matcher import FormIDMatcher
 
 
-class FormIDMatcherList(object):
+class FormIDMatcherList:
     """
     This class contains a list of form id objects that the user wants to match.
     It is used to parse the string provided by the user in the misc-settings.

@@ -21,35 +21,34 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import copy
-import uuid
 import unittest
+import uuid
+from unittest.mock import Mock
 
-from mock import Mock
-
-from w3af.core.controllers.threads.threadpool import Pool
 from w3af.core.controllers.exceptions import DBException
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.kb.knowledge_base import kb, DBKnowledgeBase
+from w3af.core.controllers.threads.threadpool import Pool
+from w3af.core.controllers.w3afCore import w3afCore
+from w3af.core.data.db.dbms import get_default_persistent_db_instance
+from w3af.core.data.dc.query_string import QueryString
+from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
+from w3af.core.data.kb.info_set import InfoSet
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase, kb
+from w3af.core.data.kb.shell import Shell
 from w3af.core.data.kb.tests.test_info import MockInfo
 from w3af.core.data.kb.tests.test_vuln import MockVuln
-from w3af.core.data.kb.shell import Shell
-from w3af.core.data.kb.info_set import InfoSet
-from w3af.core.data.dc.query_string import QueryString
-from w3af.core.data.db.dbms import get_default_persistent_db_instance
-from w3af.core.data.url.extended_urllib import ExtendedUrllib
-from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
+from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.controllers.w3afCore import w3afCore
-from w3af.plugins.attack.payloads.shell_handler import get_shell_code
-from w3af.plugins.attack.sqlmap import SQLMapShell
-from w3af.plugins.attack.db.sqlmap_wrapper import Target, SQLMapWrapper
+from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.plugins.attack.dav import DAVShell
+from w3af.plugins.attack.db.sqlmap_wrapper import SQLMapWrapper, Target
 from w3af.plugins.attack.eval import EvalShell
 from w3af.plugins.attack.file_upload import FileUploadShell
 from w3af.plugins.attack.local_file_reader import FileReaderShell
-from w3af.plugins.attack.rfi import RFIShell, PortScanShell
-from w3af.plugins.attack.xpath import XPathReader, IsErrorResponse
-from w3af.plugins.attack.os_commanding import OSCommandingShell, BasicExploitStrategy
+from w3af.plugins.attack.os_commanding import BasicExploitStrategy, OSCommandingShell
+from w3af.plugins.attack.payloads.shell_handler import get_shell_code
+from w3af.plugins.attack.rfi import PortScanShell, RFIShell
+from w3af.plugins.attack.sqlmap import SQLMapShell
+from w3af.plugins.attack.xpath import IsErrorResponse, XPathReader
 
 
 class TestKnowledgeBase(unittest.TestCase):
@@ -472,7 +471,7 @@ class TestKnowledgeBase(unittest.TestCase):
         xurllib.end()
 
     def test_pickleable_shells_get_all(self):
-        class FakeCore(object):
+        class FakeCore:
             worker_pool = Pool(1)
             uri_opener = ExtendedUrllib()
 

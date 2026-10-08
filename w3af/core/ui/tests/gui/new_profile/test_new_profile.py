@@ -32,7 +32,7 @@ class TestNewProfile(XpresserUnittest):
     TARGET_EVAL = "http://moth/w3af/audit/eval/eval.php?c="
 
     def setUp(self):
-        super(TestNewProfile, self).setUp()
+        super().setUp()
         self.xp.load_images(self.EXTRA_IMAGES)
 
     def test_new_profile(self):

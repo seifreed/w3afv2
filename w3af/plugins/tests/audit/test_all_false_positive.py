@@ -20,8 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 from nose.plugins.attrib import attr
-from w3af.plugins.tests.helper import PluginTest, PluginConfig
 from nose.plugins.skip import SkipTest
+
+from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 
 class TestAllFP(PluginTest):

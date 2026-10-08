@@ -23,17 +23,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import functools
 import os
 
-import gtk
 import gobject
+import gtk
 
 from w3af import ROOT_PATH
-from w3af.core.ui.gui import helpers, entries
-from w3af.core.ui.gui.reqResViewer import ReqResViewer, RequestPart
+from w3af.core.controllers.exceptions import HTTPRequestException, ScanMustStopException
+from w3af.core.data.db.history import HistoryItem
+from w3af.core.ui.gui import entries, helpers
 from w3af.core.ui.gui.clusterGraph import distance_function_selector
 from w3af.core.ui.gui.payload_generators import create_generator_menu
+from w3af.core.ui.gui.reqResViewer import ReqResViewer, RequestPart
 from w3af.core.ui.gui.tools.helpers import fuzzygen
-from w3af.core.data.db.history import HistoryItem
-from w3af.core.controllers.exceptions import HTTPRequestException, ScanMustStopException
 
 FUZZY_REQUEST_EXAMPLE = """\
 GET http://localhost/$xrange(10)$ HTTP/1.0
@@ -49,7 +49,7 @@ multiple crafted requests.</b>
 
 Every text inside two dollar signs (<i>$</i>) is a text
 generator (if you want to actually write a dollar sign,
-use \$). The system will generate and send as many requests
+use \\$). The system will generate and send as many requests
 as the generator produces.
 
 If in a text you put more than one generator, the results
@@ -85,9 +85,7 @@ class PreviewWindow(entries.RememberingWindow):
     """
 
     def __init__(self, w3af, parent, fg):
-        super(PreviewWindow, self).__init__(
-            w3af, "fuzzypreview", "Preview", "Fuzzy_Requests"
-        )
+        super().__init__(w3af, "fuzzypreview", "Preview", "Fuzzy_Requests")
         self.pages = []
         self.generator = fg.generate()
         self.set_modal(True)
@@ -126,9 +124,7 @@ class FuzzyRequests(entries.RememberingWindow):
     """
 
     def __init__(self, w3af, initial_request=None):
-        super(FuzzyRequests, self).__init__(
-            w3af, "fuzzyreq", "w3af - Fuzzy Requests", "Fuzzy_Requests"
-        )
+        super().__init__(w3af, "fuzzyreq", "w3af - Fuzzy Requests", "Fuzzy_Requests")
         self.w3af = w3af
         self.historyItem = HistoryItem()
         mainhbox = gtk.HBox()

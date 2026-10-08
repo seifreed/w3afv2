@@ -19,18 +19,16 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import gtk
 import gobject
+import gtk
 
-from w3af.core.ui.gui import history
-from w3af.core.ui.gui import helpers
-from w3af.core.ui.gui.constants import W3AF_ICON
-from w3af.core.ui.gui.user_help.open_help import open_help
-
-from w3af.core.data.parsers.doc.url import URL
+from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.options.preferences import Preferences
 from w3af.core.data.parsers.doc.sgml import SGMLParser
-from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.ui.gui import helpers, history
+from w3af.core.ui.gui.constants import W3AF_ICON
+from w3af.core.ui.gui.user_help.open_help import open_help
 
 
 class ValidatedEntry(gtk.Entry):
@@ -55,7 +53,7 @@ class ValidatedEntry(gtk.Entry):
     """
 
     def __init__(self, orig_value):
-        super(ValidatedEntry, self).__init__()
+        super().__init__()
         self.connect("changed", self._changed)
         self.connect("focus-out-event", self._setDefault)
         self.connect("key-release-event", self._key)
@@ -134,7 +132,7 @@ class ValidatedEntry(gtk.Entry):
         return self.validate(self.get_text())
 
 
-class ModifiedMixIn(object):
+class ModifiedMixIn:
     """Mix In class for modified/initial status.
 
     This class adds the functionality of alerting to something each
@@ -325,7 +323,7 @@ class SemiStockButton(gtk.Button):
     """
 
     def __init__(self, text, image, tooltip=None):
-        super(SemiStockButton, self).__init__(stock=image)
+        super().__init__(stock=image)
         # Icons in menus and buttons are not shown by default in GNOME 2.28
         settings = self.get_settings()
         settings.set_property("gtk-button-images", True)
@@ -349,7 +347,7 @@ class SemiStockButton(gtk.Button):
             self.set_tooltip_text(tooltip)
 
 
-class ToolbuttonWrapper(object):
+class ToolbuttonWrapper:
     """Wraps a tool button from a toolbar, and offer helpers.
 
     :param toolbar: the toolbar to extract the toolbutton
@@ -394,7 +392,7 @@ class AdvisedEntry(gtk.Entry):
     """
 
     def __init__(self, message, alertb=None, historyfile=None, alertmodif=None):
-        super(AdvisedEntry, self).__init__()
+        super().__init__()
         self.connect("focus-in-event", self._focus)
         self.firstfocus = True
         self.origMessage = message
@@ -474,7 +472,7 @@ class ValidatedAdvisedEntry(AdvisedEntry):
     """
 
     def __init__(self, message, alertb=None, historyfile=None, alertmodif=None):
-        super(ValidatedAdvisedEntry, self).__init__(
+        super().__init__(
             message, alertb=alertb, historyfile=historyfile, alertmodif=alertmodif
         )
 
@@ -497,7 +495,7 @@ class EntryDialog(gtk.Dialog):
     """
 
     def __init__(self, title, stockok, options):
-        super(EntryDialog, self).__init__(
+        super().__init__(
             title,
             None,
             gtk.DIALOG_MODAL,
@@ -565,7 +563,7 @@ class TextDialog(gtk.Dialog):
     """
 
     def __init__(self, title, tabnames=(), icon=None):
-        super(TextDialog, self).__init__(
+        super().__init__(
             title, None, gtk.DIALOG_MODAL, (gtk.STOCK_OK, gtk.RESPONSE_ACCEPT)
         )
 
@@ -675,7 +673,7 @@ class RememberingWindow(gtk.Window):
     def __init__(
         self, w3af, idstring, title, helpid="", onDestroy=None, guessResize=True
     ):
-        super(RememberingWindow, self).__init__(gtk.WINDOW_TOPLEVEL)
+        super().__init__(gtk.WINDOW_TOPLEVEL)
         self.set_icon_from_file(W3AF_ICON)
         self.onDestroy = onDestroy
         self.helpid = helpid
@@ -859,7 +857,7 @@ class EasyTable(gtk.Table):
     """
 
     def __init__(self, *arg, **kw):
-        super(EasyTable, self).__init__(*arg, **kw)
+        super().__init__(*arg, **kw)
         self.auto_rowcounter = 0
         self.set_row_spacings(1)
 
@@ -896,7 +894,7 @@ wrapperWidgets = {
 # three classes to provide remembering panes
 
 
-class _RememberingPane(object):
+class _RememberingPane:
     """Remembering pane class.
 
     Don't use it directly, you should use the ones provided below this.
@@ -995,7 +993,7 @@ class StatusBar(gtk.Statusbar):
     """
 
     def __init__(self, initmsg=None, others=[]):
-        super(StatusBar, self).__init__()
+        super().__init__()
         self._context = self.get_context_id("unique_sb")
         self._active_counter = 0
 
@@ -1066,7 +1064,7 @@ class ConfigOptions(gtk.VBox, Preferences):
         self.rvrtBtn.set_sensitive(False)
         self.rvrtBtn.connect("clicked", self._revertPanel)
         self.pack_start(buttonsArea, False, False)
-        super(ConfigOptions, self).show()
+        super().show()
 
     def _init_optionsView(self):
 

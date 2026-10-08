@@ -20,13 +20,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
 import time
+import unittest
 
-from w3af.core.controllers.threads.threadpool import Pool
 from w3af.core.controllers.core_helpers.strategy_observers.thread_state_observer import (
     ThreadStateObserver,
 )
+from w3af.core.controllers.threads.threadpool import Pool
 
 
 class TestThreadStateObserver(unittest.TestCase):

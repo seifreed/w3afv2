@@ -20,9 +20,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from flask import jsonify
+
 from w3af.core.ui.api import app
 from w3af.core.ui.api.utils.auth import requires_auth
-from flask import jsonify
 
 
 @app.route("/", methods=["GET"])

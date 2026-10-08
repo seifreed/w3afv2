@@ -20,33 +20,32 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import hashlib
 import os
 import random
-import hashlib
 import tempfile
 import threading
 import traceback
 
-import w3af.core.data.kb.config as cf
 import w3af.core.controllers.output_manager as om
-
-from w3af.core.data.fuzzer.utils import rand_alnum
-from w3af.core.controllers.misc.traceback_utils import get_exception_location
+import w3af.core.data.kb.config as cf
 from w3af.core.controllers.core_helpers.status import CoreStatus
 from w3af.core.controllers.exception_handling.cleanup_bug_report import (
     cleanup_bug_report,
 )
 from w3af.core.controllers.exceptions import (
-    ScanMustStopException,
-    ScanMustStopByUserRequest,
     HTTPRequestException,
     ScanMustStopByUnknownReasonExc,
+    ScanMustStopByUserRequest,
+    ScanMustStopException,
 )
+from w3af.core.controllers.misc.traceback_utils import get_exception_location
+from w3af.core.data.fuzzer.utils import rand_alnum
 
 DEBUG = os.environ.get("DEBUG", "0") == "1"
 
 
-class ExceptionHandler(object):
+class ExceptionHandler:
     """
     This class handles exceptions generated while running plugins, usually
     the handling is just to store the traceback for later processing.
@@ -283,7 +282,7 @@ class ExceptionHandler(object):
         return self._scan_id
 
 
-class ExceptionData(object):
+class ExceptionData:
     def __init__(self, current_status, e, tb, enabled_plugins, store_tb=True):
         """
         :param current_status: The CoreStatus instance

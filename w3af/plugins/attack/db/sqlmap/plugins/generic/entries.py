@@ -9,37 +9,33 @@ import re
 
 from lib.core.agent import agent
 from lib.core.bigarray import BigArray
-from lib.core.common import Backend
-from lib.core.common import clearConsoleLine
-from lib.core.common import getLimitRange
-from lib.core.common import getSafeExString
-from lib.core.common import getUnicode
-from lib.core.common import isInferenceAvailable
-from lib.core.common import isListLike
-from lib.core.common import isNoneValue
-from lib.core.common import isNumPosStrValue
-from lib.core.common import isTechniqueAvailable
-from lib.core.common import prioritySortColumns
-from lib.core.common import readInput
-from lib.core.common import safeSQLIdentificatorNaming
-from lib.core.common import unArrayizeValue
-from lib.core.common import unsafeSQLIdentificatorNaming
-from lib.core.data import conf
-from lib.core.data import kb
-from lib.core.data import logger
-from lib.core.data import queries
+from lib.core.common import (
+    Backend,
+    clearConsoleLine,
+    getLimitRange,
+    getSafeExString,
+    getUnicode,
+    isInferenceAvailable,
+    isListLike,
+    isNoneValue,
+    isNumPosStrValue,
+    isTechniqueAvailable,
+    prioritySortColumns,
+    readInput,
+    safeSQLIdentificatorNaming,
+    unArrayizeValue,
+    unsafeSQLIdentificatorNaming,
+)
+from lib.core.data import conf, kb, logger, queries
 from lib.core.dicts import DUMP_REPLACEMENTS
-from lib.core.enums import CHARSET_TYPE
-from lib.core.enums import DBMS
-from lib.core.enums import EXPECTED
-from lib.core.enums import PAYLOAD
-from lib.core.exception import SqlmapConnectionException
-from lib.core.exception import SqlmapMissingMandatoryOptionException
-from lib.core.exception import SqlmapNoneDataException
-from lib.core.exception import SqlmapUnsupportedFeatureException
-from lib.core.settings import CHECK_ZERO_COLUMNS_THRESHOLD
-from lib.core.settings import CURRENT_DB
-from lib.core.settings import NULL
+from lib.core.enums import CHARSET_TYPE, DBMS, EXPECTED, PAYLOAD
+from lib.core.exception import (
+    SqlmapConnectionException,
+    SqlmapMissingMandatoryOptionException,
+    SqlmapNoneDataException,
+    SqlmapUnsupportedFeatureException,
+)
+from lib.core.settings import CHECK_ZERO_COLUMNS_THRESHOLD, CURRENT_DB, NULL
 from lib.request import inject
 from lib.utils.hash import attackDumpedTable
 from lib.utils.pivotdumptable import pivotDumpTable
@@ -333,8 +329,9 @@ class Entries:
                                     ),
                                 )
 
-                                if maxLen > kb.data.dumpedTable[column]["length"]:
-                                    kb.data.dumpedTable[column]["length"] = maxLen
+                                kb.data.dumpedTable[column]["length"] = max(
+                                    kb.data.dumpedTable[column]["length"], maxLen
+                                )
 
                                 kb.data.dumpedTable[column]["values"].append(colEntry)
 
@@ -423,9 +420,10 @@ class Entries:
                     ):
                         if Backend.isDbms(DBMS.ACCESS):
                             table = tbl
-                        elif Backend.getIdentifiedDbms() in (DBMS.SYBASE, DBMS.MSSQL):
-                            table = "%s.%s" % (conf.db, tbl)
-                        elif Backend.isDbms(DBMS.MAXDB):
+                        elif Backend.getIdentifiedDbms() in (
+                            DBMS.SYBASE,
+                            DBMS.MSSQL,
+                        ) or Backend.isDbms(DBMS.MAXDB):
                             table = "%s.%s" % (conf.db, tbl)
 
                         if Backend.isDbms(DBMS.MSSQL):
@@ -632,7 +630,7 @@ class Entries:
                     }
                     try:
                         attackDumpedTable()
-                    except (IOError, OSError) as ex:
+                    except OSError as ex:
                         errMsg = "an error occurred while attacking "
                         errMsg += "table dump ('%s')" % getSafeExString(ex)
                         logger.critical(errMsg)

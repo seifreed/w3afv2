@@ -18,9 +18,15 @@ def detect(get_page):
 
     for vector in WAF_ATTACK_VECTORS:
         page, headers, _ = get_page(get=vector)
-        retval = re.search(r"<img class=\"yunsuologo\"", page, re.I) is not None
+        retval = (
+            re.search(r"<img class=\"yunsuologo\"", page, re.IGNORECASE) is not None
+        )
         retval |= (
-            re.search(r"yunsuo_session", headers.get(HTTP_HEADER.SET_COOKIE, ""), re.I)
+            re.search(
+                r"yunsuo_session",
+                headers.get(HTTP_HEADER.SET_COOKIE, ""),
+                re.IGNORECASE,
+            )
             is not None
         )
         if retval:

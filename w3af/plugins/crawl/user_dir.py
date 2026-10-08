@@ -20,17 +20,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.data.kb.knowledge_base as kb
 import w3af.core.controllers.output_manager as om
-
-from w3af.core.data.dc.headers import Headers
-from w3af.core.data.kb.info import Info
-from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
-from w3af.core.controllers.exceptions import BaseFrameworkException
-from w3af.core.controllers.exceptions import RunOnce
+import w3af.core.data.kb.knowledge_base as kb
+from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_not_equal
-from w3af.plugins.crawl.user_db.user_db import OS, APPLICATION, get_users_from_csv
+from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
+from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.info import Info
+from w3af.plugins.crawl.user_db.user_db import APPLICATION, OS, get_users_from_csv
 
 
 class user_dir(CrawlPlugin):
@@ -191,7 +189,7 @@ class user_dir(CrawlPlugin):
         :param user: The username for which we want to generate the URLs
         :return: A list of URL objects with the username appended.
         """
-        for _format in {"/%s/", "/~%s/"}:
+        for _format in ("/%s/", "/~%s/"):
             yield base_url.url_join(_format % user)
 
     def _get_users(self):

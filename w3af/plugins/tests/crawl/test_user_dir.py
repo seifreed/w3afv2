@@ -19,9 +19,9 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from mock import Mock
+from unittest.mock import Mock
 
-from w3af.plugins.tests.helper import PluginTest, PluginConfig, MockResponse
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 
 class TestUserDir(PluginTest):

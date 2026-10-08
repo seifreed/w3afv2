@@ -21,57 +21,61 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 # Now that I know that I have them, import them!
-import gtk
-import gobject
-import shelve
 import os
-import webbrowser
-import time
+import shelve
 import sys
-
+import time
+import webbrowser
 from multiprocessing.dummy import Process
+
+import gobject
+import gtk
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
-
-from w3af.core.controllers.w3afCore import w3afCore
-from w3af.core.controllers.misc_settings import MiscSettings
+from w3af.core.controllers.exception_handling.helpers import (
+    get_versions,
+    pprint_plugins,
+)
 from w3af.core.controllers.exceptions import (
     BaseFrameworkException,
     ScanMustStopByUserRequest,
 )
-from w3af.core.controllers.exception_handling.helpers import (
-    pprint_plugins,
-    get_versions,
-)
-from w3af.core.controllers.misc.home_dir import get_home_dir
 from w3af.core.controllers.misc.get_w3af_version import get_w3af_version
-
-from w3af.core.ui.gui import GUI_DATA_PATH
-from w3af.core.ui.gui.splash import Splash
-from w3af.core.ui.gui.disclaimer import DisclaimerController
-from w3af.core.ui.gui.exception_handling import unhandled
-from w3af.core.ui.gui.exception_handling import user_reports_bug
-from w3af.core.ui.gui.constants import W3AF_ICON, MAIN_TITLE, UI_MENU
-from w3af.core.ui.gui.output.gtk_output import GtkOutput
+from w3af.core.controllers.misc.home_dir import get_home_dir
+from w3af.core.controllers.misc_settings import MiscSettings
+from w3af.core.controllers.w3afCore import w3afCore
+from w3af.core.ui.gui import (
+    GUI_DATA_PATH,
+    compare,
+    confpanel,
+    entries,
+    export_request,
+    guardian,
+    helpers,
+    pluginconfig,
+    profiles,
+    scanrun,
+    wizard,
+)
 from w3af.core.ui.gui.auto_update.gui_updater import GUIUpdater
-
-from w3af.core.ui.gui import scanrun, helpers, profiles, compare
-from w3af.core.ui.gui import export_request
-from w3af.core.ui.gui import entries, pluginconfig, confpanel
-from w3af.core.ui.gui import wizard, guardian
-from w3af.core.ui.gui.tools import encdec
-from w3af.core.ui.gui.user_help.open_help import open_help
-from w3af.core.ui.gui.tabs.log.main_body import LogBody
+from w3af.core.ui.gui.constants import MAIN_TITLE, UI_MENU, W3AF_ICON
+from w3af.core.ui.gui.disclaimer import DisclaimerController
+from w3af.core.ui.gui.exception_handling import unhandled, user_reports_bug
+from w3af.core.ui.gui.output.gtk_output import GtkOutput
+from w3af.core.ui.gui.splash import Splash
 from w3af.core.ui.gui.tabs.exploit.main_body import ExploitBody
+from w3af.core.ui.gui.tabs.log.main_body import LogBody
+from w3af.core.ui.gui.tools import encdec
 from w3af.core.ui.gui.tools.fuzzy_requests import FuzzyRequests
 from w3af.core.ui.gui.tools.manual_requests import ManualRequests
 from w3af.core.ui.gui.tools.proxywin import ProxiedRequests
+from w3af.core.ui.gui.user_help.open_help import open_help
 
 # This is just general info, to help people know their system and report more
 # complete bugs
 print("Starting w3af, running on:")
-print((get_versions()))
+print(get_versions())
 
 # pylint: disable=E1101
 # Threading initializer
@@ -97,7 +101,7 @@ class AboutDialog(gtk.Dialog):
     """
 
     def __init__(self, w3af):
-        super(AboutDialog, self).__init__(
+        super().__init__(
             _("About..."),
             None,
             gtk.DIALOG_MODAL,
@@ -143,7 +147,7 @@ class AboutDialog(gtk.Dialog):
         self.destroy()
 
 
-class WindowsCommunication(object):
+class WindowsCommunication:
     def __init__(self, w3af, winCreator):
         self.w3af = w3af
         self.winCreator = winCreator
@@ -193,7 +197,7 @@ class WindowsCommunication(object):
         self.callback = callback
 
 
-class MainApp(object):
+class MainApp:
     """Main GTK application
 
     :author: Facundo Batista <facundobatista =at= taniquetil.com.ar>
@@ -239,10 +243,8 @@ class MainApp(object):
             self.generalconfig = shelve.open(genconfigfile)
         except Exception as e:
             print(
-                (
-                    "WARNING: something bad happened when trying to open the"
-                    " general config! File: %s. Problem: %s" % (genconfigfile, e)
-                )
+                "WARNING: something bad happened when trying to open the"
+                " general config! File: %s. Problem: %s" % (genconfigfile, e)
             )
             self.generalconfig = FakeShelve()
 
@@ -514,7 +516,7 @@ class MainApp(object):
 
         # the sensitive options for profiles
         self.profile_actions = [
-            actiongroup.get_action(x) for x in "Save SaveAs Revert Delete".split()
+            actiongroup.get_action(x) for x in ["Save", "SaveAs", "Revert", "Delete"]
         ]
         self.activate_profile_actions([False, True, False, False])
 
@@ -648,7 +650,7 @@ class MainApp(object):
             treeToUse = self.pcbody.std_plugin_tree
         else:
             # No focus, we should keep the option disabled
-            return None
+            return
 
         # We know that we have focus.... but... is the selection a plugin ?
         path, column = treeToUse.get_cursor()

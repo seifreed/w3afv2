@@ -21,10 +21,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
-import pkg_resources
 
-from yolk.yolklib import get_highest_version, get_distributions, get_highest_installed
+import pkg_resources
 from yolk.pypi import CheeseShop
+from yolk.yolklib import get_distributions, get_highest_installed, get_highest_version
 
 MESSAGE = (
     "There is a new vulndb available at pypi! These are the steps"

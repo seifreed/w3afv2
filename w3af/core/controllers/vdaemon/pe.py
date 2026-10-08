@@ -26,7 +26,7 @@ from w3af import ROOT_PATH
 from w3af.core.controllers.exceptions import BaseFrameworkException
 
 
-class pe(object):
+class pe:
     """
     This class represents a PE file.
 

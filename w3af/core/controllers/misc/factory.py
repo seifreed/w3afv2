@@ -22,11 +22,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 import sys
-import warnings
 import traceback
+import warnings
 
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af import ROOT_PATH
+from w3af.core.controllers.exceptions import BaseFrameworkException
 
 
 def factory(module_name, *args):

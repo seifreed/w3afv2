@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """
 test_multiin.py
 
@@ -21,12 +20,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import itertools
 import types
 import unittest
-import itertools
 
-from w3af.core.data.quick_match.multi_in import MultiIn
 from w3af.core.data.fuzzer.utils import rand_number
+from w3af.core.data.quick_match.multi_in import MultiIn
 
 
 class MultiInTest(unittest.TestCase):

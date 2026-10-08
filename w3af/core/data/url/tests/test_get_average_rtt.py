@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 test_get_average_rtt.py
 
@@ -20,18 +19,18 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import time
 import random
+import time
 import unittest
-import httpretty
-
-from nose.plugins.attrib import attr
-from multiprocessing.dummy import Pool as ThreadPool
 from itertools import repeat
+from multiprocessing.dummy import Pool as ThreadPool
 
-from w3af.core.data.url.extended_urllib import ExtendedUrllib
+import httpretty
+from nose.plugins.attrib import attr
+
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.data.url.extended_urllib import ExtendedUrllib
 
 
 @attr("smoke")
@@ -132,7 +131,7 @@ class TestGetAverageRTT(unittest.TestCase):
         self.assertGreater(0.55, results[0])
 
 
-class RequestCallBackWithDelays(object):
+class RequestCallBackWithDelays:
 
     def __init__(self, delays):
         self.call = 0

@@ -21,24 +21,22 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import time
-
 from copy import deepcopy
 from itertools import repeat
 
-import w3af.core.data.kb.knowledge_base as kb
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.constants.severity as severity
-
-from w3af.core.data.fuzzer.utils import rand_alnum
-from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
-from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
-from w3af.core.data.dc.generic.form import Form
-from w3af.core.data.kb.vuln import Vuln
+import w3af.core.data.kb.knowledge_base as kb
+from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.misc.diff import chunked_diff
 from w3af.core.controllers.misc.epoch_to_string import epoch_to_string
-from w3af.core.controllers.plugins.bruteforce_plugin import BruteforcePlugin
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal
-from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.controllers.plugins.bruteforce_plugin import BruteforcePlugin
+from w3af.core.data.constants import severity
+from w3af.core.data.dc.generic.form import Form
+from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
+from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
+from w3af.core.data.fuzzer.utils import rand_alnum
+from w3af.core.data.kb.vuln import Vuln
 
 
 class form_auth(BruteforcePlugin):
@@ -509,7 +507,7 @@ def form_pointer_factory(freq):
     return PostDataMutant(freq)
 
 
-class FailedLoginPage(object):
+class FailedLoginPage:
     def __init__(self, body_a, body_b):
         self.body_a = body_a
         self.body_b = body_b

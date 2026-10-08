@@ -1,10 +1,9 @@
 #!/usr/bin/env python
-# -*- mode:python; tab-width: 2; coding: utf-8 -*-
 
 """Partially backported python ABC classes"""
 
 try:
-    from collections import MutableSet
+    from collections.abc import MutableSet
 except ImportError:
     # Running in Python <= 2.5
     from ._abc import MutableSet

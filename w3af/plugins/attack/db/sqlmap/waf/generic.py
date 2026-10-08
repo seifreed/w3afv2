@@ -6,8 +6,7 @@ See the file 'LICENSE' for copying permission
 """
 
 from lib.core.option import kb
-from lib.core.settings import IDS_WAF_CHECK_PAYLOAD
-from lib.core.settings import WAF_ATTACK_VECTORS
+from lib.core.settings import IDS_WAF_CHECK_PAYLOAD, WAF_ATTACK_VECTORS
 
 __product__ = "Generic (Unknown)"
 

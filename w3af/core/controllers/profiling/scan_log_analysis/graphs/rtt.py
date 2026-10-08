@@ -1,10 +1,10 @@
 import re
-import plotille
 
+import plotille
 from utils.graph import num_formatter
 from utils.utils import get_first_timestamp, get_last_timestamp, get_line_epoch
 
-RTT_RE = re.compile("\(.*?rtt=(.*?),.*\)")
+RTT_RE = re.compile(r"\(.*?rtt=(.*?),.*\)")
 
 
 def get_rtt_data(scan_log_filename, scan):
@@ -35,7 +35,7 @@ def draw_rtt(scan_log_filename, scan):
         return
 
     print("RTT over time")
-    print("")
+    print()
 
     fig = plotille.Figure()
     fig.width = 90
@@ -50,5 +50,5 @@ def draw_rtt(scan_log_filename, scan):
 
     fig.plot(rtt_timestamps, rtt, label="RTT")
 
-    print((fig.show()))
-    print("")
+    print(fig.show())
+    print()

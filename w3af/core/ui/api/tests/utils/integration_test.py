@@ -20,13 +20,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import os
-import time
-import signal
 import fnmatch
 import logging
+import os
+import signal
 import tempfile
+import time
 import unittest
+
 import requests
 
 from w3af.core.ui.api.tests.utils.api_process import start_api

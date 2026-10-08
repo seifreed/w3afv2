@@ -20,17 +20,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import threading
-import unittest
-import urllib.request, urllib.error, urllib.parse
 import queue
+import threading
 import time
+import unittest
+import urllib.error
+import urllib.parse
+import urllib.request
 
 from nose.plugins.attrib import attr
 
-from w3af.core.controllers.misc.temp_dir import create_temp_dir
-from w3af.core.controllers.daemons.proxy import InterceptProxy
 from w3af.core.controllers.ci.moth import get_moth_http
+from w3af.core.controllers.daemons.proxy import InterceptProxy
+from w3af.core.controllers.misc.temp_dir import create_temp_dir
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 
 

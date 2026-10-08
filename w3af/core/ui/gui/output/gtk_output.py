@@ -21,12 +21,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import time
-import weakref
 
-import w3af.core.data.constants.severity as severity
 import w3af.core.controllers.output_manager as om
-
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
+from w3af.core.data.constants import severity
 
 DEBUG = "debug"
 INFORMATION = "information"
@@ -168,7 +166,7 @@ def unsubscribe_to_messages(observer_function):
 # pylint: enable=E1103
 
 
-class Message(object):
+class Message:
     def __init__(self, msg_type, msg, new_line=True):
         """
         :param msg_type: console, information, vulnerability, etc

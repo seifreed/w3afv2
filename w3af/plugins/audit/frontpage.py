@@ -21,17 +21,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import w3af.core.controllers.output_manager as om
-
 import w3af.core.data.kb.knowledge_base as kb
-import w3af.core.data.constants.severity as severity
-
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
-
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
-from w3af.core.data.misc.encoding import smart_str_ignore
+from w3af.core.data.constants import severity
 from w3af.core.data.fuzzer.utils import rand_alpha
 from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.misc.encoding import smart_str_ignore
 
 POST_BODY = (
     "method=put document:%s&service_name=&document=[document_name=%s"

@@ -24,10 +24,9 @@ from threading import RLock
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
-
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
-from w3af.core.data.url.helpers import is_no_content_response
 from w3af.core.data.kb.info import Info
+from w3af.core.data.url.helpers import is_no_content_response
 
 
 class server_header(InfrastructurePlugin):

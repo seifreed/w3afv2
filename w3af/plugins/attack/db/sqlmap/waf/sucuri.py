@@ -21,7 +21,7 @@ def detect(get_page):
         retval = (
             code == 403
             and re.search(
-                r"Sucuri/Cloudproxy", headers.get(HTTP_HEADER.SERVER, ""), re.I
+                r"Sucuri/Cloudproxy", headers.get(HTTP_HEADER.SERVER, ""), re.IGNORECASE
             )
             is not None
         )

@@ -22,22 +22,22 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-from w3af.core.data.url.opener_settings import OpenerSettings
 from w3af.core.data.options.option_types import (
     BOOL,
-    INT,
-    POSITIVE_INT,
+    COMBO,
     FLOAT,
-    STRING,
-    URL,
+    INPUT_FILE,
+    INT,
     IPPORT,
     LIST,
-    REGEX,
-    COMBO,
-    INPUT_FILE,
     OUTPUT_FILE,
     PORT,
+    POSITIVE_INT,
+    REGEX,
+    STRING,
+    URL,
 )
+from w3af.core.data.url.opener_settings import OpenerSettings
 
 OPTION_TYPES = (
     BOOL,

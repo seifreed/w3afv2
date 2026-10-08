@@ -19,10 +19,10 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import unittest
 import threading
-
+import unittest
 from multiprocessing.dummy import DummyProcess
+
 from nose.plugins.attrib import attr
 
 from w3af.core.controllers.w3afCore import w3afCore

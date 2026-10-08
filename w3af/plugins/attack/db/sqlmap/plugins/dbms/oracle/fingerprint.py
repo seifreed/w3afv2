@@ -7,15 +7,13 @@ See the file 'LICENSE' for copying permission
 
 import re
 
-from lib.core.common import Backend
-from lib.core.common import Format
-from lib.core.data import conf
-from lib.core.data import kb
-from lib.core.data import logger
+from lib.core.common import Backend, Format
+from lib.core.data import conf, kb, logger
 from lib.core.enums import DBMS
 from lib.core.session import setDbms
 from lib.core.settings import ORACLE_ALIASES
 from lib.request import inject
+
 from plugins.generic.fingerprint import Fingerprint as GenericFingerprint
 
 

@@ -2,7 +2,7 @@ import re
 
 from utils.output import KeyValueOutput
 
-JOIN_TIMES = re.compile("(.*?) took (.*?) seconds to join\(\)")
+JOIN_TIMES = re.compile(r"(.*?) took (.*?) seconds to join\(\)")
 
 
 def get_consumer_join_times(scan_log_filename, scan):

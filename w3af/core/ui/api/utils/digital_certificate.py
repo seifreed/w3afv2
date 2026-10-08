@@ -24,10 +24,11 @@ import os
 import socket
 
 from OpenSSL import crypto
+
 from w3af.core.controllers.misc.home_dir import get_home_dir
 
 
-class SSLCertificate(object):
+class SSLCertificate:
     def __init__(self):
         ssl_dir = os.path.join(get_home_dir(), "ssl")
         self.key_path = os.path.join(ssl_dir, "w3af.key")

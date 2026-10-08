@@ -24,11 +24,11 @@ import sys
 
 from flask import jsonify
 
-from w3af.core.ui.api import app
-from w3af.core.ui.api.utils.error import abort
-from w3af.core.ui.api.utils.auth import requires_auth
-from w3af.core.ui.api.utils.scans import get_scan_info_from_id
 from w3af.core.controllers.core_helpers.status import CoreStatus
+from w3af.core.ui.api import app
+from w3af.core.ui.api.utils.auth import requires_auth
+from w3af.core.ui.api.utils.error import abort
+from w3af.core.ui.api.utils.scans import get_scan_info_from_id
 
 
 @app.route("/scans/<int:scan_id>/exceptions/", methods=["GET"])

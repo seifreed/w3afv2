@@ -20,10 +20,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
 import time
+import unittest
 
 from pebble import ProcessPool
+
 from w3af.core.data.parsers.mp_document_parser import limit_memory_usage
 
 
@@ -109,7 +110,7 @@ class TestPebbleMemoryUsage(unittest.TestCase):
             try:
                 future.result()
             except MemoryError:
-                print(("Limit found at %s bytes" % current_len))
+                print("Limit found at %s bytes" % current_len)
                 break
 
         # self.assertGreaterEqual(self.MEMORY_LIMIT * 1.2, current_len)

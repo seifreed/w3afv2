@@ -79,8 +79,6 @@ class NoMoreCalls(RunOnce):
     don't want to be run anymore.
     """
 
-    pass
-
 
 class ScanMustStopException(Exception):
     """
@@ -110,8 +108,6 @@ class ScanMustStopByUserRequest(ScanMustStopException):
     """
     The user requested the scan to stop, raise this exception to stop it.
     """
-
-    pass
 
 
 class ScanMustStopOnUrlError(ScanMustStopException):
@@ -162,8 +158,6 @@ class ProxyException(BaseFrameworkException):
     """
     A small class that defines a w3af Proxy Exception.
     """
-
-    pass
 
 
 class DBException(BaseFrameworkException):

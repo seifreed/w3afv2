@@ -5,16 +5,13 @@ Copyright (c) 2006-2017 sqlmap developers (http://sqlmap.org/)
 See the file 'LICENSE' for copying permission
 """
 
-from lib.core.common import Backend
-from lib.core.common import unArrayizeValue
-from lib.core.data import conf
-from lib.core.data import kb
-from lib.core.data import logger
-from lib.core.data import queries
+from lib.core.common import Backend, unArrayizeValue
+from lib.core.data import conf, kb, logger, queries
 from lib.core.enums import DBMS
 from lib.core.session import setOs
 from lib.parse.banner import bannerParser
 from lib.request import inject
+
 from plugins.generic.custom import Custom
 from plugins.generic.databases import Databases
 from plugins.generic.entries import Entries

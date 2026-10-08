@@ -22,14 +22,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 
-import w3af.core.data.kb.knowledge_base as kb
 import w3af.core.controllers.output_manager as om
-
-from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
+import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.misc.decorators import runonce
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.kb.info import Info
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
 class oracle_discovery(CrawlPlugin):
@@ -51,7 +50,7 @@ class oracle_discovery(CrawlPlugin):
         # Example strings:
         # Reports Servlet Omgevingsvariabelen 9.0.4.2.0
         # Reports Servlet Variables de Entorno 9.0.4.0.33
-        "(Reports Servlet) [\w ]* ([\d\.]*?)",
+        r"(Reports Servlet) [\w ]* ([\d\.]*?)",
     )
 
     ORACLE_RE = [re.compile(regex) for regex in ORACLE_RE]

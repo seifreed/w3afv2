@@ -1,6 +1,5 @@
 import errno
 import sys
-
 from multiprocessing.queues import JoinableQueue, _sentinel, debug, info
 
 
@@ -53,7 +52,7 @@ class SilentJoinableQueue(JoinableQueue):
                                 wrelease()
                 except IndexError:
                     pass
-                except IOError:
+                except OSError:
                     # Should be catching the same as errno.EPIPE below
                     return
                 except Exception as e:

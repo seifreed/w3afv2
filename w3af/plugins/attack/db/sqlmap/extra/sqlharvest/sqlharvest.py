@@ -5,14 +5,14 @@ Copyright (c) 2006-2017 sqlmap developers (http://sqlmap.org/)
 See the file 'LICENSE' for copying permission
 """
 
+import configparser
 import http.cookiejar
 import re
 import socket
 import sys
-import urllib.request, urllib.parse, urllib.error
-import urllib.request, urllib.error, urllib.parse
-import configparser
-
+import urllib.error
+import urllib.parse
+import urllib.request
 from operator import itemgetter
 
 TIMEOUT = 10
@@ -136,8 +136,7 @@ def main():
                 except Exception as msg:
                     print(msg)
 
-            else:
-                i += 1
+            i += 1
 
     except KeyboardInterrupt:
         pass

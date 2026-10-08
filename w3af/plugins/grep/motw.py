@@ -24,9 +24,8 @@ import re
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
-
-from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
+from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.kb.info import Info
 
 
@@ -41,7 +40,7 @@ class motw(GrepPlugin):
     def __init__(self):
         GrepPlugin.__init__(self)
 
-        self._motw_re = re.compile("<!--\s*saved from url=\((\d\d\d\d)\)(.*?)\s*-->")
+        self._motw_re = re.compile(r"<!--\s*saved from url=\((\d\d\d\d)\)(.*?)\s*-->")
 
     def grep(self, request, response):
         """

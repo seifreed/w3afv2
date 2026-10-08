@@ -1,4 +1,3 @@
-# -*- coding: utf8 -*-
 """
 test_pylint.py
 
@@ -23,14 +22,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 import unittest
 
+from nose.plugins.attrib import attr
 from pylint import lint
 from pylint.reporters.text import TextReporter
-from nose.plugins.attrib import attr
 
 from w3af import ROOT_PATH
 
 
-class WritableObject(object):
+class WritableObject:
     def __init__(self):
         self.content = []
 

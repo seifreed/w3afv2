@@ -20,30 +20,33 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import threading
 import signal
+import threading
 
-import gtk
 import gobject
+import gtk
+
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.exceptions import (
     BaseFrameworkException,
     HTTPRequestException,
     ScanMustStopException,
 )
-from w3af.core.data.db.history import HistoryItem
 from w3af.core.data.constants import severity
+from w3af.core.data.db.history import HistoryItem
 from w3af.core.data.parsers.doc.http_request_parser import http_request_parser
 from w3af.core.data.visualization.string_representation import StringRepresentation
-from w3af.core.ui.gui.entries import RememberingVPaned
-from w3af.core.ui.gui.entries import RememberingWindow
-from w3af.core.ui.gui.entries import SemiStockButton
-from w3af.core.ui.gui.httpeditor import HttpEditor
-from w3af.core.ui.gui.rrviews.raw import HttpRawView
-from w3af.core.ui.gui.rrviews.headers import HttpHeadersView
-from w3af.core.ui.gui.rrviews.rendering import getRenderingView
-from w3af.core.ui.gui.export_request import export_request
 from w3af.core.ui.gui import helpers
+from w3af.core.ui.gui.entries import (
+    RememberingVPaned,
+    RememberingWindow,
+    SemiStockButton,
+)
+from w3af.core.ui.gui.export_request import export_request
+from w3af.core.ui.gui.httpeditor import HttpEditor
+from w3af.core.ui.gui.rrviews.headers import HttpHeadersView
+from w3af.core.ui.gui.rrviews.raw import HttpRawView
+from w3af.core.ui.gui.rrviews.rendering import getRenderingView
 
 SIGSEV_ERROR = (
     "We caught a segmentation fault! Please report this bug"
@@ -95,7 +98,7 @@ class ReqResViewer(gtk.VBox):
         layout="Tabbed",
     ):
 
-        super(ReqResViewer, self).__init__()
+        super().__init__()
         self.w3af = w3af
         # Request
         self.request = RequestPart(
@@ -328,7 +331,7 @@ class RequestResponsePart(gtk.Notebook):
     def __init__(
         self, parent, w3af, enableWidget=[], editable=False, widgname="default"
     ):
-        super(RequestResponsePart, self).__init__()
+        super().__init__()
         self._parent = parent
         self._obj = None
         self.w3af = w3af
@@ -343,10 +346,10 @@ class RequestResponsePart(gtk.Notebook):
     def show(self):
         for view in self._views:
             view.show()
-        super(RequestResponsePart, self).show()
+        super().show()
 
     def set_sensitive(self, how):
-        super(RequestResponsePart, self).set_sensitive(how)
+        super().set_sensitive(how)
         for but in self.childButtons:
             but.set_sensitive(how)
 

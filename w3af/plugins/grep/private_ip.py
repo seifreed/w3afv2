@@ -23,13 +23,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import re
 import socket
 
-import w3af.core.data.constants.severity as severity
-
-from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.controllers.misc.get_local_ip import get_local_ip
+from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
-from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.constants import severity
 from w3af.core.data.kb.info_set import InfoSet
+from w3af.core.data.kb.vuln import Vuln
 
 
 class private_ip(GrepPlugin):
@@ -41,9 +40,9 @@ class private_ip(GrepPlugin):
 
     # More info regarding this regular expression: http://bit.ly/185DFJc
     IP_RE = (
-        "(?<!\.)(?<!\d)(?:(?:10|127)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9]"
-        "[0-9]?)|192\.168|169\.254|172\.0?(?:1[6-9]|2[0-9]|3[01]))"
-        "(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){2}(?!\d)(?!\.)"
+        r"(?<!\.)(?<!\d)(?:(?:10|127)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9]"
+        r"[0-9]?)|192\.168|169\.254|172\.0?(?:1[6-9]|2[0-9]|3[01]))"
+        r"(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){2}(?!\d)(?!\.)"
     )
 
     RE_LIST = [re.compile(IP_RE)]
@@ -153,7 +152,9 @@ class private_ip(GrepPlugin):
                 # Some proxy servers will return errors that include headers
                 # in the body along with the client IP which we want to ignore
                 if re.search(
-                    "^.*X-Forwarded-For: .*%s" % ip_address, response.get_body(), re.M
+                    "^.*X-Forwarded-For: .*%s" % ip_address,
+                    response.get_body(),
+                    re.MULTILINE,
                 ):
                     continue
 

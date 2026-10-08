@@ -42,12 +42,12 @@ def whereis_moth():
     """
     try:
         moth = open(HTTP_ADDRESS_FILE).read().strip()
-    except IOError:
+    except OSError:
         moth = None
 
     try:
         moths = open(HTTPS_ADDRESS_FILE).read().strip()
-    except IOError:
+    except OSError:
         moths = None
 
     return {"http": moth or DEFAULT_MOTH, "https": moths or DEFAULT_MOTHS}

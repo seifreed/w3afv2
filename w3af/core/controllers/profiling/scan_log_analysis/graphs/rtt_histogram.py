@@ -1,9 +1,9 @@
 import re
-import plotille
 
+import plotille
 from utils.graph import num_formatter
 
-RTT_RE = re.compile("\(.*?rtt=(.*?),.*\)")
+RTT_RE = re.compile(r"\(.*?rtt=(.*?),.*\)")
 
 
 def get_rtt_histogram_data(scan_log_filename, scan):
@@ -33,6 +33,6 @@ def draw_rtt_histogram(scan_log_filename, scan):
     fig.color_mode = "byte"
 
     print("[rtt_histogram]")
-    print("")
-    print((plotille.hist(rtts, bins=25)))
-    print("")
+    print()
+    print(plotille.hist(rtts, bins=25))
+    print()

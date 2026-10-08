@@ -20,32 +20,33 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
-import re
-import time
 import pprint
-import urllib.request, urllib.error, urllib.parse
-import unittest
+import re
 import tempfile
-import httpretty
-
+import time
+import unittest
+import urllib.error
+import urllib.parse
+import urllib.request
 from functools import wraps
-from nose.plugins.skip import SkipTest
+
+import httpretty
 from nose.plugins.attrib import attr
+from nose.plugins.skip import SkipTest
 
-import w3af.core.data.kb.knowledge_base as kb
 import w3af.core.controllers.output_manager as om
-
-from w3af.core.controllers.w3afCore import w3afCore
-from w3af.core.controllers.misc.home_dir import W3AF_LOCAL_PATH
+import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.misc.decorators import retry
+from w3af.core.controllers.misc.home_dir import W3AF_LOCAL_PATH
 from w3af.core.controllers.misc_settings import MiscSettings
+from w3af.core.controllers.w3afCore import w3afCore
 from w3af.core.data.fuzzer.utils import rand_alnum
-from w3af.core.data.options.opt_factory import opt_factory
-from w3af.core.data.options.option_types import URL_LIST
-from w3af.core.data.options.option_list import OptionList
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.kb.read_shell import ReadShell
 from w3af.core.data.kb.info_set import InfoSet
+from w3af.core.data.kb.read_shell import ReadShell
+from w3af.core.data.options.opt_factory import opt_factory
+from w3af.core.data.options.option_list import OptionList
+from w3af.core.data.options.option_types import URL_LIST
+from w3af.core.data.parsers.doc.url import URL
 
 os.chdir(W3AF_LOCAL_PATH)
 RE_COMPILE_TYPE = type(re.compile(""))
@@ -469,7 +470,7 @@ class PluginTest(unittest.TestCase):
         self.w3afcore.plugins.set_plugin_options(ptype, pname, default_opts)
 
 
-class PluginConfig(object):
+class PluginConfig:
 
     BOOL = "boolean"
     STR = "string"
@@ -535,9 +536,7 @@ class ReadExploitTest(PluginTest):
 
 class ExecExploitTest(ReadExploitTest):
     def _exploit_vuln(self, vuln_to_exploit_id, exploit_plugin):
-        shell = super(ExecExploitTest, self)._exploit_vuln(
-            vuln_to_exploit_id, exploit_plugin
-        )
+        shell = super()._exploit_vuln(vuln_to_exploit_id, exploit_plugin)
 
         etc_passwd = shell.generic_user_input("e", ["cat", "/etc/passwd"])
         self.assertIn("root", etc_passwd)
@@ -595,7 +594,7 @@ def create_target_option_list(*target):
     return opts
 
 
-class MockResponse(object):
+class MockResponse:
     NO_MOCK = "httpretty can not mock this method"
     KNOWN_METHODS = (
         "GET",

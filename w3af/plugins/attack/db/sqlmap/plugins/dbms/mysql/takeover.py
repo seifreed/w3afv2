@@ -8,20 +8,21 @@ See the file 'LICENSE' for copying permission
 import os
 
 from lib.core.agent import agent
-from lib.core.common import Backend
-from lib.core.common import decloakToTemp
-from lib.core.common import isStackingAvailable
-from lib.core.common import isWindowsDriveLetterPath
-from lib.core.common import normalizePath
-from lib.core.common import ntToPosixSlashes
-from lib.core.common import randomStr
-from lib.core.common import unArrayizeValue
-from lib.core.data import kb
-from lib.core.data import logger
-from lib.core.data import paths
+from lib.core.common import (
+    Backend,
+    decloakToTemp,
+    isStackingAvailable,
+    isWindowsDriveLetterPath,
+    normalizePath,
+    ntToPosixSlashes,
+    randomStr,
+    unArrayizeValue,
+)
+from lib.core.data import kb, logger, paths
 from lib.core.enums import OS
 from lib.request import inject
 from lib.request.connect import Connect as Request
+
 from plugins.generic.takeover import Takeover as GenericTakeover
 
 

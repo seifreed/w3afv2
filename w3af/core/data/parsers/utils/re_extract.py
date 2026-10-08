@@ -24,7 +24,7 @@ import re
 
 from w3af.core.data.parsers.doc.baseparser import BaseParser
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.parsers.utils.url_regex import URL_RE, RELATIVE_URL_RE
+from w3af.core.data.parsers.utils.url_regex import RELATIVE_URL_RE, URL_RE
 
 
 class ReExtract(BaseParser):

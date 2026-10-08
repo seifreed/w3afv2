@@ -21,21 +21,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.parsers.parser_cache as parser_cache
-
-from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.controllers.exceptions import (
     BaseFrameworkException,
+    RunOnce,
     ScanMustStopOnUrlError,
 )
-from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.misc.is_private_site import is_private_site
-
-from w3af.core.data.search_engines.bing import bing as bing
+from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
+from w3af.core.data.kb.info import Info
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
-from w3af.core.data.kb.info import Info
+from w3af.core.data.parsers import parser_cache
+from w3af.core.data.search_engines.bing import bing as bing
 
 
 class finger_bing(InfrastructurePlugin):

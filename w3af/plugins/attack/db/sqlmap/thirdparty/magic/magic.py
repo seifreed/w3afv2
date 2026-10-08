@@ -14,8 +14,8 @@ Usage:
 
 """
 
-import sys
 import os.path
+import sys
 
 
 class MagicException(Exception):
@@ -60,7 +60,7 @@ class Magic:
         """
 
         if not os.path.exists(filename):
-            raise IOError("File does not exist: " + filename)
+            raise OSError("File does not exist: " + filename)
 
         return magic_file(self.cookie, filename)
 
@@ -111,7 +111,6 @@ try:
 
     import ctypes
     import ctypes.util
-
     from ctypes import c_char_p, c_int, c_size_t, c_void_p
 
     # Let's try to find magic or magic1
@@ -121,7 +120,7 @@ try:
     if dll:
         try:
             libmagic = ctypes.CDLL(dll)
-        except WindowsError:
+        except OSError:
             pass
 
     if not libmagic or not libmagic._name:

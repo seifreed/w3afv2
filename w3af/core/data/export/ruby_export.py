@@ -1,5 +1,3 @@
-# -*- coding: utf8 -*-
-
 """
 ruby_export.py
 

@@ -23,12 +23,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from collections import deque
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 import w3af.core.data.kb.config as cf
-
+import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.plugins.plugin import Plugin
-from w3af.core.data.kb.info import Info
 from w3af.core.data.fuzzer.utils import rand_alnum
+from w3af.core.data.kb.info import Info
 from w3af.core.data.url.helpers import is_no_content_response
 
 

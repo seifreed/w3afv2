@@ -21,11 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import json
 import re
+from functools import cmp_to_key
+from unittest.mock import patch
 
-from mock import patch
-
-from w3af.plugins.audit.sqli import sqli
-from w3af.plugins.tests.helper import PluginTest, PluginConfig, MockResponse
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.open_api import OpenAPI
 from w3af.core.data.parsers.doc.open_api.tests.example_specifications import (
@@ -33,7 +31,8 @@ from w3af.core.data.parsers.doc.open_api.tests.example_specifications import (
     NestedModel,
     PetstoreSimpleModel,
 )
-from functools import cmp_to_key
+from w3af.plugins.audit.sqli import sqli
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 API_KEY = "0x12345"
 
@@ -144,9 +143,7 @@ class HeaderAuthenticatedMockResponse(MockResponse):
             response_headers.update({"status": 401})
             return 401, response_headers, "Missing authentication"
 
-        return super(HeaderAuthenticatedMockResponse, self).get_response(
-            http_request, uri, response_headers
-        )
+        return super().get_response(http_request, uri, response_headers)
 
 
 class TestOpenAPINestedModelSpec(PluginTest):

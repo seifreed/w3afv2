@@ -39,8 +39,8 @@ def url_tree_factory():
     return OrderedIterDefaultDict(url_tree_factory)
 
 
-class URLNode(object):
-    __slots__ = ("path", "is_leaf")
+class URLNode:
+    __slots__ = ("is_leaf", "path")
 
     def __init__(self, path, is_leaf):
         self.path = path
@@ -67,7 +67,7 @@ class URLNode(object):
         return cmp(self.path, other.path)
 
 
-class URLTree(object):
+class URLTree:
     def __init__(self):
         self.tree = url_tree_factory()
 

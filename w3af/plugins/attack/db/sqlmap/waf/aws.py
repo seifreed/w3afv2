@@ -20,7 +20,7 @@ def detect(get_page):
         page, headers, code = get_page(get=vector)
         retval = (
             code == 403
-            and re.search(r"\bAWS", headers.get(HTTP_HEADER.SERVER, ""), re.I)
+            and re.search(r"\bAWS", headers.get(HTTP_HEADER.SERVER, ""), re.IGNORECASE)
             is not None
         )
         if retval:

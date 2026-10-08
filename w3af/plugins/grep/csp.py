@@ -20,12 +20,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
-from w3af.core.data.db.disk_list import DiskList
-from w3af.core.data.db.disk_item import DiskItem
-from w3af.core.data.kb.vuln import Vuln
-from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.controllers.csp.utils import find_vulns
+from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
+from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
+from w3af.core.data.db.disk_item import DiskItem
+from w3af.core.data.db.disk_list import DiskList
+from w3af.core.data.kb.vuln import Vuln
 
 
 class csp(GrepPlugin):

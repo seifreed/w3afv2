@@ -22,10 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from urllib.parse import quote_plus
 
-import w3af.core.controllers.output_manager as om
-
-from w3af.core.controllers.plugins.auth_session_plugin import AuthSessionPlugin
 from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.controllers.plugins.auth_session_plugin import AuthSessionPlugin
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 
@@ -113,10 +111,10 @@ class detailed(AuthSessionPlugin):
         """
         User logout
         """
-        return None
+        return
 
     def _handle_authentication_success(self):
-        super(detailed, self)._handle_authentication_success()
+        super()._handle_authentication_success()
         self._log_debug("Login success for %s" % self.username)
 
     def _get_data_from_format(self):

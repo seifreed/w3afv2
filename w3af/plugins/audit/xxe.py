@@ -24,15 +24,14 @@ import itertools
 
 from lxml import etree
 
-import w3af.core.data.constants.severity as severity
 import w3af.core.controllers.output_manager as om
-
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
+from w3af.core.data.constants import severity
 from w3af.core.data.constants.file_patterns import FILE_PATTERNS
-from w3af.core.data.misc.encoding import smart_str_ignore
 from w3af.core.data.fuzzer.fuzzer import create_mutants
-from w3af.core.data.quick_match.multi_in import MultiIn
 from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.misc.encoding import smart_str_ignore
+from w3af.core.data.quick_match.multi_in import MultiIn
 
 
 class xxe(AuditPlugin):

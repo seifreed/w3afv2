@@ -73,9 +73,7 @@ def construct_params(operation, request, op_kwargs):
         param = current_params.pop(param_name, None)
         if param is None:
             raise SwaggerMappingError(
-                "{0} does not have parameter {1}".format(
-                    operation.operation_id, param_name
-                )
+                f"{operation.operation_id} does not have parameter {param_name}"
             )
         marshal_param(param, param_value, request)
 
@@ -91,7 +89,7 @@ def construct_params(operation, request, op_kwargs):
         else:
             if remaining_param.required:
                 raise SwaggerMappingError(
-                    "{0} is a required parameter".format(remaining_param.name)
+                    f"{remaining_param.name} is a required parameter"
                 )
             if not remaining_param.required and remaining_param.has_default():
                 marshal_param(remaining_param, None, request)

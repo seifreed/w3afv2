@@ -23,12 +23,12 @@ __author__ = "Jose Fonseca"
 __version__ = "1.0"
 
 
-import sys
 import math
+import optparse
 import os.path
 import re
+import sys
 import textwrap
-import optparse
 import xml.parsers.expat
 
 try:
@@ -96,7 +96,7 @@ class UndefinedEvent(Exception):
         return "unspecified event %s" % self.event.name
 
 
-class Event(object):
+class Event:
     """Describe a kind of event, and its basic operations."""
 
     def __init__(self, name, null, aggregator, formatter=str):
@@ -136,7 +136,7 @@ TOTAL_TIME = Event("Total time", 0.0, fail)
 TOTAL_TIME_RATIO = Event("Total time ratio", 0.0, fail, percentage)
 
 
-class Object(object):
+class Object:
     """Base class for all objects in profile which can store events."""
 
     def __init__(self, events=None):
@@ -1104,7 +1104,7 @@ class CallgrindParser(LineParser):
     - http://valgrind.org/docs/manual/cl-Format.html
     """
 
-    _call_re = re.compile("^calls=\s*(\d+)\s+((\d+|\+\d+|-\d+|\*)\s+)+$")
+    _call_re = re.compile(r"^calls=\s*(\d+)\s+((\d+|\+\d+|-\d+|\*)\s+)+$")
 
     def __init__(self, infile):
         LineParser.__init__(self, infile)
@@ -1269,7 +1269,7 @@ class CallgrindParser(LineParser):
         return True
 
     _position_re = re.compile(
-        "^(?P<position>c?(?:ob|fl|fi|fe|fn))=\s*(?:\((?P<id>\d+)\))?(?:\s*(?P<name>.+))?"
+        r"^(?P<position>c?(?:ob|fl|fi|fe|fn))=\s*(?:\((?P<id>\d+)\))?(?:\s*(?P<name>.+))?"
     )
 
     _position_table_map = {

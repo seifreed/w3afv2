@@ -20,14 +20,15 @@ warnings.filterwarnings(
 )
 warnings.filterwarnings(action="ignore", category=DeprecationWarning)
 
-from sqlmap import modulePath
 from lib.core.common import setPaths
 from lib.core.data import logger
-from lib.core.settings import RESTAPI_DEFAULT_ADAPTER
-from lib.core.settings import RESTAPI_DEFAULT_ADDRESS
-from lib.core.settings import RESTAPI_DEFAULT_PORT
-from lib.utils.api import client
-from lib.utils.api import server
+from lib.core.settings import (
+    RESTAPI_DEFAULT_ADAPTER,
+    RESTAPI_DEFAULT_ADDRESS,
+    RESTAPI_DEFAULT_PORT,
+)
+from lib.utils.api import client, server
+from sqlmap import modulePath
 
 
 def main():

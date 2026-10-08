@@ -20,24 +20,24 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from .ubuntu1204 import Ubuntu1204
-from .ubuntu1404 import Ubuntu1404
-from .ubuntu1410 import Ubuntu1410
-from .ubuntu1604 import Ubuntu1604
-from .ubuntu1804 import Ubuntu1804
+from .centos import CentOS
+from .centos65 import CentOS65
 from .debian76 import Debian76
 from .debian78 import Debian78
 from .debian80 import Debian80
-from .centos import CentOS
-from .centos65 import CentOS65
+from .default import DefaultPlatform
+from .elementaryOS02 import ElementaryOS02
 from .fedora import Fedora
 from .kali import Kali
 from .kali2 import Kali2
 from .mac import MacOSX
 from .openbsd import OpenBSD5
 from .suse import SuSE
-from .elementaryOS02 import ElementaryOS02
-from .default import DefaultPlatform
+from .ubuntu1204 import Ubuntu1204
+from .ubuntu1404 import Ubuntu1404
+from .ubuntu1410 import Ubuntu1410
+from .ubuntu1604 import Ubuntu1604
+from .ubuntu1804 import Ubuntu1804
 
 KNOWN_PLATFORMS = [
     CentOS65,
@@ -64,5 +64,4 @@ def get_current_platform(known_platforms=KNOWN_PLATFORMS):
     for known_platform in known_platforms:
         if known_platform.is_current_platform():
             return known_platform()
-    else:
-        return DefaultPlatform()
+    return DefaultPlatform()

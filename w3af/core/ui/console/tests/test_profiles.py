@@ -20,17 +20,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
+import subprocess
 import sys
 import tempfile
-import subprocess
 
 from nose.plugins.attrib import attr
 
+from w3af.core.controllers.core_helpers.tests.test_profiles import assertProfilesEqual
 from w3af.core.data.db.startup_cfg import StartUpConfig
+from w3af.core.data.profile.profile import profile
 from w3af.core.ui.console.console_ui import ConsoleUI
 from w3af.core.ui.console.tests.helper import ConsoleTestHelper
-from w3af.core.data.profile.profile import profile
-from w3af.core.controllers.core_helpers.tests.test_profiles import assertProfilesEqual
 
 
 @attr("smoke")
@@ -40,11 +40,11 @@ class TestProfilesConsoleUI(ConsoleTestHelper):
     """
 
     def setUp(self):
-        super(TestProfilesConsoleUI, self).setUp()
+        super().setUp()
         self._remove_if_exists(self.get_profile_name())
 
     def tearDown(self):
-        super(TestProfilesConsoleUI, self).tearDown()
+        super().tearDown()
         self._remove_if_exists(self.get_profile_name())
 
     def get_profile_name(self):
@@ -186,7 +186,7 @@ class TestProfilesConsoleUI(ConsoleTestHelper):
         # Extract the temp file from the plugin configuration and read it
         #
         for line in self._mock_stdout.messages:
-            match = re.search("(/tmp/w3af-.*-sc\.dat)", line)
+            match = re.search(r"(/tmp/w3af-.*-sc\.dat)", line)
             if not match:
                 continue
 

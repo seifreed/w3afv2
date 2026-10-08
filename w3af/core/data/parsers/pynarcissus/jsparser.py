@@ -48,7 +48,8 @@ __author_email__ = "jtolds@xnet5.com"
 __date__ = "2009-03-24"
 __all__ = ["ParseError", "parse", "tokens"]
 
-import re, sys, types
+import re
+import sys
 from functools import cmp_to_key
 
 
@@ -263,7 +264,7 @@ class SyntaxError_(ParseError):
         )
 
 
-class Tokenizer(object):
+class Tokenizer:
     def __init__(self, s, f, l):
         self.cursor = 0
         self.source = str(s)
@@ -423,7 +424,7 @@ class Tokenizer(object):
         return SyntaxError_(m, self.filename, self.lineno)
 
 
-class CompilerContext(object):
+class CompilerContext:
     def __init__(self, inFunction):
         self.inFunction = inFunction
         self.stmtStack = []
@@ -526,7 +527,7 @@ class Node(list):
             elif value is True:
                 s += "true"
             elif type(value) == list:
-                s += ",".join((str(x) for x in value))
+                s += ",".join(str(x) for x in value)
             else:
                 s += str(value)
         Node.indentLevel -= 1
@@ -885,7 +886,7 @@ def Variables(t, x):
             if t.token.assignOp:
                 raise t.newSyntaxError("Invalid variable initialization")
             n2.initializer = Expression(t, x, COMMA)
-        n2.readOnly = not not (n.type_ == CONST)
+        n2.readOnly = bool(n.type_ == CONST)
         n.append(n2)
         x.varDecls.append(n2)
         if not t.match(COMMA):
@@ -1028,8 +1029,7 @@ def Expression(t, x, stop=None):
             n.append(operand)
 
         # Include closing bracket or postfix operator in [start,end).
-        if n.end < t.token.end:
-            n.end = t.token.end
+        n.end = max(n.end, t.token.end)
 
         operands.append(n)
         return n
@@ -1253,7 +1253,7 @@ def Expression(t, x, stop=None):
                             if not t.match(COMMA):
                                 break
                         t.mustMatch(RIGHT_CURLY)
-                except BreakOutOfObjectInit as e:
+                except BreakOutOfObjectInit:
                     pass
                 operands.append(n)
                 t.scanOperand = False
@@ -1322,7 +1322,7 @@ def Expression(t, x, stop=None):
             # the while loop and let the t.scanOperand logic handle errors.
             else:
                 raise BreakOutOfLoops
-    except BreakOutOfLoops as e:
+    except BreakOutOfLoops:
         pass
 
     if x.hookLevel != hl:
@@ -1363,4 +1363,4 @@ def parse(source, filename=None, starting_line_number=1):
 
 
 if __name__ == "__main__":
-    print((str(parse(open(sys.argv[1]).read(), sys.argv[1]))))
+    print(str(parse(open(sys.argv[1]).read(), sys.argv[1])))

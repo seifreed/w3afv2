@@ -20,13 +20,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
+from unittest.mock import call, patch
 
 from nose.plugins.attrib import attr
-from mock import patch, call
 
 from w3af import ROOT_PATH
 from w3af.core.data.parsers.doc.url import URL
-from w3af.plugins.tests.helper import PluginTest, PluginConfig
+from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 
 class TestWebDiff(PluginTest):

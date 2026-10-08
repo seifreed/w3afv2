@@ -24,15 +24,14 @@ import re
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
-import w3af.core.data.constants.severity as severity
-
-from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.constants import severity
 from w3af.core.data.kb.info import Info
+from w3af.core.data.kb.vuln import Vuln
 
 
 def register_globals(response):
     regex_str = 'register_globals</td><td class="v">(On|Off)</td>'
-    register_globals_mo = re.search(regex_str, response.get_body(), re.I)
+    register_globals_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
     if not register_globals_mo:
         return
@@ -59,7 +58,7 @@ def register_globals(response):
 
 def allow_url_fopen(response):
     regex_str = 'allow_url_fopen</td><td class="v">(On|<i>no value</i>)</td>'
-    allow_url_fopen_mo = re.search(regex_str, response.get_body(), re.I)
+    allow_url_fopen_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
     if not allow_url_fopen_mo:
         return
@@ -74,7 +73,7 @@ def allow_url_fopen(response):
 
 def allow_url_include(response):
     regex_str = 'allow_url_include</td><td class="v">(On|<i>no value</i>)</td>'
-    allow_url_include_mo = re.search(regex_str, response.get_body(), re.I)
+    allow_url_include_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
     if not allow_url_include_mo:
         return
@@ -89,7 +88,7 @@ def allow_url_include(response):
 
 def display_errors(response):
     regex_str = 'display_errors</td><td class="v">(On|<i>no value</i>)</td>'
-    display_errors_mo = re.search(regex_str, response.get_body(), re.I)
+    display_errors_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
     if not display_errors_mo:
         return
@@ -104,7 +103,7 @@ def display_errors(response):
 
 def expose_php(response):
     regex_str = 'expose_php</td><td class="v">(On|<i>no value</i>)</td>'
-    expose_php_mo = re.search(regex_str, response.get_body(), re.I)
+    expose_php_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
     if not expose_php_mo:
         return
@@ -118,8 +117,8 @@ def expose_php(response):
 
 
 def lowest_privilege_test(response):
-    regex_str = 'User/Group </td><td class="v">(.*?)\((\d.*?)\)/(\d.*?)</td>'
-    lowest_privilege_test_mo = re.search(regex_str, response.get_body(), re.I)
+    regex_str = r'User/Group </td><td class="v">(.*?)\((\d.*?)\)/(\d.*?)</td>'
+    lowest_privilege_test_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
     if not lowest_privilege_test_mo:
         return
@@ -133,7 +132,7 @@ def lowest_privilege_test(response):
     lpt_gid = int(lpt_gid)
 
     is_privileged_username_mo = re.match(
-        "root|apache|daemon|bin|operator|adm", lpt_uname, re.I
+        "root|apache|daemon|bin|operator|adm", lpt_uname, re.IGNORECASE
     )
 
     if lpt_uid < 99 or lpt_gid < 99 or is_privileged_username_mo:
@@ -172,7 +171,7 @@ def lowest_privilege_test(response):
 
 def disable_functions(response):
     regex_str = 'disable_functions</td><td class="v">(.*?)</td>'
-    disable_functions_mo = re.search(regex_str, response.get_body(), re.I)
+    disable_functions_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
     if not disable_functions_mo:
         return
@@ -201,8 +200,8 @@ def disable_functions(response):
 
 
 def curl_file_support(response):
-    regex_str = '<h1 class="p">PHP Version (\d).(\d).(\d)</h1>'
-    curl_file_support_mo = re.search(regex_str, response.get_body(), re.I)
+    regex_str = r'<h1 class="p">PHP Version (\d).(\d).(\d)</h1>'
+    curl_file_support_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
     if not curl_file_support_mo:
         return
@@ -215,8 +214,8 @@ def curl_file_support(response):
     current_ver = float(current_ver)
     php_major_ver = int(php_major_ver)
 
-    cv4check = float(4.44)
-    cv5check = float(5.16)
+    cv4check = 4.44
+    cv5check = 5.16
     curl_vuln = 1
 
     if php_major_ver == 4:
@@ -252,7 +251,7 @@ def curl_file_support(response):
 
 def cgi_force_redirect(response):
     regex_str = 'cgi_force_redirect</td><td class="v">(.*?)</td>'
-    cgi_force_redirect_mo = re.search(regex_str, response.get_body(), re.I)
+    cgi_force_redirect_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
     if not cgi_force_redirect_mo:
         return
@@ -272,8 +271,10 @@ def cgi_force_redirect(response):
 
 
 def session_cookie_httponly(response):
-    regex_str = 'session\.cookie_httponly</td><td class="v">(Off|no|0)</td>'
-    session_cookie_httponly_mo = re.search(regex_str, response.get_body(), re.I)
+    regex_str = r'session\.cookie_httponly</td><td class="v">(Off|no|0)</td>'
+    session_cookie_httponly_mo = re.search(
+        regex_str, response.get_body(), re.IGNORECASE
+    )
 
     if not session_cookie_httponly_mo:
         return
@@ -293,8 +294,8 @@ def session_cookie_httponly(response):
 
 
 def session_save_path(response):
-    regex_str = 'session\.save_path</td><td class="v">(<i>no value</i>)</td>'
-    session_save_path_mo = re.search(regex_str, response.get_body(), re.I)
+    regex_str = r'session\.save_path</td><td class="v">(<i>no value</i>)</td>'
+    session_save_path_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
     if not session_save_path_mo:
         return
@@ -316,8 +317,8 @@ def session_save_path(response):
 
 
 def session_use_trans(response):
-    regex_str = 'session\.use_trans</td><td class="v">(On)</td>'
-    session_use_trans_mo = re.search(regex_str, response.get_body(), re.I)
+    regex_str = r'session\.use_trans</td><td class="v">(On)</td>'
+    session_use_trans_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
     if not session_use_trans_mo:
         return
@@ -335,7 +336,7 @@ def session_use_trans(response):
 
 def default_charset(response):
     regex_str = 'default_charset</td><td class="v">(Off|no|0)</td>'
-    default_charset_mo = re.search(regex_str, response.get_body(), re.I)
+    default_charset_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
     if not default_charset_mo:
         return
@@ -354,7 +355,7 @@ def default_charset(response):
 
 def enable_dl(response):
     regex_str = 'enable_dl</td><td class="v">(On|Off)</td>'
-    enable_dl_mo = re.search(regex_str, response.get_body(), re.I)
+    enable_dl_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
     if not enable_dl_mo:
         return
@@ -378,8 +379,8 @@ def enable_dl(response):
 
 
 def memory_limit(response):
-    regex_str = 'memory_limit</td><td class="v">(\d.*?)</td>'
-    memory_limit_mo = re.search(regex_str, response.get_body(), re.I)
+    regex_str = r'memory_limit</td><td class="v">(\d.*?)</td>'
+    memory_limit_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
     if not memory_limit_mo:
         return
@@ -402,7 +403,7 @@ def memory_limit(response):
 
 
 def post_max_size(response):
-    regex_str = 'post_max_size</td><td class="v">(\d.*?)</td>'
+    regex_str = r'post_max_size</td><td class="v">(\d.*?)</td>'
     post_max_size_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
     if not post_max_size_mo:
@@ -427,7 +428,7 @@ def post_max_size(response):
 
 
 def upload_max_filesize(response):
-    regex_str = 'upload_max_filesize</td><td class="v">(\d.*?)</td>'
+    regex_str = r'upload_max_filesize</td><td class="v">(\d.*?)</td>'
     upload_max_filesize_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
     if not upload_max_filesize_mo:
@@ -453,7 +454,7 @@ def upload_max_filesize(response):
 
 def upload_tmp_dir(response):
     regex_str = 'upload_tmp_dir</td><td class="v">(<i>no value</i>)</td>'
-    upload_tmp_dir_mo = re.search(regex_str, response.get_body(), re.I)
+    upload_tmp_dir_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
     if not upload_tmp_dir_mo:
         return
@@ -489,7 +490,7 @@ def file_uploads(response):
 
 def magic_quotes_gpc(response):
     regex_str = 'magic_quotes_gpc</td><td class="v">(On|Off)</td>'
-    magic_quotes_gpc_mo = re.search(regex_str, response.get_body(), re.I)
+    magic_quotes_gpc_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
     if not magic_quotes_gpc_mo:
         return
@@ -511,7 +512,7 @@ def magic_quotes_gpc(response):
 
 def open_basedir(response):
     regex_str = 'open_basedir</td><td class="v">(.*?)</td>'
-    open_basedir_mo = re.search(regex_str, response.get_body(), re.I)
+    open_basedir_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
     if not open_basedir_mo:
         return
@@ -533,8 +534,8 @@ def open_basedir(response):
 
 
 def session_hash_function(response):
-    regex_str = 'session\.hash_function</td><td class="v">(.*?)</td>'
-    session_hash_function_mo = re.search(regex_str, response.get_body(), re.I)
+    regex_str = r'session\.hash_function</td><td class="v">(.*?)</td>'
+    session_hash_function_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
     if not session_hash_function_mo:
         return

@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import time
 
 
-class Progress(object):
+class Progress:
     """
     This class keeps track of the progress and calculate an ETA when you
     know the total amount of items to process and know when one of them is
@@ -127,7 +127,7 @@ class Progress(object):
             # recalculate the value
             self._update_eta()
 
-            temp = float()
+            temp = 0.0
             temp = float(self._eta) / (60 * 60 * 24)
             d = int(temp)
             temp = (temp - d) * 24

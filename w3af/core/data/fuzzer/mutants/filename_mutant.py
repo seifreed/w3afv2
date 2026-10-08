@@ -20,14 +20,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import urllib.request, urllib.parse, urllib.error
-import re
 import copy
+import re
+import urllib.error
+import urllib.parse
+import urllib.request
 
 from w3af.core.data.fuzzer.mutants.urlparts_mutant import (
+    TOKEN,
     URLPartsContainer,
     URLPartsMutant,
-    TOKEN,
 )
 
 CHUNK_RE = re.compile(r"([a-zA-Z0-9]+)")

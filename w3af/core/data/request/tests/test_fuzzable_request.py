@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 test_fuzzablerequest.py
 
@@ -21,24 +20,24 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
-import pickle
 import copy
+import pickle
+import unittest
 
 from nose.plugins.attrib import attr
 
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.parsers.utils.form_params import FormParameters
-from w3af.core.data.dc.headers import Headers
+from w3af.core.data.db.disk_set import DiskSet
 from w3af.core.data.dc.factory import dc_from_form_params
-from w3af.core.data.dc.query_string import QueryString
 from w3af.core.data.dc.generic.kv_container import KeyValueContainer
-from w3af.core.data.misc.encoding import smart_unicode
+from w3af.core.data.dc.headers import Headers
+from w3af.core.data.dc.multipart_container import MultipartContainer
+from w3af.core.data.dc.query_string import QueryString
 from w3af.core.data.dc.urlencoded_form import URLEncodedForm
 from w3af.core.data.dc.utils.multipart import multipart_encode
-from w3af.core.data.db.disk_set import DiskSet
-from w3af.core.data.dc.multipart_container import MultipartContainer
+from w3af.core.data.misc.encoding import smart_unicode
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.parsers.utils.form_params import FormParameters
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
 @attr("smoke")

@@ -22,7 +22,7 @@ def detect(get_page):
             re.search(
                 r"\Aclose",
                 headers.get("Cneonction", "") or headers.get("nnCoection", ""),
-                re.I,
+                re.IGNORECASE,
             )
             is not None
         )
@@ -30,12 +30,13 @@ def detect(get_page):
             re.search(
                 r"\A(ns_af=|citrix_ns_id|NSC_)",
                 headers.get(HTTP_HEADER.SET_COOKIE, ""),
-                re.I,
+                re.IGNORECASE,
             )
             is not None
         )
         retval |= (
-            re.search(r"\ANS-CACHE", headers.get(HTTP_HEADER.VIA, ""), re.I) is not None
+            re.search(r"\ANS-CACHE", headers.get(HTTP_HEADER.VIA, ""), re.IGNORECASE)
+            is not None
         )
         if retval:
             break

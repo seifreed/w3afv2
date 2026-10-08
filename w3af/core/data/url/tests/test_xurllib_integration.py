@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 test_xurllib_integration.py
 
@@ -21,16 +20,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
-import httpretty
 
+import httpretty
 from nose.plugins.attrib import attr
 from nose.plugins.skip import SkipTest
 
-
 from w3af.core.controllers.ci.moth import get_moth_http
-from w3af.core.data.url.opener_settings import OpenerSettings
-from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.url.extended_urllib import ExtendedUrllib
+from w3af.core.data.url.opener_settings import OpenerSettings
 
 
 @attr("moth")

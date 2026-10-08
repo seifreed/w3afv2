@@ -20,17 +20,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import w3af.core.data.kb.knowledge_base as kb
-import w3af.core.data.constants.severity as severity
-
-from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.kb.vuln import Vuln
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.controllers.websocket.utils import (
     build_ws_upgrade_request,
-    negotiate_websocket_version,
     is_successful_upgrade,
+    negotiate_websocket_version,
 )
+from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
+from w3af.core.data.constants import severity
+from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.parsers.doc.url import URL
 
 
 class websocket_hijacking(AuditPlugin):
@@ -43,7 +42,7 @@ class websocket_hijacking(AuditPlugin):
     W3AF_ORIGIN = "http://www.w3af.org/"
 
     def __init__(self):
-        super(websocket_hijacking, self).__init__()
+        super().__init__()
         self.already_tested_websockets = ScalableBloomFilter()
 
     def audit(self, freq, orig_response, debugging_id):
@@ -170,7 +169,7 @@ class websocket_hijacking(AuditPlugin):
         origin_domain = web_socket_url.get_domain()
         origin_domain += ".%s" % self.W3AF_DOMAIN
 
-        for scheme in {"http", "https"}:
+        for scheme in ("http", "https"):
             origin = "%s://%s" % (scheme, origin_domain)
             upgrade_request = build_ws_upgrade_request(
                 web_socket_url, web_socket_version=web_socket_version, origin=origin
@@ -225,7 +224,7 @@ class websocket_hijacking(AuditPlugin):
         #
         origin_domain = web_socket_url.get_domain()
 
-        for scheme in {"http", "https"}:
+        for scheme in ("http", "https"):
             origin = "%s://%s" % (scheme, origin_domain)
             upgrade_request = build_ws_upgrade_request(
                 web_socket_url, web_socket_version=web_socket_version, origin=origin

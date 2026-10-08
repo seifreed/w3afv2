@@ -32,7 +32,7 @@ except ImportError:
     # Create a mock just to allow nosetests/pylint to PASS
     #
     # https://circleci.com/gh/andresriancho/w3af/1495
-    class msvcrt(object):
+    class msvcrt:
         @staticmethod
         def getch():
             pass
@@ -64,7 +64,6 @@ def set_raw_input_mode(raw):
     """
     Sets the raw input mode, in windows.
     """
-    pass
 
 
 def normalizeSequence(seq):
@@ -80,4 +79,3 @@ def moveBack(steps=1):
 
 def clearScreen():
     """Clears the screen (Plug)"""
-    pass

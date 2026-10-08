@@ -21,17 +21,18 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
-import urllib.request, urllib.error, urllib.parse
+import urllib.error
+import urllib.parse
+import urllib.request
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.constants.severity as severity
-
-from w3af.core.data.parsers.utils.encode_decode import htmldecode
-from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
-from w3af.core.controllers.exceptions import RunOnce, BaseFrameworkException
+from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
 from w3af.core.controllers.misc.decorators import runonce
-from w3af.core.data.parsers.doc.url import URL
+from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
+from w3af.core.data.constants import severity
 from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.parsers.utils.encode_decode import htmldecode
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
@@ -49,7 +50,7 @@ class xssed_dot_com(InfrastructurePlugin):
     UNFIXED = "UNFIXED"
     XSSED_URL = URL("http://www.xssed.com")
     XSSED_URL_RE = re.compile("URL: (.*?)</th>")
-    XSSED_DOMAIN_RE = re.compile("<a href='(/mirror/\d*/)' target='_blank'>")
+    XSSED_DOMAIN_RE = re.compile(r"<a href='(/mirror/\d*/)' target='_blank'>")
 
     @runonce(exc_class=RunOnce)
     def discover(self, fuzzable_request, debugging_id):
@@ -97,12 +98,10 @@ class xssed_dot_com(InfrastructurePlugin):
                 continue
             else:
                 self._parse_xssed_vuln_page(xss_report_response)
-        else:
-            # Nothing to see here...
-            om.out.debug(
-                "xssed_dot_com did not find any previously reported"
-                " XSS vulnerabilities."
-            )
+        # Nothing to see here...
+        om.out.debug(
+            "xssed_dot_com did not find any previously reported" " XSS vulnerabilities."
+        )
 
     def _parse_xssed_vuln_page(self, xss_report_response):
         """

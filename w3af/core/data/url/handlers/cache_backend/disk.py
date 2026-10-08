@@ -23,12 +23,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 
 import w3af.core.controllers.output_manager as om
-
 from w3af.core.controllers.exceptions import FileException
-
+from w3af.core.data.url.handlers.cache_backend.cached_response import CachedResponse
 from w3af.core.data.url.handlers.cache_backend.settings import CACHE_LOCATION
 from w3af.core.data.url.handlers.cache_backend.utils import gen_hash
-from w3af.core.data.url.handlers.cache_backend.cached_response import CachedResponse
 
 
 class DiskCachedResponse(CachedResponse):
@@ -68,7 +66,7 @@ class DiskCachedResponse(CachedResponse):
 
         try:
             body = response.read()
-        except Exception as e:
+        except Exception:
             om.out.error("cache.py: Timeout while fetching page body.")
         else:
             try:

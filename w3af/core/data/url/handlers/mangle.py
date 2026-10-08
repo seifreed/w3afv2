@@ -20,11 +20,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import urllib.request, urllib.error, urllib.parse
+import urllib.error
+import urllib.parse
+import urllib.request
 
-from w3af.core.data.url.HTTPResponse import HTTPResponse
 from w3af.core.data.url.handlers.keepalive import HTTPResponse as kaHTTPResponse
 from w3af.core.data.url.handlers.output_manager import OutputManagerHandler
+from w3af.core.data.url.HTTPResponse import HTTPResponse
 
 
 class MangleHandler(urllib.request.BaseHandler):
@@ -106,7 +108,6 @@ class MangledKeepAliveHTTPResponse(kaHTTPResponse):
 
         :return: None
         """
-        pass
 
     def close_connection(self):
         """
@@ -117,4 +118,3 @@ class MangledKeepAliveHTTPResponse(kaHTTPResponse):
 
         :return: None
         """
-        pass

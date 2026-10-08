@@ -26,9 +26,9 @@ import unittest
 from nose.plugins.attrib import attr
 
 from w3af.core.controllers.ci.moth import get_moth_http, get_moth_https
-from w3af.plugins.attack.db.sqlmap_wrapper import SQLMapWrapper, Target
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
+from w3af.plugins.attack.db.sqlmap_wrapper import SQLMapWrapper, Target
 
 
 @attr("moth")

@@ -24,14 +24,13 @@ import time
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
-
-from w3af.core.data.fuzzer.utils import rand_alnum
-from w3af.core.controllers.exceptions import ScanMustStopException
-from w3af.core.controllers.profiling.took_helper import TookLine
 from w3af.core.controllers.core_helpers.consumers.base_consumer import (
     BaseConsumer,
     task_decorator,
 )
+from w3af.core.controllers.exceptions import ScanMustStopException
+from w3af.core.controllers.profiling.took_helper import TookLine
+from w3af.core.data.fuzzer.utils import rand_alnum
 
 
 class audit(BaseConsumer):
@@ -48,7 +47,7 @@ class audit(BaseConsumer):
         """
         max_qsize = self.THREAD_POOL_SIZE * 2
 
-        super(audit, self).__init__(
+        super().__init__(
             audit_plugins,
             w3af_core,
             thread_name=self.get_name(),

@@ -18,7 +18,9 @@ def detect(get_page):
     for vector in WAF_ATTACK_VECTORS:
         _, headers, _ = get_page(get=vector)
         retval = (
-            re.search(r"\A(OK|FAIL)", headers.get("X-Backside-Transport", ""), re.I)
+            re.search(
+                r"\A(OK|FAIL)", headers.get("X-Backside-Transport", ""), re.IGNORECASE
+            )
             is not None
         )
         if retval:

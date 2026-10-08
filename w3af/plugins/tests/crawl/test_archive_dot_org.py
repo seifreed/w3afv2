@@ -26,7 +26,7 @@ from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.plugins.crawl.archive_dot_org import archive_dot_org
-from w3af.plugins.tests.helper import PluginTest, PluginConfig
+from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 
 class TestArchiveDotOrg(PluginTest):

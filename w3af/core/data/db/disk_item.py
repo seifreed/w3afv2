@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 
-class DiskItem(object):
+class DiskItem:
     """
     This is a very simple class that's intended to be a base class for objects
     that want to be stored in a DiskList of DiskSet.

@@ -22,9 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 
-import w3af.core.data.constants.severity as severity
-
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
+from w3af.core.data.constants import severity
 from w3af.core.data.kb.vuln import Vuln
 
 
@@ -67,7 +66,7 @@ class credit_cards(GrepPlugin):
     def __init__(self):
         GrepPlugin.__init__(self)
 
-        cc_regex = "((^|\s)\d{4}[- ]?(\d{4}[- ]?\d{4}|\d{6})[- ]?(\d{5}|\d{4})($|\s))"
+        cc_regex = r"((^|\s)\d{4}[- ]?(\d{4}[- ]?\d{4}|\d{6})[- ]?(\d{5}|\d{4})($|\s))"
         #    (^|[^\d])                        Match the start of the string, or something that's NOT a digit
         #    \d{4}[- ]?                       Match four digits, and then (optionally) a "-" or a space
         #    (\d{4}[- ]?\d{4}|\d{6})          Match one of the following:
@@ -77,7 +76,7 @@ class credit_cards(GrepPlugin):
         #    (\d{5}|\d{4})                    Match the final digits, five or four digits
         #    ($|[^\d])                        Match the end of the string, or something that's NOT a digit
 
-        self._cc_regex = re.compile(cc_regex, re.M)
+        self._cc_regex = re.compile(cc_regex, re.MULTILINE)
 
     def grep(self, request, response):
         """

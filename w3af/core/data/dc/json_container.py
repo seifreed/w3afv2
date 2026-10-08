@@ -22,13 +22,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import json
 
+from w3af.core.data.constants.encodings import UTF8
 from w3af.core.data.dc.generic.data_container import DataContainer
 from w3af.core.data.dc.utils.filter_printable import filter_non_printable
-from w3af.core.data.constants.encodings import UTF8
 from w3af.core.data.dc.utils.json_iter_setters import (
-    json_iter_setters,
-    json_complex_str,
     MutableWrapper,
+    json_complex_str,
+    json_iter_setters,
 )
 
 ERR_MSG = 'Unsupported data "%s" for json container.'

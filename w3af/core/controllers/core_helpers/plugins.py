@@ -20,21 +20,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import importlib
 import os
 import sys
-
 from functools import partial
 
 import w3af.core.controllers.output_manager as om
-
-from w3af.core.controllers.misc.get_file_list import get_file_list
-from w3af.core.controllers.misc.factory import factory
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af import ROOT_PATH
-import importlib
+from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.controllers.misc.factory import factory
+from w3af.core.controllers.misc.get_file_list import get_file_list
 
 
-class CorePlugins(object):
+class CorePlugins:
 
     def __init__(self, w3af_core):
         self._w3af_core = w3af_core
@@ -388,8 +386,8 @@ class CorePlugins(object):
                         continue
 
                     try:
-                        plugin_index = plugin_names[plugin_type].index(plugin_name)
-                        dependency_index = plugin_names[plugin_type].index(dep_name)
+                        plugin_index = enabled_plugins.index(plugin_name)
+                        dependency_index = enabled_plugins.index(dep_name)
                     except ValueError:
                         # A very rare case which I was unable to reproduce since
                         # it requires the enabled_plugins list to change

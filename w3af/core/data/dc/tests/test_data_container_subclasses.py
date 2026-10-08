@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 test_data_container_subclasses.py
 
@@ -25,9 +24,9 @@ import unittest
 from w3af.core.data.dc.cookie import Cookie
 from w3af.core.data.dc.generic.kv_container import KeyValueContainer
 from w3af.core.data.dc.generic.nr_kv_container import NonRepeatKeyValueContainer
-from w3af.core.data.dc.urlencoded_form import URLEncodedForm
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.dc.query_string import QueryString
+from w3af.core.data.dc.urlencoded_form import URLEncodedForm
 
 ALL_SUBCLASSES = {
     Cookie,

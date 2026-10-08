@@ -1,6 +1,7 @@
 import re
-from w3af.plugins.attack.payloads.base_payload import Payload
+
 from w3af.core.ui.console.tables import table
+from w3af.plugins.attack.payloads.base_payload import Payload
 
 
 class tcp(Payload):
@@ -23,7 +24,7 @@ class tcp(Payload):
             return new
 
         def get_username(etc_passwd, user):
-            user = re.search("(\w*):(\w*):\d*:" + user, etc_passwd, re.MULTILINE)
+            user = re.search(r"(\w*):(\w*):\d*:" + user, etc_passwd, re.MULTILINE)
             if user:
                 return user.group(1)
             else:

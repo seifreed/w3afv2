@@ -1,5 +1,4 @@
 import plotille
-
 from utils.graph import num_formatter
 from utils.output import KeyValueOutput
 from utils.utils import get_first_timestamp, get_last_timestamp, get_line_epoch
@@ -72,7 +71,7 @@ def draw_parser_errors(scan_log_filename, scan):
 
     if not memory_errors and not timeout_errors:
         print("No parser errors found")
-        print("")
+        print()
         return
 
     fig = plotille.Figure()
@@ -90,5 +89,5 @@ def draw_parser_errors(scan_log_filename, scan):
 
     fig.plot(memory_errors, memory_errors_timestamps, label="Memory errors", lc=200)
 
-    print((fig.show(legend=True)))
-    print("")
+    print(fig.show(legend=True))
+    print()

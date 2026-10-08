@@ -24,19 +24,19 @@ import unittest
 
 from nose.plugins.attrib import attr
 
-from w3af.core.data.url.HTTPRequest import HTTPRequest
+from w3af.core.data.dc.generic.kv_container import KeyValueContainer
+from w3af.core.data.dc.generic.plain import PlainContainer
+from w3af.core.data.dc.headers import Headers
+from w3af.core.data.dc.json_container import JSONContainer
+from w3af.core.data.dc.multipart_container import MultipartContainer
+from w3af.core.data.dc.urlencoded_form import URLEncodedForm
+from w3af.core.data.dc.utils.multipart import multipart_encode
+from w3af.core.data.dc.xmlrpc import XmlRpcContainer
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.utils.form_params import FormParameters
-from w3af.core.data.dc.utils.multipart import multipart_encode
-from w3af.core.data.dc.headers import Headers
-from w3af.core.data.dc.urlencoded_form import URLEncodedForm
-from w3af.core.data.dc.json_container import JSONContainer
-from w3af.core.data.dc.xmlrpc import XmlRpcContainer
-from w3af.core.data.dc.generic.plain import PlainContainer
-from w3af.core.data.dc.multipart_container import MultipartContainer
-from w3af.core.data.dc.generic.kv_container import KeyValueContainer
 from w3af.core.data.request.factory import create_fuzzable_request_from_request
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.data.url.HTTPRequest import HTTPRequest
 
 
 @attr("smoke")

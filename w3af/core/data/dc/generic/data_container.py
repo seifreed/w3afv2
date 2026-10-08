@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 data_container.py
 
@@ -22,11 +21,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import copy
-
 from itertools import chain, zip_longest
 
-from w3af.core.data.db.disk_item import DiskItem
 from w3af.core.data.constants.encodings import UTF8
+from w3af.core.data.db.disk_item import DiskItem
 from w3af.core.data.dc.utils.token import DataToken
 from w3af.core.data.misc.encoding import smart_str_ignore
 
@@ -35,7 +33,7 @@ class DataContainer(DiskItem):
     MAX_PRINTABLE = 65
 
     def __init__(self, encoding=UTF8):
-        super(DataContainer, self).__init__()
+        super().__init__()
         self.encoding = encoding
         self.token = None
 
@@ -236,7 +234,6 @@ class DataContainer(DiskItem):
         :param header: Header name
         :param value:  Header value
         """
-        pass
 
     @property
     def all_items(self):

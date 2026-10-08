@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import time
 
 import w3af.core.controllers.output_manager as om
-
 from w3af.core.controllers.payload_transfer.base_payload_transfer import (
     BasePayloadTransfer,
 )
@@ -36,7 +35,7 @@ class EchoLinux(BasePayloadTransfer):
     """
 
     def __init__(self, exec_method, os):
-        super(EchoLinux, self).__init__(exec_method, os)
+        super().__init__(exec_method, os)
         self._exec_method = exec_method
         self._os = os
         self._step = 30

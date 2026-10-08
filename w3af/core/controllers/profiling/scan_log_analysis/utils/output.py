@@ -5,7 +5,7 @@ def sort_by_value(a, b):
     return cmp(b[1], a[1])
 
 
-class KeyValueOutput(object):
+class KeyValueOutput:
     def __init__(self, _function, title, values=None):
         self.function = _function
         self.title = title
@@ -21,7 +21,7 @@ class KeyValueOutput(object):
         return {self.function: {self.title: self.values}}
 
     def to_console(self):
-        print(("[%s] %s" % (self.function, self.title)))
+        print("[%s] %s" % (self.function, self.title))
 
         if isinstance(self.values, dict):
             values_list = list(self.values.items())
@@ -33,32 +33,32 @@ class KeyValueOutput(object):
                     print(list_header)
 
                     for value_i in value:
-                        print(("%s - %s" % (" " * 8, value_i)))
+                        print("%s - %s" % (" " * 8, value_i))
                 else:
-                    print(("    - %s: %s" % (key, value)))
+                    print("    - %s: %s" % (key, value))
 
         elif isinstance(self.values, (int, float)):
-            print(("    - %s" % (self.values,)))
+            print("    - %s" % (self.values,))
 
         elif isinstance(self.values, str):
             data = self.values
             data = data.replace("\n", "\n    ")
-            print(("    %s" % data))
+            print("    %s" % data)
 
         elif isinstance(self.values, list):
             self.values.sort()
 
             for value in self.values:
-                print(("    - %s" % (value,)))
+                print("    - %s" % (value,))
 
         else:
             msg = "Unsupported type found in to_console(): %s"
             raise Exception(msg % self.values.__class__.__name__)
 
-        print("")
+        print()
 
 
-class ListOutput(object):
+class ListOutput:
     def __init__(self, _function):
         self.function = _function
         self.kv_output_list = []
@@ -78,6 +78,6 @@ class ListOutput(object):
 
 class ListOutputItem(KeyValueOutput):
     def __init__(self, title, values=None):
-        super(ListOutputItem, self).__init__(None, title, values)
+        super().__init__(None, title, values)
         self.title = title
         self.values = values if values is not None else dict()

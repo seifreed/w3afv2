@@ -19,17 +19,16 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import gtk
-import gobject
 import queue
-
 from collections import namedtuple
 
-import w3af.core.data.kb.knowledge_base as kb
+import gobject
+import gtk
 
-from w3af.core.data.kb.vuln import Vuln
+import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.kb_observer import KBObserver
+from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.misc.encoding import smart_str
 from w3af.core.ui.gui import helpers
 from w3af.core.ui.gui.tabs.exploit.exploit_all import effectively_exploit_all

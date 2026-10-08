@@ -21,8 +21,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import subprocess
-import unittest
 import tempfile
+import unittest
 
 from w3af.core.controllers.payload_transfer.echo_linux import EchoLinux
 

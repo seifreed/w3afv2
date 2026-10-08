@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import hashlib
 
 
-class BasePayloadTransfer(object):
+class BasePayloadTransfer:
     """
     This is a base class for doing payload transfers.
     """

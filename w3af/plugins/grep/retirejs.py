@@ -20,26 +20,25 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import os
-import json
-import shlex
 import hashlib
-import tempfile
+import json
+import os
+import shlex
 import subprocess
+import tempfile
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.constants.severity as severity
-
 from w3af.core.controllers.misc.temp_dir import get_temp_dir
-from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.controllers.misc.which import which
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.misc.encoding import smart_str_ignore
+from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
+from w3af.core.data.constants import severity
 from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.misc.encoding import smart_str_ignore
 from w3af.core.data.options.opt_factory import opt_factory
-from w3af.core.data.options.option_types import URL as URL_OPTION
 from w3af.core.data.options.option_list import OptionList
+from w3af.core.data.options.option_types import URL as URL_OPTION
+from w3af.core.data.parsers.doc.url import URL
 
 
 class retirejs(GrepPlugin):
@@ -547,7 +546,7 @@ class retirejs(GrepPlugin):
         """
 
 
-class VulnerabilityMessage(object):
+class VulnerabilityMessage:
     def __init__(self, url, component, version):
         self.url = url
         self.component = component
@@ -600,7 +599,7 @@ class VulnerabilityMessage(object):
         return message % args
 
 
-class RetireJSVulnerability(object):
+class RetireJSVulnerability:
     def __init__(self, vuln_severity, summary, info_urls):
         self.severity = vuln_severity
         self.summary = summary

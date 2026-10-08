@@ -20,8 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
-import gtk
+
 import gobject
+import gtk
 import pango
 
 from w3af.core.ui.gui import GUI_DATA_PATH
@@ -86,7 +87,7 @@ class PromptView(gtk.TextView, MessageConsumer):
 
         :return: True to keep running
         """
-        super(PromptView, self).handle_message(msg)
+        super().handle_message(msg)
 
         if msg.get_type() == "console":
             # Handling new lines
@@ -161,8 +162,7 @@ class PromptView(gtk.TextView, MessageConsumer):
             return True
 
         self.historyCount -= 1
-        if self.historyCount < 0:
-            self.historyCount = 0
+        self.historyCount = max(self.historyCount, 0)
         line = self.all_lines[self.historyCount]
         self._showHistory(line)
         return True
@@ -283,7 +283,7 @@ class PromptDialog(gtk.Dialog):
     """
 
     def __init__(self, title, prompt_text, procfunc):
-        super(PromptDialog, self).__init__(title, None, gtk.DIALOG_MODAL, ())
+        super().__init__(title, None, gtk.DIALOG_MODAL, ())
         self.set_icon_from_file(os.path.join(GUI_DATA_PATH, "shell.png"))
 
         # the toolbar
@@ -327,7 +327,6 @@ class PromptDialog(gtk.Dialog):
             fh = open(fname, "w")
             fh.write(text)
             fh.close()
-        return
 
 
 if __name__ == "__main__":
@@ -336,7 +335,7 @@ if __name__ == "__main__":
         x = x.decode("utf8")
         return x[::-1]
 
-    class Test(object):
+    class Test:
         def __init__(self):
             # create a new window
             self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)

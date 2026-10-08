@@ -1,10 +1,10 @@
 import re
-import plotille
 
+import plotille
 from utils.graph import num_formatter
 from utils.utils import get_first_timestamp, get_last_timestamp, get_line_epoch
 
-IDLE_CONSUMER_WORKERS = re.compile("\[.*? - .*?\] (.*?)% of (.*?) workers are idle.")
+IDLE_CONSUMER_WORKERS = re.compile(r"\[.*? - .*?\] (.*?)% of (.*?) workers are idle.")
 
 
 def get_consumer_pool_size_data(scan_log_filename, scan):
@@ -74,17 +74,15 @@ def draw_consumer_pool_size(scan_log_filename, scan):
         return
 
     print("Idle thread pool workers over time")
-    print(("    Latest idle core workers %s%%" % worker_pool_perc[-1]))
+    print("    Latest idle core workers %s%%" % worker_pool_perc[-1])
 
     if consumer_pool_perc_audit:
-        print(("    Latest idle audit workers %s%%" % consumer_pool_perc_audit[-1]))
+        print("    Latest idle audit workers %s%%" % consumer_pool_perc_audit[-1])
 
     if consumer_pool_perc_crawl:
-        print(
-            ("    Latest idle crawl-infra workers %s%%" % consumer_pool_perc_crawl[-1])
-        )
+        print("    Latest idle crawl-infra workers %s%%" % consumer_pool_perc_crawl[-1])
 
-    print("")
+    print()
 
     fig = plotille.Figure()
     fig.width = 90
@@ -115,5 +113,5 @@ def draw_consumer_pool_size(scan_log_filename, scan):
         worker_pool_timestamps, worker_pool_perc, label="Idle core workers", lc=250
     )
 
-    print((fig.show(legend=True)))
-    print("")
+    print(fig.show(legend=True))
+    print()

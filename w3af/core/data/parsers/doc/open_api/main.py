@@ -25,19 +25,17 @@ import json
 from yaml import load
 
 try:
-    from yaml import CLoader as Loader, CDumper as Dumper
+    from yaml import CDumper as Dumper
+    from yaml import CLoader as Loader
 except ImportError:
-    from yaml import Loader, Dumper
+    from yaml import Loader
 
 import w3af.core.controllers.output_manager as om
-
 from w3af.core.controllers.misc.traceback_utils import (
-    get_traceback,
     get_exception_location,
+    get_traceback,
 )
 from w3af.core.data.parsers.doc.baseparser import BaseParser
-from w3af.core.data.parsers.doc.open_api.specification import SpecificationHandler
-from w3af.core.data.parsers.doc.open_api.requests import RequestFactory
 
 #
 # Apply the monkey-patching by importing the module
@@ -45,6 +43,8 @@ from w3af.core.data.parsers.doc.open_api.requests import RequestFactory
 # Removing the import will break things!
 #
 from w3af.core.data.parsers.doc.open_api.operation_mp import build_params_monkey_patch
+from w3af.core.data.parsers.doc.open_api.requests import RequestFactory
+from w3af.core.data.parsers.doc.open_api.specification import SpecificationHandler
 
 _ = build_params_monkey_patch
 
@@ -84,7 +84,7 @@ class OpenAPI(BaseParser):
         discover_fuzzable_headers=True,
         discover_fuzzable_url_parts=True,
     ):
-        super(OpenAPI, self).__init__(http_response)
+        super().__init__(http_response)
 
         # Result
         self.api_calls = []

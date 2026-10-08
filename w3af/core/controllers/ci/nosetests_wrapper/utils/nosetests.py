@@ -1,18 +1,17 @@
+import logging
 import os
+import select
 import shlex
 import signal
-import select
-import logging
-
 import subprocess
 
-from w3af.core.controllers.ci.nosetests_wrapper.utils.output import get_run_id
 from w3af.core.controllers.ci.nosetests_wrapper.constants import (
     ARTIFACT_DIR,
-    NOSE_TIMEOUT,
     NOSE_OUTPUT_PREFIX,
+    NOSE_TIMEOUT,
     NOSE_XUNIT_EXT,
 )
+from w3af.core.controllers.ci.nosetests_wrapper.utils.output import get_run_id
 
 
 def open_nosetests_output(suffix, first, last):
@@ -90,44 +89,38 @@ def run_nosetests(nose_cmd, first, last):
                 stdout += out
             else:
                 stderr += out
-        else:
-            idle_time += select_timeout
-            if idle_time > NOSE_TIMEOUT:
-                # There is a special case which happens with the first call to
-                # nose where the tests finish successfully (OK shown) but the
-                # nosetests process doesn't end. Handle that case here:
-                if (
-                    console.strip().split("\n")[-1].startswith("OK")
-                    and "Ran " in console
-                ):
-                    msg = "TIMEOUT after success at wrapper (%s)"
-                    stdout = add_message(
-                        msg % get_run_id(first, last), output_file, stdout
-                    )
-
-                    # Send the signal to all the process groups
-                    os.killpg(p.pid, signal.SIGTERM)
-                    p.returncode = 0
-
-                    logging.debug("Process %s killed" % get_run_id(first, last))
-
-                    break
-
-                # Log everywhere I can:
-                msg = "TIMEOUT after error at wrapper (%s)"
+        idle_time += select_timeout
+        if idle_time > NOSE_TIMEOUT:
+            # There is a special case which happens with the first call to
+            # nose where the tests finish successfully (OK shown) but the
+            # nosetests process doesn't end. Handle that case here:
+            if console.strip().split("\n")[-1].startswith("OK") and "Ran " in console:
+                msg = "TIMEOUT after success at wrapper (%s)"
                 stdout = add_message(msg % get_run_id(first, last), output_file, stdout)
 
-                args = (nose_cmd, get_run_id(first, last))
-                logging.warning('"%s" (%s) timeout waiting for output.' % args)
-
-                # Kill the nosetests command
                 # Send the signal to all the process groups
                 os.killpg(p.pid, signal.SIGTERM)
-                p.returncode = -1
+                p.returncode = 0
 
                 logging.debug("Process %s killed" % get_run_id(first, last))
 
                 break
+
+            # Log everywhere I can:
+            msg = "TIMEOUT after error at wrapper (%s)"
+            stdout = add_message(msg % get_run_id(first, last), output_file, stdout)
+
+            args = (nose_cmd, get_run_id(first, last))
+            logging.warning('"%s" (%s) timeout waiting for output.' % args)
+
+            # Kill the nosetests command
+            # Send the signal to all the process groups
+            os.killpg(p.pid, signal.SIGTERM)
+            p.returncode = -1
+
+            logging.debug("Process %s killed" % get_run_id(first, last))
+
+            break
 
     logging.debug("Cleanup for %s" % get_run_id(first, last))
 

@@ -1,18 +1,20 @@
+import difflib
 import math
 import os
 import re
-import difflib
 import struct
-import pango
+import traceback
+
 import gobject
 import gtk
-from . import diffutil
-import traceback
+import pango
 
 from w3af import ROOT_PATH
 
+from . import diffutil
 
-class FifoScheduler(object):
+
+class FifoScheduler:
     """Base class with common functionality for schedulers.
 
     Derived classes should implement the 'get_current_task' method.
@@ -91,8 +93,8 @@ def clamp(val, lower, upper):
     return min(max(val, lower), upper)
 
 
-class ListItem(object):
-    __slots__ = ("name", "active", "value")
+class ListItem:
+    __slots__ = ("active", "name", "value")
 
     def __init__(self, s):
         a = s.split("\t")
@@ -118,7 +120,7 @@ def load_pixbuf(fname, size=0):
     return image
 
 
-class Struct(object):
+class Struct:
     """Similar to a dictionary except that members may be accessed as s.member.
 
     Usage:
@@ -140,7 +142,7 @@ class Struct(object):
         return cmp(self.__dict__, other.__dict__)
 
 
-class Prefs(object):
+class Prefs:
     edit_wrap_lines = 0
     color_delete_bg = "DarkSeaGreen1"
     color_delete_fg = "Red"
@@ -153,9 +155,9 @@ class Prefs(object):
     color_edited_bg = "gray90"
     color_edited_fg = "Black"
     regexes = [
-        "CVS keywords\t0\t\$\\w+(:[^\\n$]+)?\$",
+        "CVS keywords\t0\t\\$\\w+(:[^\\n$]+)?\\$",
         "C++ comment\t0\t//.*",
-        "C comment\t0\t/\*.*?\*/",
+        "C comment\t0\t/\\*.*?\\*/",
         "All whitespace\t0\t[ \\t\\r\\f\\v]*",
         "Leading whitespace\t0\t^[ \\t\\r\\f\\v]*",
         "Script comment\t0\t#.*",
@@ -171,7 +173,7 @@ class Prefs(object):
 MASK_SHIFT, MASK_CTRL, MASK_ALT = 1, 2, 3
 
 
-class FileDiff(object):
+class FileDiff:
     """Two or three way diff of text files."""
 
     keylookup = {
@@ -390,7 +392,7 @@ class FileDiff(object):
         def update():
             it = buf.get_iter_at_mark(buf.get_insert())
             # Abbreviation for insert,overwrite so that it will fit in the status bar
-            insert_overwrite = "INS,OVR".split(",")[self.textview_overwrite]
+            insert_overwrite = ["INS", "OVR"][self.textview_overwrite]
             # Abbreviation for line, column so that it will fit in the status bar
             line_column = "Ln %i, Col %i" % (
                 it.get_line() + 1,
@@ -421,7 +423,7 @@ class FileDiff(object):
         self._update_cursor_status(buffer)
 
     def _get_texts(self, raw=0):
-        class FakeText(object):
+        class FakeText:
             def __init__(self, buf, textfilter):
                 self.buf, self.textfilter = buf, textfilter
 
@@ -431,7 +433,7 @@ class FileDiff(object):
                 txt = self.textfilter(txt)
                 return txt.split("\n")[:-1]
 
-        class FakeTextArray(object):
+        class FakeTextArray:
             def __init__(self, bufs, textfilter):
                 self.texts = [FakeText(b, textfilter) for b in bufs]
 
@@ -460,10 +462,8 @@ class FileDiff(object):
                 txt = c.sub(killit, txt)
         except AssertionError:
             print(
-                (
-                    "Regular expression '%s' changed the number of lines in"
-                    "the file. Comparison will be incorrect. " % r
-                )
+                "Regular expression '%s' changed the number of lines in"
+                "the file. Comparison will be incorrect. " % r
             )
         return txt
 
@@ -728,8 +728,7 @@ class FileDiff(object):
         hperline = float(
             self.scrolledwindow[textindex].get_allocation().height - 4 * size_of_arrow
         ) / self._get_line_count(textindex)
-        if hperline > self.pixels_per_line:
-            hperline = self.pixels_per_line
+        hperline = min(hperline, self.pixels_per_line)
 
         scaleit = lambda x, s=hperline, o=size_of_arrow: x * s + o
         x0 = 4

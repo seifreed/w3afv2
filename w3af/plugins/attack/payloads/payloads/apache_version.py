@@ -1,6 +1,7 @@
 import re
-from w3af.plugins.attack.payloads.base_payload import Payload
+
 from w3af.core.ui.console.tables import table
+from w3af.plugins.attack.payloads.base_payload import Payload
 
 
 class apache_version(Payload):
@@ -14,7 +15,7 @@ class apache_version(Payload):
 
         def parse_apache_binary(binary):
             version = re.search("(?<=/build/buildd/)(.*?)/", binary)
-            version2 = re.search("(?<=Apache)/(\d\.\d\.\d*)(.*?) ", binary)
+            version2 = re.search(r"(?<=Apache)/(\d\.\d\.\d*)(.*?) ", binary)
             if version and version2:
                 return [version.group(1), version2.group(1)]
             elif version:

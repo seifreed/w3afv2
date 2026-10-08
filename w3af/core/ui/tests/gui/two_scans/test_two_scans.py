@@ -40,7 +40,7 @@ class TestTwoScans(XpresserUnittest):
     TARGET_2 = "http://moth/w3af/audit/xss/simple_xss.php?text=1"
 
     def setUp(self):
-        super(TestTwoScans, self).setUp()
+        super().setUp()
 
         self.xp.load_images(self.SCAN_IMAGES_1)
         self.xp.load_images(self.SCAN_IMAGES_2)

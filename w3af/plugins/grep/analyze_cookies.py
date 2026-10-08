@@ -24,14 +24,14 @@ import http.cookies
 import re
 
 import w3af.core.data.kb.knowledge_base as kb
-import w3af.core.data.constants.severity as severity
-from w3af.core.data.kb.info import Info
-from w3af.core.data.kb.vuln import Vuln
-from w3af.core.data.kb.info_set import InfoSet
-from w3af.core.data.parsers.doc.cookie_parser import parse_cookie, COOKIE_HEADERS
-from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
-from w3af.core.data.constants.cookies import COOKIE_FINGERPRINT
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
+from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
+from w3af.core.data.constants import severity
+from w3af.core.data.constants.cookies import COOKIE_FINGERPRINT
+from w3af.core.data.kb.info import Info
+from w3af.core.data.kb.info_set import InfoSet
+from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.parsers.doc.cookie_parser import COOKIE_HEADERS, parse_cookie
 
 COOKIE_KEYS = "cookie_keys"
 COOKIE_OBJECT = "cookie_object"
@@ -45,8 +45,8 @@ class analyze_cookies(GrepPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    SECURE_RE = re.compile("; *?secure([\s;, ]|$)", re.I)
-    HTTPONLY_RE = re.compile("; *?httponly([\s;, ]|$)", re.I)
+    SECURE_RE = re.compile(r"; *?secure([\s;, ]|$)", re.IGNORECASE)
+    HTTPONLY_RE = re.compile(r"; *?httponly([\s;, ]|$)", re.IGNORECASE)
 
     def __init__(self):
         GrepPlugin.__init__(self)
@@ -311,11 +311,10 @@ class analyze_cookies(GrepPlugin):
 
                 kb.kb.append(self, "fingerprint", i)
                 return True
-        else:
-            # No match was found, we store the keys so we don't try to match
-            # them again against the COOKIE_FINGERPRINT
-            for cookie_key in cookie_keys:
-                self._cookie_key_failed_fingerprint.add(cookie_key)
+        # No match was found, we store the keys so we don't try to match
+        # them again against the COOKIE_FINGERPRINT
+        for cookie_key in cookie_keys:
+            self._cookie_key_failed_fingerprint.add(cookie_key)
 
         return False
 
@@ -410,7 +409,7 @@ class analyze_cookies(GrepPlugin):
         """
 
 
-class CookieMixIn(object):
+class CookieMixIn:
     def set_cookie_keys(self, keys):
         self[COOKIE_KEYS] = keys
 

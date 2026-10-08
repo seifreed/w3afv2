@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 
-class PIPDependency(object):
+class PIPDependency:
     def __init__(
         self, module_name, package_name, package_version, git_src=None, tgz_src=None
     ):

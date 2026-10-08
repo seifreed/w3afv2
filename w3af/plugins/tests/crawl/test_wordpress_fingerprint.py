@@ -1,4 +1,3 @@
-# coding: utf8
 """
 test_wordpress_fingerprint.py
 
@@ -21,9 +20,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 from nose.plugins.attrib import attr
-from w3af.plugins.tests.helper import PluginTest, PluginConfig
-from w3af.plugins.crawl.wordpress_fingerprint import FileFingerPrint
+
 from w3af.core.data.misc.file_utils import days_since_file_update
+from w3af.plugins.crawl.wordpress_fingerprint import FileFingerPrint
+from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 
 class Testwordpress_fingerprint(PluginTest):

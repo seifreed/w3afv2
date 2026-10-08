@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import inspect
 
-import w3af.core.data.constants.severity as severity
 from w3af.core.controllers.plugins.plugin import Plugin
+from w3af.core.data.constants import severity
 
 
 class OutputPlugin(Plugin):
@@ -109,7 +109,6 @@ class OutputPlugin(Plugin):
 
         :return: No value is returned.
         """
-        pass
 
     def log_crash(self, crash_message):
         """
@@ -120,7 +119,6 @@ class OutputPlugin(Plugin):
 
         :return: No value is returned.
         """
-        pass
 
     def log_enabled_plugins(self, enabled_plugins_dict, plugin_options_dict):
         """
@@ -139,7 +137,6 @@ class OutputPlugin(Plugin):
                                     {'audit':{},'grep':{},'bruteforce':{},
                                      'crawl':{},...}
         """
-        pass
 
     def get_plugin_deps(self):
         """
@@ -160,7 +157,6 @@ class OutputPlugin(Plugin):
         :see: https://github.com/andresriancho/w3af/issues/6726
         :return: None
         """
-        pass
 
     def _clean_string(self, string_to_clean):
         """
@@ -209,11 +205,10 @@ class OutputPlugin(Plugin):
                     res = item[1].replace("plugins/", "")
                     res = res.replace("/", ".")
                     return res.replace(".py", "")
-            else:
-                # From the unknown caller, I just need the name of the function
-                item = the_stack[which_stack_item]
-                res = item[1].split("/")[-1:][0]
-                return res.replace(".py", "")
+            # From the unknown caller, I just need the name of the function
+            item = the_stack[which_stack_item]
+            res = item[1].split("/")[-1:][0]
+            return res.replace(".py", "")
 
         except Exception:
             return "unknown-caller"

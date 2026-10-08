@@ -21,9 +21,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import codecs
-import urllib.request, urllib.parse, urllib.error
-import chardet
 import logging
+import urllib.error
+import urllib.parse
+import urllib.request
+
+import chardet
 
 from w3af.core.data.constants.encodings import DEFAULT_ENCODING
 

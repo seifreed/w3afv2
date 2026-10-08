@@ -19,9 +19,10 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import gtk
-import gobject
 from collections import namedtuple
+
+import gobject
+import gtk
 
 Frame = namedtuple("Frame", "title items")
 StatusItem = namedtuple("StatusItem", "title default_value getter unit tooltip")
@@ -128,7 +129,7 @@ class StatsViewer(gtk.VBox):
     ]
 
     def __init__(self, w3af):
-        super(StatsViewer, self).__init__()
+        super().__init__()
         self.w3af = w3af
 
         self.build_default()

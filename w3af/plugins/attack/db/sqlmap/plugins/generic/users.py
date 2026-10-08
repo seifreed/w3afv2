@@ -8,40 +8,36 @@ See the file 'LICENSE' for copying permission
 import re
 
 from lib.core.agent import agent
-from lib.core.common import arrayizeValue
-from lib.core.common import Backend
-from lib.core.common import filterPairValues
-from lib.core.common import getLimitRange
-from lib.core.common import getUnicode
-from lib.core.common import isAdminFromPrivileges
-from lib.core.common import isInferenceAvailable
-from lib.core.common import isNoneValue
-from lib.core.common import isNumPosStrValue
-from lib.core.common import isTechniqueAvailable
-from lib.core.common import parsePasswordHash
-from lib.core.common import randomStr
-from lib.core.common import readInput
-from lib.core.common import unArrayizeValue
+from lib.core.common import (
+    Backend,
+    arrayizeValue,
+    filterPairValues,
+    getLimitRange,
+    getUnicode,
+    isAdminFromPrivileges,
+    isInferenceAvailable,
+    isNoneValue,
+    isNumPosStrValue,
+    isTechniqueAvailable,
+    parsePasswordHash,
+    randomStr,
+    readInput,
+    unArrayizeValue,
+)
 from lib.core.convert import hexencode
-from lib.core.data import conf
-from lib.core.data import kb
-from lib.core.data import logger
-from lib.core.data import queries
-from lib.core.dicts import DB2_PRIVS
-from lib.core.dicts import FIREBIRD_PRIVS
-from lib.core.dicts import INFORMIX_PRIVS
-from lib.core.dicts import MYSQL_PRIVS
-from lib.core.dicts import PGSQL_PRIVS
-from lib.core.enums import CHARSET_TYPE
-from lib.core.enums import DBMS
-from lib.core.enums import EXPECTED
-from lib.core.enums import PAYLOAD
-from lib.core.exception import SqlmapNoneDataException
-from lib.core.exception import SqlmapUserQuitException
+from lib.core.data import conf, kb, logger, queries
+from lib.core.dicts import (
+    DB2_PRIVS,
+    FIREBIRD_PRIVS,
+    INFORMIX_PRIVS,
+    MYSQL_PRIVS,
+    PGSQL_PRIVS,
+)
+from lib.core.enums import CHARSET_TYPE, DBMS, EXPECTED, PAYLOAD
+from lib.core.exception import SqlmapNoneDataException, SqlmapUserQuitException
 from lib.core.threads import getCurrentThreadData
 from lib.request import inject
-from lib.utils.hash import attackCachedUsersPasswords
-from lib.utils.hash import storeHashesToFile
+from lib.utils.hash import attackCachedUsersPasswords, storeHashesToFile
 from lib.utils.pivotdumptable import pivotDumpTable
 
 
@@ -449,10 +445,12 @@ class Users:
             )
             or conf.direct
         ):
-            if Backend.isDbms(DBMS.MYSQL) and not kb.data.has_information_schema:
-                query = rootQuery.inband.query2
-                condition = rootQuery.inband.condition2
-            elif Backend.isDbms(DBMS.ORACLE) and query2:
+            if (
+                Backend.isDbms(DBMS.MYSQL)
+                and not kb.data.has_information_schema
+                or Backend.isDbms(DBMS.ORACLE)
+                and query2
+            ):
                 query = rootQuery.inband.query2
                 condition = rootQuery.inband.condition2
             else:
@@ -484,7 +482,7 @@ class Users:
                     user = None
                     privileges = set()
 
-                    for count in range(0, len(value or [])):
+                    for count in range(len(value or [])):
                         # The first column is always the username
                         if count == 0:
                             user = value[count]

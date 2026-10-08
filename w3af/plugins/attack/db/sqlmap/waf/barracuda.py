@@ -22,13 +22,15 @@ def detect(get_page):
             re.search(
                 r"\Abarra_counter_session=",
                 headers.get(HTTP_HEADER.SET_COOKIE, ""),
-                re.I,
+                re.IGNORECASE,
             )
             is not None
         )
         retval |= (
             re.search(
-                r"(\A|\b)barracuda_", headers.get(HTTP_HEADER.SET_COOKIE, ""), re.I
+                r"(\A|\b)barracuda_",
+                headers.get(HTTP_HEADER.SET_COOKIE, ""),
+                re.IGNORECASE,
             )
             is not None
         )

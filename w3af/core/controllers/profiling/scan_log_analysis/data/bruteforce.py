@@ -3,8 +3,8 @@ import re
 from utils.output import KeyValueOutput
 
 FINISHED_BRUTEFORCE = [
-    re.compile('Finished bruteforcing ".*?" \(spent (.*?)\)'),
-    re.compile('Finished basic authentication bruteforce on ".*?" \(spent (.*?)\)'),
+    re.compile(r'Finished bruteforcing ".*?" \(spent (.*?)\)'),
+    re.compile(r'Finished basic authentication bruteforce on ".*?" \(spent (.*?)\)'),
 ]
 
 

@@ -1,6 +1,6 @@
-import pygtk
-import gtk
 import os
+
+import gtk
 
 
 def InputBox(title, label, parent, text=""):

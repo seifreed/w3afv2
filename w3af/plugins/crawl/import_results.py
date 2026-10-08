@@ -20,21 +20,21 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import os
 import base64
+import os
 
 from lxml import etree
 from lxml.etree import XMLSyntaxError
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
-from w3af.core.controllers.exceptions import RunOnce, BaseFrameworkException
+from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
 from w3af.core.controllers.misc.decorators import runonce
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.options.opt_factory import opt_factory
-from w3af.core.data.options.option_types import INPUT_FILE
 from w3af.core.data.options.option_list import OptionList
+from w3af.core.data.options.option_types import INPUT_FILE
 from w3af.core.data.parsers.doc.http_request_parser import http_request_parser
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
 class import_results(CrawlPlugin):
@@ -44,7 +44,7 @@ class import_results(CrawlPlugin):
     """
 
     def __init__(self):
-        super(import_results, self).__init__()
+        super().__init__()
 
         # User configured parameters
         self._input_base64 = ""
@@ -189,7 +189,7 @@ class import_results(CrawlPlugin):
         """
 
 
-class BurpParser(object):
+class BurpParser:
     """
     TODO: Support protocol (http|https) and port extraction. Now it only
           works with http and 80.

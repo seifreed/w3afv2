@@ -20,11 +20,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import gtk
-import gobject
-import cairo
-import pango
 import random
+
+import cairo
+import gobject
+import gtk
+import pango
 
 MIN_SPEED = 0
 MAX_SPEED = 400
@@ -35,7 +36,7 @@ class Speedometer(gtk.DrawingArea):
     # pylint: disable-msg=E1101
 
     def __init__(self):
-        super(Speedometer, self).__init__()
+        super().__init__()
         self.connect("expose_event", self.do_expose_event)
 
         # x,y is where I'm at
@@ -149,7 +150,7 @@ class Speedometer(gtk.DrawingArea):
             # I have to rotate left (-)
             self.rot -= (self._old_speed - self._current_speed) * step
 
-        print((self.rot))
+        print(self.rot)
 
         # Now mess with scale too
         self.sx += 0  # Change to 0 to see if rotation is working...

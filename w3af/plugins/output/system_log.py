@@ -20,15 +20,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import syslog
 import string
+import syslog
 
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
-from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.constants.severity import HIGH
+from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.options.opt_factory import opt_factory
-from w3af.core.data.options.option_types import BOOL, STRING
 from w3af.core.data.options.option_list import OptionList
+from w3af.core.data.options.option_types import BOOL, STRING
 from w3af.plugins.output.console import catch_ioerror
 
 

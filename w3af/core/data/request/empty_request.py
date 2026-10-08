@@ -29,12 +29,10 @@ class EmptyFuzzableRequest(FuzzableRequest):
     """
 
     def __init__(self):
-        super(EmptyFuzzableRequest, self).__init__(
-            None, method="GET", headers=None, cookie=None, post_data=None
-        )
+        super().__init__(None, method="GET", headers=None, cookie=None, post_data=None)
 
     def set_uri(self, uri):
         if uri is None:
             return
 
-        return super(EmptyFuzzableRequest, self).set_uri(uri)
+        return super().set_uri(uri)

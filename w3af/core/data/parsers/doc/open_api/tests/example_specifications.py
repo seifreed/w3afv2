@@ -30,71 +30,71 @@ from marshmallow import Schema, fields
 CURRENT_PATH = os.path.split(__file__)[0]
 
 
-class IntParamQueryString(object):
+class IntParamQueryString:
     def get_specification(self):
         return open("%s/data/int_param_qs.json" % CURRENT_PATH).read()
 
 
-class StringParamJson(object):
+class StringParamJson:
     def get_specification(self):
         return open("%s/data/string_param_json.json" % CURRENT_PATH).read()
 
 
-class IntParamJson(object):
+class IntParamJson:
     def get_specification(self):
         return open("%s/data/int_param_json.json" % CURRENT_PATH).read()
 
 
-class IntParamWithExampleJson(object):
+class IntParamWithExampleJson:
     def get_specification(self):
         return open("%s/data/int_param_with_example_json.json" % CURRENT_PATH).read()
 
 
-class IntParamNoModelJson(object):
+class IntParamNoModelJson:
     def get_specification(self):
         return open("%s/data/int_param_no_model_json.json" % CURRENT_PATH).read()
 
 
-class ComplexDereferencedNestedModel(object):
+class ComplexDereferencedNestedModel:
     def get_specification(self):
         return open(
             "%s/data/complex_dereferenced_nested_model.json" % CURRENT_PATH
         ).read()
 
 
-class DereferencedPetStore(object):
+class DereferencedPetStore:
     def get_specification(self):
         return open("%s/data/dereferenced_pet_store.json" % CURRENT_PATH).read()
 
 
-class NestedModel(object):
+class NestedModel:
     def get_specification(self):
         return open("%s/data/nested_model.json" % CURRENT_PATH).read()
 
 
-class NestedLoopModel(object):
+class NestedLoopModel:
     def get_specification(self):
         return open("%s/data/nested_loop_model.json" % CURRENT_PATH).read()
 
 
-class StringParamHeader(object):
+class StringParamHeader:
     def get_specification(self):
         return open("%s/data/string_param_header.json" % CURRENT_PATH).read()
 
 
-class MultiplePathsAndHeaders(object):
+class MultiplePathsAndHeaders:
     def get_specification(self):
         return open("%s/data/multiple_paths_and_headers.json" % CURRENT_PATH).read()
 
 
-class PetstoreSimpleModel(object):
+class PetstoreSimpleModel:
 
     @staticmethod
     def get_specification():
         return open("%s/data/petstore-simple.json" % CURRENT_PATH).read()
 
 
-class IntParamPath(object):
+class IntParamPath:
     def get_specification(self):
         spec = APISpec(
             title=self.__class__.__name__,
@@ -146,27 +146,27 @@ class IntParamPath(object):
         return specification_as_string
 
 
-class StringParamQueryString(object):
+class StringParamQueryString:
     def get_specification(self):
         return open("%s/data/string_param_qs.json" % CURRENT_PATH).read()
 
 
-class ArrayStringItemsQueryString(object):
+class ArrayStringItemsQueryString:
     def get_specification(self):
         return open("%s/data/array_string_items_qs.json" % CURRENT_PATH).read()
 
 
-class ArrayIntItemsQueryString(object):
+class ArrayIntItemsQueryString:
     def get_specification(self):
         return open("%s/data/array_int_items_qs.json" % CURRENT_PATH).read()
 
 
-class ArrayModelItems(object):
+class ArrayModelItems:
     def get_specification(self):
         return open("%s/data/array_model_items_json.json" % CURRENT_PATH).read()
 
 
-class NoParams(object):
+class NoParams:
 
     def get_specification(self):
         spec = APISpec(
@@ -205,7 +205,7 @@ class NoParams(object):
         return json.dumps(spec.to_dict(), indent=4)
 
 
-class ModelParam(object):
+class ModelParam:
 
     def get_specification(self):
         spec = APISpec(
@@ -244,7 +244,7 @@ class ModelParam(object):
         return json.dumps(spec.to_dict(), indent=4)
 
 
-class ModelParamNested(object):
+class ModelParamNested:
 
     def get_specification(self):
         spec = APISpec(
@@ -288,7 +288,7 @@ class ModelParamNested(object):
         return json.dumps(spec.to_dict(), indent=4)
 
 
-class ModelParamNestedLoop(object):
+class ModelParamNestedLoop:
 
     def get_specification(self):
         spec = APISpec(

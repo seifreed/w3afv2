@@ -1,4 +1,3 @@
-import w3af.core.data.kb.knowledge_base as kb
 import re
 
 files = []
@@ -16,7 +15,7 @@ def check_files(file_list):
         try:
             if open(file).read() != "":
                 checked.append(file)
-        except IOError:
+        except OSError:
             pass
     return checked
 

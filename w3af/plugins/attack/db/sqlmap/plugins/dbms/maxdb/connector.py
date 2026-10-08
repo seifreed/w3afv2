@@ -6,6 +6,7 @@ See the file 'LICENSE' for copying permission
 """
 
 from lib.core.exception import SqlmapUnsupportedFeatureException
+
 from plugins.generic.connector import Connector as GenericConnector
 
 

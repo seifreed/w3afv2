@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-from w3af.core.data.request.variant_identification import are_variants
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.request.variant_identification import are_variants
 
 
 class TestVariantIdentification(unittest.TestCase):

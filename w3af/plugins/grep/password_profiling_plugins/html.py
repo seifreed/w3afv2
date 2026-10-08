@@ -22,13 +22,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 
-import w3af.core.data.parsers.parser_cache as parser_cache
-
+from w3af.core.data.parsers import parser_cache
 from w3af.plugins.grep.password_profiling_plugins.base_plugin import (
     BasePwdProfilingPlugin,
 )
 
-WORD_SPLIT_RE = re.compile("[^\w]", re.UNICODE)
+WORD_SPLIT_RE = re.compile(r"[^\w]", re.UNICODE)
 
 
 class html(BasePwdProfilingPlugin):

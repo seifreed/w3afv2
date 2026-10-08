@@ -1,15 +1,14 @@
-import http.client
 import socket
 from urllib.request import (
+    HTTPDefaultErrorHandler,
+    HTTPErrorProcessor,
+    HTTPHandler,
+    HTTPRedirectHandler,
+    HTTPSHandler,
     OpenerDirector,
     ProxyHandler,
-    UnknownHandler,
-    HTTPHandler,
-    HTTPDefaultErrorHandler,
-    HTTPRedirectHandler,
-    HTTPErrorProcessor,
-    HTTPSHandler,
     Request,
+    UnknownHandler,
 )
 
 
@@ -57,7 +56,6 @@ def build_opener(director_klass, handlers):
     If any of the handlers passed as arguments are subclasses of the
     default handlers, the default handlers will not be used.
     """
-    import types
 
     def isclass(obj):
         return isinstance(obj, type)

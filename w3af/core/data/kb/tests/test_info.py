@@ -20,20 +20,20 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import json
 import copy
+import json
 import pickle
 import unittest
 
 from nose.plugins.attrib import attr
-from vulndb.db_vuln import Reference, DBVuln
+from vulndb.db_vuln import DBVuln, Reference
 
+from w3af.core.data.dc.generic.nr_kv_container import NonRepeatKeyValueContainer
+from w3af.core.data.dc.query_string import QueryString
+from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
 from w3af.core.data.kb.info import Info
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.dc.query_string import QueryString
-from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
-from w3af.core.data.dc.generic.nr_kv_container import NonRepeatKeyValueContainer
 
 BLIND_SQLI_REFS = [
     {"url": "http://capec.mitre.org/data/definitions/7.html", "title": "MITRE - CAPEC"},
@@ -58,9 +58,7 @@ class MockInfo(Info):
     LONG_DESC = "Foo bar spam eggs" * 10
 
     def __init__(self, ids=1, desc=None):
-        super(MockInfo, self).__init__(
-            "TestCase", desc or self.LONG_DESC, ids, "plugin_name"
-        )
+        super().__init__("TestCase", desc or self.LONG_DESC, ids, "plugin_name")
 
 
 @attr("smoke")

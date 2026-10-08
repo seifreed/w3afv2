@@ -15,7 +15,6 @@ If no paths are provided, it takes its input from stdin.
 
 import argparse
 import sys
-from io import open
 
 from chardet import __version__
 from chardet.universaldetector import UniversalDetector
@@ -41,7 +40,7 @@ def description_of(lines, name="stdin"):
             name, result["encoding"], result["confidence"]
         )
     else:
-        return "{0}: no result".format(name)
+        return f"{name}: no result"
 
 
 def main(argv=None):
@@ -67,7 +66,7 @@ def main(argv=None):
         default=[sys.stdin],
     )
     parser.add_argument(
-        "--version", action="version", version="%(prog)s {0}".format(__version__)
+        "--version", action="version", version=f"%(prog)s {__version__}"
     )
     args = parser.parse_args(argv)
 

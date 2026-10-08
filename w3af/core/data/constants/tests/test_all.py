@@ -25,11 +25,11 @@ import unittest
 from w3af.core.data.constants.browsers import INTERNET_EXPLORER_7
 from w3af.core.data.constants.dbms import MYSQL
 from w3af.core.data.constants.disclaimer import DISCLAIMER
+from w3af.core.data.constants.file_patterns import FILE_PATTERNS
+from w3af.core.data.constants.ignored_params import IGNORED_PARAMETERS
 from w3af.core.data.constants.ports import MAILER
 from w3af.core.data.constants.response_codes import OK
 from w3af.core.data.constants.severity import HIGH
-from w3af.core.data.constants.ignored_params import IGNORED_PARAMETERS
-from w3af.core.data.constants.file_patterns import FILE_PATTERNS
 from w3af.core.data.constants.vulns import VULNS
 
 

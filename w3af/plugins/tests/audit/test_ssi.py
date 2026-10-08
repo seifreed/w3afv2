@@ -20,11 +20,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
-import urllib.request, urllib.parse, urllib.error
+import urllib.error
+import urllib.parse
+import urllib.request
+
 from jinja2 import Template
 
-from w3af.plugins.tests.helper import PluginTest, PluginConfig, MockResponse
 from w3af.core.data.parsers.doc.url import URL
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 test_config = {
     "audit": (PluginConfig("ssi"),),

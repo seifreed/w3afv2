@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """
 generic.py
 
@@ -24,18 +23,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from itertools import repeat
 
 import w3af.core.data.kb.knowledge_base as kb
-import w3af.core.data.constants.severity as severity
-
-from w3af.core.data.options.opt_factory import opt_factory
-from w3af.core.data.options.option_types import BOOL, FLOAT
-from w3af.core.data.options.option_list import OptionList
-from w3af.core.data.fuzzer.fuzzer import create_mutants
-from w3af.core.data.fuzzer.utils import rand_number, rand_alnum
-from w3af.core.data.kb.vuln import Vuln
-from w3af.core.data.db.disk_list import DiskList
-from w3af.core.controllers.threads.threadpool import one_to_many
-from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.controllers.misc.fuzzy_string_cmp import relative_distance
+from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
+from w3af.core.controllers.threads.threadpool import one_to_many
+from w3af.core.data.constants import severity
+from w3af.core.data.db.disk_list import DiskList
+from w3af.core.data.fuzzer.fuzzer import create_mutants
+from w3af.core.data.fuzzer.utils import rand_alnum, rand_number
+from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.options.opt_factory import opt_factory
+from w3af.core.data.options.option_list import OptionList
+from w3af.core.data.options.option_types import BOOL, FLOAT
 
 
 class generic(AuditPlugin):

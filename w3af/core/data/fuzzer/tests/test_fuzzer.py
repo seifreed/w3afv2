@@ -22,22 +22,22 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-from w3af.core.data.kb.config import Config
-from w3af.core.data.kb.config import cf as cf_singleton
-from w3af.core.data.fuzzer.fuzzer import create_mutants
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.parsers.utils.form_params import FormParameters
-from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
-from w3af.core.data.fuzzer.mutants.cookie_mutant import CookieMutant
-from w3af.core.data.fuzzer.mutants.headers_mutant import HeadersMutant
-from w3af.core.data.fuzzer.mutants.filename_mutant import FileNameMutant
-from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
-from w3af.core.data.fuzzer.mutants.xmlrpc_mutant import XmlRpcMutant
-from w3af.core.data.parsers.doc.tests.test_xmlrpc import XML_WITH_FUZZABLE
 from w3af.core.data.dc.cookie import Cookie
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.dc.urlencoded_form import URLEncodedForm
+from w3af.core.data.fuzzer.fuzzer import create_mutants
+from w3af.core.data.fuzzer.mutants.cookie_mutant import CookieMutant
+from w3af.core.data.fuzzer.mutants.filename_mutant import FileNameMutant
+from w3af.core.data.fuzzer.mutants.headers_mutant import HeadersMutant
+from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
+from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
+from w3af.core.data.fuzzer.mutants.xmlrpc_mutant import XmlRpcMutant
+from w3af.core.data.kb.config import Config
+from w3af.core.data.kb.config import cf as cf_singleton
+from w3af.core.data.parsers.doc.tests.test_xmlrpc import XML_WITH_FUZZABLE
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.parsers.utils.form_params import FormParameters
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
 class TestFuzzer(unittest.TestCase):
@@ -352,9 +352,6 @@ class TestFuzzer(unittest.TestCase):
         expected_uris = {
             "http://www.w3af.com/?id=abc",
             "http://www.w3af.com/?id=def",
-            "http://www.w3af.com/?id=3",
-            "http://www.w3af.com/?id=3",
-            "http://www.w3af.com/?id=3",
             "http://www.w3af.com/?id=3",
         }
         created_uris = set([i.get_uri().url_string for i in mutants])

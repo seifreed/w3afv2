@@ -20,22 +20,23 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from html.parser import HTMLParser, HTMLParseError
+from html.parser import HTMLParseError, HTMLParser
 
 from w3af.core.data.context.constants import CONTEXT_DETECTOR
+
 from .html import (
-    HtmlAttrSingleQuote,
-    HtmlAttrDoubleQuote,
-    HtmlAttrBackticks,
+    CSSText,
     HtmlAttr,
-    HtmlTag,
-    HtmlText,
-    HtmlComment,
-    HtmlTagClose,
+    HtmlAttrBackticks,
+    HtmlAttrDoubleQuote,
     HtmlAttrNoQuote,
+    HtmlAttrSingleQuote,
+    HtmlComment,
     HtmlDeclaration,
     HtmlProcessingInstruction,
-    CSSText,
+    HtmlTag,
+    HtmlTagClose,
+    HtmlText,
     ScriptText,
 )
 

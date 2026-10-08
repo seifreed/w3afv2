@@ -20,11 +20,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from w3af.core.data.kb.info import Info
-from w3af.core.data.constants.severity import INFORMATION, LOW, MEDIUM, HIGH
-from w3af.core.data.fuzzer.mutants.mutant import Mutant
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.data.constants.severity import HIGH, INFORMATION, LOW, MEDIUM
 from w3af.core.data.fuzzer.mutants.empty_mutant import EmptyMutant
+from w3af.core.data.fuzzer.mutants.mutant import Mutant
+from w3af.core.data.kb.info import Info
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
 class Vuln(Info):

@@ -26,16 +26,16 @@ import unittest
 
 from nose.plugins.attrib import attr
 
-from w3af.core.data.url.HTTPResponse import HTTPResponse
-from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.data.search_engines.google import (
-    google,
-    GAjaxSearch,
-    GStandardSearch,
-    GMobileSearch,
     FINISHED_OK,
     IS_NEW,
+    GAjaxSearch,
+    GMobileSearch,
+    GStandardSearch,
+    google,
 )
+from w3af.core.data.url.extended_urllib import ExtendedUrllib
+from w3af.core.data.url.HTTPResponse import HTTPResponse
 
 GOOGLE_MSG = (
     "This test fails randomly based on Google's anti automation"
@@ -43,7 +43,9 @@ GOOGLE_MSG = (
     " minutes. Many consecutive failures show that our code is NOT"
     " working anymore."
 )
-URL_REGEX = re.compile("((http|ftp|https)://([\w:@\-\./]*?)/[^ \n\r\t\"'<>]*)", re.U)
+URL_REGEX = re.compile(
+    "((http|ftp|https)://([\\w:@\\-\\./]*?)/[^ \n\r\t\"'<>]*)", re.UNICODE
+)
 
 
 @attr("internet")

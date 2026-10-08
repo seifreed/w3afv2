@@ -21,19 +21,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import copy
-
-from math import log
 from itertools import chain
+from math import log
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.constants.severity as severity
-
-from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal
+from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
+from w3af.core.data.constants import severity
 from w3af.core.data.fuzzer.fuzzer import create_mutants
 from w3af.core.data.fuzzer.mutants.headers_mutant import HeadersMutant
-from w3af.core.data.misc.encoding import smart_str_ignore
 from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.misc.encoding import smart_str_ignore
 
 COMMON_CSRF_NAMES = (
     "csrf_token",

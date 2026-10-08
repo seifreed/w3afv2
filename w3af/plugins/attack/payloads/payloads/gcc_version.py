@@ -1,6 +1,7 @@
 import re
-from w3af.plugins.attack.payloads.base_payload import Payload
+
 from w3af.core.ui.console.tables import table
+from w3af.plugins.attack.payloads.base_payload import Payload
 
 
 class gcc_version(Payload):
@@ -12,7 +13,7 @@ class gcc_version(Payload):
         result = {}
 
         def parse_gcc_version(proc_version):
-            gcc_version = re.search("(?<=gcc version ).*?\)", proc_version)
+            gcc_version = re.search(r"(?<=gcc version ).*?\)", proc_version)
             if gcc_version:
                 return gcc_version.group(0)
             else:

@@ -20,13 +20,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.parsers.utils.form_params import FormParameters
 from w3af.core.data.dc.multipart_container import MultipartContainer
+from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
 from w3af.core.data.kb.vuln_templates.base_template import BaseTemplate
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.parsers.utils.form_params import FormParameters
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
 class FileUploadTemplate(BaseTemplate):
@@ -35,7 +35,7 @@ class FileUploadTemplate(BaseTemplate):
     """
 
     def __init__(self):
-        super(FileUploadTemplate, self).__init__()
+        super().__init__()
 
         self.name = self.get_vulnerability_name()
         self.file_vars = []
@@ -43,7 +43,7 @@ class FileUploadTemplate(BaseTemplate):
         self.method = "POST"
 
     def get_options(self):
-        opt_lst = super(FileUploadTemplate, self).get_options()
+        opt_lst = super().get_options()
 
         d = 'Comma separated list of variable names of type "file"'
         o = opt_factory("file_vars", self.file_vars, d, "list")
@@ -59,12 +59,12 @@ class FileUploadTemplate(BaseTemplate):
         return opt_lst
 
     def set_options(self, options_list):
-        super(FileUploadTemplate, self).set_options(options_list)
+        super().set_options(options_list)
         self.file_vars = options_list["file_vars"].get_value()
         self.file_dest = options_list["file_dest"].get_value()
 
     def create_vuln(self):
-        v = super(FileUploadTemplate, self).create_vuln()
+        v = super().create_vuln()
 
         form_params = FormParameters()
         for file_var in self.file_vars:

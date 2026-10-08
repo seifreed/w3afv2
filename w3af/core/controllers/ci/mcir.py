@@ -27,7 +27,7 @@ DEFAULT_MCIR = "mcir-fallback:80"
 def get_mcir_http(path="/"):
     try:
         mcir_netloc = open(HTTP_MCIR).read().strip()
-    except IOError:
+    except OSError:
         mcir_netloc = DEFAULT_MCIR
 
     return "http://%s%s" % (mcir_netloc, path)

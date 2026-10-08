@@ -22,9 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import threading
 
-import w3af.core.data.kb.config as cf
 import w3af.core.controllers.output_manager as om
-
+import w3af.core.data.kb.config as cf
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.db.cached_disk_dict import CachedDiskDict
 from w3af.core.data.db.clean_dc import (
@@ -90,7 +89,7 @@ PARAMS_MAX_VARIANTS = 15
 MAX_EQUAL_FORM_VARIANTS = 5
 
 
-class VariantDB(object):
+class VariantDB:
     """
     See the notes on PARAMS_MAX_VARIANTS and PATH_MAX_VARIANTS above. Also
     understand that we'll keep "dirty" versions of the references/fuzzable

@@ -23,8 +23,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import queue
 import re
 
-from w3af.core.controllers.daemons.proxy import InterceptProxyHandler, Proxy
 from w3af.core.controllers.exceptions import ProxyException
+
+from .intercept_handler import InterceptProxyHandler
+from .proxy import Proxy
 
 
 class InterceptProxy(Proxy):
@@ -92,7 +94,7 @@ class InterceptProxy(Proxy):
         Set list that indicates what METHODS TO trap.
         If list is empty then we will trap all methods
         """
-        self.methods_to_trap = set(i.upper() for i in methods)
+        self.methods_to_trap = {method.upper() for method in methods}
 
     def set_what_not_to_trap(self, regex):
         """

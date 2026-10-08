@@ -21,13 +21,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import tempfile
 
-import w3af.core.data.constants.severity as severity
-import w3af.core.data.kb.knowledge_base as kb
 import w3af.core.controllers.output_manager as om
-
+import w3af.core.data.kb.knowledge_base as kb
+from w3af.core.controllers.sca.sca import PhpSCA
+from w3af.core.data.constants import severity
 from w3af.core.data.dc.generic.data_container import DataContainer
 from w3af.core.data.kb.vuln import Vuln
-from w3af.core.controllers.sca.sca import PhpSCA
 from w3af.core.ui.console.tables import table
 from w3af.plugins.attack.payloads.base_payload import Payload
 

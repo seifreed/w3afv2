@@ -38,9 +38,9 @@ GROOVY = "Groovy"
 
 
 SOURCE_CODE = (
-    ("<\?php .*?\?>", {PHP}),
-    ("<\?php\n.*?\?>", {PHP}),  # These two are required for perf #2129
-    ("<\?php\r.*?\?>", {PHP}),  # and are repeated over the list
+    (r"<\?php .*?\?>", {PHP}),
+    ("<\\?php\n.*?\\?>", {PHP}),  # These two are required for perf #2129
+    ("<\\?php\r.*?\\?>", {PHP}),  # and are repeated over the list
     # Need to review how to re-add these in the future
     # https://github.com/andresriancho/w3af/issues/2129
     #
@@ -59,22 +59,22 @@ SOURCE_CODE = (
     ("<%!\n.*%>", {JSP}),
     ("<%!\r.*%>", {JSP}),
     ("<%=.*%>", {JSP, PHP, RUBY}),
-    ("<!--\s*%.*?%(--)?>", {PHP}),
-    ("<!--\s*\?.*?\?(--)?>", {ASP, JSP}),
-    ("<!--\s*jsp:.*?(--)?>", {JSP}),
+    (r"<!--\s*%.*?%(--)?>", {PHP}),
+    (r"<!--\s*\?.*?\?(--)?>", {ASP, JSP}),
+    (r"<!--\s*jsp:.*?(--)?>", {JSP}),
     ("#include <", {UNKNOWN}),
     ("#!/usr/", {SHELL}),
     ("#!/opt/", {SHELL}),
     ("#!/bin/", {SHELL}),
-    ("(^|\W)import java\.", {JAVA}),
-    ("(^|\W)public class \w{1,60}\s?\{\s.*\Wpublic", {JAVA}),
-    ("(^|\W)package\s\w+\;", {JAVA}),
+    (r"(^|\W)import java\.", {JAVA}),
+    (r"(^|\W)public class \w{1,60}\s?\{\s.*\Wpublic", {JAVA}),
+    (r"(^|\W)package\s\w+\;", {JAVA}),
     ("<!--g:render", {GROOVY}),
     # Python
-    ("(^|\W)def .*?\(.*?\):(\n|\r)", {PYTHON}),
+    ("(^|\\W)def .*?\\(.*?\\):(\n|\r)", {PYTHON}),
     # Ruby
     (
-        "(^|\W)class \w{1,60}\s*<?\s*[a-zA-Z0-9_:]{0,90}.*?\W(def|validates)\s.*?\send($|\W)",
+        r"(^|\W)class \w{1,60}\s*<?\s*[a-zA-Z0-9_:]{0,90}.*?\W(def|validates)\s.*?\send($|\W)",
         {RUBY},
     ),
 )

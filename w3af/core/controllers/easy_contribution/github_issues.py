@@ -21,12 +21,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import hashlib
-import time
-import ssl
 import socket
+import ssl
+import time
 
-from github import Github
-from github import GithubException, BadCredentialsException
+from github import BadCredentialsException, Github, GithubException
 
 from w3af.core.controllers.exception_handling.helpers import get_versions
 
@@ -80,7 +79,7 @@ class LoginFailed(Exception):
     pass
 
 
-class GithubIssues(object):
+class GithubIssues:
     def __init__(self, user_or_token, password=None):
         self._user_or_token = user_or_token
         self._password = password
@@ -105,12 +104,7 @@ class GithubIssues(object):
                     raise OAuthTokenInvalid("Invalid OAuth token")
                 else:
                     raise UserCredentialsInvalid("Invalid user credentials")
-            except (
-                ssl.SSLError,
-                GithubException,
-                socket.gaierror,
-                socket.timeout,
-            ) as ex:
+            except (TimeoutError, ssl.SSLError, GithubException, socket.gaierror) as ex:
                 raise LoginFailed(str(ex))
 
         return True

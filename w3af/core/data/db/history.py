@@ -21,22 +21,21 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
-import time
 import threading
+import time
 import zipfile
-import msgpack
-
 from functools import wraps
 from shutil import rmtree
 
-import w3af.core.controllers.output_manager as om
+import msgpack
 
-from w3af.core.controllers.misc.temp_dir import get_temp_dir
+import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.exceptions import DBException
-from w3af.core.data.db.where_helper import WhereHelper
+from w3af.core.controllers.misc.temp_dir import get_temp_dir
 from w3af.core.data.db.dbms import get_default_temp_db_instance
-from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.db.where_helper import WhereHelper
 from w3af.core.data.url.HTTPRequest import HTTPRequest
+from w3af.core.data.url.HTTPResponse import HTTPResponse
 
 
 def verify_has_db(meth):
@@ -50,7 +49,7 @@ def verify_has_db(meth):
     return inner_verify_has_db
 
 
-class HistoryItem(object):
+class HistoryItem:
     """
     Represents history item
     """
@@ -289,10 +288,9 @@ class HistoryItem(object):
 
                 time.sleep(wait_time)
 
-        else:
-            msg = 'Timeout expecting trace file "%s" to be ready'
-            file_name = self._get_trace_filename_for_id(_id)
-            raise DBException(msg % file_name)
+        msg = 'Timeout expecting trace file "%s" to be ready'
+        file_name = self._get_trace_filename_for_id(_id)
+        raise DBException(msg % file_name)
 
     def load_from_file(self, _id):
         """
@@ -494,7 +492,7 @@ class HistoryItem(object):
 
         try:
             req_res = open(path_fname, "wb")
-        except IOError:
+        except OSError:
             # We get here when the path_fname does not exist (for some reason)
             # and want to analyze exactly why to be able to fix the issue in
             # the future.
@@ -516,7 +514,7 @@ class HistoryItem(object):
                         'Directory does not exist: "%s" while trying to'
                         ' write DB history to "%s"'
                     )
-                    raise IOError(msg % (test_path, path_fname))
+                    raise OSError(msg % (test_path, path_fname))
 
             raise
 
@@ -767,7 +765,7 @@ class TraceReadException(Exception):
     pass
 
 
-class PendingCompressionJob(object):
+class PendingCompressionJob:
     def __init__(self, start, end):
         self.start = start
         self.end = end

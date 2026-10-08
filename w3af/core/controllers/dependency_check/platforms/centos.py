@@ -20,8 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from .fedora import Fedora
 from ..requirements import CORE, GUI
+from .fedora import Fedora
 from .system_info import distribution_matches
 
 

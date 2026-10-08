@@ -21,24 +21,22 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
-import time
 import socket
-
+import time
 from multiprocessing.dummy import Process
 
 import w3af.core.controllers.output_manager as om
-
 from w3af import ROOT_PATH
 from w3af.core.controllers.exceptions import BaseFrameworkException
-from w3af.core.controllers.w3afAgent.server.w3afAgentServer import w3afAgentServer
-from w3af.core.controllers.payload_transfer.payload_transfer_factory import (
-    payload_transfer_factory,
-)
 from w3af.core.controllers.extrusion_scanning.extrusionScanner import extrusionScanner
 from w3af.core.controllers.intrusion_tools.delayedExecutionFactory import (
     delayedExecutionFactory,
 )
 from w3af.core.controllers.intrusion_tools.execMethodHelpers import get_remote_temp_file
+from w3af.core.controllers.payload_transfer.payload_transfer_factory import (
+    payload_transfer_factory,
+)
+from w3af.core.controllers.w3afAgent.server.w3afAgentServer import w3afAgentServer
 
 
 class w3afAgentManager(Process):

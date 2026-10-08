@@ -23,22 +23,21 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import re
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.parsers.parser_cache as parser_cache
-
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
-from w3af.core.data.parsers.doc.javascript import JavaScriptParser
-from w3af.core.data.kb.info_set import InfoSet
 from w3af.core.data.kb.info import Info
+from w3af.core.data.kb.info_set import InfoSet
+from w3af.core.data.parsers import parser_cache
+from w3af.core.data.parsers.doc.javascript import JavaScriptParser
 
 WS_URL = "ws://"
 WSS_URL = "wss://"
 WEBSOCKETS_URL_RE = re.compile(
-    "[\"|']{1}(wss?:\/\/"
-    "[\da-z\.-]+"
-    "(\.[a-z\.]{2,6})?"
-    "(\:\d{1,5})?"
-    "([\da-z\.-\_\/])*)[\"|']{1}",
-    re.U | re.I,
+    "[\"|']{1}(wss?:\\/\\/"
+    r"[\da-z\.-]+"
+    r"(\.[a-z\.]{2,6})?"
+    r"(\:\d{1,5})?"
+    "([\\da-z\\.-\\_\\/])*)[\"|']{1}",
+    re.UNICODE | re.IGNORECASE,
 )
 
 

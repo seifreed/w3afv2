@@ -1,6 +1,6 @@
 import re
-import plotille
 
+import plotille
 from utils.graph import num_formatter
 from utils.utils import get_first_timestamp, get_last_timestamp, get_line_epoch
 
@@ -39,7 +39,7 @@ def draw_active_threads(scan_log_filename, scan):
         return
 
     print("Active thread count over time")
-    print("")
+    print()
 
     fig = plotille.Figure()
     fig.width = 90
@@ -54,5 +54,5 @@ def draw_active_threads(scan_log_filename, scan):
 
     fig.plot(active_threads_timestamps, active_threads)
 
-    print((fig.show()))
-    print("")
+    print(fig.show())
+    print()

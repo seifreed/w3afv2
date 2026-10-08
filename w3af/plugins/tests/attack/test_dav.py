@@ -21,8 +21,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from nose.plugins.attrib import attr
 
-from w3af.plugins.tests.helper import PluginConfig, ExecExploitTest
 from w3af.core.data.kb.vuln_templates.dav_template import DAVTemplate
+from w3af.plugins.tests.helper import ExecExploitTest, PluginConfig
 
 
 @attr("smoke")

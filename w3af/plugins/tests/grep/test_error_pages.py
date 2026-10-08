@@ -21,16 +21,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from nose.plugins.attrib import attr
 
-import w3af.core.data.constants.severity as severity
 import w3af.core.data.kb.knowledge_base as kb
-
-from w3af.plugins.grep.error_pages import error_pages
-from w3af.core.data.url.HTTPResponse import HTTPResponse
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.dc.headers import Headers
 from w3af.core.controllers.ci.moth import get_moth_http
-from w3af.plugins.tests.helper import PluginTest, PluginConfig
+from w3af.core.data.constants import severity
+from w3af.core.data.dc.headers import Headers
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.plugins.grep.error_pages import error_pages
+from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 
 @attr("ci_ready")
@@ -60,7 +59,7 @@ class TestErrorPages(PluginTest):
         self.assertTrue(info.get_name().startswith("Descriptive error page"))
 
     def setUp(self):
-        super(TestErrorPages, self).setUp()
+        super().setUp()
         kb.kb.cleanup()
 
     def test_found_vuln_max_reports(self):

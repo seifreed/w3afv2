@@ -20,8 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import time
 import threading
+import time
 
 import w3af.core.controllers.output_manager as om
 
@@ -39,7 +39,7 @@ class ThreadCountObserver(StrategyObserver):
     ANALYZE_EVERY = 30
 
     def __init__(self):
-        super(ThreadCountObserver, self).__init__()
+        super().__init__()
         self.last_call = 0
 
     def log_thread_count(self, *args):
