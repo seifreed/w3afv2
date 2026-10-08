@@ -19,39 +19,38 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
+import json
+import logging
 import sys
 import warnings
-import logging
+from importlib.metadata import distributions
+from importlib.util import find_spec
 
+from packaging.utils import canonicalize_name
+from packaging.version import Version
+
+from w3af.core.controllers.dependency_check.helper_requirements_txt import (
+    generate_requirements_txt,
+)
+from w3af.core.controllers.dependency_check.helper_script import (
+    generate_helper_script,
+    generate_pip_install_git,
+    generate_pip_install_non_git,
+)
+from w3af.core.controllers.dependency_check.platforms.base_platform import CORE
+from w3af.core.controllers.dependency_check.platforms.current_platform import (
+    get_current_platform,
+)
+from w3af.core.controllers.dependency_check.utils import verify_python_version
 from w3af.core.data.db.startup_cfg import StartUpConfig
-from .utils import verify_python_version
+
 verify_python_version()
 
-try:
-    # Is pip even there?
-    import pip
-except ImportError:
-    print('We recommend you install pip before continuing.')
-    print('http://www.pip-installer.org/en/latest/installing.html')
+if find_spec("pip") is None:
+    print("We recommend you install pip before continuing.")
+    print("http://www.pip-installer.org/en/latest/installing.html")
     sys.exit(1)
-
-try:
-    # We do this in order to check for old pip versions
-    from pip._vendor.packaging.version import Version
-except ImportError:
-    print('An old pip version was detected. We recommend a pip update'
-          ' before continuing:')
-    print('    sudo pip install --upgrade pip')
-    sys.exit(1)
-
-import pkg_resources
-
-from .helper_script import (generate_helper_script,
-                            generate_pip_install_non_git,
-                            generate_pip_install_git)
-from .helper_requirements_txt import generate_requirements_txt
-from .platforms.current_platform import get_current_platform
-from .platforms.base_platform import CORE
 
 
 def get_missing_pip_packages(platform, dependency_set):
@@ -63,8 +62,19 @@ def get_missing_pip_packages(platform, dependency_set):
     for w3af_req in platform.PIP_PACKAGES[dependency_set]:
 
         # pylint: disable=E1133
-        for dist in pkg_resources.working_set:
-            if w3af_req.package_name.lower() == dist.project_name.lower():
+        for dist in distributions():
+            dist_name = dist.metadata.get("Name", "")
+            if canonicalize_name(w3af_req.package_name) == canonicalize_name(dist_name):
+                if w3af_req.is_git:
+                    direct_url_json = dist.read_text("direct_url.json")
+                    if direct_url_json is None:
+                        continue
+
+                    direct_url = json.loads(direct_url_json)
+                    installed_commit = direct_url.get("vcs_info", {}).get("commit_id")
+                    if installed_commit == w3af_req.package_version:
+                        break
+                    continue
 
                 w3af_req_version = str(Version(w3af_req.package_version))
                 dist_version = str(Version(dist.version))
@@ -103,33 +113,36 @@ def get_missing_external_commands(platform):
     return platform.get_missing_external_commands()
 
 
-def write_instructions_to_console(platform, failed_deps, os_packages, script_path,
-                                  external_commands):
+def write_instructions_to_console(
+    platform, failed_deps, os_packages, script_path, external_commands
+):
     #
     #    Report the missing system packages
     #
-    msg = ('w3af\'s requirements are not met, one or more third-party'
-           ' libraries need to be installed.\n\n')
+    msg = (
+        "w3af's requirements are not met, one or more third-party"
+        " libraries need to be installed.\n\n"
+    )
 
     if os_packages:
-        missing_pkgs = ' '.join(os_packages)
+        missing_pkgs = " ".join(os_packages)
 
-        msg += ('On %s systems please install the following operating'
-                ' system packages before running the pip installer:\n'
-                '    %s %s\n')
-        print((msg % (platform.SYSTEM_NAME, platform.PKG_MANAGER_CMD,
-                     missing_pkgs)))
+        msg += (
+            "On %s systems please install the following operating"
+            " system packages before running the pip installer:\n"
+            "    %s %s\n"
+        )
+        print(msg % (platform.SYSTEM_NAME, platform.PKG_MANAGER_CMD, missing_pkgs))
 
     #
     #    Report all missing python modules
     #
     if failed_deps:
         # pylint: disable=E1101
-        msg = ('Your python installation needs the following modules'
-               ' to run w3af:\n')
-        msg += '    ' + ' '.join([fdep.module_name for fdep in failed_deps])
+        msg = "Your python installation needs the following modules" " to run w3af:\n"
+        msg += "    " + " ".join([fdep.module_name for fdep in failed_deps])
         print(msg)
-        print('\n')
+        print("\n")
         # pylint: enable=E1101
 
         #
@@ -138,39 +151,45 @@ def write_instructions_to_console(platform, failed_deps, os_packages, script_pat
         not_git_pkgs = [fdep for fdep in failed_deps if not fdep.is_git]
         git_pkgs = [fdep.git_src for fdep in failed_deps if fdep.is_git]
 
-        msg = ('After installing any missing operating system packages, use'
-               ' pip to install the remaining modules:\n')
+        msg = (
+            "After installing any missing operating system packages, use"
+            " pip to install the remaining modules:\n"
+        )
 
         if not_git_pkgs:
             cmd = generate_pip_install_non_git(platform.PIP_CMD, not_git_pkgs)
-            msg += '    %s\n' % cmd
+            msg += f"    {cmd}\n"
 
         if git_pkgs:
             for missing_git_pkg in git_pkgs:
-                msg += '    %s\n' % generate_pip_install_git(platform.PIP_CMD,
-                                                             missing_git_pkg)
+                install_command = generate_pip_install_git(
+                    platform.PIP_CMD, missing_git_pkg
+                )
+                msg += f"    {install_command}\n"
 
         print(msg)
 
     if external_commands:
-        print('External programs used by w3af are not installed or were not found.'
-              'Run these commands to install them on your system:\n')
+        print(
+            "External programs used by w3af are not installed or were not found."
+            "Run these commands to install them on your system:\n"
+        )
         for cmd in external_commands:
-            print(('    %s' % cmd))
+            print(f"    {cmd}")
 
-        print('')
+        print()
 
     platform.after_hook()
 
-    msg = 'A script with these commands has been created for you at %s'
-    print((msg % script_path))
+    msg = "A script with these commands has been created for you at %s"
+    print(msg % script_path)
 
 
 def dependency_check(dependency_set=CORE, exit_on_failure=True):
     """
     This function verifies that the dependencies that are needed by the
     framework core are met.
-    
+
     :return: True if the process should exit
     """
     if StartUpConfig().get_skip_dependencies_check():
@@ -193,13 +212,18 @@ def dependency_check(dependency_set=CORE, exit_on_failure=True):
 
     generate_requirements_txt(failed_deps)
 
-    script_path = generate_helper_script(platform.PKG_MANAGER_CMD, os_packages,
-                                         platform.PIP_CMD, failed_deps,
-                                         external_commands)
+    script_path = generate_helper_script(
+        platform.PKG_MANAGER_CMD,
+        os_packages,
+        platform.PIP_CMD,
+        failed_deps,
+        external_commands,
+    )
 
-    write_instructions_to_console(platform, failed_deps, os_packages, script_path,
-                                  external_commands)
-    
+    write_instructions_to_console(
+        platform, failed_deps, os_packages, script_path, external_commands
+    )
+
     if exit_on_failure:
         sys.exit(1)
     else:
@@ -208,7 +232,10 @@ def dependency_check(dependency_set=CORE, exit_on_failure=True):
 
 def disable_warnings():
     # nltk raises a warning... which I want to ignore...
-    warnings.filterwarnings('ignore', '.*',)
+    warnings.filterwarnings(
+        "ignore",
+        ".*",
+    )
 
     # scapy raises an error if tcpdump is not found in PATH
     logging.disable(logging.CRITICAL)
@@ -217,6 +244,6 @@ def disable_warnings():
 def enable_warnings():
     # Enable warnings once again
     warnings.resetwarnings()
-    
+
     # re-enable the logging module
     logging.disable(logging.NOTSET)

@@ -23,6 +23,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import sys
 from pathlib import Path
 
+from packaging.requirements import Requirement
+
 from w3af.core.controllers.dependency_check.pip_dependency import PIPDependency
 
 CORE = 1
@@ -36,23 +38,32 @@ def _normalize_package_name(package_name):
     return package_name.lower().replace("_", "-")
 
 
-def _load_pinned_versions():
+def _load_pinned_packages():
     versions = {}
+    sources = {}
 
     with REQUIREMENTS_FILE.open(encoding="utf-8") as requirements:
         for raw_line in requirements:
             line = raw_line.partition("#")[0].strip()
-            if not line or "==" not in line:
+            if not line:
                 continue
 
-            requirement = line.partition(";")[0].strip()
-            package_name, version = requirement.split("==", 1)
-            versions[_normalize_package_name(package_name)] = version.strip()
+            requirement = Requirement(line)
+            package_key = _normalize_package_name(requirement.name)
+            if requirement.url:
+                sources[package_key] = requirement.url
+                versions[package_key] = requirement.url.rsplit("@", 1)[-1]
+                continue
 
-    return versions
+            for specifier in requirement.specifier:
+                if specifier.operator == "==":
+                    versions[package_key] = specifier.version
+                    break
+
+    return versions, sources
 
 
-PINNED_VERSIONS = _load_pinned_versions()
+PINNED_VERSIONS, PINNED_SOURCES = _load_pinned_packages()
 
 
 def _version(package_name):
@@ -89,7 +100,12 @@ CORE_PIP_PACKAGES = [
     PIPDependency("psutil", "psutil", _version("psutil")),
     PIPDependency("ds_store", "ds-store", _version("ds-store")),
     PIPDependency("termcolor", "termcolor", _version("termcolor")),
-    PIPDependency("mitmproxy", "mitmproxy", _version("mitmproxy")),
+    PIPDependency(
+        "mitmproxy",
+        "mitmproxy",
+        _version("mitmproxy"),
+        git_src=PINNED_SOURCES["mitmproxy"],
+    ),
     PIPDependency("Flask", "Flask", _version("Flask")),
     PIPDependency("yaml", "PyYAML", _version("PyYAML")),
     PIPDependency("tldextract", "tldextract", _version("tldextract")),
