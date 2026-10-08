@@ -19,7 +19,10 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
-import urllib.request, urllib.error, urllib.parse
+
+import urllib.error
+import urllib.parse
+import urllib.request
 
 
 class NormalizeHandler(urllib.request.BaseHandler):
@@ -27,18 +30,18 @@ class NormalizeHandler(urllib.request.BaseHandler):
     Make sure that the HTTP request has some "required" headers.
     """
 
-    handler_order = urllib2.HTTPErrorProcessor.handler_order - 1
+    handler_order = urllib.request.HTTPErrorProcessor.handler_order - 1
 
     def http_request(self, request):
         #
         # FIXME: What if the user doesn't want to add these headers?
         #
-        if not request.has_header('Host'):
-            request.add_unredirected_header('Host', request.host)
+        if not request.has_header("Host"):
+            request.add_unredirected_header("Host", request.host)
 
-        if not request.has_header('Accept-encoding'):
-            request.add_unredirected_header('Accept-Encoding', 'identity')
+        if not request.has_header("Accept-encoding"):
+            request.add_unredirected_header("Accept-Encoding", "identity")
 
         return request
-    
+
     https_request = http_request

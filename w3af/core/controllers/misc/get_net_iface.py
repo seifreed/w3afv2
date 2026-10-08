@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 import socket
+
 from w3af.core.controllers.misc.get_local_ip import get_local_ip
 
 
@@ -37,7 +38,7 @@ def get_net_iface():
     #
     #   I need to have a default in case everything else fails!
     #
-    ifname = 'eth0'
+    ifname = "eth0"
 
     if os.name == "nt":
         #
@@ -51,17 +52,28 @@ def get_net_iface():
         import fcntl
         import struct
 
-        interfaces = ["eth0", "eth1", "eth2", "wlan0", "wlan1",
-                      "wifi0", "ath0", "ath1", "ppp0"]
+        interfaces = [
+            "eth0",
+            "eth1",
+            "eth2",
+            "wlan0",
+            "wlan1",
+            "wifi0",
+            "ath0",
+            "ath1",
+            "ppp0",
+        ]
         for ifname in interfaces:
             try:
                 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                interface_ip = socket.inet_ntoa(fcntl.ioctl(
-                    s.fileno(),
-                    0x8915,  # SIOCGIFADDR
-                    struct.pack('256s', ifname[:15])
-                )[20:24])
-            except IOError:
+                interface_ip = socket.inet_ntoa(
+                    fcntl.ioctl(
+                        s.fileno(),
+                        0x8915,  # SIOCGIFADDR
+                        struct.pack("256s", ifname[:15].encode()),
+                    )[20:24]
+                )
+            except OSError:
                 pass
             else:
                 if internet_ip == interface_ip:

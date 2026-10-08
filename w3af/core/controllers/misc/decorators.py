@@ -18,17 +18,18 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
-import math
-import time
-import threading
-import functools
 
+import functools
+import math
+import threading
+import time
 from functools import wraps
 
 import w3af.core.controllers.output_manager as om
 
 # pylint: disable=E0401
-from darts.lib.utils.lru import SynchronizedLRUDict
+from w3af.core.data.misc.lru import SynchronizedLRUDict
+
 # pylint: enable=E0401
 
 
@@ -39,20 +40,22 @@ def runonce(exc_class=Exception):
     :param exc_class: The Exception class to be raised when the method has
         already been called.
     """
+
     def runonce_meth(meth):
-        
+
         @wraps(meth)
         def inner_runonce_meth(self, *args):
-            if not getattr(self, '_already_executed', False):
+            if not getattr(self, "_already_executed", False):
                 self._already_executed = True
                 return meth(self, *args)
             raise exc_class()
+
         return inner_runonce_meth
-    
+
     return runonce_meth
 
 
-def retry(tries, delay=1, backoff=2, exc_class=None, err_msg='', log_msg=None):
+def retry(tries, delay=1, backoff=2, exc_class=None, err_msg="", log_msg=None):
     """
     Retries a function or method if an exception was raised.
 
@@ -77,7 +80,7 @@ def retry(tries, delay=1, backoff=2, exc_class=None, err_msg='', log_msg=None):
         raise ValueError("'delay' must be non negative.")
 
     def deco_retry(f):
-        
+
         @wraps(f)
         def f_retry(*args, **kwargs):
             mtries, mdelay = tries - 1, delay
@@ -102,7 +105,7 @@ def retry(tries, delay=1, backoff=2, exc_class=None, err_msg='', log_msg=None):
                     om.out.debug(log_msg)
 
         return f_retry
-    
+
     return deco_retry
 
 
@@ -110,6 +113,7 @@ def cached_property(fun):
     """
     A memoize decorator for class properties.
     """
+
     @wraps(fun)
     def get(self):
         try:
@@ -124,12 +128,13 @@ def cached_property(fun):
     return property(get)
 
 
-class memoized(object):
+class memoized:
     """
     Decorator. Caches a function's return value each time it is called.
     If called later with the same arguments, the cached value is returned
     (not reevaluated).
     """
+
     def __init__(self, func, lru_size=10):
         self.func = func
         self.cache = SynchronizedLRUDict(lru_size)

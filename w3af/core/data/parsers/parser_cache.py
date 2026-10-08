@@ -20,29 +20,29 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-
 import atexit
 import threading
-
 from concurrent.futures import TimeoutError
 
-# pylint: disable=E0401
-from darts.lib.utils.lru import SynchronizedLRUDict
 # pylint: enable=E0401
-
 import w3af.core.controllers.output_manager as om
-
-from w3af.core.controllers.threads.is_main_process import is_main_process
+from w3af.core.controllers.exceptions import (
+    BaseFrameworkException,
+    ScanMustStopException,
+)
 from w3af.core.controllers.profiling.core_stats import core_profiling_is_enabled
-from w3af.core.controllers.exceptions import (BaseFrameworkException,
-                                              ScanMustStopException)
+from w3af.core.controllers.threads.is_main_process import is_main_process
+from w3af.core.data.db.disk_set import DiskSet
 
+# pylint: disable=E0401
+from w3af.core.data.misc.lru import SynchronizedLRUDict
+from w3af.core.data.parsers.document_parser import DocumentParser
 from w3af.core.data.parsers.mp_document_parser import mp_doc_parser
 from w3af.core.data.parsers.utils.cache_stats import CacheStats
-from w3af.core.data.parsers.document_parser import DocumentParser
-from w3af.core.data.db.disk_set import DiskSet
-from w3af.core.data.parsers.utils.response_uniq_id import (get_response_unique_id,
-                                                           get_body_unique_id)
+from w3af.core.data.parsers.utils.response_uniq_id import (
+    get_body_unique_id,
+    get_response_unique_id,
+)
 
 
 class ParserCache(CacheStats):
@@ -51,13 +51,14 @@ class ParserCache(CacheStats):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     CACHE_SIZE = 10
     MAX_CACHEABLE_BODY_LEN = 1024 * 1024
     DEBUG = core_profiling_is_enabled()
 
     def __init__(self):
-        super(ParserCache, self).__init__()
-        
+        super().__init__()
+
         self._cache = SynchronizedLRUDict(self.CACHE_SIZE)
         self._can_parse_cache = SynchronizedLRUDict(self.CACHE_SIZE * 10)
         self._parser_finished_events = {}
@@ -68,14 +69,14 @@ class ParserCache(CacheStats):
         Clear all the internal variables
         :return: None
         """
-        om.out.debug('Called clear() on ParserCache')
+        om.out.debug("Called clear() on ParserCache")
 
         # Stop any workers
         mp_doc_parser.stop_workers()
 
         # Make sure the parsers clear all resources
         for parser in self._cache.values():
-            if hasattr(parser, 'clear'):
+            if hasattr(parser, "clear"):
                 parser.clear()
 
         # We don't need the parsers anymore
@@ -98,7 +99,9 @@ class ParserCache(CacheStats):
         :param http_response: The HTTP response to verify
         :return: True if we can parse this HTTP response
         """
-        cached_can_parse = self._can_parse_cache.get(http_response.get_id(), default=None)
+        cached_can_parse = self._can_parse_cache.get(
+            http_response.get_id(), default=None
+        )
 
         if cached_can_parse is not None:
             return cached_can_parse
@@ -205,10 +208,12 @@ class ParserCache(CacheStats):
                 self.add_to_blacklist(hash_string)
 
                 # Act just like when there is no parser
-                msg = 'Reached memory usage limit parsing "%s".' % http_response.get_url()
+                msg = (
+                    'Reached memory usage limit parsing "%s".' % http_response.get_url()
+                )
                 raise BaseFrameworkException(msg)
             except ScanMustStopException as e:
-                msg = 'The document parser is in an invalid state! %s'
+                msg = "The document parser is in an invalid state! %s"
                 raise ScanMustStopException(msg % e)
             except:
                 # Act just like when there is no parser
@@ -258,7 +263,7 @@ class ParserCache(CacheStats):
             body_lower = http_response.get_body().lower()
 
             for tag in tags:
-                lt_tag = '<%s' % tag
+                lt_tag = "<%s" % tag
                 if lt_tag in body_lower:
                     break
             else:
@@ -279,14 +284,14 @@ class ParserCache(CacheStats):
         # be gaining a lot of performance
         #
         if not self.can_parse(http_response):
-            self._log_return_empty(http_response, 'No parser available')
+            self._log_return_empty(http_response, "No parser available")
             return []
 
-        args = '%r%r' % (tags, yield_text)
+        args = "%r%r" % (tags, yield_text)
         hash_string = get_body_unique_id(http_response, prepend=args)
 
         if hash_string in self._parser_blacklist:
-            self._log_return_empty(http_response, 'HTTP response is blacklisted')
+            self._log_return_empty(http_response, "HTTP response is blacklisted")
             return []
 
         #
@@ -300,7 +305,7 @@ class ParserCache(CacheStats):
             wait_result = parser_finished.wait(timeout=mp_doc_parser.PARSER_TIMEOUT)
             if not wait_result:
                 # Act just like when there is no parser
-                self._log_return_empty(http_response, 'Timeout waiting for response')
+                self._log_return_empty(http_response, "Timeout waiting for response")
                 return []
 
         # metric increase
@@ -319,9 +324,9 @@ class ParserCache(CacheStats):
             self._parser_finished_events[hash_string] = event
 
             try:
-                tags = mp_doc_parser.get_tags_by_filter(http_response,
-                                                        tags,
-                                                        yield_text=yield_text)
+                tags = mp_doc_parser.get_tags_by_filter(
+                    http_response, tags, yield_text=yield_text
+                )
             except TimeoutError:
                 # We failed to get a parser for this HTTP response, we better
                 # ban this HTTP response so we don't waste more CPU cycles trying
@@ -329,7 +334,9 @@ class ParserCache(CacheStats):
                 self.add_to_blacklist(hash_string)
 
                 # Act just like when there is no parser
-                self._log_return_empty(http_response, 'Timeout waiting for get_tags_by_filter()')
+                self._log_return_empty(
+                    http_response, "Timeout waiting for get_tags_by_filter()"
+                )
                 return []
             except MemoryError:
                 # We failed to get a parser for this HTTP response, we better
@@ -338,10 +345,10 @@ class ParserCache(CacheStats):
                 self.add_to_blacklist(hash_string)
 
                 # Act just like when there is no parser
-                self._log_return_empty(http_response, 'Reached memory usage limit')
+                self._log_return_empty(http_response, "Reached memory usage limit")
                 return []
             except ScanMustStopException as e:
-                msg = 'The document parser is in an invalid state! %s'
+                msg = "The document parser is in an invalid state! %s"
                 raise ScanMustStopException(msg % e)
             except Exception as e:
                 # Act just like when there is no parser
@@ -362,9 +369,9 @@ class ParserCache(CacheStats):
 
 @atexit.register
 def cleanup_pool():
-    if 'dpc' in globals():
+    if "dpc" in globals():
         dpc.clear()
-    
+
 
 if is_main_process():
     dpc = ParserCache()

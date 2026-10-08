@@ -19,34 +19,32 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import time
 import traceback
-
 from multiprocessing.dummy import Process
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.constants.ports as ports
-
 from w3af import ROOT_PATH
-from w3af.core.data.url.HTTPResponse import HTTPResponse
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.controllers.daemons.proxy.templates.utils import render
-from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.controllers.daemons.proxy import Proxy, ProxyHandler
-from w3af.core.controllers.exceptions import RunOnce, ProxyException
+from w3af.core.controllers.daemons.proxy.templates.utils import render
+from w3af.core.controllers.exceptions import ProxyException, RunOnce
 from w3af.core.controllers.misc.decorators import runonce
-
+from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
+from w3af.core.data.constants import ports
+from w3af.core.data.dc.headers import Headers
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.dc.headers import Headers
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.data.url.HTTPResponse import HTTPResponse
 
 # Cohny changed the original http://w3af/spider_man?terminate
 # to http://127.7.7.7/spider_man?terminate because in Opera we got
 # an error if we used the original one! Thanks Cohny!
-TERMINATE_URL = URL('http://127.7.7.7/spider_man?terminate')
-TERMINATE_FAVICON_URL = URL('http://127.7.7.7/favicon.ico')
+TERMINATE_URL = URL("http://127.7.7.7/spider_man?terminate")
+TERMINATE_FAVICON_URL = URL("http://127.7.7.7/favicon.ico")
 
 
 class spider_man(CrawlPlugin):
@@ -56,13 +54,14 @@ class spider_man(CrawlPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     :author: Alexander Berezhnoy < alexander.berezhnoy |at| gmail.com >
     """
+
     def __init__(self):
         CrawlPlugin.__init__(self)
         self._first_captured_request = True
         self._proxy = None
 
         # User configured parameters
-        self._listen_address = '127.0.0.1'
+        self._listen_address = "127.0.0.1"
         self._listen_port = ports.SPIDERMAN
 
     @runonce(exc_class=RunOnce)
@@ -74,25 +73,27 @@ class spider_man(CrawlPlugin):
         """
         # Create the proxy server
         try:
-            self._proxy = LoggingProxy(self._listen_address,
-                                       self._listen_port,
-                                       self._uri_opener,
-                                       handler_klass=LoggingHandler,
-                                       plugin=self,
-                                       target_domain=fuzzable_request.get_url().get_domain(),
-                                       name='SpiderManProxyThread')
+            self._proxy = LoggingProxy(
+                self._listen_address,
+                self._listen_port,
+                self._uri_opener,
+                handler_klass=LoggingHandler,
+                plugin=self,
+                target_domain=fuzzable_request.get_url().get_domain(),
+                name="SpiderManProxyThread",
+            )
         except ProxyException as proxy_exc:
-            om.out.error('%s' % proxy_exc)
-        
+            om.out.error("%s" % proxy_exc)
+
         else:
-            msg = ('spider_man proxy is running on %s:%s.\nPlease configure '
-                   'your browser to use these proxy settings and navigate the '
-                   'target site.\nTo exit spider_man plugin please navigate'
-                   ' to %s .' % (self._listen_address,
-                                 self._listen_port,
-                                 TERMINATE_URL))
+            msg = (
+                "spider_man proxy is running on %s:%s.\nPlease configure "
+                "your browser to use these proxy settings and navigate the "
+                "target site.\nTo exit spider_man plugin please navigate"
+                " to %s ." % (self._listen_address, self._listen_port, TERMINATE_URL)
+            )
             om.out.information(msg)
-            
+
             self._proxy.run()
 
     def send_fuzzable_request_to_core(self, freq):
@@ -100,8 +101,9 @@ class spider_man(CrawlPlugin):
 
         if self._first_captured_request:
             self._first_captured_request = False
-            om.out.information('The spider_man plugin processed the first HTTP'
-                               ' request.')
+            om.out.information(
+                "The spider_man plugin processed the first HTTP" " request."
+            )
 
     def get_options(self):
         """
@@ -109,13 +111,15 @@ class spider_man(CrawlPlugin):
         """
         ol = OptionList()
 
-        d = 'IP address that the spider_man proxy will use to receive requests'
-        o = opt_factory('listen_address', self._listen_address, d, 'string')
+        d = "IP address that the spider_man proxy will use to receive requests"
+        o = opt_factory("listen_address", self._listen_address, d, "string")
         ol.add(o)
 
-        d = ('Port that the spider_man HTTP proxy server will use to receive'
-             ' HTTP requests')
-        o = opt_factory('listen_port', self._listen_port, d, 'integer')
+        d = (
+            "Port that the spider_man HTTP proxy server will use to receive"
+            " HTTP requests"
+        )
+        o = opt_factory("listen_port", self._listen_port, d, "integer")
         ol.add(o)
 
         return ol
@@ -128,8 +132,8 @@ class spider_man(CrawlPlugin):
         :param options_list: A dictionary with the options for the plugin.
         :return: No value is returned.
         """
-        self._listen_address = options_list['listen_address'].get_value()
-        self._listen_port = options_list['listen_port'].get_value()
+        self._listen_address = options_list["listen_address"].get_value()
+        self._listen_port = options_list["listen_port"].get_value()
 
     def get_long_desc(self):
         """
@@ -174,7 +178,7 @@ class LoggingHandler(ProxyHandler):
         http_request = self._to_w3af_request(flow.request)
 
         uri = http_request.get_uri()
-        msg = '[spider_man] Handling request: %s %s'
+        msg = "[spider_man] Handling request: %s %s"
         om.out.debug(msg % (http_request.get_method(), uri))
 
         if uri.get_domain() == self.parent_process.target_domain:
@@ -197,22 +201,24 @@ class LoggingHandler(ProxyHandler):
                 http_response = self._send_http_request(http_request, grep=grep)
         except Exception as e:
             trace = str(traceback.format_exc())
-            http_response = self._create_error_response(http_request, None, e,
-                                                        trace=trace)
+            http_response = self._create_error_response(
+                http_request, None, e, trace=trace
+            )
 
         # Useful logging
         headers = http_response.get_headers()
-        cookie_value, cookie_header = headers.iget('cookie', None)
+        cookie_value, cookie_header = headers.iget("cookie", None)
         if cookie_value is not None:
-            msg = ('The remote web application sent the following'
-                   ' cookie: "%s" through the spider-man proxy.\nw3af will use'
-                   ' it during the rest of the scan process in order to'
-                   ' maintain the session.')
+            msg = (
+                "The remote web application sent the following"
+                ' cookie: "%s" through the spider-man proxy.\nw3af will use'
+                " it during the rest of the scan process in order to"
+                " maintain the session."
+            )
             om.out.information(msg % cookie_value)
 
         # Send the response (success|error) to the browser
-        http_response = self._to_libmproxy_response(flow.request, http_response)
-        flow.reply(http_response)
+        flow.response = self._to_mitmproxy_response(http_response)
 
     def _is_terminate_favicon(self, http_request):
         """
@@ -224,20 +230,23 @@ class LoggingHandler(ProxyHandler):
         return False
 
     def _create_favicon_response(self, http_response):
-        favicon = os.path.join(ROOT_PATH,
-                               'plugins/crawl/spider_man/favicon.ico')
+        favicon = os.path.join(ROOT_PATH, "plugins/crawl/spider_man/favicon.ico")
 
-        headers = Headers((
-            ('Connection', 'close'),
-            ('Content-type', 'image/vnd.microsoft.icon'),
-        ))
+        headers = Headers(
+            (
+                ("Connection", "close"),
+                ("Content-type", "image/vnd.microsoft.icon"),
+            )
+        )
 
-        http_response = HTTPResponse(200,
-                                     open(favicon, 'rb').read(),
-                                     headers,
-                                     http_response.get_uri(),
-                                     http_response.get_uri(),
-                                     msg='Ok')
+        http_response = HTTPResponse(
+            200,
+            open(favicon, "rb").read(),
+            headers,
+            http_response.get_uri(),
+            http_response.get_uri(),
+            msg="Ok",
+        )
         return http_response
 
     def _is_terminate_request(self, http_request):
@@ -247,40 +256,58 @@ class LoggingHandler(ProxyHandler):
         return False
 
     def _terminate(self):
-        om.out.information('The user terminated the spider_man session.')
+        om.out.information("The user terminated the spider_man session.")
 
         def stop(after):
             time.sleep(after)
             self.parent_process.stop()
 
-        Process(target=stop, args=(2, )).start()
+        Process(target=stop, args=(2,)).start()
 
     def _create_terminate_response(self, http_response):
-        content = render('spiderman_end.html', {})
+        content = render("spiderman_end.html", {})
 
-        headers = Headers((
-            ('Connection', 'close'),
-            ('Content-type', 'text/html'),
-        ))
+        headers = Headers(
+            (
+                ("Connection", "close"),
+                ("Content-type", "text/html"),
+            )
+        )
 
-        http_response = HTTPResponse(200, content.encode('utf-8'), headers,
-                                     http_response.get_uri(),
-                                     http_response.get_uri(),
-                                     msg='Ok')
+        http_response = HTTPResponse(
+            200,
+            content.encode("utf-8"),
+            headers,
+            http_response.get_uri(),
+            http_response.get_uri(),
+            msg="Ok",
+        )
         return http_response
 
 
 class LoggingProxy(Proxy):
-    def __init__(self, ip, port, uri_opener, handler_klass=LoggingHandler,
-                 ca_certs=Proxy.CA_CERT_DIR, name='LoggingProxyThread',
-                 target_domain=None, plugin=None):
+    def __init__(
+        self,
+        ip,
+        port,
+        uri_opener,
+        handler_klass=LoggingHandler,
+        ca_certs=Proxy.CA_CERT_DIR,
+        name="LoggingProxyThread",
+        target_domain=None,
+        plugin=None,
+    ):
         """
         Override the parent init so we can save the plugin reference, all the
         rest is just the same.
         """
-        super(LoggingProxy, self).__init__(ip, port, uri_opener,
-                                           handler_klass=handler_klass,
-                                           ca_certs=ca_certs,
-                                           name=name)
+        super().__init__(
+            ip,
+            port,
+            uri_opener,
+            handler_klass=handler_klass,
+            ca_certs=ca_certs,
+            name=name,
+        )
         self.plugin = plugin
         self.target_domain = target_domain

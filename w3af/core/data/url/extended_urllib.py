@@ -19,68 +19,75 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
-import time
-import uuid
-import urllib.request, urllib.parse, urllib.error
-import socket
-import OpenSSL
-import urllib.request, urllib.error, urllib.parse
-import http.client
-import threading
-import traceback
-import functools
 
-from contextlib import contextmanager
+import functools
+import http.client
+import socket
+import threading
+import time
+import traceback
+import urllib.error
+import urllib.parse
+import urllib.request
+import uuid
 from collections import deque
+from contextlib import contextmanager
+from functools import cmp_to_key
 from http.client import BadStatusLine
 
-# pylint: disable=E0401
-from darts.lib.utils.lru import SynchronizedLRUDict
-# pylint: enable=E0401
+import OpenSSL
 
+# pylint: enable=E0401
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
-from . import opener_settings
-
-from w3af.core.controllers.exceptions import (BaseFrameworkException,
-                                              ConnectionPoolException,
-                                              HTTPRequestException,
-                                              ScanMustStopByUnknownReasonExc,
-                                              ScanMustStopByKnownReasonExc,
-                                              ScanMustStopByUserRequest)
+from w3af.core.controllers.exceptions import (
+    BaseFrameworkException,
+    ConnectionPoolException,
+    HTTPRequestException,
+    ScanMustStopByKnownReasonExc,
+    ScanMustStopByUnknownReasonExc,
+    ScanMustStopByUserRequest,
+)
+from w3af.core.data.dc.headers import Headers
 from w3af.core.data.fuzzer.utils import rand_alnum
+from w3af.core.data.misc.encoding import smart_unicode
+
+# pylint: disable=E0401
+from w3af.core.data.misc.lru import SynchronizedLRUDict
 from w3af.core.data.parsers.doc.http_request_parser import http_request_parser
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.url.handlers.keepalive import URLTimeoutError
-from w3af.core.data.url.HTTPResponse import HTTPResponse
-from w3af.core.data.url.HTTPRequest import HTTPRequest
-from w3af.core.data.dc.headers import Headers
-from w3af.core.data.user_agent.random_user_agent import get_random_user_agent
-from w3af.core.data.misc.encoding import smart_unicode
-from w3af.core.data.url.helpers import get_clean_body, get_exception_reason
-from w3af.core.data.url.response_meta import ResponseMeta, SUCCESS
+from w3af.core.data.url.constants import (
+    ACCEPTABLE_ERROR_RATE,
+    DEFAULT_TIMEOUT,
+    ERROR_DELAY_LIMIT,
+    MAX_ERROR_COUNT,
+    MAX_RESPONSE_COLLECT,
+    MAX_TIMEOUT,
+    MIN_TIMEOUT,
+    SOCKET_ERROR_DELAY,
+    TIMEOUT_ADJUST_LIMIT,
+    TIMEOUT_INCREASE_MULT,
+    TIMEOUT_MULT_CONST,
+    TIMEOUT_UPDATE_ELAPSED_MIN,
+)
 from w3af.core.data.url.get_average_rtt import GetAverageRTTForMutant
-from w3af.core.data.url.constants import (MAX_ERROR_COUNT,
-                                          MAX_RESPONSE_COLLECT,
-                                          SOCKET_ERROR_DELAY,
-                                          TIMEOUT_MULT_CONST,
-                                          TIMEOUT_ADJUST_LIMIT,
-                                          DEFAULT_TIMEOUT,
-                                          ACCEPTABLE_ERROR_RATE,
-                                          ERROR_DELAY_LIMIT,
-                                          MAX_TIMEOUT,
-                                          MIN_TIMEOUT,
-                                          TIMEOUT_INCREASE_MULT,
-                                          TIMEOUT_UPDATE_ELAPSED_MIN)
-from functools import cmp_to_key
+from w3af.core.data.url.handlers.keepalive import URLTimeoutError
+from w3af.core.data.url.helpers import get_clean_body, get_exception_reason
+from w3af.core.data.url.HTTPRequest import HTTPRequest
+from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.url.response_meta import SUCCESS, ResponseMeta
+from w3af.core.data.user_agent.random_user_agent import get_random_user_agent
+
+from . import opener_settings
 
 
-class ExtendedUrllib(object):
+class ExtendedUrllib:
     """
     This is a urllib2 wrapper.
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def __init__(self):
         self.settings = opener_settings.OpenerSettings()
         self._opener = None
@@ -201,7 +208,7 @@ class ExtendedUrllib(object):
         timeout = min(MAX_TIMEOUT, timeout)
         timeout = max(MIN_TIMEOUT, timeout)
 
-        msg = 'Updating socket timeout for %s from %.2f to %.2f seconds'
+        msg = "Updating socket timeout for %s from %.2f to %.2f seconds"
         om.out.debug(msg % (host, self.get_timeout(host), timeout))
 
         self._host_timeout[host] = timeout
@@ -262,12 +269,13 @@ class ExtendedUrllib(object):
                 return
 
         host = request.get_domain()
-        average_rtt, num_samples = self.get_average_rtt(TIMEOUT_ADJUST_LIMIT,
-                                                        host)
+        average_rtt, num_samples = self.get_average_rtt(TIMEOUT_ADJUST_LIMIT, host)
 
         if num_samples < (TIMEOUT_ADJUST_LIMIT / 2):
-            msg = ('Not enough samples collected (%s) to adjust timeout.'
-                   ' Keeping the current value of %s seconds')
+            msg = (
+                "Not enough samples collected (%s) to adjust timeout."
+                " Keeping the current value of %s seconds"
+            )
             om.out.debug(msg % (num_samples, self.get_timeout(host)))
         else:
             timeout = average_rtt * TIMEOUT_MULT_CONST
@@ -296,7 +304,7 @@ class ExtendedUrllib(object):
         # We increase it without a limit because the limit is set in set_timeout
         timeout *= TIMEOUT_INCREASE_MULT
 
-        msg = 'Will increase timeout to %.2f seconds after HTTP socket error (did:%s)'
+        msg = "Will increase timeout to %.2f seconds after HTTP socket error (did:%s)"
         args = (timeout, request.debugging_id)
         om.out.debug(msg % args)
 
@@ -397,9 +405,11 @@ class ExtendedUrllib(object):
 
             # Logging
             error_sleep = SOCKET_ERROR_DELAY * error_rate
-            msg = ('Sleeping for %s seconds before sending HTTP request to'
-                   ' "%s" (did:%s) after receiving URL/socket error. The ExtendedUrllib'
-                   ' error rate is at %s%%')
+            msg = (
+                "Sleeping for %s seconds before sending HTTP request to"
+                ' "%s" (did:%s) after receiving URL/socket error. The ExtendedUrllib'
+                " error rate is at %s%%"
+            )
             args = (error_sleep, request.url_object, request.debugging_id, error_rate)
             om.out.debug(msg % args)
 
@@ -464,7 +474,7 @@ class ExtendedUrllib(object):
                 # This is useful for debugging, but will fill the output log in most
                 # scenarios, you have been warned
                 #
-                #om.out.debug('ExtendedUrllib rate limit in place. Blocking all HTTP'
+                # om.out.debug('ExtendedUrllib rate limit in place. Blocking all HTTP'
                 #             ' requests for %s seconds.' % left_to_wait)
                 time.sleep(left_to_wait)
 
@@ -483,13 +493,14 @@ class ExtendedUrllib(object):
         """
         This method sleeps until self._user_paused is False.
         """
+
         def analyze_state():
             # This handles the case where the user pauses and then stops
             if self._user_stopped:
                 # Raise the exception to stop the scan, this exception will be
                 # raised all the time until we un-set the self._user_stopped
                 # attribute
-                msg = 'The user stopped the scan.'
+                msg = "The user stopped the scan."
                 raise ScanMustStopByUserRequest(msg)
 
             # Handle errors (HTTP timeout, etc.)
@@ -570,10 +581,9 @@ class ExtendedUrllib(object):
         :param debugging_id: A unique identifier for this call to audit()
         :return: (HTTP response, Sanitized HTTP response body)
         """
-        http_response = self.send_mutant(mutant,
-                                         cache=False,
-                                         debugging_id=debugging_id,
-                                         grep=grep)
+        http_response = self.send_mutant(
+            mutant, cache=False, debugging_id=debugging_id, grep=grep
+        )
         clean_body = get_clean_body(mutant, http_response)
 
         return http_response, clean_body
@@ -600,26 +610,39 @@ class ExtendedUrllib(object):
             headers = fuzz_req.get_headers()
             fixed = False
             for h in headers:
-                if h.lower() == 'content-length':
+                if h.lower() == "content-length":
                     headers[h] = str(len(postdata))
                     fixed = True
             if not fixed and postdata:
-                headers['content-length'] = str(len(postdata))
+                headers["content-length"] = str(len(postdata))
             fuzz_req.set_headers(headers)
 
         # Send it
         function_reference = getattr(self, fuzz_req.get_method())
-        return function_reference(fuzz_req.get_uri(), data=fuzz_req.get_data(),
-                                  headers=fuzz_req.get_headers(), cache=False,
-                                  grep=False)
+        return function_reference(
+            fuzz_req.get_uri(),
+            data=fuzz_req.get_data(),
+            headers=fuzz_req.get_headers(),
+            cache=False,
+            grep=False,
+        )
 
-    def send_mutant(self, mutant, callback=None, grep=True, cache=True,
-                    cookies=True, session=None,
-                    error_handling=True, timeout=None,
-                    follow_redirects=False, use_basic_auth=True,
-                    respect_size_limit=True,
-                    debugging_id=None,
-                    binary_response=False):
+    def send_mutant(
+        self,
+        mutant,
+        callback=None,
+        grep=True,
+        cache=True,
+        cookies=True,
+        session=None,
+        error_handling=True,
+        timeout=None,
+        follow_redirects=False,
+        use_basic_auth=True,
+        respect_size_limit=True,
+        debugging_id=None,
+        binary_response=False,
+    ):
         """
         Sends a mutant to the remote web server.
 
@@ -644,23 +667,23 @@ class ExtendedUrllib(object):
         if cookies:
             mutant_cookie = mutant.get_cookie()
             if mutant_cookie:
-                headers['Cookie'] = str(mutant_cookie)
+                headers["Cookie"] = str(mutant_cookie)
 
         args = (uri,)
         kwargs = {
-            'data': data,
-            'headers': headers,
-            'grep': grep,
-            'cache': cache,
-            'cookies': cookies,
-            'session': session,
-            'error_handling': error_handling,
-            'timeout': timeout,
-            'follow_redirects': follow_redirects,
-            'use_basic_auth': use_basic_auth,
-            'respect_size_limit': respect_size_limit,
-            'debugging_id': debugging_id,
-            'binary_response': binary_response
+            "data": data,
+            "headers": headers,
+            "grep": grep,
+            "cache": cache,
+            "cookies": cookies,
+            "session": session,
+            "error_handling": error_handling,
+            "timeout": timeout,
+            "follow_redirects": follow_redirects,
+            "use_basic_auth": use_basic_auth,
+            "respect_size_limit": respect_size_limit,
+            "debugging_id": debugging_id,
+            "binary_response": binary_response,
         }
         method = mutant.get_method()
 
@@ -675,12 +698,25 @@ class ExtendedUrllib(object):
 
         return res
 
-    def GET(self, uri, data=None, headers=None, cache=False,
-            grep=True, cookies=True, session=None,
-            respect_size_limit=True, new_connection=False,
-            error_handling=True, timeout=None, follow_redirects=False,
-            use_basic_auth=True, use_proxy=True, debugging_id=None,
-            binary_response=False):
+    def GET(
+        self,
+        uri,
+        data=None,
+        headers=None,
+        cache=False,
+        grep=True,
+        cookies=True,
+        session=None,
+        respect_size_limit=True,
+        new_connection=False,
+        error_handling=True,
+        timeout=None,
+        follow_redirects=False,
+        use_basic_auth=True,
+        use_proxy=True,
+        debugging_id=None,
+        binary_response=False,
+    ):
         """
         HTTP GET a URI using a proxy, user agent, and other settings
         that where previously set in opener_settings.py .
@@ -706,12 +742,15 @@ class ExtendedUrllib(object):
         headers = headers or Headers()
 
         if not isinstance(uri, URL):
-            raise TypeError('The uri parameter of ExtendedUrllib.GET() must be'
-                            ' of url.URL type.')
+            raise TypeError(
+                "The uri parameter of ExtendedUrllib.GET() must be" " of url.URL type."
+            )
 
         if not isinstance(headers, Headers):
-            raise TypeError('The header parameter of ExtendedUrllib.GET() must'
-                            ' be of Headers type.')
+            raise TypeError(
+                "The header parameter of ExtendedUrllib.GET() must"
+                " be of Headers type."
+            )
 
         # Validate what I'm sending, init the library (if needed)
         self.setup()
@@ -719,26 +758,47 @@ class ExtendedUrllib(object):
         host = uri.get_domain()
         timeout = self.get_timeout(host) if timeout is None else timeout
 
-        req = HTTPRequest(uri, cookies=cookies, session=session,
-                          cache=cache, data=data,
-                          error_handling=error_handling, method='GET',
-                          retries=self.settings.get_max_retrys(),
-                          timeout=timeout, new_connection=new_connection,
-                          follow_redirects=follow_redirects,
-                          use_basic_auth=use_basic_auth, use_proxy=use_proxy,
-                          debugging_id=debugging_id,
-                          binary_response=binary_response)
+        req = HTTPRequest(
+            uri,
+            cookies=cookies,
+            session=session,
+            cache=cache,
+            data=data,
+            error_handling=error_handling,
+            method="GET",
+            retries=self.settings.get_max_retrys(),
+            timeout=timeout,
+            new_connection=new_connection,
+            follow_redirects=follow_redirects,
+            use_basic_auth=use_basic_auth,
+            use_proxy=use_proxy,
+            debugging_id=debugging_id,
+            binary_response=binary_response,
+        )
         req = self.add_headers(req, headers)
 
         with raise_size_limit(respect_size_limit):
             return self.send(req, grep=grep)
 
-    def POST(self, uri, data='', headers=None, grep=True, cache=False,
-             cookies=True, session=None, error_handling=True, timeout=None,
-             follow_redirects=None, use_basic_auth=True, use_proxy=True,
-             debugging_id=None, new_connection=False,
-             respect_size_limit=None,
-             binary_response=False):
+    def POST(
+        self,
+        uri,
+        data="",
+        headers=None,
+        grep=True,
+        cache=False,
+        cookies=True,
+        session=None,
+        error_handling=True,
+        timeout=None,
+        follow_redirects=None,
+        use_basic_auth=True,
+        use_proxy=True,
+        debugging_id=None,
+        new_connection=False,
+        respect_size_limit=None,
+        binary_response=False,
+    ):
         """
         POST's data to a uri using a proxy, user agents, and other settings
         that where set previously.
@@ -753,12 +813,16 @@ class ExtendedUrllib(object):
         headers = headers or Headers()
 
         if not isinstance(uri, URL):
-            raise TypeError('The uri parameter of ExtendedUrllib.POST() must'
-                            ' be of url.URL type. Got %s instead.' % type(uri))
+            raise TypeError(
+                "The uri parameter of ExtendedUrllib.POST() must"
+                " be of url.URL type. Got %s instead." % type(uri)
+            )
 
         if not isinstance(headers, Headers):
-            raise TypeError('The header parameter of ExtendedUrllib.POST() must'
-                            ' be of Headers type.')
+            raise TypeError(
+                "The header parameter of ExtendedUrllib.POST() must"
+                " be of Headers type."
+            )
 
         #    Validate what I'm sending, init the library (if needed)
         self.setup()
@@ -777,12 +841,22 @@ class ExtendedUrllib(object):
         host = uri.get_domain()
         timeout = self.get_timeout(host) if timeout is None else timeout
 
-        req = HTTPRequest(uri, data=data, cookies=cookies, session=session,
-                          cache=False, error_handling=error_handling, method='POST',
-                          retries=self.settings.get_max_retrys(),
-                          timeout=timeout, new_connection=new_connection,
-                          use_basic_auth=use_basic_auth, use_proxy=use_proxy,
-                          debugging_id=debugging_id, binary_response=binary_response)
+        req = HTTPRequest(
+            uri,
+            data=data,
+            cookies=cookies,
+            session=session,
+            cache=False,
+            error_handling=error_handling,
+            method="POST",
+            retries=self.settings.get_max_retrys(),
+            timeout=timeout,
+            new_connection=new_connection,
+            use_basic_auth=use_basic_auth,
+            use_proxy=use_proxy,
+            debugging_id=debugging_id,
+            binary_response=binary_response,
+        )
         req = self.add_headers(req, headers)
 
         return self.send(req, grep=grep)
@@ -800,15 +874,18 @@ class ExtendedUrllib(object):
 
         :return: The file size of the remote file.
         """
-        res = self.HEAD(req.get_full_url(), headers=req.headers,
-                        data=req.get_data(), cache=cache)
+        res = self.HEAD(
+            req.get_full_url(), headers=req.headers, data=req.get_data(), cache=cache
+        )
 
-        content_length, _ = res.get_headers().iget('content-length', None)
+        content_length, _ = res.get_headers().iget("content-length", None)
 
         if content_length is None:
-            msg = ('The HTTP response did not contain a content-length header.'
-                   ' Unable to return the remote file size of request.'
-                   ' (id:%s, did:)')
+            msg = (
+                "The HTTP response did not contain a content-length header."
+                " Unable to return the remote file size of request."
+                " (id:%s, did:)"
+            )
             args = (res.id, req.debugging_id)
             om.out.debug(msg % args)
             # I prefer to fetch the file, before this om.out.debug was a
@@ -818,9 +895,11 @@ class ExtendedUrllib(object):
         if content_length.isdigit():
             return int(content_length)
 
-        msg = ('The content-length header value for the HTTP response is'
-               ' not an integer, this is strange!'
-               ' The value is: "%s" (id:%s, did:%s)')
+        msg = (
+            "The content-length header value for the HTTP response is"
+            " not an integer, this is strange!"
+            ' The value is: "%s" (id:%s, did:%s)'
+        )
         args = (content_length, req.id, req.debugging_id)
         om.out.error(msg % args)
         raise HTTPRequestException(msg, request=req)
@@ -832,15 +911,27 @@ class ExtendedUrllib(object):
         :param method_name: The name of the method being called:
         xurllib_instance.OPTIONS will make method_name == 'OPTIONS'.
         """
-        def any_method(uri_opener, method, uri, data=None, headers=None,
-                       cache=False, grep=True, cookies=True, session=None,
-                       error_handling=True, timeout=None, use_basic_auth=True,
-                       use_proxy=True,
-                       follow_redirects=False,
-                       debugging_id=None,
-                       new_connection=False,
-                       respect_size_limit=None,
-                       binary_response=False):
+
+        def any_method(
+            uri_opener,
+            method,
+            uri,
+            data=None,
+            headers=None,
+            cache=False,
+            grep=True,
+            cookies=True,
+            session=None,
+            error_handling=True,
+            timeout=None,
+            use_basic_auth=True,
+            use_proxy=True,
+            follow_redirects=False,
+            debugging_id=None,
+            new_connection=False,
+            respect_size_limit=None,
+            binary_response=False,
+        ):
             """
             :return: An HTTPResponse object that's the result of sending
                      the request with a method different from GET or POST.
@@ -848,12 +939,14 @@ class ExtendedUrllib(object):
             headers = headers or Headers()
 
             if not isinstance(uri, URL):
-                raise TypeError('The uri parameter of any_method must be'
-                                ' of url.URL type.')
+                raise TypeError(
+                    "The uri parameter of any_method must be" " of url.URL type."
+                )
 
             if not isinstance(headers, Headers):
-                raise TypeError('The headers parameter of any_method must be'
-                                ' of Headers type.')
+                raise TypeError(
+                    "The headers parameter of any_method must be" " of Headers type."
+                )
 
             uri_opener.setup()
 
@@ -861,23 +954,28 @@ class ExtendedUrllib(object):
 
             host = uri.get_domain()
             timeout = uri_opener.get_timeout(host) if timeout is None else timeout
-            req = HTTPRequest(uri, data, cookies=cookies, session=session,
-                              cache=cache,
-                              method=method,
-                              error_handling=error_handling,
-                              retries=max_retries,
-                              timeout=timeout,
-                              new_connection=new_connection,
-                              use_basic_auth=use_basic_auth,
-                              follow_redirects=follow_redirects,
-                              use_proxy=use_proxy,
-                              debugging_id=debugging_id,
-                              binary_response=binary_response)
+            req = HTTPRequest(
+                uri,
+                data,
+                cookies=cookies,
+                session=session,
+                cache=cache,
+                method=method,
+                error_handling=error_handling,
+                retries=max_retries,
+                timeout=timeout,
+                new_connection=new_connection,
+                use_basic_auth=use_basic_auth,
+                follow_redirects=follow_redirects,
+                use_proxy=use_proxy,
+                debugging_id=debugging_id,
+                binary_response=binary_response,
+            )
             req = uri_opener.add_headers(req, headers or {})
             return uri_opener.send(req, grep=grep)
 
         method_partial = functools.partial(any_method, self, method_name)
-        method_partial.__doc__ = 'Send %s HTTP request' % method_name
+        method_partial.__doc__ = "Send %s HTTP request" % method_name
         return method_partial
 
     def _track_rtt(self, http_response, debugging_id):
@@ -895,7 +993,7 @@ class ExtendedUrllib(object):
         if not http_response:
             return
 
-        if not hasattr(http_response, 'get_wait_time'):
+        if not hasattr(http_response, "get_wait_time"):
             return
 
         rtt = http_response.get_wait_time()
@@ -927,14 +1025,14 @@ class ExtendedUrllib(object):
             req.add_header(h, v)
 
         if self.settings.rand_user_agent is True:
-            req.add_header('User-Agent', get_random_user_agent())
+            req.add_header("User-Agent", get_random_user_agent())
 
         return req
 
     def assert_allowed_proto(self, req):
         full_url = req.get_full_url().lower()
 
-        if not full_url.startswith('http'):
+        if not full_url.startswith("http"):
             msg = 'Unsupported URL: "%s"'
             raise HTTPRequestException(msg % req.get_full_url(), request=req)
 
@@ -956,29 +1054,37 @@ class ExtendedUrllib(object):
         req = self._evasion(req)
         original_url = req._Request__original
         original_url_inst = req.url_object
-        
+
         try:
             res = self._opener.open(req)
         except urllib.error.HTTPError as e:
             # We usually get here when response codes in [404, 403, 401,...]
-            return self._handle_send_success(req, e, grep, original_url,
-                                             original_url_inst)
+            return self._handle_send_success(
+                req, e, grep, original_url, original_url_inst
+            )
 
-        except (socket.error,
-                URLTimeoutError,
-                ConnectionPoolException,
-                OpenSSL.SSL.Error,
-                OpenSSL.SSL.SysCallError,
-                OpenSSL.SSL.ZeroReturnError,
-                BadStatusLine) as e:
+        except (
+            OSError,
+            URLTimeoutError,
+            ConnectionPoolException,
+            OpenSSL.SSL.Error,
+            OpenSSL.SSL.SysCallError,
+            OpenSSL.SSL.ZeroReturnError,
+            BadStatusLine,
+        ) as e:
             return self._handle_send_socket_error(req, e, grep, original_url)
-        
-        except (urllib.error.URLError, http.client.HTTPException, HTTPRequestException) as e:
+
+        except (
+            urllib.error.URLError,
+            http.client.HTTPException,
+            HTTPRequestException,
+        ) as e:
             return self._handle_send_urllib_error(req, e, grep, original_url)
-        
+
         else:
-            return self._handle_send_success(req, res, grep, original_url,
-                                             original_url_inst)
+            return self._handle_send_success(
+                req, res, grep, original_url, original_url_inst
+            )
 
     def _decrease_worker_pool_size(self):
         w3af_core = self.get_w3af_core()
@@ -993,11 +1099,13 @@ class ExtendedUrllib(object):
 
         if new_worker_count >= min_workers:
             worker_pool.set_worker_count(new_worker_count)
-            msg = 'Decreased the worker pool size to %s (error rate: %i%%)'
+            msg = "Decreased the worker pool size to %s (error rate: %i%%)"
         else:
-            msg = ('Not decreasing the worker pool size since it is lower'
-                   ' than the min value required by w3af: %s (error rate:'
-                   ' %i%%)')
+            msg = (
+                "Not decreasing the worker pool size since it is lower"
+                " than the min value required by w3af: %s (error rate:"
+                " %i%%)"
+            )
 
         om.out.debug(msg % (new_worker_count, error_rate))
 
@@ -1014,10 +1122,10 @@ class ExtendedUrllib(object):
 
         if new_worker_count <= max_workers:
             worker_pool.set_worker_count(new_worker_count)
-            msg = 'Increased the worker pool size to %s (error rate: %i%%)'
+            msg = "Increased the worker pool size to %s (error rate: %i%%)"
             om.out.debug(msg % (new_worker_count, error_rate))
         else:
-            msg = 'Not increasing the worker pool size since it exceeds the max: %s'
+            msg = "Not increasing the worker pool size since it exceeds the max: %s"
             om.out.debug(msg % max_workers)
 
     def _should_increase_worker_pool(self):
@@ -1067,11 +1175,10 @@ class ExtendedUrllib(object):
                  one and give the framework time to see what happens.
         """
         with self._should_adjust_workers_lock:
-            if self._last_call_to_adjust_workers is None:
-                self._last_call_to_adjust_workers = time.time()
-                return True
-
-            elif (time.time() - self._last_call_to_adjust_workers) >= 45:
+            if (
+                self._last_call_to_adjust_workers is None
+                or (time.time() - self._last_call_to_adjust_workers) >= 45
+            ):
                 self._last_call_to_adjust_workers = time.time()
                 return True
 
@@ -1089,26 +1196,22 @@ class ExtendedUrllib(object):
         """
         self._increase_timeout_on_error(req, exception)
 
-        return self._generic_send_error_handler(req,
-                                                exception,
-                                                grep,
-                                                original_url)
-        
+        return self._generic_send_error_handler(req, exception, grep, original_url)
+
     def _handle_send_urllib_error(self, req, exception, grep, original_url):
         """
         I get to this section of the code if a 400 error is returned
         also possible when a proxy is configured and not available
         also possible when auth credentials are wrong for the URI
         """
-        return self._generic_send_error_handler(req,
-                                                exception,
-                                                grep,
-                                                original_url)
-        
+        return self._generic_send_error_handler(req, exception, grep, original_url)
+
     def _generic_send_error_handler(self, req, exception, grep, original_url):
         if not req.error_handling:
-            msg = ('Raising HTTP error "%s" "%s" failed reason: "%s".'
-                   ' Error handling was disabled for this request (did:%s).')
+            msg = (
+                'Raising HTTP error "%s" "%s" failed reason: "%s".'
+                " Error handling was disabled for this request (did:%s)."
+            )
             args = (req.get_method(), original_url, exception, req.debugging_id)
             om.out.debug(msg % args)
 
@@ -1126,13 +1229,12 @@ class ExtendedUrllib(object):
         # Then retry!
         req._Request__original = original_url
         return self._retry(req, grep, exception)
-    
-    def _handle_send_success(self, req, res, grep, original_url,
-                             original_url_inst):
+
+    def _handle_send_success(self, req, res, grep, original_url, original_url_inst):
         """
         Handle the case in "def _send" where the request was successful and
         we were able to get a valid HTTP response.
-        
+
         :return: An HTTPResponse object.
         """
         #
@@ -1142,9 +1244,7 @@ class ExtendedUrllib(object):
         rdata = req.get_data()
 
         if not rdata:
-            args = (req.get_method(),
-                    urllib.parse.unquote_plus(original_url),
-                    res.code)
+            args = (req.get_method(), urllib.parse.unquote_plus(original_url), res.code)
 
             msg = '%s %s returned HTTP code "%s"'
             msg %= args
@@ -1152,34 +1252,35 @@ class ExtendedUrllib(object):
         else:
             printable_data = urllib.parse.unquote_plus(rdata)
             if len(rdata) > 75:
-                printable_data = '%s...' % printable_data[:75]
-                printable_data = printable_data.replace('\n', ' ')
-                printable_data = printable_data.replace('\r', ' ')
+                printable_data = "%s..." % printable_data[:75]
+                printable_data = printable_data.replace("\n", " ")
+                printable_data = printable_data.replace("\r", " ")
 
-            args = (req.get_method(),
-                    original_url,
-                    printable_data,
-                    res.code)
+            args = (req.get_method(), original_url, printable_data, res.code)
 
             msg = '%s %s with data: "%s" returned HTTP code "%s"'
             msg %= args
 
-        from_cache = hasattr(res, 'from_cache') and res.from_cache
+        from_cache = hasattr(res, "from_cache") and res.from_cache
 
-        http_resp = HTTPResponse.from_httplib_resp(res,
-                                                   original_url=original_url_inst,
-                                                   binary_response=req.with_binary_response())
+        http_resp = HTTPResponse.from_httplib_resp(
+            res,
+            original_url=original_url_inst,
+            binary_response=req.with_binary_response(),
+        )
         http_resp.set_id(res.id)
         http_resp.set_from_cache(from_cache)
         http_resp.set_debugging_id(req.debugging_id)
 
-        args = (res.id,
-                from_cache,
-                grep,
-                http_resp.get_wait_time(),
-                http_resp.get_body_length(),
-                req.debugging_id)
-        flags = ' (id:%s, from_cache:%i, grep:%i, rtt:%.2f, body:%s, did:%s)'
+        args = (
+            res.id,
+            from_cache,
+            grep,
+            http_resp.get_wait_time(),
+            http_resp.get_body_length(),
+            req.debugging_id,
+        )
+        flags = " (id:%s, from_cache:%i, grep:%i, rtt:%.2f, body:%s, did:%s)"
         flags %= args
 
         msg += flags
@@ -1226,7 +1327,7 @@ class ExtendedUrllib(object):
             req.set_new_connection(True)
 
             return self.send(req, grep=grep)
-        
+
         else:
             # Please note that I'm raising HTTPRequestException and not a
             # ScanMustStopException (or subclasses) since I don't want the
@@ -1255,14 +1356,16 @@ class ExtendedUrllib(object):
 
         # Don't make a lot of noise on URLTimeoutError which is pretty common
         # and properly handled by this library
-        no_traceback_for = (URLTimeoutError,
-                            ConnectionPoolException,
-                            BadStatusLine,
-                            socket.error,
-                            OpenSSL.SSL.SysCallError,
-                            OpenSSL.SSL.ZeroReturnError)
+        no_traceback_for = (
+            URLTimeoutError,
+            ConnectionPoolException,
+            BadStatusLine,
+            socket.error,
+            OpenSSL.SSL.SysCallError,
+            OpenSSL.SSL.ZeroReturnError,
+        )
         if not isinstance(exception, no_traceback_for):
-            msg = 'Traceback for this error: %s'
+            msg = "Traceback for this error: %s"
             om.out.debug(msg % traceback.format_exc())
 
         # Now we save the error to self._last_responses for tracking and
@@ -1285,10 +1388,7 @@ class ExtendedUrllib(object):
         # errors into account when calculating the RTT
         rtt = self.get_timeout(host)
 
-        self._last_responses.append(ResponseMeta(False,
-                                                 reason,
-                                                 host=host,
-                                                 rtt=rtt))
+        self._last_responses.append(ResponseMeta(False, reason, host=host, rtt=rtt))
 
         self._log_error_rate()
 
@@ -1387,10 +1487,15 @@ class ExtendedUrllib(object):
         timeout = self.get_timeout(host) * 4
         self.set_timeout(timeout, host)
 
-        req = HTTPRequest(root_url,
-                          cookies=True, cache=False,
-                          error_handling=False, method='GET',
-                          retries=0, timeout=timeout)
+        req = HTTPRequest(
+            root_url,
+            cookies=True,
+            cache=False,
+            error_handling=False,
+            method="GET",
+            retries=0,
+            timeout=timeout,
+        )
         req = self.add_headers(req)
 
         try:
@@ -1404,7 +1509,7 @@ class ExtendedUrllib(object):
             om.out.debug(msg % (root_url, e))
             return False
         else:
-            msg = 'Remote URL %s is reachable'
+            msg = "Remote URL %s is reachable"
             om.out.debug(msg % root_url)
             return True
 
@@ -1433,23 +1538,23 @@ class ExtendedUrllib(object):
         :see: https://github.com/andresriancho/w3af/issues/8698
         """
         error_rate = self.get_error_rate()
-        om.out.debug('ExtendedUrllib error rate is at %i%%' % error_rate)
+        om.out.debug("ExtendedUrllib error rate is at %i%%" % error_rate)
 
     def _handle_error_count_exceeded(self, error):
         """
         Handle the case where we exceeded MAX_ERROR_COUNT
         """
         # Create a detailed exception message
-        msg = ('w3af found too many consecutive errors while performing'
-               ' HTTP requests. In most cases this means that the remote web'
-               ' server is not reachable anymore, the network is down, or'
-               ' a WAF is blocking our tests. The last exception message'
-               ' was "%s" (%s.%s).')
+        msg = (
+            "w3af found too many consecutive errors while performing"
+            " HTTP requests. In most cases this means that the remote web"
+            " server is not reachable anymore, the network is down, or"
+            " a WAF is blocking our tests. The last exception message"
+            ' was "%s" (%s.%s).'
+        )
 
         reason_msg = get_exception_reason(error)
-        args = (error,
-                error.__class__.__module__,
-                error.__class__.__name__)
+        args = (error, error.__class__.__module__, error.__class__.__name__)
 
         # If I got a reason, it means that it is a known exception.
         if reason_msg is not None:
@@ -1465,9 +1570,11 @@ class ExtendedUrllib(object):
 
             e = ScanMustStopByUnknownReasonExc(msg % args, errs=last_errors)
 
-        om.out.debug('The extended urllib will raise a scan must stop exception'
-                     ' for each request after this message. The remote server is'
-                     ' unreachable.')
+        om.out.debug(
+            "The extended urllib will raise a scan must stop exception"
+            " for each request after this message. The remote server is"
+            " unreachable."
+        )
         self._stop_exception = e
 
         # pylint: disable=E0702
@@ -1476,10 +1583,9 @@ class ExtendedUrllib(object):
 
     def _log_successful_response(self, response):
         host = response.get_url().get_domain()
-        self._last_responses.append(ResponseMeta(True,
-                                                 SUCCESS,
-                                                 rtt=response.get_wait_time(),
-                                                 host=host))
+        self._last_responses.append(
+            ResponseMeta(True, SUCCESS, rtt=response.get_wait_time(), host=host)
+        )
 
     def set_grep_queue_put(self, grep_queue_put):
         self._grep_queue_put = grep_queue_put
@@ -1488,6 +1594,7 @@ class ExtendedUrllib(object):
         # I'm sorting evasion plugins based on priority
         def sort_func(x, y):
             return cmp(x.get_priority(), y.get_priority())
+
         evasion_plugins.sort(key=cmp_to_key(sort_func))
 
         # Save the info
@@ -1523,11 +1630,11 @@ def raise_size_limit(respect_size_limit):
           like the cookies attribute/parameter which uses the cookie_handler.
     """
     if not respect_size_limit:
-        original_size = cf.cf.get('max_file_size')
-        cf.cf.save('max_file_size', 10 ** 10)
-    
+        original_size = cf.cf.get("max_file_size")
+        cf.cf.save("max_file_size", 10**10)
+
         yield
 
-        cf.cf.save('max_file_size', original_size)
+        cf.cf.save("max_file_size", original_size)
     else:
         yield

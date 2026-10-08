@@ -19,19 +19,21 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import traceback
 
 from w3af.core.controllers.daemons.proxy import ProxyHandler
-from w3af.core.data.parsers.doc.http_request_parser import http_request_parser
-from w3af.core.data.dc.headers import Headers
-from w3af.core.data.url.HTTPResponse import HTTPResponse
 from w3af.core.controllers.daemons.proxy.templates.utils import render
+from w3af.core.data.dc.headers import Headers
+from w3af.core.data.parsers.doc.http_request_parser import http_request_parser
+from w3af.core.data.url.HTTPResponse import HTTPResponse
 
 
 class InterceptProxyHandler(ProxyHandler):
     """
     The handler that traps requests and adds them to the queue.
     """
+
     def handle_request_in_thread(self, flow):
         """
         The handle_request method is run in the same thread each time, so we
@@ -52,12 +54,12 @@ class InterceptProxyHandler(ProxyHandler):
                 http_response = self._send_http_request(http_request)
         except Exception as e:
             trace = str(traceback.format_exc())
-            http_response = self._create_error_response(http_request, None, e,
-                                                        trace=trace)
+            http_response = self._create_error_response(
+                http_request, None, e, trace=trace
+            )
 
         # Send the response (success|error) to the browser
-        http_response = self._to_libmproxy_response(flow.request, http_response)
-        flow.reply(http_response)
+        flow.response = self._to_mitmproxy_response(http_response)
 
     def on_request_drop(self, http_request):
         """
@@ -66,19 +68,23 @@ class InterceptProxyHandler(ProxyHandler):
         :param http_request: The request to drop
         :return: None, simply queue a "Request drop HTTP response"
         """
-        content = render('drop.html', {})
+        content = render("drop.html", {})
 
-        headers = Headers((
-            ('Connection', 'close'),
-            ('Content-type', 'text/html'),
-        ))
+        headers = Headers(
+            (
+                ("Connection", "close"),
+                ("Content-type", "text/html"),
+            )
+        )
 
-        http_response = HTTPResponse(403,
-                                     content.encode('utf-8'),
-                                     headers,
-                                     http_request.get_uri(),
-                                     http_request.get_uri(),
-                                     msg='Request drop')
+        http_response = HTTPResponse(
+            403,
+            content.encode("utf-8"),
+            headers,
+            http_request.get_uri(),
+            http_request.get_uri(),
+            msg="Request drop",
+        )
 
         self.parent_process.requests_already_modified.put(http_response)
 
@@ -97,8 +103,9 @@ class InterceptProxyHandler(ProxyHandler):
             http_response = self._send_http_request(http_request)
         except Exception as e:
             trace = str(traceback.format_exc())
-            http_response = self._create_error_response(orig_http_request,
-                                                        None, e, trace=trace)
+            http_response = self._create_error_response(
+                orig_http_request, None, e, trace=trace
+            )
 
         self.parent_process.requests_already_modified.put(http_response)
         return http_response
@@ -128,8 +135,10 @@ class InterceptProxyHandler(ProxyHandler):
         if not self.parent_process.trap:
             return False
 
-        if (len(self.parent_process.methods_to_trap) and
-        http_request.get_method() not in self.parent_process.methods_to_trap):
+        if (
+            len(self.parent_process.methods_to_trap)
+            and http_request.get_method() not in self.parent_process.methods_to_trap
+        ):
             return False
 
         url_string = http_request.get_uri().uri2url().url_string

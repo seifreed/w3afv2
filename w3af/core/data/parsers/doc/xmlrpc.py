@@ -20,12 +20,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import xml.sax
-import cgi
 import base64
-
-from xml.sax.handler import ContentHandler
+import html
+import xml.sax
 from collections import OrderedDict
+from xml.sax.handler import ContentHandler
 
 from w3af.core.data.dc.utils.token import DataToken
 
@@ -136,11 +135,10 @@ class XmlRpcWriteHandler(ContentHandler):
                 modified_value = modified_value.get_value()
 
             if self._fuzzed_parameters[self._fuzzable_index][0] == "base64":
-                enc_val = base64.b64encode(modified_value)
+                enc_val = base64.b64encode(modified_value).decode("ascii")
             else:
-                enc_val = cgi.escape(modified_value).encode(
-                    "ascii", "xmlcharrefreplace"
-                )
+                enc_val = html.escape(modified_value, quote=False)
+                enc_val = enc_val.encode("ascii", "xmlcharrefreplace").decode("ascii")
 
             self.fuzzed_xml_string += enc_val
 

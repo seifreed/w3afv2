@@ -19,52 +19,52 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import collections
-import functools
-import threading
-import pickle
 import copy
+import functools
+import pickle
+import threading
+
+# pylint: enable=E0401
+import w3af.core.controllers.output_manager as om
+from w3af.core.controllers.exceptions import DBException
+from w3af.core.data.constants.severity import HIGH, INFORMATION, LOW, MEDIUM
+from w3af.core.data.db.dbms import get_default_persistent_db_instance
+from w3af.core.data.db.disk_set import DiskSet
+from w3af.core.data.fuzzer.utils import rand_alpha
+from w3af.core.data.kb.info import Info
+from w3af.core.data.kb.info_set import InfoSet
+from w3af.core.data.kb.shell import Shell
+from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.misc.cpickle_dumps import cpickle_dumps
 
 # pylint: disable=E0401
-from darts.lib.utils.lru import SynchronizedLRUDict
-# pylint: enable=E0401
-
-import w3af.core.controllers.output_manager as om
-
-from w3af.core.data.fuzzer.utils import rand_alpha
-from w3af.core.data.db.dbms import get_default_persistent_db_instance
-from w3af.core.controllers.exceptions import DBException
-from w3af.core.data.db.disk_set import DiskSet
-from w3af.core.data.misc.cpickle_dumps import cpickle_dumps
+from w3af.core.data.misc.lru import SynchronizedLRUDict
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.kb.vuln import Vuln
-from w3af.core.data.kb.info import Info
-from w3af.core.data.kb.shell import Shell
-from w3af.core.data.kb.info_set import InfoSet
-from w3af.core.data.constants.severity import INFORMATION, LOW, MEDIUM, HIGH
 
 
-class BasicKnowledgeBase(object):
+class BasicKnowledgeBase:
     """
     This is a base class from which all implementations of KnowledgeBase will
     inherit. It has the basic utility methods that will be used.
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
-    UPDATE = 'update'
-    APPEND = 'append'
-    ADD_URL = 'add_url'
+
+    UPDATE = "update"
+    APPEND = "append"
+    ADD_URL = "add_url"
 
     def __init__(self):
         self._kb_lock = threading.RLock()
 
-        self.FILTERS = {'URL': self.filter_url,
-                        'VAR': self.filter_var}
+        self.FILTERS = {"URL": self.filter_url, "VAR": self.filter_var}
 
         self._reached_max_info_instances_cache = SynchronizedLRUDict(512)
 
-    def append_uniq(self, location_a, location_b, info_inst, filter_by='VAR'):
+    def append_uniq(self, location_a, location_b, info_inst, filter_by="VAR"):
         """
         Append to a location in the KB if and only if there it no other
         vulnerability in the same location for the same URL and parameter.
@@ -88,12 +88,12 @@ class BasicKnowledgeBase(object):
                  parameter.
         """
         if not isinstance(info_inst, Info):
-            raise ValueError('append_uniq requires an info object as parameter.')
+            raise ValueError("append_uniq requires an info object as parameter.")
 
         filter_function = self.FILTERS.get(filter_by, None)
 
         if filter_function is None:
-            raise ValueError('append_uniq only knows about URL or VAR filters.')
+            raise ValueError("append_uniq only knows about URL or VAR filters.")
 
         with self._kb_lock:
 
@@ -142,19 +142,25 @@ class BasicKnowledgeBase(object):
             if saved_vuln.get_url() != info_inst.get_url():
                 continue
 
-            msg = ('[filter_var] Preventing "%s" from being written to the'
-                   ' KB because "%s" has the same token (%s) and URL (%s).')
-            args = (info_inst.get_desc(),
-                    saved_vuln.get_desc(),
-                    info_inst.get_token_name(),
-                    info_inst.get_url())
+            msg = (
+                '[filter_var] Preventing "%s" from being written to the'
+                ' KB because "%s" has the same token (%s) and URL (%s).'
+            )
+            args = (
+                info_inst.get_desc(),
+                saved_vuln.get_desc(),
+                info_inst.get_token_name(),
+                info_inst.get_url(),
+            )
             om.out.debug(msg % args)
 
             return False
 
         return True
 
-    def _has_reached_max_info_instances(self, location_a, location_b, info_inst, group_klass):
+    def _has_reached_max_info_instances(
+        self, location_a, location_b, info_inst, group_klass
+    ):
         """
         Checks if the tuple containing
             - location_a,
@@ -171,18 +177,19 @@ class BasicKnowledgeBase(object):
         :param group_klass: If required, will be used to create a new InfoSet
         :return: True if the data is in the cache
         """
-        key = self._get_max_info_instances_key(location_a,
-                                               location_b,
-                                               info_inst,
-                                               group_klass)
+        key = self._get_max_info_instances_key(
+            location_a, location_b, info_inst, group_klass
+        )
         return self._reached_max_info_instances_cache.get(key)
-    
-    def _get_max_info_instances_key(self, location_a, location_b, info_inst, group_klass):
-        return (location_a,
-                location_b,
-                repr(info_inst.get(group_klass.ITAG)))
 
-    def _record_reached_max_info_instances(self, location_a, location_b, info_inst, group_klass):
+    def _get_max_info_instances_key(
+        self, location_a, location_b, info_inst, group_klass
+    ):
+        return (location_a, location_b, repr(info_inst.get(group_klass.ITAG)))
+
+    def _record_reached_max_info_instances(
+        self, location_a, location_b, info_inst, group_klass
+    ):
         """
         Stores the tuple containing
             - location_a,
@@ -199,14 +206,12 @@ class BasicKnowledgeBase(object):
         :param group_klass: If required, will be used to create a new InfoSet
         :return: None
         """
-        key = self._get_max_info_instances_key(location_a,
-                                               location_b,
-                                               info_inst,
-                                               group_klass)
+        key = self._get_max_info_instances_key(
+            location_a, location_b, info_inst, group_klass
+        )
         self._reached_max_info_instances_cache[key] = True
 
-    def append_uniq_group(self, location_a, location_b, info_inst,
-                          group_klass=InfoSet):
+    def append_uniq_group(self, location_a, location_b, info_inst, group_klass=InfoSet):
         """
         This function will append a Info instance to an existing InfoSet which
         is stored in (location_a, location_b) and matches the filter_func.
@@ -224,12 +229,14 @@ class BasicKnowledgeBase(object):
                   True if a new InfoSet was created)
         """
         if not isinstance(info_inst, Info):
-            raise TypeError('append_uniq_group requires an Info instance'
-                            ' as parameter.')
+            raise TypeError(
+                "append_uniq_group requires an Info instance" " as parameter."
+            )
 
         if not issubclass(group_klass, InfoSet):
-            raise TypeError('append_uniq_group requires an InfoSet subclass'
-                            ' as parameter.')
+            raise TypeError(
+                "append_uniq_group requires an InfoSet subclass" " as parameter."
+            )
 
         location_a = self._get_real_name(location_a)
 
@@ -237,7 +244,9 @@ class BasicKnowledgeBase(object):
 
             # This performs a quick check against a LRU cache to prevent
             # queries to the DB
-            if self._has_reached_max_info_instances(location_a, location_b, info_inst, group_klass):
+            if self._has_reached_max_info_instances(
+                location_a, location_b, info_inst, group_klass
+            ):
                 return info_inst, False
 
             for info_set in self.get_iter(location_a, location_b):
@@ -252,7 +261,9 @@ class BasicKnowledgeBase(object):
                         # Record that this location and infoset have reached the max
                         # instances. This works together with _has_reached_max_info_instances()
                         # to reduce SQLite queries
-                        self._record_reached_max_info_instances(location_a, location_b, info_inst, group_klass)
+                        self._record_reached_max_info_instances(
+                            location_a, location_b, info_inst, group_klass
+                        )
 
                         # The info set instance was not modified, so we just return
                         return info_set, False
@@ -276,12 +287,11 @@ class BasicKnowledgeBase(object):
                     self.update(old_info_set, info_set)
 
                     return info_set, False
-            else:
-                # No pre-existing InfoSet instance matched, let's create one
-                # for the info_inst
-                info_set = group_klass([info_inst])
-                self.append(location_a, location_b, info_set)
-                return info_set, True
+            # No pre-existing InfoSet instance matched, let's create one
+            # for the info_inst
+            info_set = group_klass([info_inst])
+            self.append(location_a, location_b, info_set)
+            return info_set, True
 
     def get_all_vulns(self):
         """
@@ -308,8 +318,9 @@ class BasicKnowledgeBase(object):
         :return: A list of all findings, including Info, Vuln and InfoSet.
         :param exclude_ids: The vulnerability IDs to exclude from the result
         """
-        return self.get_all_entries_of_class((Info, InfoSet, Vuln),
-                                             exclude_ids=exclude_ids)
+        return self.get_all_entries_of_class(
+            (Info, InfoSet, Vuln), exclude_ids=exclude_ids
+        )
 
     def get_all_findings_iter(self, exclude_ids=()):
         """
@@ -350,7 +361,7 @@ class BasicKnowledgeBase(object):
     def _get_real_name(self, data):
         """
         Some operations allow location_a to be both a plugin instance or a string.
-        
+
         Those operations will call this method to translate the plugin instance
         into a string.
         """
@@ -452,17 +463,20 @@ class DBKnowledgeBase(BasicKnowledgeBase):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
-    COLUMNS = [('location_a', 'TEXT'),
-               ('location_b', 'TEXT'),
-               ('uniq_id', 'TEXT'),
-               ('pickle', 'BLOB')]
+
+    COLUMNS = [
+        ("location_a", "TEXT"),
+        ("location_b", "TEXT"),
+        ("uniq_id", "TEXT"),
+        ("pickle", "BLOB"),
+    ]
 
     def __init__(self):
-        super(DBKnowledgeBase, self).__init__()
+        super().__init__()
         self.initialized = False
 
         # TODO: Why doesn't this work with a WeakValueDictionary?
-        self.observers = {} #WeakValueDictionary()
+        self.observers = {}  # WeakValueDictionary()
         self._observer_id = 0
 
     def setup(self):
@@ -477,15 +491,15 @@ class DBKnowledgeBase(BasicKnowledgeBase):
             if self.initialized:
                 return
 
-            self.urls = DiskSet(table_prefix='kb_urls')
-            self.fuzzable_requests = DiskSet(table_prefix='kb_fuzzable_requests')
+            self.urls = DiskSet(table_prefix="kb_urls")
+            self.fuzzable_requests = DiskSet(table_prefix="kb_fuzzable_requests")
 
             self.db = get_default_persistent_db_instance()
 
-            self.table_name = 'knowledge_base_' + rand_alpha(30)
+            self.table_name = "knowledge_base_" + rand_alpha(30)
             self.db.create_table(self.table_name, self.COLUMNS)
-            self.db.create_index(self.table_name, ['location_a', 'location_b'])
-            self.db.create_index(self.table_name, ['uniq_id'])
+            self.db.create_index(self.table_name, ["location_a", "location_b"])
+            self.db.create_index(self.table_name, ["uniq_id"])
             self.db.commit()
 
             # Only initialize once
@@ -506,7 +520,7 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         clears any pre-existing values.
         """
         if isinstance(value, Info):
-            raise TypeError('Use append or append_uniq to store vulnerabilities')
+            raise TypeError("Use append or append_uniq to store vulnerabilities")
 
         location_a = self._get_real_name(location_a)
 
@@ -522,7 +536,7 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         result = self.get(location_a, location_b, check_types=False)
 
         if len(result) > 1:
-            msg = 'Incorrect use of raw_write/raw_read, found %s results.'
+            msg = "Incorrect use of raw_write/raw_read, found %s results."
             raise RuntimeError(msg % len(result))
         elif len(result) == 0:
             return []
@@ -543,7 +557,7 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         result = self.get(location_a, location_b, check_types=True)
 
         if len(result) > 1:
-            msg = 'Incorrect use of get_one(), found %s results.'
+            msg = "Incorrect use of get_one(), found %s results."
             raise RuntimeError(msg % result)
         elif len(result) == 0:
             return []
@@ -555,7 +569,7 @@ class DBKnowledgeBase(BasicKnowledgeBase):
             return obj.get_uniq_id()
 
         if isinstance(obj, collections.Iterable):
-            concat_all = ''.join([str(hash(i)) for i in obj])
+            concat_all = "".join([str(hash(i)) for i in obj])
             return str(hash(concat_all))
 
         return str(hash(obj))
@@ -566,8 +580,10 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         This method appends the location_b value to a dict.
         """
         if not ignore_type and not isinstance(value, (Info, Shell, InfoSet)):
-            msg = ('You MUST use raw_write/raw_read to store non-info objects'
-                   ' to the KnowledgeBase.')
+            msg = (
+                "You MUST use raw_write/raw_read to store non-info objects"
+                " to the KnowledgeBase."
+            )
             raise TypeError(msg)
 
         location_a = self._get_real_name(location_a)
@@ -578,11 +594,9 @@ class DBKnowledgeBase(BasicKnowledgeBase):
 
         query = "INSERT INTO %s VALUES (?, ?, ?, ?)" % self.table_name
         self.db.execute(query, t)
-        self._notify_observers(self.APPEND,
-                               location_a,
-                               location_b,
-                               value,
-                               ignore_type=ignore_type)
+        self._notify_observers(
+            self.APPEND, location_a, location_b, value, ignore_type=ignore_type
+        )
 
     @requires_setup
     def get(self, location_a, location_b, check_types=True):
@@ -616,25 +630,26 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         location_a = self._get_real_name(location_a)
 
         if location_b is None:
-            query = 'SELECT pickle FROM %s WHERE location_a = ?'
+            query = "SELECT pickle FROM %s WHERE location_a = ?"
             params = (location_a,)
         else:
-            query = 'SELECT pickle FROM %s WHERE location_a = ?' \
-                                           ' and location_b = ?'
+            query = "SELECT pickle FROM %s WHERE location_a = ?" " and location_b = ?"
             params = (location_a, location_b)
 
         for r in self.db.select(query % self.table_name, params):
             obj = pickle.loads(r[0])
 
             if check_types and not isinstance(obj, (Info, InfoSet, Shell)):
-                raise TypeError('Use raw_write and raw_read to query the'
-                                ' knowledge base for non-Info objects')
+                raise TypeError(
+                    "Use raw_write and raw_read to query the"
+                    " knowledge base for non-Info objects"
+                )
 
             yield obj
 
     @requires_setup
     def get_by_uniq_id(self, uniq_id):
-        query = 'SELECT pickle FROM %s WHERE uniq_id = ?'
+        query = "SELECT pickle FROM %s WHERE uniq_id = ?"
         params = (uniq_id,)
 
         result = self.db.select_one(query % self.table_name, params)
@@ -651,18 +666,18 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         :yield: All uniq IDs from the KB
         """
         if include_ids:
-            bindings = ['?'] * len(include_ids)
-            bindings = ','.join(bindings)
-            query = 'SELECT uniq_id FROM %s WHERE uniq_id IN (%s)'
+            bindings = ["?"] * len(include_ids)
+            bindings = ",".join(bindings)
+            query = "SELECT uniq_id FROM %s WHERE uniq_id IN (%s)"
             query %= (self.table_name, bindings)
 
             result = self.db.select(query, parameters=include_ids)
 
         else:
-            query = 'SELECT uniq_id FROM %s'
+            query = "SELECT uniq_id FROM %s"
             result = self.db.select(query % self.table_name)
 
-        for uniq_id, in result:
+        for (uniq_id,) in result:
             yield uniq_id
 
     @requires_setup
@@ -676,8 +691,10 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         update_not_info = not isinstance(update_info, (Info, InfoSet, Shell))
 
         if old_not_info or update_not_info:
-            msg = ('You MUST use raw_write/raw_read to store non-info objects'
-                   ' to the KnowledgeBase.')
+            msg = (
+                "You MUST use raw_write/raw_read to store non-info objects"
+                " to the KnowledgeBase."
+            )
             raise TypeError(msg)
 
         old_uniq_id = old_info.get_uniq_id()
@@ -693,12 +710,14 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         if result.rowcount:
             self._notify_observers(self.UPDATE, old_info, update_info)
         else:
-            ex = ('Failed to update() %s instance because'
-                  ' the original unique_id (%s) does not exist in the DB,'
-                  ' or the new unique_id (%s) is invalid.')
-            raise DBException(ex % (old_info.__class__.__name__,
-                                    old_uniq_id,
-                                    new_uniq_id))
+            ex = (
+                "Failed to update() %s instance because"
+                " the original unique_id (%s) does not exist in the DB,"
+                " or the new unique_id (%s) is invalid."
+            )
+            raise DBException(
+                ex % (old_info.__class__.__name__, old_uniq_id, new_uniq_id)
+            )
 
     def add_observer(self, observer):
         """
@@ -742,14 +761,17 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         """
         :yield: All objects where class in klass that are saved in the kb.
         """
-        bindings = ['?'] * len(exclude_ids)
-        bindings = ','.join(bindings)
-        query = 'SELECT uniq_id, pickle FROM %s WHERE uniq_id NOT IN (%s)'
+        bindings = ["?"] * len(exclude_ids)
+        bindings = ",".join(bindings)
+        query = "SELECT uniq_id, pickle FROM %s WHERE uniq_id NOT IN (%s)"
         query %= (self.table_name, bindings)
 
         results = self.db.select(query, parameters=exclude_ids)
 
-        for uniq_id, serialized_obj, in results:
+        for (
+            uniq_id,
+            serialized_obj,
+        ) in results:
             obj = pickle.loads(serialized_obj)
             if isinstance(obj, klass):
                 yield obj
@@ -760,14 +782,14 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         :return: A list of all info instances with severity in (LOW, MEDIUM,
                  HIGH)
         """
-        query = 'SELECT pickle FROM %s'
+        query = "SELECT pickle FROM %s"
         results = self.db.select(query % self.table_name)
 
         result_lst = []
 
         for r in results:
             obj = pickle.loads(r[0])
-            if hasattr(obj, 'get_severity'):
+            if hasattr(obj, "get_severity"):
                 severity = obj.get_severity()
                 if severity in (LOW, MEDIUM, HIGH):
                     result_lst.append(obj)
@@ -779,14 +801,14 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         """
         :return: A list of all info instances with severity eq INFORMATION
         """
-        query = 'SELECT pickle FROM %s'
+        query = "SELECT pickle FROM %s"
         results = self.db.select(query % self.table_name)
 
         result_lst = []
 
         for r in results:
             obj = pickle.loads(r[0])
-            if hasattr(obj, 'get_severity'):
+            if hasattr(obj, "get_severity"):
                 severity = obj.get_severity()
                 if severity in (INFORMATION,):
                     result_lst.append(obj)
@@ -797,16 +819,22 @@ class DBKnowledgeBase(BasicKnowledgeBase):
     def dump(self):
         result_dict = {}
 
-        query = 'SELECT location_a, location_b, pickle FROM %s'
+        query = "SELECT location_a, location_b, pickle FROM %s"
         results = self.db.select(query % self.table_name)
 
         for location_a, location_b, pickle in results:
             obj = pickle.loads(pickle)
 
             if location_a not in result_dict:
-                result_dict[location_a] = {location_b: [obj,]}
+                result_dict[location_a] = {
+                    location_b: [
+                        obj,
+                    ]
+                }
             elif location_b not in result_dict[location_a]:
-                result_dict[location_a][location_b] = [obj,]
+                result_dict[location_a][location_b] = [
+                    obj,
+                ]
             else:
                 result_dict[location_a][location_b].append(obj)
 
@@ -821,11 +849,11 @@ class DBKnowledgeBase(BasicKnowledgeBase):
 
         # Remove the old, create new.
         old_urls = self.urls
-        self.urls = DiskSet(table_prefix='kb_urls')
+        self.urls = DiskSet(table_prefix="kb_urls")
         old_urls.cleanup()
 
         old_fuzzable_requests = self.fuzzable_requests
-        self.fuzzable_requests = DiskSet(table_prefix='kb_fuzzable_requests')
+        self.fuzzable_requests = DiskSet(table_prefix="kb_fuzzable_requests")
         old_fuzzable_requests.cleanup()
 
         self.observers.clear()
@@ -850,7 +878,7 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         :return: True if the URL was previously unknown
         """
         if not isinstance(url, URL):
-            msg = 'add_url requires a URL as parameter got %s instead.'
+            msg = "add_url requires a URL as parameter got %s instead."
             raise TypeError(msg % type(url))
 
         self._notify_observers(self.ADD_URL, url)
@@ -869,8 +897,10 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         :return: True if the FuzzableRequest was previously unknown
         """
         if not isinstance(fuzzable_request, FuzzableRequest):
-            msg = ('add_fuzzable_request requires a FuzzableRequest as'
-                   ' parameter, got "%s" instead.')
+            msg = (
+                "add_fuzzable_request requires a FuzzableRequest as"
+                ' parameter, got "%s" instead.'
+            )
             raise TypeError(msg % type(fuzzable_request))
 
         self.add_url(fuzzable_request.get_url())

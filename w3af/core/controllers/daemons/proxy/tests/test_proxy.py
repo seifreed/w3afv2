@@ -19,22 +19,25 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
-import urllib.request, urllib.error, urllib.parse
+
 import unittest
+import urllib.error
+import urllib.parse
+import urllib.request
 
 from nose.plugins.attrib import attr
 
-from w3af.core.controllers.ci.sqlmap_testenv import get_sqlmap_testenv_http
 from w3af.core.controllers.ci.moth import get_moth_http, get_moth_https
-from w3af.core.data.url.extended_urllib import ExtendedUrllib
-from w3af.core.controllers.misc.temp_dir import create_temp_dir
+from w3af.core.controllers.ci.sqlmap_testenv import get_sqlmap_testenv_http
 from w3af.core.controllers.daemons.proxy import Proxy, ProxyHandler
+from w3af.core.controllers.misc.temp_dir import create_temp_dir
+from w3af.core.data.url.extended_urllib import ExtendedUrllib
 
 
-@attr('moth')
+@attr("moth")
 class TestProxy(unittest.TestCase):
 
-    IP = '127.0.0.1'
+    IP = "127.0.0.1"
 
     def setUp(self):
         # Start the proxy server
@@ -43,15 +46,17 @@ class TestProxy(unittest.TestCase):
         self._proxy = Proxy(self.IP, 0, ExtendedUrllib(), ProxyHandler)
         self._proxy.start()
         self._proxy.wait_for_start()
-        
+
         port = self._proxy.get_port()
-        
+
         # Build the proxy opener
-        proxy_url = 'http://%s:%s' % (self.IP, port)
-        proxy_handler = urllib.request.ProxyHandler({'http': proxy_url,
-                                              'https': proxy_url})
-        self.proxy_opener = urllib.request.build_opener(proxy_handler,
-                                                 urllib.request.HTTPHandler)
+        proxy_url = "http://%s:%s" % (self.IP, port)
+        proxy_handler = urllib.request.ProxyHandler(
+            {"http": proxy_url, "https": proxy_url}
+        )
+        self.proxy_opener = urllib.request.build_opener(
+            proxy_handler, urllib.request.HTTPHandler
+        )
 
     def test_do_req_through_proxy(self):
         resp_body = self.proxy_opener.open(get_moth_http()).read()
@@ -75,13 +80,13 @@ class TestProxy(unittest.TestCase):
 
         # Make sure that a change in the seconds returned in date doesn't break
         # the test
-        del direct_resp_headers['date']
-        del proxy_resp_headers['date']
+        del direct_resp_headers["date"]
+        del proxy_resp_headers["date"]
 
-        del direct_resp_headers['transfer-encoding']
-        del proxy_resp_headers['content-length']
+        del direct_resp_headers["transfer-encoding"]
+        del proxy_resp_headers["content-length"]
 
-        del proxy_resp_headers['content-encoding']
+        del proxy_resp_headers["content-encoding"]
 
         self.assertEqual(direct_resp_headers, proxy_resp_headers)
 
@@ -104,13 +109,13 @@ class TestProxy(unittest.TestCase):
         # makes the test fail
         direct_resp_headers = dict(direct_resp.info())
         proxy_resp_headers = dict(proxy_resp.info())
-        del direct_resp_headers['date']
-        del proxy_resp_headers['date']
+        del direct_resp_headers["date"]
+        del proxy_resp_headers["date"]
 
-        del direct_resp_headers['transfer-encoding']
-        del proxy_resp_headers['content-length']
+        del direct_resp_headers["transfer-encoding"]
+        del proxy_resp_headers["content-length"]
 
-        del proxy_resp_headers['content-encoding']
+        del proxy_resp_headers["content-encoding"]
 
         self.assertEqual(direct_resp_headers, proxy_resp_headers)
 
@@ -126,24 +131,23 @@ class TestProxy(unittest.TestCase):
         resp = urllib.request.urlopen(get_moth_http()).read()
 
         self.assertEqual(resp, proxy_resp)
-    
+
     def test_stop_no_requests(self):
         """Test what happens if I stop the proxy without sending any requests
         through it"""
         # Note that the test is completed by self._proxy.stop() in tearDown
-        pass
 
     def test_stop_stop(self):
         """Test what happens if I stop the proxy twice."""
         # Note that the test is completed by self._proxy.stop() in tearDown
         self._proxy.stop()
-    
+
     def tearDown(self):
         # Shutdown the proxy server
         self._proxy.stop()
 
     def test_error_handling(self):
-        del self._proxy._master.uri_opener
+        del self._proxy._handler.uri_opener
 
         try:
             self.proxy_opener.open(get_moth_http()).read()
@@ -153,8 +157,8 @@ class TestProxy(unittest.TestCase):
             self.assertEqual(hte.code, 500)
 
             body = hte.read()
-            self.assertIn('Proxy error', body)
-            self.assertIn('HTTP request', body)
+            self.assertIn("Proxy error", body)
+            self.assertIn("HTTP request", body)
 
     def test_proxy_gzip_encoding(self):
         """
@@ -166,11 +170,11 @@ class TestProxy(unittest.TestCase):
         Not doing this will make the browser (or any other http client) fail to
         decode the body (it will try to gunzip it and fail).
         """
-        url = get_sqlmap_testenv_http('/sqlmap/mysql/get_int.php?id=1')
+        url = get_sqlmap_testenv_http("/sqlmap/mysql/get_int.php?id=1")
         resp = self.proxy_opener.open(url)
 
         headers = dict(resp.headers)
-        content_encoding = headers.get('content-encoding')
+        content_encoding = headers.get("content-encoding")
 
-        self.assertIn('luther', resp.read())
-        self.assertEqual('identity', content_encoding)
+        self.assertIn("luther", resp.read())
+        self.assertEqual("identity", content_encoding)

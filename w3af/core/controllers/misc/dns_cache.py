@@ -19,13 +19,14 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import socket
 
-# pylint: disable=E0401
-from darts.lib.utils.lru import SynchronizedLRUDict
 # pylint: enable=E0401
-
 import w3af.core.controllers.output_manager as om
+
+# pylint: disable=E0401
+from w3af.core.data.misc.lru import SynchronizedLRUDict
 
 
 def enable_dns_cache():
@@ -46,28 +47,28 @@ def enable_dns_cache():
     #  Copyright 2003 - 2004 Tor Hveem - <tor@bash.no>
     #  Copyright 2004 Omar Kilani for tinysofa - <http://www.tinysofa.org>
     """
-    om.out.debug('Enabling _dns_cache()')
+    om.out.debug("Enabling _dns_cache()")
 
-    if not hasattr(socket, 'already_configured'):
+    if not hasattr(socket, "already_configured"):
         socket._getaddrinfo = socket.getaddrinfo
 
     _dns_cache = SynchronizedLRUDict(200)
 
     def _caching_getaddrinfo(*args, **kwargs):
-        query = (args)
+        query = args
 
         try:
             res = _dns_cache[query]
-            #This was too noisy and not so useful
-            #om.out.debug('Cached DNS response for domain: ' + query[0] )
+            # This was too noisy and not so useful
+            # om.out.debug('Cached DNS response for domain: ' + query[0] )
             return res
         except KeyError:
             res = socket._getaddrinfo(*args, **kwargs)
             _dns_cache[args] = res
-            msg = 'DNS response from DNS server for domain: %s'
+            msg = "DNS response from DNS server for domain: %s"
             om.out.debug(msg % query[0])
             return res
 
-    if not hasattr(socket, 'already_configured'):
+    if not hasattr(socket, "already_configured"):
         socket.getaddrinfo = _caching_getaddrinfo
         socket.already_configured = True

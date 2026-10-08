@@ -19,12 +19,14 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
-import urllib.request, urllib.error, urllib.parse
+
+import urllib.error
+import urllib.parse
+import urllib.request
 
 import w3af.core.controllers.output_manager as om
-
-from w3af.core.data.url.HTTPResponse import HTTPResponse
 from w3af.core.data.url.HTTPRequest import HTTPRequest
+from w3af.core.data.url.HTTPResponse import HTTPResponse
 
 
 class OutputManagerHandler(urllib.request.BaseHandler):
@@ -32,7 +34,7 @@ class OutputManagerHandler(urllib.request.BaseHandler):
     Send the HTTP request and response to the output manager
     """
 
-    handler_order = urllib2.HTTPErrorProcessor.handler_order - 1
+    handler_order = urllib.request.HTTPErrorProcessor.handler_order - 1
 
     def http_response(self, request, response):
         self._log_req_resp(request, response)
@@ -46,16 +48,17 @@ class OutputManagerHandler(urllib.request.BaseHandler):
         """
         if not isinstance(response, HTTPResponse):
             url = request.url_object
-            resp = HTTPResponse.from_httplib_resp(response,
-                                                  original_url=url)
+            resp = HTTPResponse.from_httplib_resp(response, original_url=url)
             resp.set_id(response.id)
         else:
             resp = response
-            
+
         if not isinstance(request, HTTPRequest):
-            msg = ('There is something odd going on in OutputManagerHandler,'
-                   ' request should be of type HTTPRequest got %s'
-                   ' instead.')
+            msg = (
+                "There is something odd going on in OutputManagerHandler,"
+                " request should be of type HTTPRequest got %s"
+                " instead."
+            )
             raise TypeError(msg % type(request))
 
         om.out.log_http(request, resp)

@@ -19,20 +19,19 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import zlib
 
-# pylint: disable=E0401
-from darts.lib.utils.lru import SynchronizedLRUDict
 # pylint: enable=E0401
-
 from w3af.core.controllers.core_helpers.not_found.response import FourOhFourResponse
-from w3af.core.data.misc.xml_bones import get_xml_bones
 from w3af.core.data.misc.encoding import smart_str_ignore
 
+# pylint: disable=E0401
+from w3af.core.data.misc.lru import SynchronizedLRUDict
+from w3af.core.data.misc.xml_bones import get_xml_bones
 
-def get_response_cache_key(http_response,
-                           clean_response=None,
-                           headers=None):
+
+def get_response_cache_key(http_response, clean_response=None, headers=None):
     """
     Note: query.body has been cleaned by get_clean_body()
 
@@ -47,7 +46,7 @@ def get_response_cache_key(http_response,
 
     :return: Hash of the HTTP response body
     """
-    headers = '' or headers
+    headers = "" or headers
 
     #
     # Only some HTTP responses benefit from the XML-bones signature
@@ -68,10 +67,14 @@ def get_response_cache_key(http_response,
     #
     # Calculate the hash using all the captured information
     #
-    key = ''.join([str(http_response.get_code()),
-                   smart_str_ignore(normalized_path),
-                   str(headers),
-                   smart_str_ignore(body)])
+    key = "".join(
+        [
+            str(http_response.get_code()),
+            smart_str_ignore(normalized_path),
+            str(headers),
+            smart_str_ignore(body),
+        ]
+    )
 
     return quick_hash(key)
 
@@ -89,7 +92,7 @@ def _should_use_xml_bones(http_response):
     # Check that this document is xml / html
     has_expected_content_type = False
 
-    for content_type in ('xml', 'html'):
+    for content_type in ("xml", "html"):
         if content_type in http_response.content_type:
             has_expected_content_type = True
 
@@ -97,7 +100,7 @@ def _should_use_xml_bones(http_response):
         return False
 
     # Check that it actually has tags
-    if http_response.get_body().count('<') < 20:
+    if http_response.get_body().count("<") < 20:
         return False
 
     return True
@@ -105,10 +108,10 @@ def _should_use_xml_bones(http_response):
 
 def quick_hash(text):
     text = smart_str_ignore(text)
-    return '%s%s' % (hash(text), zlib.adler32(text))
+    return "%s%s" % (hash(text), zlib.adler32(text))
 
 
-class ResponseCacheKeyCache(object):
+class ResponseCacheKeyCache:
     #
     # The memory impact of having a large number of items in this cache is
     # really low, both the keys and the values are short strings (the result of
@@ -119,10 +122,7 @@ class ResponseCacheKeyCache(object):
     def __init__(self):
         self._cache = SynchronizedLRUDict(self.MAX_SIZE)
 
-    def get_response_cache_key(self,
-                               http_response,
-                               clean_response=None,
-                               headers=None):
+    def get_response_cache_key(self, http_response, clean_response=None, headers=None):
 
         # When the clean response is available, use that body to calculate the
         # cache key. It has been cleaned (removed request paths and QS parameters)
@@ -133,7 +133,7 @@ class ResponseCacheKeyCache(object):
         else:
             body = http_response.body
 
-        cache_key = '%s%s' % (smart_str_ignore(body), headers)
+        cache_key = "%s%s" % (smart_str_ignore(body), headers)
         cache_key = quick_hash(cache_key)
 
         result = self._cache.get(cache_key, None)
@@ -141,9 +141,9 @@ class ResponseCacheKeyCache(object):
         if result is not None:
             return result
 
-        result = get_response_cache_key(http_response,
-                                        clean_response=clean_response,
-                                        headers=headers)
+        result = get_response_cache_key(
+            http_response, clean_response=clean_response, headers=headers
+        )
 
         self._cache[cache_key] = result
         return result

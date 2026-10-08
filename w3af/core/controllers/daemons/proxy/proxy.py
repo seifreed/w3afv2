@@ -19,16 +19,16 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
-import socket
-import time
-import os
 
+import asyncio
+import os
+import threading
 from multiprocessing.dummy import Process
-from libmproxy.proxy.server import ProxyServer, ProxyServerError
-from libmproxy.proxy.config import ProxyConfig
+
+from mitmproxy import options
+from mitmproxy.tools.dump import DumpMaster
 
 import w3af.core.controllers.output_manager as om
-
 from w3af import ROOT_PATH
 from w3af.core.controllers.daemons.proxy import ProxyHandler
 from w3af.core.controllers.exceptions import ProxyException
@@ -77,21 +77,30 @@ class Proxy(Process):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    CA_CERT_DIR = os.path.join(ROOT_PATH, 'core/controllers/daemons/proxy/ca/')
+    CA_CERT_DIR = os.path.join(ROOT_PATH, "core/controllers/daemons/proxy/ca/")
 
-    INCORRECT_SETUP = ('Your OpenSSL setup seems to be broken. The mitmproxy'
-                       ' library failed to create the default configuration'
-                       ' required to run.\n'
-                       '\n'
-                       'The original exception is: "%s"\n'
-                       '\n'
-                       'Please see this [0] github issue for potential'
-                       ' workarounds and help.\n'
-                       '\n'
-                       '[0] https://github.com/mitmproxy/mitmproxy/issues/281')
+    INCORRECT_SETUP = (
+        "Your OpenSSL setup seems to be broken. The mitmproxy"
+        " library failed to create the default configuration"
+        " required to run.\n"
+        "\n"
+        'The original exception is: "%s"\n'
+        "\n"
+        "Please see this [0] github issue for potential"
+        " workarounds and help.\n"
+        "\n"
+        "[0] https://github.com/mitmproxy/mitmproxy/issues/281"
+    )
 
-    def __init__(self, ip, port, uri_opener, handler_klass=ProxyHandler,
-                 ca_certs=CA_CERT_DIR, name='ProxyThread'):
+    def __init__(
+        self,
+        ip,
+        port,
+        uri_opener,
+        handler_klass=ProxyHandler,
+        ca_certs=CA_CERT_DIR,
+        name="ProxyThread",
+    ):
         """
         :param ip: IP address to bind
         :param port: Port to bind
@@ -103,72 +112,34 @@ class Proxy(Process):
         Process.__init__(self)
         self.daemon = True
         self.name = name
-        
+
         # Internal vars
-        self._server = None
         self._running = False
         self._uri_opener = uri_opener
         self._ca_certs = ca_certs
+        self._host = ip
+        self._requested_port = port
+        self._port = port
+        self._handler_klass = handler_klass
+        self._ready = threading.Event()
+        self._startup_error = None
+        self._master = None
+        self._handler = None
 
         # Stats
         self.total_handled_requests = 0
-
-        # User configured parameters
-        try:
-            self._config = ProxyConfig(cadir=self._ca_certs,
-                                       ssl_version_client='SSLv23',
-                                       ssl_version_server='SSLv23',
-                                       host=ip,
-                                       port=port)
-        except AttributeError as ae:
-            if str(ae) == "'module' object has no attribute '_lib'":
-                # This is a rare issue with the OpenSSL setup that some users
-                # (mostly in mac os) find. Not related with w3af/mitmproxy but
-                # with some broken stuff they have
-                #
-                # https://github.com/mitmproxy/mitmproxy/issues/281
-                # https://github.com/andresriancho/w3af/issues/10716
-                #
-                # AttributeError: 'module' object has no attribute '_lib'
-                raise ProxyException(self.INCORRECT_SETUP % ae)
-
-            else:
-                # Something unexpected, raise
-                raise
-
-        # Setting these options together with ssl_version_client and
-        # ssl_version_server set to SSLv23 means that the proxy will allow all
-        # types (including insecure) of SSL connections
-        self._config.openssl_options_client = None
-        self._config.openssl_options_server = None
-
-        # Start the proxy server
-        try:
-            self._server = ProxyServer(self._config)
-        except socket.error as se:
-            raise ProxyException('Socket error while starting proxy: "%s"'
-                                 % se.strerror)
-        except ProxyServerError as pse:
-            raise ProxyException('%s' % pse)
-        else:
-            # This is here to support port == 0, which will bind to the first
-            # available/free port, which we don't know until the server really
-            # starts
-            self._config.port = self.get_port()
-
-        self._master = handler_klass(self._server, self._uri_opener, self)
 
     def get_bind_ip(self):
         """
         :return: The IP address where the proxy will listen.
         """
-        return self._config.host
+        return self._host
 
     def get_bind_port(self):
         """
         :return: The TCP port where the proxy will listen.
         """
-        return self._config.port
+        return self._port
 
     def is_running(self):
         """
@@ -177,32 +148,59 @@ class Proxy(Process):
         return self._running
 
     def get_port(self):
-        if self._server is not None:
-            return self._server.socket.getsockname()[1]
-    
+        return self._port
+
     def wait_for_start(self):
-        while self._server is None or self.get_port() is None:
-            time.sleep(0.5)
+        if not self._ready.wait(timeout=30):
+            raise ProxyException("Timed out while starting the proxy server.")
+        if self._startup_error is not None:
+            raise ProxyException(
+                "Proxy server failed to start: %s" % self._startup_error
+            )
+
+    def _proxy_started(self, addresses):
+        if addresses:
+            self._port = addresses[0][1]
+            self._ready.set()
 
     def run(self):
         """
         Starts the proxy daemon; usually this method isn't called directly. In
         most cases you'll call start()
         """
-        args = (self._config.host,
-                self._config.port,
-                self._master.__class__.__name__)
-        message = 'Proxy server listening on %s:%s using %s' % args
-        om.out.debug(message)
 
-        # Start to handle requests
-        self._running = True
-        self._master.run()
-        self._running = False
+        async def start_master():
+            proxy_options = options.Options(
+                listen_host=self._host,
+                listen_port=self._requested_port,
+                confdir=self._ca_certs,
+                ssl_insecure=True,
+            )
+            self._master = DumpMaster(
+                proxy_options,
+                with_termlog=False,
+                with_dumper=False,
+            )
+            self._handler = self._handler_klass(self._master, self._uri_opener, self)
+            self._master.addons.add(self._handler)
+            args = (self._host, self._requested_port, self._handler.__class__.__name__)
+            om.out.debug("Proxy server listening on %s:%s using %s" % args)
+            self._running = True
+            await self._master.run()
+
+        try:
+            asyncio.run(start_master())
+        except Exception as error:
+            self._startup_error = error
+            raise
+        finally:
+            self._running = False
+            self._ready.set()
 
     def stop(self):
         """
         Stop the proxy.
         """
-        om.out.debug('Calling stop of proxy daemon')
-        self._master.shutdown()
+        om.out.debug("Calling stop of proxy daemon")
+        if self._master is not None:
+            self._master.shutdown()

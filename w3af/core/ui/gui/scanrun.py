@@ -18,42 +18,45 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
-import gtk
-import gobject
-import urllib.request, urllib.error, urllib.parse
-import sys
-import re
-import queue
-import webkit
-import webbrowser
 
-from multiprocessing.dummy import Process, Event
+import queue
+import re
+import sys
+import urllib.error
+import urllib.parse
+import urllib.request
+import webbrowser
+from multiprocessing.dummy import Event, Process
+
+import gobject
+import gtk
+import webkit
 from markdown import markdown
 
-from w3af.core.ui.gui import httpLogTab, entries
-from w3af.core.ui.gui.reqResViewer import ReqResViewer
-from w3af.core.ui.gui.kb.kbtree import KBTree
-from w3af.core.ui.gui.tools.fuzzy_requests import FuzzyRequests
-from w3af.core.ui.gui.tools.manual_requests import ManualRequests
-from w3af.core.ui.gui.misc.xdot_wrapper import WrappedDotWidget
-
+import w3af.core.data.kb.knowledge_base as kb
+from w3af.core.controllers.exceptions import DBException
 from w3af.core.data.db.history import HistoryItem
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.kb_observer import KBObserver
-from w3af.core.controllers.exceptions import DBException
-
-import w3af.core.data.kb.knowledge_base as kb
+from w3af.core.ui.gui import entries, httpLogTab
+from w3af.core.ui.gui.kb.kbtree import KBTree
+from w3af.core.ui.gui.misc.xdot_wrapper import WrappedDotWidget
+from w3af.core.ui.gui.reqResViewer import ReqResViewer
+from w3af.core.ui.gui.tools.fuzzy_requests import FuzzyRequests
+from w3af.core.ui.gui.tools.manual_requests import ManualRequests
 
 RECURSION_LIMIT = sys.getrecursionlimit() - 5
 RECURSION_MSG = "Recursion limit: can't go deeper"
 
-DB_VULN_NOT_FOUND = markdown('The detailed description for this vulnerability'
-                             ' is not available in our database, please'
-                             ' contribute to the open source'
-                             ' [vulndb/data project](https://github.com/vulndb/data)'
-                             ' to improve w3af\'s output.')
+DB_VULN_NOT_FOUND = markdown(
+    "The detailed description for this vulnerability"
+    " is not available in our database, please"
+    " contribute to the open source"
+    " [vulndb/data project](https://github.com/vulndb/data)"
+    " to improve w3af's output."
+)
 
-FILE = 'file:///'
+FILE = "file:///"
 
 
 class FullKBTree(KBTree):
@@ -67,11 +70,10 @@ class FullKBTree(KBTree):
 
         :author: Facundo Batista <facundobatista =at= taniquetil.com.ar>
         """
-        super(FullKBTree, self).__init__(w3af, ifilter,
-                                         'Knowledge Base', strict=False)
+        super().__init__(w3af, ifilter, "Knowledge Base", strict=False)
         self._historyItem = HistoryItem()
         self.kbbrowser = kbbrowser
-        self.connect('cursor-changed', self._show_desc)
+        self.connect("cursor-changed", self._show_desc)
         self.show()
 
     def _create_reference_list(self, info):
@@ -80,11 +82,11 @@ class FullKBTree(KBTree):
                  format so I can add them to the description.
         """
         if not info.get_references():
-            return ''
+            return ""
 
-        output = '\n\n### References\n'
+        output = "\n\n### References\n"
         for ref in info.get_references():
-            output += ' * [%s](%s)\n' % (ref.title, ref.url)
+            output += " * [%s](%s)\n" % (ref.title, ref.url)
 
         return output
 
@@ -93,21 +95,21 @@ class FullKBTree(KBTree):
 
         :param tv: the treeview.
         """
-        (path, column) = tv.get_cursor()
+        path, column = tv.get_cursor()
         if path is None:
             return
 
         instance = self.get_instance(path)
         if not isinstance(instance, Info):
             return
-        
+
         summary = instance.get_desc()
         self.kbbrowser.explanation.set_text(summary)
         self.kbbrowser.vuln_notebook.set_current_page(0)
 
         if instance.has_db_details():
             desc_markdown = instance.get_long_description()
-            desc_markdown += '\n\n### Fix guidance\n'
+            desc_markdown += "\n\n### Fix guidance\n"
             desc_markdown += instance.get_fix_guidance()
             desc_markdown += self._create_reference_list(instance)
             desc = markdown(desc_markdown)
@@ -143,8 +145,8 @@ class FullKBTree(KBTree):
             try:
                 history_item = self._historyItem.read(search_id)
             except DBException:
-                msg = _('The HTTP data with id %s is not inside the database.')
-                self._show_message(_('Error'), msg % search_id)
+                msg = _("The HTTP data with id %s is not inside the database.")
+                self._show_message(_("Error"), msg % search_id)
                 self.clear_request_response_viewer()
                 return
 
@@ -155,8 +157,8 @@ class FullKBTree(KBTree):
                 # from disk and if they aren't there an exception will rise
                 history_item.request
                 history_item.response
-            except IOError as ioe:
-                self._show_message(_('Error'), str(ioe))
+            except OSError as ioe:
+                self._show_message(_("Error"), str(ioe))
                 return
 
             # Now we know that these two lines will work and we won't trigger
@@ -189,8 +191,7 @@ class FullKBTree(KBTree):
 
     def _show_message(self, title, msg, gtkLook=gtk.MESSAGE_WARNING):
         """Show message to user as GTK dialog."""
-        dlg = gtk.MessageDialog(None, gtk.DIALOG_MODAL, gtkLook,
-                                gtk.BUTTONS_OK, msg)
+        dlg = gtk.MessageDialog(None, gtk.DIALOG_MODAL, gtkLook, gtk.BUTTONS_OK, msg)
         dlg.set_title(title)
         dlg.run()
         dlg.destroy()
@@ -201,8 +202,9 @@ class KBBrowser(entries.RememberingHPaned):
 
     :author: Facundo Batista <facundobatista =at= taniquetil.com.ar>
     """
+
     def __init__(self, w3af):
-        super(KBBrowser, self).__init__(w3af, "pane-kbbrowser", 250)
+        super().__init__(w3af, "pane-kbbrowser", 250)
 
         # Internal variables:
         # Save the request and response ids to be used in the page control
@@ -218,12 +220,13 @@ class KBBrowser(entries.RememberingHPaned):
         def make_but(label, signal, initial):
             but = gtk.CheckButton(label)
             but.set_active(initial)
-            but.connect('clicked', self.type_filter, signal)
+            but.connect("clicked", self.type_filter, signal)
             self.filters[signal] = initial
             but.show()
             filterbox.pack_start(but, expand=False, fill=False, padding=2)
-        make_but('Vulnerability', 'vuln', True)
-        make_but('Information', 'info', True)
+
+        make_but("Vulnerability", "vuln", True)
+        make_but("Information", "info", True)
         filterbox.show()
 
         # the kb tree
@@ -246,8 +249,8 @@ class KBBrowser(entries.RememberingHPaned):
         description = self.get_notebook_description()
 
         self.vuln_notebook = gtk.Notebook()
-        self.vuln_notebook.append_page(summary, gtk.Label('Summary'))
-        self.vuln_notebook.append_page(description, gtk.Label('Description'))
+        self.vuln_notebook.append_page(summary, gtk.Label("Summary"))
+        self.vuln_notebook.append_page(description, gtk.Label("Description"))
         self.vuln_notebook.set_current_page(0)
         self.vuln_notebook.show()
 
@@ -263,7 +266,7 @@ class KBBrowser(entries.RememberingHPaned):
 
         # Disable the plugins for the webview
         ws = self.description.get_settings()
-        ws.set_property('enable-plugins', False)
+        ws.set_property("enable-plugins", False)
         self.description.set_settings(ws)
         self.description.show()
 
@@ -315,9 +318,7 @@ class KBBrowser(entries.RememberingHPaned):
         center_box.show()
 
         # The summary and http data go in a vbox too
-        summary_data_vbox = entries.RememberingVPaned(w3af,
-                                                      'pane-kbbexplainview',
-                                                      100)
+        summary_data_vbox = entries.RememberingVPaned(w3af, "pane-kbbexplainview", 100)
         summary_data_vbox.pack1(summary_scrollwin)
         summary_data_vbox.pack2(http_data_vbox)
         summary_data_vbox.show()
@@ -356,22 +357,23 @@ class URLsGraph(gtk.VBox):
 
     :author: Facundo Batista <facundobatista =at= taniquetil.com.ar>
     """
+
     def __init__(self, w3af):
-        super(URLsGraph, self).__init__()
+        super().__init__()
         self.w3af = w3af
 
         self.toolbox = gtk.HBox()
-        b = entries.SemiStockButton("", gtk.STOCK_ZOOM_IN, 'Zoom In')
-        b.connect('clicked', self._zoom, "in")
+        b = entries.SemiStockButton("", gtk.STOCK_ZOOM_IN, "Zoom In")
+        b.connect("clicked", self._zoom, "in")
         self.toolbox.pack_start(b, False, False)
-        b = entries.SemiStockButton("", gtk.STOCK_ZOOM_OUT, 'Zoom Out')
-        b.connect('clicked', self._zoom, "out")
+        b = entries.SemiStockButton("", gtk.STOCK_ZOOM_OUT, "Zoom Out")
+        b.connect("clicked", self._zoom, "out")
         self.toolbox.pack_start(b, False, False)
-        b = entries.SemiStockButton("", gtk.STOCK_ZOOM_FIT, 'Zoom Fit')
-        b.connect('clicked', self._zoom, "fit")
+        b = entries.SemiStockButton("", gtk.STOCK_ZOOM_FIT, "Zoom Fit")
+        b.connect("clicked", self._zoom, "fit")
         self.toolbox.pack_start(b, False, False)
-        b = entries.SemiStockButton("", gtk.STOCK_ZOOM_100, 'Zoom 100%')
-        b.connect('clicked', self._zoom, "100")
+        b = entries.SemiStockButton("", gtk.STOCK_ZOOM_100, "Zoom 100%")
+        b.connect("clicked", self._zoom, "100")
         self.toolbox.pack_start(b, False, False)
         self.pack_start(self.toolbox, False, False)
         self.toolbox.set_sensitive(False)
@@ -398,7 +400,7 @@ class URLsGraph(gtk.VBox):
         # let's draw!
         q = queue.Queue()
         evt = Event()
-        th = Process(target=self._draw_real, args=(q, evt), name='GTKDraw')
+        th = Process(target=self._draw_real, args=(q, evt), name="GTKDraw")
         th.start()
         gobject.timeout_add(500, self._draw_end, q, evt)
         return False
@@ -407,14 +409,16 @@ class URLsGraph(gtk.VBox):
         new_widget = WrappedDotWidget()
         self._somethingnew = False
         dotcode = "graph G {%s}" % "\n".join(self.nodos_code)
-        
+
         try:
             new_widget.set_dotcode(dotcode)
         except ValueError as ve:
-            msg = ('A ValueError exception with message "%s" was found while'
-                   ' trying to render a new dotcode. Please create a new'
-                   ' bug report at %s including the following info:\n\n%s')
-            new_issue = 'https://github.com/andresriancho/w3af/issues/new'
+            msg = (
+                'A ValueError exception with message "%s" was found while'
+                " trying to render a new dotcode. Please create a new"
+                " bug report at %s including the following info:\n\n%s"
+            )
+            new_issue = "https://github.com/andresriancho/w3af/issues/new"
             args = (ve, new_issue, dotcode)
             raise ValueError(msg % args)
         else:
@@ -486,6 +490,7 @@ class URLsTree(gtk.TreeView):
 
     :author: Facundo Batista <facundobatista =at= taniquetil.com.ar>
     """
+
     def __init__(self, w3af, grapher):
         self.w3af = w3af
         self.grapher = grapher
@@ -493,11 +498,11 @@ class URLsTree(gtk.TreeView):
         # simple empty Tree Store
         self.treestore = gtk.TreeStore(str)
         gtk.TreeView.__init__(self, self.treestore)
-        self.connect('button-release-event', self.popup_menu)
-        self.connect('button-press-event', self._doubleClick)
+        self.connect("button-release-event", self.popup_menu)
+        self.connect("button-press-event", self._doubleClick)
 
         # the TreeView column
-        tvcolumn = gtk.TreeViewColumn('URLs')
+        tvcolumn = gtk.TreeViewColumn("URLs")
         tvcolumn.set_sort_column_id(0)
         cell = gtk.CellRendererText()
         tvcolumn.pack_start(cell, True)
@@ -550,22 +555,22 @@ class URLsTree(gtk.TreeView):
             if fragment:
                 end += "#" + fragment
 
-            splittedPath = re.split('(\\\\|/)', path)
+            splittedPath = re.split("(\\\\|/)", path)
             nodes = []
             for i in splittedPath:
-                if i not in ['\\', '/']:
+                if i not in ["\\", "/"]:
                     nodes.append(i)
 
             nodes.insert(0, ini)
             nodes.append(end)
             parts = [x for x in nodes if x]
-            
+
             self._insertNodes(None, parts, self.treeholder, 1)
 
             # TODO: Automatically sort after each insertion
             # Order the treeview
             self.treestore.sort_column_changed()
-        
+
         return True
 
     def _insertNodes(self, parent, parts, holder, rec_cntr):
@@ -594,7 +599,7 @@ class URLsTree(gtk.TreeView):
 
         if node in holder:
             # already exists, use it if have more nodes
-            (treenode, children) = holder[node]
+            treenode, children = holder[node]
             return self._insertNodes(treenode, rest, children, rec_cntr + 1)
 
         # does not exist, create it
@@ -613,15 +618,14 @@ class URLsTree(gtk.TreeView):
         if event.button != 3:
             return
 
-        (path, column) = tv.get_cursor()
+        path, column = tv.get_cursor()
         # Is it over a URL?
         if path is None:
             return
 
         # Get the information about the click
-        fullurl = "/".join(
-            self.treestore[path[:i + 1]][0] for i in range(len(path)))
-        host = urllib2.urlparse.urlparse(fullurl)[1]
+        fullurl = "/".join(self.treestore[path[: i + 1]][0] for i in range(len(path)))
+        host = urllib.parse.urlparse(fullurl)[1]
         sendtext = HEAD_TO_SEND % (fullurl, host)
 
         gm = gtk.Menu()
@@ -630,20 +634,18 @@ class URLsTree(gtk.TreeView):
         image = gtk.Image()
         image.set_from_stock(gtk.STOCK_INDEX, gtk.ICON_SIZE_MENU)
         e.set_image(image)
-        e.connect('activate', self._send_request, sendtext,
-                  ManualRequests)
+        e.connect("activate", self._send_request, sendtext, ManualRequests)
         gm.append(e)
 
         image = gtk.Image()
         image.set_from_stock(gtk.STOCK_PROPERTIES, gtk.ICON_SIZE_MENU)
         e = gtk.ImageMenuItem(_("Open with Fuzzy Request Editor..."))
         e.set_image(image)
-        e.connect('activate', self._send_request, sendtext,
-                  FuzzyRequests)
+        e.connect("activate", self._send_request, sendtext, FuzzyRequests)
         gm.append(e)
 
         e = gtk.ImageMenuItem(_("Open with default browser..."))
-        e.connect('activate', self._open_browser, fullurl)
+        e.connect("activate", self._open_browser, fullurl)
         gm.append(e)
 
         gm.show_all()
@@ -662,11 +664,15 @@ class ScanRunBody(gtk.Notebook):
 
     :author: Facundo Batista <facundobatista =at= taniquetil.com.ar>
     """
+
     def __init__(self, w3af):
-        super(ScanRunBody, self).__init__()
+        super().__init__()
         self.w3af = w3af
-        self.helpChapter = ("Browsing_the_Knowledge_Base",
-                            "Site_structure", "Requests_and_Responses")
+        self.helpChapter = (
+            "Browsing_the_Knowledge_Base",
+            "Site_structure",
+            "Requests_and_Responses",
+        )
         self.connect("switch-page", self.changed_page)
 
         # KB Browser

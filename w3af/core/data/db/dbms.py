@@ -20,63 +20,61 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-
 import os
-import sys
 import sqlite3
-
-from functools import wraps
-
 from concurrent.futures import Future
-from multiprocessing.dummy import Queue, Process
+from functools import wraps
+from multiprocessing.dummy import Process, Queue
 
 import w3af.core.controllers.output_manager as om
-
+from w3af.core.controllers.exceptions import (
+    DBException,
+    MalformedDBException,
+    NoSuchTableException,
+)
+from w3af.core.controllers.misc.temp_dir import create_temp_dir, get_temp_dir
 from w3af.core.data.misc.file_utils import replace_file_special_chars
-from w3af.core.controllers.misc.temp_dir import get_temp_dir, create_temp_dir
-from w3af.core.controllers.exceptions import (DBException,
-                                              NoSuchTableException,
-                                              MalformedDBException)
-
 
 # Constants
-SETUP = 'SETUP'
-QUERY = 'QUERY'
-SELECT = 'SELECT'
-COMMIT = 'COMMIT'
-POISON = 'POISON'
+SETUP = "SETUP"
+QUERY = "QUERY"
+SELECT = "SELECT"
+COMMIT = "COMMIT"
+POISON = "POISON"
 
-DB_MALFORMED_ERROR = ('SQLite raised a database disk image is malformed'
-                      ' exception. While we do have good understanding on the'
-                      ' many reasons that'
-                      ' might lead to this issue [0] and multiple bug reports'
-                      ' by users [1] there is no clear indication on exactly'
-                      ' what causes the issue in w3af.\n\n'
-                      ''
-                      'If you are able to reproduce this issue in your'
-                      ' environment we would love to hear the OS and hardware'
-                      ' details, steps to reproduce, and any other related'
-                      ' information. Just send us a comment at #4905 [1].\n\n'
-                      ''
-                      '[0] https://www.sqlite.org/howtocorrupt.html\n'
-                      '[1] https://github.com/andresriancho/w3af/issues/4905')
+DB_MALFORMED_ERROR = (
+    "SQLite raised a database disk image is malformed"
+    " exception. While we do have good understanding on the"
+    " many reasons that"
+    " might lead to this issue [0] and multiple bug reports"
+    " by users [1] there is no clear indication on exactly"
+    " what causes the issue in w3af.\n\n"
+    ""
+    "If you are able to reproduce this issue in your"
+    " environment we would love to hear the OS and hardware"
+    " details, steps to reproduce, and any other related"
+    " information. Just send us a comment at #4905 [1].\n\n"
+    ""
+    "[0] https://www.sqlite.org/howtocorrupt.html\n"
+    "[1] https://github.com/andresriancho/w3af/issues/4905"
+)
 
 
 def verify_started(meth):
-    
+
     @wraps(meth)
     def inner_verify_started(self, *args, **kwds):
-        msg = 'No calls to SQLiteDBMS can be made after stop().'
+        msg = "No calls to SQLiteDBMS can be made after stop()."
 
         assert not self.sql_executor.get_received_poison_pill(), msg
         assert self.sql_executor.is_alive(), msg
 
         return meth(self, *args, **kwds)
-    
+
     return inner_verify_started
 
 
-class SQLiteDBMS(object):
+class SQLiteDBMS:
     """
     Wrap sqlite connection in a way that allows concurrent requests from
     multiple threads.
@@ -86,13 +84,13 @@ class SQLiteDBMS(object):
 
     For all requests performed by the client, a Future [0] is returned, in
     other words, this is an asynchronous class.
-    
+
     [0] http://www.python.org/dev/peps/pep-3148/
     """
-    def __init__(self, filename, autocommit=False, journal_mode='OFF',
-                 cache_size=2000):
 
-        super(SQLiteDBMS, self).__init__()
+    def __init__(self, filename, autocommit=False, journal_mode="OFF", cache_size=2000):
+
+        super().__init__()
 
         #
         #   All DB queries from w3af are sent to this queue, and this is a lot
@@ -120,17 +118,16 @@ class SQLiteDBMS(object):
         in_queue = Queue(250)
         self.sql_executor = SQLiteExecutor(in_queue)
         self.sql_executor.start()
-        
+
         #
         #    Performs sqlite database setup, this has the nice side-effect
         #    that .result() will block until the thread is started and
         #    processing tasks.
         #
-        future = self.sql_executor.setup(filename, autocommit, journal_mode,
-                                         cache_size)
+        future = self.sql_executor.setup(filename, autocommit, journal_mode, cache_size)
         # Raises an exception if an error was found during setup
         future.result()
-        
+
         self.filename = filename
         self.autocommit = autocommit
 
@@ -141,10 +138,10 @@ class SQLiteDBMS(object):
         return a future.
         """
         fr = self.sql_executor.query(query, parameters)
-        
+
         if self.autocommit or commit:
             self.commit()
-            
+
         return fr
 
     @verify_started
@@ -190,61 +187,62 @@ class SQLiteDBMS(object):
     def get_file_name(self):
         """Return DB filename."""
         return self.filename
-    
+
     def drop_table(self, name):
-        query = 'DROP TABLE %s' % name
+        query = "DROP TABLE %s" % name
         return self.execute(query, commit=True)
-    
+
     def clear_table(self, name):
         """
         Remove all rows from a table.
         """
-        query = 'DELETE FROM %s WHERE 1=1' % name
+        query = "DELETE FROM %s WHERE 1=1" % name
         return self.execute(query, commit=True)
-    
+
     def create_table(self, name, columns, pk_columns=(), constraints=()):
         """
         Create table in convenient way.
         """
         if not name:
-            raise ValueError('create_table requires a table name')
-        
+            raise ValueError("create_table requires a table name")
+
         if not columns:
-            raise ValueError('create_table requires column names and types')
+            raise ValueError("create_table requires column names and types")
 
         if not isinstance(columns, list):
-            raise ValueError('create_table requires column names and types in a list')
+            raise ValueError("create_table requires column names and types in a list")
 
         if not isinstance(constraints, tuple):
-            raise ValueError('constraints requires constraints in a tuple')
+            raise ValueError("constraints requires constraints in a tuple")
 
         # Create the table
-        query = 'CREATE TABLE %s (' % name
-        
+        query = "CREATE TABLE %s (" % name
+
         all_columns = []
         for column_data in columns:
             column_name, column_type = column_data
-            all_columns.append('%s %s' % (column_name, column_type))
-            
-        query += ', '.join(all_columns)
-        
+            all_columns.append("%s %s" % (column_name, column_type))
+
+        query += ", ".join(all_columns)
+
         # Finally the PK and constraints
         if pk_columns:
-            query += ', PRIMARY KEY (%s)' % ','.join(pk_columns)
+            query += ", PRIMARY KEY (%s)" % ",".join(pk_columns)
 
         if constraints:
             for c in constraints:
-                query += ', CONSTRAINT %s' % c
+                query += ", CONSTRAINT %s" % c
 
-        query += ')'
+        query += ")"
 
         return self.execute(query, commit=True)
 
     def table_exists(self, name):
-        query = ("SELECT name FROM sqlite_master WHERE type='table'"
-                 " AND name=? LIMIT 1")
+        query = (
+            "SELECT name FROM sqlite_master WHERE type='table'" " AND name=? LIMIT 1"
+        )
         r = self.select(query, (name,))
-        return bool(r)        
+        return bool(r)
 
     def create_index(self, table, columns):
         """
@@ -253,8 +251,7 @@ class SQLiteDBMS(object):
         :param table: The table from which you want to create an index from
         :param columns: A list of column names.
         """
-        query = 'CREATE INDEX %s_index ON %s( %s )' % (table, table,
-                                                       ','.join(columns))
+        query = "CREATE INDEX %s_index ON %s( %s )" % (table, table, ",".join(columns))
 
         return self.execute(query, commit=True)
 
@@ -264,17 +261,18 @@ class SQLiteExecutor(Process):
     A very simple thread that takes work via submit() and processes it in a
     different thread.
     """
+
     DEBUG = False
     REPORT_QSIZE_EVERY_N_CALLS = 250
-    
+
     def __init__(self, in_queue):
-        super(SQLiteExecutor, self).__init__(name='SQLiteExecutor')
-        
+        super().__init__(name="SQLiteExecutor")
+
         # Setting the thread to daemon mode so it dies with the rest of the
         # process, and a name so we can identify it during debugging sessions
         self.daemon = True
-        self.name = 'SQLiteExecutor'
-        
+        self.name = "SQLiteExecutor"
+
         self._in_queue = in_queue
         self._last_reported_qsize = None
         self._current_query_num = 0
@@ -297,9 +295,11 @@ class SQLiteExecutor(Process):
         :return: None
         """
         if self._in_queue.qsize() >= self._in_queue.maxsize - 10:
-            msg = ('The SQLiteExecutor.in_queue length has reached its max'
-                   ' limit of %s after processing %s queries. Framework'
-                   ' performance will degrade.')
+            msg = (
+                "The SQLiteExecutor.in_queue length has reached its max"
+                " limit of %s after processing %s queries. Framework"
+                " performance will degrade."
+            )
             args = (self._in_queue.maxsize, self._current_query_num)
             om.out.debug(msg % args)
 
@@ -315,7 +315,7 @@ class SQLiteExecutor(Process):
         if diff % self.REPORT_QSIZE_EVERY_N_CALLS == 0:
             self._last_reported_qsize = self._current_query_num
 
-            msg = 'The SQLiteExecutor.in_queue length is %s. Processed %s queries.'
+            msg = "The SQLiteExecutor.in_queue length is %s. Processed %s queries."
             args = (self._in_queue.qsize(), self._current_query_num)
             print(msg % args)
 
@@ -324,7 +324,7 @@ class SQLiteExecutor(Process):
         request = (QUERY, (query, parameters), {}, future)
         self._in_queue.put(request)
         return future
-    
+
     def _query_handler(self, query, parameters):
         cursor = self.conn.cursor()
         return cursor.execute(query, parameters)
@@ -334,14 +334,14 @@ class SQLiteExecutor(Process):
         request = (SELECT, (query, parameters), {}, future)
         self._in_queue.put(request)
         return future
-    
+
     def _select_handler(self, query, parameters):
         result = self.cursor.execute(query, parameters)
         result_lst = []
         for row in result:
             result_lst.append(row)
         return result_lst
-    
+
     def commit(self):
         future = Future()
         request = (COMMIT, None, None, future)
@@ -350,57 +350,58 @@ class SQLiteExecutor(Process):
 
     def _commit_handler(self):
         return self.conn.commit()
-        
+
     def stop(self):
         future = Future()
         request = (POISON, None, None, future)
         self._in_queue.put(request)
         return future
-    
-    def setup(self, filename, autocommit=False, journal_mode='OFF',
-              cache_size=2000):
+
+    def setup(self, filename, autocommit=False, journal_mode="OFF", cache_size=2000):
         """
         Request the process to perform a setup.
         """
         future = Future()
-        request = (SETUP,
-                   (filename,),
-                   {'autocommit': autocommit,
-                    'journal_mode': journal_mode,
-                    'cache_size': autocommit},
-                   future)
+        request = (
+            SETUP,
+            (filename,),
+            {
+                "autocommit": autocommit,
+                "journal_mode": journal_mode,
+                "cache_size": autocommit,
+            },
+            future,
+        )
         self._in_queue.put(request)
         return future
-    
-    def _setup_handler(self, filename, autocommit=False, journal_mode='OFF',
-                       cache_size=2000):
+
+    def _setup_handler(
+        self, filename, autocommit=False, journal_mode="OFF", cache_size=2000
+    ):
         # Convert the filename to UTF-8, this is needed for windows, and special
         # characters, see:
         # http://www.sqlite.org/c3ref/open.html
-        unicode_filename = filename.decode(sys.getfilesystemencoding())
-        filename = unicode_filename.encode("utf-8")
         self.filename = replace_file_special_chars(filename)
 
         self.autocommit = autocommit
         self.journal_mode = journal_mode
         self.cache_size = cache_size
-        
+
         #
         #    Setup phase
         #
         if self.autocommit:
-            conn = sqlite3.connect(self.filename,
-                                   isolation_level=None,
-                                   check_same_thread=True)
+            conn = sqlite3.connect(
+                self.filename, isolation_level=None, check_same_thread=True
+            )
         else:
-            conn = sqlite3.connect(self.filename,
-                                   check_same_thread=True)
-        
-        conn.execute('PRAGMA journal_mode = %s' % self.journal_mode)
-        conn.execute('PRAGMA cache_size = %s' % self.cache_size)
+            conn = sqlite3.connect(self.filename, check_same_thread=True)
+
+        conn.execute("PRAGMA journal_mode = %s" % self.journal_mode)
+        conn.execute("PRAGMA cache_size = %s" % self.cache_size)
         conn.text_factory = str
         self.conn = conn
-        
+
         self.cursor = conn.cursor()
 
         # Commented line to be: Slower but (hopefully) without malformed
@@ -412,7 +413,7 @@ class SQLiteExecutor(Process):
         # files, but I'll keep it anyways because I'm assuming that it's going
         # to reduce (not to zero, but reduce) these issues.
         #
-        #self.cursor.execute('PRAGMA synchronous=OFF')
+        # self.cursor.execute('PRAGMA synchronous=OFF')
 
     def run(self):
         """
@@ -428,12 +429,14 @@ class SQLiteExecutor(Process):
 
         The Queue.get() will make sure we don't have 100% CPU usage in the loop
         """
-        OP_CODES = {SETUP: self._setup_handler,
-                    QUERY: self._query_handler,
-                    SELECT: self._select_handler,
-                    COMMIT: self._commit_handler,
-                    POISON: POISON}
-        
+        OP_CODES = {
+            SETUP: self._setup_handler,
+            QUERY: self._query_handler,
+            SELECT: self._select_handler,
+            COMMIT: self._commit_handler,
+            POISON: POISON,
+        }
+
         while True:
             op_code, args, kwds, future = self._in_queue.get()
 
@@ -446,8 +449,8 @@ class SQLiteExecutor(Process):
 
             if self.DEBUG:
                 self._report_qsize()
-                #print('%s %s %s' % (op_code, args, kwds))
-            
+                # print('%s %s %s' % (op_code, args, kwds))
+
             handler = OP_CODES.get(op_code, None)
 
             if not future.set_running_or_notify_cancel():
@@ -457,7 +460,7 @@ class SQLiteExecutor(Process):
                 # Invalid OPCODE
                 future.set_result(False)
                 continue
-            
+
             if handler == POISON:
                 self._poison_pill_received = True
                 future.set_result(True)
@@ -468,10 +471,10 @@ class SQLiteExecutor(Process):
             except sqlite3.OperationalError as e:
                 # I don't like this string match, but it seems that the
                 # exception doesn't have any error code to match
-                if 'no such table' in str(e):
+                if "no such table" in str(e):
                     dbe = NoSuchTableException(str(e))
 
-                elif 'malformed' in str(e):
+                elif "malformed" in str(e):
                     print(DB_MALFORMED_ERROR)
                     dbe = MalformedDBException(DB_MALFORMED_ERROR)
 
@@ -494,20 +497,20 @@ temp_default_db = None
 
 def clear_default_temp_db_instance():
     global temp_default_db
-    
+
     if temp_default_db is not None:
         temp_default_db.close()
         temp_default_db = None
-        os.unlink('%s/main.db' % get_temp_dir())
+        os.unlink("%s/main.db" % get_temp_dir())
 
 
 def get_default_temp_db_instance():
     global temp_default_db
-    
+
     if temp_default_db is None:
         create_temp_dir()
-        temp_default_db = SQLiteDBMS('%s/main.db' % get_temp_dir())
-        
+        temp_default_db = SQLiteDBMS("%s/main.db" % get_temp_dir())
+
     return temp_default_db
 
 

@@ -18,27 +18,41 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 from io import StringIO
 
 
-class NamedStringIO(StringIO, str):
+class NamedStringIO(str):
     """
     A file-like string.
     """
-    def __new__(cls, *args, **kwargs):
-        return super(NamedStringIO, cls).__new__(cls, args[0])
+
+    def __new__(cls, the_str, name):
+        return super().__new__(cls, the_str)
 
     def __init__(self, the_str, name):
-        super(NamedStringIO, self).__init__(the_str)
+        self._stream = StringIO(the_str)
         self._name = name
 
-    # pylint: disable=E0202
     @property
     def name(self):
         return self._name
 
+    @property
+    def closed(self):
+        return self._stream.closed
 
-FILE_ATTRS = ('read', 'write', 'name', 'seek', 'closed')
+    def read(self, size=-1):
+        return self._stream.read(size)
+
+    def write(self, value):
+        return self._stream.write(value)
+
+    def seek(self, offset, whence=0):
+        return self._stream.seek(offset, whence)
+
+
+FILE_ATTRS = ("read", "write", "name", "seek", "closed")
 
 
 def is_file_like(f):

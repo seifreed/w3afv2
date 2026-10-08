@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 headers.py
 
@@ -19,12 +18,11 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
-import string
 
 from w3af.core.data.constants.encodings import UTF8
 from w3af.core.data.dc.generic.nr_kv_container import NonRepeatKeyValueContainer
-from w3af.core.data.misc.encoding import smart_unicode
 from w3af.core.data.dc.utils.token import DataToken
+from w3af.core.data.misc.encoding import smart_unicode
 
 
 class Headers(NonRepeatKeyValueContainer):
@@ -33,15 +31,14 @@ class Headers(NonRepeatKeyValueContainer):
 
     :author: Javier Andalia (jandalia AT gmail DOT com)
     """
+
     def __init__(self, init_val=(), encoding=UTF8):
         cleaned_vals = self.clean_values(init_val)
 
-        super(Headers, self).__init__(cleaned_vals,
-                                      encoding,
-                                      relaxed_order=True)
+        super().__init__(cleaned_vals, encoding)
 
     def get_type(self):
-        return 'Headers'
+        return "Headers"
 
     @classmethod
     def from_string(cls, headers_str):
@@ -51,19 +48,19 @@ class Headers(NonRepeatKeyValueContainer):
             Content-Length: 123
         """
         res = []
-        split_str = headers_str.split('\r\n')
+        split_str = headers_str.split("\r\n")
         for one_header_line in split_str:
-            
+
             if not one_header_line:
                 continue
-            
-            name, value = one_header_line.split(':', 1)
-            
+
+            name, value = one_header_line.split(":", 1)
+
             # Escape the space after the ":"
             value = value[1:]
-            
+
             res.append((name, value))
-        
+
         return cls(res)
 
     def to_dict(self):
@@ -73,8 +70,9 @@ class Headers(NonRepeatKeyValueContainer):
         return dict([(k.lower(), v) for k, v in self.items()])
 
     def clean_values(self, init_val):
-        if isinstance(init_val, NonRepeatKeyValueContainer)\
-        or isinstance(init_val, dict):
+        if isinstance(init_val, NonRepeatKeyValueContainer) or isinstance(
+            init_val, dict
+        ):
             return init_val
 
         cleaned_vals = []
@@ -85,9 +83,9 @@ class Headers(NonRepeatKeyValueContainer):
             # have multiple header values like query strings and post-data
             if isinstance(value, str):
                 value = smart_unicode(value)
-            
+
             cleaned_vals.append((smart_unicode(key), value))
-        
+
         return cleaned_vals
 
     def tokens_to_value(self):
@@ -109,11 +107,10 @@ class Headers(NonRepeatKeyValueContainer):
         :param default: The default value to return if the header_name is not found
         :return: The value for a header given a name (be case insensitive)
         """
-        lower = string.lower
-        lower_header_name = lower(header_name)
+        lower_header_name = header_name.lower()
 
         for stored_header_name, value in self.items():
-            if lower_header_name == lower(stored_header_name):
+            if lower_header_name == stored_header_name.lower():
                 return value, stored_header_name
 
         return default, None
@@ -154,7 +151,7 @@ class Headers(NonRepeatKeyValueContainer):
         if isinstance(k, str):
             k = smart_unicode(k, encoding=self.encoding)
         else:
-            raise ValueError('Header name must be a string.')
+            raise ValueError("Header name must be a string.")
 
         if isinstance(v, str):
             v = smart_unicode(v, encoding=self.encoding)
@@ -162,9 +159,10 @@ class Headers(NonRepeatKeyValueContainer):
             encoded_str = smart_unicode(v.get_value(), encoding=self.encoding)
             v.set_value(encoded_str)
         else:
-            raise ValueError('Header value must be a string.')
+            raise ValueError("Header value must be a string.")
 
-        super(Headers, self).__setitem__(k, v)
+        super().__setitem__(k, v)
+
     # pylint: enable=E0102
 
     def __str__(self):
@@ -172,41 +170,41 @@ class Headers(NonRepeatKeyValueContainer):
         After getting some strange encoding errors I started to research about
         HTTP header encoding a little bit. The RFC mentions that special chars
         should be encoded using in RFC 2047, which in python is achieved with:
-        
+
             >>> from email.header import Header
             >>> h = Header()
             >>> h.append(u'á')
             >>> h.encode()
             '=?utf-8?b?w4PCoQ==?='
- 
+
         Also tested wget and curl:
             wget --header "X-MyHeader: à" moth
             curl --header "X-MyHeader: à" moth
-        
+
         And realized that both send the special char using a "simple" unicode
         encoding (which actually goes against the RFC).
-        
+
         Afterwards I created a test script in PHP, hosted it in my local Apache
         and analyzed what PHP got in each case. The test proved that neither
         PHP nor Apache decode the RFC 2047 and they DO ACCEPT the unicode
         encoded char.
-        
+
         To be sure we can send HTTP requests with special chars, which are
         then correctly read by Apache/PHP, we're going to mimic wget/curl.
-        
+
         :return: string representation of the Headers() object.
         """
-        header_str_unicode = self._to_str_with_separators(': ', '\r\n')
+        header_str_unicode = self._to_str_with_separators(": ", "\r\n")
         if header_str_unicode:
-            header_str_unicode += '\r\n'
+            header_str_unicode += "\r\n"
 
-        return header_str_unicode.encode('utf-8')
+        return header_str_unicode.encode("utf-8")
 
     def __unicode__(self):
         """
         :see: __str__ documentation.
         """
-        headers_unicode = self._to_str_with_separators(': ', '\r\n')
+        headers_unicode = self._to_str_with_separators(": ", "\r\n")
         if headers_unicode:
-            headers_unicode += '\r\n'
+            headers_unicode += "\r\n"
         return headers_unicode

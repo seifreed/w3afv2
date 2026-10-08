@@ -19,22 +19,22 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
-import time
-import threading
+
 import functools
+import threading
+import time
 
-# pylint: disable=E0401
-from darts.lib.utils.lru import LRUDict
 # pylint: enable=E0401
-
 import w3af.core.controllers.output_manager as om
-
 from w3af.core.controllers.core_helpers.not_found.response import FourOhFourResponse
-from w3af.core.data.misc.response_cache_key import quick_hash, ResponseCacheKeyCache
 from w3af.core.data.fuzzer.utils import rand_alnum
 
+# pylint: disable=E0401
+from w3af.core.data.misc.lru import LRUDict
+from w3af.core.data.misc.response_cache_key import ResponseCacheKeyCache, quick_hash
 
-class Decorator(object):
+
+class Decorator:
     def __get__(self, instance, instancetype):
         # https://stackoverflow.com/questions/5469956/python-decorator-self-is-mixed-up
         return functools.partial(self.__call__, instance)
@@ -89,13 +89,14 @@ class LRUCache404(Decorator):
             # thread modifies the cache and changes the __first item in
             # the cache.
             result = None
-            
+
         if result is not None:
-            self._log_success(http_response, result, 'URL')
+            self._log_success(http_response, result, "URL")
             return result
 
-        body_cache_key = self._response_cache_key_cache.get_response_cache_key(http_response,
-                                                                               clean_response=query)
+        body_cache_key = self._response_cache_key_cache.get_response_cache_key(
+            http_response, clean_response=query
+        )
 
         try:
             result = self._is_404_by_body_lru.get(body_cache_key, None)
@@ -106,7 +107,7 @@ class LRUCache404(Decorator):
             result = None
 
         if result is not None:
-            self._log_success(http_response, result, 'body')
+            self._log_success(http_response, result, "body")
             return result
 
         # Run the real is_404 function
@@ -134,7 +135,7 @@ class LRUCache404(Decorator):
     def _log_stats(self, http_response):
         if self._stats_total % self.STATS_EVERY == 0:
             rate = self._stats_from_cache / self._stats_total * 100
-            om.out.debug('The 404 cache has a %.2f %% hit rate' % rate)
+            om.out.debug("The 404 cache has a %.2f %% hit rate" % rate)
 
     def _log_success(self, http_response, result, cache_name):
         self._stats_from_cache += 1
@@ -142,16 +143,18 @@ class LRUCache404(Decorator):
         response_did = http_response.get_debugging_id()
         debugging_id = response_did if response_did is not None else rand_alnum(8)
 
-        is_is_not = 'is a 404' if result else 'is NOT a 404'
+        is_is_not = "is a 404" if result else "is NOT a 404"
 
         msg = '"%s" (id:%s, code:%s, len:%s, did:%s) %s [%s 404 cache]'
-        args = (http_response.get_url(),
-                http_response.id,
-                http_response.get_code(),
-                len(http_response.get_body()),
-                debugging_id,
-                is_is_not,
-                cache_name)
+        args = (
+            http_response.get_url(),
+            http_response.id,
+            http_response.get_code(),
+            len(http_response.get_body()),
+            debugging_id,
+            is_is_not,
+            cache_name,
+        )
         om.out.debug(msg % args)
 
         return False
@@ -237,8 +240,10 @@ class PreventMultipleThreads(Decorator):
 
             response_did = http_response.get_debugging_id()
             msg_args = (spent, id(event), call_key, response_did)
-            msg = ('Waited %.2f seconds in PreventMultipleThreads for event %s'
-                   ' and normalized path %s (did:%s)')
+            msg = (
+                "Waited %.2f seconds in PreventMultipleThreads for event %s"
+                " and normalized path %s (did:%s)"
+            )
             om.out.debug(msg % msg_args)
 
             if not wait_result:
@@ -252,9 +257,11 @@ class PreventMultipleThreads(Decorator):
                 #
                 # This will reduce the processing / HTTP requests, etc. for a
                 # scan that is most likely having really bad performance.
-                msg = ('is_404() took more than %s seconds to run on %s,'
-                       ' returning true to reduce CPU usage and HTTP requests.'
-                       ' This error is very rare and should be manually analyzed.')
+                msg = (
+                    "is_404() took more than %s seconds to run on %s,"
+                    " returning true to reduce CPU usage and HTTP requests."
+                    " This error is very rare and should be manually analyzed."
+                )
                 args = (self.TIMEOUT, http_response.get_uri())
                 om.out.error(msg % args)
                 return True

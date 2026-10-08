@@ -19,14 +19,14 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
-import urllib.request, urllib.parse, urllib.error
-import urllib.request, urllib.error, urllib.parse
-import mimetools
+
+import email.parser
 import io
+import urllib.request
+import urllib.response
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
-
 from w3af.core.data.url.helpers import new_no_content_resp
 
 
@@ -34,14 +34,14 @@ class BlacklistHandler(urllib.request.BaseHandler):
     """
     If the user blacklisted a URL, this handler will know about it and
     return an empty HTTP response.
-    
+
     This feature was in the extended_urllib.py module before, but the problem
     there was that any HTTP responses created and returned at that level did
     not pass through all the other configured handlers and in some cases
     this triggered bugs and errors.
     """
 
-    handler_order = urllib2.HTTPErrorProcessor.handler_order - 1
+    handler_order = urllib.request.HTTPErrorProcessor.handler_order - 1
 
     def __init__(self):
         self._blacklist_urls = None
@@ -52,12 +52,12 @@ class BlacklistHandler(urllib.request.BaseHandler):
         # Read the compiled regular expression to use to ignore URLs, this
         # might be None (when the user doesn't configure an ignore_regex)
         #
-        self._compiled_ignore_re = cf.cf.get('ignore_regex')
+        self._compiled_ignore_re = cf.cf.get("ignore_regex")
 
         #
         # Read the list of URLs to blacklist
         #
-        blacklist_http_request = cf.cf.get('blacklist_http_request') or []
+        blacklist_http_request = cf.cf.get("blacklist_http_request") or []
         self._blacklist_urls = {url.uri2url() for url in blacklist_http_request}
 
     def default_open(self, req):
@@ -77,9 +77,11 @@ class BlacklistHandler(urllib.request.BaseHandler):
             # This means: I don't know how to handle this, call the next opener
             return None
 
-        msg = ('%s was included in the HTTP request blacklist, the scan'
-               ' engine is NOT sending the HTTP request and is instead'
-               ' returning an empty response to the plugin.')
+        msg = (
+            "%s was included in the HTTP request blacklist, the scan"
+            " engine is NOT sending the HTTP request and is instead"
+            " returning an empty response to the plugin."
+        )
         om.out.debug(msg % uri)
 
         # Return a 204 response
@@ -104,11 +106,13 @@ class BlacklistHandler(urllib.request.BaseHandler):
 
 def http_response_to_httplib(no_content):
     header_string = io.StringIO(str(no_content.get_headers()))
-    headers = mimetools.Message(header_string)
-    
-    no_content = urllib.addinfourl(io.StringIO(no_content.get_body()),
-                                   headers,
-                                   no_content.get_url().url_string,
-                                   code=no_content.get_code())
-    no_content.msg = 'No content'
+    headers = email.parser.Parser().parsestr(header_string.getvalue())
+
+    no_content = urllib.response.addinfourl(
+        io.StringIO(no_content.get_body()),
+        headers,
+        no_content.get_url().url_string,
+        code=no_content.get_code(),
+    )
+    no_content.msg = "No content"
     return no_content

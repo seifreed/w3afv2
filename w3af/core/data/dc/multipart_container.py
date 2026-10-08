@@ -19,14 +19,14 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
-import cgi
-import io
+
+from email.parser import BytesParser
+from email.policy import default
 
 from w3af.core.data.dc.generic.form import Form
-from w3af.core.data.dc.utils.multipart import get_boundary, encode_as_multipart
+from w3af.core.data.dc.utils.multipart import encode_as_multipart, get_boundary
+from w3af.core.data.parsers.utils.form_constants import INPUT_TYPE_FILE, INPUT_TYPE_TEXT
 from w3af.core.data.parsers.utils.form_params import FormParameters
-from w3af.core.data.parsers.utils.form_constants import (INPUT_TYPE_TEXT,
-                                                         INPUT_TYPE_FILE)
 
 
 class MultipartContainer(Form):
@@ -35,34 +35,41 @@ class MultipartContainer(Form):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
-    MULTIPART_HEADER = 'multipart/form-data; boundary=%s'
+
+    MULTIPART_HEADER = "multipart/form-data; boundary=%s"
 
     def __init__(self, form_params=None):
-        super(MultipartContainer, self).__init__(form_params)
+        super().__init__(form_params)
 
         self.boundary = get_boundary()
 
     def get_type(self):
-        return 'Multipart/post'
+        return "Multipart/post"
 
     @staticmethod
     def content_type_matches(headers):
-        conttype, header_name = headers.iget('content-type', '')
-        return conttype.lower().startswith('multipart/form-data')
+        conttype, header_name = headers.iget("content-type", "")
+        return conttype.lower().startswith("multipart/form-data")
 
     @classmethod
     def from_postdata(cls, headers, post_data):
         if not MultipartContainer.content_type_matches(headers):
-            raise ValueError('No multipart content-type header.')
-
-        environ = {'REQUEST_METHOD': 'POST'}
+            raise ValueError("No multipart content-type header.")
 
         try:
-            fs = cgi.FieldStorage(fp=io.StringIO(post_data),
-                                  headers=headers.to_dict(),
-                                  environ=environ)
-        except ValueError:
-            raise ValueError('Failed to create MultipartContainer.')
+            content_type, _ = headers.iget("content-type", "")
+            if "\r" in content_type or "\n" in content_type:
+                raise ValueError("Invalid multipart content type")
+            message = BytesParser(policy=default).parsebytes(
+                (
+                    "MIME-Version: 1.0\r\n"
+                    f"Content-Type: {content_type}\r\n\r\n" + post_data
+                ).encode("latin-1")
+            )
+            if not message.is_multipart():
+                raise ValueError("Invalid multipart body")
+        except (UnicodeEncodeError, ValueError):
+            raise ValueError("Failed to create MultipartContainer.")
         else:
             # Please note that the FormParameters is just a container for
             # the information.
@@ -76,19 +83,24 @@ class MultipartContainer(Form):
             # boundary
             form_params = FormParameters()
 
-            for key in fs.list:
-                if key.filename is None:
-                    attrs = {'type': INPUT_TYPE_TEXT,
-                             'name': key.name,
-                             'value': key.file.read()}
+            for part in message.iter_parts():
+                name = part.get_param("name", header="content-disposition")
+                if name is None:
+                    continue
+                value = (part.get_payload(decode=True) or b"").decode("latin-1")
+                filename = part.get_filename()
+                if filename is None:
+                    attrs = {"type": INPUT_TYPE_TEXT, "name": name, "value": value}
                     form_params.add_field_by_attrs(attrs)
                 else:
-                    attrs = {'type': INPUT_TYPE_FILE,
-                             'name': key.name,
-                             'value': key.file.read(),
-                             'filename': key.filename}
+                    attrs = {
+                        "type": INPUT_TYPE_FILE,
+                        "name": name,
+                        "value": value,
+                        "filename": filename,
+                    }
                     form_params.add_field_by_attrs(attrs)
-                    form_params.set_file_name(key.name, key.filename)
+                    form_params.set_file_name(name, filename)
 
             return cls(form_params)
 
@@ -113,7 +125,7 @@ class MultipartContainer(Form):
                  get_headers(), we'll include these. Hopefully this means that
                  the required headers will make it to the wire.
         """
-        return [('Content-Type', self.MULTIPART_HEADER % self.boundary)]
+        return [("Content-Type", self.MULTIPART_HEADER % self.boundary)]
 
     def __str__(self):
         return encode_as_multipart(self, self.boundary)

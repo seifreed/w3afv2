@@ -19,17 +19,19 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import copy
-import cgi
+import html
 
 
-class BaseOption(object):
+class BaseOption:
     """
     This class represents an option.
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
-    def __init__(self, name, default_value, desc, _help='', tabid=''):
+
+    def __init__(self, name, default_value, desc, _help="", tabid=""):
         """
         :param name: The name of the option
         :param default_value: The default value of the option
@@ -150,15 +152,15 @@ class BaseOption(object):
         # FIXME: Not 100% sure about this...
         # I should also kill the \a and other strange escapes...
         # Maybe there is already a function that does this!
-        value = cgi.escape(value)
-        value = value.replace('"', '&quot;')
+        value = html.escape(value, quote=False)
+        value = value.replace('"', "&quot;")
         return value
 
     def __repr__(self):
         """
         A nice way of printing your object =)
         """
-        fmt = '<option name:%s|type:%s|value:%s>'
+        fmt = "<option name:%s|type:%s|value:%s>"
         return fmt % (self._name, self._type, self._value)
 
     def __eq__(self, other):

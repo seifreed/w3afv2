@@ -19,20 +19,20 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
-import time
+
 import hashlib
 import threading
+import time
 
-# pylint: disable=E0401
-from darts.lib.utils.lru import SynchronizedLRUDict
 # pylint: enable=E0401
-
 import w3af.core.controllers.output_manager as om
-
 from w3af.core.data.misc.encoding import smart_str_ignore
 
+# pylint: disable=E0401
+from w3af.core.data.misc.lru import SynchronizedLRUDict
 
-class GetAverageRTTForMutant(object):
+
+class GetAverageRTTForMutant:
 
     TIMEOUT = 120
 
@@ -53,7 +53,7 @@ class GetAverageRTTForMutant(object):
         headers = mutant.get_all_headers()
 
         cache_key_parts = [method, uri, data, headers]
-        cache_key_str = ''.join([smart_str_ignore(i) for i in cache_key_parts])
+        cache_key_str = "".join([smart_str_ignore(i) for i in cache_key_parts])
 
         m = hashlib.md5()
         m.update(cache_key_str)
@@ -72,7 +72,7 @@ class GetAverageRTTForMutant(object):
         :param debugging_id: Unique ID used for logging
         :return: A float representing the seconds it took to get the response
         """
-        assert count >= 3, 'Count must be greater or equal than 3.'
+        assert count >= 3, "Count must be greater or equal than 3."
 
         #
         # First we try to get the data from the cache
@@ -101,9 +101,11 @@ class GetAverageRTTForMutant(object):
                 # We're going to have to try to get the RTT ourselves by sending
                 # the HTTP requests. Just `pass` here and get to the code below
                 # that sends the HTTP requests
-                msg = ('get_average_rtt_for_mutant() timed out waiting for'
-                       ' results from another thread. Will send HTTP requests'
-                       ' and collect the data from the network (did:%s)')
+                msg = (
+                    "get_average_rtt_for_mutant() timed out waiting for"
+                    " results from another thread. Will send HTTP requests"
+                    " and collect the data from the network (did:%s)"
+                )
                 args = (debugging_id,)
                 om.out.debug(msg % args)
             else:
@@ -121,9 +123,11 @@ class GetAverageRTTForMutant(object):
                 if cached_rtt is not None:
                     return cached_rtt
 
-                msg = ('get_average_rtt_for_mutant() found no cache entry after'
-                       ' the other thread finished. Will send HTTP requests'
-                       ' and collect the data from the network (did:%s)')
+                msg = (
+                    "get_average_rtt_for_mutant() found no cache entry after"
+                    " the other thread finished. Will send HTTP requests"
+                    " and collect the data from the network (did:%s)"
+                )
                 args = (debugging_id,)
                 om.out.debug(msg % args)
 
@@ -135,16 +139,15 @@ class GetAverageRTTForMutant(object):
         self._rtt_processing_events[cache_key] = event
 
         try:
-            average_rtt = self._get_average_rtt_for_mutant(mutant,
-                                                           count=count,
-                                                           debugging_id=debugging_id)
-            self._rtt_mutant_cache[cache_key] = (time.time(),
-                                                 average_rtt)
+            average_rtt = self._get_average_rtt_for_mutant(
+                mutant, count=count, debugging_id=debugging_id
+            )
+            self._rtt_mutant_cache[cache_key] = (time.time(), average_rtt)
         finally:
             event.set()
             self._rtt_processing_events.pop(event, None)
 
-        msg = 'Returning fresh average RTT of %.2f seconds for mutant %s (did:%s)'
+        msg = "Returning fresh average RTT of %.2f seconds for mutant %s (did:%s)"
         args = (average_rtt, cache_key, debugging_id)
         om.out.debug(msg % args)
 
@@ -161,7 +164,7 @@ class GetAverageRTTForMutant(object):
             return None
 
         # The cache entry is still valid, return the cached value
-        msg = 'Returning cached average RTT of %.2f seconds for mutant %s (did:%s)'
+        msg = "Returning cached average RTT of %.2f seconds for mutant %s (did:%s)"
         args = (value, cache_key, debugging_id)
         om.out.debug(msg % args)
         return value
@@ -178,8 +181,8 @@ class GetAverageRTTForMutant(object):
             # continue the average_rtt will be completely invalid and
             # potentially yield false positives
             #
-            rtts_str = ', '.join(str(i) for i in rtts)
-            msg = 'Found outliers while sampling average RTT: %s' % rtts_str
+            rtts_str = ", ".join(str(i) for i in rtts)
+            msg = "Found outliers while sampling average RTT: %s" % rtts_str
             raise OutlierException(msg)
 
         average_rtt = float(sum(rtts)) / len(rtts)
@@ -195,10 +198,9 @@ class GetAverageRTTForMutant(object):
         rtts = []
 
         for _ in range(count):
-            resp = self._url_opener.send_mutant(mutant,
-                                                cache=False,
-                                                grep=False,
-                                                debugging_id=debugging_id)
+            resp = self._url_opener.send_mutant(
+                mutant, cache=False, grep=False, debugging_id=debugging_id
+            )
             rtt = resp.get_wait_time()
             rtts.append(rtt)
 

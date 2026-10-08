@@ -19,14 +19,15 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
-import re
-import esmre
 
-from acora import AcoraBuilder
+import re
+
+from multiregex import RegexMatcher
+
 from w3af.core.data.constants.encodings import DEFAULT_ENCODING
 
 
-class MultiRE(object):
+class MultiRE:
 
     def __init__(self, regexes_or_assoc, re_compile_flags=0, hint_len=3):
         """
@@ -54,16 +55,16 @@ class MultiRE(object):
         self._regexes_or_assoc = regexes_or_assoc
         self._re_compile_flags = re_compile_flags
         self._hint_len = hint_len
-        self._translator = dict()
-        self._re_cache = dict()
-        self._keyword_to_re = dict()
-        self._regexes_with_no_keywords = list()
-        self._acora = self._build()
+        self._translator = {}
+        self._re_cache = {}
+        self._regexes_with_no_keywords = []
+        self._matcher_to_regexes = {}
+        self._matcher = self._build()
 
     def _build(self):
-        builder = AcoraBuilder()
+        matcher_patterns = []
 
-        for idx, item in enumerate(self._regexes_or_assoc):
+        for item in self._regexes_or_assoc:
 
             #
             #   First we compile all regular expressions and save them to
@@ -71,47 +72,37 @@ class MultiRE(object):
             #
             if isinstance(item, tuple):
                 regex = item[0]
-                regex = regex.encode(DEFAULT_ENCODING)
                 self._re_cache[regex] = re.compile(regex, self._re_compile_flags)
 
                 if regex in self._translator:
-                    raise ValueError('Duplicated regex "%s"' % regex)
+                    raise ValueError(f'Duplicated regex "{regex}"')
 
                 self._translator[regex] = item[1:]
             elif isinstance(item, str):
-                regex = item.encode(DEFAULT_ENCODING)
+                regex = item
                 self._re_cache[regex] = re.compile(regex, self._re_compile_flags)
             else:
-                raise ValueError('Can NOT build MultiRE with provided values.')
+                raise TypeError("Can NOT build MultiRE with provided values.")
 
-            #
-            #   Now we extract the string literals (longer than hint_len only) from
-            #   the regular expressions and populate the acora index
-            #
-            regex_hints = esmre.hints(regex)
-            regex_keywords = esmre.shortlist(regex_hints)
+            matcher_regex = self._re_cache[regex]
+            try:
+                prematchers = RegexMatcher.generate_prematchers(matcher_regex)
+            except ValueError:
+                prematchers = set()
+            prematchers = {
+                prematcher
+                for prematcher in prematchers
+                if len(prematcher.encode(DEFAULT_ENCODING)) > self._hint_len
+            }
 
-            if not regex_keywords:
+            if not prematchers:
                 self._regexes_with_no_keywords.append(regex)
-                continue
+            matcher_patterns.append((matcher_regex, prematchers))
+            self._matcher_to_regexes.setdefault(matcher_regex, []).append(regex)
 
-            # Get the longest one
-            regex_keyword = regex_keywords[0]
-
-            if len(regex_keyword) <= self._hint_len:
-                self._regexes_with_no_keywords.append(regex)
-                continue
-
-            # Add this keyword to the acora index, and also save a way to associate the
-            # keyword with the regular expression
-            regex_keyword = regex_keyword.lower()
-            builder.add(regex_keyword)
-
-            regexes_matching_keyword = self._keyword_to_re.get(regex_keyword, [])
-            regexes_matching_keyword.append(regex)
-            self._keyword_to_re[regex_keyword] = regexes_matching_keyword
-
-        return builder.build()
+        if not any(prematchers for _, prematchers in matcher_patterns):
+            return None
+        return RegexMatcher(matcher_patterns)
 
     def query(self, target_str):
         """
@@ -125,37 +116,28 @@ class MultiRE(object):
         :yield: (match_obj, re_str_N, compiled_regex)
         """
         if isinstance(target_str, str):
-            target_str = target_str.encode(DEFAULT_ENCODING)
+            matcher_target = target_str
+        else:
+            matcher_target = target_str.decode(DEFAULT_ENCODING, "surrogateescape")
 
-        #
-        #   Match the regular expressions that have keywords and those
-        #   keywords are found in the target string by acora
-        #
-        seen = set()
-        target_str = target_str.lower()
+        if self._matcher is None:
+            regexes = self._re_cache
+        else:
+            candidate_patterns = self._matcher.get_pattern_candidates(matcher_target)
+            candidate_counts = {}
+            regexes = []
+            for candidate_pattern in candidate_patterns:
+                candidate_index = candidate_counts.get(candidate_pattern, 0)
+                regexes.append(
+                    self._matcher_to_regexes[candidate_pattern][candidate_index]
+                )
+                candidate_counts[candidate_pattern] = candidate_index + 1
 
-        for match, position in self._acora.finditer(target_str):
-            if match in seen:
-                continue
-
-            seen.add(match)
-
-            for regex in self._keyword_to_re[match]:
-                compiled_regex = self._re_cache[regex]
-
-                matchobj = compiled_regex.search(target_str)
-                if matchobj:
-                    yield self._create_output(matchobj, regex, compiled_regex)
-
-        #
-        #   Match the regular expressions that don't have any keywords
-        #
-        for regex_without_keyword in self._regexes_with_no_keywords:
-            compiled_regex = self._re_cache[regex_without_keyword]
-
-            matchobj = compiled_regex.search(target_str)
+        for regex in regexes:
+            compiled_regex = self._re_cache[regex]
+            matchobj = compiled_regex.search(matcher_target.lower())
             if matchobj:
-                yield self._create_output(matchobj, regex_without_keyword, compiled_regex)
+                yield self._create_output(matchobj, regex, compiled_regex)
 
     def _create_output(self, matchobj, regex, compiled_regex):
         extra_data = self._translator.get(regex, None)

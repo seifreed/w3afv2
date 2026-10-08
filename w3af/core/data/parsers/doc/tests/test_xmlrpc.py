@@ -19,12 +19,12 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
+import html
 import unittest
 import xml.sax
-import cgi
 
 from w3af.core.data.parsers.doc.xmlrpc import XmlRpcReadHandler, XmlRpcWriteHandler
-
 
 XML_WITH_FUZZABLE = """\
 <methodCall>
@@ -65,7 +65,7 @@ class TestXMLRPC(unittest.TestCase):
         handler = XmlRpcReadHandler()
         xml.sax.parseString(XML_WITH_FUZZABLE, handler)
 
-        EXPECTED = [('string', ['Foo bar']), ('base64', ['Spam eggs'])]
+        EXPECTED = [("string", ["Foo bar"]), ("base64", [b"Spam eggs"])]
 
         self.assertEqual(list(handler.get_data_container().items()), EXPECTED)
 
@@ -74,12 +74,12 @@ class TestXMLRPC(unittest.TestCase):
         xml.sax.parseString(XML_WITH_FUZZABLE, handler)
 
         data_container = handler.get_data_container()
-        payload = '<script>alert(1)</script>'
-        data_container['string'][0] = payload
+        payload = "<script>alert(1)</script>"
+        data_container["string"][0] = payload
 
         handler = XmlRpcWriteHandler(data_container)
 
-        fuzzed = XML_WITH_FUZZABLE.replace('Foo bar', cgi.escape(payload))
+        fuzzed = XML_WITH_FUZZABLE.replace("Foo bar", html.escape(payload, quote=False))
 
         xml.sax.parseString(XML_WITH_FUZZABLE, handler)
         self.assertEqual(handler.fuzzed_xml_string, fuzzed)

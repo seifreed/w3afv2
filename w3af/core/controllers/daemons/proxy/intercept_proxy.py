@@ -19,11 +19,11 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
-import re
-import queue
 
-from w3af.core.controllers.daemons.proxy import Proxy
-from w3af.core.controllers.daemons.proxy import InterceptProxyHandler
+import queue
+import re
+
+from w3af.core.controllers.daemons.proxy import InterceptProxyHandler, Proxy
 from w3af.core.controllers.exceptions import ProxyException
 
 
@@ -33,8 +33,8 @@ class InterceptProxy(Proxy):
     interface to perform all its magic ;)
     """
 
-    DEFAULT_NO_TRAP = '.*\.(gif|jpg|png|css|js|ico|swf|axd|tif)$'
-    DEFAULT_TRAP = '.*'
+    DEFAULT_NO_TRAP = r".*\.(gif|jpg|png|css|js|ico|swf|axd|tif)$"
+    DEFAULT_TRAP = ".*"
 
     def __init__(self, ip, port, url_opener):
         """
@@ -43,9 +43,14 @@ class InterceptProxy(Proxy):
         :param url_opener: The urlOpener that will be used to open the requests
                           that arrive from the browser
         """
-        Proxy.__init__(self, ip, port, url_opener,
-                       handler_klass=InterceptProxyHandler,
-                       name='LocalProxyThread')
+        Proxy.__init__(
+            self,
+            ip,
+            port,
+            url_opener,
+            handler_klass=InterceptProxyHandler,
+            name="LocalProxyThread",
+        )
 
         # Internal vars
         self.requests_pending_modification = queue.Queue()
@@ -57,9 +62,10 @@ class InterceptProxy(Proxy):
         self.what_not_to_trap = re.compile(self.DEFAULT_NO_TRAP)
         self.trap = False
 
-        # Forward to handler
-        # pylint: disable=E1103
-        self.on_request_edit_finished = self._master.on_request_edit_finished
+    def on_request_edit_finished(self, orig_http_request, head, post_data):
+        return self._handler.on_request_edit_finished(
+            orig_http_request, head, post_data
+        )
 
     def get_trapped_request(self):
         """
@@ -78,7 +84,7 @@ class InterceptProxy(Proxy):
         try:
             self.what_to_trap = re.compile(regex)
         except re.error:
-            error = 'The regular expression you configured is invalid.'
+            error = "The regular expression you configured is invalid."
             raise ProxyException(error)
 
     def set_methods_to_trap(self, methods):
@@ -95,7 +101,7 @@ class InterceptProxy(Proxy):
         try:
             self.what_not_to_trap = re.compile(regex)
         except re.error:
-            error = 'The regular expression you configured is invalid.'
+            error = "The regular expression you configured is invalid."
             raise ProxyException(error)
 
     def set_trap(self, trap):
@@ -111,5 +117,4 @@ class InterceptProxy(Proxy):
         """
         Let the handler know that the request was dropped.
         """
-        # pylint: disable=E1103
-        return self._master.on_request_drop(http_request)
+        return self._handler.on_request_drop(http_request)

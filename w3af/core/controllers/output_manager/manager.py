@@ -19,20 +19,21 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
-import os
-import sys
-import time
-import queue
-import threading
 
-from multiprocessing.dummy import Process
+import multiprocessing
+import os
+import queue
+import sys
+import threading
+import time
 from functools import wraps
+from multiprocessing.dummy import Process
 
 from w3af import ROOT_PATH
-from w3af.core.controllers.misc.factory import factory
-from w3af.core.controllers.threads.threadpool import Pool
 from w3af.core.controllers.core_helpers.consumers.constants import POISON_PILL
+from w3af.core.controllers.misc.factory import factory
 from w3af.core.controllers.threads.silent_joinable_queue import SilentJoinableQueue
+from w3af.core.controllers.threads.threadpool import Pool
 from w3af.core.data.constants.encodings import UTF8
 
 
@@ -46,6 +47,7 @@ def start_thread_on_demand(func):
     printed using the om (see functions below), which ends up with unordered
     messages printed to the console.
     """
+
     @wraps(func)
     def od_wrapper(*args, **kwds):
         from w3af.core.controllers.output_manager import manager
@@ -100,9 +102,9 @@ class OutputManager(Process):
     start_lock = threading.RLock()
 
     def __init__(self):
-        super(OutputManager, self).__init__(name='OutputManager')
+        super().__init__(name="OutputManager")
         self.daemon = True
-        self.name = 'OutputManager'
+        self.name = "OutputManager"
 
         # User configured options
         self._output_plugin_instances = []
@@ -110,7 +112,7 @@ class OutputManager(Process):
         self._plugin_options = {}
 
         # Internal variables
-        self.in_queue = SilentJoinableQueue()
+        self.in_queue = SilentJoinableQueue(ctx=multiprocessing.get_context())
         self._w3af_core = None
         self._last_output_flush = None
         self._is_shutting_down = False
@@ -120,9 +122,11 @@ class OutputManager(Process):
         self._w3af_core = w3af_core
 
     def get_worker_pool(self):
-        return Pool(self.WORKER_THREADS,
-                    worker_names='OutputManagerWorkerThread',
-                    max_queued_tasks=self.WORKER_THREADS * 10)
+        return Pool(
+            self.WORKER_THREADS,
+            worker_names="OutputManagerWorkerThread",
+            max_queued_tasks=self.WORKER_THREADS * 10,
+        )
 
     def get_in_queue(self):
         """
@@ -137,7 +141,7 @@ class OutputManager(Process):
     def start(self):
         with self.start_lock:
             if not self.is_alive():
-                super(OutputManager, self).start()
+                super().start()
 
     def run(self):
         """
@@ -155,10 +159,8 @@ class OutputManager(Process):
                 # The queue which we're consuming ended abruptly, this is
                 # usually a side effect of the process ending and
                 # multiprocessing not handling things cleanly
-                try:
-                    self.in_queue.task_done()
-                finally:
-                    break
+                self.in_queue.task_done()
+                break
 
             if work_unit == POISON_PILL:
                 # This is added at fresh_output_manager_inst
@@ -210,8 +212,7 @@ class OutputManager(Process):
         self.update_last_output_flush()
 
         for o_plugin in self._output_plugin_instances:
-            pool.apply_async(func=self.__inner_flush_plugin_output,
-                             args=(o_plugin,))
+            pool.apply_async(func=self.__inner_flush_plugin_output, args=(o_plugin,))
 
     def __inner_flush_plugin_output(self, o_plugin):
         """
@@ -232,9 +233,11 @@ class OutputManager(Process):
         if o_plugin.is_running_flush:
             import w3af.core.controllers.output_manager as om
 
-            msg = ('The %s plugin is still running flush(), the output'
-                   ' manager will not call flush() again to give the'
-                   ' plugin time to finish.')
+            msg = (
+                "The %s plugin is still running flush(), the output"
+                " manager will not call flush() again to give the"
+                " plugin time to finish."
+            )
             args = (o_plugin.get_name(),)
             om.out.debug(msg % args)
             return
@@ -258,7 +261,8 @@ class OutputManager(Process):
             args = (o_plugin.get_name(), spent_time)
 
             import w3af.core.controllers.output_manager as om
-            om.out.debug('%s.flush() took %.2fs to run' % args)
+
+            om.out.debug("%s.flush() took %.2fs to run" % args)
 
     def _handle_output_plugin_exception(self, o_plugin, exception):
         if self._w3af_core is None:
@@ -279,15 +283,14 @@ class OutputManager(Process):
             pass
 
         status = FakeStatus(self._w3af_core)
-        status.set_current_fuzzable_request('output', 'n/a')
-        status.set_running_plugin('output', o_plugin.get_name(),
-                                  log=False)
+        status.set_current_fuzzable_request("output", "n/a")
+        status.set_running_plugin("output", o_plugin.get_name(), log=False)
 
         exec_info = sys.exc_info()
-        enabled_plugins = 'n/a'
-        self._w3af_core.exception_handler.handle(status, exception,
-                                                 exec_info,
-                                                 enabled_plugins)
+        enabled_plugins = "n/a"
+        self._w3af_core.exception_handler.handle(
+            status, exception, exec_info, enabled_plugins
+        )
 
     def should_flush(self):
         """
@@ -368,8 +371,9 @@ class OutputManager(Process):
         # Remember that the gtk_output plugin disappeared and was moved to
         # core.ui.output
         currently_enabled_plugins = self.get_output_plugins()
-        keep_enabled = [pname for pname in currently_enabled_plugins
-                        if pname in ('console',)]
+        keep_enabled = [
+            pname for pname in currently_enabled_plugins if pname in ("console",)
+        ]
         self.set_output_plugins(keep_enabled)
 
         # Process messages again, we removed the plugins which were ended
@@ -395,11 +399,11 @@ class OutputManager(Process):
         """
         Internal method used to invoke the requested action on each plugin
         in the output plugin list.
-        
+
         A caller to any of the METHODS can specify that the call he's doing
         should NOT go to a specific plugin set specified in the ignore_plugins
         keyword argument.
-        
+
         """
         encoded_params = []
 
@@ -413,12 +417,12 @@ class OutputManager(Process):
         # before sending to a file, we do it here
         for arg in args:
             if isinstance(arg, str):
-                arg = arg.encode(UTF8, 'replace')
+                arg = arg.encode(UTF8, "replace")
 
             encoded_params.append(arg)
 
         args = tuple(encoded_params)
-        
+
         # A caller to any of the METHODS can specify that the call he's doing
         # should NOT go to a specific plugin set specified in the ignore_plugins
         # keyword argument
@@ -433,13 +437,13 @@ class OutputManager(Process):
         #
         #    om.out.error(msg, ignore_plugins=set([self.get_name()])
         #
-        ignored_plugins = kwds.pop('ignore_plugins', set())
+        ignored_plugins = kwds.pop("ignore_plugins", set())
 
         for o_plugin in self._output_plugin_instances:
-            
+
             if o_plugin.get_name() in ignored_plugins:
                 continue
-            
+
             try:
                 opl_func_ptr = getattr(o_plugin, action_name)
                 opl_func_ptr(*args, **kwds)
@@ -451,7 +455,7 @@ class OutputManager(Process):
 
     def get_output_plugin_inst(self):
         return self._output_plugin_instances
-        
+
     def set_output_plugins(self, output_plugins):
         """
         :param output_plugins: A list with the names of Output Plugins that
@@ -485,12 +489,12 @@ class OutputManager(Process):
         :param output_plugin_name: The name of the plugin to add to the list.
         :return: No value is returned.
         """
-        if output_plugin_name == 'all':
-            file_list = os.listdir(os.path.join(ROOT_PATH, 'plugins', 'output'))
+        if output_plugin_name == "all":
+            file_list = os.listdir(os.path.join(ROOT_PATH, "plugins", "output"))
 
             sext = os.path.splitext
-            str_req_plugins = [sext(f)[0] for f in file_list if sext(f)[1] == '.py']
-            str_req_plugins.remove('__init__')
+            str_req_plugins = [sext(f)[0] for f in file_list if sext(f)[1] == ".py"]
+            str_req_plugins.remove("__init__")
 
             for plugin_name in str_req_plugins:
                 plugin = self._get_plugin_instance(plugin_name)
@@ -501,7 +505,7 @@ class OutputManager(Process):
             self._output_plugin_instances.append(plugin)
 
     def _get_plugin_instance(self, plugin_name):
-        plugin = factory('w3af.plugins.output.%s' % plugin_name)
+        plugin = factory("w3af.plugins.output.%s" % plugin_name)
         plugin.set_w3af_core(self._w3af_core)
 
         if plugin_name in list(self._plugin_options.keys()):

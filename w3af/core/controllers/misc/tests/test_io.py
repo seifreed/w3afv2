@@ -19,14 +19,18 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from w3af.core.controllers.misc.io import NamedStringIO
 
+
 class TestIO(unittest.TestCase):
-    
+
     def test_named_string_io(self):
-        content = 'content'
-        name = 'name'
+        content = "content"
+        name = "name"
         ns_io = NamedStringIO(content, name)
         self.assertEqual(str(ns_io), content)
+        self.assertEqual(ns_io.read(), content)
+        self.assertEqual(ns_io.name, name)

@@ -19,26 +19,27 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import sys
-import time
 import threading
+import time
 
-# pylint: disable=E0401
-from darts.lib.utils.lru import SynchronizedLRUDict
-# pylint: enable=E0401
-
-import w3af.core.data.kb.config as cf
 import w3af.core.controllers.output_manager as om
 
-from w3af.core.controllers.profiling.took_helper import TookLine
+# pylint: enable=E0401
+import w3af.core.data.kb.config as cf
 from w3af.core.controllers.core_helpers.consumers.base_consumer import BaseConsumer
 from w3af.core.controllers.core_helpers.status import CoreStatus
+from w3af.core.controllers.profiling.took_helper import TookLine
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.db.history import HistoryItem
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.misc.response_cache_key import ResponseCacheKeyCache
 from w3af.core.data.misc.encoding import smart_str_ignore
+
+# pylint: disable=E0401
+from w3af.core.data.misc.lru import SynchronizedLRUDict
+from w3af.core.data.misc.response_cache_key import ResponseCacheKeyCache
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
 class grep(BaseConsumer):
@@ -50,17 +51,21 @@ class grep(BaseConsumer):
     LOG_QUEUE_SIZES_EVERY = 25
     REPORT_GREP_STATS_EVERY = 25
 
-    EXCLUDE_HEADERS_FOR_HASH = tuple(['date',
-                                      'expires',
-                                      'last-modified',
-                                      'etag',
-                                      'x-request-id',
-                                      'x-content-duration',
-                                      'x-execution-time',
-                                      'x-requestid',
-                                      'content-length',
-                                      'cf-ray',
-                                      'set-cookie'])
+    EXCLUDE_HEADERS_FOR_HASH = tuple(
+        [
+            "date",
+            "expires",
+            "last-modified",
+            "etag",
+            "x-request-id",
+            "x-content-duration",
+            "x-execution-time",
+            "x-requestid",
+            "content-length",
+            "cf-ray",
+            "set-cookie",
+        ]
+    )
 
     def __init__(self, grep_plugins, w3af_core):
         """
@@ -82,13 +87,15 @@ class grep(BaseConsumer):
         # for a worker from the pool to be available
         max_pool_queued_tasks = thread_pool_size * 3
 
-        super(grep, self).__init__(grep_plugins,
-                                   w3af_core,
-                                   create_pool=True,
-                                   max_pool_queued_tasks=max_pool_queued_tasks,
-                                   thread_pool_size=thread_pool_size,
-                                   thread_name=self.get_name(),
-                                   max_in_queue_size=max_in_queue_size)
+        super().__init__(
+            grep_plugins,
+            w3af_core,
+            create_pool=True,
+            max_pool_queued_tasks=max_pool_queued_tasks,
+            thread_pool_size=thread_pool_size,
+            thread_name=self.get_name(),
+            max_in_queue_size=max_in_queue_size,
+        )
 
         self._already_analyzed_body = ScalableBloomFilter()
         self._already_analyzed_url = ScalableBloomFilter()
@@ -96,7 +103,9 @@ class grep(BaseConsumer):
         self._target_domains = None
         self._log_queue_sizes_calls = 0
 
-        self._consumer_plugin_dict = dict((plugin.get_name(), plugin) for plugin in self._consumer_plugins)
+        self._consumer_plugin_dict = dict(
+            (plugin.get_name(), plugin) for plugin in self._consumer_plugins
+        )
         self._first_plugin_name = list(self._consumer_plugin_dict.keys())[0]
 
         self._request_response_lru = SynchronizedLRUDict(thread_pool_size * 3)
@@ -104,24 +113,24 @@ class grep(BaseConsumer):
         self._response_cache_key_cache = ResponseCacheKeyCache()
 
         self._should_grep_stats = {
-            'accept': 0,
-            'reject-seen-body': 0,
-            'reject-seen-url': 0,
-            'reject-out-of-scope': 0,
+            "accept": 0,
+            "reject-seen-body": 0,
+            "reject-seen-url": 0,
+            "reject-out-of-scope": 0,
         }
 
     def get_name(self):
-        return 'Grep'
+        return "Grep"
 
     def _teardown(self):
         """
         Handle POISON_PILL
         """
-        msg = 'Starting Grep consumer _teardown() with %s plugins'
+        msg = "Starting Grep consumer _teardown() with %s plugins"
         om.out.debug(msg % len(self._consumer_plugins))
 
         for plugin in self._consumer_plugins:
-            om.out.debug('Calling %s.end()' % plugin.get_name())
+            om.out.debug("Calling %s.end()" % plugin.get_name())
             start_time = time.time()
 
             try:
@@ -132,21 +141,18 @@ class grep(BaseConsumer):
                 om.out.debug(msg % args)
 
                 status = FakeStatus(self._w3af_core)
-                status.set_current_fuzzable_request('grep', 'n/a')
-                status.set_running_plugin('grep',
-                                          plugin.get_name(),
-                                          log=True)
+                status.set_current_fuzzable_request("grep", "n/a")
+                status.set_running_plugin("grep", plugin.get_name(), log=True)
 
                 exec_info = sys.exc_info()
-                enabled_plugins = 'n/a'
-                self._w3af_core.exception_handler.handle(status,
-                                                         exception,
-                                                         exec_info,
-                                                         enabled_plugins)
+                enabled_plugins = "n/a"
+                self._w3af_core.exception_handler.handle(
+                    status, exception, exec_info, enabled_plugins
+                )
                 continue
 
             spent_time = time.time() - start_time
-            msg = 'Spent %.2f seconds running %s.end()'
+            msg = "Spent %.2f seconds running %s.end()"
             args = (spent_time, plugin.get_name())
             om.out.debug(msg % args)
 
@@ -154,7 +160,7 @@ class grep(BaseConsumer):
         self._consumer_plugin_dict = dict()
         self._response_cache_key_cache.clear_cache()
 
-        om.out.debug('Finished Grep consumer _teardown()')
+        om.out.debug("Finished Grep consumer _teardown()")
 
     def _get_request_response_from_id_impl(self, http_response_id):
         """
@@ -169,10 +175,12 @@ class grep(BaseConsumer):
 
         # Create a fuzzable request based on the urllib2 request object
         headers_inst = Headers(request.header_items())
-        request = FuzzableRequest.from_parts(request.url_object,
-                                             request.get_method(),
-                                             request.get_data() or '',
-                                             headers_inst)
+        request = FuzzableRequest.from_parts(
+            request.url_object,
+            request.get_method(),
+            request.get_data() or "",
+            headers_inst,
+        )
 
         return request, response
 
@@ -210,9 +218,11 @@ class grep(BaseConsumer):
             # response from disk. Timeout after 20 seconds as a safety measure
             wait_result = event.wait(timeout=20)
             if not wait_result:
-                om.out.error('There was a timeout waiting for the'
-                             ' deserialization of HTTP request and response'
-                             ' with id %s' % http_response_id)
+                om.out.error(
+                    "There was a timeout waiting for the"
+                    " deserialization of HTTP request and response"
+                    " with id %s" % http_response_id
+                )
                 return None, None
 
             # Read the data from the LRU. There is a 99,9999% chance it is there
@@ -236,7 +246,9 @@ class grep(BaseConsumer):
         self._request_response_processes[http_response_id] = event
 
         try:
-            request, response = self._get_request_response_from_id_impl(http_response_id)
+            request, response = self._get_request_response_from_id_impl(
+                http_response_id
+            )
             self._request_response_lru[http_response_id] = (request, response)
         finally:
             event.set()
@@ -268,7 +280,7 @@ class grep(BaseConsumer):
         if (self._log_queue_sizes_calls % self.LOG_QUEUE_SIZES_EVERY) != 0:
             return
 
-        return super(grep, self)._log_queue_sizes()
+        return super()._log_queue_sizes()
 
     def _run_all_plugins(self, http_response_id):
         """
@@ -291,8 +303,10 @@ class grep(BaseConsumer):
         plugin = self._consumer_plugin_dict.get(plugin_name, None)
 
         if plugin is None:
-            msg = ('Internal error in grep consumer: plugin with name %s'
-                   ' does not exist in dict.')
+            msg = (
+                "Internal error in grep consumer: plugin with name %s"
+                " does not exist in dict."
+            )
             args = (plugin_name,)
             om.out.error(msg % args)
 
@@ -314,16 +328,18 @@ class grep(BaseConsumer):
 
         self._run_observers(plugin_name, request, response)
 
-        took_line = TookLine(self._w3af_core,
-                             plugin_name,
-                             'grep',
-                             debugging_id=None,
-                             method_params={'uri': request.get_uri()})
+        took_line = TookLine(
+            self._w3af_core,
+            plugin_name,
+            "grep",
+            debugging_id=None,
+            method_params={"uri": request.get_uri()},
+        )
 
         try:
             plugin.grep_wrapper(request, response)
         except Exception as e:
-            self.handle_exception('grep', plugin_name, request, e)
+            self.handle_exception("grep", plugin_name, request, e)
         else:
             took_line.send()
 
@@ -346,10 +362,9 @@ class grep(BaseConsumer):
             try:
                 observer.grep(self, request, response)
             except Exception as e:
-                self.handle_exception('grep',
-                                      'grep._run_observers()',
-                                      'grep._run_observers()',
-                                      e)
+                self.handle_exception(
+                    "grep", "grep._run_observers()", "grep._run_observers()", e
+                )
 
     def should_grep(self, request, response):
         """
@@ -367,10 +382,10 @@ class grep(BaseConsumer):
         # goes to a grep plugin. Given that in the future the cf will be a
         # sqlite database, this is an important improvement.
         if self._target_domains is None:
-            self._target_domains = cf.cf.get('target_domains')
+            self._target_domains = cf.cf.get("target_domains")
 
         if response.get_url().get_domain() not in self._target_domains:
-            self._should_grep_stats['reject-out-of-scope'] += 1
+            self._should_grep_stats["reject-out-of-scope"] += 1
             return False
 
         #
@@ -385,7 +400,7 @@ class grep(BaseConsumer):
         # requests and responses from making it to the grep plugins
         #
         if not self._already_analyzed_url.add(response.get_uri()):
-            self._should_grep_stats['reject-seen-url'] += 1
+            self._should_grep_stats["reject-seen-url"] += 1
             return False
 
         #
@@ -421,14 +436,15 @@ class grep(BaseConsumer):
         # as a key. In initial tests using this cache strategy made the
         # `test_should_grep_speed` unittest go from 26 to 9 seconds.
         #
-        response_hash = self._response_cache_key_cache.get_response_cache_key(response,
-                                                                              headers=headers)
+        response_hash = self._response_cache_key_cache.get_response_cache_key(
+            response, headers=headers
+        )
 
         if not self._already_analyzed_body.add(response_hash):
-            self._should_grep_stats['reject-seen-body'] += 1
+            self._should_grep_stats["reject-seen-body"] += 1
             return False
 
-        self._should_grep_stats['accept'] += 1
+        self._should_grep_stats["accept"] += 1
         return True
 
     def _print_should_grep_stats(self):
@@ -440,7 +456,7 @@ class grep(BaseConsumer):
         if (total % self.REPORT_GREP_STATS_EVERY) != 0:
             return
 
-        msg = 'Grep consumer should_grep() stats: %r'
+        msg = "Grep consumer should_grep() stats: %r"
         args = (self._should_grep_stats,)
         om.out.debug(msg % args)
 
@@ -463,7 +479,7 @@ class grep(BaseConsumer):
             return
 
         # Send to the parent class so the data gets saved
-        return super(grep, self).in_queue_put(response.id)
+        return super().in_queue_put(response.id)
 
 
 class FakeStatus(CoreStatus):
