@@ -1,6 +1,7 @@
 import re
 
 from utils.utils import get_path
+from functools import cmp_to_key
 
 WEBSPIDER_FOUND_LINK = re.compile('\[web_spider\] Found new link "(.*?)" at "(.*?)"')
 
@@ -27,8 +28,8 @@ def generate_crawl_graph(scan_log_filename, scan):
     def sort_by_len(a, b):
         return cmp(len(a), len(b))
 
-    referers = data.keys()
-    referers.sort(sort_by_len)
+    referers = list(data.keys())
+    referers.sort(key=cmp_to_key(sort_by_len))
 
     print('')
     print('web_spider crawling data (source -> new link)')
@@ -37,13 +38,13 @@ def generate_crawl_graph(scan_log_filename, scan):
 
     for referer in referers:
         new_links = data[referer]
-        new_links.sort(sort_by_len)
+        new_links.sort(key=cmp_to_key(sort_by_len))
         for new_link in new_links:
             if referer is previous_referer:
                 spaces = ' ' * len('%s -> ' % previous_referer)
-                print('%s%s' % (spaces, new_link))
+                print(('%s%s' % (spaces, new_link)))
             else:
-                print('%s -> %s' % (referer, new_link))
+                print(('%s -> %s' % (referer, new_link)))
                 previous_referer = referer
 
     print('')

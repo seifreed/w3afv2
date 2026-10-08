@@ -28,6 +28,7 @@ from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.db.disk_list import DiskList
 from w3af.core.data.quick_match.multi_re import MultiRE
 from w3af.core.data.constants.common_directories import get_common_directories
+from functools import cmp_to_key
 
 
 class path_disclosure(GrepPlugin):
@@ -89,7 +90,7 @@ class path_disclosure(GrepPlugin):
 
         # Sort by the longest match, this is needed for filtering out
         # some false positives. Please read the note below.
-        match_list.sort(longest_cmp)
+        match_list.sort(key=cmp_to_key(longest_cmp))
 
         for match in match_list:
             # Avoid duplicated reports
@@ -208,7 +209,7 @@ class path_disclosure(GrepPlugin):
             return: False
         """
         for tag in parser_cache.dpc.get_tags_by_filter(response, None):
-            for value in tag.attrib.itervalues():
+            for value in tag.attrib.values():
                 if path_disclosure_string in value:
                     return True
 

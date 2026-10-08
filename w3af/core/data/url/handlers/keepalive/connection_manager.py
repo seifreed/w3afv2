@@ -5,6 +5,7 @@ import w3af.core.controllers.output_manager as om
 
 from w3af.core.data.url.handlers.keepalive.utils import debug
 from w3af.core.controllers.exceptions import ConnectionPoolException
+from functools import cmp_to_key
 
 
 class ConnectionManager(object):
@@ -128,7 +129,7 @@ class ConnectionManager(object):
             return cmp(c1.current_request_start, c2.current_request_start)
 
         in_use = list(self.get_all_used_for_host_port(host_port))
-        in_use.sort(sort_by_time)
+        in_use.sort(key=cmp_to_key(sort_by_time))
         top_offenders = in_use[:5]
 
         connection_info = []

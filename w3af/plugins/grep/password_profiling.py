@@ -19,7 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
-from __future__ import with_statement
+
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
@@ -28,6 +28,7 @@ from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.misc.factory import factory
 from w3af.core.data.constants.common_words import common_words
+from functools import cmp_to_key
 
 
 class password_profiling(GrepPlugin):
@@ -119,8 +120,8 @@ class password_profiling(GrepPlugin):
             return data
 
         # pylint: disable=E1103
-        items = data.items()
-        items.sort(sort_func)
+        items = list(data.items())
+        items.sort(key=cmp_to_key(sort_func))
 
         items = items[:1000]
 
@@ -219,8 +220,8 @@ class password_profiling(GrepPlugin):
             return
 
         # pylint: disable=E1103
-        items = profiling_data.items()
-        items.sort(sort_func)
+        items = list(profiling_data.items())
+        items.sort(key=cmp_to_key(sort_func))
         items = items[:100]
 
         om.out.information('Password profiling TOP 100:')

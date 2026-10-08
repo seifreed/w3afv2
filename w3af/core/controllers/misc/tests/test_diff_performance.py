@@ -20,7 +20,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
-from __future__ import print_function
+
 
 import os
 import time
@@ -28,6 +28,7 @@ import unittest
 
 from w3af import ROOT_PATH
 from w3af.core.controllers.misc.diff import chunked_diff, diff_difflib, diff_dmp
+from functools import cmp_to_key
 
 
 class TestDiffPerformance(unittest.TestCase):
@@ -51,7 +52,7 @@ class TestDiffPerformance(unittest.TestCase):
         for func in self.FUNCTIONS:
             start = time.time()
 
-            for _ in xrange(self.ROUNDS):
+            for _ in range(self.ROUNDS):
                 test_func(func)
 
             spent = time.time() - start
@@ -60,8 +61,8 @@ class TestDiffPerformance(unittest.TestCase):
         self._print_result(result)
 
     def _print_result(self, result):
-        results = result.items()
-        results.sort(lambda a, b: a[1] < b[1])
+        results = list(result.items())
+        results.sort(key=cmp_to_key(lambda a, b: a[1] < b[1]))
 
         print()
 
@@ -81,11 +82,11 @@ class TestDiffPerformance(unittest.TestCase):
         large_file_2 = ''
         _max = 10000
 
-        for i in xrange(_max):
+        for i in range(_max):
             large_file_1 += 'A' * i
             large_file_1 += '\n'
 
-        for i in xrange(_max):
+        for i in range(_max):
             if i == _max - 3:
                 large_file_2 += 'B' * i
             else:
@@ -98,7 +99,7 @@ class TestDiffPerformance(unittest.TestCase):
     def _run_large_equal_responses(self, diff):
         large_file = ''
 
-        for i in xrange(10000):
+        for i in range(10000):
             large_file += 'A' * i
             large_file += '\n'
 

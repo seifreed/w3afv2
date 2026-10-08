@@ -26,6 +26,7 @@ from w3af.core.controllers.exceptions import BaseFrameworkException
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
+from functools import cmp_to_key
 
 
 class extrusionServer(object):
@@ -165,8 +166,8 @@ class extrusionServer(object):
         # report the list of ports
         def sortfunc(x, y):
             return cmp(x[1], y[1])
-        items = possible_hosts.items()
-        items.sort(sortfunc)
+        items = list(possible_hosts.items())
+        items.sort(key=cmp_to_key(sortfunc))
 
         # Now I report the ports for the hosts with more connections
         i = 0

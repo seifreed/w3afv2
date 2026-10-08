@@ -30,6 +30,7 @@ from w3af.core.data.parsers.doc.open_api import OpenAPI
 from w3af.core.data.parsers.doc.open_api.tests.example_specifications import (IntParamQueryString,
                                                                               NestedModel,
                                                                               PetstoreSimpleModel)
+from functools import cmp_to_key
 
 API_KEY = '0x12345'
 
@@ -82,7 +83,7 @@ class TestOpenAPIFindAllEndpointsWithAuth(PluginTest):
         def by_path(fra, frb):
             return cmp(fra.get_url().url_string, frb.get_url().url_string)
 
-        fuzzable_requests.sort(by_path)
+        fuzzable_requests.sort(key=cmp_to_key(by_path))
 
         #
         # Assertions on call #1
@@ -207,7 +208,7 @@ class TestOpenAPINestedModelSpec(PluginTest):
         def by_path(fra, frb):
             return cmp(fra.get_url().url_string, frb.get_url().url_string)
 
-        fuzzable_requests.sort(by_path)
+        fuzzable_requests.sort(key=cmp_to_key(by_path))
 
         self.assertEqual(len(fuzzable_requests), 1)
 
@@ -436,5 +437,5 @@ class TestOpenAPIFuzzURLParts(PluginTest):
         self.assertEqual(len(vulns), 1)
 
         vuln = vulns[0]
-        self.assertEquals(vuln.get_method(), 'GET')
-        self.assertEquals(vuln.get_url().url_string, TestOpenAPIFuzzURLParts.vulnerable_url)
+        self.assertEqual(vuln.get_method(), 'GET')
+        self.assertEqual(vuln.get_url().url_string, TestOpenAPIFuzzURLParts.vulnerable_url)

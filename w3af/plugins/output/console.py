@@ -45,8 +45,8 @@ def catch_ioerror(meth):
     def wrapper(self, *args, **kwargs):
         try:
             return meth(self, *args, **kwargs)
-        except IOError as (errno, strerror):
-            if errno == ENOSPC:
+        except OSError as error:
+            if error.errno == ENOSPC:
                 msg = 'No space left on device'
                 raise ScanMustStopByKnownReasonExc(msg)
 

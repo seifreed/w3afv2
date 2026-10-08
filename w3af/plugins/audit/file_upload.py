@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 import os
 
-from itertools import repeat, izip
+from itertools import repeat
 from collections import deque
 from threading import RLock
 
@@ -44,6 +44,7 @@ from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.fuzzer.fuzzer import create_mutants
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.kb.vuln import Vuln
+from functools import cmp_to_key
 
 
 class file_upload(AuditPlugin):
@@ -200,7 +201,7 @@ class file_upload(AuditPlugin):
         debugging_id_repeater = repeat(debugging_id)
         http_response_repeater = repeat(mutant_response)
 
-        args = izip(to_verify_filtered,
+        args = zip(to_verify_filtered,
                     mutant_repeater,
                     http_response_repeater,
                     debugging_id_repeater)
@@ -273,7 +274,7 @@ class file_upload(AuditPlugin):
         url_generator = self._generate_urls(domain_path_set,
                                             mutant.uploaded_file_name)
 
-        args = izip(url_generator,
+        args = zip(url_generator,
                     mutant_repeater,
                     http_response_repeater,
                     debugging_id_repeater)
@@ -354,7 +355,7 @@ class file_upload(AuditPlugin):
             return cmp(len(b.url_string), len(a.url_string))
 
         domain_path_list = list(domain_path_set)
-        domain_path_list.sort(sort_by_len)
+        domain_path_list.sort(key=cmp_to_key(sort_by_len))
 
         for url in domain_path_list:
             for common_path in self.UPLOAD_PATHS:

@@ -25,6 +25,7 @@ from w3af.core.data.parsers.doc.swf import SWFParser
 from w3af.core.data.parsers.doc.wml_parser import WMLParser
 from w3af.core.data.parsers.doc.javascript import JavaScriptParser
 from w3af.core.controllers.exceptions import BaseFrameworkException
+from functools import cmp_to_key
 
 
 class DocumentParser(object):
@@ -104,8 +105,8 @@ class DocumentParser(object):
         """
         parsed_refs, re_refs = self._parser.get_references()
 
-        parsed_refs.sort(sort_by_url)
-        re_refs.sort(sort_by_url)
+        parsed_refs.sort(key=cmp_to_key(sort_by_url))
+        re_refs.sort(key=cmp_to_key(sort_by_url))
 
         return parsed_refs, re_refs
 

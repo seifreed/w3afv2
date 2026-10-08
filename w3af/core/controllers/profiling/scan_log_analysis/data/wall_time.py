@@ -3,6 +3,7 @@ import re
 from utils.utils import epoch_to_string
 from utils.output import KeyValueOutput
 from utils.output import ListOutput, ListOutputItem
+from functools import cmp_to_key
 
 SCAN_TOOK_RE = re.compile('took (\d*\.\d\d)s to run')
 PLUGIN_TOOK_RE = re.compile('\] (.*?)\.(grep|audit|discover)\(.*?\) took (.*?)s to run')
@@ -63,13 +64,13 @@ def get_plugin_time(scan_log_filename, scan):
     for plugin_type in spent_time_by_plugin:
         spent_time_by_plugin_one_type = spent_time_by_plugin[plugin_type]
 
-        spent_time_items = spent_time_by_plugin_one_type.items()
-        spent_time_items.sort(sort_by_value)
+        spent_time_items = list(spent_time_by_plugin_one_type.items())
+        spent_time_items.sort(key=cmp_to_key(sort_by_value))
         spent_time_items = spent_time_items[:15]
         spent_time_dict = dict(spent_time_items)
 
         # round
-        spent_time_dict = dict((plugin_name, round(took)) for plugin_name, took in spent_time_dict.iteritems())
+        spent_time_dict = dict((plugin_name, round(took)) for plugin_name, took in spent_time_dict.items())
 
         title = 'Top10 wall time used by %s plugins (seconds)'
         output.append(ListOutputItem(title % plugin_type, spent_time_dict))

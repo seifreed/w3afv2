@@ -24,6 +24,7 @@ from w3af.plugins.grep.password_profiling import password_profiling
 
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.parsers.doc.url import URL
+from functools import cmp_to_key
 
 
 class TestPasswordProfiling(PluginTest):
@@ -56,9 +57,9 @@ class TestPasswordProfiling(PluginTest):
         collected_passwords = self.kb.raw_read('password_profiling',
                                                'password_profiling')
 
-        collected_passwords = collected_passwords.keys()
+        collected_passwords = list(collected_passwords.keys())
         # pylint: enable=E1103
-        collected_passwords.sort(sortfunc)
+        collected_passwords.sort(key=cmp_to_key(sortfunc))
 
         self.assertIn('Moth', collected_passwords)
         self.assertIn('application', collected_passwords)

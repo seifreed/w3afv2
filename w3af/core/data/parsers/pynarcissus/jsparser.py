@@ -49,6 +49,7 @@ __date__ = "2009-03-24"
 __all__ = ["ParseError", "parse", "tokens"]
 
 import re, sys, types
+from functools import cmp_to_key
 
 class Object: pass
 class Error_(Exception): pass
@@ -151,7 +152,7 @@ opTypeNames = [
 keywords = {}
 
 # Define const END, etc., based on the token names.  Also map name to index.
-for i, t in tokens.copy().iteritems():
+for i, t in list(tokens.copy().items()):
     if re.match(r'^[a-z]', t):
         const_name = t.upper()
         keywords[t] = i
@@ -312,7 +313,7 @@ class Tokenizer(object):
             match = opRegExp.match(input__)
             if match:
                 op = match.group(0)
-                if assignOps.has_key(op) and input__[len(op)] == '=':
+                if op in assignOps and input__[len(op)] == '=':
                     token.type_ = ASSIGN
                     token.assignOp = globals()[opTypeNames[op]]
                     token.value = op
@@ -415,7 +416,7 @@ class Node(list):
             else:
                 a.append((attr, getattr(self, attr)))
         if len(self): a.append(("length", len(self)))
-        a.sort(lambda a, b: cmp(a[0], b[0]))
+        a.sort(key=cmp_to_key(lambda a, b: cmp(a[0], b[0])))
         INDENTATION = "    "
         Node.indentLevel += 1
         n = Node.indentLevel
@@ -451,7 +452,7 @@ class Node(list):
 
     filename = property(lambda self: self.tokenizer.filename)
 
-    def __nonzero__(self): return True
+    def __bool__(self): return True
 
 # Statement stack and nested statement handler.
 def nest(t, x, node, func, end=None):
@@ -1038,7 +1039,7 @@ def Expression(t, x, stop=None):
                                         Expression(t, x, COMMA)]))
                             if not t.match(COMMA): break
                         t.mustMatch(RIGHT_CURLY)
-                except BreakOutOfObjectInit, e: pass
+                except BreakOutOfObjectInit as e: pass
                 operands.append(n)
                 t.scanOperand = False
                 x.curlyLevel -= 1
@@ -1097,7 +1098,7 @@ def Expression(t, x, stop=None):
                         else:
                             n[1].type_ = LIST
                     else:
-                        raise ParseError, "Unexpected amount of operands"
+                        raise ParseError("Unexpected amount of operands")
                 x.parenLevel -= 1
 
             # Automatic semicolon insertion means we may scan across a newline
@@ -1105,7 +1106,7 @@ def Expression(t, x, stop=None):
             # the while loop and let the t.scanOperand logic handle errors.
             else:
                 raise BreakOutOfLoops
-    except BreakOutOfLoops, e: pass
+    except BreakOutOfLoops as e: pass
 
     if x.hookLevel != hl:
         raise t.newSyntaxError("Missing : after ?")
@@ -1143,4 +1144,4 @@ def parse(source, filename=None, starting_line_number=1):
     return n
 
 if __name__ == "__main__":
-    print str(parse(file(sys.argv[1]).read(),sys.argv[1]))
+    print((str(parse(file(sys.argv[1]).read(),sys.argv[1]))))

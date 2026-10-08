@@ -19,10 +19,10 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
-import urllib
-import urllib2
+import urllib.request, urllib.parse, urllib.error
+import urllib.request, urllib.error, urllib.parse
 import mimetools
-import cStringIO
+import io
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
@@ -30,7 +30,7 @@ import w3af.core.data.kb.config as cf
 from w3af.core.data.url.helpers import new_no_content_resp
 
 
-class BlacklistHandler(urllib2.BaseHandler):
+class BlacklistHandler(urllib.request.BaseHandler):
     """
     If the user blacklisted a URL, this handler will know about it and
     return an empty HTTP response.
@@ -103,10 +103,10 @@ class BlacklistHandler(urllib2.BaseHandler):
 
 
 def http_response_to_httplib(no_content):
-    header_string = cStringIO.StringIO(str(no_content.get_headers()))
+    header_string = io.StringIO(str(no_content.get_headers()))
     headers = mimetools.Message(header_string)
     
-    no_content = urllib.addinfourl(cStringIO.StringIO(no_content.get_body()),
+    no_content = urllib.addinfourl(io.StringIO(no_content.get_body()),
                                    headers,
                                    no_content.get_url().url_string,
                                    code=no_content.get_code())

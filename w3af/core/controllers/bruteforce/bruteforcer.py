@@ -28,6 +28,7 @@ import w3af.core.data.kb.knowledge_base as kb
 
 from w3af.core.controllers.misc.make_leet import make_leet
 from w3af.core.controllers.misc.itertools_toolset import unique_everseen
+from functools import cmp_to_key
 
 
 class PasswordBruteforcer(object):
@@ -193,8 +194,8 @@ def get_profiling_results(self, max_items=50):
         return []
 
     else:
-        items = kb_data.items()
-        items.sort(sortfunc)
+        items = list(kb_data.items())
+        items.sort(key=cmp_to_key(sortfunc))
 
         xlen = min(max_items, len(items))
 

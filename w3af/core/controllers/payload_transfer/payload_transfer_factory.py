@@ -28,6 +28,7 @@ from w3af.core.controllers.payload_transfer.reverse_ftp import ReverseFTP
 from w3af.core.controllers.payload_transfer.clientless_reverse_http import ClientlessReverseHTTP
 from w3af.core.controllers.extrusion_scanning.extrusionScanner import extrusionScanner
 from w3af.core.controllers.intrusion_tools.execMethodHelpers import os_detection_exec
+from functools import cmp_to_key
 
 
 class payload_transfer_factory(object):
@@ -74,12 +75,12 @@ class payload_transfer_factory(object):
         try:
             if not inbound_port:
                 inbound_port = self._es.get_inbound_port()
-        except BaseFrameworkException, w3:
+        except BaseFrameworkException as w3:
             msg = ('The extrusion scan failed, no reverse connect transfer '
                    'methods can be used. Trying inband echo transfer method.'
                    ' Error: "%s"')
             om.out.error(msg % w3)
-        except Exception, e:
+        except Exception as e:
             om.out.error('Unhandled exception: "%s"' % e)
         else:
             to_test.append(ReverseFTP(self._exec_method, os, inbound_port))
@@ -94,7 +95,7 @@ class payload_transfer_factory(object):
             # Test the fastest first and return the fastest one...
             def sort_function(x, y):
                 return cmp(y.get_speed(), x.get_speed())
-            to_test.sort(sort_function)
+            to_test.sort(key=cmp_to_key(sort_function))
 
         for method in to_test:
 
