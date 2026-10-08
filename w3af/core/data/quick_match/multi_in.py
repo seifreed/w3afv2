@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from acora import AcoraBuilder
+from ahocorapy.keywordtree import KeywordTree
 
 from w3af.core.data.constants.encodings import DEFAULT_ENCODING
 
@@ -45,12 +45,12 @@ class MultiIn:
         """
         self._keywords_or_assoc = keywords_or_assoc
         self._translator = dict()
-        self._acora = self._build()
+        self._keyword_tree = self._build()
 
     def _build(self):
-        builder = AcoraBuilder()
+        keyword_tree = KeywordTree()
 
-        for idx, item in enumerate(self._keywords_or_assoc):
+        for item in self._keywords_or_assoc:
 
             if isinstance(item, tuple):
                 keyword = item[0]
@@ -61,14 +61,15 @@ class MultiIn:
 
                 self._translator[keyword] = item[1:]
 
-                builder.add(keyword)
+                keyword_tree.add(keyword)
             elif isinstance(item, str):
                 keyword = item.encode(DEFAULT_ENCODING)
-                builder.add(keyword)
+                keyword_tree.add(keyword)
             else:
                 raise ValueError("Can NOT build MultiIn with provided values.")
 
-        return builder.build()
+        keyword_tree.finalize()
+        return keyword_tree
 
     def query(self, target_str):
         """
@@ -82,12 +83,13 @@ class MultiIn:
 
         seen = set()
 
-        for match, position in self._acora.finditer(target_str):
+        for match, _ in self._keyword_tree.search_all(target_str) or ():
             if match in seen:
                 continue
 
             seen.add(match)
             extra_data = self._translator.get(match, None)
+            match = match.decode(DEFAULT_ENCODING)
 
             if extra_data is None:
                 yield match

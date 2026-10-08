@@ -109,7 +109,7 @@ CORE_PIP_PACKAGES = [
     PIPDependency("yaml", "PyYAML", _version("PyYAML")),
     PIPDependency("tldextract", "tldextract", _version("tldextract")),
     PIPDependency("pebble", "pebble", _version("pebble")),
-    PIPDependency("acora", "acora", _version("acora")),
+    PIPDependency("ahocorapy.keywordtree", "ahocorapy", _version("ahocorapy")),
     PIPDependency("multiregex", "multiregex", _version("multiregex")),
     PIPDependency("diff_match_patch", "diff-match-patch", _version("diff-match-patch")),
     PIPDependency("bravado_core", "bravado-core", _version("bravado-core")),

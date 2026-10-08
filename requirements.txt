@@ -1,5 +1,5 @@
 # Runtime dependencies
-acora==2.5
+ahocorapy==1.8.0
 aioquic==1.2.0
 asgiref==3.12.1
 bravado-core==6.4.1

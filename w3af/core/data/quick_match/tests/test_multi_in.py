@@ -43,6 +43,11 @@ class MultiInTest(unittest.TestCase):
         result = to_list(imi.query("456 456"))
         self.assertEqual(1, len(result))
 
+    def test_overlapping_keywords_preserve_match_order(self):
+        matches = MultiIn(["cat", "at", "a"]).query("cat")
+
+        self.assertEqual(to_list(matches), ["a", "cat", "at"])
+
     def test_simplest(self):
         in_list = ["123", "456", "789"]
         imi = MultiIn(in_list)
