@@ -9,13 +9,7 @@ machine:
     - docker
 
   python:
-    version: 2.7.3
-
-  post:
-    # This was required to avoid issues with different builds of python being
-    # used between the gtk libs installed in /usr/lib/python2.7/dist-packages/
-    # and the python which was put inside my virtualenv
-    - pyenv global system
+    version: 3.14.8
 
 
 checkout:
@@ -27,21 +21,12 @@ checkout:
 
 
 dependencies:
-  cache_directories:
-    # These are inside the w3af directory
-    - "xpresser"
-
   pre:
     - docker info
     - docker version
     - docker images
 
     - sudo apt-get update
-
-    # GUI dependencies
-    #- sudo apt-get install -y python-gtksourceview2 python-gtk2 gir1.2-notify-0.7 python-pyatspi2
-    #                          python-dbus python-pygame python-opencv python-scipy python-numpy
-    - sudo apt-get install -y python-webkit
 
     # Misc dependencies
     - sudo apt-get install -y stunnel4 libffi-dev tcpdump joe
@@ -56,9 +41,6 @@ dependencies:
 
     # Install GUI dependencies
     - w3af/core/controllers/ci/install_scripts/install_gui_dependencies.sh
-
-    # Link the GUI stuff to the venv
-    - w3af/core/controllers/ci/install_scripts/install_c_extensions_venv.sh
 
     # Install the test dependencies
     - w3af/core/controllers/ci/install_scripts/install_test_dependencies.sh
