@@ -19,13 +19,17 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import sys
 import subprocess
 
-from w3af.core.controllers.dependency_check.pip_dependency import PIPDependency
 from w3af.core.controllers.dependency_check.platforms.base_platform import Platform
-from w3af.core.controllers.dependency_check.requirements import CORE_PIP_PACKAGES, GUI_PIP_EXTRAS, CORE, GUI
-
+from w3af.core.controllers.dependency_check.requirements import (
+    CORE_PIP_PACKAGES,
+    GUI_PIP_EXTRAS,
+    CORE,
+    GUI,
+)
 
 TWO_PYTHON_MSG = """\
 It seems that your system has two different python installations: One provided
@@ -46,51 +50,57 @@ message "Device not configured".
 
 
 class MacOSX(Platform):
-    SYSTEM_NAME = 'Mac OS X'
-    PKG_MANAGER_CMD = 'sudo port install'
-    PIP_CMD = 'pip-2.7'
+    SYSTEM_NAME = "Mac OS X"
+    PKG_MANAGER_CMD = "sudo port install"
+    PIP_CMD = "pip-2.7"
 
     #
     # Remember to use http://www.macports.org/ports.php to search for
     # packages
     #
     # Python port includes the dev headers
-    CORE_SYSTEM_PACKAGES = ['py27-pip', 'python27', 'py27-setuptools', 'gcc48',
-                            'autoconf', 'automake', 'git-core', 'py27-pcapy',
-                            'py27-libdnet', 'libffi']
+    CORE_SYSTEM_PACKAGES = [
+        "py27-pip",
+        "python27",
+        "py27-setuptools",
+        "gcc48",
+        "autoconf",
+        "automake",
+        "git-core",
+        "py27-pcapy",
+        "py27-libdnet",
+        "libffi",
+    ]
 
     GUI_SYSTEM_PACKAGES = CORE_SYSTEM_PACKAGES[:]
-    GUI_SYSTEM_PACKAGES.extend(['graphviz', 'py27-pygtksourceview',
-                                'py27-pygtk', 'py27-webkitgtk'])
+    GUI_SYSTEM_PACKAGES.extend(
+        ["graphviz", "py27-pygtksourceview", "py27-pygtk", "py27-webkitgtk"]
+    )
 
-    SYSTEM_PACKAGES = {CORE: CORE_SYSTEM_PACKAGES,
-                       GUI: GUI_SYSTEM_PACKAGES}
+    SYSTEM_PACKAGES = {CORE: CORE_SYSTEM_PACKAGES, GUI: GUI_SYSTEM_PACKAGES}
 
-    # pybloomfilter is broken in Mac OS X, so we don't require it
-    # https://github.com/andresriancho/w3af/issues/485
     MAC_CORE_PIP_PACKAGES = CORE_PIP_PACKAGES[:]
-    MAC_CORE_PIP_PACKAGES.remove(PIPDependency('pybloomfilter',
-                                               'pybloomfiltermmap', '0.3.14'))
 
     MAC_GUI_PIP_PACKAGES = MAC_CORE_PIP_PACKAGES[:]
     MAC_GUI_PIP_PACKAGES.extend(GUI_PIP_EXTRAS)
 
-    PIP_PACKAGES = {CORE: MAC_CORE_PIP_PACKAGES,
-                    GUI: MAC_GUI_PIP_PACKAGES}
+    PIP_PACKAGES = {CORE: MAC_CORE_PIP_PACKAGES, GUI: MAC_GUI_PIP_PACKAGES}
 
     @staticmethod
     def is_current_platform():
-        return sys.platform == 'darwin'
+        return sys.platform == "darwin"
 
     @staticmethod
     def os_package_is_installed(package_name):
-        not_installed = 'None of the specified ports are installed'
-        installed = 'The following ports are currently installed'
+        not_installed = "None of the specified ports are installed"
+        installed = "The following ports are currently installed"
 
         try:
-            p = subprocess.Popen(['port', '-v', 'installed', package_name],
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE)
+            p = subprocess.Popen(
+                ["port", "-v", "installed", package_name],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
         except OSError:
             # We're not on a mac based system
             return None
@@ -110,16 +120,19 @@ class MacOSX(Platform):
         #
         # We need to warn the user about this situation and let him know how to
         # fix. See: http://stackoverflow.com/questions/118813/
-        if sys.executable.startswith('/opt/'):
+        if sys.executable.startswith("/opt/"):
             # That's what we need since pip-2.7 will install all the libs in
             # that python site-packages directory
             pass
         else:
             print((TWO_PYTHON_MSG % sys.executable))
 
-        #check if scapy is correctly installed/working on OSX
+        # check if scapy is correctly installed/working on OSX
         try:
-            from scapy.all import traceroute
+            import scapy.all
+
+            if not callable(scapy.all.traceroute):
+                return
         except ImportError:
             # The user just needs to work on his dependencies.
             pass

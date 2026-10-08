@@ -19,14 +19,15 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from w3af.core.data.bloomfilter.bloomfilter import BloomFilter
-from pybloomfilter import BloomFilter as CMmapFilter
+from w3af.core.data.bloomfilter.seekfile_bloom import FileSeekBloomFilter
 
 
 class TestImplementationSelection(unittest.TestCase):
 
     def test_correct_type(self):
         _filter = BloomFilter(1000, 0.01)
-        self.assertIsInstance(_filter.bf, CMmapFilter)
+        self.assertIsInstance(_filter.bf, FileSeekBloomFilter)

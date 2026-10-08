@@ -20,6 +20,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 import random
 import string
@@ -34,7 +35,7 @@ class GenericFilterTest(unittest.TestCase):
     CAPACITY = None
     ERROR_RATE = None
     filter = None
-    
+
     def setUp(self):
         # Init the seed to something fixed in order to have always the same
         # "random" numbers used.
@@ -44,19 +45,19 @@ class GenericFilterTest(unittest.TestCase):
     def test_bloom_int(self):
         for i in range(0, self.CAPACITY):
             self.filter.add(i)
-            
+
         # After understanding a little bit more about how bloom filters work,
         # I decided to comment this line. Given the probabilistic nature of
         # these filters, it might be the case that the length of the filter is
         # CAPACITY-1 (in other words, one insert failed because all the bits
         # were already set to 1) and that doesn't mean that the filter is
         # useless it just means that it's false positive rate is going up.
-        #self.assertEqual( len(self.filter), self.CAPACITY)
+        # self.assertEqual( len(self.filter), self.CAPACITY)
 
         for i in range(0, self.CAPACITY):
             self.assertIn(i, self.filter)
 
-        for i in range(0, self.CAPACITY / 2):
+        for i in range(0, self.CAPACITY // 2):
             r = random.randint(self.CAPACITY, self.CAPACITY * 2)
             self.assertNotIn(r, self.filter)
 
@@ -65,7 +66,7 @@ class GenericFilterTest(unittest.TestCase):
         randomly_generated_strings = []
 
         for _ in range(0, self.CAPACITY):
-            rnd = ''.join(random.choice(string.ascii_letters) for i in range(40))
+            rnd = "".join(random.choice(string.ascii_letters) for i in range(40))
             randomly_generated_strings.append(rnd)
             self.filter.add(rnd)
 
@@ -79,44 +80,42 @@ class GenericFilterTest(unittest.TestCase):
             self.assertNotIn(saved_str[::-1], self.filter)
 
     @only_if_subclass
-    def test_bloom_url_objects(self):        
+    def test_bloom_url_objects(self):
         for i in range(0, self.CAPACITY):
-            url_num = URL('http://moth/index%s.html' % i)
+            url_num = URL("http://moth/index%s.html" % i)
             self.filter.add(url_num)
 
         self.assertIn(url_num, self.filter)
 
         for i in string.ascii_letters:
-            url_char = URL('http://moth/index%s.html' % i)
+            url_char = URL("http://moth/index%s.html" % i)
             self.assertNotIn(url_char, self.filter)
 
         for i in range(self.CAPACITY, self.CAPACITY * 2):
-            url_char = URL('http://moth/index%s.html' % i)
+            url_char = URL("http://moth/index%s.html" % i)
             self.assertNotIn(url_char, self.filter)
 
     @only_if_subclass
     def test_unicode_string(self):
-        unicode_string = '¡'
+        unicode_string = "¡"
         self.filter.add(unicode_string)
-        
+
         self.assertIn(unicode_string, self.filter)
 
     @only_if_subclass
     def test_scale(self):
         if not isinstance(self.filter, ScalableBloomFilter):
             return
-        
+
         count = 12500
         for i in range(0, count):
             self.filter.add(i)
-        
+
         self.assertGreater(self.filter.capacity, count)
-        
+
         self.assertEqual(self.filter.capacity, 15000)
         self.assertLessEqual(len(self.filter), count)
-        
-        self.assertLessEqual(
-                             abs((len(self.filter) / float(count)) - 1.0),
-                             self.filter.error_rate
-                             )
 
+        self.assertLessEqual(
+            abs((len(self.filter) / float(count)) - 1.0), self.filter.error_rate
+        )

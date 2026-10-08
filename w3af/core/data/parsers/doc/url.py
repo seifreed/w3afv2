@@ -38,8 +38,6 @@ from w3af.core.data.dc.generic.data_container import DataContainer
 from w3af.core.data.dc.query_string import QueryString
 from w3af.core.data.db.disk_item import DiskItem
 from w3af.core.data.misc.encoding import (
-    smart_str,
-    PERCENT_ENCODE,
     is_known_encoding,
     smart_unicode,
 )
@@ -201,13 +199,6 @@ class URL(DiskItem):
         # Internals
         "_cache",
         "_encoding",
-        # Easy access via properties
-        "scheme",
-        "netloc",
-        "path",
-        "params",
-        "querystring",
-        "fragment",
     )
 
     def __init__(self, data, encoding=DEFAULT_ENCODING):
@@ -897,14 +888,7 @@ class URL(DiskItem):
         """
         :return: A string representation of self
         """
-        urlstr = smart_str(self.url_string, self._encoding, errors=PERCENT_ENCODE)
-        return urlstr.replace(" ", "%20")
-
-    def __unicode__(self):
-        """
-        :return: A unicode representation of myself
-        """
-        return self.url_string
+        return self.url_string.replace(" ", "%20")
 
     def __repr__(self):
         """
