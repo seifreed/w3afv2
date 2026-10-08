@@ -157,14 +157,14 @@ just follow these steps:
     $ ./w3af_console
     ...
     Your python installation needs the following modules to run w3af:
-    futures
+    requests
     ...
-    $ pip freeze | grep futures
-    futures==2.1.5
+    $ pip freeze | grep requests
+    requests==2.34.2
     $
 
-Replace ``futures`` with the library that is missing in your system. If the
-``pip freeze | grep futures`` command returns an empty result, you'll need to
+Replace ``requests`` with the library that is missing in your system. If the
+``pip freeze | grep requests`` command returns an empty result, you'll need to
 install the dependency using the ``/tmp/w3af_dependency_install.sh`` command.
 Pay special attention to the output of that command, if installation fails
 you won't be able to run ``w3af``.
@@ -173,7 +173,7 @@ It is important to notice that ``w3af`` requires specific versions of the
 third-party libraries. The specific versions required at ``/tmp/w3af_dependency_install.sh``
 need to match the ones you see in the output of ``pip freeze``. If the versions
 don't match you can always install a specific version using
-``pip install --upgrade futures==2.1.5``.
+``pip install --upgrade -r requirements.txt``.
 
 w3af still says I have missing operating system dependencies, what should I do?
 _______________________________________________________________________________

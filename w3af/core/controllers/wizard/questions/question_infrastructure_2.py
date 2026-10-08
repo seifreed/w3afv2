@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.controllers.wizard.question import question
@@ -29,38 +30,39 @@ class question_infrastructure_2(question):
     This is the first question of the wizard, where you have to speficy the
     target.
     """
+
     def __init__(self, w3af_core):
         question.__init__(self, w3af_core)
 
-        self._question_id = 'infrastructure_2'
+        self._question_id = "infrastructure_2"
 
-        self._question_title = 'Plugin selection'
+        self._question_title = "Plugin selection"
 
-        self._question_str = 'This step allows you to select from a group of plugins that'
-        self._question_str += ' identify network and HTTP appliances that may be between'
-        self._question_str += ' w3af and the target Web Application.'
+        self._question_str = (
+            "This step allows you to select from a group of plugins that"
+        )
+        self._question_str += (
+            " identify network and HTTP appliances that may be between"
+        )
+        self._question_str += " w3af and the target Web Application."
 
     def _get_option_objects(self):
         """
         :return: A list of options for this question.
         """
-        self._d1 = 'Detect active filters (IPS, WAF, Layer 7 firewalls)'
-        o1 = opt_factory(self._d1, True, self._d1, 'boolean')
+        self._d1 = "Detect active filters (IPS, WAF, Layer 7 firewalls)"
+        o1 = opt_factory(self._d1, True, self._d1, "boolean")
 
-        self._d2 = 'Detect (reverse) proxies'
-        o2 = opt_factory(self._d2, True, self._d2, 'boolean')
+        self._d2 = "Detect (reverse) proxies"
+        o2 = opt_factory(self._d2, True, self._d2, "boolean")
 
-        self._d3 = 'Fingerprint Web Application Firewalls'
-        o3 = opt_factory(self._d3, True, self._d3, 'boolean')
-
-        self._d4 = 'Identify HTTP load balancers'
-        o4 = opt_factory(self._d4, True, self._d4, 'boolean')
+        self._d3 = "Fingerprint Web Application Firewalls"
+        o3 = opt_factory(self._d3, True, self._d3, "boolean")
 
         ol = OptionList()
         ol.add(o1)
         ol.add(o2)
         ol.add(o3)
-        ol.add(o4)
 
         return ol
 
@@ -68,22 +70,19 @@ class question_infrastructure_2(question):
         plugin_list = []
 
         if options_list[self._d1].get_value():
-            plugin_list.append('afd')
+            plugin_list.append("afd")
 
         if options_list[self._d2].get_value():
-            plugin_list.append('detect_reverse_proxy')
-            plugin_list.append('detect_transparent_proxy')
+            plugin_list.append("detect_reverse_proxy")
+            plugin_list.append("detect_transparent_proxy")
 
         if options_list[self._d3].get_value():
-            plugin_list.append('fingerprint_WAF')
-
-        if options_list[self._d4].get_value():
-            plugin_list.append('halberd')
+            plugin_list.append("fingerprint_WAF")
 
         # Set the plugins to be run
-        old_discovery = self.w3af_core.plugins.get_enabled_plugins('infrastructure')
+        old_discovery = self.w3af_core.plugins.get_enabled_plugins("infrastructure")
         plugin_list.extend(old_discovery)
-        self.w3af_core.plugins.set_plugins(plugin_list, 'infrastructure')
+        self.w3af_core.plugins.set_plugins(plugin_list, "infrastructure")
 
         # Next question
-        return 'infrastructure_3'
+        return "infrastructure_3"

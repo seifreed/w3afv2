@@ -1,8 +1,8 @@
 # w3af.org
 # https://github.com/andresriancho/w3af/tree/master/extras
 
-FROM ubuntu:18.04
-MAINTAINER Andres Riancho <andres.riancho@gmail.com>
+FROM python:3.14-slim
+LABEL maintainer="Andres Riancho <andres.riancho@gmail.com>"
 
 # Initial setup
 RUN mkdir /home/w3af
@@ -20,12 +20,11 @@ RUN apt-get update -y
 RUN apt-get upgrade -y
 RUN apt-get dist-upgrade -y
 
-# Install basic and GUI requirements, python-lxml because it doesn't compile correctly from pip
-RUN apt-get install -y python-pip build-essential libxslt1-dev libxml2-dev libsqlite3-dev \
-                       libyaml-dev openssh-server python-dev git python-lxml wget  \
-                       xdot python-gtk2 python-gtksourceview2 ubuntu-artwork dmz-cursor-theme \
-                       ca-certificates libffi-dev zlib1g-dev nodejs nodejs-dev libssl1.0-dev \
-                       node-gyp npm
+# Install basic system requirements.
+RUN apt-get install -y --no-install-recommends build-essential libxslt1-dev libxml2-dev \
+                       libsqlite3-dev libyaml-dev openssh-server git wget xdot \
+                       ca-certificates libffi-dev zlib1g-dev nodejs npm && \
+    rm -rf /var/lib/apt/lists/*
 
 # Add the w3af user
 # TODO - actually use the w3af user instead of running everything as root
@@ -39,25 +38,9 @@ RUN echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDjXxcHjyVkwHT+dSYwS3vxhQxZAit6uZ
 RUN mkdir -p /root/.ssh/
 RUN cat /home/w3af/.ssh/w3af-docker.pub >> /root/.ssh/authorized_keys
 
-# Get and install pip
-RUN pip install --index-url=https://pypi.python.org/simple/ --upgrade pip
-#
-# We install some pip packages before adding the code in order to better leverage
-# the docker cache
-#
-# Leave one library without install, so w3af_dependency_install is actually
-# created and we can run the next commands without if statements
-#
-#tblib==0.2.0
-#
-RUN pip install setuptools-git>=1.1 pyClamd==0.4.0 PyGithub==1.21.0 GitPython==2.1.15 \
-        pybloomfiltermmap==0.3.14 esmre==0.3.1 phply==0.9.1 nltk==3.0.1 chardet==3.0.4 \
-        pdfminer==20140328 futures==3.2.0 pyOpenSSL==18.0.0 scapy==2.4.0 guess-language==0.2 \
-        cluster==1.1.1b3 msgpack-python==0.5.6 python-ntlm==1.0.1 halberd==0.2.4 \
-        darts.util.lru==0.5 ndg-httpsclient==0.4.0 pyasn1==0.4.2 Jinja2==2.7.3 vulndb==0.1.3 \
-        markdown==2.6.1 psutil==2.2.1 Tornado==4.5 mitmproxy==0.13 ruamel.ordereddict==0.4.8 \
-        Flask==0.10.1 PyYAML==3.12 ds-store==1.1.2 termcolor==1.1.0 tldextract==1.7.2 pebble==4.3.8 \
-        acora==2.1 diff-match-patch==20121119 bravado-core==5.0.2 lz4==1.1.0 vulners==1.3.0
+COPY requirements.txt /tmp/w3af-requirements.txt
+RUN python -m pip install --upgrade pip && \
+    python -m pip install -r /tmp/w3af-requirements.txt
 
 # Install w3af
 ADD . /home/w3af/w3af

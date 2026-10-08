@@ -201,8 +201,6 @@ httpsPort = 443
 
 [infrastructure.find_jboss]
 
-[infrastructure.halberd]
-
 [infrastructure.domain_dot]
 
 [infrastructure.fingerprint_WAF]

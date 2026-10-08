@@ -20,69 +20,88 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from pathlib import Path
+
 from w3af.core.controllers.dependency_check.pip_dependency import PIPDependency
 
 CORE = 1
 GUI = 2
 
+PROJECT_ROOT = Path(__file__).resolve().parents[4]
+REQUIREMENTS_FILE = PROJECT_ROOT / "requirements.txt"
+
+
+def _normalize_package_name(package_name):
+    return package_name.lower().replace("_", "-")
+
+
+def _load_pinned_versions():
+    versions = {}
+
+    with REQUIREMENTS_FILE.open(encoding="utf-8") as requirements:
+        for raw_line in requirements:
+            line = raw_line.partition("#")[0].strip()
+            if not line or "==" not in line:
+                continue
+
+            package_name, version = line.split("==", 1)
+            versions[_normalize_package_name(package_name)] = version.strip()
+
+    return versions
+
+
+PINNED_VERSIONS = _load_pinned_versions()
+
+
+def _version(package_name):
+    package_key = _normalize_package_name(package_name)
+    try:
+        return PINNED_VERSIONS[package_key]
+    except KeyError as key_error:
+        raise RuntimeError(
+            "%s must be pinned in %s" % (package_name, REQUIREMENTS_FILE)
+        ) from key_error
+
 
 CORE_PIP_PACKAGES = [
-    PIPDependency("pyclamd", "pyClamd", "0.4.0"),
-    PIPDependency("github", "PyGithub", "1.21.0"),
-    PIPDependency("git.util", "GitPython", "2.1.15"),
-    PIPDependency("phply", "phply", "0.9.1"),
-    PIPDependency("nltk", "nltk", "3.0.1"),
-    PIPDependency("chardet", "chardet", "3.0.4"),
-    PIPDependency("tblib", "tblib", "0.2.0"),
-    PIPDependency("pdfminer", "pdfminer", "20140328"),
-    PIPDependency("OpenSSL", "pyOpenSSL", "18.0.0"),
-    PIPDependency("ndg", "ndg-httpsclient", "0.4.0"),
-    # We need 0.1.8 because of mitmproxy
-    PIPDependency("pyasn1", "pyasn1", "0.4.2"),
-    PIPDependency("lxml", "lxml", "3.4.4"),
-    PIPDependency("scapy.config", "scapy", "2.4.0"),
-    PIPDependency("guess_language", "guess-language", "0.2"),
-    PIPDependency("cluster", "cluster", "1.1.1b3"),
-    PIPDependency("msgpack", "msgpack", "0.5.6"),
-    PIPDependency("ntlm", "python-ntlm", "1.0.1"),
-    PIPDependency("Halberd", "halberd", "0.2.4"),
-    PIPDependency("darts.lib.utils", "darts.util.lru", "0.5"),
-    PIPDependency("jinja2", "Jinja2", "2.10"),
-    PIPDependency("vulndb", "vulndb", "0.1.1"),
-    PIPDependency("markdown", "markdown", "2.6.1"),
-    # This was used for testing, but now it's required for
-    # regular users too, do not remove!
-    PIPDependency("psutil", "psutil", "5.4.8"),
-    # Added for the crawl.ds_store plugin
-    PIPDependency("ds_store", "ds-store", "1.1.2"),
-    # Console colors
-    PIPDependency("termcolor", "termcolor", "1.1.0"),
-    # We "outsource" the HTTP proxy feature to mitmproxy
-    PIPDependency("mitmproxy", "mitmproxy", "0.13"),
-    # Only used by the REST API, but in the future the console
-    # and GUI will consume it so it's ok to put this here
-    PIPDependency("Flask", "Flask", "0.10.1"),
-    PIPDependency("yaml", "PyYAML", "3.12"),
-    # tldextract extracts the tld from any domain name
-    PIPDependency("tldextract", "tldextract", "1.7.2"),
-    # pebble multiprocessing
-    PIPDependency("pebble", "pebble", "4.3.8"),
-    # acora speeds up string search, for regular expressions
-    # we use esmre to extract the string literals from the re
-    # and acora to match those against the target string
-    PIPDependency("acora", "acora", "2.1"),
-    PIPDependency("esmre", "esmre", "0.3.1"),
-    # String diff by Google
-    PIPDependency("diff_match_patch", "diff-match-patch", "20121119"),
-    # OpenAPI documentation parser
-    PIPDependency("bravado_core", "bravado-core", "5.15.0"),
-    # Fast compression library
-    PIPDependency("lz4", "lz4", "1.1.0"),
-    # Vulners API plugin needs this lib
-    PIPDependency("vulners", "vulners", "1.3.0"),
+    PIPDependency("pyclamd", "pyClamd", _version("pyClamd")),
+    PIPDependency("github", "PyGithub", _version("PyGithub")),
+    PIPDependency("git.util", "GitPython", _version("GitPython")),
+    PIPDependency("phply", "phply", _version("phply")),
+    PIPDependency("nltk", "nltk", _version("nltk")),
+    PIPDependency("chardet", "chardet", _version("chardet")),
+    PIPDependency("tblib", "tblib", _version("tblib")),
+    PIPDependency("pdfminer", "pdfminer.six", _version("pdfminer.six")),
+    PIPDependency("OpenSSL", "pyOpenSSL", _version("pyOpenSSL")),
+    PIPDependency("ndg", "ndg-httpsclient", _version("ndg-httpsclient")),
+    PIPDependency("pyasn1", "pyasn1", _version("pyasn1")),
+    PIPDependency("lxml", "lxml", _version("lxml")),
+    PIPDependency("scapy.config", "scapy", _version("scapy")),
+    PIPDependency("guess_language", "guess-language", _version("guess-language")),
+    PIPDependency("cluster", "cluster", _version("cluster")),
+    PIPDependency("msgpack", "msgpack", _version("msgpack")),
+    PIPDependency("ntlm", "python-ntlm", _version("python-ntlm")),
+    PIPDependency("darts.lib.utils", "darts.util.lru", _version("darts.util.lru")),
+    PIPDependency("jinja2", "Jinja2", _version("Jinja2")),
+    PIPDependency("vulndb", "vulndb", _version("vulndb")),
+    PIPDependency("markdown", "Markdown", _version("Markdown")),
+    PIPDependency("psutil", "psutil", _version("psutil")),
+    PIPDependency("ds_store", "ds-store", _version("ds-store")),
+    PIPDependency("termcolor", "termcolor", _version("termcolor")),
+    PIPDependency("mitmproxy", "mitmproxy", _version("mitmproxy")),
+    PIPDependency("Flask", "Flask", _version("Flask")),
+    PIPDependency("yaml", "PyYAML", _version("PyYAML")),
+    PIPDependency("tldextract", "tldextract", _version("tldextract")),
+    PIPDependency("pebble", "pebble", _version("pebble")),
+    PIPDependency("acora", "acora", _version("acora")),
+    PIPDependency("esmre", "esmre", _version("esmre")),
+    PIPDependency("diff_match_patch", "diff-match-patch", _version("diff-match-patch")),
+    PIPDependency("bravado_core", "bravado-core", _version("bravado-core")),
+    PIPDependency("lz4", "lz4", _version("lz4")),
+    PIPDependency("vulners", "vulners", _version("vulners")),
 ]
 
-GUI_PIP_EXTRAS = [PIPDependency("xdot", "xdot", "0.6")]
+GUI_PIP_EXTRAS = [PIPDependency("xdot", "xdot", _version("xdot"))]
 
 GUI_PIP_PACKAGES = CORE_PIP_PACKAGES[:]
 GUI_PIP_PACKAGES.extend(GUI_PIP_EXTRAS)

@@ -3,17 +3,7 @@
 #
 # Install all libs required to run our tests (which are available at pypi)
 #
-pip install --upgrade -r w3af/tests/requirements.txt
-
-pip install --upgrade 'git+https://github.com/andresriancho/nose.git#egg=nose'
-
-# Using my own branch because there are a couple of PRs which never got merged:
-#    https://github.com/gabrielfalcao/HTTPretty/pull/252
-#    https://github.com/gabrielfalcao/HTTPretty/pull/215
-#
-# If they get merged then remove this line and add HTTPretty to the
-# w3af/tests/requirements.txt file
-pip install --upgrade 'git+https://github.com/andresriancho/HTTPretty.git@ci#egg=HTTPretty'
+pip install --upgrade -r requirements.txt
 
 #
 # Install xpresser

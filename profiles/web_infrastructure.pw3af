@@ -22,8 +22,6 @@ msf_location = /opt/metasploit3/bin/
 
 [infrastructure.fingerprint_os]
 
-[infrastructure.halberd]
-
 [infrastructure.hmap]
 gen_fingerprint = False
 
@@ -91,8 +89,6 @@ use_colors = True
 [infrastructure.find_jboss]
 
 [infrastructure.finger_bing]
-
-[infrastructure.halberd]
 
 [infrastructure.domain_dot]
 

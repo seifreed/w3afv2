@@ -19,8 +19,6 @@ run_once = False
 
 [grep.feeds]
 
-[infrastructure.halberd]
-
 [audit.phishing_vector]
 
 [grep.path_disclosure]
