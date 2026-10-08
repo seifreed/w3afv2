@@ -19,19 +19,19 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import xml.sax
 import cgi
 import base64
 
 from xml.sax.handler import ContentHandler
-from ruamel.ordereddict import ordereddict as OrderedDict
+from collections import OrderedDict
 
 from w3af.core.data.dc.utils.token import DataToken
 
-
-BASE_64 = 'base64'
-FUZZABLE_TYPES = (BASE_64, 'string', 'name')
-ALL_TYPES = ('i4', 'int', 'boolean', 'dateTime.iso8601', 'double')
+BASE_64 = "base64"
+FUZZABLE_TYPES = (BASE_64, "string", "name")
+ALL_TYPES = ("i4", "int", "boolean", "dateTime.iso8601", "double")
 
 
 class XmlRpcReadHandler(ContentHandler):
@@ -42,6 +42,7 @@ class XmlRpcReadHandler(ContentHandler):
     The user should call this function parse_xmlrpc and build_xmlrpc.
     The rest is for internal use.
     """
+
     def __init__(self):
         ContentHandler.__init__(self)
 
@@ -55,9 +56,9 @@ class XmlRpcReadHandler(ContentHandler):
     def startElement(self, name, attrs):
         if name in FUZZABLE_TYPES:
             self._inside_fuzzable = True
-            self.fuzzable_parameters.append([name.lower(), ''])
+            self.fuzzable_parameters.append([name.lower(), ""])
 
-        self.all_parameters.append([name.lower(), ''])
+        self.all_parameters.append([name.lower(), ""])
 
     def characters(self, ch):
         if self._inside_fuzzable:
@@ -94,11 +95,12 @@ class XmlRpcWriteHandler(ContentHandler):
     The user should call this function parse_xmlrpc and build_xmlrpc. The rest
     is for internal use.
     """
+
     def __init__(self, data_container):
         ContentHandler.__init__(self)
 
         # The resulting XML string
-        self.fuzzed_xml_string = ''
+        self.fuzzed_xml_string = ""
 
         # Internal variables
         self._inside_fuzzable = False
@@ -115,13 +117,15 @@ class XmlRpcWriteHandler(ContentHandler):
             self._inside_fuzzable = True
             self._fuzzable_index += 1
 
-        self.fuzzed_xml_string += '<%s' % name
+        self.fuzzed_xml_string += "<%s" % name
 
         for attr_name in attrs.getNames():
-            self.fuzzed_xml_string += ' %s="%s"' % (attr_name,
-                                                    attrs.getValue(attr_name))
+            self.fuzzed_xml_string += ' %s="%s"' % (
+                attr_name,
+                attrs.getValue(attr_name),
+            )
 
-        self.fuzzed_xml_string += '>'
+        self.fuzzed_xml_string += ">"
 
     def characters(self, ch):
         if self._inside_fuzzable:
@@ -131,11 +135,12 @@ class XmlRpcWriteHandler(ContentHandler):
             if isinstance(modified_value, DataToken):
                 modified_value = modified_value.get_value()
 
-            if self._fuzzed_parameters[self._fuzzable_index][0] == 'base64':
+            if self._fuzzed_parameters[self._fuzzable_index][0] == "base64":
                 enc_val = base64.b64encode(modified_value)
             else:
-                enc_val = cgi.escape(modified_value).encode('ascii',
-                                                            'xmlcharrefreplace')
+                enc_val = cgi.escape(modified_value).encode(
+                    "ascii", "xmlcharrefreplace"
+                )
 
             self.fuzzed_xml_string += enc_val
 
@@ -144,7 +149,7 @@ class XmlRpcWriteHandler(ContentHandler):
 
     def endElement(self, name):
         self._inside_fuzzable = False
-        self.fuzzed_xml_string += '</%s>' % name
+        self.fuzzed_xml_string += "</%s>" % name
 
 
 def parse_xmlrpc(xml_string):

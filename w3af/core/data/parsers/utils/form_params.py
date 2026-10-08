@@ -20,11 +20,12 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import operator
 import random
 import copy
 
-from ruamel.ordereddict import ordereddict as OrderedDict
+from collections import OrderedDict
 from types import NoneType
 
 import w3af.core.controllers.output_manager as om
@@ -33,22 +34,28 @@ from w3af.core.data.dc.utils.multipart import is_file_like
 from w3af.core.data.constants.encodings import DEFAULT_ENCODING
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.utils.form_id import FormID
-from w3af.core.data.parsers.utils.form_fields import (FileFormField,
-                                                      get_value_by_key,
-                                                      SelectFormField,
-                                                      GenericFormField,
-                                                      RadioFormField,
-                                                      CheckboxFormField)
-from w3af.core.data.parsers.utils.form_constants import (DEFAULT_FORM_ENCODING,
-                                                         INPUT_TYPE_CHECKBOX,
-                                                         INPUT_TYPE_RADIO,
-                                                         INPUT_TYPE_TEXT,
-                                                         INPUT_TYPE_SELECT,
-                                                         INPUT_TYPE_PASSWD,
-                                                         INPUT_TYPE_FILE,
-                                                         MODE_ALL, MODE_TB,
-                                                         MODE_TMB, MODE_T,
-                                                         MODE_B)
+from w3af.core.data.parsers.utils.form_fields import (
+    FileFormField,
+    get_value_by_key,
+    SelectFormField,
+    GenericFormField,
+    RadioFormField,
+    CheckboxFormField,
+)
+from w3af.core.data.parsers.utils.form_constants import (
+    DEFAULT_FORM_ENCODING,
+    INPUT_TYPE_CHECKBOX,
+    INPUT_TYPE_RADIO,
+    INPUT_TYPE_TEXT,
+    INPUT_TYPE_SELECT,
+    INPUT_TYPE_PASSWD,
+    INPUT_TYPE_FILE,
+    MODE_ALL,
+    MODE_TB,
+    MODE_TMB,
+    MODE_T,
+    MODE_B,
+)
 from functools import reduce
 
 
@@ -72,26 +79,37 @@ class FormParameters(OrderedDict):
     :author: Andres Riancho (andres.riancho@gmail.com) |
              Javier Andalia (jandalia =at= gmail.com)
     """
+
     # Max
     TOP_VARIANTS = 15
-    MAX_VARIANTS_TOTAL = 10 ** 9
+    MAX_VARIANTS_TOTAL = 10**9
     SEED = 1
 
-    AVOID_FILLING_FORM_TYPES = {INPUT_TYPE_CHECKBOX,
-                                INPUT_TYPE_RADIO,
-                                INPUT_TYPE_SELECT}
+    AVOID_FILLING_FORM_TYPES = {
+        INPUT_TYPE_CHECKBOX,
+        INPUT_TYPE_RADIO,
+        INPUT_TYPE_SELECT,
+    }
 
-    OPTION_MATRIX_FORM_TYPES = {INPUT_TYPE_CHECKBOX,
-                                INPUT_TYPE_RADIO,
-                                INPUT_TYPE_SELECT}
+    OPTION_MATRIX_FORM_TYPES = {
+        INPUT_TYPE_CHECKBOX,
+        INPUT_TYPE_RADIO,
+        INPUT_TYPE_SELECT,
+    }
 
-    AVOID_STR_DUPLICATES = {INPUT_TYPE_CHECKBOX,
-                            INPUT_TYPE_RADIO,
-                            INPUT_TYPE_SELECT}
+    AVOID_STR_DUPLICATES = {INPUT_TYPE_CHECKBOX, INPUT_TYPE_RADIO, INPUT_TYPE_SELECT}
 
-    def __init__(self, init_vals=(), meta=None, encoding=DEFAULT_ENCODING,
-                 method='GET', action=None, form_encoding=DEFAULT_FORM_ENCODING,
-                 attributes=None, hosted_at_url=None):
+    def __init__(
+        self,
+        init_vals=(),
+        meta=None,
+        encoding=DEFAULT_ENCODING,
+        method="GET",
+        action=None,
+        form_encoding=DEFAULT_FORM_ENCODING,
+        attributes=None,
+        hosted_at_url=None,
+    ):
         """
 
         :param init_vals: Initial form params
@@ -113,7 +131,7 @@ class FormParameters(OrderedDict):
         # Defaults
         self._autocomplete = None
         self._action = None
-        self._method = 'GET'
+        self._method = "GET"
 
         # Two completely different types of encoding, first the enctype for the
         # form: multipart/urlencoded, then the charset encoding (UTF-8, etc.)
@@ -140,11 +158,13 @@ class FormParameters(OrderedDict):
         :return: A FormID which can be used to compare two forms
         :see: https://github.com/andresriancho/w3af/issues/15161
         """
-        return FormID(action=self._action,
-                      inputs=list(self.meta.keys()),
-                      attributes=self._attributes,
-                      hosted_at_url=self._hosted_at_url,
-                      method=self._method)
+        return FormID(
+            action=self._action,
+            inputs=list(self.meta.keys()),
+            attributes=self._attributes,
+            hosted_at_url=self._hosted_at_url,
+            method=self._method,
+        )
 
     def get_form_encoding(self):
         return self._form_encoding
@@ -176,7 +196,7 @@ class FormParameters(OrderedDict):
                               specifies the form encoding to use.
         :return:
         """
-        if 'multipart/' in form_encoding.lower() and self.get_method() == 'GET':
+        if "multipart/" in form_encoding.lower() and self.get_method() == "GET":
             form_encoding = DEFAULT_FORM_ENCODING
 
         self._form_encoding = form_encoding
@@ -195,7 +215,7 @@ class FormParameters(OrderedDict):
 
     def set_action(self, action):
         if not isinstance(action, (URL, NoneType)):
-            msg = 'The action of a Form must be of URL type.'
+            msg = "The action of a Form must be of URL type."
             raise TypeError(msg)
         self._action = action
 
@@ -208,9 +228,9 @@ class FormParameters(OrderedDict):
             return
 
         if autocomplete is None:
-            autocomplete = 'on'
+            autocomplete = "on"
 
-        self._autocomplete = False if autocomplete.lower() == 'off' else True
+        self._autocomplete = False if autocomplete.lower() == "off" else True
 
     def get_method(self):
         """
@@ -234,7 +254,7 @@ class FormParameters(OrderedDict):
 
         :return: True if we should send the params in the post-data
         """
-        if self.get_method().upper() in ('POST', 'PUT', 'PATCH'):
+        if self.get_method().upper() in ("POST", "PUT", "PATCH"):
             return True
 
         return False
@@ -301,7 +321,7 @@ class FormParameters(OrderedDict):
 
         # pylint: disable=E1101
         form_values = self.setdefault(form_field.name, [])
-        form_values.append(form_field.value or '')
+        form_values.append(form_field.value or "")
         # pylint: enable=E1101
 
     def add_field_by_attr_items(self, attr_items):
@@ -342,7 +362,7 @@ class FormParameters(OrderedDict):
         :param attributes: The tag attributes for the newly found form input
         :return: The newly created / updated form field
         """
-        input_name = get_value_by_key(attributes, 'name', 'id')
+        input_name = get_value_by_key(attributes, "name", "id")
 
         if input_name is None:
             return False, None
@@ -353,18 +373,18 @@ class FormParameters(OrderedDict):
         # Find the attr type and value, setting the default type to text (if
         # missing in the tag) and the default value to an empty string (if
         # missing)
-        input_type = get_value_by_key(attributes, 'type') or INPUT_TYPE_TEXT
+        input_type = get_value_by_key(attributes, "type") or INPUT_TYPE_TEXT
         input_type = input_type.lower()
 
-        input_value = get_value_by_key(attributes, 'value') or ''
+        input_value = get_value_by_key(attributes, "value") or ""
 
-        autocomplete = get_value_by_key(attributes, 'autocomplete') or ''
-        autocomplete = False if autocomplete.lower() == 'off' else True
+        autocomplete = get_value_by_key(attributes, "autocomplete") or ""
+        autocomplete = False if autocomplete.lower() == "off" else True
 
         should_add_new = True
 
         if input_type == INPUT_TYPE_SELECT:
-            input_values = get_value_by_key(attributes, 'values') or []
+            input_values = get_value_by_key(attributes, "values") or []
             form_field = SelectFormField(input_name, input_values)
 
         elif input_type == INPUT_TYPE_RADIO:
@@ -388,14 +408,15 @@ class FormParameters(OrderedDict):
                 form_field = CheckboxFormField(input_name, [input_value])
 
         elif input_type == INPUT_TYPE_FILE:
-            file_name = get_value_by_key(attributes, 'filename')
-            form_field = FileFormField(input_name,
-                                       value=input_value,
-                                       file_name=file_name)
+            file_name = get_value_by_key(attributes, "filename")
+            form_field = FileFormField(
+                input_name, value=input_value, file_name=file_name
+            )
 
         else:
-            form_field = GenericFormField(input_type, input_name, input_value,
-                                          autocomplete=autocomplete)
+            form_field = GenericFormField(
+                input_type, input_name, input_value, autocomplete=autocomplete
+            )
 
         return should_add_new, form_field
 
@@ -470,7 +491,7 @@ class FormParameters(OrderedDict):
                     This case reported by Taras at
                     https://sourceforge.net/apps/trac/w3af/ticket/171015
                     """
-                    value = ''
+                    value = ""
 
                 # FIXME: Needs to support repeated parameter names
                 self_variant[option_name] = [value]
@@ -498,11 +519,13 @@ class FormParameters(OrderedDict):
             # matrix by using `SEED` in the random generation
             if variants_total > self.TOP_VARIANTS:
                 # Inform user
-                msg = ('w3af found an HTML form that has several'
-                       ' checkbox, radio and select input tags inside.'
-                       ' Testing all combinations of those values would'
-                       ' take too much time, the framework will only'
-                       ' test %s randomly distributed variants.')
+                msg = (
+                    "w3af found an HTML form that has several"
+                    " checkbox, radio and select input tags inside."
+                    " Testing all combinations of those values would"
+                    " take too much time, the framework will only"
+                    " test %s randomly distributed variants."
+                )
                 om.out.debug(msg % self.TOP_VARIANTS)
 
                 # Init random object. Set our seed so we get the same variants
@@ -525,9 +548,11 @@ class FormParameters(OrderedDict):
                     for row, vector in enumerate(matrix):
                         # Create new 3-length vector
                         if len(vector) > 3:
-                            new_vector = [vector[0],
-                                          vector[len(vector) / 2],
-                                          vector[-1]]
+                            new_vector = [
+                                vector[0],
+                                vector[len(vector) / 2],
+                                vector[-1],
+                            ]
                             matrix[row] = new_vector
 
                     # New variants total
@@ -553,7 +578,9 @@ class FormParameters(OrderedDict):
         # Hack to make the algorithm work.
         matrix.append([1])
 
-        get_count = lambda y: reduce(operator.mul, list(map(len, matrix[y + 1:])))
+        def get_count(y):
+            return reduce(operator.mul, list(map(len, matrix[y + 1 :])))
+
         remainder = path
         decoded_path = []
 
@@ -588,10 +615,12 @@ class FormParameters(OrderedDict):
         :return: A copy of myself.
         """
         init_val = copy.deepcopy(list(self.items()))
-        self_copy = FormParameters(init_vals=init_val,
-                                   meta=self.meta,
-                                   attributes=self._attributes,
-                                   hosted_at_url=self._hosted_at_url)
+        self_copy = FormParameters(
+            init_vals=init_val,
+            meta=self.meta,
+            attributes=self._attributes,
+            hosted_at_url=self._hosted_at_url,
+        )
 
         # Internal variables
         self_copy.set_method(self.get_method())
@@ -605,7 +634,7 @@ class FormParameters(OrderedDict):
     def __reduce__(self):
         items = [(k, self[k]) for k in self]
         inst_dict = vars(self).copy()
-        inst_dict.pop('_keys', None)
+        inst_dict.pop("_keys", None)
 
         encoding = self.get_encoding()
 
@@ -621,10 +650,10 @@ class FormParameters(OrderedDict):
                 items.append(kv)
         # pylint: enable=E1133
 
-        data = ', '.join(items)
+        data = ", ".join(items)
 
         args = (self._method, self._action, data)
-        return '<FormParams (%s %s {%s})>' % args
+        return "<FormParams (%s %s {%s})>" % args
 
     def get_parameter_type_count(self):
         passwd = text = other = 0

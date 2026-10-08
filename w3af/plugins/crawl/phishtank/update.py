@@ -21,18 +21,18 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import csv
 import sys
 
-import subprocess32 as subprocess
+import subprocess
 import lxml.etree as etree
 
-
-URL = 'https://data.phishtank.com/data/online-valid/'
-XML_DB_FILE = 'w3af/plugins/crawl/phishtank/index.xml'
-CSV_DB_FILE = 'w3af/plugins/crawl/phishtank/index.csv'
-DOWNLOAD_CMD = 'wget -q %s -O %s'
+URL = "https://data.phishtank.com/data/online-valid/"
+XML_DB_FILE = "w3af/plugins/crawl/phishtank/index.xml"
+CSV_DB_FILE = "w3af/plugins/crawl/phishtank/index.csv"
+DOWNLOAD_CMD = "wget -q %s -O %s"
 
 
 class PhishTankHandler(object):
@@ -55,13 +55,15 @@ class PhishTankHandler(object):
         </status>
     </entry>
     """
+
     def __init__(self, output_csv_file):
         self.output_csv_file = output_csv_file
-        self.entry_writer = csv.writer(output_csv_file, delimiter=' ',
-                                       quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        self.entry_writer = csv.writer(
+            output_csv_file, delimiter=" ", quotechar="|", quoting=csv.QUOTE_MINIMAL
+        )
 
-        self.url = ''
-        self.phish_detail_url = ''
+        self.url = ""
+        self.phish_detail_url = ""
 
         self.inside_entry = False
         self.inside_URL = False
@@ -71,18 +73,18 @@ class PhishTankHandler(object):
     def start(self, name, attrs):
         # name parameters are strings (as sent by lxml) so we use strings here
         # to avoid the conversion
-        if name == 'entry':
+        if name == "entry":
             self.inside_entry = True
 
-        elif name == 'url':
+        elif name == "url":
             self.inside_URL = True
             # But when it sends the information in data(), it uses unicode
-            self.url = ''
+            self.url = ""
 
-        elif name == 'phish_detail_url':
+        elif name == "phish_detail_url":
             self.inside_detail = True
             # But when it sends the information in data(), it uses unicode
-            self.phish_detail_url = ''
+            self.phish_detail_url = ""
 
         return
 
@@ -96,14 +98,14 @@ class PhishTankHandler(object):
     def end(self, name):
         # name parameters are strings (as sent by lxml) so we use strings here
         # to avoid the conversion
-        if name == 'phish_detail_url':
+        if name == "phish_detail_url":
             self.inside_detail = False
 
-        if name == 'url':
+        if name == "url":
             self.inside_URL = False
             self.url_count += 1
 
-        if name == 'entry':
+        if name == "entry":
             self.inside_entry = False
             #
             #    Now I dump the data to the CSV file
@@ -116,7 +118,7 @@ class PhishTankHandler(object):
 
 
 def download():
-    print('Downloading XML file...')
+    print("Downloading XML file...")
     subprocess.check_call(DOWNLOAD_CMD % (URL, XML_DB_FILE), shell=True)
 
 
@@ -132,13 +134,13 @@ def convert_xml_to_csv():
         # encoding, so it will simply decode using the header:
         #
         # <?xml version="1.0" encoding="utf-8"?>
-        phishtank_db_fd = open(XML_DB_FILE, 'r')
+        phishtank_db_fd = open(XML_DB_FILE, "r")
     except Exception as e:
         msg = 'Failed to open XML phishtank database: "%s", exception: "%s".'
         sys.exit(msg % (XML_DB_FILE, e))
 
     try:
-        output_csv_file = open(CSV_DB_FILE, 'w')
+        output_csv_file = open(CSV_DB_FILE, "w")
     except Exception as e:
         msg = 'Failed to open CSV phishtank database: "%s", exception: "%s".'
         sys.exit(msg % (CSV_DB_FILE, e))
@@ -146,7 +148,7 @@ def convert_xml_to_csv():
     pt_handler = PhishTankHandler(output_csv_file)
     parser = etree.HTMLParser(recover=True, target=pt_handler)
 
-    print('Starting the phishtank XML conversion.')
+    print("Starting the phishtank XML conversion.")
 
     try:
         etree.parse(phishtank_db_fd, parser)
@@ -154,10 +156,10 @@ def convert_xml_to_csv():
         msg = 'XML parsing error in phishtank DB, exception: "%s".'
         sys.exit(msg % e)
 
-    print('Finished XML conversion.')
+    print("Finished XML conversion.")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     download()
     convert_xml_to_csv()
     os.unlink(XML_DB_FILE)

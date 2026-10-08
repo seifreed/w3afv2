@@ -20,9 +20,10 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from functools import partial
 
-from ruamel.ordereddict import ordereddict as OrderedDict
+from collections import OrderedDict
 
 from w3af.core.data.misc.encoding import smart_unicode
 from w3af.core.data.dc.generic.data_container import DataContainer
@@ -30,7 +31,6 @@ from w3af.core.data.constants.encodings import UTF8
 from w3af.core.data.parsers.utils.encode_decode import urlencode
 from w3af.core.data.dc.utils.token import DataToken
 from w3af.core.data.dc.utils.filter_printable import filter_non_printable
-
 
 ERR_MSG = 'Unsupported init_val "%s", expected format is [(u"b", [u"2", u"3"])]'
 
@@ -42,6 +42,7 @@ class KeyValueContainer(DataContainer, OrderedDict):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def __init__(self, init_val=(), encoding=UTF8):
         DataContainer.__init__(self, encoding=encoding)
         OrderedDict.__init__(self)
@@ -50,7 +51,7 @@ class KeyValueContainer(DataContainer, OrderedDict):
             self.update(init_val)
         elif isinstance(init_val, dict):
             # we lose compatibility with other ordered dict types this way
-            raise TypeError('Undefined order, cannot get items from dict')
+            raise TypeError("Undefined order, cannot get items from dict")
         else:
             for item in init_val:
                 try:
@@ -78,13 +79,13 @@ class KeyValueContainer(DataContainer, OrderedDict):
         encoding = self.encoding
         token = self.token
 
-        return self.__class__, (init_val, encoding), {'token': token}
+        return self.__class__, (init_val, encoding), {"token": token}
 
     def __setstate__(self, state):
-        self.token = state['token']
+        self.token = state["token"]
 
     def get_type(self):
-        return 'Generic key value container'
+        return "Generic key value container"
 
     def __str__(self):
         """
@@ -98,7 +99,7 @@ class KeyValueContainer(DataContainer, OrderedDict):
         """
         Return unicode representation
         """
-        return self._to_str_with_separators('=', '&', errors='percent_encode')
+        return self._to_str_with_separators("=", "&", errors="percent_encode")
 
     def iter_setters(self):
         """
@@ -118,7 +119,7 @@ class KeyValueContainer(DataContainer, OrderedDict):
                     yield k, ele, token_path, partial(v.__setitem__, idx)
         # pylint: enable=E1133
 
-    def _to_str_with_separators(self, key_val_sep, pair_sep, errors='strict'):
+    def _to_str_with_separators(self, key_val_sep, pair_sep, errors="strict"):
         """
         :return: Join all the values stored in this data container using the
                  specified separators.
@@ -129,7 +130,7 @@ class KeyValueContainer(DataContainer, OrderedDict):
         for key, value_list in list(self.items()):
             for value in value_list:
                 value = smart_unicode(value, encoding=UTF8, errors=errors)
-                to_app = '%s%s%s' % (key, key_val_sep, value)
+                to_app = "%s%s%s" % (key, key_val_sep, value)
                 lst.append(to_app)
         # pylint: enable=E1133
 
@@ -150,11 +151,13 @@ class KeyValueContainer(DataContainer, OrderedDict):
             for k, v in list(self.items()):
                 for ele in v:
                     if isinstance(ele, DataToken):
-                        dt_str = '%s=%s' % (filter_non_printable(ele.get_name()),
-                                            filter_non_printable(ele.get_value()))
-                        return '...%s...' % dt_str[:self.MAX_PRINTABLE]
+                        dt_str = "%s=%s" % (
+                            filter_non_printable(ele.get_name()),
+                            filter_non_printable(ele.get_value()),
+                        )
+                        return "...%s..." % dt_str[: self.MAX_PRINTABLE]
             # pylint: enable=E1133
         else:
             # I'll simply show the first N parameter and values until the
             # MAX_PRINTABLE is achieved
-            return printable_self[:self.MAX_PRINTABLE]
+            return printable_self[: self.MAX_PRINTABLE]

@@ -20,9 +20,10 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from functools import partial
 
-from ruamel.ordereddict import ordereddict as OrderedDict
+from collections import OrderedDict
 
 from w3af.core.data.misc.encoding import smart_unicode
 from w3af.core.data.dc.generic.data_container import DataContainer
@@ -30,7 +31,6 @@ from w3af.core.data.constants.encodings import UTF8
 from w3af.core.data.parsers.utils.encode_decode import urlencode
 from w3af.core.data.dc.utils.token import DataToken
 from w3af.core.data.dc.utils.filter_printable import filter_non_printable
-
 
 ERR_MSG_NO_REP = 'Unsupported init_val "%s", expected format is [("b", "2")]'
 
@@ -46,6 +46,7 @@ class NonRepeatKeyValueContainer(DataContainer, OrderedDict):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def __init__(self, init_val=(), encoding=UTF8, relaxed_order=False):
         DataContainer.__init__(self, encoding=encoding)
         OrderedDict.__init__(self, relax=relaxed_order)
@@ -54,7 +55,7 @@ class NonRepeatKeyValueContainer(DataContainer, OrderedDict):
             self.update(init_val)
         elif isinstance(init_val, dict):
             # we lose compatibility with other ordered dict types this way
-            raise TypeError('Undefined order, cannot get items from dict')
+            raise TypeError("Undefined order, cannot get items from dict")
         else:
             for item in init_val:
                 try:
@@ -79,13 +80,13 @@ class NonRepeatKeyValueContainer(DataContainer, OrderedDict):
 
         token = self.token
 
-        return self.__class__, (init_val, encoding), {'token': token}
+        return self.__class__, (init_val, encoding), {"token": token}
 
     def __setstate__(self, state):
-        self.token = state['token']
+        self.token = state["token"]
 
     def get_type(self):
-        return 'Generic non-repeat key value container'
+        return "Generic non-repeat key value container"
 
     def _to_str_with_separators(self, key_val_sep, pair_sep):
         """
@@ -96,8 +97,7 @@ class NonRepeatKeyValueContainer(DataContainer, OrderedDict):
 
         # pylint: disable=E1133
         for k, v in list(self.items()):
-            to_app = '%s%s%s' % (k, key_val_sep,
-                                  smart_unicode(v, encoding=UTF8))
+            to_app = "%s%s%s" % (k, key_val_sep, smart_unicode(v, encoding=UTF8))
             lst.append(to_app)
         # pylint: enable=E1133
 
@@ -129,7 +129,7 @@ class NonRepeatKeyValueContainer(DataContainer, OrderedDict):
         """
         Return unicode representation
         """
-        return self._to_str_with_separators('=', '&')
+        return self._to_str_with_separators("=", "&")
 
     def get_short_printable_repr(self):
         """
@@ -143,11 +143,13 @@ class NonRepeatKeyValueContainer(DataContainer, OrderedDict):
             # pylint: disable=E1133
             for k, v in list(self.items()):
                 if isinstance(v, DataToken):
-                    dt_str = '%s=%s' % (filter_non_printable(v.get_name()),
-                                        filter_non_printable(v.get_value()))
-                    return '...%s...' % dt_str[:self.MAX_PRINTABLE]
+                    dt_str = "%s=%s" % (
+                        filter_non_printable(v.get_name()),
+                        filter_non_printable(v.get_value()),
+                    )
+                    return "...%s..." % dt_str[: self.MAX_PRINTABLE]
             # pylint: enable=E1133
         else:
             # I'll simply show the first N parameter and values until the
             # MAX_PRINTABLE is achieved
-            return filter_non_printable(str(self))[:self.MAX_PRINTABLE]
+            return filter_non_printable(str(self))[: self.MAX_PRINTABLE]

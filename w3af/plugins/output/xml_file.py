@@ -19,13 +19,14 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import sys
 import time
 import base64
 import jinja2
 
-import subprocess32 as subprocess
+import subprocess
 
 import lz4.frame
 
@@ -53,9 +54,9 @@ from w3af.core.data.misc.encoding import smart_str_ignore, smart_unicode
 from w3af.core.data.misc.dotdict import dotdict
 from w3af.core.data.constants.encodings import DEFAULT_ENCODING
 
-TIME_FORMAT = '%a %b %d %H:%M:%S %Y'
+TIME_FORMAT = "%a %b %d %H:%M:%S %Y"
 
-TEMPLATE_ROOT = os.path.join(ROOT_PATH, 'plugins/output/xml_file/')
+TEMPLATE_ROOT = os.path.join(ROOT_PATH, "plugins/output/xml_file/")
 
 
 def took(func):
@@ -75,7 +76,7 @@ def took(func):
 
         # Log things which take more than 0.5 seconds
         if spent > 0.5:
-            msg = '[xml_file.flush()] %s took %.2f seconds to run.'
+            msg = "[xml_file.flush()] %s took %.2f seconds to run."
             function_name = func.__name__
             args = (function_name, spent)
             om.out.debug(msg % args)
@@ -92,13 +93,13 @@ class xml_file(OutputPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    XML_OUTPUT_VERSION = '2.8'
+    XML_OUTPUT_VERSION = "2.8"
 
     def __init__(self):
         OutputPlugin.__init__(self)
 
         # User configured parameters
-        self._file_name = '~/report.xml'
+        self._file_name = "~/report.xml"
         self._timestamp = str(int(time.time()))
         self._long_timestamp = str(time.strftime(TIME_FORMAT, time.localtime()))
 
@@ -143,7 +144,7 @@ class xml_file(OutputPlugin):
 
         :return: No value is returned.
         """
-        self._file_name = option_list['output_file'].get_value()
+        self._file_name = option_list["output_file"].get_value()
 
     def get_options(self):
         """
@@ -151,8 +152,8 @@ class xml_file(OutputPlugin):
         """
         ol = OptionList()
 
-        d = 'Output file name where to write the XML data'
-        o = opt_factory('output_file', self._file_name, d, OUTPUT_FILE)
+        d = "Output file name where to write the XML data"
+        o = opt_factory("output_file", self._file_name, d, OUTPUT_FILE)
         ol.add(o)
 
         return ol
@@ -227,31 +228,32 @@ class xml_file(OutputPlugin):
     @took
     def _add_scan_info_to_context(self, context):
         if self._scan_targets is None:
-            self._scan_targets = ','.join([t.url_string for t in cf.cf.get('targets')])
+            self._scan_targets = ",".join([t.url_string for t in cf.cf.get("targets")])
 
-        scan_info = ScanInfo(self._jinja2_env,
-                             self._scan_targets,
-                             self._plugins_dict,
-                             self._options_dict)
+        scan_info = ScanInfo(
+            self._jinja2_env, self._scan_targets, self._plugins_dict, self._options_dict
+        )
         context.scan_info = scan_info.to_string()
 
     @took
     def _add_scan_status_to_context(self, context):
-        om.out.debug('[xml_file.flush()] _add_scan_status_to_context() start')
+        om.out.debug("[xml_file.flush()] _add_scan_status_to_context() start")
 
         status = self.get_w3af_core().status.get_status_as_dict()
-        om.out.debug('[xml_file.flush()] _add_scan_status_to_context() read status')
+        om.out.debug("[xml_file.flush()] _add_scan_status_to_context() read status")
 
         all_known_urls = kb.kb.get_all_known_urls()
         total_urls = len(all_known_urls)
-        om.out.debug('[xml_file.flush()] _add_scan_status_to_context() read total_urls')
+        om.out.debug("[xml_file.flush()] _add_scan_status_to_context() read total_urls")
 
         known_urls = self._get_known_urls(all_known_urls)
-        om.out.debug('[xml_file.flush()] _add_scan_status_to_context() read generated URLTree')
+        om.out.debug(
+            "[xml_file.flush()] _add_scan_status_to_context() read generated URLTree"
+        )
 
         scan_status = ScanStatus(self._jinja2_env, status, total_urls, known_urls)
         context.scan_status = scan_status.to_string()
-        om.out.debug('[xml_file.flush()] _add_scan_status_to_context() rendered')
+        om.out.debug("[xml_file.flush()] _add_scan_status_to_context() rendered")
 
     def _get_known_urls(self, all_known_urls):
         """
@@ -284,7 +286,7 @@ class xml_file(OutputPlugin):
 
         processed_uniq_ids = []
 
-        om.out.debug('[xml_file.flush()] Starting findings()')
+        om.out.debug("[xml_file.flush()] Starting findings()")
         start = time.time()
 
         #
@@ -314,7 +316,7 @@ class xml_file(OutputPlugin):
                 yield node
                 processed_uniq_ids.append(uniq_id)
 
-        msg = '[xml_file.flush()] findings() processed %s cached nodes in %.2f seconds'
+        msg = "[xml_file.flush()] findings() processed %s cached nodes in %.2f seconds"
         spent = time.time() - start
         args = (len(processed_uniq_ids), spent)
         om.out.debug(msg % args)
@@ -337,7 +339,7 @@ class xml_file(OutputPlugin):
 
             yield node
 
-        msg = '[xml_file.flush()] findings() processed %s new findings in %.2f seconds'
+        msg = "[xml_file.flush()] findings() processed %s new findings in %.2f seconds"
         spent = time.time() - start
         args = (new_findings, spent)
         om.out.debug(msg % args)
@@ -356,7 +358,7 @@ class xml_file(OutputPlugin):
 
                 evicted_findings += 1
 
-        msg = '[xml_file.flush()] findings() evicted %s findings from cache in %.2f seconds'
+        msg = "[xml_file.flush()] findings() evicted %s findings from cache in %.2f seconds"
         spent = time.time() - start
         args = (evicted_findings, spent)
         om.out.debug(msg % args)
@@ -374,15 +376,17 @@ class xml_file(OutputPlugin):
 
         :return: A jinja2 environment
         """
-        env_config = {'undefined': StrictUndefined,
-                      'trim_blocks': True,
-                      'autoescape': True,
-                      'lstrip_blocks': True}
+        env_config = {
+            "undefined": StrictUndefined,
+            "trim_blocks": True,
+            "autoescape": True,
+            "lstrip_blocks": True,
+        }
 
         jinja2_env = Environment(**env_config)
         jinja2_env.loader = FileSystemLoader(TEMPLATE_ROOT)
-        jinja2_env.filters['escape_attr'] = jinja2_attr_value_escape_filter
-        jinja2_env.filters['escape_text'] = jinja2_text_value_escape_filter
+        jinja2_env.filters["escape_attr"] = jinja2_attr_value_escape_filter
+        jinja2_env.filters["escape_text"] = jinja2_text_value_escape_filter
         return jinja2_env
 
     @took
@@ -391,9 +395,9 @@ class xml_file(OutputPlugin):
         Write xml report to the file by rendering the context
         :return: None
         """
-        om.out.debug('[xml_file.flush()] Starting _write_context_to_file()')
+        om.out.debug("[xml_file.flush()] Starting _write_context_to_file()")
 
-        template = self._jinja2_env.get_template('root.tpl')
+        template = self._jinja2_env.get_template("root.tpl")
 
         # We use streaming as explained here:
         #
@@ -413,12 +417,14 @@ class xml_file(OutputPlugin):
         #   * If w3af is killed in the middle of writing the XML report,
         #     the report file will still be valid -- if xml_file.flush() was
         #     run successfully at least once
-        tempfh = NamedTemporaryFile(delete=False,
-                                    prefix='w3af-xml-output',
-                                    suffix='.xml')
+        tempfh = NamedTemporaryFile(
+            delete=False, prefix="w3af-xml-output", suffix=".xml"
+        )
 
-        om.out.debug('[xml_file.flush()] write_context_to_file() created'
-                     ' template.stream and NamedTemporaryFile')
+        om.out.debug(
+            "[xml_file.flush()] write_context_to_file() created"
+            " template.stream and NamedTemporaryFile"
+        )
 
         try:
             # Write each report section to the temp file
@@ -432,25 +438,28 @@ class xml_file(OutputPlugin):
             # Close the temp file so all the content is flushed
             tempfh.close()
 
-            om.out.debug('[xml_file.flush()] write_context_to_file() starting to'
-                         ' copy temp file to destination')
+            om.out.debug(
+                "[xml_file.flush()] write_context_to_file() starting to"
+                " copy temp file to destination"
+            )
 
             # Copy to the real output file
             report_file_name = os.path.expanduser(self._file_name)
 
-            cmd = 'cp %s %s' % (tempfh.name, report_file_name)
+            cmd = "cp %s %s" % (tempfh.name, report_file_name)
             subprocess.call(cmd, shell=True)
 
-            om.out.debug('[xml_file.flush()] write_context_to_file() finished copy'
-                         ' operation.')
+            om.out.debug(
+                "[xml_file.flush()] write_context_to_file() finished copy" " operation."
+            )
 
             stat_info = os.stat(report_file_name)
-            om.out.debug('The XML output file size is %s bytes.' % stat_info.st_size)
+            om.out.debug("The XML output file size is %s bytes." % stat_info.st_size)
 
         finally:
             os.remove(tempfh.name)
 
-        om.out.debug('[xml_file.flush()] write_context_to_file() finished')
+        om.out.debug("[xml_file.flush()] write_context_to_file() finished")
 
     def get_long_desc(self):
         """
@@ -495,7 +504,7 @@ class FindingsCache(object):
 
     @staticmethod
     def get_cache_path():
-        return os.path.join(get_temp_dir(), 'xml_file', 'findings')
+        return os.path.join(get_temp_dir(), "xml_file", "findings")
 
     def get_filename_from_uniq_id(self, uniq_id):
         return os.path.join(FindingsCache.get_cache_path(), uniq_id)
@@ -504,16 +513,16 @@ class FindingsCache(object):
         filename = self.get_filename_from_uniq_id(uniq_id)
 
         try:
-            node = lz4.frame.decompress(open(filename, 'rb').read())
+            node = lz4.frame.decompress(open(filename, "rb").read())
         except (IOError, RuntimeError):
             return None
 
-        return node.decode('utf-8')
+        return node.decode("utf-8")
 
     def save_finding_to_cache(self, uniq_id, node):
         filename = self.get_filename_from_uniq_id(uniq_id)
-        node = node.encode('utf-8')
-        open(filename, 'wb').write(lz4.frame.compress(node))
+        node = node.encode("utf-8")
+        open(filename, "wb").write(lz4.frame.compress(node))
 
     def evict_from_cache(self, uniq_id):
         filename = self.get_filename_from_uniq_id(uniq_id)
@@ -553,7 +562,7 @@ class CachedXMLNode(XMLNode):
 
     @staticmethod
     def get_cache_path():
-        return os.path.join(get_temp_dir(), 'xml_file')
+        return os.path.join(get_temp_dir(), "xml_file")
 
     def get_cache_key(self):
         raise NotImplementedError
@@ -565,21 +574,21 @@ class CachedXMLNode(XMLNode):
         filename = self.get_filename()
 
         try:
-            node = lz4.frame.decompress(open(filename, 'rb').read())
+            node = lz4.frame.decompress(open(filename, "rb").read())
         except (IOError, RuntimeError):
             return None
 
-        return node.decode('utf-8')
+        return node.decode("utf-8")
 
     def save_node_to_cache(self, node):
         filename = self.get_filename()
-        node = node.encode('utf-8')
-        open(filename, 'wb').write(lz4.frame.compress(node))
+        node = node.encode("utf-8")
+        open(filename, "wb").write(lz4.frame.compress(node))
 
 
 class HTTPTransaction(CachedXMLNode):
 
-    TEMPLATE = 'http_transaction.tpl'
+    TEMPLATE = "http_transaction.tpl"
 
     def __init__(self, jinja2_env, _id):
         """
@@ -592,7 +601,7 @@ class HTTPTransaction(CachedXMLNode):
         self._id = _id
 
     def get_cache_key(self):
-        return 'http-transaction-%s.data' % self._id
+        return "http-transaction-%s.data" % self._id
 
     def to_string(self):
         """
@@ -640,19 +649,25 @@ class HTTPTransaction(CachedXMLNode):
         # HTTP transaction
         request, response = req_history.load_from_file(self._id)
 
-        data = request.get_data() or ''
+        data = request.get_data() or ""
         b64_encoded_request_body = base64.encodestring(smart_str_ignore(data))
 
-        body = response.get_body() or ''
+        body = response.get_body() or ""
         b64_encoded_response_body = base64.encodestring(smart_str_ignore(body))
 
-        context = {'id': self._id,
-                   'request': {'status': request.get_request_line().strip(),
-                               'headers': request.get_headers(),
-                               'body': b64_encoded_request_body},
-                   'response': {'status': response.get_status_line().strip(),
-                                'headers': response.get_headers(),
-                                'body': b64_encoded_response_body}}
+        context = {
+            "id": self._id,
+            "request": {
+                "status": request.get_request_line().strip(),
+                "headers": request.get_headers(),
+                "body": b64_encoded_request_body,
+            },
+            "response": {
+                "status": response.get_status_line().strip(),
+                "headers": response.get_headers(),
+                "body": b64_encoded_response_body,
+            },
+        }
 
         context = dotdict(context)
 
@@ -664,7 +679,7 @@ class HTTPTransaction(CachedXMLNode):
 
 
 class ScanInfo(CachedXMLNode):
-    TEMPLATE = 'scan_info.tpl'
+    TEMPLATE = "scan_info.tpl"
 
     def __init__(self, jinja2_env, scan_target, plugins_dict, options_dict):
         """
@@ -679,7 +694,7 @@ class ScanInfo(CachedXMLNode):
         self._options_dict = options_dict
 
     def get_cache_key(self):
-        return 'scan-info.data'
+        return "scan-info.data"
 
     def to_string(self):
         # Get the data from the cache
@@ -687,9 +702,11 @@ class ScanInfo(CachedXMLNode):
         if node is not None:
             return node
 
-        context = {'enabled_plugins': self._plugins_dict,
-                   'plugin_options': self._options_dict,
-                   'scan_target': self._scan_target}
+        context = {
+            "enabled_plugins": self._plugins_dict,
+            "plugin_options": self._options_dict,
+            "scan_target": self._scan_target,
+        }
 
         template = self.get_template(self.TEMPLATE)
         transaction = template.render(context)
@@ -699,7 +716,7 @@ class ScanInfo(CachedXMLNode):
 
 
 class ScanStatus(XMLNode):
-    TEMPLATE = 'scan_status.tpl'
+    TEMPLATE = "scan_status.tpl"
 
     def __init__(self, jinja2_env, status, total_urls, known_urls):
         """
@@ -716,32 +733,38 @@ class ScanStatus(XMLNode):
     def to_string(self):
         context = dotdict({})
 
-        context.status = self._status['status']
-        context.is_paused = self._status['is_paused']
-        context.is_running = self._status['is_running']
-        context.active_crawl_plugin = self._status['active_plugin']['crawl']
-        context.active_audit_plugin = self._status['active_plugin']['audit']
-        context.current_crawl_request = self._status['current_request']['crawl']
-        context.current_audit_request = self._status['current_request']['audit']
-        context.crawl_input_speed = self._status['queues']['crawl']['input_speed']
-        context.crawl_output_speed = self._status['queues']['crawl']['output_speed']
-        context.crawl_queue_length = self._status['queues']['crawl']['length']
-        context.crawl_queue_processed_tasks = self._status['queues']['crawl']['processed_tasks']
-        context.audit_input_speed = self._status['queues']['audit']['input_speed']
-        context.audit_output_speed = self._status['queues']['audit']['output_speed']
-        context.audit_queue_length = self._status['queues']['audit']['length']
-        context.audit_queue_processed_tasks = self._status['queues']['audit']['processed_tasks']
-        context.grep_input_speed = self._status['queues']['grep']['input_speed']
-        context.grep_output_speed = self._status['queues']['grep']['output_speed']
-        context.grep_queue_length = self._status['queues']['grep']['length']
-        context.grep_queue_processed_tasks = self._status['queues']['grep']['processed_tasks']
-        context.crawl_eta = self._status['eta']['crawl']
-        context.audit_eta = self._status['eta']['audit']
-        context.grep_eta = self._status['eta']['grep']
-        context.all_eta = self._status['eta']['all']
-        context.rpm = self._status['rpm']
-        context.sent_request_count = self._status['sent_request_count']
-        context.progress = self._status['progress']
+        context.status = self._status["status"]
+        context.is_paused = self._status["is_paused"]
+        context.is_running = self._status["is_running"]
+        context.active_crawl_plugin = self._status["active_plugin"]["crawl"]
+        context.active_audit_plugin = self._status["active_plugin"]["audit"]
+        context.current_crawl_request = self._status["current_request"]["crawl"]
+        context.current_audit_request = self._status["current_request"]["audit"]
+        context.crawl_input_speed = self._status["queues"]["crawl"]["input_speed"]
+        context.crawl_output_speed = self._status["queues"]["crawl"]["output_speed"]
+        context.crawl_queue_length = self._status["queues"]["crawl"]["length"]
+        context.crawl_queue_processed_tasks = self._status["queues"]["crawl"][
+            "processed_tasks"
+        ]
+        context.audit_input_speed = self._status["queues"]["audit"]["input_speed"]
+        context.audit_output_speed = self._status["queues"]["audit"]["output_speed"]
+        context.audit_queue_length = self._status["queues"]["audit"]["length"]
+        context.audit_queue_processed_tasks = self._status["queues"]["audit"][
+            "processed_tasks"
+        ]
+        context.grep_input_speed = self._status["queues"]["grep"]["input_speed"]
+        context.grep_output_speed = self._status["queues"]["grep"]["output_speed"]
+        context.grep_queue_length = self._status["queues"]["grep"]["length"]
+        context.grep_queue_processed_tasks = self._status["queues"]["grep"][
+            "processed_tasks"
+        ]
+        context.crawl_eta = self._status["eta"]["crawl"]
+        context.audit_eta = self._status["eta"]["audit"]
+        context.grep_eta = self._status["eta"]["grep"]
+        context.all_eta = self._status["eta"]["all"]
+        context.rpm = self._status["rpm"]
+        context.sent_request_count = self._status["sent_request_count"]
+        context.progress = self._status["progress"]
 
         context.total_urls = self._total_urls
         context.known_urls = self._known_urls
@@ -753,7 +776,7 @@ class ScanStatus(XMLNode):
 
 
 class Finding(XMLNode):
-    TEMPLATE = 'finding.tpl'
+    TEMPLATE = "finding.tpl"
 
     def __init__(self, jinja2_env, info):
         """
@@ -795,9 +818,11 @@ class Finding(XMLNode):
             try:
                 xml = HTTPTransaction(self._jinja2_env, transaction).to_string()
             except (DBException, TraceReadException) as e:
-                msg = ('Failed to retrieve request with id %s from DB: "%s".'
-                       ' The "%s" vulnerability will have an incomplete HTTP'
-                       ' transaction list.')
+                msg = (
+                    'Failed to retrieve request with id %s from DB: "%s".'
+                    ' The "%s" vulnerability will have an incomplete HTTP'
+                    " transaction list."
+                )
                 args = (transaction, e, context.name)
                 om.out.error(msg % args)
                 continue
@@ -811,25 +836,28 @@ class Finding(XMLNode):
 
 
 def is_unicode_escape(i):
-    return category(chr(i)).startswith('C')
+    return category(chr(i)).startswith("C")
 
 
 ATTR_VALUE_ESCAPES = {
-    '"': '&quot;',
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-
+    '"': "&quot;",
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
     # Note that here we replace tabs with 4-spaces, like in python ;-)
     # but it makes sense for easy parsing and showing to users
-    '\t': '    ',
+    "\t": "    ",
 }
 
-ATTR_VALUE_ESCAPES.update(dict((chr(i), '&lt;character code=&quot;%04x&quot;/&gt;' % i)
-                               for i in range(sys.maxunicode)
-                               if is_unicode_escape(i)))
+ATTR_VALUE_ESCAPES.update(
+    dict(
+        (chr(i), "&lt;character code=&quot;%04x&quot;/&gt;" % i)
+        for i in range(sys.maxunicode)
+        if is_unicode_escape(i)
+    )
+)
 
-ATTR_VALUE_ESCAPES_IGNORE = {'\n', '\r'}
+ATTR_VALUE_ESCAPES_IGNORE = {"\n", "\r"}
 
 
 def jinja2_attr_value_escape_filter(value):
@@ -863,7 +891,7 @@ def jinja2_attr_value_escape_filter(value):
     # Fix some encoding errors which are triggered when the value is not an
     # unicode string
     value = smart_unicode(value)
-    retval = ''
+    retval = ""
 
     for letter in value:
         if letter in ATTR_VALUE_ESCAPES_IGNORE:
@@ -880,21 +908,24 @@ def jinja2_attr_value_escape_filter(value):
 
 
 TEXT_VALUE_ESCAPES = {
-    '"': '&quot;',
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-
+    '"': "&quot;",
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
     # Note that here we replace tabs with 4-spaces, like in python ;-)
     # but it makes sense for easy parsing and showing to users
-    '\t': '    ',
+    "\t": "    ",
 }
 
-TEXT_VALUE_ESCAPES.update(dict((chr(i), '<character code="%04x"/>' % i)
-                               for i in range(sys.maxunicode)
-                               if is_unicode_escape(i)))
+TEXT_VALUE_ESCAPES.update(
+    dict(
+        (chr(i), '<character code="%04x"/>' % i)
+        for i in range(sys.maxunicode)
+        if is_unicode_escape(i)
+    )
+)
 
-TEXT_VALUE_ESCAPES_IGNORE = {'\n', '\r'}
+TEXT_VALUE_ESCAPES_IGNORE = {"\n", "\r"}
 
 
 def jinja2_text_value_escape_filter(value):
@@ -924,7 +955,7 @@ def jinja2_text_value_escape_filter(value):
     # Fix some encoding errors which are triggered when the value is not an
     # unicode string
     value = smart_unicode(value)
-    retval = ''
+    retval = ""
 
     for letter in value:
         if letter in TEXT_VALUE_ESCAPES_IGNORE:
