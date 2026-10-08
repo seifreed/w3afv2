@@ -19,9 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
-import platform
-
 from .ubuntu1204 import Ubuntu1204
+from .system_info import distribution_matches
 
 
 class Debian80(Ubuntu1204):
@@ -29,5 +28,4 @@ class Debian80(Ubuntu1204):
 
     @staticmethod
     def is_current_platform():
-        dist_name, dist_version, _ = platform.dist()
-        return 'debian' == dist_name and '8.0' == dist_version
+        return distribution_matches('debian', '8.0')

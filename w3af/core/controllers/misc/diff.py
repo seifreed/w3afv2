@@ -37,8 +37,8 @@ MAX_DIFF_TIME = 20
 # the string to split has null bytes, but that is acceptable due to the performance
 # improvement gains
 #
-TRANSLATION_TABLE = string.maketrans('\n\t\r"\'<',
-                                     '\0\0\0\0\0\0')
+TRANSLATION_TABLE = str.maketrans('\n\t\r"\'<',
+                                  '\0\0\0\0\0\0')
 
 
 def diff_dmp(a, b):

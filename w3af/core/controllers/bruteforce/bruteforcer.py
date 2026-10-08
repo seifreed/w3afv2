@@ -71,7 +71,7 @@ class PasswordBruteforcer(object):
                 yield pwd
 
     def _read_pwd_file(self):
-        for line in file(self.passwd_file):
+        for line in open(self.passwd_file):
             yield line.strip()
 
 
@@ -135,7 +135,7 @@ class UserPasswordBruteforcer(object):
                 yield user, pwd
 
     def _user_from_file(self):
-        for line in file(self.users_file):
+        for line in open(self.users_file):
             user = line.strip()
             yield user
 
@@ -170,7 +170,7 @@ class UserPasswordBruteforcer(object):
         if not self.combo_file:
             return
 
-        for line in file(self.combo_file):
+        for line in open(self.combo_file):
             try:
                 user, passwd = line.strip().split(self.combo_separator)
             except ValueError:

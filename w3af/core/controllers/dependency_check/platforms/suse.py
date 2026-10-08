@@ -19,11 +19,11 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
-import platform
 import subprocess
 
 from .base_platform import Platform
 from ..requirements import CORE, GUI
+from .system_info import distribution_matches
 
 
 class SuSE(Platform):
@@ -65,4 +65,4 @@ class SuSE(Platform):
 
     @staticmethod
     def is_current_platform():
-        return 'SuSE' in platform.dist()[0]
+        return distribution_matches('suse')

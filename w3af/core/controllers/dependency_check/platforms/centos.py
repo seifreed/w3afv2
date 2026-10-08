@@ -19,10 +19,9 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
-import platform
-
 from .fedora import Fedora
 from ..requirements import CORE, GUI
+from .system_info import distribution_matches
 
 
 class CentOS(Fedora):
@@ -45,4 +44,4 @@ class CentOS(Fedora):
 
     @staticmethod
     def is_current_platform():
-        return 'redhat' in platform.dist()
+        return distribution_matches('redhat')

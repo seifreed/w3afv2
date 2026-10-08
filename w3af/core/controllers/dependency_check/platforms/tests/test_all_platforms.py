@@ -47,8 +47,10 @@ class TestAllPlatforms(unittest.TestCase):
 
     def test_gui_includes_core(self):
         for platform in KNOWN_PLATFORMS:
-            self.assertTrue(set(platform.PIP_PACKAGES[CORE]).issubset(platform.PIP_PACKAGES[GUI]))
-            self.assertTrue(set(platform.SYSTEM_PACKAGES[CORE]).issubset(platform.SYSTEM_PACKAGES[GUI]))
+            self.assertTrue(all(dependency in platform.PIP_PACKAGES[GUI]
+                                for dependency in platform.PIP_PACKAGES[CORE]))
+            self.assertTrue(all(package in platform.SYSTEM_PACKAGES[GUI]
+                                for package in platform.SYSTEM_PACKAGES[CORE]))
 
     def test_more_than_three_dependencies(self):
         for platform in KNOWN_PLATFORMS:

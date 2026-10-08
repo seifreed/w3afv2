@@ -19,11 +19,11 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
-import platform
 import subprocess
 
 from .base_platform import Platform
 from ..requirements import CORE, GUI
+from .system_info import distribution_matches
 
 
 class Ubuntu1204(Platform):
@@ -70,4 +70,4 @@ class Ubuntu1204(Platform):
 
     @staticmethod
     def is_current_platform():
-        return 'Ubuntu' in platform.dist() and '12.04' in platform.dist()
+        return distribution_matches('ubuntu', '12.04')

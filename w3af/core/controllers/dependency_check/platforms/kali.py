@@ -19,9 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
-import platform
-
 from .ubuntu1204 import Ubuntu1204
+from .system_info import distribution_matches
 
 KALI_MESSAGE = '''
 According to Kali's documentation [0] in order to avoid breaking the packaged\
@@ -48,5 +47,4 @@ class Kali(Ubuntu1204):
 
     @staticmethod
     def is_current_platform():
-        return 'debian' in platform.dist() and 'kali' in platform.release()
-
+        return distribution_matches('kali')

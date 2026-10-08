@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 import sys
-import platform
 import subprocess
 
 from w3af.core.controllers.dependency_check.pip_dependency import PIPDependency
@@ -81,7 +80,7 @@ class MacOSX(Platform):
 
     @staticmethod
     def is_current_platform():
-        return 'darwin' in platform.dist() or 'mac' in platform.dist()
+        return sys.platform == 'darwin'
 
     @staticmethod
     def os_package_is_installed(package_name):

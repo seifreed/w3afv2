@@ -59,13 +59,19 @@ def gettempdir():
 
 def get_platform_dist():
     """
-    :return: A human readable representation of platform.dist() , unknown if
-             the module returned none / ''
+    :return: A human-readable operating system name and release.
     """
-    if platform.dist() == ('', '', ''):
-        return 'Unknown'
+    if platform.system() == 'Linux':
+        try:
+            release = platform.freedesktop_os_release()
+        except OSError:
+            return 'Unknown'
 
-    return ' '.join(platform.dist())
+        values = (release.get('NAME', ''), release.get('VERSION_ID', ''))
+    else:
+        values = (platform.system(), platform.release())
+
+    return ' '.join(value for value in values if value) or 'Unknown'
 
 
 def get_versions():
@@ -99,7 +105,7 @@ def get_versions():
 def create_crash_file(exception):
     filename = 'w3af-crash-%s.txt' % rand_alnum(5)
     filename = os.path.join(gettempdir(), filename)
-    crash_dump = file(filename, 'w')
+    crash_dump = open(filename, 'w')
     crash_dump.write(_('Submit this bug here:'
                        ' https://github.com/andresriancho/w3af/issues/new \n'))
     crash_dump.write(get_versions())

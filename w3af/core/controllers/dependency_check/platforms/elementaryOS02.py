@@ -19,9 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
-import platform
-
 from .ubuntu1204 import Ubuntu1204
+from .system_info import distribution_matches
 
 
 class ElementaryOS02(Ubuntu1204):
@@ -29,4 +28,4 @@ class ElementaryOS02(Ubuntu1204):
 
     @staticmethod
     def is_current_platform():
-        return '"elementary OS"' in platform.dist() and '0.2' in platform.dist()
+        return distribution_matches('elementary', '0.2')
