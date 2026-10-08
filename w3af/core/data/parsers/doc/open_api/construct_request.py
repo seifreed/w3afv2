@@ -19,8 +19,6 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
-from six import iteritems
-from six import itervalues
 
 from bravado_core.exception import SwaggerMappingError
 from bravado_core.param import marshal_param
@@ -36,20 +34,20 @@ def construct_request(operation, request_options, **op_kwargs):
 
     :return: request in dict form
     """
-    url = operation.swagger_spec.api_url.rstrip('/') + operation.path_name
+    url = operation.swagger_spec.api_url.rstrip("/") + operation.path_name
 
     request = {
-        'method': str(operation.http_method.upper()),
-        'url': url,
-        'params': {},  # filled in downstream
-        'headers': request_options.get('headers', {}),
+        "method": str(operation.http_method.upper()),
+        "url": url,
+        "params": {},  # filled in downstream
+        "headers": request_options.get("headers", {}),
     }
     # Adds Accept header to request for msgpack response if specified
-    if request_options.get('use_msgpack', False):
-        request['headers']['Accept'] = 'application/msgpack'
+    if request_options.get("use_msgpack", False):
+        request["headers"]["Accept"] = "application/msgpack"
 
     # Copy over optional request options
-    for request_option in ('connect_timeout', 'timeout'):
+    for request_option in ("connect_timeout", "timeout"):
         if request_option in request_options:
             request[request_option] = request_options[request_option]
 
@@ -71,21 +69,29 @@ def construct_params(operation, request, op_kwargs):
              parameter is not supplied.
     """
     current_params = operation.params.copy()
-    for param_name, param_value in iteritems(op_kwargs):
+    for param_name, param_value in op_kwargs.items():
         param = current_params.pop(param_name, None)
         if param is None:
             raise SwaggerMappingError(
-                "{0} does not have parameter {1}"
-                .format(operation.operation_id, param_name))
+                "{0} does not have parameter {1}".format(
+                    operation.operation_id, param_name
+                )
+            )
         marshal_param(param, param_value, request)
 
     # Check required params and non-required params with a 'default' value
-    for remaining_param in itervalues(current_params):
-        if remaining_param.location == 'header' and remaining_param.name in request['headers']:
-            marshal_param(remaining_param, request['headers'][remaining_param.name], request)
+    for remaining_param in current_params.values():
+        if (
+            remaining_param.location == "header"
+            and remaining_param.name in request["headers"]
+        ):
+            marshal_param(
+                remaining_param, request["headers"][remaining_param.name], request
+            )
         else:
             if remaining_param.required:
                 raise SwaggerMappingError(
-                    '{0} is a required parameter'.format(remaining_param.name))
+                    "{0} is a required parameter".format(remaining_param.name)
+                )
             if not remaining_param.required and remaining_param.has_default():
                 marshal_param(remaining_param, None, request)

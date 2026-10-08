@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from six import iteritems
-
 from bravado_core.param import Param
 from bravado_core.util import AliasKeyDict
 from bravado_core.util import sanitize_name
@@ -37,11 +34,11 @@ def build_params_monkey_patch(op):
     swagger_spec = op.swagger_spec
     deref = swagger_spec.deref
     op_spec = deref(op.op_spec)
-    op_params_spec = deref(op_spec.get('parameters', []))
+    op_params_spec = deref(op_spec.get("parameters", []))
     spec_dict = deref(swagger_spec._internal_spec_dict)
-    paths_spec = deref(spec_dict.get('paths', {}))
+    paths_spec = deref(spec_dict.get("paths", {}))
     path_spec = deref(paths_spec.get(op.path_name))
-    path_params_spec = deref(path_spec.get('parameters', []))
+    path_params_spec = deref(path_spec.get("parameters", []))
 
     # Order of addition is *important* here. Since op_params are last in the
     # list, they will replace any previously defined path_params with the
@@ -80,7 +77,7 @@ def build_params_monkey_patch(op):
         new_param_aliases[parameter.name] = param_name
 
     params.update(new_params)
-    for alias, name in iteritems(new_param_aliases):
+    for alias, name in new_param_aliases.items():
         params.add_alias(alias, name)
     return params
 
