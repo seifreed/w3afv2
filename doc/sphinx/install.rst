@@ -7,8 +7,8 @@ Prerequisites
 Make sure you have the following software ready before starting the installation:
 
  * Git client: ``sudo apt-get install git``
- * Python 2.7, which is installed by default in most systems
- * Pip version 1.1: ``sudo apt-get install python-pip``
+ * Python 3.14
+ * Pip for Python 3.14: ``python3.14 -m pip --version``
 
 Installation
 ------------
@@ -41,8 +41,7 @@ in various Linux distributions, Mac OSX, FreeBSD and OpenBSD.
 
 .. note::
 
-   The platform used for development is Ubuntu 14.04 and running our continuous integration tests
-   is Ubuntu 12.04 LTS.
+   The platform used for development and continuous integration runs Python 3.14.
 
 .. warning::
 
@@ -76,8 +75,8 @@ are recommended:
 
     cd ~
     apt-get update
-    apt-get install -y python-pip w3af
-    pip install --upgrade pip
+    apt-get install -y python3-pip w3af
+    python3.14 -m pip install --upgrade pip
     git clone https://github.com/andresriancho/w3af.git
     cd w3af
     ./w3af_console
@@ -122,22 +121,18 @@ In order to start the process, you need XCode and MacPorts installed.
     sudo xcode-select --install
     sudo port selfupdate
     sudo port upgrade outdated
-    sudo port install python27
-    sudo port select python python27
-    sudo port install py27-pip 
-    sudo port install py27-libdnet git-core automake gcc48 py27-setuptools autoconf py27-pcapy
+    sudo port install python314 py314-pip git-core automake autoconf
+    sudo port select python python314
+    python3.14 -m pip install --upgrade -r requirements.txt
     ./w3af_console
-    . /tmp/w3af_dependency_install.sh
 
 Those commands should allow you to run ``./w3af_console`` again without any issues,
 in order to run the GUI a new dependency set is required:
 
 .. code-block:: console
 
-    sudo port install py27-pygtk py27-pygtksourceview graphviz
-    sudo port install py27-webkitgtk
+    sudo port install graphviz
     ./w3af_gui
-    . /tmp/w3af_dependency_install.sh
 
 Troubleshooting
 ---------------

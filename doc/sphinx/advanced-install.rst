@@ -57,40 +57,17 @@ and isolated environment that won't affect your operating system python packages
 All the packages installed using the ``/tmp/w3af_dependency_install.sh`` script
 will be stored inside the ``venv`` directory and won't affect your system packages.
 
-Installation of the GUI dependencies inside a ``virtualenv`` is a little bit
-trickier since it requires C libraries which are not installed using ``pip``.
-`This <http://stackoverflow.com/a/12831223/1347554>`_ information might be useful
-for installing ``w3af``'s GUI inside a virtualenv:
+Installation of the GUI dependencies inside a ``virtualenv`` requires the
+Python 3.14 dependencies from the project manifest and the system GUI libraries
+provided by your operating system:
 
 .. code-block:: console
 
     $ cd w3af
-    $ sudo apt-get install python-gtksourceview2 python-gtk2
-    $ virtualenv --system-site-packages venv
+    $ python3.14 -m venv venv
     $ . venv/bin/activate
+    (venv)$ python -m pip install --upgrade -r requirements.txt
     (venv)$ ./w3af_gui
-    (venv)$ . /tmp/w3af_dependency_install.sh
-
-Or,
-
-.. code-block:: console
-
-    $ cd w3af
-    $ sudo apt-get install python-gtksourceview2 python-gtk2
-    $ virtualenv venv
-    $ mkdir -p venv/lib/python2.7/dist-packages/
-    $ cd venv/lib/python2.7/dist-packages/
-    $ ln -s /usr/lib/python2.7/dist-packages/glib/ glib
-    $ ln -s /usr/lib/python2.7/dist-packages/gobject/ gobject
-    $ ln -s /usr/lib/python2.7/dist-packages/gtk-2.0* gtk-2.0
-    $ ln -s /usr/lib/python2.7/dist-packages/pygtk.pth pygtk.pth
-    $ ln -s /usr/lib/python2.7/dist-packages/cairo cairo
-    $ ln -s /usr/lib/python2.7/dist-packages/webkit/ webkit
-    $ ln -s /usr/lib/python2.7/dist-packages/webkit.pth webkit.pth
-    $ cd -
-    $ . venv/bin/activate
-    (venv)$ ./w3af_gui
-    (venv)$ . /tmp/w3af_dependency_install.sh
 
 
 Each time you want to run ``w3af`` in a new console you'll have to activate the
