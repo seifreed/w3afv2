@@ -35,12 +35,12 @@ TWO_PYTHON_MSG = """\
 It seems that your system has two different python installations: One provided
 by the operating system, at %s, and another which you installed using Mac ports.
 
-The default python executable for your system is the one provided by Apple,
-and pip-2.7 will install all new libraries in the Mac ports Python.
+The default Python executable for your system is the one provided by Apple,
+and Python 3.14 from MacPorts is required by w3af.
 
 In order to have a working w3af installation you will have to switch to the Mac
 ports Python by using the following command:
-    sudo port select python python27
+    sudo port select --set python python314
 """
 
 TRACEROUTE_SCAPY_MSG = """\
@@ -52,7 +52,7 @@ message "Device not configured".
 class MacOSX(Platform):
     SYSTEM_NAME = "Mac OS X"
     PKG_MANAGER_CMD = "sudo port install"
-    PIP_CMD = "pip-2.7"
+    PIP_CMD = "python3.14 -m pip"
 
     #
     # Remember to use http://www.macports.org/ports.php to search for
@@ -60,22 +60,16 @@ class MacOSX(Platform):
     #
     # Python port includes the dev headers
     CORE_SYSTEM_PACKAGES = [
-        "py27-pip",
-        "python27",
-        "py27-setuptools",
-        "gcc48",
+        "py314-pip",
+        "python314",
         "autoconf",
         "automake",
         "git-core",
-        "py27-pcapy",
-        "py27-libdnet",
         "libffi",
     ]
 
     GUI_SYSTEM_PACKAGES = CORE_SYSTEM_PACKAGES[:]
-    GUI_SYSTEM_PACKAGES.extend(
-        ["graphviz", "py27-pygtksourceview", "py27-pygtk", "py27-webkitgtk"]
-    )
+    GUI_SYSTEM_PACKAGES.extend(["graphviz"])
 
     SYSTEM_PACKAGES = {CORE: CORE_SYSTEM_PACKAGES, GUI: GUI_SYSTEM_PACKAGES}
 
@@ -121,8 +115,7 @@ class MacOSX(Platform):
         # We need to warn the user about this situation and let him know how to
         # fix. See: http://stackoverflow.com/questions/118813/
         if sys.executable.startswith("/opt/"):
-            # That's what we need since pip-2.7 will install all the libs in
-            # that python site-packages directory
+            # MacPorts Python keeps installed dependencies under /opt/local.
             pass
         else:
             print((TWO_PYTHON_MSG % sys.executable))
