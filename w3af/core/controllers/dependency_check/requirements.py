@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import sys
 from pathlib import Path
 
 from w3af.core.controllers.dependency_check.pip_dependency import PIPDependency
@@ -44,7 +45,8 @@ def _load_pinned_versions():
             if not line or "==" not in line:
                 continue
 
-            package_name, version = line.split("==", 1)
+            requirement = line.partition(";")[0].strip()
+            package_name, version = requirement.split("==", 1)
             versions[_normalize_package_name(package_name)] = version.strip()
 
     return versions
@@ -59,7 +61,7 @@ def _version(package_name):
         return PINNED_VERSIONS[package_key]
     except KeyError as key_error:
         raise RuntimeError(
-            "%s must be pinned in %s" % (package_name, REQUIREMENTS_FILE)
+            f"{package_name} must be pinned in {REQUIREMENTS_FILE}"
         ) from key_error
 
 
@@ -100,7 +102,9 @@ CORE_PIP_PACKAGES = [
     PIPDependency("vulners", "vulners", _version("vulners")),
 ]
 
-GUI_PIP_EXTRAS = [PIPDependency("xdot", "xdot", _version("xdot"))]
+GUI_PIP_EXTRAS = []
+if sys.platform != "win32":
+    GUI_PIP_EXTRAS.append(PIPDependency("xdot", "xdot", _version("xdot")))
 
 GUI_PIP_PACKAGES = CORE_PIP_PACKAGES[:]
 GUI_PIP_PACKAGES.extend(GUI_PIP_EXTRAS)

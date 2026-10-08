@@ -33,7 +33,7 @@ termcolor==3.3.0
 tldextract==5.4.0
 vulndb==0.1.3
 vulners==4.0.0
-xdot==1.6
+xdot==1.6; sys_platform != "win32"
 
 # Test and quality dependencies
 apispec==6.10.0

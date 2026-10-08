@@ -1,5 +1,6 @@
 """Tests for the dependency checker requirements manifest."""
 
+import sys
 import unittest
 
 from w3af.core.controllers.dependency_check import requirements
@@ -21,3 +22,11 @@ class TestRequirementsManifest(unittest.TestCase):
                     dependency.package_version,
                     requirements._version(dependency.package_name),
                 )
+
+    def test_xdot_is_only_required_outside_windows(self):
+        xdot_is_required = any(
+            dependency.package_name == "xdot"
+            for dependency in requirements.GUI_PIP_EXTRAS
+        )
+        self.assertEqual(xdot_is_required, sys.platform != "win32")
+        self.assertEqual(requirements._version("xdot"), "1.6")
