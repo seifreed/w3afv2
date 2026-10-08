@@ -19,32 +19,53 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
+import tempfile
 import unittest
 
-from mock import patch
-
-from w3af.core.controllers.dependency_check.helper_requirements_txt import generate_requirements_txt
-from w3af.core.controllers.dependency_check.pip_dependency import PIPDependency 
+from w3af.core.controllers.dependency_check.helper_requirements_txt import (
+    generate_requirements_txt,
+)
+from w3af.core.controllers.dependency_check.pip_dependency import PIPDependency
 
 
 class TestGenerateTXT(unittest.TestCase):
-    
-    MOCK_TARGET = 'w3af.core.controllers.ci.only_ci_decorator.is_running_on_ci'
-    
-    @patch(MOCK_TARGET, return_value=True)
-    def test_generate_requirements_txt_empty(self, ci_mock):
-        requirements_file = generate_requirements_txt([])
-        
-        self.assertEqual(0, len(open(requirements_file).read()))
-        os.unlink(requirements_file)
 
-    @patch(MOCK_TARGET, return_value=True)
-    def test_generate_requirements_txt(self, ci_mock):
-        EXPECTED = 'a==1.2.3\nc==3.2.1\n'
-        requirements_file = generate_requirements_txt([PIPDependency('a', 'a', '1.2.3'),
-                                                       PIPDependency('b', 'c', '3.2.1'),])
-        
-        self.assertEqual(EXPECTED, open(requirements_file).read())
-        os.unlink(requirements_file)
-        
+    def setUp(self):
+        self.original_ci = os.environ.get("CIRCLECI")
+        os.environ["CIRCLECI"] = "true"
+        self.temp_directory = tempfile.TemporaryDirectory()
+        self.original_directory = os.getcwd()
+        os.chdir(self.temp_directory.name)
+
+    def tearDown(self):
+        os.chdir(self.original_directory)
+        self.temp_directory.cleanup()
+        if self.original_ci is None:
+            os.environ.pop("CIRCLECI", None)
+        else:
+            os.environ["CIRCLECI"] = self.original_ci
+
+    def test_generate_requirements_txt_empty(self):
+        with open("requirements.txt", "w") as requirements_file:
+            requirements_file.write("project==1.0\n")
+
+        generated_file = generate_requirements_txt([])
+
+        with open(generated_file) as requirements_file:
+            self.assertEqual("", requirements_file.read())
+        with open("requirements.txt") as requirements_file:
+            self.assertEqual("project==1.0\n", requirements_file.read())
+
+    def test_generate_requirements_txt(self):
+        expected = "a==1.2.3\nc==3.2.1\n"
+        dependencies = [
+            PIPDependency("a", "a", "1.2.3"),
+            PIPDependency("b", "c", "3.2.1"),
+        ]
+
+        generated_file = generate_requirements_txt(dependencies)
+
+        with open(generated_file) as requirements_file:
+            self.assertEqual(expected, requirements_file.read())
