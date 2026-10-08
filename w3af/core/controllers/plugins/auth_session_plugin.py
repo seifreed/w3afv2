@@ -19,14 +19,14 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.data.kb.knowledge_base as kb
 
 from w3af.core.controllers.plugins.auth_plugin import AuthPlugin
 from w3af.core.data.misc.encoding import smart_str_ignore
 from w3af.core.data.kb.info import Info
 
-
-SESSIONS_FAILED_MSG = '''\
+SESSIONS_FAILED_MSG = """\
 The authentication plugin identified that the user session was lost %i times
 (%i%%) during the scan. Scan results might be inaccurate because some HTTP
 requests were sent with an invalid application session.
@@ -42,7 +42,7 @@ The most common causes and solutions for this issue are:
    if the HTTP requests (WAF) or an elevated number of requests per second is sent.
    To reduce the chances of being detected change the user agent, reduce the number
    of threads and only enable a subset of audit and crawl plugins.
-'''
+"""
 
 
 class AuthSessionPlugin(AuthPlugin):
@@ -87,17 +87,19 @@ class AuthSessionPlugin(AuthPlugin):
         # the caller (usually the login method) specifies otherwise
         self._set_debugging_id(debugging_id)
 
-        msg = 'Checking if session for user %s is active'
+        msg = "Checking if session for user %s is active"
         self._log_debug(msg % self.username)
 
         try:
-            http_response = self._uri_opener.GET(self.check_url,
-                                                 grep=False,
-                                                 cache=False,
-                                                 follow_redirects=True,
-                                                 debugging_id=self._debugging_id)
+            http_response = self._uri_opener.GET(
+                self.check_url,
+                grep=False,
+                cache=False,
+                follow_redirects=True,
+                debugging_id=self._debugging_id,
+            )
         except Exception as e:
-            msg = 'Failed to check if session is active because of exception: %s'
+            msg = "Failed to check if session is active because of exception: %s"
             self._log_debug(msg % e)
 
             self._handle_session_active_failure()
@@ -119,9 +121,11 @@ class AuthSessionPlugin(AuthPlugin):
         else:
             self._handle_session_active_failure()
 
-            msg = ('User "%s" is NOT logged into the application, the'
-                   ' `check_string` was not found in the HTTP response'
-                   ' with ID %s.')
+            msg = (
+                'User "%s" is NOT logged into the application, the'
+                " `check_string` was not found in the HTTP response"
+                " with ID %s."
+            )
             msg %= (self.username, http_response.id)
             self._log_debug(msg)
 
@@ -140,20 +144,21 @@ class AuthSessionPlugin(AuthPlugin):
         self._valid_sessions_count += 1
 
     def _report_invalid_sessions(self):
-        args = (self._invalid_sessions_count,
-                self._get_invalid_session_perc())
+        args = (self._invalid_sessions_count, self._get_invalid_session_perc())
         desc = SESSIONS_FAILED_MSG % args
 
         self._log_error(desc)
 
-        i = Info('Unstable application session',
-                 desc,
-                 self._session_failed_http_request_ids,
-                 self.get_name())
+        i = Info(
+            "Unstable application session",
+            desc,
+            self._session_failed_http_request_ids,
+            self.get_name(),
+        )
 
         i.set_uri(self._get_main_authentication_url())
 
-        kb.kb.append('authentication', 'error', i)
+        kb.kb.append("authentication", "error", i)
 
     def _get_invalid_session_perc(self):
         total_session_checks = self._valid_sessions_count + self._invalid_sessions_count

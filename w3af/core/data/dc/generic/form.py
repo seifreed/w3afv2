@@ -20,15 +20,18 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.fuzzer.form_filler import smart_fill, smart_fill_file
 from w3af.core.data.dc.generic.kv_container import KeyValueContainer
 from w3af.core.data.dc.utils.token import DataToken
 from w3af.core.data.parsers.utils.form_params import FormParameters
-from w3af.core.data.parsers.utils.form_constants import (INPUT_TYPE_CHECKBOX,
-                                                         INPUT_TYPE_RADIO,
-                                                         INPUT_TYPE_SELECT,
-                                                         INPUT_TYPE_TEXT,
-                                                         INPUT_TYPE_PASSWD)
+from w3af.core.data.parsers.utils.form_constants import (
+    INPUT_TYPE_CHECKBOX,
+    INPUT_TYPE_RADIO,
+    INPUT_TYPE_SELECT,
+    INPUT_TYPE_TEXT,
+    INPUT_TYPE_PASSWD,
+)
 
 
 class Form(KeyValueContainer):
@@ -38,10 +41,9 @@ class Form(KeyValueContainer):
     :author: Andres Riancho (andres.riancho@gmail.com) |
              Javier Andalia (jandalia =at= gmail.com)
     """
-    AVOID_FILLING_FORM_TYPES = {'checkbox', 'radio', 'select'}
-    AVOID_STR_DUPLICATES = {INPUT_TYPE_CHECKBOX,
-                            INPUT_TYPE_RADIO,
-                            INPUT_TYPE_SELECT}
+
+    AVOID_FILLING_FORM_TYPES = {"checkbox", "radio", "select"}
+    AVOID_STR_DUPLICATES = {INPUT_TYPE_CHECKBOX, INPUT_TYPE_RADIO, INPUT_TYPE_SELECT}
 
     def __init__(self, form_params=None):
         """
@@ -59,8 +61,7 @@ class Form(KeyValueContainer):
         # all magic methods (__getitem__, __setitem__, etc.) to the
         # self.form_params attribute, which helps keep the two (FormParameters
         # and Form) instances in sync
-        super(Form, self).__init__(init_val=(),
-                                   encoding=form_params.get_encoding())
+        super(Form, self).__init__(init_val=(), encoding=form_params.get_encoding())
 
     def get_form_params(self):
         return self.form_params
@@ -150,10 +151,10 @@ class Form(KeyValueContainer):
         return bool(self.form_params)
 
     def __reduce__(self):
-        return self.__class__, (self.form_params,), {'token': self.token}
+        return self.__class__, (self.form_params,), {"token": self.token}
 
     def __setstate__(self, state):
-        self.token = state['token']
+        self.token = state["token"]
 
     def get_type(self):
         """
@@ -192,14 +193,14 @@ class Form(KeyValueContainer):
             #
             #   <input type="text" name="p" value="foobar">
             #
-            elif value == '':
+            elif value == "":
                 setter(smart_fill(var_name))
 
     def get_login_tokens(self):
         """
         :return: Tokens associated with the login (username and password)
         """
-        assert self.is_login_form(), 'Login form is required'
+        assert self.is_login_form(), "Login form is required"
 
         user_token = None
         pass_token = None
@@ -222,10 +223,10 @@ class Form(KeyValueContainer):
         """
         Sets the username field to the desired value. This requires a login form
         """
-        assert self.is_login_form(), 'Login form is required'
+        assert self.is_login_form(), "Login form is required"
 
         text, passwd, other = self.get_parameter_type_count()
-        assert text == 1, 'Login form with username is required'
+        assert text == 1, "Login form with username is required"
 
         for k, v, path, setter in self.iter_setters():
             if self.get_parameter_type(k).lower() == INPUT_TYPE_TEXT:
@@ -235,7 +236,7 @@ class Form(KeyValueContainer):
         """
         Sets the password field to the desired value. This requires a login form
         """
-        assert self.is_login_form(), 'Login form is required'
+        assert self.is_login_form(), "Login form is required"
 
         for k, v, path, setter in self.iter_setters():
             if self.get_parameter_type(k).lower() == INPUT_TYPE_PASSWD:

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import multiprocessing
 
 
@@ -29,4 +30,4 @@ def is_main_process():
 
     :return: True if we're in the main process
     """
-    return multiprocessing.current_process().name == 'MainProcess'
+    return multiprocessing.current_process().name == "MainProcess"

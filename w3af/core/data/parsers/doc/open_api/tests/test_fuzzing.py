@@ -20,6 +20,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import unittest
 
@@ -32,17 +33,23 @@ from w3af.core.data.url.HTTPResponse import HTTPResponse
 
 
 class TestOpenAPIFuzzing(unittest.TestCase):
-    DATA_PATH = os.path.join(ROOT_PATH, 'core', 'data', 'parsers', 'doc', 'open_api', 'tests', 'data')
+    DATA_PATH = os.path.join(
+        ROOT_PATH, "core", "data", "parsers", "doc", "open_api", "tests", "data"
+    )
 
-    INVALID_TOKEN_PATH = os.path.join(DATA_PATH, 'invalid-token-path.json')
+    INVALID_TOKEN_PATH = os.path.join(DATA_PATH, "invalid-token-path.json")
 
     def test_fuzing_on_invalid_token_path(self):
         body = open(self.INVALID_TOKEN_PATH).read()
-        headers = Headers(list({'Content-Type': 'application/json'}.items()))
-        response = HTTPResponse(200, body, headers,
-                                URL('http://moth/swagger.json'),
-                                URL('http://moth/swagger.json'),
-                                _id=1)
+        headers = Headers(list({"Content-Type": "application/json"}.items()))
+        response = HTTPResponse(
+            200,
+            body,
+            headers,
+            URL("http://moth/swagger.json"),
+            URL("http://moth/swagger.json"),
+            _id=1,
+        )
 
         self.assertTrue(OpenAPI.can_parse(response))
 
@@ -52,9 +59,11 @@ class TestOpenAPIFuzzing(unittest.TestCase):
 
         for api_call in api_calls:
 
-            fake_mutants = create_mutants(api_call, [''])
+            fake_mutants = create_mutants(api_call, [""])
 
             for mutant in fake_mutants:
-                create_mutants(mutant.get_fuzzable_request(),
-                               [''],
-                               fuzzable_param_list=[mutant.get_token_name()])
+                create_mutants(
+                    mutant.get_fuzzable_request(),
+                    [""],
+                    fuzzable_param_list=[mutant.get_token_name()],
+                )

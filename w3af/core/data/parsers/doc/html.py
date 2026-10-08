@@ -19,13 +19,18 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.parsers.doc.sgml import SGMLParser
 from w3af.core.data.parsers.utils.re_extract import ReExtract
 from w3af.core.data.parsers.utils.form_fields import get_value_by_key
-from w3af.core.data.parsers.utils.form_constants import (INPUT_TYPE_TEXTAREA,
-                                                         INPUT_TYPE_SELECT)
-from w3af.core.data.parsers.utils.form_params import (FormParameters,
-                                                      DEFAULT_FORM_ENCODING)
+from w3af.core.data.parsers.utils.form_constants import (
+    INPUT_TYPE_TEXTAREA,
+    INPUT_TYPE_SELECT,
+)
+from w3af.core.data.parsers.utils.form_params import (
+    FormParameters,
+    DEFAULT_FORM_ENCODING,
+)
 
 
 class HTMLParser(SGMLParser):
@@ -37,23 +42,25 @@ class HTMLParser(SGMLParser):
     """
 
     # http://www.freeformatter.com/mime-types-list.html
-    IGNORE_CONTENT_TYPES = ('application',
-                            'video',
-                            'audio',
-                            'image',
-                            'chemical',
-                            'model')
-    WILD_ACCEPT_CONTENT_TYPES = ('text', 'message')
-    SPECIFIC_ACCEPT_CONTENT_TYPES = ('text/html',
-                                     'application/hta',
-                                     'application/xhtml+xml',
-                                     'application/xml')
+    IGNORE_CONTENT_TYPES = (
+        "application",
+        "video",
+        "audio",
+        "image",
+        "chemical",
+        "model",
+    )
+    WILD_ACCEPT_CONTENT_TYPES = ("text", "message")
+    SPECIFIC_ACCEPT_CONTENT_TYPES = (
+        "text/html",
+        "application/hta",
+        "application/xhtml+xml",
+        "application/xml",
+    )
 
-    PARSE_TAGS = SGMLParser.PARSE_TAGS.union({'form',
-                                              'input',
-                                              'textarea',
-                                              'select',
-                                              'option'})
+    PARSE_TAGS = SGMLParser.PARSE_TAGS.union(
+        {"form", "input", "textarea", "select", "option"}
+    )
 
     def __init__(self, http_resp):
         # An internal list to be used to save input tags found
@@ -89,7 +96,7 @@ class HTMLParser(SGMLParser):
         """
         content_type = http_resp.content_type.lower()
 
-        if content_type == '':
+        if content_type == "":
             # We get here when the remote server doesn't send a content-type
             # and the HTTPResponse parser will set it to an empty string
             #
@@ -100,13 +107,13 @@ class HTMLParser(SGMLParser):
             return True
 
         try:
-            ct_type, ct_subtype = content_type.split('/')
+            ct_type, ct_subtype = content_type.split("/")
         except ValueError:
             # The content type doesn't have the expected format type/subtype
             # won't parse something that's completely broken
             return False
 
-        if ct_subtype.startswith('vnd.'):
+        if ct_subtype.startswith("vnd."):
             return False
 
         if ct_type in HTMLParser.WILD_ACCEPT_CONTENT_TYPES:
@@ -133,7 +140,7 @@ class HTMLParser(SGMLParser):
         :param body: HTTP response body as unicode string
         :return: The number of links in the document
         """
-        return body.lower().count('</a>')
+        return body.lower().count("</a>")
 
     def _handle_script_tag_start(self, tag, tag_name, attrs):
         """
@@ -142,9 +149,7 @@ class HTMLParser(SGMLParser):
         SGMLParser._handle_script_tag_start(self, tag, tag_name, attrs)
 
         if tag.text is not None:
-            re_extract = ReExtract(tag.text.strip(),
-                                   self._base_url,
-                                   self._encoding)
+            re_extract = ReExtract(tag.text.strip(), self._base_url, self._encoding)
             re_extract.parse()
             self._re_urls.update(re_extract.get_references())
 
@@ -158,9 +163,9 @@ class HTMLParser(SGMLParser):
         return parsed_urls, list(self._re_urls - set(parsed_urls))
 
     def _form_elems_generic_handler(self, tag, tag_name, attrs):
-        side = 'inside' if self._inside_form else 'outside'
+        side = "inside" if self._inside_form else "outside"
         default = lambda *args: None
-        handler = '_handle_%s_tag_%s_form' % (tag_name, side)
+        handler = "_handle_%s_tag_%s_form" % (tag_name, side)
         meth = getattr(self, handler, default)
         meth(tag, tag_name, attrs)
 
@@ -173,18 +178,17 @@ class HTMLParser(SGMLParser):
         """
         SGMLParser._handle_form_tag_start(self, tag, tag_name, attrs)
 
-        method = attrs.get('method', 'GET').upper()
-        action = attrs.get('action', None)
-        form_encoding = attrs.get('enctype', DEFAULT_FORM_ENCODING)
-        autocomplete = attrs.get('autocomplete', None)
+        method = attrs.get("method", "GET").upper()
+        action = attrs.get("action", None)
+        form_encoding = attrs.get("enctype", DEFAULT_FORM_ENCODING)
+        autocomplete = attrs.get("autocomplete", None)
 
         if action is None:
             action = self._source_url
         else:
             action = self._decode_url(action)
             try:
-                action = self._base_url.url_join(action,
-                                                 encoding=self._encoding)
+                action = self._base_url.url_join(action, encoding=self._encoding)
             except ValueError:
                 # The URL in the action is invalid, the best thing we can do
                 # is to guess, and our best guess is that the URL will be the
@@ -192,12 +196,14 @@ class HTMLParser(SGMLParser):
                 action = self._source_url
 
         # Create the form object and store everything for later use
-        form_params = FormParameters(encoding=self._encoding,
-                                     method=method,
-                                     action=action,
-                                     form_encoding=form_encoding,
-                                     attributes=attrs,
-                                     hosted_at_url=self._source_url)
+        form_params = FormParameters(
+            encoding=self._encoding,
+            method=method,
+            action=action,
+            form_encoding=form_encoding,
+            attributes=attrs,
+            hosted_at_url=self._source_url,
+        )
         form_params.set_autocomplete(autocomplete)
 
         self._forms.append(form_params)
@@ -207,7 +213,7 @@ class HTMLParser(SGMLParser):
         for input_attrs in self._saved_inputs:
             # Parse them just like if they were found AFTER the
             # form tag opening
-            self._handle_input_tag_inside_form(tag, 'input', input_attrs)
+            self._handle_input_tag_inside_form(tag, "input", input_attrs)
 
         # All parsed, remove them.
         self._saved_inputs = []
@@ -261,7 +267,7 @@ class HTMLParser(SGMLParser):
 
         # Set the data and name
         self._text_area_data = tag.text
-        self._text_area_tag_name = get_value_by_key(attrs, 'name', 'id')
+        self._text_area_tag_name = get_value_by_key(attrs, "name", "id")
 
     def _handle_textarea_tag_end(self, tag):
         """
@@ -275,9 +281,11 @@ class HTMLParser(SGMLParser):
         if not self._text_area_data:
             return
 
-        attrs = {'name': self._text_area_tag_name,
-                 'value': self._text_area_data,
-                 'type': INPUT_TYPE_TEXTAREA}
+        attrs = {
+            "name": self._text_area_tag_name,
+            "value": self._text_area_data,
+            "type": INPUT_TYPE_TEXTAREA,
+        }
 
         if not self._forms:
             self._saved_inputs.append(attrs)
@@ -292,7 +300,7 @@ class HTMLParser(SGMLParser):
         """
         Handler for select tag inside a form
         """
-        select_name = get_value_by_key(attrs, 'name', 'id')
+        select_name = get_value_by_key(attrs, "name", "id")
 
         if select_name:
             self._select_input_name = select_name
@@ -309,9 +317,11 @@ class HTMLParser(SGMLParser):
         if not self._select_input_name:
             return
 
-        attrs = {'name': self._select_input_name,
-                 'values': list(self._select_option_values),
-                 'type': INPUT_TYPE_SELECT}
+        attrs = {
+            "name": self._select_input_name,
+            "values": list(self._select_option_values),
+            "type": INPUT_TYPE_SELECT,
+        }
 
         # Work with the last form
         form_params = self._forms[-1]
@@ -325,7 +335,7 @@ class HTMLParser(SGMLParser):
         """
         Handler for option tag inside a form
         """
-        option_value = get_value_by_key(attrs, 'value')
+        option_value = get_value_by_key(attrs, "value")
 
         if option_value:
             self._select_option_values.add(option_value)

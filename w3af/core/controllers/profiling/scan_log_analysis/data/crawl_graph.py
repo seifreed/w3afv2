@@ -23,7 +23,7 @@ def generate_crawl_graph(scan_log_filename, scan):
             data[referer] = [new_link]
 
     if not data:
-        print('No web_spider data found!')
+        print("No web_spider data found!")
 
     def sort_by_len(a, b):
         return cmp(len(a), len(b))
@@ -31,8 +31,8 @@ def generate_crawl_graph(scan_log_filename, scan):
     referers = list(data.keys())
     referers.sort(key=cmp_to_key(sort_by_len))
 
-    print('')
-    print('web_spider crawling data (source -> new link)')
+    print("")
+    print("web_spider crawling data (source -> new link)")
 
     previous_referer = None
 
@@ -41,10 +41,10 @@ def generate_crawl_graph(scan_log_filename, scan):
         new_links.sort(key=cmp_to_key(sort_by_len))
         for new_link in new_links:
             if referer is previous_referer:
-                spaces = ' ' * len('%s -> ' % previous_referer)
-                print(('%s%s' % (spaces, new_link)))
+                spaces = " " * len("%s -> " % previous_referer)
+                print(("%s%s" % (spaces, new_link)))
             else:
-                print(('%s -> %s' % (referer, new_link)))
+                print(("%s -> %s" % (referer, new_link)))
                 previous_referer = referer
 
-    print('')
+    print("")

@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import os
 
 import w3af.core.data.constants.severity as severity
@@ -31,14 +32,19 @@ from w3af.plugins.tests.helper import PluginTest, PluginConfig, MockResponse
 
 class TestFindDVCS(PluginTest):
 
-    base_url = get_w3af_moth_http('/w3af/crawl/find_dvcs/')
+    base_url = get_w3af_moth_http("/w3af/crawl/find_dvcs/")
 
     _run_configs = {
-        'cfg': {
-            'target': base_url,
-            'plugins': {'crawl': (PluginConfig('find_dvcs'),
-                                  PluginConfig('web_spider',
-                                               ('only_forward', True, PluginConfig.BOOL)),)}
+        "cfg": {
+            "target": base_url,
+            "plugins": {
+                "crawl": (
+                    PluginConfig("find_dvcs"),
+                    PluginConfig(
+                        "web_spider", ("only_forward", True, PluginConfig.BOOL)
+                    ),
+                )
+            },
         }
     }
 
@@ -47,38 +53,39 @@ class TestFindDVCS(PluginTest):
     # Git was tested in real life and works
     KNOWN_REPOS = (
         # 'git',
-        'bzr',
-        'hg',
+        "bzr",
+        "hg",
         # 'svn',
         # 'cvs'
     )
 
     def test_dvcs(self):
-        cfg = self._run_configs['cfg']
-        self._scan(cfg['target'], cfg['plugins'])
+        cfg = self._run_configs["cfg"]
+        self._scan(cfg["target"], cfg["plugins"])
 
         for repo in self.KNOWN_REPOS:
 
-            vulns_for_repo = self.kb.get('find_dvcs', '%s repository' % repo)
-            self.assertEqual(len(vulns_for_repo), 1, 'Failed at %s' % repo)
+            vulns_for_repo = self.kb.get("find_dvcs", "%s repository" % repo)
+            self.assertEqual(len(vulns_for_repo), 1, "Failed at %s" % repo)
 
             vuln_repo = vulns_for_repo[0]
 
             expected_url_1 = self.base_url + repo
-            expected_url_2 = self.base_url + '.' + repo
+            expected_url_2 = self.base_url + "." + repo
 
-            url_start = (vuln_repo.get_url().url_string.startswith(expected_url_1) or
-                         vuln_repo.get_url().url_string.startswith(expected_url_2))
+            url_start = vuln_repo.get_url().url_string.startswith(
+                expected_url_1
+            ) or vuln_repo.get_url().url_string.startswith(expected_url_2)
 
             self.assertTrue(url_start, vuln_repo.get_url().url_string)
 
             self.assertEqual(vuln_repo.get_severity(), severity.MEDIUM)
-            self.assertEqual(vuln_repo.get_name(), 'Source code repository')
+            self.assertEqual(vuln_repo.get_name(), "Source code repository")
             self.assertIn(repo, vuln_repo.get_desc().lower())
 
     def test_ignore_file_blank(self):
         fdvcs = find_dvcs()
-        files = fdvcs.ignore_file('')
+        files = fdvcs.ignore_file("")
 
         self.assertEqual(files, set())
 
@@ -91,36 +98,51 @@ class TestFindDVCS(PluginTest):
         """
         files = fdvcs.ignore_file(content)
 
-        self.assertEqual(files, {'foo.txt', 'spam.eggs'})
+        self.assertEqual(files, {"foo.txt", "spam.eggs"})
 
 
 class TestSVN(PluginTest):
 
-    WC_DB = open(os.path.join(ROOT_PATH, 'plugins', 'tests', 'crawl', 'find_dvcs', 'sample-wc.db')).read()
+    WC_DB = open(
+        os.path.join(
+            ROOT_PATH, "plugins", "tests", "crawl", "find_dvcs", "sample-wc.db"
+        )
+    ).read()
 
-    SECRET = 'Secret contents here!'
+    SECRET = "Secret contents here!"
 
-    MOCK_RESPONSES = [MockResponse('http://mock/', 'root'),
-                      MockResponse('http://mock/.svn/wc.db', WC_DB),
-                      MockResponse('http://mock/.svn/pristine/96/96acedb8cc77c893b90d1ce37c7119fd0c0fba00.svn-base', SECRET),
-                      MockResponse('http://mock/seris/changelog.rst', SECRET)]
+    MOCK_RESPONSES = [
+        MockResponse("http://mock/", "root"),
+        MockResponse("http://mock/.svn/wc.db", WC_DB),
+        MockResponse(
+            "http://mock/.svn/pristine/96/96acedb8cc77c893b90d1ce37c7119fd0c0fba00.svn-base",
+            SECRET,
+        ),
+        MockResponse("http://mock/seris/changelog.rst", SECRET),
+    ]
 
-    target_url = 'http://mock'
+    target_url = "http://mock"
 
     _run_configs = {
-        'cfg': {
-            'target': target_url,
-            'plugins': {'crawl': (PluginConfig('find_dvcs'),
-                                  PluginConfig('web_spider',
-                                               ('only_forward', True, PluginConfig.BOOL)),)}
+        "cfg": {
+            "target": target_url,
+            "plugins": {
+                "crawl": (
+                    PluginConfig("find_dvcs"),
+                    PluginConfig(
+                        "web_spider", ("only_forward", True, PluginConfig.BOOL)
+                    ),
+                )
+            },
         }
     }
 
     def test_wc_db(self):
-        cfg = self._run_configs['cfg']
-        self._scan(cfg['target'], cfg['plugins'])
+        cfg = self._run_configs["cfg"]
+        self._scan(cfg["target"], cfg["plugins"])
 
         url_list = kb.kb.get_all_known_urls()
 
-        self.assertEqual({u.url_string for u in url_list},
-                         {m.url for m in self.MOCK_RESPONSES})
+        self.assertEqual(
+            {u.url_string for u in url_list}, {m.url for m in self.MOCK_RESPONSES}
+        )

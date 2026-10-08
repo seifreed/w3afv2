@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from w3af.core.data.constants.browsers import INTERNET_EXPLORER_7
@@ -38,6 +39,7 @@ class TestAll(unittest.TestCase):
     they do NOT have any syntax errors. Importing one of the constants will
     simply trigger the whole file to be run.
     """
+
     def test_all(self):
         self.assertEqual(INTERNET_EXPLORER_7, INTERNET_EXPLORER_7)
         self.assertEqual(MYSQL, MYSQL)
@@ -48,4 +50,4 @@ class TestAll(unittest.TestCase):
         self.assertEqual(IGNORED_PARAMETERS, IGNORED_PARAMETERS)
         self.assertEqual(VULNS, VULNS)
 
-        self.assertIn('root:x:0:0:', FILE_PATTERNS)
+        self.assertIn("root:x:0:0:", FILE_PATTERNS)

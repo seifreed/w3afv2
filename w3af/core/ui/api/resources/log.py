@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from flask import jsonify, request
 
 from w3af.core.ui.api import app
@@ -26,11 +27,10 @@ from w3af.core.ui.api.utils.error import abort
 from w3af.core.ui.api.utils.auth import requires_auth
 from w3af.core.ui.api.utils.scans import get_scan_info_from_id
 
-
 RESULTS_PER_PAGE = 200
 
 
-@app.route('/scans/<int:scan_id>/log', methods=['GET'])
+@app.route("/scans/<int:scan_id>/log", methods=["GET"])
 @requires_auth
 def scan_log(scan_id):
     """
@@ -39,28 +39,26 @@ def scan_log(scan_id):
     """
     scan_info = get_scan_info_from_id(scan_id)
     if scan_info is None:
-        abort(404, 'Scan not found')
+        abort(404, "Scan not found")
 
     if scan_info.output is None:
-        abort(404, 'Scan output not found')
+        abort(404, "Scan output not found")
 
-    page = request.args.get('page', None)
-    _id = request.args.get('id', None)
+    page = request.args.get("page", None)
+    _id = request.args.get("id", None)
 
     if page is not None and not page.isdigit():
-        abort(400, 'Invalid page number')
+        abort(400, "Invalid page number")
 
     if _id is not None and not _id.isdigit():
-        abort(400, 'Invalid log id')
+        abort(400, "Invalid log id")
 
     if page is not None and _id is not None:
         abort(400, 'Can only paginate using one of "page" or "id"')
 
     next, next_url, log_entries = paginate_logs(scan_id, scan_info, page, _id)
 
-    return jsonify({'next': next,
-                    'next_url': next_url,
-                    'entries': log_entries})
+    return jsonify({"next": next, "next_url": next_url, "entries": log_entries})
 
 
 def paginate_logs(scan_id, scan_info, page, _id):
@@ -90,7 +88,7 @@ def paginate_logs(scan_id, scan_info, page, _id):
 
         more = True if len(scan_info.output.log) > end else False
         next = page + 1 if more else None
-        next_url = '/scans/%s/log?page=%s' % (scan_id, next) if more else None
+        next_url = "/scans/%s/log?page=%s" % (scan_id, next) if more else None
         log_entries = [m.to_json() for m in messages]
 
         return next, next_url, log_entries
@@ -106,7 +104,7 @@ def paginate_logs(scan_id, scan_info, page, _id):
 
         more = True if len(scan_info.output.log) > end_id else False
         next = end_id if more else None
-        next_url = '/scans/%s/log?id=%s' % (scan_id, next) if more else None
+        next_url = "/scans/%s/log?id=%s" % (scan_id, next) if more else None
         log_entries = [m.to_json() for m in messages]
 
         return next, next_url, log_entries

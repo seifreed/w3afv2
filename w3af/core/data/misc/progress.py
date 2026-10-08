@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import time
 
 
@@ -57,7 +58,7 @@ class Progress(object):
         """
         if self._current_value == self._max_value:
             # TODO: Find a way to show progress!
-            #om.out.error('Current value can never be greater than max value!')
+            # om.out.error('Current value can never be greater than max value!')
             pass
         else:
             # inc the counter
@@ -74,11 +75,12 @@ class Progress(object):
             # Simple calculation to find out how much time it is going to take
             #
             try:
-                time_for_all_requests = (self._max_value * time_already_elapsed) / self._current_value
+                time_for_all_requests = (
+                    self._max_value * time_already_elapsed
+                ) / self._current_value
             except ZeroDivisionError:
                 # I should never get here...
-                time_for_all_requests = time_already_elapsed * \
-                    self._max_value * 2
+                time_for_all_requests = time_already_elapsed * self._max_value * 2
             else:
                 self._eta = time_for_all_requests - time_already_elapsed
 

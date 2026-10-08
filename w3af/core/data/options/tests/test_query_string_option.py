@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import unittest
 
 from w3af.core.controllers.exceptions import BaseFrameworkException
@@ -28,22 +29,22 @@ from w3af.core.data.options.option_types import QUERY_STRING
 class TestQueryStringOption(unittest.TestCase):
 
     def test_valid_qs(self):
-        value = 'abc=1&def=2'
-        opt = opt_factory('name', value, 'desc', QUERY_STRING, 'help', 'tab')
+        value = "abc=1&def=2"
+        opt = opt_factory("name", value, "desc", QUERY_STRING, "help", "tab")
 
         self.assertEqual(opt.get_value_for_profile(), value)
 
         qs_instance = opt.get_value()
 
-        self.assertIn('abc', qs_instance)
-        self.assertIn('def', qs_instance)
+        self.assertIn("abc", qs_instance)
+        self.assertIn("def", qs_instance)
 
-        self.assertEqual(qs_instance['abc'], ['1'])
-        self.assertEqual(qs_instance['def'], ['2'])
+        self.assertEqual(qs_instance["abc"], ["1"])
+        self.assertEqual(qs_instance["def"], ["2"])
 
     def test_empty_qs(self):
-        value = ''
-        opt = opt_factory('name', value, 'desc', QUERY_STRING, 'help', 'tab')
+        value = ""
+        opt = opt_factory("name", value, "desc", QUERY_STRING, "help", "tab")
 
         self.assertEqual(opt.get_value_for_profile(), value)
 
@@ -52,5 +53,13 @@ class TestQueryStringOption(unittest.TestCase):
 
     def test_invalid_qs(self):
         value = 1
-        self.assertRaises(BaseFrameworkException, opt_factory, 'name', value,
-                          'desc', QUERY_STRING, 'help', 'tab')
+        self.assertRaises(
+            BaseFrameworkException,
+            opt_factory,
+            "name",
+            value,
+            "desc",
+            QUERY_STRING,
+            "help",
+            "tab",
+        )

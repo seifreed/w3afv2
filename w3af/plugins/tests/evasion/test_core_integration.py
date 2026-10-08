@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from mock import MagicMock
@@ -30,33 +31,34 @@ from w3af.core.data.parsers.doc.url import URL
 from w3af.plugins.tests.helper import create_target_option_list
 
 
-@attr('moth')
+@attr("moth")
 class TestCoreIntegration(unittest.TestCase):
-    
+
     def setUp(self):
         self.w3afcore = w3afCore()
 
     def tearDown(self):
         self.w3afcore.quit()
-            
+
     def test_send_mangled(self):
-        
-        self.w3afcore.plugins.set_plugins(['self_reference'], 'evasion')
-        self.w3afcore.plugins.set_plugins(['sqli'], 'audit')
-        
+
+        self.w3afcore.plugins.set_plugins(["self_reference"], "evasion")
+        self.w3afcore.plugins.set_plugins(["sqli"], "audit")
+
         target_opts = create_target_option_list(URL(get_moth_http()))
         self.w3afcore.target.set_options(target_opts)
 
         # Verify env and start the scan
         self.w3afcore.plugins.init_plugins()
         self.w3afcore.verify_environment()
-        
-        sref = self.w3afcore.plugins.plugins['evasion'][0]
-        
+
+        sref = self.w3afcore.plugins.plugins["evasion"][0]
+
         def return_arg(request):
             return request
+
         sref.modify_request = MagicMock(side_effect=return_arg)
-        
+
         self.w3afcore.start()
-        
+
         self.assertGreater(sref.modify_request.call_count, 15)

@@ -20,6 +20,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import unittest
 
@@ -38,28 +39,36 @@ def by_path(fra, frb):
 
 
 class TestOpenAPIMain(unittest.TestCase):
-    DATA_PATH = os.path.join(ROOT_PATH, 'core', 'data', 'parsers', 'doc', 'open_api', 'tests', 'data')
+    DATA_PATH = os.path.join(
+        ROOT_PATH, "core", "data", "parsers", "doc", "open_api", "tests", "data"
+    )
 
-    SWAGGER_JSON = os.path.join(DATA_PATH, 'swagger.json')
-    PETSTORE_SIMPLE = os.path.join(DATA_PATH, 'petstore-simple.json')
-    PETSTORE_EXPANDED = os.path.join(DATA_PATH, 'petstore-simple.json')
-    MULTIPLE_PATHS_AND_HEADERS = os.path.join(DATA_PATH, 'multiple_paths_and_headers.json')
-    NOT_VALID_SPEC = os.path.join(DATA_PATH, 'not_quite_valid_petstore_simple.json')
-    CUSTOM_CONTENT_TYPE = os.path.join(DATA_PATH, 'custom_content_type.json')
-    UNKNOWN_CONTENT_TYPE = os.path.join(DATA_PATH, 'unknown_content_type.json')
-    LARGE_MANY_ENDPOINTS = os.path.join(DATA_PATH, 'large_many_endpoints.json')
-    MISSING_LICENSE = os.path.join(DATA_PATH, 'missing_license.json')
-    REAL_API_YAML = os.path.join(DATA_PATH, 'real.yaml')
-    ISSUE_210_API_YAML = os.path.join(DATA_PATH, '210-openapi.yaml')
+    SWAGGER_JSON = os.path.join(DATA_PATH, "swagger.json")
+    PETSTORE_SIMPLE = os.path.join(DATA_PATH, "petstore-simple.json")
+    PETSTORE_EXPANDED = os.path.join(DATA_PATH, "petstore-simple.json")
+    MULTIPLE_PATHS_AND_HEADERS = os.path.join(
+        DATA_PATH, "multiple_paths_and_headers.json"
+    )
+    NOT_VALID_SPEC = os.path.join(DATA_PATH, "not_quite_valid_petstore_simple.json")
+    CUSTOM_CONTENT_TYPE = os.path.join(DATA_PATH, "custom_content_type.json")
+    UNKNOWN_CONTENT_TYPE = os.path.join(DATA_PATH, "unknown_content_type.json")
+    LARGE_MANY_ENDPOINTS = os.path.join(DATA_PATH, "large_many_endpoints.json")
+    MISSING_LICENSE = os.path.join(DATA_PATH, "missing_license.json")
+    REAL_API_YAML = os.path.join(DATA_PATH, "real.yaml")
+    ISSUE_210_API_YAML = os.path.join(DATA_PATH, "210-openapi.yaml")
 
     def test_json_pet_store(self):
         # http://petstore.swagger.io/v2/swagger.json
         body = open(self.SWAGGER_JSON).read()
-        headers = Headers(list({'Content-Type': 'application/json'}.items()))
-        response = HTTPResponse(200, body, headers,
-                                URL('http://moth/swagger.json'),
-                                URL('http://moth/swagger.json'),
-                                _id=1)
+        headers = Headers(list({"Content-Type": "application/json"}.items()))
+        response = HTTPResponse(
+            200,
+            body,
+            headers,
+            URL("http://moth/swagger.json"),
+            URL("http://moth/swagger.json"),
+            _id=1,
+        )
 
         self.assertTrue(OpenAPI.can_parse(response))
 
@@ -67,53 +76,69 @@ class TestOpenAPIMain(unittest.TestCase):
         parser.parse()
         api_calls = parser.get_api_calls()
 
-        json_headers = Headers([('Content-Type', 'application/json')])
-        multipart_headers = Headers([('Content-Type', 'multipart/form-data')])
-        url_encoded_headers = Headers([('Content-Type', 'application/x-www-form-urlencoded')])
-        json_api_headers = Headers([('api_key', 'FrAmE30.'),
-                                    ('Content-Type', 'application/json')])
+        json_headers = Headers([("Content-Type", "application/json")])
+        multipart_headers = Headers([("Content-Type", "multipart/form-data")])
+        url_encoded_headers = Headers(
+            [("Content-Type", "application/x-www-form-urlencoded")]
+        )
+        json_api_headers = Headers(
+            [("api_key", "FrAmE30."), ("Content-Type", "application/json")]
+        )
 
-        url_root = 'http://petstore.swagger.io/v2'
+        url_root = "http://petstore.swagger.io/v2"
 
-        expected_body_1 = ('{"body": {"category": {"id": 42, "name": "John"},'
-                           ' "status": "available", "name": "doggie",'
-                           ' "tags": [{"id": 42, "name": "John"}],'
-                           ' "photoUrls": ["56"], "id": 42}}')
+        expected_body_1 = (
+            '{"body": {"category": {"id": 42, "name": "John"},'
+            ' "status": "available", "name": "doggie",'
+            ' "tags": [{"id": 42, "name": "John"}],'
+            ' "photoUrls": ["56"], "id": 42}}'
+        )
 
-        expected_body_2 = ('{"body": {"username": "John8212", "firstName": "John",'
-                           ' "lastName": "Smith", "userStatus": 42,'
-                           ' "email": "w3af@email.com", "phone": "55550178",'
-                           ' "password": "FrAmE30.", "id": 42}}')
+        expected_body_2 = (
+            '{"body": {"username": "John8212", "firstName": "John",'
+            ' "lastName": "Smith", "userStatus": 42,'
+            ' "email": "w3af@email.com", "phone": "55550178",'
+            ' "password": "FrAmE30.", "id": 42}}'
+        )
 
-        expected_body_3 = ('{"body": [{"username": "John8212", "firstName": "John",'
-                           ' "lastName": "Smith", "userStatus": 42,'
-                           ' "email": "w3af@email.com", "phone": "55550178",'
-                           ' "password": "FrAmE30.", "id": 42}]}')
+        expected_body_3 = (
+            '{"body": [{"username": "John8212", "firstName": "John",'
+            ' "lastName": "Smith", "userStatus": 42,'
+            ' "email": "w3af@email.com", "phone": "55550178",'
+            ' "password": "FrAmE30.", "id": 42}]}'
+        )
 
-        expected_body_4 = ('{"body": {"status": "placed",'
-                           ' "shipDate": "2017-06-30T23:59:45",'
-                           ' "complete": false, "petId": 42, "id": 42, "quantity": 42}}')
+        expected_body_4 = (
+            '{"body": {"status": "placed",'
+            ' "shipDate": "2017-06-30T23:59:45",'
+            ' "complete": false, "petId": 42, "id": 42, "quantity": 42}}'
+        )
 
         e_api_calls = [
-            ('GET', '/pet/findByStatus?status=available', json_headers, ''),
-            ('POST', '/pet/42/uploadImage', multipart_headers, ''),
-            ('POST', '/pet/42', url_encoded_headers, ''),
-            ('POST', '/pet', json_headers, expected_body_1),
-            ('GET', '/pet/42', json_headers, ''),
-            ('GET', '/pet/42', json_api_headers, ''),
-            ('GET', '/pet/findByTags?tags=56', json_headers, ''),
-            ('PUT', '/pet', json_headers, expected_body_1),
-            ('PUT', '/user/John8212', json_headers, expected_body_2),
-            ('POST', '/user/createWithList', json_headers, expected_body_3),
-            ('POST', '/user', json_headers, expected_body_2),
-            ('GET', '/user/John8212', json_headers, ''),
-            ('GET', '/user/login?username=John8212&password=FrAmE30.', json_headers, ''),
-            ('GET', '/user/logout', Headers(), ''),
-            ('POST', '/user/createWithArray', json_headers, expected_body_3),
-            ('GET', '/store/order/2', json_headers, ''),
-            ('GET', '/store/inventory', json_headers, ''),
-            ('GET', '/store/inventory', json_api_headers, ''),
-            ('POST', '/store/order', json_headers, expected_body_4),
+            ("GET", "/pet/findByStatus?status=available", json_headers, ""),
+            ("POST", "/pet/42/uploadImage", multipart_headers, ""),
+            ("POST", "/pet/42", url_encoded_headers, ""),
+            ("POST", "/pet", json_headers, expected_body_1),
+            ("GET", "/pet/42", json_headers, ""),
+            ("GET", "/pet/42", json_api_headers, ""),
+            ("GET", "/pet/findByTags?tags=56", json_headers, ""),
+            ("PUT", "/pet", json_headers, expected_body_1),
+            ("PUT", "/user/John8212", json_headers, expected_body_2),
+            ("POST", "/user/createWithList", json_headers, expected_body_3),
+            ("POST", "/user", json_headers, expected_body_2),
+            ("GET", "/user/John8212", json_headers, ""),
+            (
+                "GET",
+                "/user/login?username=John8212&password=FrAmE30.",
+                json_headers,
+                "",
+            ),
+            ("GET", "/user/logout", Headers(), ""),
+            ("POST", "/user/createWithArray", json_headers, expected_body_3),
+            ("GET", "/store/order/2", json_headers, ""),
+            ("GET", "/store/inventory", json_headers, ""),
+            ("GET", "/store/inventory", json_api_headers, ""),
+            ("POST", "/store/order", json_headers, expected_body_4),
         ]
 
         self.assertEqual(21, len(api_calls))
@@ -124,7 +149,7 @@ class TestOpenAPIMain(unittest.TestCase):
             data = api_call.get_data()
 
             uri = api_call.get_uri().url_string
-            uri = uri.replace(url_root, '')
+            uri = uri.replace(url_root, "")
 
             data = (method, uri, headers, data)
 
@@ -132,11 +157,15 @@ class TestOpenAPIMain(unittest.TestCase):
 
     def test_json_multiple_paths_and_headers(self):
         body = open(self.MULTIPLE_PATHS_AND_HEADERS).read()
-        headers = Headers(list({'Content-Type': 'application/json'}.items()))
-        response = HTTPResponse(200, body, headers,
-                                URL('http://moth/swagger.json'),
-                                URL('http://moth/swagger.json'),
-                                _id=1)
+        headers = Headers(list({"Content-Type": "application/json"}.items()))
+        response = HTTPResponse(
+            200,
+            body,
+            headers,
+            URL("http://moth/swagger.json"),
+            URL("http://moth/swagger.json"),
+            _id=1,
+        )
 
         self.assertTrue(OpenAPI.can_parse(response))
 
@@ -153,14 +182,17 @@ class TestOpenAPIMain(unittest.TestCase):
         #
         api_call = api_calls[0]
 
-        e_url = 'http://w3af.org/api/cats'
-        e_force_fuzzing_headers = ['X-Awesome-Header', 'X-Foo-Header']
-        e_headers = Headers([
-            ('X-Awesome-Header', '2018'),
-            ('X-Foo-Header', 'foo'),
-            ('Content-Type', 'application/json')])
+        e_url = "http://w3af.org/api/cats"
+        e_force_fuzzing_headers = ["X-Awesome-Header", "X-Foo-Header"]
+        e_headers = Headers(
+            [
+                ("X-Awesome-Header", "2018"),
+                ("X-Foo-Header", "foo"),
+                ("Content-Type", "application/json"),
+            ]
+        )
 
-        self.assertEqual(api_call.get_method(), 'GET')
+        self.assertEqual(api_call.get_method(), "GET")
         self.assertEqual(api_call.get_uri().url_string, e_url)
         self.assertEqual(api_call.get_headers(), e_headers)
         self.assertEqual(api_call.get_force_fuzzing_headers(), e_force_fuzzing_headers)
@@ -170,14 +202,17 @@ class TestOpenAPIMain(unittest.TestCase):
         #
         api_call = api_calls[1]
 
-        e_url = 'http://w3af.org/api/cats?limit=42'
-        e_force_fuzzing_headers = ['X-Awesome-Header', 'X-Foo-Header']
-        e_headers = Headers([
-            ('X-Awesome-Header', '2018'),
-            ('X-Foo-Header', 'foo'),
-            ('Content-Type', 'application/json')])
+        e_url = "http://w3af.org/api/cats?limit=42"
+        e_force_fuzzing_headers = ["X-Awesome-Header", "X-Foo-Header"]
+        e_headers = Headers(
+            [
+                ("X-Awesome-Header", "2018"),
+                ("X-Foo-Header", "foo"),
+                ("Content-Type", "application/json"),
+            ]
+        )
 
-        self.assertEqual(api_call.get_method(), 'GET')
+        self.assertEqual(api_call.get_method(), "GET")
         self.assertEqual(api_call.get_uri().url_string, e_url)
         self.assertEqual(api_call.get_headers(), e_headers)
         self.assertEqual(api_call.get_force_fuzzing_headers(), e_force_fuzzing_headers)
@@ -187,13 +222,13 @@ class TestOpenAPIMain(unittest.TestCase):
         #
         api_call = api_calls[2]
 
-        e_url = 'http://w3af.org/api/pets'
-        e_force_fuzzing_headers = ['X-Bar-Header', 'X-Foo-Header']
-        e_headers = Headers([
-            ('X-Foo-Header', '42'),
-            ('Content-Type', 'application/json')])
+        e_url = "http://w3af.org/api/pets"
+        e_force_fuzzing_headers = ["X-Bar-Header", "X-Foo-Header"]
+        e_headers = Headers(
+            [("X-Foo-Header", "42"), ("Content-Type", "application/json")]
+        )
 
-        self.assertEqual(api_call.get_method(), 'GET')
+        self.assertEqual(api_call.get_method(), "GET")
         self.assertEqual(api_call.get_uri().url_string, e_url)
         self.assertEqual(api_call.get_headers(), e_headers)
         self.assertEqual(api_call.get_force_fuzzing_headers(), e_force_fuzzing_headers)
@@ -203,14 +238,17 @@ class TestOpenAPIMain(unittest.TestCase):
         #
         api_call = api_calls[3]
 
-        e_url = 'http://w3af.org/api/pets'
-        e_force_fuzzing_headers = ['X-Bar-Header', 'X-Foo-Header']
-        e_headers = Headers([
-            ('X-Bar-Header', '56'),
-            ('X-Foo-Header', '42'),
-            ('Content-Type', 'application/json')])
+        e_url = "http://w3af.org/api/pets"
+        e_force_fuzzing_headers = ["X-Bar-Header", "X-Foo-Header"]
+        e_headers = Headers(
+            [
+                ("X-Bar-Header", "56"),
+                ("X-Foo-Header", "42"),
+                ("Content-Type", "application/json"),
+            ]
+        )
 
-        self.assertEqual(api_call.get_method(), 'GET')
+        self.assertEqual(api_call.get_method(), "GET")
         self.assertEqual(api_call.get_uri().url_string, e_url)
         self.assertEqual(api_call.get_headers(), e_headers)
         self.assertEqual(api_call.get_force_fuzzing_headers(), e_force_fuzzing_headers)
@@ -218,11 +256,15 @@ class TestOpenAPIMain(unittest.TestCase):
     # Check if the OpenAPI plugin takes into account content types provided in a 'consumes' list.
     def test_custom_content_type(self):
         body = open(self.CUSTOM_CONTENT_TYPE).read()
-        headers = Headers(list({'Content-Type': 'application/json'}.items()))
-        response = HTTPResponse(200, body, headers,
-                                URL('http://moth/swagger.json'),
-                                URL('http://moth/swagger.json'),
-                                _id=1)
+        headers = Headers(list({"Content-Type": "application/json"}.items()))
+        response = HTTPResponse(
+            200,
+            body,
+            headers,
+            URL("http://moth/swagger.json"),
+            URL("http://moth/swagger.json"),
+            _id=1,
+        )
 
         self.assertTrue(OpenAPI.can_parse(response))
 
@@ -239,50 +281,63 @@ class TestOpenAPIMain(unittest.TestCase):
         #
         api_call = api_calls[0]
 
-        e_url = 'http://w3af.org/api/pets'
+        e_url = "http://w3af.org/api/pets"
         e_force_fuzzing_headers = []
-        e_headers = Headers([('Content-Type', 'application/vnd.w3af+json')])
-        e_post_data_headers = Headers([('Content-Type', 'application/vnd.w3af+json')])
-        e_all_headers = Headers([('Content-Type', 'application/vnd.w3af+json')])
+        e_headers = Headers([("Content-Type", "application/vnd.w3af+json")])
+        e_post_data_headers = Headers([("Content-Type", "application/vnd.w3af+json")])
+        e_all_headers = Headers([("Content-Type", "application/vnd.w3af+json")])
 
         self.assertIsInstance(api_call.get_raw_data(), JSONContainer)
-        self.assertEqual(api_call.get_method(), 'PUT')
+        self.assertEqual(api_call.get_method(), "PUT")
         self.assertEqual(api_call.get_uri().url_string, e_url)
         self.assertEqual(api_call.get_headers(), e_headers)
         self.assertEqual(api_call.get_post_data_headers(), e_post_data_headers)
         self.assertEqual(api_call.get_all_headers(), e_all_headers)
         self.assertEqual(api_call.get_force_fuzzing_headers(), e_force_fuzzing_headers)
-        self.assertEqual(str(api_call.get_raw_data()), '{"info": {"tag": "7", "name": "John", "id": 42}}')
+        self.assertEqual(
+            str(api_call.get_raw_data()),
+            '{"info": {"tag": "7", "name": "John", "id": 42}}',
+        )
 
         #
         # Assertions on call #2
         #
         api_call = api_calls[1]
 
-        e_url = 'http://w3af.org/api/pets'
-        e_force_fuzzing_headers = ['X-Foo-Header']
-        e_headers = Headers([('Content-Type', 'application/vnd.w3af+json'), ('X-Foo-Header', '42')])
-        e_post_data_headers = Headers([('Content-Type', 'application/vnd.w3af+json')])
-        e_all_headers = Headers([('Content-Type', 'application/vnd.w3af+json'), ('X-Foo-Header', '42')])
+        e_url = "http://w3af.org/api/pets"
+        e_force_fuzzing_headers = ["X-Foo-Header"]
+        e_headers = Headers(
+            [("Content-Type", "application/vnd.w3af+json"), ("X-Foo-Header", "42")]
+        )
+        e_post_data_headers = Headers([("Content-Type", "application/vnd.w3af+json")])
+        e_all_headers = Headers(
+            [("Content-Type", "application/vnd.w3af+json"), ("X-Foo-Header", "42")]
+        )
 
         self.assertIsInstance(api_call.get_raw_data(), JSONContainer)
-        self.assertEqual(api_call.get_method(), 'POST')
+        self.assertEqual(api_call.get_method(), "POST")
         self.assertEqual(api_call.get_uri().url_string, e_url)
         self.assertEqual(api_call.get_headers(), e_headers)
         self.assertEqual(api_call.get_post_data_headers(), e_post_data_headers)
         self.assertEqual(api_call.get_all_headers(), e_all_headers)
         self.assertEqual(api_call.get_force_fuzzing_headers(), e_force_fuzzing_headers)
-        self.assertEqual(str(api_call.get_raw_data()), '{"info": {"tag": "7", "name": "John"}}')
+        self.assertEqual(
+            str(api_call.get_raw_data()), '{"info": {"tag": "7", "name": "John"}}'
+        )
 
     # Check if the OpenAPI plugin doesn't return a fuzzable request for a endpoint
     # which contains an unknown content type in its 'consumes' list.
     def test_unknown_content_type(self):
         body = open(self.UNKNOWN_CONTENT_TYPE).read()
-        headers = Headers(list({'Content-Type': 'application/json'}.items()))
-        response = HTTPResponse(200, body, headers,
-                                URL('http://moth/swagger.json'),
-                                URL('http://moth/swagger.json'),
-                                _id=1)
+        headers = Headers(list({"Content-Type": "application/json"}.items()))
+        response = HTTPResponse(
+            200,
+            body,
+            headers,
+            URL("http://moth/swagger.json"),
+            URL("http://moth/swagger.json"),
+            _id=1,
+        )
 
         self.assertTrue(OpenAPI.can_parse(response))
 
@@ -295,11 +350,15 @@ class TestOpenAPIMain(unittest.TestCase):
     # large swagger file
     def test_large_many_endpoints(self):
         body = open(self.LARGE_MANY_ENDPOINTS).read()
-        headers = Headers(list({'Content-Type': 'application/json'}.items()))
-        response = HTTPResponse(200, body, headers,
-                                URL('http://moth/swagger.json'),
-                                URL('http://moth/swagger.json'),
-                                _id=1)
+        headers = Headers(list({"Content-Type": "application/json"}.items()))
+        response = HTTPResponse(
+            200,
+            body,
+            headers,
+            URL("http://moth/swagger.json"),
+            URL("http://moth/swagger.json"),
+            _id=1,
+        )
 
         self.assertTrue(OpenAPI.can_parse(response))
 
@@ -327,17 +386,21 @@ class TestOpenAPIMain(unittest.TestCase):
         first_api_call = api_calls[0]
         uri = first_api_call.get_uri().url_string
 
-        expected_uri = 'https://target.com/api/Partners/3419/Agreement?performedBy=56'
+        expected_uri = "https://target.com/api/Partners/3419/Agreement?performedBy=56"
 
         self.assertEqual(expected_uri, uri)
 
     def test_disabling_headers_discovery(self):
         body = open(self.MULTIPLE_PATHS_AND_HEADERS).read()
-        headers = Headers(list({'Content-Type': 'application/json'}.items()))
-        response = HTTPResponse(200, body, headers,
-                                URL('http://moth/swagger.json'),
-                                URL('http://moth/swagger.json'),
-                                _id=1)
+        headers = Headers(list({"Content-Type": "application/json"}.items()))
+        response = HTTPResponse(
+            200,
+            body,
+            headers,
+            URL("http://moth/swagger.json"),
+            URL("http://moth/swagger.json"),
+            _id=1,
+        )
 
         self.assertTrue(OpenAPI.can_parse(response))
 
@@ -356,13 +419,16 @@ class TestOpenAPIMain(unittest.TestCase):
         #
         api_call = api_calls[0]
 
-        e_url = 'http://w3af.org/api/cats'
-        e_headers = Headers([
-            ('X-Awesome-Header', '2018'),
-            ('X-Foo-Header', 'foo'),
-            ('Content-Type', 'application/json')])
+        e_url = "http://w3af.org/api/cats"
+        e_headers = Headers(
+            [
+                ("X-Awesome-Header", "2018"),
+                ("X-Foo-Header", "foo"),
+                ("Content-Type", "application/json"),
+            ]
+        )
 
-        self.assertEqual(api_call.get_method(), 'GET')
+        self.assertEqual(api_call.get_method(), "GET")
         self.assertEqual(api_call.get_uri().url_string, e_url)
         self.assertEqual(api_call.get_headers(), e_headers)
         self.assertEqual(api_call.get_force_fuzzing_headers(), e_force_fuzzing_headers)
@@ -372,13 +438,16 @@ class TestOpenAPIMain(unittest.TestCase):
         #
         api_call = api_calls[1]
 
-        e_url = 'http://w3af.org/api/cats?limit=42'
-        e_headers = Headers([
-            ('X-Awesome-Header', '2018'),
-            ('X-Foo-Header', 'foo'),
-            ('Content-Type', 'application/json')])
+        e_url = "http://w3af.org/api/cats?limit=42"
+        e_headers = Headers(
+            [
+                ("X-Awesome-Header", "2018"),
+                ("X-Foo-Header", "foo"),
+                ("Content-Type", "application/json"),
+            ]
+        )
 
-        self.assertEqual(api_call.get_method(), 'GET')
+        self.assertEqual(api_call.get_method(), "GET")
         self.assertEqual(api_call.get_uri().url_string, e_url)
         self.assertEqual(api_call.get_headers(), e_headers)
         self.assertEqual(api_call.get_force_fuzzing_headers(), e_force_fuzzing_headers)
@@ -388,12 +457,12 @@ class TestOpenAPIMain(unittest.TestCase):
         #
         api_call = api_calls[2]
 
-        e_url = 'http://w3af.org/api/pets'
-        e_headers = Headers([
-            ('X-Foo-Header', '42'),
-            ('Content-Type', 'application/json')])
+        e_url = "http://w3af.org/api/pets"
+        e_headers = Headers(
+            [("X-Foo-Header", "42"), ("Content-Type", "application/json")]
+        )
 
-        self.assertEqual(api_call.get_method(), 'GET')
+        self.assertEqual(api_call.get_method(), "GET")
         self.assertEqual(api_call.get_uri().url_string, e_url)
         self.assertEqual(api_call.get_headers(), e_headers)
         self.assertEqual(api_call.get_force_fuzzing_headers(), e_force_fuzzing_headers)
@@ -403,24 +472,31 @@ class TestOpenAPIMain(unittest.TestCase):
         #
         api_call = api_calls[3]
 
-        e_url = 'http://w3af.org/api/pets'
-        e_headers = Headers([
-            ('X-Bar-Header', '56'),
-            ('X-Foo-Header', '42'),
-            ('Content-Type', 'application/json')])
+        e_url = "http://w3af.org/api/pets"
+        e_headers = Headers(
+            [
+                ("X-Bar-Header", "56"),
+                ("X-Foo-Header", "42"),
+                ("Content-Type", "application/json"),
+            ]
+        )
 
-        self.assertEqual(api_call.get_method(), 'GET')
+        self.assertEqual(api_call.get_method(), "GET")
         self.assertEqual(api_call.get_uri().url_string, e_url)
         self.assertEqual(api_call.get_headers(), e_headers)
         self.assertEqual(api_call.get_force_fuzzing_headers(), e_force_fuzzing_headers)
 
     def test_disabling_spec_validation(self):
         body = open(self.NOT_VALID_SPEC).read()
-        headers = Headers(list({'Content-Type': 'application/json'}.items()))
-        response = HTTPResponse(200, body, headers,
-                                URL('http://moth/swagger.json'),
-                                URL('http://moth/swagger.json'),
-                                _id=1)
+        headers = Headers(list({"Content-Type": "application/json"}.items()))
+        response = HTTPResponse(
+            200,
+            body,
+            headers,
+            URL("http://moth/swagger.json"),
+            URL("http://moth/swagger.json"),
+            _id=1,
+        )
 
         self.assertTrue(OpenAPI.can_parse(response))
 
@@ -434,12 +510,12 @@ class TestOpenAPIMain(unittest.TestCase):
         self.assertEqual(len(api_calls), 1)
 
         api_call = api_calls[0]
-        e_url = 'http://w3af.org/api/pets'
+        e_url = "http://w3af.org/api/pets"
         e_force_fuzzing_headers = []
-        e_headers = Headers([('Content-Type', 'application/json')])
+        e_headers = Headers([("Content-Type", "application/json")])
         e_body = '{"pet": {"age": 42}}'
 
-        self.assertEqual(api_call.get_method(), 'POST')
+        self.assertEqual(api_call.get_method(), "POST")
         self.assertEqual(api_call.get_uri().url_string, e_url)
         self.assertEqual(api_call.get_headers(), e_headers)
         self.assertEqual(api_call.get_force_fuzzing_headers(), e_force_fuzzing_headers)
@@ -456,11 +532,15 @@ class TestOpenAPIMain(unittest.TestCase):
 
     def test_real_api_yaml(self):
         body = open(self.REAL_API_YAML).read()
-        headers = Headers(list({'Content-Type': 'application/yaml'}.items()))
-        response = HTTPResponse(200, body, headers,
-                                URL('http://moth/swagger.yaml'),
-                                URL('http://moth/swagger.yaml'),
-                                _id=1)
+        headers = Headers(list({"Content-Type": "application/yaml"}.items()))
+        response = HTTPResponse(
+            200,
+            body,
+            headers,
+            URL("http://moth/swagger.yaml"),
+            URL("http://moth/swagger.yaml"),
+            _id=1,
+        )
 
         self.assertTrue(OpenAPI.can_parse(response))
 
@@ -468,83 +548,162 @@ class TestOpenAPIMain(unittest.TestCase):
         parser.parse()
         api_calls = parser.get_api_calls()
 
-        e_api_calls = [('GET',
-                        'https://w3af.org/bankid/tokens/4271a25e-7211-4306-b527-46196eb2af28',
-                        Headers([('Content-Type', 'application/json')]),
-                        ''),
-                       ('POST',
-                        'https://w3af.org/bankid/tokens',
-                        Headers([('Content-Type', 'application/json')]),
-                        '{"body": null}'),
-                       ('POST',
-                        'https://w3af.org/bankid/tokens',
-                        Headers([('Content-Type', 'application/json'), ('Authorization', 'FrAmE30.')]),
-                        '{"body": {"orderRef": "e475f288-4e9b-43ea-966c-d3912e7a25b2"}}'),
-                       ('POST',
-                        'https://w3af.org/bankid/orders',
-                        Headers([('Content-Type', 'application/json')]),
-                        '{"body": null}'),
-                       ('POST',
-                        'https://w3af.org/bankid/orders',
-                        Headers([('Content-Type', 'application/json')]),
-                        '{"body": {"pid": "191212121212"}}'),
-                       ('GET',
-                        'https://w3af.org/persons/3419/partners',
-                        Headers([('Content-Type', 'application/json')]),
-                        ''),
-                       ('GET',
-                        'https://w3af.org/persons/3419/partners',
-                        Headers([('Authorization', 'FrAmE30.'), ('Content-Type', 'application/json')]),
-                        ''),
-                       ('GET',
-                        'https://w3af.org/persons/3419/partners/3419',
-                        Headers([('Content-Type', 'application/json')]),
-                        ''),
-                       ('GET',
-                        'https://w3af.org/persons/3419/partners/3419',
-                        Headers([('Authorization', 'FrAmE30.'), ('Content-Type', 'application/json')]),
-                        ''),
-                       ('GET',
-                        'https://w3af.org/persons/3419',
-                        Headers([('Content-Type', 'application/json')]),
-                        ''),
-                       ('GET',
-                        'https://w3af.org/persons/3419',
-                        Headers([('Authorization', 'FrAmE30.'), ('Content-Type', 'application/json')]),
-                        ''),
-                       ('POST',
-                        'https://w3af.org/persons/3419/partners',
-                        Headers([('Content-Type', 'application/json')]),
-                        '{"body": null}'),
-                       ('POST',
-                        'https://w3af.org/persons/3419/partners',
-                        Headers([('Content-Type', 'application/json'), ('Authorization', 'FrAmE30.')]),
-                        '{"body": {"partner": "19101010****", "termsAccepted": false}}'),
-                       ('PATCH',
-                        'https://w3af.org/persons/3419',
-                        Headers([('Content-Type', 'application/json')]),
-                        '{"body": null}'),
-                       ('PATCH',
-                        'https://w3af.org/persons/3419',
-                        Headers([('Content-Type', 'application/json'), ('Authorization', 'FrAmE30.')]),
-                        '{"body": {"termsAccepted": false}}'),
-                       ('PUT',
-                        'https://w3af.org/persons/3419/partners/3419',
-                        Headers([('Content-Type', 'application/json')]),
-                        '{"body": null}'),
-                       ('PUT',
-                        'https://w3af.org/persons/3419/partners/3419',
-                        Headers([('Content-Type', 'application/json'), ('Authorization', 'FrAmE30.')]),
-                        '{"body": {"partner": "19101010****", "termsAccepted": false}}'),
-                       ('POST',
-                        'https://w3af.org/events',
-                        Headers([('Content-Type', 'application/json')]),
-                        '{"body": null}'),
-                       ('POST',
-                        'https://w3af.org/events',
-                        Headers([('Content-Type', 'application/json'), ('Authorization', 'FrAmE30.')]),
-                        '{"body": {"event": "start doktor24"}}')
-                       ]
+        e_api_calls = [
+            (
+                "GET",
+                "https://w3af.org/bankid/tokens/4271a25e-7211-4306-b527-46196eb2af28",
+                Headers([("Content-Type", "application/json")]),
+                "",
+            ),
+            (
+                "POST",
+                "https://w3af.org/bankid/tokens",
+                Headers([("Content-Type", "application/json")]),
+                '{"body": null}',
+            ),
+            (
+                "POST",
+                "https://w3af.org/bankid/tokens",
+                Headers(
+                    [
+                        ("Content-Type", "application/json"),
+                        ("Authorization", "FrAmE30."),
+                    ]
+                ),
+                '{"body": {"orderRef": "e475f288-4e9b-43ea-966c-d3912e7a25b2"}}',
+            ),
+            (
+                "POST",
+                "https://w3af.org/bankid/orders",
+                Headers([("Content-Type", "application/json")]),
+                '{"body": null}',
+            ),
+            (
+                "POST",
+                "https://w3af.org/bankid/orders",
+                Headers([("Content-Type", "application/json")]),
+                '{"body": {"pid": "191212121212"}}',
+            ),
+            (
+                "GET",
+                "https://w3af.org/persons/3419/partners",
+                Headers([("Content-Type", "application/json")]),
+                "",
+            ),
+            (
+                "GET",
+                "https://w3af.org/persons/3419/partners",
+                Headers(
+                    [
+                        ("Authorization", "FrAmE30."),
+                        ("Content-Type", "application/json"),
+                    ]
+                ),
+                "",
+            ),
+            (
+                "GET",
+                "https://w3af.org/persons/3419/partners/3419",
+                Headers([("Content-Type", "application/json")]),
+                "",
+            ),
+            (
+                "GET",
+                "https://w3af.org/persons/3419/partners/3419",
+                Headers(
+                    [
+                        ("Authorization", "FrAmE30."),
+                        ("Content-Type", "application/json"),
+                    ]
+                ),
+                "",
+            ),
+            (
+                "GET",
+                "https://w3af.org/persons/3419",
+                Headers([("Content-Type", "application/json")]),
+                "",
+            ),
+            (
+                "GET",
+                "https://w3af.org/persons/3419",
+                Headers(
+                    [
+                        ("Authorization", "FrAmE30."),
+                        ("Content-Type", "application/json"),
+                    ]
+                ),
+                "",
+            ),
+            (
+                "POST",
+                "https://w3af.org/persons/3419/partners",
+                Headers([("Content-Type", "application/json")]),
+                '{"body": null}',
+            ),
+            (
+                "POST",
+                "https://w3af.org/persons/3419/partners",
+                Headers(
+                    [
+                        ("Content-Type", "application/json"),
+                        ("Authorization", "FrAmE30."),
+                    ]
+                ),
+                '{"body": {"partner": "19101010****", "termsAccepted": false}}',
+            ),
+            (
+                "PATCH",
+                "https://w3af.org/persons/3419",
+                Headers([("Content-Type", "application/json")]),
+                '{"body": null}',
+            ),
+            (
+                "PATCH",
+                "https://w3af.org/persons/3419",
+                Headers(
+                    [
+                        ("Content-Type", "application/json"),
+                        ("Authorization", "FrAmE30."),
+                    ]
+                ),
+                '{"body": {"termsAccepted": false}}',
+            ),
+            (
+                "PUT",
+                "https://w3af.org/persons/3419/partners/3419",
+                Headers([("Content-Type", "application/json")]),
+                '{"body": null}',
+            ),
+            (
+                "PUT",
+                "https://w3af.org/persons/3419/partners/3419",
+                Headers(
+                    [
+                        ("Content-Type", "application/json"),
+                        ("Authorization", "FrAmE30."),
+                    ]
+                ),
+                '{"body": {"partner": "19101010****", "termsAccepted": false}}',
+            ),
+            (
+                "POST",
+                "https://w3af.org/events",
+                Headers([("Content-Type", "application/json")]),
+                '{"body": null}',
+            ),
+            (
+                "POST",
+                "https://w3af.org/events",
+                Headers(
+                    [
+                        ("Content-Type", "application/json"),
+                        ("Authorization", "FrAmE30."),
+                    ]
+                ),
+                '{"body": {"event": "start doktor24"}}',
+            ),
+        ]
 
         self.assertEqual(19, len(api_calls))
 
@@ -561,7 +720,7 @@ class TestOpenAPIMain(unittest.TestCase):
     def test_can_parse_content_type_no_keywords(self):
         # JSON content type
         # Does NOT contain keywords
-        http_resp = self.generate_response('{}')
+        http_resp = self.generate_response("{}")
         self.assertFalse(OpenAPI.can_parse(http_resp))
 
     def test_can_parse_content_type_with_keywords(self):
@@ -575,15 +734,15 @@ class TestOpenAPIMain(unittest.TestCase):
         # Yaml content type
         # Contains keywords
         # Invalid yaml format
-        http_resp = self.generate_response('{}', 'application/yaml')
+        http_resp = self.generate_response("{}", "application/yaml")
         self.assertFalse(OpenAPI.can_parse(http_resp))
 
     def test_content_type_match_true(self):
-        http_resp = self.generate_response('{}')
+        http_resp = self.generate_response("{}")
         self.assertTrue(OpenAPI.content_type_match(http_resp))
 
     def test_content_type_match_false(self):
-        http_resp = self.generate_response('', 'image/jpeg')
+        http_resp = self.generate_response("", "image/jpeg")
         self.assertFalse(OpenAPI.content_type_match(http_resp))
 
     def test_matches_any_keyword_true(self):
@@ -595,32 +754,37 @@ class TestOpenAPIMain(unittest.TestCase):
         self.assertFalse(OpenAPI.matches_any_keyword(http_resp))
 
     def test_is_valid_json_or_yaml_true(self):
-        http_resp = self.generate_response('{}')
+        http_resp = self.generate_response("{}")
         self.assertTrue(OpenAPI.is_valid_json_or_yaml(http_resp))
 
-        http_resp = self.generate_response('', 'application/yaml')
+        http_resp = self.generate_response("", "application/yaml")
         self.assertFalse(OpenAPI.is_valid_json_or_yaml(http_resp))
 
     def test_is_valid_json_or_yaml_false(self):
-        http_resp = self.generate_response('"', 'image/jpeg')
+        http_resp = self.generate_response('"', "image/jpeg")
         self.assertFalse(OpenAPI.is_valid_json_or_yaml(http_resp))
 
-    def generate_response(self, specification_as_string, content_type='application/json'):
-        url = URL('http://www.w3af.com/swagger.json')
-        headers = Headers([('content-type', content_type)])
-        return HTTPResponse(200, specification_as_string, headers,
-                            url, url, _id=1)
+    def generate_response(
+        self, specification_as_string, content_type="application/json"
+    ):
+        url = URL("http://www.w3af.com/swagger.json")
+        headers = Headers([("content-type", content_type)])
+        return HTTPResponse(200, specification_as_string, headers, url, url, _id=1)
 
     # Check if the OpenAPI parser can extract all api calls from a json
     # file that is missing the license name (which is required if license
     # attribute is specified)
     def test_missing_license_name(self):
         body = open(self.MISSING_LICENSE).read()
-        headers = Headers(list({'Content-Type': 'application/json'}.items()))
-        response = HTTPResponse(200, body, headers,
-                                URL('http://moth/swagger.json'),
-                                URL('http://moth/swagger.json'),
-                                _id=1)
+        headers = Headers(list({"Content-Type": "application/json"}.items()))
+        response = HTTPResponse(
+            200,
+            body,
+            headers,
+            URL("http://moth/swagger.json"),
+            URL("http://moth/swagger.json"),
+            _id=1,
+        )
 
         parser = OpenAPI(response)
         parser.parse()
@@ -632,17 +796,21 @@ class TestOpenAPIMain(unittest.TestCase):
         first_api_call = api_calls[0]
         uri = first_api_call.get_uri().url_string
 
-        expected_uri = 'http://1.2.3.4/api/prod/2.0/employees/3419'
+        expected_uri = "http://1.2.3.4/api/prod/2.0/employees/3419"
 
         self.assertEqual(expected_uri, uri)
 
     def test_issue_210(self):
         body = open(self.ISSUE_210_API_YAML).read()
-        headers = Headers(list({'Content-Type': 'application/yaml'}.items()))
-        response = HTTPResponse(200, body, headers,
-                                URL('http://moth/swagger.yaml'),
-                                URL('http://moth/swagger.yaml'),
-                                _id=1)
+        headers = Headers(list({"Content-Type": "application/yaml"}.items()))
+        response = HTTPResponse(
+            200,
+            body,
+            headers,
+            URL("http://moth/swagger.yaml"),
+            URL("http://moth/swagger.yaml"),
+            _id=1,
+        )
 
         self.assertTrue(OpenAPI.can_parse(response))
 
@@ -656,6 +824,6 @@ class TestOpenAPIMain(unittest.TestCase):
         first_api_call = api_calls[0]
         uri = first_api_call.get_uri().url_string
 
-        expected_uri = 'https://api.domain.com/domain/tokens'
+        expected_uri = "https://api.domain.com/domain/tokens"
 
         self.assertEqual(expected_uri, uri)

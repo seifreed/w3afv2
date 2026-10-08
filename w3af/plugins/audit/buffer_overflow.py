@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from itertools import repeat
 from tblib.decorators import Error
 
@@ -26,8 +27,10 @@ import w3af.core.data.constants.severity as severity
 
 from w3af.core.controllers.threads.decorators import apply_with_return_error
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
-from w3af.core.controllers.exceptions import (BaseFrameworkException,
-                                              ScanMustStopException)
+from w3af.core.controllers.exceptions import (
+    BaseFrameworkException,
+    ScanMustStopException,
+)
 from w3af.core.data.fuzzer.fuzzer import create_mutants
 from w3af.core.data.quick_match.multi_in import MultiIn
 from w3af.core.data.kb.vuln import Vuln
@@ -41,14 +44,13 @@ class buffer_overflow(AuditPlugin):
     """
 
     OVERFLOW_ERRORS = (
-        '*** stack smashing detected ***:',
-        'Backtrace:',
-        'Memory map:',
-        
+        "*** stack smashing detected ***:",
+        "Backtrace:",
+        "Memory map:",
         # Note that the lack of commas after the strings is intentional
-        '<html><head>\n<title>500 Internal Server Error</title>\n'
-        '</head><body>\n<h1>'
-        'Internal Server Error</h1>'
+        "<html><head>\n<title>500 Internal Server Error</title>\n"
+        "</head><body>\n<h1>"
+        "Internal Server Error</h1>",
     )
 
     _multi_in = MultiIn(OVERFLOW_ERRORS)
@@ -56,7 +58,7 @@ class buffer_overflow(AuditPlugin):
     # TODO: if lengths = [ 65 , 257 , 513 , 1025, 2049, 4097, 8000 ]
     # then i get a BadStatusLine exception from urllib2, is seems to be an
     # internal error. Tested against tomcat 5.5.7
-    BUFFER_TESTS = ['A' * payload_len for payload_len in [65, 257, 513, 1025, 2049]]
+    BUFFER_TESTS = ["A" * payload_len for payload_len in [65, 257, 513, 1025, 2049]]
 
     def __init__(self):
         """
@@ -125,19 +127,26 @@ class buffer_overflow(AuditPlugin):
         grep = mutant.get_token_value() == self.BUFFER_TESTS[-1]
 
         try:
-            response = self._uri_opener.send_mutant(mutant,
-                                                    debugging_id=debugging_id,
-                                                    grep=grep)
+            response = self._uri_opener.send_mutant(
+                mutant, debugging_id=debugging_id, grep=grep
+            )
         except (BaseFrameworkException, ScanMustStopException):
-            desc = ('A potential (most probably a false positive than a bug)'
-                    ' buffer-overflow was found when requesting: "%s", using'
-                    ' HTTP method %s. The data sent was: "%s".')
+            desc = (
+                "A potential (most probably a false positive than a bug)"
+                ' buffer-overflow was found when requesting: "%s", using'
+                ' HTTP method %s. The data sent was: "%s".'
+            )
             desc %= (mutant.get_url(), mutant.get_method(), mutant.get_dc())
 
-            i = Info.from_mutant('Potential buffer overflow vulnerability',
-                                 desc, [], self.get_name(), mutant)
-            
-            self.kb_append_uniq(self, 'buffer_overflow', i)
+            i = Info.from_mutant(
+                "Potential buffer overflow vulnerability",
+                desc,
+                [],
+                self.get_name(),
+                mutant,
+            )
+
+            self.kb_append_uniq(self, "buffer_overflow", i)
         else:
             self._analyze_result(mutant, response)
 
@@ -153,23 +162,30 @@ class buffer_overflow(AuditPlugin):
             if self._has_bug(mutant):
                 continue
 
-            desc = ('A potential buffer overflow (accurate detection is'
-                    ' hard) was found at: %s')
+            desc = (
+                "A potential buffer overflow (accurate detection is"
+                " hard) was found at: %s"
+            )
             desc %= mutant.found_at()
 
-            v = Vuln.from_mutant('Buffer overflow vulnerability', desc,
-                                 severity.MEDIUM, response.id,
-                                 self.get_name(), mutant)
+            v = Vuln.from_mutant(
+                "Buffer overflow vulnerability",
+                desc,
+                severity.MEDIUM,
+                response.id,
+                self.get_name(),
+                mutant,
+            )
             v.add_to_highlight(error_str)
 
-            self.kb_append_uniq(self, 'buffer_overflow', v)
+            self.kb_append_uniq(self, "buffer_overflow", v)
 
     def get_plugin_deps(self):
         """
         :return: A list with the names of the plugins that should be run before
                  the current one.
         """
-        return ['grep.error_500']
+        return ["grep.error_500"]
 
     def get_long_desc(self):
         """

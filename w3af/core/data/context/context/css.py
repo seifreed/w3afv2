@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from io import StringIO
 
 from w3af.core.data.context.context.base import BaseContext
@@ -39,23 +40,27 @@ class StyleContext(BaseContext):
 class GenericStyleContext(StyleContext):
     # These break characters are required for exploits like:
     # <div style="background-image: url(javascript:alert('XSS'))">
-    CAN_BREAK = {':', '('}
+    CAN_BREAK = {":", "("}
 
 
 class StyleSingleQuoteString(StyleContext):
-    CAN_BREAK = {"'", ':', '('}
+    CAN_BREAK = {"'", ":", "("}
 
 
 class StyleDoubleQuoteString(StyleContext):
-    CAN_BREAK = {'"', ':', '('}
+    CAN_BREAK = {'"', ":", "("}
 
 
 class StyleComment(StyleContext):
-    CAN_BREAK = {'*/', ':', '('}
+    CAN_BREAK = {"*/", ":", "("}
 
 
-ALL_CONTEXTS = [GenericStyleContext, StyleSingleQuoteString,
-                StyleDoubleQuoteString, StyleComment]
+ALL_CONTEXTS = [
+    GenericStyleContext,
+    StyleSingleQuoteString,
+    StyleDoubleQuoteString,
+    StyleComment,
+]
 
 
 def get_css_context(data, payload):
@@ -82,7 +87,7 @@ def get_css_context_iter(data, payload):
     escape_next = False
     string_delim = None
     inside_comment = False
-    context_content = ''
+    context_content = ""
 
     data_io = StringIO(data)
 
@@ -98,7 +103,7 @@ def get_css_context_iter(data, payload):
         if inside_string:
 
             # Handle \ escapes inside strings
-            if c == '\\':
+            if c == "\\":
                 escape_next = True
                 continue
 
@@ -111,13 +116,11 @@ def get_css_context_iter(data, payload):
 
                 if CONTEXT_DETECTOR in context_content:
                     if string_delim == "'":
-                        yield StyleSingleQuoteString(payload,
-                                                     untidy(context_content))
+                        yield StyleSingleQuoteString(payload, untidy(context_content))
                     else:
-                        yield StyleDoubleQuoteString(payload,
-                                                     untidy(context_content))
+                        yield StyleDoubleQuoteString(payload, untidy(context_content))
 
-                context_content = ''
+                context_content = ""
                 inside_string = False
 
             # Go to the next char inside the string
@@ -125,15 +128,15 @@ def get_css_context_iter(data, payload):
 
         # Handle the content of a /* comment */
         if inside_comment:
-            if c == '*':
+            if c == "*":
                 c = data_io.read(1)
                 context_content += c
 
-                if c == '/':
+                if c == "/":
                     if CONTEXT_DETECTOR in context_content:
                         yield StyleComment(payload, untidy(context_content))
                     inside_comment = False
-                    context_content = ''
+                    context_content = ""
             continue
 
         # Handle the string starts
@@ -145,22 +148,22 @@ def get_css_context_iter(data, payload):
 
             inside_string = True
             string_delim = c
-            context_content = ''
+            context_content = ""
             continue
 
         # Handle the comment starts
-        if c == '/':
+        if c == "/":
             c = data_io.read(1)
             context_content += c
 
-            if c == '*':
+            if c == "*":
                 inside_comment = True
 
                 # This analyzes the context content before the comment start
                 if CONTEXT_DETECTOR in context_content:
                     yield GenericStyleContext(payload, untidy(context_content))
 
-                context_content = ''
+                context_content = ""
                 continue
 
     # Handle the remaining bytes from the CSS code:

@@ -10,7 +10,7 @@ import sys
 if len(sys.argv) > 0:
     items = list()
 
-    with open(sys.argv[1], 'r') as f:
+    with open(sys.argv[1], "r") as f:
         for item in f.readlines():
             item = item.strip()
             try:
@@ -23,5 +23,5 @@ if len(sys.argv) > 0:
             except:
                 pass
 
-    with open(sys.argv[1], 'w+') as f:
+    with open(sys.argv[1], "w+") as f:
         f.writelines("\n".join(items))

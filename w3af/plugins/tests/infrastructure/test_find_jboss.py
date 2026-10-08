@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 from nose.plugins.attrib import attr
 
 from w3af.core.controllers.ci.moth import get_moth_http
@@ -29,19 +30,19 @@ class TestFindJBoss(PluginTest):
     target_url = get_moth_http()
 
     _run_configs = {
-        'cfg': {
-        'target': target_url,
-        'plugins': {'infrastructure': (PluginConfig('find_jboss'),)}
+        "cfg": {
+            "target": target_url,
+            "plugins": {"infrastructure": (PluginConfig("find_jboss"),)},
         }
     }
 
-    @attr('ci_fails')
+    @attr("ci_fails")
     def test_find_jboss(self):
-        cfg = self._run_configs['cfg']
-        self._scan(cfg['target'], cfg['plugins'])
+        cfg = self._run_configs["cfg"]
+        self._scan(cfg["target"], cfg["plugins"])
 
-        infos = self.kb.get('find_jboss', 'find_jboss')
+        infos = self.kb.get("find_jboss", "find_jboss")
         self.assertEqual(len(infos), 1, infos)
 
         info = infos[0]
-        self.assertEqual('JMX Invoker enabled without Auth', info.get_name())
+        self.assertEqual("JMX Invoker enabled without Auth", info.get_name())

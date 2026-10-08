@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import gtk
 
 from w3af.core.controllers.exceptions import BaseFrameworkException
@@ -38,6 +39,7 @@ class OnlyOptions(gtk.VBox):
 
     :author: Facundo Batista <facundobatista =at= taniquetil.com.ar>
     """
+
     def __init__(self, parentwidg, w3af, plugin, save_btn, rvrt_btn, overwriter=None):
         super(OnlyOptions, self).__init__()
         if overwriter is None:
@@ -47,17 +49,15 @@ class OnlyOptions(gtk.VBox):
         self.parentwidg = parentwidg
         self.widgets_status = {}
         self.tab_widget = {}
-        self.propagAnyWidgetChanged = helpers.PropagateBuffer(
-            self._changedAnyWidget)
+        self.propagAnyWidgetChanged = helpers.PropagateBuffer(self._changedAnyWidget)
         self.propagLabels = {}
         self.saved_successfully = False
-        
+
         # options
         self.options = OptionList()
         options = plugin.get_options()
         # let's use the info from the core
-        coreopts = self.w3af.plugins.get_plugin_options(
-            plugin.ptype, plugin.pname)
+        coreopts = self.w3af.plugins.get_plugin_options(plugin.ptype, plugin.pname)
         if coreopts is None:
             coreopts = {}
 
@@ -110,8 +110,9 @@ class OnlyOptions(gtk.VBox):
             if not tab:
                 tab = "General"
             label = gtk.Label(tab)
-            prop = helpers.PropagateBufferPayload(self._changedLabelNotebook,
-                                                  label, tab)
+            prop = helpers.PropagateBufferPayload(
+                self._changedLabelNotebook, label, tab
+            )
             table = self._makeTable(options, prop)
             nb.append_page(table, label)
         nb.show()
@@ -137,8 +138,9 @@ class OnlyOptions(gtk.VBox):
         for _, opt in enumerate(options):
             titl = gtk.Label(opt.get_name())
             titl.set_alignment(0.0, 0.5)
-            input_widget_klass = entries.wrapperWidgets.get(opt.get_type(),
-                                                            entries.TextInput)
+            input_widget_klass = entries.wrapperWidgets.get(
+                opt.get_type(), entries.TextInput
+            )
             widg = input_widget_klass(self._changedWidget, opt)
             opt.widg = widg
             widg.set_tooltip_text(opt.get_desc())
@@ -149,8 +151,11 @@ class OnlyOptions(gtk.VBox):
             else:
                 helpbtn = None
             table.auto_add_row(titl, widg, helpbtn)
-            self.widgets_status[widg] = (titl, opt.get_name(),
-                                         "<b>%s</b>" % opt.get_name())
+            self.widgets_status[widg] = (
+                titl,
+                opt.get_name(),
+                "<b>%s</b>" % opt.get_name(),
+            )
             self.propagLabels[widg] = prop
         table.show()
         return table
@@ -199,9 +204,10 @@ class OnlyOptions(gtk.VBox):
         :param widg: the widget who generated the signal
         :param helpmsg: the message to show in the dialog
         """
-        dlg = gtk.MessageDialog(None, gtk.DIALOG_MODAL, gtk.MESSAGE_INFO,
-                                gtk.BUTTONS_OK, helpmsg)
-        dlg.set_title('Configuration help')
+        dlg = gtk.MessageDialog(
+            None, gtk.DIALOG_MODAL, gtk.MESSAGE_INFO, gtk.BUTTONS_OK, helpmsg
+        )
+        dlg.set_title("Configuration help")
         dlg.run()
         dlg.destroy()
 
@@ -220,14 +226,17 @@ class OnlyOptions(gtk.VBox):
             if hasattr(opt.widg, "is_valid"):
                 if not opt.widg.is_valid():
                     invalid.append(opt.get_name())
-        
+
         if invalid:
-            msg = "The configuration can't be saved, there is a problem in the"\
-                  " following parameter(s):\n\n"
+            msg = (
+                "The configuration can't be saved, there is a problem in the"
+                " following parameter(s):\n\n"
+            )
             msg += "\n-".join(invalid)
-            dlg = gtk.MessageDialog(None, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING,
-                                    gtk.BUTTONS_OK, msg)
-            dlg.set_title('Configuration error')
+            dlg = gtk.MessageDialog(
+                None, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_OK, msg
+            )
+            dlg.set_title("Configuration error")
             dlg.run()
             dlg.destroy()
             return
@@ -238,13 +247,17 @@ class OnlyOptions(gtk.VBox):
                 SetOptionsWrapper(opt.set_value, opt.widg.get_value())
 
             if isinstance(plugin, Plugin):
-                SetOptionsWrapper(self.w3af.plugins.set_plugin_options,
-                                  plugin.ptype, plugin.pname, self.options)
+                SetOptionsWrapper(
+                    self.w3af.plugins.set_plugin_options,
+                    plugin.ptype,
+                    plugin.pname,
+                    self.options,
+                )
             else:
                 SetOptionsWrapper(plugin.set_options, self.options)
         except (BaseFrameworkException, ValueError):
             return
-        
+
         for opt in self.options:
             opt.widg.save()
 
@@ -263,6 +276,7 @@ class OnlyOptions(gtk.VBox):
         msg = "The plugin configuration was reverted to its last saved state"
         self.w3af.mainwin.sb(msg)
 
+
 SetOptionsWrapper = helpers._Wrapper((BaseFrameworkException, ValueError))
 
 
@@ -277,6 +291,7 @@ class ConfigDialog(gtk.Dialog):
 
     :author: Facundo Batista <facundobatista =at= taniquetil.com.ar>
     """
+
     def __init__(self, title, w3af, plugin, overwriter=None, showDesc=False):
         super(ConfigDialog, self).__init__(title, None, gtk.DIALOG_MODAL, ())
         self.set_icon_from_file(W3AF_ICON)
@@ -285,9 +300,8 @@ class ConfigDialog(gtk.Dialog):
 
         # buttons and config panel
         save_btn = self._button(_("Save configuration"), gtk.STOCK_SAVE)
-        rvrt_btn = self._button(_("Revert"),
-                                gtk.STOCK_REVERT_TO_SAVED)
-        close_btn = self._button(_('Close'), stock=gtk.STOCK_CLOSE)
+        rvrt_btn = self._button(_("Revert"), gtk.STOCK_REVERT_TO_SAVED)
+        close_btn = self._button(_("Close"), stock=gtk.STOCK_CLOSE)
         close_btn.connect("clicked", self._btn_close)
         plugin.pname, plugin.ptype = plugin.get_name(), plugin.get_type()
 
@@ -302,8 +316,7 @@ class ConfigDialog(gtk.Dialog):
 
         # Save it , I need it when I inherit from this class
         self._plugin = plugin
-        self._panel = OnlyOptions(self, w3af, plugin, save_btn,
-                                  rvrt_btn, overwriter)
+        self._panel = OnlyOptions(self, w3af, plugin, save_btn, rvrt_btn, overwriter)
         self.vbox.pack_start(self._panel)
 
         self.like_initial = True
@@ -311,7 +324,7 @@ class ConfigDialog(gtk.Dialog):
         self.run()
         self.destroy()
 
-    def _button(self, text="", stock=None, tooltip=''):
+    def _button(self, text="", stock=None, tooltip=""):
         """Creates a button."""
         b = entries.SemiStockButton(text, stock, tooltip)
         b.show()
@@ -345,8 +358,9 @@ class ConfigDialog(gtk.Dialog):
             return False
 
         msg = "Do you want to quit without saving the changes?"
-        dlg = gtk.MessageDialog(None, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING,
-                                gtk.BUTTONS_YES_NO, msg)
+        dlg = gtk.MessageDialog(
+            None, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_YES_NO, msg
+        )
         stayhere = dlg.run() != gtk.RESPONSE_YES
         dlg.destroy()
         return stayhere
@@ -363,6 +377,7 @@ class AdvancedTargetConfigDialog(ConfigDialog):
 
     :author: Andres Riancho
     """
+
     def __init__(self, title, w3af, plugin, overwriter=None):
         if overwriter is None:
             overwriter = {}
@@ -374,8 +389,9 @@ class AdvancedTargetConfigDialog(ConfigDialog):
             return False
 
         msg = "Do you want to save the configuration?"
-        dlg = gtk.MessageDialog(None, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING,
-                                gtk.BUTTONS_YES_NO, msg)
+        dlg = gtk.MessageDialog(
+            None, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_YES_NO, msg
+        )
         saveConfig = dlg.run() == gtk.RESPONSE_YES
         dlg.destroy()
 

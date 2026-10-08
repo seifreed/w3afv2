@@ -19,12 +19,13 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 
 from w3af.core.data.constants.encodings import DEFAULT_ENCODING
 from w3af.core.data.dc.generic.kv_container import KeyValueContainer
 
-KEY_VALUE_RE = re.compile('(.*?)=(.*?);')
+KEY_VALUE_RE = re.compile("(.*?)=(.*?);")
 
 
 class Cookie(KeyValueContainer):
@@ -33,11 +34,12 @@ class Cookie(KeyValueContainer):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
-    def __init__(self, cookie_str='', encoding=DEFAULT_ENCODING):
+
+    def __init__(self, cookie_str="", encoding=DEFAULT_ENCODING):
 
         super(Cookie, self).__init__(encoding=encoding)
 
-        for k, v in KEY_VALUE_RE.findall(cookie_str + ';'):
+        for k, v in KEY_VALUE_RE.findall(cookie_str + ";"):
             k = k.strip()
             v = v.strip()
 
@@ -45,15 +47,17 @@ class Cookie(KeyValueContainer):
             if k in self:
                 self[k].append(v)
             else:
-                self[k] = [v, ]
+                self[k] = [
+                    v,
+                ]
 
     def _sanitize(self, value):
-        value = value.replace('\n', '%0a')
-        value = value.replace('\r', '%0d')
+        value = value.replace("\n", "%0a")
+        value = value.replace("\r", "%0d")
         return value
 
     def get_type(self):
-        return 'Cookie'
+        return "Cookie"
 
     def __str__(self):
         """
@@ -66,9 +70,9 @@ class Cookie(KeyValueContainer):
         for token in self.iter_tokens():
             ks = self._sanitize(str(token.get_name()))
             vs = self._sanitize(str(token.get_value()))
-            cookie_pairs.append('%s=%s' % (ks, vs))
+            cookie_pairs.append("%s=%s" % (ks, vs))
 
-        return '; '.join(cookie_pairs)
+        return "; ".join(cookie_pairs)
 
     def __reduce__(self):
         r = list(super(Cookie, self).__reduce__())
@@ -86,16 +90,16 @@ class Cookie(KeyValueContainer):
         response_headers = http_response.get_headers()
 
         for hname, hvalue in response_headers.items():
-            if 'cookie' in hname.lower():
+            if "cookie" in hname.lower():
                 cookies.append(hvalue)
 
-        cookie_inst = cls(''.join(cookies))
+        cookie_inst = cls("".join(cookies))
 
         #
         # delete everything that the browsers usually keep to themselves, since
         # this cookie object is the one we're going to send to the wire
         #
-        for key in ['path', 'expires', 'domain', 'max-age']:
+        for key in ["path", "expires", "domain", "max-age"]:
             try:
                 del cookie_inst[key]
             except:

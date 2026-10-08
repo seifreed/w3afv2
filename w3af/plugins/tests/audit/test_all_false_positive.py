@@ -26,39 +26,41 @@ from nose.plugins.skip import SkipTest
 
 class TestAllFP(PluginTest):
 
-    target_url = 'http://moth/w3af/core/base_false_positive/'
+    target_url = "http://moth/w3af/core/base_false_positive/"
 
-    @attr('ci_fails')
+    @attr("ci_fails")
     def test_false_positive(self):
-        raise SkipTest('FIXME: This test takes too long to run.')
+        raise SkipTest("FIXME: This test takes too long to run.")
 
-        audit_plugin_names = self.w3afcore.plugins.get_plugin_list('audit')
+        audit_plugin_names = self.w3afcore.plugins.get_plugin_list("audit")
 
         for audit_plugin in audit_plugin_names:
             run_config = {
-                'target': self.target_url,
-                'plugins': {
-                    'audit': (PluginConfig(audit_plugin),),
-                    'crawl': (
+                "target": self.target_url,
+                "plugins": {
+                    "audit": (PluginConfig(audit_plugin),),
+                    "crawl": (
                         PluginConfig(
-                            'web_spider',
-                             ('only_forward', True, PluginConfig.BOOL)),
-                    )
-                }
+                            "web_spider", ("only_forward", True, PluginConfig.BOOL)
+                        ),
+                    ),
+                },
             }
 
             # I tried to do this in the right way, with nosetests test
             # generators, but they have a bug with unittest.TestCase
             self.setUp()
 
-            target = run_config['target']
-            plugins = run_config['plugins']
+            target = run_config["target"]
+            plugins = run_config["plugins"]
             self._scan(target, plugins)
 
             infos = [str(i) for i in self.kb.get_all_findings()]
 
-            msg_i = 'audit.%s found a vulnerability in "%s"' % (audit_plugin,
-                                                                ','.join(infos))
+            msg_i = 'audit.%s found a vulnerability in "%s"' % (
+                audit_plugin,
+                ",".join(infos),
+            )
             self.assertEqual(len(infos), 0, msg_i)
 
             # I tried to do this in the right way, with nosetests test

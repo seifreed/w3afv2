@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import gtk
 import gobject
 import pango
@@ -27,10 +28,10 @@ from w3af.core.data.parsers.doc.http_request_parser import http_request_parser
 from w3af.core.ui.gui.httpeditor import HttpEditor
 from w3af.core.ui.gui.entries import RememberingVPaned
 
-CR = '\r'
-LF = '\n'
+CR = "\r"
+LF = "\n"
 CRLF = CR + LF
-SP = ' '
+SP = " "
 
 
 class HttpHeadersView(RememberingVPaned):
@@ -40,30 +41,29 @@ class HttpHeadersView(RememberingVPaned):
 
     def __init__(self, w3af, parentView, editable=False):
         """Make object."""
-        RememberingVPaned.__init__(self, w3af, 'headers_view')
-        self.id = 'HttpHeadersView'
-        self.label = 'Headers'
-        self.startLine = ''
+        RememberingVPaned.__init__(self, w3af, "headers_view")
+        self.id = "HttpHeadersView"
+        self.label = "Headers"
+        self.startLine = ""
         self.parentView = parentView
         self.is_request = True
         box = gtk.HBox()
-        self._header_store = gtk.ListStore(gobject.TYPE_STRING,
-                                           gobject.TYPE_STRING)
+        self._header_store = gtk.ListStore(gobject.TYPE_STRING, gobject.TYPE_STRING)
         self._headersTreeview = gtk.TreeView(self._header_store)
         # Column for Name
         renderer = gtk.CellRendererText()
-        renderer.set_property('editable', editable)
-        renderer.connect('edited', self._header_name_edited, self._header_store)
-        column = gtk.TreeViewColumn(_('Name'), renderer, text=0)
+        renderer.set_property("editable", editable)
+        renderer.connect("edited", self._header_name_edited, self._header_store)
+        column = gtk.TreeViewColumn(_("Name"), renderer, text=0)
         column.set_sort_column_id(0)
         column.set_resizable(True)
         self._headersTreeview.append_column(column)
         # Column for Value
         renderer = gtk.CellRendererText()
-        renderer.set_property('editable', editable)
-        renderer.set_property('ellipsize', pango.ELLIPSIZE_END)
-        renderer.connect('edited', self._header_value_edited, self._header_store)
-        column = gtk.TreeViewColumn(_('Value'), renderer, text=1)
+        renderer.set_property("editable", editable)
+        renderer.set_property("ellipsize", pango.ELLIPSIZE_END)
+        renderer.connect("edited", self._header_value_edited, self._header_store)
+        column = gtk.TreeViewColumn(_("Value"), renderer, text=1)
         column.set_resizable(True)
         column.set_expand(True)
         column.set_sort_column_id(1)
@@ -77,7 +77,7 @@ class HttpHeadersView(RememberingVPaned):
             (gtk.STOCK_GO_UP, self._move_header_up),
             (gtk.STOCK_GO_DOWN, self._move_header_down),
             (gtk.STOCK_ADD, self._add_header),
-            (gtk.STOCK_DELETE, self._delete_header)
+            (gtk.STOCK_DELETE, self._delete_header),
         ]
 
         buttonBox = gtk.VBox()
@@ -107,14 +107,14 @@ class HttpHeadersView(RememberingVPaned):
 
     def _add_header(self, widget):
         """Add header to headers."""
-        i = self._header_store.append(['', ''])
+        i = self._header_store.append(["", ""])
         selection = self._headersTreeview.get_selection()
         selection.select_iter(i)
 
     def _delete_header(self, widget):
         """Delete selected header."""
         selection = self._headersTreeview.get_selection()
-        (model, selected) = selection.get_selected()
+        model, selected = selection.get_selected()
         if selected:
             model.remove(selected)
         self._changed()
@@ -122,7 +122,7 @@ class HttpHeadersView(RememberingVPaned):
     def _move_header_down(self, widget):
         """Move down selected header."""
         selection = self._headersTreeview.get_selection()
-        (model, selected) = selection.get_selected()
+        model, selected = selection.get_selected()
         if not selected:
             return
         next = model.iter_next(selected)
@@ -172,7 +172,7 @@ class HttpHeadersView(RememberingVPaned):
         """Clear view."""
         self._header_store.clear()
         self._raw.clear()
-        self.startLine = ''
+        self.startLine = ""
 
     def highlight(self, text, tag):
         """Highlight word in the text."""
@@ -183,7 +183,7 @@ class HttpHeadersView(RememberingVPaned):
         if self.is_request:
             self.startLine = obj.get_request_line()
             self._update_headers_tab(obj.get_headers())
-            data = ''
+            data = ""
             if obj.get_data():
                 data = str(obj.get_data())
             self._raw.set_text(data)
@@ -197,9 +197,9 @@ class HttpHeadersView(RememberingVPaned):
         head = self.startLine
 
         for header in self._header_store:
-            head += header[0] + ':' + header[1] + CRLF
+            head += header[0] + ":" + header[1] + CRLF
 
         if self.is_request:
             return http_request_parser(head, self._raw.get_text())
         else:
-            raise Exception('HttpResponseParser is not implemented')
+            raise Exception("HttpResponseParser is not implemented")

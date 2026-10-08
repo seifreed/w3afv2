@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from w3af.core.data.parsers.doc.url import URL
@@ -32,7 +33,7 @@ from w3af.core.data.parsers.utils.form_params import FormParameters
 class TestPostDataMutant(unittest.TestCase):
 
     def setUp(self):
-        self.payloads = ['abc', 'def']
+        self.payloads = ["abc", "def"]
         self.fuzzer_config = {}
 
     def test_found_at(self):
@@ -41,14 +42,17 @@ class TestPostDataMutant(unittest.TestCase):
         form_params.add_field_by_attr_items([("name", "address"), ("value", "")])
 
         form = URLEncodedForm(form_params)
-        freq = FuzzableRequest(URL('http://www.w3af.com/?id=3'), post_data=form,
-                               method='PUT')
+        freq = FuzzableRequest(
+            URL("http://www.w3af.com/?id=3"), post_data=form, method="PUT"
+        )
         m = PostDataMutant(freq)
-        m.get_dc().set_token(('username', 0))
+        m.get_dc().set_token(("username", 0))
 
-        expected = '"http://www.w3af.com/?id=3", using HTTP method PUT. '\
-                   'The sent post-data was: "username=&address=" '\
-                   'which modifies the "username" parameter.'
+        expected = (
+            '"http://www.w3af.com/?id=3", using HTTP method PUT. '
+            'The sent post-data was: "username=&address=" '
+            'which modifies the "username" parameter.'
+        )
         self.assertEqual(m.found_at(), expected)
 
     def test_mutant_creation(self):
@@ -57,47 +61,50 @@ class TestPostDataMutant(unittest.TestCase):
         form_params.add_field_by_attr_items([("name", "address"), ("value", "")])
 
         form = URLEncodedForm(form_params)
-        freq = FuzzableRequest(URL('http://www.w3af.com/?id=3'), post_data=form,
-                               method='PUT')
+        freq = FuzzableRequest(
+            URL("http://www.w3af.com/?id=3"), post_data=form, method="PUT"
+        )
 
-        created_mutants = PostDataMutant.create_mutants(freq, self.payloads, [],
-                                                        False,
-                                                        self.fuzzer_config)
+        created_mutants = PostDataMutant.create_mutants(
+            freq, self.payloads, [], False, self.fuzzer_config
+        )
 
-        expected_dcs = ['username=def&address=Bonsai%20Street%20123',
-                        'username=abc&address=Bonsai%20Street%20123',
-                        'username=John8212&address=def',
-                        'username=John8212&address=abc']
+        expected_dcs = [
+            "username=def&address=Bonsai%20Street%20123",
+            "username=abc&address=Bonsai%20Street%20123",
+            "username=John8212&address=def",
+            "username=John8212&address=abc",
+        ]
 
         created_dcs = [str(i.get_dc()) for i in created_mutants]
 
         self.assertEqual(set(created_dcs), set(expected_dcs))
 
         token = created_mutants[0].get_token()
-        self.assertEqual(token.get_name(), 'username')
-        self.assertEqual(token.get_original_value(), '')
-        self.assertEqual(token.get_value(), 'abc')
+        self.assertEqual(token.get_name(), "username")
+        self.assertEqual(token.get_original_value(), "")
+        self.assertEqual(token.get_value(), "abc")
 
         token = created_mutants[1].get_token()
-        self.assertEqual(token.get_name(), 'address')
-        self.assertEqual(token.get_original_value(), '')
-        self.assertEqual(token.get_value(), 'abc')
+        self.assertEqual(token.get_name(), "address")
+        self.assertEqual(token.get_original_value(), "")
+        self.assertEqual(token.get_value(), "abc")
 
         token = created_mutants[2].get_token()
-        self.assertEqual(token.get_name(), 'username')
-        self.assertEqual(token.get_original_value(), '')
-        self.assertEqual(token.get_value(), 'def')
+        self.assertEqual(token.get_name(), "username")
+        self.assertEqual(token.get_original_value(), "")
+        self.assertEqual(token.get_value(), "def")
 
         token = created_mutants[3].get_token()
-        self.assertEqual(token.get_name(), 'address')
-        self.assertEqual(token.get_original_value(), '')
-        self.assertEqual(token.get_value(), 'def')
+        self.assertEqual(token.get_name(), "address")
+        self.assertEqual(token.get_original_value(), "")
+        self.assertEqual(token.get_value(), "def")
 
         for m in created_mutants:
             self.assertIsInstance(m, PostDataMutant)
 
         for m in created_mutants:
-            self.assertEqual(m.get_method(), 'PUT')
+            self.assertEqual(m.get_method(), "PUT")
 
     def test_mutant_creation_repeated_parameter_name(self):
         form_params = FormParameters()
@@ -105,55 +112,65 @@ class TestPostDataMutant(unittest.TestCase):
         form_params.add_field_by_attr_items([("name", "id"), ("value", "")])
 
         form = URLEncodedForm(form_params)
-        freq = FuzzableRequest(URL('http://w3af.com/?foo=3'), post_data=form,
-                               method='GET')
+        freq = FuzzableRequest(
+            URL("http://w3af.com/?foo=3"), post_data=form, method="GET"
+        )
 
-        created_mutants = PostDataMutant.create_mutants(freq, self.payloads, [],
-                                                        False,
-                                                        self.fuzzer_config)
+        created_mutants = PostDataMutant.create_mutants(
+            freq, self.payloads, [], False, self.fuzzer_config
+        )
 
-        expected_dcs = ['id=def&id=3419',
-                        'id=3419&id=def',
-                        'id=3419&id=abc',
-                        'id=abc&id=3419']
+        expected_dcs = [
+            "id=def&id=3419",
+            "id=3419&id=def",
+            "id=3419&id=abc",
+            "id=abc&id=3419",
+        ]
 
         created_dcs = [str(i.get_dc()) for i in created_mutants]
 
         self.assertEqual(set(created_dcs), set(expected_dcs))
 
         token = created_mutants[0].get_token()
-        self.assertEqual(token.get_name(), 'id')
-        self.assertEqual(token.get_original_value(), '')
+        self.assertEqual(token.get_name(), "id")
+        self.assertEqual(token.get_original_value(), "")
 
         token = created_mutants[2].get_token()
-        self.assertEqual(token.get_name(), 'id')
-        self.assertEqual(token.get_original_value(), '')
+        self.assertEqual(token.get_name(), "id")
+        self.assertEqual(token.get_original_value(), "")
 
         for m in created_mutants:
             self.assertIsInstance(m, PostDataMutant)
 
         for m in created_mutants:
-            self.assertEqual(m.get_method(), 'GET')
+            self.assertEqual(m.get_method(), "GET")
 
     def test_mutant_creation_file(self):
         form_params = FormParameters()
-        form_params.add_field_by_attr_items([("name", "username"), ("value", "default")])
+        form_params.add_field_by_attr_items(
+            [("name", "username"), ("value", "default")]
+        )
         form_params.add_field_by_attr_items([("name", "file_upload"), ("type", "file")])
 
         form = MultipartContainer(form_params)
-        freq = FuzzableRequest(URL('http://www.w3af.com/upload'),
-                               post_data=form, method='POST')
+        freq = FuzzableRequest(
+            URL("http://www.w3af.com/upload"), post_data=form, method="POST"
+        )
 
         payloads = [open(__file__)]
-        created_mutants = PostDataMutant.create_mutants(freq, payloads,
-                                                        ['file_upload', ],
-                                                        False,
-                                                        self.fuzzer_config)
+        created_mutants = PostDataMutant.create_mutants(
+            freq,
+            payloads,
+            [
+                "file_upload",
+            ],
+            False,
+            self.fuzzer_config,
+        )
 
         self.assertEqual(len(created_mutants), 1, created_mutants)
-        
-        mutant = created_mutants[0]
-        
-        self.assertIsInstance(mutant.get_token().get_value(), file)
-        self.assertEqual(mutant.get_dc()['username'][0], 'default')
 
+        mutant = created_mutants[0]
+
+        self.assertIsInstance(mutant.get_token().get_value(), file)
+        self.assertEqual(mutant.get_dc()["username"][0], "default")

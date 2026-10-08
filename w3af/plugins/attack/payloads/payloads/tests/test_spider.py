@@ -18,17 +18,20 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 from nose.plugins.attrib import attr
 
-from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import PayloadTestHelper
+from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
+    PayloadTestHelper,
+)
 from w3af.plugins.attack.payloads.payload_handler import exec_payload
 
 
-@attr('slow')
-@attr('fails')
+@attr("slow")
+@attr("fails")
 class test_spider(PayloadTestHelper):
 
     def test_spider(self):
-        result = exec_payload(self.shell, 'spider', args=(2,), use_api=True)
-        self.assertTrue('/home/moth/keys.txt' in result)
-        self.assertTrue(result['/home/moth/keys.txt'])
+        result = exec_payload(self.shell, "spider", args=(2,), use_api=True)
+        self.assertTrue("/home/moth/keys.txt" in result)
+        self.assertTrue(result["/home/moth/keys.txt"])

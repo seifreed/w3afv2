@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import time
 import unittest
 import socketserver
@@ -27,23 +28,24 @@ from nose.plugins.attrib import attr
 from mock import Mock
 
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
-from w3af.core.data.url.constants import (MAX_ERROR_COUNT,
-                                          DEFAULT_TIMEOUT,
-                                          MIN_TIMEOUT,
-                                          TIMEOUT_ADJUST_LIMIT,
-                                          TIMEOUT_MULT_CONST,
-                                          TIMEOUT_UPDATE_ELAPSED_MIN)
+from w3af.core.data.url.constants import (
+    MAX_ERROR_COUNT,
+    DEFAULT_TIMEOUT,
+    MIN_TIMEOUT,
+    TIMEOUT_ADJUST_LIMIT,
+    TIMEOUT_MULT_CONST,
+    TIMEOUT_UPDATE_ELAPSED_MIN,
+)
 from w3af.core.data.url.handlers.keepalive.connection_manager import ConnectionManager
 from w3af.core.data.url.tests.helpers.upper_daemon import UpperDaemon
 from w3af.core.data.url.tests.helpers.ssl_daemon import RawSSLDaemon
 from w3af.core.data.url.tests.test_xurllib import TimeoutTCPHandler
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.controllers.exceptions import (HTTPRequestException,
-                                              ScanMustStopException)
+from w3af.core.controllers.exceptions import HTTPRequestException, ScanMustStopException
 
 
-@attr('moth')
-@attr('smoke')
+@attr("moth")
+@attr("smoke")
 class TestXUrllibTimeout(unittest.TestCase):
 
     def setUp(self):
@@ -59,7 +61,7 @@ class TestXUrllibTimeout(unittest.TestCase):
 
         port = upper_daemon.get_port()
 
-        url = URL('http://127.0.0.1:%s/' % port)
+        url = URL("http://127.0.0.1:%s/" % port)
 
         self.uri_opener.settings.set_configured_timeout(0.5)
         self.uri_opener.clear_timeout()
@@ -70,16 +72,16 @@ class TestXUrllibTimeout(unittest.TestCase):
         try:
             self.uri_opener.GET(url)
         except HTTPRequestException as hre:
-            self.assertEqual(hre.message, 'HTTP timeout error')
+            self.assertEqual(hre.message, "HTTP timeout error")
         except Exception as e:
             msg = 'Not expecting: "%s"'
             self.assertTrue(False, msg % e.__class__.__name__)
         else:
-            self.assertTrue(False, 'Expected HTTPRequestException.')
+            self.assertTrue(False, "Expected HTTPRequestException.")
 
         end = time.time()
         self.uri_opener.settings.set_default_values()
-        self.assertLess(end-start, 1.5)
+        self.assertLess(end - start, 1.5)
 
     def test_timeout_ssl(self):
         ssl_daemon = RawSSLDaemon(TimeoutTCPHandler)
@@ -88,7 +90,7 @@ class TestXUrllibTimeout(unittest.TestCase):
 
         port = ssl_daemon.get_port()
 
-        url = URL('https://127.0.0.1:%s/' % port)
+        url = URL("https://127.0.0.1:%s/" % port)
 
         self.uri_opener.settings.set_max_http_retries(0)
         self.uri_opener.settings.set_configured_timeout(1)
@@ -105,7 +107,7 @@ class TestXUrllibTimeout(unittest.TestCase):
         # some very relaxed handshake it needs to timeout a SSL protocol 3
         # connection which passes handshake phase but then fails to send/get
         # the headers
-        self.assertLess(end-start, 80)
+        self.assertLess(end - start, 80)
 
     def test_timeout_many(self):
         upper_daemon = UpperDaemon(TimeoutTCPHandler)
@@ -119,7 +121,7 @@ class TestXUrllibTimeout(unittest.TestCase):
         # We can mock this because it's being tested at TestXUrllibDelayOnError
         self.uri_opener._pause_on_http_error = Mock()
 
-        url = URL('http://127.0.0.1:%s/' % port)
+        url = URL("http://127.0.0.1:%s/" % port)
         http_request_e = 0
         scan_stop_e = 0
 
@@ -128,7 +130,7 @@ class TestXUrllibTimeout(unittest.TestCase):
                 self.uri_opener.GET(url)
             except HTTPRequestException as hre:
                 http_request_e += 1
-                self.assertEqual(hre.message, 'HTTP timeout error')
+                self.assertEqual(hre.message, "HTTP timeout error")
             except ScanMustStopException:
                 scan_stop_e += 1
                 self.assertTrue(True)
@@ -137,9 +139,9 @@ class TestXUrllibTimeout(unittest.TestCase):
                 msg = 'Not expecting: "%s"'
                 self.assertTrue(False, msg % e.__class__.__name__)
             else:
-                self.assertTrue(False, 'Expecting timeout')
+                self.assertTrue(False, "Expecting timeout")
         else:
-            self.assertTrue(False, 'Expected ScanMustStopException')
+            self.assertTrue(False, "Expected ScanMustStopException")
 
         self.uri_opener.settings.set_default_values()
         self.assertEqual(http_request_e, 4)
@@ -163,10 +165,9 @@ class TestXUrllibTimeout(unittest.TestCase):
         self.uri_opener.set_timeout = Mock()
 
         # Make sure we start from the desired timeout value
-        self.assertEqual(self.uri_opener.get_timeout('127.0.0.1'),
-                         DEFAULT_TIMEOUT)
+        self.assertEqual(self.uri_opener.get_timeout("127.0.0.1"), DEFAULT_TIMEOUT)
 
-        url = URL('http://127.0.0.1:%s/' % port)
+        url = URL("http://127.0.0.1:%s/" % port)
         sent_requests = 0
 
         self.uri_opener.GET(url)
@@ -208,10 +209,9 @@ class TestXUrllibTimeout(unittest.TestCase):
         self.uri_opener.clear_timeout()
 
         # Make sure we start from the desired timeout value
-        self.assertEqual(self.uri_opener.get_timeout('127.0.0.1'),
-                         DEFAULT_TIMEOUT)
+        self.assertEqual(self.uri_opener.get_timeout("127.0.0.1"), DEFAULT_TIMEOUT)
 
-        url = URL('http://127.0.0.1:%s/' % port)
+        url = URL("http://127.0.0.1:%s/" % port)
 
         self.uri_opener.GET(url)
         time.sleep(TIMEOUT_UPDATE_ELAPSED_MIN + 1)
@@ -227,18 +227,16 @@ class TestXUrllibTimeout(unittest.TestCase):
 
         # Make sure we reached the desired timeout after our HTTP
         # requests to the test server
-        self.assertEqual(self.uri_opener.get_timeout('127.0.0.1'),
-                         MIN_TIMEOUT)
+        self.assertEqual(self.uri_opener.get_timeout("127.0.0.1"), MIN_TIMEOUT)
 
-        timeout_url = URL('http://127.0.0.1:%s/timeout' % port)
+        timeout_url = URL("http://127.0.0.1:%s/timeout" % port)
 
         # And now the real test, this one makes sure that the timeout
         # parameter sent to GET overrides the configured value
         response = self.uri_opener.GET(timeout_url, timeout=8.0)
         self.assertEqual(response.get_code(), 200)
 
-        self.assertEqual(self.uri_opener.get_timeout('127.0.0.1'),
-                         MIN_TIMEOUT)
+        self.assertEqual(self.uri_opener.get_timeout("127.0.0.1"), MIN_TIMEOUT)
 
         # When timeout is not specified and the server returns in more
         # than the expected time, an exception is raised
@@ -246,20 +244,22 @@ class TestXUrllibTimeout(unittest.TestCase):
 
 
 class Ok200SmallDelayHandler(socketserver.BaseRequestHandler):
-    body = 'abc'
+    body = "abc"
     sleep = 0.1
 
     def handle(self):
         self.data = self.request.recv(1024).strip()
         time.sleep(self.sleep)
-        self.request.sendall('HTTP/1.0 200 Ok\r\n'
-                             'Connection: Close\r\n'
-                             'Content-Length: 3\r\n'
-                             '\r\n' + self.body)
+        self.request.sendall(
+            "HTTP/1.0 200 Ok\r\n"
+            "Connection: Close\r\n"
+            "Content-Length: 3\r\n"
+            "\r\n" + self.body
+        )
 
 
 class Ok200SmallDelayWithLongTriggeredTimeoutHandler(socketserver.BaseRequestHandler):
-    body = 'abc'
+    body = "abc"
     regular_sleep = 0.1
     long_sleep = 7.0
 
@@ -268,10 +268,12 @@ class Ok200SmallDelayWithLongTriggeredTimeoutHandler(socketserver.BaseRequestHan
         time.sleep(self.regular_sleep)
 
         # When /timeout is in the request, we sleep some extra seconds
-        if '/timeout' in self.data:
+        if "/timeout" in self.data:
             time.sleep(self.long_sleep)
 
-        self.request.sendall('HTTP/1.0 200 Ok\r\n'
-                             'Connection: Close\r\n'
-                             'Content-Length: 3\r\n'
-                             '\r\n' + self.body)
+        self.request.sendall(
+            "HTTP/1.0 200 Ok\r\n"
+            "Connection: Close\r\n"
+            "Content-Length: 3\r\n"
+            "\r\n" + self.body
+        )

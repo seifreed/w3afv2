@@ -19,13 +19,14 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import gettext
 
 ROOT_PATH = os.path.dirname(os.path.realpath(__file__))
 
 # Shortcuts
-CRAWL_PATH = os.path.join(ROOT_PATH, 'plugins', 'crawl')
+CRAWL_PATH = os.path.join(ROOT_PATH, "plugins", "crawl")
 
 # Translation stuff
-gettext.install('w3af', os.path.join(ROOT_PATH, 'locales'))
+gettext.install("w3af", os.path.join(ROOT_PATH, "locales"))

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.controllers.output_manager as om
 
 from w3af.core.controllers.exceptions import BaseFrameworkException
@@ -31,15 +32,17 @@ class delayedExecutionFactory(object):
     """
     This class constructs a delayedExecution based on the remote operating system.
     """
+
     def __init__(self, exec_method):
         self._exec_method = exec_method
 
     def get_delayed_execution_handler(self):
         os = os_detection_exec(self._exec_method)
-        if os == 'windows':
+        if os == "windows":
             return atHandler(self._exec_method)
-        elif os == 'linux':
+        elif os == "linux":
             return crontabHandler(self._exec_method)
         else:
             raise BaseFrameworkException(
-                'Failed to create a delayed execution handler.')
+                "Failed to create a delayed execution handler."
+            )

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from w3af.core.data.url.HTTPResponse import HTTPResponse
@@ -34,24 +35,24 @@ class TestSed(unittest.TestCase):
     def setUp(self):
         create_temp_dir()
         self.plugin = sed()
-        self.url = URL('http://www.w3af.com/')
+        self.url = URL("http://www.w3af.com/")
         self.request = HTTPRequest(self.url)
 
     def tearDown(self):
         self.plugin.end()
 
     def test_blank_body(self):
-        body = ''
-        headers = Headers([('content-type', 'text/html')])
+        body = ""
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, self.url, self.url, _id=1)
 
         option_list = self.plugin.get_options()
-        option_list['expressions'].set_value('qh/User/NotLuser/')        
+        option_list["expressions"].set_value("qh/User/NotLuser/")
         self.plugin.set_options(option_list)
-        
+
         mod_request = self.plugin.mangle_request(self.request)
         mod_response = self.plugin.mangle_response(response)
-        
+
         self.assertEqual(mod_request.get_headers(), self.request.get_headers())
         self.assertEqual(mod_response.get_headers(), response.get_headers())
 
@@ -61,36 +62,36 @@ class TestSed(unittest.TestCase):
         self.assertEqual(mod_response.get_body(), response.get_body())
 
     def test_response_body(self):
-        body = 'hello user!'
-        headers = Headers([('content-type', 'text/html')])
+        body = "hello user!"
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, self.url, self.url, _id=1)
 
         option_list = self.plugin.get_options()
-        option_list['expressions'].set_value('sb/user/notluser/')        
+        option_list["expressions"].set_value("sb/user/notluser/")
         self.plugin.set_options(option_list)
-        
+
         mod_request = self.plugin.mangle_request(self.request)
         mod_response = self.plugin.mangle_response(response)
-        
+
         self.assertEqual(mod_request.get_headers(), self.request.get_headers())
         self.assertEqual(mod_response.get_headers(), response.get_headers())
 
         self.assertEqual(mod_request.get_uri(), self.request.get_uri())
         self.assertEqual(mod_response.get_uri(), response.get_uri())
 
-        self.assertEqual(mod_response.get_body(), 'hello notluser!')
+        self.assertEqual(mod_response.get_body(), "hello notluser!")
 
     def test_request_headers(self):
-        headers = Headers([('content-type', 'text/html')])
+        headers = Headers([("content-type", "text/html")])
         request = HTTPRequest(self.url, headers=headers)
 
         option_list = self.plugin.get_options()
-        option_list['expressions'].set_value('qh/html/xml/')        
+        option_list["expressions"].set_value("qh/html/xml/")
         self.plugin.set_options(option_list)
-        
+
         mod_request = self.plugin.mangle_request(request)
-        
-        value, _ = mod_request.get_headers().iget('content-type')
-        self.assertEqual(value, 'text/xml')
+
+        value, _ = mod_request.get_headers().iget("content-type")
+        self.assertEqual(value, "text/xml")
 
         self.assertIs(mod_request, request)

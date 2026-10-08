@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 import OpenSSL
 import ssl
@@ -31,17 +32,19 @@ class TestSSLError(unittest.TestCase):
         """
         :see: https://github.com/andresriancho/w3af/issues/8663
         """
-        e = Exception('Message')
-        self.assertEqual(str(OpenSSLReformattedError(e)), 'Message')
+        e = Exception("Message")
+        self.assertEqual(str(OpenSSLReformattedError(e)), "Message")
 
     def test_str_8663_2(self):
-        e = OpenSSL.SSL.Error('OpenSSL.SSL.Error Message')
-        se = ssl.SSLError('ssl.SSLError Message', OpenSSLReformattedError(e))
-        self.assertEqual(str(se), '[Errno ssl.SSLError Message] '
-                                  'OpenSSL.SSL.Error Message')
+        e = OpenSSL.SSL.Error("OpenSSL.SSL.Error Message")
+        se = ssl.SSLError("ssl.SSLError Message", OpenSSLReformattedError(e))
+        self.assertEqual(
+            str(se), "[Errno ssl.SSLError Message] " "OpenSSL.SSL.Error Message"
+        )
 
     def test_str_8663_3(self):
-        e = OpenSSL.SSL.Error('OpenSSL.SSL.Error Message')
-        se = ssl.SSLError('ssl.SSLError Message', e)
-        self.assertEqual(str(se), '[Errno ssl.SSLError Message] '
-                                  'OpenSSL.SSL.Error Message')
+        e = OpenSSL.SSL.Error("OpenSSL.SSL.Error Message")
+        se = ssl.SSLError("ssl.SSLError Message", e)
+        self.assertEqual(
+            str(se), "[Errno ssl.SSLError Message] " "OpenSSL.SSL.Error Message"
+        )

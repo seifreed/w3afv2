@@ -20,6 +20,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from w3af.core.controllers.misc.make_leet import make_leet
@@ -28,11 +29,11 @@ from w3af.core.controllers.misc.make_leet import make_leet
 class TestMakeLeet(unittest.TestCase):
 
     def test_make_leet(self):
-        self.assertEqual(make_leet('adminstradores'), ['admin57radore5',
-                                                       '4dm1nstr4d0r3s',
-                                                       '4dm1n57r4d0r35'])
-        
-        self.assertEqual(make_leet('pepepito'), ['pepepi7o', 'p3p3p170',
-                                                 'p3p3p1t0'])
-        
-        self.assertEqual(make_leet('sS '), ['55 '])
+        self.assertEqual(
+            make_leet("adminstradores"),
+            ["admin57radore5", "4dm1nstr4d0r3s", "4dm1n57r4d0r35"],
+        )
+
+        self.assertEqual(make_leet("pepepito"), ["pepepi7o", "p3p3p170", "p3p3p1t0"])
+
+        self.assertEqual(make_leet("sS "), ["55 "])

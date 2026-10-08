@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import unittest
 import time
 import hashlib
@@ -52,7 +53,7 @@ class TestThreadTime(unittest.TestCase):
 
         for i in range(1000000):
             h = hashlib.sha512()
-            h.update('%s' % i)
+            h.update("%s" % i)
             h.hexdigest()
 
         spent_thread = thread_active_time() - start_thread

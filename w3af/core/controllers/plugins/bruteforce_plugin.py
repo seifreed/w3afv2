@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os.path
 
 from itertools import repeat
@@ -33,8 +34,10 @@ from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.misc.mask_password import mask_password_string
 from w3af.core.controllers.misc.safe_deepcopy import safe_deepcopy
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
-from w3af.core.controllers.bruteforce.bruteforcer import (UserPasswordBruteforcer,
-                                                          PasswordBruteforcer)
+from w3af.core.controllers.bruteforce.bruteforcer import (
+    UserPasswordBruteforcer,
+    PasswordBruteforcer,
+)
 
 
 class BruteforcePlugin(AuditPlugin):
@@ -45,15 +48,15 @@ class BruteforcePlugin(AuditPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    BASE_CFG_PATH = os.path.join(ROOT_PATH, 'core', 'controllers', 'bruteforce')
+    BASE_CFG_PATH = os.path.join(ROOT_PATH, "core", "controllers", "bruteforce")
 
     def __init__(self):
         AuditPlugin.__init__(self)
 
         # Config params
-        self._users_file = os.path.join(self.BASE_CFG_PATH, 'users.txt')
-        self._passwd_file = os.path.join(self.BASE_CFG_PATH, 'passwords.txt')
-        self._combo_file = os.path.join(self.BASE_CFG_PATH, 'combo.txt')
+        self._users_file = os.path.join(self.BASE_CFG_PATH, "users.txt")
+        self._passwd_file = os.path.join(self.BASE_CFG_PATH, "passwords.txt")
+        self._combo_file = os.path.join(self.BASE_CFG_PATH, "combo.txt")
         self._combo_separator = ":"
         self._use_emails = True
         self._use_SVN_users = True
@@ -100,7 +103,7 @@ class BruteforcePlugin(AuditPlugin):
                              call to audit(). Plugins need to send this ID to
                              the ExtendedUrllib to get improved logging.
         """
-        msg = 'Plugin is not implementing required method audit'
+        msg = "Plugin is not implementing required method audit"
         raise NotImplementedError(msg)
 
     def bruteforce_wrapper(self, fuzzable_request):
@@ -111,16 +114,15 @@ class BruteforcePlugin(AuditPlugin):
         """
         debugging_id = rand_alnum(8)
 
-        self.audit(safe_deepcopy(fuzzable_request),
-                   debugging_id=debugging_id)
+        self.audit(safe_deepcopy(fuzzable_request), debugging_id=debugging_id)
 
         res = []
 
-        for v in kb.kb.get(self.get_name(), 'auth'):
+        for v in kb.kb.get(self.get_name(), "auth"):
 
             if v.get_url() not in self._already_reported:
                 self._already_reported.append(v.get_url())
-                res.append(v['request'])
+                res.append(v["request"])
 
         return res
 
@@ -132,17 +134,14 @@ class BruteforcePlugin(AuditPlugin):
                              call to audit(). Plugins need to send this ID to
                              the ExtendedUrllib to get improved logging.
         """
-        args_iter = zip(repeat(url),
-                         combinations,
-                         repeat(debugging_id))
+        args_iter = zip(repeat(url), combinations, repeat(debugging_id))
 
-        self.worker_pool.map_multi_args(self._brute_worker,
-                                        args_iter,
-                                        chunksize=100)
+        self.worker_pool.map_multi_args(self._brute_worker, args_iter, chunksize=100)
 
     def end(self):
-        raise NotImplementedError('Bruteforce plugins MUST override the'
-                                  ' end() method.')
+        raise NotImplementedError(
+            "Bruteforce plugins MUST override the" " end() method."
+        )
 
     def _brute_worker(self, url, combination, debugging_id):
         """
@@ -151,8 +150,9 @@ class BruteforcePlugin(AuditPlugin):
         :param url: A string representation of an URL
         :param combination: A list of tuples with (user,pass)
         """
-        raise NotImplementedError('Bruteforce plugins MUST override method'
-                                  ' _bruteWorker.')
+        raise NotImplementedError(
+            "Bruteforce plugins MUST override method" " _bruteWorker."
+        )
 
     def _get_password_for_report(self, passwd):
         password_for_report = passwd
@@ -167,52 +167,52 @@ class BruteforcePlugin(AuditPlugin):
         """
         ol = OptionList()
 
-        d = 'Users file to use in bruteforcing'
-        o = opt_factory('users_file', self._users_file, d, INPUT_FILE)
+        d = "Users file to use in bruteforcing"
+        o = opt_factory("users_file", self._users_file, d, INPUT_FILE)
         ol.add(o)
 
-        d = 'Passwords file to use in bruteforcing'
-        o = opt_factory('passwd_file', self._passwd_file, d, INPUT_FILE)
+        d = "Passwords file to use in bruteforcing"
+        o = opt_factory("passwd_file", self._passwd_file, d, INPUT_FILE)
         ol.add(o)
 
-        d = 'This indicates if we will use usernames from SVN headers collected by w3af plugins in bruteforce.'
-        o = opt_factory('use_svn_users', self._use_SVN_users, d, BOOL)
+        d = "This indicates if we will use usernames from SVN headers collected by w3af plugins in bruteforce."
+        o = opt_factory("use_svn_users", self._use_SVN_users, d, BOOL)
         ol.add(o)
 
-        d = 'This indicates if the bruteforce should stop after finding the first correct user and password.'
-        o = opt_factory('stop_on_first', self._stop_on_first, d, BOOL)
+        d = "This indicates if the bruteforce should stop after finding the first correct user and password."
+        o = opt_factory("stop_on_first", self._stop_on_first, d, BOOL)
         ol.add(o)
 
-        d = 'This indicates if the bruteforce should try password equal user in logins.'
-        o = opt_factory('pass_eq_user', self._pass_eq_user, d, BOOL)
+        d = "This indicates if the bruteforce should try password equal user in logins."
+        o = opt_factory("pass_eq_user", self._pass_eq_user, d, BOOL)
         ol.add(o)
 
-        d = 'This indicates if the bruteforce should try l337 passwords'
-        o = opt_factory('use_leet_password', self._l337_p4sswd, d, BOOL)
+        d = "This indicates if the bruteforce should try l337 passwords"
+        o = opt_factory("use_leet_password", self._l337_p4sswd, d, BOOL)
         ol.add(o)
 
-        d = 'This indicates if the bruteforcer should use emails collected by w3af plugins as users.'
-        o = opt_factory('use_emails', self._use_emails, d, BOOL)
+        d = "This indicates if the bruteforcer should use emails collected by w3af plugins as users."
+        o = opt_factory("use_emails", self._use_emails, d, BOOL)
         ol.add(o)
 
-        d = 'This indicates if the bruteforce should use password profiling to collect new passwords.'
-        o = opt_factory('use_profiling', self._use_profiling, d, BOOL)
+        d = "This indicates if the bruteforce should use password profiling to collect new passwords."
+        o = opt_factory("use_profiling", self._use_profiling, d, BOOL)
         ol.add(o)
 
-        d = 'This indicates how many passwords from profiling will be used.'
-        o = opt_factory('profiling_number', self._profiling_number, d, INT)
+        d = "This indicates how many passwords from profiling will be used."
+        o = opt_factory("profiling_number", self._profiling_number, d, INT)
         ol.add(o)
 
-        d = 'Mask valid passwords found via brute-force with * when writing to report'
-        o = opt_factory('mask_password_report', self._mask_password_in_report, d, BOOL)
+        d = "Mask valid passwords found via brute-force with * when writing to report"
+        o = opt_factory("mask_password_report", self._mask_password_in_report, d, BOOL)
         ol.add(o)
 
-        d = 'Combo of username and password, file to use in bruteforcing'
-        o = opt_factory('combo_file', self._combo_file, d, INPUT_FILE)
+        d = "Combo of username and password, file to use in bruteforcing"
+        o = opt_factory("combo_file", self._combo_file, d, INPUT_FILE)
         ol.add(o)
 
-        d = 'Separator string used in Combo file to split username and password'
-        o = opt_factory('combo_separator', self._combo_separator, d, STRING)
+        d = "Separator string used in Combo file to split username and password"
+        o = opt_factory("combo_separator", self._combo_separator, d, STRING)
         ol.add(o)
 
         return ol
@@ -225,25 +225,25 @@ class BruteforcePlugin(AuditPlugin):
         :param options_list: A dictionary with the options for the plugin.
         :return: No value is returned.
         """
-        self._users_file = options_list['users_file'].get_value()
-        self._stop_on_first = options_list['stop_on_first'].get_value()
-        self._passwd_file = options_list['passwd_file'].get_value()
-        self._pass_eq_user = options_list['pass_eq_user'].get_value()
-        self._l337_p4sswd = options_list['use_leet_password'].get_value()
-        self._use_emails = options_list['use_emails'].get_value()
-        self._use_SVN_users = options_list['use_svn_users'].get_value()
-        self._use_profiling = options_list['use_profiling'].get_value()
-        self._profiling_number = options_list['profiling_number'].get_value()
-        self._combo_file = options_list['combo_file'].get_value()
-        self._combo_separator = options_list['combo_separator'].get_value()
-        self._mask_password_in_report = options_list['mask_password_report'].get_value()
+        self._users_file = options_list["users_file"].get_value()
+        self._stop_on_first = options_list["stop_on_first"].get_value()
+        self._passwd_file = options_list["passwd_file"].get_value()
+        self._pass_eq_user = options_list["pass_eq_user"].get_value()
+        self._l337_p4sswd = options_list["use_leet_password"].get_value()
+        self._use_emails = options_list["use_emails"].get_value()
+        self._use_SVN_users = options_list["use_svn_users"].get_value()
+        self._use_profiling = options_list["use_profiling"].get_value()
+        self._profiling_number = options_list["profiling_number"].get_value()
+        self._combo_file = options_list["combo_file"].get_value()
+        self._combo_separator = options_list["combo_separator"].get_value()
+        self._mask_password_in_report = options_list["mask_password_report"].get_value()
 
     def get_plugin_deps(self):
         """
         :return: A list with the names of the plugins that should be run before
                 the current one.
         """
-        return ['grep.password_profiling', 'grep.get_emails', 'grep.http_auth_detect']
+        return ["grep.password_profiling", "grep.get_emails", "grep.http_auth_detect"]
 
     def get_long_desc(self):
         """
@@ -284,4 +284,4 @@ class BruteforcePlugin(AuditPlugin):
         """
 
     def get_type(self):
-        return 'bruteforce'
+        return "bruteforce"

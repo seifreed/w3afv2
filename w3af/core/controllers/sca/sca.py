@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import itertools
 import sys
 import threading
@@ -66,6 +67,7 @@ def accept(nodeinst, visitor):
                     item._parent_node = nodeinst
                     item.accept(visitor)
 
+
 # Finally monkeypatch phpast.Node's accept method.
 Node.accept = accept
 
@@ -83,10 +85,12 @@ class PhpSCA(object):
     def __init__(self, code=None, file=None):
 
         if not code and not file:
-            raise ValueError("Invalid arguments. Either parameter 'code' or "
-                             "'file' should not be None.")
+            raise ValueError(
+                "Invalid arguments. Either parameter 'code' or "
+                "'file' should not be None."
+            )
         if file:
-            with open(file, 'r') as f:
+            with open(file, "r") as f:
                 code = f.read()
 
         # Lexer instance
@@ -98,11 +102,11 @@ class PhpSCA(object):
             raise CodeSyntaxError("Error while parsing the code")
 
         # Convenient definition of new node type
-        GlobalParentNodeType = phpast.node('GlobalParentNodeType',
-                                           ['name', 'children', '_parent_node'])
+        GlobalParentNodeType = phpast.node(
+            "GlobalParentNodeType", ["name", "children", "_parent_node"]
+        )
         ## Instantiate it and self-assign it as root node
-        self._global_pnode = GlobalParentNodeType(
-            'dummy', self._ast_code, None)
+        self._global_pnode = GlobalParentNodeType("dummy", self._ast_code, None)
         # Started parsing?
         self._started = False
         ## Parsing lock
@@ -110,7 +114,8 @@ class PhpSCA(object):
         # Define scope
         scope = Scope(self._global_pnode, parent_scope=None)
         scope._builtins = dict(
-            ((uv, VariableDef(uv, -1, scope)) for uv in VariableDef.USER_VARS))
+            ((uv, VariableDef(uv, -1, scope)) for uv in VariableDef.USER_VARS)
+        )
         self._scopes = [scope]
         # FuncCall nodes
         self._functions = []
@@ -151,16 +156,16 @@ class PhpSCA(object):
 
     def get_vars(self, usr_controlled=False):
         self._start()
-        filter_tainted = (lambda v: v.controlled_by_user) if usr_controlled \
-            else (lambda v: 1)
+        filter_tainted = (
+            (lambda v: v.controlled_by_user) if usr_controlled else (lambda v: 1)
+        )
         all_vars = list(filter(filter_tainted, self._scopes[0].get_all_vars()))
 
         return all_vars
 
     def get_func_calls(self, vuln=False):
         self._start()
-        filter_vuln = (lambda f: len(f.vulntypes)) if vuln \
-            else (lambda f: True)
+        filter_vuln = (lambda f: len(f.vulntypes)) if vuln else (lambda f: True)
         return list(filter(filter_vuln, self._functions))
 
     def _visitor(self, node):
@@ -168,11 +173,14 @@ class PhpSCA(object):
         Visitor method for AST traversal. Used as arg for AST nodes' 'accept'
         method (Visitor Design Pattern)
         """
+
         def locatescope():
             while True:
                 currscope = self._scopes[-1]
-                if node.__class__.__name__ == 'GlobalParentNodeType' or \
-                        currscope._ast_node == node._parent_node:
+                if (
+                    node.__class__.__name__ == "GlobalParentNodeType"
+                    or currscope._ast_node == node._parent_node
+                ):
                     return currscope
                 self._scopes.pop()
 
@@ -182,9 +190,14 @@ class PhpSCA(object):
 
         # Create FuncCall nodes.
         # PHP special functions: echo, print, include, require
-        if nodety in (phpast.FunctionCall, phpast.Echo, phpast.Print,
-                      phpast.Include, phpast.Require):
-            name = getattr(node, 'name', node.__class__.__name__.lower())
+        if nodety in (
+            phpast.FunctionCall,
+            phpast.Echo,
+            phpast.Print,
+            phpast.Include,
+            phpast.Require,
+        ):
+            name = getattr(node, "name", node.__class__.__name__.lower())
             newobj = FuncCall(name, node.lineno, node, locatescope())
             self._functions.append(newobj)
             # Stop parsing children nodes
@@ -194,14 +207,23 @@ class PhpSCA(object):
         elif nodety is phpast.Assignment:
             currscope = locatescope()
             varnode = node.node
-            newobj = VariableDef(varnode.name, varnode.lineno,
-                                 currscope, ast_node=node.expr)
+            newobj = VariableDef(
+                varnode.name, varnode.lineno, currscope, ast_node=node.expr
+            )
             currscope.add_var(newobj)
             # Stop parsing children nodes
             stoponthis = True
 
-        elif nodety in (phpast.Block, phpast.If, phpast.Else, phpast.ElseIf,
-                        phpast.While, phpast.DoWhile, phpast.For, phpast.Foreach):
+        elif nodety in (
+            phpast.Block,
+            phpast.If,
+            phpast.Else,
+            phpast.ElseIf,
+            phpast.While,
+            phpast.DoWhile,
+            phpast.For,
+            phpast.Foreach,
+        ):
             parentscope = locatescope()
             # Use 'If's parent scope
             if nodety in (phpast.Else, phpast.ElseIf):
@@ -238,17 +260,17 @@ class NodeRep(object):
             containing base type.
         :param startnode: Start node.
         """
-        parent = getattr(startnode, '_parent_node', None)
+        parent = getattr(startnode, "_parent_node", None)
         while parent:
             if type(parent) in nodetys:
                 yield parent
-            parent = getattr(parent, '_parent_node', None)
+            parent = getattr(parent, "_parent_node", None)
 
     @staticmethod
     def parse(node, currlevel=0, maxlevel=MAX_LEVEL):
         yield node
         if currlevel <= maxlevel:
-            for f in getattr(node, 'fields', []):
+            for f in getattr(node, "fields", []):
                 val = getattr(node, f)
                 if isinstance(val, phpast.Node):
                     val = [val]
@@ -277,7 +299,7 @@ class VariableDef(NodeRep):
         (...)
     """
 
-    USER_VARS = ('$_GET', '$_POST', '$_COOKIES', '$_REQUEST')
+    USER_VARS = ("$_GET", "$_POST", "$_COOKIES", "$_REQUEST")
 
     def __init__(self, name, lineno, scope, ast_node=None):
 
@@ -312,7 +334,7 @@ class VariableDef(NodeRep):
 
     def set_is_root(self, is_root):
         self._is_root = is_root
-        
+
     is_root = property(get_is_root, set_is_root)
 
     def get_parent(self):
@@ -330,7 +352,7 @@ class VariableDef(NodeRep):
 
     def set_parent(self, parent):
         self._parent = parent
-    
+
     parent = property(get_parent, set_parent)
 
     @property
@@ -370,15 +392,21 @@ class VariableDef(NodeRep):
             return None
 
     def __eq__(self, ovar):
-        return self._scope == ovar._scope and \
-            self._lineno == ovar.lineno and \
-            self._name == ovar.name
+        return (
+            self._scope == ovar._scope
+            and self._lineno == ovar.lineno
+            and self._name == ovar.name
+        )
 
     def __gt__(self, ovar):
         # This basically indicates precedence. Use it to know if a
         # variable should override another.
-        return self._scope == ovar._scope and self._name == ovar.name and \
-            self._lineno > ovar.lineno or self.controlled_by_user
+        return (
+            self._scope == ovar._scope
+            and self._name == ovar.name
+            and self._lineno > ovar.lineno
+            or self.controlled_by_user
+        )
 
     def __hash__(self):
         return hash(self._name)
@@ -387,18 +415,21 @@ class VariableDef(NodeRep):
         return "<Var definition at line %s>" % self.lineno
 
     def __str__(self):
-        return ("Line  %(lineno)s. Declaration of variable '%(name)s'."
-                " Status: %(status)s") % \
-            {'name': self.name,
-             'lineno': self.lineno,
-             'status': self.controlled_by_user and
-               ("'Tainted'. Source: '%s'" % self.taint_source) or
-             "'Clean'"
-             }
+        return (
+            "Line  %(lineno)s. Declaration of variable '%(name)s'."
+            " Status: %(status)s"
+        ) % {
+            "name": self.name,
+            "lineno": self.lineno,
+            "status": self.controlled_by_user
+            and ("'Tainted'. Source: '%s'" % self.taint_source)
+            or "'Clean'",
+        }
 
     def is_tainted_for(self, vulnty):
-        return vulnty not in self._safe_for and \
-            (self.parent.is_tainted_for(vulnty) if self.parent else True)
+        return vulnty not in self._safe_for and (
+            self.parent.is_tainted_for(vulnty) if self.parent else True
+        )
 
     def deps(self):
         """
@@ -436,24 +467,21 @@ class FuncCall(NodeRep):
 
     # Potentially Vulnerable Functions Database
     PVFDB = {
-        'OS_COMMANDING':
-        ('system', 'exec', 'shell_exec'),
-        'XSS':
-        ('echo', 'print', 'printf', 'header'),
-        'FILE_INCLUDE':
-        ('include', 'require'),
-        'FILE_DISCLOSURE':
-        ('file_get_contents', 'file', 'fread', 'finfo_file'),
+        "OS_COMMANDING": ("system", "exec", "shell_exec"),
+        "XSS": ("echo", "print", "printf", "header"),
+        "FILE_INCLUDE": ("include", "require"),
+        "FILE_DISCLOSURE": ("file_get_contents", "file", "fread", "finfo_file"),
     }
     # Securing Functions Database
     SFDB = {
-        'OS_COMMANDING':
-        ('escapeshellarg', 'escapeshellcmd'),
-        'XSS':
-        ('htmlentities', 'htmlspecialchars'),
-        'SQL':
-        ('addslashes', 'mysql_real_escape_string', 'mysqli_escape_string',
-             'mysqli_real_escape_string')
+        "OS_COMMANDING": ("escapeshellarg", "escapeshellcmd"),
+        "XSS": ("htmlentities", "htmlspecialchars"),
+        "SQL": (
+            "addslashes",
+            "mysql_real_escape_string",
+            "mysqli_escape_string",
+            "mysqli_real_escape_string",
+        ),
     }
 
     def __init__(self, name, lineno, ast_node, scope):
@@ -489,8 +517,16 @@ class FuncCall(NodeRep):
             vulnsrcs = self._vulnsources = []
             # It has to be vulnerable; otherwise we got nothing to do.
             if self.vulntypes:
-                list(map(vulnsrcs.append, (p.var.taint_source for p in self._params
-                                      if p.var and p.var.taint_source)))
+                list(
+                    map(
+                        vulnsrcs.append,
+                        (
+                            p.var.taint_source
+                            for p in self._params
+                            if p.var and p.var.taint_source
+                        ),
+                    )
+                )
         return vulnsrcs
 
     @property
@@ -526,23 +562,25 @@ class FuncCall(NodeRep):
         return "<'%s' call at line %s>" % (self._name, self._lineno)
 
     def __str__(self):
-        return "Line %s. '%s' function call. Vulnerable%s" % \
-            (self.lineno, self.name, self.vulntypes and
-             ' for %s.' % ','.join(self.vulntypes) or ': No.')
+        return "Line %s. '%s' function call. Vulnerable%s" % (
+            self.lineno,
+            self.name,
+            self.vulntypes and " for %s." % ",".join(self.vulntypes) or ": No.",
+        )
 
     def _parse_params(self):
         def attrname(node):
             nodety = type(node)
             if nodety == phpast.FunctionCall:
-                name = 'params'
+                name = "params"
             elif nodety == phpast.Echo:
-                name = 'nodes'
+                name = "nodes"
             elif nodety == phpast.Print:
-                name = 'node'
+                name = "node"
             elif nodety in (phpast.Include, phpast.Require):
-                name = 'expr'
+                name = "expr"
             else:
-                name = ''
+                name = ""
             return name
 
         params = []
@@ -594,7 +632,7 @@ class Scope(object):
         return list(self._vars.values())
 
     def __repr__(self):
-        return "<Scope [%s]>" % ', '.join(v.name for v in self.get_all_vars())
+        return "<Scope [%s]>" % ", ".join(v.name for v in self.get_all_vars())
 
 
 class Param(object):
@@ -614,14 +652,13 @@ class Param(object):
             if type(node) is phpast.Variable:
                 varname = node.name
                 scopevar = scope.get_var(varname)
-                vardef = VariableDef(varname + '__$temp_anon_var$_',
-                                     node.lineno, scope)
+                vardef = VariableDef(varname + "__$temp_anon_var$_", node.lineno, scope)
                 vardef.var_node = node
                 vardef.parent = scopevar
                 break
 
             elif type(node) is phpast.FunctionCall:
-                vardef = VariableDef(node.name + '_funvar', node.lineno, scope)
+                vardef = VariableDef(node.name + "_funvar", node.lineno, scope)
                 fc = FuncCall(node.name, node.lineno, node, scope)
 
                 # TODO: So far we only work with the first parameter.

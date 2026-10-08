@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import sys
 
@@ -50,38 +51,44 @@ class CorePlugins(object):
         process starts, and when the user loads a new profile.
         """
         # A dict with plugin types as keys and a list of plugin names as values
-        self._plugins_names_dict = {'audit': [],
-                                    'grep': [],
-                                    'bruteforce': [],
-                                    'crawl': [],
-                                    'evasion': [],
-                                    'mangle': [],
-                                    'output': [],
-                                    'auth': [],
-                                    'infrastructure': []}
+        self._plugins_names_dict = {
+            "audit": [],
+            "grep": [],
+            "bruteforce": [],
+            "crawl": [],
+            "evasion": [],
+            "mangle": [],
+            "output": [],
+            "auth": [],
+            "infrastructure": [],
+        }
 
-        self._plugins_options = {'audit': {},
-                                 'grep': {},
-                                 'bruteforce': {},
-                                 'crawl': {},
-                                 'evasion': {},
-                                 'mangle': {},
-                                 'output': {},
-                                 'attack': {},
-                                 'auth': {},
-                                 'infrastructure': {}}
+        self._plugins_options = {
+            "audit": {},
+            "grep": {},
+            "bruteforce": {},
+            "crawl": {},
+            "evasion": {},
+            "mangle": {},
+            "output": {},
+            "attack": {},
+            "auth": {},
+            "infrastructure": {},
+        }
 
         # A dict with plugin types as keys and a list of plugin instances as
         # values
-        self.plugins = {'audit': [],
-                        'grep': [],
-                        'bruteforce': [],
-                        'crawl': [],
-                        'evasion': [],
-                        'mangle': [],
-                        'output': [],
-                        'auth': [],
-                        'infrastructure': []}
+        self.plugins = {
+            "audit": [],
+            "grep": [],
+            "bruteforce": [],
+            "crawl": [],
+            "evasion": [],
+            "mangle": [],
+            "output": [],
+            "auth": [],
+            "infrastructure": [],
+        }
 
         # After we zero all options and enabled plugins we need to call
         # init_plugins again
@@ -93,7 +100,7 @@ class CorePlugins(object):
         If they don't do it, an exception is raised.
         """
         # This is inited before all, to have a full logging support.
-        om.manager.set_output_plugins(self._plugins_names_dict['output'])
+        om.manager.set_output_plugins(self._plugins_names_dict["output"])
 
         # Create an instance of each requested plugin and add it to the plugin
         # list. Plugins are added taking care of plugin dependencies and
@@ -106,7 +113,7 @@ class CorePlugins(object):
         #
         # Some extra init steps for mangle plugins
         #
-        mangle = self.plugins['mangle']
+        mangle = self.plugins["mangle"]
         self._w3af_core.uri_opener.settings.set_mangle_plugins(mangle)
 
         # The plugin factory might raise an exception due to invalid plugin
@@ -123,7 +130,7 @@ class CorePlugins(object):
 
         :return: No value is returned.
         """
-        if plugin_type.lower() == 'output':
+        if plugin_type.lower() == "output":
             om.manager.set_plugin_options(plugin_name, plugin_options)
 
         # Save the options, even if they are invalid. This is a good idea
@@ -186,14 +193,16 @@ class CorePlugins(object):
         plugin_names = list(set(plugin_names))
         known_plugin_names = self.get_plugin_list(plugin_type)
         unknown_plugins = []
-        
+
         for plugin_name in plugin_names:
-            if plugin_name not in known_plugin_names \
-            and plugin_name.replace('!', '') not in known_plugin_names\
-            and plugin_name != 'all':
-            
+            if (
+                plugin_name not in known_plugin_names
+                and plugin_name.replace("!", "") not in known_plugin_names
+                and plugin_name != "all"
+            ):
+
                 if raise_on_error:
-                    raise ValueError('Unknown plugin %s' % plugin_name)
+                    raise ValueError("Unknown plugin %s" % plugin_name)
                 else:
                     unknown_plugins.append(plugin_name)
 
@@ -202,21 +211,21 @@ class CorePlugins(object):
         plugin_names = [pn for pn in plugin_names if pn not in unknown_plugins]
 
         set_dict = {
-            'crawl': partial(self._set_plugin_generic, 'crawl'),
-            'audit': partial(self._set_plugin_generic, 'audit'),
-            'grep': partial(self._set_plugin_generic, 'grep'),
-            'output': partial(self._set_plugin_generic, 'output'),
-            'mangle': partial(self._set_plugin_generic, 'mangle'),
-            'bruteforce': partial(self._set_plugin_generic, 'bruteforce'),
-            'auth': partial(self._set_plugin_generic, 'auth'),
-            'infrastructure': partial(self._set_plugin_generic, 'infrastructure'),
-            'evasion': self._set_evasion_plugins,
+            "crawl": partial(self._set_plugin_generic, "crawl"),
+            "audit": partial(self._set_plugin_generic, "audit"),
+            "grep": partial(self._set_plugin_generic, "grep"),
+            "output": partial(self._set_plugin_generic, "output"),
+            "mangle": partial(self._set_plugin_generic, "mangle"),
+            "bruteforce": partial(self._set_plugin_generic, "bruteforce"),
+            "auth": partial(self._set_plugin_generic, "auth"),
+            "infrastructure": partial(self._set_plugin_generic, "infrastructure"),
+            "evasion": self._set_evasion_plugins,
         }
 
         set_dict[plugin_type](plugin_names)
-        
+
         return unknown_plugins
-    
+
     def reload_modified_plugin(self, plugin_type, plugin_name):
         """
         When a plugin is modified using the plugin editor, all instances of it
@@ -229,9 +238,9 @@ class CorePlugins(object):
                             'sqli', etc
         """
         try:
-            amodule = sys.modules['w3af.plugins.%s.%s' % (plugin_type, plugin_name)]
+            amodule = sys.modules["w3af.plugins.%s.%s" % (plugin_type, plugin_name)]
         except KeyError:
-            msg = 'Tried to reload a plugin that was never imported! (%s.%s)'
+            msg = "Tried to reload a plugin that was never imported! (%s.%s)"
             om.out.debug(msg % (plugin_type, plugin_name))
         else:
             importlib.reload(amodule)
@@ -242,8 +251,8 @@ class CorePlugins(object):
         :return: A description of the plugin type passed as parameter
         """
         try:
-            __import__('w3af.plugins.%s' % plugin_type)
-            a_module = sys.modules['w3af.plugins.%s' % plugin_type]
+            __import__("w3af.plugins.%s" % plugin_type)
+            a_module = sys.modules["w3af.plugins.%s" % plugin_type]
         except Exception:
             msg = 'Unknown plugin type: "%s".'
             raise BaseFrameworkException(msg % plugin_type)
@@ -254,71 +263,80 @@ class CorePlugins(object):
         """
         :return: A list with all plugin types.
         """
+
         def rem_from_list(ele, lst):
             try:
                 lst.remove(ele)
             except:
                 pass
-        plugin_types = [x for x in os.listdir(os.path.join(ROOT_PATH, 'plugins'))]
+
+        plugin_types = [x for x in os.listdir(os.path.join(ROOT_PATH, "plugins"))]
         # Now we filter to show only the directories
-        plugin_types = [d for d in plugin_types
-                        if os.path.isdir(os.path.join(ROOT_PATH, 'plugins', d))]
-        rem_from_list('attack', plugin_types)
-        rem_from_list('tests', plugin_types)
-        rem_from_list('.git', plugin_types)
+        plugin_types = [
+            d
+            for d in plugin_types
+            if os.path.isdir(os.path.join(ROOT_PATH, "plugins", d))
+        ]
+        rem_from_list("attack", plugin_types)
+        rem_from_list("tests", plugin_types)
+        rem_from_list(".git", plugin_types)
         return plugin_types
 
     def get_plugin_list(self, plugin_type):
         """
         :return: A string list of the names of all available plugins by type.
         """
-        str_plugin_list = get_file_list(os.path.join(ROOT_PATH, 'plugins',
-                                                     plugin_type))
+        str_plugin_list = get_file_list(os.path.join(ROOT_PATH, "plugins", plugin_type))
         return str_plugin_list
 
     def get_plugin_inst(self, plugin_type, plugin_name):
         """
         :return: An instance of a plugin.
         """
-        plugin_inst = factory('w3af.plugins.%s.%s' % (plugin_type, plugin_name))
+        plugin_inst = factory("w3af.plugins.%s.%s" % (plugin_type, plugin_name))
         plugin_inst.set_url_opener(self._w3af_core.uri_opener)
         plugin_inst.set_worker_pool(self._w3af_core.worker_pool)
         plugin_inst.set_w3af_core(self._w3af_core)
-        
+
         if plugin_name in list(self._plugins_options[plugin_type].keys()):
             custom_options = self._plugins_options[plugin_type][plugin_name]
             plugin_inst.set_options(custom_options)
 
         # This will init some plugins like mangle and output
-        if plugin_type == 'attack' and not self.initialized:
+        if plugin_type == "attack" and not self.initialized:
             self.init_plugins()
-            
+
         return plugin_inst
 
     def get_quick_instance(self, plugin_type, plugin_name):
-        plugin_module = '.'.join(['w3af', 'plugins', plugin_type, plugin_name])
+        plugin_module = ".".join(["w3af", "plugins", plugin_type, plugin_name])
         return factory(plugin_module)
 
     def expand_all(self):
         for plugin_type, enabled_plugins in self._plugins_names_dict.items():
-            if 'all' in enabled_plugins:
-                file_list = [f for f in os.listdir(
-                    os.path.join(ROOT_PATH, 'plugins', plugin_type))]
-                all_plugins = [os.path.splitext(f)[0] for f in file_list
-                               if os.path.splitext(f)[1] == '.py']
-                all_plugins.remove('__init__')
+            if "all" in enabled_plugins:
+                file_list = [
+                    f
+                    for f in os.listdir(os.path.join(ROOT_PATH, "plugins", plugin_type))
+                ]
+                all_plugins = [
+                    os.path.splitext(f)[0]
+                    for f in file_list
+                    if os.path.splitext(f)[1] == ".py"
+                ]
+                all_plugins.remove("__init__")
 
                 enabled_plugins.extend(all_plugins)
                 enabled_plugins = list(set(enabled_plugins))
-                enabled_plugins.remove('all')
+                enabled_plugins.remove("all")
                 self._plugins_names_dict[plugin_type] = enabled_plugins
 
     def remove_exclusions(self):
         for plugin_type, enabled_plugins in self._plugins_names_dict.items():
             for plugin_name in enabled_plugins[:]:
-                if plugin_name.startswith('!'):
+                if plugin_name.startswith("!"):
                     enabled_plugins.remove(plugin_name)
-                    enabled_plugins.remove(plugin_name.replace('!', ''))
+                    enabled_plugins.remove(plugin_name.replace("!", ""))
 
     def resolve_dependencies(self):
         for plugin_type, enabled_plugins in self._plugins_names_dict.items():
@@ -329,19 +347,24 @@ class CorePlugins(object):
                 for dep in plugin_inst.get_plugin_deps():
 
                     try:
-                        dep_plugin_type, dep_plugin_name = dep.split('.')
+                        dep_plugin_type, dep_plugin_name = dep.split(".")
                     except:
-                        msg = ('Plugin dependencies must be indicated using'
-                               ' plugin_type.plugin_name notation. This is'
-                               ' an error in %s.get_plugin_deps().' % plugin_name)
+                        msg = (
+                            "Plugin dependencies must be indicated using"
+                            " plugin_type.plugin_name notation. This is"
+                            " an error in %s.get_plugin_deps()." % plugin_name
+                        )
                         raise BaseFrameworkException(msg)
 
                     if dep_plugin_name not in self._plugins_names_dict[dep_plugin_type]:
-                        om.out.information('Enabling %s\'s dependency %s' %
-                                           (plugin_name, dep_plugin_name))
+                        om.out.information(
+                            "Enabling %s's dependency %s"
+                            % (plugin_name, dep_plugin_name)
+                        )
 
-                        self._plugins_names_dict[
-                            dep_plugin_type].append(dep_plugin_name)
+                        self._plugins_names_dict[dep_plugin_type].append(
+                            dep_plugin_name
+                        )
 
                         self.resolve_dependencies()
 
@@ -357,7 +380,7 @@ class CorePlugins(object):
                 plugin_inst = self.get_quick_instance(plugin_type, plugin_name)
 
                 for dep in plugin_inst.get_plugin_deps():
-                    dep_plugin_type, dep_name = dep.split('.')
+                    dep_plugin_type, dep_name = dep.split(".")
 
                     if dep_plugin_type != plugin_type:
                         # We can't guarantee execution order if the plugin
@@ -388,18 +411,22 @@ class CorePlugins(object):
     def create_instances(self):
         for plugin_type, enabled_plugins in self._plugins_names_dict.items():
             for plugin_name in enabled_plugins:
-                plugin_instance = self.get_plugin_inst(plugin_type,
-                                                       plugin_name)
+                plugin_instance = self.get_plugin_inst(plugin_type, plugin_name)
                 if plugin_instance not in self.plugins[plugin_type]:
                     self.plugins[plugin_type].append(plugin_instance)
                 else:
                     # Ensure that the latest settings are applied to the instance
                     # that will be used for execution
                     for existing_inst in self.plugins[plugin_type]:
-                        if existing_inst.get_name() == plugin_name and plugin_name in list(self._plugins_options[plugin_type].keys()):
-                            custom_options = self._plugins_options[plugin_type][plugin_name]
+                        if (
+                            existing_inst.get_name() == plugin_name
+                            and plugin_name
+                            in list(self._plugins_options[plugin_type].keys())
+                        ):
+                            custom_options = self._plugins_options[plugin_type][
+                                plugin_name
+                            ]
                             existing_inst.set_options(custom_options)
-
 
     def plugin_factory(self):
         """
@@ -432,7 +459,7 @@ class CorePlugins(object):
                                 will be used.
         :return: No value is returned.
         """
-        self._plugins_names_dict['evasion'] = evasion_plugins
+        self._plugins_names_dict["evasion"] = evasion_plugins
         self.plugin_factory()
 
-        self._w3af_core.uri_opener.set_evasion_plugins(self.plugins['evasion'])
+        self._w3af_core.uri_opener.set_evasion_plugins(self.plugins["evasion"])

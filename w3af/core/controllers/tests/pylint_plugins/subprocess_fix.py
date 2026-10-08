@@ -21,4 +21,4 @@ def subprocess_transform():
 
 
 def register(linter):
-    register_module_extender(MANAGER, 'subprocess', subprocess_transform)
+    register_module_extender(MANAGER, "subprocess", subprocess_transform)

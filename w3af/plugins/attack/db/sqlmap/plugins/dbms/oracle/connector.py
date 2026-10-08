@@ -21,6 +21,7 @@ from plugins.generic.connector import Connector as GenericConnector
 
 os.environ["NLS_LANG"] = ".AL32UTF8"
 
+
 class Connector(GenericConnector):
     """
     Homepage: http://cx-oracle.sourceforge.net/
@@ -40,12 +41,27 @@ class Connector(GenericConnector):
         self.password = utf8encode(self.password)
 
         try:
-            self.connector = cx_Oracle.connect(dsn=self.__dsn, user=self.user, password=self.password, mode=cx_Oracle.SYSDBA)
+            self.connector = cx_Oracle.connect(
+                dsn=self.__dsn,
+                user=self.user,
+                password=self.password,
+                mode=cx_Oracle.SYSDBA,
+            )
             logger.info("successfully connected as SYSDBA")
-        except (cx_Oracle.OperationalError, cx_Oracle.DatabaseError, cx_Oracle.InterfaceError):
+        except (
+            cx_Oracle.OperationalError,
+            cx_Oracle.DatabaseError,
+            cx_Oracle.InterfaceError,
+        ):
             try:
-                self.connector = cx_Oracle.connect(dsn=self.__dsn, user=self.user, password=self.password)
-            except (cx_Oracle.OperationalError, cx_Oracle.DatabaseError, cx_Oracle.InterfaceError) as msg:
+                self.connector = cx_Oracle.connect(
+                    dsn=self.__dsn, user=self.user, password=self.password
+                )
+            except (
+                cx_Oracle.OperationalError,
+                cx_Oracle.DatabaseError,
+                cx_Oracle.InterfaceError,
+            ) as msg:
                 raise SqlmapConnectionException(msg)
 
         self.initCursor()
@@ -55,7 +71,9 @@ class Connector(GenericConnector):
         try:
             return self.cursor.fetchall()
         except cx_Oracle.InterfaceError as msg:
-            logger.log(logging.WARN if conf.dbmsHandler else logging.DEBUG, "(remote) %s" % msg)
+            logger.log(
+                logging.WARN if conf.dbmsHandler else logging.DEBUG, "(remote) %s" % msg
+            )
             return None
 
     def execute(self, query):
@@ -65,7 +83,9 @@ class Connector(GenericConnector):
             self.cursor.execute(utf8encode(query))
             retVal = True
         except cx_Oracle.DatabaseError as msg:
-            logger.log(logging.WARN if conf.dbmsHandler else logging.DEBUG, "(remote) %s" % msg)
+            logger.log(
+                logging.WARN if conf.dbmsHandler else logging.DEBUG, "(remote) %s" % msg
+            )
 
         self.connector.commit()
 

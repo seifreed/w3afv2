@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import ssl
 import socket
 import urllib.request, urllib.parse, urllib.error
@@ -28,8 +29,15 @@ import OpenSSL
 import itertools
 
 from w3af.core.controllers.misc.itertools_toolset import unique_everseen_hash
-from errno import (ECONNREFUSED, EHOSTUNREACH, ECONNRESET, ENETDOWN,
-                   ENETUNREACH, ETIMEDOUT, ENOSPC)
+from errno import (
+    ECONNREFUSED,
+    EHOSTUNREACH,
+    ECONNRESET,
+    ENETDOWN,
+    ENETUNREACH,
+    ETIMEDOUT,
+    ENOSPC,
+)
 
 from w3af.core.data.misc.encoding import smart_unicode, PERCENT_ENCODE
 from w3af.core.controllers.exceptions import HTTPRequestException
@@ -37,31 +45,42 @@ from w3af.core.data.url.handlers.keepalive import URLTimeoutError
 from w3af.core.data.constants.response_codes import NO_CONTENT
 from w3af.core.data.url.HTTPResponse import HTTPResponse
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.misc.web_encodings import (URL_ENCODING_FUNCTIONS,
-                                               HTML_ENCODING_FUNCTIONS,
-                                               JSON_ENCODING_FUNCTIONS,
-                                               generate_html_encoding_functions,
-                                               generate_url_encoding_functions)
+from w3af.core.data.misc.web_encodings import (
+    URL_ENCODING_FUNCTIONS,
+    HTML_ENCODING_FUNCTIONS,
+    JSON_ENCODING_FUNCTIONS,
+    generate_html_encoding_functions,
+    generate_url_encoding_functions,
+)
 
 from w3af.core.controllers.misc.number_generator import consecutive_number_generator
 from functools import cmp_to_key
 
 # Known reason errors. See errno module for more info on these errors
-EUNKNSERV = -2        # Name or service not known error
-EINVHOSTNAME = -5     # No address associated with hostname
-EUNEXPECTEDEOF = -1   # https://github.com/andresriancho/w3af/issues/10290
+EUNKNSERV = -2  # Name or service not known error
+EINVHOSTNAME = -5  # No address associated with hostname
+EUNEXPECTEDEOF = -1  # https://github.com/andresriancho/w3af/issues/10290
 
-KNOWN_SOCKET_ERRORS = (EUNKNSERV, ECONNREFUSED, EHOSTUNREACH, ECONNRESET,
-                       ENETDOWN, ENETUNREACH, EINVHOSTNAME, ETIMEDOUT,
-                       ENOSPC, EUNEXPECTEDEOF)
+KNOWN_SOCKET_ERRORS = (
+    EUNKNSERV,
+    ECONNREFUSED,
+    EHOSTUNREACH,
+    ECONNRESET,
+    ENETDOWN,
+    ENETUNREACH,
+    EINVHOSTNAME,
+    ETIMEDOUT,
+    ENOSPC,
+    EUNEXPECTEDEOF,
+)
 
-NO_CONTENT_MSG = 'No Content'
+NO_CONTENT_MSG = "No Content"
 
 
 def new_no_content_resp(uri, add_id=False):
     """
     Return a new NO_CONTENT HTTPResponse object.
-    
+
     :param uri: URI string or request object
     :param add_id: Add ID to the HTTP response
     """
@@ -71,12 +90,14 @@ def new_no_content_resp(uri, add_id=False):
     #
     # [0] https://github.com/andresriancho/w3af/commit/682bc2e4ad7d075bbdc469bc5d24a28e6d2e7804
     #
-    no_content_response = HTTPResponse(code=NO_CONTENT,
-                                       read='',
-                                       headers=Headers(),
-                                       geturl=uri,
-                                       original_url=uri,
-                                       msg=NO_CONTENT_MSG)
+    no_content_response = HTTPResponse(
+        code=NO_CONTENT,
+        read="",
+        headers=Headers(),
+        geturl=uri,
+        original_url=uri,
+        msg=NO_CONTENT_MSG,
+    )
 
     if add_id:
         no_content_response.id = consecutive_number_generator.inc()
@@ -172,9 +193,9 @@ def _multi_escape_table_impl(_input):
 
     yield _input
 
-    for encode in itertools.chain(URL_ENCODING_FUNCTIONS,
-                                  HTML_ENCODING_FUNCTIONS,
-                                  JSON_ENCODING_FUNCTIONS):
+    for encode in itertools.chain(
+        URL_ENCODING_FUNCTIONS, HTML_ENCODING_FUNCTIONS, JSON_ENCODING_FUNCTIONS
+    ):
         encoded_input = encode(_input)
         if encoded_input != _input:
             yield encoded_input
@@ -239,13 +260,14 @@ def get_clean_body(mutant, response, max_escape_count=500):
         return response.body
 
     strings_to_replace_list = [mutant.get_token_value()]
-    return get_clean_body_impl(response.body,
-                               strings_to_replace_list,
-                               max_escape_count=max_escape_count)
+    return get_clean_body_impl(
+        response.body, strings_to_replace_list, max_escape_count=max_escape_count
+    )
 
 
-def get_clean_body_impl(body, strings_to_replace_list, multi_encode=True,
-                        max_escape_count=None):
+def get_clean_body_impl(
+    body, strings_to_replace_list, multi_encode=True, max_escape_count=None
+):
     """
     This is a low level function which allows me to use all the improvements
     I did in the helpers.get_clean_body() in fingerprint_404.get_clean_body().
@@ -316,9 +338,9 @@ def get_clean_body_impl(body, strings_to_replace_list, multi_encode=True,
 
             # Note that we also do something similar with the max_len=body_len
             # parameter we send to apply_multi_escape_table
-            for encoded_to_repl in apply_multi_escape_table(unicode_to_repl,
-                                                            max_len=body_len,
-                                                            max_count=max_escape_count):
+            for encoded_to_repl in apply_multi_escape_table(
+                unicode_to_repl, max_len=body_len, max_count=max_escape_count
+            ):
                 encoded_payloads.add(encoded_to_repl)
     else:
         # Just leave the the two we have
@@ -366,7 +388,7 @@ def remove_using_lower_case(body, body_lower, to_replace):
         if index_l == -1:
             return body, body_lower
 
-        body = body[:index_l] + body[index_l + to_replace_len:]
+        body = body[:index_l] + body[index_l + to_replace_len :]
         body_lower = body.lower()
 
         idx = index_l + 1
@@ -411,12 +433,12 @@ def get_exception_reason(error):
             return str(error[1])
 
     if isinstance(error, OpenSSL.SSL.ZeroReturnError):
-        return 'OpenSSL Error: OpenSSL.SSL.ZeroReturnError'
+        return "OpenSSL Error: OpenSSL.SSL.ZeroReturnError"
 
     if isinstance(error, (ssl.SSLError, socket.sslerror)):
         socket_reason = get_socket_exception_reason(error)
         if socket_reason:
-            return 'SSL Error: %s' % socket_reason
+            return "SSL Error: %s" % socket_reason
 
     if isinstance(error, socket.error):
         return get_socket_exception_reason(error)
@@ -425,7 +447,7 @@ def get_exception_reason(error):
         return error.value
 
     if isinstance(error, http.client.BadStatusLine):
-        return 'Bad HTTP response status line: %s' % error.line
+        return "Bad HTTP response status line: %s" % error.line
 
     if isinstance(error, http.client.HTTPException):
         #
@@ -438,7 +460,7 @@ def get_exception_reason(error):
         #
         #    TODO: Maybe we're being TOO generic in this isinstance?
         #
-        return '%s: %s' % (error.__class__.__name__, error.args)
+        return "%s: %s" % (error.__class__.__name__, error.args)
 
     # Unknown reason
     return None

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 import w3af.core.data.kb.knowledge_base as kb
@@ -34,11 +35,11 @@ class TestPathDisclosure(unittest.TestCase):
 
     def setUp(self):
         kb.kb.cleanup()
-        
+
         self.plugin = path_disclosure()
-        self.url = URL('http://www.w3af.com/foo/bar.py')
-        self.header = Headers([('content-type', 'text/html')])
-        self.request = FuzzableRequest(self.url, method='GET')
+        self.url = URL("http://www.w3af.com/foo/bar.py")
+        self.header = Headers([("content-type", "text/html")])
+        self.request = FuzzableRequest(self.url, method="GET")
 
     def tearDown(self):
         self.plugin.end()
@@ -48,40 +49,40 @@ class TestPathDisclosure(unittest.TestCase):
         return HTTPResponse(200, body, self.header, self.url, self.url, _id=1)
 
     def test_path_disclosure(self):
-        res = self._create_response('header body footer')
+        res = self._create_response("header body footer")
         self.plugin.grep(self.request, res)
-        infos = kb.kb.get('path_disclosure', 'path_disclosure')
+        infos = kb.kb.get("path_disclosure", "path_disclosure")
         self.assertEqual(len(infos), 0)
 
     def test_path_disclosure_positive(self):
-        res = self._create_response('header /etc/passwd footer')
+        res = self._create_response("header /etc/passwd footer")
         self.plugin.grep(self.request, res)
 
-        infos = kb.kb.get('path_disclosure', 'path_disclosure')
+        infos = kb.kb.get("path_disclosure", "path_disclosure")
         self.assertEqual(len(infos), 1)
 
-        path = infos[0]['path']
-        self.assertEqual(path, '/etc/passwd')
+        path = infos[0]["path"]
+        self.assertEqual(path, "/etc/passwd")
 
     def test_path_disclosure_false_positive_6640(self):
         # see: https://github.com/andresriancho/w3af/issues/6640
-        path = '/media/js/spotlight.js'
-        kb.kb.add_url(URL('http://mock%s' % path))
+        path = "/media/js/spotlight.js"
+        kb.kb.add_url(URL("http://mock%s" % path))
 
-        res = self._create_response('header %s footer' % path)
+        res = self._create_response("header %s footer" % path)
         self.plugin.grep(self.request, res)
 
-        infos = kb.kb.get('path_disclosure', 'path_disclosure')
+        infos = kb.kb.get("path_disclosure", "path_disclosure")
         self.assertEqual(len(infos), 0)
 
     def test_path_disclosure_calculated_webroot(self):
         kb.kb.add_url(self.url)
 
-        res = self._create_response('header /var/www/foo/bar.py footer')
+        res = self._create_response("header /var/www/foo/bar.py footer")
         self.plugin.grep(self.request, res)
 
-        webroot = kb.kb.raw_read('path_disclosure', 'webroot')
-        self.assertEqual(webroot, '/var/www')
+        webroot = kb.kb.raw_read("path_disclosure", "webroot")
+        self.assertEqual(webroot, "/var/www")
 
     def test_path_disclosure_false_positive_in_tag_attr(self):
         kb.kb.add_url(self.url)
@@ -89,25 +90,25 @@ class TestPathDisclosure(unittest.TestCase):
         res = self._create_response('nope <a href="/var/www/foo/bar.py">x</a>')
         self.plugin.grep(self.request, res)
 
-        infos = kb.kb.get('path_disclosure', 'path_disclosure')
+        infos = kb.kb.get("path_disclosure", "path_disclosure")
         self.assertEqual(len(infos), 0)
 
     def test_path_disclosure_false_positive_not_starting_with(self):
-        kb.kb.add_url(URL('http://mock/js/banner.js'))
+        kb.kb.add_url(URL("http://mock/js/banner.js"))
 
-        res = self._create_response('header /images/banners/home/internet.jpg footer')
+        res = self._create_response("header /images/banners/home/internet.jpg footer")
         self.plugin.grep(self.request, res)
 
-        infos = kb.kb.get('path_disclosure', 'path_disclosure')
+        infos = kb.kb.get("path_disclosure", "path_disclosure")
         self.assertEqual(len(infos), 0)
 
     def test_path_disclosure_tag_text(self):
         kb.kb.add_url(self.url)
 
-        res = self._create_response('<a ...>/var/www/foo/bar.py</a>')
+        res = self._create_response("<a ...>/var/www/foo/bar.py</a>")
         self.plugin.grep(self.request, res)
 
-        infos = kb.kb.get('path_disclosure', 'path_disclosure')
+        infos = kb.kb.get("path_disclosure", "path_disclosure")
         self.assertEqual(len(infos), 1)
 
     def test_path_disclosure_tag_text_quotes(self):
@@ -116,5 +117,5 @@ class TestPathDisclosure(unittest.TestCase):
         res = self._create_response('<a ...>Error at "/var/www/foo/bar.py"</a>')
         self.plugin.grep(self.request, res)
 
-        infos = kb.kb.get('path_disclosure', 'path_disclosure')
+        infos = kb.kb.get("path_disclosure", "path_disclosure")
         self.assertEqual(len(infos), 1)

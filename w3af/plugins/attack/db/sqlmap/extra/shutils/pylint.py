@@ -12,13 +12,14 @@ count = 0
 
 __RATING__ = False
 
+
 def check(module):
     global total, count
 
     if module[-3:] == ".py":
 
         print(("CHECKING ", module))
-        pout = os.popen("pylint --rcfile=/dev/null %s" % module, 'r')
+        pout = os.popen("pylint --rcfile=/dev/null %s" % module, "r")
         for line in pout:
             if re.match(r"\AE:", line):
                 print((line.strip()))
@@ -27,6 +28,7 @@ def check(module):
                 score = re.findall(r"\d.\d\d", line)[0]
                 total += float(score)
                 count += 1
+
 
 if __name__ == "__main__":
     try:

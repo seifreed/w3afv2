@@ -38,9 +38,9 @@
 # ***** END LICENSE BLOCK ***** */
 
 """
- PyNarcissus
+PyNarcissus
 
- A lexical scanner and parser. JS implemented in JS, ported to Python.
+A lexical scanner and parser. JS implemented in JS, ported to Python.
 """
 
 __author__ = "JT Olds"
@@ -51,112 +51,176 @@ __all__ = ["ParseError", "parse", "tokens"]
 import re, sys, types
 from functools import cmp_to_key
 
-class Object: pass
-class Error_(Exception): pass
-class ParseError(Error_): pass
 
-tokens = dict(enumerate((
-        # End of source.
-        "END",
+class Object:
+    pass
 
-        # Operators and punctuators. Some pair-wise order matters, e.g. (+, -)
-        # and (UNARY_PLUS, UNARY_MINUS).
-        "\n", ";",
-        ",",
-        "=",
-        "?", ":", "CONDITIONAL",
-        "||",
-        "&&",
-        "|",
-        "^",
-        "&",
-        "==", "!=", "===", "!==",
-        "<", "<=", ">=", ">",
-        "<<", ">>", ">>>",
-        "+", "-",
-        "*", "/", "%",
-        "!", "~", "UNARY_PLUS", "UNARY_MINUS",
-        "++", "--",
-        ".",
-        "[", "]",
-        "{", "}",
-        "(", ")",
 
-        # Nonterminal tree node type codes.
-        "SCRIPT", "BLOCK", "LABEL", "FOR_IN", "CALL", "NEW_WITH_ARGS", "INDEX",
-        "ARRAY_INIT", "OBJECT_INIT", "PROPERTY_INIT", "GETTER", "SETTER",
-        "GROUP", "LIST",
+class Error_(Exception):
+    pass
 
-        # Terminals.
-        "IDENTIFIER", "NUMBER", "STRING", "REGEXP",
 
-        # Keywords.
-        "break",
-        "case", "catch", "const", "continue",
-        "debugger", "default", "delete", "do",
-        "else", "enum",
-        "false", "finally", "for", "function",
-        "if", "in", "instanceof",
-        "new", "null",
-        "return",
-        "switch",
-        "this", "throw", "true", "try", "typeof",
-        "var", "void",
-        "while", "with")))
+class ParseError(Error_):
+    pass
+
+
+tokens = dict(
+    enumerate(
+        (
+            # End of source.
+            "END",
+            # Operators and punctuators. Some pair-wise order matters, e.g. (+, -)
+            # and (UNARY_PLUS, UNARY_MINUS).
+            "\n",
+            ";",
+            ",",
+            "=",
+            "?",
+            ":",
+            "CONDITIONAL",
+            "||",
+            "&&",
+            "|",
+            "^",
+            "&",
+            "==",
+            "!=",
+            "===",
+            "!==",
+            "<",
+            "<=",
+            ">=",
+            ">",
+            "<<",
+            ">>",
+            ">>>",
+            "+",
+            "-",
+            "*",
+            "/",
+            "%",
+            "!",
+            "~",
+            "UNARY_PLUS",
+            "UNARY_MINUS",
+            "++",
+            "--",
+            ".",
+            "[",
+            "]",
+            "{",
+            "}",
+            "(",
+            ")",
+            # Nonterminal tree node type codes.
+            "SCRIPT",
+            "BLOCK",
+            "LABEL",
+            "FOR_IN",
+            "CALL",
+            "NEW_WITH_ARGS",
+            "INDEX",
+            "ARRAY_INIT",
+            "OBJECT_INIT",
+            "PROPERTY_INIT",
+            "GETTER",
+            "SETTER",
+            "GROUP",
+            "LIST",
+            # Terminals.
+            "IDENTIFIER",
+            "NUMBER",
+            "STRING",
+            "REGEXP",
+            # Keywords.
+            "break",
+            "case",
+            "catch",
+            "const",
+            "continue",
+            "debugger",
+            "default",
+            "delete",
+            "do",
+            "else",
+            "enum",
+            "false",
+            "finally",
+            "for",
+            "function",
+            "if",
+            "in",
+            "instanceof",
+            "new",
+            "null",
+            "return",
+            "switch",
+            "this",
+            "throw",
+            "true",
+            "try",
+            "typeof",
+            "var",
+            "void",
+            "while",
+            "with",
+        )
+    )
+)
 
 # Operator and punctuator mapping from token to tree node type name.
 # NB: superstring tokens (e.g., ++) must come before their substring token
 # counterparts (+ in the example), so that the opRegExp regular expression
 # synthesized from this list makes the longest possible match.
 opTypeNames = [
-        ('\n',   "NEWLINE"),
-        (';',    "SEMICOLON"),
-        (',',    "COMMA"),
-        ('?',    "HOOK"),
-        (':',    "COLON"),
-        ('||',   "OR"),
-        ('&&',   "AND"),
-        ('|',    "BITWISE_OR"),
-        ('^',    "BITWISE_XOR"),
-        ('&',    "BITWISE_AND"),
-        ('===',  "STRICT_EQ"),
-        ('==',   "EQ"),
-        ('=',    "ASSIGN"),
-        ('!==',  "STRICT_NE"),
-        ('!=',   "NE"),
-        ('<<',   "LSH"),
-        ('<=',   "LE"),
-        ('<',    "LT"),
-        ('>>>',  "URSH"),
-        ('>>',   "RSH"),
-        ('>=',   "GE"),
-        ('>',    "GT"),
-        ('++',   "INCREMENT"),
-        ('--',   "DECREMENT"),
-        ('+',    "PLUS"),
-        ('-',    "MINUS"),
-        ('*',    "MUL"),
-        ('/',    "DIV"),
-        ('%',    "MOD"),
-        ('!',    "NOT"),
-        ('~',    "BITWISE_NOT"),
-        ('.',    "DOT"),
-        ('[',    "LEFT_BRACKET"),
-        (']',    "RIGHT_BRACKET"),
-        ('{',    "LEFT_CURLY"),
-        ('}',    "RIGHT_CURLY"),
-        ('(',    "LEFT_PAREN"),
-        (')',    "RIGHT_PAREN"),
-    ]
+    ("\n", "NEWLINE"),
+    (";", "SEMICOLON"),
+    (",", "COMMA"),
+    ("?", "HOOK"),
+    (":", "COLON"),
+    ("||", "OR"),
+    ("&&", "AND"),
+    ("|", "BITWISE_OR"),
+    ("^", "BITWISE_XOR"),
+    ("&", "BITWISE_AND"),
+    ("===", "STRICT_EQ"),
+    ("==", "EQ"),
+    ("=", "ASSIGN"),
+    ("!==", "STRICT_NE"),
+    ("!=", "NE"),
+    ("<<", "LSH"),
+    ("<=", "LE"),
+    ("<", "LT"),
+    (">>>", "URSH"),
+    (">>", "RSH"),
+    (">=", "GE"),
+    (">", "GT"),
+    ("++", "INCREMENT"),
+    ("--", "DECREMENT"),
+    ("+", "PLUS"),
+    ("-", "MINUS"),
+    ("*", "MUL"),
+    ("/", "DIV"),
+    ("%", "MOD"),
+    ("!", "NOT"),
+    ("~", "BITWISE_NOT"),
+    (".", "DOT"),
+    ("[", "LEFT_BRACKET"),
+    ("]", "RIGHT_BRACKET"),
+    ("{", "LEFT_CURLY"),
+    ("}", "RIGHT_CURLY"),
+    ("(", "LEFT_PAREN"),
+    (")", "RIGHT_PAREN"),
+]
 
 keywords = {}
 
 # Define const END, etc., based on the token names.  Also map name to index.
 for i, t in list(tokens.copy().items()):
-    if re.match(r'^[a-z]', t):
+    if re.match(r"^[a-z]", t):
         const_name = t.upper()
         keywords[t] = i
-    elif re.match(r'^\W', t):
+    elif re.match(r"^\W", t):
         const_name = dict(opTypeNames)[t]
     else:
         const_name = t
@@ -166,31 +230,38 @@ for i, t in list(tokens.copy().items()):
 assignOps = {}
 
 # Map assignment operators to their indexes in the tokens array.
-for i, t in enumerate(['|', '^', '&', '<<', '>>', '>>>', '+', '-', '*', '/', '%']):
+for i, t in enumerate(["|", "^", "&", "<<", ">>", ">>>", "+", "-", "*", "/", "%"]):
     assignOps[t] = tokens[t]
     assignOps[i] = t
 
 # Build a regexp that recognizes operators and punctuators (except newline).
 opRegExpSrc = "^"
 for i, j in opTypeNames:
-    if i == "\n": continue
-    if opRegExpSrc != "^": opRegExpSrc += "|^"
-    opRegExpSrc += re.sub(r'[?|^&(){}\[\]+\-*\/\.]', lambda x: "\\%s" % x.group(0), i)
+    if i == "\n":
+        continue
+    if opRegExpSrc != "^":
+        opRegExpSrc += "|^"
+    opRegExpSrc += re.sub(r"[?|^&(){}\[\]+\-*\/\.]", lambda x: "\\%s" % x.group(0), i)
 opRegExp = re.compile(opRegExpSrc)
 
 # Convert opTypeNames to an actual dictionary now that we don't care about ordering
 opTypeNames = dict(opTypeNames)
 
 # A regexp to match floating point literals (but not integer literals).
-fpRegExp = re.compile(r'^\d+\.\d*(?:[eE][-+]?\d+)?|^\d+(?:\.\d*)?[eE][-+]?\d+|^\.\d+(?:[eE][-+]?\d+)?')
+fpRegExp = re.compile(
+    r"^\d+\.\d*(?:[eE][-+]?\d+)?|^\d+(?:\.\d*)?[eE][-+]?\d+|^\.\d+(?:[eE][-+]?\d+)?"
+)
 
 # A regexp to match regexp literals.
-reRegExp = re.compile(r'^\/((?:\\.|\[(?:\\.|[^\]])*\]|[^\/])+)\/([gimy]*)')
+reRegExp = re.compile(r"^\/((?:\\.|\[(?:\\.|[^\]])*\]|[^\/])+)\/([gimy]*)")
+
 
 class SyntaxError_(ParseError):
     def __init__(self, message, filename, lineno):
-        ParseError.__init__(self, "Syntax error: %s\n%s:%s" %
-                (message, filename, lineno))
+        ParseError.__init__(
+            self, "Syntax error: %s\n%s:%s" % (message, filename, lineno)
+        )
+
 
 class Tokenizer(object):
     def __init__(self, s, f, l):
@@ -204,7 +275,7 @@ class Tokenizer(object):
         self.filename = f
         self.lineno = l
 
-    input_ = property(lambda self: self.source[self.cursor:])
+    input_ = property(lambda self: self.source[self.cursor :])
     done = property(lambda self: self.peek() == END)
     token = property(lambda self: self.tokens.get(self.tokenIndex))
 
@@ -219,8 +290,9 @@ class Tokenizer(object):
     def peek(self):
         if self.lookahead:
             next = self.tokens.get((self.tokenIndex + self.lookahead) & 3)
-            if self.scanNewlines and (getattr(next, "lineno", None) !=
-                    getattr(self, "lineno", None)):
+            if self.scanNewlines and (
+                getattr(next, "lineno", None) != getattr(self, "lineno", None)
+            ):
                 tt = NEWLINE
             else:
                 tt = getattr(next, "type_", None)
@@ -246,23 +318,23 @@ class Tokenizer(object):
         while True:
             input__ = self.input_
             if self.scanNewlines:
-                match = re.match(r'^[ \t]+', input__)
+                match = re.match(r"^[ \t]+", input__)
             else:
-                match = re.match(r'^\s+', input__)
+                match = re.match(r"^\s+", input__)
             if match:
                 spaces = match.group(0)
                 self.cursor += len(spaces)
-                newlines = re.findall(r'\n', spaces)
+                newlines = re.findall(r"\n", spaces)
                 if newlines:
                     self.lineno += len(newlines)
                 input__ = self.input_
 
-            match = re.match(r'^\/(?:\*(?:.|\n)*?\*\/|\/.*)', input__)
+            match = re.match(r"^\/(?:\*(?:.|\n)*?\*\/|\/.*)", input__)
             if not match:
                 break
             comment = match.group(0)
             self.cursor += len(comment)
-            newlines = re.findall(r'\n', comment)
+            newlines = re.findall(r"\n", comment)
             if newlines:
                 self.lineno += len(newlines)
 
@@ -283,13 +355,13 @@ class Tokenizer(object):
                 token.value = float(match.group(0))
                 return match.group(0)
 
-            match = re.match(r'^0[xX][\da-fA-F]+|^0[0-7]*|^\d+', input__)
+            match = re.match(r"^0[xX][\da-fA-F]+|^0[0-7]*|^\d+", input__)
             if match:
                 token.type_ = NUMBER
                 token.value = eval(match.group(0))
                 return match.group(0)
 
-            match = re.match(r'^[$_\w]+', input__)       # FIXME no ES3 unicode
+            match = re.match(r"^[$_\w]+", input__)  # FIXME no ES3 unicode
             if match:
                 id_ = match.group(0)
                 token.type_ = keywords.get(id_, IDENTIFIER)
@@ -306,14 +378,16 @@ class Tokenizer(object):
                 match = reRegExp.match(input__)
                 if match:
                     token.type_ = REGEXP
-                    token.value = {"regexp": match.group(1),
-                                   "modifiers": match.group(2)}
+                    token.value = {
+                        "regexp": match.group(1),
+                        "modifiers": match.group(2),
+                    }
                     return match.group(0)
 
             match = opRegExp.match(input__)
             if match:
                 op = match.group(0)
-                if op in assignOps and input__[len(op)] == '=':
+                if op in assignOps and input__[len(op)] == "=":
                     token.type_ = ASSIGN
                     token.assignOp = globals()[opTypeNames[op]]
                     token.value = op
@@ -326,7 +400,7 @@ class Tokenizer(object):
                 return match.group(0)
 
             if self.scanNewlines:
-                match = re.match(r'^\n', input__)
+                match = re.match(r"^\n", input__)
                 if match:
                     token.type_ = NEWLINE
                     return match.group(0)
@@ -341,11 +415,13 @@ class Tokenizer(object):
 
     def unget(self):
         self.lookahead += 1
-        if self.lookahead == 4: raise "PANIC: too much lookahead!"
+        if self.lookahead == 4:
+            raise "PANIC: too much lookahead!"
         self.tokenIndex = (self.tokenIndex - 1) & 3
 
     def newSyntaxError(self, m):
         return SyntaxError_(m, self.filename, self.lineno)
+
 
 class CompilerContext(object):
     def __init__(self, inFunction):
@@ -360,12 +436,14 @@ class CompilerContext(object):
         self.ecmaStrictMode = False
         self.inForLoopInit = False
 
+
 def Script(t, x):
     n = Statements(t, x)
     n.type_ = SCRIPT
     n.funDecls = x.funDecls
     n.varDecls = x.varDecls
     return n
+
 
 class Node(list):
 
@@ -406,16 +484,32 @@ class Node(list):
     def __str__(self):
         a = list((str(i), v) for i, v in enumerate(self))
         for attr in dir(self):
-            if attr[0] == "_": continue
+            if attr[0] == "_":
+                continue
             elif attr == "tokenizer":
                 a.append((attr, "[object Object]"))
-            elif attr in ("append", "count", "extend", "getSource", "index",
-                    "insert", "pop", "remove", "reverse", "sort", "type_",
-                    "target", "filename", "indentLevel", "type"):
+            elif attr in (
+                "append",
+                "count",
+                "extend",
+                "getSource",
+                "index",
+                "insert",
+                "pop",
+                "remove",
+                "reverse",
+                "sort",
+                "type_",
+                "target",
+                "filename",
+                "indentLevel",
+                "type",
+            ):
                 continue
             else:
                 a.append((attr, getattr(self, attr)))
-        if len(self): a.append(("length", len(self)))
+        if len(self):
+            a.append(("length", len(self)))
         a.sort(key=cmp_to_key(lambda a, b: cmp(a[0], b[0])))
         INDENTATION = "    "
         Node.indentLevel += 1
@@ -432,41 +526,47 @@ class Node(list):
             elif value is True:
                 s += "true"
             elif type(value) == list:
-                s += ','.join((str(x) for x in value))
+                s += ",".join((str(x) for x in value))
             else:
                 s += str(value)
         Node.indentLevel -= 1
         n = Node.indentLevel
         s += "\n%s}" % (INDENTATION * n)
         return s
+
     __repr__ = __str__
 
     def getSource(self):
         if getattr(self, "start", None) is not None:
             if getattr(self, "end", None) is not None:
-                return self.tokenizer.source[self.start:self.end]
-            return self.tokenizer.source[self.start:]
+                return self.tokenizer.source[self.start : self.end]
+            return self.tokenizer.source[self.start :]
         if getattr(self, "end", None) is not None:
-            return self.tokenizer.source[:self.end]
+            return self.tokenizer.source[: self.end]
         return self.tokenizer.source[:]
 
     filename = property(lambda self: self.tokenizer.filename)
 
-    def __bool__(self): return True
+    def __bool__(self):
+        return True
+
 
 # Statement stack and nested statement handler.
 def nest(t, x, node, func, end=None):
     x.stmtStack.append(node)
     n = func(t, x)
     x.stmtStack.pop()
-    if end: t.mustMatch(end)
+    if end:
+        t.mustMatch(end)
     return n
+
 
 def tokenstr(tt):
     t = tokens[tt]
-    if re.match(r'^\W', t):
+    if re.match(r"^\W", t):
         return opTypeNames[t]
     return t.upper()
+
 
 def Statements(t, x):
     n = Node(t, BLOCK)
@@ -476,15 +576,18 @@ def Statements(t, x):
     x.stmtStack.pop()
     return n
 
+
 def Block(t, x):
     t.mustMatch(LEFT_CURLY)
     n = Statements(t, x)
     t.mustMatch(RIGHT_CURLY)
     return n
 
+
 DECLARED_FORM = 0
 EXPRESSED_FORM = 1
 STATEMENT_FORM = 2
+
 
 def Statement(t, x):
     tt = t.get()
@@ -526,7 +629,8 @@ def Statement(t, x):
         t.mustMatch(LEFT_CURLY)
         while True:
             tt = t.get()
-            if tt == RIGHT_CURLY: break
+            if tt == RIGHT_CURLY:
+                break
 
             if tt in (DEFAULT, CASE):
                 if tt == DEFAULT and n.defaultIndex >= 0:
@@ -542,7 +646,8 @@ def Statement(t, x):
             n2.statements = Node(t, BLOCK)
             while True:
                 tt = t.peek()
-                if(tt == CASE or tt == DEFAULT or tt == RIGHT_CURLY): break
+                if tt == CASE or tt == DEFAULT or tt == RIGHT_CURLY:
+                    break
                 n2.statements.append(Statement(t, x))
             n.cases.append(n2)
         x.stmtStack.pop()
@@ -567,8 +672,9 @@ def Statement(t, x):
             n.type_ = FOR_IN
             if n2.type_ == VAR:
                 if len(n2) != 1:
-                    raise SyntaxError("Invalid for..in left-hand side",
-                            t.filename, n2.lineno)
+                    raise SyntaxError(
+                        "Invalid for..in left-hand side", t.filename, n2.lineno
+                    )
 
                 # NB: n2[0].type_ == INDENTIFIER and n2[0].value == n2[0].name
                 n.iterator = n2[0]
@@ -628,7 +734,8 @@ def Statement(t, x):
                 i -= 1
                 if i < 0:
                     raise t.newSyntaxError("Label not found")
-                if getattr(ss[i], "label", None) == label: break
+                if getattr(ss[i], "label", None) == label:
+                    break
         else:
             while True:
                 i -= 1
@@ -637,8 +744,9 @@ def Statement(t, x):
                         raise t.newSyntaxError("Invalid break")
                     else:
                         raise t.newSyntaxError("Invalid continue")
-                if (getattr(ss[i], "isLoop", None) or (tt == BREAK and
-                        ss[i].type_ == SWITCH)):
+                if getattr(ss[i], "isLoop", None) or (
+                    tt == BREAK and ss[i].type_ == SWITCH
+                ):
                     break
         n.target = ss[i]
 
@@ -730,6 +838,7 @@ def Statement(t, x):
     t.match(SEMICOLON)
     return n
 
+
 def FunctionDefinition(t, x, requireName, functionForm):
     f = Node(t)
     if f.type_ != FUNCTION:
@@ -746,7 +855,8 @@ def FunctionDefinition(t, x, requireName, functionForm):
     f.params = []
     while True:
         tt = t.get()
-        if tt == RIGHT_PAREN: break
+        if tt == RIGHT_PAREN:
+            break
         if tt != IDENTIFIER:
             raise t.newSyntaxError("Missing formal parameter")
         f.params.append(t.token.value)
@@ -764,6 +874,7 @@ def FunctionDefinition(t, x, requireName, functionForm):
         x.funDecls.append(f)
     return f
 
+
 def Variables(t, x):
     n = Node(t)
     while True:
@@ -777,8 +888,10 @@ def Variables(t, x):
         n2.readOnly = not not (n.type_ == CONST)
         n.append(n2)
         x.varDecls.append(n2)
-        if not t.match(COMMA): break
+        if not t.match(COMMA):
+            break
     return n
+
 
 def ParenExpression(t, x):
     t.mustMatch(LEFT_PAREN)
@@ -786,27 +899,49 @@ def ParenExpression(t, x):
     t.mustMatch(RIGHT_PAREN)
     return n
 
+
 opPrecedence = {
     "SEMICOLON": 0,
     "COMMA": 1,
-    "ASSIGN": 2, "HOOK": 2, "COLON": 2,
+    "ASSIGN": 2,
+    "HOOK": 2,
+    "COLON": 2,
     # The above all have to have the same precedence, see bug 330975.
     "OR": 4,
     "AND": 5,
     "BITWISE_OR": 6,
     "BITWISE_XOR": 7,
     "BITWISE_AND": 8,
-    "EQ": 9, "NE": 9, "STRICT_EQ": 9, "STRICT_NE": 9,
-    "LT": 10, "LE": 10, "GE": 10, "GT": 10, "IN": 10, "INSTANCEOF": 10,
-    "LSH": 11, "RSH": 11, "URSH": 11,
-    "PLUS": 12, "MINUS": 12,
-    "MUL": 13, "DIV": 13, "MOD": 13,
-    "DELETE": 14, "VOID": 14, "TYPEOF": 14,
+    "EQ": 9,
+    "NE": 9,
+    "STRICT_EQ": 9,
+    "STRICT_NE": 9,
+    "LT": 10,
+    "LE": 10,
+    "GE": 10,
+    "GT": 10,
+    "IN": 10,
+    "INSTANCEOF": 10,
+    "LSH": 11,
+    "RSH": 11,
+    "URSH": 11,
+    "PLUS": 12,
+    "MINUS": 12,
+    "MUL": 13,
+    "DIV": 13,
+    "MOD": 13,
+    "DELETE": 14,
+    "VOID": 14,
+    "TYPEOF": 14,
     # "PRE_INCREMENT": 14, "PRE_DECREMENT": 14,
-    "NOT": 14, "BITWISE_NOT": 14, "UNARY_PLUS": 14, "UNARY_MINUS": 14,
-    "INCREMENT": 15, "DECREMENT": 15,     # postfix
+    "NOT": 14,
+    "BITWISE_NOT": 14,
+    "UNARY_PLUS": 14,
+    "UNARY_MINUS": 14,
+    "INCREMENT": 15,
+    "DECREMENT": 15,  # postfix
     "NEW": 16,
-    "DOT": 17
+    "DOT": 17,
 }
 
 # Map operator type code to precedence
@@ -822,22 +957,48 @@ opArity = {
     "BITWISE_OR": 2,
     "BITWISE_XOR": 2,
     "BITWISE_AND": 2,
-    "EQ": 2, "NE": 2, "STRICT_EQ": 2, "STRICT_NE": 2,
-    "LT": 2, "LE": 2, "GE": 2, "GT": 2, "IN": 2, "INSTANCEOF": 2,
-    "LSH": 2, "RSH": 2, "URSH": 2,
-    "PLUS": 2, "MINUS": 2,
-    "MUL": 2, "DIV": 2, "MOD": 2,
-    "DELETE": 1, "VOID": 1, "TYPEOF": 1,
+    "EQ": 2,
+    "NE": 2,
+    "STRICT_EQ": 2,
+    "STRICT_NE": 2,
+    "LT": 2,
+    "LE": 2,
+    "GE": 2,
+    "GT": 2,
+    "IN": 2,
+    "INSTANCEOF": 2,
+    "LSH": 2,
+    "RSH": 2,
+    "URSH": 2,
+    "PLUS": 2,
+    "MINUS": 2,
+    "MUL": 2,
+    "DIV": 2,
+    "MOD": 2,
+    "DELETE": 1,
+    "VOID": 1,
+    "TYPEOF": 1,
     # "PRE_INCREMENT": 1, "PRE_DECREMENT": 1,
-    "NOT": 1, "BITWISE_NOT": 1, "UNARY_PLUS": 1, "UNARY_MINUS": 1,
-    "INCREMENT": 1, "DECREMENT": 1,     # postfix
-    "NEW": 1, "NEW_WITH_ARGS": 2, "DOT": 2, "INDEX": 2, "CALL": 2,
-    "ARRAY_INIT": 1, "OBJECT_INIT": 1, "GROUP": 1
+    "NOT": 1,
+    "BITWISE_NOT": 1,
+    "UNARY_PLUS": 1,
+    "UNARY_MINUS": 1,
+    "INCREMENT": 1,
+    "DECREMENT": 1,  # postfix
+    "NEW": 1,
+    "NEW_WITH_ARGS": 2,
+    "DOT": 2,
+    "INDEX": 2,
+    "CALL": 2,
+    "ARRAY_INIT": 1,
+    "OBJECT_INIT": 1,
+    "GROUP": 1,
 }
 
 # Map operator type code to arity.
 for i in opArity.copy():
     opArity[globals()[i]] = opArity[i]
+
 
 def Expression(t, x, stop=None):
     operators = []
@@ -853,7 +1014,7 @@ def Expression(t, x, stop=None):
         arity = opArity[op]
         if arity == -2:
             # Flatten left-associative trees.
-            left = (len(operands) >= 2 and operands[-2])
+            left = len(operands) >= 2 and operands[-2]
             if left.type_ == op:
                 right = operands.pop()
                 left.append(right)
@@ -873,13 +1034,21 @@ def Expression(t, x, stop=None):
         operands.append(n)
         return n
 
-    class BreakOutOfLoops(Exception): pass
+    class BreakOutOfLoops(Exception):
+        pass
+
     try:
         while True:
             tt = t.get()
-            if tt == END: break
-            if (tt == stop and x.bracketLevel == bl and x.curlyLevel == cl and
-                    x.parenLevel == pl and x.hookLevel == hl):
+            if tt == END:
+                break
+            if (
+                tt == stop
+                and x.bracketLevel == bl
+                and x.curlyLevel == cl
+                and x.parenLevel == pl
+                and x.hookLevel == hl
+            ):
                 # Stop only if tt matches the optional stop parameter, and that
                 # token is not quoted by some kind of bracket.
                 break
@@ -890,9 +1059,11 @@ def Expression(t, x, stop=None):
             elif tt in (ASSIGN, HOOK, COLON):
                 if t.scanOperand:
                     raise BreakOutOfLoops
-                while ((operators and opPrecedence.get(operators[-1].type_,
-                        None) > opPrecedence.get(tt)) or (tt == COLON and
-                        operators and operators[-1].type_ == ASSIGN)):
+                while (
+                    operators
+                    and opPrecedence.get(operators[-1].type_, None)
+                    > opPrecedence.get(tt)
+                ) or (tt == COLON and operators and operators[-1].type_ == ASSIGN):
                     reduce_()
                 if tt == COLON:
                     if operators:
@@ -909,24 +1080,52 @@ def Expression(t, x, stop=None):
 
                 t.scanOperand = True
 
-            elif tt in (IN, COMMA, OR, AND, BITWISE_OR, BITWISE_XOR,
-                    BITWISE_AND, EQ, NE, STRICT_EQ, STRICT_NE, LT, LE, GE, GT,
-                    INSTANCEOF, LSH, RSH, URSH, PLUS, MINUS, MUL, DIV, MOD,
-                    DOT):
+            elif tt in (
+                IN,
+                COMMA,
+                OR,
+                AND,
+                BITWISE_OR,
+                BITWISE_XOR,
+                BITWISE_AND,
+                EQ,
+                NE,
+                STRICT_EQ,
+                STRICT_NE,
+                LT,
+                LE,
+                GE,
+                GT,
+                INSTANCEOF,
+                LSH,
+                RSH,
+                URSH,
+                PLUS,
+                MINUS,
+                MUL,
+                DIV,
+                MOD,
+                DOT,
+            ):
                 # We're treating comma as left-associative so reduce can fold
                 # left-heavy COMMA trees into a single array.
                 if tt == IN:
                     # An in operator should not be parsed if we're parsing the
                     # head of a for (...) loop, unless it is in the then part of
                     # a conditional expression, or parenthesized somehow.
-                    if (x.inForLoopInit and not x.hookLevel and not
-                            x.bracketLevel and not x.curlyLevel and
-                            not x.parenLevel):
+                    if (
+                        x.inForLoopInit
+                        and not x.hookLevel
+                        and not x.bracketLevel
+                        and not x.curlyLevel
+                        and not x.parenLevel
+                    ):
                         raise BreakOutOfLoops
                 if t.scanOperand:
                     raise BreakOutOfLoops
-                while (operators and opPrecedence.get(operators[-1].type_)
-                        >= opPrecedence.get(tt)):
+                while operators and opPrecedence.get(
+                    operators[-1].type_
+                ) >= opPrecedence.get(tt):
                     reduce_()
                 if tt == DOT:
                     t.mustMatch(IDENTIFIER)
@@ -935,25 +1134,36 @@ def Expression(t, x, stop=None):
                     operators.append(Node(t))
                     t.scanOperand = True
 
-            elif tt in (DELETE, VOID, TYPEOF, NOT, BITWISE_NOT, UNARY_PLUS,
-                    UNARY_MINUS, NEW):
+            elif tt in (
+                DELETE,
+                VOID,
+                TYPEOF,
+                NOT,
+                BITWISE_NOT,
+                UNARY_PLUS,
+                UNARY_MINUS,
+                NEW,
+            ):
                 if not t.scanOperand:
                     raise BreakOutOfLoops
                 operators.append(Node(t))
 
             elif tt in (INCREMENT, DECREMENT):
                 if t.scanOperand:
-                    operators.append(Node(t)) # prefix increment or decrement
+                    operators.append(Node(t))  # prefix increment or decrement
                 else:
                     # Don't cross a line boundary for postfix {in,de}crement.
-                    if (t.tokens.get((t.tokenIndex + t.lookahead - 1)
-                            & 3).lineno != t.lineno):
+                    if (
+                        t.tokens.get((t.tokenIndex + t.lookahead - 1) & 3).lineno
+                        != t.lineno
+                    ):
                         raise BreakOutOfLoops
 
                     # Use >, not >=, so postfix has higher precedence than
                     # prefix.
-                    while (operators and opPrecedence.get(operators[-1].type_,
-                            None) > opPrecedence.get(tt)):
+                    while operators and opPrecedence.get(
+                        operators[-1].type_, None
+                    ) > opPrecedence.get(tt):
                         reduce_()
                     n = Node(t, tt, [operands.pop()])
                     n.postfix = True
@@ -965,8 +1175,7 @@ def Expression(t, x, stop=None):
                 operands.append(FunctionDefinition(t, x, False, EXPRESSED_FORM))
                 t.scanOperand = False
 
-            elif tt in (NULL, THIS, TRUE, FALSE, IDENTIFIER, NUMBER, STRING,
-                    REGEXP):
+            elif tt in (NULL, THIS, TRUE, FALSE, IDENTIFIER, NUMBER, STRING, REGEXP):
                 if not t.scanOperand:
                     raise BreakOutOfLoops
                 operands.append(Node(t))
@@ -979,7 +1188,8 @@ def Expression(t, x, stop=None):
                     n = Node(t, ARRAY_INIT)
                     while True:
                         tt = t.peek()
-                        if tt == RIGHT_BRACKET: break
+                        if tt == RIGHT_BRACKET:
+                            break
                         if tt == COMMA:
                             t.get()
                             n.append(None)
@@ -1010,36 +1220,41 @@ def Expression(t, x, stop=None):
                 x.curlyLevel += 1
                 n = Node(t, OBJECT_INIT)
 
-                class BreakOutOfObjectInit(Exception): pass
+                class BreakOutOfObjectInit(Exception):
+                    pass
+
                 try:
                     if not t.match(RIGHT_CURLY):
                         while True:
                             tt = t.get()
-                            if ((t.token.value == "get" or
-                                    t.token.value == "set") and
-                                    t.peek == IDENTIFIER):
+                            if (
+                                t.token.value == "get" or t.token.value == "set"
+                            ) and t.peek == IDENTIFIER:
                                 if x.ecmaStrictMode:
-                                    raise t.newSyntaxError("Illegal property "
-                                            "accessor")
-                                n.append(FunctionDefinition(t, x, True,
-                                        EXPRESSED_FORM))
+                                    raise t.newSyntaxError(
+                                        "Illegal property " "accessor"
+                                    )
+                                n.append(FunctionDefinition(t, x, True, EXPRESSED_FORM))
                             else:
                                 if tt in (IDENTIFIER, NUMBER, STRING):
                                     id_ = Node(t)
                                 elif tt == RIGHT_CURLY:
                                     if x.ecmaStrictMode:
-                                        raise t.newSyntaxError("Illegal "
-                                                "trailing ,")
+                                        raise t.newSyntaxError("Illegal " "trailing ,")
                                     raise BreakOutOfObjectInit
                                 else:
-                                    raise t.newSyntaxError("Invalid property "
-                                            "name")
+                                    raise t.newSyntaxError("Invalid property " "name")
                                 t.mustMatch(COLON)
-                                n.append(Node(t, PROPERTY_INIT, [id_,
-                                        Expression(t, x, COMMA)]))
-                            if not t.match(COMMA): break
+                                n.append(
+                                    Node(
+                                        t, PROPERTY_INIT, [id_, Expression(t, x, COMMA)]
+                                    )
+                                )
+                            if not t.match(COMMA):
+                                break
                         t.mustMatch(RIGHT_CURLY)
-                except BreakOutOfObjectInit as e: pass
+                except BreakOutOfObjectInit as e:
+                    pass
                 operands.append(n)
                 t.scanOperand = False
                 x.curlyLevel -= 1
@@ -1054,9 +1269,10 @@ def Expression(t, x, stop=None):
                     operators.append(Node(t, GROUP))
                     x.parenLevel += 1
                 else:
-                    while (operators and
-                            opPrecedence.get(operators[-1].type_) >
-                            opPrecedence[NEW]):
+                    while (
+                        operators
+                        and opPrecedence.get(operators[-1].type_) > opPrecedence[NEW]
+                    ):
                         reduce_()
 
                     # Handle () now, to regularize the n-ary case for n > 0.
@@ -1106,7 +1322,8 @@ def Expression(t, x, stop=None):
             # the while loop and let the t.scanOperand logic handle errors.
             else:
                 raise BreakOutOfLoops
-    except BreakOutOfLoops as e: pass
+    except BreakOutOfLoops as e:
+        pass
 
     if x.hookLevel != hl:
         raise t.newSyntaxError("Missing : after ?")
@@ -1122,6 +1339,7 @@ def Expression(t, x, stop=None):
     while operators:
         reduce_()
     return operands.pop()
+
 
 def parse(source, filename=None, starting_line_number=1):
     """Parse some Javascript
@@ -1143,5 +1361,6 @@ def parse(source, filename=None, starting_line_number=1):
         raise t.newSyntaxError("Syntax error")
     return n
 
+
 if __name__ == "__main__":
-    print((str(parse(open(sys.argv[1]).read(),sys.argv[1]))))
+    print((str(parse(open(sys.argv[1]).read(), sys.argv[1]))))

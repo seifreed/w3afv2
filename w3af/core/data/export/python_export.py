@@ -21,6 +21,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.parsers.doc.http_request_parser import http_request_parser
 
 
@@ -36,25 +37,24 @@ def python_export(request_string):
              request.
     """
     # get the header and the body
-    splitted_request = request_string.split('\n\n')
+    splitted_request = request_string.split("\n\n")
     header = splitted_request[0]
-    body = '\n\n'.join(splitted_request[1:])
+    body = "\n\n".join(splitted_request[1:])
 
     http_request = http_request_parser(header, body)
 
     # Now I do the real magic...
-    res = 'import urllib2\n\n'
+    res = "import urllib2\n\n"
 
-    res += 'url = "' + python_escape_string(http_request.get_uri()
-                                            .url_string) + '"\n'
+    res += 'url = "' + python_escape_string(http_request.get_uri().url_string) + '"\n'
 
-    if http_request.get_data() != '\n' and http_request.get_data():
+    if http_request.get_data() != "\n" and http_request.get_data():
         escaped_data = python_escape_string(str(http_request.get_data()))
         res += 'data = "' + escaped_data + '"\n'
     else:
-        res += 'data = None\n'
+        res += "data = None\n"
 
-    res += 'headers = {\n'
+    res += "headers = {\n"
     headers = http_request.get_headers()
     for header_name, header_value in headers.items():
         header_value = python_escape_string(header_value)
@@ -62,13 +62,13 @@ def python_export(request_string):
         res += '    "' + header_name + '" : "' + header_value + '",\n'
 
     res = res[:-2]
-    res += '\n}\n'
+    res += "\n}\n"
 
     res += """
 request = urllib2.Request(url, data, headers)
 response = urllib2.urlopen(request)
 response_body = response.read()
 """
-    res += 'print response_body\n'
+    res += "print response_body\n"
 
     return res

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
 from w3af.core.data.dc.xmlrpc import XmlRpcContainer
 
@@ -27,15 +28,16 @@ class XmlRpcMutant(PostDataMutant):
     """
     This class is an XMLRPC mutant.
     """
+
     @staticmethod
     def get_mutant_type():
-        return 'XMLRPC data'
+        return "XMLRPC data"
 
     def get_headers(self):
         # TODO: Not working?
-        #headers = super(XmlRpcMutant, self).get_headers()
+        # headers = super(XmlRpcMutant, self).get_headers()
         headers = self.get_fuzzable_request().get_headers()
-        headers['Content-Type'] = 'application/xml'
+        headers["Content-Type"] = "application/xml"
         return headers
 
     def found_at(self):
@@ -47,12 +49,22 @@ class XmlRpcMutant(PostDataMutant):
         :return: A string representing WHAT was fuzzed.
         """
         fmt = '"%s", using HTTP method %s. The sent XML-RPC was: "%s".'
-        return fmt % (self.get_url(), self.get_method(),
-                      self.get_dc().get_short_printable_repr())
+        return fmt % (
+            self.get_url(),
+            self.get_method(),
+            self.get_dc().get_short_printable_repr(),
+        )
 
     @classmethod
-    def create_mutants(cls, freq, mutant_str_list, fuzzable_param_list,
-                       append, fuzzer_config, data_container=None):
+    def create_mutants(
+        cls,
+        freq,
+        mutant_str_list,
+        fuzzable_param_list,
+        append,
+        fuzzer_config,
+        data_container=None,
+    ):
         """
         This is a very important method which is called in order to create
         mutants. Usually called from fuzzer.py module.
@@ -60,6 +72,6 @@ class XmlRpcMutant(PostDataMutant):
         if not isinstance(freq.get_raw_data(), XmlRpcContainer):
             return []
 
-        return cls._create_mutants_worker(freq, cls, mutant_str_list,
-                                          fuzzable_param_list, append,
-                                          fuzzer_config)
+        return cls._create_mutants_worker(
+            freq, cls, mutant_str_list, fuzzable_param_list, append, fuzzer_config
+        )

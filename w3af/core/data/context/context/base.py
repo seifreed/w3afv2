@@ -72,7 +72,7 @@ class BaseContext(object):
         :return: True if at least one of the needles is in the html
         """
         klass = self.__class__.__name__
-        assert needle_list is not None, 'CAN_BREAK is None at %s' % klass
+        assert needle_list is not None, "CAN_BREAK is None at %s" % klass
 
         for needle in needle_list:
             if needle in html:
@@ -87,7 +87,7 @@ class BaseContext(object):
         :return: True if all needles are in the html
         """
         klass = self.__class__.__name__
-        assert needle_list is not None, 'CAN_BREAK is None at %s' % klass
+        assert needle_list is not None, "CAN_BREAK is None at %s" % klass
 
         for needle in needle_list:
             if needle not in html:

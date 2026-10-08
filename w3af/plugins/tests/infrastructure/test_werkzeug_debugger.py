@@ -18,13 +18,13 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import re
 
 from nose.plugins.skip import SkipTest
 from w3af.plugins.tests.helper import PluginTest, PluginConfig, MockResponse
 
-
-JS_RESOURCE = '''
+JS_RESOURCE = """
 $(function() {
   var sourceView = null;
 
@@ -49,66 +49,70 @@ $(function() {
      */
     if (EVALEX)
       $('<img src="?__debugger__=yes&cmd=resource&f=console.png">')
-'''
+"""
 
 
 class TestWerkzeugDebuggerEnabled(PluginTest):
-    target_url = 'http://httpretty/'
+    target_url = "http://httpretty/"
 
     _run_configs = {
-        'cfg': {
-            'target': target_url,
-            'plugins': {'infrastructure': (PluginConfig('werkzeug_debugger'),)}
+        "cfg": {
+            "target": target_url,
+            "plugins": {"infrastructure": (PluginConfig("werkzeug_debugger"),)},
         }
     }
 
     class CustomMockResponse(MockResponse):
         def get_response(self, http_request, uri, response_headers):
-            if '__debugger__' in uri:
+            if "__debugger__" in uri:
                 body = JS_RESOURCE
                 status = 200
             else:
-                body = 'Regular response'
+                body = "Regular response"
                 status = 200
 
             return status, response_headers, body
 
-    MOCK_RESPONSES = [CustomMockResponse(re.compile('.*'), body=None,
-                                         method='GET', status=200)]
+    MOCK_RESPONSES = [
+        CustomMockResponse(re.compile(".*"), body=None, method="GET", status=200)
+    ]
 
     def test_vulnerable_werkzeug(self):
-        cfg = self._run_configs['cfg']
+        cfg = self._run_configs["cfg"]
 
-        self._scan(self.target_url, cfg['plugins'])
+        self._scan(self.target_url, cfg["plugins"])
 
-        vulns = self.kb.get('werkzeug_debugger', 'werkzeug_debugger')
+        vulns = self.kb.get("werkzeug_debugger", "werkzeug_debugger")
 
         self.assertEqual(len(vulns), 1, vulns)
         vuln = vulns[0]
 
-        self.assertEqual(vuln.get_name(), 'Werkzeug debugger enabled')
+        self.assertEqual(vuln.get_name(), "Werkzeug debugger enabled")
 
 
 class TestWerkzeugDebuggerDisabled(PluginTest):
 
-    target_url = 'http://httpretty/'
+    target_url = "http://httpretty/"
 
     _run_configs = {
-        'cfg': {
-            'target': target_url,
-            'plugins': {'infrastructure': (PluginConfig('werkzeug_debugger'),)}
+        "cfg": {
+            "target": target_url,
+            "plugins": {"infrastructure": (PluginConfig("werkzeug_debugger"),)},
         }
     }
 
-    MOCK_RESPONSES = [MockResponse(re.compile('.*'), body='Regular response',
-                                   method='GET', status=200)]
+    MOCK_RESPONSES = [
+        MockResponse(
+            re.compile(".*"), body="Regular response", method="GET", status=200
+        )
+    ]
 
     def test_vulnerable_werkzeug(self):
-        cfg = self._run_configs['cfg']
+        cfg = self._run_configs["cfg"]
 
-        self._scan(self.target_url, cfg['plugins'])
+        self._scan(self.target_url, cfg["plugins"])
 
-        vulns = self.kb.get('werkzeug_debugger', 'werkzeug_debugger')
+        vulns = self.kb.get("werkzeug_debugger", "werkzeug_debugger")
         self.assertEqual(len(vulns), 0, vulns)
 
 
@@ -127,21 +131,21 @@ class TestWerkzeugDebuggerRealDebugger(PluginTest):
             app.run(debug=True)
     """
 
-    target_url = 'http://127.0.0.1:5000/'
+    target_url = "http://127.0.0.1:5000/"
 
     _run_configs = {
-        'cfg': {
-            'target': target_url,
-            'plugins': {'infrastructure': (PluginConfig('werkzeug_debugger'),)}
+        "cfg": {
+            "target": target_url,
+            "plugins": {"infrastructure": (PluginConfig("werkzeug_debugger"),)},
         }
     }
 
     def test_vulnerable_werkzeug(self):
-        raise SkipTest('Only run during dev phase!')
+        raise SkipTest("Only run during dev phase!")
 
-        cfg = self._run_configs['cfg']
+        cfg = self._run_configs["cfg"]
 
-        self._scan(self.target_url, cfg['plugins'])
+        self._scan(self.target_url, cfg["plugins"])
 
-        vulns = self.kb.get('werkzeug_debugger', 'werkzeug_debugger')
+        vulns = self.kb.get("werkzeug_debugger", "werkzeug_debugger")
         self.assertEqual(len(vulns), 1, vulns)

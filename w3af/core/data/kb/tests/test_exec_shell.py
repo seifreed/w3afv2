@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from w3af.core.data.kb.exec_shell import ExecShell
@@ -26,20 +27,20 @@ from w3af.core.data.kb.tests.test_vuln import MockVuln
 
 
 class TestExecShell(unittest.TestCase):
-    
+
     def test_help_format(self):
         shell = ExecShell(MockVuln(), None, None)
         _help = shell.help(None)
-        
-        self.assertFalse(_help.startswith(' '))
-        
-        self.assertIn('    help', _help)
+
+        self.assertFalse(_help.startswith(" "))
+
+        self.assertIn("    help", _help)
         # Note that I add an extra space
-        self.assertNotIn('     help', _help)
-    
+        self.assertNotIn("     help", _help)
+
     def test_help_contents(self):
         shell = ExecShell(MockVuln(), None, None)
         _help = shell.help(None)
-        
-        self.assertIn('execute', _help)
-        self.assertIn('upload', _help)
+
+        self.assertIn("execute", _help)
+        self.assertIn("upload", _help)

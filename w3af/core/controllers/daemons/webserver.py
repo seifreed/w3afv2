@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import time
 import socket
@@ -57,8 +58,7 @@ class HTTPServer(http.server.HTTPServer):
     """
 
     def __init__(self, server_address, webroot, RequestHandlerClass):
-        http.server.HTTPServer.__init__(self, server_address,
-                                           RequestHandlerClass)
+        http.server.HTTPServer.__init__(self, server_address, RequestHandlerClass)
         self.webroot = webroot
         self.__is_shut_down = threading.Event()
         self.__shutdown_request = False
@@ -111,7 +111,7 @@ class HTTPServer(http.server.HTTPServer):
             return self.server_address[1]
         except:
             return None
-    
+
     def wait_for_start(self):
         while self.get_port() is None:
             time.sleep(0.5)
@@ -121,16 +121,16 @@ class WebHandler(http.server.BaseHTTPRequestHandler):
 
     def do_GET(self):
 
-        if self.path[1:].count('../') or self.path[1:].count('..\\'):
-            self.send_error(403, 'Yeah right...')
+        if self.path[1:].count("../") or self.path[1:].count("..\\"):
+            self.send_error(403, "Yeah right...")
         else:
             try:
                 f = open(self.server.webroot + os.path.sep + self.path[1:])
             except IOError:
                 try:
-                    self.send_error(404, 'File Not Found: %s' % self.path)
+                    self.send_error(404, "File Not Found: %s" % self.path)
                 except Exception as e:
-                    om.out.debug('[webserver] Exception: ' + str(e))
+                    om.out.debug("[webserver] Exception: " + str(e))
             else:
                 try:
                     self.send_response(200)
@@ -139,13 +139,13 @@ class WebHandler(http.server.BaseHTTPRequestHandler):
                     # "victim" web servers
                     content_type, encoding = mimetypes.guess_type(self.path)
                     if content_type is not None:
-                        self.send_header('Content-type', content_type)
+                        self.send_header("Content-type", content_type)
                     else:
-                        self.send_header('Content-type', 'text/html')
+                        self.send_header("Content-type", "text/html")
                     self.end_headers()
                     self.wfile.write(f.read())
                 except Exception as e:
-                    om.out.debug('[webserver] Exception: ' + str(e))
+                    om.out.debug("[webserver] Exception: " + str(e))
 
                 f.close()
 
@@ -181,7 +181,7 @@ def start_webserver(ip, port, webroot, handler=WebHandler):
 
         # Start server!
         server_thread = threading.Thread(target=web_server.serve_forever)
-        server_thread.name = 'WebServer'
+        server_thread.name = "WebServer"
         server_thread.daemon = True
         server_thread.start()
 
@@ -199,7 +199,7 @@ def start_webserver_any_free_port(ip, webroot, handler=WebHandler):
 
     # Start server!
     server_thread = threading.Thread(target=web_server.serve_forever)
-    server_thread.name = 'WebServer'
+    server_thread.name = "WebServer"
     server_thread.daemon = True
     server_thread.start()
 

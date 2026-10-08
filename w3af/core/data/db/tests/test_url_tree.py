@@ -18,6 +18,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from w3af.core.data.db.url_tree import URLTree, URLNode, url_tree_factory
@@ -32,49 +33,58 @@ class TestURLTree(unittest.TestCase):
     def test_root(self):
         tree = URLTree()
 
-        url = URL('http://w3af.org/')
+        url = URL("http://w3af.org/")
         tree.add_url(url)
 
-        expected = {URLNode('http://w3af.org', 1): {}}
+        expected = {URLNode("http://w3af.org", 1): {}}
         self.assertEqual(tree.tree, expected)
 
     def test_two_independent_paths(self):
         tree = URLTree()
 
-        url_1 = URL('http://w3af.org/foo/')
-        url_2 = URL('http://w3af.org/bar/')
+        url_1 = URL("http://w3af.org/foo/")
+        url_2 = URL("http://w3af.org/bar/")
         tree.add_url(url_1)
         tree.add_url(url_2)
 
-        expected = {URLNode("http://w3af.org", 0): {URLNode("foo", 1): {},
-                                                    URLNode("bar", 1): {}}}
+        expected = {
+            URLNode("http://w3af.org", 0): {
+                URLNode("foo", 1): {},
+                URLNode("bar", 1): {},
+            }
+        }
         self.assertEqual(tree.tree, expected)
 
     def test_two_nested_paths(self):
         tree = URLTree()
 
-        url_1 = URL('http://w3af.org/foo/bar/')
-        url_2 = URL('http://w3af.org/spam/eggs/')
+        url_1 = URL("http://w3af.org/foo/bar/")
+        url_2 = URL("http://w3af.org/spam/eggs/")
         tree.add_url(url_1)
         tree.add_url(url_2)
 
-        expected = {URLNode("http://w3af.org", 0):
-                        {URLNode("foo", 0): {URLNode("bar", 1): {}},
-                         URLNode("spam", 0): {URLNode("eggs", 1): {}}}}
+        expected = {
+            URLNode("http://w3af.org", 0): {
+                URLNode("foo", 0): {URLNode("bar", 1): {}},
+                URLNode("spam", 0): {URLNode("eggs", 1): {}},
+            }
+        }
 
         self.assertEqual(tree.tree, expected)
 
     def test_nested_paths_and_files(self):
         tree = URLTree()
 
-        url_1 = URL('http://w3af.org/foo/bar/')
-        url_2 = URL('http://w3af.org/spam/eggs/123.txt')
+        url_1 = URL("http://w3af.org/foo/bar/")
+        url_2 = URL("http://w3af.org/spam/eggs/123.txt")
         tree.add_url(url_1)
         tree.add_url(url_2)
 
-        expected = {URLNode("http://w3af.org", 0):
-                        {URLNode("foo", 0): {URLNode("bar", 1): {}},
-                         URLNode("spam", 0): {URLNode("eggs", 0): {URLNode("123.txt", 1): {}}}}}
+        expected = {
+            URLNode("http://w3af.org", 0): {
+                URLNode("foo", 0): {URLNode("bar", 1): {}},
+                URLNode("spam", 0): {URLNode("eggs", 0): {URLNode("123.txt", 1): {}}},
+            }
+        }
 
         self.assertEqual(tree.tree, expected)
-

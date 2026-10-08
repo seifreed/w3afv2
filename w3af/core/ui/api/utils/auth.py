@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from functools import wraps
 from hashlib import sha512
 
@@ -32,22 +33,27 @@ def check_auth(username, password):
     """This function is called to check if a username /
     password combination is valid.
     """
-    return (username == app.config['USERNAME'] and
-            sha512(password).hexdigest() == app.config['PASSWORD'])
+    return (
+        username == app.config["USERNAME"]
+        and sha512(password).hexdigest() == app.config["PASSWORD"]
+    )
 
 
 def requires_auth(f):
     @wraps(f)
     def decorated(*args, **kwargs):
 
-        if not 'PASSWORD' in app.config:
+        if not "PASSWORD" in app.config:
             # Auth was not enabled at startup
             return f(*args, **kwargs)
 
         auth = request.authorization
         if not auth or not check_auth(auth.username, auth.password):
-            abort(401, 'Could not verify access. Please specify a username and'
-                       ' password for HTTP basic authentication.')
+            abort(
+                401,
+                "Could not verify access. Please specify a username and"
+                " password for HTTP basic authentication.",
+            )
         return f(*args, **kwargs)
-    
+
     return decorated

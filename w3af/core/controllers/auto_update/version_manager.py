@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import weakref
 from datetime import date
 
@@ -26,8 +27,7 @@ import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.home_dir import W3AF_LOCAL_PATH
 from w3af.core.controllers.auto_update.git_client import GitClient, GitClientError
 from w3af.core.data.db.startup_cfg import StartUpConfig
-from w3af.core.controllers.auto_update.utils import (to_short_id,
-                                                     get_commit_id_date)
+from w3af.core.controllers.auto_update.utils import to_short_id, get_commit_id_date
 
 
 class VersionMgr(object):
@@ -73,8 +73,8 @@ class VersionMgr(object):
     callback_onupdate_error = None
 
     # Revision constants
-    HEAD = 'HEAD'
-    BACK = 'BACK'
+    HEAD = "HEAD"
+    BACK = "BACK"
 
     def __init__(self, localpath=W3AF_LOCAL_PATH, log=None):
         """
@@ -87,49 +87,53 @@ class VersionMgr(object):
         self._localpath = localpath
         self._client = GitClient(localpath)
         self._client.add_observer(self._client_progress)
-        
+
         log = log if log is not None else om.out.console
         self._log = log
-        
+
         # Set default events
         self.register_default_events(log)
         # Startup configuration
         self._start_cfg = StartUpConfig()
-    
+
     def _client_progress(self, op_code, cur_count, max_count, message):
         """
         The GitClient will call this method when it has progress to show
         for fetch() and pull().
-        
+
         Please note that because I don't need it at this moment, I'm simply
         ignoring all parameters and just letting the observers know that this
         event was triggered.
         """
         self._notify(VersionMgr.ON_PROGRESS)
-        
+
     def register_default_events(self, log):
         """
         Default events registration
-        
+
         :param log: Log function to call for events
         :return: None, all saved in self._reg_funcs
         """
         # Registered functions
         self._reg_funcs = {}
-        
-        msg = ('Checking if a new version is available in our git repository.'
-               ' Please wait...')
+
+        msg = (
+            "Checking if a new version is available in our git repository."
+            " Please wait..."
+        )
         self.register(VersionMgr.ON_UPDATE_CHECK, log, msg)
-        
-        msg = ('Your installation is already on the latest available version.')
+
+        msg = "Your installation is already on the latest available version."
         self.register(VersionMgr.ON_ALREADY_LATEST, log, msg)
-        
-        msg = 'w3af is updating from github.com ...'
+
+        msg = "w3af is updating from github.com ..."
         self.register(VersionMgr.ON_UPDATE, log, msg)
-        
-        msg = ('The third-party dependencies for w3af have changed, please'
-               ' exit the framework and run it again to load all changes'
-               ' and install any missing modules.')
+
+        msg = (
+            "The third-party dependencies for w3af have changed, please"
+            " exit the framework and run it again to load all changes"
+            " and install any missing modules."
+        )
         self.register(VersionMgr.ON_UPDATE_ADDED_DEP, log, msg)
 
     def update(self, force=False):
@@ -141,71 +145,80 @@ class VersionMgr(object):
         :return: (changelog: A ChangeLog instance,
                   local_head_id: The local id before the update,
                   commit_id: The commit id after the update)
-                  
+
         """
         if not force and not self._has_to_update():
             # No need to update based on user preferences
             return
-        
+
         # Save the latest update date, always, even when the update had errors
         # or there was no update available
         self._start_cfg.last_upd = date.today()
         self._start_cfg.save()
-        
+
         local_head_id = self._client.get_local_head_id()
         short_local_head_id = to_short_id(local_head_id)
-        
+
         # Lets update!
         self._notify(VersionMgr.ON_UPDATE_CHECK)
-        
+
         # This performs a fetch() which takes time
         remote_head_id = self._client.get_remote_head_id()
         short_remote_head_id = to_short_id(remote_head_id)
-        
+
         if local_head_id == remote_head_id:
             # If local and repo's rev are the same => Nothing to do.
             self._notify(VersionMgr.ON_ALREADY_LATEST)
             return
-        
-        if self._user_confirmed_update(short_local_head_id, local_head_id,
-                                       short_remote_head_id, remote_head_id):
+
+        if self._user_confirmed_update(
+            short_local_head_id, local_head_id, short_remote_head_id, remote_head_id
+        ):
             return self.__update_impl()
 
-    def _user_confirmed_update(self, short_local_head_id, local_head_id,
-                                short_remote_head_id, remote_head_id):
+    def _user_confirmed_update(
+        self, short_local_head_id, local_head_id, short_remote_head_id, remote_head_id
+    ):
         """
         Ask the user if he wants to update or not.
-        
+
         :return: True if the user wants to update.
-        """ 
+        """
         # Call callback function
         if self.callback_onupdate_confirm is not None:
-            
+
             callback = self.callback_onupdate_confirm
-            
+
             # pylint: disable=E1102
             # pylint: disable=E1103
-            msg = 'Your current w3af installation is %s (%s). Do you want '\
-                  'to update to %s (%s)?'
-            proceed_upd = callback(msg % (short_local_head_id,
-                                          get_commit_id_date(local_head_id),
-                                          short_remote_head_id,
-                                          get_commit_id_date(remote_head_id)))
-            
+            msg = (
+                "Your current w3af installation is %s (%s). Do you want "
+                "to update to %s (%s)?"
+            )
+            proceed_upd = callback(
+                msg
+                % (
+                    short_local_head_id,
+                    get_commit_id_date(local_head_id),
+                    short_remote_head_id,
+                    get_commit_id_date(remote_head_id),
+                )
+            )
+
             return proceed_upd
-    
+
     def __update_impl(self):
         """
         Finally call the Git client's pull!
-        
+
         :return: (changelog, local_head_id, target_commit)
         """
         self._notify(VersionMgr.ON_UPDATE)
-        
+
         try:
             changelog = self._client.pull()
         except GitClientError as exc:
-            msg = '%s' % exc
+            msg = "%s" % exc
             self._notify(VersionMgr.ON_ACTION_ERROR, msg)
             return
         else:
@@ -214,20 +227,21 @@ class VersionMgr(object):
             self._start_cfg.last_commit_id = changelog.end
             self._start_cfg.last_upd = date.today()
             self._start_cfg.save()
-            
+
             # Reload all modules to make sure we have all the latest
             # versions of py files in memory.
             self.reload_all_modules()
-    
+
             if self._added_new_dependencies(changelog):
                 self._notify(VersionMgr.ON_UPDATE_ADDED_DEP)
-    
+
             # pylint: disable=E1102
             if self.callback_onupdate_show_log:
                 changelog_str = lambda: str(changelog)
-                self.callback_onupdate_show_log('Do you want to see a change log?',
-                                                changelog_str)
-                
+                self.callback_onupdate_show_log(
+                    "Do you want to see a change log?", changelog_str
+                )
+
         return (changelog, changelog.start, changelog.end)
 
     def reload_all_modules(self):
@@ -254,12 +268,12 @@ class VersionMgr(object):
         """
         self._reg_funcs[event] = (weakref.proxy(func), msg)
 
-    def _notify(self, event, msg=''):
+    def _notify(self, event, msg=""):
         """
         Call registered function for event. If `msg` is not empty use it.
         """
         observer_data = self._reg_funcs.get(event, None)
-        if observer_data is not None:      
+        if observer_data is not None:
             f, _msg = observer_data
             f(msg or _msg)
 
@@ -268,12 +282,12 @@ class VersionMgr(object):
         :return: True if the changelog shows any modifications to the
                  dependency_check.py files.
         """
-        dependency_controllers = ['dependency_check.py', 'requirements.py']
+        dependency_controllers = ["dependency_check.py", "requirements.py"]
 
         for commit in changelog.get_changes():
             for action, filename in commit.changes:
                 for dependency_file in dependency_controllers:
-                    if filename.endswith(dependency_file) and action == 'M':
+                    if filename.endswith(dependency_file) and action == "M":
                         return True
         return False
 
@@ -296,12 +310,10 @@ class VersionMgr(object):
             freq = startcfg.freq
             diff_days = max((date.today() - startcfg.last_upd).days, 0)
 
-            if ((freq == StartUpConfig.FREQ_DAILY and diff_days > 0) or
-                (freq == StartUpConfig.FREQ_WEEKLY and diff_days > 6) or
-                (freq == StartUpConfig.FREQ_MONTHLY and diff_days > 29)):
+            if (
+                (freq == StartUpConfig.FREQ_DAILY and diff_days > 0)
+                or (freq == StartUpConfig.FREQ_WEEKLY and diff_days > 6)
+                or (freq == StartUpConfig.FREQ_MONTHLY and diff_days > 29)
+            ):
                 return True
             return False
-
-
-
-

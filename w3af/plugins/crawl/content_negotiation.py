@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import re
 import queue
@@ -49,9 +50,9 @@ class content_negotiation(CrawlPlugin):
         CrawlPlugin.__init__(self)
 
         # User configured parameters
-        self._wordlist = os.path.join(ROOT_PATH, 'plugins', 'crawl',
-                                      'content_negotiation',
-                                      'common_filenames.db')
+        self._wordlist = os.path.join(
+            ROOT_PATH, "plugins", "crawl", "content_negotiation", "common_filenames.db"
+        )
 
         # Internal variables
         self._already_tested_dir = ScalableBloomFilter()
@@ -119,7 +120,7 @@ class content_negotiation(CrawlPlugin):
         """
         # Get the file name
         filename = fuzzable_request.get_url().get_file_name()
-        if filename == '':
+        if filename == "":
             return
         else:
             # The thing here is that I've found that if these files exist in
@@ -129,7 +130,7 @@ class content_negotiation(CrawlPlugin):
             #
             # And I request "/backup" , then both are returned. So I'll request
             #  the "leftmost" filename.
-            filename = filename.split('.')[0]
+            filename = filename.split(".")[0]
 
             # Now I simply perform the request:
             alternate_resource = fuzzable_request.get_url().url_join(filename)
@@ -139,8 +140,8 @@ class content_negotiation(CrawlPlugin):
                 self._already_tested_resource.add(alternate_resource)
 
                 _, alternates = self._request_and_get_alternates(
-                    alternate_resource,
-                    original_headers)
+                    alternate_resource, original_headers
+                )
 
                 # And create the new fuzzable requests
                 url = fuzzable_request.get_url()
@@ -159,9 +160,8 @@ class content_negotiation(CrawlPlugin):
 
         # Send the requests using threads:
         for base_url, alternates in self.worker_pool.map_multi_args(
-                self._request_and_get_alternates,
-                args_generator,
-                chunksize=10):
+            self._request_and_get_alternates, args_generator, chunksize=10
+        ):
 
             for fr in self._create_new_fuzzable_requests(base_url, alternates):
                 self.output_queue.put(fr)
@@ -199,10 +199,10 @@ class content_negotiation(CrawlPlugin):
                     - alternate_resource parameter (unmodified)
                     - a list of strings containing the alternates.
         """
-        headers['Accept'] = 'w3af/bar'
+        headers["Accept"] = "w3af/bar"
         response = self._uri_opener.GET(alternate_resource, headers=headers)
 
-        alternates, _ = response.get_headers().iget('alternates')
+        alternates, _ = response.get_headers().iget("alternates")
 
         # And I parse the result
         if alternates:
@@ -251,39 +251,42 @@ class content_negotiation(CrawlPlugin):
         # We perform the test, for this we need a URL that has a filename,
         # URLs that don't have a filename can't be used for this.
         filename = fuzzable_request.get_url().get_file_name()
-        if filename == '':
+        if filename == "":
             return None
 
-        filename = filename.split('.')[0]
+        filename = filename.split(".")[0]
 
         # Now I simply perform the request:
         alternate_resource = fuzzable_request.get_url().url_join(filename)
         headers = fuzzable_request.get_headers()
-        headers['Accept'] = 'w3af/bar'
+        headers["Accept"] = "w3af/bar"
         response = self._uri_opener.GET(alternate_resource, headers=headers)
 
-        if response.get_headers().icontains('alternates'):
+        if response.get_headers().icontains("alternates"):
             # Even if there is only one file, with an unique mime type,
             # the content negotiation will return an alternates header.
             # So this is pretty safe.
 
             # Save the result as an info in the KB, for the user to see it:
-            desc = ('HTTP Content negotiation is enabled in the remote web'
-                    ' server. This could be used to bruteforce file names'
-                    ' and find new resources')
+            desc = (
+                "HTTP Content negotiation is enabled in the remote web"
+                " server. This could be used to bruteforce file names"
+                " and find new resources"
+            )
 
-            i = Info('HTTP Content Negotiation enabled', desc, response.id,
-                     self.get_name())
+            i = Info(
+                "HTTP Content Negotiation enabled", desc, response.id, self.get_name()
+            )
             i.set_url(response.get_url())
 
-            kb.kb.append(self, 'content_negotiation', i)
+            kb.kb.append(self, "content_negotiation", i)
             om.out.information(i.get_desc())
 
             # Save the result internally
             self._content_negotiation_enabled = True
             return self._content_negotiation_enabled
 
-        msg = 'The remote Web server has Content Negotiation disabled'
+        msg = "The remote Web server has Content Negotiation disabled"
         om.out.information(msg)
 
         # I want to perform this test a couple of times... so I only
@@ -302,8 +305,8 @@ class content_negotiation(CrawlPlugin):
         """
         :return: A list of option objects for this plugin.
         """
-        d1 = 'Word list to use in the file name brute forcing process.'
-        o1 = opt_factory('wordlist', self._wordlist, d1, 'string')
+        d1 = "Word list to use in the file name brute forcing process."
+        o1 = opt_factory("wordlist", self._wordlist, d1, "string")
 
         ol = OptionList()
         ol.add(o1)
@@ -317,7 +320,7 @@ class content_negotiation(CrawlPlugin):
         :param options_list: A dictionary with the options for the plugin.
         :return: No value is returned.
         """
-        wordlist = options_list['wordlist'].get_value()
+        wordlist = options_list["wordlist"].get_value()
         if os.path.exists(wordlist):
             self._wordlist = wordlist
 

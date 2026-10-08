@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.controllers.plugins.evasion_plugin import EvasionPlugin
 
 
@@ -27,6 +28,7 @@ class self_reference(EvasionPlugin):
     Add a directory self reference.
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def modify_request(self, request):
         """
         Mangles the request
@@ -37,7 +39,7 @@ class self_reference(EvasionPlugin):
         """
         # We mangle the URL
         path = request.url_object.get_path()
-        path = path.replace('/', '/./')
+        path = path.replace("/", "/./")
 
         # Finally, we set all the mutants to the request in order to return it
         new_url = request.url_object.copy()

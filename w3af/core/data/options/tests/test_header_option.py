@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import unittest
 
 from w3af.core.data.options.opt_factory import opt_factory
@@ -27,19 +28,19 @@ from w3af.core.data.options.option_types import HEADER
 class TestQueryStringOption(unittest.TestCase):
 
     def test_valid_header(self):
-        value = 'Basic: bearer 0x12345\r\n'
-        opt = opt_factory('name', value, 'desc', HEADER, 'help', 'tab')
+        value = "Basic: bearer 0x12345\r\n"
+        opt = opt_factory("name", value, "desc", HEADER, "help", "tab")
 
         self.assertEqual(opt.get_value_for_profile(), value)
 
         header_instance = opt.get_value()
 
-        self.assertIn('Basic', header_instance)
-        self.assertEqual(header_instance['Basic'], 'bearer 0x12345')
+        self.assertIn("Basic", header_instance)
+        self.assertEqual(header_instance["Basic"], "bearer 0x12345")
 
     def test_empty_header(self):
-        value = ''
-        opt = opt_factory('name', value, 'desc', HEADER, 'help', 'tab')
+        value = ""
+        opt = opt_factory("name", value, "desc", HEADER, "help", "tab")
 
         self.assertEqual(opt.get_value_for_profile(), value)
 

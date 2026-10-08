@@ -20,6 +20,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import json
 import datetime
 
@@ -31,10 +32,12 @@ class DateTimeJSONEncoder(json.JSONEncoder):
     This small encoder allows us to handle datetime instances when
     doing "json.dumps()"
     """
+
     # pylint: disable=E0202
     def default(self, obj):
         if isinstance(obj, (datetime.datetime, datetime.date)):
             return obj.isoformat()
         else:
             return super(DateTimeJSONEncoder, self).default(obj)
+
     # pylint: enable=E0202

@@ -14,8 +14,13 @@ from lib.core.enums import PRIORITY
 
 __priority__ = PRIORITY.LOW
 
+
 def dependencies():
-    singleTimeWarnMessage("tamper script '%s' is only meant to be run against %s" % (os.path.basename(__file__).split(".")[0], DBMS.MSSQL))
+    singleTimeWarnMessage(
+        "tamper script '%s' is only meant to be run against %s"
+        % (os.path.basename(__file__).split(".")[0], DBMS.MSSQL)
+    )
+
 
 def tamper(payload, **kwargs):
     """
@@ -53,7 +58,23 @@ def tamper(payload, **kwargs):
     #   CR      0D      carriage return
     #   SO      0E      shift out
     #   SI      0F      shift in
-    blanks = ('%01', '%02', '%03', '%04', '%05', '%06', '%07', '%08', '%09', '%0B', '%0C', '%0D', '%0E', '%0F', '%0A')
+    blanks = (
+        "%01",
+        "%02",
+        "%03",
+        "%04",
+        "%05",
+        "%06",
+        "%07",
+        "%08",
+        "%09",
+        "%0B",
+        "%0C",
+        "%0D",
+        "%0E",
+        "%0F",
+        "%0A",
+    )
     retVal = payload
 
     if payload:
@@ -67,13 +88,13 @@ def tamper(payload, **kwargs):
                     retVal += random.choice(blanks)
                     continue
 
-            elif payload[i] == '\'':
+            elif payload[i] == "'":
                 quote = not quote
 
             elif payload[i] == '"':
                 doublequote = not doublequote
 
-            elif payload[i] == '#' or payload[i:i + 3] == '-- ':
+            elif payload[i] == "#" or payload[i : i + 3] == "-- ":
                 end = True
 
             elif payload[i] == " " and not doublequote and not quote:

@@ -23,6 +23,7 @@ from lib.core.settings import PARAMETER_SPLITTING_REGEX
 from lib.core.shell import autoCompletion
 from lib.request import inject
 
+
 class Custom:
     """
     This class defines custom enumeration functionalities for plugins.
@@ -34,7 +35,7 @@ class Custom:
     def sqlQuery(self, query):
         output = None
         sqlType = None
-        query = query.rstrip(';')
+        query = query.rstrip(";")
 
         try:
             for sqlTitle, sqlStatements in list(SQL_STATEMENTS.items()):
@@ -43,22 +44,30 @@ class Custom:
                         sqlType = sqlTitle
                         break
 
-            if not any(_ in query.upper() for _ in ("OPENROWSET", "INTO")) and (not sqlType or "SELECT" in sqlType):
-                infoMsg = "fetching %s query output: '%s'" % (sqlType if sqlType is not None else "SQL", query)
+            if not any(_ in query.upper() for _ in ("OPENROWSET", "INTO")) and (
+                not sqlType or "SELECT" in sqlType
+            ):
+                infoMsg = "fetching %s query output: '%s'" % (
+                    sqlType if sqlType is not None else "SQL",
+                    query,
+                )
                 logger.info(infoMsg)
 
                 output = inject.getValue(query, fromUser=True)
 
                 return output
             elif not isStackingAvailable() and not conf.direct:
-                    warnMsg = "execution of non-query SQL statements is only "
-                    warnMsg += "available when stacked queries are supported"
-                    logger.warn(warnMsg)
+                warnMsg = "execution of non-query SQL statements is only "
+                warnMsg += "available when stacked queries are supported"
+                logger.warn(warnMsg)
 
-                    return None
+                return None
             else:
                 if sqlType:
-                    debugMsg = "executing %s query: '%s'" % (sqlType if sqlType is not None else "SQL", query)
+                    debugMsg = "executing %s query: '%s'" % (
+                        sqlType if sqlType is not None else "SQL",
+                        query,
+                    )
                 else:
                     debugMsg = "executing unknown SQL type query: '%s'" % query
                 logger.debug(debugMsg)
@@ -127,8 +136,15 @@ class Custom:
 
             snippet = getSQLSnippet(Backend.getDbms(), filename)
 
-            if snippet and all(query.strip().upper().startswith("SELECT") for query in [_f for _f in snippet.split(';' if ';' in snippet else '\n') if _f]):
-                for query in [_f for _f in snippet.split(';' if ';' in snippet else '\n') if _f]:
+            if snippet and all(
+                query.strip().upper().startswith("SELECT")
+                for query in [
+                    _f for _f in snippet.split(";" if ";" in snippet else "\n") if _f
+                ]
+            ):
+                for query in [
+                    _f for _f in snippet.split(";" if ";" in snippet else "\n") if _f
+                ]:
                     query = query.strip()
                     if query:
                         conf.dumper.query(query, self.sqlQuery(query))

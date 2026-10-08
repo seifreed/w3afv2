@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 from w3af.core.controllers.tests.core_test_suite.test_pause_stop import CountTestMixin
 
 
@@ -25,14 +26,15 @@ class TestExceptionHandler(CountTestMixin):
     """
     Inherit from TestW3afCorePause to get the nice setUp().
     """
+
     def test_same_id(self):
         """
         Verify that the exception handler is the same before and after the scan
         """
         before_id_ehandler = id(self.w3afcore.exception_handler)
-        
+
         self.w3afcore.start()
-        
+
         after_id_ehandler = id(self.w3afcore.exception_handler)
-        
+
         self.assertEqual(before_id_ehandler, after_id_ehandler)

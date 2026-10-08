@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import subprocess
 
 from .base_platform import Platform
@@ -27,34 +28,46 @@ from .system_info import distribution_matches
 
 
 class Ubuntu1204(Platform):
-    SYSTEM_NAME = 'Ubuntu 12.04'
-    PKG_MANAGER_CMD = 'sudo apt-get -y install'
-    PIP_CMD = 'pip'
+    SYSTEM_NAME = "Ubuntu 12.04"
+    PKG_MANAGER_CMD = "sudo apt-get -y install"
+    PIP_CMD = "pip"
 
-    CORE_SYSTEM_PACKAGES = ['python-pip', 'npm', 'python2.7-dev',
-                            'python-setuptools', 'build-essential',
-                            'libsqlite3-dev', 'libssl-dev', 'git',
-                            'libxml2-dev', 'libxslt1-dev', 'libyaml-dev',
-                            'libffi-dev']
+    CORE_SYSTEM_PACKAGES = [
+        "python-pip",
+        "npm",
+        "python2.7-dev",
+        "python-setuptools",
+        "build-essential",
+        "libsqlite3-dev",
+        "libssl-dev",
+        "git",
+        "libxml2-dev",
+        "libxslt1-dev",
+        "libyaml-dev",
+        "libffi-dev",
+    ]
 
     GUI_SYSTEM_PACKAGES = CORE_SYSTEM_PACKAGES[:]
-    GUI_SYSTEM_PACKAGES.extend(['graphviz', 'python-gtksourceview2',
-                                'python-gtk2', 'python-webkit'])
+    GUI_SYSTEM_PACKAGES.extend(
+        ["graphviz", "python-gtksourceview2", "python-gtk2", "python-webkit"]
+    )
 
-    SYSTEM_PACKAGES = {CORE: CORE_SYSTEM_PACKAGES,
-                       GUI: GUI_SYSTEM_PACKAGES}
+    SYSTEM_PACKAGES = {CORE: CORE_SYSTEM_PACKAGES, GUI: GUI_SYSTEM_PACKAGES}
 
     @staticmethod
     def os_package_is_installed(package_name):
-        not_installed = 'is not installed and no info is available'
+        not_installed = "is not installed and no info is available"
 
         # The hold string was added after a failed build of w3af-module
-        installed = 'Status: install ok installed'
-        hold = 'Status: hold ok installed'
+        installed = "Status: install ok installed"
+        hold = "Status: hold ok installed"
 
         try:
-            p = subprocess.Popen(['dpkg', '-s', package_name],
-                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p = subprocess.Popen(
+                ["dpkg", "-s", package_name],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
         except OSError:
             # We're not on a debian based system
             return None
@@ -70,4 +83,4 @@ class Ubuntu1204(Platform):
 
     @staticmethod
     def is_current_platform():
-        return distribution_matches('ubuntu', '12.04')
+        return distribution_matches("ubuntu", "12.04")

@@ -24,6 +24,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import hashlib
 import os.path
 
@@ -51,8 +52,9 @@ class favicon_identification(InfrastructurePlugin):
         self._version = None
 
         # User configured parameters
-        self._db_file = os.path.join(ROOT_PATH, 'plugins', 'infrastructure',
-                                     'favicon', 'favicon-md5')
+        self._db_file = os.path.join(
+            ROOT_PATH, "plugins", "infrastructure", "favicon", "favicon-md5"
+        )
 
     @runonce(exc_class=RunOnce)
     def discover(self, fuzzable_request, debugging_id):
@@ -66,7 +68,7 @@ class favicon_identification(InfrastructurePlugin):
         domain_path = fuzzable_request.get_url().get_domain_path()
 
         # TODO: Maybe I should also parse the html to extract the favicon location?
-        favicon_url = domain_path.url_join('favicon.ico')
+        favicon_url = domain_path.url_join("favicon.ico")
         response = self._uri_opener.GET(favicon_url, cache=True)
         remote_fav_md5 = hashlib.md5(response.get_body()).hexdigest()
 
@@ -77,11 +79,12 @@ class favicon_identification(InfrastructurePlugin):
 
                 if md5part == remote_fav_md5:
                     desc = 'Favicon.ico file was identified as "%s".' % favicon_desc
-                    i = Info('Favicon identification', desc, response.id,
-                             self.get_name())
+                    i = Info(
+                        "Favicon identification", desc, response.id, self.get_name()
+                    )
                     i.set_url(favicon_url)
-                    
-                    kb.kb.append(self, 'info', i)
+
+                    kb.kb.append(self, "info", i)
                     om.out.information(i.get_desc())
                     break
             else:
@@ -89,19 +92,22 @@ class favicon_identification(InfrastructurePlugin):
                 #   Report to the kb that we failed to ID this favicon.ico
                 #   and that the md5 should be sent to the developers.
                 #
-                desc = 'Favicon identification failed. If the remote site is'  \
-                       ' using framework that is being exposed by its favicon,'\
-                       ' please send an email to w3af-develop@lists.sourceforge.net'\
-                       ' including this md5 hash "%s" and the' \
-                       ' name of the server or Web application it represents.' \
-                       ' New fingerprints make this plugin more powerful and ' \
-                       ' accurate.'
+                desc = (
+                    "Favicon identification failed. If the remote site is"
+                    " using framework that is being exposed by its favicon,"
+                    " please send an email to w3af-develop@lists.sourceforge.net"
+                    ' including this md5 hash "%s" and the'
+                    " name of the server or Web application it represents."
+                    " New fingerprints make this plugin more powerful and "
+                    " accurate."
+                )
                 desc = desc % remote_fav_md5
-                i = Info('Favicon identification failed', desc, response.id,
-                         self.get_name())
+                i = Info(
+                    "Favicon identification failed", desc, response.id, self.get_name()
+                )
                 i.set_url(favicon_url)
 
-                kb.kb.append(self, 'info', i)
+                kb.kb.append(self, "info", i)
                 om.out.information(i.get_desc())
 
     def _read_favicon_db(self):

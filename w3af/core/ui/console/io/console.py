@@ -19,10 +19,10 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.controllers.output_manager as om
 
 from w3af.core.controllers.exceptions import BaseFrameworkException
-
 
 CTRL_CODES = list(range(1, 27))
 CTRL_CODES.remove(9)
@@ -37,9 +37,11 @@ def sync_with_om(func):
     THE CONSOLE is printed using the om (see functions below), which ends up
     with unordered messages printed to the console.
     """
+
     def om_wrapper(*args, **kwds):
         om.manager.process_all_messages()
         return func(*args, **kwds)
+
     return om_wrapper
 
 
@@ -50,13 +52,13 @@ def write(s):
 
 
 @sync_with_om
-def writeln(s=''):
-    sys.stdout.write(s + '\n\r')
+def writeln(s=""):
+    sys.stdout.write(s + "\n\r")
 
 
 @sync_with_om
 def bell():
-    sys.stdout.write('\x07')
+    sys.stdout.write("\x07")
 
 
 @sync_with_om
@@ -75,7 +77,7 @@ def getch(buf=None):
         result = getch(buf)
     elif buf is not None:
         buf.append(ch)
-        strval = ''.join(buf)
+        strval = "".join(buf)
         posixVal = normalizeSequence(strval)
         if posixVal:
             return posixVal
@@ -84,7 +86,7 @@ def getch(buf=None):
         else:
             return getch(buf)
     elif len(ch) and ord(ch) in CTRL_CODES:
-        result = '^' + chr(ord(ch) + 64)
+        result = "^" + chr(ord(ch) + 64)
     else:
         result = ch
 
@@ -96,8 +98,8 @@ def ioctl_GWINSZ(fd):  # TABULATION FUNCTIONS
         import fcntl
         import termios
         import struct
-        cr = struct.unpack('hh',
-                           fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))
+
+        cr = struct.unpack("hh", fcntl.ioctl(fd, termios.TIOCGWINSZ, "1234"))
     except:
         return None
     return cr
@@ -108,7 +110,7 @@ def terminal_size():
     # try open fds
     cr = ioctl_GWINSZ(0) or ioctl_GWINSZ(1) or ioctl_GWINSZ(2)
     if not cr:
-    # ...then ctty
+        # ...then ctty
         try:
             fd = os.open(os.ctermid(), os.O_RDONLY)
             cr = ioctl_GWINSZ(fd)
@@ -119,7 +121,7 @@ def terminal_size():
     if not cr:
         # env vars or finally defaults
         try:
-            cr = (os.environ['LINES'], os.environ['COLUMNS'])
+            cr = (os.environ["LINES"], os.environ["COLUMNS"])
         except:
             cr = (25, 80)
     # reverse rows, cols
@@ -140,9 +142,10 @@ except Exception as e:
         import msvcrt
         from w3af.core.ui.console.io.winctrl import *
     except Exception as a:
-        print((str(e + '\n' + a)))
+        print((str(e + "\n" + a)))
         # We arent on windows nor unix
         raise BaseFrameworkException(
-            'w3af support for OS X isn\'t available yet! Please contribute.')
+            "w3af support for OS X isn't available yet! Please contribute."
+        )
 
-#extKeys = [KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT]
+# extKeys = [KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT]

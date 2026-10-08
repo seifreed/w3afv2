@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-
 import os
 import time
 import threading
@@ -41,13 +40,13 @@ from w3af.core.data.url.HTTPRequest import HTTPRequest
 
 
 def verify_has_db(meth):
-    
+
     @wraps(meth)
     def inner_verify_has_db(self, *args, **kwds):
         if self._db is None:
-            raise RuntimeError('The database is not initialized yet.')
+            raise RuntimeError("The database is not initialized yet.")
         return meth(self, *args, **kwds)
-    
+
     return inner_verify_has_db
 
 
@@ -57,33 +56,33 @@ class HistoryItem(object):
     """
 
     _db = None
-    _DATA_TABLE = 'history_items'
+    _DATA_TABLE = "history_items"
     _COLUMNS = [
-        ('id', 'INTEGER'),
-        ('url', 'TEXT'),
-        ('code', 'INTEGER'),
-        ('tag', 'TEXT'),
-        ('mark', 'INTEGER'),
-        ('info', 'TEXT'),
-        ('time', 'FLOAT'),
-        ('msg', 'TEXT'),
-        ('content_type', 'TEXT'),
-        ('charset', 'TEXT'),
-        ('method', 'TEXT'),
-        ('response_size', 'INTEGER'),
-        ('codef', 'INTEGER'),
-        ('alias', 'TEXT'),
-        ('has_qs', 'INTEGER')
+        ("id", "INTEGER"),
+        ("url", "TEXT"),
+        ("code", "INTEGER"),
+        ("tag", "TEXT"),
+        ("mark", "INTEGER"),
+        ("info", "TEXT"),
+        ("time", "FLOAT"),
+        ("msg", "TEXT"),
+        ("content_type", "TEXT"),
+        ("charset", "TEXT"),
+        ("method", "TEXT"),
+        ("response_size", "INTEGER"),
+        ("codef", "INTEGER"),
+        ("alias", "TEXT"),
+        ("has_qs", "INTEGER"),
     ]
-    _PRIMARY_KEY_COLUMNS = ('id',)
-    _INDEX_COLUMNS = ('alias',)
+    _PRIMARY_KEY_COLUMNS = ("id",)
+    _INDEX_COLUMNS = ("alias",)
 
-    _EXTENSION = 'trace'
-    _MSGPACK_CANARY = 'cute-and-yellow'
+    _EXTENSION = "trace"
+    _MSGPACK_CANARY = "cute-and-yellow"
 
-    _TMP_EXTENSION = 'tmp'
+    _TMP_EXTENSION = "tmp"
 
-    _COMPRESSED_EXTENSION = 'zip'
+    _COMPRESSED_EXTENSION = "zip"
     _COMPRESSED_FILE_BATCH = 150
     _UNCOMPRESSED_FILES = 50
     _COMPRESSION_LEVEL = 7
@@ -99,11 +98,11 @@ class HistoryItem(object):
     _response = None
     info = None
     mark = False
-    tag = ''
-    content_type = ''
+    tag = ""
+    content_type = ""
     response_size = 0
-    method = 'GET'
-    msg = 'OK'
+    method = "GET"
+    msg = "OK"
     code = 200
     time = 0.2
     charset = None
@@ -113,9 +112,10 @@ class HistoryItem(object):
 
     def __init__(self):
         self._db = get_default_temp_db_instance()
-        
-        self._session_dir = os.path.join(get_temp_dir(),
-                                         self._db.get_file_name() + '_traces')
+
+        self._session_dir = os.path.join(
+            get_temp_dir(), self._db.get_file_name() + "_traces"
+        )
 
     def get_session_dir(self):
         return self._session_dir
@@ -128,7 +128,7 @@ class HistoryItem(object):
         with self.history_lock:
             if not os.path.exists(self._session_dir):
                 os.mkdir(self._session_dir)
-    
+
     def init_db(self):
         """
         Init history table and indexes.
@@ -136,14 +136,13 @@ class HistoryItem(object):
         with self.history_lock:
             tablename = self.get_table_name()
             if not self._db.table_exists(tablename):
-                
+
                 pk_cols = self.get_primary_key_columns()
                 idx_cols = self.get_index_columns()
-                
-                self._db.create_table(tablename, self.get_columns(),
-                                      pk_cols).result()
+
+                self._db.create_table(tablename, self.get_columns(), pk_cols).result()
                 self._db.create_index(tablename, idx_cols).result()
-            
+
     def get_response(self):
         resp = self._response
         if not resp and self.id:
@@ -167,7 +166,7 @@ class HistoryItem(object):
         self._request = req
 
     request = property(get_request, set_request)
-    
+
     @verify_has_db
     def find(self, search_data, result_limit=-1, order_data=None):
         """
@@ -178,29 +177,29 @@ class HistoryItem(object):
         order_data = order_data or []
         result = []
 
-        sql = 'SELECT * FROM ' + self._DATA_TABLE
+        sql = "SELECT * FROM " + self._DATA_TABLE
         where = WhereHelper(search_data)
         sql += where.sql()
 
-        order_by = ''
+        order_by = ""
         #
         # TODO we need to move SQL code to parent class
         #
         for item in order_data:
-            order_by += item[0] + ' ' + item[1] + ','
+            order_by += item[0] + " " + item[1] + ","
         order_by = order_by[:-1]
 
         if order_by:
-            sql += ' ORDER BY ' + order_by
+            sql += " ORDER BY " + order_by
 
-        sql += ' LIMIT ' + str(result_limit)
+        sql += " LIMIT " + str(result_limit)
         try:
             for row in self._db.select(sql, list(where.values())):
                 item = self.__class__()
                 item._load_from_row(row)
                 result.append(item)
         except DBException:
-            msg = 'You performed an invalid search. Please verify your syntax.'
+            msg = "You performed an invalid search. Please verify your syntax."
             raise DBException(msg)
         return result
 
@@ -222,7 +221,7 @@ class HistoryItem(object):
         self.response_size = int(row[11])
 
     def _get_trace_filename_for_id(self, _id):
-        return os.path.join(self._session_dir, '%s.%s' % (_id, self._EXTENSION))
+        return os.path.join(self._session_dir, "%s.%s" % (_id, self._EXTENSION))
 
     def _load_from_trace_file(self, _id):
         """
@@ -235,10 +234,10 @@ class HistoryItem(object):
         file_name = self._get_trace_filename_for_id(_id)
 
         if not os.path.exists(file_name):
-            raise TraceReadException('Trace file %s does not exist' % file_name)
+            raise TraceReadException("Trace file %s does not exist" % file_name)
 
         # The file exists, but the contents might not be all on-disk yet
-        serialized_req_res = open(file_name, 'rb').read()
+        serialized_req_res = open(file_name, "rb").read()
         return self._load_from_string(serialized_req_res)
 
     def _load_from_string(self, serialized_req_res):
@@ -247,19 +246,21 @@ class HistoryItem(object):
         except ValueError:
             # ValueError: Extra data. returned when msgpack finds invalid
             # data in the file
-            raise TraceReadException('Failed to load %s' % serialized_req_res)
+            raise TraceReadException("Failed to load %s" % serialized_req_res)
 
         try:
             request_dict, response_dict, canary = data
         except TypeError:
             # https://github.com/andresriancho/w3af/issues/1101
             # 'NoneType' object is not iterable
-            raise TraceReadException('Not all components found in %s' % serialized_req_res)
+            raise TraceReadException(
+                "Not all components found in %s" % serialized_req_res
+            )
 
         if not canary == self._MSGPACK_CANARY:
             # read failed, most likely because the file write is not
             # complete but for some reason it was a valid msgpack file
-            raise TraceReadException('Invalid canary in %s' % serialized_req_res)
+            raise TraceReadException("Invalid canary in %s" % serialized_req_res)
 
         request = HTTPRequest.from_dict(request_dict)
         response = HTTPResponse.from_dict(response_dict)
@@ -332,7 +333,7 @@ class HistoryItem(object):
             if os.path.exists(file_name):
                 return self._load_from_trace_file_concurrent(_id)
 
-            raise TraceReadException('No zip nor trace file for ID %s' % _id)
+            raise TraceReadException("No zip nor trace file for ID %s" % _id)
 
     def _load_from_zip(self, _id):
         files = os.listdir(self.get_session_dir())
@@ -344,7 +345,7 @@ class HistoryItem(object):
             if start <= _id <= end:
                 return self._load_from_zip_file(_id, zip_file)
 
-        raise TraceReadException('No zip file contains %s' % _id)
+        raise TraceReadException("No zip file contains %s" % _id)
 
     def _load_from_zip_file(self, _id, zip_file):
         try:
@@ -354,15 +355,15 @@ class HistoryItem(object):
             #
             # This is most likely because one thread is writing to disk and
             # another is trying to read from it
-            msg = 'Zip file %s has an invalid format'
+            msg = "Zip file %s has an invalid format"
             args = (zip_file,)
             raise TraceReadException(msg % args)
 
         try:
-            serialized_req_res = _zip.read('%s.%s' % (_id, self._EXTENSION))
+            serialized_req_res = _zip.read("%s.%s" % (_id, self._EXTENSION))
         except KeyError:
             # We get here when the zip file doesn't contain the trace file
-            msg = 'Zip file %s does not contain ID %s'
+            msg = "Zip file %s does not contain ID %s"
             args = (zip_file, _id)
             raise TraceReadException(msg % args)
 
@@ -375,12 +376,12 @@ class HistoryItem(object):
         """
         if _id is None:
             _id = self.id
-            
-        sql = 'DELETE FROM ' + self._DATA_TABLE + ' WHERE id = ? '
+
+        sql = "DELETE FROM " + self._DATA_TABLE + " WHERE id = ? "
         self._db.execute(sql, (_id,))
-        
+
         fname = self._get_trace_filename_for_id(_id)
-        
+
         try:
             os.remove(fname)
         except OSError:
@@ -394,12 +395,14 @@ class HistoryItem(object):
         if _id is None:
             _id = self.id
 
-        sql = 'SELECT * FROM ' + self._DATA_TABLE + ' WHERE id = ? '
+        sql = "SELECT * FROM " + self._DATA_TABLE + " WHERE id = ? "
         try:
             row = self._db.select_one(sql, (_id,))
         except DBException as dbe:
-            msg = ('An unexpected error occurred while searching for id "%s"'
-                   ' in table "%s". Original exception: "%s".')
+            msg = (
+                'An unexpected error occurred while searching for id "%s"'
+                ' in table "%s". Original exception: "%s".'
+            )
             raise DBException(msg % (_id, self._DATA_TABLE, dbe))
 
         if row is not None:
@@ -411,8 +414,10 @@ class HistoryItem(object):
             # This is the second time load() is called and we end up
             # here, raise an exception and finish our pain.
             #
-            msg = ('An internal error occurred while searching for id "%s",'
-                   ' even after commit/retry')
+            msg = (
+                'An internal error occurred while searching for id "%s",'
+                " even after commit/retry"
+            )
             raise DBException(msg % _id)
 
         #
@@ -444,36 +449,42 @@ class HistoryItem(object):
         resp = self.response
         code = int(resp.get_code()) / 100
 
-        values = [resp.get_id(),
-                  self.request.get_uri().url_string,
-                  resp.get_code(),
-                  self.tag,
-                  int(self.mark),
-                  str(resp.info()),
-                  resp.get_wait_time(),
-                  resp.get_msg(),
-                  resp.content_type,
-                  resp.charset,
-                  self.request.get_method(),
-                  len(resp.body),
-                  code,
-                  resp.get_alias(),
-                  int(self.request.get_uri().has_query_string())]
+        values = [
+            resp.get_id(),
+            self.request.get_uri().url_string,
+            resp.get_code(),
+            self.tag,
+            int(self.mark),
+            str(resp.info()),
+            resp.get_wait_time(),
+            resp.get_msg(),
+            resp.content_type,
+            resp.charset,
+            self.request.get_method(),
+            len(resp.body),
+            code,
+            resp.get_alias(),
+            int(self.request.get_uri().has_query_string()),
+        ]
 
         if not self.id:
-            sql = ('INSERT INTO %s '
-                   '(id, url, code, tag, mark, info, time, msg, content_type, '
-                   'charset, method, response_size, codef, alias, has_qs) '
-                   'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)' % self._DATA_TABLE)
+            sql = (
+                "INSERT INTO %s "
+                "(id, url, code, tag, mark, info, time, msg, content_type, "
+                "charset, method, response_size, codef, alias, has_qs) "
+                "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)" % self._DATA_TABLE
+            )
             self._db.execute(sql, values)
             self.id = self.response.get_id()
         else:
             values.append(self.id)
-            sql = ('UPDATE %s'
-                   ' SET id = ?, url = ?, code = ?, tag = ?, mark = ?,'
-                   ' info = ?, time = ?, msg = ?, content_type = ?,'
-                   ' charset = ?, method = ?, response_size = ?, codef = ?,'
-                   ' alias = ?, has_qs = ? WHERE id = ?' % self._DATA_TABLE)
+            sql = (
+                "UPDATE %s"
+                " SET id = ?, url = ?, code = ?, tag = ?, mark = ?,"
+                " info = ?, time = ?, msg = ?, content_type = ?,"
+                " charset = ?, method = ?, response_size = ?, codef = ?,"
+                " alias = ?, has_qs = ? WHERE id = ?" % self._DATA_TABLE
+            )
             self._db.execute(sql, values)
 
         #
@@ -482,7 +493,7 @@ class HistoryItem(object):
         path_fname = self._get_trace_filename_for_id(self.id)
 
         try:
-            req_res = open(path_fname, 'wb')
+            req_res = open(path_fname, "wb")
         except IOError:
             # We get here when the path_fname does not exist (for some reason)
             # and want to analyze exactly why to be able to fix the issue in
@@ -496,20 +507,20 @@ class HistoryItem(object):
             #
             # https://github.com/andresriancho/w3af/issues/9022
             path, fname = os.path.split(path_fname)
-            split_path = path.split('/')
+            split_path = path.split("/")
 
             for i in range(len(split_path) + 1):
-                test_path = '/'.join(split_path[:i])
+                test_path = "/".join(split_path[:i])
                 if not os.path.exists(test_path):
-                    msg = ('Directory does not exist: "%s" while trying to'
-                           ' write DB history to "%s"')
+                    msg = (
+                        'Directory does not exist: "%s" while trying to'
+                        ' write DB history to "%s"'
+                    )
                     raise IOError(msg % (test_path, path_fname))
 
             raise
 
-        data = (self.request.to_dict(),
-                self.response.to_dict(),
-                self._MSGPACK_CANARY)
+        data = (self.request.to_dict(), self.response.to_dict(), self._MSGPACK_CANARY)
         msgpack_data = msgpack.dumps(data)
 
         req_res.write(msgpack_data)
@@ -567,7 +578,7 @@ class HistoryItem(object):
             # files that have not yet completed writing to disk
             #
             files.sort(key=lambda trace_file: get_trace_id(trace_file))
-            files = files[:-self._UNCOMPRESSED_FILES]
+            files = files[: -self._UNCOMPRESSED_FILES]
 
             #
             # Compress in 150 file batches, and making sure that the filenames
@@ -576,7 +587,7 @@ class HistoryItem(object):
             # be used to find the uncompressed trace.
             #
             while True:
-                current_batch_files = files[:self._COMPRESSED_FILE_BATCH]
+                current_batch_files = files[: self._COMPRESSED_FILE_BATCH]
 
                 if len(current_batch_files) != self._COMPRESSED_FILE_BATCH:
                     # There are not enough files in this batch
@@ -597,7 +608,7 @@ class HistoryItem(object):
 
                 # Ignore the first 150, these were already processed, and continue
                 # iterating in the while loop
-                files = files[self._COMPRESSED_FILE_BATCH:]
+                files = files[self._COMPRESSED_FILE_BATCH :]
 
     def _process_pending_compression(self, pending_compression):
         """
@@ -613,22 +624,24 @@ class HistoryItem(object):
         session_dir = self._session_dir
         trace_range = range(pending_compression.start, pending_compression.end + 1)
 
-        files = ['%s.%s' % (i, HistoryItem._EXTENSION) for i in trace_range]
+        files = ["%s.%s" % (i, HistoryItem._EXTENSION) for i in trace_range]
         files = [os.path.join(session_dir, filename) for filename in files]
 
         #
         # Target zip filename
         #
-        compressed_filename = '%s-%s.%s' % (pending_compression.start,
-                                            pending_compression.end,
-                                            self._COMPRESSED_EXTENSION)
+        compressed_filename = "%s-%s.%s" % (
+            pending_compression.start,
+            pending_compression.end,
+            self._COMPRESSED_EXTENSION,
+        )
         compressed_filename = os.path.join(session_dir, compressed_filename)
 
         # To prevent race conditions between a thread that is writing the zip
         # file and another thread that is attempting to read from it, we first
         # write the contents of the zip file to a .tmp file, and when all the
         # contents have been written and flushed, rename the file to a zip file
-        compressed_filename_temp = '%s.%s' % (compressed_filename, self._TMP_EXTENSION)
+        compressed_filename_temp = "%s.%s" % (compressed_filename, self._TMP_EXTENSION)
 
         #
         # I run some tests with tarfile to check if tar + gzip or tar + bzip2
@@ -655,14 +668,16 @@ class HistoryItem(object):
         # Summary: If you want to change the compression algorithm make sure
         #          that it is better than `zip`.
         #
-        _zip = zipfile.ZipFile(file=compressed_filename_temp,
-                               mode='w',
-                               compression=zipfile.ZIP_DEFLATED)
+        _zip = zipfile.ZipFile(
+            file=compressed_filename_temp, mode="w", compression=zipfile.ZIP_DEFLATED
+        )
 
         for filename in files:
             try:
-                _zip.write(filename=filename,
-                           arcname='%s.%s' % (get_trace_id(filename), self._EXTENSION))
+                _zip.write(
+                    filename=filename,
+                    arcname="%s.%s" % (get_trace_id(filename), self._EXTENSION),
+                )
             except OSError:
                 # The file might not exist
                 continue
@@ -699,20 +714,20 @@ class HistoryItem(object):
 
     def _update_field(self, name, value):
         """Update custom field in DB."""
-        sql = 'UPDATE %s SET %s = ? WHERE id = ?' % (self._DATA_TABLE, name)
+        sql = "UPDATE %s SET %s = ? WHERE id = ?" % (self._DATA_TABLE, name)
         self._db.execute(sql, (value, self.id))
 
     def update_tag(self, value, force_db=False):
         """Update tag."""
         self.tag = value
         if force_db:
-            self._update_field('tag', value)
+            self._update_field("tag", value)
 
     def toggle_mark(self, force_db=False):
         """Toggle mark state."""
         self.mark = not self.mark
         if force_db:
-            self._update_field('mark', int(self.mark))
+            self._update_field("mark", int(self.mark))
 
     def clear(self):
         """Clear history and delete all trace files."""
@@ -721,30 +736,30 @@ class HistoryItem(object):
 
         # Remove the table if it still exists, I verify if it exists
         # before removing it in order to allow clear() to be called more than
-        # once in a consecutive way 
+        # once in a consecutive way
         if self._db.table_exists(self.get_table_name()):
             self._db.clear_table(self.get_table_name()).result()
-            
+
         self._db = None
-        
+
         # It might be the case that another thread removes the session dir
         # at the same time as we, so we simply ignore errors here
         rmtree(self._session_dir, ignore_errors=True)
-        
+
         return True
 
     def __repr__(self):
-        return '<HistoryItem %s %s>' % (self.method, self.url)
+        return "<HistoryItem %s %s>" % (self.method, self.url)
 
 
 def get_trace_id(trace_file):
-    return int(trace_file.rsplit('/')[-1].rsplit('.')[-2])
+    return int(trace_file.rsplit("/")[-1].rsplit(".")[-2])
 
 
 def get_zip_id_range(zip_file):
-    name_ext = zip_file.rsplit('/')[-1]
-    name = name_ext.split('.')[0]
-    start, end = name.split('-')
+    name_ext = zip_file.rsplit("/")[-1]
+    name = name_ext.split(".")[0]
+    start, end = name.split("-")
     return int(start), int(end)
 
 

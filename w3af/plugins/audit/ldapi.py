@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-
 import w3af.core.data.constants.severity as severity
 import w3af.core.controllers.output_manager as om
 
@@ -38,50 +37,46 @@ class ldapi(AuditPlugin):
 
     LDAP_ERRORS = (
         # Not sure which lang or LDAP engine
-        'supplied argument is not a valid ldap',
-
+        "supplied argument is not a valid ldap",
         # Java
-        'javax.naming.NameNotFoundException',
-        'LDAPException',
-        'com.sun.jndi.ldap',
-
+        "javax.naming.NameNotFoundException",
+        "LDAPException",
+        "com.sun.jndi.ldap",
         # PHP
-        'Bad search filter',
-
+        "Bad search filter",
         # http://support.microsoft.com/kb/218185
-        'Protocol error occurred',
-        'Size limit has exceeded',
-        'An inappropriate matching occurred',
-        'A constraint violation occurred',
-        'The syntax is invalid',
-        'Object does not exist',
-        'The alias is invalid',
-        'The distinguished name has an invalid syntax',
-        'The server does not handle directory requests',
-        'There was a naming violation',
-        'There was an object class violation',
-        'Results returned are too large',
-        'Unknown error occurred',
-        'Local error occurred',
-        'The search filter is incorrect',
-        'The search filter is invalid',
-        'The search filter cannot be recognized',
-
+        "Protocol error occurred",
+        "Size limit has exceeded",
+        "An inappropriate matching occurred",
+        "A constraint violation occurred",
+        "The syntax is invalid",
+        "Object does not exist",
+        "The alias is invalid",
+        "The distinguished name has an invalid syntax",
+        "The server does not handle directory requests",
+        "There was a naming violation",
+        "There was an object class violation",
+        "Results returned are too large",
+        "Unknown error occurred",
+        "Local error occurred",
+        "The search filter is incorrect",
+        "The search filter is invalid",
+        "The search filter cannot be recognized",
         # OpenLDAP
-        'Invalid DN syntax',
-        'No Such Object',
-
+        "Invalid DN syntax",
+        "No Such Object",
         # IPWorks LDAP
         # http://www.tisc-insight.com/newsletters/58.html
-        'IPWorksASP.LDAP',
-
+        "IPWorksASP.LDAP",
         # https://entrack.enfoldsystems.com/browse/SERVERPUB-350
-        'Module Products.LDAPMultiPlugins'
+        "Module Products.LDAPMultiPlugins",
     )
 
     _multi_in = MultiIn(LDAP_ERRORS)
 
-    LDAPI_STRINGS = ["^(#$!@#$)(()))******", ]
+    LDAPI_STRINGS = [
+        "^(#$!@#$)(()))******",
+    ]
 
     def audit(self, freq, orig_response, debugging_id):
         """
@@ -91,13 +86,14 @@ class ldapi(AuditPlugin):
         :param orig_response: The HTTP response associated with the fuzzable request
         :param debugging_id: A unique identifier for this call to audit()
         """
-        mutants = create_mutants(freq, self.LDAPI_STRINGS,
-                                 orig_resp=orig_response)
+        mutants = create_mutants(freq, self.LDAPI_STRINGS, orig_resp=orig_response)
 
-        self._send_mutants_in_threads(self._uri_opener.send_mutant,
-                                      mutants,
-                                      self._analyze_result,
-                                      debugging_id=debugging_id)
+        self._send_mutants_in_threads(
+            self._uri_opener.send_mutant,
+            mutants,
+            self._analyze_result,
+            debugging_id=debugging_id,
+        )
 
     def _analyze_result(self, mutant, response):
         """
@@ -111,16 +107,21 @@ class ldapi(AuditPlugin):
             ldap_error_list = self._find_ldap_error(response)
             for ldap_error_string in ldap_error_list:
                 if ldap_error_string not in mutant.get_original_response_body():
-                    
-                    desc = 'LDAP injection was found at: %s' % mutant.found_at()
-                    
-                    v = Vuln.from_mutant('LDAP injection vulnerability', desc,
-                                         severity.HIGH, response.id,
-                                         self.get_name(), mutant)
-                    
+
+                    desc = "LDAP injection was found at: %s" % mutant.found_at()
+
+                    v = Vuln.from_mutant(
+                        "LDAP injection vulnerability",
+                        desc,
+                        severity.HIGH,
+                        response.id,
+                        self.get_name(),
+                        mutant,
+                    )
+
                     v.add_to_highlight(ldap_error_string)
-                    
-                    self.kb_append_uniq(self, 'ldapi', v)
+
+                    self.kb_append_uniq(self, "ldapi", v)
                     break
 
     def _find_ldap_error(self, response):
@@ -132,9 +133,11 @@ class ldapi(AuditPlugin):
         """
         res = []
         for match_string in self._multi_in.query(response.body):
-            msg = ('Found LDAP error string. The error returned by the web'
-                   ' application is (only a fragment is shown): "%s". The error'
-                   ' was found in response with ID %s')
+            msg = (
+                "Found LDAP error string. The error returned by the web"
+                ' application is (only a fragment is shown): "%s". The error'
+                " was found in response with ID %s"
+            )
             om.out.information(msg % (match_string, response.id))
             res.append(match_string)
         return res
@@ -144,7 +147,7 @@ class ldapi(AuditPlugin):
         :return: A list with the names of the plugins that should be run before the
         current one.
         """
-        return ['grep.error_500']
+        return ["grep.error_500"]
 
     def get_long_desc(self):
         """

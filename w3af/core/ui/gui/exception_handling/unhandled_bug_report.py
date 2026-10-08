@@ -19,11 +19,16 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import gtk
 
-from w3af.core.controllers.exception_handling.cleanup_bug_report import cleanup_bug_report
-from w3af.core.ui.gui.exception_handling.common_windows import (SimpleBaseWindow,
-                                                                GithubBugReport)
+from w3af.core.controllers.exception_handling.cleanup_bug_report import (
+    cleanup_bug_report,
+)
+from w3af.core.ui.gui.exception_handling.common_windows import (
+    SimpleBaseWindow,
+    GithubBugReport,
+)
 
 
 class BugReportWindow(SimpleBaseWindow, GithubBugReport):
@@ -36,7 +41,7 @@ class BugReportWindow(SimpleBaseWindow, GithubBugReport):
     handled.py .
     """
 
-    MANUAL_BUG_REPORT = 'https://github.com/andresriancho/w3af/issues/new'
+    MANUAL_BUG_REPORT = "https://github.com/andresriancho/w3af/issues/new"
 
     def __init__(self, w3af_core, title, tback, fname, plugins):
         # Before doing anything else, cleanup the report to remove any
@@ -60,12 +65,12 @@ class BugReportWindow(SimpleBaseWindow, GithubBugReport):
         # the label for the title
         self.title_label = gtk.Label()
         self.title_label.set_line_wrap(True)
-        label_text = _('<b>An unhandled exception was raised</b>')
+        label_text = _("<b>An unhandled exception was raised</b>")
         self.title_label.set_markup(label_text)
         self.title_label.show()
 
         # A gtk.TextView for the exception
-        frame = gtk.Frame('Traceback')
+        frame = gtk.Frame("Traceback")
         sw = gtk.ScrolledWindow()
         sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
 
@@ -83,14 +88,16 @@ class BugReportWindow(SimpleBaseWindow, GithubBugReport):
         # the label for the rest of the message
         self.label = gtk.Label()
         self.label.set_line_wrap(True)
-        label_text = _("<i>All this info is in a file called '%s' for later"
-                       ' review.</i>\n\nIf you wish, <b>you can contribute'
-                       '</b> to the w3af project and submit this bug to our'
-                       ' bug tracking system from within this window. It is'
-                       ' a simple <i>two step process</i>.\n\n'
-                       'w3af will only send the exception traceback and the'
-                       ' version information to Github, no personal or '
-                       ' confidential information is collected.')
+        label_text = _(
+            "<i>All this info is in a file called '%s' for later"
+            " review.</i>\n\nIf you wish, <b>you can contribute"
+            "</b> to the w3af project and submit this bug to our"
+            " bug tracking system from within this window. It is"
+            " a simple <i>two step process</i>.\n\n"
+            "w3af will only send the exception traceback and the"
+            " version information to Github, no personal or "
+            " confidential information is collected."
+        )
         self.label.set_markup(label_text % fname)
         self.label.show()
 
@@ -111,7 +118,7 @@ class BugReportWindow(SimpleBaseWindow, GithubBugReport):
 
         self.vbox.pack_start(self.hbox, True, False, 10)
 
-        #self.resize(400,450)
+        # self.resize(400,450)
         self.add(self.vbox)
         self.show_all()
 

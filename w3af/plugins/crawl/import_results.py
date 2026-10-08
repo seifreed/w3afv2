@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import base64
 
@@ -41,12 +42,13 @@ class import_results(CrawlPlugin):
     Import HTTP requests found by output.export_requests and Burp
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def __init__(self):
         super(import_results, self).__init__()
 
         # User configured parameters
-        self._input_base64 = ''
-        self._input_burp = ''
+        self._input_base64 = ""
+        self._input_burp = ""
 
     @runonce(exc_class=RunOnce)
     def crawl(self, fuzzable_request, debugging_id):
@@ -74,7 +76,7 @@ class import_results(CrawlPlugin):
             return
 
         try:
-            file_handler = open(self._input_base64, 'rb')
+            file_handler = open(self._input_base64, "rb")
         except BaseFrameworkException as e:
             msg = 'An error was found while trying to read "%s": "%s".'
             om.out.error(msg % (self._input_base64, e))
@@ -88,7 +90,7 @@ class import_results(CrawlPlugin):
                 continue
 
             # Support comments
-            if line.startswith('#'):
+            if line.startswith("#"):
                 continue
 
             try:
@@ -111,8 +113,10 @@ class import_results(CrawlPlugin):
         try:
             fuzzable_request_list = self._objs_from_burp_log(self._input_burp)
         except BaseFrameworkException as e:
-            msg = ('An error was found while trying to read the Burp log'
-                   ' file (%s): "%s".')
+            msg = (
+                "An error was found while trying to read the Burp log"
+                ' file (%s): "%s".'
+            )
             om.out.error(msg % (self._input_burp, e))
         else:
             for fr in fuzzable_request_list:
@@ -128,8 +132,10 @@ class import_results(CrawlPlugin):
         try:
             requests = etree.fromstring(open(burp_file).read(), parser)
         except XMLSyntaxError as xse:
-            msg = ('The Burp input file is not a valid XML document. The'
-                   ' parser error is: "%s"')
+            msg = (
+                "The Burp input file is not a valid XML document. The"
+                ' parser error is: "%s"'
+            )
             om.out.error(msg % xse)
             return []
 
@@ -141,15 +147,14 @@ class import_results(CrawlPlugin):
         """
         ol = OptionList()
 
-        d = 'Base64 input file from which to create the fuzzable requests'
-        h = 'The file format is described in output.export_requests'
-        o = opt_factory('input_base64', self._input_base64, d, INPUT_FILE,
-                        help=h)
+        d = "Base64 input file from which to create the fuzzable requests"
+        h = "The file format is described in output.export_requests"
+        o = opt_factory("input_base64", self._input_base64, d, INPUT_FILE, help=h)
         ol.add(o)
 
-        d = 'Burp log file from which to create the fuzzable requests'
-        h = 'The input file needs to be in Burp format.'
-        o = opt_factory('input_burp', self._input_burp, d, INPUT_FILE, help=h)
+        d = "Burp log file from which to create the fuzzable requests"
+        h = "The input file needs to be in Burp format."
+        o = opt_factory("input_burp", self._input_burp, d, INPUT_FILE, help=h)
         ol.add(o)
 
         return ol
@@ -162,8 +167,8 @@ class import_results(CrawlPlugin):
         :param options_list: A dictionary with the options for the plugin.
         :return: No value is returned.
         """
-        self._input_base64 = options_list['input_base64'].get_value()
-        self._input_burp = options_list['input_burp'].get_value()
+        self._input_base64 = options_list["input_base64"].get_value()
+        self._input_burp = options_list["input_burp"].get_value()
 
     def get_long_desc(self):
         """
@@ -189,6 +194,7 @@ class BurpParser(object):
     TODO: Support protocol (http|https) and port extraction. Now it only
           works with http and 80.
     """
+
     requests = []
     parsing_request = False
     current_is_base64 = False
@@ -204,15 +210,15 @@ class BurpParser(object):
         ...
         ]]></request>
         """
-        if tag == 'request':
+        if tag == "request":
             self.parsing_request = True
 
-            if not 'base64' in attrib:
+            if not "base64" in attrib:
                 # Invalid file?
                 return
 
-            use_base64 = attrib['base64']
-            if use_base64.lower() == 'true':
+            use_base64 = attrib["base64"]
+            if use_base64.lower() == "true":
                 self.current_is_base64 = True
             else:
                 self.current_is_base64 = False
@@ -221,17 +227,17 @@ class BurpParser(object):
         if self.parsing_request:
             if not self.current_is_base64:
                 request_text = data
-                head, postdata = request_text.split('\n\n', 1)
+                head, postdata = request_text.split("\n\n", 1)
             else:
                 request_text_b64 = data
                 request_text = base64.b64decode(request_text_b64)
-                head, postdata = request_text.split('\r\n\r\n', 1)
+                head, postdata = request_text.split("\r\n\r\n", 1)
 
             fuzzable_request = http_request_parser(head, postdata)
             self.requests.append(fuzzable_request)
 
     def end(self, tag):
-        if tag == 'request':
+        if tag == "request":
             self.parsing_request = False
 
     def close(self):

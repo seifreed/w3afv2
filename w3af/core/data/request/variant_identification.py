@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from itertools import chain, zip_longest
 
 
@@ -54,12 +55,9 @@ def are_variants(uri, other_uri):
             return False
 
         for vself, vother in zip_longest(
-            chain(*list(dc.values())),
-            chain(*list(odc.values())),
-            fillvalue=None
+            chain(*list(dc.values())), chain(*list(odc.values())), fillvalue=None
         ):
-            if None in (vself, vother) or \
-            vself.isdigit() != vother.isdigit():
+            if None in (vself, vother) or vself.isdigit() != vother.isdigit():
                 return False
 
         return True

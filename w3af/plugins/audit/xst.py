@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import re
 
 import w3af.core.controllers.output_manager as om
@@ -59,13 +60,10 @@ class xst(AuditPlugin):
         self._exec = False
 
         uri = freq.get_url().get_domain_path()
-        method = 'TRACE'
+        method = "TRACE"
         headers = Headers()
-        headers['FakeHeader'] = 'XST'
-        fr = FuzzableRequest(uri,
-                             method=method,
-                             headers=headers
-                             )
+        headers["FakeHeader"] = "XST"
+        fr = FuzzableRequest(uri, method=method, headers=headers)
 
         # send the request to the server and receive the response
         response = self._uri_opener.send_mutant(fr)
@@ -75,16 +73,20 @@ class xst(AuditPlugin):
         if regex.search(response.get_body()):
             # If vulnerable record it. This will now become visible on
             # the KB Browser
-            desc = 'The web server at "%s" is vulnerable to Cross Site'\
-                  ' Tracing.'
+            desc = 'The web server at "%s" is vulnerable to Cross Site' " Tracing."
             desc = desc % response.get_url()
 
-            v = Vuln.from_fr('Cross site tracing vulnerability', desc,
-                             severity.LOW, response.id, self.get_name(),
-                             freq)
+            v = Vuln.from_fr(
+                "Cross site tracing vulnerability",
+                desc,
+                severity.LOW,
+                response.id,
+                self.get_name(),
+                freq,
+            )
 
             om.out.vulnerability(v.get_desc(), severity=v.get_severity())
-            self.kb_append(self, 'xst', v)
+            self.kb_append(self, "xst", v)
 
     def get_long_desc(self):
         """

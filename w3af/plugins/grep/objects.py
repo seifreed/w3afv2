@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.data.parsers.parser_cache as parser_cache
 
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
@@ -31,7 +32,8 @@ class objects(GrepPlugin):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
-    TAGS = ('object', 'applet')
+
+    TAGS = ("object", "applet")
 
     def grep(self, request, response):
         """
@@ -48,16 +50,17 @@ class objects(GrepPlugin):
 
         for tag in parser_cache.dpc.get_tags_by_filter(response, self.TAGS):
             # pylint: disable=E1101
-            desc = ('The URL: "%s" has an "%s" tag. We recommend you download'
-                    ' the client side code and analyze it manually.')
+            desc = (
+                'The URL: "%s" has an "%s" tag. We recommend you download'
+                " the client side code and analyze it manually."
+            )
             desc %= (response.get_uri(), tag.name)
 
-            i = Info('Browser plugin content', desc, response.id,
-                     self.get_name())
+            i = Info("Browser plugin content", desc, response.id, self.get_name())
             i.set_url(url)
-            i.add_to_highlight('<%s' % tag.name)
+            i.add_to_highlight("<%s" % tag.name)
 
-            self.kb_append_uniq(self, tag.name, i, 'URL')
+            self.kb_append_uniq(self, tag.name, i, "URL")
             # pylint: enable=E1101
 
     def get_long_desc(self):

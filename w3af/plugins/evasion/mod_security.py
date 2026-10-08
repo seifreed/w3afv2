@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import copy
 
 from w3af.core.controllers.plugins.evasion_plugin import EvasionPlugin
@@ -31,6 +32,7 @@ class mod_security(EvasionPlugin):
 
     :author: Francisco Amato ( famato |at| infobyte.com.ar )
     """
+
     def modify_request(self, request):
         """
         Mangles the request
@@ -50,9 +52,9 @@ class mod_security(EvasionPlugin):
         except:
             return request
 
-        data = '\x00' + data
+        data = "\x00" + data
         headers_copy = copy.deepcopy(request.headers)
-        headers_copy['content-length'] = str(len(data))
+        headers_copy["content-length"] = str(len(data))
 
         new_req = request.copy()
         new_req.set_headers(headers_copy)

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.data.kb.knowledge_base as kb
 import w3af.core.data.constants.severity as severity
 
@@ -34,12 +35,15 @@ class dot_net_errors(InfrastructurePlugin):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
-    SPECIAL_CHARS = ['|', '~']
 
-    RUNTIME_ERROR = '<h2> <i>Runtime Error</i> </h2></span>'
-    REMOTE_MACHINE = ('<b>Details:</b> To enable the details of this'
-                      ' specific error message to be viewable on'
-                      ' remote machines')
+    SPECIAL_CHARS = ["|", "~"]
+
+    RUNTIME_ERROR = "<h2> <i>Runtime Error</i> </h2></span>"
+    REMOTE_MACHINE = (
+        "<b>Details:</b> To enable the details of this"
+        " specific error message to be viewable on"
+        " remote machines"
+    )
 
     def __init__(self):
         InfrastructurePlugin.__init__(self)
@@ -67,9 +71,11 @@ class dot_net_errors(InfrastructurePlugin):
 
         self._already_tested.add(fuzzable_request.get_url())
 
-        self.worker_pool.map(self._send_and_check,
-                             self._generate_urls(fuzzable_request.get_url()),
-                             chunksize=1)
+        self.worker_pool.map(
+            self._send_and_check,
+            self._generate_urls(fuzzable_request.get_url()),
+            chunksize=1,
+        )
 
     def _generate_urls(self, original_url):
         """
@@ -83,15 +89,15 @@ class dot_net_errors(InfrastructurePlugin):
         if not filename:
             return
 
-        if '.' not in filename:
+        if "." not in filename:
             return
 
-        split_filename = filename.split('.')
+        split_filename = filename.split(".")
         extension = split_filename[-1:][0]
-        name = '.'.join(split_filename[0:-1])
+        name = ".".join(split_filename[0:-1])
 
         for char in self.SPECIAL_CHARS:
-            new_filename = name + char + '.' + extension
+            new_filename = name + char + "." + extension
 
             try:
                 new_url = original_url.url_join(new_filename)
@@ -111,25 +117,29 @@ class dot_net_errors(InfrastructurePlugin):
         if self.REMOTE_MACHINE in response.body:
             return
 
-        desc = ('Detailed information about ASP.NET error messages can be'
-                ' viewed from remote clients. The URL: "%s" discloses'
-                ' detailed error messages.')
+        desc = (
+            "Detailed information about ASP.NET error messages can be"
+            ' viewed from remote clients. The URL: "%s" discloses'
+            " detailed error messages."
+        )
         desc %= response.get_url()
 
-        v = Vuln('Information disclosure via .NET errors',
-                 desc,
-                 severity.LOW,
-                 response.id,
-                 self.get_name())
+        v = Vuln(
+            "Information disclosure via .NET errors",
+            desc,
+            severity.LOW,
+            response.id,
+            self.get_name(),
+        )
 
-        kb.kb.append(self, 'dot_net_errors', v)
+        kb.kb.append(self, "dot_net_errors", v)
 
     def get_plugin_deps(self):
         """
         :return: A list with the names of the plugins that should be run before
                  the current one.
         """
-        return ['grep.error_pages']
+        return ["grep.error_pages"]
 
     def get_long_desc(self):
         """

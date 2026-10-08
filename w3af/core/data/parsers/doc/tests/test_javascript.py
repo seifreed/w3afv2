@@ -20,6 +20,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 import os
 
@@ -31,35 +32,37 @@ from w3af.core.data.parsers.doc.url import URL
 
 class TestJavaScriptParser(unittest.TestCase):
 
-    DATA_PATH = 'w3af/core/data/parsers/pynarcissus/tests/data/'
+    DATA_PATH = "w3af/core/data/parsers/pynarcissus/tests/data/"
 
     def parse(self, filename):
         body = open(os.path.join(self.DATA_PATH, filename)).read()
-        js_mime = 'text/javascript'
-        hdrs = Headers(list({'Content-Type': js_mime}.items()))
-        response = HTTPResponse(200, body, hdrs,
-                                URL('http://moth/xyz/'),
-                                URL('http://moth/xyz/'),
-                                _id=1)
+        js_mime = "text/javascript"
+        hdrs = Headers(list({"Content-Type": js_mime}.items()))
+        response = HTTPResponse(
+            200, body, hdrs, URL("http://moth/xyz/"), URL("http://moth/xyz/"), _id=1
+        )
 
         parser = JavaScriptParser(response)
         parser.parse()
         return parser
 
     def test_false_positives(self):
-        for filename in ('jquery.js', 'angular.js', 'test_1.js', 'test_2.js',
-                         'test_3.js'):
+        for filename in (
+            "jquery.js",
+            "angular.js",
+            "test_1.js",
+            "test_2.js",
+            "test_3.js",
+        ):
             p = self.parse(filename)
             self.assertEqual(p.get_references(), ([], []))
 
     def test_relative(self):
-        p = self.parse('test_4.js')
-        expected = [], [URL('http://moth/spam.html'),
-                        URL('http://moth/eggs.html')]
+        p = self.parse("test_4.js")
+        expected = [], [URL("http://moth/spam.html"), URL("http://moth/eggs.html")]
         self.assertEqual(p.get_references(), expected)
 
     def test_full(self):
-        p = self.parse('test_full_url.js')
-        expected = [], [URL('http://moth/spam.html'),
-                        URL('http://moth/eggs.html')]
+        p = self.parse("test_full_url.js")
+        expected = [], [URL("http://moth/spam.html"), URL("http://moth/eggs.html")]
         self.assertEqual(p.get_references(), expected)

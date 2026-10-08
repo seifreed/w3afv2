@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.kb.vuln_templates.base_template import BaseTemplate
 from w3af.core.data.options.opt_factory import opt_factory
 
@@ -27,46 +28,49 @@ class OSCommandingTemplate(BaseTemplate):
     """
     Vulnerability template for eval vulnerability.
     """
+
     def __init__(self):
         super(OSCommandingTemplate, self).__init__()
-        
+
         self.name = self.get_vulnerability_name()
-        self.operating_system = 'linux'
-        self.separator = '&'
-        
+        self.operating_system = "linux"
+        self.separator = "&"
+
     def get_options(self):
         ol = super(OSCommandingTemplate, self).get_options()
-        
-        d = 'Command separator used for injecting commands. Usually one of'\
-            '&, |, &&, || or ; .'
-        o = opt_factory('separator', self.separator, d, 'string')
+
+        d = (
+            "Command separator used for injecting commands. Usually one of"
+            "&, |, &&, || or ; ."
+        )
+        o = opt_factory("separator", self.separator, d, "string")
         ol.add(o)
 
-        d = 'Remote operating system (linux or windows).'
-        o = opt_factory('operating_system', self.operating_system, d, 'string')
+        d = "Remote operating system (linux or windows)."
+        o = opt_factory("operating_system", self.operating_system, d, "string")
         ol.add(o)
-        
+
         return ol
-    
+
     def set_options(self, options_list):
         super(OSCommandingTemplate, self).set_options(options_list)
-        self.separator = options_list['separator'].get_value()
-        self.operating_system = options_list['operating_system'].get_value()
-    
+        self.separator = options_list["separator"].get_value()
+        self.operating_system = options_list["operating_system"].get_value()
+
     def create_vuln(self):
         v = super(OSCommandingTemplate, self).create_vuln()
-        
-        v['separator'] = self.separator
-        v['os'] = self.operating_system
-        
+
+        v["separator"] = self.separator
+        v["os"] = self.operating_system
+
         return v
-        
+
     def get_kb_location(self):
         """
         :return: A tuple with the location where the vulnerability will be
                  saved, example return value would be: ('eval', 'eval')
         """
-        return 'os_commanding', 'os_commanding'
+        return "os_commanding", "os_commanding"
 
     def get_vulnerability_name(self):
         """
@@ -75,8 +79,10 @@ class OSCommandingTemplate(BaseTemplate):
                  string which can contain any information, not used for any
                  strict matching of vulns before exploiting.
         """
-        return 'OS Commanding code execution'
+        return "OS Commanding code execution"
 
     def get_vulnerability_desc(self):
-        return 'Code execution vulnerability through injection of operating'\
-               ' system commands.'
+        return (
+            "Code execution vulnerability through injection of operating"
+            " system commands."
+        )

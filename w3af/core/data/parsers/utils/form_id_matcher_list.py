@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import json
 
 from w3af.core.data.parsers.utils.form_id_matcher import FormIDMatcher
@@ -42,6 +43,7 @@ class FormIDMatcherList(object):
 
     :see: https://github.com/andresriancho/w3af/issues/15161
     """
+
     def __init__(self, form_id_list_as_str):
         """
         :param form_id_list_as_str: The form ids as a string. This comes from
@@ -53,10 +55,10 @@ class FormIDMatcherList(object):
         try:
             form_id_list = json.loads(form_id_list_as_str)
         except ValueError:
-            raise ValueError('The form ID list must be a valid JSON.')
+            raise ValueError("The form ID list must be a valid JSON.")
 
         if not isinstance(form_id_list, list):
-            raise ValueError('The form ID list must be a JSON list.')
+            raise ValueError("The form ID list must be a JSON list.")
 
         # Now we have a list containing _something_ that should be form-ids
         # we translate those into real objects and set them in the internal
@@ -75,4 +77,3 @@ class FormIDMatcherList(object):
 
     def __str__(self):
         return self.to_json()
-

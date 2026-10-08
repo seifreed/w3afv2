@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 
-
 import os
 import sys
 import pickle
@@ -11,7 +10,10 @@ import pickle
 sys.path.insert(0, os.path.abspath(os.curdir))
 
 from w3af.core.controllers.ci.nosetests_wrapper.utils.test_stats import get_test_ids
-from w3af.core.controllers.ci.nosetests_wrapper.constants import ID_FILE, NOSE_RUN_SELECTOR
+from w3af.core.controllers.ci.nosetests_wrapper.constants import (
+    ID_FILE,
+    NOSE_RUN_SELECTOR,
+)
 
 
 def nose_strategy():
@@ -22,10 +24,10 @@ def nose_strategy():
     get_test_ids(NOSE_RUN_SELECTOR)
     nose_data = pickle.load(open(ID_FILE))
 
-    for key, value in nose_data['ids'].items():
+    for key, value in nose_data["ids"].items():
         _, _, test_class_method = value
-        print('%s:%s' % (key, test_class_method))
+        print("%s:%s" % (key, test_class_method))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     nose_strategy()

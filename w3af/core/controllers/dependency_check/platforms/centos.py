@@ -19,29 +19,43 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from .fedora import Fedora
 from ..requirements import CORE, GUI
 from .system_info import distribution_matches
 
 
 class CentOS(Fedora):
-    SYSTEM_NAME = 'CentOS'
-    PKG_MANAGER_CMD = 'sudo yum install'
-    PIP_CMD = 'pip-python'
+    SYSTEM_NAME = "CentOS"
+    PKG_MANAGER_CMD = "sudo yum install"
+    PIP_CMD = "pip-python"
 
-    CORE_SYSTEM_PACKAGES = ['python-pip','npm', 'python-devel', 'python-setuptools',
-                            'libsqlite3x-devel', 'gcc-c++', 'gcc', 'make',
-                            'git', 'libxml2-devel', 'libxslt-devel',
-                            'pyOpenSSL', 'openssl-devel', 'libcom_err-devel',
-                            'libcom_err', 'libffi-devel']
+    CORE_SYSTEM_PACKAGES = [
+        "python-pip",
+        "npm",
+        "python-devel",
+        "python-setuptools",
+        "libsqlite3x-devel",
+        "gcc-c++",
+        "gcc",
+        "make",
+        "git",
+        "libxml2-devel",
+        "libxslt-devel",
+        "pyOpenSSL",
+        "openssl-devel",
+        "libcom_err-devel",
+        "libcom_err",
+        "libffi-devel",
+    ]
 
     GUI_SYSTEM_PACKAGES = CORE_SYSTEM_PACKAGES[:]
-    GUI_SYSTEM_PACKAGES.extend(['graphviz', 'gtksourceview2', 'pygtksourceview',
-                                'pywebkitgtk'])
+    GUI_SYSTEM_PACKAGES.extend(
+        ["graphviz", "gtksourceview2", "pygtksourceview", "pywebkitgtk"]
+    )
 
-    SYSTEM_PACKAGES = {CORE: CORE_SYSTEM_PACKAGES,
-                       GUI: GUI_SYSTEM_PACKAGES}
+    SYSTEM_PACKAGES = {CORE: CORE_SYSTEM_PACKAGES, GUI: GUI_SYSTEM_PACKAGES}
 
     @staticmethod
     def is_current_platform():
-        return distribution_matches('redhat')
+        return distribution_matches("redhat")

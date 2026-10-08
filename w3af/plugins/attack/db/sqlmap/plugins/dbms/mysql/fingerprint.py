@@ -23,6 +23,7 @@ from lib.core.settings import MYSQL_ALIASES
 from lib.request import inject
 from plugins.generic.fingerprint import Fingerprint as GenericFingerprint
 
+
 class Fingerprint(GenericFingerprint):
     def __init__(self):
         GenericFingerprint.__init__(self, DBMS.MYSQL)
@@ -41,25 +42,27 @@ class Fingerprint(GenericFingerprint):
 
         # Reference: https://downloads.mysql.com/archives/community/
         versions = (
-                     (32200, 32235),    # MySQL 3.22
-                     (32300, 32359),    # MySQL 3.23
-                     (40000, 40032),    # MySQL 4.0
-                     (40100, 40131),    # MySQL 4.1
-                     (50000, 50096),    # MySQL 5.0
-                     (50100, 50172),    # MySQL 5.1
-                     (50400, 50404),    # MySQL 5.4
-                     (50500, 50554),    # MySQL 5.5
-                     (50600, 50635),    # MySQL 5.6
-                     (50700, 50717),    # MySQL 5.7
-                     (60000, 60014),    # MySQL 6.0
-                   )
+            (32200, 32235),  # MySQL 3.22
+            (32300, 32359),  # MySQL 3.23
+            (40000, 40032),  # MySQL 4.0
+            (40100, 40131),  # MySQL 4.1
+            (50000, 50096),  # MySQL 5.0
+            (50100, 50172),  # MySQL 5.1
+            (50400, 50404),  # MySQL 5.4
+            (50500, 50554),  # MySQL 5.5
+            (50600, 50635),  # MySQL 5.6
+            (50700, 50717),  # MySQL 5.7
+            (60000, 60014),  # MySQL 6.0
+        )
 
         index = -1
         for i in range(len(versions)):
             element = versions[i]
             version = element[0]
             version = getUnicode(version)
-            result = inject.checkBooleanExpression("[RANDNUM]=[RANDNUM]/*!%s AND [RANDNUM1]=[RANDNUM2]*/" % version)
+            result = inject.checkBooleanExpression(
+                "[RANDNUM]=[RANDNUM]/*!%s AND [RANDNUM1]=[RANDNUM2]*/" % version
+            )
 
             if result:
                 break
@@ -71,7 +74,9 @@ class Fingerprint(GenericFingerprint):
 
             for version in range(versions[index][0], versions[index][1] + 1):
                 version = getUnicode(version)
-                result = inject.checkBooleanExpression("[RANDNUM]=[RANDNUM]/*!%s AND [RANDNUM1]=[RANDNUM2]*/" % version)
+                result = inject.checkBooleanExpression(
+                    "[RANDNUM]=[RANDNUM]/*!%s AND [RANDNUM1]=[RANDNUM2]*/" % version
+                )
 
                 if result:
                     if not prevVer:
@@ -123,7 +128,9 @@ class Fingerprint(GenericFingerprint):
             value += "\n%scomment injection fingerprint: %s" % (blank, comVer)
 
         if kb.bannerFp:
-            banVer = kb.bannerFp["dbmsVersion"] if "dbmsVersion" in kb.bannerFp else None
+            banVer = (
+                kb.bannerFp["dbmsVersion"] if "dbmsVersion" in kb.bannerFp else None
+            )
 
             if banVer and re.search(r"-log$", kb.data.banner):
                 banVer += ", logging enabled"
@@ -177,13 +184,20 @@ class Fingerprint(GenericFingerprint):
                 return False
 
             if hashDBRetrieve(HASHDB_KEYS.DBMS_FORK) is None:
-                hashDBWrite(HASHDB_KEYS.DBMS_FORK, inject.checkBooleanExpression("VERSION() LIKE '%MariaDB%'") and "MariaDB" or "")
+                hashDBWrite(
+                    HASHDB_KEYS.DBMS_FORK,
+                    inject.checkBooleanExpression("VERSION() LIKE '%MariaDB%'")
+                    and "MariaDB"
+                    or "",
+                )
 
             # reading information_schema on some platforms is causing annoying timeout exits
             # Reference: http://bugs.mysql.com/bug.php?id=15855
 
             # Determine if it is MySQL >= 5.0.0
-            if inject.checkBooleanExpression("ISNULL(TIMESTAMPADD(MINUTE,[RANDNUM],NULL))"):
+            if inject.checkBooleanExpression(
+                "ISNULL(TIMESTAMPADD(MINUTE,[RANDNUM],NULL))"
+            ):
                 kb.data.has_information_schema = True
                 Backend.setVersion(">= 5.0.0")
                 setDbms("%s 5" % DBMS.MYSQL)
@@ -200,14 +214,24 @@ class Fingerprint(GenericFingerprint):
                     Backend.setVersion(">= 5.5.0")
 
                 # Check if it is MySQL >= 5.1.2 and < 5.5.0
-                elif inject.checkBooleanExpression("@@table_open_cache=@@table_open_cache"):
-                    if inject.checkBooleanExpression("[RANDNUM]=(SELECT [RANDNUM] FROM information_schema.GLOBAL_STATUS LIMIT 0, 1)"):
+                elif inject.checkBooleanExpression(
+                    "@@table_open_cache=@@table_open_cache"
+                ):
+                    if inject.checkBooleanExpression(
+                        "[RANDNUM]=(SELECT [RANDNUM] FROM information_schema.GLOBAL_STATUS LIMIT 0, 1)"
+                    ):
                         Backend.setVersionList([">= 5.1.12", "< 5.5.0"])
-                    elif inject.checkBooleanExpression("[RANDNUM]=(SELECT [RANDNUM] FROM information_schema.PROCESSLIST LIMIT 0, 1)"):
+                    elif inject.checkBooleanExpression(
+                        "[RANDNUM]=(SELECT [RANDNUM] FROM information_schema.PROCESSLIST LIMIT 0, 1)"
+                    ):
                         Backend.setVersionList([">= 5.1.7", "< 5.1.12"])
-                    elif inject.checkBooleanExpression("[RANDNUM]=(SELECT [RANDNUM] FROM information_schema.PARTITIONS LIMIT 0, 1)"):
+                    elif inject.checkBooleanExpression(
+                        "[RANDNUM]=(SELECT [RANDNUM] FROM information_schema.PARTITIONS LIMIT 0, 1)"
+                    ):
                         Backend.setVersion("= 5.1.6")
-                    elif inject.checkBooleanExpression("[RANDNUM]=(SELECT [RANDNUM] FROM information_schema.PLUGINS LIMIT 0, 1)"):
+                    elif inject.checkBooleanExpression(
+                        "[RANDNUM]=(SELECT [RANDNUM] FROM information_schema.PLUGINS LIMIT 0, 1)"
+                    ):
                         Backend.setVersionList([">= 5.1.5", "< 5.1.6"])
                     else:
                         Backend.setVersionList([">= 5.1.2", "< 5.1.5"])
@@ -215,13 +239,21 @@ class Fingerprint(GenericFingerprint):
                 # Check if it is MySQL >= 5.0.0 and < 5.1.2
                 elif inject.checkBooleanExpression("@@hostname=@@hostname"):
                     Backend.setVersionList([">= 5.0.38", "< 5.1.2"])
-                elif inject.checkBooleanExpression("@@character_set_filesystem=@@character_set_filesystem"):
+                elif inject.checkBooleanExpression(
+                    "@@character_set_filesystem=@@character_set_filesystem"
+                ):
                     Backend.setVersionList([">= 5.0.19", "< 5.0.38"])
-                elif not inject.checkBooleanExpression("[RANDNUM]=(SELECT [RANDNUM] FROM DUAL WHERE [RANDNUM1]!=[RANDNUM2])"):
+                elif not inject.checkBooleanExpression(
+                    "[RANDNUM]=(SELECT [RANDNUM] FROM DUAL WHERE [RANDNUM1]!=[RANDNUM2])"
+                ):
                     Backend.setVersionList([">= 5.0.11", "< 5.0.19"])
-                elif inject.checkBooleanExpression("@@div_precision_increment=@@div_precision_increment"):
+                elif inject.checkBooleanExpression(
+                    "@@div_precision_increment=@@div_precision_increment"
+                ):
                     Backend.setVersionList([">= 5.0.6", "< 5.0.11"])
-                elif inject.checkBooleanExpression("@@automatic_sp_privileges=@@automatic_sp_privileges"):
+                elif inject.checkBooleanExpression(
+                    "@@automatic_sp_privileges=@@automatic_sp_privileges"
+                ):
                     Backend.setVersionList([">= 5.0.3", "< 5.0.6"])
                 else:
                     Backend.setVersionList([">= 5.0.0", "< 5.0.3"])
@@ -231,7 +263,9 @@ class Fingerprint(GenericFingerprint):
                 setDbms("%s 5" % DBMS.MYSQL)
                 self.getBanner()
 
-            elif inject.checkBooleanExpression("STRCMP(LOWER(CURRENT_USER()), UPPER(CURRENT_USER()))=0"):
+            elif inject.checkBooleanExpression(
+                "STRCMP(LOWER(CURRENT_USER()), UPPER(CURRENT_USER()))=0"
+            ):
                 Backend.setVersion("< 5.0.0")
                 setDbms("%s 4" % DBMS.MYSQL)
                 self.getBanner()
@@ -247,7 +281,9 @@ class Fingerprint(GenericFingerprint):
                 elif inject.checkBooleanExpression("CURRENT_USER()=CURRENT_USER()"):
                     Backend.setVersionList([">= 4.0.6", "< 4.1.1"])
 
-                    if inject.checkBooleanExpression("'utf8'=(SELECT CHARSET(CURRENT_USER()))"):
+                    if inject.checkBooleanExpression(
+                        "'utf8'=(SELECT CHARSET(CURRENT_USER()))"
+                    ):
                         Backend.setVersion("= 4.1.0")
                     else:
                         Backend.setVersionList([">= 4.0.6", "< 4.1.0"])
@@ -272,7 +308,9 @@ class Fingerprint(GenericFingerprint):
         infoMsg = "fingerprinting the back-end DBMS operating system"
         logger.info(infoMsg)
 
-        result = inject.checkBooleanExpression("'W'=UPPER(MID(@@version_compile_os,1,1))")
+        result = inject.checkBooleanExpression(
+            "'W'=UPPER(MID(@@version_compile_os,1,1))"
+        )
 
         if result:
             Backend.setOs(OS.WINDOWS)

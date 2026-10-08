@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 import zlib
 import itertools
@@ -47,7 +48,7 @@ class serialized_object(GrepPlugin):
     CACHE_MAX_SIZE = 100
 
     SERIALIZED_OBJECT_RE = {
-        'PHP': [
+        "PHP": [
             re.compile('^(a|O):\d{1,3}:({[sai]|")'),
         ]
     }
@@ -73,12 +74,14 @@ class serialized_object(GrepPlugin):
             for language, regular_expressions in self.SERIALIZED_OBJECT_RE.items():
                 for serialized_object_re in regular_expressions:
 
-                    self._analyze_param(request,
-                                        response,
-                                        parameter_name,
-                                        parameter_value,
-                                        language,
-                                        serialized_object_re)
+                    self._analyze_param(
+                        request,
+                        response,
+                        parameter_name,
+                        parameter_value,
+                        language,
+                        serialized_object_re,
+                    )
 
     def _should_skip_analysis(self, parameter_value):
         """
@@ -116,8 +119,15 @@ class serialized_object(GrepPlugin):
 
         return False
 
-    def _analyze_param(self, request, response, parameter_name, parameter_value,
-                       language, serialized_object_re):
+    def _analyze_param(
+        self,
+        request,
+        response,
+        parameter_name,
+        parameter_value,
+        language,
+        serialized_object_re,
+    ):
         """
         Check if one parameter holds a serialized object
 
@@ -133,9 +143,11 @@ class serialized_object(GrepPlugin):
             match_object = serialized_object_re.search(parameter_value)
         except Exception as e:
             args = (e, parameter_value)
-            om.out.debug('An exception was found while trying to find a'
-                         ' serialized object in a parameter value. The exception'
-                         ' is: "%s", and the parameter value is: "%r"' % args)
+            om.out.debug(
+                "An exception was found while trying to find a"
+                " serialized object in a parameter value. The exception"
+                ' is: "%s", and the parameter value is: "%r"' % args
+            )
             return
 
         if not match_object:
@@ -143,21 +155,23 @@ class serialized_object(GrepPlugin):
 
         # We found a match! The parameter value is a serialized object
         # Just report this to get the user's attention
-        desc = ('Identified a %s serialized object being sent by the web'
-                ' application in a request to "%s" in a parameter named "%s".'
-                ' While this is not a vulnerability by itself, it is a strong'
-                ' indicator of potential insecure deserialization issues.')
+        desc = (
+            "Identified a %s serialized object being sent by the web"
+            ' application in a request to "%s" in a parameter named "%s".'
+            " While this is not a vulnerability by itself, it is a strong"
+            " indicator of potential insecure deserialization issues."
+        )
         desc %= (language, request.get_url(), parameter_name)
 
-        v = Vuln('Serialized object', desc, severity.LOW, response.id, self.get_name())
+        v = Vuln("Serialized object", desc, severity.LOW, response.id, self.get_name())
 
         v.set_url(response.get_url())
         v.add_to_highlight(parameter_value)
         v[SerializedObjectInfoSet.ITAG] = parameter_name
 
-        self.kb_append_uniq_group(self,
-                                  'serialized_object', v,
-                                  group_klass=SerializedObjectInfoSet)
+        self.kb_append_uniq_group(
+            self, "serialized_object", v, group_klass=SerializedObjectInfoSet
+        )
 
     def _get_all_parameters(self, request):
         """
@@ -168,14 +182,14 @@ class serialized_object(GrepPlugin):
         query_string = request.get_uri().get_querystring()
         dc = dc_from_hdrs_post(headers, request.get_data())
 
-        cookie_str, _ = headers.iget('cookie', '')
+        cookie_str, _ = headers.iget("cookie", "")
         cookie_dc = Cookie(cookie_str)
 
         token_generators = itertools.chain(
             query_string.iter_tokens(),
             dc.iter_tokens(),
             headers.iter_tokens(),
-            cookie_dc.iter_tokens()
+            cookie_dc.iter_tokens(),
         )
 
         for token in token_generators:
@@ -205,13 +219,13 @@ class serialized_object(GrepPlugin):
 
 
 class SerializedObjectInfoSet(InfoSet):
-    ITAG = 'parameter_name'
+    ITAG = "parameter_name"
     TEMPLATE = (
-        'A total of {{ uris|length }} HTTP requests contained a serialized'
+        "A total of {{ uris|length }} HTTP requests contained a serialized"
         ' object in the parameter with name "{{ parameter_name }}". The first'
-        ' ten matching URLs are:\n'
-        ''
-        '{% for url in uris[:10] %}'
-        ' - {{ url }}\n'
-        '{% endfor %}'
+        " ten matching URLs are:\n"
+        ""
+        "{% for url in uris[:10] %}"
+        " - {{ url }}\n"
+        "{% endfor %}"
     )

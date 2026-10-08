@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.kb.info import Info
 
@@ -30,7 +31,9 @@ class oracle(GrepPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    OAS_TAGS = ['<!-- Created by Oracle ',]
+    OAS_TAGS = [
+        "<!-- Created by Oracle ",
+    ]
 
     def __init__(self):
         GrepPlugin.__init__(self)
@@ -48,15 +51,15 @@ class oracle(GrepPlugin):
 
         for msg in self.OAS_TAGS:
             if msg in response:
-                desc = 'The URL: "%s" was created using Oracle Application'\
-                       ' Server.'
+                desc = 'The URL: "%s" was created using Oracle Application' " Server."
                 desc = desc % response.get_url()
-                i = Info('Oracle application server', desc, response.id,
-                         self.get_name())
+                i = Info(
+                    "Oracle application server", desc, response.id, self.get_name()
+                )
                 i.set_url(response.get_url())
                 i.add_to_highlight(msg)
-                
-                self.kb_append(self, 'oracle', i)
+
+                self.kb_append(self, "oracle", i)
 
     def get_long_desc(self):
         """

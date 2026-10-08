@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from io import StringIO
 
 from w3af.core.data.context.context.base import BaseContext
@@ -28,11 +29,11 @@ STRING_DELIMITERS = {'"', "'"}
 
 
 class ScriptSingleLineComment(BaseContext):
-    CAN_BREAK = {'\n', '\r'}
+    CAN_BREAK = {"\n", "\r"}
 
 
 class ScriptMultiLineComment(BaseContext):
-    CAN_BREAK = {'*/'}
+    CAN_BREAK = {"*/"}
 
 
 class ScriptStringGeneric(BaseContext):
@@ -43,6 +44,7 @@ class ScriptSingleQuoteString(ScriptStringGeneric):
     """
     Matches alert('PAYLOAD');
     """
+
     ATTR_DELIMITER = "'"
     CAN_BREAK = {ATTR_DELIMITER}
 
@@ -51,6 +53,7 @@ class ScriptDoubleQuoteString(ScriptStringGeneric):
     """
     Matches alert("PAYLOAD");
     """
+
     ATTR_DELIMITER = '"'
     CAN_BREAK = {ATTR_DELIMITER}
 
@@ -62,14 +65,20 @@ class ScriptExecutableContext(BaseContext):
         * PAYLOAD;
         * {"x": PAYLOAD}
     """
+
     CAN_BREAK = {}
 
     def is_executable(self):
         return True
 
-ALL_CONTEXTS = [ScriptExecutableContext, ScriptDoubleQuoteString,
-                ScriptSingleQuoteString, ScriptMultiLineComment,
-                ScriptSingleLineComment]
+
+ALL_CONTEXTS = [
+    ScriptExecutableContext,
+    ScriptDoubleQuoteString,
+    ScriptSingleQuoteString,
+    ScriptMultiLineComment,
+    ScriptSingleLineComment,
+]
 
 
 def get_js_context(data, payload):
@@ -97,7 +106,7 @@ def get_js_context_iter(data, payload):
     string_delim = None
     inside_single_line_comment = False
     inside_multi_line_comment = False
-    context_content = ''
+    context_content = ""
 
     data_io = StringIO(data)
 
@@ -113,7 +122,7 @@ def get_js_context_iter(data, payload):
         if inside_string:
 
             # Handle \ escapes inside strings
-            if c == '\\':
+            if c == "\\":
                 escape_next = True
                 continue
 
@@ -126,13 +135,11 @@ def get_js_context_iter(data, payload):
 
                 if CONTEXT_DETECTOR in context_content:
                     if string_delim == "'":
-                        yield ScriptSingleQuoteString(payload,
-                                                      untidy(context_content))
+                        yield ScriptSingleQuoteString(payload, untidy(context_content))
                     else:
-                        yield ScriptDoubleQuoteString(payload,
-                                                      untidy(context_content))
+                        yield ScriptDoubleQuoteString(payload, untidy(context_content))
 
-                context_content = ''
+                context_content = ""
                 inside_string = False
 
             # Go to the next char inside the string
@@ -142,26 +149,24 @@ def get_js_context_iter(data, payload):
         if inside_single_line_comment:
 
             # Handle the end of a comment
-            if c in {'\n', '\r'}:
+            if c in {"\n", "\r"}:
                 if CONTEXT_DETECTOR in context_content:
-                    yield ScriptSingleLineComment(payload,
-                                                  untidy(context_content))
+                    yield ScriptSingleLineComment(payload, untidy(context_content))
                 inside_single_line_comment = False
-                context_content = ''
+                context_content = ""
             continue
 
         # Handle the content of a /* multi line comment */
         if inside_multi_line_comment:
-            if c == '*':
+            if c == "*":
                 c = data_io.read(1)
                 context_content += c
 
-                if c == '/':
+                if c == "/":
                     if CONTEXT_DETECTOR in context_content:
-                        yield ScriptMultiLineComment(payload,
-                                                     untidy(context_content))
+                        yield ScriptMultiLineComment(payload, untidy(context_content))
                     inside_multi_line_comment = False
-                    context_content = ''
+                    context_content = ""
             continue
 
         # Handle the string starts
@@ -169,35 +174,32 @@ def get_js_context_iter(data, payload):
 
             # This analyzes the context content before the string start
             if CONTEXT_DETECTOR in context_content:
-                yield ScriptExecutableContext(payload,
-                                              untidy(context_content))
+                yield ScriptExecutableContext(payload, untidy(context_content))
 
             inside_string = True
             string_delim = c
-            context_content = ''
+            context_content = ""
             continue
 
         # Handle the comment starts
-        if c == '/':
+        if c == "/":
             c = data_io.read(1)
             context_content += c
 
-            if c == '/':
+            if c == "/":
                 inside_single_line_comment = True
 
-            if c == '*':
+            if c == "*":
                 inside_multi_line_comment = True
 
             if inside_multi_line_comment or inside_single_line_comment:
                 # This analyzes the context content before the comment start
                 if CONTEXT_DETECTOR in context_content:
-                    yield ScriptExecutableContext(payload,
-                                                  untidy(context_content))
+                    yield ScriptExecutableContext(payload, untidy(context_content))
 
-                context_content = ''
+                context_content = ""
                 continue
 
     # Handle the remaining bytes from the JS code:
     if CONTEXT_DETECTOR in context_content:
-        yield ScriptExecutableContext(payload,
-                                      untidy(context_content))
+        yield ScriptExecutableContext(payload, untidy(context_content))

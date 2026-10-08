@@ -19,11 +19,14 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.data.kb.knowledge_base as kb
 import w3af.core.controllers.output_manager as om
 
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
-from w3af.core.controllers.sql_tools.blind_sqli_response_diff import BlindSqliResponseDiff
+from w3af.core.controllers.sql_tools.blind_sqli_response_diff import (
+    BlindSqliResponseDiff,
+)
 from w3af.core.controllers.sql_tools.blind_sqli_time_delay import BlindSQLTimeDelay
 
 from w3af.core.data.options.opt_factory import opt_factory
@@ -61,9 +64,11 @@ class blind_sqli(AuditPlugin):
 
         test_iterator = self._generate_response_diff_tests(freq, bsqli_resp_diff)
 
-        self._send_mutants_in_threads(func=self._find_response_diff_sql,
-                                      iterable=test_iterator,
-                                      callback=lambda x, y: None)
+        self._send_mutants_in_threads(
+            func=self._find_response_diff_sql,
+            iterable=test_iterator,
+            callback=lambda x, y: None,
+        )
 
         #
         #    Blind SQL injection time delays
@@ -73,9 +78,11 @@ class blind_sqli(AuditPlugin):
 
         test_iterator = self._generate_delay_tests(freq, bsqli_time_delay)
 
-        self._send_mutants_in_threads(func=self._find_time_delay_sql,
-                                      iterable=test_iterator,
-                                      callback=lambda x, y: None)
+        self._send_mutants_in_threads(
+            func=self._find_time_delay_sql,
+            iterable=test_iterator,
+            callback=lambda x, y: None,
+        )
 
     def _find_response_diff_sql(self, response_diff):
         """
@@ -84,7 +91,7 @@ class blind_sqli(AuditPlugin):
         :param statement_type: The type of statement (string single, string double, int)
         :return: A vulnerability or None
         """
-        (bsqli_resp_diff, mutant, statement_type) = response_diff
+        bsqli_resp_diff, mutant, statement_type = response_diff
         if self._has_sql_injection(mutant):
             #
             # If sqli.py was enabled and already detected a vulnerability
@@ -116,35 +123,46 @@ class blind_sqli(AuditPlugin):
             return
 
         if self._has_sql_injection(mutant):
-            msg = ('There is already a SQL injection vulnerability in the'
-                   ' KB for this blind SQL injection. Will not save the'
-                   ' blind SQL injection (%s) to avoid duplicates.')
+            msg = (
+                "There is already a SQL injection vulnerability in the"
+                " KB for this blind SQL injection. Will not save the"
+                " blind SQL injection (%s) to avoid duplicates."
+            )
             args = (vuln,)
             om.out.debug(msg % args)
             return
 
         if self._has_bug(mutant):
-            msg = ('There is already a Blind SQL injection vulnerability'
-                   ' in the KB with the same URL and parameter combination.'
-                   ' Will not save blind SQL injection (%s) to avoid'
-                   ' duplicates.')
+            msg = (
+                "There is already a Blind SQL injection vulnerability"
+                " in the KB with the same URL and parameter combination."
+                " Will not save blind SQL injection (%s) to avoid"
+                " duplicates."
+            )
             args = (vuln,)
             om.out.debug(msg % args)
             return
 
-        added_to_kb = self.kb_append_uniq(self, 'blind_sqli', vuln)
+        added_to_kb = self.kb_append_uniq(self, "blind_sqli", vuln)
 
         if not added_to_kb:
-            msg = ('The kb_append_uniq() returned false. The blind SQL'
-                   ' injection vulnerability was NOT saved to the KB because'
-                   ' another vulnerability (uniq) was stored there before.'
-                   ' The blind SQL injection vulnerability that was ignored'
-                   ' is: %s.')
+            msg = (
+                "The kb_append_uniq() returned false. The blind SQL"
+                " injection vulnerability was NOT saved to the KB because"
+                " another vulnerability (uniq) was stored there before."
+                " The blind SQL injection vulnerability that was ignored"
+                " is: %s."
+            )
             args = (vuln,)
             om.out.debug(msg % args)
 
     def _generate_response_diff_tests(self, freq, bsqli_resp_diff):
-        for mutant in create_mutants(freq, ['', ]):
+        for mutant in create_mutants(
+            freq,
+            [
+                "",
+            ],
+        ):
 
             if self._has_sql_injection(mutant):
                 #
@@ -166,7 +184,12 @@ class blind_sqli(AuditPlugin):
                 yield bsqli_resp_diff, mutant, statement_type
 
     def _generate_delay_tests(self, freq, bsqli_time_delay):
-        for mutant in create_mutants(freq, ['', ]):
+        for mutant in create_mutants(
+            freq,
+            [
+                "",
+            ],
+        ):
 
             if self._has_sql_injection(mutant):
                 #
@@ -194,7 +217,7 @@ class blind_sqli(AuditPlugin):
         :param delay_obj: The exact delay object
         :return: A vulnerability or None
         """
-        (bsqli_time_delay, mutant, delay_obj) = delayed_mutant
+        bsqli_time_delay, mutant, delay_obj = delayed_mutant
         if self._has_sql_injection(mutant):
             #
             # If sqli.py was enabled and already detected a vulnerability
@@ -219,7 +242,7 @@ class blind_sqli(AuditPlugin):
         :return: True if there IS a reported SQL injection for this
                  URL/parameter combination.
         """
-        for sql_injection in kb.kb.get_iter('sqli', 'sqli'):
+        for sql_injection in kb.kb.get_iter("sqli", "sqli"):
             if sql_injection.get_url() != mutant.get_url():
                 continue
 
@@ -236,10 +259,9 @@ class blind_sqli(AuditPlugin):
         """
         opt_list = OptionList()
 
-        desc = 'String equal ratio (0.0 to 1.0)'
-        h = ('Two pages are considered equal if they match in more'
-             ' than eq_limit.')
-        opt = opt_factory('eq_limit', self._eq_limit, desc, 'float', help=h)
+        desc = "String equal ratio (0.0 to 1.0)"
+        h = "Two pages are considered equal if they match in more" " than eq_limit."
+        opt = opt_factory("eq_limit", self._eq_limit, desc, "float", help=h)
 
         opt_list.add(opt)
 
@@ -253,7 +275,7 @@ class blind_sqli(AuditPlugin):
         :param options_list: A dictionary with the options for the plugin.
         :return: No value is returned.
         """
-        self._eq_limit = options_list['eq_limit'].get_value()
+        self._eq_limit = options_list["eq_limit"].get_value()
 
     def get_long_desc(self):
         """

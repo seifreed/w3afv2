@@ -26,6 +26,7 @@ modifications are:
     reads, and added a hack for the HEAD method.
   - SNI support for SSL
 """
+
 import time
 import socket
 import urllib.request, urllib.error, urllib.parse
@@ -38,29 +39,35 @@ from http.client import _is_legal_header_name, _is_illegal_header_value
 
 from .utils import debug, error, to_utf8_raw
 from .connection_manager import ConnectionManager
-from .connections import (ProxyHTTPConnection, ProxyHTTPSConnection,
-                          HTTPConnection, HTTPSConnection)
-from w3af.core.controllers.exceptions import (BaseFrameworkException,
-                                              HTTPRequestException,
-                                              ConnectionPoolException)
+from .connections import (
+    ProxyHTTPConnection,
+    ProxyHTTPSConnection,
+    HTTPConnection,
+    HTTPSConnection,
+)
+from w3af.core.controllers.exceptions import (
+    BaseFrameworkException,
+    HTTPRequestException,
+    ConnectionPoolException,
+)
 
-
-DEFAULT_CONTENT_TYPE = 'application/x-www-form-urlencoded'
+DEFAULT_CONTENT_TYPE = "application/x-www-form-urlencoded"
 
 
 class URLTimeoutError(urllib.error.URLError):
     """
     Our own URLError timeout exception. Basically a wrapper for socket.timeout.
     """
+
     def __init__(self):
-        urllib.error.URLError.__init__(self, (408, 'timeout'))
+        urllib.error.URLError.__init__(self, (408, "timeout"))
 
     def __str__(self):
         default_timeout = socket.getdefaulttimeout()
         if default_timeout is not None:
-            return 'HTTP timeout error after %s seconds' % default_timeout
+            return "HTTP timeout error after %s seconds" % default_timeout
         else:
-            return 'HTTP timeout error'
+            return "HTTP timeout error"
 
 
 class KeepAliveHandler(object):
@@ -95,27 +102,27 @@ class KeepAliveHandler(object):
         no error occurs if there is no connection to that host.
         """
         for conn in self._cm.get_all(host):
-            self._cm.remove_connection(conn, reason='close connection')
+            self._cm.remove_connection(conn, reason="close connection")
 
     def close_all(self):
         """
         Close all open connections
         """
-        debug('Closing all connections')
+        debug("Closing all connections")
 
         for conn in self._cm.get_all():
-            self._cm.remove_connection(conn, reason='close all connections')
+            self._cm.remove_connection(conn, reason="close all connections")
 
     def _request_closed(self, connection):
         """
         This request is now closed and that the connection is ready for another
         request
         """
-        debug('Add %s to free-to-use connection list' % connection)
+        debug("Add %s to free-to-use connection list" % connection)
         self._cm.free_connection(connection)
 
     def _remove_connection(self, conn):
-        self._cm.remove_connection(conn, reason='remove connection')
+        self._cm.remove_connection(conn, reason="remove connection")
 
     def do_open(self, req):
         """
@@ -123,7 +130,7 @@ class KeepAliveHandler(object):
         """
         host = req.get_host()
         if not host:
-            raise urllib.error.URLError('no host given')
+            raise urllib.error.URLError("no host given")
 
         conn_factory = self.get_connection
 
@@ -152,18 +159,18 @@ class KeepAliveHandler(object):
 
         except socket.timeout:
             # We better discard this connection
-            self._cm.remove_connection(conn, reason='socket timeout')
+            self._cm.remove_connection(conn, reason="socket timeout")
             raise URLTimeoutError()
 
         except OpenSSL.SSL.ZeroReturnError:
             # According to the pyOpenSSL docs ZeroReturnError means that the
             # SSL connection has been closed cleanly
-            self._cm.remove_connection(conn, reason='ZeroReturnError')
+            self._cm.remove_connection(conn, reason="ZeroReturnError")
             raise
 
         except OpenSSL.SSL.SysCallError:
             # We better discard this connection
-            self._cm.remove_connection(conn, reason='OpenSSL SysCallError')
+            self._cm.remove_connection(conn, reason="OpenSSL SysCallError")
             raise
 
         except OpenSSL.SSL.Error:
@@ -178,12 +185,12 @@ class KeepAliveHandler(object):
             # OpenSSL exceptions, so we're catching quite a lot of things here
             # and the except order matters.
             #
-            self._cm.remove_connection(conn, reason='OpenSSL.SSL.Error')
+            self._cm.remove_connection(conn, reason="OpenSSL.SSL.Error")
             raise
 
         except (socket.error, http.client.HTTPException):
             # We better discard this connection
-            self._cm.remove_connection(conn, reason='socket error')
+            self._cm.remove_connection(conn, reason="socket error")
             raise
 
         except Exception as e:
@@ -212,8 +219,8 @@ class KeepAliveHandler(object):
             # better understand it.
             #
             # https://github.com/andresriancho/w3af/issues/2074
-            self._cm.remove_connection(conn, reason='http connection died')
-            raise HTTPRequestException('The HTTP connection died')
+            self._cm.remove_connection(conn, reason="http connection died")
+            raise HTTPRequestException("The HTTP connection died")
         except Exception as e:
             # We better discard this connection, we don't even know what happen!
             reason = 'unexpected exception while reading "%s"' % e
@@ -223,9 +230,9 @@ class KeepAliveHandler(object):
         # If not a persistent connection, or the user specified that he wanted
         # a new connection for this specific request, don't try to reuse it
         if resp.will_close:
-            self._cm.remove_connection(conn, reason='will close')
+            self._cm.remove_connection(conn, reason="will close")
         elif req.new_connection:
-            self._cm.remove_connection(conn, reason='new connection')
+            self._cm.remove_connection(conn, reason="new connection")
 
         # We measure time here because it's the best place we know of
         elapsed = time.time() - start
@@ -266,13 +273,13 @@ class KeepAliveHandler(object):
             # note: just because we got something back doesn't mean it
             # worked.  We'll check the version below, too.
         except (socket.error, http.client.HTTPException) as e:
-            self._cm.remove_connection(conn, reason='socket error')
+            self._cm.remove_connection(conn, reason="socket error")
             resp = None
             reason = e
         except OpenSSL.SSL.ZeroReturnError as e:
             # According to the pyOpenSSL docs ZeroReturnError means that the
             # SSL connection has been closed cleanly
-            self._cm.remove_connection(conn, reason='ZeroReturnError')
+            self._cm.remove_connection(conn, reason="ZeroReturnError")
             resp = None
             reason = e
         except OpenSSL.SSL.SysCallError as e:
@@ -282,7 +289,7 @@ class KeepAliveHandler(object):
             #
             # A new connection will be created and the scan should continue without
             # problems
-            self._cm.remove_connection(conn, reason='OpenSSL.SSL.SysCallError')
+            self._cm.remove_connection(conn, reason="OpenSSL.SSL.SysCallError")
             resp = None
             reason = e
         except Exception as e:
@@ -296,7 +303,7 @@ class KeepAliveHandler(object):
             msg = 'Unexpected exception "%s" - closing %s to %s)'
             error(msg % (e, conn, host))
 
-            self._cm.remove_connection(conn, reason='unexpected %s' % e)
+            self._cm.remove_connection(conn, reason="unexpected %s" % e)
             raise
 
         if resp is None or resp.version == 9:
@@ -310,7 +317,7 @@ class KeepAliveHandler(object):
 
             resp = None
         else:
-            debug('Re-using %s to %s' % (conn, host))
+            debug("Re-using %s to %s" % (conn, host))
             resp._multiread = None
 
         return resp
@@ -336,27 +343,26 @@ class KeepAliveHandler(object):
         """
         self._update_socket_timeout(conn, req)
 
-        conn.putrequest(req.get_method(),
-                        req.get_selector(),
-                        skip_host=1,
-                        skip_accept_encoding=1)
+        conn.putrequest(
+            req.get_method(), req.get_selector(), skip_host=1, skip_accept_encoding=1
+        )
 
         # We're always sending HTTP/1.1, which makes connection keep alive a
         # default, BUT since the browsers (Chrome at least) send this header
         # in their HTTP/1.1 requests we're going to do the same just to make
         # sure we behave like a browser
-        if not req.has_header('Connection'):
-            conn.putheader('Connection', 'keep-alive')
+        if not req.has_header("Connection"):
+            conn.putheader("Connection", "keep-alive")
 
         data = req.get_data()
         if data is not None:
             data = str(data)
 
-            if not req.has_header('Content-type'):
-                conn.putheader('Content-type', DEFAULT_CONTENT_TYPE)
+            if not req.has_header("Content-type"):
+                conn.putheader("Content-type", DEFAULT_CONTENT_TYPE)
 
-            if not req.has_header('Content-length'):
-                conn.putheader('Content-length', '%d' % len(data))
+            if not req.has_header("Content-length"):
+                conn.putheader("Content-length", "%d" % len(data))
 
         # Add headers
         header_dict = dict(self.parent.addheaders)
@@ -371,7 +377,7 @@ class KeepAliveHandler(object):
                 continue
 
             if v is None:
-                v = ''
+                v = ""
 
             #
             # Encode the key and value as UTF-8 and try to send them to the wire
@@ -402,10 +408,10 @@ class KeepAliveHandler(object):
                 #        work in 1% of the remote servers, but it is our best bet
                 #
                 if not _is_legal_header_name(k):
-                    k = header_encode(k, charset='utf-8', keep_eols=True)
+                    k = header_encode(k, charset="utf-8", keep_eols=True)
 
                 if _is_illegal_header_value(v):
-                    v = header_encode(v, charset='utf-8', keep_eols=True)
+                    v = header_encode(v, charset="utf-8", keep_eols=True)
 
                 conn.putheader(k, v)
 
@@ -440,10 +446,12 @@ class HTTPSHandler(KeepAliveHandler, urllib.request.HTTPSHandler):
 
         self._proxy = proxy
         try:
-            host, port = self._proxy.split(':')
+            host, port = self._proxy.split(":")
         except:
-            msg = ('The proxy you are specifying (%s) is invalid! The expected'
-                   ' format is <ip_address>:<port> is expected.')
+            msg = (
+                "The proxy you are specifying (%s) is invalid! The expected"
+                " format is <ip_address>:<port> is expected."
+            )
             raise BaseFrameworkException(msg % proxy)
         else:
             if not host or not port:
@@ -453,15 +461,11 @@ class HTTPSHandler(KeepAliveHandler, urllib.request.HTTPSHandler):
         return self.do_open(req)
 
     def get_connection(self, request):
-        use_proxy = getattr(request, 'use_proxy', False)
+        use_proxy = getattr(request, "use_proxy", False)
         if self._proxy and use_proxy:
-            proxy_host, proxy_port = self._proxy.split(':')
-            return ProxyHTTPSConnection(proxy_host,
-                                        proxy_port,
-                                        timeout=request.get_timeout())
+            proxy_host, proxy_port = self._proxy.split(":")
+            return ProxyHTTPSConnection(
+                proxy_host, proxy_port, timeout=request.get_timeout()
+            )
         else:
-            return HTTPSConnection(request.get_host(),
-                                   timeout=request.get_timeout())
-
-
-
+            return HTTPSConnection(request.get_host(), timeout=request.get_timeout())

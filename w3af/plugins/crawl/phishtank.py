@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os.path
 import socket
 import csv
@@ -45,8 +46,8 @@ class phishtank(CrawlPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     :author: Special thanks to http://www.phishtank.com/ !
     """
-    PHISHTANK_DB = os.path.join(ROOT_PATH, 'plugins', 'crawl', 'phishtank',
-                                'index.csv')
+
+    PHISHTANK_DB = os.path.join(ROOT_PATH, "plugins", "crawl", "phishtank", "index.csv")
 
     def __init__(self):
         CrawlPlugin.__init__(self)
@@ -73,14 +74,16 @@ class phishtank(CrawlPlugin):
             fr = FuzzableRequest(ptm.url)
             self.output_queue.put(fr)
 
-        desc = ('The URL: "%s" seems to be involved in a Phishing scam.'
-                ' Please see %s for more info.')
+        desc = (
+            'The URL: "%s" seems to be involved in a Phishing scam.'
+            " Please see %s for more info."
+        )
         desc %= (ptm.url, ptm.more_info_url)
 
-        v = Vuln('Phishing scam', desc, severity.MEDIUM, [], self.get_name())
+        v = Vuln("Phishing scam", desc, severity.MEDIUM, [], self.get_name())
         v.set_url(ptm.url)
 
-        kb.kb.append(self, 'phishtank', v)
+        kb.kb.append(self, "phishtank", v)
         om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
     def _get_to_check(self, target_url):
@@ -88,16 +91,21 @@ class phishtank(CrawlPlugin):
         :param target_url: The url object we can use to extract some information
         :return: From the domain, get a list of FQDN, rootDomain and IP address.
         """
+
         def addrinfo(url):
             return [x[4][0] for x in socket.getaddrinfo(url.get_domain(), 0)]
 
         def getfqdn(url):
-            return [socket.getfqdn(url.get_domain()), ]
+            return [
+                socket.getfqdn(url.get_domain()),
+            ]
 
         def root_domain(url):
             if not is_ip_address(url.get_domain()):
-                return [url.get_root_domain(), ]
-            
+                return [
+                    url.get_root_domain(),
+                ]
+
             return []
 
         res = set()
@@ -120,7 +128,7 @@ class phishtank(CrawlPlugin):
         :return: A list with the sites to match against the phishtank db
         """
         try:
-            phishtank_db_fd = open(self.PHISHTANK_DB, 'r')
+            phishtank_db_fd = open(self.PHISHTANK_DB, "r")
         except Exception as e:
             msg = 'Failed to open phishtank database: "%s", exception: "%s".'
             raise BaseFrameworkException(msg % (self.PHISHTANK_DB, e))
@@ -128,17 +136,18 @@ class phishtank(CrawlPlugin):
         pt_matches = []
         self._multi_in = MultiIn(to_check)
 
-        om.out.debug('Starting the phishtank CSV parsing.')
+        om.out.debug("Starting the phishtank CSV parsing.")
 
-        pt_csv_reader = csv.reader(phishtank_db_fd, delimiter=' ',
-                                   quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        pt_csv_reader = csv.reader(
+            phishtank_db_fd, delimiter=" ", quotechar="|", quoting=csv.QUOTE_MINIMAL
+        )
 
         for phishing_url, phishtank_detail_url in pt_csv_reader:
             pt_match = self._url_matches(phishing_url, phishtank_detail_url)
             if pt_match:
                 pt_matches.append(pt_match)
 
-        om.out.debug('Finished CSV parsing.')
+        om.out.debug("Finished CSV parsing.")
 
         return pt_matches
 
@@ -152,8 +161,10 @@ class phishtank(CrawlPlugin):
             phish_url = URL(phishing_url)
             target_host_url = URL(query_result[0])
 
-            if target_host_url.get_domain() == phish_url.get_domain() or \
-            phish_url.get_domain().endswith('.' + target_host_url.get_domain()):
+            if (
+                target_host_url.get_domain() == phish_url.get_domain()
+                or phish_url.get_domain().endswith("." + target_host_url.get_domain())
+            ):
 
                 phish_detail_url = URL(phishtank_detail_url)
                 ptm = PhishTankMatch(phish_url, phish_detail_url)
@@ -177,6 +188,7 @@ class PhishTankMatch(object):
     Represents a phishtank match between the site I'm scanning and
     something in the index.xml file.
     """
+
     def __init__(self, url, more_info_url):
         self.url = url
         self.more_info_url = more_info_url

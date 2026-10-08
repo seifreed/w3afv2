@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import gtk
 from w3af.core.data.parsers.doc.http_request_parser import http_request_parser
 
@@ -28,11 +29,12 @@ from w3af.core.controllers.exceptions import BaseFrameworkException
 
 class HttpRawView(HttpEditor):
     """Raw view with HTTP Editor."""
+
     def __init__(self, w3af, parentView, editable=False):
         """Make object."""
         HttpEditor.__init__(self, w3af)
-        self.id = 'HttpRawView'
-        self.label = 'Raw'
+        self.id = "HttpRawView"
+        self.label = "Raw"
         self.parentView = parentView
         self.initial = False
         self.set_editable(editable)
@@ -54,7 +56,7 @@ class HttpRawView(HttpEditor):
         if self.is_request:
             return http_request_parser(head, body)
         else:
-            raise Exception('HttpResponseParser is not implemented!')
+            raise Exception("HttpResponseParser is not implemented!")
 
     def _changed(self, widg=None):
         """

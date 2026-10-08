@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 import httpretty
 
@@ -34,25 +35,23 @@ class TestURLParameterHandler(unittest.TestCase):
         """
         Integration test with w3af's URL opener.
         """
-        test_param = 'test_handler_integration'
+        test_param = "test_handler_integration"
 
         settings = opener_settings.OpenerSettings()
         settings.set_url_parameter(test_param)
         settings.build_openers()
         opener = settings.get_custom_opener()
 
-        for proto in {'http', 'https'}:
-            test_url = URL('%s://mock/abc/def.html' % proto)
-            test_url_param = URL('%s://mock/abc/def.html;%s' % (proto, test_param))
+        for proto in {"http", "https"}:
+            test_url = URL("%s://mock/abc/def.html" % proto)
+            test_url_param = URL("%s://mock/abc/def.html;%s" % (proto, test_param))
             request = HTTPRequest(test_url)
 
-            httpretty.register_uri(httpretty.GET,
-                                   test_url.url_string,
-                                   body='FAIL')
+            httpretty.register_uri(httpretty.GET, test_url.url_string, body="FAIL")
 
-            httpretty.register_uri(httpretty.GET,
-                                   test_url_param.url_string,
-                                   body='SUCCESS')
+            httpretty.register_uri(
+                httpretty.GET, test_url_param.url_string, body="SUCCESS"
+            )
 
             response = opener.open(request)
-            self.assertIn('SUCCESS', response.read())
+            self.assertIn("SUCCESS", response.read())

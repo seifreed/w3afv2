@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import os
 import unittest
 
@@ -31,8 +32,9 @@ class TestPHPSCA(unittest.TestCase):
     """
     Test unit for PHP Static Code Analyzer
     """
+
     def tearDown(self):
-        for temp_file in ('parser.out', 'parsetab.py', 'parsetab.pyc'):
+        for temp_file in ("parser.out", "parsetab.py", "parsetab.pyc"):
             try:
                 os.remove(temp_file)
             except:
@@ -59,16 +61,16 @@ class TestPHPSCA(unittest.TestCase):
         self.assertEqual(3, len(usr_cont_vars))
         # Test $foo
         foovar = usr_cont_vars[0]
-        self.assertEqual('$foo', foovar.name)
+        self.assertEqual("$foo", foovar.name)
         self.assertTrue(foovar.controlled_by_user)
         self.assertFalse(foovar.is_root)
         self.assertTrue(foovar.parent)
         # Test $spam
         spamvar = usr_cont_vars[1]
-        self.assertEqual('$spam', spamvar.name)
+        self.assertEqual("$spam", spamvar.name)
         # Test $spam
         yyvar = usr_cont_vars[2]
-        self.assertEqual('$yy', yyvar.name)
+        self.assertEqual("$yy", yyvar.name)
 
     def test_override_var(self):
         code = """
@@ -95,7 +97,7 @@ class TestPHPSCA(unittest.TestCase):
         # 'var2' is controlled by the user but is safe for OS-Commanding
         var2 = vars[1]
         self.assertTrue(var2.controlled_by_user)
-        self.assertFalse(var2.is_tainted_for('OS_COMMANDING'))
+        self.assertFalse(var2.is_tainted_for("OS_COMMANDING"))
 
         # 'var3' must still be controllable by user
         var3 = vars[2]
@@ -118,15 +120,16 @@ class TestPHPSCA(unittest.TestCase):
         analyzer = PhpSCA(code)
         vars = analyzer.get_vars(usr_controlled=False)
         vars.sort(key=cmp_to_key(lambda x, y: cmp(x.lineno, y.lineno)))
-        x1deps, x2deps, x3deps, ydeps, y2deps, zdeps = \
-            [[vd.name for vd in v.deps()] for v in vars]
+        x1deps, x2deps, x3deps, ydeps, y2deps, zdeps = [
+            [vd.name for vd in v.deps()] for v in vars
+        ]
 
         self.assertEqual([], x1deps)
-        self.assertEqual(['$x1'], x2deps)
-        self.assertEqual(['$x2', '$x1'], x3deps)
-        self.assertEqual(['$_COOKIES'], ydeps)
-        self.assertEqual(['$y', '$_COOKIES'], y2deps)
-        self.assertEqual(['$x2', '$x1'], zdeps)
+        self.assertEqual(["$x1"], x2deps)
+        self.assertEqual(["$x2", "$x1"], x3deps)
+        self.assertEqual(["$_COOKIES"], ydeps)
+        self.assertEqual(["$y", "$_COOKIES"], y2deps)
+        self.assertEqual(["$x2", "$x1"], zdeps)
 
     def test_var_comp_operators(self):
         code = """
@@ -181,21 +184,24 @@ class TestPHPSCA(unittest.TestCase):
         analyzer = PhpSCA(code)
         execfunc = analyzer.get_func_calls(vuln=True)[0]
         self.assertTrue(
-            len(execfunc.vulnsources) == 1 and 'bar' in execfunc.vulnsources)
+            len(execfunc.vulnsources) == 1 and "bar" in execfunc.vulnsources
+        )
 
     def test_vuln_func_get_sources_2(self):
         code = """<? echo file_get_contents($_REQUEST['file']); ?>"""
         analyzer = PhpSCA(code)
         execfunc = analyzer.get_func_calls(vuln=True)[0]
         self.assertTrue(
-            len(execfunc.vulnsources) == 1 and 'file' in execfunc.vulnsources)
+            len(execfunc.vulnsources) == 1 and "file" in execfunc.vulnsources
+        )
 
     def test_vuln_func_get_sources_3(self):
         code = """<? system($_GET['foo']); ?>"""
         analyzer = PhpSCA(code)
         execfunc = analyzer.get_func_calls(vuln=True)[0]
         self.assertTrue(
-            len(execfunc.vulnsources) == 1 and 'foo' in execfunc.vulnsources)
+            len(execfunc.vulnsources) == 1 and "foo" in execfunc.vulnsources
+        )
 
     def test_vuln_functions_1(self):
         code = """
@@ -215,7 +221,7 @@ class TestPHPSCA(unittest.TestCase):
         # First system call
         self.assertEqual(0, len(sys1.vulntypes))
         # Second system call
-        self.assertTrue('OS_COMMANDING' in sys2.vulntypes)
+        self.assertTrue("OS_COMMANDING" in sys2.vulntypes)
 
     def test_vuln_functions_2(self):
         code = """
@@ -227,14 +233,14 @@ class TestPHPSCA(unittest.TestCase):
         """
         analyzer = PhpSCA(code)
         syscall, echocall = analyzer.get_func_calls()
-        self.assertTrue('OS_COMMANDING' in syscall.vulntypes)
-        self.assertTrue('XSS' in echocall.vulntypes)
+        self.assertTrue("OS_COMMANDING" in syscall.vulntypes)
+        self.assertTrue("XSS" in echocall.vulntypes)
 
         #
         # FIXME: Not sure why this is failing... not important at the moment
         #
-        raise SkipTest('FIXME')
-        self.assertTrue('FILE_DISCLOSURE' in echocall.vulntypes)
+        raise SkipTest("FIXME")
+        self.assertTrue("FILE_DISCLOSURE" in echocall.vulntypes)
 
     def test_vuln_functions_3(self):
         code = """
@@ -269,8 +275,8 @@ class TestPHPSCA(unittest.TestCase):
         analyzer = PhpSCA(code)
         sys1, echo, sys2 = analyzer.get_func_calls()
         self.assertEqual([], sys1.vulntypes)
-        self.assertTrue('XSS' in echo.vulntypes)
-        self.assertTrue('OS_COMMANDING' in sys2.vulntypes)
+        self.assertTrue("XSS" in echo.vulntypes)
+        self.assertTrue("OS_COMMANDING" in sys2.vulntypes)
 
     def test_vuln_functions_5(self):
         code = """<?
@@ -284,7 +290,7 @@ class TestPHPSCA(unittest.TestCase):
         include($foo);
         ?>"""
         inccall = PhpSCA(code).get_func_calls()[0]
-        self.assertTrue('FILE_INCLUDE' in inccall.vulntypes)
+        self.assertTrue("FILE_INCLUDE" in inccall.vulntypes)
 
     def test_syntax_error(self):
         invalidcode = """
@@ -301,8 +307,7 @@ class TestScope(unittest.TestCase):
         self.scope = Scope(None, parent_scope=None)
 
     def test_has_builtin_container(self):
-        self.assertEqual(
-            dict, type(getattr(self.scope, '_builtins', None)))
+        self.assertEqual(dict, type(getattr(self.scope, "_builtins", None)))
 
     def test_add_var(self):
         self.assertRaises(ValueError, self.scope.add_var, None)

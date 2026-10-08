@@ -19,9 +19,12 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import socket
 
-from w3af.core.controllers.payload_transfer.base_payload_transfer import BasePayloadTransfer
+from w3af.core.controllers.payload_transfer.base_payload_transfer import (
+    BasePayloadTransfer,
+)
 
 
 class ReverseFTP(BasePayloadTransfer):
@@ -58,12 +61,12 @@ class ReverseFTP(BasePayloadTransfer):
         afterwards you should exec the ftp client on the remote server.
         """
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server_socket.bind(('', self._inbound_port))
+        server_socket.bind(("", self._inbound_port))
         server_socket.listen(1)
 
         client_socket, addr = server_socket.accept()
 
-        #pylint: disable=E1101
+        # pylint: disable=E1101
         client_socket.send(data_str)
         client_socket.close()
 

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.data.parsers.parser_cache as parser_cache
 
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
@@ -27,10 +28,10 @@ from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.kb.info_set import InfoSet
 from w3af.core.data.kb.info import Info
 
-ATTR_NAME = 'name'
-ATTR_VALUE = 'value'
-CONTENT = 'content'
-WHERE = 'where'
+ATTR_NAME = "name"
+ATTR_VALUE = "value"
+CONTENT = "content"
+WHERE = "where"
 
 
 class meta_tags(GrepPlugin):
@@ -39,6 +40,7 @@ class meta_tags(GrepPlugin):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     """
     Can someone explain what this meta tag does?
     <meta name="verify-v1" content="/JBoXnwT1d7TbbWCwL8tXe+Ts2I2...0g7kdY=" />
@@ -49,16 +51,18 @@ class meta_tags(GrepPlugin):
     demonstrate to Google that you're the site owner. So there is probably a
     Sitemaps account for the site, if you haven't found it already.
     """
-    INTERESTING_WORDS = {'user': None,
-                         'pass': None,
-                         'microsoft': None,
-                         'visual': None,
-                         'linux': None,
-                         'source': None,
-                         'author': None,
-                         'release': None,
-                         'version': None,
-                         'verify-v1': 'Google Sitemap'}
+    INTERESTING_WORDS = {
+        "user": None,
+        "pass": None,
+        "microsoft": None,
+        "visual": None,
+        "linux": None,
+        "source": None,
+        "author": None,
+        "release": None,
+        "version": None,
+        "verify-v1": "Google Sitemap",
+    }
 
     def grep(self, request, response):
         """
@@ -103,31 +107,33 @@ class meta_tags(GrepPlugin):
                         continue
 
                     # Now... if we found something, report it =)
-                    desc = ('The URI: "%s" sent a <meta> tag with the attribute'
-                            ' %s set to "%s" which looks interesting.')
+                    desc = (
+                        'The URI: "%s" sent a <meta> tag with the attribute'
+                        ' %s set to "%s" which looks interesting.'
+                    )
                     desc %= (response.get_uri(), where, content)
 
                     tag_name = self._find_tag_name(tag)
                     usage = self.INTERESTING_WORDS.get(tag_name, None)
                     if usage is not None:
-                        desc += ' The tag is used for %s.' % usage
+                        desc += " The tag is used for %s." % usage
 
-                    i = Info('Interesting META tag', desc, response.id,
-                             self.get_name())
+                    i = Info("Interesting META tag", desc, response.id, self.get_name())
                     i.set_uri(response.get_uri())
                     i.add_to_highlight(where, content)
                     i[CONTENT] = content
                     i[WHERE] = where
 
-                    self.kb_append_uniq_group(self, 'meta_tags', i,
-                                              group_klass=MetaTagsInfoSet)
+                    self.kb_append_uniq_group(
+                        self, "meta_tags", i, group_klass=MetaTagsInfoSet
+                    )
 
     def _find_tag_name(self, tag):
         """
         :return: the tag name.
         """
         for key, value in list(tag.items()):
-            if key.lower() == 'name':
+            if key.lower() == "name":
                 return value.lower()
         return None
 
@@ -144,11 +150,11 @@ class meta_tags(GrepPlugin):
 class MetaTagsInfoSet(InfoSet):
     ITAG = CONTENT
     TEMPLATE = (
-        'The application sent a <meta> tag with the attribute {{ where }} set'
+        "The application sent a <meta> tag with the attribute {{ where }} set"
         ' to "{{ content }}" which looks interesting and should be manually'
-        ' reviewed. The first ten URLs which sent the tag are:\n'
-        ''
-        '{% for url in uris[:10] %}'
-        ' - {{ url }}\n'
-        '{% endfor %}'
+        " reviewed. The first ten URLs which sent the tag are:\n"
+        ""
+        "{% for url in uris[:10] %}"
+        " - {{ url }}\n"
+        "{% endfor %}"
     )

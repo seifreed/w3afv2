@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import os
 
 from w3af.core.controllers.ci.moth import get_moth_http
@@ -28,46 +29,47 @@ from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 class TestExportRequests(PluginTest):
 
-    target_url = get_moth_http('/grep/form_autocomplete/')
+    target_url = get_moth_http("/grep/form_autocomplete/")
 
     _run_configs = {
-        'cfg': {
-            'target': target_url,
-            'plugins': {
-                'crawl': (
-                    PluginConfig('web_spider',
-                                 ('only_forward', True, PluginConfig.BOOL)),
+        "cfg": {
+            "target": target_url,
+            "plugins": {
+                "crawl": (
+                    PluginConfig(
+                        "web_spider", ("only_forward", True, PluginConfig.BOOL)
+                    ),
                 ),
-                'output': (
-                    PluginConfig('export_requests',
-                                 ('output_file',
-                                  'output-fr.b64', PluginConfig.STR)),
-                )
-            }
+                "output": (
+                    PluginConfig(
+                        "export_requests",
+                        ("output_file", "output-fr.b64", PluginConfig.STR),
+                    ),
+                ),
+            },
         },
     }
 
     def test_export_requests(self):
-        cfg = self._run_configs['cfg']
-        self._scan(cfg['target'], cfg['plugins'])
+        cfg = self._run_configs["cfg"]
+        self._scan(cfg["target"], cfg["plugins"])
 
         freq = self.kb.get_all_known_fuzzable_requests()
 
-        self.assertTrue(os.path.exists('output-fr.b64'))
+        self.assertTrue(os.path.exists("output-fr.b64"))
 
         self.assertEqual(
-            set(sorted(freq)),
-            set(sorted(self._get_fuzzable_requests_from_file()))
+            set(sorted(freq)), set(sorted(self._get_fuzzable_requests_from_file()))
         )
 
     def _get_fuzzable_requests_from_file(self):
         # Get the contents of the output file
-        for line in open('output-fr.b64'):
+        for line in open("output-fr.b64"):
             yield FuzzableRequest.from_base64(line)
 
     def tearDown(self):
         super(TestExportRequests, self).tearDown()
         try:
-            os.remove('output-fr.b64')
+            os.remove("output-fr.b64")
         except:
             pass

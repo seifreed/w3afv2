@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-
 import guess_language
 
 import w3af.core.controllers.output_manager as om
@@ -29,7 +28,7 @@ import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 
-UNKNOWN = 'unknown'
+UNKNOWN = "unknown"
 
 
 class lang(GrepPlugin):
@@ -38,13 +37,14 @@ class lang(GrepPlugin):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def __init__(self):
         GrepPlugin.__init__(self)
 
         # Internal variables
         self._exec = True
         self._tries_left = 25
-        
+
     def grep(self, request, response):
         """
         Get the page indicated by the fuzzable_request and determine the language
@@ -77,20 +77,22 @@ class lang(GrepPlugin):
         with self._plugin_lock:
             if guessed_lang == UNKNOWN:
                 # None means "I'm still trying"
-                kb.kb.raw_write(self, 'lang', None)
+                kb.kb.raw_write(self, "lang", None)
 
                 # Keep running until self._tries_left is zero
                 self._tries_left -= 1
 
                 if self._tries_left == 0:
-                    msg = ('Could not determine the site language using the'
-                           ' first 25 HTTP responses, not enough text to make'
-                           ' a good analysis.')
+                    msg = (
+                        "Could not determine the site language using the"
+                        " first 25 HTTP responses, not enough text to make"
+                        " a good analysis."
+                    )
                     om.out.debug(msg)
 
                     # unknown means I'll stop testing because I don't
                     # have any idea about the target's language
-                    kb.kb.raw_write(self, 'lang', 'unknown')
+                    kb.kb.raw_write(self, "lang", "unknown")
 
                     self._exec = False
             else:
@@ -99,7 +101,7 @@ class lang(GrepPlugin):
 
                 msg = 'The page is written in: "%s".'
                 om.out.information(msg % guessed_lang)
-                kb.kb.raw_write(self, 'lang', guessed_lang)
+                kb.kb.raw_write(self, "lang", guessed_lang)
 
     def get_long_desc(self):
         """

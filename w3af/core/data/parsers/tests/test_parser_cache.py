@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from mock import patch, PropertyMock
@@ -35,44 +36,44 @@ from w3af.core.controllers.exceptions import BaseFrameworkException
 
 
 class TestParserCache(unittest.TestCase):
-    
+
     def setUp(self):
-        self.url = URL('http://w3af.com')
-        self.headers = Headers([('content-type', 'text/html')])
+        self.url = URL("http://w3af.com")
+        self.headers = Headers([("content-type", "text/html")])
         self.dpc = ParserCache()
 
     def tearDown(self):
         self.dpc.clear()
 
     def test_basic(self):
-        resp1 = HTTPResponse(200, 'abc', self.headers, self.url, self.url)         
-        resp2 = HTTPResponse(200, 'abc', self.headers, self.url, self.url)
-        
+        resp1 = HTTPResponse(200, "abc", self.headers, self.url, self.url)
+        resp2 = HTTPResponse(200, "abc", self.headers, self.url, self.url)
+
         parser1 = self.dpc.get_document_parser_for(resp1)
         parser2 = self.dpc.get_document_parser_for(resp2)
-        
+
         self.assertEqual(id(parser1), id(parser2))
-    
+
     def test_bug_13_Dec_2012(self):
-        url1 = URL('http://w3af.com/foo/')
-        url2 = URL('http://w3af.com/bar/')
+        url1 = URL("http://w3af.com/foo/")
+        url2 = URL("http://w3af.com/bar/")
         body = '<a href="?id=1">1</a>'
-        resp1 = HTTPResponse(200, body, self.headers, url1, url1)         
+        resp1 = HTTPResponse(200, body, self.headers, url1, url1)
         resp2 = HTTPResponse(200, body, self.headers, url2, url2)
-        
+
         parser1 = self.dpc.get_document_parser_for(resp1)
         parser2 = self.dpc.get_document_parser_for(resp2)
-        
+
         self.assertNotEqual(id(parser1), id(parser2))
-        
+
         _, parsed_refs_1 = parser1.get_references()
         _, parsed_refs_2 = parser2.get_references()
-        
+
         self.assertEqual(parsed_refs_1, parsed_refs_2)
-    
+
     def test_issue_188_invalid_url(self):
         # https://github.com/andresriancho/w3af/issues/188
-        all_chars = ''.join([chr(i) for i in range(0, 255)])
+        all_chars = "".join([chr(i) for i in range(0, 255)])
         response = HTTPResponse(200, all_chars, self.headers, self.url, self.url)
         self.dpc.get_document_parser_for(response)
 
@@ -81,19 +82,23 @@ class TestParserCache(unittest.TestCase):
         # If the cache tries to parse an HTTP response, that process fails, then we blacklist
         # the HTTP response so it never gets parsed again.
         #
-        mmpdp = 'w3af.core.data.parsers.mp_document_parser.%s'
-        kmpdp = mmpdp % 'MultiProcessingDocumentParser.%s'
-        modp = 'w3af.core.data.parsers.document_parser.%s'
+        mmpdp = "w3af.core.data.parsers.mp_document_parser.%s"
+        kmpdp = mmpdp % "MultiProcessingDocumentParser.%s"
+        modp = "w3af.core.data.parsers.document_parser.%s"
 
-        with patch(kmpdp % 'PARSER_TIMEOUT', new_callable=PropertyMock) as timeout_mock, \
-             patch(kmpdp % 'MAX_WORKERS', new_callable=PropertyMock) as max_workers_mock, \
-             patch(modp % 'DocumentParser.PARSERS', new_callable=PropertyMock) as parsers_mock:
+        with patch(
+            kmpdp % "PARSER_TIMEOUT", new_callable=PropertyMock
+        ) as timeout_mock, patch(
+            kmpdp % "MAX_WORKERS", new_callable=PropertyMock
+        ) as max_workers_mock, patch(
+            modp % "DocumentParser.PARSERS", new_callable=PropertyMock
+        ) as parsers_mock:
 
             #
             # Trigger the timeout
             #
-            html = '<html>DelayedParser!</html>'
-            http_resp = _build_http_response(html, 'text/html')
+            html = "<html>DelayedParser!</html>"
+            http_resp = _build_http_response(html, "text/html")
 
             timeout_mock.return_value = 1
             max_workers_mock.return_value = 1
@@ -118,7 +123,7 @@ class TestParserCache(unittest.TestCase):
             try:
                 self.dpc.get_document_parser_for(http_resp)
             except BaseFrameworkException as bfe:
-                self.assertIn('Exceeded timeout while parsing', str(bfe))
+                self.assertIn("Exceeded timeout while parsing", str(bfe))
 
     def _is_timeout_exception_message(self, toe, http_resp):
         msg = 'Reached timeout parsing "http://w3af.com/".'
@@ -129,8 +134,8 @@ class TestParserCache(unittest.TestCase):
         resp1 = HTTPResponse(200, html, self.headers, self.url, self.url)
         resp2 = HTTPResponse(200, html, self.headers, self.url, self.url)
 
-        parser1 = self.dpc.get_tags_by_filter(resp1, tags=('a',))
-        parser2 = self.dpc.get_tags_by_filter(resp2, tags=('a',))
+        parser1 = self.dpc.get_tags_by_filter(resp1, tags=("a",))
+        parser2 = self.dpc.get_tags_by_filter(resp2, tags=("a",))
 
         self.assertEqual(id(parser1), id(parser2))
 
@@ -139,7 +144,7 @@ class TestParserCache(unittest.TestCase):
         resp1 = HTTPResponse(200, html, self.headers, self.url, self.url)
         resp2 = HTTPResponse(200, html, self.headers, self.url, self.url)
 
-        parser1 = self.dpc.get_tags_by_filter(resp1, tags=('a',))
-        parser2 = self.dpc.get_tags_by_filter(resp2, tags=('b',))
+        parser1 = self.dpc.get_tags_by_filter(resp1, tags=("a",))
+        parser2 = self.dpc.get_tags_by_filter(resp2, tags=("b",))
 
         self.assertNotEqual(id(parser1), id(parser2))

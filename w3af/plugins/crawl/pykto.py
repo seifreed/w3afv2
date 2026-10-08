@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 import codecs
 import os.path
@@ -50,6 +51,7 @@ class pykto(CrawlPlugin):
     A nikto port to python.
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def __init__(self):
         CrawlPlugin.__init__(self)
 
@@ -58,21 +60,47 @@ class pykto(CrawlPlugin):
         self._already_analyzed = ScalableBloomFilter()
 
         # User configured parameters
-        self._db_file = os.path.join(ROOT_PATH, 'plugins', 'crawl', 'pykto',
-                                     'scan_database.db')
-        self._extra_db_file = os.path.join(ROOT_PATH, 'plugins', 'crawl',
-                                           'pykto', 'w3af_scan_database.db')
+        self._db_file = os.path.join(
+            ROOT_PATH, "plugins", "crawl", "pykto", "scan_database.db"
+        )
+        self._extra_db_file = os.path.join(
+            ROOT_PATH, "plugins", "crawl", "pykto", "w3af_scan_database.db"
+        )
 
-        self._cgi_dirs = ['/cgi-bin/']
-        self._admin_dirs = ['/admin/', '/adm/']
+        self._cgi_dirs = ["/cgi-bin/"]
+        self._admin_dirs = ["/admin/", "/adm/"]
 
-        self._users = ['adm', 'bin', 'daemon', 'ftp', 'guest', 'listen', 'lp',
-                       'mysql', 'noaccess', 'nobody', 'nobody4', 'nuucp',
-                       'operator', 'root', 'smmsp', 'smtp', 'sshd', 'sys',
-                       'test', 'unknown']
+        self._users = [
+            "adm",
+            "bin",
+            "daemon",
+            "ftp",
+            "guest",
+            "listen",
+            "lp",
+            "mysql",
+            "noaccess",
+            "nobody",
+            "nobody4",
+            "nuucp",
+            "operator",
+            "root",
+            "smmsp",
+            "smtp",
+            "sshd",
+            "sys",
+            "test",
+            "unknown",
+        ]
 
-        self._nuke = ['/', '/postnuke/', '/postnuke/html/', '/modules/',
-                      '/phpBB/', '/forum/']
+        self._nuke = [
+            "/",
+            "/postnuke/",
+            "/postnuke/html/",
+            "/modules/",
+            "/phpBB/",
+            "/forum/",
+        ]
 
         self._mutate_tests = False
 
@@ -113,17 +141,22 @@ class pykto(CrawlPlugin):
 
         :param url: The URL object I have to test.
         """
-        config = Config(self._cgi_dirs, self._admin_dirs, self._nuke,
-                        self._mutate_tests, self._users)
-                
+        config = Config(
+            self._cgi_dirs,
+            self._admin_dirs,
+            self._nuke,
+            self._mutate_tests,
+            self._users,
+        )
+
         for db_file in [self._db_file, self._extra_db_file]:
-            
+
             parser = NiktoTestParser(db_file, config, url)
-            
+
             # Send the requests using threads:
-            self.worker_pool.map_multi_args(self._send_and_check,
-                                            parser.test_generator(),
-                                            chunksize=10)
+            self.worker_pool.map_multi_args(
+                self._send_and_check, parser.test_generator(), chunksize=10
+            )
 
     def _send_and_check(self, nikto_test):
         """
@@ -151,24 +184,28 @@ class pykto(CrawlPlugin):
         try:
             http_response = function_ptr(nikto_test.uri)
         except BaseFrameworkException as e:
-            msg = ('An exception was raised while requesting "%s", the error'
-                   ' message is: "%s".')
+            msg = (
+                'An exception was raised while requesting "%s", the error'
+                ' message is: "%s".'
+            )
             om.out.error(msg % (nikto_test.uri, e))
             return False
 
-        if nikto_test.is_vulnerable.check(http_response) and \
-        not is_404(http_response):
-            
-            vdesc = ('pykto plugin found a vulnerability at URL: "%s".'
-                     ' Vulnerability description: "%s".')
+        if nikto_test.is_vulnerable.check(http_response) and not is_404(http_response):
+
+            vdesc = (
+                'pykto plugin found a vulnerability at URL: "%s".'
+                ' Vulnerability description: "%s".'
+            )
             vdesc = vdesc % (http_response.get_url(), nikto_test.message)
 
-            v = Vuln('Insecure URL', vdesc, severity.LOW,
-                     http_response.id, self.get_name())
+            v = Vuln(
+                "Insecure URL", vdesc, severity.LOW, http_response.id, self.get_name()
+            )
             v.set_uri(http_response.get_uri())
             v.set_method(nikto_test.method)
 
-            kb.kb.append(self, 'vuln', v)
+            kb.kb.append(self, "vuln", v)
             om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
             fr = FuzzableRequest.from_http_response(http_response)
@@ -180,48 +217,55 @@ class pykto(CrawlPlugin):
         """
         ol = OptionList()
 
-        d = 'CGI-BIN dirs where to search for vulnerable scripts.'
-        h = ('Pykto will search for vulnerable scripts in many places, one of'
-             ' them is inside cgi-bin directory. The cgi-bin directory can be'
-             ' anything and change from install to install, so its a good idea'
-             ' to make this a user setting. The directories should be supplied'
-             ' comma separated and with a / at the beginning and one at the end.'
-             ' Example: "/cgi/,/cgibin/,/bin/"')
-        o = opt_factory('cgi_dirs', self._cgi_dirs, d, LIST, help=h)
+        d = "CGI-BIN dirs where to search for vulnerable scripts."
+        h = (
+            "Pykto will search for vulnerable scripts in many places, one of"
+            " them is inside cgi-bin directory. The cgi-bin directory can be"
+            " anything and change from install to install, so its a good idea"
+            " to make this a user setting. The directories should be supplied"
+            " comma separated and with a / at the beginning and one at the end."
+            ' Example: "/cgi/,/cgibin/,/bin/"'
+        )
+        o = opt_factory("cgi_dirs", self._cgi_dirs, d, LIST, help=h)
         ol.add(o)
 
-        d = 'Admin directories where to search for vulnerable scripts.'
-        h = ('Pykto will search for vulnerable scripts in many places, one of'
-             ' them is inside administration directories. The admin directory'
-             ' can be anything and change from install to install, so its a'
-             ' good idea to make this a user setting. The directories should'
-             ' be supplied comma separated and with a / at the beginning and'
-             ' one at the end. Example: "/admin/,/adm/"')
-        o = opt_factory('admin_dirs', self._admin_dirs, d, LIST, help=h)
+        d = "Admin directories where to search for vulnerable scripts."
+        h = (
+            "Pykto will search for vulnerable scripts in many places, one of"
+            " them is inside administration directories. The admin directory"
+            " can be anything and change from install to install, so its a"
+            " good idea to make this a user setting. The directories should"
+            " be supplied comma separated and with a / at the beginning and"
+            ' one at the end. Example: "/admin/,/adm/"'
+        )
+        o = opt_factory("admin_dirs", self._admin_dirs, d, LIST, help=h)
         ol.add(o)
 
-        d = 'PostNuke directories where to search for vulnerable scripts.'
-        h = ('The directories should be supplied comma separated and with a'
-             ' forward slash at the beginning and one at the end. Example:'
-             ' "/forum/,/nuke/"')
-        o = opt_factory('nuke_dirs', self._nuke, d, LIST, help=h)
+        d = "PostNuke directories where to search for vulnerable scripts."
+        h = (
+            "The directories should be supplied comma separated and with a"
+            " forward slash at the beginning and one at the end. Example:"
+            ' "/forum/,/nuke/"'
+        )
+        o = opt_factory("nuke_dirs", self._nuke, d, LIST, help=h)
         ol.add(o)
 
-        d = 'The path to the nikto scan_databse.db file.'
-        h = 'The default scan database file is fine in most cases.'
-        o = opt_factory('db_file', self._db_file, d, INPUT_FILE, help=h)
+        d = "The path to the nikto scan_databse.db file."
+        h = "The default scan database file is fine in most cases."
+        o = opt_factory("db_file", self._db_file, d, INPUT_FILE, help=h)
         ol.add(o)
 
-        d = 'The path to the w3af_scan_database.db file.'
-        h = ('This is a file which has some extra checks for files that are not'
-             ' present in the nikto database.')
-        o = opt_factory('extra_db_file', self._extra_db_file, d,
-                        INPUT_FILE, help=h)
+        d = "The path to the w3af_scan_database.db file."
+        h = (
+            "This is a file which has some extra checks for files that are not"
+            " present in the nikto database."
+        )
+        o = opt_factory("extra_db_file", self._extra_db_file, d, INPUT_FILE, help=h)
         ol.add(o)
 
-        d = 'Test all files with all root directories'
-        h = 'Define if we will test all files with all root directories.'
-        o = opt_factory('mutate_tests', self._mutate_tests, d, BOOL, help=h)
+        d = "Test all files with all root directories"
+        h = "Define if we will test all files with all root directories."
+        o = opt_factory("mutate_tests", self._mutate_tests, d, BOOL, help=h)
         ol.add(o)
 
         return ol
@@ -234,12 +278,12 @@ class pykto(CrawlPlugin):
         :param options_list: A dictionary with the options for the plugin.
         :return: No value is returned.
         """
-        self._cgi_dirs = options_list['cgi_dirs'].get_value()
-        self._admin_dirs = options_list['admin_dirs'].get_value()
-        self._nuke = options_list['nuke_dirs'].get_value()
-        self._extra_db_file = options_list['extra_db_file'].get_value()
-        self._db_file = options_list['db_file'].get_value()
-        self._mutate_tests = options_list['mutate_tests'].get_value()
+        self._cgi_dirs = options_list["cgi_dirs"].get_value()
+        self._admin_dirs = options_list["admin_dirs"].get_value()
+        self._nuke = options_list["nuke_dirs"].get_value()
+        self._extra_db_file = options_list["extra_db_file"].get_value()
+        self._db_file = options_list["db_file"].get_value()
+        self._mutate_tests = options_list["mutate_tests"].get_value()
 
     def get_long_desc(self):
         """
@@ -263,13 +307,30 @@ class pykto(CrawlPlugin):
         that may contain vulnerabilities.
         """
 
-Config = namedtuple('Config', ['cgi_dirs', 'admin_dirs', 'nuke_dirs',
-                               'mutate_tests', 'users'])
 
-NiktoTest = namedtuple('NiktoTest', ['id', 'osvdb', 'tune', 'uri', 'method',
-                                     'match_1', 'match_1_or', 'match_1_and',
-                                     'fail_1', 'fail_2', 'message', 'data',
-                                     'headers', 'is_vulnerable'])
+Config = namedtuple(
+    "Config", ["cgi_dirs", "admin_dirs", "nuke_dirs", "mutate_tests", "users"]
+)
+
+NiktoTest = namedtuple(
+    "NiktoTest",
+    [
+        "id",
+        "osvdb",
+        "tune",
+        "uri",
+        "method",
+        "match_1",
+        "match_1_or",
+        "match_1_and",
+        "fail_1",
+        "fail_2",
+        "message",
+        "data",
+        "headers",
+        "is_vulnerable",
+    ],
+)
 
 
 class IsVulnerableHelper(object):
@@ -279,63 +340,68 @@ class IsVulnerableHelper(object):
         self.match_1_and = match_1_and
         self.fail_1 = fail_1
         self.fail_2 = fail_2
-    
+
     def checks_only_response_code(self):
-        return isinstance(self.match_1, int) and \
-               (isinstance(self.match_1_or, int) or self.match_1_or is None) and \
-               (isinstance(self.match_1_and, int) or self.match_1_and is None) and \
-               (isinstance(self.fail_1, int) or self.fail_1 is None) and\
-               (isinstance(self.fail_2, int) or self.fail_2 is None)
-    
+        return (
+            isinstance(self.match_1, int)
+            and (isinstance(self.match_1_or, int) or self.match_1_or is None)
+            and (isinstance(self.match_1_and, int) or self.match_1_and is None)
+            and (isinstance(self.fail_1, int) or self.fail_1 is None)
+            and (isinstance(self.fail_2, int) or self.fail_2 is None)
+        )
+
     def _matches(self, what, http_response, if_none=False):
         if what is None:
             return if_none
-        
+
         if isinstance(what, int):
-            if http_response.get_code() == what: 
+            if http_response.get_code() == what:
                 return True
         elif what.search(http_response.body):
             return True
-        
+
         return False
-    
+
     def check(self, http_response):
         """
         :return: True if the http_response is vulnerable to whatever we're
                  checking with self.match_1 ... self.fail_2
         """
-        is_vuln = self._matches(self.match_1, http_response) or \
-                  self._matches(self.match_1_or, http_response)
-        
+        is_vuln = self._matches(self.match_1, http_response) or self._matches(
+            self.match_1_or, http_response
+        )
+
         # reduce known false positives
         if is_vuln:
-            
+
             if not self._matches(self.match_1_and, http_response, if_none=True):
                 is_vuln = False
-            
-            if self._matches(self.fail_1, http_response) or \
-            self._matches(self.fail_2, http_response):
+
+            if self._matches(self.fail_1, http_response) or self._matches(
+                self.fail_2, http_response
+            ):
                 is_vuln = False
-        
+
         return is_vuln
-    
+
     def __eq__(self, other):
         return True
-            
+
 
 class NiktoTestParser(object):
     """
     A parser for the nikto tests file.
     """
+
     def __init__(self, filename, config, url):
         self.filename = filename
         self.config = config
         self.url = url
-        
+
         self._kb_server = None
-        self._junk_re = re.compile('JUNK\((.*?)\)')
+        self._junk_re = re.compile("JUNK\((.*?)\)")
         self.ignored = []
-    
+
     def test_generator(self):
         """
         A helper function that takes a scan database file and yields tests.
@@ -345,14 +411,14 @@ class NiktoTestParser(object):
                   The parsed parameters from the scan database line)
         """
         try:
-            db_file = codecs.open(self.filename, "r", "utf-8" )
+            db_file = codecs.open(self.filename, "r", "utf-8")
         except Exception as e:
             msg = 'Failed to open the scan database. Exception: "%s".'
             om.out.error(msg % e)
             raise StopIteration
-        
+
         for line in db_file:
-            
+
             if self._is_comment(line):
                 continue
 
@@ -361,14 +427,13 @@ class NiktoTestParser(object):
             #
             # A line could generate more than one request...
             # (think about @CGIDIRS)
-            for nikto_test in filter(self._filter_special,
-                                                self._parse_db_line(line)):
+            for nikto_test in filter(self._filter_special, self._parse_db_line(line)):
                 yield (nikto_test,)
-                
+
     def _filter_special(self, nikto_test):
         if not nikto_test.uri:
             return False
-        
+
         return True
 
     def _is_comment(self, line):
@@ -379,19 +444,19 @@ class NiktoTestParser(object):
         """
         if line.startswith('"'):
             return False
-        
-        if line.startswith('#'):
+
+        if line.startswith("#"):
             return True
-        
+
         return True
 
     def _parse_db_line(self, line):
         """
         This method parses a line from the database file, lines look line this:
-        
+
         "000001","0","b","/TiVoConnect?Command=QueryServer","GET",
         "Calypso Server","","","","","The Tivo Calypso server is running...",
-        "",""        
+        "",""
 
         The information in each line contains the following information:
             0. 'id'
@@ -420,19 +485,19 @@ class NiktoTestParser(object):
             10. 'message'
             11. 'data'
             12. 'headers'
-        
-        :param line: A unicode string     
+
+        :param line: A unicode string
         :return: Yield NiktoTests which contain the information above and has
                  the final URI with all @VARS replaced.
-                 
+
                  The NiktoTest object also contains a helper function which
                  takes an http_response as parameter and returns True if the
                  response matched (match_1, match_1_or, match_1_and, fail_1,
                  fail_2).
         """
         if not isinstance(line, str):
-            raise TypeError('Database information needs to be sent as unicode.')
-        
+            raise TypeError("Database information needs to be sent as unicode.")
+
         line = line.strip()
         splitted_line = line.split('","')
 
@@ -452,9 +517,9 @@ class NiktoTestParser(object):
         #    fail_2 = splitted_line[9]
         #
         # If and only if they aren't response codes
-        for test_index in range(5,10):
+        for test_index in range(5, 10):
             test_value = splitted_line[test_index]
-            
+
             if len(test_value) == 3 and test_value.isdigit():
                 splitted_line[test_index] = int(test_value)
 
@@ -465,7 +530,7 @@ class NiktoTestParser(object):
                 except:
                     # Protect myself against buggy regular expressions
                     raise StopIteration
-            
+
             else:
                 splitted_line[test_index] = None
 
@@ -483,22 +548,22 @@ class NiktoTestParser(object):
         data = splitted_line[11]
         headers = splitted_line[12]
 
-        message = message.replace('\n', '')
-        message = message.replace('\r', '')
+        message = message.replace("\n", "")
+        message = message.replace("\r", "")
         message = message.strip()
 
-        if uri.count(' '):
+        if uri.count(" "):
             self.ignored.append(line)
             raise StopIteration
 
         # Now I should replace the @CGIDIRS variable with the user settings
         # The same goes for every @* variable.
         VAR_LIST = (
-            ('@CGIDIRS', self.config.cgi_dirs),
-            ('@ADMIN', self.config.admin_dirs),
-            ('@NUKE', self.config.nuke_dirs),
-            ('@USERS', self.config.users),
-            ('@RFIURL', ['http://cirt.net/rfiinc.txt']),
+            ("@CGIDIRS", self.config.cgi_dirs),
+            ("@ADMIN", self.config.admin_dirs),
+            ("@NUKE", self.config.nuke_dirs),
+            ("@USERS", self.config.users),
+            ("@RFIURL", ["http://cirt.net/rfiinc.txt"]),
         )
 
         v_list_replace = [v_list for var, v_list in VAR_LIST if var in uri]
@@ -509,8 +574,7 @@ class NiktoTestParser(object):
             current_uri = self._replace_JUNK(uri)
 
             for i, v_list_item in enumerate(prod_result):
-                current_uri = current_uri.replace(variable_replace[i],
-                                                  v_list_item)
+                current_uri = current_uri.replace(variable_replace[i], v_list_item)
 
             # I don't use url_join here because in some cases pykto needs to
             # send something like http://abc/../../../../etc/passwd
@@ -518,30 +582,48 @@ class NiktoTestParser(object):
             #
             # But I do want is to avoid URLs like this one being generated:
             # http://localhost//f00   <---- Note the double //
-            if current_uri.startswith('/') and self.url.get_path().endswith('/'):
+            if current_uri.startswith("/") and self.url.get_path().endswith("/"):
                 current_uri = current_uri[1:]
 
             modified_url_str = self.url.uri2url().url_string
             modified_url_str += current_uri
             modified_url = URL(modified_url_str)
 
-            is_vuln_helper = IsVulnerableHelper(match_1, match_1_or, match_1_and,
-                                                fail_1, fail_2,)
+            is_vuln_helper = IsVulnerableHelper(
+                match_1,
+                match_1_or,
+                match_1_and,
+                fail_1,
+                fail_2,
+            )
 
-            yield NiktoTest(_id, osvdb, tune, modified_url, method, match_1,
-                            match_1_or, match_1_and, fail_1, fail_2, message,
-                            data, headers, is_vuln_helper)
+            yield NiktoTest(
+                _id,
+                osvdb,
+                tune,
+                modified_url,
+                method,
+                match_1,
+                match_1_or,
+                match_1_and,
+                fail_1,
+                fail_2,
+                message,
+                data,
+                headers,
+                is_vuln_helper,
+            )
 
     def _replace_JUNK(self, query):
         """
         Replace the JUNK(x) variable with random alphanum.
         """
         match_obj = self._junk_re.search(query)
-        
+
         if match_obj is not None:
             if match_obj.group(1).isdigit():
-                
+
                 length = int(match_obj.group(1))
                 query = self._junk_re.sub(rand_alnum(length), query)
-                
+
         return query

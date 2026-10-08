@@ -6,7 +6,7 @@ from functools import cmp_to_key
 
 HTTP_METHOD_URL_RE = re.compile('\] (.*?) (.*?) (with data: ".*?" )?returned HTTP code')
 HTTP_CODE_RE = re.compile('returned HTTP code "(.*?)"')
-FROM_CACHE = 'from_cache=1'
+FROM_CACHE = "from_cache=1"
 
 
 def get_total_http_requests(scan_log_filename, scan):
@@ -22,7 +22,7 @@ def get_total_http_requests(scan_log_filename, scan):
         if FROM_CACHE in line:
             cached_responses += 1
 
-        if 'returned HTTP code' not in line:
+        if "returned HTTP code" not in line:
             continue
 
         match = HTTP_CODE_RE.search(line)
@@ -53,14 +53,14 @@ def get_total_http_requests(scan_log_filename, scan):
 
     total = sum(count.values())
 
-    output = ListOutput('http_requests')
-    output.append(ListOutputItem('Total HTTP requests sent', total))
+    output = ListOutput("http_requests")
+    output.append(ListOutputItem("Total HTTP requests sent", total))
 
     if not total:
         return
 
-    from_cache = '%.2f%%' % (cached_responses / total * 100,)
-    output.append(ListOutputItem('HTTP responses from cache', from_cache))
+    from_cache = "%.2f%%" % (cached_responses / total * 100,)
+    output.append(ListOutputItem("HTTP responses from cache", from_cache))
 
     def by_value(a, b):
         return cmp(b[1], a[1])
@@ -71,10 +71,9 @@ def get_total_http_requests(scan_log_filename, scan):
     responses_by_code = {}
 
     for code, num in count_list:
-        responses_by_code[code] = (num, '%.2f%%' % (num / float(total) * 100,))
+        responses_by_code[code] = (num, "%.2f%%" % (num / float(total) * 100,))
 
-    output.append(ListOutputItem('HTTP responses by code',
-                                 responses_by_code))
+    output.append(ListOutputItem("HTTP responses by code", responses_by_code))
 
     methods_list = list(methods.items())
     methods_list.sort(key=cmp_to_key(by_value))
@@ -82,10 +81,9 @@ def get_total_http_requests(scan_log_filename, scan):
     requests_by_method = {}
 
     for method, count in methods_list:
-        requests_by_method[method] = (count, '%.2f%%' % (count / float(total) * 100,))
+        requests_by_method[method] = (count, "%.2f%%" % (count / float(total) * 100,))
 
-    output.append(ListOutputItem('HTTP request method analysis',
-                                 requests_by_method))
+    output.append(ListOutputItem("HTTP request method analysis", requests_by_method))
 
     urls_list = list(urls.items())
     urls_list.sort(key=cmp_to_key(by_value))
@@ -94,9 +92,12 @@ def get_total_http_requests(scan_log_filename, scan):
     urls_with_more_requests = {}
 
     for url, num in urls_list:
-        urls_with_more_requests[url] = (num, '%.2f%%' % (num / float(total) * 100,))
+        urls_with_more_requests[url] = (num, "%.2f%%" % (num / float(total) * 100,))
 
-    output.append(ListOutputItem('URLs which received more HTTP requests',
-                                 urls_with_more_requests))
+    output.append(
+        ListOutputItem(
+            "URLs which received more HTTP requests", urls_with_more_requests
+        )
+    )
 
     return output

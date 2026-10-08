@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.constants.severity as severity
 
@@ -35,10 +34,15 @@ class preg_replace(AuditPlugin):
     Find unsafe usage of PHPs preg_replace.
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
-    PREG_PAYLOAD = ['a' + ')/' * 100, ]
-    PREG_ERRORS = ('Compilation failed: unmatched parentheses at offset',
-                   '<b>Warning</b>:  preg_replace() [<a',
-                   'Warning: preg_replace(): ')
+
+    PREG_PAYLOAD = [
+        "a" + ")/" * 100,
+    ]
+    PREG_ERRORS = (
+        "Compilation failed: unmatched parentheses at offset",
+        "<b>Warning</b>:  preg_replace() [<a",
+        "Warning: preg_replace(): ",
+    )
 
     _multi_in = MultiIn(PREG_ERRORS)
 
@@ -51,13 +55,14 @@ class preg_replace(AuditPlugin):
         :param debugging_id: A unique identifier for this call to audit()
         """
         # First I check If I get the error message from php
-        mutants = create_mutants(freq, self.PREG_PAYLOAD,
-                                 orig_resp=orig_response)
+        mutants = create_mutants(freq, self.PREG_PAYLOAD, orig_resp=orig_response)
 
-        self._send_mutants_in_threads(self._uri_opener.send_mutant,
-                                      mutants,
-                                      self._analyze_result,
-                                      debugging_id=debugging_id)
+        self._send_mutants_in_threads(
+            self._uri_opener.send_mutant,
+            mutants,
+            self._analyze_result,
+            debugging_id=debugging_id,
+        )
 
     def _analyze_result(self, mutant, response):
         """
@@ -73,15 +78,20 @@ class preg_replace(AuditPlugin):
             if preg_error_string in mutant.get_original_response_body():
                 continue
 
-            desc = 'Unsafe usage of preg_replace was found at: %s'
+            desc = "Unsafe usage of preg_replace was found at: %s"
             desc %= mutant.found_at()
 
-            v = Vuln.from_mutant('Unsafe preg_replace usage', desc,
-                                 severity.HIGH, response.id,
-                                 self.get_name(), mutant)
+            v = Vuln.from_mutant(
+                "Unsafe preg_replace usage",
+                desc,
+                severity.HIGH,
+                response.id,
+                self.get_name(),
+                mutant,
+            )
 
             v.add_to_highlight(preg_error_string)
-            self.kb_append_uniq(self, 'preg_replace', v)
+            self.kb_append_uniq(self, "preg_replace", v)
             break
 
     def _find_preg_error(self, response):
@@ -93,10 +103,12 @@ class preg_replace(AuditPlugin):
         """
         res = []
         for error_match in self._multi_in.query(response.body):
-            msg = ('An unsafe usage of preg_replace() function was found,'
-                   ' the error that was sent by the web application is (only'
-                   ' a fragment is shown): "%s", and was found in the'
-                   ' response with id %s.')
+            msg = (
+                "An unsafe usage of preg_replace() function was found,"
+                " the error that was sent by the web application is (only"
+                ' a fragment is shown): "%s", and was found in the'
+                " response with id %s."
+            )
 
             om.out.information(msg % (error_match, response.id))
             res.append(error_match)
@@ -107,7 +119,7 @@ class preg_replace(AuditPlugin):
         :return: A list with the names of the plugins that should be run before
                  the current one.
         """
-        return ['grep.error_500']
+        return ["grep.error_500"]
 
     def get_long_desc(self):
         """

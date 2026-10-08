@@ -20,6 +20,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.parsers.doc.http_request_parser import http_request_parser
 
 
@@ -34,9 +35,9 @@ def ajax_export(request_string):
     :return: A javascript that will perform the same HTTP request.
     """
     # get the header and the body
-    splitted_request = request_string.split('\n\n')
+    splitted_request = request_string.split("\n\n")
     header = splitted_request[0]
-    body = '\n\n'.join(splitted_request[1:])
+    body = "\n\n".join(splitted_request[1:])
 
     http_request = http_request_parser(header, body)
 
@@ -82,8 +83,7 @@ affect how and if this request is sent by the browser */
 
     # Set the method and the path
     res += 'xmlhttp.open("' + http_request.get_method() + '", "'
-    res += ajax_escape_string(
-        http_request.get_uri().url_string) + '", true);\n'
+    res += ajax_escape_string(http_request.get_uri().url_string) + '", true);\n'
 
     # For debugging
     res += """
@@ -103,16 +103,18 @@ make the request fail */
     # Now I add the headers:
     headers = http_request.get_headers()
     for header_name, header_value in headers.items():
-        res += 'xmlhttp.setRequestHeaders("' + ajax_escape_string(
-            header_name) + '", "'
+        res += 'xmlhttp.setRequestHeaders("' + ajax_escape_string(header_name) + '", "'
         res += ajax_escape_string(header_value) + '");\n'
 
     # And finally the post data (if any)
-    if http_request.get_data() and http_request.get_data() != '\n':
-        res += 'var post_data = (<r><![CDATA[' + str(
-            http_request.get_data()) + ']]></r>).toString();\n'
-        res += 'xmlhttp.send(post_data);\n'
+    if http_request.get_data() and http_request.get_data() != "\n":
+        res += (
+            "var post_data = (<r><![CDATA["
+            + str(http_request.get_data())
+            + "]]></r>).toString();\n"
+        )
+        res += "xmlhttp.send(post_data);\n"
     else:
-        res += 'xmlhttp.send(null);\n'
+        res += "xmlhttp.send(null);\n"
 
     return res

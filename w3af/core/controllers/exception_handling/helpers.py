@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import sys
 import copy
@@ -46,7 +47,7 @@ def pprint_plugins(w3af_core):
     if not any(plugs_opts.values()):
         # No plugins configured, we return an empty string so the users of
         # this function understand that there is no config
-        return ''
+        return ""
 
     plugins = io.StringIO()
     pprint.pprint(plugs_opts, plugins)
@@ -61,53 +62,61 @@ def get_platform_dist():
     """
     :return: A human-readable operating system name and release.
     """
-    if platform.system() == 'Linux':
+    if platform.system() == "Linux":
         try:
             release = platform.freedesktop_os_release()
         except OSError:
-            return 'Unknown'
+            return "Unknown"
 
-        values = (release.get('NAME', ''), release.get('VERSION_ID', ''))
+        values = (release.get("NAME", ""), release.get("VERSION_ID", ""))
     else:
         values = (platform.system(), platform.release())
 
-    return ' '.join(value for value in values if value) or 'Unknown'
+    return " ".join(value for value in values if value) or "Unknown"
 
 
 def get_versions():
     try:
         import gtk
     except ImportError:
-        gtk_version = 'No GTK module installed'
-        pygtk_version = 'No GTK module installed'
+        gtk_version = "No GTK module installed"
+        pygtk_version = "No GTK module installed"
     else:
-        gtk_version = '.'.join(str(x) for x in gtk.gtk_version)
-        pygtk_version = '.'.join(str(x) for x in gtk.pygtk_version)
+        gtk_version = ".".join(str(x) for x in gtk.gtk_version)
+        pygtk_version = ".".join(str(x) for x in gtk.pygtk_version)
 
     # String containing the versions for python, gtk and pygtk
-    versions = ('  Python version: %s\n'
-                '  Platform: %s\n'
-                '  GTK version: %s\n'
-                '  PyGTK version: %s\n'
-                '  w3af version:\n    %s')
-    
-    w3af_version = '\n    '.join(get_w3af_version().split('\n'))
-    
-    versions = versions % (sys.version.replace('\n', ''),
-                           get_platform_dist(),
-                           gtk_version,
-                           pygtk_version,
-                           w3af_version)
-        
+    versions = (
+        "  Python version: %s\n"
+        "  Platform: %s\n"
+        "  GTK version: %s\n"
+        "  PyGTK version: %s\n"
+        "  w3af version:\n    %s"
+    )
+
+    w3af_version = "\n    ".join(get_w3af_version().split("\n"))
+
+    versions = versions % (
+        sys.version.replace("\n", ""),
+        get_platform_dist(),
+        gtk_version,
+        pygtk_version,
+        w3af_version,
+    )
+
     return versions
 
 
 def create_crash_file(exception):
-    filename = 'w3af-crash-%s.txt' % rand_alnum(5)
+    filename = "w3af-crash-%s.txt" % rand_alnum(5)
     filename = os.path.join(gettempdir(), filename)
-    crash_dump = open(filename, 'w')
-    crash_dump.write(_('Submit this bug here:'
-                       ' https://github.com/andresriancho/w3af/issues/new \n'))
+    crash_dump = open(filename, "w")
+    crash_dump.write(
+        _(
+            "Submit this bug here:"
+            " https://github.com/andresriancho/w3af/issues/new \n"
+        )
+    )
     crash_dump.write(get_versions())
     crash_dump.write(exception)
     crash_dump.close()

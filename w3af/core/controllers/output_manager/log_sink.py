@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import functools
 
 
@@ -28,14 +29,15 @@ class LogSink(object):
     them over a multiprocessing queue to the main process where they are handled
     by the output manager => output plugins.
     """
+
     ALLOWED_METHODS = {
-        'debug',
-        'information',
-        'error',
-        'vulnerability',
-        'console',
-        'log_http',
-        'log_crash',
+        "debug",
+        "information",
+        "error",
+        "vulnerability",
+        "console",
+        "log_http",
+        "log_crash",
     }
 
     METHODS = None
@@ -43,7 +45,10 @@ class LogSink(object):
     def __init__(self, om_queue):
         super(LogSink, self).__init__()
         self.om_queue = om_queue
-        self.METHODS = dict((method, functools.partial(self._add_to_queue, method)) for method in self.ALLOWED_METHODS)
+        self.METHODS = dict(
+            (method, functools.partial(self._add_to_queue, method))
+            for method in self.ALLOWED_METHODS
+        )
 
     def report_finding(self, info_inst):
         """
@@ -54,15 +59,15 @@ class LogSink(object):
 
         :param info_inst: An Info class or subclass.
         """
-        self.vulnerability(info_inst.get_desc(),
-                           severity=info_inst.get_severity())
+        self.vulnerability(info_inst.get_desc(), severity=info_inst.get_severity())
 
     def _add_to_queue(self, *args, **kwargs):
         try:
             self.om_queue.put((args, kwargs))
         except IOError:
-            print('LogSink queue communication lost.'
-                  ' Some log messages will be lost.')
+            print(
+                "LogSink queue communication lost." " Some log messages will be lost."
+            )
 
     def __getattr__(self, name):
         """

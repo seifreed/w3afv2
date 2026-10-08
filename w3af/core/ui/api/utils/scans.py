@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 
 from uuid import uuid4
@@ -43,8 +44,8 @@ def create_temp_profile(scan_profile):
     :param scan_profile: The contents of a profile configuration
     :return: The scan profile file name and the directory where it was created
     """
-    scan_profile_file = os.path.join(tempdir, '%s.pw3af' % uuid4())
-    open(scan_profile_file, 'w').write(scan_profile)
+    scan_profile_file = os.path.join(tempdir, "%s.pw3af" % uuid4())
+    open(scan_profile_file, "w").write(scan_profile)
 
     return scan_profile_file, tempdir
 
@@ -96,4 +97,3 @@ def start_scan_helper(scan_info):
         except (AttributeError, IOError) as _:
             # Reduce some exceptions found during interpreter shutdown
             pass
-

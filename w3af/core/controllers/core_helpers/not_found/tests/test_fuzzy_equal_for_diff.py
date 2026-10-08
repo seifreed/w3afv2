@@ -20,11 +20,14 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 import unittest
 import random
 
-from w3af.core.controllers.core_helpers.not_found.fuzzy_equal_for_diff import fuzzy_equal_for_diff
+from w3af.core.controllers.core_helpers.not_found.fuzzy_equal_for_diff import (
+    fuzzy_equal_for_diff,
+)
 
 
 class Test404FuzzyEqualForDiff(unittest.TestCase):
@@ -43,27 +46,31 @@ class Test404FuzzyEqualForDiff(unittest.TestCase):
         rnd.seed(1)
         rnd.shuffle(parts)
 
-        body = '\n'.join(parts)
+        body = "\n".join(parts)
 
         return body
 
     def test_empty(self):
-        diff_x = ''
-        diff_y = ''
+        diff_x = ""
+        diff_y = ""
 
         args = (diff_x, diff_y, self.IS_EQUAL_RATIO)
 
         self.assertTrue(fuzzy_equal_for_diff(*args))
 
     def test_medium(self):
-        diff_x = ('fc76bcc057fc40d092e9742cec14c98a\n'
-                  'fc76bcc057fc40d092e9742cec14c98a\n'
-                  'MJT-2Rx4k4ZuI5R5DCHJ_Mx6Krc\n'
-                  'fc76bcc057fc40d092e9742cec14c98a\n')
+        diff_x = (
+            "fc76bcc057fc40d092e9742cec14c98a\n"
+            "fc76bcc057fc40d092e9742cec14c98a\n"
+            "MJT-2Rx4k4ZuI5R5DCHJ_Mx6Krc\n"
+            "fc76bcc057fc40d092e9742cec14c98a\n"
+        )
 
-        diff_y = ('0e7b2e00d5ee46718258ae6ed5e2b315\n'
-                  '0e7b2e00d5ee46718258ae6ed5e2b315\n'
-                  '0e7b2e00d5ee46718258ae6ed5e2b315\n')
+        diff_y = (
+            "0e7b2e00d5ee46718258ae6ed5e2b315\n"
+            "0e7b2e00d5ee46718258ae6ed5e2b315\n"
+            "0e7b2e00d5ee46718258ae6ed5e2b315\n"
+        )
 
         args = (diff_x, diff_y, self.IS_EQUAL_RATIO)
 
@@ -89,13 +96,17 @@ class Test404FuzzyEqualForDiff(unittest.TestCase):
 
         for num_lines, expected_result in tests:
             diff_x = self.get_body([])
-            diff_y = self.get_body(['Hello world this an added line for a test'] * num_lines)
+            diff_y = self.get_body(
+                ["Hello world this an added line for a test"] * num_lines
+            )
 
             args = (diff_x, diff_y, self.IS_EQUAL_RATIO)
 
-            self.assertEqual(fuzzy_equal_for_diff(*args),
-                             expected_result,
-                             'Failed at test %s' % num_lines)
+            self.assertEqual(
+                fuzzy_equal_for_diff(*args),
+                expected_result,
+                "Failed at test %s" % num_lines,
+            )
 
     def test_empty_add_text_lines(self):
         tests = [
@@ -107,14 +118,16 @@ class Test404FuzzyEqualForDiff(unittest.TestCase):
         ]
 
         for num_lines, expected_result in tests:
-            diff_x = ''
-            diff_y = '\n'.join(['hello world'] * num_lines)
+            diff_x = ""
+            diff_y = "\n".join(["hello world"] * num_lines)
 
             args = (diff_x, diff_y, self.IS_EQUAL_RATIO)
 
-            self.assertEqual(fuzzy_equal_for_diff(*args),
-                             expected_result,
-                             'Failed at test %s' % num_lines)
+            self.assertEqual(
+                fuzzy_equal_for_diff(*args),
+                expected_result,
+                "Failed at test %s" % num_lines,
+            )
 
     def test_empty_add_hash_lines(self):
         tests = [
@@ -126,11 +139,13 @@ class Test404FuzzyEqualForDiff(unittest.TestCase):
         ]
 
         for num_lines, expected_result in tests:
-            diff_x = ''
-            diff_y = '\n'.join(['0e7b2e00d5ee46718258ae6ed5e2b315'] * num_lines)
+            diff_x = ""
+            diff_y = "\n".join(["0e7b2e00d5ee46718258ae6ed5e2b315"] * num_lines)
 
             args = (diff_x, diff_y, self.IS_EQUAL_RATIO)
 
-            self.assertEqual(fuzzy_equal_for_diff(*args),
-                             expected_result,
-                             'Failed at test %s' % num_lines)
+            self.assertEqual(
+                fuzzy_equal_for_diff(*args),
+                expected_result,
+                "Failed at test %s" % num_lines,
+            )

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from nose.plugins.attrib import attr
@@ -26,20 +27,20 @@ from nose.plugins.attrib import attr
 from w3af.core.data.fuzzer.form_filler import smart_fill
 
 
-@attr('smoke')
+@attr("smoke")
 class TestSmartFill(unittest.TestCase):
 
     def test_address(self):
-        self.assertEqual(smart_fill('address'), 'Bonsai Street 123')
+        self.assertEqual(smart_fill("address"), "Bonsai Street 123")
 
     def test_address_2(self):
-        self.assertEqual(smart_fill('street_address'), 'Bonsai Street 123')
+        self.assertEqual(smart_fill("street_address"), "Bonsai Street 123")
 
     def test_ip(self):
-        self.assertEqual(smart_fill('ip'), '127.0.0.1')
+        self.assertEqual(smart_fill("ip"), "127.0.0.1")
 
     def test_ip_case_insensitive(self):
-        self.assertEqual(smart_fill('IP'), '127.0.0.1')
+        self.assertEqual(smart_fill("IP"), "127.0.0.1")
 
     def test_default(self):
-        self.assertEqual(smart_fill('foobar'), '56')
+        self.assertEqual(smart_fill("foobar"), "56")

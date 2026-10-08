@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import sys
 import json
@@ -26,14 +27,13 @@ import json
 from .utils.ps_mem import get_memory_usage, cmd_with_count
 from .utils import get_filename_fmt, dump_data_every_thread, cancel_thread
 
-
-PROFILING_OUTPUT_FMT = '/tmp/w3af-%s-%s.psutil'
+PROFILING_OUTPUT_FMT = "/tmp/w3af-%s-%s.psutil"
 DELAY_MINUTES = 2
 SAVE_PSUTIL_PTR = []
 
 
 def user_wants_psutil():
-    _should_profile = os.environ.get('W3AF_PSUTILS', '0')
+    _should_profile = os.environ.get("W3AF_PSUTILS", "0")
 
     if _should_profile.isdigit() and int(_should_profile) == 1:
         return True
@@ -46,7 +46,7 @@ if user_wants_psutil():
         # User's don't need this module
         import psutil
     except ImportError as ie:
-        print(('Failed to import psutil: %s' % ie))
+        print(("Failed to import psutil: %s" % ie))
         sys.exit(-1)
 
 
@@ -79,21 +79,32 @@ def dump_psutil():
     process_info = {}
     for proc in psutil.process_iter():
         try:
-            pinfo = proc.as_dict(attrs=['pid', 'name', 'parent', 'status',
-                                        'io_counters', 'num_threads',
-                                        'cpu_times', 'cpu_percent',
-                                        'memory_info_ex', 'memory_percent',
-                                        'exe', 'cmdline'])
+            pinfo = proc.as_dict(
+                attrs=[
+                    "pid",
+                    "name",
+                    "parent",
+                    "status",
+                    "io_counters",
+                    "num_threads",
+                    "cpu_times",
+                    "cpu_percent",
+                    "memory_info_ex",
+                    "memory_percent",
+                    "exe",
+                    "cmdline",
+                ]
+            )
         except psutil.NoSuchProcess:
             pass
         else:
             for info_name, info_data in pinfo.items():
-                if hasattr(info_data, '_asdict'):
+                if hasattr(info_data, "_asdict"):
                     pinfo[info_name] = dict(info_data._asdict())
                 else:
                     pinfo[info_name] = info_data
 
-            process_info[pinfo['pid']] = pinfo
+            process_info[pinfo["pid"]] = pinfo
 
     netinfo = psutil.net_io_counters(pernic=True)
     for key, value in netinfo.items():
@@ -102,45 +113,53 @@ def dump_psutil():
     # Get the memory usage from ps_mem
     pids_to_show = []
     for pid, pinfo in process_info.items():
-        exe = str(pinfo['exe'])
-        if 'python' in exe and 'w3af' in exe:
+        exe = str(pinfo["exe"])
+        if "python" in exe and "w3af" in exe:
             pids_to_show.append(pid)
 
     ps_mem_data = ps_mem_to_json(*get_memory_usage(pids_to_show, True))
 
-    du_data = psutil.disk_usage(os.path.expanduser('~/.w3af'))
-    disk_usage = {'total': get_human_readable_size(du_data.total),
-                  'free': get_human_readable_size(du_data.free),
-                  '% used': du_data.percent}
+    du_data = psutil.disk_usage(os.path.expanduser("~/.w3af"))
+    disk_usage = {
+        "total": get_human_readable_size(du_data.total),
+        "free": get_human_readable_size(du_data.free),
+        "% used": du_data.percent,
+    }
 
     # Merge all the data here
-    psutil_data = {'CPU': psutil.cpu_times()._asdict(),
-                   'Load average': os.getloadavg(),
-                   'Virtual memory': psutil.virtual_memory()._asdict(),
-                   'Swap memory': psutil.swap_memory()._asdict(),
-                   'Network': netinfo,
-                   'Processes': process_info,
-                   'ps_mem': ps_mem_data,
-                   'Disk IO counters': psutil.disk_io_counters(),
-                   'Disk usage': disk_usage,
-                   'Thread CPU usage': get_threads_cpu_percent()}
-    
-    json.dump(psutil_data, open(output_file, 'w'), indent=4, sort_keys=True)
+    psutil_data = {
+        "CPU": psutil.cpu_times()._asdict(),
+        "Load average": os.getloadavg(),
+        "Virtual memory": psutil.virtual_memory()._asdict(),
+        "Swap memory": psutil.swap_memory()._asdict(),
+        "Network": netinfo,
+        "Processes": process_info,
+        "ps_mem": ps_mem_data,
+        "Disk IO counters": psutil.disk_io_counters(),
+        "Disk usage": disk_usage,
+        "Thread CPU usage": get_threads_cpu_percent(),
+    }
+
+    json.dump(psutil_data, open(output_file, "w"), indent=4, sort_keys=True)
 
 
 def ps_mem_to_json(sorted_cmds, shareds, count, total):
     result = []
-    
+
     for cmd in sorted_cmds:
         private = cmd[1] - shareds[cmd[0]]
         shared = shareds[cmd[0]]
         ram_used = cmd[1]
         cmd_count = cmd_with_count(cmd[0], count[cmd[0]])
 
-        result.append({'Private': private,
-                       'Shared': shared,
-                       'Total RAM used': ram_used,
-                       'Command line': cmd_count})
+        result.append(
+            {
+                "Private": private,
+                "Shared": shared,
+                "Total RAM used": ram_used,
+                "Command line": cmd_count,
+            }
+        )
 
     return result
 
@@ -159,9 +178,11 @@ def get_threads_cpu_percent(interval=0.1):
     # pylint: disable=E1101
     for thread in proc.get_threads():
         thread_time = thread.system_time + thread.user_time
-        thread_percent = total_percent * (thread_time/total_time)
-        result[thread.id] = {'Thread total time': thread_time,
-                             'Thread CPU usage %': thread_percent}
+        thread_percent = total_percent * (thread_time / total_time)
+        result[thread.id] = {
+            "Thread total time": thread_time,
+            "Thread CPU usage %": thread_percent,
+        }
     # pylint: enable=E1101
 
     return result
@@ -177,9 +198,9 @@ def stop_psutil_dump():
 
 
 def get_human_readable_size(num):
-    exp_str = [(0, 'B'), (10, 'KB'), (20, 'MB'), (30, 'GB'), (40, 'TB'), (50, 'PB')]
+    exp_str = [(0, "B"), (10, "KB"), (20, "MB"), (30, "GB"), (40, "TB"), (50, "PB")]
     i = 0
-    while i+1 < len(exp_str) and num >= (2 ** exp_str[i+1][0]):
+    while i + 1 < len(exp_str) and num >= (2 ** exp_str[i + 1][0]):
         i += 1
         rounded_val = round(float(num) / 2 ** exp_str[i][0], 2)
-    return '%s %s' % (int(rounded_val), exp_str[i][1])
+    return "%s %s" % (int(rounded_val), exp_str[i][1])

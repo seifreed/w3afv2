@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import sys
 
 
@@ -27,8 +28,8 @@ def verify_python_version():
     Require Python 3.14.
     """
     if sys.version_info[:2] != (3, 14):
-        version = '.'.join(str(part) for part in sys.version_info[:3])
-        print('Error: Python 3.14 required; found Python %s.' % version)
+        version = ".".join(str(part) for part in sys.version_info[:3])
+        print("Error: Python 3.14 required; found Python %s." % version)
         sys.exit(1)
 
 

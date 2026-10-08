@@ -19,28 +19,32 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import string
 
-
-INTERESTING_NODEJS_STRINGS = ['\n', '{', '(']
-INTERESTING_JAVA_STRINGS = ['java.util',
-                            'java/util',
-                            'java/lang/',
-                            'reflect.annotation',
-                            'com.sun.org.',
-                            'org.jboss.',
-                            'org.apache.',
-                            'java.rmi.',
-                            'javax/',
-                            'com/sun/']
-INTERESTING_NET_STRINGS = ['mscorlib',
-                           'System.Data',
-                           'System.Collections',
-                           'Int32',
-                           'System.Windows',
-                           '$type',
-                           'MethodName',
-                           'PublicKeyToken']
+INTERESTING_NODEJS_STRINGS = ["\n", "{", "("]
+INTERESTING_JAVA_STRINGS = [
+    "java.util",
+    "java/util",
+    "java/lang/",
+    "reflect.annotation",
+    "com.sun.org.",
+    "org.jboss.",
+    "org.apache.",
+    "java.rmi.",
+    "javax/",
+    "com/sun/",
+]
+INTERESTING_NET_STRINGS = [
+    "mscorlib",
+    "System.Data",
+    "System.Collections",
+    "Int32",
+    "System.Windows",
+    "$type",
+    "MethodName",
+    "PublicKeyToken",
+]
 
 
 def is_pickled_data(data):
@@ -49,11 +53,11 @@ def is_pickled_data(data):
     :return: True if the data looks like a python pickle
     """
     # pickle is a \n separated format
-    if data.count('\n') > 10:
+    if data.count("\n") > 10:
         return True
 
     # which usually ends with these characters
-    return data.endswith('\n.') or data.endswith('\ns.')
+    return data.endswith("\n.") or data.endswith("\ns.")
 
 
 def is_java_serialized_data(data):

@@ -3,7 +3,7 @@ import os
 
 from utils.output import KeyValueOutput
 
-XML_OUTPUT_SIZE = re.compile('The XML output file size is (.*?) bytes.')
+XML_OUTPUT_SIZE = re.compile("The XML output file size is (.*?) bytes.")
 
 
 def get_file_sizes(scan_log_filename, scan):
@@ -16,7 +16,6 @@ def get_file_sizes(scan_log_filename, scan):
         if match:
             latest_xml_size = match.group(1)
 
-    data = {'debug_log': stat_info.st_size,
-            'xml_output': latest_xml_size}
+    data = {"debug_log": stat_info.st_size, "xml_output": latest_xml_size}
 
-    return KeyValueOutput('file_sizes', 'output file sizes (bytes)', data)
+    return KeyValueOutput("file_sizes", "output file sizes (bytes)", data)

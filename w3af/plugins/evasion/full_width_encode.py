@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import urllib.request, urllib.parse, urllib.error
 
 from w3af.core.controllers.plugins.evasion_plugin import EvasionPlugin
@@ -31,6 +32,7 @@ class full_width_encode(EvasionPlugin):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def modify_request(self, request):
         """
         Mangles the request
@@ -68,10 +70,10 @@ class full_width_encode(EvasionPlugin):
 
     def _mutate(self, to_mutate):
         to_mutate = urllib.parse.unquote(to_mutate)
-        mutant = ''
+        mutant = ""
 
         for char in to_mutate:
-            if char not in ['?', '/', '&', '\\', '=', '%', '+']:
+            if char not in ["?", "/", "&", "\\", "=", "%", "+"]:
                 # The "- 0x20" was taken from UFF00.pdf
                 char = "%%uFF%02x" % (ord(char) - 0x20)
             mutant += char

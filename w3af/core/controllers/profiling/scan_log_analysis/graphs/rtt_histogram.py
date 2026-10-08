@@ -3,8 +3,7 @@ import plotille
 
 from utils.graph import num_formatter
 
-
-RTT_RE = re.compile('\(.*?rtt=(.*?),.*\)')
+RTT_RE = re.compile("\(.*?rtt=(.*?),.*\)")
 
 
 def get_rtt_histogram_data(scan_log_filename, scan):
@@ -27,13 +26,13 @@ def draw_rtt_histogram(scan_log_filename, scan):
     fig.height = 20
     fig.register_label_formatter(float, num_formatter)
     fig.register_label_formatter(int, num_formatter)
-    fig.y_label = 'Count'
-    fig.x_label = 'RTT'
+    fig.y_label = "Count"
+    fig.x_label = "RTT"
     fig.set_x_limits(min_=0)
     fig.set_y_limits(min_=0)
-    fig.color_mode = 'byte'
+    fig.color_mode = "byte"
 
-    print('[rtt_histogram]')
-    print('')
+    print("[rtt_histogram]")
+    print("")
     print((plotille.hist(rtts, bins=25)))
-    print('')
+    print("")

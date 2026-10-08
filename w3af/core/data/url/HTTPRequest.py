@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import copy
 import socket
 import urllib.request, urllib.error, urllib.parse
@@ -32,24 +33,27 @@ from w3af.core.data.url.constants import MAX_HTTP_RETRIES
 
 class HTTPRequest(RequestMixIn, urllib.request.Request):
 
-    def __init__(self, url,
-                 data=None,
-                 headers=None,
-                 origin_req_host=None,
-                 unverifiable=False,
-                 cookies=True,
-                 session=None,
-                 cache=False,
-                 method=None,
-                 error_handling=True,
-                 retries=MAX_HTTP_RETRIES,
-                 timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
-                 new_connection=False,
-                 follow_redirects=False,
-                 use_basic_auth=True,
-                 use_proxy=True,
-                 debugging_id=None,
-                 binary_response=False):
+    def __init__(
+        self,
+        url,
+        data=None,
+        headers=None,
+        origin_req_host=None,
+        unverifiable=False,
+        cookies=True,
+        session=None,
+        cache=False,
+        method=None,
+        error_handling=True,
+        retries=MAX_HTTP_RETRIES,
+        timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
+        new_connection=False,
+        follow_redirects=False,
+        use_basic_auth=True,
+        use_proxy=True,
+        debugging_id=None,
+        binary_response=False,
+    ):
         """
         This is a simple wrapper around a urllib2 request object which helps
         with some common tasks like serialization, cache, etc.
@@ -77,24 +81,27 @@ class HTTPRequest(RequestMixIn, urllib.request.Request):
 
         self.method = method
         if self.method is None:
-            self.method = 'POST' if data else 'GET'
+            self.method = "POST" if data else "GET"
 
         if isinstance(headers, Headers):
             headers.tokens_to_value()
-            
+
         headers = dict(headers)
 
         # Call the base class constructor
-        urllib.request.Request.__init__(self, url.url_encode(), data,
-                                 headers, origin_req_host, unverifiable)
+        urllib.request.Request.__init__(
+            self, url.url_encode(), data, headers, origin_req_host, unverifiable
+        )
         RequestMixIn.__init__(self)
-    
+
     def __eq__(self, other):
-        return (self.get_method() == other.get_method() and
-                self.get_uri() == other.get_uri() and
-                self.get_headers() == other.get_headers() and
-                self.get_data() == other.get_data() and
-                self.get_timeout() == other.get_timeout())
+        return (
+            self.get_method() == other.get_method()
+            and self.get_uri() == other.get_uri()
+            and self.get_headers() == other.get_headers()
+            and self.get_data() == other.get_data()
+            and self.get_timeout() == other.get_timeout()
+        )
 
     def with_binary_response(self):
         return self._binary_response
@@ -123,7 +130,7 @@ class HTTPRequest(RequestMixIn, urllib.request.Request):
 
     def get_netloc(self):
         uri = self.get_uri()
-        return '%s:%s' % (uri.get_domain(), uri.get_port())
+        return "%s:%s" % (uri.get_domain(), uri.get_port())
 
     def get_domain(self):
         return self.get_uri().get_domain()
@@ -133,7 +140,7 @@ class HTTPRequest(RequestMixIn, urllib.request.Request):
 
     def set_uri(self, url_object):
         self.url_object = url_object
-    
+
     def get_headers(self):
         headers = Headers(list(self.headers.items()))
         headers.update(list(self.unredirected_hdrs.items()))
@@ -157,21 +164,23 @@ class HTTPRequest(RequestMixIn, urllib.request.Request):
     def to_dict(self):
         serializable_dict = {}
         sdict = serializable_dict
-        
-        sdict['method'] = self.get_method()
-        sdict['uri'] = self.get_uri().url_string
-        sdict['headers'] = dict(self.get_headers())
-        sdict['data'] = self.get_data()
-        sdict['cookies'] = self.cookies
-        sdict['session'] = self.session
-        sdict['cache'] = self.get_from_cache
-        sdict['timeout'] = None if self.timeout is socket._GLOBAL_DEFAULT_TIMEOUT else self.timeout
-        sdict['new_connection'] = self.new_connection
-        sdict['follow_redirects'] = self.follow_redirects
-        sdict['use_basic_auth'] = self.use_basic_auth
-        sdict['use_proxy'] = self.use_proxy
-        sdict['debugging_id'] = self.debugging_id
-        sdict['binary_response'] = self._binary_response
+
+        sdict["method"] = self.get_method()
+        sdict["uri"] = self.get_uri().url_string
+        sdict["headers"] = dict(self.get_headers())
+        sdict["data"] = self.get_data()
+        sdict["cookies"] = self.cookies
+        sdict["session"] = self.session
+        sdict["cache"] = self.get_from_cache
+        sdict["timeout"] = (
+            None if self.timeout is socket._GLOBAL_DEFAULT_TIMEOUT else self.timeout
+        )
+        sdict["new_connection"] = self.new_connection
+        sdict["follow_redirects"] = self.follow_redirects
+        sdict["use_basic_auth"] = self.use_basic_auth
+        sdict["use_proxy"] = self.use_proxy
+        sdict["debugging_id"] = self.debugging_id
+        sdict["binary_response"] = self._binary_response
 
         return serializable_dict
 
@@ -187,44 +196,56 @@ class HTTPRequest(RequestMixIn, urllib.request.Request):
         headers = fuzzable_request.get_headers()
         headers.tokens_to_value()
 
-        return cls(fuzzable_request.get_uri(), data=data, headers=headers,
-                   origin_req_host=host)
+        return cls(
+            fuzzable_request.get_uri(), data=data, headers=headers, origin_req_host=host
+        )
 
-    @classmethod    
+    @classmethod
     def from_dict(cls, unserialized_dict):
         """
         * msgpack is MUCH faster than cPickle,
         * msgpack can't serialize python objects,
         * I have to create a dict representation of HTTPRequest to serialize it,
         * and a from_dict to have the object back
-        
+
         :param unserialized_dict: A dict just as returned by to_dict()
         """
         udict = unserialized_dict
-        
-        method, uri = udict['method'], udict['uri']
-        headers, data = udict['headers'], udict['data']
-        cookies = udict['cookies']
-        session = udict['session']
-        cache = udict['cache']
-        timeout = socket.getdefaulttimeout() if udict['timeout'] is None else udict['timeout']
-        new_connection = udict['new_connection']
-        follow_redirects = udict['follow_redirects']
-        use_basic_auth = udict['use_basic_auth']
-        use_proxy = udict['use_proxy']
-        debugging_id = udict['debugging_id']
-        binary_response = udict['binary_response']
+
+        method, uri = udict["method"], udict["uri"]
+        headers, data = udict["headers"], udict["data"]
+        cookies = udict["cookies"]
+        session = udict["session"]
+        cache = udict["cache"]
+        timeout = (
+            socket.getdefaulttimeout() if udict["timeout"] is None else udict["timeout"]
+        )
+        new_connection = udict["new_connection"]
+        follow_redirects = udict["follow_redirects"]
+        use_basic_auth = udict["use_basic_auth"]
+        use_proxy = udict["use_proxy"]
+        debugging_id = udict["debugging_id"]
+        binary_response = udict["binary_response"]
 
         headers_inst = Headers(list(headers.items()))
         url = URL(uri)
-        
-        return cls(url, data=data, headers=headers_inst,
-                   cookies=cookies, session=session,
-                   cache=cache, method=method,
-                   timeout=timeout, new_connection=new_connection,
-                   follow_redirects=follow_redirects,
-                   use_basic_auth=use_basic_auth, use_proxy=use_proxy,
-                   debugging_id=debugging_id, binary_response=binary_response)
+
+        return cls(
+            url,
+            data=data,
+            headers=headers_inst,
+            cookies=cookies,
+            session=session,
+            cache=cache,
+            method=method,
+            timeout=timeout,
+            new_connection=new_connection,
+            follow_redirects=follow_redirects,
+            use_basic_auth=use_basic_auth,
+            use_proxy=use_proxy,
+            debugging_id=debugging_id,
+            binary_response=binary_response,
+        )
 
     def copy(self):
         return copy.deepcopy(self)
@@ -234,9 +255,11 @@ class HTTPRequest(RequestMixIn, urllib.request.Request):
 
         timeout = 3 if self.timeout is socket._GLOBAL_DEFAULT_TIMEOUT else self.timeout
 
-        return fmt % (self.url_object.url_string,
-                      self.cookies,
-                      self.get_from_cache,
-                      self.debugging_id,
-                      timeout,
-                      self.new_connection)
+        return fmt % (
+            self.url_object.url_string,
+            self.cookies,
+            self.get_from_cache,
+            self.debugging_id,
+            timeout,
+            self.new_connection,
+        )

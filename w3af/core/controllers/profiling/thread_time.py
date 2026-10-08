@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import os
 import sys
 import time
@@ -49,14 +50,13 @@ systems I just return the result of calling time.time().
 [1] https://github.com/atdt/monotonic/blob/master/monotonic.py
 """
 
-__all__ = ('thread_active_time',
-           'CPU_TIME_IS_ACTIVE')
+__all__ = ("thread_active_time", "CPU_TIME_IS_ACTIVE")
 
 
 CPU_TIME_IS_ACTIVE = False
 
 
-if not sys.platform.startswith('linux'):
+if not sys.platform.startswith("linux"):
     #
     # Fallback to time.time
     #
@@ -68,11 +68,13 @@ else:
     #
     try:
         try:
-            getrusage = ctypes.CDLL(ctypes.util.find_library('c'),
-                                    use_errno=True).getrusage
+            getrusage = ctypes.CDLL(
+                ctypes.util.find_library("c"), use_errno=True
+            ).getrusage
         except Exception:
-            getrusage = ctypes.CDLL(ctypes.util.find_library('rt'),
-                                    use_errno=True).getrusage
+            getrusage = ctypes.CDLL(
+                ctypes.util.find_library("rt"), use_errno=True
+            ).getrusage
     except:
         #
         # Something went wrong, either ctypes is not finding the libraries, or
@@ -80,6 +82,7 @@ else:
         #
         thread_active_time = time.time
     else:
+
         class timeval(ctypes.Structure):
             _fields_ = [("tv_sec", ctypes.c_long), ("tv_usec", ctypes.c_long)]
 
@@ -90,22 +93,24 @@ else:
             https://github.com/torvalds/linux/blob/master/include/uapi/linux/resource.h#L24
             http://man7.org/linux/man-pages/man2/getrusage.2.html
             """
-            _fields_ = (('ru_utime', timeval),
-                        ('ru_stime', timeval),
-                        ('ru_maxrss', ctypes.c_long),
-                        ('ru_ixrss', ctypes.c_long),
-                        ('ru_idrss', ctypes.c_long),
-                        ('ru_isrss', ctypes.c_long),
-                        ('ru_minflt', ctypes.c_long),
-                        ('ru_majflt', ctypes.c_long),
-                        ('ru_nswap', ctypes.c_long),
-                        ('ru_inblock', ctypes.c_long),
-                        ('ru_oublock', ctypes.c_long),
-                        ('ru_msgsnd', ctypes.c_long),
-                        ('ru_msgrcv', ctypes.c_long),
-                        ('ru_nsignals', ctypes.c_long),
-                        ('ru_nvcsw', ctypes.c_long),
-                        ('ru_nivcsw', ctypes.c_long),
+
+            _fields_ = (
+                ("ru_utime", timeval),
+                ("ru_stime", timeval),
+                ("ru_maxrss", ctypes.c_long),
+                ("ru_ixrss", ctypes.c_long),
+                ("ru_idrss", ctypes.c_long),
+                ("ru_isrss", ctypes.c_long),
+                ("ru_minflt", ctypes.c_long),
+                ("ru_majflt", ctypes.c_long),
+                ("ru_nswap", ctypes.c_long),
+                ("ru_inblock", ctypes.c_long),
+                ("ru_oublock", ctypes.c_long),
+                ("ru_msgsnd", ctypes.c_long),
+                ("ru_msgrcv", ctypes.c_long),
+                ("ru_nsignals", ctypes.c_long),
+                ("ru_nvcsw", ctypes.c_long),
+                ("ru_nivcsw", ctypes.c_long),
             )
 
         # https://github.com/torvalds/linux/blob/master/include/uapi/linux/resource.h#L22

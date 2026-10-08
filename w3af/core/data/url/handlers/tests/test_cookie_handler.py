@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import urllib.request, urllib.error, urllib.parse
 import unittest
@@ -35,10 +36,10 @@ from w3af.core.data.url.extended_urllib import ExtendedUrllib
 
 class TestCookieHandler(unittest.TestCase):
 
-    URL_SEND_COOKIE = 'http://w3af.org/send-cookie'
-    URL_CHECK_COOKIE = 'http://w3af.org/check-cookie'
+    URL_SEND_COOKIE = "http://w3af.org/send-cookie"
+    URL_CHECK_COOKIE = "http://w3af.org/check-cookie"
 
-    COOKIE_VALUE = 'session=123456789'
+    COOKIE_VALUE = "session=123456789"
 
     COOKIEJAR = """\
         # Netscape HTTP Cookie File
@@ -50,23 +51,25 @@ class TestCookieHandler(unittest.TestCase):
 
     @staticmethod
     def request_callback(request, uri, headers):
-        received_cookie_value = request.headers.get('cookie', None)
+        received_cookie_value = request.headers.get("cookie", None)
 
         if received_cookie_value == TestCookieHandler.COOKIE_VALUE:
-            return 200, headers, 'Cookie received'
+            return 200, headers, "Cookie received"
         else:
-            return 200, headers, 'Cookie not sent'
+            return 200, headers, "Cookie not sent"
 
     @httpretty.activate
     def test_low_level(self):
 
-        httpretty.register_uri(httpretty.GET,
-                               self.URL_SEND_COOKIE,
-                               adding_headers={'Set-Cookie': self.COOKIE_VALUE})
+        httpretty.register_uri(
+            httpretty.GET,
+            self.URL_SEND_COOKIE,
+            adding_headers={"Set-Cookie": self.COOKIE_VALUE},
+        )
 
-        httpretty.register_uri(httpretty.GET,
-                               self.URL_CHECK_COOKIE,
-                               body=self.request_callback)
+        httpretty.register_uri(
+            httpretty.GET, self.URL_CHECK_COOKIE, body=self.request_callback
+        )
 
         opener = urllib.request.build_opener(CookieHandler)
 
@@ -78,33 +81,33 @@ class TestCookieHandler(unittest.TestCase):
         # And now it will send it because we're setting cookie to True
         with_cookie_req = HTTPRequest(URL(self.URL_CHECK_COOKIE), cookies=True)
         with_cookie_res = opener.open(with_cookie_req).read()
-        self.assertIn('Cookie received', with_cookie_res)
+        self.assertIn("Cookie received", with_cookie_res)
 
         # And now it will NOT send any cookie because we're setting cookie to False
         no_cookie_req = HTTPRequest(URL(self.URL_CHECK_COOKIE), cookies=False)
         no_cookie_res = opener.open(no_cookie_req).read()
-        self.assertIn('Cookie not sent', no_cookie_res)
+        self.assertIn("Cookie not sent", no_cookie_res)
 
         # And now it will send it because we're setting cookie to True
         with_cookie_req = HTTPRequest(URL(self.URL_CHECK_COOKIE), cookies=True)
         with_cookie_res = opener.open(with_cookie_req).read()
-        self.assertIn('Cookie received', with_cookie_res)
+        self.assertIn("Cookie received", with_cookie_res)
 
     @httpretty.activate
     def test_low_level_with_cookie_jar(self):
         # IMPORTANT NOTE: Please remember that the cookie expiration, 2736616305
         # above, is going to limit the date until which this unittest will PASS
 
-        httpretty.register_uri(httpretty.GET,
-                               self.URL_CHECK_COOKIE,
-                               body=self.request_callback)
+        httpretty.register_uri(
+            httpretty.GET, self.URL_CHECK_COOKIE, body=self.request_callback
+        )
 
         # Remove all the indent and save the cookiejar
-        cj_contents = self.COOKIEJAR.replace(' ' * 8, '')
+        cj_contents = self.COOKIEJAR.replace(" " * 8, "")
         tmp_file = tempfile.NamedTemporaryFile(delete=False)
         tmp_file.write(cj_contents)
         tmp_file.close()
-        
+
         cj = http.cookiejar.MozillaCookieJar()
         cj.load(tmp_file.name, ignore_discard=True, ignore_expires=True)
 
@@ -114,46 +117,50 @@ class TestCookieHandler(unittest.TestCase):
         # Verify cookie from cookie jar is sent
         with_cookie_req = HTTPRequest(URL(self.URL_CHECK_COOKIE), cookies=True)
         with_cookie_res = opener.open(with_cookie_req).read()
-        self.assertIn('Cookie received', with_cookie_res)
+        self.assertIn("Cookie received", with_cookie_res)
 
         # And now it will NOT send any cookie because we're setting cookie to False
         no_cookie_req = HTTPRequest(URL(self.URL_CHECK_COOKIE), cookies=False)
         no_cookie_res = opener.open(no_cookie_req).read()
-        self.assertIn('Cookie not sent', no_cookie_res)
-        
+        self.assertIn("Cookie not sent", no_cookie_res)
+
         os.unlink(tmp_file.name)
 
     @httpretty.activate
     def test_xurllib(self):
-        httpretty.register_uri(httpretty.GET,
-                               self.URL_SEND_COOKIE,
-                               adding_headers={'Set-Cookie': self.COOKIE_VALUE})
+        httpretty.register_uri(
+            httpretty.GET,
+            self.URL_SEND_COOKIE,
+            adding_headers={"Set-Cookie": self.COOKIE_VALUE},
+        )
 
-        httpretty.register_uri(httpretty.GET,
-                               self.URL_CHECK_COOKIE,
-                               body=self.request_callback)
+        httpretty.register_uri(
+            httpretty.GET, self.URL_CHECK_COOKIE, body=self.request_callback
+        )
 
         uri_opener = ExtendedUrllib()
         uri_opener.GET(URL(self.URL_SEND_COOKIE))
 
         resp = uri_opener.GET(URL(self.URL_CHECK_COOKIE), cookies=True)
-        self.assertIn('Cookie received', resp)
+        self.assertIn("Cookie received", resp)
 
         resp = uri_opener.GET(URL(self.URL_CHECK_COOKIE), cookies=False)
-        self.assertIn('Cookie not sent', resp)
+        self.assertIn("Cookie not sent", resp)
 
         resp = uri_opener.GET(URL(self.URL_CHECK_COOKIE), cookies=True)
-        self.assertIn('Cookie received', resp)
+        self.assertIn("Cookie received", resp)
 
     @httpretty.activate
     def test_sessions_basic(self):
-        httpretty.register_uri(httpretty.GET,
-                               self.URL_SEND_COOKIE,
-                               adding_headers={'Set-Cookie': self.COOKIE_VALUE})
+        httpretty.register_uri(
+            httpretty.GET,
+            self.URL_SEND_COOKIE,
+            adding_headers={"Set-Cookie": self.COOKIE_VALUE},
+        )
 
-        httpretty.register_uri(httpretty.GET,
-                               self.URL_CHECK_COOKIE,
-                               body=self.request_callback)
+        httpretty.register_uri(
+            httpretty.GET, self.URL_CHECK_COOKIE, body=self.request_callback
+        )
 
         uri_opener = ExtendedUrllib()
         session_1 = uri_opener.get_new_session()
@@ -161,44 +168,52 @@ class TestCookieHandler(unittest.TestCase):
 
         uri_opener.GET(URL(self.URL_SEND_COOKIE), session=session_1)
 
-        resp = uri_opener.GET(URL(self.URL_CHECK_COOKIE), cookies=True, session=session_1)
-        self.assertIn('Cookie received', resp)
+        resp = uri_opener.GET(
+            URL(self.URL_CHECK_COOKIE), cookies=True, session=session_1
+        )
+        self.assertIn("Cookie received", resp)
 
-        resp = uri_opener.GET(URL(self.URL_CHECK_COOKIE), cookies=True, session=session_2)
-        self.assertIn('Cookie not sent', resp)
+        resp = uri_opener.GET(
+            URL(self.URL_CHECK_COOKIE), cookies=True, session=session_2
+        )
+        self.assertIn("Cookie not sent", resp)
 
     @httpretty.activate
     def test_sessions_simultaneous(self):
 
         def request_callback(request, uri, headers):
-            received_cookie_value = request.headers.get('cookie', None)
+            received_cookie_value = request.headers.get("cookie", None)
 
             if received_cookie_value is not None:
-                return 200, headers, 'Cookie %s received' % received_cookie_value
+                return 200, headers, "Cookie %s received" % received_cookie_value
             else:
-                return 200, headers, 'Cookie not sent'
+                return 200, headers, "Cookie not sent"
 
-        httpretty.register_uri(httpretty.GET,
-                               self.URL_SEND_COOKIE + '1',
-                               adding_headers={'Set-Cookie': '11111111'})
+        httpretty.register_uri(
+            httpretty.GET,
+            self.URL_SEND_COOKIE + "1",
+            adding_headers={"Set-Cookie": "11111111"},
+        )
 
-        httpretty.register_uri(httpretty.GET,
-                               self.URL_SEND_COOKIE + '2',
-                               adding_headers={'Set-Cookie': '222222222'})
+        httpretty.register_uri(
+            httpretty.GET,
+            self.URL_SEND_COOKIE + "2",
+            adding_headers={"Set-Cookie": "222222222"},
+        )
 
-        httpretty.register_uri(httpretty.GET,
-                               self.URL_CHECK_COOKIE,
-                               body=request_callback)
+        httpretty.register_uri(
+            httpretty.GET, self.URL_CHECK_COOKIE, body=request_callback
+        )
 
         uri_opener = ExtendedUrllib()
         session_1 = uri_opener.get_new_session()
         session_2 = uri_opener.get_new_session()
 
-        uri_opener.GET(URL(self.URL_SEND_COOKIE + '1'), session=session_1)
-        uri_opener.GET(URL(self.URL_SEND_COOKIE + '2'), session=session_2)
+        uri_opener.GET(URL(self.URL_SEND_COOKIE + "1"), session=session_1)
+        uri_opener.GET(URL(self.URL_SEND_COOKIE + "2"), session=session_2)
 
         resp = uri_opener.GET(URL(self.URL_CHECK_COOKIE), session=session_1)
-        self.assertIn('Cookie 11111111 received', resp.body)
+        self.assertIn("Cookie 11111111 received", resp.body)
 
         resp = uri_opener.GET(URL(self.URL_CHECK_COOKIE), session=session_2)
-        self.assertIn('Cookie 222222222 received', resp)
+        self.assertIn("Cookie 222222222 received", resp)

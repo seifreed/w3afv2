@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 from nose.plugins.attrib import attr
 
 from w3af.core.controllers.ci.moth import get_moth_http
@@ -26,36 +27,35 @@ from w3af.plugins.tests.helper import PluginTest, PluginConfig
 import w3af.core.data.constants.severity as severity
 
 
-@attr('ci_ready')
+@attr("ci_ready")
 class TestDOMXSS(PluginTest):
 
-    dom_xss_url = get_moth_http('/grep/dom_xss/')
+    dom_xss_url = get_moth_http("/grep/dom_xss/")
 
     _run_configs = {
-        'cfg': {
-            'target': dom_xss_url,
-            'plugins': {
-                'grep': (PluginConfig('dom_xss'),),
-                'crawl': (
-                    PluginConfig('web_spider',
-                                 ('only_forward', True, PluginConfig.BOOL)),
-                )
-
-            }
+        "cfg": {
+            "target": dom_xss_url,
+            "plugins": {
+                "grep": (PluginConfig("dom_xss"),),
+                "crawl": (
+                    PluginConfig(
+                        "web_spider", ("only_forward", True, PluginConfig.BOOL)
+                    ),
+                ),
+            },
         }
     }
 
     def test_found_vuln(self):
-        cfg = self._run_configs['cfg']
-        self._scan(cfg['target'], cfg['plugins'])
-        vulns = self.kb.get('dom_xss', 'dom_xss')
+        cfg = self._run_configs["cfg"]
+        self._scan(cfg["target"], cfg["plugins"])
+        vulns = self.kb.get("dom_xss", "dom_xss")
 
         self.assertEqual(1, len(vulns), vulns)
 
         v = vulns[0]
         self.assertEqual(severity.LOW, v.get_severity())
-        self.assertEqual('DOM Cross site scripting', v.get_name())
+        self.assertEqual("DOM Cross site scripting", v.get_name())
         self.assertEqual(len(v.get_id()), 1)
-        self.assertTrue('document.URL' in v.get_desc())
-        self.assertEqual(
-            self.dom_xss_url + 'dom-xss.html', v.get_url().url_string)
+        self.assertTrue("document.URL" in v.get_desc())
+        self.assertEqual(self.dom_xss_url + "dom-xss.html", v.get_url().url_string)

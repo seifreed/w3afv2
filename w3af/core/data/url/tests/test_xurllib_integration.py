@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import unittest
 import httpretty
 
@@ -32,74 +33,73 @@ from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.data.parsers.doc.url import URL
 
 
-@attr('moth')
+@attr("moth")
 class TestXUrllibIntegration(unittest.TestCase):
 
-    MOTH_MESSAGE = '<title>moth: vulnerable web application</title>'
+    MOTH_MESSAGE = "<title>moth: vulnerable web application</title>"
 
     def setUp(self):
         self.uri_opener = ExtendedUrllib()
-        
-    @attr('ci_fails')
+
+    @attr("ci_fails")
     def test_ntlm_auth_not_configured(self):
         self.uri_opener = ExtendedUrllib()
         url = URL("http://moth/w3af/core/ntlm_auth/ntlm_v1/")
         http_response = self.uri_opener.GET(url, cache=False)
-        self.assertIn('Must authenticate.', http_response.body)
+        self.assertIn("Must authenticate.", http_response.body)
 
-    @attr('ci_fails')
+    @attr("ci_fails")
     def test_ntlm_auth_valid_creds(self):
-        
+
         self.uri_opener = ExtendedUrllib()
-        
+
         settings = OpenerSettings()
         options = settings.get_options()
-        ntlm_domain = options['ntlm_auth_domain'] 
-        ntlm_user = options['ntlm_auth_user']
-        ntlm_pass = options['ntlm_auth_passwd']
-        ntlm_url = options['ntlm_auth_url']
-        
-        ntlm_domain.set_value('moth') 
-        ntlm_user.set_value('admin')
-        ntlm_pass.set_value('admin')
-        ntlm_url.set_value('http://moth/w3af/core/ntlm_auth/ntlm_v1/')
-        
+        ntlm_domain = options["ntlm_auth_domain"]
+        ntlm_user = options["ntlm_auth_user"]
+        ntlm_pass = options["ntlm_auth_passwd"]
+        ntlm_url = options["ntlm_auth_url"]
+
+        ntlm_domain.set_value("moth")
+        ntlm_user.set_value("admin")
+        ntlm_pass.set_value("admin")
+        ntlm_url.set_value("http://moth/w3af/core/ntlm_auth/ntlm_v1/")
+
         settings.set_options(options)
         self.uri_opener.settings = settings
-        
+
         url = URL("http://moth/w3af/core/ntlm_auth/ntlm_v1/")
         http_response = self.uri_opener.GET(url, cache=False)
-        self.assertIn('You are admin from MOTH/', http_response.body)
+        self.assertIn("You are admin from MOTH/", http_response.body)
 
     def test_gzip(self):
-        url = URL(get_moth_http('/core/gzip/gzip.html'))
+        url = URL(get_moth_http("/core/gzip/gzip.html"))
         res = self.uri_opener.GET(url, cache=False)
         headers = res.get_headers()
-        content_encoding, _ = headers.iget('content-encoding', '')
-        test_res = 'gzip' in content_encoding or \
-                   'compress' in content_encoding
+        content_encoding, _ = headers.iget("content-encoding", "")
+        test_res = "gzip" in content_encoding or "compress" in content_encoding
 
         self.assertTrue(test_res, content_encoding)
-        self.assertIn('View HTTP response headers.', res.get_body())
+        self.assertIn("View HTTP response headers.", res.get_body())
 
     def test_deflate(self):
-        url = URL(get_moth_http('/core/deflate/deflate.html'))
+        url = URL(get_moth_http("/core/deflate/deflate.html"))
         res = self.uri_opener.GET(url, cache=False)
         headers = res.get_headers()
-        content_encoding, _ = headers.iget('content-encoding', '')
+        content_encoding, _ = headers.iget("content-encoding", "")
 
-        self.assertIn('deflate', content_encoding)
-        self.assertIn('View HTTP response headers.', res.get_body())
+        self.assertIn("deflate", content_encoding)
+        self.assertIn("View HTTP response headers.", res.get_body())
 
     def test_get_cookies(self):
         self.assertEqual(len([c for c in self.uri_opener.get_cookies()]), 0)
 
-        url_sends_cookie = URL(get_moth_http('/core/cookies/set-cookie.py'))
+        url_sends_cookie = URL(get_moth_http("/core/cookies/set-cookie.py"))
         self.uri_opener.GET(url_sends_cookie, cache=False)
 
         self.assertEqual(len([c for c in self.uri_opener.get_cookies()]), 1)
         cookie = [c for c in self.uri_opener.get_cookies()][0]
-        self.assertEqual('127.0.0.1', cookie.domain)
+        self.assertEqual("127.0.0.1", cookie.domain)
 
 
 class TestUpperCaseHeaders(unittest.TestCase):
@@ -117,14 +117,13 @@ class TestUpperCaseHeaders(unittest.TestCase):
         """
         url = "http://w3af.org/"
 
-        httpretty.register_uri(httpretty.GET, url,
-                               body='hello world',
-                               content_type="application/html")
+        httpretty.register_uri(
+            httpretty.GET, url, body="hello world", content_type="application/html"
+        )
 
         uri_opener = ExtendedUrllib()
         res = uri_opener.GET(URL(url), cache=False)
         headers = res.get_headers()
-        content_encoding = headers.get('Content-Type', '')
+        content_encoding = headers.get("Content-Type", "")
 
-        self.assertIn('application/html', content_encoding)
-
+        self.assertIn("application/html", content_encoding)

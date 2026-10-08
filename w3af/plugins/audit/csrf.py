@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import copy
 
 from math import log
@@ -34,27 +35,26 @@ from w3af.core.data.fuzzer.mutants.headers_mutant import HeadersMutant
 from w3af.core.data.misc.encoding import smart_str_ignore
 from w3af.core.data.kb.vuln import Vuln
 
-
 COMMON_CSRF_NAMES = (
-    'csrf_token',
-    'CSRFName',                   # OWASP CSRF_Guard
-    'CSRFToken',                  # OWASP CSRF_Guard
-    'anticsrf',                   # AntiCsrfParam.java
-    '__RequestVerificationToken', # AntiCsrfParam.java
-    'token',
-    'csrf',
-    'YII_CSRF_TOKEN',             # http://www.yiiframework.com/
-    'yii_anticsrf'                # http://www.yiiframework.com/
-    '[_token]',                   # Symfony 2.x
-    '_csrf_token',                # Symfony 1.4
-    'csrfmiddlewaretoken',        # Django 1.5
+    "csrf_token",
+    "CSRFName",  # OWASP CSRF_Guard
+    "CSRFToken",  # OWASP CSRF_Guard
+    "anticsrf",  # AntiCsrfParam.java
+    "__RequestVerificationToken",  # AntiCsrfParam.java
+    "token",
+    "csrf",
+    "YII_CSRF_TOKEN",  # http://www.yiiframework.com/
+    "yii_anticsrf"  # http://www.yiiframework.com/
+    "[_token]",  # Symfony 2.x
+    "_csrf_token",  # Symfony 1.4
+    "csrfmiddlewaretoken",  # Django 1.5
 )
 
 
 class csrf(AuditPlugin):
     """
     Identify Cross-Site Request Forgery vulnerabilities.
-    
+
     :author: Taras (oxdef@oxdef.info)
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
@@ -90,7 +90,7 @@ class csrf(AuditPlugin):
         #
         # TODO: This algorithm has lots of room for improvement
         if self._is_origin_checked(freq, orig_response, debugging_id):
-            om.out.debug('Origin for %s is checked' % freq.get_url())
+            om.out.debug("Origin for %s is checked" % freq.get_url())
             return
 
         # Does the request have CSRF token in query string or POST payload?
@@ -98,12 +98,18 @@ class csrf(AuditPlugin):
             return
 
         # Ok, we have found vulnerable to CSRF attack request
-        msg = 'Cross Site Request Forgery has been found at: %s' % freq.get_url()
-        
-        v = Vuln.from_fr('CSRF vulnerability', msg, severity.MEDIUM,
-                         orig_response.id, self.get_name(), freq)
-        
-        self.kb_append_uniq(self, 'csrf', v)
+        msg = "Cross Site Request Forgery has been found at: %s" % freq.get_url()
+
+        v = Vuln.from_fr(
+            "CSRF vulnerability",
+            msg,
+            severity.MEDIUM,
+            orig_response.id,
+            self.get_name(),
+            freq,
+        )
+
+        self.kb_append_uniq(self, "csrf", v)
 
     def _is_resp_equal(self, response_1, response_2):
         """
@@ -143,12 +149,12 @@ class csrf(AuditPlugin):
             return False
 
         # Strict mode on/off - do we need to audit GET requests? Not always...
-        if freq.get_method() == 'GET' and self._strict_mode:
+        if freq.get_method() == "GET" and self._strict_mode:
             return False
 
         # Ignore potential CSRF in text/css or javascript responses
-        content_type = orig_response.get_headers().get('content-type', None)
-        if content_type in ('text/css', 'application/javascript'):
+        content_type = orig_response.get_headers().get("content-type", None)
+        if content_type in ("text/css", "application/javascript"):
             return False
 
         #
@@ -161,7 +167,7 @@ class csrf(AuditPlugin):
         if not freq.get_uri().has_query_string() and not freq.get_raw_data():
             return False
 
-        om.out.debug('%s is suitable for CSRF attack' % freq.get_url())
+        om.out.debug("%s is suitable for CSRF attack" % freq.get_url())
         return True
 
     def _is_origin_checked(self, freq, orig_response, debugging_id):
@@ -169,18 +175,20 @@ class csrf(AuditPlugin):
         :return: True if the remote web application verifies the Referer before
                  processing the HTTP request.
         """
-        fake_ref = 'http://www.w3af.org/'
+        fake_ref = "http://www.w3af.org/"
 
         mutant = HeadersMutant(copy.deepcopy(freq))
         headers = mutant.get_dc()
-        headers['Referer'] = fake_ref
-        mutant.set_token(('Referer',))
+        headers["Referer"] = fake_ref
+        mutant.set_token(("Referer",))
 
-        mutant_response = self._uri_opener.send_mutant(mutant, debugging_id=debugging_id)
-        
+        mutant_response = self._uri_opener.send_mutant(
+            mutant, debugging_id=debugging_id
+        )
+
         if not self._is_resp_equal(orig_response, mutant_response):
             return True
-        
+
         return False
 
     def _find_csrf_token(self, freq):
@@ -189,15 +197,15 @@ class csrf(AuditPlugin):
         """
         post_data = freq.get_raw_data()
         querystring = freq.get_querystring()
-        
+
         for token in chain(post_data.iter_tokens(), querystring.iter_tokens()):
-            
+
             if self.is_csrf_token(token.get_name(), token.get_value()):
 
-                msg = 'Found CSRF token %s in parameter %s for URL %s.'
-                om.out.debug(msg % (token.get_value(),
-                                    token.get_name(),
-                                    freq.get_url()))
+                msg = "Found CSRF token %s in parameter %s for URL %s."
+                om.out.debug(
+                    msg % (token.get_value(), token.get_name(), freq.get_url())
+                )
 
                 return token.get_name(), token.get_value()
 
@@ -205,27 +213,27 @@ class csrf(AuditPlugin):
         """
         Please note that this method generates lots of false positives and
         negatives. Read the github issue for more information.
-        
+
         :see: https://github.com/andresriancho/w3af/issues/120
         :return: True if the CSRF token is NOT verified by the web application
         """
         token_pname_lst = list(token.keys())
         token_value = token[token_pname_lst[0]]
-        
+
         # This will generate mutants for the original fuzzable request using
         # the reversed token value as a CSRF-token (this is a feature: we want
         # to make sure it has the same length as the original token and that
         # it has the same type: digits, hash, etc. in order to pass the first
         # trivial validations)
         #
-        # Only create mutants that modify the token parameter name 
+        # Only create mutants that modify the token parameter name
         mutants = create_mutants(freq, [token_value[::-1]], False, token_pname_lst)
-        
+
         for mutant in mutants:
             mutant_response = self._uri_opener.send_mutant(mutant)
             if not self._is_resp_equal(orig_response, mutant_response):
                 return True
-            
+
         return False
 
     def shannon_entropy(self, data):
@@ -239,9 +247,9 @@ class csrf(AuditPlugin):
         entropy = 0
 
         for x in range(256):
-            p_x = float(data.count(chr(x)))/len(data)
+            p_x = float(data.count(chr(x))) / len(data)
             if p_x > 0:
-                entropy += - p_x * log(p_x, 2)
+                entropy += -p_x * log(p_x, 2)
 
         return entropy
 
@@ -264,12 +272,12 @@ class csrf(AuditPlugin):
             # parameters which are files in multipart uploads or stuff
             # like that
             return False
-        
+
         # Check for common CSRF token names
         for common_csrf_name in COMMON_CSRF_NAMES:
             if common_csrf_name.lower() in key.lower():
                 return True
-    
+
         # Calculate entropy
         entropy = self.shannon_entropy(smart_str_ignore(value))
         if entropy >= min_entropy:

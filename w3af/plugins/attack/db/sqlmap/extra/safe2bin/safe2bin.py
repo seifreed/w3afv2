@@ -24,7 +24,13 @@ HEX_ENCODED_CHAR_REGEX = r"(?P<result>\\x[0-9A-Fa-f]{2})"
 SAFE_ENCODE_SLASH_REPLACEMENTS = "\t\n\r\x0b\x0c"
 
 # Characters that don't need to be safe encoded
-SAFE_CHARS = "".join([_ for _ in string.printable.replace('\\', '') if _ not in SAFE_ENCODE_SLASH_REPLACEMENTS])
+SAFE_CHARS = "".join(
+    [
+        _
+        for _ in string.printable.replace("\\", "")
+        if _ not in SAFE_ENCODE_SLASH_REPLACEMENTS
+    ]
+)
 
 # Prefix used for hex encoded values
 HEX_ENCODED_PREFIX = r"\x"
@@ -34,6 +40,7 @@ HEX_ENCODED_PREFIX_MARKER = "__HEX_ENCODED_PREFIX__"
 
 # String used for temporary marking of slash characters
 SLASH_MARKER = "__SLASH__"
+
 
 def safecharencode(value):
     """
@@ -50,12 +57,25 @@ def safecharencode(value):
     if isinstance(value, str):
         if any([_ not in SAFE_CHARS for _ in value]):
             retVal = retVal.replace(HEX_ENCODED_PREFIX, HEX_ENCODED_PREFIX_MARKER)
-            retVal = retVal.replace('\\', SLASH_MARKER)
+            retVal = retVal.replace("\\", SLASH_MARKER)
 
             for char in SAFE_ENCODE_SLASH_REPLACEMENTS:
-                retVal = retVal.replace(char, repr(char).strip('\''))
+                retVal = retVal.replace(char, repr(char).strip("'"))
 
-            retVal = reduce(lambda x, y: x + (y if (y in string.printable or isinstance(value, str) and ord(y) >= 160) else '\\x%02x' % ord(y)), retVal, (str if isinstance(value, str) else str)())
+            retVal = reduce(
+                lambda x, y: x
+                + (
+                    y
+                    if (
+                        y in string.printable
+                        or isinstance(value, str)
+                        and ord(y) >= 160
+                    )
+                    else "\\x%02x" % ord(y)
+                ),
+                retVal,
+                (str if isinstance(value, str) else str)(),
+            )
 
             retVal = retVal.replace(SLASH_MARKER, "\\\\")
             retVal = retVal.replace(HEX_ENCODED_PREFIX_MARKER, HEX_ENCODED_PREFIX)
@@ -65,6 +85,7 @@ def safecharencode(value):
 
     return retVal
 
+
 def safechardecode(value, binary=False):
     """
     Reverse function to safecharencode
@@ -72,19 +93,24 @@ def safechardecode(value, binary=False):
 
     retVal = value
     if isinstance(value, str):
-        retVal = retVal.replace('\\\\', SLASH_MARKER)
+        retVal = retVal.replace("\\\\", SLASH_MARKER)
 
         while True:
             match = re.search(HEX_ENCODED_CHAR_REGEX, retVal)
             if match:
-                retVal = retVal.replace(match.group("result"), (chr if isinstance(value, str) else chr)(ord(binascii.unhexlify(match.group("result").lstrip("\\x")))))
+                retVal = retVal.replace(
+                    match.group("result"),
+                    (chr if isinstance(value, str) else chr)(
+                        ord(binascii.unhexlify(match.group("result").lstrip("\\x")))
+                    ),
+                )
             else:
                 break
 
         for char in SAFE_ENCODE_SLASH_REPLACEMENTS[::-1]:
-            retVal = retVal.replace(repr(char).strip('\''), char)
+            retVal = retVal.replace(repr(char).strip("'"), char)
 
-        retVal = retVal.replace(SLASH_MARKER, '\\')
+        retVal = retVal.replace(SLASH_MARKER, "\\")
 
         if binary:
             if isinstance(retVal, str):
@@ -96,36 +122,43 @@ def safechardecode(value, binary=False):
 
     return retVal
 
+
 def main():
-    usage = '%s -i <input file> [-o <output file>]' % sys.argv[0]
-    parser = OptionParser(usage=usage, version='0.1')
+    usage = "%s -i <input file> [-o <output file>]" % sys.argv[0]
+    parser = OptionParser(usage=usage, version="0.1")
 
     try:
-        parser.add_option('-i', dest='inputFile', help='Input file')
-        parser.add_option('-o', dest='outputFile', help='Output file')
+        parser.add_option("-i", dest="inputFile", help="Input file")
+        parser.add_option("-o", dest="outputFile", help="Output file")
 
-        (args, _) = parser.parse_args()
+        args, _ = parser.parse_args()
 
         if not args.inputFile:
-            parser.error('Missing the input file, -h for help')
+            parser.error("Missing the input file, -h for help")
 
     except (OptionError, TypeError) as e:
         parser.error(e)
 
     if not os.path.isfile(args.inputFile):
-        print(('ERROR: the provided input file \'%s\' is not a regular file' % args.inputFile))
+        print(
+            (
+                "ERROR: the provided input file '%s' is not a regular file"
+                % args.inputFile
+            )
+        )
         sys.exit(1)
 
-    f = open(args.inputFile, 'r')
+    f = open(args.inputFile, "r")
     data = f.read()
     f.close()
 
     if not args.outputFile:
-        args.outputFile = args.inputFile + '.bin'
+        args.outputFile = args.inputFile + ".bin"
 
-    f = open(args.outputFile, 'wb')
+    f = open(args.outputFile, "wb")
     f.write(safechardecode(data))
     f.close()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

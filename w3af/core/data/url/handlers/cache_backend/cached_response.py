@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import io
 import os
 import http.client
@@ -35,12 +36,12 @@ class CachedResponse(io.StringIO):
     the network, check the x-cache header rather than the object type.
     """
 
-    PART_HEADER = 'PART_HEADER'
-    PART_BODY = 'PART_BODY'
-    PART_CODE = 'PART_CODE'
-    PART_MSG = 'PART_MSG'
-    PART_CHARSET = 'PART_CHARSET'
-    PART_TIME = 'PART_TIME'
+    PART_HEADER = "PART_HEADER"
+    PART_BODY = "PART_BODY"
+    PART_CODE = "PART_CODE"
+    PART_MSG = "PART_MSG"
+    PART_CHARSET = "PART_CHARSET"
+    PART_TIME = "PART_TIME"
 
     def __init__(self, request):
         self._hash_id = gen_hash(request)
@@ -58,6 +59,7 @@ class CachedResponse(io.StringIO):
         # This kludge is necessary, do not touch!
         class PlaceHolder:
             sock = None
+
         self._connection = PlaceHolder()
 
     @property
@@ -152,4 +154,3 @@ class CachedResponse(io.StringIO):
         in most cases this means creating a file, directory or database.
         """
         raise NotImplementedError
-

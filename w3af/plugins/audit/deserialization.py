@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import json
 import base64
@@ -26,18 +27,25 @@ import base64
 import w3af.core.data.constants.severity as severity
 
 from w3af import ROOT_PATH
-from w3af.core.controllers.delay_detection.exact_delay_controller import ExactDelayController
+from w3af.core.controllers.delay_detection.exact_delay_controller import (
+    ExactDelayController,
+)
 from w3af.core.controllers.delay_detection.exact_delay import ExactDelay
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.data.misc.base64_nopadding import maybe_decode_base64
 from w3af.core.data.fuzzer.fuzzer import create_mutants
 from w3af.core.data.dc.generic.form import Form
 from w3af.core.data.kb.vuln import Vuln
-from w3af.core.data.parsers.utils.form_constants import INPUT_TYPE_FILE, INPUT_TYPE_HIDDEN
-from w3af.core.data.serialization.detect import (is_java_serialized_data,
-                                                 is_net_serialized_data,
-                                                 is_nodejs_serialized_data,
-                                                 is_pickled_data)
+from w3af.core.data.parsers.utils.form_constants import (
+    INPUT_TYPE_FILE,
+    INPUT_TYPE_HIDDEN,
+)
+from w3af.core.data.serialization.detect import (
+    is_java_serialized_data,
+    is_net_serialized_data,
+    is_nodejs_serialized_data,
+    is_pickled_data,
+)
 
 
 class deserialization(AuditPlugin):
@@ -47,12 +55,14 @@ class deserialization(AuditPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    PAYLOADS = os.path.join(ROOT_PATH, 'plugins/audit/deserialization/')
-    PAYLOAD_EXTENSION = '.json'
-    IS_LANG_FUNCTION_MAP = {'java': is_java_serialized_data,
-                            'net': is_net_serialized_data,
-                            'node': is_nodejs_serialized_data,
-                            'python': is_pickled_data}
+    PAYLOADS = os.path.join(ROOT_PATH, "plugins/audit/deserialization/")
+    PAYLOAD_EXTENSION = ".json"
+    IS_LANG_FUNCTION_MAP = {
+        "java": is_java_serialized_data,
+        "net": is_net_serialized_data,
+        "node": is_nodejs_serialized_data,
+        "python": is_pickled_data,
+    }
 
     def audit(self, freq, orig_response, debugging_id):
         """
@@ -62,10 +72,12 @@ class deserialization(AuditPlugin):
         :param orig_response: The HTTP response associated with the fuzzable request
         :param debugging_id: A unique identifier for this call to audit()
         """
-        self._send_mutants_in_threads(func=self._find_delay_in_mutant,
-                                      iterable=self._generate_delay_tests(freq),
-                                      callback=lambda x, y: None,
-                                      debugging_id=debugging_id)
+        self._send_mutants_in_threads(
+            func=self._find_delay_in_mutant,
+            iterable=self._generate_delay_tests(freq),
+            callback=lambda x, y: None,
+            debugging_id=debugging_id,
+        )
 
     def _should_inject(self, mutant, language):
         """
@@ -110,7 +122,7 @@ class deserialization(AuditPlugin):
         #
         # Why: We never know, maybe the application is going to unserialize() it
         #
-        if original_value == '':
+        if original_value == "":
             return True
 
         #
@@ -141,7 +153,12 @@ class deserialization(AuditPlugin):
         :param freq: The fuzzable request
         :yield: Tuples with mutants and ExactDelay instances
         """
-        for mutant in create_mutants(freq, ['', ]):
+        for mutant in create_mutants(
+            freq,
+            [
+                "",
+            ],
+        ):
             for language, payload in self._get_payloads():
                 if not self._should_inject(mutant, language):
                     continue
@@ -159,7 +176,7 @@ class deserialization(AuditPlugin):
         for root, dirs, files in os.walk(self.PAYLOADS):
 
             # Ignore helpers used for creating the nodejs payloads
-            if 'node_modules' in root:
+            if "node_modules" in root:
                 continue
 
             _, language = os.path.split(root)
@@ -167,7 +184,7 @@ class deserialization(AuditPlugin):
             for file_name in files:
 
                 # Ignore helpers used for creating the nodejs payloads
-                if file_name in ('package-lock.json', 'package.json'):
+                if file_name in ("package-lock.json", "package.json"):
                     continue
 
                 if file_name.endswith(self.PAYLOAD_EXTENSION):
@@ -182,7 +199,7 @@ class deserialization(AuditPlugin):
         :param delay_obj: The delay to use
         :param debugging_id: The debugging ID for logging
         """
-        (mutant, delay_obj) = delayed_mutant
+        mutant, delay_obj = delayed_mutant
         if self._has_bug(mutant):
             return
 
@@ -193,20 +210,22 @@ class deserialization(AuditPlugin):
         if not success:
             return
 
-        desc = 'Insecure deserialization vulnerability was found at: %s'
+        desc = "Insecure deserialization vulnerability was found at: %s"
         desc %= mutant.found_at()
 
-        v = Vuln.from_mutant('Insecure deserialization',
-                             desc,
-                             severity.HIGH,
-                             [r.id for r in responses],
-                             self.get_name(),
-                             mutant)
+        v = Vuln.from_mutant(
+            "Insecure deserialization",
+            desc,
+            severity.HIGH,
+            [r.id for r in responses],
+            self.get_name(),
+            mutant,
+        )
 
-        self.kb_append_uniq(self, 'deserialization', v)
+        self.kb_append_uniq(self, "deserialization", v)
 
     def get_plugin_deps(self):
-        return ['grep.serialized_object']
+        return ["grep.serialized_object"]
 
     def get_long_desc(self):
         """
@@ -256,19 +275,20 @@ class DeserializationExactDelay(ExactDelay):
     python, etc. in order to avoid this ugly solution, but that would have taken
     a few weeks of work to complete.
     """
+
     def __init__(self, delay_data, delta=0, mult=1):
-        super(DeserializationExactDelay, self).__init__(delay_data,
-                                                        delta=delta,
-                                                        mult=mult)
+        super(DeserializationExactDelay, self).__init__(
+            delay_data, delta=delta, mult=mult
+        )
         self._delay_data = delay_data
 
     def _get_payload_and_offset(self, delay_len):
         data_for_delay_len = self._delay_data[str(delay_len)]
 
-        payload = data_for_delay_len['payload']
+        payload = data_for_delay_len["payload"]
         payload = base64.b64decode(payload)
 
-        offsets = data_for_delay_len['offsets']
+        offsets = data_for_delay_len["offsets"]
 
         return payload, offsets
 
@@ -287,7 +307,7 @@ class DeserializationExactDelay(ExactDelay):
             for i, second_i in enumerate(seconds):
                 payload_lst[offset + i] = second_i
 
-        return ''.join(payload_lst)
+        return "".join(payload_lst)
 
 
 class B64DeserializationExactDelay(DeserializationExactDelay):
@@ -295,10 +315,13 @@ class B64DeserializationExactDelay(DeserializationExactDelay):
     Subclass in order to provide base64 encoded data as a result of
     get_string_for_delay().
     """
+
     def get_string_for_delay(self, seconds):
         """
         Applies :param seconds to self._delay_fmt and returns a base64 encoded
         string.
         """
-        payload = super(B64DeserializationExactDelay, self).get_string_for_delay(seconds)
+        payload = super(B64DeserializationExactDelay, self).get_string_for_delay(
+            seconds
+        )
         return base64.b64encode(payload)

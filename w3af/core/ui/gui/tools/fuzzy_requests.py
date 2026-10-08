@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import functools
 import os
 
@@ -32,9 +33,7 @@ from w3af.core.ui.gui.clusterGraph import distance_function_selector
 from w3af.core.ui.gui.payload_generators import create_generator_menu
 from w3af.core.ui.gui.tools.helpers import fuzzygen
 from w3af.core.data.db.history import HistoryItem
-from w3af.core.controllers.exceptions import (HTTPRequestException,
-                                              ScanMustStopException)
-
+from w3af.core.controllers.exceptions import HTTPRequestException, ScanMustStopException
 
 FUZZY_REQUEST_EXAMPLE = """\
 GET http://localhost/$xrange(10)$ HTTP/1.0
@@ -84,17 +83,18 @@ class PreviewWindow(entries.RememberingWindow):
 
     :author: Facundo Batista <facundobatista =at= taniquetil.com.ar>
     """
+
     def __init__(self, w3af, parent, fg):
-        super(PreviewWindow, self).__init__(w3af, "fuzzypreview", "Preview",
-                                            "Fuzzy_Requests")
+        super(PreviewWindow, self).__init__(
+            w3af, "fuzzypreview", "Preview", "Fuzzy_Requests"
+        )
         self.pages = []
         self.generator = fg.generate()
         self.set_modal(True)
         self.set_transient_for(parent)
 
         # content
-        self.panes = RequestPart(self, w3af, editable=False,
-                                 widgname="fuzzypreview")
+        self.panes = RequestPart(self, w3af, editable=False, widgname="fuzzypreview")
         self.vbox.pack_start(self.panes)
         self.panes.show()
 
@@ -115,7 +115,7 @@ class PreviewWindow(entries.RememberingWindow):
         while len(self.pages) <= page:
             it = next(self.generator)
             self.pages.append(it)
-        (txtup, txtdn) = self.pages[page]
+        txtup, txtdn = self.pages[page]
         self.panes.show_raw(txtup, txtdn)
 
 
@@ -124,10 +124,11 @@ class FuzzyRequests(entries.RememberingWindow):
 
     :author: Facundo Batista <facundobatista =at= taniquetil.com.ar>
     """
+
     def __init__(self, w3af, initial_request=None):
-        super(FuzzyRequests, self).__init__(w3af, "fuzzyreq",
-                                            "w3af - Fuzzy Requests",
-                                            "Fuzzy_Requests")
+        super(FuzzyRequests, self).__init__(
+            w3af, "fuzzyreq", "w3af - Fuzzy Requests", "Fuzzy_Requests"
+        )
         self.w3af = w3af
         self.historyItem = HistoryItem()
         mainhbox = gtk.HBox()
@@ -142,34 +143,40 @@ class FuzzyRequests(entries.RememberingWindow):
         # we create the buttons first, to pass them
         analyzBut = gtk.Button("Analyze")
         self.sendPlayBut = entries.SemiStockButton(
-            "", gtk.STOCK_MEDIA_PLAY, "Sends the pending requests")
+            "", gtk.STOCK_MEDIA_PLAY, "Sends the pending requests"
+        )
         self.sendStopBut = entries.SemiStockButton(
-            "", gtk.STOCK_MEDIA_STOP, "Stops the request being sent")
-        self.sSB_state = helpers.PropagateBuffer(
-            self.sendStopBut.set_sensitive)
+            "", gtk.STOCK_MEDIA_STOP, "Stops the request being sent"
+        )
+        self.sSB_state = helpers.PropagateBuffer(self.sendStopBut.set_sensitive)
         self.sSB_state.change(self, False)
 
         # Fix content length checkbox
-        self._fix_content_lengthCB = gtk.CheckButton('Fix content length header')
+        self._fix_content_lengthCB = gtk.CheckButton("Fix content length header")
         self._fix_content_lengthCB.set_active(True)
         self._fix_content_lengthCB.show()
 
         # request
-        self.originalReq = RequestPart(self, w3af,
-                                       [analyzBut.set_sensitive,
-                                        self.sendPlayBut.set_sensitive,
-                                        functools.partial(self.sSB_state.change, 'rRV')],
-                                       editable=True,
-                                       widgname='fuzzyrequest')
+        self.originalReq = RequestPart(
+            self,
+            w3af,
+            [
+                analyzBut.set_sensitive,
+                self.sendPlayBut.set_sensitive,
+                functools.partial(self.sSB_state.change, "rRV"),
+            ],
+            editable=True,
+            widgname="fuzzyrequest",
+        )
 
         if initial_request is None:
-            self.originalReq.show_raw(FUZZY_REQUEST_EXAMPLE, '')
+            self.originalReq.show_raw(FUZZY_REQUEST_EXAMPLE, "")
         else:
-            (initialUp, initialDn) = initial_request
+            initialUp, initialDn = initial_request
             self.originalReq.show_raw(initialUp, initialDn)
 
         # Add the right button popup menu to the text widgets
-        rawTextView = self.originalReq.get_view_by_id('HttpRawView')
+        rawTextView = self.originalReq.get_view_by_id("HttpRawView")
         rawTextView.textView.connect("populate-popup", self._populate_popup)
 
         # help
@@ -221,9 +228,9 @@ class FuzzyRequests(entries.RememberingWindow):
         vbox.pack_start(self.title0, False, True)
 
         # result itself
-        self.resultReqResp = ReqResViewer(w3af, withFuzzy=False,
-                                          editableRequest=False,
-                                          editableResponse=False)
+        self.resultReqResp = ReqResViewer(
+            w3af, withFuzzy=False, editableRequest=False, editableResponse=False
+        )
         self.resultReqResp.set_sensitive(False)
         vbox.pack_start(self.resultReqResp, True, True, padding=5)
         vbox.show()
@@ -236,10 +243,11 @@ class FuzzyRequests(entries.RememberingWindow):
 
         # cluster responses button
         image = gtk.Image()
-        image.set_from_file(os.path.join(ROOT_PATH, 'core', 'ui', 'gui',
-                                         'data', 'cluster_data.png'))
+        image.set_from_file(
+            os.path.join(ROOT_PATH, "core", "ui", "gui", "data", "cluster_data.png")
+        )
         image.show()
-        self.clusterButton = gtk.Button(label='Cluster responses')
+        self.clusterButton = gtk.Button(label="Cluster responses")
         self.clusterButton.connect("clicked", self._clusterData)
         self.clusterButton.set_sensitive(False)
         self.clusterButton.set_image(image)
@@ -248,8 +256,10 @@ class FuzzyRequests(entries.RememberingWindow):
 
         # clear responses button
         self.clearButton = entries.SemiStockButton(
-            'Clear Responses', gtk.STOCK_CLEAR,
-            tooltip='Clear all HTTP responses from fuzzer window')
+            "Clear Responses",
+            gtk.STOCK_CLEAR,
+            tooltip="Clear all HTTP responses from fuzzer window",
+        )
         self.clearButton.connect("clicked", self._clearResponses)
         self.clearButton.set_sensitive(False)
         self.clearButton.show()
@@ -296,14 +306,15 @@ class FuzzyRequests(entries.RememberingWindow):
         else:
             # Let the user know ahout the problem
             msg = "There are no HTTP responses available to cluster."
-            dlg = gtk.MessageDialog(None, gtk.DIALOG_MODAL,
-                                    gtk.MESSAGE_WARNING, gtk.BUTTONS_OK, msg)
+            dlg = gtk.MessageDialog(
+                None, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_OK, msg
+            )
             opt = dlg.run()
             dlg.destroy()
 
     def _analyze(self, widg):
         """Handles the Analyze part."""
-        (request, postbody) = self.originalReq.get_both_texts_raw()
+        request, postbody = self.originalReq.get_both_texts_raw()
         try:
             fg = helpers.coreWrap(fuzzygen.FuzzyGenerator, request, postbody)
         except fuzzygen.FuzzyError:
@@ -320,7 +331,8 @@ class FuzzyRequests(entries.RememberingWindow):
         """Stop the requests being sent."""
         self._sendStopped = True
         self.sendPlayBut.change_internals(
-            "", gtk.STOCK_MEDIA_PLAY, "Sends the pending requests")
+            "", gtk.STOCK_MEDIA_PLAY, "Sends the pending requests"
+        )
         self.sendPlayBut.disconnect(self.sPB_signal)
         self.sPB_signal = self.sendPlayBut.connect("clicked", self._send_start)
         self.sSB_state.change(self, False)
@@ -329,8 +341,9 @@ class FuzzyRequests(entries.RememberingWindow):
     def _send_pause(self, widg):
         """Pause the requests being sent."""
         self._sendPaused = True
-        self.sendPlayBut.change_internals("", gtk.STOCK_MEDIA_PLAY,
-                                          "Sends the pending requests")
+        self.sendPlayBut.change_internals(
+            "", gtk.STOCK_MEDIA_PLAY, "Sends the pending requests"
+        )
         self.sendPlayBut.disconnect(self.sPB_signal)
         self.sPB_signal = self.sendPlayBut.connect("clicked", self._send_play)
         self.throbber.running(False)
@@ -338,16 +351,17 @@ class FuzzyRequests(entries.RememberingWindow):
     def _send_play(self, widg):
         """Continue sending the requests."""
         self._sendPaused = False
-        self.sendPlayBut.change_internals('', gtk.STOCK_MEDIA_PAUSE,
-                                          'Sends the pending requests')
+        self.sendPlayBut.change_internals(
+            "", gtk.STOCK_MEDIA_PAUSE, "Sends the pending requests"
+        )
         self.sendPlayBut.disconnect(self.sPB_signal)
-        self.sPB_signal = self.sendPlayBut.connect('clicked', self._send_pause)
+        self.sPB_signal = self.sendPlayBut.connect("clicked", self._send_pause)
         self.throbber.running(True)
 
     def _send_start(self, widg):
         """Start sending the requests."""
-        (request, postbody) = self.originalReq.get_both_texts_raw()
-        
+        request, postbody = self.originalReq.get_both_texts_raw()
+
         try:
             fg = helpers.coreWrap(fuzzygen.FuzzyGenerator, request, postbody)
         except fuzzygen.FuzzyError:
@@ -356,8 +370,9 @@ class FuzzyRequests(entries.RememberingWindow):
         quant = fg.calculate_quantity()
         if quant > 20:
             msg = "Are you sure you want to send %d requests?" % quant
-            dlg = gtk.MessageDialog(None, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING,
-                                    gtk.BUTTONS_YES_NO, msg)
+            dlg = gtk.MessageDialog(
+                None, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_YES_NO, msg
+            )
             opt = dlg.run()
             dlg.destroy()
             if opt != gtk.RESPONSE_YES:
@@ -374,16 +389,16 @@ class FuzzyRequests(entries.RememberingWindow):
         requestGenerator = fg.generate()
 
         # change the buttons
-        self.sendPlayBut.change_internals('', gtk.STOCK_MEDIA_PAUSE,
-                                          'Pauses the requests sending')
+        self.sendPlayBut.change_internals(
+            "", gtk.STOCK_MEDIA_PAUSE, "Pauses the requests sending"
+        )
         self.sendPlayBut.disconnect(self.sPB_signal)
-        self.sPB_signal = self.sendPlayBut.connect('clicked', self._send_pause)
+        self.sPB_signal = self.sendPlayBut.connect("clicked", self._send_pause)
         self.sSB_state.change(self, True)
         self.throbber.running(True)
 
         # let's send the requests!
-        gobject.timeout_add(100, self._real_send, fixContentLength,
-                            requestGenerator)
+        gobject.timeout_add(100, self._real_send, fixContentLength, requestGenerator)
 
     def _real_send(self, fixContentLength, requestGenerator):
         """This is the one that actually sends the requests, if corresponds.
@@ -408,8 +423,9 @@ class FuzzyRequests(entries.RememberingWindow):
         self.w3af.uri_opener.clear()
 
         try:
-            http_resp = self.w3af.uri_opener.send_raw_request(realreq, realbody,
-                                                              fixContentLength)
+            http_resp = self.w3af.uri_opener.send_raw_request(
+                realreq, realbody, fixContentLength
+            )
             error_msg = None
             self.result_ok += 1
         except HTTPRequestException as e:
@@ -423,8 +439,10 @@ class FuzzyRequests(entries.RememberingWindow):
             self.result_err += 1
 
             # Let the user know about the problem
-            msg = "Stopped sending requests because of the following"\
-                  " unexpected error:\n\n%s"
+            msg = (
+                "Stopped sending requests because of the following"
+                " unexpected error:\n\n%s"
+            )
 
             helpers.FriendlyExceptionDlg(msg % error_msg)
             return False
@@ -472,7 +490,7 @@ class FuzzyRequests(entries.RememberingWindow):
                 #
                 # This catches a strange error
                 #
-                error_msg = 'Error searching the request database'
+                error_msg = "Error searching the request database"
                 self.resultReqResp.request.show_raw(error_msg, error_msg)
                 self.resultReqResp.response.show_error(error_msg)
                 self.title0.set_markup("<b>Error</b>")

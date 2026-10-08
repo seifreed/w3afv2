@@ -6,14 +6,14 @@ class domainname(Payload):
     """
     This payload shows server domain name.
     """
+
     def api_read(self):
         result = {}
-        result['domain_name'] = ''
+        result["domain_name"] = ""
 
-        domainname_content = self.shell.read(
-            '/proc/sys/kernel/domainname')[:-1]
+        domainname_content = self.shell.read("/proc/sys/kernel/domainname")[:-1]
         if domainname_content:
-            result['domain_name'] = domainname_content
+            result["domain_name"] = domainname_content
 
         return result
 
@@ -21,13 +21,21 @@ class domainname(Payload):
         api_result = self.api_read()
 
         if not api_result:
-            return 'Domain name not found.'
+            return "Domain name not found."
         else:
             rows = []
-            rows.append(['Domain name', ])
+            rows.append(
+                [
+                    "Domain name",
+                ]
+            )
             rows.append([])
             for domain in list(api_result.values()):
-                rows.append([domain, ])
+                rows.append(
+                    [
+                        domain,
+                    ]
+                )
 
             result_table = table(rows)
             result_table.draw(80)

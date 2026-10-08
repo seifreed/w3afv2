@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.quick_match.multi_in import MultiIn
 from w3af.core.data.kb.info import Info
@@ -30,21 +31,25 @@ class wsdl_greper(GrepPlugin):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
-    WSDL_STRINGS = ('xs:int',
-                    'target_namespace',
-                    'soap:body',
-                    '/s:sequence',
-                    'wsdl:',
-                    'soapAction=',
-                    # This isn't WSDL... but well...
-                    'xmlns="urn:uddi"', '<p>Hi there, this is an AXIS service!</p>')
+
+    WSDL_STRINGS = (
+        "xs:int",
+        "target_namespace",
+        "soap:body",
+        "/s:sequence",
+        "wsdl:",
+        "soapAction=",
+        # This isn't WSDL... but well...
+        'xmlns="urn:uddi"',
+        "<p>Hi there, this is an AXIS service!</p>",
+    )
 
     _multi_in = MultiIn(WSDL_STRINGS)
 
     def __init__(self):
         GrepPlugin.__init__(self)
 
-        self._disco_strings = ['disco:discovery ']
+        self._disco_strings = ["disco:discovery "]
 
     def grep(self, request, response):
         """
@@ -59,36 +64,38 @@ class wsdl_greper(GrepPlugin):
 
         self.analyze_wsdl(request, response)
         self.analyze_disco(request, response)
-    
+
     def analyze_wsdl(self, request, response):
         for match in self._multi_in.query(response.body):
-            desc = ('The URL: "%s" is a Web Services Description Language'
-                    ' page. This requires manual analysis to determine the'
-                    ' security of the web service.')
+            desc = (
+                'The URL: "%s" is a Web Services Description Language'
+                " page. This requires manual analysis to determine the"
+                " security of the web service."
+            )
             desc %= response.get_url()
-            
-            i = Info('WSDL resource', desc, response.id,
-                     self.get_name())
+
+            i = Info("WSDL resource", desc, response.id, self.get_name())
             i.set_url(response.get_url())
             i.add_to_highlight(match)
-            
-            self.kb_append_uniq(self, 'wsdl', i, 'URL')
+
+            self.kb_append_uniq(self, "wsdl", i, "URL")
             break
 
     def analyze_disco(self, request, response):
         for disco_string in self._disco_strings:
             if disco_string in response:
-                desc = ('The URL: "%s" is a DISCO file that contains'
-                        ' references to WSDL URLs.')
+                desc = (
+                    'The URL: "%s" is a DISCO file that contains'
+                    " references to WSDL URLs."
+                )
                 desc %= response.get_url()
-                i = Info('DISCO resource', desc, response.id,
-                         self.get_name())
+                i = Info("DISCO resource", desc, response.id, self.get_name())
                 i.set_url(response.get_url())
                 i.add_to_highlight(disco_string)
-                
-                self.kb_append_uniq(self, 'disco', i, 'URL')
+
+                self.kb_append_uniq(self, "disco", i, "URL")
                 break
-                
+
     def get_long_desc(self):
         """
         :return: A DETAILED description of the plugin functions and features.

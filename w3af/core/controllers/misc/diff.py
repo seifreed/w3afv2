@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import string
 import difflib
 import diff_match_patch as dmp_module
@@ -37,8 +38,7 @@ MAX_DIFF_TIME = 20
 # the string to split has null bytes, but that is acceptable due to the performance
 # improvement gains
 #
-TRANSLATION_TABLE = str.maketrans('\n\t\r"\'<',
-                                  '\0\0\0\0\0\0')
+TRANSLATION_TABLE = str.maketrans("\n\t\r\"'<", "\0\0\0\0\0\0")
 
 
 def diff_dmp(a, b):
@@ -59,9 +59,7 @@ def diff_dmp(a, b):
     dmp = dmp_module.diff_match_patch()
     dmp.Diff_Timeout = MAX_DIFF_TIME
 
-    changes = dmp.diff_main(a,
-                            b,
-                            checklines=True)
+    changes = dmp.diff_main(a, b, checklines=True)
 
     dmp.diff_cleanupSemantic(changes)
 
@@ -75,8 +73,8 @@ def diff_dmp(a, b):
         if op == 1:
             b_changes.append(change)
 
-    a_changes = '\n'.join(a_changes)
-    b_changes = '\n'.join(b_changes)
+    a_changes = "\n".join(a_changes)
+    b_changes = "\n".join(b_changes)
 
     return a_changes, b_changes
 
@@ -104,7 +102,7 @@ def diff_difflib(a, b):
     # Performance enhancement: if the two strings are equal, don't even bother
     # calling difflib.SequenceMatcher()
     if a == b:
-        return '', ''
+        return "", ""
 
     matching_blocks = difflib.SequenceMatcher(None, a, b).get_matching_blocks()
     removed_a = 0
@@ -112,12 +110,13 @@ def diff_difflib(a, b):
 
     for block in matching_blocks:
         a_index, b_index, size = block
-        a = a[:a_index - removed_a] + a[a_index - removed_a + size:]
-        b = b[:b_index - removed_b] + b[b_index - removed_b + size:]
+        a = a[: a_index - removed_a] + a[a_index - removed_a + size :]
+        b = b[: b_index - removed_b] + b[b_index - removed_b + size :]
         removed_a += size
         removed_b += size
 
     return a, b
+
 
 def chunked_diff(a, b):
     """
@@ -134,13 +133,13 @@ def chunked_diff(a, b):
     # Performance enhancement: if the two strings are equal, don't even bother
     # calling split_by_sep and diff_difflib()
     if a == b:
-        return '', ''
+        return "", ""
 
     a_split = split_by_sep(a)
     b_split = split_by_sep(b)
 
     a_chunks, b_chunks = diff_difflib(a_split, b_split)
-    return ''.join(a_chunks), ''.join(b_chunks)
+    return "".join(a_chunks), "".join(b_chunks)
 
 
 def split_by_sep(sequence):
@@ -198,5 +197,5 @@ def split_by_sep(sequence):
     try:
         translated_seq = string.translate(sequence, TRANSLATION_TABLE)
     except UnicodeDecodeError:
-        translated_seq = string.translate(sequence.encode('utf-8'), TRANSLATION_TABLE)
-    return translated_seq.split('\0')
+        translated_seq = string.translate(sequence.encode("utf-8"), TRANSLATION_TABLE)
+    return translated_seq.split("\0")

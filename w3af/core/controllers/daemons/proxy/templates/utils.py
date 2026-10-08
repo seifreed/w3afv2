@@ -12,7 +12,7 @@ def render(template_name, context):
     :param context: dict with variables
     :return: compiled template string
     """
-    path = os.path.join(ROOT_PATH, 'core/controllers/daemons/proxy/templates')
+    path = os.path.join(ROOT_PATH, "core/controllers/daemons/proxy/templates")
     env = Environment(loader=FileSystemLoader(path))
 
     template = env.get_template(template_name)

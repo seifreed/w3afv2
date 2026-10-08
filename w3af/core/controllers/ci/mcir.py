@@ -20,17 +20,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-HTTP_MCIR = '/tmp/mcir.txt'
-DEFAULT_MCIR = 'mcir-fallback:80'
+HTTP_MCIR = "/tmp/mcir.txt"
+DEFAULT_MCIR = "mcir-fallback:80"
 
 
-def get_mcir_http(path='/'):
+def get_mcir_http(path="/"):
     try:
         mcir_netloc = open(HTTP_MCIR).read().strip()
     except IOError:
         mcir_netloc = DEFAULT_MCIR
 
-    return 'http://%s%s' % (mcir_netloc, path)
-
-
-
+    return "http://%s%s" % (mcir_netloc, path)

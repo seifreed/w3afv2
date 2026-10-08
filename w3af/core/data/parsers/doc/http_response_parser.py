@@ -19,13 +19,14 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.doc.http_request_parser import check_version_syntax
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.url.HTTPResponse import HTTPResponse
 from w3af.core.controllers.exceptions import BaseFrameworkException
 
-SUPPORTED_VERSIONS = {'1.0', '1.1'}
+SUPPORTED_VERSIONS = {"1.0", "1.1"}
 
 
 def raw_http_response_parser(raw_http_response):
@@ -34,7 +35,7 @@ def raw_http_response_parser(raw_http_response):
     :return: An HTTPResponse object with all the corresponding information
              that was sent in headers and post-data
     """
-    head, postdata = raw_http_response.split('\r\n\r\n', 1)
+    head, postdata = raw_http_response.split("\r\n\r\n", 1)
     return http_response_parser(head, postdata)
 
 
@@ -48,16 +49,16 @@ def http_response_parser(head, postdata):
              that was sent in headers and post-data
     """
     # Parse the request head, the strip() helps us deal with the \r (if any)
-    split_head = head.split('\n')
+    split_head = head.split("\n")
     split_head = [h.strip() for h in split_head if h]
 
     if not split_head:
-        msg = 'The HTTP response is invalid.'
+        msg = "The HTTP response is invalid."
         raise BaseFrameworkException(msg)
 
     # Get version code message
     version_code_message = split_head[0]
-    first_line = version_code_message.split(' ', 2)
+    first_line = version_code_message.split(" ", 2)
 
     if len(first_line) == 3:
         # We have something like "HTTP/1.1 200 OK"
@@ -66,7 +67,7 @@ def http_response_parser(head, postdata):
     elif len(first_line) == 2:
         # We have something like "HTTP/1.1 503"
         version, code = first_line
-        message = ''
+        message = ""
 
     else:
         msg = 'The HTTP request has an invalid <version> <code> <message>: "%s"'
@@ -75,7 +76,7 @@ def http_response_parser(head, postdata):
     try:
         code = int(code)
     except ValueError:
-        raise BaseFrameworkException('Invalid HTTP response code %s' % code)
+        raise BaseFrameworkException("Invalid HTTP response code %s" % code)
 
     check_version_syntax(version)
 
@@ -85,10 +86,12 @@ def http_response_parser(head, postdata):
     headers_inst = Headers()
 
     for header in headers_str:
-        one_split_header = header.split(':', 1)
+        one_split_header = header.split(":", 1)
         if len(one_split_header) == 1:
-            msg = ('The HTTP request has an invalid header which does not'
-                   ' contain the ":" separator: "%s"')
+            msg = (
+                "The HTTP request has an invalid header which does not"
+                ' contain the ":" separator: "%s"'
+            )
             raise BaseFrameworkException(msg % header)
 
         header_name = one_split_header[0].strip()
@@ -96,12 +99,12 @@ def http_response_parser(head, postdata):
 
         if header_name in headers_inst:
             # Handle duplicated headers
-            headers_inst[header_name] += ', ' + header_value
+            headers_inst[header_name] += ", " + header_value
         else:
             headers_inst[header_name] = header_value
 
-    host, _ = headers_inst.iget('host', None)
+    host, _ = headers_inst.iget("host", None)
 
-    dummy_url = URL('http://w3af.com')
+    dummy_url = URL("http://w3af.com")
 
     return HTTPResponse(code, postdata, headers_inst, dummy_url, dummy_url)

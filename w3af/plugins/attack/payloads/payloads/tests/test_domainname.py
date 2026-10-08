@@ -18,15 +18,18 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
-from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import PayloadTestHelper
+
+from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
+    PayloadTestHelper,
+)
 from w3af.plugins.attack.payloads.payload_handler import exec_payload
 
 
 class test_domainname(PayloadTestHelper):
 
     # Note: the (none) is actually the expected result for this host
-    EXPECTED_RESULT = {'domain_name': '(none)'}
+    EXPECTED_RESULT = {"domain_name": "(none)"}
 
     def test_domainname(self):
-        result = exec_payload(self.shell, 'domainname', use_api=True)
+        result = exec_payload(self.shell, "domainname", use_api=True)
         self.assertEqual(self.EXPECTED_RESULT, result)

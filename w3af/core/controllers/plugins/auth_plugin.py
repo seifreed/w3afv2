@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from collections import deque
 
 import w3af.core.controllers.output_manager as om
@@ -41,23 +42,26 @@ class AuthPlugin(Plugin):
 
     :author: Dmitriy V. Simonov ( dsimonov@yandex-team.com )
     """
+
     MAX_CONSECUTIVE_FAILED_LOGIN_COUNT = 3
-    BLACKLIST_LOGIN_URL_MESSAGE = ('The following URLs were added to the audit blacklist:\n'
-                                   '\n'
-                                   ' - %s\n'
-                                   '\n'
-                                   'These URLs will not be audited for vulnerabilities. In'
-                                   ' order to improve the scan coverage it is recommended to'
-                                   ' run a second scan that does NOT include any authentication'
-                                   ' credentials for the application.\n'
-                                   '\n'
-                                   'The unauthenticated scan is not going to add the login URLs'
-                                   ' to the audit blacklist and thus identify any potential'
-                                   ' security issues that might exist in those application features.\n'
-                                   '\n'
-                                   'Running both authenticated and unauthenticated scans is a'
-                                   ' best practice that increases URL coverage and will increase'
-                                   ' the chances of identifying vulnerabilities.')
+    BLACKLIST_LOGIN_URL_MESSAGE = (
+        "The following URLs were added to the audit blacklist:\n"
+        "\n"
+        " - %s\n"
+        "\n"
+        "These URLs will not be audited for vulnerabilities. In"
+        " order to improve the scan coverage it is recommended to"
+        " run a second scan that does NOT include any authentication"
+        " credentials for the application.\n"
+        "\n"
+        "The unauthenticated scan is not going to add the login URLs"
+        " to the audit blacklist and thus identify any potential"
+        " security issues that might exist in those application features.\n"
+        "\n"
+        "Running both authenticated and unauthenticated scans is a"
+        " best practice that increases URL coverage and will increase"
+        " the chances of identifying vulnerabilities."
+    )
 
     def __init__(self):
         Plugin.__init__(self)
@@ -78,7 +82,7 @@ class AuthPlugin(Plugin):
         if current user session is not valid.
 
         """
-        raise NotImplementedError('Plugin is not implementing required method login')
+        raise NotImplementedError("Plugin is not implementing required method login")
 
     def logout(self):
         """
@@ -87,7 +91,7 @@ class AuthPlugin(Plugin):
         TODO: need to add calling of this method to w3afCore::_end()
 
         """
-        raise NotImplementedError('Plugin is not implementing required method logout')
+        raise NotImplementedError("Plugin is not implementing required method logout")
 
     def has_active_session(self):
         """
@@ -95,7 +99,7 @@ class AuthPlugin(Plugin):
 
         It is called in the begging of w3afCore::_discover_and_bruteforce() method.
         """
-        raise NotImplementedError('Plugin is not implementing required method isLogged')
+        raise NotImplementedError("Plugin is not implementing required method isLogged")
 
     def _configure_audit_blacklist(self, *args):
         """
@@ -121,7 +125,7 @@ class AuthPlugin(Plugin):
         :param args: The URLs to add to the audit blacklist
         :return: None
         """
-        blacklist_audit = cf.cf.get('blacklist_audit') or []
+        blacklist_audit = cf.cf.get("blacklist_audit") or []
 
         new_blacklist_audit = []
 
@@ -135,9 +139,9 @@ class AuthPlugin(Plugin):
             return
 
         blacklist_audit.extend(new_blacklist_audit)
-        cf.cf.save('blacklist_audit', blacklist_audit)
+        cf.cf.save("blacklist_audit", blacklist_audit)
 
-        args = ('\n - '.join(str(u) for u in new_blacklist_audit),)
+        args = ("\n - ".join(str(u) for u in new_blacklist_audit),)
         om.out.information(self.BLACKLIST_LOGIN_URL_MESSAGE % args)
 
     def _log_http_response(self, http_response):
@@ -168,7 +172,7 @@ class AuthPlugin(Plugin):
         self._log_debug(message)
 
     def _format_message(self, message):
-        message_fmt = '[auth.%s] %s (did: %s)'
+        message_fmt = "[auth.%s] %s (did: %s)"
         return message_fmt % (self.get_name(), message, self._debugging_id)
 
     def _set_debugging_id(self, debugging_id):
@@ -192,7 +196,7 @@ class AuthPlugin(Plugin):
 
         # This awful range statement generates -1, -2, -3 when
         # self.MAX_CONSECUTIVE_FAILED_LOGIN_COUNT is set to 3.
-        for i in range(-1, - self.MAX_CONSECUTIVE_FAILED_LOGIN_COUNT - 1, -1):
+        for i in range(-1, -self.MAX_CONSECUTIVE_FAILED_LOGIN_COUNT - 1, -1):
 
             # If there is at least one successful login in the last three
             # then the max consecutive failed login was not exceeded
@@ -212,14 +216,16 @@ class AuthPlugin(Plugin):
         self._login_result_log.append(False)
 
         if self._max_consecutive_failed_login_count_exceeded():
-            msg = ('The authentication plugin failed %s consecutive times to'
-                   ' get a valid application session using the user-provided'
-                   ' configuration settings.\n'
-                   '\n'
-                   'The `%s` authentication plugin will be disabled.')
+            msg = (
+                "The authentication plugin failed %s consecutive times to"
+                " get a valid application session using the user-provided"
+                " configuration settings.\n"
+                "\n"
+                "The `%s` authentication plugin will be disabled."
+            )
             args = (self.MAX_CONSECUTIVE_FAILED_LOGIN_COUNT, self.get_name())
 
-            title = 'Authentication failure'
+            title = "Authentication failure"
             message = msg % args
 
             self._log_info_to_kb(title, message, include_log_messages=True)
@@ -239,12 +245,14 @@ class AuthPlugin(Plugin):
         # self.MAX_FAILED_LOGIN_COUNT and never report the issue to the user
         #
         if self._all_login_attempts_failed():
-            msg = ('The `%s` authentication plugin was never able to authenticate'
-                   ' and get a valid application session using the user-provided'
-                   ' configuration settings')
+            msg = (
+                "The `%s` authentication plugin was never able to authenticate"
+                " and get a valid application session using the user-provided"
+                " configuration settings"
+            )
             args = (self.get_name(),)
 
-            title = 'Authentication failure'
+            title = "Authentication failure"
             message = msg % args
 
             self._log_info_to_kb(title, message, include_log_messages=True)
@@ -269,23 +277,22 @@ class AuthPlugin(Plugin):
         desc = message
 
         if include_log_messages:
-            log_messages = ' - ' + '\n - '.join(self._log_messages)
+            log_messages = " - " + "\n - ".join(self._log_messages)
             args = (message, log_messages)
-            msg_fmt = ('%s\n'
-                       '\n'
-                       'The following are the last log messages from the authentication plugin:\n'
-                       '\n'
-                       '%s')
+            msg_fmt = (
+                "%s\n"
+                "\n"
+                "The following are the last log messages from the authentication plugin:\n"
+                "\n"
+                "%s"
+            )
             desc = msg_fmt % args
 
-        i = Info(title,
-                 desc,
-                 self._http_response_ids,
-                 self.get_name())
+        i = Info(title, desc, self._http_response_ids, self.get_name())
 
         i.set_uri(self._get_main_authentication_url())
 
-        kb.kb.append('authentication', 'error', i)
+        kb.kb.append("authentication", "error", i)
 
     def get_type(self):
-        return 'auth'
+        return "auth"

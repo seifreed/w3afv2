@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import hashlib
 import time
 import ssl
@@ -28,7 +29,6 @@ from github import Github
 from github import GithubException, BadCredentialsException
 
 from w3af.core.controllers.exception_handling.helpers import get_versions
-
 
 DEFAULT_BUG_QUERY_TEXT = """What steps will reproduce the problem?
 1.
@@ -51,7 +51,7 @@ OAUTH_AUTH_FAILED = """Failed to authenticate with github.com , please try\
  current w3af version is outdated and is not allowed to report any new\
  issues."""
 
-TICKET_URL_FMT = 'https://github.com/andresriancho/w3af/issues/%s'
+TICKET_URL_FMT = "https://github.com/andresriancho/w3af/issues/%s"
 
 #
 # There is no way to report issues to github in an anonymous way, so the second
@@ -64,7 +64,7 @@ TICKET_URL_FMT = 'https://github.com/andresriancho/w3af/issues/%s'
 #
 # Password stored in lastpass. The token should never expire.
 #
-OAUTH_TOKEN = 'bab698f08a4fd15931c4aa44ae399666552ef9e5'
+OAUTH_TOKEN = "bab698f08a4fd15931c4aa44ae399666552ef9e5"
 OAUTH_TOKEN = OAUTH_TOKEN[::-1]
 
 
@@ -86,7 +86,7 @@ class GithubIssues(object):
         self._password = password
         self.gh = None
         self.using_oauth = True if password is None else False
-        
+
     def login(self):
         try:
             self.gh = Github(self._user_or_token, self._password)
@@ -102,36 +102,49 @@ class GithubIssues(object):
             except BadCredentialsException:
                 # The OAUTH_TOKEN and/or user provided credentials are incorrect
                 if self.using_oauth:
-                    raise OAuthTokenInvalid('Invalid OAuth token')
+                    raise OAuthTokenInvalid("Invalid OAuth token")
                 else:
-                    raise UserCredentialsInvalid('Invalid user credentials')
-            except (ssl.SSLError, GithubException, socket.gaierror,
-                    socket.timeout) as ex:
+                    raise UserCredentialsInvalid("Invalid user credentials")
+            except (
+                ssl.SSLError,
+                GithubException,
+                socket.gaierror,
+                socket.timeout,
+            ) as ex:
                 raise LoginFailed(str(ex))
 
         return True
-        
-    def report_bug(self, summary, userdesc, tback='', fname=None, plugins='',
-                   autogen=True, email=None):
+
+    def report_bug(
+        self,
+        summary,
+        userdesc,
+        tback="",
+        fname=None,
+        plugins="",
+        autogen=True,
+        email=None,
+    ):
         if self.gh is None:
-            raise Exception('Please login before reporting a bug.')
-        
-        summary, desc = self._build_summary_and_desc(summary, userdesc,
-                                                     tback, fname, plugins,
-                                                     autogen, email)
-        
-        w3af_repo = self.gh.get_user('andresriancho').get_repo('w3af')
+            raise Exception("Please login before reporting a bug.")
+
+        summary, desc = self._build_summary_and_desc(
+            summary, userdesc, tback, fname, plugins, autogen, email
+        )
+
+        w3af_repo = self.gh.get_user("andresriancho").get_repo("w3af")
         labels = []
         # Github doesn't allow users that do NOT own the repository to assign
         # labels to new issues
-        #labels = [w3af_repo.get_label('automatic-bug-report'),
+        # labels = [w3af_repo.get_label('automatic-bug-report'),
         #          w3af_repo.get_label('bug')]
-        
+
         issue = w3af_repo.create_issue(title=summary, body=desc, labels=labels)
         return issue.number, TICKET_URL_FMT % issue.number
 
-    def _build_summary_and_desc(self, summary, desc, tback,
-                                fname, plugins, autogen, email):
+    def _build_summary_and_desc(
+        self, summary, desc, tback, fname, plugins, autogen, email
+    ):
         """
         Build the formatted summary and description that will be
         part of the reported bug.
@@ -144,7 +157,7 @@ class GithubIssues(object):
         else:
             # Try to extract the last line from the traceback:
             if tback:
-                bug_summary = tback.split('\n')[-2]
+                bug_summary = tback.split("\n")[-2]
             else:
                 # Failed... lets generate something random!
                 m = hashlib.md5()
@@ -152,42 +165,44 @@ class GithubIssues(object):
                 bug_summary = m.hexdigest()
 
         # Generate the summary string. Concat 'user_title'
-        summary = '%sBug Report - %s' % (
-            autogen and '[Auto-Generated] ' or '',
-            bug_summary)
+        summary = "%sBug Report - %s" % (
+            autogen and "[Auto-Generated] " or "",
+            bug_summary,
+        )
 
         if desc.strip() == DEFAULT_BUG_QUERY_TEXT.strip():
-            desc = ''
+            desc = ""
 
         #
         # Define which description to use (depending on the availability of an
         # email provided by the user or not).
         #
         if email is not None:
-            email_fmt = '\n\nThe user provided the following email address for'\
-                        'contact: %s'
+            email_fmt = (
+                "\n\nThe user provided the following email address for" "contact: %s"
+            )
             desc += email_fmt % email
 
         # Build details string
-        details = ''
+        details = ""
         if desc:
             details += desc
-            details += '\n'
+            details += "\n"
 
-        details += '## Version Information\n'
-        details += '```\n'
+        details += "## Version Information\n"
+        details += "```\n"
         details += get_versions()
-        details += '\n```\n'
+        details += "\n```\n"
 
-        details += '## Traceback\n'
-        details += '```pytb\n'
+        details += "## Traceback\n"
+        details += "```pytb\n"
         details += tback
-        details += '\n```\n'
+        details += "\n```\n"
 
         if plugins:
-            details += '## Enabled Plugins\n'
-            details += '```python\n'
+            details += "## Enabled Plugins\n"
+            details += "```python\n"
             details += plugins
-            details += '\n```\n'
+            details += "\n```\n"
 
         return summary, details

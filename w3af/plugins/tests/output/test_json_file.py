@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import json
 import os
 
@@ -29,32 +30,32 @@ from w3af.core.data.kb.tests.test_vuln import MockVuln
 from w3af.plugins.tests.helper import PluginTest, PluginConfig
 
 
-@attr('smoke')
+@attr("smoke")
 class TestJsonOutput(PluginTest):
 
-    target_url = get_moth_http('/audit/sql_injection/where_integer_qs.py')
+    target_url = get_moth_http("/audit/sql_injection/where_integer_qs.py")
 
-    FILENAME = 'output-unittest.json'
+    FILENAME = "output-unittest.json"
 
     _run_configs = {
-        'cfg': {
-            'target': target_url + '?id=3',
-            'plugins': {
-                'audit': (PluginConfig('sqli'),),
-                'output': (
+        "cfg": {
+            "target": target_url + "?id=3",
+            "plugins": {
+                "audit": (PluginConfig("sqli"),),
+                "output": (
                     PluginConfig(
-                        'json_file',
-                        ('output_file', FILENAME, PluginConfig.STR)),
-                )
+                        "json_file", ("output_file", FILENAME, PluginConfig.STR)
+                    ),
+                ),
             },
         }
     }
 
     def test_found_vuln(self):
-        cfg = self._run_configs['cfg']
-        self._scan(cfg['target'], cfg['plugins'])
+        cfg = self._run_configs["cfg"]
+        self._scan(cfg["target"], cfg["plugins"])
 
-        kb_vulns = self.kb.get('sqli', 'sqli')
+        kb_vulns = self.kb.get("sqli", "sqli")
         file_vulns = self._from_json_get_vulns(self.FILENAME)
 
         self.assertEqual(len(kb_vulns), 1, kb_vulns)
@@ -68,23 +69,23 @@ class TestJsonOutput(PluginTest):
         self.assertEqual(
             set(sorted([v.get_name() for v in kb_vulns])),
             set(sorted([v.get_name() for v in file_vulns])),
-            set(sorted([v.get_name() for v in kb_vulns]))
+            set(sorted([v.get_name() for v in kb_vulns])),
         )
 
         self.assertEqual(
             set(sorted([v.get_plugin_name() for v in kb_vulns])),
             set(sorted([v.get_plugin_name() for v in file_vulns])),
-            set(sorted([v.get_plugin_name() for v in kb_vulns]))
+            set(sorted([v.get_plugin_name() for v in kb_vulns])),
         )
 
     def _from_json_get_vulns(self, filename):
-        json_data = json.load(open(filename, 'r'))
+        json_data = json.load(open(filename, "r"))
         vulns = []
 
-        for finding in json_data['items']:
+        for finding in json_data["items"]:
 
-            v = MockVuln(finding['Name'], None, 'High', 1, 'sqli')
-            v.set_url(URL(finding['URL']))
+            v = MockVuln(finding["Name"], None, "High", 1, "sqli")
+            v.set_url(URL(finding["URL"]))
             vulns.append(v)
 
         return vulns

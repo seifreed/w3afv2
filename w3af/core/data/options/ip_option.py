@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.misc.is_ip_address import is_ip_address
 from w3af.core.data.options.baseoption import BaseOption
@@ -42,9 +43,9 @@ class IPOption(BaseOption):
     def validate(self, value):
         if value is None:
             return None
-        
+
         if not is_ip_address(value):
             msg = 'Invalid IP address specified ("%s")' % value
             raise BaseFrameworkException(msg)
-        
+
         return value

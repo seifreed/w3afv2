@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import uuid
 import textwrap
 import pprint
@@ -39,9 +40,9 @@ def sample_count(value):
     """
     len_uris = len(value)
     if len_uris == 1:
-        return 'ten'
+        return "ten"
     if len_uris > 10:
-        return 'ten'
+        return "ten"
     else:
         return human_number(len_uris)
 
@@ -82,28 +83,31 @@ class InfoSet(object):
 
     :see: https://github.com/andresriancho/w3af/issues/3955
     """
+
     TEMPLATE = None
     ITAG = None
 
     MAX_INFO_INSTANCES = 30
 
-    JINJA2_ENV = Environment(undefined=StrictUndefined,
-                             trim_blocks=True,
-                             lstrip_blocks=True)
-    JINJA2_ENV.filters['human_number'] = human_number
-    JINJA2_ENV.filters['sample_count'] = sample_count
+    JINJA2_ENV = Environment(
+        undefined=StrictUndefined, trim_blocks=True, lstrip_blocks=True
+    )
+    JINJA2_ENV.filters["human_number"] = human_number
+    JINJA2_ENV.filters["sample_count"] = sample_count
 
     def __init__(self, info_instances):
         if not len(info_instances):
-            raise ValueError('Empty InfoSets are not allowed')
+            raise ValueError("Empty InfoSets are not allowed")
 
         if not isinstance(info_instances, list):
-            raise TypeError('info_instances must be a list')
+            raise TypeError("info_instances must be a list")
 
         for info in info_instances:
             if not isinstance(info, Info):
-                raise TypeError('info_instances list items must be Info sub'
-                                '-classes, found "%r" instead' % info)
+                raise TypeError(
+                    "info_instances list items must be Info sub"
+                    '-classes, found "%r" instead' % info
+                )
 
         self.infos = info_instances
         self._mutant = EmptyMutant()
@@ -144,13 +148,15 @@ class InfoSet(object):
             return self.first_info.get_desc(with_id=with_id)
 
         # We render the template using the information set data
-        context = {'urls': [smart_unicode(u) for u in self.get_urls()],
-                   'uris': [smart_unicode(u) for u in self.get_uris()],
-                   'severity': self.get_severity(),
-                   'name': self.get_name(),
-                   'id': self.get_id(),
-                   'method': smart_unicode(self.get_method()),
-                   'plugin': self.get_plugin_name()}
+        context = {
+            "urls": [smart_unicode(u) for u in self.get_urls()],
+            "uris": [smart_unicode(u) for u in self.get_uris()],
+            "severity": self.get_severity(),
+            "name": self.get_name(),
+            "id": self.get_id(),
+            "method": smart_unicode(self.get_method()),
+            "plugin": self.get_plugin_name(),
+        }
         context.update(list(self.first_info.items()))
 
         template_str = textwrap.dedent(self.TEMPLATE)
@@ -160,10 +166,11 @@ class InfoSet(object):
             rendered_desc = template.render(context)
         except UnicodeDecodeError:
             context_pp = pprint.pformat(context, indent=4)
-            msg = ('UnicodeDecodeError found while rendering:\n\n%s\n\n'
-                   'Using the following context:\n\n%r\n\n')
-            om.out.debug(msg % (smart_str(template_str),
-                                smart_str(context_pp)))
+            msg = (
+                "UnicodeDecodeError found while rendering:\n\n%s\n\n"
+                "Using the following context:\n\n%r\n\n"
+            )
+            om.out.debug(msg % (smart_str(template_str), smart_str(context_pp)))
             raise
 
         return rendered_desc
@@ -245,39 +252,38 @@ class InfoSet(object):
 
             owasp_top_10_references = []
             for owasp_version, risk_id, ref in self.get_owasp_top_10_references():
-                data = {'owasp_version': owasp_version,
-                        'risk_id': risk_id,
-                        'link': ref}
+                data = {"owasp_version": owasp_version, "risk_id": risk_id, "link": ref}
                 owasp_top_10_references.append(data)
 
             references = []
             for ref in self.get_references():
-                data = {'url': ref.url,
-                        'title': ref.title}
+                data = {"url": ref.url, "title": ref.title}
                 references.append(data)
 
-        _data = {'url': str(self.get_url()),
-                 'urls': [str(u) for u in self.get_urls()],
-                 'var': self.get_token_name(),
-                 'response_ids': self.get_id(),
-                 'vulndb_id': self.get_vulndb_id(),
-                 'name': self.get_name(),
-                 'desc': self.get_desc(with_id=False),
-                 'long_description': long_description,
-                 'fix_guidance': fix_guidance,
-                 'fix_effort': fix_effort,
-                 'tags': tags,
-                 'wasc_ids': wasc_ids,
-                 'wasc_urls': wasc_urls,
-                 'cwe_urls': cwe_urls,
-                 'cwe_ids': cwe_ids,
-                 'references': references,
-                 'owasp_top_10_references': owasp_top_10_references,
-                 'plugin_name': self.get_plugin_name(),
-                 'severity': self.get_severity(),
-                 'attributes': attributes,
-                 'highlight': list(self.get_to_highlight()),
-                 'uniq_id': self.get_uniq_id()}
+        _data = {
+            "url": str(self.get_url()),
+            "urls": [str(u) for u in self.get_urls()],
+            "var": self.get_token_name(),
+            "response_ids": self.get_id(),
+            "vulndb_id": self.get_vulndb_id(),
+            "name": self.get_name(),
+            "desc": self.get_desc(with_id=False),
+            "long_description": long_description,
+            "fix_guidance": fix_guidance,
+            "fix_effort": fix_effort,
+            "tags": tags,
+            "wasc_ids": wasc_ids,
+            "wasc_urls": wasc_urls,
+            "cwe_urls": cwe_urls,
+            "cwe_ids": cwe_ids,
+            "references": references,
+            "owasp_top_10_references": owasp_top_10_references,
+            "plugin_name": self.get_plugin_name(),
+            "severity": self.get_severity(),
+            "attributes": attributes,
+            "highlight": list(self.get_to_highlight()),
+            "uniq_id": self.get_uniq_id(),
+        }
 
         return _data
 
@@ -361,11 +367,13 @@ class InfoSet(object):
 
         :return: True if they do match
         """
-        assert self.ITAG is not None, 'Need to specify unique id tag'
+        assert self.ITAG is not None, "Need to specify unique id tag"
 
-        return (info.get(self.ITAG, None) is not None and
-                info.get(self.ITAG) == self.get_attribute(self.ITAG)
-                and info.get_name() == self.get_name())
+        return (
+            info.get(self.ITAG, None) is not None
+            and info.get(self.ITAG) == self.get_attribute(self.ITAG)
+            and info.get_name() == self.get_name()
+        )
 
     def has_db_details(self):
         return self.first_info.has_db_details()
@@ -408,10 +416,10 @@ class InfoSet(object):
 
     def __eq__(self, other):
         self_json = self.to_json()
-        self_json.pop('uniq_id')
+        self_json.pop("uniq_id")
 
         other_json = self.to_json()
-        other_json.pop('uniq_id')
+        other_json.pop("uniq_id")
 
         return self_json == other_json
 
@@ -419,5 +427,7 @@ class InfoSet(object):
         return not self.__eq__(other)
 
     def __repr__(self):
-        return '<info_set instance for: "%s" - len: %s>' % (self.get_name(),
-                                                            len(self.infos))
+        return '<info_set instance for: "%s" - len: %s>' % (
+            self.get_name(),
+            len(self.infos),
+        )

@@ -19,12 +19,12 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 
 from w3af.core.ui.gui import GUI_DATA_PATH
 
-
-W3AF_ICON = os.path.join(GUI_DATA_PATH, 'w3af_icon.png')
+W3AF_ICON = os.path.join(GUI_DATA_PATH, "w3af_icon.png")
 
 MAIN_TITLE = "w3af - Web Application Attack and Audit Framework"
 

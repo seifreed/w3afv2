@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.data.constants.severity as severity
 
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
@@ -34,6 +35,7 @@ class ms15_034(InfrastructurePlugin):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     @runonce(exc_class=RunOnce)
     def discover(self, fuzzable_request, debugging_id):
         """
@@ -44,22 +46,20 @@ class ms15_034(InfrastructurePlugin):
                                     (among other things) the URL to test.
         """
         url = fuzzable_request.get_url()
-        headers = Headers([('Range', 'bytes=18-18446744073709551615')])
+        headers = Headers([("Range", "bytes=18-18446744073709551615")])
 
-        response = self._uri_opener.GET(url,
-                                        cache=False,
-                                        grep=False,
-                                        headers=headers)
+        response = self._uri_opener.GET(url, cache=False, grep=False, headers=headers)
 
         if response.get_code() == 416:
-            desc = ('The target IIS web server is vulnerable to MS15-034 which'
-                    ' allows remote code execution due to a flaw in HTTP.sys')
+            desc = (
+                "The target IIS web server is vulnerable to MS15-034 which"
+                " allows remote code execution due to a flaw in HTTP.sys"
+            )
 
-            v = Vuln('MS15-034', desc, severity.HIGH, response.id,
-                     self.get_name())
+            v = Vuln("MS15-034", desc, severity.HIGH, response.id, self.get_name())
             v.set_url(response.get_url())
 
-            self.kb_append_uniq(self, 'ms15_034', v)
+            self.kb_append_uniq(self, "ms15_034", v)
 
     def get_long_desc(self):
         """
@@ -72,4 +72,3 @@ class ms15_034(InfrastructurePlugin):
         Warning: In some strange scenarios this test can cause a Denial of
         Service.
         """
-

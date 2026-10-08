@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.controllers.output_manager as om
 
 from w3af.core.controllers.exceptions import OSDetectionException
@@ -33,29 +34,28 @@ def read_os_detection(remote_read):
              if unknown.
     """
     try:
-        linux1 = remote_read('/etc/passwd')
-        linux2 = remote_read('/etc/mtab')
-        linux3 = remote_read('/proc/sys/kernel/ostype')
+        linux1 = remote_read("/etc/passwd")
+        linux2 = remote_read("/etc/mtab")
+        linux3 = remote_read("/proc/sys/kernel/ostype")
     except:
         pass
     else:
-        if '/bin/' in linux1 or 'rw' in linux2 or 'linux' in linux3.lower():
+        if "/bin/" in linux1 or "rw" in linux2 or "linux" in linux3.lower():
             om.out.debug('Identified remote OS as Linux, returning "linux".')
-            return 'linux'
+            return "linux"
 
     try:
         # Try if it's a windows system
         # TODO: Are we sure that this works? When is the %SYSTEMROOT% resolved?
-        win1 = remote_read('%SYSTEMROOT%\\win.ini')
-        win2 = remote_read('C:\\windows\\win.ini')
-        win3 = remote_read('C:\\win32\\win.ini')
-        win4 = remote_read('C:\\win\\win.ini')
+        win1 = remote_read("%SYSTEMROOT%\\win.ini")
+        win2 = remote_read("C:\\windows\\win.ini")
+        win3 = remote_read("C:\\win32\\win.ini")
+        win4 = remote_read("C:\\win\\win.ini")
     except:
         pass
     else:
-        if '[fonts]' in win1 + win2 + win3 + win4:
-            om.out.debug(
-                'Identified remote OS as Windows, returning "windows".')
-            return 'windows'
+        if "[fonts]" in win1 + win2 + win3 + win4:
+            om.out.debug('Identified remote OS as Windows, returning "windows".')
+            return "windows"
 
-    raise OSDetectionException('Failed to get/identify the remote OS.')
+    raise OSDetectionException("Failed to get/identify the remote OS.")

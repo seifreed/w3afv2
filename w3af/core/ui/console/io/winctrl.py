@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import sys
 
 try:
@@ -36,24 +37,24 @@ except ImportError:
         def getch():
             pass
 
+
 from w3af.core.ui.console.io.common import *
 
-
-SEQ_PREFIX = '\xE0'
+SEQ_PREFIX = "\xe0"
 LONGEST_SEQUENCE = 2
 
 win2UnixMap = {
-    '\xE0\x48': KEY_UP,
-    '\xE0\x50': KEY_DOWN,
-    '\xE0\x4D': KEY_RIGHT,
-    '\xE0\x4B': KEY_LEFT,
-    '\xE0\x47': KEY_HOME,
-    '\xE0\x4F': KEY_END
+    "\xe0\x48": KEY_UP,
+    "\xe0\x50": KEY_DOWN,
+    "\xe0\x4d": KEY_RIGHT,
+    "\xe0\x4b": KEY_LEFT,
+    "\xe0\x47": KEY_HOME,
+    "\xe0\x4f": KEY_END,
 }
 
 
 def read(amt):
-    res = ''
+    res = ""
     for i in range(amt):
         res += msvcrt.getch()
     return res
@@ -74,7 +75,7 @@ def normalizeSequence(seq):
 
 def moveBack(steps=1):
     for i in range(steps):
-        sys.stdout.write('\x08')
+        sys.stdout.write("\x08")
 
 
 def clearScreen():

@@ -32,10 +32,11 @@ from w3af.core.data.options.option_list import OptionList
 from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.data.kb.info import Info
 
-
-PERM_ERROR_MSG = ("w3af won't be able to run plugin infrastructure.http_vs_"
-                  "https_dist. It seems that the user running the w3af process"
-                  " has not enough privileges.")
+PERM_ERROR_MSG = (
+    "w3af won't be able to run plugin infrastructure.http_vs_"
+    "https_dist. It seems that the user running the w3af process"
+    " has not enough privileges."
+)
 
 
 class http_vs_https_dist(InfrastructurePlugin):
@@ -68,7 +69,7 @@ class http_vs_https_dist(InfrastructurePlugin):
 
         def set_info(name, desc):
             i = Info(name, desc, 1, self.get_name())
-            kb.kb.append(self, 'http_vs_https_dist', i)
+            kb.kb.append(self, "http_vs_https_dist", i)
 
         target_url = fuzzable_request.get_url()
         domain = target_url.get_domain()
@@ -78,12 +79,12 @@ class http_vs_https_dist(InfrastructurePlugin):
         # Use target port if specified
         netloc = target_url.get_net_location()
         try:
-            port = int(netloc.split(':')[-1])
+            port = int(netloc.split(":")[-1])
         except ValueError:
             pass  # Nothing to do.
         else:
             protocol = target_url.get_protocol()
-            if protocol == 'https':
+            if protocol == "https":
                 https_port = port
             else:  # it has to be 'http'
                 http_port = port
@@ -127,31 +128,35 @@ class http_vs_https_dist(InfrastructurePlugin):
         # Last IP should be True; otherwise the dest wasn't reached
         # Tuples have the next form: ('192.168.1.1', False)
         if not (last_https_ip[1] and last_http_ip[1]):
-            desc = _('The port \'%s\' is not open on target %s')
+            desc = _("The port '%s' is not open on target %s")
             if not last_https_ip[1]:
                 om.out.error(desc % (https_port, domain))
             if not last_http_ip[1]:
                 om.out.error(desc % (http_port, domain))
         else:
-            trace_str = lambda iptuples: '\n'.join('    %s %s' %
-                                                  (t[0], t[1][0]) for t in enumerate(iptuples))
+            trace_str = lambda iptuples: "\n".join(
+                "    %s %s" % (t[0], t[1][0]) for t in enumerate(iptuples)
+            )
 
             if http_ip_tuples != https_ip_tuples:
-                header = '  TCP trace to %s:%s\n%s'
+                header = "  TCP trace to %s:%s\n%s"
 
                 trc1 = header % (domain, http_port, trace_str(http_ip_tuples))
-                trc2 = header % (
-                    domain, https_port, trace_str(https_ip_tuples))
+                trc2 = header % (domain, https_port, trace_str(https_ip_tuples))
 
-                desc = 'Routes to target "%s" using ports %s and ' \
-                       '%s are different:\n%s\n%s'
+                desc = (
+                    'Routes to target "%s" using ports %s and '
+                    "%s are different:\n%s\n%s"
+                )
                 desc %= (domain, http_port, https_port, trc1, trc2)
-                set_info('HTTP and HTTPs hop distance', desc)
+                set_info("HTTP and HTTPs hop distance", desc)
                 om.out.information(desc)
             else:
-                desc = 'The routes to the target\'s HTTP and HTTPS ports are' \
-                       ' the same:\n%s' % trace_str(http_ip_tuples)
-                set_info('HTTP traceroute', desc)
+                desc = (
+                    "The routes to the target's HTTP and HTTPS ports are"
+                    " the same:\n%s" % trace_str(http_ip_tuples)
+                )
+                set_info("HTTP traceroute", desc)
 
     # pylint: disable=E0202
     # An attribute affected in plugins.tests.infrastructure.
@@ -172,15 +177,16 @@ class http_vs_https_dist(InfrastructurePlugin):
             return False
 
         try:
-            traceroute('127.0.0.1', maxttl=1)
+            traceroute("127.0.0.1", maxttl=1)
         except socket.error:
             return False
         except Scapy_Exception:
             return False
         except:
             return False
-            
+
         return True
+
     # pylint: enable=E0202
 
     def get_options(self):
@@ -188,12 +194,12 @@ class http_vs_https_dist(InfrastructurePlugin):
         :return: A list of option objects for this plugin.
         """
         ol = OptionList()
-        d1 = 'Destination http port number to analize'
-        o1 = opt_factory('httpPort', self._http_port, d1, INT, help=d1)
+        d1 = "Destination http port number to analize"
+        o1 = opt_factory("httpPort", self._http_port, d1, INT, help=d1)
         ol.add(o1)
 
-        d2 = 'Destination httpS port number to analize'
-        o2 = opt_factory('httpsPort', self._https_port, d2, INT, help=d2)
+        d2 = "Destination httpS port number to analize"
+        o2 = opt_factory("httpsPort", self._https_port, d2, INT, help=d2)
         ol.add(o2)
 
         return ol
@@ -205,8 +211,8 @@ class http_vs_https_dist(InfrastructurePlugin):
 
         :param options: A dictionary with the options for the plugin.
         """
-        self._http_port = options['httpPort'].get_value()
-        self._https_port = options['httpsPort'].get_value()
+        self._http_port = options["httpPort"].get_value()
+        self._https_port = options["httpsPort"].get_value()
 
     def get_long_desc(self):
         """

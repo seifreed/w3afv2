@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 
 import w3af.core.data.kb.knowledge_base as kb
@@ -39,7 +40,7 @@ class export_requests(OutputPlugin):
 
     def __init__(self):
         OutputPlugin.__init__(self)
-        self.output_file = '~/output-requests.b64'
+        self.output_file = "~/output-requests.b64"
 
     def do_nothing(self, *args, **kwds):
         pass
@@ -55,11 +56,11 @@ class export_requests(OutputPlugin):
         Exports a list of fuzzable requests to the user configured file.
         """
         fuzzable_request_set = kb.kb.get_all_known_fuzzable_requests()
-        
+
         filename = os.path.expanduser(self.output_file)
 
         try:
-            out_file = open(filename, 'w')
+            out_file = open(filename, "w")
         except IOError as ioe:
             msg = 'Failed to open the output file for writing: "%s"'
             om.out.error(msg % ioe)
@@ -67,11 +68,13 @@ class export_requests(OutputPlugin):
 
         try:
             for fr in fuzzable_request_set:
-                out_file.write(fr.to_base64() + '\n')
+                out_file.write(fr.to_base64() + "\n")
 
         except Exception as e:
-            msg = ('An exception was raised while trying to export fuzzable'
-                   ' requests to the output file: "%s".' % e)
+            msg = (
+                "An exception was raised while trying to export fuzzable"
+                ' requests to the output file: "%s".' % e
+            )
             om.out.error(msg)
         finally:
             out_file.close()
@@ -80,7 +83,7 @@ class export_requests(OutputPlugin):
         """
         :return: Save the options for this plugin
         """
-        self.output_file = option_list['output_file'].get_value()
+        self.output_file = option_list["output_file"].get_value()
 
     def get_options(self):
         """
@@ -88,8 +91,8 @@ class export_requests(OutputPlugin):
         """
         ol = OptionList()
 
-        d = 'The name of the output file where the HTTP requests will be saved'
-        o = opt_factory('output_file', self.output_file, d, OUTPUT_FILE)
+        d = "The name of the output file where the HTTP requests will be saved"
+        o = opt_factory("output_file", self.output_file, d, OUTPUT_FILE)
         ol.add(o)
 
         return ol

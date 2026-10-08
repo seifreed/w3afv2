@@ -6,15 +6,16 @@ class dhcp_config_files(Payload):
     """
     This payload shows DHCP Server configuration files
     """
+
     def api_read(self):
         result = {}
         files = []
 
-        files.append('/etc/dhcpd.conf')
-        files.append('/var/lib/dhcp/dhcpd')
-        files.append('/etc/dhcp3/dhclient.conf')
-        files.append('/etc/dhclient.conf')
-        files.append('/usr/local/etc/dhcpd.conf')
+        files.append("/etc/dhcpd.conf")
+        files.append("/var/lib/dhcp/dhcpd")
+        files.append("/etc/dhcp3/dhclient.conf")
+        files.append("/etc/dhclient.conf")
+        files.append("/usr/local/etc/dhcpd.conf")
 
         for file in files:
             content = self.shell.read(file)
@@ -27,13 +28,21 @@ class dhcp_config_files(Payload):
         api_result = self.api_read()
 
         if not api_result:
-            return 'DHCP configuration files not found.'
+            return "DHCP configuration files not found."
         else:
             rows = []
-            rows.append(['DHCP configuration files', ])
+            rows.append(
+                [
+                    "DHCP configuration files",
+                ]
+            )
             rows.append([])
             for filename in api_result:
-                rows.append([filename, ])
+                rows.append(
+                    [
+                        filename,
+                    ]
+                )
 
             result_table = table(rows)
             result_table.draw(80)

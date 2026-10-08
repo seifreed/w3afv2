@@ -9,9 +9,9 @@ class users_config_files(Payload):
     """
 
     def fname_generator(self):
-        users_result = self.exec_payload('users')
+        users_result = self.exec_payload("users")
 
-        #=======================================================================
+        # =======================================================================
         # users_config_files.append('/etc/sudoers')
         # users_config_files.append('/etc/inittab')
         # users_config_files.append('/etc/crontab')
@@ -21,23 +21,41 @@ class users_config_files(Payload):
         # users_config_files.append('/etc/pam.conf')
         # #TODO PUT IN APACHE
         # users_config_files.append('/etc/libapache2-mod-jk/workers.properties')
-        #=======================================================================
+        # =======================================================================
 
-        files = ['.bashrc', '.bashrc~', '.bash_history', '.bash_profile',
-                 '.gtk-bookmarks', '.conkyrc', '.my.cnf', '.mysql_history',
-                 '.ldaprc ', '.emacs', '.bash_logout', '.bash_login ',
-                 '.hushlogin', '.mail.rc', '.profile', '.vimrc', '.gtkrc',
-                 '.kderc', '.netrc', '.rhosts', '.Xauthority', '.cshrc',
-                 '.login', '.joe_state',
-
-                 # TODO: Should I move this to a separate payload?
-                 '.filezilla/filezilla.xml', '.filezilla/recentservers.xml',
-                 '.filezilla/sitemanager.xml',
-
-                 ]
+        files = [
+            ".bashrc",
+            ".bashrc~",
+            ".bash_history",
+            ".bash_profile",
+            ".gtk-bookmarks",
+            ".conkyrc",
+            ".my.cnf",
+            ".mysql_history",
+            ".ldaprc ",
+            ".emacs",
+            ".bash_logout",
+            ".bash_login ",
+            ".hushlogin",
+            ".mail.rc",
+            ".profile",
+            ".vimrc",
+            ".gtkrc",
+            ".kderc",
+            ".netrc",
+            ".rhosts",
+            ".Xauthority",
+            ".cshrc",
+            ".login",
+            ".joe_state",
+            # TODO: Should I move this to a separate payload?
+            ".filezilla/filezilla.xml",
+            ".filezilla/recentservers.xml",
+            ".filezilla/sitemanager.xml",
+        ]
 
         for user in users_result:
-            home = users_result[user]['home']
+            home = users_result[user]["home"]
 
             for filename in files:
                 yield home + filename
@@ -55,13 +73,21 @@ class users_config_files(Payload):
         api_result = self.api_read()
 
         if not api_result:
-            return 'No user configuration files found.'
+            return "No user configuration files found."
         else:
             rows = []
-            rows.append(['User configuration files', ])
+            rows.append(
+                [
+                    "User configuration files",
+                ]
+            )
             rows.append([])
             for filename in api_result:
-                rows.append([filename, ])
+                rows.append(
+                    [
+                        filename,
+                    ]
+                )
 
             result_table = table(rows)
             result_table.draw(80)

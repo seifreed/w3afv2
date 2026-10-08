@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.controllers.plugins.evasion_plugin import EvasionPlugin
 
 
@@ -29,6 +30,7 @@ class backspace_between_dots(EvasionPlugin):
 
     :author: Jose Ramon Palanco( jose.palanco@hazent.com )
     """
+
     def modify_request(self, request):
         """
         Mangles the request
@@ -39,7 +41,7 @@ class backspace_between_dots(EvasionPlugin):
         """
         # We mangle the URL
         path = request.url_object.get_path()
-        path = path.replace('/../', '/.%41%08./')
+        path = path.replace("/../", "/.%41%08./")
 
         # Finally, we set all the mutants to the request in order to return it
         new_url = request.url_object.copy()

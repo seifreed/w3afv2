@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 try:
     from io import StringIO
 except ImportError:
@@ -45,7 +46,8 @@ class dot_ds_store(CrawlPlugin):
 
     :credits: This code was based in cpan Mac::Finder::DSStore by Wim Lewis ( wiml@hhhh.org )
     """
-    DS_STORE = '.DS_Store'
+
+    DS_STORE = ".DS_Store"
 
     def __init__(self):
         CrawlPlugin.__init__(self)
@@ -83,7 +85,7 @@ class dot_ds_store(CrawlPlugin):
         try:
             response = self.http_get_and_parse(url, binary_response=True)
         except BaseFrameworkException as w3:
-            msg = 'Failed to GET .DS_Store file: %s. Exception: %s.'
+            msg = "Failed to GET .DS_Store file: %s. Exception: %s."
             om.out.debug(msg, (url, w3))
             return
 
@@ -105,21 +107,25 @@ class dot_ds_store(CrawlPlugin):
 
         self.worker_pool.map(self.http_get_and_parse, parsed_url_list)
 
-        desc = ('A .DS_Store file was found at: %s. The contents of this file'
-                ' disclose filenames')
-        desc %= (response.get_url())
+        desc = (
+            "A .DS_Store file was found at: %s. The contents of this file"
+            " disclose filenames"
+        )
+        desc %= response.get_url()
 
-        v = Vuln('.DS_Store file found', desc, severity.LOW, response.id, self.get_name())
+        v = Vuln(
+            ".DS_Store file found", desc, severity.LOW, response.id, self.get_name()
+        )
         v.set_url(response.get_url())
 
-        kb.kb.append(self, 'dot_ds_store', v)
+        kb.kb.append(self, "dot_ds_store", v)
         om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
     def get_long_desc(self):
         """
         :return: A DETAILED description of the plugin functions and features.
         """
-        return '''
+        return """
         This plugin searches for the .DS_Store file in all the directories and
         subdirectories that are sent as input. If the file is found extract new
         URLs from its content.
@@ -134,7 +140,7 @@ class dot_ds_store(CrawlPlugin):
         The plugin will perform these requests:
             - http://host.tld/w3af/.DS_Store
             - http://host.tld/.DS_Store
-        '''
+        """
 
 
 class DsStore(object):
@@ -156,10 +162,10 @@ class DsStore(object):
         for data in self._store:
             data = str(data)
             entry = data.translate(None, "<>")
-            entry = entry.split(' ')
+            entry = entry.split(" ")
 
             filename = entry[0]
-            if filename in ('.', '..'):
+            if filename in (".", ".."):
                 continue
 
             entries.add(filename)

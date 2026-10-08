@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import socketserver
 import threading
 import socket
@@ -28,10 +29,12 @@ import os
 
 from .upper_daemon import UpperDaemon, UpperTCPHandler
 
-HTTP_RESPONSE = "HTTP/1.1 200 Ok\r\n"\
-                "Connection: close\r\n"\
-                "Content-Type: text/html\r\n"\
-                "Content-Length: 3\r\n\r\nabc"
+HTTP_RESPONSE = (
+    "HTTP/1.1 200 Ok\r\n"
+    "Connection: close\r\n"
+    "Content-Type: text/html\r\n"
+    "Content-Length: 3\r\n\r\nabc"
+)
 
 
 class RawSSLDaemon(UpperDaemon):
@@ -39,22 +42,26 @@ class RawSSLDaemon(UpperDaemon):
     Echo the data sent by the client, but upper case it first. SSL version of
     UpperDaemon.
     """
+
     def __init__(self, handler=UpperTCPHandler, ssl_version=ssl.PROTOCOL_TLSv1):
         super(RawSSLDaemon, self).__init__(handler=handler)
         self.ssl_version = ssl_version
 
     def run(self):
-        self.server = socketserver.TCPServer(self.server_address, self.handler,
-                                             bind_and_activate=False)
+        self.server = socketserver.TCPServer(
+            self.server_address, self.handler, bind_and_activate=False
+        )
 
-        key_file = os.path.join(os.path.dirname(__file__), 'unittest.key')
-        cert_file = os.path.join(os.path.dirname(__file__), 'unittest.crt')
+        key_file = os.path.join(os.path.dirname(__file__), "unittest.key")
+        cert_file = os.path.join(os.path.dirname(__file__), "unittest.crt")
 
-        self.server.socket = ssl.wrap_socket(self.server.socket,
-                                             keyfile=key_file,
-                                             certfile=cert_file,
-                                             cert_reqs=ssl.CERT_NONE,
-                                             ssl_version=self.ssl_version)
+        self.server.socket = ssl.wrap_socket(
+            self.server.socket,
+            keyfile=key_file,
+            certfile=cert_file,
+            cert_reqs=ssl.CERT_NONE,
+            ssl_version=self.ssl_version,
+        )
 
         self.server.server_bind()
         self.server.server_activate()
@@ -63,12 +70,18 @@ class RawSSLDaemon(UpperDaemon):
 
 class SSLServer(threading.Thread):
 
-    def __init__(self, listen, port, certfile, proto=ssl.PROTOCOL_TLSv1,
-                 http_response=HTTP_RESPONSE):
+    def __init__(
+        self,
+        listen,
+        port,
+        certfile,
+        proto=ssl.PROTOCOL_TLSv1,
+        http_response=HTTP_RESPONSE,
+    ):
         threading.Thread.__init__(self)
         self.daemon = True
-        self.name = 'SSLServer'
-        
+        self.name = "SSLServer"
+
         self.listen = listen
         self.port = port
         self.cert = certfile
@@ -82,13 +95,15 @@ class SSLServer(threading.Thread):
         self.errors = []
 
     def accept(self):
-        self.sock = ssl.wrap_socket(self.sock,
-                                    server_side=True,
-                                    certfile=self.cert,
-                                    cert_reqs=ssl.CERT_NONE,
-                                    ssl_version=self.proto,
-                                    do_handshake_on_connect=False,
-                                    suppress_ragged_eofs=True)
+        self.sock = ssl.wrap_socket(
+            self.sock,
+            server_side=True,
+            certfile=self.cert,
+            cert_reqs=ssl.CERT_NONE,
+            ssl_version=self.proto,
+            do_handshake_on_connect=False,
+            suppress_ragged_eofs=True,
+        )
 
         newsocket, fromaddr = self.sock.accept()
 
@@ -99,15 +114,15 @@ class SSLServer(threading.Thread):
             # SSL protocol v2 and that will "break" the handshake
             newsocket.close()
 
-        #print 'Connection from %s port %s, sending HTTP response' % fromaddr
+        # print 'Connection from %s port %s, sending HTTP response' % fromaddr
         try:
             newsocket.send(self.http_response)
         except Exception as e:
             self.errors.append(e)
-            #print 'Failed to send HTTP response to client: "%s"' % e
+            # print 'Failed to send HTTP response to client: "%s"' % e
         finally:
             newsocket.close()
-            #print 'Closed connection from %s port %s' % fromaddr
+            # print 'Closed connection from %s port %s' % fromaddr
 
     def run(self):
         self.should_stop = False

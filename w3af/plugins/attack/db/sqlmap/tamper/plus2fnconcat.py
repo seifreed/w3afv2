@@ -12,8 +12,10 @@ from lib.core.enums import PRIORITY
 
 __priority__ = PRIORITY.HIGHEST
 
+
 def dependencies():
     pass
+
 
 def tamper(payload, **kwargs):
     """
@@ -40,34 +42,43 @@ def tamper(payload, **kwargs):
 
     if payload:
         while True:
-            indexes = zeroDepthSearch(retVal, '+')
+            indexes = zeroDepthSearch(retVal, "+")
 
             if indexes:
                 first, last = 0, 0
                 for i in range(1, len(indexes)):
-                    if ' ' in retVal[indexes[0]:indexes[i]]:
+                    if " " in retVal[indexes[0] : indexes[i]]:
                         break
                     else:
                         last = i
 
-                start = retVal[:indexes[first]].rfind(' ') + 1
-                end = (retVal[indexes[last] + 1:].find(' ') + indexes[last] + 1) if ' ' in retVal[indexes[last] + 1:] else len(retVal) - 1
+                start = retVal[: indexes[first]].rfind(" ") + 1
+                end = (
+                    (retVal[indexes[last] + 1 :].find(" ") + indexes[last] + 1)
+                    if " " in retVal[indexes[last] + 1 :]
+                    else len(retVal) - 1
+                )
 
                 count = 0
                 chars = [char for char in retVal]
-                for index in indexes[first:last + 1]:
+                for index in indexes[first : last + 1]:
                     if count == 0:
-                        chars[index] = ','
+                        chars[index] = ","
                     else:
-                        chars[index] = '\x01'
+                        chars[index] = "\x01"
                     count += 1
 
-                retVal = "%s%s%s)}%s" % (retVal[:start], "{fn CONCAT(" * count, ''.join(chars)[start:end].replace('\x01', ")},"), retVal[end:])
+                retVal = "%s%s%s)}%s" % (
+                    retVal[:start],
+                    "{fn CONCAT(" * count,
+                    "".join(chars)[start:end].replace("\x01", ")},"),
+                    retVal[end:],
+                )
             else:
                 match = re.search(r"\((CHAR\(\d+.+CHAR\(\d+\))\)", retVal)
                 if match:
                     part = match.group(0)
-                    indexes = set(zeroDepthSearch(match.group(1), '+'))
+                    indexes = set(zeroDepthSearch(match.group(1), "+"))
                     if not indexes:
                         break
 
@@ -76,12 +87,15 @@ def tamper(payload, **kwargs):
                     for i in range(1, len(chars)):
                         if i - 1 in indexes:
                             if count == 0:
-                                chars[i] = ','
+                                chars[i] = ","
                             else:
-                                chars[i] = '\x01'
+                                chars[i] = "\x01"
                             count += 1
 
-                    replacement = "%s%s}" % (("{fn CONCAT(" * count)[:-1], "".join(chars).replace('\x01', ")},"))
+                    replacement = "%s%s}" % (
+                        ("{fn CONCAT(" * count)[:-1],
+                        "".join(chars).replace("\x01", ")},"),
+                    )
                     retVal = retVal.replace(part, replacement)
                 else:
                     break

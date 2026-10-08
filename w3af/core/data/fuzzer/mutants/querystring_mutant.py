@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.fuzzer.mutants.mutant import Mutant
 
 
@@ -26,6 +27,7 @@ class QSMutant(Mutant):
     """
     This class is a query string mutant.
     """
+
     def __init__(self, freq):
         Mutant.__init__(self, freq)
 
@@ -37,4 +39,4 @@ class QSMutant(Mutant):
 
     @staticmethod
     def get_mutant_type():
-        return 'query string'
+        return "query string"

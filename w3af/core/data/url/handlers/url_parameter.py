@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import urllib.request, urllib.error, urllib.parse
 
 from w3af.core.data.parsers.doc.url import URL
@@ -44,21 +45,22 @@ class URLParameterHandler(urllib.request.BaseHandler):
         url_instance = URL(req.get_full_url())
         url_instance.set_param(self._url_parameter)
 
-        new_request = HTTPRequest(url_instance,
-                                  method=req.get_method(),
-                                  data=req.get_data(),
-                                  headers=req.get_headers(),
-                                  origin_req_host=req.get_origin_req_host(),
-                                  unverifiable=req.is_unverifiable(),
-                                  retries=req.retries_left,
-                                  cookies=req.cookies,
-                                  cache=req.get_from_cache,
-                                  new_connection=req.new_connection,
-                                  follow_redirects=req.follow_redirects,
-                                  use_basic_auth=req.use_basic_auth,
-                                  use_proxy=req.use_proxy,
-                                  timeout=req.timeout)
+        new_request = HTTPRequest(
+            url_instance,
+            method=req.get_method(),
+            data=req.get_data(),
+            headers=req.get_headers(),
+            origin_req_host=req.get_origin_req_host(),
+            unverifiable=req.is_unverifiable(),
+            retries=req.retries_left,
+            cookies=req.cookies,
+            cache=req.get_from_cache,
+            new_connection=req.new_connection,
+            follow_redirects=req.follow_redirects,
+            use_basic_auth=req.use_basic_auth,
+            use_proxy=req.use_proxy,
+            timeout=req.timeout,
+        )
         return new_request
 
     https_request = http_request
-

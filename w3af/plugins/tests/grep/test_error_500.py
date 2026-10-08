@@ -18,35 +18,36 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 from nose.plugins.attrib import attr
 
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.plugins.tests.helper import PluginTest, PluginConfig
 
-@attr('ci_ready')
+
+@attr("ci_ready")
 class TestError500(PluginTest):
 
-    error_500_url = get_moth_http('/grep/error_500/500.py?id=1')
+    error_500_url = get_moth_http("/grep/error_500/500.py?id=1")
 
     _run_configs = {
-        'cfg1': {
-            'target': error_500_url,
-            'plugins': {
-                'grep': (PluginConfig('error_500'),),
-                'audit': (PluginConfig('sqli'),),
-            }
+        "cfg1": {
+            "target": error_500_url,
+            "plugins": {
+                "grep": (PluginConfig("error_500"),),
+                "audit": (PluginConfig("sqli"),),
+            },
         }
     }
 
     def test_found_vuln(self):
-        cfg = self._run_configs['cfg1']
-        self._scan(cfg['target'], cfg['plugins'])
-        vulns = self.kb.get('error_500', 'error_500')
+        cfg = self._run_configs["cfg1"]
+        self._scan(cfg["target"], cfg["plugins"])
+        vulns = self.kb.get("error_500", "error_500")
 
         self.assertEqual(1, len(vulns))
 
         vuln = vulns[0]
 
-        self.assertEqual(
-            vuln.get_name(), 'Unhandled error in web application')
-        self.assertEqual(vuln.get_url().get_file_name(), '500.py')
+        self.assertEqual(vuln.get_name(), "Unhandled error in web application")
+        self.assertEqual(vuln.get_url().get_file_name(), "500.py")

@@ -16,7 +16,11 @@ import traceback
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-sys.path.append(os.path.normpath("%s/../../" % os.path.dirname(inspect.getfile(inspect.currentframe()))))
+sys.path.append(
+    os.path.normpath(
+        "%s/../../" % os.path.dirname(inspect.getfile(inspect.currentframe()))
+    )
+)
 
 from lib.core.revision import getRevisionNumber
 
@@ -27,10 +31,14 @@ SMTP_SERVER = "127.0.0.1"
 SMTP_PORT = 25
 SMTP_TIMEOUT = 30
 FROM = "regressiontest@sqlmap.org"
-#TO = "dev@sqlmap.org"
+# TO = "dev@sqlmap.org"
 TO = ["bernardo.damele@gmail.com", "miroslav.stampar@gmail.com"]
-SUBJECT = "regression test started on %s using revision %s" % (START_TIME, getRevisionNumber())
+SUBJECT = "regression test started on %s using revision %s" % (
+    START_TIME,
+    getRevisionNumber(),
+)
 TARGET = "debian"
+
 
 def prepare_email(content):
     global FROM
@@ -40,11 +48,12 @@ def prepare_email(content):
     msg = MIMEMultipart()
     msg["Subject"] = SUBJECT
     msg["From"] = FROM
-    msg["To"] = TO if isinstance(TO, str) else ','.join(TO)
+    msg["To"] = TO if isinstance(TO, str) else ",".join(TO)
 
     msg.attach(MIMEText(content))
 
     return msg
+
 
 def send_email(msg):
     global SMTP_SERVER
@@ -59,10 +68,12 @@ def send_email(msg):
     except smtplib.SMTPException as e:
         print(("Failure to send email: %s" % str(e)))
 
+
 def failure_email(msg):
     msg = prepare_email(msg)
     send_email(msg)
     sys.exit(1)
+
 
 def main():
     global SUBJECT
@@ -71,19 +82,35 @@ def main():
     test_counts = []
     attachments = {}
 
-    updateproc = subprocess.Popen("cd /opt/sqlmap/ ; python /opt/sqlmap/sqlmap.py --update", shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    updateproc = subprocess.Popen(
+        "cd /opt/sqlmap/ ; python /opt/sqlmap/sqlmap.py --update",
+        shell=True,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
     stdout, stderr = updateproc.communicate()
 
     if stderr:
         failure_email("Update of sqlmap failed with error:\n\n%s" % stderr)
 
-    regressionproc = subprocess.Popen("python /opt/sqlmap/sqlmap.py --live-test", shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=False)
+    regressionproc = subprocess.Popen(
+        "python /opt/sqlmap/sqlmap.py --live-test",
+        shell=True,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        close_fds=False,
+    )
     stdout, stderr = regressionproc.communicate()
 
     if stderr:
         failure_email("Execution of regression test failed with error:\n\n%s" % stderr)
 
-    failed_tests = re.findall("running live test case: (.+?) \((\d+)\/\d+\)[\r]*\n.+test failed (at parsing items: (.+))?\s*\- scan folder: (\/.+) \- traceback: (.*?)( - SQL injection not detected)?[\r]*\n", stdout)
+    failed_tests = re.findall(
+        "running live test case: (.+?) \((\d+)\/\d+\)[\r]*\n.+test failed (at parsing items: (.+))?\s*\- scan folder: (\/.+) \- traceback: (.*?)( - SQL injection not detected)?[\r]*\n",
+        stdout,
+    )
 
     for failed_test in failed_tests:
         title = failed_test[0]
@@ -132,17 +159,26 @@ def main():
 
         content += "#######################################################################\n\n"
 
-    end_string = "Regression test finished at %s" % time.strftime("%H:%M:%S %d-%m-%Y", time.gmtime())
+    end_string = "Regression test finished at %s" % time.strftime(
+        "%H:%M:%S %d-%m-%Y", time.gmtime()
+    )
 
     if content:
         content += end_string
-        SUBJECT = "Failed %s (%s)" % (SUBJECT, ", ".join("#%d" % count for count in test_counts))
+        SUBJECT = "Failed %s (%s)" % (
+            SUBJECT,
+            ", ".join("#%d" % count for count in test_counts),
+        )
 
         msg = prepare_email(content)
 
         for test_count, attachment in list(attachments.items()):
             attachment = MIMEText(attachment)
-            attachment.add_header("Content-Disposition", "attachment", filename="test_case_%d_console_output.txt" % test_count)
+            attachment.add_header(
+                "Content-Disposition",
+                "attachment",
+                filename="test_case_%d_console_output.txt" % test_count,
+            )
             msg.attach(attachment)
 
         send_email(msg)
@@ -150,6 +186,7 @@ def main():
         SUBJECT = "Successful %s" % SUBJECT
         msg = prepare_email("All test cases were successful\n\n%s" % end_string)
         send_email(msg)
+
 
 if __name__ == "__main__":
     log_fd = open("/tmp/sqlmapregressiontest.log", "wb")
@@ -160,5 +197,8 @@ if __name__ == "__main__":
     except Exception as e:
         log_fd.write("An exception has occurred:\n%s" % str(traceback.format_exc()))
 
-    log_fd.write("Regression test finished at %s\n\n" % time.strftime("%H:%M:%S %d-%m-%Y", time.gmtime()))
+    log_fd.write(
+        "Regression test finished at %s\n\n"
+        % time.strftime("%H:%M:%S %d-%m-%Y", time.gmtime())
+    )
     log_fd.close()

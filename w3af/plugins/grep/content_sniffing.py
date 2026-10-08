@@ -19,12 +19,13 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 
-CT_OPTIONS_HEADER = 'X-Content-Type-Options'
-NOSNIFF = 'nosniff'
+CT_OPTIONS_HEADER = "X-Content-Type-Options"
+NOSNIFF = "nosniff"
 MAX_REPORTS = 50
 
 
@@ -34,6 +35,7 @@ class content_sniffing(GrepPlugin):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def __init__(self):
         super(content_sniffing, self).__init__()
         self._reports = 0
@@ -56,17 +58,21 @@ class content_sniffing(GrepPlugin):
 
         self._reports += 1
 
-        desc = ('The URL "%s" returned an HTTP response without the'
-                ' recommended HTTP header X-Content-Type-Options')
+        desc = (
+            'The URL "%s" returned an HTTP response without the'
+            " recommended HTTP header X-Content-Type-Options"
+        )
         desc %= response.get_url()
 
-        i = Info('Missing X-Content-Type-Options header', desc,
-                 response.id, self.get_name())
+        i = Info(
+            "Missing X-Content-Type-Options header", desc, response.id, self.get_name()
+        )
         i.set_url(response.get_url())
         i[CTSniffingInfoSet.ITAG] = response.get_url().get_domain()
 
-        self.kb_append_uniq_group(self, 'content_sniffing', i,
-                                  group_klass=CTSniffingInfoSet)
+        self.kb_append_uniq_group(
+            self, "content_sniffing", i, group_klass=CTSniffingInfoSet
+        )
 
     def get_long_desc(self):
         """
@@ -78,14 +84,13 @@ class content_sniffing(GrepPlugin):
 
 
 class CTSniffingInfoSet(InfoSet):
-    ITAG = 'domain'
+    ITAG = "domain"
     TEMPLATE = (
-        'The remote web application sent {{ uris|length }} HTTP responses'
-        ' which do not contain the X-Content-Type-Options header. The first'
-        ' ten URLs which did not send the header are:\n'
-        ''
-        '{% for url in uris[:10] %}'
-        ' - {{ url }}\n'
-        '{% endfor %}'
+        "The remote web application sent {{ uris|length }} HTTP responses"
+        " which do not contain the X-Content-Type-Options header. The first"
+        " ten URLs which did not send the header are:\n"
+        ""
+        "{% for url in uris[:10] %}"
+        " - {{ url }}\n"
+        "{% endfor %}"
     )
-

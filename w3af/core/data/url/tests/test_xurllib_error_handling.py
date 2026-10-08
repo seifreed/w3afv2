@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import time
 import unittest
 import socketserver
@@ -34,15 +35,13 @@ from w3af.core.data.constants.file_patterns import FILE_PATTERNS
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.data.url.tests.helpers.upper_daemon import UpperDaemon
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.url.tests.test_xurllib import (EmptyTCPHandler,
-                                                   TimeoutTCPHandler)
-
+from w3af.core.data.url.tests.test_xurllib import EmptyTCPHandler, TimeoutTCPHandler
 
 TIMEOUT_SECS = 1
 
 
-@attr('moth')
-@attr('smoke')
+@attr("moth")
+@attr("smoke")
 class TestXUrllibDelayOnError(unittest.TestCase):
 
     def setUp(self):
@@ -52,9 +51,19 @@ class TestXUrllibDelayOnError(unittest.TestCase):
         self.uri_opener.end()
 
     def test_increasing_delay_on_errors(self):
-        expected_log = {0: False, 70: False, 40: False, 10: False, 80: False,
-                        50: False, 20: False, 90: False, 60: False, 30: False,
-                        100: False}
+        expected_log = {
+            0: False,
+            70: False,
+            40: False,
+            10: False,
+            80: False,
+            50: False,
+            20: False,
+            90: False,
+            60: False,
+            30: False,
+            100: False,
+        }
         self.assertEqual(self.uri_opener._sleep_log, expected_log)
 
         return_empty_daemon = UpperDaemon(EmptyTCPHandler)
@@ -70,12 +79,12 @@ class TestXUrllibDelayOnError(unittest.TestCase):
         self.uri_opener._should_stop_scan = lambda x: False
         self.uri_opener._rate_limit = lambda: True
 
-        url = URL('http://127.0.0.1:%s/' % port)
+        url = URL("http://127.0.0.1:%s/" % port)
         http_exception_count = 0
         loops = 100
 
         # Now check the delays
-        with patch('w3af.core.data.url.extended_urllib.time.sleep') as sleepm:
+        with patch("w3af.core.data.url.extended_urllib.time.sleep") as sleepm:
             for i in range(loops):
                 try:
                     self.uri_opener.GET(url, cache=False)
@@ -85,25 +94,37 @@ class TestXUrllibDelayOnError(unittest.TestCase):
                     msg = 'Not expecting: "%s"'
                     self.assertTrue(False, msg % e.__class__.__name__)
                 else:
-                    self.assertTrue(False, 'Expecting HTTPRequestException')
+                    self.assertTrue(False, "Expecting HTTPRequestException")
 
             self.assertEqual(loops - 1, i)
 
             # Note that the timeouts are increasing based on the error rate and
             # SOCKET_ERROR_DELAY
-            expected_calls = [call(1.5),
-                              call(3.0),
-                              call(4.5),
-                              call(6.0),
-                              call(7.5),
-                              call(9.0),
-                              call(10.5),
-                              call(12.0),
-                              call(13.5)]
+            expected_calls = [
+                call(1.5),
+                call(3.0),
+                call(4.5),
+                call(6.0),
+                call(7.5),
+                call(9.0),
+                call(10.5),
+                call(12.0),
+                call(13.5),
+            ]
 
-            expected_log = {0: False, 70: True, 40: True, 10: True, 80: True,
-                            50: True, 20: True, 90: True, 60: True, 30: True,
-                            100: False}
+            expected_log = {
+                0: False,
+                70: True,
+                40: True,
+                10: True,
+                80: True,
+                50: True,
+                20: True,
+                90: True,
+                60: True,
+                30: True,
+                100: False,
+            }
             self.assertEqual(expected_calls, sleepm.call_args_list)
             self.assertEqual(http_exception_count, 100)
             self.assertEqual(self.uri_opener._sleep_log, expected_log)
@@ -114,10 +135,12 @@ class TestXUrllibDelayOnError(unittest.TestCase):
             except HTTPRequestException:
                 pass
             else:
-                self.assertTrue(False, 'Expected HTTPRequestException')
+                self.assertTrue(False, "Expected HTTPRequestException")
 
             # The log was cleared, all values should be False
-            self.assertTrue(all([not v for v in list(self.uri_opener._sleep_log.values())]))
+            self.assertTrue(
+                all([not v for v in list(self.uri_opener._sleep_log.values())])
+            )
 
     def test_error_handling_disable_per_request(self):
         upper_daemon = UpperDaemon(TimeoutTCPHandler)
@@ -130,14 +153,14 @@ class TestXUrllibDelayOnError(unittest.TestCase):
         self.uri_opener.clear_timeout()
         self.uri_opener._retry = Mock()
 
-        url = URL('http://127.0.0.1:%s/' % port)
+        url = URL("http://127.0.0.1:%s/" % port)
 
         try:
             self.uri_opener.GET(url, error_handling=False)
         except HTTPRequestException:
             self.assertEqual(self.uri_opener._retry.call_count, 0)
         else:
-            self.assertTrue(False, 'Exception not raised')
+            self.assertTrue(False, "Exception not raised")
 
         self.uri_opener.settings.set_default_values()
 
@@ -154,7 +177,7 @@ class TestXUrllibDelayOnError(unittest.TestCase):
         # Don't rate limit
         self.uri_opener._rate_limit = lambda: True
 
-        url = URL('http://127.0.0.1:%s/' % port)
+        url = URL("http://127.0.0.1:%s/" % port)
         http_exception_count = 0
         loops = 100
 
@@ -170,15 +193,16 @@ class TestXUrllibDelayOnError(unittest.TestCase):
                 msg = 'Not expecting: "%s"'
                 self.assertTrue(False, msg % e.__class__.__name__)
             else:
-                self.assertTrue(False, 'Expecting an exception')
+                self.assertTrue(False, "Expecting an exception")
 
         # We quickly reach this state, which is good since the server is down
         self.assertEqual(http_exception_count, 9)
 
         # After reaching this state we will always yield ScanMustStopByKnownReasonExc
         for i in range(loops):
-            self.assertRaises(ScanMustStopByKnownReasonExc,
-                              self.uri_opener.GET, url, cache=False)
+            self.assertRaises(
+                ScanMustStopByKnownReasonExc, self.uri_opener.GET, url, cache=False
+            )
 
         # Confirm that this is the code section raising the exception
         self.uri_opener._raise_if_should_stop = lambda: True
@@ -194,18 +218,18 @@ class TestXUrllibErrorHandling(PluginTest):
     :see: https://github.com/andresriancho/w3af/issues/8698#issuecomment-77625343
     :see: https://github.com/andresriancho/w3af/issues/8698
     """
-    _run_configs = {
-        'cfg': {
-            'target': None,
-            'plugins': {
-                'audit': (PluginConfig('lfi'),),
-                'crawl': (
-                    PluginConfig(
-                        'web_spider',
-                        ('only_forward', True, PluginConfig.BOOL)),
-                )
 
-            }
+    _run_configs = {
+        "cfg": {
+            "target": None,
+            "plugins": {
+                "audit": (PluginConfig("lfi"),),
+                "crawl": (
+                    PluginConfig(
+                        "web_spider", ("only_forward", True, PluginConfig.BOOL)
+                    ),
+                ),
+            },
         }
     }
 
@@ -220,24 +244,24 @@ class TestXUrllibErrorHandling(PluginTest):
         upper_daemon.wait_for_start()
 
         port = upper_daemon.get_port()
-        target_url = 'http://127.0.0.1:%s/' % port
+        target_url = "http://127.0.0.1:%s/" % port
 
         # Make sure we don't clear the attribute we want to assert
         self.w3afcore.uri_opener.clear = Mock()
 
         # Run the scan
-        cfg = self._run_configs['cfg']
+        cfg = self._run_configs["cfg"]
 
-        with patch('w3af.core.data.url.extended_urllib.om.out') as om_mock:
-            self._scan(target_url, cfg['plugins'])
+        with patch("w3af.core.data.url.extended_urllib.om.out") as om_mock:
+            self._scan(target_url, cfg["plugins"])
 
             # This assertion does fail often due to threads sending stuff in
             # "different order"
-            #msg = 'Remote URL %s is reachable'
-            #self.assertIn(call.debug(msg % target_url), om_mock.mock_calls)
+            # msg = 'Remote URL %s is reachable'
+            # self.assertIn(call.debug(msg % target_url), om_mock.mock_calls)
 
             # This one should appear each time
-            msg = 'ExtendedUrllib error rate is at 10%'
+            msg = "ExtendedUrllib error rate is at 10%"
             self.assertIn(call.debug(msg), om_mock.mock_calls)
 
             self.assertEqual(om_mock.report_finding.call_count, 1)
@@ -249,34 +273,40 @@ class TestXUrllibErrorHandling(PluginTest):
         self.assertIsNone(self.w3afcore.uri_opener._stop_exception)
 
         # Assert the vulnerability findings
-        vulns = self.kb.get('lfi', 'lfi')
+        vulns = self.kb.get("lfi", "lfi")
 
         # Verify the specifics about the vulnerabilities
-        expected = [('5', 'g')]
+        expected = [("5", "g")]
 
-        self.assertAllVulnNamesEqual('Local file inclusion vulnerability', vulns)
+        self.assertAllVulnNamesEqual("Local file inclusion vulnerability", vulns)
         self.assertExpectedVulnsFound(expected, vulns)
         self.assertTrue(self.w3afcore.uri_opener.clear.called)
 
 
 class MultipleTimeoutsTCPHandler(socketserver.BaseRequestHandler):
-    RESPONSE = ('HTTP/1.0 200 Ok\r\n'
-                'Connection: Close\r\n'
-                'Content-Length: %s\r\n'
-                'Content-Type: text/html\r\n'
-                '\r\n%s')
+    RESPONSE = (
+        "HTTP/1.0 200 Ok\r\n"
+        "Connection: Close\r\n"
+        "Content-Length: %s\r\n"
+        "Content-Type: text/html\r\n"
+        "\r\n%s"
+    )
 
-    KA_RESPONSE = ('HTTP/1.0 200 Ok\r\n'
-                   'Connection: Keep-Alive\r\n'
-                   'Content-Length: %s\r\n'
-                   'Content-Type: text/html\r\n'
-                   '\r\n%s')
+    KA_RESPONSE = (
+        "HTTP/1.0 200 Ok\r\n"
+        "Connection: Keep-Alive\r\n"
+        "Content-Length: %s\r\n"
+        "Content-Type: text/html\r\n"
+        "\r\n%s"
+    )
 
-    RESPONSE_404 = ('HTTP/1.0 404 Not Found\r\n'
-                    'Connection: Close\r\n'
-                    'Content-Length: %s\r\n'
-                    'Content-Type: text/html\r\n'
-                    '\r\n%s')
+    RESPONSE_404 = (
+        "HTTP/1.0 404 Not Found\r\n"
+        "Connection: Close\r\n"
+        "Content-Length: %s\r\n"
+        "Content-Type: text/html\r\n"
+        "\r\n%s"
+    )
 
     def handle(self):
         fake_file = self.request.makefile()
@@ -284,29 +314,31 @@ class MultipleTimeoutsTCPHandler(socketserver.BaseRequestHandler):
 
         # Note the space after the =, these requests are to get the original
         # response and shouldn't be delayed
-        if '?f= ' in header or '?g= ' in header:
-            body = 'Empty parameter'
+        if "?f= " in header or "?g= " in header:
+            body = "Empty parameter"
             self.request.sendall(self.RESPONSE % (len(body), body))
 
         # Handling of the delayed+keep-alive responses
-        elif '?f=' in header:
+        elif "?f=" in header:
             time.sleep(TIMEOUT_SECS * 3)
-            body = 'Slow response'
+            body = "Slow response"
             self.request.sendall(self.KA_RESPONSE % (len(body), body))
 
         # Handling of the vulnerability mock
-        elif 'etc%2Fpasswd' in header:
-            body = 'Header %s Footer' % FILE_PATTERNS[0]
+        elif "etc%2Fpasswd" in header:
+            body = "Header %s Footer" % FILE_PATTERNS[0]
             self.request.sendall(self.RESPONSE % (len(body), body))
 
-        elif ' / ' in header:
+        elif " / " in header:
             # Handling the index
-            links = ('<a href="/1?f=">1</a>'
-                     #'<a href="/2?f=">2</a>'
-                     #'<a href="/3?f=">3</a>'
-                     #'<a href="/4?f=">4</a>'
-                     '<a href="/5?g=">5</a>')
+            links = (
+                '<a href="/1?f=">1</a>'
+                #'<a href="/2?f=">2</a>'
+                #'<a href="/3?f=">3</a>'
+                #'<a href="/4?f=">4</a>'
+                '<a href="/5?g=">5</a>'
+            )
             self.request.sendall(self.RESPONSE % (len(links), links))
         else:
-            body = 'Not found'
+            body = "Not found"
             self.request.sendall(self.RESPONSE_404 % (len(body), body))

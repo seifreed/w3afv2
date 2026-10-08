@@ -20,31 +20,33 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-DEFAULT_FORM_ENCODING = 'application/x-www-form-urlencoded'
+DEFAULT_FORM_ENCODING = "application/x-www-form-urlencoded"
 
-INPUT_TYPE_FILE = 'file'
-INPUT_TYPE_CHECKBOX = 'checkbox'
-INPUT_TYPE_RADIO = 'radio'
-INPUT_TYPE_TEXT = 'text'
-INPUT_TYPE_HIDDEN = 'hidden'
-INPUT_TYPE_SUBMIT = 'submit'
-INPUT_TYPE_SELECT = 'select'
-INPUT_TYPE_PASSWD = 'password'
+INPUT_TYPE_FILE = "file"
+INPUT_TYPE_CHECKBOX = "checkbox"
+INPUT_TYPE_RADIO = "radio"
+INPUT_TYPE_TEXT = "text"
+INPUT_TYPE_HIDDEN = "hidden"
+INPUT_TYPE_SUBMIT = "submit"
+INPUT_TYPE_SELECT = "select"
+INPUT_TYPE_PASSWD = "password"
 
 # Not exactly an <input>, but close enough:
-INPUT_TYPE_TEXTAREA = 'textarea'
+INPUT_TYPE_TEXTAREA = "textarea"
 
-ALL_INPUT_TYPES = (INPUT_TYPE_FILE,
-                   INPUT_TYPE_CHECKBOX,
-                   INPUT_TYPE_RADIO,
-                   INPUT_TYPE_TEXT,
-                   INPUT_TYPE_HIDDEN,
-                   INPUT_TYPE_SUBMIT,
-                   INPUT_TYPE_SELECT,
-                   INPUT_TYPE_PASSWD)
+ALL_INPUT_TYPES = (
+    INPUT_TYPE_FILE,
+    INPUT_TYPE_CHECKBOX,
+    INPUT_TYPE_RADIO,
+    INPUT_TYPE_TEXT,
+    INPUT_TYPE_HIDDEN,
+    INPUT_TYPE_SUBMIT,
+    INPUT_TYPE_SELECT,
+    INPUT_TYPE_PASSWD,
+)
 
-MODE_ALL = 'all'
-MODE_TB = 'tb'
-MODE_TMB = 'tmb'
-MODE_T = 't'
-MODE_B = 'b'
+MODE_ALL = "all"
+MODE_TB = "tb"
+MODE_TMB = "tmb"
+MODE_T = "t"
+MODE_B = "b"

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from multiprocessing import Pool
 
 
@@ -34,7 +35,7 @@ def _module_load_worker(module_name):
 def lazy_load(module_name):
     return _module_load_worker(module_name)
 
-    #TODO: Why isn't this working?
-    #pool = Pool(processes=1)
-    #result = pool.apply_async(_module_load_worker, [module_name])
-    #return result.get(timeout=5)
+    # TODO: Why isn't this working?
+    # pool = Pool(processes=1)
+    # result = pool.apply_async(_module_load_worker, [module_name])
+    # return result.get(timeout=5)

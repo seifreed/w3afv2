@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.data.parsers.parser_cache as parser_cache
 
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
@@ -60,10 +61,10 @@ class get_emails(GrepPlugin):
         analysis_data = []
         root_domain = response.get_url().get_root_domain()
 
-        analysis_data.append(('emails', root_domain))
+        analysis_data.append(("emails", root_domain))
 
         if not self._only_target_domain:
-            analysis_data.append(('external_emails', None))
+            analysis_data.append(("external_emails", None))
 
         for kb_key, domain in analysis_data:
             self._grep_worker(request, response, document_parser, kb_key, domain)
@@ -91,18 +92,16 @@ class get_emails(GrepPlugin):
             desc = 'The mail account: "%s" was found at "%s".'
             desc %= (mail_address, url)
 
-            i = Info('Email address disclosure', desc, response.id,
-                     self.get_name())
+            i = Info("Email address disclosure", desc, response.id, self.get_name())
             i.add_to_highlight(mail_address)
             i.set_url(url)
             i[EmailInfoSet.ITAG] = mail_address
-            i['user'] = mail_address.split('@')[0]
+            i["user"] = mail_address.split("@")[0]
 
-            self.kb_append_uniq_group('emails', kb_key, i,
-                                      group_klass=EmailInfoSet)
+            self.kb_append_uniq_group("emails", kb_key, i, group_klass=EmailInfoSet)
 
     def set_options(self, options_list):
-        self._only_target_domain = options_list['only_target_domain'].get_value()
+        self._only_target_domain = options_list["only_target_domain"].get_value()
 
     def get_options(self):
         """
@@ -110,9 +109,8 @@ class get_emails(GrepPlugin):
         """
         ol = OptionList()
 
-        d1 = 'Only search emails for domain of target'
-        o1 = opt_factory('only_target_domain', self._only_target_domain,
-                         d1, 'boolean')
+        d1 = "Only search emails for domain of target"
+        o1 = opt_factory("only_target_domain", self._only_target_domain, d1, "boolean")
         ol.add(o1)
 
         return ol
@@ -129,13 +127,13 @@ class get_emails(GrepPlugin):
 
 
 class EmailInfoSet(InfoSet):
-    ITAG = 'mail'
+    ITAG = "mail"
     TEMPLATE = (
         'The application discloses the "{{ mail }}" email address in'
-        ' {{ uris|length }} different HTTP responses. The first ten URLs'
-        ' which sent the email are:\n'
-        ''
-        '{% for url in uris[:10] %}'
-        ' - {{ url }}\n'
-        '{% endfor %}'
+        " {{ uris|length }} different HTTP responses. The first ten URLs"
+        " which sent the email are:\n"
+        ""
+        "{% for url in uris[:10] %}"
+        " - {{ url }}\n"
+        "{% endfor %}"
     )

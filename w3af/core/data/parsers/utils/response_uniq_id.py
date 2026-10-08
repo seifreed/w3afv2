@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import zlib
 
 
@@ -37,11 +38,11 @@ def get_response_unique_id(http_response, prepend=None):
     """
     # @see: test_bug_13_Dec_2012 to understand why we concat the uri to the
     #       body before hashing
-    uri_str = http_response.get_uri().url_string.encode('utf-8')
+    uri_str = http_response.get_uri().url_string.encode("utf-8")
 
-    body_str = http_response.body or ''
+    body_str = http_response.body or ""
     if isinstance(body_str, str):
-        body_str = body_str.encode('utf-8', 'replace')
+        body_str = body_str.encode("utf-8", "replace")
 
     _to_hash = body_str + uri_str
 
@@ -50,7 +51,7 @@ def get_response_unique_id(http_response, prepend=None):
     hash_string += str(zlib.adler32(_to_hash))
 
     if prepend:
-        hash_string = '%s-%s' % (prepend, hash_string)
+        hash_string = "%s-%s" % (prepend, hash_string)
 
     return hash_string
 
@@ -70,7 +71,7 @@ def get_body_unique_id(http_response, prepend=None):
     """
     body_str = http_response.body
     if isinstance(body_str, str):
-        body_str = body_str.encode('utf-8', 'replace')
+        body_str = body_str.encode("utf-8", "replace")
 
     _to_hash = body_str
 
@@ -79,6 +80,6 @@ def get_body_unique_id(http_response, prepend=None):
     hash_string += str(zlib.adler32(_to_hash))
 
     if prepend:
-        hash_string = '%s-%s' % (prepend, hash_string)
+        hash_string = "%s-%s" % (prepend, hash_string)
 
     return hash_string

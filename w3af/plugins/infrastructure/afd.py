@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import urllib.request, urllib.parse, urllib.error
 
 import w3af.core.controllers.output_manager as om
@@ -60,8 +61,7 @@ class afd(InfrastructurePlugin):
                                     (among other things) the URL to test.
         """
         try:
-            filtered, not_filtered = self._send_requests(fuzzable_request,
-                                                         debugging_id)
+            filtered, not_filtered = self._send_requests(fuzzable_request, debugging_id)
         except BaseFrameworkException as bfe:
             om.out.error(str(bfe))
         else:
@@ -75,42 +75,40 @@ class afd(InfrastructurePlugin):
         """
         rnd_param = rand_alnum(7)
         rnd_value = rand_alnum(7)
-        fmt = '%s?%s=%s'
-        original_url_str = fmt % (fuzzable_request.get_url(),
-                                  rnd_param,
-                                  rnd_value)
+        fmt = "%s?%s=%s"
+        original_url_str = fmt % (fuzzable_request.get_url(), rnd_param, rnd_value)
         original_url = URL(original_url_str)
 
         try:
-            http_resp = self._uri_opener.GET(original_url,
-                                             cache=True,
-                                             debugging_id=debugging_id)
+            http_resp = self._uri_opener.GET(
+                original_url, cache=True, debugging_id=debugging_id
+            )
         except BaseFrameworkException as bfe:
-            msg = ('Active filter detection plugin failed to receive a'
-                   ' response for the first request. The exception was: "%s".'
-                   ' Can not perform analysis.')
+            msg = (
+                "Active filter detection plugin failed to receive a"
+                ' response for the first request. The exception was: "%s".'
+                " Can not perform analysis."
+            )
             raise BaseFrameworkException(msg % bfe)
 
         orig_resp_body = http_resp.get_body()
-        orig_resp_body = orig_resp_body.replace(rnd_param, '')
-        orig_resp_body = orig_resp_body.replace(rnd_value, '')
+        orig_resp_body = orig_resp_body.replace(rnd_param, "")
+        orig_resp_body = orig_resp_body.replace(rnd_value, "")
 
         tests = []
         for offending_string in self._get_offending_strings():
             args = (fuzzable_request.get_url(), rnd_param, offending_string)
             offending_url = fmt % args
             offending_url = URL(offending_url)
-            tests.append((offending_string,
-                          offending_url,
-                          orig_resp_body,
-                          rnd_param))
+            tests.append((offending_string, offending_url, orig_resp_body, rnd_param))
 
         self.worker_pool.map_multi_args(self._send_and_analyze, tests)
 
         return self._filtered, self._not_filtered
 
-    def _send_and_analyze(self, offending_string, offending_url,
-                          original_resp_body, rnd_param):
+    def _send_and_analyze(
+        self, offending_string, offending_url, original_resp_body, rnd_param
+    ):
         """
         Actually send the HTTP request.
 
@@ -126,8 +124,8 @@ class afd(InfrastructurePlugin):
         else:
             # I get here when the remote end returns a 403 or something like
             # that... So I must analyze the response body
-            resp_body = resp_body.replace(offending_string, '')
-            resp_body = resp_body.replace(rnd_param, '')
+            resp_body = resp_body.replace(offending_string, "")
+            resp_body = resp_body.replace(rnd_param, "")
 
             if fuzzy_not_equal(resp_body, original_resp_body, 0.15):
                 self._filtered.append(offending_url)
@@ -139,26 +137,28 @@ class afd(InfrastructurePlugin):
         Analyze the test results and save the conclusion to the kb.
         """
         if len(filtered) >= len(self._get_offending_strings()) / 5.0:
-            desc = ('The remote network has an active filter. IMPORTANT: The'
-                    ' result of all the other plugins will be inaccurate, web'
-                    ' applications could be vulnerable but "protected" by the'
-                    ' active filter.')
-                   
-            i = Info('Active filter detected', desc, 1, self.get_name())
-            i['filtered'] = filtered
-            
-            kb.kb.append(self, 'afd', i)
+            desc = (
+                "The remote network has an active filter. IMPORTANT: The"
+                " result of all the other plugins will be inaccurate, web"
+                ' applications could be vulnerable but "protected" by the'
+                " active filter."
+            )
+
+            i = Info("Active filter detected", desc, 1, self.get_name())
+            i["filtered"] = filtered
+
+            kb.kb.append(self, "afd", i)
             om.out.information(i.get_desc())
 
-            om.out.information('The following URLs were filtered:')
+            om.out.information("The following URLs were filtered:")
             for i in filtered:
-                om.out.information('- ' + i)
+                om.out.information("- " + i)
 
             if not_filtered:
-                msg = 'The following URLs passed undetected by the filter:'
+                msg = "The following URLs passed undetected by the filter:"
                 om.out.information(msg)
                 for i in not_filtered:
-                    om.out.information('- ' + i)
+                    om.out.information("- " + i)
 
         # Cleanup some memory
         self._not_filtered = []
@@ -168,18 +168,20 @@ class afd(InfrastructurePlugin):
         """
         :return: A list of strings that will be filtered by most IPS devices.
         """
-        res = ['../../../../etc/passwd',
-               './../../../etc/motd\0html',
-               'id;uname -a',
-               '<? passthru("id");?>',
-               '../../WINNT/system32/cmd.exe?dir+c:\\',
-               'type+c:\\winnt\\repair\\sam._',
-               'ps -aux;',
-               '../../../../bin/chgrp nobody /etc/shadow|',
-               'SELECT TOP 1 name FROM sysusers',
-               'exec master..xp_cmdshell dir',
-               'exec xp_cmdshell dir',
-               '<script>alert(1)</script>']
+        res = [
+            "../../../../etc/passwd",
+            "./../../../etc/motd\0html",
+            "id;uname -a",
+            '<? passthru("id");?>',
+            "../../WINNT/system32/cmd.exe?dir+c:\\",
+            "type+c:\\winnt\\repair\\sam._",
+            "ps -aux;",
+            "../../../../bin/chgrp nobody /etc/shadow|",
+            "SELECT TOP 1 name FROM sysusers",
+            "exec master..xp_cmdshell dir",
+            "exec xp_cmdshell dir",
+            "<script>alert(1)</script>",
+        ]
 
         res = [urllib.parse.quote_plus(x) for x in res]
 

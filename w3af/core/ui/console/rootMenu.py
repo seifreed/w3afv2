@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import sys
 import os
 import time
@@ -41,8 +42,10 @@ from w3af.core.ui.console.tables import table
 
 from w3af.core.controllers.misc.get_w3af_version import get_w3af_version
 from w3af.core.controllers.misc_settings import MiscSettings
-from w3af.core.controllers.exceptions import (BaseFrameworkException,
-                                              ScanMustStopException)
+from w3af.core.controllers.exceptions import (
+    BaseFrameworkException,
+    ScanMustStopException,
+)
 
 
 class rootMenu(menu):
@@ -50,26 +53,30 @@ class rootMenu(menu):
     Main menu
     :author: Alexander Berezhnoy (alexander.berezhnoy |at| gmail.com)
     """
+
     # Wait at most 20 seconds for the core to start the scan
     MAX_WAIT_FOR_START = 20
 
     def __init__(self, name, console, core, parent=None):
         menu.__init__(self, name, console, core, parent)
-        self._load_help('root')
+        self._load_help("root")
 
         #   At first, there is no scan thread
         self._scan_thread = None
 
-        mapDict(self.addChild, {
-            'plugins': pluginsMenu,
-            'target': (ConfigMenu, self._w3af.target),
-            'misc-settings': (ConfigMenu, MiscSettings()),
-            'http-settings': (ConfigMenu, self._w3af.uri_opener.settings),
-            'profiles': ProfilesMenu,
-            'bug-report': bug_report_menu,
-            'exploit': exploit,
-            'kb': kbMenu
-        })
+        mapDict(
+            self.addChild,
+            {
+                "plugins": pluginsMenu,
+                "target": (ConfigMenu, self._w3af.target),
+                "misc-settings": (ConfigMenu, MiscSettings()),
+                "http-settings": (ConfigMenu, self._w3af.uri_opener.settings),
+                "profiles": ProfilesMenu,
+                "bug-report": bug_report_menu,
+                "exploit": exploit,
+                "kb": kbMenu,
+            },
+        )
 
     def _cmd_start(self, params):
         """
@@ -79,13 +86,15 @@ class rootMenu(menu):
         :return: None
         """
         # Check if the console output plugin is enabled or not, and warn.
-        output_plugins = self._w3af.plugins.get_enabled_plugins('output')
-        if 'console' not in output_plugins and len(output_plugins) == 0:
-            msg = ("\nWarning: You disabled the console output plugin. If you"
-                   " start a new scan, the discovered vulnerabilities won\'t be"
-                   " printed to the console, we advise you to enable at least"
-                   " one output plugin in order to be able to actually see the"
-                   " the scan output.")
+        output_plugins = self._w3af.plugins.get_enabled_plugins("output")
+        if "console" not in output_plugins and len(output_plugins) == 0:
+            msg = (
+                "\nWarning: You disabled the console output plugin. If you"
+                " start a new scan, the discovered vulnerabilities won't be"
+                " printed to the console, we advise you to enable at least"
+                " one output plugin in order to be able to actually see the"
+                " the scan output."
+            )
             print(msg)
 
         # Note that I'm NOT starting this in a new multiprocess Process
@@ -93,14 +102,14 @@ class rootMenu(menu):
         # I want to start new threads inside this thread and there is a bug
         # with that http://bugs.python.org/issue10015
         self._scan_thread = Process(target=self._real_start)
-        self._scan_thread.name = 'ConsoleScanThread'
+        self._scan_thread.name = "ConsoleScanThread"
         self._scan_thread.daemon = True
         self._scan_thread.start()
-        
+
         # let the core thread start
         scan_started = self.wait_for_start()
         if not scan_started:
-            om.out.console('The scan failed to start.')
+            om.out.console("The scan failed to start.")
             self._w3af.stop()
             return
 
@@ -121,7 +130,7 @@ class rootMenu(menu):
         return False
 
     def handle_scan_stop(self, *args):
-        om.out.console('User pressed Ctrl+C, stopping scan.')
+        om.out.console("User pressed Ctrl+C, stopping scan.")
         self._w3af.stop()
 
     def _cmd_cleanup(self, params):
@@ -156,7 +165,7 @@ class rootMenu(menu):
             # disabled the console output, so we re-enable it
             #
             # https://github.com/andresriancho/w3af/issues/8114
-            self._w3af.plugins.set_plugins(['console'], 'output')
+            self._w3af.plugins.set_plugins(["console"], "output")
 
     def handle_keypress_during_scan(self):
         """
@@ -176,11 +185,13 @@ class rootMenu(menu):
         #
         term.set_raw_input_mode(True)
 
-        handlers = {'P': self._pause_scan,
-                    'R': self._resume_scan,
-                    '\r': self._show_status,
-                    '\n': self._show_status,
-                    '\x03': self._stop_scan}
+        handlers = {
+            "P": self._pause_scan,
+            "R": self._resume_scan,
+            "\r": self._show_status,
+            "\n": self._show_status,
+            "\x03": self._stop_scan,
+        }
 
         try:
             while self._w3af.status.is_running() or self._w3af.status.is_paused():
@@ -200,38 +211,40 @@ class rootMenu(menu):
             term.set_raw_input_mode(False)
 
     def _default_during_scan_handler(self):
-        om.out.console('Unknown key. The following commands are allowed during'
-                       ' the scan:\n\n'
-                       '  (P) pause the scan\n'
-                       '  (R) resume a paused scan\n'
-                       '  (enter) print scan status\n'
-                       '  (Ctrl+C) stop scan\n')
+        om.out.console(
+            "Unknown key. The following commands are allowed during"
+            " the scan:\n\n"
+            "  (P) pause the scan\n"
+            "  (R) resume a paused scan\n"
+            "  (enter) print scan status\n"
+            "  (Ctrl+C) stop scan\n"
+        )
 
     def _stop_scan(self):
         raise KeyboardInterrupt
 
     def _pause_scan(self):
         if self._w3af.status.is_paused():
-            om.out.console('The scan is already paused.')
+            om.out.console("The scan is already paused.")
             return
 
         self._w3af.pause(True)
-        om.out.console('The scan was paused.')
+        om.out.console("The scan was paused.")
 
     def _resume_scan(self):
         if not self._w3af.status.is_paused():
-            om.out.console('The scan is running. Can not resume.')
+            om.out.console("The scan is running. Can not resume.")
             return
 
         self._w3af.pause(False)
-        om.out.console('The scan was resumed.')
+        om.out.console("The scan was resumed.")
 
     def _show_status(self):
         # Get the information and print it to the console
         status_information_str = self._w3af.status.get_long_status()
         t = table([(status_information_str,)])
         t.draw()
-        om.out.console('')
+        om.out.console("")
 
     def _cmd_version(self, params):
         """

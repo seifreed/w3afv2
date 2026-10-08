@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-
 import os
 import sys
 import warnings
@@ -44,20 +43,20 @@ def factory(module_name, *args):
     :param module_name: Which plugin do you need?
     :return: An instance.
     """
-    module_path = module_name.replace('.', '/')
-    module_path = module_path.replace('w3af/', '')
-    module_path = '%s.py' % module_path
+    module_path = module_name.replace(".", "/")
+    module_path = module_path.replace("w3af/", "")
+    module_path = "%s.py" % module_path
     module_path = os.path.join(ROOT_PATH, module_path)
 
     if not os.path.exists(module_path):
-        msg = 'The %s plugin does not exist.'
+        msg = "The %s plugin does not exist."
         raise BaseFrameworkException(msg % module_name)
 
     try:
         # https://github.com/andresriancho/w3af/issues/10705
-        warnings.filterwarnings('ignore',
-                                message='Not importing directory .*',
-                                module='w3af.*')
+        warnings.filterwarnings(
+            "ignore", message="Not importing directory .*", module="w3af.*"
+        )
 
         __import__(module_name)
     except SyntaxError:
@@ -68,10 +67,12 @@ def factory(module_name, *args):
         # dependencies
         #
         # https://github.com/andresriancho/w3af/issues/9688
-        msg = ('It seems that your Python installation does not have all the'
-               ' modules required by the w3af framework. For more information'
-               ' about how to install and debug dependency issues please browse'
-               ' to http://docs.w3af.org/en/latest/install.html')
+        msg = (
+            "It seems that your Python installation does not have all the"
+            " modules required by the w3af framework. For more information"
+            " about how to install and debug dependency issues please browse"
+            " to http://docs.w3af.org/en/latest/install.html"
+        )
         print(msg)
 
         # Raise so the user sees the whole traceback
@@ -81,23 +82,27 @@ def factory(module_name, *args):
         raise BaseFrameworkException(msg % (module_name, e))
 
     # Now that we have the module imported get the class and instance
-    class_name = module_name.split('.')[-1]
+    class_name = module_name.split(".")[-1]
 
     try:
         module_inst = sys.modules[module_name]
         a_class = getattr(module_inst, class_name)
     except Exception:
-        msg = ('The requested plugin (%s) does not have the expected format.'
-               ' Our plugins need to define a class with the same name as the'
-               ' module/file, in other words, if you name the module foo.py'
-               ' there should be a "class foo(...):" inside that file.')
+        msg = (
+            "The requested plugin (%s) does not have the expected format."
+            " Our plugins need to define a class with the same name as the"
+            " module/file, in other words, if you name the module foo.py"
+            ' there should be a "class foo(...):" inside that file.'
+        )
         raise BaseFrameworkException(msg % module_name)
 
     try:
         inst = a_class(*args)
     except Exception as e:
-        msg = ('Failed to create an instance of "%s". The original exception'
-               ' was: "%s". Traceback for this error:\n%s')
+        msg = (
+            'Failed to create an instance of "%s". The original exception'
+            ' was: "%s". Traceback for this error:\n%s'
+        )
         msg = msg % (class_name, e, traceback.format_exc())
         raise BaseFrameworkException(msg)
 

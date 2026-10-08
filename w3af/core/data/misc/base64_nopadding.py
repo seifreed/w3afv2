@@ -19,12 +19,14 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 import base64
 import binascii
 
-
-BASE64_RE = re.compile('^(?:[a-zA-Z0-9+/]{4})*(?:[a-zA-Z0-9+/]{2}==|[a-zA-Z0-9+/]{3}=|[a-zA-Z0-9+/]{4})$')
+BASE64_RE = re.compile(
+    "^(?:[a-zA-Z0-9+/]{4})*(?:[a-zA-Z0-9+/]{2}==|[a-zA-Z0-9+/]{3}=|[a-zA-Z0-9+/]{4})$"
+)
 
 
 def decode_base64(data):
@@ -35,7 +37,7 @@ def decode_base64(data):
     """
     missing_padding = len(data) % 4
     if missing_padding != 0:
-        data += b'=' * (4 - missing_padding)
+        data += b"=" * (4 - missing_padding)
     return base64.decodestring(data)
 
 

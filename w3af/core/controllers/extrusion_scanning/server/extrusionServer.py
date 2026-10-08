@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import socket
 import time
 
@@ -57,11 +58,11 @@ class extrusionServer(object):
         if iface is not None:
             self._iface = iface
         else:
-            cf_iface = cf.cf.get('interface')
+            cf_iface = cf.cf.get("interface")
             if cf_iface is not None:
                 self._iface = cf_iface
             else:
-                msg = 'Failed to bind extrusionServer to an interface.'
+                msg = "Failed to bind extrusionServer to an interface."
                 raise Exception(msg)
 
     def can_sniff(self):
@@ -74,7 +75,7 @@ class extrusionServer(object):
         from scapy.all import sniff
 
         try:
-            p = sniff(filter='port 53', iface=self._iface, timeout=0.3)
+            p = sniff(filter="port 53", iface=self._iface, timeout=0.3)
         except Exception:
             return False
         else:
@@ -92,17 +93,19 @@ class extrusionServer(object):
         all_ports = self._tcp_ports[:]
         all_ports.extend(self._udp_ports)
         all_ports = list(set(all_ports))
-        filter = ' or '.join(['port ' + str(p) for p in all_ports])
+        filter = " or ".join(["port " + str(p) for p in all_ports])
 
-        msg = 'ExtrusionServer listening on interface: %s'
+        msg = "ExtrusionServer listening on interface: %s"
         om.out.information(msg % self._iface)
 
         self._sniffing = True
         try:
             packets = sniff(filter=filter, iface=self._iface, timeout=5)
         except socket.error:
-            msg = ('Failed to sniff on interface: "%s". Hints: Are you root?'
-                   ' Does this interface exist?')
+            msg = (
+                'Failed to sniff on interface: "%s". Hints: Are you root?'
+                " Does this interface exist?"
+            )
             msg %= self._iface
 
             om.out.error(msg)
@@ -140,8 +143,12 @@ class extrusionServer(object):
             # Analyze TCP
             #
             # 0x2 flag is SYN
-            if p.haslayer(TCP) and p[TCP].dport in self._tcp_ports and\
-            p[IP].dst in get_if_addr(self._iface) and p[TCP].flags == 0x2:
+            if (
+                p.haslayer(TCP)
+                and p[TCP].dport in self._tcp_ports
+                and p[IP].dst in get_if_addr(self._iface)
+                and p[TCP].flags == 0x2
+            ):
 
                 possible_packets.append(p)
                 if p[IP].src in possible_hosts:
@@ -150,8 +157,11 @@ class extrusionServer(object):
                     possible_hosts[p[IP].src] = 1
 
             # Analyze UDP
-            if p.haslayer(UDP) and p[UDP].dport in self._udp_ports and\
-                    p[IP].dst in get_if_addr(self._iface):
+            if (
+                p.haslayer(UDP)
+                and p[UDP].dport in self._udp_ports
+                and p[IP].dst in get_if_addr(self._iface)
+            ):
 
                 possible_packets.append(p)
                 if p[IP].src in possible_hosts:
@@ -160,12 +170,13 @@ class extrusionServer(object):
                     possible_hosts[p[IP].src] = 1
 
         for p in possible_packets:
-            om.out.debug('[extrusionServer] Possible packet: ' + p.summary())
+            om.out.debug("[extrusionServer] Possible packet: " + p.summary())
 
         # Now get the one that has more probability of being the one... and
         # report the list of ports
         def sortfunc(x, y):
             return cmp(x[1], y[1])
+
         items = list(possible_hosts.items())
         items.sort(key=cmp_to_key(sortfunc))
 
@@ -178,16 +189,16 @@ class extrusionServer(object):
         for p in possible_packets:
             if p[IP].src in good_hosts:
                 if p.haslayer(TCP):
-                    _tuple = (p[IP].src, p[TCP].dport, 'TCP')
+                    _tuple = (p[IP].src, p[TCP].dport, "TCP")
                     if _tuple not in good_ports:
                         good_ports.append(_tuple)
-                        om.out.debug('[extrusionServer] Adding ' + str(_tuple))
+                        om.out.debug("[extrusionServer] Adding " + str(_tuple))
 
                 if p.haslayer(UDP):
-                    _tuple = (p[IP].src, p[UDP].dport, 'UDP')
+                    _tuple = (p[IP].src, p[UDP].dport, "UDP")
                     if _tuple not in good_ports:
                         good_ports.append(_tuple)
-                        om.out.debug('[extrusionServer] Adding ' + str(_tuple))
+                        om.out.debug("[extrusionServer] Adding " + str(_tuple))
 
         return good_ports
 
@@ -204,17 +215,24 @@ class extrusionServer(object):
         good_ports = []
 
         for p in packets:
-            if p[TCP] is not None and p[TCP].dport in self._tcp_ports and\
-            p[IP].src == self._host and p[TCP].flags == 0x2:
+            if (
+                p[TCP] is not None
+                and p[TCP].dport in self._tcp_ports
+                and p[IP].src == self._host
+                and p[TCP].flags == 0x2
+            ):
 
-                if (p[IP].src, p[TCP].dport, 'TCP') not in good_ports:
-                    good_ports.append((p[IP].src, p[TCP].dport, 'TCP'))
+                if (p[IP].src, p[TCP].dport, "TCP") not in good_ports:
+                    good_ports.append((p[IP].src, p[TCP].dport, "TCP"))
 
-            if p[UDP] is not None and p[UDP].dport in self._udp_ports and\
-            p[IP].src == self._host:
+            if (
+                p[UDP] is not None
+                and p[UDP].dport in self._udp_ports
+                and p[IP].src == self._host
+            ):
 
-                if (p[IP].src, p[UDP].dport, 'UDP') not in good_ports:
-                    good_ports.append((p[IP].src, p[UDP].dport, 'UDP'))
+                if (p[IP].src, p[UDP].dport, "UDP") not in good_ports:
+                    good_ports.append((p[IP].src, p[UDP].dport, "UDP"))
 
         return good_ports
 
@@ -224,10 +242,10 @@ class extrusionServer(object):
         remote host to connect back to the extrusionServer.
         """
         if not packets:
-            om.out.debug('No packets captured by scapy.')
+            om.out.debug("No packets captured by scapy.")
             return []
         else:
-            msg = 'Analyzing packets captured by scapy. The packets are:'
+            msg = "Analyzing packets captured by scapy. The packets are:"
             om.out.debug(msg)
             for pkt in packets:
                 om.out.debug(str(pkt.summary()))

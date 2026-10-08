@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import gtk
 import gobject
 
@@ -36,6 +37,7 @@ from w3af.core.data.constants.severity import INFORMATION, MEDIUM, HIGH, LOW
 
 class _Guarded(object):
     """Helper for the guardian."""
+
     def __init__(self, objtype):
         self.icon = helpers.KB_ICONS[objtype, None]
         self.quant = 0
@@ -44,7 +46,7 @@ class _Guarded(object):
     def inc(self):
         self.quant += 1
         gobject.idle_add(self.update_label)
-    
+
     def update_label(self):
         self.label.set_text(str(self.quant).ljust(5))
         return False
@@ -64,7 +66,8 @@ class FoundObjectsGuardian(gtk.HBox):
 
         # tooltip
         self.set_tooltip_text(
-            _("Amount of discovered vulnerabilities and generated shells"))
+            _("Amount of discovered vulnerabilities and generated shells")
+        )
 
         # what to show
         self.info = _Guarded("info")
@@ -101,7 +104,7 @@ class VulnerabilityCountObserver(KBObserver):
         if isinstance(value, Shell):
             self.found_count_guardian.shll.inc()
 
-        elif hasattr(value, 'get_severity'):
+        elif hasattr(value, "get_severity"):
             if value.get_severity() in (LOW, MEDIUM, HIGH):
                 self.found_count_guardian.vuln.inc()
 
@@ -115,6 +118,7 @@ class FoundExceptionsStatusBar(gtk.EventBox):
 
     :author: Andres Riancho <andres.riancho =at= gmail.com>
     """
+
     def __init__(self, w3af):
         super(FoundExceptionsStatusBar, self).__init__()
         self.w3af = w3af

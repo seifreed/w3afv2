@@ -25,35 +25,35 @@ from w3af.plugins.tests.helper import PluginTest, PluginConfig
 
 class TestPreg(PluginTest):
 
-    target_url = 'http://moth/w3af/audit/preg_replace/'
+    target_url = "http://moth/w3af/audit/preg_replace/"
 
     _run_configs = {
-        'cfg': {
-            'target': target_url,
-            'plugins': {
-                'audit': (PluginConfig('preg_replace'),),
-                'crawl': (
+        "cfg": {
+            "target": target_url,
+            "plugins": {
+                "audit": (PluginConfig("preg_replace"),),
+                "crawl": (
                     PluginConfig(
-                        'web_spider',
-                        ('only_forward', True, PluginConfig.BOOL)),
-                )
-            }
+                        "web_spider", ("only_forward", True, PluginConfig.BOOL)
+                    ),
+                ),
+            },
         }
     }
 
-    @attr('ci_fails')
+    @attr("ci_fails")
     def test_found_preg(self):
         # Run the scan
-        cfg = self._run_configs['cfg']
-        self._scan(cfg['target'], cfg['plugins'])
+        cfg = self._run_configs["cfg"]
+        self._scan(cfg["target"], cfg["plugins"])
 
         # Assert the general results
-        vulns = self.kb.get('preg_replace', 'preg_replace')
+        vulns = self.kb.get("preg_replace", "preg_replace")
 
         expected_results = (
-            ('preg_all_regex.php', 'regex'),
-            ('preg_section_regex.php', 'search')
+            ("preg_all_regex.php", "regex"),
+            ("preg_section_regex.php", "search"),
         )
 
-        self.assertAllVulnNamesEqual('Unsafe preg_replace usage', vulns)
+        self.assertAllVulnNamesEqual("Unsafe preg_replace usage", vulns)
         self.assertExpectedVulnsFound(expected_results, vulns)

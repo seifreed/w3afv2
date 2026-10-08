@@ -19,27 +19,33 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import logging
+
 
 #
 # Some magic for nosetests to support i18n
 #
 def setUpPackage():
     import builtins
-    builtins.__dict__['_'] = lambda x: x
+
+    builtins.__dict__["_"] = lambda x: x
+
 
 #
 # And more magic for removing some annoying scapy log messages
 #
 class FilterScapy(logging.Filter):
     """A simple way to prevent messages from getting through."""
+
     def __init__(self, name=None):
         pass
 
     def filter(self, rec):
-        if 'No route found for IPv6' in rec.msg:
+        if "No route found for IPv6" in rec.msg:
             return False
         return True
+
 
 logger = logging.getLogger("scapy.runtime")
 logger.addFilter(FilterScapy())
@@ -48,5 +54,5 @@ logger.addFilter(FilterScapy())
 # Finally, a workaround for bug http://bugs.python.org/issue14308
 #
 import threading
-threading._DummyThread._Thread__stop = lambda x: 42
 
+threading._DummyThread._Thread__stop = lambda x: 42

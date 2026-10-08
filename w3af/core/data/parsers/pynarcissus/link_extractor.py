@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.parsers.pynarcissus.string_extractor import StringExtractor
 from w3af.core.data.parsers.utils.url_regex import URL_RE, RELATIVE_URL_RE
 from w3af.core.data.parsers.doc.url import URL
@@ -28,12 +29,13 @@ class JSLinkExtractor(StringExtractor):
     """
     :see: Docstring in StringExtractor
     """
+
     def get_links(self):
         return self.extract_full_urls()
 
     def extract_full_urls(self):
         urls = set()
-        merged_strings = ' \n'.join(self.get_strings())
+        merged_strings = " \n".join(self.get_strings())
 
         for x in URL_RE.findall(merged_strings):
             try:

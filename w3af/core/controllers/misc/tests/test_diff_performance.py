@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-
 import os
 import time
 import unittest
@@ -33,7 +32,7 @@ from functools import cmp_to_key
 
 class TestDiffPerformance(unittest.TestCase):
 
-    DATA = os.path.join(ROOT_PATH, 'core', 'controllers', 'misc', 'tests', 'data')
+    DATA = os.path.join(ROOT_PATH, "core", "controllers", "misc", "tests", "data")
     FUNCTIONS = [chunked_diff, diff_dmp]
     ROUNDS = 5
 
@@ -67,40 +66,40 @@ class TestDiffPerformance(unittest.TestCase):
         print()
 
         for func, spent in results:
-            print('%s: %.2f' % (func, spent))
+            print("%s: %.2f" % (func, spent))
 
         print()
 
     def _run_test_xml(self, diff):
-        a = open(os.path.join(self.DATA, 'source.xml')).read()
-        b = open(os.path.join(self.DATA, 'target.xml')).read()
+        a = open(os.path.join(self.DATA, "source.xml")).read()
+        b = open(os.path.join(self.DATA, "target.xml")).read()
 
         diff(a, b)
 
     def _run_diff_large_different_responses(self, diff):
-        large_file_1 = ''
-        large_file_2 = ''
+        large_file_1 = ""
+        large_file_2 = ""
         _max = 10000
 
         for i in range(_max):
-            large_file_1 += 'A' * i
-            large_file_1 += '\n'
+            large_file_1 += "A" * i
+            large_file_1 += "\n"
 
         for i in range(_max):
             if i == _max - 3:
-                large_file_2 += 'B' * i
+                large_file_2 += "B" * i
             else:
-                large_file_2 += 'A' * i
+                large_file_2 += "A" * i
 
-            large_file_2 += '\n'
+            large_file_2 += "\n"
 
         diff(large_file_1, large_file_2)
 
     def _run_large_equal_responses(self, diff):
-        large_file = ''
+        large_file = ""
 
         for i in range(10000):
-            large_file += 'A' * i
-            large_file += '\n'
+            large_file += "A" * i
+            large_file += "\n"
 
         diff(large_file, large_file)

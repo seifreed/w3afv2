@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 
 import w3af.core.controllers.output_manager as om
@@ -37,10 +38,13 @@ class dot_listing(CrawlPlugin):
     Search for .listing files and extracts new filenames from it.
     :author: Tomas Velazquez ( tomas.velazquezz@gmail.com )
     """
+
     # -rw-r--r--    1 andresr   w3af         8139 Apr 12 13:23 foo.zip
-    regex_str = r'[a-z-]{10}\s*\d+\s*(.*?)\s+(.*?)\s+\d+\s+\w+\s+\d+\s+[0-9:]{4,5}\s+(.*)'
+    regex_str = (
+        r"[a-z-]{10}\s*\d+\s*(.*?)\s+(.*?)\s+\d+\s+\w+\s+\d+\s+[0-9:]{4,5}\s+(.*)"
+    )
     LISTING_PARSER_RE = re.compile(regex_str)
-    
+
     def __init__(self):
         CrawlPlugin.__init__(self)
 
@@ -72,7 +76,7 @@ class dot_listing(CrawlPlugin):
         Check if a .listing filename exists in the domain_path.
         :return: None, everything is saved to the self.out_queue.
         """
-        url = domain_path.url_join('.listing')
+        url = domain_path.url_join(".listing")
         response = self._uri_opener.GET(url, cache=True)
 
         if is_404(response):
@@ -85,7 +89,7 @@ class dot_listing(CrawlPlugin):
         # Check if it's a .listing file
         extracted_info = self._extract_info_from_listing(response.get_body())
         for username, group, filename in extracted_info:
-            if filename in ('.', '..'):
+            if filename in (".", ".."):
                 continue
 
             parsed_url_set.add(domain_path.url_join(filename))
@@ -95,15 +99,18 @@ class dot_listing(CrawlPlugin):
         self.worker_pool.map(self.http_get_and_parse, parsed_url_set)
 
         if parsed_url_set:
-            desc = ('A .listing file was found at: "%s". The contents'
-                    ' of this file disclose filenames.')
-            desc %= (response.get_url())
+            desc = (
+                'A .listing file was found at: "%s". The contents'
+                " of this file disclose filenames."
+            )
+            desc %= response.get_url()
 
-            v = Vuln('.listing file found', desc, severity.LOW, response.id,
-                     self.get_name())
+            v = Vuln(
+                ".listing file found", desc, severity.LOW, response.id, self.get_name()
+            )
             v.set_url(response.get_url())
 
-            kb.kb.append(self, 'dot_listing', v)
+            kb.kb.append(self, "dot_listing", v)
             om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
             fr = FuzzableRequest(response.get_url())
@@ -113,20 +120,25 @@ class dot_listing(CrawlPlugin):
         real_groups = set([g for g in groups if not g.isdigit()])
 
         if real_users or real_groups:
-            desc = ('A .listing file which leaks operating system user names'
-                    ' and groups was identified at %s. The leaked users are %s,'
-                    ' and the groups are %s. This information can be used'
-                    ' during a bruteforce attack of the Web application,'
-                    ' SSH or FTP services.')
-            desc %= (response.get_url(),
-                     ', '.join(real_users),
-                     ', '.join(real_groups))
+            desc = (
+                "A .listing file which leaks operating system user names"
+                " and groups was identified at %s. The leaked users are %s,"
+                " and the groups are %s. This information can be used"
+                " during a bruteforce attack of the Web application,"
+                " SSH or FTP services."
+            )
+            desc %= (response.get_url(), ", ".join(real_users), ", ".join(real_groups))
 
-            v = Vuln('Operating system username and group leak', desc,
-                     severity.LOW, response.id, self.get_name())
+            v = Vuln(
+                "Operating system username and group leak",
+                desc,
+                severity.LOW,
+                response.id,
+                self.get_name(),
+            )
             v.set_url(response.get_url())
 
-            kb.kb.append(self, 'dot_listing', v)
+            kb.kb.append(self, "dot_listing", v)
             om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
     def _extract_info_from_listing(self, listing_file_content):
@@ -140,7 +152,9 @@ class dot_listing(CrawlPlugin):
 
         :return: A list with the information extracted from the listing_file_content
         """
-        for user, group, filename in self.LISTING_PARSER_RE.findall(listing_file_content):
+        for user, group, filename in self.LISTING_PARSER_RE.findall(
+            listing_file_content
+        ):
             yield user, group, filename.strip()
 
     def get_long_desc(self):

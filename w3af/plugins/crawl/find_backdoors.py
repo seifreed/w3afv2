@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 
 import w3af.core.controllers.output_manager as om
@@ -40,8 +41,9 @@ class find_backdoors(CrawlPlugin):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
-    WEBSHELL_DB = os.path.join(CRAWL_PATH, 'find_backdoors', 'web_shells.txt')
-    SIGNATURE_DB = os.path.join(CRAWL_PATH, 'find_backdoors', 'signatures.txt')
+
+    WEBSHELL_DB = os.path.join(CRAWL_PATH, "find_backdoors", "web_shells.txt")
+    SIGNATURE_DB = os.path.join(CRAWL_PATH, "find_backdoors", "signatures.txt")
 
     def __init__(self):
         CrawlPlugin.__init__(self)
@@ -65,10 +67,10 @@ class find_backdoors(CrawlPlugin):
             if not line:
                 continue
 
-            if line.startswith('#'):
+            if line.startswith("#"):
                 continue
 
-            yield (line, 'Backdoor signature')
+            yield (line, "Backdoor signature")
 
     def crawl(self, fuzzable_request, debugging_id):
         """
@@ -102,7 +104,7 @@ class find_backdoors(CrawlPlugin):
         for line in open(self.WEBSHELL_DB):
             line = line.strip()
 
-            if line.startswith('#'):
+            if line.startswith("#"):
                 continue
 
             if not line:
@@ -119,26 +121,29 @@ class find_backdoors(CrawlPlugin):
         try:
             response = self._uri_opener.GET(web_shell_url, cache=True)
         except BaseFrameworkException:
-            om.out.debug('Failed to GET webshell: %s' % web_shell_url)
+            om.out.debug("Failed to GET webshell: %s" % web_shell_url)
             return
 
         signature = self._match_signature(response)
         if signature is None:
             return
 
-        desc = ('An HTTP response matching the web backdoor signature'
-                ' "%s" was found at: "%s"; this could indicate that the'
-                ' server has been compromised.')
+        desc = (
+            "An HTTP response matching the web backdoor signature"
+            ' "%s" was found at: "%s"; this could indicate that the'
+            " server has been compromised."
+        )
         desc %= (signature, response.get_url())
 
         # It's probability is higher if we found a long signature
         _severity = severity.HIGH if len(signature) > 8 else severity.MEDIUM
 
-        v = Vuln('Potential web backdoor', desc, _severity,
-                 response.id, self.get_name())
+        v = Vuln(
+            "Potential web backdoor", desc, _severity, response.id, self.get_name()
+        )
         v.set_url(response.get_url())
 
-        kb.kb.append(self, 'backdoors', v)
+        kb.kb.append(self, "backdoors", v)
         om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
         fr = FuzzableRequest.from_http_response(response)
@@ -153,7 +158,7 @@ class find_backdoors(CrawlPlugin):
         :return: A bool value
         """
         body_text = response.get_body()
-        
+
         for match, _, _, _ in self._signature_re.query(body_text):
             match_string = match.group(0)
             return match_string

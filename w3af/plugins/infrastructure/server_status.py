@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 
 import w3af.core.controllers.output_manager as om
@@ -57,13 +58,13 @@ class server_status(InfrastructurePlugin):
                                      (among other things) the URL to test.
         """
         base_url = fuzzable_request.get_url().base_url()
-        server_status_url = base_url.url_join('server-status')
+        server_status_url = base_url.url_join("server-status")
         response = self._uri_opener.GET(server_status_url, cache=True)
 
         if not is_404(response) and response.get_code() not in list(range(400, 404)):
 
-            if 'apache' in response.get_body().lower():
-                msg = 'Apache server-status module is enabled and accessible.'
+            if "apache" in response.get_body().lower():
+                msg = "Apache server-status module is enabled and accessible."
                 msg += ' The URL is: "%s"' % response.get_url()
                 om.out.information(msg)
 
@@ -76,19 +77,22 @@ class server_status(InfrastructurePlugin):
         Get the server version from the HTML:
             <dl><dt>Server Version: Apache/2.2.9 (Unix)</dt>
         """
-        for version in re.findall('<dl><dt>Server Version: (.*?)</dt>',
-                                  response.get_body()):
+        for version in re.findall(
+            "<dl><dt>Server Version: (.*?)</dt>", response.get_body()
+        ):
             # Save the results in the KB so the user can look at it
-            desc = 'The web server has the apache server status module'\
-                   ' enabled which discloses the following remote server'\
-                   ' version: "%s".'
+            desc = (
+                "The web server has the apache server status module"
+                " enabled which discloses the following remote server"
+                ' version: "%s".'
+            )
             desc %= version
-            
-            i = Info('Apache Server version', desc, response.id, self.get_name())
+
+            i = Info("Apache Server version", desc, response.id, self.get_name())
             i.set_url(response.get_url())
 
             om.out.information(i.get_desc())
-            kb.kb.append(self, 'server', i)
+            kb.kb.append(self, "server", i)
 
     def _extract_urls(self, fuzzable_request, response):
         """
@@ -98,16 +102,16 @@ class server_status(InfrastructurePlugin):
         self.output_queue.put(FuzzableRequest(response.get_url()))
 
         # Now really parse the file and create custom made fuzzable requests
-        regex = '<td>.*?<td nowrap>(.*?)</td><td nowrap>.*? (.*?) HTTP/1'
+        regex = "<td>.*?<td nowrap>(.*?)</td><td nowrap>.*? (.*?) HTTP/1"
         for domain, path in re.findall(regex, response.get_body()):
 
-            if 'unavailable' in domain:
+            if "unavailable" in domain:
                 domain = response.get_url().get_domain()
 
             # Check if the requested domain and the found one are equal.
             if domain == response.get_url().get_domain():
                 proto = response.get_url().get_protocol()
-                found_url = proto + '://' + domain + path
+                found_url = proto + "://" + domain + path
                 found_url = URL(found_url)
 
                 # They are equal, request the URL and create the fuzzable
@@ -122,22 +126,29 @@ class server_status(InfrastructurePlugin):
     def _report_shared_hosting(self, fuzzable_request, response):
         # Now that we are outsite the for loop, we can report the possible vulns
         if len(self._shared_hosting_hosts):
-            desc = 'The web application under test seems to be in a shared'\
-                   ' hosting.'
-            v = Vuln.from_fr('Shared hosting', desc, severity.MEDIUM,
-                             response.id, self.get_name(), fuzzable_request)
+            desc = "The web application under test seems to be in a shared" " hosting."
+            v = Vuln.from_fr(
+                "Shared hosting",
+                desc,
+                severity.MEDIUM,
+                response.id,
+                self.get_name(),
+                fuzzable_request,
+            )
 
             self._shared_hosting_hosts = list(set(self._shared_hosting_hosts))
-            v['also_in_hosting'] = self._shared_hosting_hosts
+            v["also_in_hosting"] = self._shared_hosting_hosts
 
-            kb.kb.append(self, 'shared_hosting', v)
+            kb.kb.append(self, "shared_hosting", v)
             om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
-            msg = 'This list of domains, and the domain of the web application'\
-                  ' under test, all point to the same server:'
+            msg = (
+                "This list of domains, and the domain of the web application"
+                " under test, all point to the same server:"
+            )
             om.out.vulnerability(msg, severity=v.get_severity())
             for url in self._shared_hosting_hosts:
-                om.out.vulnerability('- ' + url, severity=severity.MEDIUM)
+                om.out.vulnerability("- " + url, severity=severity.MEDIUM)
 
     def get_long_desc(self):
         """

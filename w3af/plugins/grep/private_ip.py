@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 import socket
 
@@ -37,10 +38,13 @@ class private_ip(GrepPlugin):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     # More info regarding this regular expression: http://bit.ly/185DFJc
-    IP_RE = '(?<!\.)(?<!\d)(?:(?:10|127)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9]' \
-            '[0-9]?)|192\.168|169\.254|172\.0?(?:1[6-9]|2[0-9]|3[01]))' \
-            '(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){2}(?!\d)(?!\.)'
+    IP_RE = (
+        "(?<!\.)(?<!\d)(?:(?:10|127)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9]"
+        "[0-9]?)|192\.168|169\.254|172\.0?(?:1[6-9]|2[0-9]|3[01]))"
+        "(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){2}(?!\d)(?!\.)"
+    )
 
     RE_LIST = [re.compile(IP_RE)]
 
@@ -67,7 +71,7 @@ class private_ip(GrepPlugin):
         # Only run this once for each combination of URL and data sent to
         # that URL
         self._already_inspected.add((request.get_url(), request.get_data()))
-        
+
         self._analyze_headers(request, response)
         self._analyze_html(request, response)
 
@@ -102,21 +106,29 @@ class private_ip(GrepPlugin):
                 # the initial regex run
                 header_name = self._get_header_name(response, ip_address, regex)
 
-                desc = 'The URL "%s" returned the private IP address: "%s"'\
-                       ' in the HTTP response header "%s"'
+                desc = (
+                    'The URL "%s" returned the private IP address: "%s"'
+                    ' in the HTTP response header "%s"'
+                )
                 desc = desc % (response.get_url(), ip_address, header_name)
 
-                v = Vuln('Private IP disclosure vulnerability', desc,
-                         severity.LOW, response.id, self.get_name())
+                v = Vuln(
+                    "Private IP disclosure vulnerability",
+                    desc,
+                    severity.LOW,
+                    response.id,
+                    self.get_name(),
+                )
 
                 v.set_url(response.get_url())
                 v.add_to_highlight(ip_address)
-                v['ip_address'] = ip_address
-                v['header_name'] = header_name
+                v["ip_address"] = ip_address
+                v["header_name"] = header_name
                 v[HeaderPrivateIPInfoSet.ITAG] = (ip_address, header_name)
 
-                self.kb_append_uniq_group(self, 'header', v,
-                                          group_klass=HeaderPrivateIPInfoSet)
+                self.kb_append_uniq_group(
+                    self, "header", v, group_klass=HeaderPrivateIPInfoSet
+                )
 
     def _analyze_html(self, request, response):
         """
@@ -126,8 +138,12 @@ class private_ip(GrepPlugin):
             return
 
         # Performance improvement!
-        if not (('10.' in response) or ('172.' in response) or
-               ('192.168.' in response) or ('169.254.' in response)):
+        if not (
+            ("10." in response)
+            or ("172." in response)
+            or ("192.168." in response)
+            or ("169.254." in response)
+        ):
             return
 
         for regex in self.RE_LIST:
@@ -136,8 +152,9 @@ class private_ip(GrepPlugin):
 
                 # Some proxy servers will return errors that include headers
                 # in the body along with the client IP which we want to ignore
-                if re.search("^.*X-Forwarded-For: .*%s" % ip_address,
-                             response.get_body(), re.M):
+                if re.search(
+                    "^.*X-Forwarded-For: .*%s" % ip_address, response.get_body(), re.M
+                ):
                     continue
 
                 # If i'm requesting 192.168.2.111 then I don't want to be
@@ -149,18 +166,26 @@ class private_ip(GrepPlugin):
                 if request.sent(ip_address):
                     continue
 
-                desc = 'The URL: "%s" returned an HTML document which' \
-                       ' contains the private IP address: "%s".'
+                desc = (
+                    'The URL: "%s" returned an HTML document which'
+                    ' contains the private IP address: "%s".'
+                )
                 desc = desc % (response.get_url(), ip_address)
-                v = Vuln('Private IP disclosure vulnerability', desc,
-                         severity.LOW, response.id, self.get_name())
+                v = Vuln(
+                    "Private IP disclosure vulnerability",
+                    desc,
+                    severity.LOW,
+                    response.id,
+                    self.get_name(),
+                )
 
                 v.set_url(response.get_url())
                 v.add_to_highlight(ip_address)
                 v[HTMLPrivateIPInfoSet.ITAG] = ip_address
 
-                self.kb_append_uniq_group(self, 'HTML', v,
-                                          group_klass=HTMLPrivateIPInfoSet)
+                self.kb_append_uniq_group(
+                    self, "HTML", v, group_klass=HTMLPrivateIPInfoSet
+                )
 
     def _generate_ignores(self, response):
         """
@@ -192,26 +217,26 @@ class private_ip(GrepPlugin):
 
 
 class HTMLPrivateIPInfoSet(InfoSet):
-    ITAG = 'ip_address'
+    ITAG = "ip_address"
     TEMPLATE = (
-        'A total of {{ uris|length }} HTTP responses contained the private IP'
-        ' address {{ ip_address }} in the response body. The first ten'
-        ' matching URLs are:\n'
-        ''
-        '{% for url in uris[:10] %}'
-        ' - {{ url }}\n'
-        '{% endfor %}'
+        "A total of {{ uris|length }} HTTP responses contained the private IP"
+        " address {{ ip_address }} in the response body. The first ten"
+        " matching URLs are:\n"
+        ""
+        "{% for url in uris[:10] %}"
+        " - {{ url }}\n"
+        "{% endfor %}"
     )
 
 
 class HeaderPrivateIPInfoSet(InfoSet):
-    ITAG = 'group_by'
+    ITAG = "group_by"
     TEMPLATE = (
-        'A total of {{ uris|length }} HTTP responses contained the private IP'
+        "A total of {{ uris|length }} HTTP responses contained the private IP"
         ' address {{ ip_address }} in the "{{ header_name }}" response header.'
-        ' The first ten matching URLs are:\n'
-        ''
-        '{% for url in uris[:10] %}'
-        ' - {{ url }}\n'
-        '{% endfor %}'
+        " The first ten matching URLs are:\n"
+        ""
+        "{% for url in uris[:10] %}"
+        " - {{ url }}\n"
+        "{% endfor %}"
     )

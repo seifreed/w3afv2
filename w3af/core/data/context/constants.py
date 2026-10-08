@@ -19,24 +19,41 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 QUOTE_CHARS = {'"', "'"}
 
-ATTR_DELIMITERS = {'"', '`', "'"}
+ATTR_DELIMITERS = {'"', "`", "'"}
 
 # These attributes run the value:
 #
 # <a onclick="ShowOld(2367,146986,2);">
-JS_EVENTS = {'onclick', 'ondblclick', 'onmousedown', 'onmousemove',
-             'onmouseout', 'onmouseover', 'onmouseup', 'onchange', 'onfocus',
-             'onblur', 'onscroll', 'onselect', 'onsubmit', 'onkeydown',
-             'onkeypress', 'onkeyup', 'onload', 'onunload'}
+JS_EVENTS = {
+    "onclick",
+    "ondblclick",
+    "onmousedown",
+    "onmousemove",
+    "onmouseout",
+    "onmouseover",
+    "onmouseup",
+    "onchange",
+    "onfocus",
+    "onblur",
+    "onscroll",
+    "onselect",
+    "onsubmit",
+    "onkeydown",
+    "onkeypress",
+    "onkeyup",
+    "onload",
+    "onunload",
+}
 
 # These attributes do execute JavaScript code if they start with javascript:
 # or vbscript: , otherwise they are not executable
 #
 # <a href="javascript:ShowOld(2367,146986,2);">
-EXECUTABLE_ATTRS = {'href', 'src', 'background', 'dynsrc', 'lowsrc'}
+EXECUTABLE_ATTRS = {"href", "src", "background", "dynsrc", "lowsrc"}
 
 # Note that the x at the beginning is important since in HTML the tag name needs
 # to start with a letter
-CONTEXT_DETECTOR = 'x3141592653589793'
+CONTEXT_DETECTOR = "x3141592653589793"

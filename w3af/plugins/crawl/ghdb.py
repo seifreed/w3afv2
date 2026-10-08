@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os.path
 import random
 import xml.dom.minidom
@@ -52,8 +53,9 @@ class ghdb(CrawlPlugin):
         CrawlPlugin.__init__(self)
 
         # Internal variables
-        self._ghdb_file = os.path.join(ROOT_PATH, 'plugins', 'crawl',
-                                       'ghdb', 'GHDB.xml')
+        self._ghdb_file = os.path.join(
+            ROOT_PATH, "plugins", "crawl", "ghdb", "GHDB.xml"
+        )
 
         # User configured variables
         self._result_limit = 300
@@ -69,8 +71,10 @@ class ghdb(CrawlPlugin):
         domain = fuzzable_request.get_url().get_domain()
 
         if is_private_site(domain):
-            msg = ('There is no point in searching google for "site:%s".'
-                   ' Google does not index private pages.')
+            msg = (
+                'There is no point in searching google for "site:%s".'
+                " Google does not index private pages."
+            )
             om.out.information(msg % domain)
             return
 
@@ -88,7 +92,7 @@ class ghdb(CrawlPlugin):
         google_hack_set = set(google_hack_list)
 
         for gh in google_hack_set:
-            search_term = 'site:%s %s' % (domain, gh.search)
+            search_term = "site:%s %s" % (domain, gh.search)
             try:
                 self._classic_worker(gh, search_term)
             except BaseFrameworkException as w3:
@@ -106,17 +110,24 @@ class ghdb(CrawlPlugin):
             # I found a vuln in the site!
             response = self._uri_opener.GET(result.URL, cache=True)
             if not is_404(response):
-                desc = ('ghdb plugin found a vulnerability at URL: "%s".'
-                        ' According to GHDB the vulnerability description'
-                        ' is "%s".')
+                desc = (
+                    'ghdb plugin found a vulnerability at URL: "%s".'
+                    " According to GHDB the vulnerability description"
+                    ' is "%s".'
+                )
                 desc %= (response.get_url(), gh.desc)
-                
-                v = Vuln('Google hack database match', desc,
-                         severity.MEDIUM, response.id, self.get_name())
-                v.set_url(response.get_url())
-                v.set_method('GET')
 
-                kb.kb.append(self, 'vuln', v)
+                v = Vuln(
+                    "Google hack database match",
+                    desc,
+                    severity.MEDIUM,
+                    response.id,
+                    self.get_name(),
+                )
+                v.set_url(response.get_url())
+                v.set_method("GET")
+
+                kb.kb.append(self, "vuln", v)
                 om.out.vulnerability(v.get_desc(), severity=severity.LOW)
 
                 # Create the fuzzable requests
@@ -144,8 +155,10 @@ class ghdb(CrawlPlugin):
 
         for signature in dom.getElementsByTagName("signature"):
             if len(signature.childNodes) != 6:
-                msg = ('There is a corrupt signature in the GHDB. The error was'
-                       ' found in the following XML code: "%s".')
+                msg = (
+                    "There is a corrupt signature in the GHDB. The error was"
+                    ' found in the following XML code: "%s".'
+                )
                 om.out.debug(msg % signature.toxml())
                 continue
 
@@ -153,15 +166,17 @@ class ghdb(CrawlPlugin):
                 query_string = signature.childNodes[4].childNodes[0].data
 
             except Exception as e:
-                msg = ('There is a corrupt signature in the GHDB. No query '
-                       ' string was found in the following XML code: "%s".')
+                msg = (
+                    "There is a corrupt signature in the GHDB. No query "
+                    ' string was found in the following XML code: "%s".'
+                )
                 om.out.debug(msg % signature.toxml())
                 continue
 
             try:
                 desc = signature.childNodes[5].childNodes[0].data
             except:
-                desc = 'No description provided by GHDB.'
+                desc = "No description provided by GHDB."
 
             gh = GoogleHack(query_string, desc)
             res.append(gh)
@@ -175,7 +190,7 @@ class ghdb(CrawlPlugin):
         ol = OptionList()
 
         d = 'Fetch the first "result_limit" results from the Google search'
-        o = opt_factory('result_limit', self._result_limit, d, 'integer')
+        o = opt_factory("result_limit", self._result_limit, d, "integer")
         ol.add(o)
 
         return ol
@@ -188,7 +203,7 @@ class ghdb(CrawlPlugin):
         :param options_list: A dictionary with the options for the plugin.
         :return: No value is returned.
         """
-        self._result_limit = options_list['result_limit'].get_value()
+        self._result_limit = options_list["result_limit"].get_value()
 
     def get_long_desc(self):
         """

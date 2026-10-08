@@ -19,18 +19,21 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 
-ECT_HEADER = 'Expect-CT'
+ECT_HEADER = "Expect-CT"
 MAX_REPORTS = 50
+
 
 class expect_ct(GrepPlugin):
     """
     Check if HTTPS responses have the Expect-CT header set.
 
     """
+
     def __init__(self):
         super(expect_ct, self).__init__()
         self._reports = 0
@@ -46,9 +49,8 @@ class expect_ct(GrepPlugin):
 
         if self._reports > MAX_REPORTS:
             return
-        
-        
-        if request.get_url().get_protocol() != 'https':
+
+        if request.get_url().get_protocol() != "https":
             return
 
         expect_ct_header_value, _ = response.get_headers().iget(ECT_HEADER, None)
@@ -57,15 +59,12 @@ class expect_ct(GrepPlugin):
 
         self._reports += 1
 
-        desc = 'The web server uses HTTPS but does not set the ' \
-               ' Expect-CT header.'
-        i = Info('Missing Expect CT header', desc,
-                 response.id, self.get_name())
+        desc = "The web server uses HTTPS but does not set the " " Expect-CT header."
+        i = Info("Missing Expect CT header", desc, response.id, self.get_name())
         i.set_url(response.get_url())
         i[ECTInfoSet.ITAG] = response.get_url().get_domain()
 
-        self.kb_append_uniq_group(self, 'expect_ct', i,
-                                  group_klass=ECTInfoSet)
+        self.kb_append_uniq_group(self, "expect_ct", i, group_klass=ECTInfoSet)
 
     def get_long_desc(self):
         """
@@ -80,16 +79,13 @@ class expect_ct(GrepPlugin):
 
 
 class ECTInfoSet(InfoSet):
-    ITAG = 'domain'
+    ITAG = "domain"
     TEMPLATE = (
-        'The remote web server sent {{ uris|length }} HTTPS responses which'
-        ' do not contain the Expect-CT header. The first ten'
-        ' URLs which did not send the header are:\n'
-        ''
-        '{% for url in uris[:10] %}'
-        ' - {{ url }}\n'
-        '{% endfor %}'
+        "The remote web server sent {{ uris|length }} HTTPS responses which"
+        " do not contain the Expect-CT header. The first ten"
+        " URLs which did not send the header are:\n"
+        ""
+        "{% for url in uris[:10] %}"
+        " - {{ url }}\n"
+        "{% endfor %}"
     )
-
-
-

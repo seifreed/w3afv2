@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 import urllib.request, urllib.error, urllib.parse
 
@@ -41,12 +42,13 @@ class xssed_dot_com(InfrastructurePlugin):
     :author: Nicolas Crocfer (shatter@shatter-blog.net)
     :author: Raul Siles: set "." in front of the root domain to limit search
     """
+
     #
     #   Depends on xssed.com, we need to keep these updated
     #
-    UNFIXED = 'UNFIXED'
-    XSSED_URL = URL('http://www.xssed.com')
-    XSSED_URL_RE = re.compile('URL: (.*?)</th>')
+    UNFIXED = "UNFIXED"
+    XSSED_URL = URL("http://www.xssed.com")
+    XSSED_URL_RE = re.compile("URL: (.*?)</th>")
     XSSED_DOMAIN_RE = re.compile("<a href='(/mirror/\d*/)' target='_blank'>")
 
     @runonce(exc_class=RunOnce)
@@ -59,14 +61,16 @@ class xssed_dot_com(InfrastructurePlugin):
                                     (among other things) the URL to test.
         """
         target_domain = fuzzable_request.get_url().get_root_domain()
-        target_path = '/search?key=.%s' % target_domain
+        target_path = "/search?key=.%s" % target_domain
         check_url = self.XSSED_URL.url_join(target_path)
 
         try:
             response = self._uri_opener.GET(check_url)
         except BaseFrameworkException as e:
-            msg = ('An exception was raised while running xssed_dot_com'
-                   ' plugin. Exception: "%s".')
+            msg = (
+                "An exception was raised while running xssed_dot_com"
+                ' plugin. Exception: "%s".'
+            )
             om.out.debug(msg % e)
         else:
             self._parse_xssed_search_result(response)
@@ -85,16 +89,20 @@ class xssed_dot_com(InfrastructurePlugin):
             try:
                 xss_report_response = self._uri_opener.GET(mirror_url)
             except BaseFrameworkException as e:
-                msg = ('An exception was raised while running xssed_dot_com'
-                       ' plugin. Exception: "%s".')
+                msg = (
+                    "An exception was raised while running xssed_dot_com"
+                    ' plugin. Exception: "%s".'
+                )
                 om.out.debug(msg % e)
                 continue
             else:
                 self._parse_xssed_vuln_page(xss_report_response)
         else:
             # Nothing to see here...
-            om.out.debug('xssed_dot_com did not find any previously reported'
-                         ' XSS vulnerabilities.')
+            om.out.debug(
+                "xssed_dot_com did not find any previously reported"
+                " XSS vulnerabilities."
+            )
 
     def _parse_xssed_vuln_page(self, xss_report_response):
         """
@@ -108,23 +116,30 @@ class xssed_dot_com(InfrastructurePlugin):
         for xss_url in url_matches:
 
             # Ugly but required because of how xssed.com writes stuff
-            xss_url = xss_url.replace('<br>', '')
+            xss_url = xss_url.replace("<br>", "")
             xss_url = htmldecode(xss_url)
             xss_url = urllib.parse.unquote(xss_url)
             xss_url = URL(xss_url)
 
             if self.UNFIXED in xss_report_response.get_body():
                 vuln_severity = severity.HIGH
-                verb = 'contains'
+                verb = "contains"
             else:
                 vuln_severity = severity.LOW
-                verb = 'contained'
+                verb = "contained"
 
-            desc_fmt = ('According to xssed.com the target domain %s a XSS'
-                        ' vulnerability, see %s for more information')
+            desc_fmt = (
+                "According to xssed.com the target domain %s a XSS"
+                " vulnerability, see %s for more information"
+            )
             desc = desc_fmt % (verb, xss_report_response.get_url())
-            v = Vuln('Potential XSS vulnerability', desc,
-                     vuln_severity, xss_report_response.id, self.get_name())
+            v = Vuln(
+                "Potential XSS vulnerability",
+                desc,
+                vuln_severity,
+                xss_report_response.id,
+                self.get_name(),
+            )
             v.set_url(xss_url)
 
             #
@@ -136,7 +151,7 @@ class xssed_dot_com(InfrastructurePlugin):
             self.output_queue.put(fr)
 
             # Save the vuln to the KB and print to output
-            self.kb_append(self, 'xss', v)
+            self.kb_append(self, "xss", v)
 
     def get_long_desc(self):
         return """

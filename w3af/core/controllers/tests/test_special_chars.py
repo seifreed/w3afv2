@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.plugins.tests.helper import PluginTest, PluginConfig
 
@@ -41,25 +42,28 @@ class TestSpecialChars(PluginTest):
     Please note that this is a functional test and a unittest (which does not
     verify that everything works as expected) can be found at test_form.py
     """
-    target_url = get_moth_http('/core/encoding_spaces/')
+
+    target_url = get_moth_http("/core/encoding_spaces/")
 
     _run_configs = {
-        'cfg': {
-            'target': target_url,
-            'plugins': {
-                'audit': (PluginConfig('xss'),),
-                'crawl': (
-                    PluginConfig('web_spider',
-                                 ('only_forward', True, PluginConfig.BOOL),),
+        "cfg": {
+            "target": target_url,
+            "plugins": {
+                "audit": (PluginConfig("xss"),),
+                "crawl": (
+                    PluginConfig(
+                        "web_spider",
+                        ("only_forward", True, PluginConfig.BOOL),
+                    ),
                 ),
-            }
+            },
         }
     }
 
     def test_special_chars(self):
-        cfg = self._run_configs['cfg']
+        cfg = self._run_configs["cfg"]
 
-        self._scan(cfg['target'], cfg['plugins'])
-        
-        xss_vulns = self.kb.get('xss', 'xss')
+        self._scan(cfg["target"], cfg["plugins"])
+
+        xss_vulns = self.kb.get("xss", "xss")
         self.assertEqual(len(xss_vulns), 2, xss_vulns)

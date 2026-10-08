@@ -19,14 +19,17 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import json
 
 from w3af.core.data.dc.generic.data_container import DataContainer
 from w3af.core.data.dc.utils.filter_printable import filter_non_printable
 from w3af.core.data.constants.encodings import UTF8
-from w3af.core.data.dc.utils.json_iter_setters import (json_iter_setters,
-                                                       json_complex_str,
-                                                       MutableWrapper)
+from w3af.core.data.dc.utils.json_iter_setters import (
+    json_iter_setters,
+    json_complex_str,
+    MutableWrapper,
+)
 
 ERR_MSG = 'Unsupported data "%s" for json container.'
 
@@ -38,8 +41,8 @@ class JSONContainer(DataContainer):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    JSON_CONTENT_TYPE = 'application/json'
-    DEFAULT_HEADERS = {'Content-Type': JSON_CONTENT_TYPE}
+    JSON_CONTENT_TYPE = "application/json"
+    DEFAULT_HEADERS = {"Content-Type": JSON_CONTENT_TYPE}
 
     def __init__(self, json_post_data, headers=None, encoding=UTF8):
         """
@@ -67,16 +70,19 @@ class JSONContainer(DataContainer):
         self.parse_json(json_post_data)
 
     def __reduce__(self):
-        return self.__class__, (self._raw_json, self._headers), {'token': self.token,
-                                                                 'encoding': self.encoding}
+        return (
+            self.__class__,
+            (self._raw_json, self._headers),
+            {"token": self.token, "encoding": self.encoding},
+        )
 
     def get_type(self):
-        return 'JSON'
+        return "JSON"
 
     @staticmethod
     def content_type_matches(headers):
-        content_type, _ = headers.iget('content-type', '')
-        return 'json' in content_type.lower()
+        content_type, _ = headers.iget("content-type", "")
+        return "json" in content_type.lower()
 
     @staticmethod
     def is_json(post_data):
@@ -108,7 +114,7 @@ class JSONContainer(DataContainer):
     @classmethod
     def from_postdata(cls, headers, post_data):
         if not JSONContainer.content_type_matches(headers):
-            raise ValueError('Missing json content type.')
+            raise ValueError("Missing json content type.")
 
         return cls(post_data)
 
@@ -119,7 +125,7 @@ class JSONContainer(DataContainer):
         return json_complex_str(self._json)
 
     def __repr__(self):
-        return '<JSONContainer (token: %s)>' % self.get_token()
+        return "<JSONContainer (token: %s)>" % self.get_token()
 
     def token_filter(self, token_path, token_value):
         """
@@ -161,22 +167,24 @@ class JSONContainer(DataContainer):
         if self.get_token() is not None:
             # I want to show the token variable and value in the output
             token = self.get_token()
-            dt_str = '%s=%s' % (filter_non_printable(token.get_name()),
-                                filter_non_printable(token.get_value()))
-            return '...%s...' % dt_str[:self.MAX_PRINTABLE-6]
+            dt_str = "%s=%s" % (
+                filter_non_printable(token.get_name()),
+                filter_non_printable(token.get_value()),
+            )
+            return "...%s..." % dt_str[: self.MAX_PRINTABLE - 6]
         else:
             # I'll simply show the first N parameter and values until the
             # MAX_PRINTABLE is achieved
-            return filter_non_printable(str(self))[:self.MAX_PRINTABLE]
+            return filter_non_printable(str(self))[: self.MAX_PRINTABLE]
 
     def get_headers(self):
         return list(self._headers.items())
 
     def set_header(self, name, value):
         if not isinstance(name, str):
-            raise TypeError('Header name must be a string.')
+            raise TypeError("Header name must be a string.")
 
         if not isinstance(value, str):
-            raise TypeError('Header value must be a string.')
+            raise TypeError("Header value must be a string.")
 
         self._headers[name] = value

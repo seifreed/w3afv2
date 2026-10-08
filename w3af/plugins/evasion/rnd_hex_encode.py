@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from random import randint
 
 from w3af.core.controllers.plugins.evasion_plugin import EvasionPlugin
@@ -30,6 +31,7 @@ class rnd_hex_encode(EvasionPlugin):
     Add random hex encoding.
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def modify_request(self, request):
         """
         Mangles the request
@@ -70,10 +72,10 @@ class rnd_hex_encode(EvasionPlugin):
 
         :return: a string.
         """
-        new_data = ''
+        new_data = ""
 
         for char in data:
-            if char not in ['?', '/', '&', '\\', '=', '%', '+']:
+            if char not in ["?", "/", "&", "\\", "=", "%", "+"]:
                 if randint(1, 2) == 2:
                     char = "%%%02x" % ord(char)
             new_data += char

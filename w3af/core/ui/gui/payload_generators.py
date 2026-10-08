@@ -33,7 +33,8 @@ def create_generator_menu(text_view_obj):
     # Number generators
     number_generator_mi = gtk.MenuItem(_("Number generator"))
     number_generator_mi.connect(
-        'activate', print_generator_text, text_view_obj, number_generator())
+        "activate", print_generator_text, text_view_obj, number_generator()
+    )
     menu.append(number_generator_mi)
 
     return menu
@@ -67,4 +68,4 @@ class number_generator(generic_generator):
         other interesting things. The generator class is called from the fuzzy request editor.
         """
         generic_generator.__init__(self)
-        self._generator_name = 'number_generator'
+        self._generator_name = "number_generator"

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import time
 import queue
 
@@ -35,9 +36,15 @@ from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.controllers.profiling.took_helper import TookLine
 from w3af.core.controllers.threads.threadpool import return_args
 from w3af.core.controllers.core_helpers.consumers.constants import POISON_PILL
-from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce, ScanMustStopException
-from w3af.core.controllers.core_helpers.consumers.base_consumer import (BaseConsumer,
-                                                                        task_decorator)
+from w3af.core.controllers.exceptions import (
+    BaseFrameworkException,
+    RunOnce,
+    ScanMustStopException,
+)
+from w3af.core.controllers.core_helpers.consumers.base_consumer import (
+    BaseConsumer,
+    task_decorator,
+)
 
 
 class CrawlInfrastructure(BaseConsumer):
@@ -48,8 +55,7 @@ class CrawlInfrastructure(BaseConsumer):
     again for continuing with the discovery process.
     """
 
-    def __init__(self, crawl_infrastructure_plugins, w3af_core,
-                 max_discovery_time):
+    def __init__(self, crawl_infrastructure_plugins, w3af_core, max_discovery_time):
         """
         :param crawl_infrastructure_plugins: Instances of CrawlInfrastructure
                                              plugins in a list
@@ -57,10 +63,12 @@ class CrawlInfrastructure(BaseConsumer):
         :param max_discovery_time: The max time (in seconds) to use for the
                                    discovery phase
         """
-        super(CrawlInfrastructure, self).__init__(crawl_infrastructure_plugins,
-                                                  w3af_core,
-                                                  thread_name=self.get_name(),
-                                                  max_pool_queued_tasks=100)
+        super(CrawlInfrastructure, self).__init__(
+            crawl_infrastructure_plugins,
+            w3af_core,
+            thread_name=self.get_name(),
+            max_pool_queued_tasks=100,
+        )
         self._max_discovery_time = int(max_discovery_time)
 
         # For filtering fuzzable requests found by plugins:
@@ -76,11 +84,10 @@ class CrawlInfrastructure(BaseConsumer):
         #
         # Read OrderedCachedQueue's documentation to understand why order is
         # important
-        self.in_queue = OrderedCachedQueue(maxsize=10,
-                                           name=self.get_name() + 'In')
+        self.in_queue = OrderedCachedQueue(maxsize=10, name=self.get_name() + "In")
 
     def get_name(self):
-        return 'CrawlInfra'
+        return "CrawlInfra"
 
     def run(self):
         """
@@ -114,7 +121,9 @@ class CrawlInfrastructure(BaseConsumer):
                     try:
                         self._process_poison_pill()
                     except Exception as e:
-                        msg = 'An exception was found while processing poison pill: "%s"'
+                        msg = (
+                            'An exception was found while processing poison pill: "%s"'
+                        )
                         om.out.debug(msg % e)
                     finally:
                         self._running = False
@@ -144,11 +153,11 @@ class CrawlInfrastructure(BaseConsumer):
         # we call .end(), so no need to call the same method twice
         to_teardown = set(to_teardown) - self._disabled_plugins
 
-        msg = 'Starting CrawlInfra consumer _teardown() with %s plugins'
+        msg = "Starting CrawlInfra consumer _teardown() with %s plugins"
         om.out.debug(msg % len(to_teardown))
 
         for plugin in to_teardown:
-            om.out.debug('Calling %s.end()' % plugin.get_name())
+            om.out.debug("Calling %s.end()" % plugin.get_name())
             start_time = time.time()
 
             try:
@@ -162,28 +171,29 @@ class CrawlInfrastructure(BaseConsumer):
                 # We `pass` instead of `break` because some plugins might
                 # still be able to `end()` without sending HTTP requests to
                 # the remote server
-                msg_fmt = ('Spent %.2f seconds running %s.end() until a'
-                           ' scan must stop exception was raised')
+                msg_fmt = (
+                    "Spent %.2f seconds running %s.end() until a"
+                    " scan must stop exception was raised"
+                )
                 self._log_end_took(msg_fmt, start_time, plugin)
 
             except Exception as e:
-                msg_fmt = ('Spent %.2f seconds running %s.end() until an'
-                           ' unhandled exception was found')
+                msg_fmt = (
+                    "Spent %.2f seconds running %s.end() until an"
+                    " unhandled exception was found"
+                )
                 self._log_end_took(msg_fmt, start_time, plugin)
 
-                self.handle_exception('crawl',
-                                      plugin.get_name(),
-                                      'plugin.end()',
-                                      e)
+                self.handle_exception("crawl", plugin.get_name(), "plugin.end()", e)
 
             else:
-                msg_fmt = 'Spent %.2f seconds running %s.end()'
+                msg_fmt = "Spent %.2f seconds running %s.end()"
                 self._log_end_took(msg_fmt, start_time, plugin)
 
             finally:
                 self._disabled_plugins.add(plugin)
 
-        om.out.debug('Finished CrawlInfra consumer _teardown()')
+        om.out.debug("Finished CrawlInfra consumer _teardown()")
 
     @task_decorator
     def _consume(self, function_id, work_unit):
@@ -200,9 +210,14 @@ class CrawlInfrastructure(BaseConsumer):
             # TODO: unittest what happens if an exception (which is not handled
             #       by the exception handler) is raised. Who's doing a .get()
             #       on those ApplyResults generated here?
-            self._threadpool.apply_async(return_args(self._discover_worker),
-                                         (plugin, work_unit,),
-                                         callback=self._plugin_finished_cb)
+            self._threadpool.apply_async(
+                return_args(self._discover_worker),
+                (
+                    plugin,
+                    work_unit,
+                ),
+                callback=self._plugin_finished_cb,
+            )
             # pylint: disable=E1120
             self._route_all_plugin_results()
             # pylint: enable=E1120
@@ -216,13 +231,16 @@ class CrawlInfrastructure(BaseConsumer):
             for observer in self._observers:
                 observer.crawl(self, fuzzable_request)
         except Exception as e:
-            self.handle_exception('CrawlInfrastructure',
-                                  'CrawlInfrastructure._run_observers()',
-                                  'CrawlInfrastructure._run_observers()', e)
+            self.handle_exception(
+                "CrawlInfrastructure",
+                "CrawlInfrastructure._run_observers()",
+                "CrawlInfrastructure._run_observers()",
+                e,
+            )
 
     @task_decorator
     def _plugin_finished_cb(self, function_id, result):
-        ((plugin, fuzzable_request), plugin_result) = result
+        (plugin, fuzzable_request), plugin_result = result
         if not self._running:
             return
 
@@ -259,10 +277,11 @@ class CrawlInfrastructure(BaseConsumer):
             else:
                 # Is the plugin really returning a fuzzable request?
                 if not isinstance(fuzzable_request, FuzzableRequest):
-                    msg = 'The %s plugin did NOT return a FuzzableRequest.'
+                    msg = "The %s plugin did NOT return a FuzzableRequest."
                     ve = ValueError(msg % plugin.get_name())
-                    self.handle_exception(plugin.get_type(), plugin.get_name(),
-                                          fuzzable_request, ve)
+                    self.handle_exception(
+                        plugin.get_type(), plugin.get_name(), fuzzable_request, ve
+                    )
 
                 # The plugin has queued some results and now we need to analyze
                 # which of the returned fuzzable requests are new and should be
@@ -272,9 +291,7 @@ class CrawlInfrastructure(BaseConsumer):
                     # Update the list / set that lives in the KB
                     kb.kb.add_fuzzable_request(fuzzable_request)
 
-                    self._out_queue.put((plugin.get_name(),
-                                         None,
-                                         fuzzable_request))
+                    self._out_queue.put((plugin.get_name(), None, fuzzable_request))
 
             finally:
                 # Should I continue with the crawl phase? If not, simply call
@@ -322,8 +339,8 @@ class CrawlInfrastructure(BaseConsumer):
         """
         Remove the crawl and bruteforce plugins from memory.
         """
-        self._w3af_core.plugins.plugins['crawl'] = []
-        self._w3af_core.plugins.plugins['infrastructure'] = []
+        self._w3af_core.plugins.plugins["crawl"] = []
+        self._w3af_core.plugins.plugins["infrastructure"] = []
 
         self._disabled_plugins = set()
         self._consumer_plugins = []
@@ -336,7 +353,7 @@ class CrawlInfrastructure(BaseConsumer):
         and reports identified URLs and fuzzable requests to the user.
         """
         if not len(kb.kb.get_all_known_urls()):
-            om.out.information('No URLs found during crawl phase.')
+            om.out.information("No URLs found during crawl phase.")
             return
 
         # Sort URLs
@@ -344,21 +361,21 @@ class CrawlInfrastructure(BaseConsumer):
 
         all_known_fuzzable_requests = kb.kb.get_all_known_fuzzable_requests()
 
-        msg = 'Found %s URLs and %s different injections points.'
+        msg = "Found %s URLs and %s different injections points."
         args = (len(tmp_url_list), len(all_known_fuzzable_requests))
         om.out.information(msg % args)
 
         # print the URLs
-        om.out.information('The URL list is:')
+        om.out.information("The URL list is:")
 
-        tmp_url_list = ['- %s' % u.url_string for u in tmp_url_list]
+        tmp_url_list = ["- %s" % u.url_string for u in tmp_url_list]
         tmp_url_list.sort()
         list(map(om.out.information, tmp_url_list))
 
         # Now I simply print the list that I have after the filter.
-        om.out.information('The list of fuzzable requests is:')
+        om.out.information("The list of fuzzable requests is:")
 
-        tmp_fr = ['- %s' % str(fr) for fr in all_known_fuzzable_requests]
+        tmp_fr = ["- %s" % str(fr) for fr in all_known_fuzzable_requests]
         tmp_fr.sort()
         list(map(om.out.information, tmp_fr))
 
@@ -376,8 +393,10 @@ class CrawlInfrastructure(BaseConsumer):
 
         if self._report_max_time:
             self._report_max_time = False
-            msg = ('Maximum crawl time limit hit, no new URLs will be'
-                   ' added to the queue.')
+            msg = (
+                "Maximum crawl time limit hit, no new URLs will be"
+                " added to the queue."
+            )
             om.out.information(msg)
 
         return True
@@ -387,7 +406,7 @@ class CrawlInfrastructure(BaseConsumer):
         Remove plugins that don't want to be run anymore and raised a RunOnce
         exception during the crawl phase.
         """
-        for plugin_type in ('crawl', 'infrastructure'):
+        for plugin_type in ("crawl", "infrastructure"):
             if plugin_to_remove in self._w3af_core.plugins.plugins[plugin_type]:
 
                 msg = 'The %s plugin: "%s" wont be run anymore.'
@@ -411,7 +430,7 @@ class CrawlInfrastructure(BaseConsumer):
 
         :return: True if @FuzzableRequest is new (never seen before).
         """
-        base_urls_cf = cf.cf.get('baseURLs')
+        base_urls_cf = cf.cf.get("baseURLs")
         fr_uri = fuzzable_request.get_uri()
 
         # Is the "new" fuzzable request domain in the configured targets?
@@ -463,15 +482,21 @@ class CrawlInfrastructure(BaseConsumer):
         if not self._variant_db.append(fuzzable_request):
 
             if not fuzzable_request.get_raw_data():
-                msg = ('Ignoring reference "%s" since it is simply a variant'
-                       ' of another URL seen before.')
+                msg = (
+                    'Ignoring reference "%s" since it is simply a variant'
+                    " of another URL seen before."
+                )
                 msg %= fuzzable_request.get_uri()
                 om.out.debug(msg)
             else:
-                msg = ('Ignoring form "%s" with parameters [%s] since it is'
-                       ' simply a variant of another form seen before.')
-                args = (fuzzable_request.get_uri(),
-                        ', '.join(fuzzable_request.get_raw_data().get_param_names()))
+                msg = (
+                    'Ignoring form "%s" with parameters [%s] since it is'
+                    " simply a variant of another form seen before."
+                )
+                args = (
+                    fuzzable_request.get_uri(),
+                    ", ".join(fuzzable_request.get_raw_data().get_param_names()),
+                )
                 om.out.debug(msg % args)
 
             return False
@@ -512,18 +537,20 @@ class CrawlInfrastructure(BaseConsumer):
         debugging_id = rand_alnum(8)
 
         args = (plugin.get_name(), fuzzable_request.get_uri(), debugging_id)
-        om.out.debug('%s.discover(%s, did=%s)' % args)
+        om.out.debug("%s.discover(%s, did=%s)" % args)
 
-        took_line = TookLine(self._w3af_core,
-                             plugin.get_name(),
-                             'discover',
-                             debugging_id=debugging_id,
-                             method_params={'uri': fuzzable_request.get_uri()})
+        took_line = TookLine(
+            self._w3af_core,
+            plugin.get_name(),
+            "discover",
+            debugging_id=debugging_id,
+            method_params={"uri": fuzzable_request.get_uri()},
+        )
 
         # Status reporting
         status = self._w3af_core.status
-        status.set_running_plugin('crawl', plugin.get_name())
-        status.set_current_fuzzable_request('crawl', fuzzable_request)
+        status.set_running_plugin("crawl", plugin.get_name())
+        status.set_current_fuzzable_request("crawl", fuzzable_request)
 
         try:
             result = plugin.discover_wrapper(fuzzable_request, debugging_id)
@@ -537,22 +564,20 @@ class CrawlInfrastructure(BaseConsumer):
             # exception
             self._remove_discovery_plugin(plugin)
         except Exception as e:
-            self.handle_exception(plugin.get_type(),
-                                  plugin.get_name(),
-                                  fuzzable_request,
-                                  e)
+            self.handle_exception(
+                plugin.get_type(), plugin.get_name(), fuzzable_request, e
+            )
         else:
             # The plugin output is retrieved and analyzed by the
             # _route_plugin_results method, here we just verify that the plugin
             # result is None (which proves that the plugin respects this part
             # of the API)
             if result is not None:
-                msg = 'The %s plugin did NOT return None (did: %s)'
+                msg = "The %s plugin did NOT return None (did: %s)"
                 args = (plugin.get_name(), debugging_id)
                 ve = ValueError(msg % args)
-                self.handle_exception(plugin.get_type(),
-                                      plugin.get_name(),
-                                      fuzzable_request,
-                                      ve)
+                self.handle_exception(
+                    plugin.get_type(), plugin.get_name(), fuzzable_request, ve
+                )
 
         took_line.send()

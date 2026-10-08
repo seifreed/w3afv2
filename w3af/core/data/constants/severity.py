@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-INFORMATION = 'Information'
-LOW = 'Low'
-MEDIUM = 'Medium'
-HIGH = 'High'
+INFORMATION = "Information"
+LOW = "Low"
+MEDIUM = "Medium"
+HIGH = "High"

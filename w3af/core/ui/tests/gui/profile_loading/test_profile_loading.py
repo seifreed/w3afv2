@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import os
 
 from w3af.core.ui.tests.gui import GUI_TEST_ROOT_PATH
@@ -25,21 +26,19 @@ from w3af.core.ui.tests.wrappers.xpresser_unittest import XpresserUnittest
 
 
 class TestProfileLoading(XpresserUnittest):
-    
-    IMAGES = os.path.join(GUI_TEST_ROOT_PATH, 'profile_loading', 'images')
-    
+
+    IMAGES = os.path.join(GUI_TEST_ROOT_PATH, "profile_loading", "images")
+
     def test_profile_loading(self):
         """
         Tests that it is possible to change from one profile to the next
         and w3af doesn't break.
         """
-        self.click('empty_profile')
-        self.find('no_plugins_enabled')
-        
-        self.click('owasp_top_10')
-        self.find('audit_plugins_enabled')
-        
-        self.click('empty_profile')
-        self.find('no_plugins_enabled')
-    
-        
+        self.click("empty_profile")
+        self.find("no_plugins_enabled")
+
+        self.click("owasp_top_10")
+        self.find("audit_plugins_enabled")
+
+        self.click("empty_profile")
+        self.find("no_plugins_enabled")

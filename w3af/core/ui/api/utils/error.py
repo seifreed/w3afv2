@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import json
 from werkzeug.exceptions import HTTPException
 
@@ -32,12 +33,11 @@ class JSONHTTPException(HTTPException):
 
     def get_body(self, environ=None):
         """Get the JSON body"""
-        return json.dumps({'message': self.description,
-                           'code': self.code})
+        return json.dumps({"message": self.description, "code": self.code})
 
     def get_headers(self, environ=None):
         """Get a list of headers."""
-        return [('Content-Type', 'application/json')]
+        return [("Content-Type", "application/json")]
 
 
 def abort(code, message):

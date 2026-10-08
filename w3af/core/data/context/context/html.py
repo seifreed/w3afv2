@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 
 from w3af.core.data.context.context.javascript import get_js_context_iter
@@ -31,41 +32,47 @@ class HtmlTag(BaseContext):
     """
     Matches <PAYLOAD></foo>
     """
-    CAN_BREAK = {' ', '>'}
+
+    CAN_BREAK = {" ", ">"}
 
 
 class HtmlTagClose(BaseContext):
     """
     Matches <foo></PAYLOAD>
     """
-    CAN_BREAK = {' ', '>'}
+
+    CAN_BREAK = {" ", ">"}
 
 
 class HtmlText(BaseContext):
     """
     Matches <tag attr="value">PAYLOAD</tag>
     """
-    CAN_BREAK = {'<'}
+
+    CAN_BREAK = {"<"}
 
 
 class HtmlComment(BaseContext):
     """
     Matches <!-- PAYLOAD -->
     """
-    CAN_BREAK = {'-->'}
+
+    CAN_BREAK = {"-->"}
 
 
 class HtmlAttr(BaseContext):
     """
     Matches <tag PAYLOAD="value" />
     """
-    CAN_BREAK = {' ', '='}
+
+    CAN_BREAK = {" ", "="}
 
 
 class ScriptText(HtmlText):
     """
     Matches <script>PAYLOAD</script>
     """
+
     def can_break(self):
         # If we can break out of the context then we're done
         if super(ScriptText, self).can_break():
@@ -97,6 +104,7 @@ class CSSText(HtmlText):
     """
     Matches <style>PAYLOAD</style>
     """
+
     def can_break(self):
         # If we can break out of the context then we're done
         if super(CSSText, self).can_break():
@@ -118,20 +126,22 @@ class HtmlDeclaration(BaseContext):
     This method is called to handle an HTML doctype declaration
     (e.g. <!DOCTYPE html>).
     """
-    CAN_BREAK = {'>'}
+
+    CAN_BREAK = {">"}
 
 
 class HtmlProcessingInstruction(BaseContext):
     """
     For example, for the processing instruction <?proc color='red'>
     """
-    CAN_BREAK = {'>'}
+
+    CAN_BREAK = {">"}
 
 
 class HTMLAttrQuoteGeneric(BaseContext):
 
-    JS_PATTERN = re.compile('^ *javascript:', re.IGNORECASE)
-    VB_PATTERN = re.compile('^ *vbscript:', re.IGNORECASE)
+    JS_PATTERN = re.compile("^ *javascript:", re.IGNORECASE)
+    VB_PATTERN = re.compile("^ *vbscript:", re.IGNORECASE)
 
     def __init__(self, payload, attr_name, attr_value):
         """
@@ -146,8 +156,8 @@ class HTMLAttrQuoteGeneric(BaseContext):
         """
         Cleanup the attribute value which is likely to contain JS code
         """
-        attr_value = self.JS_PATTERN.sub('', self.value)
-        return self.VB_PATTERN.sub('', attr_value)
+        attr_value = self.JS_PATTERN.sub("", self.value)
+        return self.VB_PATTERN.sub("", attr_value)
 
     def can_break(self):
         #
@@ -160,10 +170,12 @@ class HTMLAttrQuoteGeneric(BaseContext):
         #
         # That didn't work, then we want to escape using different strategies
         #
-        executable_handlers = [self.can_break_adding_js_protocol,
-                               self.can_break_style,
-                               self.can_break_js_event,
-                               self.can_break_html_attr_with_js_protocol]
+        executable_handlers = [
+            self.can_break_adding_js_protocol,
+            self.can_break_style,
+            self.can_break_js_event,
+            self.can_break_html_attr_with_js_protocol,
+        ]
 
         for is_executable_handler in executable_handlers:
             if is_executable_handler():
@@ -188,7 +200,7 @@ class HTMLAttrQuoteGeneric(BaseContext):
         if self.name not in JS_EVENTS and self.name not in EXECUTABLE_ATTRS:
             return False
 
-        if ':' not in self.payload:
+        if ":" not in self.payload:
             return False
 
         if not self.value.startswith(self.payload):
@@ -201,7 +213,7 @@ class HTMLAttrQuoteGeneric(BaseContext):
         Handle cases like this:
           <h1 style="color:blue;text-align:PAYLOAD">This is a header</h1>
         """
-        if self.name != 'style':
+        if self.name != "style":
             return False
 
         # Delegate the can_break to the CSS parser
@@ -264,7 +276,7 @@ class HTMLAttrQuoteGeneric(BaseContext):
         Handle cases like this:
           <h1 style="color:blue;text-align:PAYLOAD">This is a header</h1>
         """
-        if self.name != 'style':
+        if self.name != "style":
             return False
 
         # Delegate the is_executable to the CSS parser
@@ -327,9 +339,11 @@ class HTMLAttrQuoteGeneric(BaseContext):
         :return: True if we're in a context that we can execute without breaking
                  out.
         """
-        executable_handlers = [self.is_executable_style,
-                               self.is_executable_js_event,
-                               self.is_executable_html_attr_with_js_protocol]
+        executable_handlers = [
+            self.is_executable_style,
+            self.is_executable_js_event,
+            self.is_executable_html_attr_with_js_protocol,
+        ]
 
         for is_executable_handler in executable_handlers:
             if is_executable_handler():
@@ -342,6 +356,7 @@ class HtmlAttrSingleQuote(HTMLAttrQuoteGeneric):
     """
     Matches <tag attr='PAYLOAD' />
     """
+
     ATTR_DELIMITER = "'"
     CAN_BREAK = {ATTR_DELIMITER}
 
@@ -350,6 +365,7 @@ class HtmlAttrDoubleQuote(HTMLAttrQuoteGeneric):
     """
     Matches <tag attr="PAYLOAD" />
     """
+
     ATTR_DELIMITER = '"'
     CAN_BREAK = {ATTR_DELIMITER}
 
@@ -358,7 +374,8 @@ class HtmlAttrBackticks(HTMLAttrQuoteGeneric):
     """
     Matches <tag attr=`PAYLOAD` />
     """
-    ATTR_DELIMITER = '`'
+
+    ATTR_DELIMITER = "`"
     CAN_BREAK = {ATTR_DELIMITER}
 
 
@@ -366,11 +383,23 @@ class HtmlAttrNoQuote(HTMLAttrQuoteGeneric):
     """
     Matches <tag attr=PAYLOAD />
     """
-    ATTR_DELIMITER = ''
-    CAN_BREAK = {' '}
+
+    ATTR_DELIMITER = ""
+    CAN_BREAK = {" "}
 
 
-ALL_CONTEXTS = [HtmlAttrNoQuote, HtmlAttrBackticks, HtmlAttrDoubleQuote,
-                HtmlAttrSingleQuote, HtmlProcessingInstruction,
-                HtmlDeclaration, CSSText, ScriptText, HtmlAttr, HtmlComment,
-                HtmlText, HtmlTag, HtmlTagClose]
+ALL_CONTEXTS = [
+    HtmlAttrNoQuote,
+    HtmlAttrBackticks,
+    HtmlAttrDoubleQuote,
+    HtmlAttrSingleQuote,
+    HtmlProcessingInstruction,
+    HtmlDeclaration,
+    CSSText,
+    ScriptText,
+    HtmlAttr,
+    HtmlComment,
+    HtmlText,
+    HtmlTag,
+    HtmlTagClose,
+]

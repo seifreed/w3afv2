@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import string
 import shlex
 
@@ -26,7 +27,7 @@ from datetime import datetime, date
 
 from git.cmd import Git, GitCommandError
 
-ALLOWED = string.digits + string.ascii_letters + '/.-_'
+ALLOWED = string.digits + string.ascii_letters + "/.-_"
 
 
 def replace_file_special_chars(filename_path):
@@ -36,7 +37,7 @@ def replace_file_special_chars(filename_path):
     And after realizing that it was very hard to perform a replace
     that worked for all platforms and when the thing to sanitize was a
     path+filename and not only a filename."""
-    return filename_path.replace(':', '_')
+    return filename_path.replace(":", "_")
 
 
 def days_since_file_update(path, days):
@@ -54,7 +55,7 @@ def get_days_since_last_update(path):
              returned.
     """
     git = Git(".")
-    cmd_str = 'git log -1 --format=%%cd %s' % path
+    cmd_str = "git log -1 --format=%%cd %s" % path
     cmd = shlex.split(cmd_str)
 
     try:
@@ -66,7 +67,7 @@ def get_days_since_last_update(path):
     # We need to parse it, and then do some date math to return the result
     #
     # We ignore the UTC offset because it was "hard to parse" and we don't care
-    last_commit_time = datetime.strptime(date_str[:-6], '%a %b %d %H:%M:%S %Y')
+    last_commit_time = datetime.strptime(date_str[:-6], "%a %b %d %H:%M:%S %Y")
     last_commit_date = last_commit_time.date()
 
     today_date = date.today()
@@ -74,6 +75,3 @@ def get_days_since_last_update(path):
     time_delta = today_date - last_commit_date
 
     return time_delta.days
-    
-
-

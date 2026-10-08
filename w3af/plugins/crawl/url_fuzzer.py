@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from itertools import chain, repeat
 
 import w3af.core.controllers.output_manager as om
@@ -39,17 +40,57 @@ class url_fuzzer(CrawlPlugin):
     Try to find backups, and other related files.
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
-    _appendables = ('~', '.tar.gz', '.gz', '.7z', '.cab', '.tgz',
-                    '.gzip', '.bzip2', '.inc', '.zip', '.rar', '.jar', '.java',
-                    '.class', '.properties', '.bak', '.bak1', '.bkp', '.back',
-                    '.backup', '.backup1', '.old', '.old1', '.$$$'
-                    )
-    _backup_exts = ('tar.gz', '7z', 'gz', 'cab', 'tgz', 'gzip',
-                    'bzip2', 'zip', 'rar')
+
+    _appendables = (
+        "~",
+        ".tar.gz",
+        ".gz",
+        ".7z",
+        ".cab",
+        ".tgz",
+        ".gzip",
+        ".bzip2",
+        ".inc",
+        ".zip",
+        ".rar",
+        ".jar",
+        ".java",
+        ".class",
+        ".properties",
+        ".bak",
+        ".bak1",
+        ".bkp",
+        ".back",
+        ".backup",
+        ".backup1",
+        ".old",
+        ".old1",
+        ".$$$",
+    )
+    _backup_exts = ("tar.gz", "7z", "gz", "cab", "tgz", "gzip", "bzip2", "zip", "rar")
     _file_types = (
-        'inc', 'fla', 'jar', 'war', 'java', 'class', 'properties',
-        'bak', 'bak1', 'backup', 'backup1', 'old', 'old1', 'c', 'cpp',
-        'cs', 'vb', 'phps', 'disco', 'ori', 'orig', 'original'
+        "inc",
+        "fla",
+        "jar",
+        "war",
+        "java",
+        "class",
+        "properties",
+        "bak",
+        "bak1",
+        "backup",
+        "backup1",
+        "old",
+        "old1",
+        "c",
+        "cpp",
+        "cs",
+        "vb",
+        "phps",
+        "disco",
+        "ori",
+        "orig",
+        "original",
     )
 
     def __init__(self):
@@ -69,7 +110,7 @@ class url_fuzzer(CrawlPlugin):
                                     (among other things) the URL to test.
         """
         url = fuzzable_request.get_url()
-        self._headers = Headers([('Referer', url.url_string)])
+        self._headers = Headers([("Referer", url.url_string)])
 
         if self._first_time:
             self._verify_head_enabled(url)
@@ -84,17 +125,17 @@ class url_fuzzer(CrawlPlugin):
 
         self._verify_head_enabled(url)
         if self._head_enabled():
-            response = self._uri_opener.HEAD(url, cache=True,
-                                             headers=self._headers)
+            response = self._uri_opener.HEAD(url, cache=True, headers=self._headers)
         else:
-            response = self._uri_opener.GET(url, cache=True,
-                                            headers=self._headers)
+            response = self._uri_opener.GET(url, cache=True, headers=self._headers)
 
         if response.is_text_or_html() or self._fuzz_images:
-            mutants_chain = chain(self._mutate_by_appending(url),
-                                  self._mutate_path(url),
-                                  self._mutate_file_type(url),
-                                  self._mutate_domain_name(url))
+            mutants_chain = chain(
+                self._mutate_by_appending(url),
+                self._mutate_path(url),
+                self._mutate_file_type(url),
+                self._mutate_domain_name(url),
+            )
             url_repeater = repeat(url)
             args = zip(url_repeater, mutants_chain)
 
@@ -105,9 +146,7 @@ class url_fuzzer(CrawlPlugin):
         Perform a simple GET to see if the result is an error or not, and then
         run the actual fuzzing.
         """
-        response = self._uri_opener.GET(mutant,
-                                        cache=True,
-                                        headers=self._headers)
+        response = self._uri_opener.GET(mutant, cache=True, headers=self._headers)
 
         if is_404(response):
             return
@@ -134,10 +173,10 @@ class url_fuzzer(CrawlPlugin):
         desc = 'A potentially interesting file was found at: "%s".'
         desc %= response.get_url()
 
-        i = Info('Potentially interesting file', desc, response.id, self.get_name())
+        i = Info("Potentially interesting file", desc, response.id, self.get_name())
         i.set_url(response.get_url())
 
-        kb.kb.append(self, 'files', i)
+        kb.kb.append(self, "files", i)
         om.out.information(i.get_desc())
 
     def _mutate_domain_name(self, url):
@@ -170,12 +209,12 @@ class url_fuzzer(CrawlPlugin):
         domain = url.get_domain()
         domain_path = url.get_domain_path()
 
-        splitted_domain = domain.split('.')
+        splitted_domain = domain.split(".")
         for i in range(len(splitted_domain)):
-            filename = '.'.join(splitted_domain[0: i + 1])
+            filename = ".".join(splitted_domain[0 : i + 1])
 
             for extension in self._backup_exts:
-                filename_ext = filename + '.' + extension
+                filename_ext = filename + "." + extension
 
                 domain_path_copy = domain_path.copy()
                 domain_path_copy.set_file_name(filename_ext)
@@ -204,7 +243,7 @@ class url_fuzzer(CrawlPlugin):
         True
 
         """
-        if not url.url_string.endswith('/') and url.url_string.count('/') >= 3:
+        if not url.url_string.endswith("/") and url.url_string.count("/") >= 3:
             #
             #   Only get here on these cases:
             #       - http://host.tld/abc
@@ -282,9 +321,9 @@ class url_fuzzer(CrawlPlugin):
         """
         url_string = url.url_string
 
-        if url_string.count('/') > 3:
+        if url_string.count("/") > 3:
             # Create the new path
-            url_string = url_string[:url_string.rfind('/')]
+            url_string = url_string[: url_string.rfind("/")]
             to_append_list = self._appendables
             for to_append in to_append_list:
                 newurl = URL(url_string + to_append)
@@ -297,12 +336,12 @@ class url_fuzzer(CrawlPlugin):
 
         :return : Sets self._head to the correct value, nothing is returned.
         """
-        allowed_methods_infos = kb.kb.get('allowed_methods', 'methods')
+        allowed_methods_infos = kb.kb.get("allowed_methods", "methods")
         allowed_methods = []
         for info in allowed_methods_infos:
-            allowed_methods.extend(info['methods'])
-        
-        if 'HEAD' in allowed_methods:
+            allowed_methods.extend(info["methods"])
+
+        if "HEAD" in allowed_methods:
             self._head = True
         else:
             self._head = False
@@ -316,9 +355,9 @@ class url_fuzzer(CrawlPlugin):
         """
         ol = OptionList()
 
-        d = 'Apply URL fuzzing to all URLs, including images, videos, zip, etc.'
-        h = 'Don\'t change this unless you read the plugin code.'
-        o = opt_factory('fuzz_images', self._fuzz_images, d, 'boolean', help=h)
+        d = "Apply URL fuzzing to all URLs, including images, videos, zip, etc."
+        h = "Don't change this unless you read the plugin code."
+        o = opt_factory("fuzz_images", self._fuzz_images, d, "boolean", help=h)
         ol.add(o)
 
         return ol
@@ -331,14 +370,14 @@ class url_fuzzer(CrawlPlugin):
         :param options_list: A dictionary with the options for the plugin.
         :return: No value is returned.
         """
-        self._fuzz_images = options_list['fuzz_images'].get_value()
+        self._fuzz_images = options_list["fuzz_images"].get_value()
 
     def get_plugin_deps(self):
         """
         :return: A list with the names of the plugins that should be run before the
         current one.
         """
-        return ['infrastructure.allowed_methods']
+        return ["infrastructure.allowed_methods"]
 
     def get_long_desc(self):
         """

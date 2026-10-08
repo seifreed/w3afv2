@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import gtk
 import gobject
 import queue
@@ -53,12 +54,13 @@ class KBTree(gtk.TreeView):
 
     :author: Facundo Batista <facundobatista =at= taniquetil.com.ar>
     """
+
     def __init__(self, w3af, ifilter, title, strict):
         self.strict = strict
         self.w3af = w3af
-        
+
         # simple Tree Store
-        # columns: 
+        # columns:
         #    * exploit icon,
         #    * string to show,
         #    * key for the plugin instance,
@@ -66,10 +68,11 @@ class KBTree(gtk.TreeView):
         #    * color_level,
         #    * color,
         #    * child_count
-        self.treestore = gtk.TreeStore(gtk.gdk.Pixbuf, str, str,
-                                       gtk.gdk.Pixbuf, int, str, str)
+        self.treestore = gtk.TreeStore(
+            gtk.gdk.Pixbuf, str, str, gtk.gdk.Pixbuf, int, str, str
+        )
         gtk.TreeView.__init__(self, self.treestore)
-        #self.set_enable_tree_lines(True)
+        # self.set_enable_tree_lines(True)
 
         # the exploit icon (when needed), text, icon column and the child_count
         tvcol = gtk.TreeViewColumn(title)
@@ -99,12 +102,12 @@ class KBTree(gtk.TreeView):
         self.treeholder = []
         self.pending_insert = queue.Queue()
         self.need_complete_tree_update = False
-        
+
         # container for exploitable vulns.
         self.exploit_vulns = {}
-        
+
         self._exploit_instances = []
-        
+
         # Do this only once in order to avoid a performance hit
         for exploit_name in self.w3af.plugins.get_plugin_list("attack"):
             exploit = self.w3af.plugins.get_plugin_inst("attack", exploit_name)
@@ -115,9 +118,9 @@ class KBTree(gtk.TreeView):
         self.lastcheck = False
 
         # button events
-        self.connect('button-release-event', self._popup)
-        self.connect('button-press-event', self._double_click)
-        self.connect('button-press-event', self._exploit_vuln)
+        self.connect("button-release-event", self._popup)
+        self.connect("button-press-event", self._double_click)
+        self.connect("button-press-event", self._exploit_vuln)
 
         # cursor events
         self.props.has_tooltip = True
@@ -127,7 +130,7 @@ class KBTree(gtk.TreeView):
         kb.kb.add_observer(VulnerabilityObserver(self))
         gobject.timeout_add(100, self._update_tree().__next__)
         self.postcheck = False
-            
+
         self.show()
 
     def _treestore_sort(self, model, iter1, iter2):
@@ -162,24 +165,24 @@ class KBTree(gtk.TreeView):
         """
         self.filter = active
         self.need_complete_tree_update = True
-        
+
     def _update_tree(self):
         """Updates the GUI with the KB.
 
         :return: True to keep being called by gobject.
         """
         while True:
-        
+
             if self.need_complete_tree_update:
                 self.need_complete_tree_update = False
                 self.treestore.clear()
-                
+
                 for item in self.treeholder:
                     self.pending_insert.put(item)
-                
+
                 self.treeholder = []
                 yield True
-        
+
             try:
                 data = self.pending_insert.get_nowait()
             except queue.Empty:
@@ -190,118 +193,115 @@ class KBTree(gtk.TreeView):
                     self._handle_first_level(data)
                     self._handle_second_level(data)
                     self._add_info(data)
-                
+
                 # Back-end information storage for handling filters, always
                 # store the information here in order to be able to process it
                 # all again in case of a filter change
                 self.treeholder.append(data)
-                
+
             finally:
                 yield True
-    
+
     def _handle_first_level(self, data):
         """
         If data.location_a is not already in the treestore, add it.
-        
+
         If data.location_a is in the treestore, make sure we paint it the right
         color based on data.color_level
-        
+
         Update the child count, keep in mind that the child count for this
         level is increased only when a new data.location_b is added.
-        
+
         :param data: The data for the new item to add.
         """
-        contains_location_a = [r for r in self.treestore if
-                               r[1] == data.location_a]
-        
+        contains_location_a = [r for r in self.treestore if r[1] == data.location_a]
+
         if not contains_location_a:
             # Add the new data to the treestore
-            child_count = '( 1 )'
+            child_count = "( 1 )"
             color = helpers.KB_COLORS[data.color_level]
-            location_a = smart_str(data.location_a, errors='ignore')
-            store_iter = self.treestore.append(None, [None,
-                                                      location_a,
-                                                      0, None, 0,
-                                                      color,
-                                                      child_count])
+            location_a = smart_str(data.location_a, errors="ignore")
+            store_iter = self.treestore.append(
+                None, [None, location_a, 0, None, 0, color, child_count]
+            )
         else:
             # There's already data in location_a, might need to update the
             # child count
             assert len(contains_location_a), 1
             location_a_row = contains_location_a[0]
-            
+
             location_a_b_iter = location_a_row.iterchildren()
             stored_locations_b = [r[1] for r in location_a_b_iter]
             store_iter = location_a_row.iter
-            
+
             if data.location_b not in stored_locations_b:
-                # Update the child count 
-                child_count = '( %s )' % (len(stored_locations_b) + 1)
+                # Update the child count
+                child_count = "( %s )" % (len(stored_locations_b) + 1)
                 self.treestore[store_iter][6] = child_count
-                
+
         # Make sure we paint it the right color, if it was originally of color
         # X and then we add a vulnerability that has a higher color level then
         # we need to "upgrade" the color
         if data.color_level > self.treestore[store_iter][4]:
-            color = helpers.KB_COLORS[data.color_level] 
+            color = helpers.KB_COLORS[data.color_level]
             self.treestore[store_iter][5] = color
-    
+
     def _handle_second_level(self, data):
         """
         If location_b is not already in the treestore under location_a, add it.
-        
+
         If location_b is in the treestore, make sure we paint it the right
         color.
-        
+
         Update the child count, keep in mind that the child count for this
         level is increased by each call to this method.
         """
-        location_a = [r for r in self.treestore if
-                      r[1] == data.location_a]
+        location_a = [r for r in self.treestore if r[1] == data.location_a]
         assert len(location_a), 1
         location_a_row = location_a[0]
-        
-        contains_location_ab = [r for r in location_a_row.iterchildren() if
-                                r[1] == data.location_b]
-        
+
+        contains_location_ab = [
+            r for r in location_a_row.iterchildren() if r[1] == data.location_b
+        ]
+
         if not contains_location_ab:
             # Add the new data to the treestore
-            child_count = '( 1 )'
+            child_count = "( 1 )"
             color = helpers.KB_COLORS[data.color_level]
             a_iter = location_a_row.iter
-            store_iter = self.treestore.append(a_iter, [None, data.location_b,
-                                                        0, None, 0,
-                                                        color,
-                                                        child_count])
+            store_iter = self.treestore.append(
+                a_iter, [None, data.location_b, 0, None, 0, color, child_count]
+            )
         else:
             # There's already data in (location_a, location_b) need to
             # update the child count
-            location_b_rows = [r for r in location_a_row.iterchildren() if \
-                               r[1] == data.location_b]
+            location_b_rows = [
+                r for r in location_a_row.iterchildren() if r[1] == data.location_b
+            ]
             assert len(location_b_rows), 1
             location_b_row = location_b_rows[0]
-            
+
             store_iter = location_b_row.iter
-            
-            # Update the child count 
+
+            # Update the child count
             location_b_row_children = [r for r in location_b_row.iterchildren()]
-            child_count = '( %s )' % (len(location_b_row_children) + 1)
+            child_count = "( %s )" % (len(location_b_row_children) + 1)
             self.treestore[store_iter][6] = child_count
-                
+
         # Make sure we paint it the right color, if it was originally of color
         # X and then we add a vulnerability that has a higher color level then
         # we need to "upgrade" the color
         if data.color_level > self.treestore[store_iter][4]:
-            color = helpers.KB_COLORS[data.color_level] 
+            color = helpers.KB_COLORS[data.color_level]
             self.treestore[store_iter][5] = color
-                
+
     def _add_info(self, data):
         """
         Add the information object to the KB's third level at (location_a,
         location_b).
-        
+
         Paint the vulnerability name using color_level.
-        
+
         :return: None.
         """
         #
@@ -312,27 +312,34 @@ class KBTree(gtk.TreeView):
             icon = icon.get_pixbuf()
 
         exploit_icon = None
-        
-        if data.obj_type == 'vuln':
+
+        if data.obj_type == "vuln":
             if self._is_exploitable(data.vuln_id):
-                exploit_icon = helpers.loadIcon('STOCK_EXECUTE')
-    
+                exploit_icon = helpers.loadIcon("STOCK_EXECUTE")
+
             self._map_exploits_to_vuln(data.vuln_id)
-        
-        color = helpers.KB_COLORS[data.color_level] 
-        
+
+        color = helpers.KB_COLORS[data.color_level]
+
         #
         # Store it!
         #
-        tree_store_info = [exploit_icon, data.obj_name, data.idinstance,
-                           icon, data.color_level, color, '']
+        tree_store_info = [
+            exploit_icon,
+            data.obj_name,
+            data.idinstance,
+            icon,
+            data.color_level,
+            color,
+            "",
+        ]
 
-        location_a = [r for r in self.treestore if \
-                      r[1] == data.location_a][0]
-        location_b = [r for r in location_a.iterchildren() if \
-                      r[1] == data.location_b][0]
+        location_a = [r for r in self.treestore if r[1] == data.location_a][0]
+        location_b = [r for r in location_a.iterchildren() if r[1] == data.location_b][
+            0
+        ]
         self.treestore.append(location_b.iter, tree_store_info)
-        
+
     def _popup(self, tv, event):
         """Shows a menu when you right click on an object inside the kb.
 
@@ -343,7 +350,7 @@ class KBTree(gtk.TreeView):
             return
 
         # is it over a vulnerability?
-        (path, column) = tv.get_cursor()
+        path, column = tv.get_cursor()
         if path is None:
             return
 
@@ -375,7 +382,7 @@ class KBTree(gtk.TreeView):
         """
         # TODO: Why 27? Do something better here!!!
         th = title_height = 27
-        
+
         try:
             path, tv_column, x_cell, y_cell = self.get_path_at_pos(x, y - th)
         except:
@@ -383,32 +390,36 @@ class KBTree(gtk.TreeView):
         else:
             # Make the X coord relative to the cell
             x_cell -= self.get_cell_area(path, tv_column).x
-            
+
             # Get the potential vuln object
             vuln = self.get_instance(path)
-            
+
             # https://github.com/andresriancho/w3af/issues/181
             # FIXME: for some reason, in some edge case, the get_instance
             #        returns a dict instead of a vuln object which then
             #        triggers a bug, so we have a workaround for it:
-            if not hasattr(vuln, 'get_id'):
+            if not hasattr(vuln, "get_id"):
                 return False
 
             # Is the cursor over an 'exploit' icon?
-            if vuln is not None and 0 <= x_cell <= 18 and\
-            self._is_exploitable(vuln.get_id()):
+            if (
+                vuln is not None
+                and 0 <= x_cell <= 18
+                and self._is_exploitable(vuln.get_id())
+            ):
                 tooltip.set_text(_("Exploit this vulnerability!"))
                 self.set_tooltip_cell(tooltip, path, tv_column, None)
                 return True
-            
+
             return False
 
     def _exploit_vuln(self, widg, event):
         """Exploits row's vulnerability"""
         try:
             # This method returns None if there is no path at the position.
-            path, tv_column, x_cell, _ = self.get_path_at_pos(int(event.x),
-                                                              int(event.y))
+            path, tv_column, x_cell, _ = self.get_path_at_pos(
+                int(event.x), int(event.y)
+            )
         except TypeError:
             """
             >>> a,b,c = None
@@ -420,16 +431,16 @@ class KBTree(gtk.TreeView):
         else:
             # Make the X coord relative to the cell
             x_cell -= self.get_cell_area(path, tv_column).x
-            
+
             if 0 <= x_cell <= 18:
                 # Get the potential vuln object
                 vuln = self.get_instance(path)
-                
+
                 # https://github.com/andresriancho/w3af/issues/181
                 # FIXME: for some reason, in some edge case, the get_instance
                 #        returns a dict instead of a vuln object which then
                 #        triggers a bug, so we have a workaround for it:
-                if not hasattr(vuln, 'get_id'):
+                if not hasattr(vuln, "get_id"):
                     return False
 
                 if vuln is not None and self._is_exploitable(vuln.get_id()):
@@ -439,7 +450,7 @@ class KBTree(gtk.TreeView):
                     # Exec the exploits for this vuln
                     effectively_exploit_all(self.w3af, exploits, False)
                     return True
-            
+
             return False
 
     def get_instance(self, path):
@@ -473,11 +484,11 @@ class KBTree(gtk.TreeView):
         exploits = self._get_exploits(vuln_id) or []
         # Ensure the each vuln is processed only once.
         if not exploits:
-            
+
             for exploit in self._exploit_instances:
                 if exploit.can_exploit(vuln_id):
                     exploits.append(exploit.get_name())
-                    
+
             # If found at least one exploit, add entry
             if exploits:
                 self.exploit_vulns[str(vuln_id)] = exploits
@@ -517,10 +528,21 @@ class VulnerabilityObserver(KBObserver):
 
         vuln_id = info_inst.get_id()
 
-        InfoData = namedtuple('InfoData', 'location_a location_b obj_name'
-                                          ' obj_type color_level idinstance'
-                                          ' severity vuln_id')
-        data = InfoData(location_a, location_b, obj_name, obj_type, color_level,
-                        idinstance, obj_severity, vuln_id)
+        InfoData = namedtuple(
+            "InfoData",
+            "location_a location_b obj_name"
+            " obj_type color_level idinstance"
+            " severity vuln_id",
+        )
+        data = InfoData(
+            location_a,
+            location_b,
+            obj_name,
+            obj_type,
+            color_level,
+            idinstance,
+            obj_severity,
+            vuln_id,
+        )
 
         self.kb_tree.pending_insert.put(data)

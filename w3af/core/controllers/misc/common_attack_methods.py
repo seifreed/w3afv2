@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 import difflib
 
@@ -67,14 +68,14 @@ class CommonAttackMethods(object):
         if body_a == body_b:
             return False
 
-        sequence_matcher = difflib.SequenceMatcher(lambda x: len(x) < 3,
-                                                   body_a, body_b)
+        sequence_matcher = difflib.SequenceMatcher(lambda x: len(x) < 3, body_a, body_b)
 
         body_a_len = len(body_a)
         body_b_len = len(body_b)
 
-        longest_match = sequence_matcher.find_longest_match(0, body_a_len,
-                                                            0, body_b_len)
+        longest_match = sequence_matcher.find_longest_match(
+            0, body_a_len, 0, body_b_len
+        )
         longest_match_a = longest_match[0]
         longest_match_b = longest_match[1]
         longest_match_size = longest_match[2]
@@ -90,8 +91,10 @@ class CommonAttackMethods(object):
         # less and allows me to calculate a more accurate ratio.
         #
 
-        if float(longest_match_size) == body_b_len == 0 or \
-          (float(longest_match_size) / body_b_len) < 0.01:
+        if (
+            float(longest_match_size) == body_b_len == 0
+            or (float(longest_match_size) / body_b_len) < 0.01
+        ):
             self._footer_length = 0
             self._header_length = 0
 
@@ -115,12 +118,14 @@ class CommonAttackMethods(object):
 
                 #    Now I need to calculate the header
                 longest_match_header = sequence_matcher.find_longest_match(
-                                                                0, longest_match_a,
-                                                                0, longest_match_b)
+                    0, longest_match_a, 0, longest_match_b
+                )
                 longest_match_header_size = longest_match_header[2]
 
                 #    Do we really have a header?
-                if (float(longest_match_header_size) / (body_b_len - longest_match_a)) < 0.1:
+                if (
+                    float(longest_match_header_size) / (body_b_len - longest_match_a)
+                ) < 0.1:
                     #    No we don't
                     self._header_length = 0
                 else:
@@ -138,17 +143,22 @@ class CommonAttackMethods(object):
                 #
                 body_a_reverse = body_a[::-1]
                 body_b_reverse = body_b[::-1]
-                sequence_matcher = difflib.SequenceMatcher(lambda x: len(x) < 3,
-                                                           body_a_reverse,
-                                                           body_b_reverse)
+                sequence_matcher = difflib.SequenceMatcher(
+                    lambda x: len(x) < 3, body_a_reverse, body_b_reverse
+                )
 
                 longest_match_footer = sequence_matcher.find_longest_match(
-                    0, body_a_len - self._header_length,
-                    0, body_b_len - self._header_length)
+                    0,
+                    body_a_len - self._header_length,
+                    0,
+                    body_b_len - self._header_length,
+                )
                 longest_match_footer_size = longest_match_footer[2]
 
                 #    Do we really have a footer?
-                if (float(longest_match_footer_size) / (body_b_len - longest_match_a)) < 0.01:
+                if (
+                    float(longest_match_footer_size) / (body_b_len - longest_match_a)
+                ) < 0.01:
                     #    No we don't
                     self._footer_length = 0
                 else:
@@ -161,48 +171,56 @@ class CommonAttackMethods(object):
         """
         Defines the header and footer length based on the fact that we know the
         /etc/passwd file format.
-        
+
         :param body_a: The http response body for a request that retrieves
                        /etc/passwd , without caching.
         :param body_b: The http response body for a request that retrieves
                        /etc/passwd , without caching.
-        
+
         :return: None, we just set self._header_length and self._footer_length
                  or raise and exception if the method was not properly called.
         """
         if body_a != body_b:
-            msg = '_define_cut_from_etc_passwd can only work with static'\
-                  ' responses and in this case the bodies seem to be different.'
+            msg = (
+                "_define_cut_from_etc_passwd can only work with static"
+                " responses and in this case the bodies seem to be different."
+            )
             raise ValueError(msg)
-        
-        etc_passwd_re = re.compile('[\w_-]*:x:\d*?:\d*?:[\w_, -]*:[/\w_-]*:[/\w_-]*')
+
+        etc_passwd_re = re.compile("[\w_-]*:x:\d*?:\d*?:[\w_, -]*:[/\w_-]*:[/\w_-]*")
         mo = etc_passwd_re.search(body_a)
-        
+
         if not mo:
-            msg = '_define_cut_from_etc_passwd did not find any /etc/passwd'\
-                  ' contents in the HTTP response body.'
+            msg = (
+                "_define_cut_from_etc_passwd did not find any /etc/passwd"
+                " contents in the HTTP response body."
+            )
             raise ValueError(msg)
-        
+
         match_string = mo.group(0)
-        if 'root:' not in match_string:
-            msg = '_define_cut_from_etc_passwd did not find "root:" in the'\
-                  ' first line of /etc/passwd. The algorithm is very strict'\
-                  ' and does NOT support this case.'
+        if "root:" not in match_string:
+            msg = (
+                '_define_cut_from_etc_passwd did not find "root:" in the'
+                " first line of /etc/passwd. The algorithm is very strict"
+                " and does NOT support this case."
+            )
             raise ValueError(msg)
-            
+
         start = mo.start()
-        self._header_length = start + match_string.index('root:')
-        
+        self._header_length = start + match_string.index("root:")
+
         all_match_lines = etc_passwd_re.findall(body_a)
         last_line = all_match_lines[-1]
         # The -1 is for the \n at the end of the last /etc/passwd line
         self._footer_length = len(body_a) - body_a.index(last_line) - len(last_line) - 1
-        
+
         if self._footer_length == -1:
-            msg = '_define_cut_from_etc_passwd detected an /etc/passwd that it'\
-                  ' can NOT handle because it does NOT end in a new line.'
+            msg = (
+                "_define_cut_from_etc_passwd detected an /etc/passwd that it"
+                " can NOT handle because it does NOT end in a new line."
+            )
             raise ValueError(msg)
-        
+
         return True
 
     def _define_exact_cut(self, body, expected_result):
@@ -228,9 +246,9 @@ class CommonAttackMethods(object):
             # Define the footer
             self._footer_length = len(body) - self._header_length - len(expected_result)
 
-            om.out.debug('Defined cut header and footer using exact match')
-            om.out.debug('Defined header length to %i' % self._header_length)
-            om.out.debug('Defined footer length to %i' % self._footer_length)
+            om.out.debug("Defined cut header and footer using exact match")
+            om.out.debug("Defined header length to %i" % self._header_length)
+            om.out.debug("Defined footer length to %i" % self._footer_length)
 
             return True
 
@@ -243,18 +261,21 @@ class CommonAttackMethods(object):
                      information.
         """
         if self._header_length is None or self._footer_length is None:
-            msg = ('You need to call _define_exact_cut() or _guess_cut() before'
-                   'calling _cut().')
+            msg = (
+                "You need to call _define_exact_cut() or _guess_cut() before"
+                "calling _cut()."
+            )
             raise RuntimeError(msg)
 
         if self._header_length + self._footer_length > len(body):
             # FIXME: I should handle this in some way.
-            msg = 'Cut algorithm error: len(header+footer) > len(body).'
+            msg = "Cut algorithm error: len(header+footer) > len(body)."
             raise BodyCutException(msg)
 
-        if body == '':
-            om.out.debug('Called _cut() with an empty body,'
-                         ' returning an empty result.')
+        if body == "":
+            om.out.debug(
+                "Called _cut() with an empty body," " returning an empty result."
+            )
             return body
 
         #   Special case where there are no header or footers,
@@ -262,6 +283,6 @@ class CommonAttackMethods(object):
             return body
 
         if self._footer_length == 0:
-            return body[self._header_length:]
+            return body[self._header_length :]
         else:
-            return body[self._header_length:-self._footer_length]
+            return body[self._header_length : -self._footer_length]

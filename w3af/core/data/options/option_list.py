@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.controllers.exceptions import BaseFrameworkException
 
 
@@ -28,11 +29,13 @@ class OptionList(object):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def __init__(self):
         self._internal_opt_list = []
 
     def add(self, option):
         self._internal_opt_list.append(option)
+
     append = add
 
     def __len__(self):
@@ -42,7 +45,11 @@ class OptionList(object):
         """
         A nice way of printing your object =)
         """
-        return '<OptionList: ' + '|'.join([i.get_name() for i in self._internal_opt_list]) + '>'
+        return (
+            "<OptionList: "
+            + "|".join([i.get_name() for i in self._internal_opt_list])
+            + ">"
+        )
 
     def __eq__(self, other):
         if not isinstance(other, OptionList):
@@ -81,8 +88,7 @@ class OptionList(object):
                 if o.get_name() == item_name:
                     return o
             else:
-                msg = ('The OptionList doesn\'t contain an option with the'
-                       ' name: "%s"')
+                msg = "The OptionList doesn't contain an option with the" ' name: "%s"'
                 raise BaseFrameworkException(msg % item_name)
         else:
             # An integer

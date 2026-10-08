@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import sys
 
 from flask import jsonify
@@ -30,7 +31,7 @@ from w3af.core.ui.api.utils.scans import get_scan_info_from_id
 from w3af.core.controllers.core_helpers.status import CoreStatus
 
 
-@app.route('/scans/<int:scan_id>/exceptions/', methods=['GET'])
+@app.route("/scans/<int:scan_id>/exceptions/", methods=["GET"])
 @requires_auth
 def list_exceptions(scan_id):
     """
@@ -45,7 +46,7 @@ def list_exceptions(scan_id):
     """
     scan_info = get_scan_info_from_id(scan_id)
     if scan_info is None:
-        abort(404, 'Scan not found')
+        abort(404, "Scan not found")
 
     data = []
 
@@ -54,11 +55,10 @@ def list_exceptions(scan_id):
     for exception_id, exception_data in enumerate(all_exceptions):
         data.append(exception_to_json(exception_data, scan_id, exception_id))
 
-    return jsonify({'items': data})
+    return jsonify({"items": data})
 
 
-@app.route('/scans/<int:scan_id>/exceptions/<int:exception_id>',
-           methods=['GET'])
+@app.route("/scans/<int:scan_id>/exceptions/<int:exception_id>", methods=["GET"])
 @requires_auth
 def get_exception_details(scan_id, exception_id):
     """
@@ -69,16 +69,17 @@ def get_exception_details(scan_id, exception_id):
     """
     scan_info = get_scan_info_from_id(scan_id)
     if scan_info is None:
-        abort(404, 'Scan not found')
+        abort(404, "Scan not found")
 
     all_exceptions = scan_info.w3af_core.exception_handler.get_all_exceptions()
 
     for i_exception_id, exception_data in enumerate(all_exceptions):
         if exception_id == i_exception_id:
-            return jsonify(exception_to_json(exception_data, scan_id,
-                                             exception_id, detailed=True))
+            return jsonify(
+                exception_to_json(exception_data, scan_id, exception_id, detailed=True)
+            )
 
-    abort(404, 'Not found')
+    abort(404, "Not found")
 
 
 def exception_to_json(exception_data, scan_id, exception_id, detailed=False):
@@ -89,19 +90,21 @@ def exception_to_json(exception_data, scan_id, exception_id, detailed=False):
     :param detailed: Show extra info
     :return: A dict with the exception information
     """
-    summary = {'id': exception_id,
-               'href': '/scans/%s/exceptions/%s' % (scan_id, exception_id)}
+    summary = {
+        "id": exception_id,
+        "href": "/scans/%s/exceptions/%s" % (scan_id, exception_id),
+    }
 
     # Get all the data from w3af
     summary.update(exception_data.to_json())
 
     if not detailed:
-        summary.pop('traceback')
+        summary.pop("traceback")
 
     return summary
 
 
-@app.route('/scans/<int:scan_id>/exceptions/', methods=['POST'])
+@app.route("/scans/<int:scan_id>/exceptions/", methods=["POST"])
 @requires_auth
 def exception_creator(scan_id):
     """
@@ -112,24 +115,24 @@ def exception_creator(scan_id):
     """
     scan_info = get_scan_info_from_id(scan_id)
     if scan_info is None:
-        abort(404, 'Scan not found')
+        abort(404, "Scan not found")
 
     current_status = FakeStatus(None)
-    current_status.set_running_plugin('phase', 'plugin')
-    current_status.set_current_fuzzable_request('phase',
-                                                'http://www.w3af.org/')
+    current_status.set_running_plugin("phase", "plugin")
+    current_status.set_current_fuzzable_request("phase", "http://www.w3af.org/")
 
     try:
-        raise Exception('unittest')
+        raise Exception("unittest")
     except Exception as exception:
         exec_info = sys.exc_info()
-        enabled_plugins = ''
+        enabled_plugins = ""
 
         scan_info.w3af_core.exception_handler.write_crash_file = lambda x: x
-        scan_info.w3af_core.exception_handler.handle(current_status, exception,
-                                                     exec_info, enabled_plugins)
+        scan_info.w3af_core.exception_handler.handle(
+            current_status, exception, exec_info, enabled_plugins
+        )
 
-    return jsonify({'code': 201}), 201
+    return jsonify({"code": 201}), 201
 
 
 class FakeStatus(CoreStatus):

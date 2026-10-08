@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 
 import w3af.core.controllers.output_manager as om
@@ -56,10 +57,10 @@ class web_diff(CrawlPlugin):
         self._eq_content = []
 
         # Configuration
-        self._ban_url = ['asp', 'jsp', 'php']
+        self._ban_url = ["asp", "jsp", "php"]
         self._content = True
-        self._local_dir = ''
-        self._remote_url_path = URL('http://host.tld/')
+        self._local_dir = ""
+        self._remote_url_path = URL("http://host.tld/")
 
     @runonce(exc_class=RunOnce)
     def crawl(self, fuzzable_request, debugging_id):
@@ -74,8 +75,10 @@ class web_diff(CrawlPlugin):
             os.path.walk(self._local_dir, self._compare_dir, None)
             self._generate_report()
         else:
-            msg = 'web_diff plugin: You need to configure a local directory'\
-                  ' and a remote URL to use in the diff process.'
+            msg = (
+                "web_diff plugin: You need to configure a local directory"
+                " and a remote URL to use in the diff process."
+            )
             raise BaseFrameworkException(msg)
 
     def _generate_report(self):
@@ -87,43 +90,51 @@ class web_diff(CrawlPlugin):
             - self._eq_content
         """
         if len(self._exist_remote):
-            msg = 'The following files exist in the local directory and in the'\
-                  ' remote server:'
+            msg = (
+                "The following files exist in the local directory and in the"
+                " remote server:"
+            )
             om.out.information(msg)
             for file_name in self._exist_remote:
-                om.out.information('- ' + file_name)
+                om.out.information("- " + file_name)
 
         if len(self._eq_content):
-            msg = 'The following files exist in the local directory and in the'\
-                  ' remote server and their contents match:'
+            msg = (
+                "The following files exist in the local directory and in the"
+                " remote server and their contents match:"
+            )
             om.out.information(msg)
             for file_name in self._eq_content:
-                om.out.information('- ' + file_name)
+                om.out.information("- " + file_name)
 
         if len(self._not_exist_remote):
-            msg = 'The following files exist in the local directory and do NOT'\
-                  ' exist in the remote server:'
+            msg = (
+                "The following files exist in the local directory and do NOT"
+                " exist in the remote server:"
+            )
             om.out.information(msg)
             for file_name in self._not_exist_remote:
-                om.out.information('- ' + file_name)
+                om.out.information("- " + file_name)
 
         if len(self._not_eq_content):
-            msg = 'The following files exist in the local directory and in the'\
-                  ' remote server but their contents don\'t match:'
+            msg = (
+                "The following files exist in the local directory and in the"
+                " remote server but their contents don't match:"
+            )
             om.out.information(msg)
             for file_name in self._not_eq_content:
-                om.out.information('- ' + file_name)
+                om.out.information("- " + file_name)
 
         exist = len(self._exist_remote)
         total = len(self._exist_remote) + len(self._not_exist_remote)
-        file_stats = '%s of %s' % (exist, total)
-        om.out.information('Match files: ' + file_stats)
+        file_stats = "%s of %s" % (exist, total)
+        om.out.information("Match files: " + file_stats)
 
         if self._content:
             eq_content = len(self._eq_content)
             total = len(self._eq_content) + len(self._not_eq_content)
-            content_stats = '%s of %s' % (eq_content, total)
-            om.out.information('Match contents: ' + content_stats)
+            content_stats = "%s of %s" % (eq_content, total)
+            om.out.information("Match contents: " + content_stats)
 
     def _compare_dir(self, arg, directory, flist):
         """
@@ -150,9 +161,9 @@ class web_diff(CrawlPlugin):
             self._first = False
             self._start_path = directory
 
-        relative_dir = directory.replace(self._start_path, '')
-        if relative_dir and not relative_dir.endswith('/'):
-            relative_dir += '/'
+        relative_dir = directory.replace(self._start_path, "")
+        if relative_dir and not relative_dir.endswith("/"):
+            relative_dir += "/"
 
         remote_root = self._remote_url_path
         remote_root_with_local_path = remote_root.url_join(relative_dir)
@@ -168,7 +179,7 @@ class web_diff(CrawlPlugin):
                         fr = FuzzableRequest(response.get_url())
                         self.output_queue.put(fr)
 
-                    path = '%s%s%s' % (directory, os.path.sep, fname)
+                    path = "%s%s%s" % (directory, os.path.sep, fname)
                     self._check_content(response, path)
                     self._exist_remote.append(url)
                 else:
@@ -179,14 +190,14 @@ class web_diff(CrawlPlugin):
         Check if the contents match.
         """
         if self._content:
-            if file_name.count('.'):
-                extension = os.path.splitext(file_name)[1].replace('.', '')
+            if file_name.count("."):
+                extension = os.path.splitext(file_name)[1].replace(".", "")
 
                 if extension in self._ban_url:
                     return
 
                 try:
-                    local_content = open(file_name, 'r').read()
+                    local_content = open(file_name, "r").read()
                 except:
                     om.out.debug('Failed to open file: "%s".' % file_name)
                 else:
@@ -201,22 +212,20 @@ class web_diff(CrawlPlugin):
         """
         ol = OptionList()
 
-        d = 'When comparing, also compare the content of files.'
-        o = opt_factory('content', self._content, d, BOOL)
+        d = "When comparing, also compare the content of files."
+        o = opt_factory("content", self._content, d, BOOL)
         ol.add(o)
 
-        d = 'The local directory used in the comparison.'
-        o = opt_factory('local_dir', self._local_dir, d, STRING)
+        d = "The local directory used in the comparison."
+        o = opt_factory("local_dir", self._local_dir, d, STRING)
         ol.add(o)
 
-        d = 'The remote directory used in the comparison.'
-        o = opt_factory(
-            'remote_url_path', self._remote_url_path, d, URL_OPTION_TYPE)
+        d = "The remote directory used in the comparison."
+        o = opt_factory("remote_url_path", self._remote_url_path, d, URL_OPTION_TYPE)
         ol.add(o)
 
-        d = 'When comparing content of two files, ignore files with these'\
-            'extensions.'
-        o = opt_factory('banned_ext', self._ban_url, d, LIST)
+        d = "When comparing content of two files, ignore files with these" "extensions."
+        o = opt_factory("banned_ext", self._ban_url, d, LIST)
         ol.add(o)
 
         return ol
@@ -229,18 +238,18 @@ class web_diff(CrawlPlugin):
         :param options_list: A dictionary with the options for the plugin.
         :return: No value is returned.
         """
-        url = options_list['remote_url_path'].get_value()
+        url = options_list["remote_url_path"].get_value()
         self._remote_url_path = url.get_domain_path()
 
-        local_dir = options_list['local_dir'].get_value()
+        local_dir = options_list["local_dir"].get_value()
         if os.path.isdir(local_dir):
             self._local_dir = local_dir
         else:
             msg = 'Error in user configuration: "%s" is not a directory.'
             raise BaseFrameworkException(msg % local_dir)
 
-        self._content = options_list['content'].get_value()
-        self._ban_url = options_list['banned_ext'].get_value()
+        self._content = options_list["content"].get_value()
+        self._ban_url = options_list["banned_ext"].get_value()
 
     def get_long_desc(self):
         """

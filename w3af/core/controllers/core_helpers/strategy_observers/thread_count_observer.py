@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import time
 import threading
 
@@ -34,6 +35,7 @@ class ThreadCountObserver(StrategyObserver):
     The goal is to prevent issues such as "Can't start new thread" which are
     common in applications which use a lot of threads (like w3af).
     """
+
     ANALYZE_EVERY = 30
 
     def __init__(self):
@@ -49,6 +51,6 @@ class ThreadCountObserver(StrategyObserver):
         self.last_call = current_time
 
         active_threads = threading.active_count()
-        om.out.debug('The framework has %s active threads.' % active_threads)
+        om.out.debug("The framework has %s active threads." % active_threads)
 
     crawl = audit = bruteforce = grep = log_thread_count

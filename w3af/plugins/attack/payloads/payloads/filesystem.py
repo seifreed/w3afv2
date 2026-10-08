@@ -7,14 +7,15 @@ class filesystem(Payload):
     """
     This payload shows filesystem info.
     """
+
     def api_read(self):
         result = {}
         files = []
 
-        files.append('/etc/fstab')
-        files.append('/etc/vfstab')
-        files.append('/etc/mtab')
-        files.append('/proc/mounts')
+        files.append("/etc/fstab")
+        files.append("/etc/vfstab")
+        files.append("/etc/mtab")
+        files.append("/proc/mounts")
 
         for file in files:
             content = self.shell.read(file)
@@ -27,17 +28,16 @@ class filesystem(Payload):
         result = {}
 
         def parse_win_sysdrive(iis6_log):
-            sysdrive = re.findall(
-                '(?<=m_csSysDrive=)(.*)', iis6log, re.MULTILINE)
+            sysdrive = re.findall("(?<=m_csSysDrive=)(.*)", iis6log, re.MULTILINE)
             if sysdrive:
                 sysdrive = list(set(sysdrive))
                 return sysdrive
             else:
                 return []
 
-        iis6log = self.shell.read('/windows/iis6.log')
+        iis6log = self.shell.read("/windows/iis6.log")
         if iis6log:
-            result['SysDrive'] = parse_win_sysdrive(iis6log)
+            result["SysDrive"] = parse_win_sysdrive(iis6log)
 
         return result
 
@@ -45,10 +45,10 @@ class filesystem(Payload):
         api_result = self.api_read()
 
         if not api_result:
-            return 'Filesystem configuration files not found.'
+            return "Filesystem configuration files not found."
         else:
             rows = []
-            rows.append(['Filesystem file', 'Content'])
+            rows.append(["Filesystem file", "Content"])
             rows.append([])
             for filename in api_result:
                 rows.append([filename, api_result[filename]])

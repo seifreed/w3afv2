@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import os
 
 from w3af.core.ui.tests.gui import GUI_TEST_ROOT_PATH
@@ -25,34 +26,33 @@ from w3af.core.ui.tests.wrappers.xpresser_unittest import XpresserUnittest
 
 
 class TestMainWindow(XpresserUnittest):
-    
-    IMAGES = os.path.join(GUI_TEST_ROOT_PATH, 'main_window', 'images')
-    
+
+    IMAGES = os.path.join(GUI_TEST_ROOT_PATH, "main_window", "images")
+
     def test_main_menu(self):
-        self.hover('main-window-title')
-        self.find('main-window-menu')
+        self.hover("main-window-title")
+        self.find("main-window-menu")
 
     def test_profiles_loaded(self):
-        self.find('owasp_top_10_profile')
+        self.find("owasp_top_10_profile")
 
     def test_plugins_loaded(self):
-        self.find('audit_plugin_type')
-        self.double_click('audit_plugin_type_text')
-        self.find('eval_plugin')
-        
-        self.double_click('output_plugin_type_text')
-        self.find('output_plugin_list')
-    
+        self.find("audit_plugin_type")
+        self.double_click("audit_plugin_type_text")
+        self.find("eval_plugin")
+
+        self.double_click("output_plugin_type_text")
+        self.find("output_plugin_list")
+
     def test_tab_navigation(self):
         self.sleep(1)
-        self.click('log_tab')
-        self.find('scan_not_started')
-        
-        self.click('results_tab')
-        self.find('scan_not_started')
+        self.click("log_tab")
+        self.find("scan_not_started")
 
-        self.find('throbber_stopped')
-        
-        self.click('exploit_tab')
-        self.find('exploit_list')
-        
+        self.click("results_tab")
+        self.find("scan_not_started")
+
+        self.find("throbber_stopped")
+
+        self.click("exploit_tab")
+        self.find("exploit_list")

@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import os
 import unittest
 
@@ -27,15 +28,18 @@ from nose.plugins.skip import SkipTest
 from w3af import ROOT_PATH
 from w3af.plugins.attack.payloads.payload_handler import get_payload_list
 
-PAYLOAD_PATH = os.path.join(ROOT_PATH, 'plugins', 'attack', 'payloads', 'payloads')
-TEST_PATH = os.path.join(PAYLOAD_PATH, 'tests')
+PAYLOAD_PATH = os.path.join(ROOT_PATH, "plugins", "attack", "payloads", "payloads")
+TEST_PATH = os.path.join(PAYLOAD_PATH, "tests")
 
-UNABLE_TO_TEST = ('metasploit', 'msf_linux_x86_meterpreter_reverse',
-                  'msf_windows_meterpreter_reverse_tcp',
-                  'msf_windows_vncinject_reverse')
+UNABLE_TO_TEST = (
+    "metasploit",
+    "msf_linux_x86_meterpreter_reverse",
+    "msf_windows_meterpreter_reverse_tcp",
+    "msf_windows_vncinject_reverse",
+)
 
 
-@attr('smoke')
+@attr("smoke")
 class TestUnittestCoverage(unittest.TestCase):
 
     def test_payloads(self):
@@ -57,11 +61,12 @@ class TestUnittestCoverage(unittest.TestCase):
                 missing.append(payload)
 
         if missing:
-            msg = 'The following payloads dont have unittests: %s' %  \
-                  (', '.join(sorted(missing)))
+            msg = "The following payloads dont have unittests: %s" % (
+                ", ".join(sorted(missing))
+            )
             self.assertTrue(False, msg)
 
     def _has_test(self, payload_name):
         tests = os.listdir(TEST_PATH)
-        fname = 'test_%s.py' % payload_name
+        fname = "test_%s.py" % payload_name
         return fname in tests or payload_name in UNABLE_TO_TEST

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 import socket
 
@@ -40,7 +41,7 @@ class dns_wildcard(InfrastructurePlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    SIMPLE_IP_RE = re.compile('\d?\d?\d\.\d?\d?\d\.\d?\d?\d\.\d?\d?\d')
+    SIMPLE_IP_RE = re.compile("\d?\d?\d\.\d?\d?\d\.\d?\d?\d\.\d?\d?\d")
 
     @runonce(exc_class=RunOnce)
     def discover(self, fuzzable_request, debugging_id):
@@ -64,10 +65,10 @@ class dns_wildcard(InfrastructurePlugin):
 
         if len(domain) > len(root_domain):
             # Remove the last subdomain and test with that
-            domain_without_subdomain = '.'.join(domain.split('.')[1:])
+            domain_without_subdomain = ".".join(domain.split(".")[1:])
             dns_wildcard_url.set_domain(domain_without_subdomain)
         else:
-            dns_wildcard_url.set_domain('foobar.' + domain)
+            dns_wildcard_url.set_domain("foobar." + domain)
 
         self._test_dns(original_response, dns_wildcard_url)
         self._test_ip_address(original_response, domain)
@@ -88,71 +89,84 @@ class dns_wildcard(InfrastructurePlugin):
         try:
             modified_response = self._uri_opener.GET(ip_url, cache=True)
         except BaseFrameworkException as bfe:
-            msg = ('An error occurred while fetching IP address URL in '
-                   ' dns_wildcard plugin: "%s"')
+            msg = (
+                "An error occurred while fetching IP address URL in "
+                ' dns_wildcard plugin: "%s"'
+            )
             om.out.debug(msg % bfe)
             return
 
         if is_no_content_response(modified_response):
             return
 
-        if fuzzy_equal(modified_response.get_body(), original_response.get_body(), 0.35):
+        if fuzzy_equal(
+            modified_response.get_body(), original_response.get_body(), 0.35
+        ):
             return
 
-        desc = 'The contents of %s and %s differ.'
+        desc = "The contents of %s and %s differ."
         args = (modified_response.get_uri(), original_response.get_uri())
         desc %= args
 
-        i = Info('Default virtual host',
-                 desc,
-                 modified_response.id,
-                 self.get_name())
+        i = Info("Default virtual host", desc, modified_response.id, self.get_name())
         i.set_url(modified_response.get_url())
 
-        kb.kb.append(self, 'dns_wildcard', i)
+        kb.kb.append(self, "dns_wildcard", i)
         om.out.information(i.get_desc())
 
     def _test_dns(self, original_response, dns_wildcard_url):
         """
         Check if http://www.domain.tld/ == http://domain.tld/
         """
-        headers = Headers([('Host', dns_wildcard_url.get_domain())])
+        headers = Headers([("Host", dns_wildcard_url.get_domain())])
 
         try:
-            modified_response = self._uri_opener.GET(original_response.get_url(),
-                                                     cache=True,
-                                                     headers=headers)
+            modified_response = self._uri_opener.GET(
+                original_response.get_url(), cache=True, headers=headers
+            )
         except BaseFrameworkException as bfe:
-            msg = ('An error occurred while fetching IP address URL in '
-                   ' dns_wildcard plugin: "%s"')
+            msg = (
+                "An error occurred while fetching IP address URL in "
+                ' dns_wildcard plugin: "%s"'
+            )
             om.out.debug(msg % bfe)
             return
 
-        if fuzzy_not_equal(modified_response.get_body(), original_response.get_body(), 0.35):
-            desc = ('The target site has NO DNS wildcard, and the contents'
-                    ' of "%s" differ from the contents of "%s".')
+        if fuzzy_not_equal(
+            modified_response.get_body(), original_response.get_body(), 0.35
+        ):
+            desc = (
+                "The target site has NO DNS wildcard, and the contents"
+                ' of "%s" differ from the contents of "%s".'
+            )
             desc %= (dns_wildcard_url, original_response.get_url())
 
-            i = Info('No DNS wildcard',
-                     desc,
-                     [original_response.id, modified_response.id],
-                     self.get_name())
+            i = Info(
+                "No DNS wildcard",
+                desc,
+                [original_response.id, modified_response.id],
+                self.get_name(),
+            )
             i.set_url(dns_wildcard_url)
 
-            kb.kb.append(self, 'dns_wildcard', i)
+            kb.kb.append(self, "dns_wildcard", i)
             om.out.information(i.get_desc())
         else:
-            desc = ('The target site has a DNS wildcard configuration, the'
-                    ' contents of "%s" are equal to the ones of "%s".')
+            desc = (
+                "The target site has a DNS wildcard configuration, the"
+                ' contents of "%s" are equal to the ones of "%s".'
+            )
             desc %= (dns_wildcard_url, original_response.get_url())
 
-            i = Info('DNS wildcard',
-                     desc,
-                     [original_response.id, modified_response.id],
-                     self.get_name())
+            i = Info(
+                "DNS wildcard",
+                desc,
+                [original_response.id, modified_response.id],
+                self.get_name(),
+            )
             i.set_url(original_response.get_url())
 
-            kb.kb.append(self, 'dns_wildcard', i)
+            kb.kb.append(self, "dns_wildcard", i)
             om.out.information(i.get_desc())
 
     def get_long_desc(self):

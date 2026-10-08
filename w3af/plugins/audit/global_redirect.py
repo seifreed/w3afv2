@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 
 import w3af.core.data.constants.severity as severity
@@ -36,20 +37,24 @@ class global_redirect(AuditPlugin):
     Find scripts that redirect the browser to any site.
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
-    TEST_DOMAIN = 'w3af.org'
+
+    TEST_DOMAIN = "w3af.org"
 
     EXTENDED_PAYLOADS = None
-    BASIC_PAYLOADS = {'http://www.%s/' % TEST_DOMAIN,
-                      '//%s' % TEST_DOMAIN}
+    BASIC_PAYLOADS = {"http://www.%s/" % TEST_DOMAIN, "//%s" % TEST_DOMAIN}
 
-    SCRIPT_RE = re.compile('<script.*?>(.*?)</script>', re.IGNORECASE | re.DOTALL)
-    META_URL_RE = re.compile('.*?; *?URL *?= *?(.*)', re.IGNORECASE | re.DOTALL)
+    SCRIPT_RE = re.compile("<script.*?>(.*?)</script>", re.IGNORECASE | re.DOTALL)
+    META_URL_RE = re.compile(".*?; *?URL *?= *?(.*)", re.IGNORECASE | re.DOTALL)
 
-    JS_REDIR_GENERIC_FMT = ['window\.location.*?=.*?["\'].*?%s.*?["\']',
-                            '(self|top)\.location.*?=.*?["\'].*?%s.*?["\']',
-                            'window\.location\.(replace|assign)\(["\'].*?%s.*?["\']\)']
-    REDIR_TO_TEST_DOMAIN_JS_RE = [re.compile(r % TEST_DOMAIN) for r in JS_REDIR_GENERIC_FMT]
-    JS_REDIR_RE = [re.compile(r % '') for r in JS_REDIR_GENERIC_FMT]
+    JS_REDIR_GENERIC_FMT = [
+        "window\.location.*?=.*?[\"'].*?%s.*?[\"']",
+        "(self|top)\.location.*?=.*?[\"'].*?%s.*?[\"']",
+        "window\.location\.(replace|assign)\([\"'].*?%s.*?[\"']\)",
+    ]
+    REDIR_TO_TEST_DOMAIN_JS_RE = [
+        re.compile(r % TEST_DOMAIN) for r in JS_REDIR_GENERIC_FMT
+    ]
+    JS_REDIR_RE = [re.compile(r % "") for r in JS_REDIR_GENERIC_FMT]
 
     def audit(self, freq, orig_response, debugging_id):
         """
@@ -75,7 +80,9 @@ class global_redirect(AuditPlugin):
         #
         if self._response_has_redirect(orig_response):
             extended_payloads = self._get_extended_payloads(freq)
-            self._find_open_redirect_with_payloads(freq, extended_payloads, debugging_id)
+            self._find_open_redirect_with_payloads(
+                freq, extended_payloads, debugging_id
+            )
 
     def _response_has_redirect(self, orig_response):
         """
@@ -87,7 +94,7 @@ class global_redirect(AuditPlugin):
         #   Check the response headers
         #
         lower_case_headers = orig_response.get_lower_case_headers()
-        for header_name in ('location', 'uri', 'refresh'):
+        for header_name in ("location", "uri", "refresh"):
             if header_name in lower_case_headers:
                 return True
 
@@ -124,10 +131,12 @@ class global_redirect(AuditPlugin):
         """
         mutants = create_mutants(freq, payloads)
 
-        self._send_mutants_in_threads(self._uri_opener.send_mutant,
-                                      mutants,
-                                      self._analyze_result,
-                                      debugging_id=debugging_id)
+        self._send_mutants_in_threads(
+            self._uri_opener.send_mutant,
+            mutants,
+            self._analyze_result,
+            debugging_id=debugging_id,
+        )
 
     def _get_extended_payloads(self, freq):
         """
@@ -145,18 +154,22 @@ class global_redirect(AuditPlugin):
             return self.EXTENDED_PAYLOADS
 
         netloc = freq.get_uri().get_net_location()
-        netloc = netloc.split(':')[0]
+        netloc = netloc.split(":")[0]
         args = (netloc, self.TEST_DOMAIN)
 
         extended_payloads = set()
-        extended_payloads.update(['%s.%s' % args,
-                                  '//%s.%s/' % args,
-                                  'http://%s.%s/' % args,
-                                  'https://%s.%s/' % args,
-                                  '%s@%s' % args,
-                                  '//%s@%s' % args,
-                                  'http://%s@%s' % args,
-                                  'https://%s@%s' % args])
+        extended_payloads.update(
+            [
+                "%s.%s" % args,
+                "//%s.%s/" % args,
+                "http://%s.%s/" % args,
+                "https://%s.%s/" % args,
+                "%s@%s" % args,
+                "//%s@%s" % args,
+                "http://%s@%s" % args,
+                "https://%s@%s" % args,
+            ]
+        )
 
         self.EXTENDED_PAYLOADS = extended_payloads
 
@@ -167,12 +180,18 @@ class global_redirect(AuditPlugin):
         Analyze results of the _send_mutant method.
         """
         if self._find_redirect(response):
-            desc = 'Global redirect was found at: ' + mutant.found_at()
-            
-            v = Vuln.from_mutant('Insecure redirection', desc, severity.MEDIUM,
-                                 response.id, self.get_name(), mutant)
+            desc = "Global redirect was found at: " + mutant.found_at()
 
-            self.kb_append_uniq(self, 'global_redirect', v)
+            v = Vuln.from_mutant(
+                "Insecure redirection",
+                desc,
+                severity.MEDIUM,
+                response.id,
+                self.get_name(),
+                mutant,
+            )
+
+            self.kb_append_uniq(self, "global_redirect", v)
 
     def _domain_equals_test_domain(self, redir_url):
         """
@@ -195,16 +214,18 @@ class global_redirect(AuditPlugin):
         """
         lheaders = response.get_lower_case_headers()
 
-        return self._30x_code_redirect(response, lheaders) or \
-               self._refresh_redirect(response, lheaders) or \
-               self._meta_redirect(response) or \
-               self._javascript_redirect(response)
+        return (
+            self._30x_code_redirect(response, lheaders)
+            or self._refresh_redirect(response, lheaders)
+            or self._meta_redirect(response)
+            or self._javascript_redirect(response)
+        )
 
     def _30x_code_redirect(self, response, lheaders):
         """
         Test for 302 header redirects
         """
-        for header_name in ('location', 'uri'):
+        for header_name in ("location", "uri"):
             if header_name in lheaders:
                 header_value = lheaders[header_name]
                 header_value = header_value.strip()
@@ -224,11 +245,11 @@ class global_redirect(AuditPlugin):
 
         :see: http://stackoverflow.com/questions/283752/refresh-http-header
         """
-        if 'refresh' not in lheaders:
+        if "refresh" not in lheaders:
             return False
 
-        refresh = lheaders['refresh']
-        split_refresh = refresh.split('=', 1)
+        refresh = lheaders["refresh"]
+        split_refresh = refresh.split("=", 1)
 
         if len(split_refresh) != 2:
             return False
@@ -283,10 +304,10 @@ class global_redirect(AuditPlugin):
         if mo is not None:
 
             for script_code in mo.groups():
-                script_code = script_code.split('\n')
+                script_code = script_code.split("\n")
 
                 for line in script_code:
-                    for statement in line.split(';'):
+                    for statement in line.split(";"):
                         if statement:
                             yield statement
 

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from collections import namedtuple
 from functools import partial
 
@@ -31,16 +32,14 @@ from w3af.core.controllers.exceptions import HTTPRequestException
 from w3af.core.data.fuzzer.fuzzer import create_mutants
 from w3af.core.data.kb.vuln import Vuln
 
-
-MemcacheInjection = namedtuple('MemcacheInjection',
-                               ['ok', 'error_1', 'error_2'])
+MemcacheInjection = namedtuple("MemcacheInjection", ["ok", "error_1", "error_2"])
 
 
 class memcachei(AuditPlugin):
 
-    OK = 'key1 0 30 1\r\n1\r\nset injected 0 10 10\r\n1234567890\r\n'
-    ERROR_1 = 'key1 0 f 1\r\n1\r\n'
-    ERROR_2 = 'key1 0 30 0\r\n1\r\n'
+    OK = "key1 0 30 1\r\n1\r\nset injected 0 10 10\r\n1234567890\r\n"
+    ERROR_1 = "key1 0 f 1\r\n1\r\n"
+    ERROR_2 = "key1 0 30 0\r\n1\r\n"
 
     def __init__(self):
         AuditPlugin.__init__(self)
@@ -64,13 +63,15 @@ class memcachei(AuditPlugin):
         """
         Uses the batch injection technique to find memcache injections
         """
-        mutants = create_mutants(freq, [''])
+        mutants = create_mutants(freq, [""])
 
-        self._send_mutants_in_threads(self._analyze_echo,
-                                      mutants,
-                                      callback=lambda x, y: None,
-                                      debugging_id=debugging_id,
-                                      original_response=orig_response)
+        self._send_mutants_in_threads(
+            self._analyze_echo,
+            mutants,
+            callback=lambda x, y: None,
+            debugging_id=debugging_id,
+            original_response=orig_response,
+        )
 
     def _analyze_echo(self, mutant, debugging_id=None, original_response=None):
         """
@@ -107,9 +108,9 @@ class memcachei(AuditPlugin):
         mutant.set_token_value(self.OK)
         ok_response, body_ok_response = send_clean(mutant, grep=False)
 
-        if self.equal_with_limit(body_error_1_response,
-                                 body_ok_response,
-                                 compare_diff=compare_diff):
+        if self.equal_with_limit(
+            body_error_1_response, body_ok_response, compare_diff=compare_diff
+        ):
             #
             # The "OK" and "ERROR_1" responses are equal, this means that
             # we're not in a memcached injection
@@ -120,9 +121,9 @@ class memcachei(AuditPlugin):
         mutant.set_token_value(self.ERROR_2)
         error_2_response, body_error_2_response = send_clean(mutant, grep=False)
 
-        if self.equal_with_limit(orig_body,
-                                 body_error_2_response,
-                                 compare_diff=compare_diff):
+        if self.equal_with_limit(
+            orig_body, body_error_2_response, compare_diff=compare_diff
+        ):
             #
             # now requests should be different again, otherwise injection
             # is not confirmed
@@ -130,26 +131,29 @@ class memcachei(AuditPlugin):
             return
 
         # The two errors should look very similar for a memcache inj to exist
-        if not self.equal_with_limit(body_error_1_response,
-                                     body_error_2_response,
-                                     compare_diff=compare_diff):
+        if not self.equal_with_limit(
+            body_error_1_response, body_error_2_response, compare_diff=compare_diff
+        ):
             return
 
-        response_ids = [error_1_response.id,
-                        ok_response.id,
-                        error_2_response.id]
+        response_ids = [error_1_response.id, ok_response.id, error_2_response.id]
 
-        desc = ('Memcache injection was found at: "%s", using'
-                ' HTTP method %s. The injectable parameter is: "%s"')
-        desc %= (mutant.get_url(),
-                 mutant.get_method(),
-                 mutant.get_token_name())
+        desc = (
+            'Memcache injection was found at: "%s", using'
+            ' HTTP method %s. The injectable parameter is: "%s"'
+        )
+        desc %= (mutant.get_url(), mutant.get_method(), mutant.get_token_name())
 
-        v = Vuln.from_mutant('Memcache injection vulnerability', desc,
-                             severity.HIGH, response_ids, 'memcachei',
-                             mutant)
+        v = Vuln.from_mutant(
+            "Memcache injection vulnerability",
+            desc,
+            severity.HIGH,
+            response_ids,
+            "memcachei",
+            mutant,
+        )
 
-        self.kb_append_uniq(self, 'memcachei', v)
+        self.kb_append_uniq(self, "memcachei", v)
 
     def equal_with_limit(self, body1, body2, compare_diff=False):
         """

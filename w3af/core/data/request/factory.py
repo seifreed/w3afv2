@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.url.HTTPRequest import HTTPRequest
@@ -29,18 +30,16 @@ def create_fuzzable_request_from_request(request, add_headers=None):
     :return: A fuzzable request with the same info as request
     """
     if not isinstance(request, HTTPRequest):
-        raise TypeError('Requires HTTPRequest to create FuzzableRequest.')
-    
+        raise TypeError("Requires HTTPRequest to create FuzzableRequest.")
+
     url = request.url_object
-    post_data = str(request.get_data() or '')
+    post_data = str(request.get_data() or "")
     method = request.get_method()
 
     headers = Headers(list(request.headers.items()))
     headers.update(list(request.unredirected_hdrs.items()))
     headers.update(add_headers or Headers())
 
-    return FuzzableRequest.from_parts(url, method=method, post_data=post_data,
-                                      headers=headers)
-
-
-
+    return FuzzableRequest.from_parts(
+        url, method=method, post_data=post_data, headers=headers
+    )

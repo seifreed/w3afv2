@@ -25,25 +25,25 @@ from w3af.plugins.tests.helper import PluginTest, PluginConfig
 
 class TestSitemap(PluginTest):
 
-    target_url = 'http://moth/'
+    target_url = "http://moth/"
 
     _run_configs = {
-        'cfg': {
-            'target': target_url,
-            'plugins': {'crawl': (PluginConfig('sitemap_xml'),)}
+        "cfg": {
+            "target": target_url,
+            "plugins": {"crawl": (PluginConfig("sitemap_xml"),)},
         }
     }
 
-    @attr('ci_fails')
+    @attr("ci_fails")
     def test_sitemap(self):
-        cfg = self._run_configs['cfg']
-        self._scan(cfg['target'], cfg['plugins'])
+        cfg = self._run_configs["cfg"]
+        self._scan(cfg["target"], cfg["plugins"])
 
         urls = self.kb.get_all_known_urls()
 
         self.assertEqual(len(urls), 3, urls)
 
-        hidden_url = 'http://moth/hidden/'
+        hidden_url = "http://moth/hidden/"
 
         for url in urls:
             if url.url_string == hidden_url:

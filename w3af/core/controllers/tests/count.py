@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import time
 
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
@@ -30,7 +31,7 @@ class count(CrawlPlugin):
     """
     This is a test plugin that will count how many times it called
     xurllib.GET and expose that as an attribute.
-    
+
     Only useful for testing, see test_w3afcore.py
 
     :author: Andres Riancho (andres.riancho@gmail.com)
@@ -44,6 +45,6 @@ class count(CrawlPlugin):
 
     def crawl(self, fuzzable_req):
         for i in range(self.loops):
-            self._uri_opener.GET(URL(get_moth_http('/%s' % i)))
+            self._uri_opener.GET(URL(get_moth_http("/%s" % i)))
             self.count += 1
             time.sleep(0.5)

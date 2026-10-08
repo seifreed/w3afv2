@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.data.constants.severity as severity
 
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
@@ -47,7 +48,7 @@ class directory_indexing(GrepPlugin):
         # IIS 6.0 and 7.0
         '">[To Parent Directory]</a><br><br>',
         # IIS 5.0
-        '<A HREF=".*?">.*?</A><br></pre><hr></body></html>'
+        '<A HREF=".*?">.*?</A><br></pre><hr></body></html>',
     )
     _multi_in = MultiIn(DIR_INDEXING)
 
@@ -65,24 +66,25 @@ class directory_indexing(GrepPlugin):
         """
         if not response.is_text_or_html():
             return
-        
+
         if response.get_url().get_domain_path() in self._already_visited:
             return
 
         self._already_visited.add(response.get_url().get_domain_path())
-        
+
         html_string = response.get_body()
 
         for _ in self._multi_in.query(html_string):
-            
+
             desc = 'The URL: "%s" has a directory indexing vulnerability.'
             desc = desc % response.get_url()
-            
-            v = Vuln('Directory indexing', desc, severity.LOW, response.id,
-                     self.get_name())
+
+            v = Vuln(
+                "Directory indexing", desc, severity.LOW, response.id, self.get_name()
+            )
             v.set_url(response.get_url())
 
-            self.kb_append_uniq(self, 'directory', v, 'URL')
+            self.kb_append_uniq(self, "directory", v, "URL")
             break
 
     def get_long_desc(self):

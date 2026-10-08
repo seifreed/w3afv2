@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 
 import w3af.core.controllers.output_manager as om
@@ -55,7 +56,7 @@ class wordpress_enumerate_users(CrawlPlugin):
 
         # Check if there is a wordpress installation in this directory
         domain_path = fuzzable_request.get_url().get_domain_path()
-        wp_unique_url = domain_path.url_join('wp-login.php')
+        wp_unique_url = domain_path.url_join("wp-login.php")
         response = self._uri_opener.GET(wp_unique_url, cache=True)
 
         if is_404(response):
@@ -71,7 +72,7 @@ class wordpress_enumerate_users(CrawlPlugin):
         uid = 0
 
         # Save the last title for non-redirection scenario
-        self._title_cache = ''
+        self._title_cache = ""
 
         # Tolerance for user ID gaps in the sequence (this gaps are present
         # when users are deleted and new users created)
@@ -86,7 +87,7 @@ class wordpress_enumerate_users(CrawlPlugin):
             uid += 1
             gap += 1
 
-            domain_path.querystring = [('author', ['%s' % uid])]
+            domain_path.querystring = [("author", ["%s" % uid])]
             wp_author_url = domain_path
             response_author = self._uri_opener.GET(wp_author_url, cache=True)
 
@@ -111,8 +112,9 @@ class wordpress_enumerate_users(CrawlPlugin):
         # Example strings:
         #    <title>admin | moth</title>
         #    <title>admin | Bonsai - Information Security Blog</title>
-        title_search = re.search('<title>(.*?)</title>',
-                                 response_author.get_body(), re.I)
+        title_search = re.search(
+            "<title>(.*?)</title>", response_author.get_body(), re.I
+        )
         if title_search:
             title = title_search.group(1)
             # If the title is the same than the last user
@@ -122,20 +124,20 @@ class wordpress_enumerate_users(CrawlPlugin):
             else:
                 # The title changed, username probably found
                 self._title_cache = title
-                username = title.split(' ')[0]
-                self._kb_info_user(response_author.get_url(),
-                                   response_author.id, username)
+                username = title.split(" ")[0]
+                self._kb_info_user(
+                    response_author.get_url(), response_author.id, username
+                )
                 return True
 
         return False
 
     def _extract_from_redir(self, response_author):
         path = response_author.get_redir_uri().get_path()
-        if 'author' in path:
+        if "author" in path:
             # A redirect to /author/<username> was made, username probably found
             username = path.split("/")[-2]
-            self._kb_info_user(response_author.get_uri(),
-                               response_author.id, username)
+            self._kb_info_user(response_author.get_uri(), response_author.id, username)
 
             return True
 
@@ -148,12 +150,11 @@ class wordpress_enumerate_users(CrawlPlugin):
         """
         desc = 'WordPress user "%s" found during username enumeration.'
         desc = desc % username
-        
-        i = Info('Identified WordPress user', desc, response_id,
-                 self.get_name())
+
+        i = Info("Identified WordPress user", desc, response_id, self.get_name())
         i.set_url(url)
-        
-        kb.kb.append(self, 'users', i)
+
+        kb.kb.append(self, "users", i)
         om.out.information(i.get_desc())
 
     def get_long_desc(self):

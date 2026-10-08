@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 
@@ -29,12 +30,9 @@ class TestHashAnalysis(unittest.TestCase):
 
     def test_hash_analysis(self):
         p = hash_analysis()
-        self.assertTrue(
-            p._has_hash_distribution('cdf13c6f85b216a18665e7bba74cc1a7'))
+        self.assertTrue(p._has_hash_distribution("cdf13c6f85b216a18665e7bba74cc1a7"))
 
-        self.assertFalse(
-            p._has_hash_distribution('AB_Halloween_Wallpaper_1920x1080'))
+        self.assertFalse(p._has_hash_distribution("AB_Halloween_Wallpaper_1920x1080"))
 
         # Note the "h" at the beginning
-        self.assertFalse(
-            p._has_hash_distribution('hdf13c6f85b216a18665e7bba74cc1a7'))
+        self.assertFalse(p._has_hash_distribution("hdf13c6f85b216a18665e7bba74cc1a7"))

@@ -10,14 +10,20 @@ def gen_hash(request):
         * https://github.com/andresriancho/w3af/issues/1917
     """
     req = request
-    headers_1 = ''.join('%s%s' % (safe_str(h), safe_str(v)) for h, v in req.headers.items())
-    headers_2 = ''.join('%s%s' % (safe_str(h), safe_str(v)) for h, v in req.unredirected_hdrs.items())
-    
-    the_str = '%s%s%s%s%s' % (safe_str(req.get_method()),
-                              safe_str(req.get_full_url()),
-                              headers_1,
-                              headers_2,
-                              safe_str(req.get_data() or ''))
+    headers_1 = "".join(
+        "%s%s" % (safe_str(h), safe_str(v)) for h, v in req.headers.items()
+    )
+    headers_2 = "".join(
+        "%s%s" % (safe_str(h), safe_str(v)) for h, v in req.unredirected_hdrs.items()
+    )
+
+    the_str = "%s%s%s%s%s" % (
+        safe_str(req.get_method()),
+        safe_str(req.get_full_url()),
+        headers_1,
+        headers_2,
+        safe_str(req.get_data() or ""),
+    )
 
     return hashlib.md5(the_str).hexdigest()
 
@@ -32,4 +38,4 @@ def safe_str(obj):
         return str(obj)
     except UnicodeEncodeError:
         # obj is unicode
-        return str(obj).encode('unicode_escape')
+        return str(obj).encode("unicode_escape")

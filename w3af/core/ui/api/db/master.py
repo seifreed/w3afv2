@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 # TODO: This is just a mock which in the future will allow us to have multiple
 #       running scans at the same time, results for each, etc. Now we'll only
 #       store one scan

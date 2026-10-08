@@ -19,15 +19,17 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import threading
 
 
 class ThreadedURLImpact(threading.Thread):
     """Impacts an URL in a different thread."""
+
     def __init__(self, w3af, tsup, tlow, event, fixContentLength):
         threading.Thread.__init__(self)
         self.daemon = True
-        
+
         self.tsup = tsup
         self.tlow = tlow
         self.w3af = w3af
@@ -38,9 +40,9 @@ class ThreadedURLImpact(threading.Thread):
     def run(self):
         """Starts the thread."""
         try:
-            self.httpResp = self.w3af.uri_opener.send_raw_request(self.tsup,
-                                                                  self.tlow,
-                                                                  self.fixContentLength)
+            self.httpResp = self.w3af.uri_opener.send_raw_request(
+                self.tsup, self.tlow, self.fixContentLength
+            )
             self.ok = True
         except Exception as e:
             self.exception = e

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import time
 
 import w3af.core.controllers.output_manager as om
@@ -26,8 +27,10 @@ import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.exceptions import ScanMustStopException
 from w3af.core.controllers.threads.threadpool import return_args
 from w3af.core.controllers.profiling.took_helper import TookLine
-from w3af.core.controllers.core_helpers.consumers.base_consumer import (BaseConsumer,
-                                                                        task_decorator)
+from w3af.core.controllers.core_helpers.consumers.base_consumer import (
+    BaseConsumer,
+    task_decorator,
+)
 
 
 class bruteforce(BaseConsumer):
@@ -41,18 +44,19 @@ class bruteforce(BaseConsumer):
         :param bruteforce_plugins: Instances of bruteforce plugins in a list
         :param w3af_core: The w3af core that we'll use for status reporting
         """
-        super(bruteforce, self).__init__(bruteforce_plugins, w3af_core,
-                                         thread_name=self.get_name())
+        super(bruteforce, self).__init__(
+            bruteforce_plugins, w3af_core, thread_name=self.get_name()
+        )
 
     def get_name(self):
-        return 'Bruteforcer'
+        return "Bruteforcer"
 
     def _teardown(self):
-        msg = 'Starting Bruteforce consumer _teardown() with %s plugins'
+        msg = "Starting Bruteforce consumer _teardown() with %s plugins"
         om.out.debug(msg % len(self._consumer_plugins))
 
         for plugin in self._consumer_plugins:
-            om.out.debug('Calling %s.end()' % plugin.get_name())
+            om.out.debug("Calling %s.end()" % plugin.get_name())
             start_time = time.time()
 
             try:
@@ -66,25 +70,28 @@ class bruteforce(BaseConsumer):
                 # We `pass` instead of `break` because some plugins might
                 # still be able to `end()` without sending HTTP requests to
                 # the remote server
-                msg_fmt = ('Spent %.2f seconds running %s.end() until a'
-                           ' scan must stop exception was raised')
+                msg_fmt = (
+                    "Spent %.2f seconds running %s.end() until a"
+                    " scan must stop exception was raised"
+                )
                 self._log_end_took(msg_fmt, start_time, plugin)
 
             except Exception as e:
-                msg_fmt = ('Spent %.2f seconds running %s.end() until an'
-                           ' unhandled exception was found')
+                msg_fmt = (
+                    "Spent %.2f seconds running %s.end() until an"
+                    " unhandled exception was found"
+                )
                 self._log_end_took(msg_fmt, start_time, plugin)
 
-                self.handle_exception('bruteforce',
-                                      plugin.get_name(),
-                                      'plugin.end()',
-                                      e)
+                self.handle_exception(
+                    "bruteforce", plugin.get_name(), "plugin.end()", e
+                )
 
             else:
-                msg_fmt = 'Spent %.2f seconds running %s.end()'
+                msg_fmt = "Spent %.2f seconds running %s.end()"
                 self._log_end_took(msg_fmt, start_time, plugin)
 
-        om.out.debug('Finished Bruteforce consumer _teardown()')
+        om.out.debug("Finished Bruteforce consumer _teardown()")
 
     def _run_observers(self, fuzzable_request):
         """
@@ -95,25 +102,33 @@ class bruteforce(BaseConsumer):
             for observer in self._observers:
                 observer.bruteforce(self, fuzzable_request)
         except Exception as e:
-            self.handle_exception('bruteforce',
-                                  'bruteforce._run_observers()',
-                                  'bruteforce._run_observers()', e)
+            self.handle_exception(
+                "bruteforce",
+                "bruteforce._run_observers()",
+                "bruteforce._run_observers()",
+                e,
+            )
 
     @task_decorator
     def _consume(self, function_id, work_unit):
         self._run_observers(work_unit)
 
         for plugin in self._consumer_plugins:
-            self._threadpool.apply_async(return_args(self._bruteforce),
-                                         (plugin, work_unit,),
-                                         callback=self._plugin_finished_cb)
+            self._threadpool.apply_async(
+                return_args(self._bruteforce),
+                (
+                    plugin,
+                    work_unit,
+                ),
+                callback=self._plugin_finished_cb,
+            )
 
     def _plugin_finished_cb(self, result):
-        ((plugin, input_fuzzable_request), plugin_result) = result
+        (plugin, input_fuzzable_request), plugin_result = result
         for new_fuzzable_request in plugin_result:
-            self._out_queue.put((plugin.get_name(),
-                                 input_fuzzable_request,
-                                 new_fuzzable_request))
+            self._out_queue.put(
+                (plugin.get_name(), input_fuzzable_request, new_fuzzable_request)
+            )
 
     @task_decorator
     def _bruteforce(self, function_id, plugin, fuzzable_request):
@@ -135,23 +150,25 @@ class bruteforce(BaseConsumer):
 
         # Logging
         args = (plugin.get_name(), fuzzable_request.get_uri())
-        om.out.debug('%s.bruteforce(%s)' % args)
-        took_line = TookLine(self._w3af_core,
-                             plugin.get_name(),
-                             'bruteforce',
-                             method_params={'uri': fuzzable_request.get_uri()})
+        om.out.debug("%s.bruteforce(%s)" % args)
+        took_line = TookLine(
+            self._w3af_core,
+            plugin.get_name(),
+            "bruteforce",
+            method_params={"uri": fuzzable_request.get_uri()},
+        )
 
         # Status
-        self._w3af_core.status.set_running_plugin('bruteforce', plugin.get_name())
-        self._w3af_core.status.set_current_fuzzable_request('bruteforce',
-                                                            fuzzable_request)
+        self._w3af_core.status.set_running_plugin("bruteforce", plugin.get_name())
+        self._w3af_core.status.set_current_fuzzable_request(
+            "bruteforce", fuzzable_request
+        )
 
         # TODO: Report progress to the core.
         try:
             new_frs = plugin.bruteforce_wrapper(fuzzable_request)
         except Exception as e:
-            self.handle_exception('bruteforce', plugin.get_name(),
-                                  fuzzable_request, e)
+            self.handle_exception("bruteforce", plugin.get_name(), fuzzable_request, e)
         else:
             res.update(new_frs)
 

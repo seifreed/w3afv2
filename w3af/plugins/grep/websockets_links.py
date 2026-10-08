@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 
 import w3af.core.controllers.output_manager as om
@@ -29,14 +30,16 @@ from w3af.core.data.parsers.doc.javascript import JavaScriptParser
 from w3af.core.data.kb.info_set import InfoSet
 from w3af.core.data.kb.info import Info
 
-
-WS_URL = 'ws://'
-WSS_URL = 'wss://'
-WEBSOCKETS_URL_RE = re.compile('["|\']{1}(wss?:\/\/'
-                               '[\da-z\.-]+'
-                               '(\.[a-z\.]{2,6})?'
-                               '(\:\d{1,5})?'
-                               '([\da-z\.-\_\/])*)["|\']{1}', re.U | re.I)
+WS_URL = "ws://"
+WSS_URL = "wss://"
+WEBSOCKETS_URL_RE = re.compile(
+    "[\"|']{1}(wss?:\/\/"
+    "[\da-z\.-]+"
+    "(\.[a-z\.]{2,6})?"
+    "(\:\d{1,5})?"
+    "([\da-z\.-\_\/])*)[\"|']{1}",
+    re.U | re.I,
+)
 
 
 class websockets_links(GrepPlugin):
@@ -45,6 +48,7 @@ class websockets_links(GrepPlugin):
 
     :author: Dmitry Roshchin (nixwizard@gmail.com)
     """
+
     def grep(self, request, response):
         """
         websockets_links
@@ -73,7 +77,7 @@ class websockets_links(GrepPlugin):
             ws_links = set()
             get_tags = parser_cache.dpc.get_tags_by_filter
 
-            for tag in get_tags(response, ('script',), yield_text=True):
+            for tag in get_tags(response, ("script",), yield_text=True):
                 # pylint: disable=E1101
                 for ws_link in find_websockets_links(tag.text):
                     ws_links.add(ws_link)
@@ -83,24 +87,26 @@ class websockets_links(GrepPlugin):
         if len(ws_links) == 0:
             # TODO: In some scenarios this message is repeated multiple, since
             #       it's a debug() message we don't care that much.
-            msg = ('The URL "%s" has signs of HTML5 WebSockets usage,'
-                   ' but failed to find any useful links. Perhaps links are'
-                   ' dynamically created using javascript. Manual inspection'
-                   ' of the page source is recommended.')
+            msg = (
+                'The URL "%s" has signs of HTML5 WebSockets usage,'
+                " but failed to find any useful links. Perhaps links are"
+                " dynamically created using javascript. Manual inspection"
+                " of the page source is recommended."
+            )
             om.out.debug(msg % url)
 
         for ws_link in ws_links:
             desc = 'The URL: "%s" uses HTML5 websocket "%s"'
             desc %= (url, ws_link)
 
-            i = Info('HTML5 WebSocket detected', desc, response.id,
-                     self.get_name())
+            i = Info("HTML5 WebSocket detected", desc, response.id, self.get_name())
             i.set_url(url)
             i[WebSocketInfoSet.ITAG] = ws_link
 
             # Store found links
-            self.kb_append_uniq_group(self, 'websockets_links', i,
-                                      group_klass=WebSocketInfoSet)
+            self.kb_append_uniq_group(
+                self, "websockets_links", i, group_klass=WebSocketInfoSet
+            )
 
     def get_long_desc(self):
         """
@@ -127,12 +133,12 @@ def find_websockets_links(text):
 
 
 class WebSocketInfoSet(InfoSet):
-    ITAG = 'ws_link'
+    ITAG = "ws_link"
     TEMPLATE = (
         'The application uses the HTML5 WebSocket URL "{{ ws_link }}" in'
-        ' {{ uris|length }} different URLs. The first ten URLs are:\n'
-        ''
-        '{% for url in uris[:10] %}'
-        ' - {{ url }}\n'
-        '{% endfor %}'
+        " {{ uris|length }} different URLs. The first ten URLs are:\n"
+        ""
+        "{% for url in uris[:10] %}"
+        " - {{ url }}\n"
+        "{% endfor %}"
     )

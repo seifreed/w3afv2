@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import unittest
 
 from nose.plugins.attrib import attr
@@ -33,38 +34,45 @@ from w3af.plugins.tests.helper import PluginTest, PluginConfig
 from w3af.plugins.grep.cross_domain_js import cross_domain_js
 
 
-@attr('smoke')
+@attr("smoke")
 class TestCrossDomainJS(PluginTest):
-    target_url = get_moth_http('/grep/cross_domain_js/')
+    target_url = get_moth_http("/grep/cross_domain_js/")
 
     _run_configs = {
-        'cfg': {
-            'target': target_url,
-            'plugins': {
-                'grep': (PluginConfig('cross_domain_js'),),
-                'crawl': (
-                    PluginConfig('web_spider',
-                                 ('only_forward', True, PluginConfig.BOOL)),)
-            }
+        "cfg": {
+            "target": target_url,
+            "plugins": {
+                "grep": (PluginConfig("cross_domain_js"),),
+                "crawl": (
+                    PluginConfig(
+                        "web_spider", ("only_forward", True, PluginConfig.BOOL)
+                    ),
+                ),
+            },
         }
     }
 
     def test_found_vuln(self):
-        cfg = self._run_configs['cfg']
-        self._scan(cfg['target'], cfg['plugins'])
+        cfg = self._run_configs["cfg"]
+        self._scan(cfg["target"], cfg["plugins"])
 
-        info_sets = self.kb.get('cross_domain_js', 'cross_domain_js')
+        info_sets = self.kb.get("cross_domain_js", "cross_domain_js")
         self.assertEqual(2, len(info_sets), info_sets)
 
-        self.assertEqual(set([i.get_attribute('domain') for i in info_sets]),
-                         {'moth', 'www.w3af.org'})
+        self.assertEqual(
+            set([i.get_attribute("domain") for i in info_sets]),
+            {"moth", "www.w3af.org"},
+        )
 
-        self.assertEqual(set([i.get_name() for i in info_sets]),
-                         {'Cross-domain javascript source'})
+        self.assertEqual(
+            set([i.get_name() for i in info_sets]), {"Cross-domain javascript source"}
+        )
 
-        all_files = {'cross_domain_script_mixed.html',
-                     'cross_domain_script_with_type.html',
-                     'cross_domain_script.html'}
+        all_files = {
+            "cross_domain_script_mixed.html",
+            "cross_domain_script_with_type.html",
+            "cross_domain_script.html",
+        }
         found_files = set()
         for info_set in info_sets:
             for info in info_set.infos:
@@ -84,36 +92,36 @@ class TestCrossDomainJSRaw(unittest.TestCase):
 
     def test_cross_domain_third_party_is_secure(self):
         body = '<script src="https://cdn.akamai.net/foo.js"></script>'
-        url = URL('http://www.w3af.com/')
-        headers = Headers([('content-type', 'text/html')])
-        request = FuzzableRequest(url, method='GET')
+        url = URL("http://www.w3af.com/")
+        headers = Headers([("content-type", "text/html")])
+        request = FuzzableRequest(url, method="GET")
         resp = HTTPResponse(200, body, headers, url, url, _id=1)
 
         self.plugin.grep(request, resp)
         self.plugin.end()
 
-        infos = kb.kb.get('cross_domain_js', 'cross_domain_js')
+        infos = kb.kb.get("cross_domain_js", "cross_domain_js")
         self.assertEqual(len(infos), 0)
 
     def test_cross_domain_third_party_is_insecure(self):
         body = '<script src="https://cdn.akamai-wannabe.net/foo.js"></script>'
-        url = URL('http://www.w3af.com/')
-        headers = Headers([('content-type', 'text/html')])
-        request = FuzzableRequest(url, method='GET')
+        url = URL("http://www.w3af.com/")
+        headers = Headers([("content-type", "text/html")])
+        request = FuzzableRequest(url, method="GET")
         resp = HTTPResponse(200, body, headers, url, url, _id=1)
 
         self.plugin.grep(request, resp)
         self.plugin.end()
 
-        infos = kb.kb.get('cross_domain_js', 'cross_domain_js')
+        infos = kb.kb.get("cross_domain_js", "cross_domain_js")
         self.assertEqual(len(infos), 1)
 
     def test_cross_domain_third_party_is_insecure_group_info_set(self):
         body = '<script src="https://cdn.akamai-wannabe.net/foo.js"></script>'
-        url_1 = URL('http://www.w3af.com/1')
-        url_2 = URL('http://www.w3af.com/2')
-        headers = Headers([('content-type', 'text/html')])
-        request = FuzzableRequest(url_1, method='GET')
+        url_1 = URL("http://www.w3af.com/1")
+        url_2 = URL("http://www.w3af.com/2")
+        headers = Headers([("content-type", "text/html")])
+        request = FuzzableRequest(url_1, method="GET")
         resp_1 = HTTPResponse(200, body, headers, url_1, url_1, _id=1)
         resp_2 = HTTPResponse(200, body, headers, url_2, url_2, _id=1)
 
@@ -121,17 +129,19 @@ class TestCrossDomainJSRaw(unittest.TestCase):
         self.plugin.grep(request, resp_2)
         self.plugin.end()
 
-        expected_desc = 'The application contains 2 different URLs with a' \
-                        ' script tag which includes JavaScript source from' \
-                        ' the potentially insecure "cdn.akamai-wannabe.net"' \
-                        ' third party site. This practice is not recommended' \
-                        ' because it delegates the security of the site to' \
-                        ' an external entity. The first two vulnerable URLs' \
-                        ' are:\n - http://www.w3af.com/2\n' \
-                        ' - http://www.w3af.com/1\n'
+        expected_desc = (
+            "The application contains 2 different URLs with a"
+            " script tag which includes JavaScript source from"
+            ' the potentially insecure "cdn.akamai-wannabe.net"'
+            " third party site. This practice is not recommended"
+            " because it delegates the security of the site to"
+            " an external entity. The first two vulnerable URLs"
+            " are:\n - http://www.w3af.com/2\n"
+            " - http://www.w3af.com/1\n"
+        )
 
         # pylint: disable=E1103
-        info_set = kb.kb.get_one('cross_domain_js', 'cross_domain_js')
+        info_set = kb.kb.get_one("cross_domain_js", "cross_domain_js")
         self.assertEqual(set(info_set.get_urls()), {url_1, url_2})
         self.assertEqual(info_set.get_desc(), expected_desc)
         # pylint: enable=E1103

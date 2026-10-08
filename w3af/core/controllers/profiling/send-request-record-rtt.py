@@ -1,7 +1,6 @@
 #!/usr/bin/python -u
 
 
-
 import requests
 import time
 import sys
@@ -9,7 +8,7 @@ import sys
 
 def log(message):
     print(message)
-    open('rtt.log', 'a').write(message + '\n')
+    open("rtt.log", "a").write(message + "\n")
 
 
 def send_forever(target):
@@ -29,32 +28,36 @@ def send_forever(target):
 
         spent = time.time() - start
 
-        msg = '[%s][%s] Received %s bytes in %.2f seconds'
+        msg = "[%s][%s] Received %s bytes in %.2f seconds"
         args = (i, response.status_code, len(response.text), spent)
         log(msg % args)
 
         time.sleep(0.5)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         target = sys.argv[1]
     except:
-        print('Target URL is missing')
-        print('')
-        print('python w3af/core/controllers/profiling/send-request-record-rtt.py http://target.com/?rtt-measurement=')
-        print('')
+        print("Target URL is missing")
+        print("")
+        print(
+            "python w3af/core/controllers/profiling/send-request-record-rtt.py http://target.com/?rtt-measurement="
+        )
+        print("")
         sys.exit(1)
 
-    if '?' not in target:
-        print('Target URL requires a query string parameter')
-        print('')
-        print('python w3af/core/controllers/profiling/send-request-record-rtt.py http://target.com/?rtt-measurement=')
-        print('')
+    if "?" not in target:
+        print("Target URL requires a query string parameter")
+        print("")
+        print(
+            "python w3af/core/controllers/profiling/send-request-record-rtt.py http://target.com/?rtt-measurement="
+        )
+        print("")
         sys.exit(1)
 
     try:
         send_forever(target)
     except KeyboardInterrupt:
-        print('Done!')
+        print("Done!")
         sys.exit(0)

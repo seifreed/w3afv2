@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.controllers.output_manager as om
 
 from w3af.core.controllers.exceptions import BaseFrameworkException
@@ -41,10 +42,10 @@ class atHandler(delayedExecution):
         """
         :return: True if the remote user can add entries to his crontab
         """
-        om.out.debug('[atHandler] Verifying if the remote user can run the at command.')
-        res = self._exec('at')
+        om.out.debug("[atHandler] Verifying if the remote user can run the at command.")
+        res = self._exec("at")
 
-        if 'Access is denied' in res:
+        if "Access is denied" in res:
             return False
         else:
             return True
@@ -54,28 +55,27 @@ class atHandler(delayedExecution):
         Adds a command to the cron.
         """
         # Save this for later
-        self._filename = command_to_exec.split(' ')[0]
+        self._filename = command_to_exec.split(" ")[0]
 
         # Work
-        remoteTime = self._exec('time')
+        remoteTime = self._exec("time")
         atCommand, wait_time = self._create_at_command(remoteTime, command_to_exec)
 
         # Schedule the shellcode for execution
         self._exec(atCommand)
-        om.out.debug(
-            '[atHandler] Shellcode successfully added to "at" service.')
+        om.out.debug('[atHandler] Shellcode successfully added to "at" service.')
 
         return wait_time
 
     def restore_old_schedule(self):
         try:
-            taskList = self._exec('at')
-            for line in taskList.split('\n'):
+            taskList = self._exec("at")
+            for line in taskList.split("\n"):
                 if self._filename in line:
                     taskId = line.split()[1]
                     break
 
-            self._exec('at ' + taskId + ' /delete')
+            self._exec("at " + taskId + " /delete")
         except:
             om.out.debug('Failed to remove task from "at" service.')
 
@@ -91,28 +91,30 @@ class atHandler(delayedExecution):
         :return: A tuple with the "at" command, and the time that it will take
                  to run the command.
         """
-        res = 'at '
+        res = "at "
         try:
-            time = time.split('\n')[0].split(':')[1:]
+            time = time.split("\n")[0].split(":")[1:]
             hour = time[0]
             minute = time[1]
-            if '.' in time[2]:
+            if "." in time[2]:
                 # windows 2k
-                seconds = time[2].split('.')[0]
+                seconds = time[2].split(".")[0]
             else:
                 # windows XP. This assholes reimplement the time command from
                 # one release to another...
-                seconds = time[2].split(',')[0]
+                seconds = time[2].split(",")[0]
 
             # TODO ( see below )
             if int(hour) > 12:
-                am_pm = ''
+                am_pm = ""
             else:
                 # TODO !
                 # analyze... before I had am_pm = 'a' ; check if this is really necesary
-                am_pm = ''
+                am_pm = ""
         except:
-            raise BaseFrameworkException('The time command of the remote server returned an unknown format.')
+            raise BaseFrameworkException(
+                "The time command of the remote server returned an unknown format."
+            )
         else:
 
             if int(seconds) > 57:
@@ -126,7 +128,6 @@ class atHandler(delayedExecution):
             minute = int(minute) + delta
             hour, minute, am_pm = self._fix_time(hour, minute, am_pm)
 
-            res += str(
-                hour) + ':' + str(minute).zfill(2) + am_pm + ' ' + command
+            res += str(hour) + ":" + str(minute).zfill(2) + am_pm + " " + command
 
         return res, wait_time

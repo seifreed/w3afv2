@@ -20,6 +20,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import copy
 
 from itertools import chain, zip_longest
@@ -42,7 +43,7 @@ class DataContainer(DiskItem):
         return self.encoding
 
     def get_type(self):
-        return 'Generic data container'
+        return "Generic data container"
 
     @classmethod
     def from_postdata(cls, headers, post_data):
@@ -114,9 +115,9 @@ class DataContainer(DiskItem):
 
                 return token
 
-        path_str = lambda path: '(%s)' % ', '.join([smart_str_ignore(i) for i in path])
+        path_str = lambda path: "(%s)" % ", ".join([smart_str_ignore(i) for i in path])
         ppath = path_str(token_path)
-        vpath = ' - '.join([path_str(p) for _, _, p, _ in self.iter_setters()])
+        vpath = " - ".join([path_str(p) for _, _, p, _ in self.iter_setters()])
 
         if vpath:
             msg = 'Invalid token path "%s". Valid paths are: %s'
@@ -182,9 +183,9 @@ class DataContainer(DiskItem):
                  have the same token names, and for each token the type (int or
                  string) is the same.
         """
-        for tself, tother in zip_longest(chain(self.iter_tokens()),
-                                          chain(other.iter_tokens()),
-                                          fillvalue=None):
+        for tself, tother in zip_longest(
+            chain(self.iter_tokens()), chain(other.iter_tokens()), fillvalue=None
+        ):
             if None in (tself, tother):
                 # One data container has more parameters than the other one
                 return False
@@ -242,7 +243,7 @@ class DataContainer(DiskItem):
         return str(self)
 
     def get_eq_attrs(self):
-        return ['all_items']
+        return ["all_items"]
 
     def __eq__(self, other):
         return str(self) == str(other)

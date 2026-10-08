@@ -18,22 +18,29 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 from nose.plugins.attrib import attr
-from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import PayloadTestHelper
+from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
+    PayloadTestHelper,
+)
 from w3af.plugins.attack.payloads.payload_handler import exec_payload
 
 
 class test_log_reader(PayloadTestHelper):
 
-    EXPECTED_RESULT = set(['/var/log/wtmp',
-                           '/var/log/dpkg.log',
-                           # The permissions changed and now we can't read it
-                           # '/var/log/apt/term.log', 
-                           '/var/log/boot.log',
-                           '/var/log/faillog'])
+    EXPECTED_RESULT = set(
+        [
+            "/var/log/wtmp",
+            "/var/log/dpkg.log",
+            # The permissions changed and now we can't read it
+            # '/var/log/apt/term.log',
+            "/var/log/boot.log",
+            "/var/log/faillog",
+        ]
+    )
 
-    @attr('ci_fails')
+    @attr("ci_fails")
     def test_log_reader(self):
-        result = exec_payload(self.shell, 'log_reader', use_api=True)
+        result = exec_payload(self.shell, "log_reader", use_api=True)
         logs = set(result.keys())
         self.assertTrue(self.EXPECTED_RESULT.issubset(logs), logs)

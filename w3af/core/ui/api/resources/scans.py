@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from multiprocessing.dummy import Process
 from flask import jsonify, request
 
@@ -27,17 +28,19 @@ from w3af.core.ui.api.utils.error import abort
 from w3af.core.ui.api.utils.auth import requires_auth
 from w3af.core.ui.api.db.master import SCANS, ScanInfo
 from w3af.core.ui.api.utils.log_handler import RESTAPIOutput
-from w3af.core.ui.api.utils.scans import (get_scan_info_from_id,
-                                          start_scan_helper,
-                                          get_new_scan_id,
-                                          create_temp_profile,
-                                          remove_temp_profile)
+from w3af.core.ui.api.utils.scans import (
+    get_scan_info_from_id,
+    start_scan_helper,
+    get_new_scan_id,
+    create_temp_profile,
+    remove_temp_profile,
+)
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.controllers.w3afCore import w3afCore
 from w3af.core.controllers.exceptions import BaseFrameworkException
 
 
-@app.route('/scans/', methods=['POST'])
+@app.route("/scans/", methods=["POST"])
 @requires_auth
 def start_scan():
     """
@@ -51,14 +54,14 @@ def start_scan():
         - The URL to the newly created scan (eg. /scans/1)
         - The newly created scan ID (eg. 1)
     """
-    if not request.json or not 'scan_profile' in request.json:
-        abort(400, 'Expected scan_profile in JSON object')
+    if not request.json or not "scan_profile" in request.json:
+        abort(400, "Expected scan_profile in JSON object")
 
-    if not request.json or not 'target_urls' in request.json:
-        abort(400, 'Expected target_urls in JSON object')
+    if not request.json or not "target_urls" in request.json:
+        abort(400, "Expected target_urls in JSON object")
 
-    scan_profile = request.json['scan_profile']
-    target_urls = request.json['target_urls']
+    scan_profile = request.json["scan_profile"]
+    target_urls = request.json["target_urls"]
 
     #
     # First make sure that there are no other scans running, remember that this
@@ -66,9 +69,12 @@ def start_scan():
     #
     scan_infos = list(SCANS.values())
     if not all([si is None for si in scan_infos]):
-        abort(400, 'This version of the REST API does not support'
-                   ' concurrent scans. Remember to DELETE finished scans'
-                   ' before starting a new one.')
+        abort(
+            400,
+            "This version of the REST API does not support"
+            " concurrent scans. Remember to DELETE finished scans"
+            " before starting a new one.",
+        )
 
     #
     # Before trying to start a new scan we verify that the scan profile is
@@ -78,8 +84,7 @@ def start_scan():
     w3af_core = w3afCore()
 
     try:
-        w3af_core.profiles.use_profile(scan_profile_file_name,
-                                       workdir=profile_path)
+        w3af_core.profiles.use_profile(scan_profile_file_name, workdir=profile_path)
     except BaseFrameworkException as bfe:
         abort(400, str(bfe))
     finally:
@@ -89,7 +94,7 @@ def start_scan():
     # Now that we know that the profile is valid I verify the scan target info
     #
     if target_urls is None or not len(target_urls):
-        abort(400, 'No target URLs specified')
+        abort(400, "No target URLs specified")
 
     for target_url in target_urls:
         try:
@@ -98,7 +103,7 @@ def start_scan():
             abort(400, 'Invalid URL: "%s"' % target_url)
 
     target_options = w3af_core.target.get_options()
-    target_option = target_options['target']
+    target_option = target_options["target"]
     try:
         target_option.set_value([URL(u) for u in target_urls])
         w3af_core.target.set_options(target_options)
@@ -117,17 +122,18 @@ def start_scan():
     # Finally, start the scan in a different thread
     #
     args = (scan_info,)
-    t = Process(target=start_scan_helper, name='ScanThread', args=args)
+    t = Process(target=start_scan_helper, name="ScanThread", args=args)
     t.daemon = True
 
     t.start()
 
-    return jsonify({'message': 'Success',
-                    'id': scan_id,
-                    'href': '/scans/%s' % scan_id}), 201
+    return (
+        jsonify({"message": "Success", "id": scan_id, "href": "/scans/%s" % scan_id}),
+        201,
+    )
 
 
-@app.route('/scans/', methods=['GET'])
+@app.route("/scans/", methods=["GET"])
 @requires_auth
 def list_scans():
     """
@@ -147,16 +153,20 @@ def list_scans():
         status = scan_info.w3af_core.status.get_simplified_status()
         errors = True if scan_info.exception is not None else False
 
-        data.append({'id': scan_id,
-                     'href': '/scans/%s' % scan_id,
-                     'target_urls': target_urls,
-                     'status': status,
-                     'errors': errors})
+        data.append(
+            {
+                "id": scan_id,
+                "href": "/scans/%s" % scan_id,
+                "target_urls": target_urls,
+                "status": status,
+                "errors": errors,
+            }
+        )
 
-    return jsonify({'items': data})
+    return jsonify({"items": data})
 
 
-@app.route('/scans/<int:scan_id>', methods=['DELETE'])
+@app.route("/scans/<int:scan_id>", methods=["DELETE"])
 @requires_auth
 def scan_delete(scan_id):
     """
@@ -168,21 +178,21 @@ def scan_delete(scan_id):
     """
     scan_info = get_scan_info_from_id(scan_id)
     if scan_info is None:
-        abort(404, 'Scan not found')
+        abort(404, "Scan not found")
 
     if scan_info.w3af_core is None:
-        abort(400, 'Scan state is invalid and can not be cleared')
+        abort(400, "Scan state is invalid and can not be cleared")
 
     if not scan_info.w3af_core.can_cleanup():
-        abort(403, 'Scan is not ready to be cleared')
+        abort(403, "Scan is not ready to be cleared")
 
     scan_info.cleanup()
     SCANS[scan_id] = None
 
-    return jsonify({'message': 'Success'})
+    return jsonify({"message": "Success"})
 
 
-@app.route('/scans/<int:scan_id>/status', methods=['GET'])
+@app.route("/scans/<int:scan_id>/status", methods=["GET"])
 @requires_auth
 def scan_status(scan_id):
     """
@@ -191,16 +201,16 @@ def scan_status(scan_id):
     """
     scan_info = get_scan_info_from_id(scan_id)
     if scan_info is None:
-        abort(404, 'Scan not found')
+        abort(404, "Scan not found")
 
     exc = scan_info.exception
     status = scan_info.w3af_core.status.get_status_as_dict()
-    status['exception'] = exc if exc is None else str(exc)
+    status["exception"] = exc if exc is None else str(exc)
 
     return jsonify(status)
 
 
-@app.route('/scans/<int:scan_id>/pause', methods=['GET'])
+@app.route("/scans/<int:scan_id>/pause", methods=["GET"])
 @requires_auth
 def scan_pause(scan_id):
     """
@@ -212,17 +222,17 @@ def scan_pause(scan_id):
     """
     scan_info = get_scan_info_from_id(scan_id)
     if scan_info is None:
-        abort(404, 'Scan not found')
+        abort(404, "Scan not found")
 
     if not scan_info.w3af_core.can_pause():
-        abort(403, 'Scan can not be paused')
+        abort(403, "Scan can not be paused")
 
     scan_info.w3af_core.pause()
 
-    return jsonify({'message': 'Success'})
+    return jsonify({"message": "Success"})
 
 
-@app.route('/scans/<int:scan_id>/stop', methods=['GET'])
+@app.route("/scans/<int:scan_id>/stop", methods=["GET"])
 @requires_auth
 def scan_stop(scan_id):
     """
@@ -234,13 +244,13 @@ def scan_stop(scan_id):
     """
     scan_info = get_scan_info_from_id(scan_id)
     if scan_info is None:
-        abort(404, 'Scan not found')
+        abort(404, "Scan not found")
 
     if not scan_info.w3af_core.can_stop():
-        abort(403, 'Scan can not be stop')
+        abort(403, "Scan can not be stop")
 
-    t = Process(target=scan_info.w3af_core.stop, name='ScanStopThread', args=())
+    t = Process(target=scan_info.w3af_core.stop, name="ScanStopThread", args=())
     t.daemon = True
     t.start()
 
-    return jsonify({'message': 'Stopping scan'})
+    return jsonify({"message": "Stopping scan"})

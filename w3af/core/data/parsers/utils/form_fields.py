@@ -19,14 +19,17 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
-from w3af.core.data.parsers.utils.form_constants import (INPUT_TYPE_SELECT,
-                                                         INPUT_TYPE_RADIO,
-                                                         INPUT_TYPE_CHECKBOX,
-                                                         INPUT_TYPE_FILE)
+
+from w3af.core.data.parsers.utils.form_constants import (
+    INPUT_TYPE_SELECT,
+    INPUT_TYPE_RADIO,
+    INPUT_TYPE_CHECKBOX,
+    INPUT_TYPE_FILE,
+)
 
 
 class FormFieldMixin(object):
-    __slots__ = ('input_type', 'name', 'value')
+    __slots__ = ("input_type", "name", "value")
 
     def __init__(self, input_type, name, value):
         self.input_type = input_type
@@ -47,9 +50,11 @@ class FormFieldMixin(object):
         if not isinstance(other, FormFieldMixin):
             return False
 
-        return (self.input_type == other.input_type and
-                self.name == other.name and
-                self.value == other.value)
+        return (
+            self.input_type == other.input_type
+            and self.name == other.name
+            and self.value == other.value
+        )
 
     def __getstate__(self):
         state = {k: getattr(self, k) for k in self.__slots__}
@@ -64,7 +69,8 @@ class GenericFormField(FormFieldMixin):
     """
     Represent a "common" input type such as text, password, etc.
     """
-    __slots__ = ('input_type', 'name', 'value', 'autocomplete')
+
+    __slots__ = ("input_type", "name", "value", "autocomplete")
 
     def __init__(self, input_type, name, value, autocomplete=False):
         super(GenericFormField, self).__init__(input_type, name, value)
@@ -76,7 +82,8 @@ class ChooseFormField(FormFieldMixin):
     :param values: A list with all the values this input can take
     :param value: The currently selected/enabled value
     """
-    __slots__ = ('input_type', 'name', 'values', 'value')
+
+    __slots__ = ("input_type", "name", "values", "value")
 
     def __init__(self, name, values):
         super(ChooseFormField, self).__init__(None, name, None)
@@ -95,10 +102,12 @@ class ChooseFormField(FormFieldMixin):
         if not isinstance(other, ChooseFormField):
             return False
 
-        return (self.input_type == other.input_type and
-                self.name == other.name and
-                self.value == other.value and
-                self.values == other.values)
+        return (
+            self.input_type == other.input_type
+            and self.name == other.name
+            and self.value == other.value
+            and self.values == other.values
+        )
 
 
 class SelectFormField(ChooseFormField):
@@ -114,7 +123,8 @@ class SelectFormField(ChooseFormField):
 
     The "values" attribute would hold "volvo", "saab", "mercedes", "audi".
     """
-    __slots__ = ('input_type', 'name', 'values', 'value')
+
+    __slots__ = ("input_type", "name", "values", "value")
 
     def __init__(self, name, values):
         super(SelectFormField, self).__init__(name, values)
@@ -132,7 +142,8 @@ class RadioFormField(ChooseFormField):
 
     The "values" attribute would hold "male" and "female"
     """
-    __slots__ = ('input_type', 'name', 'values', 'value')
+
+    __slots__ = ("input_type", "name", "values", "value")
 
     def __init__(self, name, values):
         super(RadioFormField, self).__init__(name, values)
@@ -151,7 +162,8 @@ class CheckboxFormField(ChooseFormField):
 
     The "values" attribute would hold "male" and "female"
     """
-    __slots__ = ('input_type', 'name', 'values', 'value')
+
+    __slots__ = ("input_type", "name", "values", "value")
 
     def __init__(self, name, values):
         super(CheckboxFormField, self).__init__(name, values)
@@ -162,7 +174,8 @@ class FileFormField(FormFieldMixin):
     """
     Represent a "common" input type such as text, password, etc.
     """
-    __slots__ = ('input_type', 'name', 'value', 'file_name')
+
+    __slots__ = ("input_type", "name", "value", "file_name")
 
     def __init__(self, name, value=None, file_name=None):
         super(FileFormField, self).__init__(None, name, value)

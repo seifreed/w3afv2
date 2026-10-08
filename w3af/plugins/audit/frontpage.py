@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.controllers.output_manager as om
 
 import w3af.core.data.kb.knowledge_base as kb
@@ -32,9 +33,11 @@ from w3af.core.data.misc.encoding import smart_str_ignore
 from w3af.core.data.fuzzer.utils import rand_alpha
 from w3af.core.data.kb.vuln import Vuln
 
-POST_BODY = ('method=put document:%s&service_name=&document=[document_name=%s'
-             ';meta_info=[]]&put_option=overwrite&comment=&'
-             'keep_checked_out=false\n')
+POST_BODY = (
+    "method=put document:%s&service_name=&document=[document_name=%s"
+    ";meta_info=[]]&put_option=overwrite&comment=&"
+    "keep_checked_out=false\n"
+)
 
 
 class frontpage(AuditPlugin):
@@ -43,6 +46,7 @@ class frontpage(AuditPlugin):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def __init__(self):
         AuditPlugin.__init__(self)
 
@@ -54,8 +58,8 @@ class frontpage(AuditPlugin):
         if self._author_url is not None:
             return self._author_url
 
-        for info in kb.kb.get('frontpage_version', 'frontpage_version'):
-            author_url = info.get('FPAuthorScriptUrl', None)
+        for info in kb.kb.get("frontpage_version", "frontpage_version"):
+            author_url = info.get("FPAuthorScriptUrl", None)
             if author_url is not None:
                 self._author_url = author_url
                 return self._author_url
@@ -75,7 +79,7 @@ class frontpage(AuditPlugin):
             return
 
         # Only identify one vulnerability of this type
-        if kb.kb.get(self, 'frontpage'):
+        if kb.kb.get(self, "frontpage"):
             return
 
         domain_path = freq.get_url().get_domain_path()
@@ -86,7 +90,7 @@ class frontpage(AuditPlugin):
 
         self._already_tested.add(domain_path)
 
-        rand_file = rand_alpha(6) + '.html'
+        rand_file = rand_alpha(6) + ".html"
         upload_id = self._upload_file(domain_path, rand_file, debugging_id)
         self._verify_upload(domain_path, rand_file, upload_id, debugging_id)
 
@@ -101,7 +105,7 @@ class frontpage(AuditPlugin):
         # saved in the kb by the infrastructure.frontpage_version plugin!
         #
         # The 4.0.2.4715 version should be dynamic!
-        version = '4.0.2.4715'
+        version = "4.0.2.4715"
 
         file_path = domain_path.get_path() + rand_file
 
@@ -112,16 +116,18 @@ class frontpage(AuditPlugin):
         target_url = self._get_author_url()
 
         try:
-            res = self._uri_opener.POST(target_url,
-                                        data=data,
-                                        debugging_id=debugging_id)
+            res = self._uri_opener.POST(
+                target_url, data=data, debugging_id=debugging_id
+            )
         except BaseFrameworkException as e:
-            om.out.debug('Exception while uploading file using author.dll: %s' % e)
+            om.out.debug("Exception while uploading file using author.dll: %s" % e)
             return None
         else:
             if res.get_code() in [200]:
-                om.out.debug('frontpage plugin seems to have successfully uploaded'
-                             ' a file to the remote server.')
+                om.out.debug(
+                    "frontpage plugin seems to have successfully uploaded"
+                    " a file to the remote server."
+                )
             return res.id
 
     def _verify_upload(self, domain_path, rand_file, upload_id, debugging_id):
@@ -135,39 +141,47 @@ class frontpage(AuditPlugin):
         target_url = domain_path.url_join(rand_file)
 
         try:
-            res = self._uri_opener.GET(target_url,
-                                       cache=False,
-                                       grep=False,
-                                       debugging_id=debugging_id)
+            res = self._uri_opener.GET(
+                target_url, cache=False, grep=False, debugging_id=debugging_id
+            )
         except BaseFrameworkException as e:
-            om.out.debug('Exception while verifying if the file that was uploaded'
-                         'using author.dll was there: %s' % e)
+            om.out.debug(
+                "Exception while verifying if the file that was uploaded"
+                "using author.dll was there: %s" % e
+            )
         else:
             # The file we uploaded has the reversed filename as body
             if rand_file[::-1] not in res.get_body():
                 return
 
-            desc = ('An insecure configuration in the frontpage extensions'
-                    ' allows unauthenticated users to upload files to the'
-                    ' remote web server.')
+            desc = (
+                "An insecure configuration in the frontpage extensions"
+                " allows unauthenticated users to upload files to the"
+                " remote web server."
+            )
 
             response_ids = [upload_id, res.id] if upload_id is not None else [res.id]
 
-            v = Vuln('Insecure Frontpage extensions configuration', desc,
-                     severity.HIGH, response_ids, self.get_name())
+            v = Vuln(
+                "Insecure Frontpage extensions configuration",
+                desc,
+                severity.HIGH,
+                response_ids,
+                self.get_name(),
+            )
 
             v.set_url(target_url)
-            v.set_method('POST')
+            v.set_method("POST")
 
             om.out.vulnerability(v.get_desc(), severity=v.get_severity())
-            self.kb_append(self, 'frontpage', v)
+            self.kb_append(self, "frontpage", v)
 
     def get_plugin_deps(self):
         """
         :return: A list with the names of the plugins that should be run before
                  the current one.
         """
-        return ['infrastructure.frontpage_version']
+        return ["infrastructure.frontpage_version"]
 
     def get_long_desc(self):
         """

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.controllers.exceptions import BaseFrameworkException
 
 
@@ -40,5 +41,7 @@ class BasePwdProfilingPlugin(object):
         :param response: In most common cases, an html. Could be almost anything
         :return: Dict of strings:repetitions
         """
-        raise BaseFrameworkException('The method get_words must be implemented'
-                                     ' by all password profiling plugins.')
+        raise BaseFrameworkException(
+            "The method get_words must be implemented"
+            " by all password profiling plugins."
+        )

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os.path
 
 from string import Template
@@ -32,8 +33,11 @@ except ImportError:
         import elementtree.ElementTree as ET
     except ImportError:
         import sys
-        print('It seems that your python installation doesn\'t have element tree', end=' ')
-        print('installed. Please install it and run w3af again.')
+
+        print(
+            "It seems that your python installation doesn't have element tree", end=" "
+        )
+        print("installed. Please install it and run w3af again.")
         sys.exit(-9)
 
 from w3af import ROOT_PATH
@@ -45,15 +49,15 @@ class helpRepository(object):
 
     :author: Alexander Berezhnoy (alexander.berezhnoy |at| gmail.com)
     """
-    
-    DEFAULT_PATH = os.path.join(ROOT_PATH, 'core', 'ui', 'console', 'help.xml')
-    
+
+    DEFAULT_PATH = os.path.join(ROOT_PATH, "core", "ui", "console", "help.xml")
+
     def __init__(self, path=DEFAULT_PATH):
         self.__doc = ET.parse(path)
         self.__map = {}
-        topics = self.__doc.findall('.//topic')
+        topics = self.__doc.findall(".//topic")
         for t in topics:
-            self.__map[str(t.attrib['name'])] = t
+            self.__map[str(t.attrib["name"])] = t
 
     def load_help(self, topic, obj=None, vars=None):
         """
@@ -64,7 +68,7 @@ class helpRepository(object):
         :param vars: a dict of variables to replace in the help text
         """
 
-        #a closure to simplify the substitution
+        # a closure to simplify the substitution
         def subst(templ):
             if not vars:
                 return templ
@@ -73,17 +77,16 @@ class helpRepository(object):
         if not obj:
             obj = HelpContainer()
         elt = self.__map[topic]
-        for catElt in elt.findall('category'):
-            catName = 'name' in catElt.attrib and catElt.attrib[
-                'name'] or 'default'
+        for catElt in elt.findall("category"):
+            catName = "name" in catElt.attrib and catElt.attrib["name"] or "default"
             catName = str(catName)
 
-            for itemElt in catElt.findall('item'):
-                itemName = str(itemElt.attrib['name'])
+            for itemElt in catElt.findall("item"):
+                itemName = str(itemElt.attrib["name"])
                 itemName = subst(itemName)
 
-                short = itemElt.findtext('head')
-                full = itemElt.findtext('body')
+                short = itemElt.findtext("head")
+                full = itemElt.findtext("body")
 
                 if not short:
                     short = itemElt.text
@@ -96,13 +99,14 @@ class helpRepository(object):
                 #    has \n for new lines. This will bring some issues when
                 #    printing the data to the console since the \r is required
                 #    there, so I simply add the \r here.
-                short = short.replace('\n', '\r\n')
+                short = short.replace("\n", "\r\n")
                 if full:
-                    full = full.replace('\n', '\r\n')
+                    full = full.replace("\n", "\r\n")
 
                 obj.add_help_entry(itemName, (short, full), catName)
 
         return obj
+
 
 # main repository
 helpMainRepository = helpRepository()
@@ -112,12 +116,13 @@ class HelpContainer(object):
     """
     Container for help items.
     """
+
     def __init__(self):
         self._table = {}
         self._subj2Gat = {}
         self._cat2Subj = {}
 
-    def add_help_entry(self, subj, content, cat=''):
+    def add_help_entry(self, subj, content, cat=""):
         """
         Adds the help entry.
         :param content: usually a tuple like (head, body)
@@ -141,7 +146,7 @@ class HelpContainer(object):
     def get_categories(self):
         return list(self._subj2Gat.keys())
 
-    def add_help(self, table, cat=''):
+    def add_help(self, table, cat=""):
         for subj in table:
             self.add_help_entry(subj, table[subj], cat)
 

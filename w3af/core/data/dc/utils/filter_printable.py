@@ -20,12 +20,12 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import string
 
 from w3af.core.data.misc.encoding import smart_str_ignore
 
-
-NON_PRINTABLE_REPLACE = '.'
+NON_PRINTABLE_REPLACE = "."
 
 
 def is_printable_chr(c):
@@ -45,4 +45,4 @@ def filter_non_printable(_str):
             elif chars[-1] != NON_PRINTABLE_REPLACE:
                 chars.append(NON_PRINTABLE_REPLACE)
 
-    return ''.join(chars)
+    return "".join(chars)

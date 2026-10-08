@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 import socket
 import ssl
@@ -32,18 +33,19 @@ class TestUpperDaemon(unittest.TestCase):
 
     @author: Andres Riancho <andres . riancho | gmail . com>
     """
+
     def setUp(self):
         self.ssl_daemon = RawSSLDaemon()
         self.ssl_daemon.start()
         self.ssl_daemon.wait_for_start()
 
     def test_basic(self):
-        sent = 'abc'
+        sent = "abc"
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock = ssl.wrap_socket(sock)
 
-        sock.connect(('127.0.0.1', self.ssl_daemon.get_port()))
+        sock.connect(("127.0.0.1", self.ssl_daemon.get_port()))
         sock.sendall(sent)
 
         received = sock.recv(3)

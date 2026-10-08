@@ -19,16 +19,19 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 import time
 
 from w3af.core.controllers.threads.threadpool import Pool
-from w3af.core.controllers.core_helpers.strategy_observers.thread_state_observer import ThreadStateObserver
+from w3af.core.controllers.core_helpers.strategy_observers.thread_state_observer import (
+    ThreadStateObserver,
+)
 
 
 class TestThreadStateObserver(unittest.TestCase):
     def test_inspect_data_to_log(self):
-        worker_pool = Pool(processes=1, worker_names='WorkerThread')
+        worker_pool = Pool(processes=1, worker_names="WorkerThread")
         tso = ThreadStateObserver()
 
         messages = []
@@ -42,7 +45,7 @@ class TestThreadStateObserver(unittest.TestCase):
             time.sleep(sleep_time)
 
         args = (2,)
-        kwds = {'x': 2}
+        kwds = {"x": 2}
         worker_pool.apply_async(func=sleep, args=args, kwds=kwds)
 
         # Let the worker get the task
@@ -53,7 +56,9 @@ class TestThreadStateObserver(unittest.TestCase):
 
         self.assertEqual(len(messages), 2, messages)
 
-        message_re = ('Worker with ID .*? has been running job .*? for .*? seconds.'
-                      ' The job is: .*?(.*?, kwargs=.*?)')
+        message_re = (
+            "Worker with ID .*? has been running job .*? for .*? seconds."
+            " The job is: .*?(.*?, kwargs=.*?)"
+        )
         self.assertRegex(messages[0], message_re)
-        self.assertEqual(messages[1], '0% of WorkerThread workers are idle.')
+        self.assertEqual(messages[1], "0% of WorkerThread workers are idle.")

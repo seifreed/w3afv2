@@ -19,26 +19,29 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import urllib.request, urllib.parse, urllib.error
 import re
 import copy
 
-from w3af.core.data.fuzzer.mutants.urlparts_mutant import (URLPartsContainer,
-                                                           URLPartsMutant,
-                                                           TOKEN)
+from w3af.core.data.fuzzer.mutants.urlparts_mutant import (
+    URLPartsContainer,
+    URLPartsMutant,
+    TOKEN,
+)
 
-
-CHUNK_RE = re.compile(r'([a-zA-Z0-9]+)')
-CHUNK_RE_2 = re.compile(r'[a-zA-Z0-9]')
+CHUNK_RE = re.compile(r"([a-zA-Z0-9]+)")
+CHUNK_RE_2 = re.compile(r"[a-zA-Z0-9]")
 
 
 class FileNameMutant(URLPartsMutant):
     """
     This class is a filename mutant.
     """
+
     @staticmethod
     def get_mutant_type():
-        return 'url filename'
+        return "url filename"
 
     def get_url(self):
         """
@@ -48,14 +51,16 @@ class FileNameMutant(URLPartsMutant):
 
         # Please note that this double encoding is needed if we want to work
         # with mod_rewrite
-        encoded = urllib.parse.quote_plus(self._url_parts_dc[TOKEN].get_value(),
-                                    self._safe_encode_chars)
+        encoded = urllib.parse.quote_plus(
+            self._url_parts_dc[TOKEN].get_value(), self._safe_encode_chars
+        )
         if self._double_encoding:
             encoded = urllib.parse.quote_plus(encoded, safe=self._safe_encode_chars)
 
-        domain_path.set_file_name('%s%s%s' % (self._url_parts_dc.url_start,
-                                              encoded,
-                                              self._url_parts_dc.url_end))
+        domain_path.set_file_name(
+            "%s%s%s"
+            % (self._url_parts_dc.url_start, encoded, self._url_parts_dc.url_end)
+        )
         return domain_path
 
     get_uri = get_url
@@ -64,24 +69,27 @@ class FileNameMutant(URLPartsMutant):
         """
         :return: A string representing WHAT was fuzzed.
         """
-        fmt = '"%s", using HTTP method %s. The modified parameter was the URL'\
-              ' filename, with value: "%s".'
+        fmt = (
+            '"%s", using HTTP method %s. The modified parameter was the URL'
+            ' filename, with value: "%s".'
+        )
         return fmt % (self.get_url(), self.get_method(), self.get_token_value())
 
     @classmethod
-    def create_mutants(cls, freq, mutant_str_list, fuzzable_param_list,
-                       append, fuzzer_config):
+    def create_mutants(
+        cls, freq, mutant_str_list, fuzzable_param_list, append, fuzzer_config
+    ):
         """
         This is a very important method which is called in order to create
         mutants. Usually called from fuzzer.py module.
-        
+
         :param fuzzable_param_list: Please note that in this case the user
                                     specifies the chunk of the filename that
                                     he wants to fuzz. Chunks:
                                         foo.bar.html
                                         0   1   2
         """
-        if not fuzzer_config['fuzz_url_filenames']:
+        if not fuzzer_config["fuzz_url_filenames"]:
             return []
 
         res = []
@@ -96,13 +104,13 @@ class FileNameMutant(URLPartsMutant):
             for mutant_str in mutant_str_list:
 
                 if CHUNK_RE_2.match(fn_chunk):
-                    fname_token = (fn_chunk if append else '') + mutant_str
-                    fname_start = ''.join(fname_chunks[:idx])
-                    fname_end = ''.join(fname_chunks[idx + 1:])
+                    fname_token = (fn_chunk if append else "") + mutant_str
+                    fname_start = "".join(fname_chunks[:idx])
+                    fname_end = "".join(fname_chunks[idx + 1 :])
 
-                    url_parts_container = URLPartsContainer(fname_start,
-                                                            fname_token,
-                                                            fname_end)
+                    url_parts_container = URLPartsContainer(
+                        fname_start, fname_token, fname_end
+                    )
 
                     freq_copy = copy.deepcopy(freq)
                     m = cls(freq_copy)
@@ -113,8 +121,8 @@ class FileNameMutant(URLPartsMutant):
                     freq_copy = copy.deepcopy(freq)
                     m2 = cls(freq_copy)
                     m2.set_dc(url_parts_container)
-                    #m2.set_double_encoding(True)
-                    m2.set_safe_encode_chars('/')
+                    # m2.set_double_encoding(True)
+                    m2.set_safe_encode_chars("/")
 
                     if m2.get_url() != m.get_url():
                         res.append(m2)

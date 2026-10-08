@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
@@ -47,4 +48,3 @@ class TestScalablePerformance(unittest.TestCase):
         for i in range(20000):
             data = (i, i)
             data in ds
-

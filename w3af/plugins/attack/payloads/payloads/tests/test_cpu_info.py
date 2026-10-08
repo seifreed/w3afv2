@@ -18,19 +18,24 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 from nose.plugins.attrib import attr
 
-from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import PayloadTestHelper
+from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
+    PayloadTestHelper,
+)
 from w3af.plugins.attack.payloads.payload_handler import exec_payload
 
 
-@attr('smoke')
+@attr("smoke")
 class test_cpu_info(PayloadTestHelper):
 
-    EXPECTED_RESULT = {'cpu_cores': '1',
-                       'cpu_info': 'AMD Phenom(tm) II X4 945 Processor'}
+    EXPECTED_RESULT = {
+        "cpu_cores": "1",
+        "cpu_info": "AMD Phenom(tm) II X4 945 Processor",
+    }
 
-    @attr('ci_fails')
+    @attr("ci_fails")
     def test_cpu_info(self):
-        result = exec_payload(self.shell, 'cpu_info', use_api=True)
+        result = exec_payload(self.shell, "cpu_info", use_api=True)
         self.assertEqual(self.EXPECTED_RESULT, result)

@@ -18,36 +18,44 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 from nose.plugins.attrib import attr
 
 from w3af.plugins.tests.helper import PluginTest, PluginConfig
 
 
-@attr('fails')
+@attr("fails")
 class TestGoogleSpider(PluginTest):
 
-    base_url = 'http://www.bonsai-sec.com/'
+    base_url = "http://www.bonsai-sec.com/"
 
     _run_configs = {
-        'cfg': {
-            'target': base_url,
-            'plugins': {'crawl': (PluginConfig('google_spider'),)}
+        "cfg": {
+            "target": base_url,
+            "plugins": {"crawl": (PluginConfig("google_spider"),)},
         }
     }
 
     def test_found_urls(self):
-        cfg = self._run_configs['cfg']
-        self._scan(cfg['target'], cfg['plugins'])
+        cfg = self._run_configs["cfg"]
+        self._scan(cfg["target"], cfg["plugins"])
 
         EXPECTED_URLS = (
-            'es/education/', 'en/clients/', 'es/', 'services/',
-            'research/', 'blog/', 'education/', 'es/research/',
-            'blog', 'es/clients/',
+            "es/education/",
+            "en/clients/",
+            "es/",
+            "services/",
+            "research/",
+            "blog/",
+            "education/",
+            "es/research/",
+            "blog",
+            "es/clients/",
         )
 
         urls = self.kb.get_all_known_urls()
 
         self.assertEqual(
             set(str(u) for u in urls),
-            set((self.base_url + end) for end in EXPECTED_URLS)
+            set((self.base_url + end) for end in EXPECTED_URLS),
         )

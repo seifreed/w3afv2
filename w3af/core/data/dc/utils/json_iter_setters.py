@@ -19,18 +19,18 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import json
 import types
 
 from w3af.core.data.dc.utils.token import DataToken
 
-
-KEY_STRING = 'string'
-KEY_OBJECT = 'object'
-KEY_ARRAY = 'list'
-KEY_NUMBER = 'number'
-KEY_NULL = 'null'
-KEY_BOOLEAN = 'boolean'
+KEY_STRING = "string"
+KEY_OBJECT = "object"
+KEY_ARRAY = "list"
+KEY_NUMBER = "number"
+KEY_NULL = "null"
+KEY_BOOLEAN = "boolean"
 
 TO_WRAP_OBJS = (int, float, str, type(None))
 
@@ -78,7 +78,9 @@ def to_mutable(arbitrary_python_obj):
 
         return arbitrary_python_obj
 
-    raise RuntimeError('Unexpected data type in JSON iter setter: %r' % arbitrary_python_obj)
+    raise RuntimeError(
+        "Unexpected data type in JSON iter setter: %r" % arbitrary_python_obj
+    )
 
 
 class MutableWrapper(object):
@@ -86,6 +88,7 @@ class MutableWrapper(object):
     Wrapper around string, int and float which allows me to provide a setter
     around them. The
     """
+
     def __init__(self, wrapped_obj):
         self._wrapped_obj = wrapped_obj
 
@@ -117,22 +120,22 @@ def _json_iter_setters(marbitrary_python_obj, key_names=None):
         if isinstance(value, str):
             key_names = key_names[:]
             key_names.append(KEY_STRING)
-            yield '-'.join(key_names), value, marbitrary_python_obj.set_value
+            yield "-".join(key_names), value, marbitrary_python_obj.set_value
 
         elif isinstance(value, (int, float)):
             key_names = key_names[:]
             key_names.append(KEY_NUMBER)
-            yield '-'.join(key_names), value, marbitrary_python_obj.set_value
+            yield "-".join(key_names), value, marbitrary_python_obj.set_value
 
         elif isinstance(value, bool):
             key_names = key_names[:]
             key_names.append(KEY_BOOLEAN)
-            yield '-'.join(key_names), value, marbitrary_python_obj.set_value
+            yield "-".join(key_names), value, marbitrary_python_obj.set_value
 
         elif value is None:
             key_names = key_names[:]
             key_names.append(KEY_NULL)
-            yield '-'.join(key_names), value, marbitrary_python_obj.set_value
+            yield "-".join(key_names), value, marbitrary_python_obj.set_value
 
         elif isinstance(value, DataToken):
             for k, v, s in _json_iter_setters(value, key_names=key_names):
@@ -147,8 +150,7 @@ def _json_iter_setters(marbitrary_python_obj, key_names=None):
             array_key_names.append(KEY_ARRAY)
             array_key_names.append(str(idx))
 
-            for k, v, s in _json_iter_setters(list_item,
-                                              key_names=array_key_names):
+            for k, v, s in _json_iter_setters(list_item, key_names=array_key_names):
                 yield k, v, s
 
     elif isinstance(marbitrary_python_obj, dict):

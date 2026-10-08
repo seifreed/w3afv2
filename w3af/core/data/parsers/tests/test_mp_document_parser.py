@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import time
 import random
@@ -42,54 +43,58 @@ from w3af.core.data.parsers.tests.test_document_parser import _build_http_respon
 class TestMPDocumentParser(unittest.TestCase):
 
     def setUp(self):
-        self.url = URL('http://w3af.com')
-        self.headers = Headers([('content-type', 'text/html')])
+        self.url = URL("http://w3af.com")
+        self.headers = Headers([("content-type", "text/html")])
         self.mpdoc = MultiProcessingDocumentParser()
 
     def tearDown(self):
         self.mpdoc.stop_workers()
 
     def test_basic(self):
-        resp = HTTPResponse(200, '<a href="/abc">hello</a>',
-                            self.headers, self.url, self.url)
+        resp = HTTPResponse(
+            200, '<a href="/abc">hello</a>', self.headers, self.url, self.url
+        )
 
         parser = self.mpdoc.get_document_parser_for(resp)
 
         parsed_refs, _ = parser.get_references()
-        self.assertEqual([URL('http://w3af.com/abc')], parsed_refs)
+        self.assertEqual([URL("http://w3af.com/abc")], parsed_refs)
 
     def test_no_parser_for_images(self):
-        body = ''
-        url = URL('http://w3af.com/foo.jpg')
-        headers = Headers([('content-type', 'image/jpeg')])
+        body = ""
+        url = URL("http://w3af.com/foo.jpg")
+        headers = Headers([("content-type", "image/jpeg")])
         resp = HTTPResponse(200, body, headers, url, url)
 
         try:
             self.mpdoc.get_document_parser_for(resp)
         except Exception as e:
-            self.assertEqual(str(e), 'There is no parser for images.')
+            self.assertEqual(str(e), "There is no parser for images.")
         else:
-            self.assertTrue(False, 'Expected exception!')
+            self.assertTrue(False, "Expected exception!")
 
     def test_parser_timeout(self):
         """
         Test to verify fix for https://github.com/andresriancho/w3af/issues/6723
         "w3af running long time more than 24h"
         """
-        mmpdp = 'w3af.core.data.parsers.mp_document_parser.%s'
-        kmpdp = mmpdp % 'MultiProcessingDocumentParser.%s'
-        modp = 'w3af.core.data.parsers.document_parser.%s'
+        mmpdp = "w3af.core.data.parsers.mp_document_parser.%s"
+        kmpdp = mmpdp % "MultiProcessingDocumentParser.%s"
+        modp = "w3af.core.data.parsers.document_parser.%s"
 
-        with patch(mmpdp % 'om.out') as om_mock,\
-             patch(kmpdp % 'PARSER_TIMEOUT', new_callable=PropertyMock) as timeout_mock,\
-             patch(kmpdp % 'MAX_WORKERS', new_callable=PropertyMock) as max_workers_mock,\
-             patch(modp % 'DocumentParser.PARSERS', new_callable=PropertyMock) as parsers_mock:
+        with patch(mmpdp % "om.out") as om_mock, patch(
+            kmpdp % "PARSER_TIMEOUT", new_callable=PropertyMock
+        ) as timeout_mock, patch(
+            kmpdp % "MAX_WORKERS", new_callable=PropertyMock
+        ) as max_workers_mock, patch(
+            modp % "DocumentParser.PARSERS", new_callable=PropertyMock
+        ) as parsers_mock:
 
             #
             #   Test the timeout
             #
-            html = '<html>DelayedParser!</html>'
-            http_resp = _build_http_response(html, 'text/html')
+            html = "<html>DelayedParser!</html>"
+            http_resp = _build_http_response(html, "text/html")
 
             timeout_mock.return_value = 1
             max_workers_mock.return_value = 1
@@ -108,8 +113,8 @@ class TestMPDocumentParser(unittest.TestCase):
             #
             #   https://github.com/andresriancho/w3af/issues/9713
             #
-            html = '<html>foo-</html>'
-            http_resp = _build_http_response(html, 'text/html')
+            html = "<html>foo-</html>"
+            http_resp = _build_http_response(html, "text/html")
 
             doc_parser = self.mpdoc.get_document_parser_for(http_resp)
             self.assertIsInstance(doc_parser._parser, HTMLParser)
@@ -122,18 +127,21 @@ class TestMPDocumentParser(unittest.TestCase):
 
         Want to test how well the the parser recovers from many timeouts.
         """
-        mmpdp = 'w3af.core.data.parsers.mp_document_parser.%s'
-        kmpdp = mmpdp % 'MultiProcessingDocumentParser.%s'
-        modp = 'w3af.core.data.parsers.document_parser.%s'
+        mmpdp = "w3af.core.data.parsers.mp_document_parser.%s"
+        kmpdp = mmpdp % "MultiProcessingDocumentParser.%s"
+        modp = "w3af.core.data.parsers.document_parser.%s"
 
-        with patch(mmpdp % 'om.out') as om_mock,\
-             patch(kmpdp % 'PARSER_TIMEOUT', new_callable=PropertyMock) as timeout_mock,\
-             patch(kmpdp % 'MAX_WORKERS', new_callable=PropertyMock) as max_workers_mock,\
-             patch(modp % 'DocumentParser.PARSERS', new_callable=PropertyMock) as parsers_mock:
+        with patch(mmpdp % "om.out") as om_mock, patch(
+            kmpdp % "PARSER_TIMEOUT", new_callable=PropertyMock
+        ) as timeout_mock, patch(
+            kmpdp % "MAX_WORKERS", new_callable=PropertyMock
+        ) as max_workers_mock, patch(
+            modp % "DocumentParser.PARSERS", new_callable=PropertyMock
+        ) as parsers_mock:
 
             # Prepare the HTTP responses
-            html_trigger_delay = '<html>DelayedParser!</html>%s'
-            html_ok = '<html>foo-</html>%s'
+            html_trigger_delay = "<html>DelayedParser!</html>%s"
+            html_ok = "<html>foo-</html>%s"
 
             # Mocks
             timeout_mock.return_value = 1
@@ -146,7 +154,7 @@ class TestMPDocumentParser(unittest.TestCase):
             # Lets timeout many sequentially
             #
             for i in range(ITERATIONS):
-                http_resp = _build_http_response(html_trigger_delay % i, 'text/html')
+                http_resp = _build_http_response(html_trigger_delay % i, "text/html")
 
                 try:
                     self.mpdoc.get_document_parser_for(http_resp)
@@ -160,7 +168,7 @@ class TestMPDocumentParser(unittest.TestCase):
             #
             for i in range(ITERATIONS):
                 html = random.choice([html_trigger_delay, html_ok])
-                http_resp = _build_http_response(html % i, 'text/html')
+                http_resp = _build_http_response(html % i, "text/html")
 
                 try:
                     parser = self.mpdoc.get_document_parser_for(http_resp)
@@ -173,7 +181,7 @@ class TestMPDocumentParser(unittest.TestCase):
             # Lets parse things we know should work
             #
             for i in range(ITERATIONS):
-                http_resp = _build_http_response(html_ok % i, 'text/html')
+                http_resp = _build_http_response(html_ok % i, "text/html")
                 parser = self.mpdoc.get_document_parser_for(http_resp)
                 self.assertIsInstance(parser._parser, HTMLParser)
 
@@ -189,25 +197,30 @@ class TestMPDocumentParser(unittest.TestCase):
 
         Try to kill the process while it is sending data to the queue
         """
-        raise SkipTest('This test breaks the build because it uses A LOT'
-                       ' of memory, for more information take a look at'
-                       ' https://circleci.com/gh/andresriancho/w3af/2819 .'
-                       ' Note that there is no memory leak here, just a'
-                       ' test which is designed to use a lot of memory'
-                       ' to force a specific state.')
+        raise SkipTest(
+            "This test breaks the build because it uses A LOT"
+            " of memory, for more information take a look at"
+            " https://circleci.com/gh/andresriancho/w3af/2819 ."
+            " Note that there is no memory leak here, just a"
+            " test which is designed to use a lot of memory"
+            " to force a specific state."
+        )
 
-        mmpdp = 'w3af.core.data.parsers.mp_document_parser.%s'
-        kmpdp = mmpdp % 'MultiProcessingDocumentParser.%s'
-        modp = 'w3af.core.data.parsers.document_parser.%s'
+        mmpdp = "w3af.core.data.parsers.mp_document_parser.%s"
+        kmpdp = mmpdp % "MultiProcessingDocumentParser.%s"
+        modp = "w3af.core.data.parsers.document_parser.%s"
 
-        with patch(mmpdp % 'om.out') as om_mock,\
-             patch(kmpdp % 'PARSER_TIMEOUT', new_callable=PropertyMock) as timeout_mock,\
-             patch(kmpdp % 'MAX_WORKERS', new_callable=PropertyMock) as max_workers_mock,\
-             patch(modp % 'DocumentParser.PARSERS', new_callable=PropertyMock) as parsers_mock:
+        with patch(mmpdp % "om.out") as om_mock, patch(
+            kmpdp % "PARSER_TIMEOUT", new_callable=PropertyMock
+        ) as timeout_mock, patch(
+            kmpdp % "MAX_WORKERS", new_callable=PropertyMock
+        ) as max_workers_mock, patch(
+            modp % "DocumentParser.PARSERS", new_callable=PropertyMock
+        ) as parsers_mock:
 
             # Prepare the HTTP responses
-            html_trigger_delay = '<html>HugeClassAttrValueParser!</html>%s'
-            html_ok = '<html>foo-</html>%s'
+            html_trigger_delay = "<html>HugeClassAttrValueParser!</html>%s"
+            html_ok = "<html>foo-</html>%s"
 
             # Mocks
             timeout_mock.return_value = 1
@@ -220,7 +233,7 @@ class TestMPDocumentParser(unittest.TestCase):
             # Lets timeout many sequentially
             #
             for i in range(ITERATIONS):
-                http_resp = _build_http_response(html_trigger_delay % i, 'text/html')
+                http_resp = _build_http_response(html_trigger_delay % i, "text/html")
 
                 try:
                     self.mpdoc.get_document_parser_for(http_resp)
@@ -234,7 +247,7 @@ class TestMPDocumentParser(unittest.TestCase):
             #
             for i in range(ITERATIONS):
                 html = random.choice([html_trigger_delay, html_ok])
-                http_resp = _build_http_response(html % i, 'text/html')
+                http_resp = _build_http_response(html % i, "text/html")
 
                 try:
                     parser = self.mpdoc.get_document_parser_for(http_resp)
@@ -247,7 +260,7 @@ class TestMPDocumentParser(unittest.TestCase):
             # Lets parse things we know should work
             #
             for i in range(ITERATIONS):
-                http_resp = _build_http_response(html_ok % i, 'text/html')
+                http_resp = _build_http_response(html_ok % i, "text/html")
                 parser = self.mpdoc.get_document_parser_for(http_resp)
                 self.assertIsInstance(parser._parser, HTMLParser)
 
@@ -256,20 +269,23 @@ class TestMPDocumentParser(unittest.TestCase):
         This makes sure that we stop parsing a document that exceeds our memory
         usage limits.
         """
-        mmpdp = 'w3af.core.data.parsers.mp_document_parser.%s'
-        kmpdp = mmpdp % 'MultiProcessingDocumentParser.%s'
-        modp = 'w3af.core.data.parsers.document_parser.%s'
+        mmpdp = "w3af.core.data.parsers.mp_document_parser.%s"
+        kmpdp = mmpdp % "MultiProcessingDocumentParser.%s"
+        modp = "w3af.core.data.parsers.document_parser.%s"
 
-        with patch(mmpdp % 'om.out') as om_mock,\
-             patch(kmpdp % 'MEMORY_LIMIT', new_callable=PropertyMock) as memory_mock,\
-             patch(kmpdp % 'MAX_WORKERS', new_callable=PropertyMock) as max_workers_mock,\
-             patch(modp % 'DocumentParser.PARSERS', new_callable=PropertyMock) as parsers_mock:
+        with patch(mmpdp % "om.out") as om_mock, patch(
+            kmpdp % "MEMORY_LIMIT", new_callable=PropertyMock
+        ) as memory_mock, patch(
+            kmpdp % "MAX_WORKERS", new_callable=PropertyMock
+        ) as max_workers_mock, patch(
+            modp % "DocumentParser.PARSERS", new_callable=PropertyMock
+        ) as parsers_mock:
 
             #
             #   Test the memory usage
             #
-            html = '<html>UseMemoryParser!</html>'
-            http_resp = _build_http_response(html, 'text/html')
+            html = "<html>UseMemoryParser!</html>"
+            http_resp = _build_http_response(html, "text/html")
 
             memory_mock.return_value = 150000
             max_workers_mock.return_value = 1
@@ -278,7 +294,7 @@ class TestMPDocumentParser(unittest.TestCase):
             try:
                 self.mpdoc.get_document_parser_for(http_resp)
             except MemoryError as me:
-                self.assertIn('OOM issues', str(me))
+                self.assertIn("OOM issues", str(me))
             else:
                 self.assertTrue(False)
 
@@ -286,18 +302,22 @@ class TestMPDocumentParser(unittest.TestCase):
             # We now want to make sure that after we stop because of a memory issue
             # the process the Pool continues handling tasks as expected
             #
-            html = '<html>foo-</html>'
-            http_resp = _build_http_response(html, 'text/html')
+            html = "<html>foo-</html>"
+            http_resp = _build_http_response(html, "text/html")
 
             doc_parser = self.mpdoc.get_document_parser_for(http_resp)
             self.assertIsInstance(doc_parser._parser, HTMLParser)
 
     def _is_timeout_exception_message(self, toe, om_mock, http_resp):
-        msg = ('[timeout] The parser took more than %s seconds to '
-               'complete parsing of "%s", killed it!')
+        msg = (
+            "[timeout] The parser took more than %s seconds to "
+            'complete parsing of "%s", killed it!'
+        )
 
-        error = msg % (MultiProcessingDocumentParser.PARSER_TIMEOUT,
-                       http_resp.get_url())
+        error = msg % (
+            MultiProcessingDocumentParser.PARSER_TIMEOUT,
+            http_resp.get_url(),
+        )
 
         self.assertEqual(str(toe), error)
 
@@ -320,8 +340,9 @@ class TestMPDocumentParser(unittest.TestCase):
 
         got_assertion_error = queue.get(timeout=10)
         if got_assertion_error:
-            self.assertTrue(False, 'daemonic processes are not allowed'
-                                   ' to have children')
+            self.assertTrue(
+                False, "daemonic processes are not allowed" " to have children"
+            )
 
     def test_non_daemon_child_ok(self):
         """
@@ -331,24 +352,26 @@ class TestMPDocumentParser(unittest.TestCase):
 
         p = multiprocessing.Process(target=daemon_child, args=(queue,))
         # This is where we change stuff:
-        #p.daemon = True
+        # p.daemon = True
         p.start()
         p.join()
 
         got_assertion_error = queue.get(timeout=10)
         if got_assertion_error:
-            self.assertTrue(False, 'daemonic processes are not allowed'
-                                   ' to have children')
+            self.assertTrue(
+                False, "daemonic processes are not allowed" " to have children"
+            )
 
     def test_dictproxy_pickle_8748(self):
         """
         MaybeEncodingError - PicklingError: Can't pickle dictproxy #8748
         https://github.com/andresriancho/w3af/issues/8748
         """
-        html_body = os.path.join(ROOT_PATH, '/core/data/parsers/tests/data/',
-                                 'pickle-8748.htm')
+        html_body = os.path.join(
+            ROOT_PATH, "/core/data/parsers/tests/data/", "pickle-8748.htm"
+        )
 
-        url = URL('http://www.ensinosuperior.org.br/asesi.htm')
+        url = URL("http://www.ensinosuperior.org.br/asesi.htm")
         resp = HTTPResponse(200, html_body, self.headers, url, url)
 
         parser = self.mpdoc.get_document_parser_for(resp)
@@ -356,27 +379,26 @@ class TestMPDocumentParser(unittest.TestCase):
 
     def test_get_tags_by_filter(self):
         body = '<html><a href="/abc">foo</a><b>bar</b></html>'
-        url = URL('http://www.w3af.com/')
+        url = URL("http://www.w3af.com/")
         headers = Headers()
-        headers['content-type'] = 'text/html'
-        resp = HTTPResponse(200, body, headers, url, url, charset='utf-8')
+        headers["content-type"] = "text/html"
+        resp = HTTPResponse(200, body, headers, url, url, charset="utf-8")
 
-        tags = self.mpdoc.get_tags_by_filter(resp, ('a', 'b'), yield_text=True)
+        tags = self.mpdoc.get_tags_by_filter(resp, ("a", "b"), yield_text=True)
 
-        self.assertEqual([Tag('a', {'href': '/abc'}, 'foo'),
-                          Tag('b', {}, 'bar')], tags)
+        self.assertEqual([Tag("a", {"href": "/abc"}, "foo"), Tag("b", {}, "bar")], tags)
 
     def test_get_tags_by_filter_empty_tag(self):
         body = '<html><script src="foo.js"></script></html>'
-        url = URL('http://www.w3af.com/')
+        url = URL("http://www.w3af.com/")
         headers = Headers()
-        headers['content-type'] = 'text/html'
-        resp = HTTPResponse(200, body, headers, url, url, charset='utf-8')
+        headers["content-type"] = "text/html"
+        resp = HTTPResponse(200, body, headers, url, url, charset="utf-8")
 
-        tags = self.mpdoc.get_tags_by_filter(resp, ('script',), yield_text=True)
+        tags = self.mpdoc.get_tags_by_filter(resp, ("script",), yield_text=True)
 
         # Note that lxml returns None for this tag text:
-        self.assertEqual([Tag('script', {'src': 'foo.js'}, None)], tags)
+        self.assertEqual([Tag("script", {"src": "foo.js"}, None)], tags)
 
 
 def daemon_child(queue):
@@ -396,7 +418,7 @@ class DelayedParser(object):
 
     @staticmethod
     def can_parse(http_response):
-        return 'DelayedParser' in http_response.get_body()
+        return "DelayedParser" in http_response.get_body()
 
     def parse(self):
         time.sleep(3)
@@ -411,13 +433,13 @@ class UseMemoryParser(object):
 
     @staticmethod
     def can_parse(http_response):
-        return 'UseMemoryParser' in http_response.get_body()
+        return "UseMemoryParser" in http_response.get_body()
 
     def parse(self):
-        memory_user = ''
+        memory_user = ""
 
         for _ in range(1000000):
-            memory_user += 'A' * 256
+            memory_user += "A" * 256
 
     def clear(self):
         return True
@@ -432,10 +454,10 @@ class HugeClassAttrValueParser(object):
 
     @staticmethod
     def can_parse(http_response):
-        return 'HugeClassAttrValueParser' in http_response.get_body()
+        return "HugeClassAttrValueParser" in http_response.get_body()
 
     def parse(self):
-        self.data_to_make_queue_busy = 'A' * (2 ** 30)
+        self.data_to_make_queue_busy = "A" * (2**30)
         self.parse_was_called = True
 
     def clear(self):

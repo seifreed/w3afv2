@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import unittest
 import threading
 
@@ -35,7 +36,7 @@ def start_w3af_core(exception_handler):
             exception_handler(e)
 
 
-@attr('smoke')
+@attr("smoke")
 class TestW3afCore(unittest.TestCase):
 
     def setUp(self):
@@ -59,8 +60,7 @@ class TestW3afCore(unittest.TestCase):
 
         https://github.com/andresriancho/w3af-module/issues/5
         """
-        t = DummyProcess(target=start_w3af_core,
-                         args=(self._exception_handler,))
+        t = DummyProcess(target=start_w3af_core, args=(self._exception_handler,))
         t.start()
         t.join()
 
@@ -72,9 +72,9 @@ class TestW3afCore(unittest.TestCase):
 
         https://github.com/andresriancho/w3af-module/issues/5
         """
+
         def outer():
-            t = DummyProcess(target=start_w3af_core,
-                             args=(self._exception_handler,))
+            t = DummyProcess(target=start_w3af_core, args=(self._exception_handler,))
             t.start()
             t.join()
 
@@ -91,10 +91,12 @@ class TestW3afCore(unittest.TestCase):
 
         http://bugs.python.org/issue14881
         """
+
         def outer():
             try:
-                t = DummyProcess(target=start_w3af_core,
-                                 args=(self._exception_handler,))
+                t = DummyProcess(
+                    target=start_w3af_core, args=(self._exception_handler,)
+                )
                 t.start()
             except AttributeError:
                 pass

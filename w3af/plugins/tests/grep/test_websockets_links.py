@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import unittest
 
 import w3af.core.data.kb.knowledge_base as kb
@@ -32,7 +33,7 @@ class TestWebsocketsLinks(unittest.TestCase):
 
     def setUp(self):
         self.plugin = websockets_links()
-        kb.kb.clear('websockets_links', 'websockets_links')
+        kb.kb.clear("websockets_links", "websockets_links")
 
     def tearDown(self):
         self.plugin.end()
@@ -41,51 +42,54 @@ class TestWebsocketsLinks(unittest.TestCase):
         """
         Static link 1, ws link in the second tag
         """
-        body = 'header<script>alert("first tag without ws!)</script>' \
-               '<div><pre>wss://</pre></div>' \
-               '<script>ws = ' \
-               'new WebSocket("ws://www.example.com:8080/socketserver");' \
-               '</script>footer'
-        url = URL('https://www.w3af.com/')
-        headers = Headers([('content-type', 'text/html')])
+        body = (
+            'header<script>alert("first tag without ws!)</script>'
+            "<div><pre>wss://</pre></div>"
+            "<script>ws = "
+            'new WebSocket("ws://www.example.com:8080/socketserver");'
+            "</script>footer"
+        )
+        url = URL("https://www.w3af.com/")
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, url, url, _id=1)
-        request = FuzzableRequest(url, method='GET')
+        request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get('websockets_links',
-                                       'websockets_links')), 1)
+        self.assertEqual(len(kb.kb.get("websockets_links", "websockets_links")), 1)
 
     def test_sl_2(self, *args):
         """
         Static link 2, report two different InfoSets, one for each URL
         """
-        body = 'header<script>' \
-               'ws1 = ' \
-               'new WebSocket("ws://www.example.com/socketserver");' \
-               'ws2 = '\
-               'new WebSocket("wss://SECURESOCKETSERVER:8080");' \
-               '</script>'
-        url = URL('https://www.w3af.com/')
-        headers = Headers([('content-type', 'text/html')])
+        body = (
+            "header<script>"
+            "ws1 = "
+            'new WebSocket("ws://www.example.com/socketserver");'
+            "ws2 = "
+            'new WebSocket("wss://SECURESOCKETSERVER:8080");'
+            "</script>"
+        )
+        url = URL("https://www.w3af.com/")
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, url, url, _id=1)
-        request = FuzzableRequest(url, method='GET')
+        request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get('websockets_links',
-                                       'websockets_links')), 2)
+        self.assertEqual(len(kb.kb.get("websockets_links", "websockets_links")), 2)
 
     def test_sl_3(self, *args):
         """
         Static link 3, text/javascript
         """
-        body = 'function { ws_url =' \
-               '"wss://www.example.com/socketserver:8080";' \
-               'wslink = new WebSocket(url); return wslink} '
-        url = URL('https://www.w3af.com/')
-        headers = Headers([('content-type', 'text/javascript')])
+        body = (
+            "function { ws_url ="
+            '"wss://www.example.com/socketserver:8080";'
+            "wslink = new WebSocket(url); return wslink} "
+        )
+        url = URL("https://www.w3af.com/")
+        headers = Headers([("content-type", "text/javascript")])
         response = HTTPResponse(200, body, headers, url, url, _id=1)
-        request = FuzzableRequest(url, method='GET')
+        request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get('websockets_links',
-                                       'websockets_links')), 1)
+        self.assertEqual(len(kb.kb.get("websockets_links", "websockets_links")), 1)
 
     def test_dl_1(self, *args):
         """
@@ -98,13 +102,12 @@ class TestWebsocketsLinks(unittest.TestCase):
                 l.hostname + (((l.port != 80) &&
                 (l.port != 443)) ? ":" + l.port : "") +
                 l.pathname + s;}</script>footer"""
-        url = URL('https://www.w3af.com/')
-        headers = Headers([('content-type', 'text/html')])
+        url = URL("https://www.w3af.com/")
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, url, url, _id=1)
-        request = FuzzableRequest(url, method='GET')
+        request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get('websockets_links',
-                                       'websockets_links')), 0)
+        self.assertEqual(len(kb.kb.get("websockets_links", "websockets_links")), 0)
 
     def test_fl_1(self, *args):
         """
@@ -115,26 +118,24 @@ class TestWebsocketsLinks(unittest.TestCase):
                <pre>ws://www.example.com:8080/socketserver</pre>
                <pre>'ws://www.example.com/socketserver'</pre>
                </div>footer"""
-        url = URL('https://www.w3af.com/')
-        headers = Headers([('content-type', 'text/html')])
+        url = URL("https://www.w3af.com/")
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, url, url, _id=1)
-        request = FuzzableRequest(url, method='GET')
+        request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get('websockets_links',
-                                       'websockets_links')), 0)
+        self.assertEqual(len(kb.kb.get("websockets_links", "websockets_links")), 0)
 
     def test_no_link(self, *args):
         """
         No websockets link
         """
         body = """header<div class="nolink"></div>footer"""
-        url = URL('https://www.w3af.com/')
-        headers = Headers([('content-type', 'text/html')])
+        url = URL("https://www.w3af.com/")
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, url, url, _id=1)
-        request = FuzzableRequest(url, method='GET')
+        request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get('websockets_links',
-                                       'websockets_links')), 0)
+        self.assertEqual(len(kb.kb.get("websockets_links", "websockets_links")), 0)
 
     def test_static_link_group_by_ws_url(self, *args):
         """
@@ -142,32 +143,36 @@ class TestWebsocketsLinks(unittest.TestCase):
         the knowledge to the existing InfoSet. Avoids multiple reports of the
         same WS url.
         """
-        body = 'header' \
-               '<script>ws = ' \
-               'new WebSocket("ws://www.example.com:8080/socketserver");' \
-               '</script>footer'
+        body = (
+            "header"
+            "<script>ws = "
+            'new WebSocket("ws://www.example.com:8080/socketserver");'
+            "</script>footer"
+        )
 
-        url = URL('https://www.w3af.com/1')
-        headers = Headers([('content-type', 'text/html')])
+        url = URL("https://www.w3af.com/1")
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, url, url, _id=1)
-        request = FuzzableRequest(url, method='GET')
+        request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        url = URL('https://www.w3af.com/2')
-        headers = Headers([('content-type', 'text/html')])
+        url = URL("https://www.w3af.com/2")
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, url, url, _id=2)
-        request = FuzzableRequest(url, method='GET')
+        request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        ws_info_sets = kb.kb.get('websockets_links', 'websockets_links')
+        ws_info_sets = kb.kb.get("websockets_links", "websockets_links")
         self.assertEqual(len(ws_info_sets), 1)
 
         info_set = ws_info_sets[0]
-        expected_desc = 'The application uses the HTML5 WebSocket URL' \
-                        ' "ws://www.example.com:8080/socketserver" in' \
-                        ' 2 different URLs. The first ten URLs are:\n' \
-                        ' - https://www.w3af.com/1\n' \
-                        ' - https://www.w3af.com/2\n'
+        expected_desc = (
+            "The application uses the HTML5 WebSocket URL"
+            ' "ws://www.example.com:8080/socketserver" in'
+            " 2 different URLs. The first ten URLs are:\n"
+            " - https://www.w3af.com/1\n"
+            " - https://www.w3af.com/2\n"
+        )
         self.assertEqual(len(info_set.infos), 2)
         self.assertEqual(info_set.get_id(), [1, 2])
         self.assertEqual(info_set.get_desc(), expected_desc)

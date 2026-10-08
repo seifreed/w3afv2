@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 from xml.dom.minidom import parseString
 from xml.sax import saxutils
 import os
@@ -32,40 +33,39 @@ class XunitGen(object):
     useful data to the user.
     """
 
-    outputfile = 'w3aftestscripts.xml'
+    outputfile = "w3aftestscripts.xml"
 
     def __init__(self, outputfile=None):
         if outputfile:
             self.outputfile = outputfile
-        self._stats = {'error': 0,
-                       'skip': 0,
-                       'pass': 0,
-                       'fail': 0}
+        self._stats = {"error": 0, "skip": 0, "pass": 0, "fail": 0}
         self.results = []
 
     def genfile(self):
         """
         Writes the Xunit file.
         """
-        self._stats['total'] = (self._stats['error'] + self._stats['fail']
-                                + self._stats['pass'] + self._stats['skip'])
+        self._stats["total"] = (
+            self._stats["error"]
+            + self._stats["fail"]
+            + self._stats["pass"]
+            + self._stats["skip"]
+        )
 
         xml_chunks = [
             '<?xml version="1.0" encoding="UTF-8"?>'
             '<testsuite name="w3aftestscripts" tests="%(total)d" '
-            'errors="%(error)d" failures="%(fail)d" skip="%(skip)d">'
-            % self._stats
+            'errors="%(error)d" failures="%(fail)d" skip="%(skip)d">' % self._stats
         ]
-        xml_chunks.append(''.join(self.results))
-        xml_chunks.append('</testsuite>')
+        xml_chunks.append("".join(self.results))
+        xml_chunks.append("</testsuite>")
 
-        with open(self.outputfile, 'w') as output:
-            output.write(
-                parseString(''.join(xml_chunks)).toprettyxml()
-            )
+        with open(self.outputfile, "w") as output:
+            output.write(parseString("".join(xml_chunks)).toprettyxml())
 
-        om.out.information('XML output file was successfuly generated: %s'
-                           % self.outputfile)
+        om.out.information(
+            "XML output file was successfuly generated: %s" % self.outputfile
+        )
 
     def add_failure(self, test, fail, took):
         """
@@ -79,22 +79,24 @@ class XunitGen(object):
         :param took: Time that took the test to run.
         """
 
-        self._stats['fail'] += 1
-        faillines = fail.split('\n')
+        self._stats["fail"] += 1
+        faillines = fail.split("\n")
         quoteattr = saxutils.quoteattr
-        pkg, _, id = test.rpartition('.')
+        pkg, _, id = test.rpartition(".")
 
         self.results.append(
             '<testcase classname=%(pkg)s name=%(name)s time="%(took)d">'
             '<failure type=%(errtype)s message="">'
-            '<![CDATA[%(fail)s]]></failure>'
-            '</testcase>' %
-            {'name': quoteattr(id),
-             'pkg': quoteattr(pkg),
-             'took': took,
-             'errtype': quoteattr(faillines[-1]),
-             'fail': '\n'.join(faillines[:-1]),
-             })
+            "<![CDATA[%(fail)s]]></failure>"
+            "</testcase>"
+            % {
+                "name": quoteattr(id),
+                "pkg": quoteattr(pkg),
+                "took": took,
+                "errtype": quoteattr(faillines[-1]),
+                "fail": "\n".join(faillines[:-1]),
+            }
+        )
 
     def add_error(self, test, err, took, skipped=False):
         """
@@ -108,24 +110,26 @@ class XunitGen(object):
         :param took: Time that took the test to run.
         """
         if skipped:
-            self._stats['skip'] += 1
+            self._stats["skip"] += 1
         else:
-            self._stats['error'] += 1
+            self._stats["error"] += 1
         quoteattr = saxutils.quoteattr
-        errlinedets = err.split('\n')[-1].split(':', 1)
-        pkg, _, id = test.rpartition('.')
+        errlinedets = err.split("\n")[-1].split(":", 1)
+        pkg, _, id = test.rpartition(".")
 
         self.results.append(
             '<testcase classname=%(pkg)s name=%(name)s time="%(took)d">'
-            '<error type=%(errtype)s message=%(message)s><![CDATA[%(tb)s]]>'
-            '</error></testcase>' %
-            {'name': quoteattr(id),
-             'pkg': quoteattr(pkg),
-             'took': took,
-             'errtype': quoteattr(errlinedets[0]),
-             'message': quoteattr(errlinedets[-1]),
-             'tb': err,
-             })
+            "<error type=%(errtype)s message=%(message)s><![CDATA[%(tb)s]]>"
+            "</error></testcase>"
+            % {
+                "name": quoteattr(id),
+                "pkg": quoteattr(pkg),
+                "took": took,
+                "errtype": quoteattr(errlinedets[0]),
+                "message": quoteattr(errlinedets[-1]),
+                "tb": err,
+            }
+        )
 
     def add_success(self, test, took):
         """
@@ -137,8 +141,10 @@ class XunitGen(object):
                 core.controllers.auto_update.tests.test_autoupd.TesVMgr.testXXX
         :param took: Time that took the test to run.
         """
-        self._stats['pass'] += 1
+        self._stats["pass"] += 1
         quoteattr = saxutils.quoteattr
-        pkg, _, id = test.rpartition('.')
-        self.results.append('<testcase classname=%s name=%s time="%d" />'
-                            % (quoteattr(pkg), quoteattr(id), took))
+        pkg, _, id = test.rpartition(".")
+        self.results.append(
+            '<testcase classname=%s name=%s time="%d" />'
+            % (quoteattr(pkg), quoteattr(id), took)
+        )

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 from unittest.case import skip
 
@@ -29,16 +30,19 @@ from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.plugins.evasion.self_reference import self_reference
 
 
-@attr('moth')
-@skip('URL normalization breaks evasion. @see: 4fa67fbb')
+@attr("moth")
+@skip("URL normalization breaks evasion. @see: 4fa67fbb")
 class TestXurllibIntegration(unittest.TestCase):
-    
+
     def test_send_mangled(self):
         xurllib = ExtendedUrllib()
-        
-        xurllib.set_evasion_plugins([self_reference(), ])
-        url = URL('http://moth/')
-        
+
+        xurllib.set_evasion_plugins(
+            [
+                self_reference(),
+            ]
+        )
+        url = URL("http://moth/")
+
         http_response = xurllib.GET(url)
-        self.assertEqual(http_response.get_url().url_string,
-                         'http://moth/./')
+        self.assertEqual(http_response.get_url().url_string, "http://moth/./")

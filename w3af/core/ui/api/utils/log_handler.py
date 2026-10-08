@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import time
 import shelve
@@ -27,12 +28,12 @@ import tempfile
 from w3af.core.data.constants.severity import MEDIUM
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
 
-DEBUG = 'debug'
-INFORMATION = 'information'
-ERROR = 'error'
-VULNERABILITY = 'vulnerability'
-CONSOLE = 'console'
-LOG_HTTP = 'log_http'
+DEBUG = "debug"
+INFORMATION = "information"
+ERROR = "error"
+VULNERABILITY = "vulnerability"
+CONSOLE = "console"
+LOG_HTTP = "log_http"
 
 
 class RESTAPIOutput(OutputPlugin):
@@ -41,6 +42,7 @@ class RESTAPIOutput(OutputPlugin):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def __init__(self):
         super(RESTAPIOutput, self).__init__()
 
@@ -56,9 +58,9 @@ class RESTAPIOutput(OutputPlugin):
 
     def get_db_backend(self):
         if self._db_backend is None:
-            fd, self._db_backend = tempfile.mkstemp(prefix='w3af-api-log',
-                                                    suffix='shelve',
-                                                    dir=tempfile.tempdir)
+            fd, self._db_backend = tempfile.mkstemp(
+                prefix="w3af-api-log", suffix="shelve", dir=tempfile.tempdir
+            )
             os.close(fd)
             os.unlink(self._db_backend)
 
@@ -168,11 +170,13 @@ class Message(object):
         return self._time
 
     def get_time(self):
-        return time.strftime('%c', time.localtime(self._time))
+        return time.strftime("%c", time.localtime(self._time))
 
     def to_json(self):
-        return {'type': self._type,
-                'message': self._msg,
-                'time': self.get_time(),
-                'severity': self.get_severity(),
-                'id': self.get_id()}
+        return {
+            "type": self._type,
+            "message": self._msg,
+            "time": self.get_time(),
+            "severity": self.get_severity(),
+            "id": self.get_id(),
+        }

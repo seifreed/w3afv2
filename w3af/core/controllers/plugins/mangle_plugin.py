@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.controllers.plugins.plugin import Plugin
 
 
@@ -33,8 +34,9 @@ class ManglePlugin(Plugin):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def get_type(self):
-        return 'mangle'
+        return "mangle"
 
     def __init__(self):
         Plugin.__init__(self)
@@ -103,9 +105,9 @@ class ManglePlugin(Plugin):
         If the content-length header is present, calculate the new len and
         update the header.
         """
-        cl = 'Content-Length'
+        cl = "Content-Length"
         for i in response.get_headers():
-            if i.lower() == 'content-length':
+            if i.lower() == "content-length":
                 cl = i
                 break
 
@@ -113,4 +115,3 @@ class ManglePlugin(Plugin):
         headers[cl] = str(len(response.get_body()))
         response.set_headers(headers)
         return response
-

@@ -19,13 +19,14 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from .ubuntu1204 import Ubuntu1204
 from .system_info import distribution_matches
 
 
 class Debian80(Ubuntu1204):
-    SYSTEM_NAME = 'Debian 8.0'
+    SYSTEM_NAME = "Debian 8.0"
 
     @staticmethod
     def is_current_platform():
-        return distribution_matches('debian', '8.0')
+        return distribution_matches("debian", "8.0")

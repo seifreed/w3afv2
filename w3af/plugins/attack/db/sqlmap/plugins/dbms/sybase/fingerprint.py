@@ -18,6 +18,7 @@ from lib.core.settings import SYBASE_ALIASES
 from lib.request import inject
 from plugins.generic.fingerprint import Fingerprint as GenericFingerprint
 
+
 class Fingerprint(GenericFingerprint):
     def __init__(self):
         GenericFingerprint.__init__(self, DBMS.SYBASE)
@@ -103,7 +104,9 @@ class Fingerprint(GenericFingerprint):
                 Backend.setVersion(str(result))
             else:
                 for version in range(12, 16):
-                    result = inject.checkBooleanExpression("PATINDEX('%%/%d[./]%%',@@VERSION)>0" % version)
+                    result = inject.checkBooleanExpression(
+                        "PATINDEX('%%/%d[./]%%',@@VERSION)>0" % version
+                    )
 
                     if result:
                         Backend.setVersion(str(version))

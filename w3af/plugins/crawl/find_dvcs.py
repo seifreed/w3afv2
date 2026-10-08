@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import struct
 import sqlite3
@@ -63,17 +64,21 @@ class find_dvcs(CrawlPlugin):
         self._analyzed_dirs = ScalableBloomFilter()
         self._analyzed_filenames = ScalableBloomFilter()
 
-        self._dvcs = [DVCSTest('.git/index', 'git repository', self.git_index),
-                      DVCSTest('.gitignore', 'git ignore', self.ignore_file),
-                      DVCSTest('.hg/dirstate', 'hg repository', self.hg_dirstate),
-                      DVCSTest('.hgignore', 'hg ignore', self.ignore_file),
-                      DVCSTest('.bzr/checkout/dirstate', 'bzr repository', self.bzr_checkout_dirstate),
-                      DVCSTest('.bzrignore', 'bzr ignore', self.ignore_file),
-                      DVCSTest('.svn/entries', 'svn repository', self.svn_entries),
-                      DVCSTest('.svn/wc.db', 'svn repository db', self.svn_wc_db),
-                      DVCSTest('.svnignore', 'svn ignore', self.ignore_file),
-                      DVCSTest('CVS/Entries', 'cvs repository', self.cvs_entries),
-                      DVCSTest('.cvsignore', 'cvs ignore', self.ignore_file)]
+        self._dvcs = [
+            DVCSTest(".git/index", "git repository", self.git_index),
+            DVCSTest(".gitignore", "git ignore", self.ignore_file),
+            DVCSTest(".hg/dirstate", "hg repository", self.hg_dirstate),
+            DVCSTest(".hgignore", "hg ignore", self.ignore_file),
+            DVCSTest(
+                ".bzr/checkout/dirstate", "bzr repository", self.bzr_checkout_dirstate
+            ),
+            DVCSTest(".bzrignore", "bzr ignore", self.ignore_file),
+            DVCSTest(".svn/entries", "svn repository", self.svn_entries),
+            DVCSTest(".svn/wc.db", "svn repository db", self.svn_wc_db),
+            DVCSTest(".svnignore", "svn ignore", self.ignore_file),
+            DVCSTest("CVS/Entries", "cvs repository", self.cvs_entries),
+            DVCSTest(".cvsignore", "cvs ignore", self.ignore_file),
+        ]
 
     def crawl(self, fuzzable_request, debugging_id):
         """
@@ -102,10 +107,7 @@ class find_dvcs(CrawlPlugin):
         """
         for dvcs_test in self._dvcs:
             repo_url = domain_path.url_join(dvcs_test.filename)
-            yield (repo_url,
-                   dvcs_test.method,
-                   dvcs_test.name,
-                   domain_path)
+            yield (repo_url, dvcs_test.method, dvcs_test.name, domain_path)
 
     def _clean_filenames(self, filenames):
         """
@@ -120,15 +122,15 @@ class find_dvcs(CrawlPlugin):
             # Sometimes we get random bytes from the .git/index because of
             # git versions we don't fully support, so we ignore any encoding
             # errors
-            filename = smart_unicode(filename, errors='ignore')
+            filename = smart_unicode(filename, errors="ignore")
 
-            if filename.startswith('/'):
+            if filename.startswith("/"):
                 filename = filename[1:]
 
-            if filename.startswith('./'):
+            if filename.startswith("./"):
                 filename = filename[2:]
 
-            if filename.endswith('/'):
+            if filename.endswith("/"):
                 filename = filename[:-1]
 
             resources.add(filename)
@@ -144,10 +146,9 @@ class find_dvcs(CrawlPlugin):
         # Here we use the new http_get instead of http_get_and_parse because
         # we want to check BAD_HTTP_CODES and the response body (see below)
         # before we send the response to the core
-        http_response = self.http_get(repo_url,
-                                      binary_response=True,
-                                      respect_size_limit=False,
-                                      grep=False)
+        http_response = self.http_get(
+            repo_url, binary_response=True, respect_size_limit=False, grep=False
+        )
 
         if is_404(http_response):
             return
@@ -189,17 +190,24 @@ class find_dvcs(CrawlPlugin):
         # After performing the checks (404, redirects, body is not empty, body
         # can be parsed, body actually had filenames inside) send the URL to the
         # core
-        fr = FuzzableRequest(repo_url, method='GET')
+        fr = FuzzableRequest(repo_url, method="GET")
         self.output_queue.put(fr)
 
         # Now we send this finding to the report for manual analysis
-        desc = ('A %s was found at: "%s"; this could indicate that a %s is'
-                ' accessible. You might be able to download the Web'
-                ' application source code.')
+        desc = (
+            'A %s was found at: "%s"; this could indicate that a %s is'
+            " accessible. You might be able to download the Web"
+            " application source code."
+        )
         desc %= (repo, http_response.get_url(), repo)
 
-        v = Vuln('Source code repository', desc, severity.MEDIUM,
-                 http_response.id, self.get_name())
+        v = Vuln(
+            "Source code repository",
+            desc,
+            severity.MEDIUM,
+            http_response.id,
+            self.get_name(),
+        )
         v.set_url(http_response.get_url())
 
         kb.kb.append(self, repo, v)
@@ -213,14 +221,14 @@ class find_dvcs(CrawlPlugin):
         :return: A list of file names found.
         """
         filenames = set()
-        signature = 'DIRC'
+        signature = "DIRC"
         offset = 12
 
         if body[:4] != signature:
             return set()
 
-        version, = struct.unpack('>I', body[4:8])
-        index_entries, = struct.unpack('>I', body[8:12])
+        (version,) = struct.unpack(">I", body[4:8])
+        (index_entries,) = struct.unpack(">I", body[8:12])
 
         if version == 2:
             filename_offset = 62
@@ -231,10 +239,10 @@ class find_dvcs(CrawlPlugin):
 
         for _ in range(index_entries):
             offset += filename_offset - 1
-            length, = struct.unpack('>B', body[offset:offset + 1])
+            (length,) = struct.unpack(">B", body[offset : offset + 1])
             if length > (len(body) - offset):
                 return set()
-            filename = body[offset + 1:offset + 1 + length]
+            filename = body[offset + 1 : offset + 1 + length]
             padding = 8 - ((filename_offset + length) % 8)
             filenames.add(filename)
             offset += length + 1 + padding
@@ -252,11 +260,11 @@ class find_dvcs(CrawlPlugin):
         offset = 53
 
         while offset < len(body):
-            length, = struct.unpack('>I', body[offset:offset + 4])
+            (length,) = struct.unpack(">I", body[offset : offset + 4])
             if length > (len(body) - offset):
                 return set()
             offset += 4
-            filename = body[offset:offset + length]
+            filename = body[offset : offset + length]
             offset += length + 13
             filenames.add(filename)
 
@@ -270,20 +278,20 @@ class find_dvcs(CrawlPlugin):
         :return: A list of filenames found.
         """
         filenames = set()
-        header = '#bazaar dirstate flat format '
+        header = "#bazaar dirstate flat format "
 
         if body[0:29] != header:
             return set()
 
-        body = body.split('\x00')
+        body = body.split("\x00")
         found = True
         for offset in range(len(body)):
             filename = body[offset - 2]
-            if body[offset] == 'd':
+            if body[offset] == "d":
                 if found:
                     filenames.add(filename)
                 found = not found
-            elif body[offset] == 'f':
+            elif body[offset] == "f":
                 if found:
                     filenames.add(filename)
                 found = not found
@@ -314,22 +322,22 @@ class find_dvcs(CrawlPlugin):
         :return: A list of filenames found.
         """
         # See method documentation to understand why 12
-        if body.strip() == '12':
+        if body.strip() == "12":
             return set()
 
         filenames = set()
-        lines = body.split('\n')
+        lines = body.split("\n")
         offset = 29
 
         while offset < len(lines):
             line = lines[offset].strip()
             filename = lines[offset - 1].strip()
 
-            if line == 'file':
+            if line == "file":
                 filenames.add(filename)
                 offset += 34
 
-            elif line == 'dir':
+            elif line == "dir":
                 filenames.add(filename)
                 offset += 3
 
@@ -350,18 +358,19 @@ class find_dvcs(CrawlPlugin):
         """
         filenames = set()
 
-        temp_db = tempfile.NamedTemporaryFile(prefix='w3af-find-dvcs-',
-                                              suffix='-wc.db',
-                                              delete=False,
-                                              dir=get_temp_dir())
+        temp_db = tempfile.NamedTemporaryFile(
+            prefix="w3af-find-dvcs-", suffix="-wc.db", delete=False, dir=get_temp_dir()
+        )
 
-        temp_db_fh = open(temp_db.name, 'w')
+        temp_db_fh = open(temp_db.name, "w")
         temp_db_fh.write(body)
         temp_db_fh.close()
 
-        query = ('SELECT local_relpath, '
-                 ' ".svn/pristine/" || substr(checksum,7,2) || "/" || substr(checksum,7) || ".svn-base" AS svn'
-                 ' FROM NODES WHERE kind="file"')
+        query = (
+            "SELECT local_relpath, "
+            ' ".svn/pristine/" || substr(checksum,7,2) || "/" || substr(checksum,7) || ".svn-base" AS svn'
+            ' FROM NODES WHERE kind="file"'
+        )
 
         try:
             conn = sqlite3.connect(temp_db.name)
@@ -392,21 +401,21 @@ class find_dvcs(CrawlPlugin):
         """
         filenames = set()
 
-        for line in body.split('\n'):
+        for line in body.split("\n"):
             # https://docstore.mik.ua/orelly/other/cvs/cvs-CHP-6-SECT-9.htm
             #
             # /name/revision/timestamp[+conflict]/options/tagdate
-            if not line.startswith('/'):
+            if not line.startswith("/"):
                 continue
 
             # /name/revision/timestamp[+conflict]/options/tagdate
-            tokens = line.split('/')
+            tokens = line.split("/")
             if len(tokens) != 6:
                 continue
 
             # Example value: Sun Apr 7 01:29:26 1996
             timestamp = tokens[2]
-            if timestamp.count(':') <= 1:
+            if timestamp.count(":") <= 1:
                 continue
 
             filenames.add(tokens[1])
@@ -424,10 +433,10 @@ class find_dvcs(CrawlPlugin):
         :param line: A line from gitignore
         :return: The same line, without the special characters.
         """
-        special_characters = ['*', '?', '[', ']', ':', '!']
+        special_characters = ["*", "?", "[", "]", ":", "!"]
 
         for char in special_characters:
-            line = line.replace(char, '')
+            line = line.replace(char, "")
 
         return line
 
@@ -443,7 +452,7 @@ class find_dvcs(CrawlPlugin):
             return []
 
         filenames = set()
-        for line in body.split('\n'):
+        for line in body.split("\n"):
 
             line = line.strip()
 
@@ -453,14 +462,14 @@ class find_dvcs(CrawlPlugin):
             #
             # To prevent the is_404 false positive from propagating we detect
             # HTML tags, if those are found, return an empty list.
-            if line.startswith('<') and line.endswith('>'):
+            if line.startswith("<") and line.endswith(">"):
                 return []
 
-            if line.startswith('#'):
+            if line.startswith("#"):
                 continue
 
             # Lines with spaces are usually good indicators of false positives
-            if ' ' in line:
+            if " " in line:
                 continue
 
             line = self.filter_special_character(line)
@@ -468,10 +477,10 @@ class find_dvcs(CrawlPlugin):
             if not line:
                 continue
 
-            if line.startswith('/') or line.startswith('^'):
+            if line.startswith("/") or line.startswith("^"):
                 line = line[1:]
 
-            if line.endswith('/') or line.endswith('$'):
+            if line.endswith("/") or line.endswith("$"):
                 line = line[:-1]
 
             filenames.add(line)

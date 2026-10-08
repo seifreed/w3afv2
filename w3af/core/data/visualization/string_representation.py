@@ -41,20 +41,18 @@ class StringRepresentation(object):
         :param height: The width of the string to generate
         """
         linecount = lambda ln: sum(map(ord, (char for char in ln)))
-        split = instr.split('\n')
+        split = instr.split("\n")
         length = max(len(split), width)
         step, extra = divmod(length, width)
 
-        sumlinecounts = lambda st, en: \
-            sum(linecount(ln) for ln in split[st:en])
+        sumlinecounts = lambda st, en: sum(linecount(ln) for ln in split[st:en])
 
         for i, j in enumerate(range(0, length - extra, step)):
             accum = sumlinecounts(j, j + step)
             self.parsed_instr[i] = accum % height
 
         if extra:
-            self.parsed_instr[i] = \
-                (accum + sumlinecounts(j + step, None)) % height
+            self.parsed_instr[i] = (accum + sumlinecounts(j + step, None)) % height
 
     def get_representation(self):
         return self.parsed_instr

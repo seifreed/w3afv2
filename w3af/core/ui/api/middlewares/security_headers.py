@@ -19,21 +19,22 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.ui.api import app
 
 
 @app.after_request
 def add_security_headers(response):
-    response.headers['Server'] = 'REST API - w3af'
-    response.headers['X-Content-Type-Options'] = 'nosniff'
-    response.headers['X-Frame-Options'] = 'DENY'
-    response.headers['X-XSS-Protection'] = '1; mode=block'
-    response.headers['Pragma'] = 'no-cache'
-    response.headers['Cache-Control'] = 'no-cache'
-    response.headers['Expires'] = '0'
+    response.headers["Server"] = "REST API - w3af"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Cache-Control"] = "no-cache"
+    response.headers["Expires"] = "0"
 
-    if 'application/json' in response.content_type:
+    if "application/json" in response.content_type:
         # Add the charset
-        response.content_type = 'application/json; charset=UTF-8'
+        response.content_type = "application/json; charset=UTF-8"
 
     return response

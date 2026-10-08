@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from itertools import repeat
 
 import w3af.core.controllers.output_manager as om
@@ -39,65 +40,71 @@ class payment_webhook_finder(CrawlPlugin):
 
     :author: Coiffey Pierre (pierre.coiffey@gmail.com)
     """
-    _dirs = {'/',
-             '/inc/',
-             '/include/',
-             '/include/pay/',
-             '/includes/',
-             '/includes/pay/',
-             '/lib/',
-             '/libraries/',
-             '/module/',
-             '/module/pay/',
-             '/modules/',
-             '/modules/pay/',
-             '/payment/',
-             '/shop/',
-             '/store/',
-             '/svc/',
-             '/servlet/',
-             '/cgi/',
-             '/cgi-bin/',
-             '/cgibin/'}
 
-    _files = {'pay',
-              'payment',
-              'success',
-              'paymentsuccess',
-              'paymentcomplete',
-              'paymentsuccessful',
-              'successful',
-              'paid',
-              'return',
-              'valid',
-              'validpay',
-              'validate',
-              'validatepayment',
-              'validatepay',
-              'validation',
-              'complete',
-              'completepay',
-              'completepayment',
-              'trxcomplete',
-              'transactioncomplete',
-              'final',
-              'finished'}
+    _dirs = {
+        "/",
+        "/inc/",
+        "/include/",
+        "/include/pay/",
+        "/includes/",
+        "/includes/pay/",
+        "/lib/",
+        "/libraries/",
+        "/module/",
+        "/module/pay/",
+        "/modules/",
+        "/modules/pay/",
+        "/payment/",
+        "/shop/",
+        "/store/",
+        "/svc/",
+        "/servlet/",
+        "/cgi/",
+        "/cgi-bin/",
+        "/cgibin/",
+    }
 
-    _exts = {'',
-             'php',
-             'asp',
-             'aspx',
-             'jsp',
-             'py',
-             'pl',
-             'rb',
-             'cgi',
-             'php3',
-             'php4',
-             'php5'}
+    _files = {
+        "pay",
+        "payment",
+        "success",
+        "paymentsuccess",
+        "paymentcomplete",
+        "paymentsuccessful",
+        "successful",
+        "paid",
+        "return",
+        "valid",
+        "validpay",
+        "validate",
+        "validatepayment",
+        "validatepay",
+        "validation",
+        "complete",
+        "completepay",
+        "completepayment",
+        "trxcomplete",
+        "transactioncomplete",
+        "final",
+        "finished",
+    }
 
-    _methods = {'GET',
-                'POST'}
+    _exts = {
+        "",
+        "php",
+        "asp",
+        "aspx",
+        "jsp",
+        "py",
+        "pl",
+        "rb",
+        "cgi",
+        "php3",
+        "php4",
+        "php5",
+    }
+
+    _methods = {"GET", "POST"}
 
     MIN_URL_COUNT_FOR_EXTENSION_FILTER = 100
 
@@ -118,10 +125,7 @@ class payment_webhook_finder(CrawlPlugin):
 
         exts_to_append = self._get_extensions_for_fuzzing()
 
-        url_generator = self._mutate_path(url,
-                                          self._dirs,
-                                          self._files,
-                                          exts_to_append)
+        url_generator = self._mutate_path(url, self._dirs, self._files, exts_to_append)
         url_generator = self._test_once_filter(url_generator)
 
         url_repeater = repeat(url)
@@ -170,13 +174,10 @@ class payment_webhook_finder(CrawlPlugin):
         desc = 'A potentially interesting URL was found at: "%s".'
         desc %= response.get_url()
 
-        i = Info('Potentially interesting URL',
-                 desc,
-                 response.id,
-                 self.get_name())
+        i = Info("Potentially interesting URL", desc, response.id, self.get_name())
         i.set_url(response.get_url())
 
-        kb.kb.append_uniq(self, 'url', i, filter_by='URL')
+        kb.kb.append_uniq(self, "url", i, filter_by="URL")
         om.out.information(i.get_desc())
 
     def _test_once_filter(self, mutated_url_path_generator):
@@ -196,21 +197,21 @@ class payment_webhook_finder(CrawlPlugin):
         """
         url_string = url.url_string
 
-        if url_string.count('/') <= 1:
+        if url_string.count("/") <= 1:
             return
 
         # Create the new path
-        url_string = url_string[:url_string.rfind('/')]
+        url_string = url_string[: url_string.rfind("/")]
 
         for dir_to_append in dirs_to_append:
             for file_to_append in files_to_append:
                 for ext_to_append in exts_to_append:
 
                     if ext_to_append:
-                        ext_to_append = '.%s' % ext_to_append
+                        ext_to_append = ".%s" % ext_to_append
 
                     args = (url_string, dir_to_append, file_to_append, ext_to_append)
-                    url_str = '%s%s%s%s' % args
+                    url_str = "%s%s%s%s" % args
 
                     new_url = URL(url_str)
 

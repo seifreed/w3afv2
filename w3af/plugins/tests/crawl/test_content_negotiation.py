@@ -25,29 +25,34 @@ from w3af.plugins.tests.helper import PluginTest, PluginConfig
 
 class TestContentNegotiation(PluginTest):
 
-    base_url = 'http://moth/w3af/crawl/content_negotiation/'
+    base_url = "http://moth/w3af/crawl/content_negotiation/"
 
     _run_configs = {
-        'cfg': {
-            'target': base_url,
-            'plugins': {'crawl': (PluginConfig('content_negotiation'),
-                                  PluginConfig('web_spider',
-                                               ('only_forward', True, PluginConfig.BOOL)))}
+        "cfg": {
+            "target": base_url,
+            "plugins": {
+                "crawl": (
+                    PluginConfig("content_negotiation"),
+                    PluginConfig(
+                        "web_spider", ("only_forward", True, PluginConfig.BOOL)
+                    ),
+                )
+            },
         }
     }
 
-    @attr('ci_fails')
+    @attr("ci_fails")
     def test_content_negotiation_find_urls(self):
-        cfg = self._run_configs['cfg']
-        self._scan(cfg['target'], cfg['plugins'])
+        cfg = self._run_configs["cfg"]
+        self._scan(cfg["target"], cfg["plugins"])
 
-        infos = self.kb.get('content_negotiation', 'content_negotiation')
+        infos = self.kb.get("content_negotiation", "content_negotiation")
         self.assertEqual(len(infos), 1, infos)
         info = infos[0]
-        self.assertEqual(info.get_name(), 'HTTP Content Negotiation enabled')
+        self.assertEqual(info.get_name(), "HTTP Content Negotiation enabled")
 
         urls = self.kb.get_all_known_urls()
-        expected_fnames = set(['backup.zip', 'backup.php', 'backup.gz',
-                               'backup.tar', ''])
-        self.assertEqual(expected_fnames,
-                         set([u.get_file_name() for u in urls]))
+        expected_fnames = set(
+            ["backup.zip", "backup.php", "backup.gz", "backup.tar", ""]
+        )
+        self.assertEqual(expected_fnames, set([u.get_file_name() for u in urls]))

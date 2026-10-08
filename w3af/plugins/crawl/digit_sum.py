@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 import copy
 
@@ -33,8 +34,7 @@ from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.dc.headers import Headers
 
-
-DIGIT_REGEX = re.compile(r'(\d+)')
+DIGIT_REGEX = re.compile(r"(\d+)")
 
 
 class digit_sum(CrawlPlugin):
@@ -64,16 +64,15 @@ class digit_sum(CrawlPlugin):
         """
         # If the fuzzable request sends post-data in any way, we don't want to
         # start fuzzing the URL, it simply doesn't make any sense.
-        if fuzzable_request.get_data() or fuzzable_request.get_method() != 'GET':
+        if fuzzable_request.get_data() or fuzzable_request.get_method() != "GET":
             return
 
         url = fuzzable_request.get_url()
 
-        headers = Headers([('Referer', url.url_string)])
+        headers = Headers([("Referer", url.url_string)])
         fuzzable_request.get_headers().update(headers)
 
-        original_response = self._uri_opener.send_mutant(fuzzable_request,
-                                                         cache=True)
+        original_response = self._uri_opener.send_mutant(fuzzable_request, cache=True)
 
         if original_response.is_text_or_html() or self._fuzz_images:
 
@@ -114,8 +113,9 @@ class digit_sum(CrawlPlugin):
 
         #    - If we changed the query string parameters, we have to check
         #      the content
-        elif fuzzy_not_equal(response.get_clear_text_body(),
-                             original_resp.get_clear_text_body(), 0.8):
+        elif fuzzy_not_equal(
+            response.get_clear_text_body(), original_resp.get_clear_text_body(), 0.8
+        ):
             # In this case what might happen is that the number we changed
             # is "out of range" and when requesting that it will trigger an
             # error in the web application, or show us a non-interesting
@@ -183,9 +183,9 @@ class digit_sum(CrawlPlugin):
             for i in range(len(split)):
                 if split[i].isdigit():
                     split[i] = str(int(split[i]) + 1)
-                    res.append(''.join(split))
+                    res.append("".join(split))
                     split[i] = str(int(split[i]) - 2)
-                    res.append(''.join(split))
+                    res.append("".join(split))
 
                     # restore the initial value for next loop
                     split[i] = str(int(split[i]) + 1)
@@ -206,7 +206,7 @@ class digit_sum(CrawlPlugin):
         :return: A list of strings.
         """
         # regexes are soooooooooooooo cool !
-        return [x for x in DIGIT_REGEX.split(a_string) if x != '']
+        return [x for x in DIGIT_REGEX.split(a_string) if x != ""]
 
     def get_options(self):
         """
@@ -214,17 +214,20 @@ class digit_sum(CrawlPlugin):
         """
         ol = OptionList()
 
-        d = 'Apply URL fuzzing to all URLs, including images, videos, zip, etc.'
-        h = 'It\'s safe to leave this option as the default.'
-        o = opt_factory('fuzzImages', self._fuzz_images, d, 'boolean', help=h)
+        d = "Apply URL fuzzing to all URLs, including images, videos, zip, etc."
+        h = "It's safe to leave this option as the default."
+        o = opt_factory("fuzzImages", self._fuzz_images, d, "boolean", help=h)
         ol.add(o)
 
-        d = 'Set the top number of sections to fuzz'
-        h = 'It\'s safe to leave this option as the default. For example, with'\
-            ' maxDigitSections = 1, this string wont be fuzzed: abc123def234 ;'\
-            ' but this one will abc23ldd.'
-        o = opt_factory('maxDigitSections',
-                        self._max_digit_sections, d, 'integer', help=h)
+        d = "Set the top number of sections to fuzz"
+        h = (
+            "It's safe to leave this option as the default. For example, with"
+            " maxDigitSections = 1, this string wont be fuzzed: abc123def234 ;"
+            " but this one will abc23ldd."
+        )
+        o = opt_factory(
+            "maxDigitSections", self._max_digit_sections, d, "integer", help=h
+        )
         ol.add(o)
 
         return ol
@@ -237,8 +240,8 @@ class digit_sum(CrawlPlugin):
         :param options_list: A dictionary with the options for the plugin.
         :return: No value is returned.
         """
-        self._fuzz_images = options_list['fuzzImages'].get_value()
-        self._max_digit_sections = options_list['maxDigitSections'].get_value()
+        self._fuzz_images = options_list["fuzzImages"].get_value()
+        self._max_digit_sections = options_list["maxDigitSections"].get_value()
 
     def get_long_desc(self):
         """

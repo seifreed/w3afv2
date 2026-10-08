@@ -36,13 +36,14 @@ class Callable:
     def __init__(self, anycallable):
         self.__call__ = anycallable
 
+
 # Controls how sequences are uncoded. If true, elements may be given
 # multiple values by assigning a sequence.
 doseq = 1
 
 
 class MultipartPostHandler(urllib.request.BaseHandler):
-    handler_order = urllib.request.HTTPHandler.handler_order - 10 # needs to run first
+    handler_order = urllib.request.HTTPHandler.handler_order - 10  # needs to run first
 
     def http_request(self, request):
         data = request.get_data()
@@ -52,21 +53,27 @@ class MultipartPostHandler(urllib.request.BaseHandler):
             v_vars = []
 
             try:
-                for(key, value) in list(data.items()):
-                    if isinstance(value, file) or hasattr(value, "file") or isinstance(value, io.StringIO):
+                for key, value in list(data.items()):
+                    if (
+                        isinstance(value, file)
+                        or hasattr(value, "file")
+                        or isinstance(value, io.StringIO)
+                    ):
                         v_files.append((key, value))
                     else:
                         v_vars.append((key, value))
             except TypeError:
                 systype, value, traceback = sys.exc_info()
-                raise SqlmapDataException("not a valid non-string sequence or mapping object").with_traceback(traceback)
+                raise SqlmapDataException(
+                    "not a valid non-string sequence or mapping object"
+                ).with_traceback(traceback)
 
             if len(v_files) == 0:
                 data = urllib.parse.urlencode(v_vars, doseq)
             else:
                 boundary, data = self.multipart_encode(v_vars, v_files)
                 contenttype = "multipart/form-data; boundary=%s" % boundary
-                #if (request.has_header("Content-Type") and request.get_header("Content-Type").find("multipart/form-data") != 0):
+                # if (request.has_header("Content-Type") and request.get_header("Content-Type").find("multipart/form-data") != 0):
                 #    print "Replacing %s with %s" % (request.get_header("content-type"), "multipart/form-data")
                 request.add_unredirected_header("Content-Type", contenttype)
 
@@ -80,22 +87,31 @@ class MultipartPostHandler(urllib.request.BaseHandler):
         if buf is None:
             buf = ""
 
-        for (key, value) in vars:
+        for key, value in vars:
             if key is not None and value is not None:
                 buf += "--%s\r\n" % boundary
-                buf += "Content-Disposition: form-data; name=\"%s\"" % key
+                buf += 'Content-Disposition: form-data; name="%s"' % key
                 buf += "\r\n\r\n" + value + "\r\n"
 
-        for (key, fd) in files:
-            file_size = os.fstat(fd.fileno())[stat.ST_SIZE] if isinstance(fd, file) else fd.len
-            filename = fd.name.split("/")[-1] if "/" in fd.name else fd.name.split("\\")[-1]
+        for key, fd in files:
+            file_size = (
+                os.fstat(fd.fileno())[stat.ST_SIZE] if isinstance(fd, file) else fd.len
+            )
+            filename = (
+                fd.name.split("/")[-1] if "/" in fd.name else fd.name.split("\\")[-1]
+            )
             try:
-                contenttype = mimetypes.guess_type(filename)[0] or "application/octet-stream"
+                contenttype = (
+                    mimetypes.guess_type(filename)[0] or "application/octet-stream"
+                )
             except:
                 # Reference: http://bugs.python.org/issue9291
                 contenttype = "application/octet-stream"
             buf += "--%s\r\n" % boundary
-            buf += "Content-Disposition: form-data; name=\"%s\"; filename=\"%s\"\r\n" % (key, filename)
+            buf += 'Content-Disposition: form-data; name="%s"; filename="%s"\r\n' % (
+                key,
+                filename,
+            )
             buf += "Content-Type: %s\r\n" % contenttype
             # buf += "Content-Length: %s\r\n" % file_size
             fd.seek(0)

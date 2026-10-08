@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import pickle
 import msgpack
 import operator
@@ -31,6 +32,7 @@ class HistorySuggestion(object):
 
     It's also responsible of loading and saving the info in a file.
     """
+
     def __init__(self, filename):
         # Where the history items will be stored
         self.filename = filename
@@ -44,14 +46,14 @@ class HistorySuggestion(object):
             # serialization algorithm we want to use
             #
             try:
-                self.history = msgpack.load(open(filename, 'rb'), raw=False)
+                self.history = msgpack.load(open(filename, "rb"), raw=False)
             except:
                 #
                 # The history file might still be in pickle format, we read
                 # it and migrate to msgpack
                 #
                 try:
-                    self.history = pickle.load(open(filename, 'rb'))
+                    self.history = pickle.load(open(filename, "rb"))
                 except:
                     #
                     # Well... the file is completely broken, just write an
@@ -59,14 +61,14 @@ class HistorySuggestion(object):
                     # the next time the user executes the GUI
                     #
                     self.history = {}
-                    msgpack.dump({}, open(filename, 'wb'))
+                    msgpack.dump({}, open(filename, "wb"))
                 else:
                     #
                     # We were able to read using pickle, migrate the file to
                     # msgpack to prevent deserialization issues
                     # https://github.com/andresriancho/w3af/issues/17807
                     #
-                    msgpack.dump(self.history, open(filename, 'wb'))
+                    msgpack.dump(self.history, open(filename, "wb"))
 
     def get_texts(self):
         """Provides the texts, ordered by relevance.
@@ -74,7 +76,8 @@ class HistorySuggestion(object):
         :return: a generator with the texts
         """
         info = sorted(
-            list(self.history.items()), key=operator.itemgetter(1), reverse=True)
+            list(self.history.items()), key=operator.itemgetter(1), reverse=True
+        )
         return [k for k, v in info]
 
     def insert(self, newtext):
@@ -102,21 +105,23 @@ if __name__ == "__main__":
         os.remove(arch)
     his = HistorySuggestion(arch)
 
-    texts = ["".join(random.choice(
-        string.ascii_letters) for x in range(LENGTH)) for y in range(QUANT)]
+    texts = [
+        "".join(random.choice(string.ascii_letters) for x in range(LENGTH))
+        for y in range(QUANT)
+    ]
 
-    print("Storing the elements:", end=' ')
+    print("Storing the elements:", end=" ")
     tini = time.time()
     for txt in texts:
         his.insert(txt)
     print("%.1f mseg/element" % ((time.time() - tini) * 1000 / QUANT))
 
-    print("Saving to disk:", end=' ')
+    print("Saving to disk:", end=" ")
     tini = time.time()
     his.save()
     print("%.1f mseg" % ((time.time() - tini) * 1000))
 
-    print("Loading from disk:", end=' ')
+    print("Loading from disk:", end=" ")
     tini = time.time()
     HistorySuggestion(arch)
     print("%.1f mseg" % ((time.time() - tini) * 1000))

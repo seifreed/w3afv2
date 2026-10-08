@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import time
 import queue
 
@@ -101,7 +102,8 @@ class SmartQueue(QueueSpeedMeasurement):
         * Log how much time a thread waited to put() and item
         * Log how much time an item waited in the queue to get out
     """
-    def __init__(self, maxsize=0, name='Unknown'):
+
+    def __init__(self, maxsize=0, name="Unknown"):
         super(SmartQueue, self).__init__()
         self.q = queue.Queue(maxsize=maxsize)
 
@@ -122,14 +124,19 @@ class SmartQueue(QueueSpeedMeasurement):
             timestamp, item = data
             import w3af.core.controllers.output_manager as om
 
-            msg = 'Item waited %.2f seconds to get out of the %s queue. Items in queue: %s / %s'
+            msg = "Item waited %.2f seconds to get out of the %s queue. Items in queue: %s / %s"
             block_time = time.time() - timestamp
-            args = (round(block_time, 2), self.get_name(), self.q.qsize(), self.q.maxsize)
+            args = (
+                round(block_time, 2),
+                self.get_name(),
+                self.q.qsize(),
+                self.q.maxsize,
+            )
             om.out.debug(msg % args)
 
             self._item_left_queue()
             return item
-    
+
     def put(self, item, block=True, timeout=None):
         #
         #   This is very useful information for finding bottlenecks in the
@@ -148,8 +155,10 @@ class SmartQueue(QueueSpeedMeasurement):
             #   If you see maxsize messages like this at the end of your scan
             #   log and the scan has freezed, then you need to report a bug!
             #
-            msg = ('Thread will block waiting for Queue.put() to have space in'
-                   ' the %s queue. (maxsize=%s, timeout=%s)')
+            msg = (
+                "Thread will block waiting for Queue.put() to have space in"
+                " the %s queue. (maxsize=%s, timeout=%s)"
+            )
             args = (self.get_name(), self.q.maxsize, timeout)
             om.out.debug(msg % args)
             block_start_time = time.time()
@@ -162,18 +171,20 @@ class SmartQueue(QueueSpeedMeasurement):
             raise
         else:
             if block_start_time is not None:
-                msg = ('Thread blocked %.2f seconds waiting for Queue.put() to'
-                       ' have space in the %s queue. The queue\'s maxsize is'
-                       ' %s.')
+                msg = (
+                    "Thread blocked %.2f seconds waiting for Queue.put() to"
+                    " have space in the %s queue. The queue's maxsize is"
+                    " %s."
+                )
                 block_time = time.time() - block_start_time
                 args = (round(block_time, 2), self.get_name(), self.q.maxsize)
                 om.out.debug(msg % args)
 
             self._item_added_to_queue()
             return put_res
-    
+
     def __getattr__(self, attr):
         if attr in self.__dict__:
             return getattr(self, attr)
-        
+
         return getattr(self.q, attr)

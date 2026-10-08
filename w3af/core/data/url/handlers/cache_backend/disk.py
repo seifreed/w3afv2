@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 
 import w3af.core.controllers.output_manager as om
@@ -33,19 +34,20 @@ from w3af.core.data.url.handlers.cache_backend.cached_response import CachedResp
 class DiskCachedResponse(CachedResponse):
 
     PARTS_MAPPING = {
-        CachedResponse.PART_HEADER: 'headers',
-        CachedResponse.PART_BODY: 'body',
-        CachedResponse.PART_CODE: 'code',
-        CachedResponse.PART_MSG: 'msg',
+        CachedResponse.PART_HEADER: "headers",
+        CachedResponse.PART_BODY: "body",
+        CachedResponse.PART_CODE: "code",
+        CachedResponse.PART_MSG: "msg",
     }
 
     def _get_from_response(self, part):
         if part not in self.PARTS_MAPPING:
             raise ValueError("Unexpected value for param 'part': %s" % part)
         ext = self.PARTS_MAPPING[part]
-        file = os.path.join(DiskCachedResponse._get_cache_location(),
-                            '%s.%s' % (self._hash_id, ext))
-        with open(file, 'r') as f:
+        file = os.path.join(
+            DiskCachedResponse._get_cache_location(), "%s.%s" % (self._hash_id, ext)
+        )
+        with open(file, "r") as f:
             content = f.read()
         return content
 
@@ -67,7 +69,7 @@ class DiskCachedResponse(CachedResponse):
         try:
             body = response.read()
         except Exception as e:
-            om.out.error('cache.py: Timeout while fetching page body.')
+            om.out.error("cache.py: Timeout while fetching page body.")
         else:
             try:
                 f = open(fname + ".body", "w")
@@ -104,8 +106,12 @@ class DiskCachedResponse(CachedResponse):
         exists = os.path.exists
         cache_loc = DiskCachedResponse._get_cache_location()
         reqfname = os.path.join(cache_loc, reqid)
-        return exists(reqfname + ".headers") and exists(reqfname + ".body") \
-            and exists(reqfname + ".code") and exists(reqfname + ".msg")
+        return (
+            exists(reqfname + ".headers")
+            and exists(reqfname + ".body")
+            and exists(reqfname + ".code")
+            and exists(reqfname + ".msg")
+        )
 
     @staticmethod
     def init():

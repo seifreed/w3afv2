@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.data.parsers.parser_cache as parser_cache
 
 from w3af.core.controllers.plugins.auth_session_plugin import AuthSessionPlugin
@@ -40,11 +41,11 @@ class autocomplete(AuthSessionPlugin):
         AuthSessionPlugin.__init__(self)
 
         # User configured settings
-        self.username = ''
-        self.password = ''
-        self.login_form_url = URL('http://host.tld/login')
-        self.check_url = URL('http://host.tld/check')
-        self.check_string = ''
+        self.username = ""
+        self.password = ""
+        self.login_form_url = URL("http://host.tld/login")
+        self.check_url = URL("http://host.tld/check")
+        self.check_string = ""
 
     def login(self, debugging_id=None):
         """
@@ -66,7 +67,7 @@ class autocomplete(AuthSessionPlugin):
         self._set_debugging_id(debugging_id)
         self._clear_log()
 
-        msg = 'Logging into the application with user: %s' % self.username
+        msg = "Logging into the application with user: %s" % self.username
         self._log_debug(msg)
 
         #
@@ -111,7 +112,7 @@ class autocomplete(AuthSessionPlugin):
         form_url = form.get_action().uri2url()
 
         args = (self.username, form_url)
-        msg = 'Login success for username %s with form action %s'
+        msg = "Login success for username %s with form action %s"
         self._log_debug(msg % args)
 
         self._configure_audit_blacklist(form_url)
@@ -140,18 +141,23 @@ class autocomplete(AuthSessionPlugin):
         fuzzable_request = FuzzableRequest.from_form(form)
 
         try:
-            http_response = self._uri_opener.send_mutant(fuzzable_request,
-                                                         grep=False,
-                                                         cache=False,
-                                                         follow_redirects=True,
-                                                         debugging_id=self._debugging_id)
+            http_response = self._uri_opener.send_mutant(
+                fuzzable_request,
+                grep=False,
+                cache=False,
+                follow_redirects=True,
+                debugging_id=self._debugging_id,
+            )
         except Exception as e:
-            msg = 'Failed to submit the login form: %s'
+            msg = "Failed to submit the login form: %s"
             self._log_debug(msg % e)
             return False
 
-        msg = 'Login form sent to %s in HTTP request ID %s'
-        args = (fuzzable_request.get_uri(), http_response.id,)
+        msg = "Login form sent to %s in HTTP request ID %s"
+        args = (
+            fuzzable_request.get_uri(),
+            http_response.id,
+        )
         self._log_debug(msg % args)
 
         self._log_http_response(http_response)
@@ -169,13 +175,15 @@ class autocomplete(AuthSessionPlugin):
         # Send the HTTP GET request to retrieve the HTML
         #
         try:
-            http_response = self._uri_opener.GET(self.login_form_url,
-                                                 grep=False,
-                                                 cache=False,
-                                                 follow_redirects=True,
-                                                 debugging_id=self._debugging_id)
+            http_response = self._uri_opener.GET(
+                self.login_form_url,
+                grep=False,
+                cache=False,
+                follow_redirects=True,
+                debugging_id=self._debugging_id,
+            )
         except Exception as e:
-            msg = 'Failed to HTTP GET the login_form_url: %s'
+            msg = "Failed to HTTP GET the login_form_url: %s"
             self._log_debug(msg % e)
             return
 
@@ -187,7 +195,7 @@ class autocomplete(AuthSessionPlugin):
         try:
             document_parser = parser_cache.dpc.get_document_parser_for(http_response)
         except BaseFrameworkException as e:
-            msg = 'Failed to find a parser for the login_form_url: %s'
+            msg = "Failed to find a parser for the login_form_url: %s"
             self._log_debug(msg % e)
             return
 
@@ -204,24 +212,31 @@ class autocomplete(AuthSessionPlugin):
             if not form_params.is_login_form():
                 continue
 
-            if form_params.get_action().get_domain() != self.login_form_url.get_domain():
+            if (
+                form_params.get_action().get_domain()
+                != self.login_form_url.get_domain()
+            ):
                 continue
 
             if login_form is not None:
                 #
                 # There are two or more login forms in this page
                 #
-                self._log_debug('There are two or more login forms in the login_form_url.'
-                                ' This is not supported by the autocomplete authentication'
-                                ' plugin, will use the first identified form and ignore the'
-                                ' second one.')
+                self._log_debug(
+                    "There are two or more login forms in the login_form_url."
+                    " This is not supported by the autocomplete authentication"
+                    " plugin, will use the first identified form and ignore the"
+                    " second one."
+                )
                 continue
 
             login_form = form_params
 
         if login_form is None:
-            msg = ('Failed to find an HTML login form at %s (id: %s).'
-                   ' The authentication plugin is most likely incorrectly configured.')
+            msg = (
+                "Failed to find an HTML login form at %s (id: %s)."
+                " The authentication plugin is most likely incorrectly configured."
+            )
             args = (self.login_form_url, http_response.id)
             self._log_error(msg % args)
 
@@ -243,8 +258,11 @@ class autocomplete(AuthSessionPlugin):
             #
             return None
 
-        msg = 'Login form with action %s found in HTTP response with ID %s'
-        args = (login_form.get_action(), http_response.id,)
+        msg = "Login form with action %s found in HTTP response with ID %s"
+        args = (
+            login_form.get_action(),
+            http_response.id,
+        )
         self._log_debug(msg % args)
 
         return login_form
@@ -257,23 +275,39 @@ class autocomplete(AuthSessionPlugin):
         :return: A list of option objects for this plugin.
         """
         options = [
-            ('username', self.username, STRING,
-             'Username for the authentication process'),
-
-            ('password', self.password, STRING,
-             'Password for the authentication process'),
-
-            ('login_form_url', self.login_form_url, URL_OPT,
-             'The URL where the login form appears'),
-
-            ('check_url', self.check_url, URL_OPT,
-             'URL used to verify if the session is active. The plugin sends'
-             ' an HTTP GET request to this URL and asserts if `check_string`'
-             ' is present.'),
-
-            ('check_string', self.check_string, STRING,
-             'String to search in the `check_url` page to determine if the'
-             ' session is active.'),
+            (
+                "username",
+                self.username,
+                STRING,
+                "Username for the authentication process",
+            ),
+            (
+                "password",
+                self.password,
+                STRING,
+                "Password for the authentication process",
+            ),
+            (
+                "login_form_url",
+                self.login_form_url,
+                URL_OPT,
+                "The URL where the login form appears",
+            ),
+            (
+                "check_url",
+                self.check_url,
+                URL_OPT,
+                "URL used to verify if the session is active. The plugin sends"
+                " an HTTP GET request to this URL and asserts if `check_string`"
+                " is present.",
+            ),
+            (
+                "check_string",
+                self.check_string,
+                STRING,
+                "String to search in the `check_url` page to determine if the"
+                " session is active.",
+            ),
         ]
 
         ol = OptionList()
@@ -292,11 +326,11 @@ class autocomplete(AuthSessionPlugin):
         :param options_list: A dict with the options for the plugin.
         :return: No value is returned.
         """
-        self.username = options_list['username'].get_value()
-        self.password = options_list['password'].get_value()
-        self.check_string = options_list['check_string'].get_value()
-        self.login_form_url = options_list['login_form_url'].get_value()
-        self.check_url = options_list['check_url'].get_value()
+        self.username = options_list["username"].get_value()
+        self.password = options_list["password"].get_value()
+        self.check_string = options_list["check_string"].get_value()
+        self.login_form_url = options_list["login_form_url"].get_value()
+        self.check_url = options_list["check_url"].get_value()
 
         missing_options = []
 
@@ -305,9 +339,11 @@ class autocomplete(AuthSessionPlugin):
                 missing_options.append(o.get_name())
 
         if missing_options:
-            msg = ('All plugin configuration parameters are required.'
-                   ' The missing parameters are: %s')
-            raise BaseFrameworkException(msg % ', '.join(missing_options))
+            msg = (
+                "All plugin configuration parameters are required."
+                " The missing parameters are: %s"
+            )
+            raise BaseFrameworkException(msg % ", ".join(missing_options))
 
     def get_long_desc(self):
         """

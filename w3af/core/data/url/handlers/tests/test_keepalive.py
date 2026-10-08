@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import socket
 import unittest
 import time
@@ -33,14 +34,17 @@ from nose.plugins.attrib import attr
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.url.HTTPRequest import HTTPRequest
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.url.handlers.keepalive import (KeepAliveHandler,
-                                                   ConnectionManager,
-                                                   HTTPResponse,
-                                                   URLTimeoutError,
-                                                   HTTPHandler, HTTPSHandler)
+from w3af.core.data.url.handlers.keepalive import (
+    KeepAliveHandler,
+    ConnectionManager,
+    HTTPResponse,
+    URLTimeoutError,
+    HTTPHandler,
+    HTTPSHandler,
+)
 
 
-@attr('moth')
+@attr("moth")
 class TestKeepalive(unittest.TestCase):
 
     def setUp(self):
@@ -48,11 +52,11 @@ class TestKeepalive(unittest.TestCase):
         self.kahdler = KeepAliveHandler()
         self.kahdler._curr_check_failures = 1  # Only one timeout in-a-row
         # Host name
-        self.host = 'host'
+        self.host = "host"
         # The connection
         self.conn = Mock()
         self.conn.is_fresh = 1
-        self.conn.getresponse = 'blah'
+        self.conn.getresponse = "blah"
         # The request obj mock
         self.req = Mock()
 
@@ -67,7 +71,7 @@ class TestKeepalive(unittest.TestCase):
         req = self.req
 
         req.get_host = MagicMock(return_value=host)
-        req.get_full_url = MagicMock(return_value='test_full_url')
+        req.get_full_url = MagicMock(return_value="test_full_url")
 
         # Override KeepAliveHandler._start_transaction
         kah._start_transaction = MagicMock(return_value=None)
@@ -77,7 +81,7 @@ class TestKeepalive(unittest.TestCase):
         # Mock conn's getresponse()
         resp = HTTPResponse(socket.socket())
         resp.will_close = True
-        resp.read = MagicMock(return_value='Response body')
+        resp.read = MagicMock(return_value="Response body")
         conn.getresponse = MagicMock(return_value=resp)
 
         # The connection mgr
@@ -91,10 +95,12 @@ class TestKeepalive(unittest.TestCase):
 
         ## Verify ##
         kah._start_transaction.assert_called_once_with(conn, req)
-        conn_mgr_mock.get_available_connection.assert_called_once_with(req,
-                                                                       conn_factory)
-        conn_mgr_mock.remove_connection.assert_called_once_with(conn,
-                                                                reason='will close')
+        conn_mgr_mock.get_available_connection.assert_called_once_with(
+            req, conn_factory
+        )
+        conn_mgr_mock.remove_connection.assert_called_once_with(
+            conn, reason="will close"
+        )
 
     def test_timeout(self):
         """
@@ -151,8 +157,8 @@ class TestKeepalive(unittest.TestCase):
         and HTTPS.
         """
         conn_mgr_http = HTTPHandler()._cm
-        conn_mgr_https = HTTPSHandler(':')._cm
-        
+        conn_mgr_https = HTTPSHandler(":")._cm
+
         self.assertIsNot(conn_mgr_http, conn_mgr_https)
 
     def test_close_all_established_sockets(self):
@@ -161,7 +167,7 @@ class TestKeepalive(unittest.TestCase):
     def test_close_all_close_wait_sockets(self):
         # Give the socket time to move to close_wait
         self.close_all_sockets(20)
-        
+
     def close_all_sockets(self, wait):
         keep_alive_http = HTTPHandler()
 
@@ -177,16 +183,16 @@ class TestKeepalive(unittest.TestCase):
         pid = os.getpid()
         p = psutil.Process(pid)
         connections_before = p.get_connections()
-        
+
         keep_alive_http.close_all()
 
         time.sleep(1)
         connections_after = p.get_connections()
         # pylint: enable=E1101
-        
+
         self.assertLess(len(connections_after), len(connections_before))
-        
-        
+
+
 class TestConnectionMgr(unittest.TestCase):
 
     def setUp(self):
@@ -196,8 +202,8 @@ class TestConnectionMgr(unittest.TestCase):
     def test_get_available_conn_reuse(self):
         # We don't need a new HTTPConnection for each request
         self.request.new_connection = False
-        self.request.get_host = lambda: 'w3af.org'
-        self.request.get_netloc = lambda: 'w3af.org'
+        self.request.get_host = lambda: "w3af.org"
+        self.request.get_netloc = lambda: "w3af.org"
 
         self.cm.MAX_CONNECTIONS = 1  # Only a single connection
         self.assertEqual(0, len(self.cm._used_conns))
@@ -269,6 +275,6 @@ class TestConnectionMgr(unittest.TestCase):
         conn = self.cm.get_available_connection(self.request, lambda h: Mock())
         self.assertEqual(self.cm.get_connections_total(), 1)
 
-        self.cm.remove_connection(conn, reason='unittest')
+        self.cm.remove_connection(conn, reason="unittest")
 
         self.assertEqual(self.cm.get_connections_total(), 0)

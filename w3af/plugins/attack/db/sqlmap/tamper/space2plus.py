@@ -9,8 +9,10 @@ from lib.core.enums import PRIORITY
 
 __priority__ = PRIORITY.LOW
 
+
 def dependencies():
     pass
+
 
 def tamper(payload, **kwargs):
     """
@@ -38,7 +40,7 @@ def tamper(payload, **kwargs):
                     retVal += "+"
                     continue
 
-            elif payload[i] == '\'':
+            elif payload[i] == "'":
                 quote = not quote
 
             elif payload[i] == '"':

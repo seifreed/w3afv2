@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.controllers.output_manager as om
 
 
@@ -26,6 +27,7 @@ class delayedExecution(object):
     """
     This class is a base class for crontabHandler and atHandler.
     """
+
     def __init__(self, exec_method):
         self._exec_method = exec_method
 
@@ -35,11 +37,11 @@ class delayedExecution(object):
         """
         om.out.debug('Executing: "%s".' % command)
         response = self._exec_method(*(command,))
-        om.out.debug('"%s" returned "%s".' % (command, response) )
-        
+        om.out.debug('"%s" returned "%s".' % (command, response))
+
         return response
 
-    def _fix_time(self, hour, minute, am_pm=''):
+    def _fix_time(self, hour, minute, am_pm=""):
         """
         Fix the time, this is done to fix if minute == 60, or ampm changes
         from am to pm, etc...
@@ -52,11 +54,11 @@ class delayedExecution(object):
             hour = hour + 1
             return self._fix_time(hour, minute, am_pm)
 
-        if hour == 13 and am_pm.startswith('a'):
-            am_pm = ''
+        if hour == 13 and am_pm.startswith("a"):
+            am_pm = ""
 
         if hour == 24:
             hour = 0
-            am_pm = 'a'
+            am_pm = "a"
 
         return hour, minute, am_pm

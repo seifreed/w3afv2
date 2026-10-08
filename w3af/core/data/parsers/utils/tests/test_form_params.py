@@ -18,50 +18,81 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 import pickle
 import copy
 import time
 
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.parsers.utils.form_constants import (MODE_ALL, MODE_TB,
-                                                         MODE_B, MODE_T,
-                                                         MODE_TMB,
-                                                         INPUT_TYPE_RADIO,
-                                                         INPUT_TYPE_SELECT)
-from w3af.core.data.parsers.utils.form_params import (FormParameters,
-                                                      DEFAULT_FORM_ENCODING)
+from w3af.core.data.parsers.utils.form_constants import (
+    MODE_ALL,
+    MODE_TB,
+    MODE_B,
+    MODE_T,
+    MODE_TMB,
+    INPUT_TYPE_RADIO,
+    INPUT_TYPE_SELECT,
+)
+from w3af.core.data.parsers.utils.form_params import (
+    FormParameters,
+    DEFAULT_FORM_ENCODING,
+)
 
-
-form_with_radio = [{'name': 'sex', 'type': 'radio', 'value': 'male'},
-                   {'name': 'sex', 'type': 'radio', 'value': 'female'}]
+form_with_radio = [
+    {"name": "sex", "type": "radio", "value": "male"},
+    {"name": "sex", "type": "radio", "value": "female"},
+]
 
 # TODO: see checkbox and the `secret_value` thing
-form_with_checkbox = [{'name': 'vehicle', 'type': 'checkbox', 'value': 'Bike'},
-                      {'name': 'vehicle', 'type': 'checkbox', 'value': 'Car'},
-                      {'name': 'vehicle', 'type': 'checkbox', 'value': 'Plane'}]
+form_with_checkbox = [
+    {"name": "vehicle", "type": "checkbox", "value": "Bike"},
+    {"name": "vehicle", "type": "checkbox", "value": "Car"},
+    {"name": "vehicle", "type": "checkbox", "value": "Plane"},
+]
 
 form_select_cars = [
-    {'type': 'select', 'name': 'cars',
-     'values': ('volvo', 'saab', 'jeep', 'chevy', 'fiat')}]
+    {
+        "type": "select",
+        "name": "cars",
+        "values": ("volvo", "saab", "jeep", "chevy", "fiat"),
+    }
+]
 
 form_select_misc = [
-    {'type': 'select', 'name': 'colors', 'values': ('black', 'red')},
-    {'type': 'select', 'name': 'letters', 'values': ('a', 'b', 'g', 'h',
-                                                     'i', 'j')}
+    {"type": "select", "name": "colors", "values": ("black", "red")},
+    {"type": "select", "name": "letters", "values": ("a", "b", "g", "h", "i", "j")},
 ]
 
 form_select_misc_large = [
-    {'type': 'select', 'name': 'colors',
-     'values': ('black', 'blue', 'yellow', 'green', 'red')},
-
-    {'type': 'select', 'name': 'letters', 'values': ('a', 'b', 'c', 'd',
-                                                     'e', 'f', 'g', 'h',
-                                                     'i', 'j', 'k', 'l',
-                                                     'm', 'n')}
+    {
+        "type": "select",
+        "name": "colors",
+        "values": ("black", "blue", "yellow", "green", "red"),
+    },
+    {
+        "type": "select",
+        "name": "letters",
+        "values": (
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "i",
+            "j",
+            "k",
+            "l",
+            "m",
+            "n",
+        ),
+    },
 ]
 
-form_select_empty = [{'type': 'select', 'name': 'spam', 'values': ()}]
+form_select_empty = [{"type": "select", "name": "spam", "values": ()}]
 
 # Global container for form
 ALL_FORMS = (form_with_radio, form_with_checkbox, form_select_cars)
@@ -70,11 +101,11 @@ ALL_FORMS = (form_with_radio, form_with_checkbox, form_select_cars)
 class TestFormParams(unittest.TestCase):
     def test_set_action_str(self):
         f = FormParameters()
-        self.assertRaises(TypeError, f.set_action, 'http://www.w3af.com/')
+        self.assertRaises(TypeError, f.set_action, "http://www.w3af.com/")
 
     def test_set_action_url(self):
         f = FormParameters()
-        action = URL('http://www.w3af.com/')
+        action = URL("http://www.w3af.com/")
         f.set_action(action)
 
         self.assertIs(f.get_action(), action)
@@ -94,8 +125,8 @@ class TestFormParams(unittest.TestCase):
             new_form = create_form_params_helper(form_data)
 
             for elem in form_data:
-                elem_name = elem.get('name', None)
-                elem_type = elem.get('type', None)
+                elem_name = elem.get("name", None)
+                elem_type = elem.get("type", None)
 
                 values = new_form.get(elem_name)
 
@@ -105,7 +136,7 @@ class TestFormParams(unittest.TestCase):
                 # pylint: disable=E1133
                 for value in values:
                     if elem_type == INPUT_TYPE_SELECT:
-                        self.assertIn(value, elem['values'])
+                        self.assertIn(value, elem["values"])
                 # pylint: enable=E1133
 
     def test_variants_do_not_modify_original(self):
@@ -122,9 +153,7 @@ class TestFormParams(unittest.TestCase):
         # 'top-middle-bottom' mode variants
         def filter_tmb(values):
             if len(values) > 3:
-                values = (values[0],
-                          values[len(values) / 2],
-                          values[-1])
+                values = (values[0], values[len(values) / 2], values[-1])
             return values
 
         bigform_data = form_with_radio + form_select_misc
@@ -163,9 +192,7 @@ class TestFormParams(unittest.TestCase):
 
             * Doesn't use filter_tmb since variants are based on a "random pick"
         """
-        bigform_data = (form_with_radio +
-                        form_select_cars +
-                        form_select_misc_large)
+        bigform_data = form_with_radio + form_select_cars + form_select_misc_large
         clean_data = get_grouped_data(bigform_data)
         new_bigform = create_form_params_helper(bigform_data)
         # total_variants = 2 * 3 * 3 * 3
@@ -174,21 +201,23 @@ class TestFormParams(unittest.TestCase):
 
         # Please note that this depends completely in form.SEED AND
         # form.TOP_VARIANTS
-        RANDOM_PICKS = {1: ('volvo', 'black', 'd', 'female'),
-                        2: ('volvo', 'blue', 'i', 'male'),
-                        3: ('volvo', 'blue', 'f', 'female'),
-                        4: ('volvo', 'black', 'g', 'female'),
-                        5: ('volvo', 'black', 'm', 'male'),
-                        6: ('volvo', 'black', 'l', 'male'),
-                        7: ('volvo', 'blue', 'b', 'female'),
-                        8: ('volvo', 'blue', 'e', 'female'),
-                        9: ('volvo', 'black', 'c', 'male'),
-                        10: ('volvo', 'black', 'a', 'female'),
-                        11: ('volvo', 'blue', 'e', 'male'),
-                        12: ('volvo', 'black', 'j', 'male'),
-                        13: ('volvo', 'blue', 'c', 'male'),
-                        14: ('volvo', 'black', 'a', 'male'),
-                        15: ('volvo', 'black', 'i', 'female')}
+        RANDOM_PICKS = {
+            1: ("volvo", "black", "d", "female"),
+            2: ("volvo", "blue", "i", "male"),
+            3: ("volvo", "blue", "f", "female"),
+            4: ("volvo", "black", "g", "female"),
+            5: ("volvo", "black", "m", "male"),
+            6: ("volvo", "black", "l", "male"),
+            7: ("volvo", "blue", "b", "female"),
+            8: ("volvo", "blue", "e", "female"),
+            9: ("volvo", "black", "c", "male"),
+            10: ("volvo", "black", "a", "female"),
+            11: ("volvo", "blue", "e", "male"),
+            12: ("volvo", "black", "j", "male"),
+            13: ("volvo", "blue", "c", "male"),
+            14: ("volvo", "black", "a", "male"),
+            15: ("volvo", "black", "i", "female"),
+        }
 
         for i, form_variant in enumerate(variants):
 
@@ -268,11 +297,13 @@ class TestFormParams(unittest.TestCase):
     def test_max_variants(self):
         # Combinatoric explosion (mode=MODE_ALL): total_variants = 2*5*5*5 =
         # 250 > dc.Form.TOP_VARIANTS = 150
-        new_form = create_form_params_helper(form_with_radio +
-                                             form_select_cars +
-                                             form_select_misc)
-        self.assertEqual(FormParameters.TOP_VARIANTS,
-                          len([fv for fv in new_form.get_variants(mode=MODE_ALL)]) - 1)
+        new_form = create_form_params_helper(
+            form_with_radio + form_select_cars + form_select_misc
+        )
+        self.assertEqual(
+            FormParameters.TOP_VARIANTS,
+            len([fv for fv in new_form.get_variants(mode=MODE_ALL)]) - 1,
+        )
 
     def test_max_variants_many_fields(self):
         # Makes sure that the get_variants will return 15 even when we have tons
@@ -280,21 +311,29 @@ class TestFormParams(unittest.TestCase):
         form_params = []
 
         for i in range(50):
-            form_params.append({'type': 'select',
-                                'name': 'cars_%s' % i,
-                                'values': ('volvo_%s' % i,
-                                           'saab_%s' % i,
-                                           'jeep_%s' % i,
-                                           'chevy_%s' % i,
-                                           'fiat_%s' % i,)})
+            form_params.append(
+                {
+                    "type": "select",
+                    "name": "cars_%s" % i,
+                    "values": (
+                        "volvo_%s" % i,
+                        "saab_%s" % i,
+                        "jeep_%s" % i,
+                        "chevy_%s" % i,
+                        "fiat_%s" % i,
+                    ),
+                }
+            )
 
         # Really large form
         new_form = create_form_params_helper(form_params)
 
         start_time = time.time()
 
-        self.assertEqual(FormParameters.TOP_VARIANTS,
-                          len([fv for fv in new_form.get_variants(mode=MODE_TMB)]) - 1)
+        self.assertEqual(
+            FormParameters.TOP_VARIANTS,
+            len([fv for fv in new_form.get_variants(mode=MODE_TMB)]) - 1,
+        )
 
         # With the previous version of our code this took considerable time, because range(10 ** 9)
         # was called (doh!) creating 10 ** 9 integer objects in memory, which took a lot of time
@@ -310,11 +349,12 @@ class TestFormParams(unittest.TestCase):
         #
         # Therefore will be used random variants generation. We should get the
         # same every time we call `form.get_variants`
-        new_form = create_form_params_helper(form_with_radio +
-                                             form_select_cars +
-                                             form_select_misc)
-        get_all_variants = lambda: set(repr(fv) for fv in
-                                       new_form.get_variants(mode=MODE_ALL))
+        new_form = create_form_params_helper(
+            form_with_radio + form_select_cars + form_select_misc
+        )
+        get_all_variants = lambda: set(
+            repr(fv) for fv in new_form.get_variants(mode=MODE_ALL)
+        )
         variants = get_all_variants()
         for i in range(10):
             self.assertEqual(variants, get_all_variants())
@@ -328,10 +368,9 @@ class TestFormParams(unittest.TestCase):
 
         In this case I'm going to call get_variants with mode=MODE_ALL
         """
-        new_form = create_form_params_helper(form_with_radio +
-                                             form_select_cars +
-                                             form_select_misc +
-                                             form_select_empty)
+        new_form = create_form_params_helper(
+            form_with_radio + form_select_cars + form_select_misc + form_select_empty
+        )
         [i for i in new_form.get_variants(mode=MODE_ALL)]
 
     def test_empty_select_tb(self):
@@ -345,10 +384,9 @@ class TestFormParams(unittest.TestCase):
 
         This is the case reported by Taras at https://sourceforge.net/apps/trac/w3af/ticket/171015
         """
-        new_form = create_form_params_helper(form_with_radio +
-                                             form_select_cars +
-                                             form_select_misc +
-                                             form_select_empty)
+        new_form = create_form_params_helper(
+            form_with_radio + form_select_cars + form_select_misc + form_select_empty
+        )
         [i for i in new_form.get_variants(mode=MODE_TB)]
 
     def test_form_params_deepish_copy(self):
@@ -360,7 +398,7 @@ class TestFormParams(unittest.TestCase):
         self.assertEqual(form._action, copy._action)
 
         self.assertIsNot(form, copy)
-        self.assertEqual(copy.get_parameter_type('sex'), INPUT_TYPE_RADIO)
+        self.assertEqual(copy.get_parameter_type("sex"), INPUT_TYPE_RADIO)
 
     def test_form_params_deep_copy(self):
         form = create_form_params_helper(form_with_radio + form_with_checkbox)
@@ -372,12 +410,12 @@ class TestFormParams(unittest.TestCase):
         self.assertEqual(form._autocomplete, form_copy._autocomplete)
 
         self.assertIsNot(form, copy)
-        self.assertEqual(form_copy.get_parameter_type('sex'), INPUT_TYPE_RADIO)
+        self.assertEqual(form_copy.get_parameter_type("sex"), INPUT_TYPE_RADIO)
 
     def test_login_form_utils(self):
         form = FormParameters()
-        form.add_field_by_attrs({'name': 'username', 'type': 'text'})
-        form.add_field_by_attrs({'name': 'pwd', 'type': 'password'})
+        form.add_field_by_attrs({"name": "username", "type": "text"})
+        form.add_field_by_attrs({"name": "pwd", "type": "password"})
 
         self.assertTrue(form.is_login_form())
         self.assertFalse(form.is_registration_form())
@@ -391,27 +429,31 @@ class TestFormParams(unittest.TestCase):
 
         self.assertEqual(list(pickled_form_params.items()), list(form.items()))
         self.assertIsNot(form, copy)
-        self.assertEqual(pickled_form_params.get_parameter_type('sex'),
-                          INPUT_TYPE_RADIO)
+        self.assertEqual(
+            pickled_form_params.get_parameter_type("sex"), INPUT_TYPE_RADIO
+        )
 
     def test_get_form_id(self):
-        action = URL('http://www.w3af.com/action')
-        hosted_at_url = URL('http://www.w3af.com/')
-        attributes = {'class': 'form-main'}
+        action = URL("http://www.w3af.com/action")
+        hosted_at_url = URL("http://www.w3af.com/")
+        attributes = {"class": "form-main"}
 
-        form = FormParameters(method='GET', action=action,
-                              attributes=attributes,
-                              hosted_at_url=hosted_at_url)
-        form.add_field_by_attrs({'name': 'username', 'type': 'text'})
-        form.add_field_by_attrs({'name': 'pwd', 'type': 'password'})
+        form = FormParameters(
+            method="GET",
+            action=action,
+            attributes=attributes,
+            hosted_at_url=hosted_at_url,
+        )
+        form.add_field_by_attrs({"name": "username", "type": "text"})
+        form.add_field_by_attrs({"name": "pwd", "type": "password"})
 
         form_id = form.get_form_id()
 
         self.assertEqual(form_id.action, action)
         self.assertEqual(form_id.attributes, attributes)
-        self.assertEqual(form_id.method, 'GET')
+        self.assertEqual(form_id.method, "GET")
         self.assertEqual(form_id.hosted_at_url, hosted_at_url)
-        self.assertEqual(form_id.inputs, ['username', 'pwd'])
+        self.assertEqual(form_id.inputs, ["username", "pwd"])
 
 
 def get_grouped_data(form_data):
@@ -427,11 +469,11 @@ def get_grouped_data(form_data):
     res = {}
 
     for elem_data in form_data:
-        values = res.setdefault(elem_data['name'], [])
-        if elem_data['type'] == INPUT_TYPE_SELECT:
-            values.extend(elem_data['values'])
+        values = res.setdefault(elem_data["name"], [])
+        if elem_data["type"] == INPUT_TYPE_SELECT:
+            values.extend(elem_data["values"])
         else:
-            values.append(elem_data['value'])
+            values.append(elem_data["value"])
 
     return res
 

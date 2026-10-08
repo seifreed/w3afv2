@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import multiprocessing
 import w3af.core.controllers.output_manager as om
 import w3af.core.controllers.threads.threadpool as threadpool
@@ -27,7 +28,7 @@ import w3af.core.controllers.threads.pool276 as pool276
 
 def new_debug(msg, *args):
     om_msg = msg % args
-    om_msg = '[threadpool] %s' % om_msg
+    om_msg = "[threadpool] %s" % om_msg
     om.out.debug(om_msg)
 
 
@@ -42,7 +43,7 @@ def monkey_patch_debug():
 
 
 def remove_monkey_patch_debug():
-    if not hasattr(multiprocessing.util, 'original_debug'):
+    if not hasattr(multiprocessing.util, "original_debug"):
         return
 
     multiprocessing.util.debug = multiprocessing.util.original_debug

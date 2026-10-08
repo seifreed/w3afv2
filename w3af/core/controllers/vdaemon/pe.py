@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 
 from w3af import ROOT_PATH
@@ -31,16 +32,18 @@ class pe(object):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
-    def __init__(self, arch='32bit'):
+
+    def __init__(self, arch="32bit"):
         self._arch = arch
-        self._shellcode = '\x90'
+        self._shellcode = "\x90"
         self._maxPayloadLen = 1024
-        self._templateFileName = os.path.join(ROOT_PATH, 'core', 'controllers',
-                                              'vdaemon', 'pe_template.dat')
+        self._templateFileName = os.path.join(
+            ROOT_PATH, "core", "controllers", "vdaemon", "pe_template.dat"
+        )
 
     def set_shell_code(self, sc):
         if len(sc) > self._maxPayloadLen:
-            raise BaseFrameworkException('Payload to long!')
+            raise BaseFrameworkException("Payload to long!")
         self._shellcode = sc
 
     def get_shell_code(self):
@@ -51,13 +54,15 @@ class pe(object):
         :return: A string with the complete pe file.
         """
         try:
-            template = open(self._templateFileName, 'r').read()
+            template = open(self._templateFileName, "r").read()
         except Exception as e:
             raise BaseFrameworkException(
-                'Failed to open PE template file. Exception: ' + str(e))
+                "Failed to open PE template file. Exception: " + str(e)
+            )
         else:
             paddingLen = self._maxPayloadLen - len(self._shellcode)
-            executable = template.replace('\x90' * self._maxPayloadLen,
-                                          self._shellcode + '\x90' * paddingLen)
+            executable = template.replace(
+                "\x90" * self._maxPayloadLen, self._shellcode + "\x90" * paddingLen
+            )
 
         return executable

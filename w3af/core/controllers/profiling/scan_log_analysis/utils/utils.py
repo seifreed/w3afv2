@@ -4,7 +4,6 @@ import datetime
 
 from urllib.parse import urlparse
 
-
 FIRST_TIMESTAMP = None
 LAST_TIMESTAMP = None
 
@@ -24,15 +23,15 @@ def get_line_epoch(scan_line):
     :param scan_line: A scan line
     :return: The time (as epoch) associated with that line
     """
-    timestamp = scan_line[1:scan_line.find('-')].strip()
+    timestamp = scan_line[1 : scan_line.find("-")].strip()
     try:
-        parsed_time = datetime.datetime.strptime(timestamp, '%c')
+        parsed_time = datetime.datetime.strptime(timestamp, "%c")
     except KeyboardInterrupt:
         sys.exit(3)
     except:
         raise InvalidTimeStamp('Invalid timestamp: "%s"' % scan_line)
     else:
-        return int(parsed_time.strftime('%s'))
+        return int(parsed_time.strftime("%s"))
 
 
 def get_first_timestamp(scan):
@@ -93,7 +92,7 @@ def reverse_readline(fh, buf_size=8192):
         fh.seek(file_size - offset)
         buffer = fh.read(min(remaining_size, buf_size))
         remaining_size -= buf_size
-        lines = buffer.split('\n')
+        lines = buffer.split("\n")
         # the first line of the buffer is probably not a complete line so
         # we'll save it and append it to the last line of the next buffer
         # we read
@@ -101,7 +100,7 @@ def reverse_readline(fh, buf_size=8192):
             # if the previous chunk starts right from the beginning of line
             # do not concact the segment to the last line of new chunk
             # instead, yield the segment first
-            if buffer[-1] is not '\n':
+            if buffer[-1] is not "\n":
                 lines[-1] += segment
             else:
                 yield segment
@@ -127,7 +126,7 @@ def make_relative_timestamps(timestamps, first_timestamp):
 
 
 def clear_screen():
-    os.system('clear')
+    os.system("clear")
 
 
 def epoch_to_string(spent_time):
@@ -138,20 +137,20 @@ def epoch_to_string(spent_time):
     minutes, seconds = divmod(time_delta.seconds, 60)
     hours, minutes = divmod(minutes, 60)
 
-    msg = ''
+    msg = ""
 
     if weeks == days == hours == minutes == seconds == 0:
-        msg += '0 seconds'
+        msg += "0 seconds"
     else:
         if weeks:
-            msg += str(weeks) + ' week%s ' % ('s' if weeks > 1 else '')
+            msg += str(weeks) + " week%s " % ("s" if weeks > 1 else "")
         if days:
-            msg += str(days) + ' day%s ' % ('s' if days > 1 else '')
+            msg += str(days) + " day%s " % ("s" if days > 1 else "")
         if hours:
-            msg += str(hours) + ' hour%s ' % ('s' if hours > 1 else '')
+            msg += str(hours) + " hour%s " % ("s" if hours > 1 else "")
         if minutes:
-            msg += str(minutes) + ' minute%s ' % ('s' if minutes > 1 else '')
+            msg += str(minutes) + " minute%s " % ("s" if minutes > 1 else "")
         if seconds:
-            msg += str(seconds) + ' second%s' % ('s' if seconds > 1 else '')
+            msg += str(seconds) + " second%s" % ("s" if seconds > 1 else "")
 
     return msg

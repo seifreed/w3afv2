@@ -40,7 +40,9 @@ class Connector(GenericConnector):
         self.checkFileDb()
 
         try:
-            self.connector = self.__sqlite.connect(database=self.db, check_same_thread=False, timeout=conf.timeout)
+            self.connector = self.__sqlite.connect(
+                database=self.db, check_same_thread=False, timeout=conf.timeout
+            )
 
             cursor = self.connector.cursor()
             cursor.execute("SELECT * FROM sqlite_master")
@@ -55,11 +57,15 @@ class Connector(GenericConnector):
                     import sqlite
                 except ImportError:
                     errMsg = "sqlmap requires 'python-sqlite' third-party library "
-                    errMsg += "in order to directly connect to the database '%s'" % self.db
+                    errMsg += (
+                        "in order to directly connect to the database '%s'" % self.db
+                    )
                     raise SqlmapMissingDependence(errMsg)
 
                 self.__sqlite = sqlite
-                self.connector = self.__sqlite.connect(database=self.db, check_same_thread=False, timeout=conf.timeout)
+                self.connector = self.__sqlite.connect(
+                    database=self.db, check_same_thread=False, timeout=conf.timeout
+                )
             except (self.__sqlite.DatabaseError, self.__sqlite.OperationalError) as msg:
                 raise SqlmapConnectionException(msg[0])
 
@@ -70,14 +76,20 @@ class Connector(GenericConnector):
         try:
             return self.cursor.fetchall()
         except self.__sqlite.OperationalError as msg:
-            logger.log(logging.WARN if conf.dbmsHandler else logging.DEBUG, "(remote) %s" % msg[0])
+            logger.log(
+                logging.WARN if conf.dbmsHandler else logging.DEBUG,
+                "(remote) %s" % msg[0],
+            )
             return None
 
     def execute(self, query):
         try:
             self.cursor.execute(utf8encode(query))
         except self.__sqlite.OperationalError as msg:
-            logger.log(logging.WARN if conf.dbmsHandler else logging.DEBUG, "(remote) %s" % msg[0])
+            logger.log(
+                logging.WARN if conf.dbmsHandler else logging.DEBUG,
+                "(remote) %s" % msg[0],
+            )
         except self.__sqlite.DatabaseError as msg:
             raise SqlmapConnectionException(msg[0])
 

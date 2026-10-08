@@ -20,6 +20,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 
 from w3af.core.data.dc.headers import Headers
@@ -38,10 +39,11 @@ import w3af.core.controllers.output_manager as om
 class RequestFactory(object):
 
     DEFAULT_CONTENT_TYPE = JSONContainer.JSON_CONTENT_TYPE
-    URL_PARTS_RE = re.compile('({[^}]+})')
+    URL_PARTS_RE = re.compile("({[^}]+})")
 
-    def __init__(self, spec, api_resource_name, resource, operation_name,
-                 operation, parameters):
+    def __init__(
+        self, spec, api_resource_name, resource, operation_name, operation, parameters
+    ):
         """
         Receives what comes out of SpecificationHandler.get_api_information()
         and creates a fuzzable request which w3af can send to the wire.
@@ -59,9 +61,9 @@ class RequestFactory(object):
         self.operation = operation
         self.parameters = parameters
 
-    def get_fuzzable_request(self,
-                             discover_fuzzable_headers=False,
-                             discover_fuzzable_url_parts=False):
+    def get_fuzzable_request(
+        self, discover_fuzzable_headers=False, discover_fuzzable_url_parts=False
+    ):
         """
         Creates a fuzzable request by querying different parts of the spec
         parameters, operation, etc.
@@ -78,10 +80,9 @@ class RequestFactory(object):
         headers = self.get_headers()
         data_container = self.get_data_container(headers)
 
-        fuzzable_request = FuzzableRequest(uri,
-                                           headers=headers,
-                                           post_data=data_container,
-                                           method=method)
+        fuzzable_request = FuzzableRequest(
+            uri, headers=headers, post_data=data_container, method=method
+        )
 
         if discover_fuzzable_headers:
             fuzzable_request.set_force_fuzzing_headers(self._get_parameter_headers())
@@ -100,16 +101,18 @@ class RequestFactory(object):
         parameter_headers = set()
         for parameter_name in self.parameters:
             parameter = self.parameters[parameter_name]
-            if parameter.location == 'header':
+            if parameter.location == "header":
                 parameter_headers.add(parameter.name)
-                om.out.debug('Found a parameter header for %s endpoint: %s'
-                             % (self.operation.path_name, parameter.name))
+                om.out.debug(
+                    "Found a parameter header for %s endpoint: %s"
+                    % (self.operation.path_name, parameter.name)
+                )
 
         return list(parameter_headers)
 
     def _get_url_parts(self):
         """
-        Builds a forced url parts string based in 
+        Builds a forced url parts string based in
         """
         path = self.operation.path_name
         segments = self.URL_PARTS_RE.split(path)
@@ -117,9 +120,9 @@ class RequestFactory(object):
         parts = []
 
         for seg in segments:
-            if seg.startswith('{') and seg.endswith('}'):
+            if seg.startswith("{") and seg.endswith("}"):
                 name = seg[1:-1]
-                val = '{}'.format(params.get(name, seg))
+                val = "{}".format(params.get(name, seg))
                 parts.append((val, True))
             else:
                 parts.append((seg, False))
@@ -146,9 +149,7 @@ class RequestFactory(object):
         """
         parameters = self._get_filled_parameters()
 
-        return construct_request(self.operation,
-                                 request_options={},
-                                 **parameters)
+        return construct_request(self.operation, request_options={}, **parameters)
 
     def _get_filled_parameters(self):
         return dict((name, value.fill) for (name, value) in self.parameters.items())
@@ -158,7 +159,7 @@ class RequestFactory(object):
         Query the spec / operation and return the HTTP method.
         """
         request_dict = self._bravado_construct_request()
-        return request_dict['method']
+        return request_dict["method"]
 
     def get_uri(self):
         """
@@ -166,13 +167,13 @@ class RequestFactory(object):
         parameters included).
         """
         request_dict = self._bravado_construct_request()
-        url = request_dict['url']
+        url = request_dict["url"]
 
         parameters = self._get_filled_parameters()
 
         # We only send in the body the parameters that belong there
         for param_name, param_def in self.operation.params.items():
-            if param_def.location != 'query':
+            if param_def.location != "query":
                 parameters.pop(param_name)
 
         # If the parameter type is an array, we only send the first item
@@ -180,14 +181,16 @@ class RequestFactory(object):
         #       we should send comma separated (csv) or multiple
         #       parameters with the same name and different values
         for param_name, param_def in self.operation.params.items():
-            if 'type' not in param_def.param_spec:
+            if "type" not in param_def.param_spec:
                 continue
 
-            if param_def.param_spec['type'] == 'array':
+            if param_def.param_spec["type"] == "array":
                 parameters[param_name] = parameters[param_name][0]
 
         if parameters:
-            formatted_params = [(k, [str(v)]) for k, v in list(parameters.items()) if v is not None]
+            formatted_params = [
+                (k, [str(v)]) for k, v in list(parameters.items()) if v is not None
+            ]
             query_string = QueryString(formatted_params)
         else:
             # If there are no parameters, we create an empty query string, which is
@@ -207,15 +210,15 @@ class RequestFactory(object):
         body.
         """
         request_dict = self._bravado_construct_request()
-        headers = Headers(list(request_dict['headers'].items()))
+        headers = Headers(list(request_dict["headers"].items()))
 
         # First, we try to extract content type from a 'consumes'
         # if the operation has one.
         content_type = self.get_consuming_content_type()
         if content_type is not None:
-            headers['Content-Type'] = content_type
+            headers["Content-Type"] = content_type
 
-        content_type, _ = headers.iget('content-type', None)
+        content_type, _ = headers.iget("content-type", None)
         if content_type is None and self.parameters:
             # Content-Type is not set yet.
             #
@@ -225,7 +228,7 @@ class RequestFactory(object):
             #
             # If there are parameters then we opt for serializing them as
             # JSON, which is a safe default
-            headers['Content-Type'] = self.DEFAULT_CONTENT_TYPE
+            headers["Content-Type"] = self.DEFAULT_CONTENT_TYPE
 
         return headers
 
@@ -259,7 +262,7 @@ class RequestFactory(object):
             return None
 
         for content_type in self.operation.consumes:
-            temp_headers = Headers([('Content-Type', content_type)])
+            temp_headers = Headers([("Content-Type", content_type)])
             if container_type.content_type_matches(temp_headers):
                 return content_type
 
@@ -277,12 +280,12 @@ class RequestFactory(object):
         :param headers: The open API specified headers
         :return: A string which can be sent in HTTP request body
         """
-        content_type = headers.get('Content-Type')
+        content_type = headers.get("Content-Type")
         parameters = self._get_filled_parameters()
 
         # We only send in the body the parameters that belong there
         for param_name, param_def in self.operation.params.items():
-            if param_def.location != 'body':
+            if param_def.location != "body":
                 parameters.pop(param_name)
 
         # If there are no parameters, we don't create an empty data container,
@@ -296,6 +299,6 @@ class RequestFactory(object):
             om.out.error("No data container for content type '%s'" % content_type)
             return None
 
-        dc.set_header('Content-Type', content_type)
+        dc.set_header("Content-Type", content_type)
 
         return dc

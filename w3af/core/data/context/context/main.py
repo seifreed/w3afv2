@@ -19,14 +19,25 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from html.parser import HTMLParser, HTMLParseError
 
 from w3af.core.data.context.constants import CONTEXT_DETECTOR
-from .html import (HtmlAttrSingleQuote, HtmlAttrDoubleQuote,
-                   HtmlAttrBackticks, HtmlAttr, HtmlTag, HtmlText,
-                   HtmlComment, HtmlTagClose, HtmlAttrNoQuote,
-                   HtmlDeclaration, HtmlProcessingInstruction,
-                   CSSText, ScriptText)
+from .html import (
+    HtmlAttrSingleQuote,
+    HtmlAttrDoubleQuote,
+    HtmlAttrBackticks,
+    HtmlAttr,
+    HtmlTag,
+    HtmlText,
+    HtmlComment,
+    HtmlTagClose,
+    HtmlAttrNoQuote,
+    HtmlDeclaration,
+    HtmlProcessingInstruction,
+    CSSText,
+    ScriptText,
+)
 
 
 def get_context(data, payload):
@@ -87,12 +98,12 @@ class ContextDetectorHTMLParser(HTMLParser):
 
     def untidy(self, content):
         return content.replace(CONTEXT_DETECTOR, self.payload)
-    
+
     def append_context(self, context):
         # We just ignore all the contexts which are inside <noscript>
         if self.noscript_parent:
             return
-        
+
         self.contexts.append(context)
 
     def handle_starttag(self, tag, attrs):
@@ -109,7 +120,7 @@ class ContextDetectorHTMLParser(HTMLParser):
         """
         self.current_tag = tag
 
-        if tag == 'noscript':
+        if tag == "noscript":
             self.noscript_parent = True
 
         if CONTEXT_DETECTOR in tag:
@@ -117,8 +128,7 @@ class ContextDetectorHTMLParser(HTMLParser):
 
         for attr_name, attr_value in attrs:
             if CONTEXT_DETECTOR in attr_name:
-                self.append_context(HtmlAttr(self.payload,
-                                             self.untidy(attr_name)))
+                self.append_context(HtmlAttr(self.payload, self.untidy(attr_name)))
 
             if attr_value and CONTEXT_DETECTOR in attr_value:
                 context = self.get_attr_value_context(attr_name, attr_value)
@@ -145,32 +155,28 @@ class ContextDetectorHTMLParser(HTMLParser):
         full_tag_text = self.unescape(full_tag_text)
 
         # Analyze the generic cases
-        all_contexts = [HtmlAttrDoubleQuote,
-                        HtmlAttrSingleQuote]
+        all_contexts = [HtmlAttrDoubleQuote, HtmlAttrSingleQuote]
 
         for context_klass in all_contexts:
-            attr_match = '%s%s%s' % (context_klass.ATTR_DELIMITER,
-                                     attr_value,
-                                     context_klass.ATTR_DELIMITER)
+            attr_match = "%s%s%s" % (
+                context_klass.ATTR_DELIMITER,
+                attr_value,
+                context_klass.ATTR_DELIMITER,
+            )
             if attr_match in full_tag_text:
-                return context_klass(self.payload,
-                                     attr_name,
-                                     self.untidy(attr_value))
+                return context_klass(self.payload, attr_name, self.untidy(attr_value))
 
         # Special case for HtmlAttrBackticks
-        if attr_value.startswith(HtmlAttrBackticks.ATTR_DELIMITER) and \
-           attr_value.endswith(HtmlAttrBackticks.ATTR_DELIMITER):
-            return HtmlAttrBackticks(self.payload,
-                                     attr_name,
-                                     self.untidy(attr_value))
+        if attr_value.startswith(
+            HtmlAttrBackticks.ATTR_DELIMITER
+        ) and attr_value.endswith(HtmlAttrBackticks.ATTR_DELIMITER):
+            return HtmlAttrBackticks(self.payload, attr_name, self.untidy(attr_value))
 
         # And if we don't have any quotes... then...
-        return HtmlAttrNoQuote(self.payload,
-                               attr_name,
-                               self.untidy(attr_value))
+        return HtmlAttrNoQuote(self.payload, attr_name, self.untidy(attr_value))
 
     def handle_endtag(self, tag):
-        if tag == 'noscript':
+        if tag == "noscript":
             self.noscript_parent = False
 
         if CONTEXT_DETECTOR in tag:
@@ -180,29 +186,25 @@ class ContextDetectorHTMLParser(HTMLParser):
         if CONTEXT_DETECTOR not in text_data:
             return
 
-        if self.current_tag == 'script':
-            self.append_context(ScriptText(self.payload,
-                                           self.untidy(text_data)))
+        if self.current_tag == "script":
+            self.append_context(ScriptText(self.payload, self.untidy(text_data)))
 
-        elif self.current_tag == 'style':
-            self.append_context(CSSText(self.payload,
-                                        self.untidy(text_data)))
+        elif self.current_tag == "style":
+            self.append_context(CSSText(self.payload, self.untidy(text_data)))
 
         elif CONTEXT_DETECTOR in text_data:
-            self.append_context(HtmlText(self.payload,
-                                         self.untidy(text_data)))
+            self.append_context(HtmlText(self.payload, self.untidy(text_data)))
 
     def handle_comment(self, comment_text):
         if CONTEXT_DETECTOR in comment_text:
-            self.append_context(HtmlComment(self.payload,
-                                            self.untidy(comment_text)))
+            self.append_context(HtmlComment(self.payload, self.untidy(comment_text)))
 
     def handle_decl(self, data):
         if CONTEXT_DETECTOR in data:
-            self.append_context(HtmlDeclaration(self.payload,
-                                                self.untidy(data)))
+            self.append_context(HtmlDeclaration(self.payload, self.untidy(data)))
 
     def handle_pi(self, data):
         if CONTEXT_DETECTOR in data:
-            self.append_context(HtmlProcessingInstruction(self.payload,
-                                                          self.untidy(data)))
+            self.append_context(
+                HtmlProcessingInstruction(self.payload, self.untidy(data))
+            )

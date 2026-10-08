@@ -6,13 +6,14 @@ class hosts(Payload):
     """
     This payload shows the hosts allow and deny files.
     """
+
     def api_read(self):
         result = {}
         hosts = []
 
-        hosts.append('/etc/hosts')
-        hosts.append('/etc/hosts.allow')
-        hosts.append('/etc/hosts.deny')
+        hosts.append("/etc/hosts")
+        hosts.append("/etc/hosts.allow")
+        hosts.append("/etc/hosts.deny")
 
         for file in hosts:
             content = self.shell.read(file)
@@ -24,10 +25,10 @@ class hosts(Payload):
         api_result = self.api_read()
 
         if not api_result:
-            return 'Hosts files not found.'
+            return "Hosts files not found."
         else:
             rows = []
-            rows.append(['Host file', 'Content'])
+            rows.append(["Host file", "Content"])
             rows.append([])
             for file in api_result:
                 rows.append([file, api_result[file]])

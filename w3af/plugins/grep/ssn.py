@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 import itertools
 
@@ -35,9 +36,12 @@ class ssn(GrepPlugin):
 
     :author: dliz <dliz !at! users.sourceforge.net>
     """
+
     # match numbers of the form: 'nnn-nn-nnnn' with some extra restrictions
-    regex = ('(?:^|[^\d-])(?!(000|666))([0-6]\d{2}|7([0-6]\d|7[012]))'
-             ' ?-? ?(?!00)(\d{2}) ?-? ?(?!0000)(\d{4})(?:^|[^\d-])')
+    regex = (
+        "(?:^|[^\d-])(?!(000|666))([0-6]\d{2}|7([0-6]\d|7[012]))"
+        " ?-? ?(?!00)(\d{2}) ?-? ?(?!0000)(\d{4})(?:^|[^\d-])"
+    )
     ssn_regex = re.compile(regex)
 
     def __init__(self):
@@ -63,20 +67,24 @@ class ssn(GrepPlugin):
             return
 
         found_ssn, validated_ssn = self._find_SSN(clear_text_body)
-        
+
         if not validated_ssn:
             return
-            
+
         uri = response.get_uri()
-        desc = ('The URL: "%s" possibly discloses US Social Security'
-                ' Number: "%s".')
+        desc = 'The URL: "%s" possibly discloses US Social Security' ' Number: "%s".'
         desc %= (uri, validated_ssn)
-        v = Vuln('US Social Security Number disclosure', desc,
-                 severity.LOW, response.id, self.get_name())
+        v = Vuln(
+            "US Social Security Number disclosure",
+            desc,
+            severity.LOW,
+            response.id,
+            self.get_name(),
+        )
         v.set_uri(uri)
 
         v.add_to_highlight(found_ssn)
-        self.kb_append_uniq(self, 'ssn', v, 'URL')
+        self.kb_append_uniq(self, "ssn", v, "URL")
 
     def _find_SSN(self, body_without_tags):
         """
@@ -85,7 +93,7 @@ class ssn(GrepPlugin):
         """
         validated_ssn = None
         ssn = None
-        
+
         for match in self.ssn_regex.finditer(body_without_tags):
             validated_ssn = self._validate_SSN(match)
             if validated_ssn:
@@ -140,24 +148,27 @@ class ssn(GrepPlugin):
 
         # For big evens (evens between 10 and 98)
         elif group in even_two:
-            if group_number in itertools.chain(odd_one,
-                                               list(filter(le_group, even_two))):
+            if group_number in itertools.chain(
+                odd_one, list(filter(le_group, even_two))
+            ):
                 is_ssn = True
 
         # For little evens (evens between 2 and 8)
         elif group in even_three:
-            if group_number in itertools.chain(odd_one, even_two,
-                                               list(filter(le_group, even_three))):
+            if group_number in itertools.chain(
+                odd_one, even_two, list(filter(le_group, even_three))
+            ):
                 is_ssn = True
 
         # For big odds (odds between 11 and 99)
         elif group in odd_four:
-            if group_number in itertools.chain(odd_one, even_two, even_three,
-                                               list(filter(le_group, odd_four))):
+            if group_number in itertools.chain(
+                odd_one, even_two, even_three, list(filter(le_group, odd_four))
+            ):
                 is_ssn = True
 
         if is_ssn:
-            return '%s-%s-%s' % (area_number, group_number, serial_number)
+            return "%s-%s-%s" % (area_number, group_number, serial_number)
 
         return None
 

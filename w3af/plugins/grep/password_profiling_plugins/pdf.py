@@ -19,8 +19,11 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.parsers.doc.pdf import pdf_to_text
-from w3af.plugins.grep.password_profiling_plugins.base_plugin import BasePwdProfilingPlugin
+from w3af.plugins.grep.password_profiling_plugins.base_plugin import (
+    BasePwdProfilingPlugin,
+)
 
 
 class pdf(BasePwdProfilingPlugin):
@@ -36,7 +39,7 @@ class pdf(BasePwdProfilingPlugin):
     def _get_pdf_content(self, document_str):
         """
         Iterate through all PDF pages and extract text
-        
+
         :return: A list containing the words in the PDF
         """
         pdf_text = pdf_to_text(document_str)
@@ -52,7 +55,7 @@ class pdf(BasePwdProfilingPlugin):
         """
         res = None
 
-        if response.content_type in ('application/x-pdf', 'application/pdf'):
+        if response.content_type in ("application/x-pdf", "application/pdf"):
             try:
                 words = self._get_pdf_content(response.get_body())
             except:

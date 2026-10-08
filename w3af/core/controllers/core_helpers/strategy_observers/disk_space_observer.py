@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import errno
 
 from time import time
@@ -43,11 +44,13 @@ class DiskSpaceObserver(StrategyObserver):
     [0] http://man7.org/linux/man-pages/man7/fanotify.7.html
     :see: https://github.com/andresriancho/w3af/issues/5343
     """
+
     MIN_FREE_MB = 100
     MIN_FREE_BYTES = MIN_FREE_MB * 1024 * 1024
     ANALYZE_EVERY = 5
-    LOW_DISK_SPACE_MESSAGE = ('Detected that "%s" has only %s MB of free disk'
-                              ' space. The scan will stop.')
+    LOW_DISK_SPACE_MESSAGE = (
+        'Detected that "%s" has only %s MB of free disk' " space. The scan will stop."
+    )
 
     def __init__(self):
         super(DiskSpaceObserver, self).__init__()

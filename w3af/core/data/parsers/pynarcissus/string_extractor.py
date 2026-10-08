@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from .jsparser import parse
 
 
@@ -44,8 +45,9 @@ class StringExtractor(object):
 
     :see: https://github.com/andresriancho/w3af/issues/2104
     """
-    CHILD_ATTRS = ['thenPart', 'elsePart', 'expression', 'body', 'initializer']
- 
+
+    CHILD_ATTRS = ["thenPart", "elsePart", "expression", "body", "initializer"]
+
     def __init__(self, js_source):
         self.js_strings = set()
 
@@ -55,7 +57,7 @@ class StringExtractor(object):
             pass
         else:
             self.visit(root)
- 
+
     def visit(self, root):
         call = lambda n: getattr(self, "visit_%s" % n.type.lower(), self.noop)(n)
 
@@ -71,10 +73,10 @@ class StringExtractor(object):
             child = getattr(node, attr, None)
             if child:
                 self.visit(child)
- 
+
     def noop(self, node):
         pass
- 
+
     def visit_string(self, node):
         if node.type == "STRING":
             self.js_strings.add(node.value)

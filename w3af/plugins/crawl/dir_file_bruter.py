@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 
 from itertools import repeat
@@ -46,15 +47,15 @@ class dir_file_bruter(CrawlPlugin):
     :author: Andres Riancho ( andres@bonsai-sec.com )
     :author: Tomas Velazquez
     """
-    
-    BASE_PATH = os.path.join(ROOT_PATH, 'plugins', 'crawl', 'dir_file_bruter')
-    
+
+    BASE_PATH = os.path.join(ROOT_PATH, "plugins", "crawl", "dir_file_bruter")
+
     def __init__(self):
         CrawlPlugin.__init__(self)
 
         # User configured parameters
-        self._dir_list = os.path.join(self.BASE_PATH, 'common_dirs_small.db')
-        self._file_list = os.path.join(self.BASE_PATH, 'common_files_small.db')
+        self._dir_list = os.path.join(self.BASE_PATH, "common_dirs_small.db")
+        self._file_list = os.path.join(self.BASE_PATH, "common_files_small.db")
 
         self._bf_directories = True
         self._bf_files = False
@@ -62,7 +63,7 @@ class dir_file_bruter(CrawlPlugin):
 
         # Internal variables
         self._exec = True
-        self._already_tested = DiskSet(table_prefix='dir_file_bruter')
+        self._already_tested = DiskSet(table_prefix="dir_file_bruter")
 
     def crawl(self, fuzzable_request, debugging_id):
         """
@@ -99,9 +100,7 @@ class dir_file_bruter(CrawlPlugin):
         base_path_repeater = repeat(base_path)
         arg_iter = list(zip(base_path_repeater, url_generator))
 
-        self.worker_pool.map_multi_args(self._send_and_check,
-                                        arg_iter,
-                                        chunksize=20)
+        self.worker_pool.map_multi_args(self._send_and_check, arg_iter, chunksize=20)
 
     def _url_generator(self, base_path):
         """
@@ -114,12 +113,16 @@ class dir_file_bruter(CrawlPlugin):
         """
         if self._bf_directories:
             is_path = True
-            for line, new_url in self._read_db_file_gen_url(base_path, self._dir_list, is_path):
+            for line, new_url in self._read_db_file_gen_url(
+                base_path, self._dir_list, is_path
+            ):
                 yield line, new_url
 
         if self._bf_files:
             is_path = False
-            for line, new_url in self._read_db_file_gen_url(base_path, self._file_list, is_path):
+            for line, new_url in self._read_db_file_gen_url(
+                base_path, self._file_list, is_path
+            ):
                 yield line, new_url
 
     def _read_db_file_gen_url(self, base_path, file_name, is_path):
@@ -137,11 +140,11 @@ class dir_file_bruter(CrawlPlugin):
             if not line:
                 continue
 
-            if line.startswith('#'):
+            if line.startswith("#"):
                 continue
 
             if is_path:
-                line = line + '/'
+                line = line + "/"
 
             try:
                 new_url = base_path.url_join(line)
@@ -157,7 +160,7 @@ class dir_file_bruter(CrawlPlugin):
 
         :return: None, data is stored in self.output_queue
         """
-        (file_or_path, new_url) = file_path
+        file_or_path, new_url = file_path
         http_response = self._uri_opener.GET(new_url, cache=False)
 
         if is_404(http_response):
@@ -175,27 +178,31 @@ class dir_file_bruter(CrawlPlugin):
         """
         ol = OptionList()
 
-        d = 'Wordlist to use in directory bruteforcing process'
-        o = opt_factory('dir_wordlist', self._dir_list, d, INPUT_FILE)
+        d = "Wordlist to use in directory bruteforcing process"
+        o = opt_factory("dir_wordlist", self._dir_list, d, INPUT_FILE)
         ol.add(o)
 
-        d = 'Wordlist to use in file bruteforcing process'
-        o = opt_factory('file_wordlist', self._file_list, d, INPUT_FILE)
+        d = "Wordlist to use in file bruteforcing process"
+        o = opt_factory("file_wordlist", self._file_list, d, INPUT_FILE)
         ol.add(o)
 
-        d = 'If set to True, this plugin will bruteforce directories'
-        o = opt_factory('bf_directories', self._bf_directories, d, BOOL)
+        d = "If set to True, this plugin will bruteforce directories"
+        o = opt_factory("bf_directories", self._bf_directories, d, BOOL)
         ol.add(o)
 
-        d = 'If set to True, this plugin will bruteforce files'
-        o = opt_factory('bf_files', self._bf_files, d, BOOL)
+        d = "If set to True, this plugin will bruteforce files"
+        o = opt_factory("bf_files", self._bf_files, d, BOOL)
         ol.add(o)
 
-        d = ('If set to True, this plugin will bruteforce all directories, not'
-             ' only the root directory.')
-        h = ('WARNING: Enabling this will make the plugin send tens of thousands'
-             ' of requests.')
-        o = opt_factory('be_recursive', self._be_recursive, d, BOOL, help=h)
+        d = (
+            "If set to True, this plugin will bruteforce all directories, not"
+            " only the root directory."
+        )
+        h = (
+            "WARNING: Enabling this will make the plugin send tens of thousands"
+            " of requests."
+        )
+        o = opt_factory("be_recursive", self._be_recursive, d, BOOL, help=h)
         ol.add(o)
 
         return ol
@@ -208,11 +215,11 @@ class dir_file_bruter(CrawlPlugin):
         :param option_list: A dictionary with the options for the plugin.
         :return: No value is returned.
         """
-        self._dir_list = option_list['dir_wordlist'].get_value()
-        self._file_list = option_list['file_wordlist'].get_value()
-        self._bf_directories = option_list['bf_directories'].get_value()
-        self._bf_files = option_list['bf_files'].get_value()
-        self._be_recursive = option_list['be_recursive'].get_value()
+        self._dir_list = option_list["dir_wordlist"].get_value()
+        self._file_list = option_list["file_wordlist"].get_value()
+        self._bf_directories = option_list["bf_directories"].get_value()
+        self._bf_files = option_list["bf_files"].get_value()
+        self._be_recursive = option_list["be_recursive"].get_value()
 
     def get_long_desc(self):
         """

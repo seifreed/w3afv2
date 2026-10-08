@@ -20,12 +20,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-FMT = '/tmp/moth-%s.txt'
-HTTP_ADDRESS_FILE = FMT % 'http'
-HTTPS_ADDRESS_FILE = FMT % 'https'
+FMT = "/tmp/moth-%s.txt"
+HTTP_ADDRESS_FILE = FMT % "http"
+HTTPS_ADDRESS_FILE = FMT % "https"
 
-DEFAULT_MOTH = 'fallback:80'
-DEFAULT_MOTHS = 'fallback:443'
+DEFAULT_MOTH = "fallback:80"
+DEFAULT_MOTHS = "fallback:443"
 
 
 def whereis_moth():
@@ -33,10 +33,10 @@ def whereis_moth():
     :return: The net location for the moth http and https daemon. For example,
              if the HTTP Django application was started on 127.0.0.1 port 8083
              and listens HTTPS on port 8341 we return:
-             
+
              {'http': '127.0.0.1:8083',
               'https': '127.0.0.1:8341',}
-            
+
              We need this function because when we run on CI we don't really
              know which ports are going to be free for the server to bind.
     """
@@ -44,19 +44,18 @@ def whereis_moth():
         moth = open(HTTP_ADDRESS_FILE).read().strip()
     except IOError:
         moth = None
-    
+
     try:
         moths = open(HTTPS_ADDRESS_FILE).read().strip()
     except IOError:
         moths = None
-    
-    return {'http': moth or DEFAULT_MOTH,
-            'https': moths or DEFAULT_MOTHS}
+
+    return {"http": moth or DEFAULT_MOTH, "https": moths or DEFAULT_MOTHS}
 
 
-def get_moth_http(path='/'):
-    return 'http://%s%s' % (whereis_moth()['http'], path)
+def get_moth_http(path="/"):
+    return "http://%s%s" % (whereis_moth()["http"], path)
 
 
-def get_moth_https(path='/'):
-    return 'https://%s%s' % (whereis_moth()['https'], path)
+def get_moth_https(path="/"):
+    return "https://%s%s" % (whereis_moth()["https"], path)

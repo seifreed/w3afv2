@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from w3af.core.data.parsers.doc.url import URL
@@ -28,30 +29,32 @@ from w3af.plugins.evasion.x_forwarded_for import x_forwarded_for
 
 
 class TestXForwardedFor(unittest.TestCase):
-    
+
     def test_no_modification(self):
         xff = x_forwarded_for()
 
-        u = URL('http://www.w3af.com/')
-        headers = Headers([('X-Forwarded-For', '127.0.0.1')])
+        u = URL("http://www.w3af.com/")
+        headers = Headers([("X-Forwarded-For", "127.0.0.1")])
         r = HTTPRequest(u, headers=headers)
-        
-        modified_request = xff.modify_request( r )
+
+        modified_request = xff.modify_request(r)
         modified_headers = modified_request.get_headers()
-        
-        self.assertIn('X-forwarded-for', modified_headers)
-        self.assertEqual(modified_headers['X-forwarded-for'],
-                         '127.0.0.1', modified_headers)
+
+        self.assertIn("X-forwarded-for", modified_headers)
+        self.assertEqual(
+            modified_headers["X-forwarded-for"], "127.0.0.1", modified_headers
+        )
 
     def test_add_header(self):
         xff = x_forwarded_for()
 
-        u = URL('http://www.w3af.com/')
+        u = URL("http://www.w3af.com/")
         r = HTTPRequest(u)
-        
+
         modified_request = xff.modify_request(r)
         modified_headers = modified_request.get_headers()
-        
-        self.assertIn('X-forwarded-for', modified_headers)
-        self.assertEqual(modified_headers['X-forwarded-for'],
-                         '163.7.70.57', modified_headers)
+
+        self.assertIn("X-forwarded-for", modified_headers)
+        self.assertEqual(
+            modified_headers["X-forwarded-for"], "163.7.70.57", modified_headers
+        )

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.parsers.utils.form_params import FormParameters
@@ -32,33 +33,36 @@ class FileUploadTemplate(BaseTemplate):
     """
     Vulnerability template for arbitrary file upload vulnerability.
     """
+
     def __init__(self):
         super(FileUploadTemplate, self).__init__()
-        
+
         self.name = self.get_vulnerability_name()
         self.file_vars = []
-        self.file_dest = URL('http://host.tld/uploads/file.ext')
-        self.method = 'POST'
-    
+        self.file_dest = URL("http://host.tld/uploads/file.ext")
+        self.method = "POST"
+
     def get_options(self):
         opt_lst = super(FileUploadTemplate, self).get_options()
-        
+
         d = 'Comma separated list of variable names of type "file"'
-        o = opt_factory('file_vars', self.file_vars, d, 'list')
+        o = opt_factory("file_vars", self.file_vars, d, "list")
         opt_lst.add(o)
 
-        d = 'URL for the directory where the file is stored on the remote'\
-            ' server after the POST that uploads it.'
-        o = opt_factory('file_dest', self.file_dest, d, 'url')
+        d = (
+            "URL for the directory where the file is stored on the remote"
+            " server after the POST that uploads it."
+        )
+        o = opt_factory("file_dest", self.file_dest, d, "url")
         opt_lst.add(o)
 
         return opt_lst
-    
+
     def set_options(self, options_list):
         super(FileUploadTemplate, self).set_options(options_list)
-        self.file_vars = options_list['file_vars'].get_value()
-        self.file_dest = options_list['file_dest'].get_value()
-    
+        self.file_vars = options_list["file_vars"].get_value()
+        self.file_dest = options_list["file_dest"].get_value()
+
     def create_vuln(self):
         v = super(FileUploadTemplate, self).create_vuln()
 
@@ -70,9 +74,13 @@ class FileUploadTemplate(BaseTemplate):
             if token.get_name() in self.file_vars:
                 continue
 
-            form_params.add_field_by_attr_items([("name", token.get_name()),
-                                   ("type", "text"),
-                                   ("value", token.get_value())])
+            form_params.add_field_by_attr_items(
+                [
+                    ("name", token.get_name()),
+                    ("type", "text"),
+                    ("value", token.get_value()),
+                ]
+            )
 
         mpc = MultipartContainer(form_params)
 
@@ -83,17 +91,17 @@ class FileUploadTemplate(BaseTemplate):
         mutant.set_token((self.vulnerable_parameter, 0))
 
         # User configured settings
-        v['file_vars'] = self.file_vars
-        v['file_dest'] = self.file_dest
+        v["file_vars"] = self.file_vars
+        v["file_dest"] = self.file_dest
         v.set_mutant(mutant)
         return v
-    
+
     def get_kb_location(self):
         """
         :return: A tuple with the location where the vulnerability will be
                  saved, example return value would be: ('eval', 'eval')
         """
-        return 'file_upload', 'file_upload'
+        return "file_upload", "file_upload"
 
     def get_vulnerability_name(self):
         """
@@ -102,7 +110,7 @@ class FileUploadTemplate(BaseTemplate):
                  string which can contain any information, not used for any
                  strict matching of vulns before exploiting.
         """
-        return 'Arbitrary file upload'
+        return "Arbitrary file upload"
 
     def get_vulnerability_desc(self):
-        return 'Code execution through arbitrary file upload vulnerability'
+        return "Code execution through arbitrary file upload vulnerability"

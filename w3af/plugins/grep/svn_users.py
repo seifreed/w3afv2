@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 
 import w3af.core.data.constants.severity as severity
@@ -34,13 +35,16 @@ class svn_users(GrepPlugin):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     # Add the regex to match something like this:
     #
     #   $Id: lzio.c,v 1.24 2003/03/20 16:00:56 roberto Exp $
     #   $Id: file name, version, timestamp, creator Exp $
     #
-    SVN_RE = '\$.{1,12}: .*? .*? \d{4}[-/]\d{1,2}[-/]\d{1,2}' \
-             ' \d{1,2}:\d{1,2}:\d{1,2}.*? (.*?) (Exp )?\$'
+    SVN_RE = (
+        "\$.{1,12}: .*? .*? \d{4}[-/]\d{1,2}[-/]\d{1,2}"
+        " \d{1,2}:\d{1,2}:\d{1,2}.*? (.*?) (Exp )?\$"
+    )
     RE_LIST = [re.compile(SVN_RE)]
 
     def grep(self, request, response):
@@ -60,18 +64,24 @@ class svn_users(GrepPlugin):
             for m in regex.findall(response.get_body()):
                 user = m[0]
 
-                desc = 'The URL: "%s" contains a SVN versioning signature'\
-                       ' with the username "%s".'
+                desc = (
+                    'The URL: "%s" contains a SVN versioning signature'
+                    ' with the username "%s".'
+                )
                 desc = desc % (uri, user)
-                
-                v = Vuln('SVN user disclosure vulnerability', desc,
-                         severity.LOW, response.id, self.get_name())
+
+                v = Vuln(
+                    "SVN user disclosure vulnerability",
+                    desc,
+                    severity.LOW,
+                    response.id,
+                    self.get_name(),
+                )
                 v.add_to_highlight(user)
                 v.set_uri(uri)
                 v[SVNUserInfoSet.ITAG] = user
-                
-                self.kb_append_uniq_group(self, 'users', v,
-                                          group_klass=SVNUserInfoSet)
+
+                self.kb_append_uniq_group(self, "users", v, group_klass=SVNUserInfoSet)
 
     def get_long_desc(self):
         """
@@ -87,12 +97,12 @@ class svn_users(GrepPlugin):
 
 
 class SVNUserInfoSet(InfoSet):
-    ITAG = 'user'
+    ITAG = "user"
     TEMPLATE = (
-        'The application returned {{ uris|length }} HTTP responses containing'
+        "The application returned {{ uris|length }} HTTP responses containing"
         ' the SVN username "{{ user }}". The first ten vulnerable URLs are:\n'
-        ''
-        '{% for url in uris[:10] %}'
-        ' - {{ url }}\n'
-        '{% endfor %}'
+        ""
+        "{% for url in uris[:10] %}"
+        " - {{ url }}\n"
+        "{% endfor %}"
     )

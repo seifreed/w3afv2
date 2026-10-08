@@ -14,12 +14,15 @@ import struct
 from optparse import OptionError
 from optparse import OptionParser
 
+
 def convert(inputFile):
     fileStat = os.stat(inputFile)
     fileSize = fileStat.st_size
 
     if fileSize > 65280:
-        print(("ERROR: the provided input file '%s' is too big for debug.exe" % inputFile))
+        print(
+            ("ERROR: the provided input file '%s' is too big for debug.exe" % inputFile)
+        )
         sys.exit(1)
 
     script = "n %s\nr cx\n" % os.path.basename(inputFile.replace(".", "_"))
@@ -57,6 +60,7 @@ def convert(inputFile):
 
     return script
 
+
 def main(inputFile, outputFile):
     if not os.path.isfile(inputFile):
         print(("ERROR: the provided input file '%s' is not a regular file" % inputFile))
@@ -72,6 +76,7 @@ def main(inputFile, outputFile):
     else:
         print(script)
 
+
 if __name__ == "__main__":
     usage = "%s -i <input file> [-o <output file>]" % sys.argv[0]
     parser = OptionParser(usage=usage, version="0.1")
@@ -81,7 +86,7 @@ if __name__ == "__main__":
 
         parser.add_option("-o", dest="outputFile", help="Output debug.exe text file")
 
-        (args, _) = parser.parse_args()
+        args, _ = parser.parse_args()
 
         if not args.inputFile:
             parser.error("Missing the input file, -h for help")

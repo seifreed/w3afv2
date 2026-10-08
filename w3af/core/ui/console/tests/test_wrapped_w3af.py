@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 import subprocess
 import sys
@@ -44,26 +45,23 @@ class TestWrappedW3afConsole(unittest.TestCase):
         # find the "correct" / "virtual" python executable using which and
         # then pass that one to Popen
         python_executable = sys.executable
-        
-        p = subprocess.Popen([python_executable, 'w3af_console', '-n'],
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE,
-                             stdin=subprocess.PIPE,
-                             shell=False,
-                             universal_newlines=True)
+
+        p = subprocess.Popen(
+            [python_executable, "w3af_console", "-n"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            stdin=subprocess.PIPE,
+            shell=False,
+            universal_newlines=True,
+        )
 
         # Now we run a new ConsoleUI that will load the saved settings. We
         # should see /tmp/ as the value for msf_location
-        commands_to_run = ['profiles',
-                           'back',
-                           'misc-settings',
-                           'view',
-                           'back',
-                           'exit']
+        commands_to_run = ["profiles", "back", "misc-settings", "view", "back", "exit"]
 
-        expected_output = 'msf_location'
+        expected_output = "msf_location"
 
-        stdout, stderr = p.communicate('\r'.join(commands_to_run) + '\r')
+        stdout, stderr = p.communicate("\r".join(commands_to_run) + "\r")
 
         msg = 'Failed to find "%s" in "%s" using "%s" as python executable.'
         msg = msg % (expected_output, stdout, python_executable)

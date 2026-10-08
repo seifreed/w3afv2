@@ -19,30 +19,31 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 # Numbers
-INT = 'integer'
-POSITIVE_INT = 'positive_integer'
-FLOAT = 'float'
+INT = "integer"
+POSITIVE_INT = "positive_integer"
+FLOAT = "float"
 
 # Networking
-IP = 'ip'
-PORT = 'port'
-URL = 'url'
-IPPORT = 'ipport'
+IP = "ip"
+PORT = "port"
+URL = "url"
+IPPORT = "ipport"
 
 # HTTP
-QUERY_STRING = 'query_string'
-HEADER = 'header'
+QUERY_STRING = "query_string"
+HEADER = "header"
 
 # Files
-OUTPUT_FILE = 'output_file'
-INPUT_FILE = 'input_file'
+OUTPUT_FILE = "output_file"
+INPUT_FILE = "input_file"
 
 # Misc
-BOOL = 'boolean'
-STRING = 'string'
-LIST = 'list'
-REGEX = 'regex'
-COMBO = 'combo'
-URL_LIST = 'url_list'
-FORM_ID_LIST = 'form_id_list'
+BOOL = "boolean"
+STRING = "string"
+LIST = "list"
+REGEX = "regex"
+COMBO = "combo"
+URL_LIST = "url_list"
+FORM_ID_LIST = "form_id_list"

@@ -19,14 +19,20 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.dc.generic.kv_container import KeyValueContainer
 from w3af.core.data.constants.encodings import UTF8
 from w3af.core.data.parsers.doc.xmlrpc import parse_xmlrpc, build_xmlrpc
 
-
 ERR_MSG = 'Unsupported xml_data "%s" for xmlrpc container.'
-XMLRPC_WORDS = ('<methodcall>', '<methodname>', '<params>',
-                '</methodcall>', '</methodname>', '</params>')
+XMLRPC_WORDS = (
+    "<methodcall>",
+    "<methodname>",
+    "<params>",
+    "</methodcall>",
+    "</methodname>",
+    "</params>",
+)
 
 
 class XmlRpcContainer(KeyValueContainer):
@@ -36,7 +42,7 @@ class XmlRpcContainer(KeyValueContainer):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    XMLRPC_CONTENT_TYPE = 'text/xml'
+    XMLRPC_CONTENT_TYPE = "text/xml"
 
     def __init__(self, xml_post_data, encoding=UTF8):
         """
@@ -51,11 +57,14 @@ class XmlRpcContainer(KeyValueContainer):
         self.parse_xml_data(xml_post_data)
 
     def __reduce__(self):
-        return self.__class__, (self._xml_post_data,), {'token': self.token,
-                                                        'encoding': self.encoding}
+        return (
+            self.__class__,
+            (self._xml_post_data,),
+            {"token": self.token, "encoding": self.encoding},
+        )
 
     def get_type(self):
-        return 'XML-RPC'
+        return "XML-RPC"
 
     def parse_xml_data(self, xml_post_data):
         """
@@ -90,7 +99,7 @@ class XmlRpcContainer(KeyValueContainer):
     @classmethod
     def from_postdata(cls, headers, post_data):
         if not XmlRpcContainer.is_xmlrpc(post_data):
-            raise ValueError('Failed to identify post_data as XML-RPC.')
+            raise ValueError("Failed to identify post_data as XML-RPC.")
 
         return cls(post_data)
 
@@ -101,4 +110,4 @@ class XmlRpcContainer(KeyValueContainer):
         return build_xmlrpc(self._xml_post_data, self)
 
     def get_headers(self):
-        return [('Content-Type', self.XMLRPC_CONTENT_TYPE)]
+        return [("Content-Type", self.XMLRPC_CONTENT_TYPE)]

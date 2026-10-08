@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from w3af.core.data.parsers.doc.wml_parser import WMLParser
@@ -30,7 +31,7 @@ from w3af.core.data.dc.headers import Headers
 class TestWMLParser(unittest.TestCase):
 
     def setUp(self):
-        self.url = URL('http://www.w3af.com/')
+        self.url = URL("http://www.w3af.com/")
 
     def test_parser_simple_form(self):
         form = """<go method="post" href="post.php">
@@ -38,31 +39,30 @@ class TestWMLParser(unittest.TestCase):
                     <postfield name="cuenta" value="$(cuenta)"/>
                     <postfield name="tipdat" value="D"/>
                 </go>"""
-        
+
         response = HTTPResponse(200, form, Headers(), self.url, self.url)
-        
+
         w = WMLParser(response)
         w.parse()
         forms = w.get_forms()
-        
+
         self.assertEqual(len(forms), 1)
         form = forms[0]
-        
-        self.assertEqual(form.get_action().url_string,
-                         'http://www.w3af.com/post.php')
-        
-        self.assertIn('clave', form)
-        self.assertIn('cuenta', form)
-        self.assertIn('tipdat', form)
+
+        self.assertEqual(form.get_action().url_string, "http://www.w3af.com/post.php")
+
+        self.assertIn("clave", form)
+        self.assertIn("cuenta", form)
+        self.assertIn("tipdat", form)
 
     def test_parser_simple_link(self):
-        response = HTTPResponse(200, '<a href="/index.aspx">ASP.NET</a>',
-                                Headers(), self.url, self.url)
+        response = HTTPResponse(
+            200, '<a href="/index.aspx">ASP.NET</a>', Headers(), self.url, self.url
+        )
         w = WMLParser(response)
         w.parse()
         re, parsed = w.get_references()
-        
+
         # TODO: Shouldn't this be the other way around?!
         self.assertEqual(len(parsed), 0)
-        self.assertEqual('http://www.w3af.com/index.aspx', re[0].url_string)
-
+        self.assertEqual("http://www.w3af.com/index.aspx", re[0].url_string)

@@ -22,8 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 
 class PIPDependency(object):
-    def __init__(self, module_name, package_name, package_version, git_src=None,
-                 tgz_src=None):
+    def __init__(
+        self, module_name, package_name, package_version, git_src=None, tgz_src=None
+    ):
         self.module_name = module_name
         self.package_name = package_name
         self.package_version = package_version
@@ -31,20 +32,21 @@ class PIPDependency(object):
         self.is_git = False
         self.git_src = None
         self.tgz_src = None
-                    
+
         if git_src is not None:
             self.is_git = True
             self.git_src = git_src
             self.tgz_src = tgz_src
 
     def __eq__(self, other):
-        return (self.module_name == other.module_name and
-                self.package_name == other.package_name and
-                self.package_version == other.package_version and
-                self.is_git == other.is_git and
-                self.git_src == other.git_src and
-                self.tgz_src == other.tgz_src)
+        return (
+            self.module_name == other.module_name
+            and self.package_name == other.package_name
+            and self.package_version == other.package_version
+            and self.is_git == other.is_git
+            and self.git_src == other.git_src
+            and self.tgz_src == other.tgz_src
+        )
 
     def __repr__(self):
-        return '<PIPDependency (%s|%s)>' % (self.package_name,
-                                            self.package_version)
+        return "<PIPDependency (%s|%s)>" % (self.package_name, self.package_version)

@@ -10,9 +10,10 @@ class SilentJoinableQueue(JoinableQueue):
 
     [0] https://mail.python.org/pipermail//python-checkins/2011-July/106655.html
     """
+
     @staticmethod
     def _feed(buffer, notempty, send, writelock, close):
-        debug('starting thread to feed data to pipe')
+        debug("starting thread to feed data to pipe")
         from multiprocessing.util import is_exiting
 
         nacquire = notempty.acquire
@@ -20,7 +21,7 @@ class SilentJoinableQueue(JoinableQueue):
         nwait = notempty.wait
         bpopleft = buffer.popleft
         sentinel = _sentinel
-        if sys.platform != 'win32':
+        if sys.platform != "win32":
             wacquire = writelock.acquire
             wrelease = writelock.release
         else:
@@ -38,7 +39,7 @@ class SilentJoinableQueue(JoinableQueue):
                     while 1:
                         obj = bpopleft()
                         if obj is sentinel:
-                            debug('feeder thread got sentinel -- exiting')
+                            debug("feeder thread got sentinel -- exiting")
                             close()
                             return
 
@@ -56,7 +57,7 @@ class SilentJoinableQueue(JoinableQueue):
                     # Should be catching the same as errno.EPIPE below
                     return
                 except Exception as e:
-                    if getattr(e, 'errno', 0) == errno.EPIPE:
+                    if getattr(e, "errno", 0) == errno.EPIPE:
                         return
         except Exception as e:
             # Since this runs in a daemon thread the resources it uses
@@ -65,13 +66,16 @@ class SilentJoinableQueue(JoinableQueue):
             # started to cleanup.
             try:
                 if is_exiting():
-                    info('error in queue thread: %s', e)
+                    info("error in queue thread: %s", e)
                 else:
                     import traceback
+
                     traceback.print_exc()
             except Exception:
                 pass
 
+
 # monkey-patch
 import multiprocessing.queues
+
 multiprocessing.queues.JoinableQueue = SilentJoinableQueue

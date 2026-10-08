@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import queue
 
 import w3af.core.controllers.output_manager as om
@@ -40,14 +41,14 @@ class auth(BaseConsumer):
         :param w3af_core: The w3af core that we'll use for status reporting
         :param timeout: The time to wait between each login check
         """
-        super(auth, self).__init__(auth_plugins, w3af_core,
-                                   thread_name=self.get_name(),
-                                   create_pool=False)
+        super(auth, self).__init__(
+            auth_plugins, w3af_core, thread_name=self.get_name(), create_pool=False
+        )
 
         self._timeout = timeout
 
     def get_name(self):
-        return 'Authenticator'
+        return "Authenticator"
 
     def run(self):
         """
@@ -104,20 +105,19 @@ class auth(BaseConsumer):
 
             debugging_id = rand_alnum(8)
             args = (plugin.get_name(), plugin.get_name(), debugging_id)
-            msg = 'auth consumer is calling %s.has_active_session() and %s.login() (did:%s)'
+            msg = "auth consumer is calling %s.has_active_session() and %s.login() (did:%s)"
 
             om.out.debug(msg % args)
 
-            took_line = TookLine(self._w3af_core,
-                                 'auth',
-                                 '_login',
-                                 debugging_id=debugging_id)
+            took_line = TookLine(
+                self._w3af_core, "auth", "_login", debugging_id=debugging_id
+            )
 
             try:
                 if not plugin.has_active_session(debugging_id=debugging_id):
                     plugin.login(debugging_id=debugging_id)
             except Exception as e:
-                self.handle_exception('auth', plugin.get_name(), None, e)
+                self.handle_exception("auth", plugin.get_name(), None, e)
 
             took_line.send()
 

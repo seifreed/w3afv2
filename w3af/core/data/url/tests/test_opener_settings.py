@@ -19,15 +19,41 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from w3af.core.data.url.opener_settings import OpenerSettings
 from w3af.core.data.options.option_types import (
-    BOOL, INT, POSITIVE_INT, FLOAT, STRING, URL, IPPORT, LIST,
-    REGEX, COMBO, INPUT_FILE, OUTPUT_FILE, PORT)
+    BOOL,
+    INT,
+    POSITIVE_INT,
+    FLOAT,
+    STRING,
+    URL,
+    IPPORT,
+    LIST,
+    REGEX,
+    COMBO,
+    INPUT_FILE,
+    OUTPUT_FILE,
+    PORT,
+)
 
-OPTION_TYPES = (BOOL, INT, POSITIVE_INT, FLOAT, STRING, URL, IPPORT, LIST,
-                REGEX, COMBO, INPUT_FILE, OUTPUT_FILE, PORT)
+OPTION_TYPES = (
+    BOOL,
+    INT,
+    POSITIVE_INT,
+    FLOAT,
+    STRING,
+    URL,
+    IPPORT,
+    LIST,
+    REGEX,
+    COMBO,
+    INPUT_FILE,
+    OUTPUT_FILE,
+    PORT,
+)
 
 
 class TestOpenerSettings(unittest.TestCase):

@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 from w3af.core.controllers.exceptions import HTTPRequestException
 from w3af.core.controllers.output_manager import out
 from w3af.core.controllers.delay_detection.exact_delay import ExactDelay
@@ -58,8 +59,8 @@ class ExactDelayController(object):
                           the remote server (ie. sleep(%s) )
         """
         if not isinstance(delay_obj, ExactDelay):
-            raise TypeError('ExactDelayController requires ExactDelay as input')
-        
+            raise TypeError("ExactDelayController requires ExactDelay as input")
+
         self.mutant = mutant
         self.mutant.set_token_value(mutant.get_token().get_original_value())
 
@@ -91,7 +92,7 @@ class ExactDelayController(object):
         for i, delay in enumerate(self.DELAY_SECONDS):
 
             # Added for the deserialization plugin
-            assert delay < 100, 'Some ExactDelay instances can NOT handle large delays'
+            assert delay < 100, "Some ExactDelay instances can NOT handle large delays"
 
             # Only grep on the first test, to give the grep plugins the chance
             # to find something interesting. The other requests are not sent
@@ -100,8 +101,9 @@ class ExactDelayController(object):
 
             # Please note that this call is cached, it will only generate HTTP
             # requests every N calls for the same HTTP request.
-            original_rtt = self.uri_opener.get_average_rtt_for_mutant(mutant=self.mutant,
-                                                                      debugging_id=self.get_debugging_id())
+            original_rtt = self.uri_opener.get_average_rtt_for_mutant(
+                mutant=self.mutant, debugging_id=self.get_debugging_id()
+            )
 
             # Try to introduce the delay
             success, response = self.delay_for(delay, original_rtt, grep)
@@ -132,10 +134,9 @@ class ExactDelayController(object):
             # Note that this approach might hide some real vulnerabilities
             # but the benefits are greater than the potential issues
             #
-            success_on_reverse, response = self.delay_for(delay,
-                                                          original_rtt,
-                                                          False,
-                                                          reverse=True)
+            success_on_reverse, response = self.delay_for(
+                delay, original_rtt, False, reverse=True
+            )
 
             if success_on_reverse:
                 self._log_failure_with_reverse(delay, response)
@@ -149,35 +150,43 @@ class ExactDelayController(object):
         return True, responses
 
     def _log_success(self, delay, response):
-        msg = ('[did: %s] [id: %s] Successfully controlled HTTP response delay for'
-               ' URL %s - parameter "%s" for %s seconds using %r, response'
-               ' wait time was: %s seconds and response ID: %s.')
+        msg = (
+            "[did: %s] [id: %s] Successfully controlled HTTP response delay for"
+            ' URL %s - parameter "%s" for %s seconds using %r, response'
+            " wait time was: %s seconds and response ID: %s."
+        )
         self._log_generic(msg, delay, response)
 
     def _log_failure(self, delay, response):
-        msg = ('[did: %s] [id: %s] Failed to control HTTP response delay for'
-               ' URL %s - parameter "%s" for %s seconds using %r, response'
-               ' wait time was: %s seconds and response ID: %s.')
+        msg = (
+            "[did: %s] [id: %s] Failed to control HTTP response delay for"
+            ' URL %s - parameter "%s" for %s seconds using %r, response'
+            " wait time was: %s seconds and response ID: %s."
+        )
         self._log_generic(msg, delay, response)
 
     def _log_failure_with_reverse(self, delay, response):
-        msg = ('[did: %s] [id: %s] Successfully controlled the HTTP response'
-               ' delay using the reverse payload, this is a false positive test'
-               ' and should have failed. The previous delay was most likely'
-               ' generated because of the server being under heavy load.'
-               ' URL %s - parameter "%s" delayed for %s seconds using %r,'
-               ' response wait time was: %s seconds and response ID: %s.')
+        msg = (
+            "[did: %s] [id: %s] Successfully controlled the HTTP response"
+            " delay using the reverse payload, this is a false positive test"
+            " and should have failed. The previous delay was most likely"
+            " generated because of the server being under heavy load."
+            ' URL %s - parameter "%s" delayed for %s seconds using %r,'
+            " response wait time was: %s seconds and response ID: %s."
+        )
         self._log_generic(msg, delay, response)
 
     def _log_generic(self, msg, delay, response):
-        args = (self._debugging_id,
-                id(self),
-                self.mutant.get_url(),
-                self.mutant.get_token_name(),
-                delay,
-                self.delay_obj,
-                response.get_wait_time(),
-                response.id)
+        args = (
+            self._debugging_id,
+            id(self),
+            self.mutant.get_url(),
+            self.mutant.get_token_name(),
+            delay,
+            self.delay_obj,
+            response.get_wait_time(),
+            response.id,
+        )
         out.debug(msg % args)
 
     def delay_for(self, delay, original_wait_time, grep, reverse=False):
@@ -242,11 +251,13 @@ class ExactDelayController(object):
         # Send, it is important to notice that we don't use the cache
         # to avoid any interference
         try:
-            response = self.uri_opener.send_mutant(mutant,
-                                                   grep=grep,
-                                                   cache=False,
-                                                   timeout=upper_bound,
-                                                   debugging_id=self.get_debugging_id())
+            response = self.uri_opener.send_mutant(
+                mutant,
+                grep=grep,
+                cache=False,
+                timeout=upper_bound,
+                debugging_id=self.get_debugging_id(),
+            )
         except HTTPRequestException:
             #
             # We reach this part of the code when the server response times out
@@ -261,8 +272,10 @@ class ExactDelayController(object):
             #     response so much that it triggers the timeout
             #
             args = (id(self), upper_bound, lower_bound, delay, upper_bound)
-            msg = ('[id: %s] HTTP response delay was %.2f.'
-                   ' (lower, expected, upper): %.2f, %.2f, %.2f.')
+            msg = (
+                "[id: %s] HTTP response delay was %.2f."
+                " (lower, expected, upper): %.2f, %.2f, %.2f."
+            )
             out.debug(msg % args)
 
             return True, new_no_content_resp(self.mutant.get_uri())
@@ -271,8 +284,10 @@ class ExactDelayController(object):
         # have a working delay. This is most of the cases I've seen.
         current_response_wait_time = response.get_wait_time()
         args = (id(self), current_response_wait_time, lower_bound, delay, upper_bound)
-        msg = ('[id: %s] HTTP response delay was %.2f.'
-               ' (lower, expected, upper): %.2f, %.2f, %.2f.')
+        msg = (
+            "[id: %s] HTTP response delay was %.2f."
+            " (lower, expected, upper): %.2f, %.2f, %.2f."
+        )
         out.debug(msg % args)
 
         if current_response_wait_time > lower_bound:

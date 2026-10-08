@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import inspect
 import copy
 import threading
@@ -40,9 +41,10 @@ class AuditPlugin(Plugin):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def __init__(self):
         Plugin.__init__(self)
-        
+
         self._uri_opener = None
         self._store_kb_vulns = False
         self._audit_return_vulns_lock = threading.RLock()
@@ -51,12 +53,11 @@ class AuditPlugin(Plugin):
     def get_original_response(self, fuzzable_request):
 
         data_container = fuzzable_request.get_raw_data()
-        if hasattr(data_container, 'smart_fill'):
+        if hasattr(data_container, "smart_fill"):
             fuzzable_request = copy.deepcopy(fuzzable_request)
             data_container.smart_fill()
 
-        return self._uri_opener.send_mutant(fuzzable_request, grep=False,
-                                            cache=False)
+        return self._uri_opener.send_mutant(fuzzable_request, grep=False, cache=False)
 
     def audit_return_vulns(self, fuzzable_request):
         """
@@ -65,10 +66,10 @@ class AuditPlugin(Plugin):
         :return: The vulnerabilities found when running this audit plugin.
         """
         with self._audit_return_vulns_lock:
-            
+
             self._store_kb_vulns = True
             debugging_id = rand_alnum(8)
-            
+
             try:
                 orig_response = self.get_original_response(fuzzable_request)
                 self.audit_with_copy(fuzzable_request, orig_response, debugging_id)
@@ -76,17 +77,17 @@ class AuditPlugin(Plugin):
                 om.out.error(str(e))
             finally:
                 self._store_kb_vulns = False
-                
+
                 new_vulnerabilities = self._newly_found_vulns
                 self._newly_found_vulns = []
-                
+
                 return new_vulnerabilities
 
     def _audit_return_vulns_in_caller(self):
         """
         This is a helper method that returns True if the method
         audit_return_vulns is in the call stack.
-        
+
         Please note that this method is *very* slow (because of the inspect
         module being slow) and should only be called when audit_return_vulns
         was previously called.
@@ -94,9 +95,9 @@ class AuditPlugin(Plugin):
         the_stack = inspect.stack()
 
         for _, _, _, function_name, _, _ in the_stack:
-            if function_name == 'audit_return_vulns':
+            if function_name == "audit_return_vulns":
                 return True
-            
+
         return False
 
     def kb_append_uniq(self, location_a, location_b, info):
@@ -106,9 +107,9 @@ class AuditPlugin(Plugin):
         if self._store_kb_vulns:
             if self._audit_return_vulns_in_caller():
                 self._newly_found_vulns.append(info)
-        
+
         return super(AuditPlugin, self).kb_append_uniq(location_a, location_b, info)
-        
+
     def kb_append(self, location_a, location_b, info):
         """
         kb.kb.append a vulnerability to the KB
@@ -116,7 +117,7 @@ class AuditPlugin(Plugin):
         if self._store_kb_vulns:
             if self._audit_return_vulns_in_caller():
                 self._newly_found_vulns.append(info)
-        
+
         super(AuditPlugin, self).kb_append(location_a, location_b, info)
 
     def audit_with_copy(self, fuzzable_request, orig_resp, debugging_id):
@@ -142,7 +143,7 @@ class AuditPlugin(Plugin):
             # happens at lower layers.
             #
             # https://github.com/andresriancho/w3af/issues/8949
-            om.out.debug('%s' % ffde)
+            om.out.debug("%s" % ffde)
 
     def audit(self, freq, orig_resp, debugging_id):
         """
@@ -155,13 +156,13 @@ class AuditPlugin(Plugin):
         :param debugging_id: A unique identifier for this call to audit()
                              See https://github.com/andresriancho/w3af/issues/16220
         """
-        msg = 'Plugin is not implementing required method audit'
+        msg = "Plugin is not implementing required method audit"
         raise NotImplementedError(msg)
 
-    def _has_bug(self, fuzz_req, varname='', pname='', kb_varname=''):
+    def _has_bug(self, fuzz_req, varname="", pname="", kb_varname=""):
         return not self._has_no_bug(fuzz_req, varname, pname, kb_varname)
 
-    def _has_no_bug(self, mutant, varname='', pname='', kb_varname=''):
+    def _has_no_bug(self, mutant, varname="", pname="", kb_varname=""):
         """
         Test if the current combination of `fuzz_req`, `varname` hasn't
         already been reported to the knowledge base.
@@ -188,4 +189,4 @@ class AuditPlugin(Plugin):
         return True
 
     def get_type(self):
-        return 'audit'
+        return "audit"

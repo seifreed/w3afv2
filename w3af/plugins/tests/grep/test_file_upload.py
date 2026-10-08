@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 import w3af.core.data.kb.knowledge_base as kb
@@ -33,41 +34,41 @@ class test_file_upload(unittest.TestCase):
 
     def setUp(self):
         self.plugin = file_upload()
-        kb.kb.clear('file_upload', 'file_upload')
+        kb.kb.clear("file_upload", "file_upload")
 
     def tearDown(self):
         self.plugin.end()
 
     def test_simple(self):
         body = 'header <form><input type="file"></form> footer'
-        url = URL('http://www.w3af.com/')
-        headers = Headers([('content-type', 'text/html')])
+        url = URL("http://www.w3af.com/")
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, url, url, _id=1)
-        request = FuzzableRequest(url, method='GET')
+        request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        self.assertEqual(len(kb.kb.get('file_upload', 'file_upload')), 1)
-        i = kb.kb.get('file_upload', 'file_upload')[0]
-        self.assertEqual(i.get_name(), 'File upload form')
+        self.assertEqual(len(kb.kb.get("file_upload", "file_upload")), 1)
+        i = kb.kb.get("file_upload", "file_upload")[0]
+        self.assertEqual(i.get_name(), "File upload form")
 
     def test_complex(self):
         body = 'header <form><Input type="File"></form> footer'
-        url = URL('http://www.w3af.com/')
-        headers = Headers([('content-type', 'text/html')])
+        url = URL("http://www.w3af.com/")
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, url, url, _id=1)
-        request = FuzzableRequest(url, method='GET')
+        request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        self.assertEqual(len(kb.kb.get('file_upload', 'file_upload')), 1)
-        i = kb.kb.get('file_upload', 'file_upload')[0]
-        self.assertEqual(i.get_name(), 'File upload form')
+        self.assertEqual(len(kb.kb.get("file_upload", "file_upload")), 1)
+        i = kb.kb.get("file_upload", "file_upload")[0]
+        self.assertEqual(i.get_name(), "File upload form")
 
     def test_none(self):
         body = 'header <form><noinput type="file"></form> footer'
-        url = URL('http://www.w3af.com/')
-        headers = Headers([('content-type', 'text/html')])
+        url = URL("http://www.w3af.com/")
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, url, url, _id=1)
-        request = FuzzableRequest(url, method='GET')
+        request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        self.assertEqual(len(kb.kb.get('file_upload', 'file_upload')), 0)
+        self.assertEqual(len(kb.kb.get("file_upload", "file_upload")), 0)

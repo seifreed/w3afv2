@@ -14,11 +14,15 @@ spec_filename = sys.argv[1]
 _, extension = os.path.splitext(spec_filename)
 
 body = open(spec_filename).read()
-headers = Headers(list({'Content-Type': 'application/%s' % extension}.items()))
-response = HTTPResponse(200, body, headers,
-                        URL('http://moth/swagger.%s' % extension),
-                        URL('http://moth/swagger.%s' % extension),
-                        _id=1)
+headers = Headers(list({"Content-Type": "application/%s" % extension}.items()))
+response = HTTPResponse(
+    200,
+    body,
+    headers,
+    URL("http://moth/swagger.%s" % extension),
+    URL("http://moth/swagger.%s" % extension),
+    _id=1,
+)
 
 
 parser = OpenAPI(response)

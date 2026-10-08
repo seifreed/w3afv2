@@ -19,13 +19,14 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from flask import request
 
 from w3af.core.ui.api import app
 from w3af.core.ui.api.utils.error import abort
 
-NO_HEADER = 'HTTP request header Content-Type must be application/json'
-INVALID_JSON = 'HTTP request body must be valid JSON object.'
+NO_HEADER = "HTTP request header Content-Type must be application/json"
+INVALID_JSON = "HTTP request body must be valid JSON object."
 
 
 @app.before_request
@@ -36,10 +37,10 @@ def require_json():
 
     :return: abort() if an error occured
     """
-    if request.method in {'GET', 'HEAD', 'DELETE'}:
+    if request.method in {"GET", "HEAD", "DELETE"}:
         return
 
-    if request.mimetype != 'application/json':
+    if request.mimetype != "application/json":
         abort(400, NO_HEADER)
 
     json_data = request.get_json(silent=True)

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.data.kb.config as cf
 import w3af.core.controllers.output_manager as om
 
@@ -32,17 +33,27 @@ from w3af.core.data.fuzzer.mutants.cookie_mutant import CookieMutant
 from w3af.core.data.fuzzer.mutants.filecontent_mutant import FileContentMutant
 from w3af.core.data.fuzzer.mutants.xmlrpc_mutant import XmlRpcMutant
 
-ALL_MUTANTS = (QSMutant, PostDataMutant, FileNameMutant, URLPartsMutant,
-               HeadersMutant, JSONMutant, CookieMutant, FileContentMutant,
-               XmlRpcMutant)
+ALL_MUTANTS = (
+    QSMutant,
+    PostDataMutant,
+    FileNameMutant,
+    URLPartsMutant,
+    HeadersMutant,
+    JSONMutant,
+    CookieMutant,
+    FileContentMutant,
+    XmlRpcMutant,
+)
 
 
-def create_mutants(freq,
-                   mutant_str_list,
-                   append=False,
-                   fuzzable_param_list=None,
-                   orig_resp=None,
-                   mutant_tuple=ALL_MUTANTS):
+def create_mutants(
+    freq,
+    mutant_str_list,
+    append=False,
+    fuzzable_param_list=None,
+    orig_resp=None,
+    mutant_tuple=ALL_MUTANTS,
+):
     """
     :param freq: A fuzzable request with a DataContainer inside.
     :param mutant_str_list: a list with mutant strings to use
@@ -60,9 +71,9 @@ def create_mutants(freq,
     fuzzer_config = _get_fuzzer_config()
 
     for mutant_kls in mutant_tuple:
-        new_mutants = mutant_kls.create_mutants(freq, mutant_str_list,
-                                                fuzzable_param_list, append,
-                                                fuzzer_config)
+        new_mutants = mutant_kls.create_mutants(
+            freq, mutant_str_list, fuzzable_param_list, append, fuzzer_config
+        )
         result.extend(new_mutants)
 
     msg = 'Created %s mutants for "%s" (%s)'
@@ -74,7 +85,7 @@ def create_mutants(freq,
         else:
             count_data[mutant.get_mutant_type()] = 1
 
-    count_summary = ', '.join(['%s: %s' % (i, j) for i, j in list(count_data.items())])
+    count_summary = ", ".join(["%s: %s" % (i, j) for i, j in list(count_data.items())])
     om.out.debug(msg % (len(result), freq, count_summary))
 
     #
@@ -96,25 +107,27 @@ def create_mutants(freq,
     if orig_resp is not None and result:
 
         headers = orig_resp.get_headers()
-        etag, etag_header_name = headers.iget('ETag', None)
+        etag, etag_header_name = headers.iget("ETag", None)
 
         for m in result:
             m.set_original_response_body(orig_resp.get_body())
 
             if etag is not None:
                 orig_headers = m.get_headers()
-                orig_headers['If-None-Match'] = etag
+                orig_headers["If-None-Match"] = etag
                 m.set_headers(orig_headers)
 
     return result
 
 
-CONF_KEYS = [('fuzzable_headers', []),
-             ('fuzz_cookies', False),
-             ('fuzz_url_filenames', False),
-             ('fuzzed_files_extension', 'gif'),
-             ('fuzz_form_files', False),
-             ('fuzz_url_parts', False)]
+CONF_KEYS = [
+    ("fuzzable_headers", []),
+    ("fuzz_cookies", False),
+    ("fuzz_url_filenames", False),
+    ("fuzzed_files_extension", "gif"),
+    ("fuzz_form_files", False),
+    ("fuzz_url_parts", False),
+]
 
 
 def _get_fuzzer_config():

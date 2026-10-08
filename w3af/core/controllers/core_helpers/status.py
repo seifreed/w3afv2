@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import time
 
 from operator import xor
@@ -28,13 +29,13 @@ import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.epoch_to_string import epoch_to_string
 from w3af.core.controllers.misc.number_generator import consecutive_number_generator
 
-PAUSED = 'Paused'
-STOPPED = 'Stopped'
-RUNNING = 'Running'
+PAUSED = "Paused"
+STOPPED = "Stopped"
+RUNNING = "Running"
 
-AUDIT = 'audit'
-CRAWL = 'crawl'
-GREP = 'grep'
+AUDIT = "audit"
+CRAWL = "crawl"
+GREP = "grep"
 
 
 class CoreStatus(object):
@@ -64,9 +65,7 @@ class CoreStatus(object):
         self._current_fuzzable_request = {}
 
         # Save the latest ETA values in order to "smooth" our ETAs
-        self._eta_smooth = {AUDIT: 0,
-                            GREP: 0,
-                            CRAWL: 0}
+        self._eta_smooth = {AUDIT: 0, GREP: 0, CRAWL: 0}
 
     def set_w3af_core(self, w3af_core):
         self._w3af_core = w3af_core
@@ -74,7 +73,7 @@ class CoreStatus(object):
     def pause(self, pause_yes_no):
         self._paused = pause_yes_no
         self._is_running = not pause_yes_no
-        om.out.debug('The user paused / unpaused the scan.')
+        om.out.debug("The user paused / unpaused the scan.")
 
     def start(self):
         self._is_running = True
@@ -95,29 +94,36 @@ class CoreStatus(object):
             return STOPPED
 
         else:
-            crawl_plugin = self.get_running_plugin('crawl')
-            audit_plugin = self.get_running_plugin('audit')
+            crawl_plugin = self.get_running_plugin("crawl")
+            audit_plugin = self.get_running_plugin("audit")
 
-            crawl_fr = self.get_current_fuzzable_request('crawl')
-            audit_fr = self.get_current_fuzzable_request('audit')
+            crawl_fr = self.get_current_fuzzable_request("crawl")
+            audit_fr = self.get_current_fuzzable_request("audit")
 
-            if (crawl_plugin is None and audit_plugin is None and
-                    crawl_fr is None and audit_fr is None):
-                return 'Starting scan.'
+            if (
+                crawl_plugin is None
+                and audit_plugin is None
+                and crawl_fr is None
+                and audit_fr is None
+            ):
+                return "Starting scan."
 
-            status_str = ''
+            status_str = ""
             if crawl_plugin is not None and crawl_fr is not None:
-                status_str += 'Crawling %s using %s.%s'
-                status_str %= (crawl_fr, 'crawl', crawl_plugin)
+                status_str += "Crawling %s using %s.%s"
+                status_str %= (crawl_fr, "crawl", crawl_plugin)
 
             if audit_plugin is not None and audit_fr is not None:
                 if status_str:
-                    status_str += '\n'
+                    status_str += "\n"
 
-                status_str += 'Auditing %s using %s.%s' % (audit_fr, 'audit',
-                                                           audit_plugin)
+                status_str += "Auditing %s using %s.%s" % (
+                    audit_fr,
+                    "audit",
+                    audit_plugin,
+                )
 
-            status_str = status_str.replace('\x00', '')
+            status_str = status_str.replace("\x00", "")
             return status_str
 
     def set_running_plugin(self, plugin_type, plugin_name, log=True):
@@ -159,7 +165,7 @@ class CoreStatus(object):
         :return: The time (in minutes) between now and the call to start().
         """
         if self._start_time_epoch is None:
-            raise RuntimeError('Can NOT call get_run_time before start().')
+            raise RuntimeError("Can NOT call get_run_time before start().")
 
         diff = time.time() - self._start_time_epoch
         return diff / 60
@@ -169,7 +175,7 @@ class CoreStatus(object):
         :return: The time (in seconds) between now and the call to start().
         """
         if self._start_time_epoch is None:
-            raise RuntimeError('Can NOT call get_run_time before start().')
+            raise RuntimeError("Can NOT call get_run_time before start().")
 
         return time.time() - self._start_time_epoch
 
@@ -185,7 +191,7 @@ class CoreStatus(object):
                  start of the scan.
         """
         if self._start_time_epoch is None:
-            raise RuntimeError('Can NOT call get_run_time before start().')
+            raise RuntimeError("Can NOT call get_run_time before start().")
 
         now = time.time()
         diff = now - self._start_time_epoch
@@ -248,16 +254,18 @@ class CoreStatus(object):
         return dc.has_finished()
 
     def get_crawl_current_fr(self):
-        return self.get_current_fuzzable_request('crawl')
+        return self.get_current_fuzzable_request("crawl")
 
     def get_crawl_eta(self):
         adjustment = self.get_crawl_adjustment_ratio()
 
-        return self.calculate_eta(self.get_crawl_input_speed(),
-                                  self.get_crawl_output_speed(),
-                                  self.get_crawl_qsize(),
-                                  CRAWL,
-                                  adjustment=adjustment)
+        return self.calculate_eta(
+            self.get_crawl_input_speed(),
+            self.get_crawl_output_speed(),
+            self.get_crawl_qsize(),
+            CRAWL,
+            adjustment=adjustment,
+        )
 
     def get_grep_processed_tasks(self):
         gc = self._w3af_core.strategy.get_grep_consumer()
@@ -293,11 +301,13 @@ class CoreStatus(object):
     def get_grep_eta(self):
         adjustment = self.get_grep_adjustment_ratio()
 
-        return self.calculate_eta(self.get_grep_input_speed(),
-                                  self.get_grep_output_speed(),
-                                  self.get_grep_qsize(),
-                                  GREP,
-                                  adjustment=adjustment)
+        return self.calculate_eta(
+            self.get_grep_input_speed(),
+            self.get_grep_output_speed(),
+            self.get_grep_qsize(),
+            GREP,
+            adjustment=adjustment,
+        )
 
     def get_audit_input_speed(self):
         ac = self._w3af_core.strategy.get_audit_consumer()
@@ -321,7 +331,7 @@ class CoreStatus(object):
         return 0 if ac is None else ac.in_queue.get_processed_tasks()
 
     def get_audit_current_fr(self):
-        return self.get_current_fuzzable_request('audit')
+        return self.get_current_fuzzable_request("audit")
 
     def has_finished_audit(self):
         ac = self._w3af_core.strategy.get_audit_consumer()
@@ -336,39 +346,47 @@ class CoreStatus(object):
     def get_audit_eta(self):
         adjustment = self.get_audit_adjustment_ratio()
 
-        return self.calculate_eta(self.get_audit_input_speed(),
-                                  self.get_audit_output_speed(),
-                                  self.get_audit_qsize(),
-                                  AUDIT,
-                                  adjustment=adjustment)
+        return self.calculate_eta(
+            self.get_audit_input_speed(),
+            self.get_audit_output_speed(),
+            self.get_audit_qsize(),
+            AUDIT,
+            adjustment=adjustment,
+        )
 
     def get_core_worker_pool_queue_size(self):
         return self._w3af_core.worker_pool.in_queue.qsize()
 
-    def log_calculate_eta(self, eta, input_speed, output_speed, queue_size,
-                          _type, adjustment):
+    def log_calculate_eta(
+        self, eta, input_speed, output_speed, queue_size, _type, adjustment
+    ):
         """
         :return: None, a log line is added.
         """
         run_time = self.get_run_time_seconds()
 
-        msg = ('Calculated %s ETA: %.2f seconds. (input speed:%.2f,'
-               ' output speed:%.2f, queue size: %i, adjustment known: %.2f,'
-               ' adjustment unknown: %.2f, average: %s, run time: %.2f)')
-        args = (_type,
-                eta,
-                input_speed,
-                output_speed,
-                queue_size,
-                adjustment.known,
-                adjustment.unknown,
-                adjustment.average,
-                run_time)
+        msg = (
+            "Calculated %s ETA: %.2f seconds. (input speed:%.2f,"
+            " output speed:%.2f, queue size: %i, adjustment known: %.2f,"
+            " adjustment unknown: %.2f, average: %s, run time: %.2f)"
+        )
+        args = (
+            _type,
+            eta,
+            input_speed,
+            output_speed,
+            queue_size,
+            adjustment.known,
+            adjustment.unknown,
+            adjustment.average,
+            run_time,
+        )
 
         om.out.debug(msg % args)
 
-    def calculate_eta(self, input_speed, output_speed, queue_size, _type,
-                      adjustment=None):
+    def calculate_eta(
+        self, input_speed, output_speed, queue_size, _type, adjustment=None
+    ):
         """
         Do our best effort to calculate the ETA for a specific queue
         for which we have the input speed, output speed and current
@@ -393,8 +411,9 @@ class CoreStatus(object):
             # The consumer has finished
             eta = 0.0
 
-            self.log_calculate_eta(eta, input_speed, output_speed, queue_size,
-                                   _type, adjustment)
+            self.log_calculate_eta(
+                eta, input_speed, output_speed, queue_size, _type, adjustment
+            )
 
             return eta
 
@@ -409,8 +428,9 @@ class CoreStatus(object):
             # to calculate a real ETA
             eta = 5 * 60.0
 
-            self.log_calculate_eta(eta, input_speed, output_speed, queue_size,
-                                   _type, adjustment)
+            self.log_calculate_eta(
+                eta, input_speed, output_speed, queue_size, _type, adjustment
+            )
 
             return eta
 
@@ -466,8 +486,9 @@ class CoreStatus(object):
             eta = eta * 3 / 4 + self._eta_smooth[_type] * 1 / 4
             self._eta_smooth[_type] = eta
 
-        self.log_calculate_eta(eta, input_speed, output_speed, queue_size,
-                               _type, adjustment)
+        self.log_calculate_eta(
+            eta, input_speed, output_speed, queue_size, _type, adjustment
+        )
 
         return eta
 
@@ -498,13 +519,12 @@ class CoreStatus(object):
             if fuzzable_request is None:
                 return fuzzable_request
 
-            return '%s %s' % (fuzzable_request.get_method(),
-                              fuzzable_request.get_uri())
+            return "%s %s" % (fuzzable_request.get_method(), fuzzable_request.get_uri())
 
-        crawl_fuzzable_request = self.get_current_fuzzable_request('crawl')
+        crawl_fuzzable_request = self.get_current_fuzzable_request("crawl")
         crawl_fuzzable_request = serialize_fuzzable_request(crawl_fuzzable_request)
 
-        audit_fuzzable_request = self.get_current_fuzzable_request('audit')
+        audit_fuzzable_request = self.get_current_fuzzable_request("audit")
         audit_fuzzable_request = serialize_fuzzable_request(audit_fuzzable_request)
 
         eta_seconds = self.get_eta()
@@ -517,51 +537,46 @@ class CoreStatus(object):
             rpm = 0
 
         data = {
-            'status': self.get_simplified_status(),
-            'is_paused': self.is_paused(),
-            'is_running': self.is_running(),
-
-            'active_plugin':
-                {'crawl': self.get_running_plugin('crawl'),
-                 'audit': self.get_running_plugin('audit')},
-
-            'current_request':
-                {'crawl': crawl_fuzzable_request,
-                 'audit': audit_fuzzable_request},
-
-            'queues':
-                {'crawl':
-                     {
-                         'input_speed': self.get_crawl_input_speed(),
-                         'output_speed': self.get_crawl_output_speed(),
-                         'length': self.get_crawl_qsize(),
-                         'processed_tasks': self.get_crawl_processed_tasks(),
-                     },
-                 'audit':
-                     {
-                         'input_speed': self.get_audit_input_speed(),
-                         'output_speed': self.get_audit_output_speed(),
-                         'length': self.get_audit_qsize(),
-                         'processed_tasks': self.get_audit_processed_tasks(),
-                     },
-                 'grep':
-                     {
-                         'input_speed': self.get_grep_input_speed(),
-                         'output_speed': self.get_grep_output_speed(),
-                         'length': self.get_grep_qsize(),
-                         'processed_tasks': self.get_grep_processed_tasks(),
-                     }
+            "status": self.get_simplified_status(),
+            "is_paused": self.is_paused(),
+            "is_running": self.is_running(),
+            "active_plugin": {
+                "crawl": self.get_running_plugin("crawl"),
+                "audit": self.get_running_plugin("audit"),
+            },
+            "current_request": {
+                "crawl": crawl_fuzzable_request,
+                "audit": audit_fuzzable_request,
+            },
+            "queues": {
+                "crawl": {
+                    "input_speed": self.get_crawl_input_speed(),
+                    "output_speed": self.get_crawl_output_speed(),
+                    "length": self.get_crawl_qsize(),
+                    "processed_tasks": self.get_crawl_processed_tasks(),
                 },
-
-            'eta':
-                {'crawl': self.epoch_eta_to_string(self.get_crawl_eta()),
-                 'audit': self.epoch_eta_to_string(self.get_audit_eta()),
-                 'grep': self.epoch_eta_to_string(self.get_grep_eta()),
-                 'all': eta},
-
-            'rpm': rpm,
-            'sent_request_count': self.get_sent_request_count(),
-            'progress': progress,
+                "audit": {
+                    "input_speed": self.get_audit_input_speed(),
+                    "output_speed": self.get_audit_output_speed(),
+                    "length": self.get_audit_qsize(),
+                    "processed_tasks": self.get_audit_processed_tasks(),
+                },
+                "grep": {
+                    "input_speed": self.get_grep_input_speed(),
+                    "output_speed": self.get_grep_output_speed(),
+                    "length": self.get_grep_qsize(),
+                    "processed_tasks": self.get_grep_processed_tasks(),
+                },
+            },
+            "eta": {
+                "crawl": self.epoch_eta_to_string(self.get_crawl_eta()),
+                "audit": self.epoch_eta_to_string(self.get_audit_eta()),
+                "grep": self.epoch_eta_to_string(self.get_grep_eta()),
+                "all": eta,
+            },
+            "rpm": rpm,
+            "sent_request_count": self.get_sent_request_count(),
+            "progress": progress,
         }
 
         return data
@@ -583,7 +598,9 @@ class CoreStatus(object):
         if progress == 100 and self.any_consumer_running():
             progress = 99
 
-        om.out.debug('The scan will finish in %.2f seconds (%s%% done)' % (eta, progress))
+        om.out.debug(
+            "The scan will finish in %.2f seconds (%s%% done)" % (eta, progress)
+        )
 
         return progress
 
@@ -715,7 +732,7 @@ class CoreStatus(object):
         return Adjustment(known=1.0, unknown=0.75)
 
     def log_eta(self, msg):
-        om.out.debug('[get_eta] %s' % msg)
+        om.out.debug("[get_eta] %s" % msg)
 
     def get_eta(self):
         """
@@ -725,15 +742,17 @@ class CoreStatus(object):
         # We're most likely never going to reach this case, but just in case
         # I'm adding it. Just zero, meaning: we're finishing now
         if self.has_finished_grep():
-            self.log_eta('ETA is 0. Grep consumer has already finished.')
+            self.log_eta("ETA is 0. Grep consumer has already finished.")
             return 0
 
         # The easiest case is when we're not sending any more HTTP requests,
         # we just need to run the grep plugins (if enabled) on the HTTP requests
         # and responses that were captured before
         if self.has_finished_crawl() and self.has_finished_audit():
-            self.log_eta('Crawl and audit consumers have finished,'
-                         ' ETA calculated using grep ETA.')
+            self.log_eta(
+                "Crawl and audit consumers have finished,"
+                " ETA calculated using grep ETA."
+            )
             return self.get_grep_eta()
 
         # The crawling phase has finished, but we're running audit (if enabled)
@@ -749,13 +768,15 @@ class CoreStatus(object):
                 after_audit = grep_eta - audit_eta
                 after_audit = after_audit * 0.1
 
-            self.log_eta('Crawl has finished. Using audit and grep ETAs'
-                         ' to calculate overall ETA.')
+            self.log_eta(
+                "Crawl has finished. Using audit and grep ETAs"
+                " to calculate overall ETA."
+            )
             return audit_eta + after_audit
 
         # The crawling, audit and grep (all if they were enabled) are running.
         # Estimating ETA here is difficult!
-        self.log_eta('ETA calculation will merge ETAs for all phases.')
+        self.log_eta("ETA calculation will merge ETAs for all phases.")
 
         grep_eta = self.get_grep_eta()
         audit_eta = self.get_audit_eta()
@@ -789,47 +810,48 @@ class CoreStatus(object):
         eta_seconds = self.get_eta()
 
         data = {
-            'status': self.get_status(),
-
-            'cin': self.get_crawl_input_speed(),
-            'cout': self.get_crawl_output_speed(),
-            'clen': self.get_crawl_qsize(),
-            'ceta': self.epoch_eta_to_string(self.get_crawl_eta()),
-
-            'ain': self.get_audit_input_speed(),
-            'aout': self.get_audit_output_speed(),
-            'alen': self.get_audit_qsize(),
-            'aeta': self.epoch_eta_to_string(self.get_audit_eta()),
-
-            'gin': self.get_grep_input_speed(),
-            'gout': self.get_grep_output_speed(),
-            'glen': self.get_grep_qsize(),
-            'geta': self.epoch_eta_to_string(self.get_grep_eta()),
-
-            'perc': self.get_progress_percentage(eta=eta_seconds),
-            'eta': self.epoch_eta_to_string(eta_seconds),
-
-            'rpm': self.get_rpm()
+            "status": self.get_status(),
+            "cin": self.get_crawl_input_speed(),
+            "cout": self.get_crawl_output_speed(),
+            "clen": self.get_crawl_qsize(),
+            "ceta": self.epoch_eta_to_string(self.get_crawl_eta()),
+            "ain": self.get_audit_input_speed(),
+            "aout": self.get_audit_output_speed(),
+            "alen": self.get_audit_qsize(),
+            "aeta": self.epoch_eta_to_string(self.get_audit_eta()),
+            "gin": self.get_grep_input_speed(),
+            "gout": self.get_grep_output_speed(),
+            "glen": self.get_grep_qsize(),
+            "geta": self.epoch_eta_to_string(self.get_grep_eta()),
+            "perc": self.get_progress_percentage(eta=eta_seconds),
+            "eta": self.epoch_eta_to_string(eta_seconds),
+            "rpm": self.get_rpm(),
         }
 
-        status_str = '%(status)s\n'
+        status_str = "%(status)s\n"
 
-        status_str += ('Crawl phase: In (%(cin).2f URLs/min)'
-                       ' Out (%(cout).2f URLs/min) Pending (%(clen)i URLs)'
-                       ' ETA (%(ceta)s)\n')
+        status_str += (
+            "Crawl phase: In (%(cin).2f URLs/min)"
+            " Out (%(cout).2f URLs/min) Pending (%(clen)i URLs)"
+            " ETA (%(ceta)s)\n"
+        )
 
-        status_str += ('Audit phase: In (%(ain).2f URLs/min)'
-                       ' Out (%(aout).2f URLs/min) Pending (%(alen)i URLs)'
-                       ' ETA (%(aeta)s)\n')
+        status_str += (
+            "Audit phase: In (%(ain).2f URLs/min)"
+            " Out (%(aout).2f URLs/min) Pending (%(alen)i URLs)"
+            " ETA (%(aeta)s)\n"
+        )
 
-        status_str += ('Grep phase: In (%(gin).2f URLs/min)'
-                       ' Out (%(gout).2f URLs/min) Pending (%(glen)i URLs)'
-                       ' ETA (%(geta)s)\n')
+        status_str += (
+            "Grep phase: In (%(gin).2f URLs/min)"
+            " Out (%(gout).2f URLs/min) Pending (%(glen)i URLs)"
+            " ETA (%(geta)s)\n"
+        )
 
-        status_str += 'Requests per minute: %(rpm)s\n\n'
+        status_str += "Requests per minute: %(rpm)s\n\n"
 
-        status_str += 'Overall scan progress: %(perc)s%%\n'
-        status_str += 'Time to complete scan: %(eta)s\n'
+        status_str += "Overall scan progress: %(perc)s%%\n"
+        status_str += "Time to complete scan: %(eta)s\n"
 
         return status_str % data
 

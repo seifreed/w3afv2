@@ -18,40 +18,41 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 from nose.plugins.attrib import attr
 
 from w3af.core.controllers.ci.moth import get_moth_http, get_moth_https
 from w3af.plugins.tests.helper import PluginTest, PluginConfig
 
 
-@attr('ci_fails')
+@attr("ci_fails")
 class TestHmap(PluginTest):
 
     base_url = get_moth_http()
 
     _run_configs = {
-        'cfg': {
-        'target': base_url,
-        'plugins': {'infrastructure': (PluginConfig('hmap'),)}
+        "cfg": {
+            "target": base_url,
+            "plugins": {"infrastructure": (PluginConfig("hmap"),)},
         }
     }
 
     def test_hmap_http(self):
-        cfg = self._run_configs['cfg']
-        self._scan(cfg['target'], cfg['plugins'])
+        cfg = self._run_configs["cfg"]
+        self._scan(cfg["target"], cfg["plugins"])
 
-        infos = self.kb.get('hmap', 'server')
+        infos = self.kb.get("hmap", "server")
         self.assertEqual(len(infos), 1, infos)
 
         info = infos[0]
-        self.assertIn('WSGIServer/0.1', info.get_desc(), info.get_desc())
+        self.assertIn("WSGIServer/0.1", info.get_desc(), info.get_desc())
 
     def test_hmap_https(self):
-        cfg = self._run_configs['cfg']
-        self._scan(get_moth_https(), cfg['plugins'])
+        cfg = self._run_configs["cfg"]
+        self._scan(get_moth_https(), cfg["plugins"])
 
-        infos = self.kb.get('hmap', 'server')
+        infos = self.kb.get("hmap", "server")
         self.assertEqual(len(infos), 1, infos)
 
         info = infos[0]
-        self.assertIn('WSGIServer/0.1', info.get_desc(), info.get_desc())
+        self.assertIn("WSGIServer/0.1", info.get_desc(), info.get_desc())

@@ -2,7 +2,7 @@ def median(numbers):
     numbers = sorted(numbers)
     center = len(numbers) / 2
     if len(numbers) % 2 == 0:
-        return sum(numbers[center - 1:center + 1]) / 2.0
+        return sum(numbers[center - 1 : center + 1]) / 2.0
     else:
         return numbers[center]
 
@@ -13,7 +13,7 @@ def mean(data):
     """
     n = len(data)
     if n < 1:
-        raise ValueError('mean requires at least one data point')
+        raise ValueError("mean requires at least one data point")
     return sum(data) / float(n)
 
 
@@ -22,7 +22,7 @@ def _ss(data):
     Return sum of square deviations of sequence data.
     """
     c = mean(data)
-    ss = sum((x-c)**2 for x in data)
+    ss = sum((x - c) ** 2 for x in data)
     return ss
 
 
@@ -34,10 +34,10 @@ def stddev(data, ddof=0):
     """
     n = len(data)
     if n < 2:
-        raise ValueError('variance requires at least two data points')
+        raise ValueError("variance requires at least two data points")
     ss = _ss(data)
-    pvar = ss / (n-ddof)
-    return pvar ** 0.5
+    pvar = ss / (n - ddof)
+    return pvar**0.5
 
 
 def drop_outliers(data_points, offset=1.0):
@@ -61,7 +61,9 @@ def outliers_modified_z_score(ys):
     if median_absolute_deviation_y == 0:
         median_absolute_deviation_y = 0.0001
 
-    modified_z_scores = [0.6745 * (y - median_y) / median_absolute_deviation_y for y in ys]
+    modified_z_scores = [
+        0.6745 * (y - median_y) / median_absolute_deviation_y for y in ys
+    ]
 
     result = []
 

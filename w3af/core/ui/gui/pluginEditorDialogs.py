@@ -3,10 +3,13 @@ import gtk
 import os
 
 
-def InputBox(title, label, parent, text=''):
-    dlg = gtk.Dialog(title, parent, gtk.DIALOG_DESTROY_WITH_PARENT,
-                     (gtk.STOCK_OK, gtk.RESPONSE_OK,
-                      gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL))
+def InputBox(title, label, parent, text=""):
+    dlg = gtk.Dialog(
+        title,
+        parent,
+        gtk.DIALOG_DESTROY_WITH_PARENT,
+        (gtk.STOCK_OK, gtk.RESPONSE_OK, gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL),
+    )
     lbl = gtk.Label(label)
     lbl.show()
     dlg.vbox.pack_start(lbl)
@@ -24,10 +27,11 @@ def InputBox(title, label, parent, text=''):
 
 
 def OpenFile(title, parent=None, dirname=None, fname=None):
-    dlg = gtk.FileChooserDialog(title, parent,
-                                buttons=(gtk.STOCK_OK, gtk.RESPONSE_OK,
-                                         gtk.STOCK_CANCEL,
-                                         gtk.RESPONSE_CANCEL))
+    dlg = gtk.FileChooserDialog(
+        title,
+        parent,
+        buttons=(gtk.STOCK_OK, gtk.RESPONSE_OK, gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL),
+    )
     if fname:
         dlg.set_current_folder(os.path.dirname(fname))
     elif dirname:
@@ -42,11 +46,12 @@ def OpenFile(title, parent=None, dirname=None, fname=None):
 
 
 def SaveFile(title, parent=None, dirname=None, fname=None):
-    dlg = gtk.FileChooserDialog(title, parent,
-                                gtk.FILE_CHOOSER_ACTION_SAVE,
-                                buttons=(gtk.STOCK_OK, gtk.RESPONSE_OK,
-                                         gtk.STOCK_CANCEL,
-                                         gtk.RESPONSE_CANCEL))
+    dlg = gtk.FileChooserDialog(
+        title,
+        parent,
+        gtk.FILE_CHOOSER_ACTION_SAVE,
+        buttons=(gtk.STOCK_OK, gtk.RESPONSE_OK, gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL),
+    )
     if fname:
         dlg.set_filename(fname)
     elif dirname:

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import sys
 import time
 import queue
@@ -38,12 +39,16 @@ from w3af.core.controllers.core_helpers.consumers.auth import auth
 from w3af.core.controllers.core_helpers.consumers.audit import audit
 from w3af.core.controllers.core_helpers.consumers.bruteforce import bruteforce
 from w3af.core.controllers.core_helpers.consumers.seed import seed
-from w3af.core.controllers.core_helpers.consumers.crawl_infrastructure import CrawlInfrastructure
+from w3af.core.controllers.core_helpers.consumers.crawl_infrastructure import (
+    CrawlInfrastructure,
+)
 from w3af.core.controllers.core_helpers.consumers.constants import POISON_PILL
 from w3af.core.controllers.core_helpers.exception_handler import ExceptionData
 
-from w3af.core.controllers.exceptions import (ScanMustStopException,
-                                              ScanMustStopByUserRequest)
+from w3af.core.controllers.exceptions import (
+    ScanMustStopException,
+    ScanMustStopByUserRequest,
+)
 
 
 class CoreStrategy(object):
@@ -61,9 +66,10 @@ class CoreStrategy(object):
 
     Use this strategy as a base for your experiments!
     """
+
     def __init__(self, w3af_core):
         self._w3af_core = w3af_core
-        
+
         # Consumer threads
         self._grep_consumer = None
         self._audit_consumer = None
@@ -119,7 +125,7 @@ class CoreStrategy(object):
             self.verify_target_server_up()
             self.replace_targets_with_redir()
             self.alert_if_target_is_301_all()
-            
+
             self._setup_grep()
             self._setup_auth()
             self._setup_crawl_infrastructure()
@@ -165,8 +171,8 @@ class CoreStrategy(object):
 
     def stop(self):
         self.terminate()
-        om.out.debug('strategy.stop() completed')
-        
+        om.out.debug("strategy.stop() completed")
+
     def pause(self, pause_yes_no):
         # FIXME: Consumers should have something to do with this, most likely
         # another constant similar to the poison pill
@@ -177,18 +183,18 @@ class CoreStrategy(object):
         Consume (without processing) all queues with data which are in
         the consumers and then send a poison-pill to that queue.
         """
-        consumers = ['discovery', 'audit', 'auth', 'bruteforce', 'grep']
+        consumers = ["discovery", "audit", "auth", "bruteforce", "grep"]
 
         for consumer in consumers:
 
-            consumer_inst = getattr(self, '_%s_consumer' % consumer)
+            consumer_inst = getattr(self, "_%s_consumer" % consumer)
 
             if consumer_inst is None:
-                msg = '%s consumer is None. Skipping call to terminate()'
+                msg = "%s consumer is None. Skipping call to terminate()"
                 om.out.debug(msg % consumer)
                 continue
 
-            om.out.debug('Calling terminate() on %s consumer' % consumer)
+            om.out.debug("Calling terminate() on %s consumer" % consumer)
             start = time.time()
 
             # Set it immediately to None to avoid any race conditions where
@@ -198,7 +204,7 @@ class CoreStrategy(object):
             # The getattr/setattr tricks are required to make sure that "the
             # real consumer instance" is set to None. Do not modify unless
             # you know what you're doing!
-            setattr(self, '_%s_consumer' % consumer, None)
+            setattr(self, "_%s_consumer" % consumer, None)
 
             try:
                 consumer_inst.terminate()
@@ -209,7 +215,7 @@ class CoreStrategy(object):
             else:
                 spent = time.time() - start
                 args = (consumer, spent)
-                om.out.debug('terminate() on %s consumer took %.2f seconds' % args)
+                om.out.debug("terminate() on %s consumer took %.2f seconds" % args)
 
         self.set_consumers_to_none()
 
@@ -220,13 +226,13 @@ class CoreStrategy(object):
         finish the consumers that generate URLs and then the ones that consume
         them.
         """
-        om.out.debug('Joining all consumers (teardown phase)')
+        om.out.debug("Joining all consumers (teardown phase)")
 
-        self._teardown_crawl_infrastructure()        
-        
+        self._teardown_crawl_infrastructure()
+
         self._teardown_audit()
         self._teardown_bruteforce()
-                
+
         self._teardown_auth()
         self._teardown_grep()
 
@@ -246,7 +252,7 @@ class CoreStrategy(object):
             self.get_grep_consumer(),
             self.get_audit_consumer(),
             self.get_discovery_consumer(),
-            self.get_bruteforce_consumer()
+            self.get_bruteforce_consumer(),
         ]
 
         consumers = [c for c in consumers if c is not None]
@@ -260,10 +266,12 @@ class CoreStrategy(object):
         "Forward" the observer to the consumers
         :return: None
         """
-        for consumer in {self._audit_consumer,
-                         self._bruteforce_consumer,
-                         self._discovery_consumer,
-                         self._grep_consumer}:
+        for consumer in {
+            self._audit_consumer,
+            self._bruteforce_consumer,
+            self._discovery_consumer,
+            self._grep_consumer,
+        }:
             if consumer is not None:
                 for observer in self._observers:
                     consumer.add_observer(observer)
@@ -277,22 +285,24 @@ class CoreStrategy(object):
         Also keep in mind that is one of the only methods that will be run in
         the "main thread" and lives during the whole scan process.
         """
-        _input = [self._seed_producer,
-                  self._discovery_consumer,
-                  self._bruteforce_consumer]
+        _input = [
+            self._seed_producer,
+            self._discovery_consumer,
+            self._bruteforce_consumer,
+        ]
         _input = [_f for _f in _input if _f]
 
-        output = [self._audit_consumer,
-                  self._discovery_consumer,
-                  self._bruteforce_consumer]
+        output = [
+            self._audit_consumer,
+            self._discovery_consumer,
+            self._bruteforce_consumer,
+        ]
         output = [_f for _f in output if _f]
 
         # Only check if these have exceptions and bring them to the main
         # thread in order to be handled by the ExceptionHandler and the
         # w3afCore
-        _other = [self._audit_consumer,
-                  self._auth_consumer,
-                  self._grep_consumer]
+        _other = [self._audit_consumer, self._auth_consumer, self._grep_consumer]
         _other = [_f for _f in _other if _f]
 
         finished = set()
@@ -303,15 +313,16 @@ class CoreStrategy(object):
             self._handle_all_consumer_exceptions(_other)
 
             # Route fuzzable requests
-            route_result = self._route_one_fuzzable_request_batch(_input,
-                                                                  output,
-                                                                  finished,
-                                                                  consumer_forced_end)
+            route_result = self._route_one_fuzzable_request_batch(
+                _input, output, finished, consumer_forced_end
+            )
 
             if route_result is None:
-                om.out.debug('The fuzzable request router loop will break.'
-                             ' The scan will stop after all consumers complete'
-                             ' their teardown() process.')
+                om.out.debug(
+                    "The fuzzable request router loop will break."
+                    " The scan will stop after all consumers complete"
+                    " their teardown() process."
+                )
                 break
 
             finished, consumer_forced_end = route_result
@@ -320,10 +331,12 @@ class CoreStrategy(object):
             # Handle the case where the scan reached the max time
             #
             if self._scan_reached_max_time():
-                msg = ('The scan has reached the maximum scan time of %s minutes.'
-                       ' The scan will end and some vulnerabilities might not be'
-                       ' identified.')
-                args = (cf.cf.get('max_scan_time'), )
+                msg = (
+                    "The scan has reached the maximum scan time of %s minutes."
+                    " The scan will end and some vulnerabilities might not be"
+                    " identified."
+                )
+                args = (cf.cf.get("max_scan_time"),)
                 om.out.information(msg % args)
 
                 self._w3af_core.stop()
@@ -341,7 +354,7 @@ class CoreStrategy(object):
         :return: True if the scan has reached the `max_scan_time` - 5m.
         """
         # in minutes
-        max_scan_time = cf.cf.get('max_scan_time')
+        max_scan_time = cf.cf.get("max_scan_time")
 
         # The default is 0: no limit.
         if max_scan_time == 0:
@@ -354,8 +367,9 @@ class CoreStrategy(object):
 
         return False
 
-    def _route_one_fuzzable_request_batch(self, _input, output, finished,
-                                          consumer_forced_end):
+    def _route_one_fuzzable_request_batch(
+        self, _input, output, finished, consumer_forced_end
+    ):
         """
         Loop once through all input consumers and route their results.
 
@@ -383,16 +397,18 @@ class CoreStrategy(object):
                     # This consumer is saying that it doesn't have any
                     # pending or in progress work
                     finished.add(url_producer)
-                    om.out.debug('Producer %s has finished (empty queue)' % url_producer.get_name())
+                    om.out.debug(
+                        "Producer %s has finished (empty queue)"
+                        % url_producer.get_name()
+                    )
             else:
                 if result_item == POISON_PILL:
                     # This consumer is saying that it has finished, so we
                     # remove it from the list.
                     consumer_forced_end.add(url_producer)
 
-                    msg = 'Producer %s has finished (poison pill received, queue size: %s)'
-                    args = (url_producer.get_name(),
-                            url_producer.out_queue.qsize())
+                    msg = "Producer %s has finished (poison pill received, queue size: %s)"
+                    args = (url_producer.get_name(), url_producer.out_queue.qsize())
                     om.out.debug(msg % args)
 
                 elif isinstance(result_item, ExceptionData):
@@ -403,8 +419,10 @@ class CoreStrategy(object):
                     # Safety check, I need these to be FuzzableRequest objects
                     # if not, the url_producer is doing something wrong and I
                     # don't want to do anything with this data
-                    fmt = ('%s is returning objects of class %s instead of'
-                           ' FuzzableRequest.')
+                    fmt = (
+                        "%s is returning objects of class %s instead of"
+                        " FuzzableRequest."
+                    )
                     msg = fmt % (url_producer, type(fuzzable_request_inst))
                     assert isinstance(fuzzable_request_inst, FuzzableRequest), msg
 
@@ -458,31 +476,33 @@ class CoreStrategy(object):
         which is offline, is not a web server, etc. So we're going to verify
         all that before even starting our work, and provide a nice error message
         so that users can change their config if needed.
-        
+
         Note that we send MAX_ERROR_COUNT tests to the remote end in order to
         trigger any errors in the remote end and have the Extended URL Library
         error handle return errors.
-        
+
         :raises: A friendly exception with lots of details of what could have
                  happen.
         """
         sent_requests = 0
-        
-        msg = ('The remote web server is not answering our HTTP requests,'
-               ' multiple errors have been found while trying to GET a response'
-               ' from the server.\n'
-               '\n'
-               'In most cases this means that the configured target is'
-               ' incorrect, the port is closed, there is a firewall blocking'
-               ' our packets or there is no HTTP daemon listening on that'
-               ' port.\n'
-               '\n'
-               'Please verify your target configuration and try again. The'
-               ' tested targets were:\n'
-               '\n'
-               ' %s\n')
 
-        targets = cf.cf.get('targets')
+        msg = (
+            "The remote web server is not answering our HTTP requests,"
+            " multiple errors have been found while trying to GET a response"
+            " from the server.\n"
+            "\n"
+            "In most cases this means that the configured target is"
+            " incorrect, the port is closed, there is a firewall blocking"
+            " our packets or there is no HTTP daemon listening on that"
+            " port.\n"
+            "\n"
+            "Please verify your target configuration and try again. The"
+            " tested targets were:\n"
+            "\n"
+            " %s\n"
+        )
+
+        targets = cf.cf.get("targets")
 
         while sent_requests < MAX_ERROR_COUNT * 1.5:
             for url in targets:
@@ -495,7 +515,7 @@ class CoreStrategy(object):
                     dbg = 'Exception found during verify_target_server_up: "%s"'
                     om.out.debug(dbg % e)
 
-                    target_list = '\n'.join(' - %s\n' % url for url in targets)
+                    target_list = "\n".join(" - %s\n" % url for url in targets)
 
                     raise ScanMustStopException(msg % target_list)
                 else:
@@ -514,14 +534,14 @@ class CoreStrategy(object):
 
         :return: None. The result is saved to cf.cf.get('targets')
         """
-        targets = cf.cf.get('targets')
+        targets = cf.cf.get("targets")
         new_targets = []
 
         for url in targets:
             try:
-                http_response = self._w3af_core.uri_opener.GET(url,
-                                                               cache=False,
-                                                               follow_redirects=True)
+                http_response = self._w3af_core.uri_opener.GET(
+                    url, cache=False, follow_redirects=True
+                )
             except ScanMustStopByUserRequest:
                 # Not a real error, the user stopped the scan
                 raise
@@ -545,7 +565,7 @@ class CoreStrategy(object):
 
                 new_targets.append(redir_uri)
 
-        cf.cf.save('targets', new_targets)
+        cf.cf.save("targets", new_targets)
 
     def alert_if_target_is_301_all(self):
         """
@@ -557,22 +577,24 @@ class CoreStrategy(object):
                  instance is saved to the KB in order to alert the user.
         """
         site_does_redirect = False
-        msg = ('The configured target domain redirects all HTTP requests to a'
-               ' different location. The most common scenarios are:\n'
-               '\n'
-               '    * HTTP redirect to HTTPS\n'
-               '    * domain.com redirect to www.domain.com\n'
-               '\n'
-               'While the scan engine can identify URLs and vulnerabilities'
-               ' using the current configuration, it might be wise to start'
-               ' a new scan setting the target URL to the redirect target.\n'
-               '\n'
-               'Depending on multiple factors, this configuration might also'
-               ' reduce the effectiveness of the scanner 404 page detection,'
-               ' leading to false positives in both identified URLs and'
-               ' vulnerabilities.')
+        msg = (
+            "The configured target domain redirects all HTTP requests to a"
+            " different location. The most common scenarios are:\n"
+            "\n"
+            "    * HTTP redirect to HTTPS\n"
+            "    * domain.com redirect to www.domain.com\n"
+            "\n"
+            "While the scan engine can identify URLs and vulnerabilities"
+            " using the current configuration, it might be wise to start"
+            " a new scan setting the target URL to the redirect target.\n"
+            "\n"
+            "Depending on multiple factors, this configuration might also"
+            " reduce the effectiveness of the scanner 404 page detection,"
+            " leading to false positives in both identified URLs and"
+            " vulnerabilities."
+        )
 
-        targets = cf.cf.get('targets')
+        targets = cf.cf.get("targets")
 
         for url in targets:
             # We test if the target URLs are redirecting to a different protocol
@@ -592,12 +614,12 @@ class CoreStrategy(object):
                     break
 
         if site_does_redirect:
-            name = 'Target redirect'
+            name = "Target redirect"
             info = Info(name, msg, http_response.id, name)
             info.set_url(url)
             info.add_to_highlight(http_response.get_redir_url().url_string)
 
-            kb.kb.append_uniq('core', 'core', info)
+            kb.kb.append_uniq("core", "core", info)
             om.out.report_finding(info)
 
         return site_does_redirect
@@ -610,16 +632,19 @@ class CoreStrategy(object):
         #    try/except block.
         #
         from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
+
         targets_with_404 = []
 
-        for url in cf.cf.get('targets'):
+        for url in cf.cf.get("targets"):
             try:
                 response = self._w3af_core.uri_opener.GET(url, cache=True)
             except ScanMustStopByUserRequest:
                 raise
             except Exception as e:
-                msg = ('Failed to send HTTP request to the configured target'
-                       ' URL "%s", the original exception was: "%s" (%s).')
+                msg = (
+                    "Failed to send HTTP request to the configured target"
+                    ' URL "%s", the original exception was: "%s" (%s).'
+                )
                 args = (url, e, e.__class__.__name__)
                 raise ScanMustStopException(msg % args)
 
@@ -628,9 +653,11 @@ class CoreStrategy(object):
             except ScanMustStopByUserRequest:
                 raise
             except Exception as e:
-                msg = ('Failed to initialize the 404 detection using HTTP'
-                       ' response from "%s", the original exception was: "%s"'
-                       ' (%s).')
+                msg = (
+                    "Failed to initialize the 404 detection using HTTP"
+                    ' response from "%s", the original exception was: "%s"'
+                    " (%s)."
+                )
                 args = (url, e, e.__class__.__name__)
                 raise ScanMustStopException(msg % args)
             else:
@@ -638,24 +665,26 @@ class CoreStrategy(object):
                     targets_with_404.append(url)
 
         if targets_with_404:
-            urls = [' - %s\n' % u.url_string for u in targets_with_404]
-            urls = ''.join(urls)
-            om.out.information('w3af identified the user-configured URLs listed'
-                               ' below as non-existing pages (404). This could'
-                               ' result in a scan with low test coverage: some'
-                               ' application areas might not be scanned.\n'
-                               '\n'
-                               'Please manually verify that these URLs exist'
-                               ' and, consider running a new scan with different'
-                               ' targets.\n'
-                               '\n'
-                               '%s'
-                               '\n'
-                               'In some scenarios it might be possible to fix'
-                               ' this issue adding one or more target URLs to the'
-                               ' `never_ssl` configuration parameter in `http-settings.'
-                               ' This will make sure that specific URLs are never'
-                               ' seen as non-existing (404).\n' % urls)
+            urls = [" - %s\n" % u.url_string for u in targets_with_404]
+            urls = "".join(urls)
+            om.out.information(
+                "w3af identified the user-configured URLs listed"
+                " below as non-existing pages (404). This could"
+                " result in a scan with low test coverage: some"
+                " application areas might not be scanned.\n"
+                "\n"
+                "Please manually verify that these URLs exist"
+                " and, consider running a new scan with different"
+                " targets.\n"
+                "\n"
+                "%s"
+                "\n"
+                "In some scenarios it might be possible to fix"
+                " this issue adding one or more target URLs to the"
+                " `never_ssl` configuration parameter in `http-settings."
+                " This will make sure that specific URLs are never"
+                " seen as non-existing (404).\n" % urls
+            )
 
     def _setup_crawl_infrastructure(self):
         """
@@ -663,16 +692,16 @@ class CoreStrategy(object):
             * Retrieve all plugins from the core,
             * Create the consumer instance and more,
         """
-        crawl_plugins = self._w3af_core.plugins.plugins['crawl']
-        infrastructure_plugins = self._w3af_core.plugins.plugins['infrastructure']
+        crawl_plugins = self._w3af_core.plugins.plugins["crawl"]
+        infrastructure_plugins = self._w3af_core.plugins.plugins["infrastructure"]
 
         if crawl_plugins or infrastructure_plugins:
             discovery_plugins = infrastructure_plugins
             discovery_plugins.extend(crawl_plugins)
 
-            self._discovery_consumer = CrawlInfrastructure(discovery_plugins,
-                                                           self._w3af_core,
-                                                           cf.cf.get('max_discovery_time'))
+            self._discovery_consumer = CrawlInfrastructure(
+                discovery_plugins, self._w3af_core, cf.cf.get("max_discovery_time")
+            )
             self._discovery_consumer.start()
 
     def _setup_grep(self):
@@ -682,7 +711,7 @@ class CoreStrategy(object):
             * Set the Queue in xurllib
             * Start the consumer
         """
-        grep_plugins = self._w3af_core.plugins.plugins['grep']
+        grep_plugins = self._w3af_core.plugins.plugins["grep"]
 
         if grep_plugins:
             self._grep_consumer = grep(grep_plugins, self._w3af_core)
@@ -690,14 +719,14 @@ class CoreStrategy(object):
             self._grep_consumer.start()
 
     def _teardown_grep(self):
-        om.out.debug('Called strategy._teardown_grep()')
+        om.out.debug("Called strategy._teardown_grep()")
 
         if self._grep_consumer is not None:
             self._grep_consumer.join()
             self._grep_consumer = None
 
     def _teardown_audit(self):
-        om.out.debug('Called strategy._teardown_audit()')
+        om.out.debug("Called strategy._teardown_audit()")
 
         if self._audit_consumer is not None:
             # Wait for all the in_queue items to get() from the queue
@@ -705,28 +734,28 @@ class CoreStrategy(object):
             self._audit_consumer = None
 
     def _teardown_auth(self):
-        om.out.debug('Called strategy._teardown_auth()')
+        om.out.debug("Called strategy._teardown_auth()")
 
         if self._auth_consumer is not None:
             self._auth_consumer.join()
             self._auth_consumer = None
 
     def _teardown_bruteforce(self):
-        om.out.debug('Called strategy._teardown_bruteforce()')
+        om.out.debug("Called strategy._teardown_bruteforce()")
 
         if self._bruteforce_consumer is not None:
             self._bruteforce_consumer.join()
             self._bruteforce_consumer = None
 
     def _teardown_crawl_infrastructure(self):
-        om.out.debug('Called strategy._teardown_crawl_infrastructure()')
+        om.out.debug("Called strategy._teardown_crawl_infrastructure()")
 
         if self._discovery_consumer is not None:
             self._discovery_consumer.join()
             self._discovery_consumer = None
 
     def _teardown_observers(self):
-        om.out.debug('Called strategy._teardown_observers()')
+        om.out.debug("Called strategy._teardown_observers()")
 
         for observer in self._observers:
             observer.end()
@@ -744,7 +773,7 @@ class CoreStrategy(object):
         #    GET the initial target URLs in order to save them
         #    in a list and use them as our bootstrap URLs
         #
-        self._seed_producer.seed_output_queue(cf.cf.get('targets'))
+        self._seed_producer.seed_output_queue(cf.cf.get("targets"))
 
     def _setup_bruteforce(self):
         """
@@ -754,11 +783,10 @@ class CoreStrategy(object):
         The input queue for this consumer is populated by the fuzzable request
         router.
         """
-        bruteforce_plugins = self._w3af_core.plugins.plugins['bruteforce']
+        bruteforce_plugins = self._w3af_core.plugins.plugins["bruteforce"]
 
         if bruteforce_plugins:
-            self._bruteforce_consumer = bruteforce(bruteforce_plugins,
-                                                   self._w3af_core)
+            self._bruteforce_consumer = bruteforce(bruteforce_plugins, self._w3af_core)
             self._bruteforce_consumer.start()
 
     def force_auth_login(self):
@@ -778,7 +806,7 @@ class CoreStrategy(object):
         performing any step, the developer needs to run the force_auth_login()
         method.
         """
-        auth_plugins = self._w3af_core.plugins.plugins['auth']
+        auth_plugins = self._w3af_core.plugins.plugins["auth"]
 
         if auth_plugins:
             self._auth_consumer = auth(auth_plugins, self._w3af_core, timeout)
@@ -789,9 +817,9 @@ class CoreStrategy(object):
         """
         Starts the audit plugin consumer
         """
-        om.out.debug('Called _setup_audit()')
+        om.out.debug("Called _setup_audit()")
 
-        audit_plugins = self._w3af_core.plugins.plugins['audit']
+        audit_plugins = self._w3af_core.plugins.plugins["audit"]
 
         if audit_plugins:
             self._audit_consumer = audit(audit_plugins, self._w3af_core)

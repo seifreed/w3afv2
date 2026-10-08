@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.search_engines.google import google as google
@@ -52,18 +53,18 @@ class google_spider(CrawlPlugin):
 
         domain = fuzzable_request.get_url().get_domain()
         if is_private_site(domain):
-            msg = 'There is no point in searching google for "site:%s".'\
-                  ' Google doesn\'t index private pages.'
+            msg = (
+                'There is no point in searching google for "site:%s".'
+                " Google doesn't index private pages."
+            )
             raise BaseFrameworkException(msg % domain)
 
         try:
-            g_results = google_se.get_n_results('site:' + domain,
-                                                self._result_limit)
+            g_results = google_se.get_n_results("site:" + domain, self._result_limit)
         except:
             pass
         else:
-            self.worker_pool.map(self.http_get_and_parse,
-                                    [r.URL for r in g_results])
+            self.worker_pool.map(self.http_get_and_parse, [r.URL for r in g_results])
 
     def get_options(self):
         """
@@ -72,7 +73,7 @@ class google_spider(CrawlPlugin):
         ol = OptionList()
 
         d = 'Fetch the first "result_limit" results from the Google search'
-        o = opt_factory('result_limit', self._result_limit, d, 'integer')
+        o = opt_factory("result_limit", self._result_limit, d, "integer")
         ol.add(o)
 
         return ol
@@ -85,7 +86,7 @@ class google_spider(CrawlPlugin):
         :param options_list: A dictionary with the options for the plugin.
         :return: No value is returned.
         """
-        self._result_limit = options_list['result_limit'].get_value()
+        self._result_limit = options_list["result_limit"].get_value()
 
     def get_long_desc(self):
         """

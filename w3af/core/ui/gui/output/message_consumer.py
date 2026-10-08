@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import gobject
 import queue
 
@@ -30,6 +31,7 @@ class MessageConsumer(object):
 
     :author: Andres Riancho <andres.riancho@gmail.com>
     """
+
     def __init__(self):
         super(MessageConsumer, self).__init__()
 
@@ -37,7 +39,7 @@ class MessageConsumer(object):
         subscribe_to_messages(self._message_observer)
         self.messages = queue.Queue()
         gobject.idle_add(self._process_queue().__next__)
-        
+
     def _message_observer(self, message):
         self.messages.put(message)
 
@@ -51,7 +53,7 @@ class MessageConsumer(object):
         """
         while True:
             yield True
-            
+
             try:
                 # Sleeping here prevents the GUI from running at 100% cpu
                 msg = self.messages.get(timeout=0.01)
@@ -60,7 +62,7 @@ class MessageConsumer(object):
             else:
                 if msg is None:
                     continue
-                
+
                 # Given that in some cases the handle_message takes some
                 # time to run, we've implemented this loop to give the method
                 # the opportunity to give the control back to the mainloop
@@ -72,6 +74,6 @@ class MessageConsumer(object):
         :param msg: A gtk_output.Message object.
         """
         if not isinstance(msg, Message):
-            raise TypeError('Expected Message and got %s instead.' % type(msg))
-        
+            raise TypeError("Expected Message and got %s instead." % type(msg))
+
         yield True

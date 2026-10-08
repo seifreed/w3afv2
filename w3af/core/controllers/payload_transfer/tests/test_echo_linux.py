@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import subprocess
 import unittest
 import tempfile
@@ -30,13 +31,13 @@ class TestEchoLinux(unittest.TestCase):
 
     def test_upload_file(self):
         exec_method = subprocess.getoutput
-        os = 'linux'
+        os = "linux"
         echo_linux = EchoLinux(exec_method, os)
 
         self.assertTrue(echo_linux.can_transfer())
 
         file_len = 8195
-        file_content = 'A' * file_len
+        file_content = "A" * file_len
         echo_linux.estimate_transfer_time(file_len)
 
         temp_file_inst = tempfile.NamedTemporaryFile()

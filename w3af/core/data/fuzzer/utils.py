@@ -19,10 +19,10 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import random
 
 from string import ascii_letters, digits
-
 
 LETTERS_DIGITS = ascii_letters + digits
 
@@ -45,7 +45,7 @@ def rand_alpha(length=0, seed=None):
     rnd = get_random_instance(seed)
     length = length or rnd.randint(10, 30)
 
-    return ''.join(rnd.choice(ascii_letters) for _ in range(length))
+    return "".join(rnd.choice(ascii_letters) for _ in range(length))
 
 
 def rand_alnum(length=0, seed=None):
@@ -57,7 +57,7 @@ def rand_alnum(length=0, seed=None):
     rnd = get_random_instance(seed)
     length = length or rnd.randint(10, 30)
 
-    return ''.join(rnd.choice(LETTERS_DIGITS) for _ in range(length))
+    return "".join(rnd.choice(LETTERS_DIGITS) for _ in range(length))
 
 
 def rand_number(length=0, exclude_numbers=(), seed=None):
@@ -71,12 +71,12 @@ def rand_number(length=0, exclude_numbers=(), seed=None):
 
     _digits = digits[:]
     for excluded_number in set(exclude_numbers):
-        _digits = _digits.replace(str(excluded_number), '')
+        _digits = _digits.replace(str(excluded_number), "")
 
     if not _digits:
-        raise ValueError('Failed return random number')
+        raise ValueError("Failed return random number")
 
-    ru = ''.join(rnd.choice(_digits) for _ in range(length))
+    ru = "".join(rnd.choice(_digits) for _ in range(length))
     return ru
 
 
@@ -84,5 +84,5 @@ def create_format_string(length):
     """
     :return: A string with $length %s and a final %n
     """
-    result = '%n' * length
+    result = "%n" * length
     return result

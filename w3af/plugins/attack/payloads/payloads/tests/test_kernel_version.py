@@ -18,8 +18,11 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 from nose.plugins.attrib import attr
-from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import PayloadTestHelper
+from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
+    PayloadTestHelper,
+)
 from w3af.plugins.attack.payloads.payload_handler import exec_payload
 
 
@@ -27,11 +30,11 @@ class test_kernel_version(PayloadTestHelper):
 
     # Not using the whole thing since its not really useful and will
     # stop working after the first kernel update
-    EXPECTED_RESULT = {'kernel_version': '3.2.0-27-generic (buildd@allspice)'}
+    EXPECTED_RESULT = {"kernel_version": "3.2.0-27-generic (buildd@allspice)"}
 
-    @attr('ci_fails')
+    @attr("ci_fails")
     def test_kernel_version(self):
-        result = exec_payload(self.shell, 'kernel_version', use_api=True)
+        result = exec_payload(self.shell, "kernel_version", use_api=True)
 
-        self.assertTrue(result['kernel_version'].startswith('3.2.'))
-        self.assertTrue('buildd' in result['kernel_version'])
+        self.assertTrue(result["kernel_version"].startswith("3.2."))
+        self.assertTrue("buildd" in result["kernel_version"])

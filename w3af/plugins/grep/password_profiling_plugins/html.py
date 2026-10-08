@@ -19,12 +19,14 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 
 import w3af.core.data.parsers.parser_cache as parser_cache
 
-from w3af.plugins.grep.password_profiling_plugins.base_plugin import BasePwdProfilingPlugin
-
+from w3af.plugins.grep.password_profiling_plugins.base_plugin import (
+    BasePwdProfilingPlugin,
+)
 
 WORD_SPLIT_RE = re.compile("[^\w]", re.UNICODE)
 
@@ -64,7 +66,7 @@ class html(BasePwdProfilingPlugin):
                 continue
 
             # Words inside <title> weights more.
-            inc = (tag.name == 'title') and 5 or 1
+            inc = (tag.name == "title") and 5 or 1
 
             # Filter by length of the word (> 3)
             for w in filter(filter_by_len, split(text)):

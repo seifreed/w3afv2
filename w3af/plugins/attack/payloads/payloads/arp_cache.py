@@ -6,18 +6,19 @@ class arp_cache(Payload):
     """
     This payload shows the ARP CACHE
     """
+
     def api_read(self):
         result = {}
 
         files = []
-        files.append('/proc/net/arp')
+        files.append("/proc/net/arp")
 
         for file in files:
             content = self.shell.read(file)
-            if content != '':
-                for line in content.split('\n')[1:]:
-                    splitted_line = line.split(' ')
-                    splitted_line = [i for i in splitted_line if i != '']
+            if content != "":
+                for line in content.split("\n")[1:]:
+                    splitted_line = line.split(" ")
+                    splitted_line = [i for i in splitted_line if i != ""]
 
                     try:
                         ip_address = splitted_line[0]
@@ -34,10 +35,10 @@ class arp_cache(Payload):
         api_result = self.api_read()
 
         if not api_result:
-            return 'ARP cache not found.'
+            return "ARP cache not found."
         else:
             rows = []
-            rows.append(['IP address', 'HW address', 'Device'])
+            rows.append(["IP address", "HW address", "Device"])
             rows.append([])
             for ip_address in api_result:
                 hw_addr, device = api_result[ip_address]

@@ -19,16 +19,16 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import unittest
 
 from w3af.core.data.dc.generic.data_container import DataContainer
 
 
 class TestDataContainer(unittest.TestCase):
-    
+
     def test_empty(self):
         dc = DataContainer()
 
         self.assertRaises(NotImplementedError, dc.get_param_names)
         self.assertIsNone(dc.get_token())
-

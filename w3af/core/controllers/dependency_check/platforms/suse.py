@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import subprocess
 
 from .base_platform import Platform
@@ -27,29 +28,40 @@ from .system_info import distribution_matches
 
 
 class SuSE(Platform):
-    SYSTEM_NAME = 'SuSE'
-    PKG_MANAGER_CMD = 'sudo zypper install'
-    PIP_CMD = 'pip-2.7'
+    SYSTEM_NAME = "SuSE"
+    PKG_MANAGER_CMD = "sudo zypper install"
+    PIP_CMD = "pip-2.7"
 
-    CORE_SYSTEM_PACKAGES = ['python-pip','npm', 'python-devel', 'sqlite3-devel',
-                            'git', 'libxml2-devel', 'libxslt-devel',
-                            'python-webkitgtk', 'libffi-devel']
+    CORE_SYSTEM_PACKAGES = [
+        "python-pip",
+        "npm",
+        "python-devel",
+        "sqlite3-devel",
+        "git",
+        "libxml2-devel",
+        "libxslt-devel",
+        "python-webkitgtk",
+        "libffi-devel",
+    ]
 
     GUI_SYSTEM_PACKAGES = CORE_SYSTEM_PACKAGES[:]
-    GUI_SYSTEM_PACKAGES.extend(['graphviz', 'python-gtksourceview',
-                                'python-gtk', 'python-webkitgtk'])
+    GUI_SYSTEM_PACKAGES.extend(
+        ["graphviz", "python-gtksourceview", "python-gtk", "python-webkitgtk"]
+    )
 
-    SYSTEM_PACKAGES = {CORE: CORE_SYSTEM_PACKAGES,
-                       GUI: GUI_SYSTEM_PACKAGES}
+    SYSTEM_PACKAGES = {CORE: CORE_SYSTEM_PACKAGES, GUI: GUI_SYSTEM_PACKAGES}
 
     @staticmethod
     def os_package_is_installed(package_name):
-        not_installed = 'is not installed'
-        installed = 'Status: install ok installed'
+        not_installed = "is not installed"
+        installed = "Status: install ok installed"
 
         try:
-            p = subprocess.Popen(['rpm', '-q', package_name],
-                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p = subprocess.Popen(
+                ["rpm", "-q", package_name],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
         except OSError:
             # We're not on a suse based system
             return None
@@ -65,4 +77,4 @@ class SuSE(Platform):
 
     @staticmethod
     def is_current_platform():
-        return distribution_matches('suse')
+        return distribution_matches("suse")

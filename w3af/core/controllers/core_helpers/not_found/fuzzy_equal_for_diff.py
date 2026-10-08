@@ -23,38 +23,39 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from w3af.core.controllers.misc.diff import split_by_sep
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal
 
-
-NOT_HASH = {'\t',
-            '\n',
-            '\r',
-            ' ',
-            '!',
-            '"',
-            '#',
-            '$',
-            "'",
-            '(',
-            ')',
-            '*',
-            ',',
-            '.',
-            '/',
-            ':',
-            ';',
-            '<',
-            '=',
-            '>',
-            '?',
-            '@',
-            '[',
-            '\\',
-            ']',
-            '^',
-            '`',
-            '{',
-            '|',
-            '}',
-            '~'}
+NOT_HASH = {
+    "\t",
+    "\n",
+    "\r",
+    " ",
+    "!",
+    '"',
+    "#",
+    "$",
+    "'",
+    "(",
+    ")",
+    "*",
+    ",",
+    ".",
+    "/",
+    ":",
+    ";",
+    "<",
+    "=",
+    ">",
+    "?",
+    "@",
+    "[",
+    "\\",
+    "]",
+    "^",
+    "`",
+    "{",
+    "|",
+    "}",
+    "~",
+}
 
 
 def fuzzy_equal_for_diff(diff_x, diff_y, is_equal_ratio):
@@ -84,8 +85,8 @@ def fuzzy_equal_for_diff(diff_x, diff_y, is_equal_ratio):
     split_x = remove_hashes(split_x)
     split_y = remove_hashes(split_y)
 
-    x = '\n'.join(split_x)
-    y = '\n'.join(split_y)
+    x = "\n".join(split_x)
+    y = "\n".join(split_y)
 
     return fuzzy_equal(x, y, threshold=is_equal_ratio)
 

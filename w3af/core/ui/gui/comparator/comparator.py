@@ -19,8 +19,7 @@ class FifoScheduler(object):
     """
 
     def __init__(self):
-        """Create a scheduler with no current tasks.
-        """
+        """Create a scheduler with no current tasks."""
         self.tasks = []
         self.callbacks = []
 
@@ -87,8 +86,7 @@ class FifoScheduler(object):
 
 
 def clamp(val, lower, upper):
-    """Clamp 'val' to the inclusive range [lower,upper].
-    """
+    """Clamp 'val' to the inclusive range [lower,upper]."""
     assert lower <= upper
     return min(max(val, lower), upper)
 
@@ -105,12 +103,12 @@ class ListItem(object):
     def __str__(self):
         return "<%s %s %i %s>" % (self.__class__, self.name, self.active, self.value)
 
+
 _pixmap_path = os.path.join(ROOT_PATH, "core/ui/gui/comparator/pixmaps")
 
 
 def load_pixbuf(fname, size=0):
-    """Load an image from a file as a pixbuf, with optional resizing.
-    """
+    """Load an image from a file as a pixbuf, with optional resizing."""
     image = gtk.Image()
     image.set_from_file(os.path.join(_pixmap_path, fname))
     image = image.get_pixbuf()
@@ -127,6 +125,7 @@ class Struct(object):
     s = Struct(a=10, b=20, d={"cat":"dog"} )
     print s.a + s.b
     """
+
     def __init__(self, **args):
         self.__dict__.update(args)
 
@@ -175,12 +174,14 @@ MASK_SHIFT, MASK_CTRL, MASK_ALT = 1, 2, 3
 class FileDiff(object):
     """Two or three way diff of text files."""
 
-    keylookup = {gtk.keysyms.Shift_L: MASK_SHIFT,
-                 gtk.keysyms.Control_L: MASK_CTRL,
-                 gtk.keysyms.Alt_L: MASK_ALT,
-                 gtk.keysyms.Shift_R: MASK_SHIFT,
-                 gtk.keysyms.Control_R: MASK_CTRL,
-                 gtk.keysyms.Alt_R: MASK_ALT}
+    keylookup = {
+        gtk.keysyms.Shift_L: MASK_SHIFT,
+        gtk.keysyms.Control_L: MASK_CTRL,
+        gtk.keysyms.Alt_L: MASK_ALT,
+        gtk.keysyms.Shift_R: MASK_SHIFT,
+        gtk.keysyms.Control_R: MASK_CTRL,
+        gtk.keysyms.Alt_R: MASK_ALT,
+    }
 
     def _genLinkMap(self):
         da = gtk.DrawingArea()
@@ -188,12 +189,17 @@ class FileDiff(object):
         da.set_property("visible", True)
         da.set_property("can_focus", True)
         da.set_property("has_focus", True)
-        da.set_property("events", gtk.gdk.BUTTON_PRESS_MASK | gtk.gdk.BUTTON_RELEASE_MASK | gtk.gdk.KEY_PRESS_MASK | gtk.gdk.KEY_RELEASE_MASK)
+        da.set_property(
+            "events",
+            gtk.gdk.BUTTON_PRESS_MASK
+            | gtk.gdk.BUTTON_RELEASE_MASK
+            | gtk.gdk.KEY_PRESS_MASK
+            | gtk.gdk.KEY_RELEASE_MASK,
+        )
         da.connect("expose-event", self.on_linkmap_expose_event)
         da.connect("scroll-event", self.on_linkmap_scroll_event)
         da.connect("button-press-event", self.on_linkmap_button_press_event)
-        da.connect(
-            "button-release-event", self.on_linkmap_button_release_event)
+        da.connect("button-release-event", self.on_linkmap_button_release_event)
         da.connect("key-press-event", self.on_key_press_event)
         da.connect("key-release-event", self.on_key_release_event)
         return da
@@ -241,20 +247,17 @@ class FileDiff(object):
         table.attach(self.title1, 3, 4, 0, 1, yoptions=gtk.FILL)
 
         self.linkmap = self._genLinkMap()
-        table.attach(
-            self.linkmap, 2, 3, 1, 2, xoptions=gtk.FILL, yoptions=gtk.FILL)
+        table.attach(self.linkmap, 2, 3, 1, 2, xoptions=gtk.FILL, yoptions=gtk.FILL)
 
         self.diffmap0 = self._genDiffMap()
-        table.attach(
-            self.diffmap0, 0, 1, 1, 2, xoptions=gtk.FILL, yoptions=gtk.FILL)
+        table.attach(self.diffmap0, 0, 1, 1, 2, xoptions=gtk.FILL, yoptions=gtk.FILL)
         self.diffmap1 = self._genDiffMap()
-        table.attach(
-            self.diffmap1, 4, 5, 1, 2, xoptions=gtk.FILL, yoptions=gtk.FILL)
+        table.attach(self.diffmap1, 4, 5, 1, 2, xoptions=gtk.FILL, yoptions=gtk.FILL)
         self.diffmap = [self.diffmap0, self.diffmap1]
 
-        (sw0, self.textview0) = self._genTextView()
+        sw0, self.textview0 = self._genTextView()
         table.attach(sw0, 1, 2, 1, 2)
-        (sw1, self.textview1) = self._genTextView()
+        sw1, self.textview1 = self._genTextView()
         table.attach(sw1, 3, 4, 1, 2)
         self.scrolledwindow = [sw0, sw1]
         self.textview = [self.textview0, self.textview1]
@@ -296,7 +299,10 @@ class FileDiff(object):
         self.deleted_lines_pending = -1
         self.textview_overwrite = 0
         self.textview_focussed = None
-        self.textview_overwrite_handlers = [t.connect("toggle-overwrite", self.on_textview_toggle_overwrite) for t in self.textview]
+        self.textview_overwrite_handlers = [
+            t.connect("toggle-overwrite", self.on_textview_toggle_overwrite)
+            for t in self.textview
+        ]
         for i in range(2):
             w = self.scrolledwindow[i]
             w.get_vadjustment().connect("value-changed", self._sync_vscroll)
@@ -304,8 +310,7 @@ class FileDiff(object):
         self.linediffer = diffutil.Differ()
 
         # glade bug workaround
-        self.linkmap.set_events(
-            gtk.gdk.BUTTON_PRESS_MASK | gtk.gdk.BUTTON_RELEASE_MASK)
+        self.linkmap.set_events(gtk.gdk.BUTTON_PRESS_MASK | gtk.gdk.BUTTON_RELEASE_MASK)
         self.linkmap.set_double_buffered(0)  # we call paint_begin ourselves
 
         for text in self.textview:
@@ -316,22 +321,47 @@ class FileDiff(object):
                 tag = buf.create_tag(name)
                 for p, v in list(props.items()):
                     tag.set_property(p, v)
-            add_tag("edited line", {"background": Prefs.color_edited_bg,
-                                    "foreground": Prefs.color_edited_fg})
-            add_tag("delete line", {"background": Prefs.color_delete_bg,
-                                    "foreground": Prefs.color_delete_fg})
-            add_tag("replace line", {"background": Prefs.color_replace_bg,
-                                     "foreground": Prefs.color_replace_fg})
-            add_tag("conflict line", {"background": Prefs.color_conflict_bg,
-                                      "foreground": Prefs.color_conflict_fg})
-            add_tag("inline line", {"background": Prefs.color_inline_bg,
-                                    "foreground": Prefs.color_inline_fg})
+
+            add_tag(
+                "edited line",
+                {
+                    "background": Prefs.color_edited_bg,
+                    "foreground": Prefs.color_edited_fg,
+                },
+            )
+            add_tag(
+                "delete line",
+                {
+                    "background": Prefs.color_delete_bg,
+                    "foreground": Prefs.color_delete_fg,
+                },
+            )
+            add_tag(
+                "replace line",
+                {
+                    "background": Prefs.color_replace_bg,
+                    "foreground": Prefs.color_replace_fg,
+                },
+            )
+            add_tag(
+                "conflict line",
+                {
+                    "background": Prefs.color_conflict_bg,
+                    "foreground": Prefs.color_conflict_fg,
+                },
+            )
+            add_tag(
+                "inline line",
+                {
+                    "background": Prefs.color_inline_bg,
+                    "foreground": Prefs.color_inline_fg,
+                },
+            )
 
         self.find_dialog = None
         self.last_search = None
         self.queue_draw()
-        gobject.idle_add(
-            lambda *args: self.load_font())  # hack around Bug 316730
+        gobject.idle_add(lambda *args: self.load_font())  # hack around Bug 316730
 
     def set_left_pane(self, title, text):
         self.title0.set_markup("<b>%s</b>" % title)
@@ -352,8 +382,7 @@ class FileDiff(object):
         for r in [ListItem(i) for i in Prefs.regexes]:
             if r.active:
                 try:
-                    self.regexes.append(
-                        (re.compile(r.value + "(?m)"), r.value))
+                    self.regexes.append((re.compile(r.value + "(?m)"), r.value))
                 except re.error:
                     pass
 
@@ -364,9 +393,12 @@ class FileDiff(object):
             insert_overwrite = "INS,OVR".split(",")[self.textview_overwrite]
             # Abbreviation for line, column so that it will fit in the status bar
             line_column = "Ln %i, Col %i" % (
-                it.get_line() + 1, it.get_line_offset() + 1)
+                it.get_line() + 1,
+                it.get_line_offset() + 1,
+            )
             raise StopIteration
             yield 0
+
         self.scheduler.add_task(update().__next__)
 
     def on_textbuffer_mark_set(self, buffer, it, mark):
@@ -381,7 +413,8 @@ class FileDiff(object):
         buffers = [t.get_buffer() for t in self.textview]
         pane = buffers.index(buffer)
         change_range = self.linediffer.change_sequence(
-            pane, startline, sizechange, self._get_texts())
+            pane, startline, sizechange, self._get_texts()
+        )
         for it in self._update_highlighting(change_range[0], change_range[1]):
             pass
         self.queue_draw()
@@ -394,8 +427,7 @@ class FileDiff(object):
 
             def __getslice__(self, lo, hi):
                 b = self.buf
-                txt = b.get_text(
-                    b.get_iter_at_line(lo), b.get_iter_at_line(hi), 0)
+                txt = b.get_text(b.get_iter_at_line(lo), b.get_iter_at_line(hi), 0)
                 txt = self.textfilter(txt)
                 return txt.split("\n")[:-1]
 
@@ -405,7 +437,11 @@ class FileDiff(object):
 
             def __getitem__(self, i):
                 return self.texts[i]
-        return FakeTextArray([t.get_buffer() for t in self.textview], [self._filter_text, lambda x:x][raw])
+
+        return FakeTextArray(
+            [t.get_buffer() for t in self.textview],
+            [self._filter_text, lambda x: x][raw],
+        )
 
     def _filter_text(self, txt):
         def killit(m):
@@ -418,12 +454,17 @@ class FileDiff(object):
                 return s
             else:
                 return ""
+
         try:
             for c, r in self.regexes:
                 txt = c.sub(killit, txt)
         except AssertionError:
-            print(("Regular expression '%s' changed the number of lines in" \
-                  "the file. Comparison will be incorrect. " % r))
+            print(
+                (
+                    "Regular expression '%s' changed the number of lines in"
+                    "the file. Comparison will be incorrect. " % r
+                )
+            )
         return txt
 
     def after_text_insert_text(self, buffer, it, newtext, textlen):
@@ -434,36 +475,28 @@ class FileDiff(object):
     def after_text_delete_range(self, buffer, it0, it1):
         starting_at = it0.get_line()
         assert self.deleted_lines_pending != -1
-        self._after_text_modified(
-            buffer, starting_at, -self.deleted_lines_pending)
+        self._after_text_modified(buffer, starting_at, -self.deleted_lines_pending)
         self.deleted_lines_pending = -1
 
     def load_font(self):
         fontdesc = pango.FontDescription(Prefs.current_font)
         context = self.textview0.get_pango_context()
         metrics = context.get_metrics(fontdesc, context.get_language())
-        self.pixels_per_line = (
-            metrics.get_ascent() + metrics.get_descent()) / 1024
+        self.pixels_per_line = (metrics.get_ascent() + metrics.get_descent()) / 1024
         self.pango_char_width = metrics.get_approximate_char_width()
         tabs = pango.TabArray(10, 0)
         tab_size = Prefs.tab_size
         for i in range(10):
-            tabs.set_tab(
-                i, pango.TAB_LEFT, i * tab_size * self.pango_char_width)
+            tabs.set_tab(i, pango.TAB_LEFT, i * tab_size * self.pango_char_width)
         for i in range(2):
             self.textview[i].modify_font(fontdesc)
             self.textview[i].set_tabs(tabs)
         self.linkmap.queue_draw()
-        self.pixbuf_apply0 = load_pixbuf(
-            "button_apply0.xpm", self.pixels_per_line)
-        self.pixbuf_apply1 = load_pixbuf(
-            "button_apply1.xpm", self.pixels_per_line)
-        self.pixbuf_delete = load_pixbuf(
-            "button_delete.xpm", self.pixels_per_line)
-        self.pixbuf_copy0 = load_pixbuf(
-            "button_copy0.xpm", self.pixels_per_line)
-        self.pixbuf_copy1 = load_pixbuf(
-            "button_copy1.xpm", self.pixels_per_line)
+        self.pixbuf_apply0 = load_pixbuf("button_apply0.xpm", self.pixels_per_line)
+        self.pixbuf_apply1 = load_pixbuf("button_apply1.xpm", self.pixels_per_line)
+        self.pixbuf_delete = load_pixbuf("button_delete.xpm", self.pixels_per_line)
+        self.pixbuf_copy0 = load_pixbuf("button_copy0.xpm", self.pixels_per_line)
+        self.pixbuf_copy1 = load_pixbuf("button_copy1.xpm", self.pixels_per_line)
 
     def on_key_press_event(self, obj, event):
         x = self.keylookup.get(event.keyval, 0)
@@ -493,7 +526,10 @@ class FileDiff(object):
             v.disconnect(h)
             if v != view:
                 v.emit("toggle-overwrite")
-        self.textview_overwrite_handlers = [t.connect("toggle-overwrite", self.on_textview_toggle_overwrite) for t in self.textview]
+        self.textview_overwrite_handlers = [
+            t.connect("toggle-overwrite", self.on_textview_toggle_overwrite)
+            for t in self.textview
+        ]
         self._update_cursor_status(view.get_buffer())
 
     def _set_internal(self, texts):
@@ -510,13 +546,13 @@ class FileDiff(object):
         self.queue_draw()
         lenseq = [len(d) for d in self.linediffer.diffs]
         self.scheduler.add_task(
-            self._update_highlighting((0, lenseq[0]), (0, lenseq[1])).__next__)
+            self._update_highlighting((0, lenseq[0]), (0, lenseq[1])).__next__
+        )
 
     def _update_highlighting(self, range0, range1):
         buffers = [t.get_buffer() for t in self.textview]
         for b in buffers:
-            taglist = ["delete line", "conflict line",
-                       "replace line", "inline line"]
+            taglist = ["delete line", "conflict line", "replace line", "inline line"]
             table = b.get_tag_table()
             for tagname in taglist:
                 tag = table.lookup(tagname)
@@ -525,19 +561,19 @@ class FileDiff(object):
             for i, c in enumerate(chunk):
                 if c and c[0] == "replace":
                     bufs = buffers[1], buffers[i * 2]
-                    #tags = [b.get_tag_table().lookup("replace line") for b in bufs]
-                    starts = [b.get_iter_at_line(
-                        l) for b, l in zip(bufs, (c[1], c[3]))]
-                    text1 = "\n".join(self._get_texts(
-                        raw=1)[1][c[1]:c[2]]).encode("utf16")
+                    # tags = [b.get_tag_table().lookup("replace line") for b in bufs]
+                    starts = [b.get_iter_at_line(l) for b, l in zip(bufs, (c[1], c[3]))]
+                    text1 = "\n".join(self._get_texts(raw=1)[1][c[1] : c[2]]).encode(
+                        "utf16"
+                    )
                     text1 = struct.unpack("%iH" % (len(text1) / 2), text1)[1:]
-                    textn = "\n".join(self._get_texts(
-                        raw=1)[i * 2][c[3]:c[4]]).encode("utf16")
+                    textn = "\n".join(
+                        self._get_texts(raw=1)[i * 2][c[3] : c[4]]
+                    ).encode("utf16")
                     textn = struct.unpack("%iH" % (len(textn) / 2), textn)[1:]
                     matcher = difflib.SequenceMatcher(None, text1, textn)
-                    #print "<<<\n%s\n---\n%s\n>>>" % (text1, textn)
-                    tags = [b.get_tag_table().lookup(
-                        "inline line") for b in bufs]
+                    # print "<<<\n%s\n---\n%s\n>>>" % (text1, textn)
+                    tags = [b.get_tag_table().lookup("inline line") for b in bufs]
                     back = (0, 0)
                     for o in matcher.get_opcodes():
                         if o[0] == "equal":
@@ -553,8 +589,9 @@ class FileDiff(object):
                     yield 1
 
     def on_textview_expose_event(self, textview, event):
-        if event.window != textview.get_window(gtk.TEXT_WINDOW_TEXT) \
-                and event.window != textview.get_window(gtk.TEXT_WINDOW_LEFT):
+        if event.window != textview.get_window(
+            gtk.TEXT_WINDOW_TEXT
+        ) and event.window != textview.get_window(gtk.TEXT_WINDOW_LEFT):
             return
         if not hasattr(textview, "meldgc"):
             self._setup_gcs(textview)
@@ -568,14 +605,16 @@ class FileDiff(object):
         def draw_change(change):  # draw background and thin lines
             ypos0 = self._line_to_pixel(pane, change[1]) - visible.y
             width = event.window.get_size()[0]
-            #gcline = (gclight, gcdark)[change[1] <= curline and curline < change[2]]
+            # gcline = (gclight, gcdark)[change[1] <= curline and curline < change[2]]
             gcline = gclight
             event.window.draw_line(gcline, 0, ypos0 - 1, width, ypos0 - 1)
             if change[2] != change[1]:
                 ypos1 = self._line_to_pixel(pane, change[2]) - visible.y
                 event.window.draw_line(gcline, 0, ypos1, width, ypos1)
                 event.window.draw_rectangle(
-                    gc(change[0]), 1, 0, ypos0, width, ypos1 - ypos0)
+                    gc(change[0]), 1, 0, ypos0, width, ypos1 - ypos0
+                )
+
         last_change = None
         for change in self.linediffer.single_changes(pane, self._get_texts()):
             if change[2] < start_line:
@@ -584,8 +623,11 @@ class FileDiff(object):
                 break
             # pylint: disable=E1136
             if last_change and change[1] <= last_change[2]:
-                last_change = ("conflict", last_change[1],
-                               max(last_change[2], change[2]))
+                last_change = (
+                    "conflict",
+                    last_change[1],
+                    max(last_change[2], change[2]),
+                )
             else:
                 if last_change:
                     draw_change(last_change)
@@ -637,9 +679,13 @@ class FileDiff(object):
             line_y, height = self.textview[master].get_line_yrange(it)
             line = it.get_line() + ((master_y - line_y) / height)
 
-            for (i, adj) in others:
-                mbegin, mend, obegin, oend = 0, self._get_line_count(
-                    master), 0, self._get_line_count(i)
+            for i, adj in others:
+                mbegin, mend, obegin, oend = (
+                    0,
+                    self._get_line_count(master),
+                    0,
+                    self._get_line_count(i),
+                )
                 # look for the chunk containing 'line'
                 for c in self.linediffer.pair_changes(master, i, self._get_texts()):
                     c = c[1:]
@@ -655,9 +701,8 @@ class FileDiff(object):
                         mbegin = c[1]
                         obegin = c[3]
                 fraction = (line - mbegin) / ((mend - mbegin) or 1)
-                other_line = (obegin + fraction * (oend - obegin))
-                it = self.textview[i].get_buffer(
-                ).get_iter_at_line(int(other_line))
+                other_line = obegin + fraction * (oend - obegin)
+                it = self.textview[i].get_buffer().get_iter_at_line(int(other_line))
                 val, height = self.textview[i].get_line_yrange(it)
                 val -= (adj.page_size) * syncpoint
                 val += (other_line - int(other_line)) * height
@@ -678,10 +723,11 @@ class FileDiff(object):
         diffmapindex = self.diffmap.index(area)
         textindex = (0, 1)[diffmapindex]
 
-        #TODO need height of arrow button on scrollbar - how do we get that?
+        # TODO need height of arrow button on scrollbar - how do we get that?
         size_of_arrow = 14
-        hperline = float(self.scrolledwindow[textindex].get_allocation(
-        ).height - 4 * size_of_arrow) / self._get_line_count(textindex)
+        hperline = float(
+            self.scrolledwindow[textindex].get_allocation().height - 4 * size_of_arrow
+        ) / self._get_line_count(textindex)
         if hperline > self.pixels_per_line:
             hperline = self.pixels_per_line
 
@@ -701,24 +747,29 @@ class FileDiff(object):
             outline = True
             if Prefs.ignore_blank_lines:
                 c1, c2 = self._consume_blank_lines(
-                    self._get_texts()[textindex][c[1]:c[2]])
+                    self._get_texts()[textindex][c[1] : c[2]]
+                )
                 if (c1 or c2) and (c[1] + c1 == c[2] - c2):
                     outline = False
-            s, e = [int(x) for x in (math.floor(
-                scaleit(c[1])), math.ceil(scaleit(c[2] + (c[1] == c[2]))))]
+            s, e = [
+                int(x)
+                for x in (
+                    math.floor(scaleit(c[1])),
+                    math.ceil(scaleit(c[2] + (c[1] == c[2]))),
+                )
+            ]
             window.draw_rectangle(gc(c[0]), 1, x0, s, x1, e - s)
             if outline:
                 window.draw_rectangle(gctext, 0, x0, s, x1, e - s)
 
     def on_diffmap_button_press_event(self, area, event):
-        #TODO need gutter of scrollbar - how do we get that?
+        # TODO need gutter of scrollbar - how do we get that?
         if event.button == 1:
             size_of_arrow = 14
             diffmapindex = self.diffmap.index(area)
             index = (0, 1)[diffmapindex]
             height = area.get_allocation().height
-            fraction = (
-                event.y - size_of_arrow) / (height - 3.75 * size_of_arrow)
+            fraction = (event.y - size_of_arrow) / (height - 3.75 * size_of_arrow)
             adj = self.scrolledwindow[index].get_vadjustment()
             val = fraction * adj.upper - adj.page_size / 2
             upper = adj.upper - adj.page_size
@@ -739,14 +790,12 @@ class FileDiff(object):
 
     def next_diff(self, direction):
         adjs = [x.get_vadjustment() for x in self.scrolledwindow]
-        curline = self._pixel_to_line(
-            1, int(adjs[1].value + adjs[1].page_size / 2))
+        curline = self._pixel_to_line(1, int(adjs[1].value + adjs[1].page_size / 2))
         c = None
         if direction == gtk.gdk.SCROLL_DOWN:
             for c in self.linediffer.single_changes(1, self._get_texts()):
                 assert c[0] != "equal"
-                c1, c2 = self._consume_blank_lines(
-                    self._get_texts()[1][c[1]:c[2]])
+                c1, c2 = self._consume_blank_lines(self._get_texts()[1][c[1] : c[2]])
                 if c[1] + c1 == c[2] - c2:
                     continue
                 if c[1] > curline + 1:
@@ -754,7 +803,8 @@ class FileDiff(object):
         else:  # direction == gtk.gdk.SCROLL_UP
             for chunk in self.linediffer.single_changes(1, self._get_texts()):
                 c1, c2 = self._consume_blank_lines(
-                    self._get_texts()[1][chunk[1]:chunk[2]])
+                    self._get_texts()[1][chunk[1] : chunk[2]]
+                )
                 if chunk[1] + c1 == chunk[2] - c2:
                     continue
                 if chunk[2] < curline:
@@ -770,8 +820,11 @@ class FileDiff(object):
                 l0, l1 = c[3], c[4]
                 aidx = c[5]
                 a = adjs[aidx]
-            want = 0.5 * (self._line_to_pixel(
-                aidx, l0) + self._line_to_pixel(aidx, l1) - a.page_size)
+            want = 0.5 * (
+                self._line_to_pixel(aidx, l0)
+                + self._line_to_pixel(aidx, l1)
+                - a.page_size
+            )
             want = clamp(want, 0, a.upper - a.page_size)
             a.set_value(want)
 
@@ -786,7 +839,8 @@ class FileDiff(object):
         gcx = area.window.new_gc()
         gcx.set_rgb_fg_color(gtk.gdk.color_parse(Prefs.color_conflict_bg))
         area.meldgc = Struct(
-            gc_delete=gcd, gc_insert=gcd, gc_replace=gcc, gc_conflict=gcx)
+            gc_delete=gcd, gc_insert=gcd, gc_replace=gcc, gc_conflict=gcx
+        )
         area.meldgc.get_gc = lambda p: getattr(area.meldgc, "gc_" + p)
 
     def _consume_blank_lines(self, txt):
@@ -816,12 +870,12 @@ class FileDiff(object):
         gctext = area.get_style().bg_gc[gtk.STATE_ACTIVE]
 
         alloc = area.get_allocation()
-        (wtotal, htotal) = alloc.width, alloc.height
+        wtotal, htotal = alloc.width, alloc.height
         window.begin_paint_rect((0, 0, wtotal, htotal))
         window.clear()
 
         # gain function for smoothing
-        #TODO cache these values
+        # TODO cache these values
         bias = lambda x, g: math.pow(x, math.log(g) / math.log(0.5))
 
         def gain(t, g):
@@ -829,6 +883,7 @@ class FileDiff(object):
                 return bias(2 * t, 1 - g) / 2.0
             else:
                 return (2 - bias(2 - 2 * t, 1 - g)) / 2.0
+
         f = lambda x: gain(x, 0.85)
 
         if self.keymask & MASK_SHIFT:
@@ -848,15 +903,17 @@ class FileDiff(object):
         pix_start[1] = self.textview[1].get_visible_rect().y
 
         def bounds(idx):
-            return [self._pixel_to_line(idx, pix_start[idx]), self._pixel_to_line(idx, pix_start[idx] + htotal)]
+            return [
+                self._pixel_to_line(idx, pix_start[idx]),
+                self._pixel_to_line(idx, pix_start[idx] + htotal),
+            ]
+
         visible = [None] + bounds(0) + bounds(1)
 
         for c in self.linediffer.pair_changes(0, 1, self._get_texts()):
             if Prefs.ignore_blank_lines:
-                c1, c2 = self._consume_blank_lines(
-                    self._get_texts()[0][c[1]:c[2]])
-                c3, c4 = self._consume_blank_lines(
-                    self._get_texts()[1][c[3]:c[4]])
+                c1, c2 = self._consume_blank_lines(self._get_texts()[0][c[1] : c[2]])
+                c3, c4 = self._consume_blank_lines(self._get_texts()[1][c[3] : c[4]])
                 c = c[0], c[1] + c1, c[2] - c2, c[3] + c3, c[4] - c4
                 if c[1] == c[2] and c[3] == c[4]:
                     continue
@@ -864,13 +921,13 @@ class FileDiff(object):
             assert c[0] != "equal"
             if c[2] < visible[1] and c[4] < visible[3]:  # find first visible chunk
                 continue
-            elif c[1] > visible[2] and c[3] > visible[4]:  # we've gone past last visible
+            elif (
+                c[1] > visible[2] and c[3] > visible[4]
+            ):  # we've gone past last visible
                 break
 
-            f0, f1 = [self._line_to_pixel(0, l) - pix_start[0]
-                      for l in c[1:3]]
-            t0, t1 = [self._line_to_pixel(1, l) - pix_start[1]
-                      for l in c[3:5]]
+            f0, f1 = [self._line_to_pixel(0, l) - pix_start[0] for l in c[1:3]]
+            t0, t1 = [self._line_to_pixel(1, l) - pix_start[1] for l in c[3:5]]
 
             if f0 == f1:
                 f0 -= 2
@@ -883,10 +940,10 @@ class FileDiff(object):
                 points0 = []
                 points1 = []
                 for t in [float(x) / n for x in range(n + 1)]:
-                    points0.append(
-                        (int(t * wtotal), int((1 - f(t)) * f0 + f(t) * t0)))
-                    points1.append((int((
-                        1 - t) * wtotal), int(f(t) * f1 + (1 - f(t)) * t1)))
+                    points0.append((int(t * wtotal), int((1 - f(t)) * f0 + f(t) * t0)))
+                    points1.append(
+                        (int((1 - t) * wtotal), int(f(t) * f1 + (1 - f(t)) * t1))
+                    )
 
                 points = points0 + points1 + [points0[0]]
 
@@ -896,31 +953,35 @@ class FileDiff(object):
             else:
                 w = wtotal
                 p = self.pixbuf_apply0.get_width()
+                window.draw_polygon(gctext, 0, ((-1, f0), (p, f0), (p, f1), (-1, f1)))
                 window.draw_polygon(
-                    gctext, 0, ((-1, f0), (p, f0), (p, f1), (-1, f1)))
-                window.draw_polygon(gctext, 0, (
-                    (w + 1, t0), (w - p, t0), (w - p, t1), (w + 1, t1)))
+                    gctext, 0, ((w + 1, t0), (w - p, t0), (w - p, t1), (w + 1, t1))
+                )
                 points0 = (0, f0), (0, t0)
-                window.draw_line(
-                    gctext, p, (f0 + f1) / 2, w - p, (t0 + t1) / 2)
+                window.draw_line(gctext, p, (f0 + f1) / 2, w - p, (t0 + t1) / 2)
 
             x = wtotal - self.pixbuf_apply0.get_width()
             if c[0] == "insert":
                 window.draw_pixbuf(
-                    gctext, pix1, 0, 0, x, points0[-1][1], -1, -1, 0, 0, 0)
+                    gctext, pix1, 0, 0, x, points0[-1][1], -1, -1, 0, 0, 0
+                )
             elif c[0] == "delete":
                 window.draw_pixbuf(
-                    gctext, pix0, 0, 0, 0, points0[0][1], -1, -1, 0, 0, 0)
+                    gctext, pix0, 0, 0, 0, points0[0][1], -1, -1, 0, 0, 0
+                )
             else:  # replace
                 window.draw_pixbuf(
-                    gctext, pix0, 0, 0, 0, points0[0][1], -1, -1, 0, 0, 0)
+                    gctext, pix0, 0, 0, 0, points0[0][1], -1, -1, 0, 0, 0
+                )
                 window.draw_pixbuf(
-                    gctext, pix1, 0, 0, x, points0[-1][1], -1, -1, 0, 0, 0)
+                    gctext, pix1, 0, 0, x, points0[-1][1], -1, -1, 0, 0, 0
+                )
 
         # allow for scrollbar at end of textview
         mid = 0.5 * self.textview0.get_allocation().height
         window.draw_line(
-            gctext, int(.25 * wtotal), int(mid), int(.75 * wtotal), int(mid))
+            gctext, int(0.25 * wtotal), int(mid), int(0.75 * wtotal), int(mid)
+        )
         window.end_paint()
 
     def on_linkmap_scroll_event(self, area, event):
@@ -936,7 +997,7 @@ class FileDiff(object):
             area.grab_focus()
             self.mouse_chunk = None
             alloc = area.get_allocation()
-            (wtotal, htotal) = alloc.width, alloc.height
+            wtotal, htotal = alloc.width, alloc.height
             pix_width = self.pixbuf_apply0.get_width()
             pix_height = self.pixbuf_apply0.get_height()
             if self.keymask == MASK_CTRL:  # hack
@@ -950,7 +1011,7 @@ class FileDiff(object):
                 side = 1
                 rect_x = wtotal - pix_width
             else:
-                return  1
+                return 1
             src = side
             dst = 1 - side
             adj = self.scrolledwindow[src].get_vadjustment()
@@ -959,9 +1020,11 @@ class FileDiff(object):
             for c in self.linediffer.pair_changes(src, dst, self._get_texts()):
                 if Prefs.ignore_blank_lines:
                     c1, c2 = self._consume_blank_lines(
-                        self._get_texts()[src][c[1]:c[2]])
+                        self._get_texts()[src][c[1] : c[2]]
+                    )
                     c3, c4 = self._consume_blank_lines(
-                        self._get_texts()[dst][c[3]:c[4]])
+                        self._get_texts()[dst][c[3] : c[4]]
+                    )
                     c = c[0], c[1] + c1, c[2] - c2, c[3] + c3, c[4] - c4
                     if c[1] == c[2] and c[3] == c[4]:
                         continue
@@ -974,9 +1037,12 @@ class FileDiff(object):
                     break
                 elif h < event.y and event.y < h + pix_height:
                     self.mouse_chunk = (
-                        (src, dst), (rect_x, h, pix_width, pix_height), c)
+                        (src, dst),
+                        (rect_x, h, pix_width, pix_height),
+                        c,
+                    )
                     break
-            #print self.mouse_chunk
+            # print self.mouse_chunk
             return 1
         elif event.button == 2:
             self.linkmap_drag_coord = event.x
@@ -990,7 +1056,12 @@ class FileDiff(object):
             if self.mouse_chunk:
                 (src, dst), rect, chunk = self.mouse_chunk
                 # check we're still in button
-                inrect = lambda p, r: ((r[0] < p.x) and (p.x < r[0] + r[2]) and (r[1] < p.y) and (p.y < r[1] + r[3]))
+                inrect = lambda p, r: (
+                    (r[0] < p.x)
+                    and (p.x < r[0] + r[2])
+                    and (r[1] < p.y)
+                    and (p.y < r[1] + r[3])
+                )
                 if inrect(event, rect):
                     # gtk tries to jump back to where the cursor was unless we move the cursor
                     self.textview[src].place_cursor_onscreen()
@@ -1000,27 +1071,38 @@ class FileDiff(object):
 
                     if self.keymask & MASK_SHIFT:  # delete
                         b = self.textview[src].get_buffer()
-                        b.delete(b.get_iter_at_line(
-                            chunk[0]), b.get_iter_at_line(chunk[1]))
+                        b.delete(
+                            b.get_iter_at_line(chunk[0]), b.get_iter_at_line(chunk[1])
+                        )
                     elif self.keymask & MASK_CTRL:  # copy up or down
                         b0 = self.textview[src].get_buffer()
-                        t0 = b0.get_text(b0.get_iter_at_line(
-                            chunk[0]), b0.get_iter_at_line(chunk[1]), 0)
+                        t0 = b0.get_text(
+                            b0.get_iter_at_line(chunk[0]),
+                            b0.get_iter_at_line(chunk[1]),
+                            0,
+                        )
                         b1 = self.textview[dst].get_buffer()
                         if event.y - rect[1] < 0.5 * rect[3]:  # copy up
-                            b1.insert_with_tags_by_name(b1.get_iter_at_line(
-                                chunk[2]), t0, "edited line")
+                            b1.insert_with_tags_by_name(
+                                b1.get_iter_at_line(chunk[2]), t0, "edited line"
+                            )
                         else:  # copy down
-                            b1.insert_with_tags_by_name(b1.get_iter_at_line(
-                                chunk[3]), t0, "edited line")
+                            b1.insert_with_tags_by_name(
+                                b1.get_iter_at_line(chunk[3]), t0, "edited line"
+                            )
                     else:  # replace
                         b0 = self.textview[src].get_buffer()
-                        t0 = b0.get_text(b0.get_iter_at_line(
-                            chunk[0]), b0.get_iter_at_line(chunk[1]), 0)
+                        t0 = b0.get_text(
+                            b0.get_iter_at_line(chunk[0]),
+                            b0.get_iter_at_line(chunk[1]),
+                            0,
+                        )
                         b1 = self.textview[dst].get_buffer()
-                        b1.delete(b1.get_iter_at_line(
-                            chunk[2]), b1.get_iter_at_line(chunk[3]))
+                        b1.delete(
+                            b1.get_iter_at_line(chunk[2]), b1.get_iter_at_line(chunk[3])
+                        )
                         b1.insert_with_tags_by_name(
-                            b1.get_iter_at_line(chunk[2]), t0, "edited line")
+                            b1.get_iter_at_line(chunk[2]), t0, "edited line"
+                        )
             return 1
         return 0

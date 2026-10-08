@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.fuzzer.mutants.mutant import Mutant
 
 
@@ -26,9 +27,10 @@ class CookieMutant(Mutant):
     """
     This class is a headers mutant.
     """
+
     @staticmethod
     def get_mutant_type():
-        return 'cookie'
+        return "cookie"
 
     def set_dc(self, c):
         self._freq.set_cookie(c)
@@ -45,21 +47,24 @@ class CookieMutant(Mutant):
         dc = self.get_dc()
         dc_short = dc.get_short_printable_repr()
 
-        msg = '"%s", using HTTP method %s. The modified parameter was the'\
-              ' session cookie with value: "%s".'
+        msg = (
+            '"%s", using HTTP method %s. The modified parameter was the'
+            ' session cookie with value: "%s".'
+        )
 
         return msg % (self.get_url(), self.get_method(), dc_short)
 
     @classmethod
-    def create_mutants(cls, freq, mutant_str_list, fuzzable_param_list,
-                       append, fuzzer_config):
+    def create_mutants(
+        cls, freq, mutant_str_list, fuzzable_param_list, append, fuzzer_config
+    ):
         """
         This is a very important method which is called in order to create
         mutants. Usually called from fuzzer.py module.
         """
-        if not fuzzer_config['fuzz_cookies']:
+        if not fuzzer_config["fuzz_cookies"]:
             return []
 
-        return cls._create_mutants_worker(freq, cls, mutant_str_list,
-                                          fuzzable_param_list, append,
-                                          fuzzer_config)
+        return cls._create_mutants_worker(
+            freq, cls, mutant_str_list, fuzzable_param_list, append, fuzzer_config
+        )

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 import time
 
@@ -33,10 +34,10 @@ def just_sleep(secs):
 
 def use_memory_in_string(memory):
     block_size = 1024
-    memory_user = ''
+    memory_user = ""
 
     for _ in range(int(memory / block_size)):
-        memory_user += block_size * 'A'
+        memory_user += block_size * "A"
 
     return len(memory_user)
 
@@ -82,7 +83,10 @@ class TestPebbleMemoryUsage(unittest.TestCase):
         future = pool.schedule(use_memory_in_string, args=(usage,))
 
         self.assertEqual(future.result(), usage)
-        self.assertEqual(workers_before_test, list(pool._pool_manager.worker_manager.workers.keys())[:])
+        self.assertEqual(
+            workers_before_test,
+            list(pool._pool_manager.worker_manager.workers.keys())[:],
+        )
 
     def test_effective_kill_limit(self):
         #
@@ -105,11 +109,11 @@ class TestPebbleMemoryUsage(unittest.TestCase):
             try:
                 future.result()
             except MemoryError:
-                print(('Limit found at %s bytes' % current_len))
+                print(("Limit found at %s bytes" % current_len))
                 break
 
-        #self.assertGreaterEqual(self.MEMORY_LIMIT * 1.2, current_len)
-        #self.assertLessEqual(self.MEMORY_LIMIT * 0.8, current_len)
+        # self.assertGreaterEqual(self.MEMORY_LIMIT * 1.2, current_len)
+        # self.assertLessEqual(self.MEMORY_LIMIT * 0.8, current_len)
 
     def test_sub_process_with_high_memory_usage_is_killed(self):
         #
@@ -142,7 +146,10 @@ class TestPebbleMemoryUsage(unittest.TestCase):
         for future in results:
             self.assertEqual(future.result(), secs)
 
-        self.assertEqual(workers_before_test, list(pool._pool_manager.worker_manager.workers.keys())[:])
+        self.assertEqual(
+            workers_before_test,
+            list(pool._pool_manager.worker_manager.workers.keys())[:],
+        )
 
     def test_main_process_high_memory_usage_after_starting_nothing_killed(self):
         #
@@ -174,10 +181,10 @@ class TestPebbleMemoryUsage(unittest.TestCase):
 
         # Use a lot of memory in the parent process
         block_size = 1024
-        memory_user = ''
+        memory_user = ""
 
         for _ in range(int(self.MEMORY_LIMIT * 2.0 / block_size)):
-            memory_user += block_size * 'A'
+            memory_user += block_size * "A"
 
         # Now do the pool stuff
         pool = self.get_pool_with_memlimit()
@@ -193,7 +200,7 @@ class TestPebbleMemoryUsage(unittest.TestCase):
             self.assertEqual(future.result(), secs)
 
     def get_pool_with_memlimit(self):
-        pool = ProcessPool(initializer=limit_memory_usage,
-                           initargs=[self.MEMORY_LIMIT],
-                           max_workers=3)
+        pool = ProcessPool(
+            initializer=limit_memory_usage, initargs=[self.MEMORY_LIMIT], max_workers=3
+        )
         return pool

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.options.baseoption import BaseOption
 from w3af.core.data.options.option_types import PORT
@@ -44,8 +45,10 @@ class PortOption(BaseOption):
             assert port > 0
             assert port < 65536
         except:
-            msg = 'Invalid port specified, it needs to be a number between'\
-                  ' 1 and 65535.'
+            msg = (
+                "Invalid port specified, it needs to be a number between"
+                " 1 and 65535."
+            )
             raise BaseFrameworkException(msg)
         else:
             return port

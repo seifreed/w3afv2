@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import sys
 import queue
 import threading
@@ -133,44 +134,42 @@ class Plugin(Configurable):
         :return: A description of the plugin.
         """
         if self.__doc__ is not None:
-            tmp = self.__doc__.replace('    ', '')
-            
-            res = ''.join(l for l in tmp.split('\n') if l != '' and
-                          not l.startswith(':'))
+            tmp = self.__doc__.replace("    ", "")
+
+            res = "".join(
+                l for l in tmp.split("\n") if l != "" and not l.startswith(":")
+            )
         else:
-            res = 'No description available for this plugin.'
+            res = "No description available for this plugin."
         return res
 
     def get_long_desc(self):
         """
         :return: A DETAILED description of the plugin functions and features.
         """
-        msg = 'Plugin is not implementing required method get_long_desc'
+        msg = "Plugin is not implementing required method get_long_desc"
         raise NotImplementedError(msg)
 
-    def kb_append_uniq(self, location_a, location_b, info, filter_by='VAR'):
+    def kb_append_uniq(self, location_a, location_b, info, filter_by="VAR"):
         """
         kb.kb.append_uniq a vulnerability to the KB
         """
-        added_to_kb = kb.kb.append_uniq(location_a,
-                                        location_b,
-                                        info,
-                                        filter_by=filter_by)
+        added_to_kb = kb.kb.append_uniq(
+            location_a, location_b, info, filter_by=filter_by
+        )
 
         if added_to_kb:
             om.out.report_finding(info)
 
         return added_to_kb
 
-    def kb_append_uniq_group(self, location_a, location_b, info,
-                             group_klass=InfoSet):
+    def kb_append_uniq_group(self, location_a, location_b, info, group_klass=InfoSet):
         """
         kb.kb.append_uniq_group a vulnerability to the KB
         """
-        info_set, created = kb.kb.append_uniq_group(location_a,
-                                                    location_b,
-                                                    info,
-                                                    group_klass=group_klass)
+        info_set, created = kb.kb.append_uniq_group(
+            location_a, location_b, info, group_klass=group_klass
+        )
 
         if created:
             om.out.report_finding(info_set.first_info)
@@ -181,7 +180,7 @@ class Plugin(Configurable):
         """
         kb.kb.append(location_a, location_b, info)
         om.out.report_finding(info)
-        
+
     def __eq__(self, other):
         """
         This function is called when extending a list of plugin instances.
@@ -189,7 +188,7 @@ class Plugin(Configurable):
         return self.__class__.__name__ == other.__class__.__name__
 
     def __repr__(self):
-        return '<%s.%s>' % (self.get_type(), self.get_name())
+        return "<%s.%s>" % (self.get_type(), self.get_name())
 
     def end(self):
         """
@@ -200,7 +199,7 @@ class Plugin(Configurable):
         pass
 
     def get_type(self):
-        return 'plugin'
+        return "plugin"
 
     def get_name(self):
         return self.__class__.__name__
@@ -224,8 +223,8 @@ class Plugin(Configurable):
             # the __len__, then we don't know the number of received tasks
             pass
         else:
-            debugging_id = kwds.get('debugging_id', 'unknown')
-            msg = 'send_mutants_in_threads will send %s HTTP requests (did:%s)'
+            debugging_id = kwds.get("debugging_id", "unknown")
+            msg = "send_mutants_in_threads will send %s HTTP requests (did:%s)"
             args = (num_tasks, debugging_id)
             om.out.debug(msg % args)
 
@@ -267,14 +266,13 @@ class Plugin(Configurable):
                       sense if re_raise is False.
         """
         no_content_resp = new_no_content_resp(uri, add_id=True)
-        
-        msg = ('The %s plugin got an error while requesting "%s".'
-               ' Exception: "%s".'
-               ' Generated 204 "No Content" response (id:%s)')
-        args = (self.get_name(),
-                uri,
-                http_exception,
-                no_content_resp.id)
+
+        msg = (
+            'The %s plugin got an error while requesting "%s".'
+            ' Exception: "%s".'
+            ' Generated 204 "No Content" response (id:%s)'
+        )
+        args = (self.get_name(), uri, http_exception, no_content_resp.id)
         om.out.error(msg % args)
 
         return False, no_content_resp
@@ -284,6 +282,7 @@ class UrlOpenerProxy(object):
     """
     Proxy class for urlopener objects such as ExtendedUrllib instances.
     """
+
     # I want to list all the methods which I do NOT want to wrap, I have to
     # do it this way since the extended_urllib.py also implements __getattr__
     # to provide PUT, PATCH, etc. methods.
@@ -294,23 +293,24 @@ class UrlOpenerProxy(object):
     #
     # I noticed this issue when #8705 was reported
     # https://github.com/andresriancho/w3af/issues/8705
-    NO_WRAPPER_FOR = {'send_clean',
-                      'clear',
-                      'end',
-                      'restart',
-                      'get_headers',
-                      'get_cookies',
-                      'get_remote_file_size',
-                      'add_headers',
-                      'assert_allowed_proto',
-                      'get_average_rtt_for_mutant',
-                      '_handle_send_socket_error',
-                      '_handle_send_urllib_error',
-                      '_handle_send_success',
-                      '_handle_error_on_increment'
-                      '_generic_send_error_handler',
-                      '_increment_global_error_count',
-                      '_log_successful_response'}
+    NO_WRAPPER_FOR = {
+        "send_clean",
+        "clear",
+        "end",
+        "restart",
+        "get_headers",
+        "get_cookies",
+        "get_remote_file_size",
+        "add_headers",
+        "assert_allowed_proto",
+        "get_average_rtt_for_mutant",
+        "_handle_send_socket_error",
+        "_handle_send_urllib_error",
+        "_handle_send_success",
+        "_handle_error_on_increment" "_generic_send_error_handler",
+        "_increment_global_error_count",
+        "_log_successful_response",
+    }
 
     def __init__(self, url_opener, plugin_inst):
         self._url_opener = url_opener
@@ -331,7 +331,7 @@ class UrlOpenerProxy(object):
                 # and that one will bubble up to w3afCore/strategy/etc.
                 #
                 arg1 = args[0]
-                if hasattr(arg1, 'get_uri'):
+                if hasattr(arg1, "get_uri"):
                     # Mutants and fuzzable requests enter here
                     uri = arg1.get_uri()
                 else:

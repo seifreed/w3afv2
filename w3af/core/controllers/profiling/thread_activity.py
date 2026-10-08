@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import sys
 import json
@@ -27,15 +28,14 @@ import traceback
 
 from .utils import get_filename_fmt, dump_data_every_thread, cancel_thread
 
-
-PROFILING_OUTPUT_FMT = '/tmp/w3af-%s-%s.threads'
+PROFILING_OUTPUT_FMT = "/tmp/w3af-%s-%s.threads"
 DELAY_MINUTES = 2
 SAVE_THREAD_PTR = []
 
 
 def should_dump_thread_stack(wrapped):
     def inner():
-        _should_profile = os.environ.get('W3AF_THREAD_ACTIVITY', '0')
+        _should_profile = os.environ.get("W3AF_THREAD_ACTIVITY", "0")
 
         if _should_profile.isdigit() and int(_should_profile) == 1:
             return wrapped()
@@ -80,10 +80,12 @@ def dump_thread_stack():
         # Actually saving it as a list makes it more human readable
         trace = traceback.format_stack(frame)
 
-        data['%x' % thread] = {'traceback': trace,
-                               'name': get_thread_name(threads, thread)}
+        data["%x" % thread] = {
+            "traceback": trace,
+            "name": get_thread_name(threads, thread),
+        }
 
-    json.dump(data, open(output_file, 'w'), indent=4)
+    json.dump(data, open(output_file, "w"), indent=4)
 
 
 @should_dump_thread_stack
@@ -93,4 +95,3 @@ def stop_thread_stack_dump():
     """
     cancel_thread(SAVE_THREAD_PTR)
     dump_thread_stack()
-

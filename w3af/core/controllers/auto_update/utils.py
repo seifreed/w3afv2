@@ -18,12 +18,13 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import git
 import time
 
 from w3af.core.controllers.misc.home_dir import W3AF_LOCAL_PATH
 
-DETACHED_HEAD = 'detached HEAD'
+DETACHED_HEAD = "detached HEAD"
 
 
 def to_short_id(commit_id):
@@ -66,12 +67,12 @@ def get_commit_id_date(commit_id, path=W3AF_LOCAL_PATH):
     :return: The date for the @commit_id
     """
     heads = [ref.commit for ref in git.Repo(path).refs]
-    
+
     for commit in heads:
         if commit.hexsha == commit_id:
             cdate = commit.committed_date
             return time.strftime("%d %b %Y %H:%M", time.gmtime(cdate))
-    
+
     return None
 
 
@@ -80,7 +81,7 @@ def get_latest_commit_date(path=W3AF_LOCAL_PATH):
     :return: The date for the latest commit
     """
     cdate = git.Repo(path).head.commit.committed_date
-    return time.strftime("%d %b %Y %H:%M", time.gmtime(cdate)) 
+    return time.strftime("%d %b %Y %H:%M", time.gmtime(cdate))
 
 
 def get_current_branch(path=W3AF_LOCAL_PATH):
@@ -88,7 +89,7 @@ def get_current_branch(path=W3AF_LOCAL_PATH):
     :return: The active branch for the repo at "path".
     """
     repo = git.Repo(path)
-    
+
     try:
         name = repo.active_branch.name
     except IndexError:

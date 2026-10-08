@@ -1,7 +1,6 @@
 from astroid import MANAGER, register_module_extender
 from astroid.builder import AstroidBuilder
 
-
 CODE_FIX = """
 class md5(object):
     def __init__(self, value=None):
@@ -50,4 +49,4 @@ def hashlib_transform():
 
 
 def register(linter):
-    register_module_extender(MANAGER, 'hashlib', hashlib_transform)
+    register_module_extender(MANAGER, "hashlib", hashlib_transform)

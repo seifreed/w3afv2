@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.controllers.output_manager as om
 
 from w3af.core.data.parsers.doc.url import URL
@@ -34,8 +35,7 @@ class wsdl_finder(CrawlPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    WSDL = ('?wsdl',
-            '?WSDL')
+    WSDL = ("?wsdl", "?WSDL")
 
     def __init__(self):
         CrawlPlugin.__init__(self)
@@ -77,7 +77,7 @@ class wsdl_finder(CrawlPlugin):
         try:
             self._uri_opener.GET(url_to_request, cache=True)
         except BaseFrameworkException:
-            om.out.debug('Failed to request the WSDL file: ' + url_to_request)
+            om.out.debug("Failed to request the WSDL file: " + url_to_request)
         else:
             # The response is analyzed by the wsdlGreper plugin
             pass
@@ -87,7 +87,7 @@ class wsdl_finder(CrawlPlugin):
         :return: A list with the names of the plugins that should be run before the
         current one.
         """
-        return ['grep.wsdl_greper']
+        return ["grep.wsdl_greper"]
 
     def get_long_desc(self):
         """

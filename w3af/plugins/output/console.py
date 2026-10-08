@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import sys
 import string
 
@@ -33,21 +34,21 @@ from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_types import BOOL
 from w3af.core.data.options.option_list import OptionList
 
-
-ERROR = 'Error'
+ERROR = "Error"
 
 
 def catch_ioerror(meth):
     """
     Function to decorate methods in order to catch IOError exceptions.
     """
+
     @wraps(meth)
     def wrapper(self, *args, **kwargs):
         try:
             return meth(self, *args, **kwargs)
         except OSError as error:
             if error.errno == ENOSPC:
-                msg = 'No space left on device'
+                msg = "No space left on device"
                 raise ScanMustStopByKnownReasonExc(msg)
 
     return wrapper
@@ -59,11 +60,14 @@ class console(OutputPlugin):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
-    SEVERITY_COLOR = {HIGH: 'red',
-                      MEDIUM: 'yellow',
-                      LOW: 'blue',
-                      INFORMATION: 'cyan',
-                      ERROR: 'white'}
+
+    SEVERITY_COLOR = {
+        HIGH: "red",
+        MEDIUM: "yellow",
+        LOW: "blue",
+        INFORMATION: "cyan",
+        ERROR: "white",
+    }
 
     def __init__(self):
         OutputPlugin.__init__(self)
@@ -74,13 +78,13 @@ class console(OutputPlugin):
 
     def _make_printable(self, a_string):
         a_string = str(a_string)
-        a_string = a_string.replace('\n', '\n\r')
-        return ''.join(ch for ch in a_string if ch in string.printable)
+        a_string = a_string.replace("\n", "\n\r")
+        return "".join(ch for ch in a_string if ch in string.printable)
 
     def _print_to_stdout(self, message, newline, severity=None):
         message = self._make_printable(message)
         if newline:
-            message += '\r\n'
+            message += "\r\n"
 
         if self.use_colors:
             color = self.SEVERITY_COLOR.get(severity, None)
@@ -127,8 +131,8 @@ class console(OutputPlugin):
 
         :return: No value is returned.
         """
-        self.verbose = option_list['verbose'].get_value()
-        self.use_colors = option_list['use_colors'].get_value()
+        self.verbose = option_list["verbose"].get_value()
+        self.use_colors = option_list["use_colors"].get_value()
 
     def get_options(self):
         """
@@ -136,12 +140,12 @@ class console(OutputPlugin):
         """
         ol = OptionList()
 
-        d = 'Enables verbose output for the console'
-        o = opt_factory('verbose', self.verbose, d, BOOL)
+        d = "Enables verbose output for the console"
+        o = opt_factory("verbose", self.verbose, d, BOOL)
         ol.add(o)
 
-        d = 'Enable output coloring'
-        o = opt_factory('use_colors', self.use_colors, d, BOOL)
+        d = "Enable output coloring"
+        o = opt_factory("use_colors", self.use_colors, d, BOOL)
         ol.add(o)
 
         return ol

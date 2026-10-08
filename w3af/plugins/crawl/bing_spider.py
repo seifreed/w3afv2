@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
 from w3af.core.controllers.misc.is_private_site import is_private_site
@@ -52,17 +53,18 @@ class bing_spider(CrawlPlugin):
         domain = fuzzable_request.get_url().get_domain()
 
         if is_private_site(domain):
-            msg = 'There is no point in searching Bing for "site:%s".'\
-                  ' Bing doesn\'t index private pages.'
+            msg = (
+                'There is no point in searching Bing for "site:%s".'
+                " Bing doesn't index private pages."
+            )
             raise BaseFrameworkException(msg % domain)
 
         try:
-            results = bing_se.get_n_results('site:' + domain, self._result_limit)
+            results = bing_se.get_n_results("site:" + domain, self._result_limit)
         except:
             pass
         else:
-            self.worker_pool.map(self.http_get_and_parse,
-                                    [r.URL for r in results])
+            self.worker_pool.map(self.http_get_and_parse, [r.URL for r in results])
 
     def get_options(self):
         """
@@ -70,7 +72,7 @@ class bing_spider(CrawlPlugin):
         """
         ol = OptionList()
         d = 'Fetch the first "result_limit" results from the Bing search'
-        o = opt_factory('result_limit', self._result_limit, d, 'integer')
+        o = opt_factory("result_limit", self._result_limit, d, "integer")
         ol.add(o)
 
         return ol
@@ -83,7 +85,7 @@ class bing_spider(CrawlPlugin):
         :param options_list: A dictionary with the options for the plugin.
         :return: No value is returned.
         """
-        self._result_limit = options_list['result_limit'].get_value()
+        self._result_limit = options_list["result_limit"].get_value()
 
     def get_long_desc(self):
         """

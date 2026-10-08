@@ -20,61 +20,67 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from mock import Mock
 
 from w3af.core.controllers.w3afCore import w3afCore
-from w3af.core.controllers.core_helpers.status import (CoreStatus,
-                                                       STOPPED, RUNNING,
-                                                       PAUSED)
+from w3af.core.controllers.core_helpers.status import (
+    CoreStatus,
+    STOPPED,
+    RUNNING,
+    PAUSED,
+)
 
 
 class TestStatus(unittest.TestCase):
 
     def test_simple(self):
         s = CoreStatus(Mock())
-        
+
         self.assertEqual(s.get_status(), STOPPED)
-        
+
         self.assertFalse(s.is_running())
         s.start()
         self.assertTrue(s.is_running())
-        
-        s.set_current_fuzzable_request('crawl', 'unittest_fr')
-        s.set_running_plugin('crawl', 'unittest_plugin')
-        
-        expected = 'Crawling unittest_fr using crawl.unittest_plugin'
+
+        s.set_current_fuzzable_request("crawl", "unittest_fr")
+        s.set_running_plugin("crawl", "unittest_plugin")
+
+        expected = "Crawling unittest_fr using crawl.unittest_plugin"
         self.assertEqual(s.get_status(), expected)
-        
+
         s.pause(True)
         self.assertEqual(s.get_status(), PAUSED)
-        
+
         s.pause(False)
-        expected = 'Crawling unittest_fr using crawl.unittest_plugin'
+        expected = "Crawling unittest_fr using crawl.unittest_plugin"
         self.assertEqual(s.get_status(), expected)
 
-        s.set_current_fuzzable_request('audit', 'unittest_fr_audit')
-        s.set_running_plugin('audit', 'unittest_plugin_audit')
+        s.set_current_fuzzable_request("audit", "unittest_fr_audit")
+        s.set_running_plugin("audit", "unittest_plugin_audit")
 
-        expected = 'Crawling unittest_fr using crawl.unittest_plugin\n'\
-                   'Auditing unittest_fr_audit using audit.unittest_plugin_audit'
+        expected = (
+            "Crawling unittest_fr using crawl.unittest_plugin\n"
+            "Auditing unittest_fr_audit using audit.unittest_plugin_audit"
+        )
         self.assertEqual(s.get_status(), expected)
-        
+
         s.stop()
         self.assertEqual(s.get_status(), STOPPED)
         self.assertFalse(s.is_running())
-    
+
     def test_queue_status_not_started(self):
         core = w3afCore()
         s = CoreStatus(core)
-        
+
         self.assertEqual(s.get_crawl_input_speed(), None)
         self.assertEqual(s.get_crawl_output_speed(), None)
         self.assertEqual(s.get_crawl_qsize(), None)
         self.assertEqual(s.get_crawl_current_fr(), None)
         self.assertEqual(s.get_crawl_eta(), None)
-        
+
         self.assertEqual(s.get_audit_input_speed(), None)
         self.assertEqual(s.get_audit_output_speed(), None)
         self.assertEqual(s.get_audit_qsize(), None)

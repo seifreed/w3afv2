@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from nose.plugins.attrib import attr
 
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
@@ -39,15 +40,14 @@ class WrappedFileSeekBloomFilter(GenericBloomFilter):
         self.bf = FileSeekBloomFilter(capacity, error_rate, temp_file)
 
 
-@attr('smoke')
+@attr("smoke")
 class TestScalableBloomFilterLargeCmmap(GenericFilterTest):
 
     CAPACITY = 20000
 
     def setUp(self):
         super(TestScalableBloomFilterLargeCmmap, self).setUp()
-        self.filter = ScalableBloomFilter(
-            mode=ScalableBloomFilter.LARGE_SET_GROWTH)
+        self.filter = ScalableBloomFilter(mode=ScalableBloomFilter.LARGE_SET_GROWTH)
 
 
 class TestScalableBloomfilterSmallCmmap(GenericFilterTest):
@@ -56,8 +56,7 @@ class TestScalableBloomfilterSmallCmmap(GenericFilterTest):
 
     def setUp(self):
         super(TestScalableBloomfilterSmallCmmap, self).setUp()
-        self.filter = ScalableBloomFilter(
-            mode=ScalableBloomFilter.LARGE_SET_GROWTH)
+        self.filter = ScalableBloomFilter(mode=ScalableBloomFilter.LARGE_SET_GROWTH)
 
 
 class TestScalableBloomFilterLargeSeekFile(GenericFilterTest):
@@ -68,10 +67,11 @@ class TestScalableBloomFilterLargeSeekFile(GenericFilterTest):
         super(TestScalableBloomFilterLargeSeekFile, self).setUp()
         self.filter = ScalableBloomFilter(
             mode=ScalableBloomFilter.LARGE_SET_GROWTH,
-            filter_impl=WrappedFileSeekBloomFilter)
+            filter_impl=WrappedFileSeekBloomFilter,
+        )
 
 
-@attr('smoke')
+@attr("smoke")
 class TestScalableBloomfilterSmallSeekFile(GenericFilterTest):
 
     CAPACITY = 500
@@ -80,4 +80,5 @@ class TestScalableBloomfilterSmallSeekFile(GenericFilterTest):
         super(TestScalableBloomfilterSmallSeekFile, self).setUp()
         self.filter = ScalableBloomFilter(
             mode=ScalableBloomFilter.LARGE_SET_GROWTH,
-            filter_impl=WrappedFileSeekBloomFilter)
+            filter_impl=WrappedFileSeekBloomFilter,
+        )

@@ -20,6 +20,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from itertools import repeat
 
 import w3af.core.data.kb.knowledge_base as kb
@@ -47,7 +48,7 @@ class generic(AuditPlugin):
         AuditPlugin.__init__(self)
 
         #   Internal variables
-        self._potential_vulns = DiskList(table_prefix='generic')
+        self._potential_vulns = DiskList(table_prefix="generic")
 
         #   User configured variables
         self._diff_ratio = 0.30
@@ -67,7 +68,13 @@ class generic(AuditPlugin):
             return
 
         # Get the original response and create the mutants
-        mutants = create_mutants(freq, ['', ], orig_resp=original_response)
+        mutants = create_mutants(
+            freq,
+            [
+                "",
+            ],
+            orig_resp=original_response,
+        )
 
         original_response_repeat = repeat(original_response)
         args_iterator = zip(original_response_repeat, mutants)
@@ -98,10 +105,9 @@ class generic(AuditPlugin):
             mutant.set_token_value(payload_string)
             error_response = self._uri_opener.send_mutant(mutant)
 
-            self._analyze_responses(original_response,
-                                    limit_response,
-                                    error_response,
-                                    mutant)
+            self._analyze_responses(
+                original_response, limit_response, error_response, mutant
+            )
 
     def _get_payloads(self):
         """
@@ -112,32 +118,29 @@ class generic(AuditPlugin):
         """
         # This is the reduced payload set which is effective in triggering
         # most of the errors you'll find
-        payloads = ['1/0',
-                    'Ω≈ç√∫˜µ≤≥÷',
-                    '<>?:"{}|_+\',./;\'[]\\-=',
-                    '%*.*s',
-                    '']
+        payloads = ["1/0", "Ω≈ç√∫˜µ≤≥÷", "<>?:\"{}|_+',./;'[]\\-=", "%*.*s", ""]
 
         # Add more payloads if the user wants to perform a detailed scan
         if self._extensive:
-            payloads += ['undefined',
-                         'undef',
-                         'null',
-                         'NULL',
-                         'nil',
-                         'NIL',
-                         'true',
-                         'false',
-                         'True',
-                         'False',
-                         'None',
-                         '-1',
-                         '0.0/0',
-                         'NaN',
-                         'Infinity',
-                         "$ENV{'HOME'}",
-                         '00˙Ɩ$-',
-                         ]
+            payloads += [
+                "undefined",
+                "undef",
+                "null",
+                "NULL",
+                "nil",
+                "NIL",
+                "true",
+                "false",
+                "True",
+                "False",
+                "None",
+                "-1",
+                "0.0/0",
+                "NaN",
+                "Infinity",
+                "$ENV{'HOME'}",
+                "00˙Ɩ$-",
+            ]
 
         return set(payloads)
 
@@ -150,10 +153,9 @@ class generic(AuditPlugin):
         :param id_list: The HTTP response ids associated with the error
         :return: None
         """
-        self._potential_vulns.append((mutant.get_url(),
-                                      mutant.get_token_name(),
-                                      mutant,
-                                      id_list))
+        self._potential_vulns.append(
+            (mutant.get_url(), mutant.get_token_name(), mutant, id_list)
+        )
 
     def _has_potential_vuln(self, mutant):
         """
@@ -171,15 +173,13 @@ class generic(AuditPlugin):
 
         return False
 
-    def _analyze_responses(self, orig_resp, limit_response, error_response,
-                           mutant):
+    def _analyze_responses(self, orig_resp, limit_response, error_response, mutant):
         """
         Analyze responses using various methods.
         :return: None
         """
         for analyzer in {self._analyze_code, self._analyze_body}:
-            is_vuln = analyzer(orig_resp, limit_response,
-                               error_response, mutant)
+            is_vuln = analyzer(orig_resp, limit_response, error_response, mutant)
             if is_vuln:
                 break
 
@@ -187,8 +187,7 @@ class generic(AuditPlugin):
         """
         :return: True if we found a bug using the response code
         """
-        if error_response.get_code() == 500 and \
-           limit_response.get_code() != 500:
+        if error_response.get_code() == 500 and limit_response.get_code() != 500:
 
             id_list = [orig_resp.id, limit_response.id, error_response.id]
             self._add_potential_vuln(mutant, id_list)
@@ -201,12 +200,15 @@ class generic(AuditPlugin):
         """
         :return: True if we found a bug by comparing the response bodies
         """
-        original_to_error = relative_distance(orig_resp.get_body(),
-                                              error_response.get_body())
-        limit_to_error = relative_distance(limit_response.get_body(),
-                                           error_response.get_body())
-        original_to_limit = relative_distance(limit_response.get_body(),
-                                              orig_resp.get_body())
+        original_to_error = relative_distance(
+            orig_resp.get_body(), error_response.get_body()
+        )
+        limit_to_error = relative_distance(
+            limit_response.get_body(), error_response.get_body()
+        )
+        original_to_limit = relative_distance(
+            limit_response.get_body(), orig_resp.get_body()
+        )
 
         ratio = self._diff_ratio + (1 - original_to_limit)
 
@@ -216,8 +218,9 @@ class generic(AuditPlugin):
             # let's request a new limit (one that hopefully doesn't exist)
             # in order to remove some false positives
             limit_response_2 = self._get_limit_response(mutant)
-            limit_to_limit = relative_distance(limit_response_2.get_body(),
-                                               limit_response.get_body())
+            limit_to_limit = relative_distance(
+                limit_response_2.get_body(), limit_response.get_body()
+            )
 
             if limit_to_limit > 1 - self._diff_ratio:
                 # The two limits are "equal"; It's safe to suppose that we have
@@ -254,34 +257,45 @@ class generic(AuditPlugin):
                 if info.get_token_name() == variable and info.get_url() == url:
                     break
             else:
-                desc = ('An unhandled error, which could potentially translate'
-                        ' to a vulnerability, was found at: %s')
+                desc = (
+                    "An unhandled error, which could potentially translate"
+                    " to a vulnerability, was found at: %s"
+                )
                 desc %= mutant.found_at()
-                
-                v = Vuln.from_mutant('Unhandled error in web application', desc,
-                                     severity.LOW, id_list, self.get_name(),
-                                     mutant)
-        
-                self.kb_append_uniq(self, 'generic', v)
-        
+
+                v = Vuln.from_mutant(
+                    "Unhandled error in web application",
+                    desc,
+                    severity.LOW,
+                    id_list,
+                    self.get_name(),
+                    mutant,
+                )
+
+                self.kb_append_uniq(self, "generic", v)
+
         self._potential_vulns.cleanup()
-                
+
     def get_options(self):
         """
         :return: A list of option objects for this plugin.
         """
         ol = OptionList()
 
-        d = ('Ratio to use when comparing two HTTP response bodies, if two'
-             ' strings have a ratio less than diff_ratio, then they are'
-             ' really different.')
-        o = opt_factory('diff_ratio', self._diff_ratio, d, FLOAT)
+        d = (
+            "Ratio to use when comparing two HTTP response bodies, if two"
+            " strings have a ratio less than diff_ratio, then they are"
+            " really different."
+        )
+        o = opt_factory("diff_ratio", self._diff_ratio, d, FLOAT)
         ol.add(o)
 
-        d = ('When enabled this plugin will send an extended payload set which'
-             ' might trigger bugs and vulnerabilities which are not found by'
-             ' the default (reduced, fast) payload set.')
-        o = opt_factory('extensive', self._extensive, d, BOOL)
+        d = (
+            "When enabled this plugin will send an extended payload set which"
+            " might trigger bugs and vulnerabilities which are not found by"
+            " the default (reduced, fast) payload set."
+        )
+        o = opt_factory("extensive", self._extensive, d, BOOL)
         ol.add(o)
 
         return ol
@@ -294,8 +308,8 @@ class generic(AuditPlugin):
         :param options_list: A dictionary with the options for the plugin.
         :return: No value is returned.
         """
-        self._diff_ratio = options_list['diff_ratio'].get_value()
-        self._extensive = options_list['extensive'].get_value()
+        self._diff_ratio = options_list["diff_ratio"].get_value()
+        self._extensive = options_list["extensive"].get_value()
 
     def get_long_desc(self):
         """

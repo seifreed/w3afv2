@@ -23,4 +23,4 @@ def httpretty_transform():
 
 
 def register(linter):
-    register_module_extender(MANAGER, 'httpretty', httpretty_transform)
+    register_module_extender(MANAGER, "httpretty", httpretty_transform)

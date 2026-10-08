@@ -25,29 +25,29 @@ from w3af.plugins.tests.helper import PluginTest, PluginConfig
 
 class TestMXInjection(PluginTest):
 
-    target_url = 'http://moth/w3af/audit/MX_injection/mxi.php?i=f00'
+    target_url = "http://moth/w3af/audit/MX_injection/mxi.php?i=f00"
 
     _run_configs = {
-        'cfg': {
-            'target': target_url,
-            'plugins': {
-                'audit': (PluginConfig('mx_injection'),),
-            }
+        "cfg": {
+            "target": target_url,
+            "plugins": {
+                "audit": (PluginConfig("mx_injection"),),
+            },
         }
     }
 
-    @attr('ci_fails')
+    @attr("ci_fails")
     def test_found_mxi(self):
         # Run the scan
-        cfg = self._run_configs['cfg']
-        self._scan(cfg['target'], cfg['plugins'])
+        cfg = self._run_configs["cfg"]
+        self._scan(cfg["target"], cfg["plugins"])
 
         # Assert the general results
-        vulns = self.kb.get('mx_injection', 'mx_injection')
+        vulns = self.kb.get("mx_injection", "mx_injection")
 
         # Verify the specifics about the vulnerabilities
         expected = [
-            ('mxi.php', 'i'),
+            ("mxi.php", "i"),
         ]
 
         self.assertAllVulnNamesEqual("MX injection vulnerability", vulns)

@@ -18,52 +18,57 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 from nose.plugins.attrib import attr
 
 from w3af.plugins.tests.helper import PluginConfig, ExecExploitTest
 from w3af.core.data.kb.vuln_templates.dav_template import DAVTemplate
- 
 
-@attr('smoke')
+
+@attr("smoke")
 class TestDAVShell(ExecExploitTest):
 
-    target_url = 'http://moth/w3af/audit/dav/write-all/'
+    target_url = "http://moth/w3af/audit/dav/write-all/"
 
     _run_configs = {
-        'cfg': {
-            'target': target_url,
-            'plugins': {
-                'audit': (PluginConfig('dav',),),
-            }
+        "cfg": {
+            "target": target_url,
+            "plugins": {
+                "audit": (
+                    PluginConfig(
+                        "dav",
+                    ),
+                ),
+            },
         },
     }
 
-    @attr('ci_fails')
+    @attr("ci_fails")
     def test_found_exploit_dav(self):
         # Run the scan
-        cfg = self._run_configs['cfg']
-        self._scan(cfg['target'], cfg['plugins'])
+        cfg = self._run_configs["cfg"]
+        self._scan(cfg["target"], cfg["plugins"])
 
         # Assert the general results
-        vulns = self.kb.get('dav', 'dav')
+        vulns = self.kb.get("dav", "dav")
         self.assertEqual(len(vulns), 2, vulns)
 
         vuln = vulns[0]
-        self.assertEqual('Insecure DAV configuration', vuln.get_name())
+        self.assertEqual("Insecure DAV configuration", vuln.get_name())
 
         vuln_to_exploit_id = vuln.get_id()
-        self._exploit_vuln(vuln_to_exploit_id, 'dav')
-    
-    @attr('ci_fails')
+        self._exploit_vuln(vuln_to_exploit_id, "dav")
+
+    @attr("ci_fails")
     def test_from_template(self):
         dt = DAVTemplate()
-        
+
         options = dt.get_options()
-        options['url'].set_value('http://moth/w3af/audit/dav/write-all/')
+        options["url"].set_value("http://moth/w3af/audit/dav/write-all/")
         dt.set_options(options)
 
         dt.store_in_kb()
         vuln = self.kb.get(*dt.get_kb_location())[0]
         vuln_to_exploit_id = vuln.get_id()
-        
-        self._exploit_vuln(vuln_to_exploit_id, 'dav')
+
+        self._exploit_vuln(vuln_to_exploit_id, "dav")

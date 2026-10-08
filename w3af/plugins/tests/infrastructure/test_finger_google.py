@@ -25,23 +25,23 @@ from w3af.plugins.tests.helper import PluginTest, PluginConfig
 
 class TestFingerGoogle(PluginTest):
 
-    base_url = 'http://www.w3af.org/'
+    base_url = "http://www.w3af.org/"
 
     _run_configs = {
-        'cfg': {
-            'target': base_url,
-            'plugins': {'infrastructure': (PluginConfig('finger_google'),)}
+        "cfg": {
+            "target": base_url,
+            "plugins": {"infrastructure": (PluginConfig("finger_google"),)},
         }
     }
 
-    @attr('ci_fails')
+    @attr("ci_fails")
     def test_fuzzer_user(self):
-        cfg = self._run_configs['cfg']
-        self._scan(cfg['target'], cfg['plugins'])
+        cfg = self._run_configs["cfg"]
+        self._scan(cfg["target"], cfg["plugins"])
 
-        emails = self.kb.get('emails', 'emails')
+        emails = self.kb.get("emails", "emails")
 
         self.assertEqual(len(emails), 3, emails)
-        
-        users = [em['user'] for em in emails]
-        self.assertNotIn('x3d', users) 
+
+        users = [em["user"] for em in emails]
+        self.assertNotIn("x3d", users)

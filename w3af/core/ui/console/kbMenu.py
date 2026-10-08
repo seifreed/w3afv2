@@ -19,41 +19,47 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.data.kb.knowledge_base as kb
 import w3af.core.controllers.output_manager as om
 
 from w3af.core.controllers.exceptions import BaseFrameworkException
-from w3af.core.data.kb.vuln_templates.utils import (get_template_names,
-                                                    get_template_by_name)
+from w3af.core.data.kb.vuln_templates.utils import (
+    get_template_names,
+    get_template_by_name,
+)
 from w3af.core.ui.console.menu import menu
 from w3af.core.ui.console.util import suggest
 from w3af.core.ui.console.config import ConfigMenu
 
 
 class kbMenu(menu):
-
     """
     This menu is used to display information from the knowledge base
     and (in the nearest future) to manipulate it.
 
     :author: Alexander Berezhnoy (alexander.berezhnoy |at| gmail.com)
     """
+
     def __init__(self, name, console, w3afcore, parent=None, **other):
         menu.__init__(self, name, console, w3afcore, parent)
-        self._load_help('kb')
+        self._load_help("kb")
 
         # A mapping of KB data types to how to display it.
         # Key of the data type => (KB getter, (column names), (column getters))k
         self.__getters = {
-            'vulns': (
+            "vulns": (
                 kb.kb.get_all_vulns,
-                ['Vulnerability', 'Description'],),
-            'info': (
+                ["Vulnerability", "Description"],
+            ),
+            "info": (
                 kb.kb.get_all_infos,
-                ['Info', 'Description'],),
-            'shells': (
+                ["Info", "Description"],
+            ),
+            "shells": (
                 kb.kb.get_all_shells,
-                ['Shells', 'Description'],)
+                ["Shells", "Description"],
+            ),
         }
 
     def _list_objects(self, descriptor, objs):
@@ -75,10 +81,10 @@ class kbMenu(menu):
                     desc = self.__getters[p]
                     self._list_objects(desc[1:], desc[0]())
                 else:
-                    om.out.console('Type %s is unknown' % p)
+                    om.out.console("Type %s is unknown" % p)
         else:
-            om.out.console('Parameter type is missing, see the help:')
-            self._cmd_help(['list'])
+            om.out.console("Parameter type is missing, see the help:")
+            self._cmd_help(["list"])
 
     def _para_list(self, params, part):
         if len(params):
@@ -89,29 +95,30 @@ class kbMenu(menu):
     def _cmd_add(self, params):
         if len(params) == 0:
             om.out.console('Parameter "type" is missing, see the help:')
-            self._cmd_help(['add'])
+            self._cmd_help(["add"])
             return
-        
+
         if len(params) > 1:
-            om.out.console('Only one parameter is accepted, see the help:')
-            self._cmd_help(['add'])
+            om.out.console("Only one parameter is accepted, see the help:")
+            self._cmd_help(["add"])
             return
-        
+
         template_name = params[0]
         if template_name not in get_template_names():
-            om.out.console('Type %s is unknown' % template_name)
+            om.out.console("Type %s is unknown" % template_name)
             return
-        
+
         # Now we use the fact that templates are configurable just like
         # plugins, misc-settings, etc.
         template_inst = get_template_by_name(template_name)
-        template_menu = StoreOnBackConfigMenu(template_name, self._console,
-                                              self._w3af, self, template_inst)
-        
+        template_menu = StoreOnBackConfigMenu(
+            template_name, self._console, self._w3af, self, template_inst
+        )
+
         # Note: The data is stored in the KB when the user does a "back"
         #       see the StoreOnBackConfigMenu implementation
         return template_menu
-    
+
     def _para_add(self, params, part):
         if len(params):
             return []
@@ -126,16 +133,18 @@ class StoreOnBackConfigMenu(ConfigMenu):
         except (ValueError, BaseFrameworkException) as e:
             om.out.error(str(e))
             return self._console.back
-        
+
         vuln_name = self._configurable.get_vulnerability_name()
-        
+
         try:
             self._configurable.store_in_kb()
         except Exception as e:
-            msg = 'Failed to store "%s" in the knowledge base because of a'\
-                  ' configuration error at: "%s".'
+            msg = (
+                'Failed to store "%s" in the knowledge base because of a'
+                ' configuration error at: "%s".'
+            )
             om.out.console(msg % (vuln_name, e))
         else:
             om.out.console('Stored "%s" in the knowledge base.' % vuln_name)
-            
+
         return self._console.back

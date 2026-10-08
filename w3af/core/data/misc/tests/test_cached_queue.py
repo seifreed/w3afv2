@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 import threading
 import time
@@ -127,8 +128,7 @@ class TestCachedQueue(unittest.TestCase):
             queue.get()
             queue.task_done()
 
-        t = threading.Thread(target=queue_get_after_delay,
-                             args=(q,))
+        t = threading.Thread(target=queue_get_after_delay, args=(q,))
         t.start()
 
         start = time.time()
@@ -158,8 +158,7 @@ class TestCachedQueue(unittest.TestCase):
                 queue.get()
                 queue.task_done()
 
-        t = threading.Thread(target=queue_get_after_delay,
-                             args=(q,))
+        t = threading.Thread(target=queue_get_after_delay, args=(q,))
         t.start()
 
         start = time.time()

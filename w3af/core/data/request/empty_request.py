@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
@@ -26,10 +27,11 @@ class EmptyFuzzableRequest(FuzzableRequest):
     """
     A FuzzableRequest which can be created without knowing the URI.
     """
+
     def __init__(self):
-        super(EmptyFuzzableRequest, self).__init__(None, method='GET',
-                                                   headers=None, cookie=None,
-                                                   post_data=None)
+        super(EmptyFuzzableRequest, self).__init__(
+            None, method="GET", headers=None, cookie=None, post_data=None
+        )
 
     def set_uri(self, uri):
         if uri is None:

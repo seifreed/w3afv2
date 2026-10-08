@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-
 import time
 
 from copy import deepcopy
@@ -82,7 +81,9 @@ class form_auth(BruteforcePlugin):
             return
 
         try:
-            login_failed_bodies = self._id_failed_login_pages(mutant, session, debugging_id)
+            login_failed_bodies = self._id_failed_login_pages(
+                mutant, session, debugging_id
+            )
         except BaseFrameworkException as bfe:
             msg = 'Failed to ID failed login page during form bruteforce setup: "%s"'
             om.out.debug(msg % bfe)
@@ -118,11 +119,9 @@ class form_auth(BruteforcePlugin):
         else:
             generator = self._create_pass_generator(mutant.get_url())
 
-        self._bruteforce_pool(mutant,
-                              login_failed_bodies,
-                              generator,
-                              session,
-                              debugging_id)
+        self._bruteforce_pool(
+            mutant, login_failed_bodies, generator, session, debugging_id
+        )
 
         # Report that we've finished.
         took_str = epoch_to_string(start)
@@ -144,27 +143,32 @@ class form_auth(BruteforcePlugin):
         # And initialize the session (send a request so that in the response
         # we receive the cookie from the application and save it to the
         # cookiejar)
-        self._uri_opener.send_mutant(mutant,
-                                     grep=False,
-                                     session=session,
-                                     debugging_id=debugging_id)
+        self._uri_opener.send_mutant(
+            mutant, grep=False, session=session, debugging_id=debugging_id
+        )
 
         return session
 
-    def _bruteforce_pool(self, mutant, login_failed_res, generator, session, debugging_id):
-        args_iter = zip(repeat(mutant),
-                         repeat(login_failed_res),
-                         generator,
-                         repeat(session),
-                         repeat(debugging_id))
+    def _bruteforce_pool(
+        self, mutant, login_failed_res, generator, session, debugging_id
+    ):
+        args_iter = zip(
+            repeat(mutant),
+            repeat(login_failed_res),
+            generator,
+            repeat(session),
+            repeat(debugging_id),
+        )
 
-        self.worker_pool.map_multi_args(self._brute_worker,
-                                        args_iter,
-                                        chunksize=100)
+        self.worker_pool.map_multi_args(self._brute_worker, args_iter, chunksize=100)
 
-    def _bruteforce_test(self, mutant, login_failed_res, generator, session, debugging_id):
+    def _bruteforce_test(
+        self, mutant, login_failed_res, generator, session, debugging_id
+    ):
         for combination in generator:
-            self._brute_worker(mutant, login_failed_res, combination, session, debugging_id)
+            self._brute_worker(
+                mutant, login_failed_res, combination, session, debugging_id
+            )
 
     def _password_only_login(self, form):
         user_token, pass_token = form.get_login_tokens()
@@ -225,16 +229,14 @@ class form_auth(BruteforcePlugin):
             user, password = rand_alnum(8), rand_alnum(8)
             self._fill_form(form, user, password)
 
-            response = self._uri_opener.send_mutant(mutant,
-                                                    grep=False,
-                                                    session=session,
-                                                    debugging_id=debugging_id)
+            response = self._uri_opener.send_mutant(
+                mutant, grep=False, session=session, debugging_id=debugging_id
+            )
 
             body = self._clean_body(response, user, password)
             random_user_pass.append(body)
 
-        failed_login_page = FailedLoginPage(random_user_pass[0],
-                                            random_user_pass[1])
+        failed_login_page = FailedLoginPage(random_user_pass[0], random_user_pass[1])
 
         login_failed_result_list.append(failed_login_page)
 
@@ -245,19 +247,19 @@ class form_auth(BruteforcePlugin):
         random_user_empty_pass = []
 
         for _ in range(2):
-            user, password = rand_alnum(8), ''
+            user, password = rand_alnum(8), ""
             self._fill_form(form, user, password)
 
-            response = self._uri_opener.send_mutant(mutant,
-                                                    grep=False,
-                                                    session=session,
-                                                    debugging_id=debugging_id)
+            response = self._uri_opener.send_mutant(
+                mutant, grep=False, session=session, debugging_id=debugging_id
+            )
 
             body = self._clean_body(response, user, password)
             random_user_empty_pass.append(body)
 
-        failed_login_page = FailedLoginPage(random_user_empty_pass[0],
-                                            random_user_empty_pass[1])
+        failed_login_page = FailedLoginPage(
+            random_user_empty_pass[0], random_user_empty_pass[1]
+        )
 
         login_failed_result_list.append(failed_login_page)
 
@@ -277,24 +279,22 @@ class form_auth(BruteforcePlugin):
         :param login_failed_bodies: The login failed bodies signatures
         :return: True if success, raises exception on failure
         """
-        tests = [(rand_alnum(8), rand_alnum(8)),
-                 (rand_alnum(8), '')]
+        tests = [(rand_alnum(8), rand_alnum(8)), (rand_alnum(8), "")]
 
         form = mutant.get_dc()
 
         for user, passwd in tests:
             self._fill_form(form, user, passwd)
 
-            response = self._uri_opener.send_mutant(mutant,
-                                                    grep=False,
-                                                    session=session,
-                                                    debugging_id=debugging_id)
+            response = self._uri_opener.send_mutant(
+                mutant, grep=False, session=session, debugging_id=debugging_id
+            )
             body = self._clean_body(response, user, passwd)
 
             if self._matches_any_failed_page(body, login_failed_bodies):
                 continue
 
-            msg = 'Failed to generate a response that matches the failed login page'
+            msg = "Failed to generate a response that matches the failed login page"
             raise BaseFrameworkException(msg)
 
         return True
@@ -344,7 +344,7 @@ class form_auth(BruteforcePlugin):
         for pname, value, path, value_setter in form.iter_setters():
             if pname not in user_pass_fields:
                 if not value:
-                    value_setter('1')
+                    value_setter("1")
 
     def _clean_body(self, http_response, username, password):
         """
@@ -373,7 +373,9 @@ class form_auth(BruteforcePlugin):
 
         return http_response.body
 
-    def _brute_worker(self, mutant, login_failed_result_list, combination, session, debugging_id):
+    def _brute_worker(
+        self, mutant, login_failed_result_list, combination, session, debugging_id
+    ):
         """
         :param mutant: A Mutant holding a QsMutant of PostDataMutant, created
                        using form_pointer_factory
@@ -387,7 +389,7 @@ class form_auth(BruteforcePlugin):
         form = mutant.get_dc()
 
         if self._password_only_login(form):
-            user = 'password-only-form'
+            user = "password-only-form"
             password = combination
         else:
             user, password = combination
@@ -395,10 +397,9 @@ class form_auth(BruteforcePlugin):
         self._true_extra_fields(form)
         self._fill_form(form, user, password)
 
-        resp = self._uri_opener.send_mutant(mutant,
-                                            session=session,
-                                            grep=False,
-                                            debugging_id=debugging_id)
+        resp = self._uri_opener.send_mutant(
+            mutant, session=session, grep=False, debugging_id=debugging_id
+        )
 
         body = self._clean_body(resp, user, password)
 
@@ -430,28 +431,28 @@ class form_auth(BruteforcePlugin):
 
         password_1 = rand_alnum(8)
         form.set_login_password(password_1)
-        verify_resp_1 = self._uri_opener.send_mutant(mutant,
-                                                     session=new_session,
-                                                     grep=False,
-                                                     debugging_id=debugging_id)
+        verify_resp_1 = self._uri_opener.send_mutant(
+            mutant, session=new_session, grep=False, debugging_id=debugging_id
+        )
 
         password_2 = rand_alnum(8)
         form.set_login_password(password_2)
-        verify_resp_2 = self._uri_opener.send_mutant(mutant,
-                                                     session=new_session,
-                                                     grep=False,
-                                                     debugging_id=debugging_id)
+        verify_resp_2 = self._uri_opener.send_mutant(
+            mutant, session=new_session, grep=False, debugging_id=debugging_id
+        )
 
         body_1 = self._clean_body(verify_resp_1, user, password_1)
         body_2 = self._clean_body(verify_resp_2, user, password_2)
 
         potential_captcha_page = FailedLoginPage(body_1, body_2)
-        
+
         if self._matches_any_failed_page(body, [potential_captcha_page]):
-            om.out.debug('The form brute-force plugin detected a response'
-                         ' that might indicate that a user exists or CAPTCHA'
-                         ' protection is present. Please manually review HTTP'
-                         ' response with ID %s.' % verify_resp_2.id)
+            om.out.debug(
+                "The form brute-force plugin detected a response"
+                " that might indicate that a user exists or CAPTCHA"
+                " protection is present. Please manually review HTTP"
+                " response with ID %s." % verify_resp_2.id
+            )
             return
 
         #
@@ -464,23 +465,33 @@ class form_auth(BruteforcePlugin):
         user_token, pass_token = form.get_login_tokens()
 
         if user_token is not None:
-            desc = ('Found authentication credentials to: "%s". A correct'
-                    ' user and password combination is: %s/%s')
+            desc = (
+                'Found authentication credentials to: "%s". A correct'
+                " user and password combination is: %s/%s"
+            )
             desc %= (freq_url, user, password_for_report)
         else:
             # There is no user field!
-            desc = ('Found authentication credentials to: "%s". The correct'
-                    ' password is: "%s".')
+            desc = (
+                'Found authentication credentials to: "%s". The correct'
+                ' password is: "%s".'
+            )
             desc %= (freq_url, password_for_report)
 
-        v = Vuln.from_mutant('Guessable credentials', desc, severity.HIGH,
-                             resp.id, self.get_name(), mutant)
-        v['user'] = user
-        v['pass'] = password
-        v['response'] = resp
-        v['request'] = mutant.get_fuzzable_request()
+        v = Vuln.from_mutant(
+            "Guessable credentials",
+            desc,
+            severity.HIGH,
+            resp.id,
+            self.get_name(),
+            mutant,
+        )
+        v["user"] = user
+        v["pass"] = password
+        v["response"] = resp
+        v["request"] = mutant.get_fuzzable_request()
 
-        kb.kb.append(self, 'auth', v)
+        kb.kb.append(self, "auth", v)
 
         om.out.vulnerability(desc, severity=severity.HIGH)
 

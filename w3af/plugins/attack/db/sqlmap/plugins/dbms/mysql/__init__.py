@@ -15,6 +15,7 @@ from plugins.dbms.mysql.syntax import Syntax
 from plugins.dbms.mysql.takeover import Takeover
 from plugins.generic.misc import Miscellaneous
 
+
 class MySQLMap(Syntax, Fingerprint, Enumeration, Filesystem, Miscellaneous, Takeover):
     """
     This class defines MySQL methods
@@ -23,11 +24,11 @@ class MySQLMap(Syntax, Fingerprint, Enumeration, Filesystem, Miscellaneous, Take
     def __init__(self):
         self.excludeDbsList = MYSQL_SYSTEM_DBS
         self.sysUdfs = {
-                         # UDF name:    UDF return data-type
-                         "sys_exec":    { "return": "int" },
-                         "sys_eval":    { "return": "string" },
-                         "sys_bineval": { "return": "int" }
-                       }
+            # UDF name:    UDF return data-type
+            "sys_exec": {"return": "int"},
+            "sys_eval": {"return": "string"},
+            "sys_bineval": {"return": "int"},
+        }
 
         Syntax.__init__(self)
         Fingerprint.__init__(self)

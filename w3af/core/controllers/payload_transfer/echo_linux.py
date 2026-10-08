@@ -19,11 +19,14 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import time
 
 import w3af.core.controllers.output_manager as om
 
-from w3af.core.controllers.payload_transfer.base_payload_transfer import BasePayloadTransfer
+from w3af.core.controllers.payload_transfer.base_payload_transfer import (
+    BasePayloadTransfer,
+)
 
 
 class EchoLinux(BasePayloadTransfer):
@@ -46,9 +49,8 @@ class EchoLinux(BasePayloadTransfer):
         """
         # Check if echo exists and works as expected
         res = self._exec_method("/bin/echo -n 'w3af'")
-        if 'w3af' != res:
-            om.out.debug('Remote server returned: "' + res +
-                         '" when expecting "w3af".')
+        if "w3af" != res:
+            om.out.debug('Remote server returned: "' + res + '" when expecting "w3af".')
             return False
         else:
             return True
@@ -66,8 +68,7 @@ class EchoLinux(BasePayloadTransfer):
         requestTime = after - before
         timeTaken = round(requestTime * numberOfRequests)
 
-        om.out.debug(
-            'The file transfer will take "' + str(timeTaken) + '" seconds.')
+        om.out.debug('The file transfer will take "' + str(timeTaken) + '" seconds.')
         return int(timeTaken)
 
     def transfer(self, data_str, destination):
@@ -77,14 +78,14 @@ class EchoLinux(BasePayloadTransfer):
         self._filename = destination
 
         # Zeroing destination file
-        self._exec_method('> ' + self._filename)
+        self._exec_method("> " + self._filename)
 
         i = 0
         while i < len(data_str):
             # Prepare the command
             cmd = "/bin/echo -ne "
-            for c in data_str[i:i + self._step]:
-                cmd += '\\\\' + oct(ord(c)).zfill(4)
+            for c in data_str[i : i + self._step]:
+                cmd += "\\\\" + oct(ord(c)).zfill(4)
 
             cmd += " >> " + self._filename
             i += self._step

@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import unittest
 
 from w3af.core.ui.gui.output.gtk_output import GtkOutput
@@ -33,27 +34,30 @@ class TestGTKOutput(unittest.TestCase):
 
     def test_gtk_output(self):
         messages = []
+
         def observer(message):
             messages.append((message.get_type(), message.get_msg()))
-            
+
         self.gtk_output.subscribe(observer)
-        
-        self.gtk_output.console('1')
-        self.gtk_output.information('2')
-        self.gtk_output.vulnerability('3')
-        self.gtk_output.debug('4')
-        self.gtk_output.error('5')
+
+        self.gtk_output.console("1")
+        self.gtk_output.information("2")
+        self.gtk_output.vulnerability("3")
+        self.gtk_output.debug("4")
+        self.gtk_output.error("5")
 
         self.gtk_output.unsubscribe(observer)
 
-        self.gtk_output.vulnerability('ignores')
+        self.gtk_output.vulnerability("ignores")
 
-        EXPECTED = set([
-            ('console', '1'),
-            ('information', '2'),
-            ('vulnerability', '3'),
-            ('debug', ''), # Note that this empty string is correct
-            ('error', '5'), ]
+        EXPECTED = set(
+            [
+                ("console", "1"),
+                ("information", "2"),
+                ("vulnerability", "3"),
+                ("debug", ""),  # Note that this empty string is correct
+                ("error", "5"),
+            ]
         )
 
         self.assertEqual(set(messages), EXPECTED)

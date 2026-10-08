@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import copy
 
 from w3af.core.controllers.plugins.evasion_plugin import EvasionPlugin
@@ -31,6 +32,7 @@ class rnd_param(EvasionPlugin):
     Add a random parameter.
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def modify_request(self, request):
         """
         Mangles the request

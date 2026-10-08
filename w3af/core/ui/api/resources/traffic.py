@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from base64 import b64encode
 from flask import jsonify
 
@@ -30,7 +31,7 @@ from w3af.core.data.db.history import HistoryItem
 from w3af.core.controllers.exceptions import DBException
 
 
-@app.route('/scans/<int:scan_id>/traffic/<int:traffic_id>', methods=['GET'])
+@app.route("/scans/<int:scan_id>/traffic/<int:traffic_id>", methods=["GET"])
 @requires_auth
 def get_traffic_details(scan_id, traffic_id):
     """
@@ -44,18 +45,20 @@ def get_traffic_details(scan_id, traffic_id):
     """
     scan_info = get_scan_info_from_id(scan_id)
     if scan_info is None:
-        abort(404, 'Scan not found')
+        abort(404, "Scan not found")
 
     history_db = HistoryItem()
 
     try:
         details = history_db.read(traffic_id)
     except DBException:
-        msg = 'Failed to retrieve request with id %s from DB.'
+        msg = "Failed to retrieve request with id %s from DB."
         abort(404, msg)
         return
 
-    data = {'request': b64encode(details.request.dump()),
-            'response': b64encode(details.response.dump())}
+    data = {
+        "request": b64encode(details.request.dump()),
+        "response": b64encode(details.response.dump()),
+    }
 
     return jsonify(data)

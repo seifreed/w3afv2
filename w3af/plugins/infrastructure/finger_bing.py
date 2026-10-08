@@ -19,11 +19,15 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.parsers.parser_cache as parser_cache
 
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
-from w3af.core.controllers.exceptions import BaseFrameworkException, ScanMustStopOnUrlError
+from w3af.core.controllers.exceptions import (
+    BaseFrameworkException,
+    ScanMustStopOnUrlError,
+)
 from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.misc.is_private_site import is_private_site
@@ -61,8 +65,7 @@ class finger_bing(InfrastructurePlugin):
             self._domain = fuzzable_request.get_url().get_domain()
             self._domain_root = fuzzable_request.get_url().get_root_domain()
 
-            results = bingSE.get_n_results('@' + self._domain_root,
-                                           self._result_limit)
+            results = bingSE.get_n_results("@" + self._domain_root, self._result_limit)
 
             #   Send the requests using threads:
             self.worker_pool.map(self._find_accounts, results)
@@ -75,17 +78,18 @@ class finger_bing(InfrastructurePlugin):
         """
         try:
             url = page.URL
-            om.out.debug('Searching for emails in: %s' % url)
+            om.out.debug("Searching for emails in: %s" % url)
 
             grep = True if self._domain == url.get_domain() else False
-            response = self._uri_opener.GET(page.URL, cache=True,
-                                            grep=grep)
+            response = self._uri_opener.GET(page.URL, cache=True, grep=grep)
         except ScanMustStopOnUrlError:
             # Just ignore it
             pass
         except BaseFrameworkException as w3:
-            msg = 'ExtendedUrllib exception raised while fetching page in' \
-                  ' finger_bing, error description: "%s"'
+            msg = (
+                "ExtendedUrllib exception raised while fetching page in"
+                ' finger_bing, error description: "%s"'
+            )
             om.out.debug(msg % w3)
         else:
             # I have the response object!
@@ -101,18 +105,17 @@ class finger_bing(InfrastructurePlugin):
                 for mail in document_parser.get_emails(self._domain_root):
                     if mail not in self._accounts:
                         self._accounts.append(mail)
-                        
+
                         desc = 'The mail account: "%s" was found at: "%s".'
                         desc = desc % (mail, page.URL)
 
-                        i = Info('Email account', desc, response.id,
-                                 self.get_name())
+                        i = Info("Email account", desc, response.id, self.get_name())
                         i.set_url(page.URL)
-                        i['mail'] = mail
-                        i['user'] = mail.split('@')[0]
-                        i['url_list'] = {page.URL}
-                        
-                        self.kb_append('emails', 'emails', i)
+                        i["mail"] = mail
+                        i["user"] = mail.split("@")[0]
+                        i["url_list"] = {page.URL}
+
+                        self.kb_append("emails", "emails", i)
 
     def get_options(self):
         """
@@ -121,7 +124,7 @@ class finger_bing(InfrastructurePlugin):
         ol = OptionList()
 
         d1 = 'Fetch the first "result_limit" results from the Bing search'
-        o = opt_factory('result_limit', self._result_limit, d1, 'integer')
+        o = opt_factory("result_limit", self._result_limit, d1, "integer")
         ol.add(o)
 
         return ol
@@ -134,7 +137,7 @@ class finger_bing(InfrastructurePlugin):
         :param options_list: A dictionary with the options for the plugin.
         :return: No value is returned.
         """
-        self._result_limit = options_list['result_limit'].get_value()
+        self._result_limit = options_list["result_limit"].get_value()
 
     def get_long_desc(self):
         """

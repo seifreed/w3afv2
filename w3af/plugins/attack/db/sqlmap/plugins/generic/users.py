@@ -44,6 +44,7 @@ from lib.utils.hash import attackCachedUsersPasswords
 from lib.utils.hash import storeHashesToFile
 from lib.utils.pivotdumptable import pivotDumpTable
 
+
 class Users:
     """
     This class defines users' enumeration functionalities for plugins.
@@ -74,8 +75,13 @@ class Users:
 
         if Backend.isDbms(DBMS.MYSQL):
             self.getCurrentUser()
-            query = queries[Backend.getIdentifiedDbms()].is_dba.query % (kb.data.currentUser.split("@")[0] if kb.data.currentUser else None)
-        elif Backend.getIdentifiedDbms() in (DBMS.MSSQL, DBMS.SYBASE) and user is not None:
+            query = queries[Backend.getIdentifiedDbms()].is_dba.query % (
+                kb.data.currentUser.split("@")[0] if kb.data.currentUser else None
+            )
+        elif (
+            Backend.getIdentifiedDbms() in (DBMS.MSSQL, DBMS.SYBASE)
+            and user is not None
+        ):
             query = queries[Backend.getIdentifiedDbms()].is_dba.query2 % user
         else:
             query = queries[Backend.getIdentifiedDbms()].is_dba.query
@@ -91,10 +97,22 @@ class Users:
 
         rootQuery = queries[Backend.getIdentifiedDbms()].users
 
-        condition = (Backend.isDbms(DBMS.MSSQL) and Backend.isVersionWithin(("2005", "2008")))
-        condition |= (Backend.isDbms(DBMS.MYSQL) and not kb.data.has_information_schema)
+        condition = Backend.isDbms(DBMS.MSSQL) and Backend.isVersionWithin(
+            ("2005", "2008")
+        )
+        condition |= Backend.isDbms(DBMS.MYSQL) and not kb.data.has_information_schema
 
-        if any(isTechniqueAvailable(_) for _ in (PAYLOAD.TECHNIQUE.UNION, PAYLOAD.TECHNIQUE.ERROR, PAYLOAD.TECHNIQUE.QUERY)) or conf.direct:
+        if (
+            any(
+                isTechniqueAvailable(_)
+                for _ in (
+                    PAYLOAD.TECHNIQUE.UNION,
+                    PAYLOAD.TECHNIQUE.ERROR,
+                    PAYLOAD.TECHNIQUE.QUERY,
+                )
+            )
+            or conf.direct
+        ):
             if condition:
                 query = rootQuery.inband.query2
             else:
@@ -117,7 +135,13 @@ class Users:
             else:
                 query = rootQuery.blind.count
 
-            count = inject.getValue(query, union=False, error=False, expected=EXPECTED.INT, charsetType=CHARSET_TYPE.DIGITS)
+            count = inject.getValue(
+                query,
+                union=False,
+                error=False,
+                expected=EXPECTED.INT,
+                charsetType=CHARSET_TYPE.DIGITS,
+            )
 
             if count == 0:
                 return kb.data.cachedUsers
@@ -130,7 +154,9 @@ class Users:
 
             for index in indexRange:
                 if Backend.getIdentifiedDbms() in (DBMS.SYBASE, DBMS.MAXDB):
-                    query = rootQuery.blind.query % (kb.data.cachedUsers[-1] if kb.data.cachedUsers else " ")
+                    query = rootQuery.blind.query % (
+                        kb.data.cachedUsers[-1] if kb.data.cachedUsers else " "
+                    )
                 elif condition:
                     query = rootQuery.blind.query2 % index
                 else:
@@ -161,7 +187,7 @@ class Users:
             conf.user = conf.user.upper()
 
         if conf.user:
-            users = conf.user.split(',')
+            users = conf.user.split(",")
 
             if Backend.isDbms(DBMS.MYSQL):
                 for user in users:
@@ -174,7 +200,17 @@ class Users:
 
         users = [_f for _f in users if _f]
 
-        if any(isTechniqueAvailable(_) for _ in (PAYLOAD.TECHNIQUE.UNION, PAYLOAD.TECHNIQUE.ERROR, PAYLOAD.TECHNIQUE.QUERY)) or conf.direct:
+        if (
+            any(
+                isTechniqueAvailable(_)
+                for _ in (
+                    PAYLOAD.TECHNIQUE.UNION,
+                    PAYLOAD.TECHNIQUE.ERROR,
+                    PAYLOAD.TECHNIQUE.QUERY,
+                )
+            )
+            or conf.direct
+        ):
             if Backend.isDbms(DBMS.MSSQL) and Backend.isVersionWithin(("2005", "2008")):
                 query = rootQuery.inband.query2
             else:
@@ -184,16 +220,29 @@ class Users:
 
             if conf.user:
                 query += " WHERE "
-                query += " OR ".join("%s = '%s'" % (condition, user) for user in sorted(users))
+                query += " OR ".join(
+                    "%s = '%s'" % (condition, user) for user in sorted(users)
+                )
 
             if Backend.isDbms(DBMS.SYBASE):
                 randStr = randomStr()
                 getCurrentThreadData().disableStdOut = True
 
-                retVal = pivotDumpTable("(%s) AS %s" % (query, randStr), ['%s.name' % randStr, '%s.password' % randStr], blind=False)
+                retVal = pivotDumpTable(
+                    "(%s) AS %s" % (query, randStr),
+                    ["%s.name" % randStr, "%s.password" % randStr],
+                    blind=False,
+                )
 
                 if retVal:
-                    for user, password in filterPairValues(list(zip(retVal[0]["%s.name" % randStr], retVal[0]["%s.password" % randStr]))):
+                    for user, password in filterPairValues(
+                        list(
+                            zip(
+                                retVal[0]["%s.name" % randStr],
+                                retVal[0]["%s.password" % randStr],
+                            )
+                        )
+                    ):
                         if user not in kb.data.cachedUsersPasswords:
                             kb.data.cachedUsersPasswords[user] = [password]
                         else:
@@ -214,7 +263,11 @@ class Users:
                     else:
                         kb.data.cachedUsersPasswords[user].append(password)
 
-        if not kb.data.cachedUsersPasswords and isInferenceAvailable() and not conf.direct:
+        if (
+            not kb.data.cachedUsersPasswords
+            and isInferenceAvailable()
+            and not conf.direct
+        ):
             if not len(users):
                 users = self.getUsers()
 
@@ -231,10 +284,21 @@ class Users:
                 randStr = randomStr()
                 query = rootQuery.inband.query
 
-                retVal = pivotDumpTable("(%s) AS %s" % (query, randStr), ['%s.name' % randStr, '%s.password' % randStr], blind=True)
+                retVal = pivotDumpTable(
+                    "(%s) AS %s" % (query, randStr),
+                    ["%s.name" % randStr, "%s.password" % randStr],
+                    blind=True,
+                )
 
                 if retVal:
-                    for user, password in filterPairValues(list(zip(retVal[0]["%s.name" % randStr], retVal[0]["%s.password" % randStr]))):
+                    for user, password in filterPairValues(
+                        list(
+                            zip(
+                                retVal[0]["%s.name" % randStr],
+                                retVal[0]["%s.password" % randStr],
+                            )
+                        )
+                    ):
                         password = "0x%s" % hexencode(password, conf.encoding).upper()
 
                         if user not in kb.data.cachedUsersPasswords:
@@ -259,12 +323,20 @@ class Users:
                         infoMsg += "for user '%s'" % user
                         logger.info(infoMsg)
 
-                        if Backend.isDbms(DBMS.MSSQL) and Backend.isVersionWithin(("2005", "2008")):
+                        if Backend.isDbms(DBMS.MSSQL) and Backend.isVersionWithin(
+                            ("2005", "2008")
+                        ):
                             query = rootQuery.blind.count2 % user
                         else:
                             query = rootQuery.blind.count % user
 
-                        count = inject.getValue(query, union=False, error=False, expected=EXPECTED.INT, charsetType=CHARSET_TYPE.DIGITS)
+                        count = inject.getValue(
+                            query,
+                            union=False,
+                            error=False,
+                            expected=EXPECTED.INT,
+                            charsetType=CHARSET_TYPE.DIGITS,
+                        )
 
                         if not isNumPosStrValue(count):
                             warnMsg = "unable to retrieve the number of password "
@@ -291,7 +363,9 @@ class Users:
                         else:
                             query = rootQuery.blind.query % (user, index)
 
-                        password = unArrayizeValue(inject.getValue(query, union=False, error=False))
+                        password = unArrayizeValue(
+                            inject.getValue(query, union=False, error=False)
+                        )
                         password = parsePasswordHash(password)
 
                         passwords.append(password)
@@ -313,17 +387,19 @@ class Users:
             logger.error(errMsg)
         else:
             for user in kb.data.cachedUsersPasswords:
-                kb.data.cachedUsersPasswords[user] = list(set(kb.data.cachedUsersPasswords[user]))
+                kb.data.cachedUsersPasswords[user] = list(
+                    set(kb.data.cachedUsersPasswords[user])
+                )
 
             storeHashesToFile(kb.data.cachedUsersPasswords)
 
             message = "do you want to perform a dictionary-based attack "
             message += "against retrieved password hashes? [Y/n/q]"
-            choice = readInput(message, default='Y').upper()
+            choice = readInput(message, default="Y").upper()
 
-            if choice == 'N':
+            if choice == "N":
                 pass
-            elif choice == 'Q':
+            elif choice == "Q":
                 raise SqlmapUserQuitException
             else:
                 attackCachedUsersPasswords()
@@ -345,7 +421,7 @@ class Users:
             conf.user = conf.user.upper()
 
         if conf.user:
-            users = conf.user.split(',')
+            users = conf.user.split(",")
 
             if Backend.isDbms(DBMS.MYSQL):
                 for user in users:
@@ -361,7 +437,18 @@ class Users:
         # Set containing the list of DBMS administrators
         areAdmins = set()
 
-        if not kb.data.cachedUsersPrivileges and any(isTechniqueAvailable(_) for _ in (PAYLOAD.TECHNIQUE.UNION, PAYLOAD.TECHNIQUE.ERROR, PAYLOAD.TECHNIQUE.QUERY)) or conf.direct:
+        if (
+            not kb.data.cachedUsersPrivileges
+            and any(
+                isTechniqueAvailable(_)
+                for _ in (
+                    PAYLOAD.TECHNIQUE.UNION,
+                    PAYLOAD.TECHNIQUE.ERROR,
+                    PAYLOAD.TECHNIQUE.QUERY,
+                )
+            )
+            or conf.direct
+        ):
             if Backend.isDbms(DBMS.MYSQL) and not kb.data.has_information_schema:
                 query = rootQuery.inband.query2
                 condition = rootQuery.inband.condition2
@@ -376,9 +463,13 @@ class Users:
                 query += " WHERE "
 
                 if Backend.isDbms(DBMS.MYSQL) and kb.data.has_information_schema:
-                    query += " OR ".join("%s LIKE '%%%s%%'" % (condition, user) for user in sorted(users))
+                    query += " OR ".join(
+                        "%s LIKE '%%%s%%'" % (condition, user) for user in sorted(users)
+                    )
                 else:
-                    query += " OR ".join("%s = '%s'" % (condition, user) for user in sorted(users))
+                    query += " OR ".join(
+                        "%s = '%s'" % (condition, user) for user in sorted(users)
+                    )
 
             values = inject.getValue(query, blind=False, time=False)
 
@@ -407,18 +498,27 @@ class Users:
 
                             # In PostgreSQL we get 1 if the privilege is
                             # True, 0 otherwise
-                            if Backend.isDbms(DBMS.PGSQL) and getUnicode(privilege).isdigit():
+                            if (
+                                Backend.isDbms(DBMS.PGSQL)
+                                and getUnicode(privilege).isdigit()
+                            ):
                                 if int(privilege) == 1:
                                     privileges.add(PGSQL_PRIVS[count])
 
                             # In MySQL >= 5.0 and Oracle we get the list
                             # of privileges as string
-                            elif Backend.isDbms(DBMS.ORACLE) or (Backend.isDbms(DBMS.MYSQL) and kb.data.has_information_schema):
+                            elif Backend.isDbms(DBMS.ORACLE) or (
+                                Backend.isDbms(DBMS.MYSQL)
+                                and kb.data.has_information_schema
+                            ):
                                 privileges.add(privilege)
 
                             # In MySQL < 5.0 we get Y if the privilege is
                             # True, N otherwise
-                            elif Backend.isDbms(DBMS.MYSQL) and not kb.data.has_information_schema:
+                            elif (
+                                Backend.isDbms(DBMS.MYSQL)
+                                and not kb.data.has_information_schema
+                            ):
                                 if privilege.upper() == "Y":
                                     privileges.add(MYSQL_PRIVS[count])
 
@@ -430,7 +530,7 @@ class Users:
                             # In DB2 we get Y or G if the privilege is
                             # True, N otherwise
                             elif Backend.isDbms(DBMS.DB2):
-                                privs = privilege.split(',')
+                                privs = privilege.split(",")
                                 privilege = privs[0]
                                 if len(privs) > 1:
                                     privs = privs[1]
@@ -439,7 +539,9 @@ class Users:
 
                                     for priv in privs:
                                         if priv.upper() in ("Y", "G"):
-                                            for position, db2Priv in list(DB2_PRIVS.items()):
+                                            for position, db2Priv in list(
+                                                DB2_PRIVS.items()
+                                            ):
                                                 if position == i:
                                                     privilege += ", " + db2Priv
 
@@ -448,11 +550,17 @@ class Users:
                                 privileges.add(privilege)
 
                     if user in kb.data.cachedUsersPrivileges:
-                        kb.data.cachedUsersPrivileges[user] = list(privileges.union(kb.data.cachedUsersPrivileges[user]))
+                        kb.data.cachedUsersPrivileges[user] = list(
+                            privileges.union(kb.data.cachedUsersPrivileges[user])
+                        )
                     else:
                         kb.data.cachedUsersPrivileges[user] = list(privileges)
 
-        if not kb.data.cachedUsersPrivileges and isInferenceAvailable() and not conf.direct:
+        if (
+            not kb.data.cachedUsersPrivileges
+            and isInferenceAvailable()
+            and not conf.direct
+        ):
             if Backend.isDbms(DBMS.MYSQL) and kb.data.has_information_schema:
                 conditionChar = "LIKE"
             else:
@@ -485,7 +593,10 @@ class Users:
                     infoMsg += "for user '%s'" % outuser
                     logger.info(infoMsg)
 
-                    if Backend.isDbms(DBMS.MYSQL) and not kb.data.has_information_schema:
+                    if (
+                        Backend.isDbms(DBMS.MYSQL)
+                        and not kb.data.has_information_schema
+                    ):
                         query = rootQuery.blind.count2 % user
                     elif Backend.isDbms(DBMS.MYSQL) and kb.data.has_information_schema:
                         query = rootQuery.blind.count % (conditionChar, user)
@@ -494,10 +605,20 @@ class Users:
                     else:
                         query = rootQuery.blind.count % user
 
-                    count = inject.getValue(query, union=False, error=False, expected=EXPECTED.INT, charsetType=CHARSET_TYPE.DIGITS)
+                    count = inject.getValue(
+                        query,
+                        union=False,
+                        error=False,
+                        expected=EXPECTED.INT,
+                        charsetType=CHARSET_TYPE.DIGITS,
+                    )
 
                     if not isNumPosStrValue(count):
-                        if not retrievedUsers and Backend.isDbms(DBMS.ORACLE) and not query2:
+                        if (
+                            not retrievedUsers
+                            and Backend.isDbms(DBMS.ORACLE)
+                            and not query2
+                        ):
                             infoMsg = "trying with table USER_SYS_PRIVS"
                             logger.info(infoMsg)
 
@@ -517,7 +638,10 @@ class Users:
                 indexRange = getLimitRange(count, plusOne=plusOne)
 
                 for index in indexRange:
-                    if Backend.isDbms(DBMS.MYSQL) and not kb.data.has_information_schema:
+                    if (
+                        Backend.isDbms(DBMS.MYSQL)
+                        and not kb.data.has_information_schema
+                    ):
                         query = rootQuery.blind.query2 % (user, index)
                     elif Backend.isDbms(DBMS.MYSQL) and kb.data.has_information_schema:
                         query = rootQuery.blind.query % (conditionChar, user, index)
@@ -530,7 +654,9 @@ class Users:
                     else:
                         query = rootQuery.blind.query % (user, index)
 
-                    privilege = unArrayizeValue(inject.getValue(query, union=False, error=False))
+                    privilege = unArrayizeValue(
+                        inject.getValue(query, union=False, error=False)
+                    )
 
                     if privilege is None:
                         continue
@@ -538,8 +664,8 @@ class Users:
                     # In PostgreSQL we get 1 if the privilege is True,
                     # 0 otherwise
                     if Backend.isDbms(DBMS.PGSQL) and ", " in privilege:
-                        privilege = privilege.replace(", ", ',')
-                        privs = privilege.split(',')
+                        privilege = privilege.replace(", ", ",")
+                        privs = privilege.split(",")
                         i = 1
 
                         for priv in privs:
@@ -552,18 +678,23 @@ class Users:
 
                     # In MySQL >= 5.0 and Oracle we get the list
                     # of privileges as string
-                    elif Backend.isDbms(DBMS.ORACLE) or (Backend.isDbms(DBMS.MYSQL) and kb.data.has_information_schema):
+                    elif Backend.isDbms(DBMS.ORACLE) or (
+                        Backend.isDbms(DBMS.MYSQL) and kb.data.has_information_schema
+                    ):
                         privileges.add(privilege)
 
                     # In MySQL < 5.0 we get Y if the privilege is
                     # True, N otherwise
-                    elif Backend.isDbms(DBMS.MYSQL) and not kb.data.has_information_schema:
-                        privilege = privilege.replace(", ", ',')
-                        privs = privilege.split(',')
+                    elif (
+                        Backend.isDbms(DBMS.MYSQL)
+                        and not kb.data.has_information_schema
+                    ):
+                        privilege = privilege.replace(", ", ",")
+                        privs = privilege.split(",")
                         i = 1
 
                         for priv in privs:
-                            if priv.upper() == 'Y':
+                            if priv.upper() == "Y":
                                 for position, mysqlPriv in list(MYSQL_PRIVS.items()):
                                     if position == i:
                                         privileges.add(mysqlPriv)
@@ -581,14 +712,14 @@ class Users:
                     # In DB2 we get Y or G if the privilege is
                     # True, N otherwise
                     elif Backend.isDbms(DBMS.DB2):
-                        privs = privilege.split(',')
+                        privs = privilege.split(",")
                         privilege = privs[0]
                         privs = privs[1]
                         privs = list(privs.strip())
                         i = 1
 
                         for priv in privs:
-                            if priv.upper() in ('Y', 'G'):
+                            if priv.upper() in ("Y", "G"):
                                 for position, db2Priv in list(DB2_PRIVS.items()):
                                     if position == i:
                                         privilege += ", " + db2Priv
@@ -600,7 +731,10 @@ class Users:
                     # In MySQL < 5.0 we break the cycle after the first
                     # time we get the user's privileges otherwise we
                     # duplicate the same query
-                    if Backend.isDbms(DBMS.MYSQL) and not kb.data.has_information_schema:
+                    if (
+                        Backend.isDbms(DBMS.MYSQL)
+                        and not kb.data.has_information_schema
+                    ):
                         break
 
                 if privileges:

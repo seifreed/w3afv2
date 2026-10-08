@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.options.option_list import OptionList
 
 
@@ -28,9 +29,10 @@ class question(object):
 
     The idea is that a wizard object has a lot of this question objects.
     """
+
     def __init__(self, w3af_core):
-        self._question_id = ''
-        self._question_str = ''
+        self._question_id = ""
+        self._question_str = ""
         self.w3af_core = w3af_core
 
         self._previously_answered_values = None
@@ -91,4 +93,4 @@ class question(object):
         return None
 
     def __repr__(self):
-        return '<question object ' + self._question_id + '>'
+        return "<question object " + self._question_id + ">"

@@ -19,10 +19,11 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from .ubuntu1204 import Ubuntu1204
 from .system_info import distribution_matches
 
-KALI_MESSAGE = '''
+KALI_MESSAGE = """
 According to Kali's documentation [0] in order to avoid breaking the packaged\
  w3af version you should run the following commands:
 
@@ -35,11 +36,11 @@ cd w3af
 . /tmp/w3af_dependency_install.sh
 
 [0] http://www.kali.org/kali-monday/bleeding-edge-kali-repositories/
-'''
+"""
 
 
 class Kali(Ubuntu1204):
-    SYSTEM_NAME = 'Kali'
+    SYSTEM_NAME = "Kali"
 
     @staticmethod
     def after_hook():
@@ -47,4 +48,4 @@ class Kali(Ubuntu1204):
 
     @staticmethod
     def is_current_platform():
-        return distribution_matches('kali')
+        return distribution_matches("kali")

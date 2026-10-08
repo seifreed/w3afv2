@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.controllers.wizard.question import question
@@ -28,24 +29,25 @@ class question_target_2(question):
     """
     This is the first question of the wizard, where you have to speficy the target.
     """
+
     def __init__(self, w3af_core):
         question.__init__(self, w3af_core)
 
-        self._question_id = 'target_2'
+        self._question_id = "target_2"
 
-        self._question_title = 'Target Location'
+        self._question_title = "Target Location"
 
-        self._question_str = 'w3af has a group of plugins that fetch information about your target application'
-        self._question_str += ' using Internet search engines. In order to enable or disable those plugins, we need'
-        self._question_str += ' to know the following:'
+        self._question_str = "w3af has a group of plugins that fetch information about your target application"
+        self._question_str += " using Internet search engines. In order to enable or disable those plugins, we need"
+        self._question_str += " to know the following:"
 
     def _get_option_objects(self):
         """
         :return: A list of options for this question.
         """
 
-        d1 = 'Is the target web application reachable from the Internet?'
-        o1 = opt_factory('internet', True, d1, 'boolean')
+        d1 = "Is the target web application reachable from the Internet?"
+        o1 = opt_factory("internet", True, d1, "boolean")
 
         ol = OptionList()
         ol.add(o1)
@@ -54,7 +56,7 @@ class question_target_2(question):
 
     def get_next_question_id(self, options_list):
 
-        internet = options_list['internet'].get_value()
+        internet = options_list["internet"].get_value()
         # FIXME: Do something with this value
 
         return None

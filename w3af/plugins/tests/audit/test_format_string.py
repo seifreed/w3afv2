@@ -25,27 +25,27 @@ from w3af.plugins.tests.helper import PluginTest, PluginConfig
 
 class TestFormatString(PluginTest):
 
-    target_url = 'http://moth/w3af/audit/format_string/format_string.php'
+    target_url = "http://moth/w3af/audit/format_string/format_string.php"
 
     _run_configs = {
-        'cfg': {
-            'target': target_url + '?id=1',
-            'plugins': {
-                'audit': (PluginConfig('format_string'),),
-            }
+        "cfg": {
+            "target": target_url + "?id=1",
+            "plugins": {
+                "audit": (PluginConfig("format_string"),),
+            },
         }
     }
 
-    @attr('ci_fails')
+    @attr("ci_fails")
     def test_found_format(self):
-        cfg = self._run_configs['cfg']
-        self._scan(cfg['target'], cfg['plugins'])
+        cfg = self._run_configs["cfg"]
+        self._scan(cfg["target"], cfg["plugins"])
 
-        vulns = self.kb.get('format_string', 'format_string')
+        vulns = self.kb.get("format_string", "format_string")
         self.assertEqual(1, len(vulns))
 
         # Now some tests around specific details of the found vuln
         vuln = vulns[0]
-        self.assertEqual('Format string vulnerability', vuln.get_name())
+        self.assertEqual("Format string vulnerability", vuln.get_name())
         self.assertEqual(self.target_url, str(vuln.get_url()))
-        self.assertEqual('id', vuln.get_token_name())
+        self.assertEqual("id", vuln.get_token_name())

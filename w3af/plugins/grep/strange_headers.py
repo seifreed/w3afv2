@@ -19,64 +19,66 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.data.kb.knowledge_base as kb
 
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
 
-
 # Remember that this headers are only the ones SENT BY THE SERVER TO THE
 # CLIENT. Headers must be uppercase in order to compare them
-COMMON_HEADERS = {'ACCEPT-RANGES',
-                  'AGE',
-                  'ALLOW',
-                  'CONNECTION',
-                  'CONTENT-DISPOSITION',
-                  'CONTENT-ENCODING',
-                  'CONTENT-LENGTH',
-                  'CONTENT-TYPE',
-                  'CONTENT-SCRIPT-TYPE',
-                  'CONTENT-STYLE-TYPE',
-                  'CONTENT-SECURITY-POLICY',
-                  'CONTENT-SECURITY-POLICY-REPORT-ONLY',
-                  'CONTENT-LANGUAGE',
-                  'CONTENT-LOCATION',
-                  'CACHE-CONTROL',
-                  'DATE',
-                  'EXPIRES',
-                  'ETAG',
-                  'FRAME-OPTIONS',
-                  'KEEP-ALIVE',
-                  'LAST-MODIFIED',
-                  'LINK',
-                  'LOCATION',
-                  'P3P',
-                  'PUBLIC',
-                  'PUBLIC-KEY-PINS',
-                  'PUBLIC-KEY-PINS-REPORT-ONLY',
-                  'PRAGMA',
-                  'PROXY-CONNECTION',
-                  'SET-COOKIE',
-                  'SERVER',
-                  'STRICT-TRANSPORT-SECURITY',
-                  'EXPECT-CT',
-                  'TRANSFER-ENCODING',
-                  'VIA',
-                  'VARY',
-                  'WWW-AUTHENTICATE',
-                  'X-FRAME-OPTIONS',
-                  'X-CONTENT-TYPE-OPTIONS',
-                  'X-POWERED-BY',
-                  'X-ASPNET-VERSION',
-                  'X-CACHE',
-                  'X-UA-COMPATIBLE',
-                  'X-PAD',
-                  'X-XSS-PROTECTION',
-                  'ACCESS-CONTROL-ALLOW-ORIGIN',
-                  'ACCESS-CONTROL-ALLOW-METHODS',
-                  'ACCESS-CONTROL-ALLOW-HEADERS',
-                  'ACCESS-CONTROL-MAX-AGE'}
+COMMON_HEADERS = {
+    "ACCEPT-RANGES",
+    "AGE",
+    "ALLOW",
+    "CONNECTION",
+    "CONTENT-DISPOSITION",
+    "CONTENT-ENCODING",
+    "CONTENT-LENGTH",
+    "CONTENT-TYPE",
+    "CONTENT-SCRIPT-TYPE",
+    "CONTENT-STYLE-TYPE",
+    "CONTENT-SECURITY-POLICY",
+    "CONTENT-SECURITY-POLICY-REPORT-ONLY",
+    "CONTENT-LANGUAGE",
+    "CONTENT-LOCATION",
+    "CACHE-CONTROL",
+    "DATE",
+    "EXPIRES",
+    "ETAG",
+    "FRAME-OPTIONS",
+    "KEEP-ALIVE",
+    "LAST-MODIFIED",
+    "LINK",
+    "LOCATION",
+    "P3P",
+    "PUBLIC",
+    "PUBLIC-KEY-PINS",
+    "PUBLIC-KEY-PINS-REPORT-ONLY",
+    "PRAGMA",
+    "PROXY-CONNECTION",
+    "SET-COOKIE",
+    "SERVER",
+    "STRICT-TRANSPORT-SECURITY",
+    "EXPECT-CT",
+    "TRANSFER-ENCODING",
+    "VIA",
+    "VARY",
+    "WWW-AUTHENTICATE",
+    "X-FRAME-OPTIONS",
+    "X-CONTENT-TYPE-OPTIONS",
+    "X-POWERED-BY",
+    "X-ASPNET-VERSION",
+    "X-CACHE",
+    "X-UA-COMPATIBLE",
+    "X-PAD",
+    "X-XSS-PROTECTION",
+    "ACCESS-CONTROL-ALLOW-ORIGIN",
+    "ACCESS-CONTROL-ALLOW-METHODS",
+    "ACCESS-CONTROL-ALLOW-HEADERS",
+    "ACCESS-CONTROL-MAX-AGE",
+}
 
 
 def is_strange(header_name):
@@ -115,19 +117,22 @@ class strange_headers(GrepPlugin):
         for header_name in strange_header_list:
             hvalue = headers[header_name]
 
-            desc = ('The remote web server sent the HTTP header: "%s"'
-                    ' with value: "%s", which is quite uncommon and'
-                    ' requires manual analysis.')
+            desc = (
+                'The remote web server sent the HTTP header: "%s"'
+                ' with value: "%s", which is quite uncommon and'
+                " requires manual analysis."
+            )
             desc %= (header_name, hvalue)
 
-            i = Info('Strange header', desc, response.id, self.get_name())
+            i = Info("Strange header", desc, response.id, self.get_name())
             i.add_to_highlight(hvalue, header_name)
             i.set_url(response.get_url())
             i[StrangeHeaderInfoSet.ITAG] = header_name
-            i['header_value'] = hvalue
+            i["header_value"] = hvalue
 
-            self.kb_append_uniq_group(self, 'strange_headers', i,
-                                      group_klass=StrangeHeaderInfoSet)
+            self.kb_append_uniq_group(
+                self, "strange_headers", i, group_klass=StrangeHeaderInfoSet
+            )
 
     def _content_location_not_300(self, request, response):
         """
@@ -140,23 +145,24 @@ class strange_headers(GrepPlugin):
             return
 
         headers = response.get_headers()
-        header_value, header_name = headers.iget('content-location')
+        header_value, header_name = headers.iget("content-location")
 
         if header_value is None:
             return
 
-        desc = ('The URL: "%s" sent the HTTP header: "content-location"'
-                ' with value: "%s" in an HTTP response with code %s which'
-                ' is a violation to the RFC.')
-        desc %= (response.get_url(),
-                 header_value,
-                 response.get_code())
-        i = Info('Content-Location HTTP header anomaly', desc,
-                 response.id, self.get_name())
+        desc = (
+            'The URL: "%s" sent the HTTP header: "content-location"'
+            ' with value: "%s" in an HTTP response with code %s which'
+            " is a violation to the RFC."
+        )
+        desc %= (response.get_url(), header_value, response.get_code())
+        i = Info(
+            "Content-Location HTTP header anomaly", desc, response.id, self.get_name()
+        )
         i.set_url(response.get_url())
-        i.add_to_highlight('content-location')
+        i.add_to_highlight("content-location")
 
-        kb.kb.append(self, 'anomaly', i)
+        kb.kb.append(self, "anomaly", i)
 
     def get_long_desc(self):
         """
@@ -169,14 +175,14 @@ class strange_headers(GrepPlugin):
 
 
 class StrangeHeaderInfoSet(InfoSet):
-    ITAG = 'header_name'
+    ITAG = "header_name"
     TEMPLATE = (
-        'The remote web server sent {{ uris|length }} HTTP responses with'
+        "The remote web server sent {{ uris|length }} HTTP responses with"
         ' the uncommon response header "{{ header_name }}", one of the received'
         ' header values is "{{ header_value }}". The first ten URLs which sent'
-        ' the uncommon header are:\n'
-        ''
-        '{% for url in uris[:10] %}'
-        ' - {{ url }}\n'
-        '{% endfor %}'
+        " the uncommon header are:\n"
+        ""
+        "{% for url in uris[:10] %}"
+        " - {{ url }}\n"
+        "{% endfor %}"
     )

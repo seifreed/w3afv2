@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 import w3af.core.data.kb.knowledge_base as kb
@@ -35,33 +36,33 @@ class test_ssn(unittest.TestCase):
         kb.kb.cleanup()
         self.plugin = ssn()
         self.plugin._already_inspected = set()
-        self.url = URL('http://www.w3af.com/')
+        self.url = URL("http://www.w3af.com/")
         self.request = FuzzableRequest(self.url)
 
     def tearDown(self):
         self.plugin.end()
 
     def test_ssn_empty_string(self):
-        body = ''
-        headers = Headers([('content-type', 'text/html')])
+        body = ""
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, self.url, self.url, _id=1)
         self.plugin._already_inspected = set()
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get('ssn', 'ssn')), 0)
+        self.assertEqual(len(kb.kb.get("ssn", "ssn")), 0)
 
     def test_ssn_separated(self):
-        body = 'header 771-12-9876 footer'
-        headers = Headers([('content-type', 'text/html')])
+        body = "header 771-12-9876 footer"
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get('ssn', 'ssn')), 1)
+        self.assertEqual(len(kb.kb.get("ssn", "ssn")), 1)
 
     def test_ssn_with_html(self):
-        body = 'header <b>771</b>-<b>12</b>-<b>9878</b> footer'
-        headers = Headers([('content-type', 'text/html')])
+        body = "header <b>771</b>-<b>12</b>-<b>9878</b> footer"
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get('ssn', 'ssn')), 1)
+        self.assertEqual(len(kb.kb.get("ssn", "ssn")), 1)
 
     def test_ssn_with_complex_html(self):
         """
@@ -75,43 +76,45 @@ class test_ssn(unittest.TestCase):
                     <option value="11-19">11-19</option>
                     <option value="20+">20+</option>
                 </select>"""
-        headers = Headers([('content-type', 'text/html')])
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get('ssn', 'ssn')), 0)
+        self.assertEqual(len(kb.kb.get("ssn", "ssn")), 0)
 
     def test_ssn_together(self):
-        body = 'header 771129876 footer'
-        headers = Headers([('content-type', 'text/html')])
+        body = "header 771129876 footer"
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get('ssn', 'ssn')), 1)
+        self.assertEqual(len(kb.kb.get("ssn", "ssn")), 1)
 
     def test_ssn_extra_number(self):
-        body = 'header 7711298761 footer'
-        headers = Headers([('content-type', 'text/html')])
+        body = "header 7711298761 footer"
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get('ssn', 'ssn')), 0)
+        self.assertEqual(len(kb.kb.get("ssn", "ssn")), 0)
 
     def test_find_ssn(self):
-        EXPECTED = set([(None, None),
-                      ('771129876', '771-12-9876'),
-            ('771129876', '771-12-9876'),
-            ('771 12 9876', '771-12-9876'),
-            ('771 12 9876', '771-12-9876'),
-            ('771 12 9876', '771-12-9876'),
-            ('771129876', '771-12-9876')])
+        EXPECTED = set(
+            [
+                (None, None),
+                ("771129876", "771-12-9876"),
+                ("771129876", "771-12-9876"),
+                ("771 12 9876", "771-12-9876"),
+                ("771 12 9876", "771-12-9876"),
+                ("771 12 9876", "771-12-9876"),
+                ("771129876", "771-12-9876"),
+            ]
+        )
 
         res = []
-        res.append(self.plugin._find_SSN(''))
-        res.append(self.plugin._find_SSN('header 771129876 footer'))
-        res.append(self.plugin._find_SSN('771129876'))
-        res.append(self.plugin._find_SSN('header 771 12 9876 footer'))
-        res.append(self.plugin._find_SSN('header 771 12 9876 32 footer'))
-        res.append(self.plugin._find_SSN('header 771 12 9876 32 64 footer'))
-        res.append(
-            self.plugin._find_SSN('header 771129876 771129875 footer'))
+        res.append(self.plugin._find_SSN(""))
+        res.append(self.plugin._find_SSN("header 771129876 footer"))
+        res.append(self.plugin._find_SSN("771129876"))
+        res.append(self.plugin._find_SSN("header 771 12 9876 footer"))
+        res.append(self.plugin._find_SSN("header 771 12 9876 32 footer"))
+        res.append(self.plugin._find_SSN("header 771 12 9876 32 64 footer"))
+        res.append(self.plugin._find_SSN("header 771129876 771129875 footer"))
 
-        self.assertEqual(EXPECTED,
-                         set(res))
+        self.assertEqual(EXPECTED, set(res))

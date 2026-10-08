@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.data.constants.severity as severity
 import w3af.core.data.constants.response_codes as http_constants
 
@@ -33,10 +34,13 @@ class htaccess_methods(AuditPlugin):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     AUTH_CODES = {http_constants.UNAUTHORIZED, http_constants.FORBIDDEN}
-    SUCCESS_CODES = {http_constants.FOUND,
-                     http_constants.MOVED_PERMANENTLY,
-                     http_constants.OK}
+    SUCCESS_CODES = {
+        http_constants.FOUND,
+        http_constants.MOVED_PERMANENTLY,
+        http_constants.OK,
+    }
 
     def __init__(self):
         AuditPlugin.__init__(self)
@@ -67,10 +71,10 @@ class htaccess_methods(AuditPlugin):
         some data with methods that may be wrongly enabled.
         """
         allowed_methods = []
-        for method in ['GET', 'POST', 'ABCD', 'HEAD']:
+        for method in ["GET", "POST", "ABCD", "HEAD"]:
             method_functor = getattr(self._uri_opener, method)
             try:
-                response = method_functor(*(url,), **{'debugging_id': debugging_id})
+                response = method_functor(*(url,), **{"debugging_id": debugging_id})
                 code = response.get_code()
             except:
                 pass
@@ -79,21 +83,28 @@ class htaccess_methods(AuditPlugin):
                     allowed_methods.append((method, response.id))
 
         if len(allowed_methods) > 0:
-            
+
             response_ids = [i for m, i in allowed_methods]
-            methods = ', '.join([m for m, i in allowed_methods]) + '.'
-            desc = ('The resource: "%s" requires authentication but the access'
-                    ' is misconfigured and can be bypassed using these'
-                    ' methods: %s')
+            methods = ", ".join([m for m, i in allowed_methods]) + "."
+            desc = (
+                'The resource: "%s" requires authentication but the access'
+                " is misconfigured and can be bypassed using these"
+                " methods: %s"
+            )
             desc %= (url, methods)
-            
-            v = Vuln('Misconfigured access control', desc,
-                     severity.MEDIUM, response_ids, self.get_name())
+
+            v = Vuln(
+                "Misconfigured access control",
+                desc,
+                severity.MEDIUM,
+                response_ids,
+                self.get_name(),
+            )
 
             v.set_url(url)
-            v['methods'] = allowed_methods
-            
-            self.kb_append(self, 'auth', v)
+            v["methods"] = allowed_methods
+
+            self.kb_append(self, "auth", v)
 
     def get_long_desc(self):
         """

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import csv
 import base64
@@ -41,7 +42,7 @@ class csv_file(OutputPlugin):
 
     def __init__(self):
         OutputPlugin.__init__(self)
-        self.output_file = '~/output-w3af.csv'
+        self.output_file = "~/output-w3af.csv"
 
     def do_nothing(self, *args, **kwargs):
         pass
@@ -60,38 +61,43 @@ class csv_file(OutputPlugin):
         self.output_file = os.path.expanduser(self.output_file)
 
         try:
-            output_handler = open(self.output_file, 'wb')
+            output_handler = open(self.output_file, "wb")
         except IOError as ioe:
             msg = 'Failed to open the output file for writing: "%s"'
             om.out.error(msg % ioe)
             return
 
         try:
-            csv_writer = csv.writer(output_handler,
-                                    delimiter=',',
-                                    quotechar='|',
-                                    quoting=csv.QUOTE_MINIMAL)
+            csv_writer = csv.writer(
+                output_handler, delimiter=",", quotechar="|", quoting=csv.QUOTE_MINIMAL
+            )
         except Exception as e:
-            msg = ('An exception was raised while trying to open the '
-                   ' CSV writer. Exception: "%s"')
+            msg = (
+                "An exception was raised while trying to open the "
+                ' CSV writer. Exception: "%s"'
+            )
             om.out.error(msg % e)
             output_handler.close()
             return
 
         for info in kb.kb.get_all_findings_iter():
             try:
-                row = [info.get_severity(),
-                       info.get_name(),
-                       info.get_method(),
-                       info.get_uri(),
-                       info.get_token_name(),
-                       base64.b64encode(info.get_mutant().get_data()),
-                       info.get_id(),
-                       info.get_desc()]
+                row = [
+                    info.get_severity(),
+                    info.get_name(),
+                    info.get_method(),
+                    info.get_uri(),
+                    info.get_token_name(),
+                    base64.b64encode(info.get_mutant().get_data()),
+                    info.get_id(),
+                    info.get_desc(),
+                ]
                 csv_writer.writerow(row)
             except Exception as e:
-                msg = ('An exception was raised while trying to write the '
-                       ' vulnerabilities to the output file. Exception: "%s"')
+                msg = (
+                    "An exception was raised while trying to write the "
+                    ' vulnerabilities to the output file. Exception: "%s"'
+                )
                 om.out.error(msg % e)
                 output_handler.close()
                 print(e)
@@ -136,7 +142,7 @@ class csv_file(OutputPlugin):
 
         :return: No value is returned.
         """
-        self.output_file = option_list['output_file'].get_value()
+        self.output_file = option_list["output_file"].get_value()
 
     def get_options(self):
         """
@@ -144,8 +150,8 @@ class csv_file(OutputPlugin):
         """
         ol = OptionList()
 
-        d = 'The name of the output file where the vulnerabilities are be saved'
-        o = opt_factory('output_file', self.output_file, d, OUTPUT_FILE)
+        d = "The name of the output file where the vulnerabilities are be saved"
+        o = opt_factory("output_file", self.output_file, d, OUTPUT_FILE)
         ol.add(o)
 
         return ol

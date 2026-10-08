@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import time
 import weakref
 
@@ -27,12 +28,12 @@ import w3af.core.controllers.output_manager as om
 
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
 
-DEBUG = 'debug'
-INFORMATION = 'information'
-ERROR = 'error'
-VULNERABILITY = 'vulnerability'
-CONSOLE = 'console'
-LOG_HTTP = 'log_http'
+DEBUG = "debug"
+INFORMATION = "information"
+ERROR = "error"
+VULNERABILITY = "vulnerability"
+CONSOLE = "console"
+LOG_HTTP = "log_http"
 
 
 observers = set()
@@ -42,15 +43,16 @@ class GtkOutput(OutputPlugin):
     """
     This is an observer which exposes an OutputPlugin API in order to be added
     to the output manager as one more plugin.
-    
+
     Please note that this is NOT a real plugin, as it can't be enabled/disabled
     by a user.
-    
+
     Any part of the GTK ui can subscribe to the messages that this object
-    receives, and will get all data that is sent to the output manager. 
+    receives, and will get all data that is sent to the output manager.
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def __init__(self):
         pass
 
@@ -66,7 +68,7 @@ class GtkOutput(OutputPlugin):
         #   to save some memory. I'm only creating the object, but without any
         #   msg.
         #
-        m = Message(DEBUG, '', new_line)
+        m = Message(DEBUG, "", new_line)
         self._send_to_observers(m)
 
     def information(self, msg_string, new_line=True):
@@ -109,19 +111,21 @@ class GtkOutput(OutputPlugin):
         Adds a message object to the queue.
         """
         to_remove = set()
-        
+
         for observer in observers.copy():
             try:
                 observer(m)
             except Exception as e:
-                msg = 'Observer function at "%s" failed with exception "%s".'\
-                      ' Removing observer from list.'
+                msg = (
+                    'Observer function at "%s" failed with exception "%s".'
+                    " Removing observer from list."
+                )
                 om.out.error(msg % (observer, e))
                 to_remove.add(observer)
-        
+
         for broken_obs in to_remove:
             observers.remove(broken_obs)
-    
+
     def subscribe(self, observer):
         observers.add(observer)
 
@@ -134,7 +138,7 @@ class GtkOutput(OutputPlugin):
         observers = set()
 
 
-#pylint: disable=E1103
+# pylint: disable=E1103
 def subscribe_to_messages(observer_function):
     """
     Subscribe observer_function to the GtkOutput messages
@@ -159,7 +163,9 @@ def unsubscribe_to_messages(observer_function):
         if isinstance(plugin_inst, GtkOutput):
             plugin_inst.unsubscribe(observer_function)
             break
-#pylint: enable=E1103
+
+
+# pylint: enable=E1103
 
 
 class Message(object):

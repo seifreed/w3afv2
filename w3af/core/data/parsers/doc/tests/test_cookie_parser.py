@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from w3af.core.data.parsers.doc.cookie_parser import parse_cookie
@@ -26,10 +27,9 @@ from w3af.core.data.parsers.doc.cookie_parser import parse_cookie
 
 class TestParseCookie(unittest.TestCase):
     def test_basic(self):
-        cookie = parse_cookie('abc=def')
-        self.assertIn('abc', cookie)
+        cookie = parse_cookie("abc=def")
+        self.assertIn("abc", cookie)
 
     def test_with_path(self):
-        cookie = parse_cookie('abc=def; path=/x')
-        self.assertEqual(cookie['abc']['path'], '/x')
-
+        cookie = parse_cookie("abc=def; path=/x")
+        self.assertEqual(cookie["abc"]["path"], "/x")

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.controllers.output_manager as om
 
 from w3af.core.ui.console.menu import menu
@@ -40,7 +41,7 @@ class ProfilesMenu(menu):
         instance_list, invalid_profiles = w3af.profiles.get_profile_list()
         for _profile in instance_list:
             self._profiles[_profile.get_name()] = _profile
-        self._load_help('profiles')
+        self._load_help("profiles")
 
     def _cmd_use(self, params):
         """
@@ -48,8 +49,8 @@ class ProfilesMenu(menu):
                        load and the original working directory.
         """
         if not params:
-            om.out.console('Parameter missing, please see the help:')
-            self._cmd_help(['use'])
+            om.out.console("Parameter missing, please see the help:")
+            self._cmd_help(["use"])
         else:
             profile = params[0]
 
@@ -63,18 +64,19 @@ class ProfilesMenu(menu):
             except BaseFrameworkException as w3:
                 om.out.console(str(w3))
 
-            om.out.console('The plugins configured by the scan profile have '
-                           'been enabled, and their options configured.')
-            om.out.console('Please set the target URL(s) and start the scan.')
+            om.out.console(
+                "The plugins configured by the scan profile have "
+                "been enabled, and their options configured."
+            )
+            om.out.console("Please set the target URL(s) and start the scan.")
 
     def _cmd_list(self, params):
         if params:
-            om.out.console('No parameters expected')
+            om.out.console("No parameters expected")
         else:
-            table = [['Profile', 'Description'], []]
+            table = [["Profile", "Description"], []]
             for profileInstance in list(self._profiles.values()):
-                table.append(
-                    [profileInstance.get_name(), profileInstance.get_desc()])
+                table.append([profileInstance.get_name(), profileInstance.get_desc()])
 
             self._console.draw_table(table)
 
@@ -85,8 +87,8 @@ class ProfilesMenu(menu):
         self_contained = False
 
         if not params:
-            om.out.console('Parameter missing, please see the help:')
-            self._cmd_help(['save_as'])
+            om.out.console("Parameter missing, please see the help:")
+            self._cmd_help(["save_as"])
             return
 
         elif len(params) == 1:
@@ -100,31 +102,31 @@ class ProfilesMenu(menu):
             profile_name = params[0]
             self_contained = params[1]
 
-            if 'self-contained' != self_contained:
-                om.out.console('Invalid profile save flag, please see the help:')
-                self._cmd_help(['save_as'])
+            if "self-contained" != self_contained:
+                om.out.console("Invalid profile save flag, please see the help:")
+                self._cmd_help(["save_as"])
                 return
             else:
                 self_contained = True
 
         else:
-            om.out.console('Too many parameters, please see the help:')
-            self._cmd_help(['save_as'])
+            om.out.console("Too many parameters, please see the help:")
+            self._cmd_help(["save_as"])
             return
 
         # Validate the profile name
         try:
             Profile.is_valid_profile_name(profile_name)
         except BaseFrameworkException as bfe:
-            om.out.console('%s' % bfe)
+            om.out.console("%s" % bfe)
             return
 
-        description = 'Profile generated using the console UI.'
-        self._w3af.profiles.save_current_to_new_profile(profile_name,
-                                                        description,
-                                                        self_contained=self_contained)
-        
-        om.out.console('Profile saved.')
+        description = "Profile generated using the console UI."
+        self._w3af.profiles.save_current_to_new_profile(
+            profile_name, description, self_contained=self_contained
+        )
+
+        om.out.console("Profile saved.")
 
     def _para_use(self, params, part):
         if not params:

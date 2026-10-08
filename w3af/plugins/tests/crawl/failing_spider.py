@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.plugins.crawl.web_spider import web_spider
 
 
@@ -33,7 +34,7 @@ class failing_spider(web_spider):
     def __init__(self):
         web_spider.__init__(self)
 
-        self.blacklist = ('2.html',)
+        self.blacklist = ("2.html",)
 
     def crawl(self, fuzzable_req):
         """
@@ -42,6 +43,6 @@ class failing_spider(web_spider):
         """
         for ending in self.blacklist:
             if fuzzable_req.get_url().url_string.endswith(ending):
-                raise Exception('UnitTest')
+                raise Exception("UnitTest")
 
         return super(failing_spider, self).crawl(fuzzable_req)

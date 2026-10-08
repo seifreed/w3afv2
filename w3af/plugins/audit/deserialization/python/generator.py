@@ -23,4 +23,4 @@ payload = base64.b64encode(dump)
 
 print(('Save this to pickle.json "2": %s' % payload))
 
-print('Manually check the offsets of the 1 and 22 strings and save them to pickle.json')
+print("Manually check the offsets of the 1 and 22 strings and save them to pickle.json")

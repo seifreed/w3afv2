@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import socket
 
 
@@ -32,7 +33,7 @@ def get_local_ip(target=None):
 
     :return: The IP address.
     """
-    connect_target = '4.4.4.2' if target is None else target
+    connect_target = "4.4.4.2" if target is None else target
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         #   UDP is connection-less, no packets are sent to 4.4.4.2

@@ -18,12 +18,15 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import unittest
 
 from w3af.core.data.context.context.main import get_context
-from w3af.core.data.context.context.html import (CSSText,
-                                                 HtmlAttrSingleQuote,
-                                                 HtmlAttrDoubleQuote)
+from w3af.core.data.context.context.html import (
+    CSSText,
+    HtmlAttrSingleQuote,
+    HtmlAttrDoubleQuote,
+)
 
 
 class TestStyleInHTML(unittest.TestCase):
@@ -67,7 +70,7 @@ class TestStyleInHTML(unittest.TestCase):
         <div style='background-image: url("%s")'>
         """
         payload = 'PAYLOAD":('
-        escaped_payload = payload.replace('"', '')
+        escaped_payload = payload.replace('"', "")
         contexts = get_context(html % escaped_payload, payload)
         self.assertEqual(len(contexts), 0)
 
@@ -92,7 +95,7 @@ class TestStyleInHTML(unittest.TestCase):
             </head>
         </html>
         """
-        payload = 'PAYLOAD*/:('
+        payload = "PAYLOAD*/:("
         context = get_context(html % payload, payload)[0]
         self.assertIsInstance(context, CSSText)
         self.assertTrue(context.can_break())
@@ -113,7 +116,7 @@ class TestStyleInHTML(unittest.TestCase):
             </head>
         </html>
         """
-        payload = 'PAYLOAD:('
+        payload = "PAYLOAD:("
         context = get_context(html % payload, payload)[0]
         self.assertIsInstance(context, CSSText)
         self.assertTrue(context.can_break())

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from itertools import repeat
 
 import w3af.core.controllers.output_manager as om
@@ -49,35 +50,35 @@ class open_api(CrawlPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    FILENAMES = ['swagger.json',
-                 'openapi.json',
-                 'openapi.yaml']
+    FILENAMES = ["swagger.json", "openapi.json", "openapi.yaml"]
 
-    DIRECTORIES = ['/',
-                   '/api/',
-                   '/api/v2/',
-                   '/api/v1/',
-                   '/api/v2.0/',
-                   '/api/v2.1/',
-                   '/api/v1.0/',
-                   '/api/v1.1/',
-                   '/api/2.0/',
-                   '/api/2.1/',
-                   '/api/1.0/',
-                   '/api/1.1/']
+    DIRECTORIES = [
+        "/",
+        "/api/",
+        "/api/v2/",
+        "/api/v1/",
+        "/api/v2.0/",
+        "/api/v2.1/",
+        "/api/v1.0/",
+        "/api/v1.1/",
+        "/api/2.0/",
+        "/api/2.1/",
+        "/api/1.0/",
+        "/api/1.1/",
+    ]
 
     def __init__(self):
         CrawlPlugin.__init__(self)
 
         # Internal variables
         self._first_run = True
-        self._already_analyzed = DiskSet(table_prefix='open_api')
+        self._already_analyzed = DiskSet(table_prefix="open_api")
 
         # User configured variables
         self._query_string_auth = QueryString()
         self._header_auth = Headers()
         self._no_spec_validation = False
-        self._custom_spec_location = ''
+        self._custom_spec_location = ""
         self._discover_fuzzable_headers = True
         self._discover_fuzzable_url_parts = True
 
@@ -111,8 +112,8 @@ class open_api(CrawlPlugin):
         :return: None
         """
         if self._first_run and not self._discover_fuzzable_url_parts:
-            cf.cf.save('fuzz_url_filenames', True)
-            cf.cf.save('fuzz_url_parts', True)
+            cf.cf.save("fuzz_url_filenames", True)
+            cf.cf.save("fuzz_url_parts", True)
 
     def _should_analyze(self, url):
         """
@@ -144,14 +145,10 @@ class open_api(CrawlPlugin):
         self._first_run = False
 
         args = zip(
-            self._spec_url_generator_common(fuzzable_request),
-            repeat(debugging_id)
+            self._spec_url_generator_common(fuzzable_request), repeat(debugging_id)
         )
 
-        self.worker_pool.map_multi_args(
-            self._extract_api_calls,
-            args
-        )
+        self.worker_pool.map_multi_args(self._extract_api_calls, args)
 
     def _extract_api_calls(self, spec_url, debugging_id):
         """
@@ -178,10 +175,9 @@ class open_api(CrawlPlugin):
         # Disable the cache because we're sending auth headers which might
         # confuse the cache implementation
         #
-        http_response = self._uri_opener.GET(spec_url,
-                                             headers=self._header_auth,
-                                             cache=False,
-                                             debugging_id=debugging_id)
+        http_response = self._uri_opener.GET(
+            spec_url, headers=self._header_auth, cache=False, debugging_id=debugging_id
+        )
 
         if is_404(http_response):
             return
@@ -201,18 +197,22 @@ class open_api(CrawlPlugin):
         if not OpenAPI.can_parse(http_response):
             return
 
-        om.out.debug('OpenAPI parser is about to parse %s' % spec_url)
+        om.out.debug("OpenAPI parser is about to parse %s" % spec_url)
 
-        parser = OpenAPI(http_response,
-                         self._no_spec_validation,
-                         self._discover_fuzzable_headers,
-                         self._discover_fuzzable_url_parts)
+        parser = OpenAPI(
+            http_response,
+            self._no_spec_validation,
+            self._discover_fuzzable_headers,
+            self._discover_fuzzable_url_parts,
+        )
         parser.parse()
 
         self._report_to_kb_if_needed(http_response, parser)
         self._send_spec_to_core(spec_url)
 
-        om.out.debug('OpenAPI parser identified %s API calls' % len(parser.get_api_calls()))
+        om.out.debug(
+            "OpenAPI parser identified %s API calls" % len(parser.get_api_calls())
+        )
 
         for api_call in parser.get_api_calls():
             if not self._is_target_domain(api_call):
@@ -222,7 +222,7 @@ class open_api(CrawlPlugin):
             self.output_queue.put(api_call)
 
     def _send_spec_to_core(self, spec_url):
-        fuzzable_request = FuzzableRequest(spec_url, method='GET')
+        fuzzable_request = FuzzableRequest(spec_url, method="GET")
         self.output_queue.put(fuzzable_request)
 
     @staticmethod
@@ -231,7 +231,7 @@ class open_api(CrawlPlugin):
         :param fuzzable_request: The api call as a fuzzable request
         :return: True if the target domain matches
         """
-        targets = cf.cf.get('targets')
+        targets = cf.cf.get("targets")
         if not targets:
             return False
 
@@ -241,10 +241,12 @@ class open_api(CrawlPlugin):
         if target_domain == api_call_domain:
             return True
 
-        om.out.debug('The OpenAPI specification has operations which point'
-                     ' to a domain (%s) outside the defined target (%s).'
-                     ' Ignoring the operation to prevent scanning out of scope'
-                     ' targets.' % (api_call_domain, target_domain))
+        om.out.debug(
+            "The OpenAPI specification has operations which point"
+            " to a domain (%s) outside the defined target (%s)."
+            " Ignoring the operation to prevent scanning out of scope"
+            " targets." % (api_call_domain, target_domain)
+        )
         return False
 
     def _report_to_kb_if_needed(self, http_response, parser):
@@ -256,56 +258,67 @@ class open_api(CrawlPlugin):
         :return: None
         """
         if not parser.get_api_calls() and parser.get_parsing_errors():
-            desc = ('An Open API specification was found at: "%s", but the scanner'
-                    ' was unable to extract any API endpoints. In most cases this'
-                    ' is because of a syntax error in the Open API specification.\n'
-                    '\n'
-                    'Use https://editor.swagger.io/ to inspect the Open API'
-                    ' specification, identify and fix any issues and try again.\n'
-                    '\n'
-                    'The errors found by the parser were:\n'
-                    '\n - %s')
+            desc = (
+                'An Open API specification was found at: "%s", but the scanner'
+                " was unable to extract any API endpoints. In most cases this"
+                " is because of a syntax error in the Open API specification.\n"
+                "\n"
+                "Use https://editor.swagger.io/ to inspect the Open API"
+                " specification, identify and fix any issues and try again.\n"
+                "\n"
+                "The errors found by the parser were:\n"
+                "\n - %s"
+            )
 
-            desc %= (http_response.get_url(),
-                     '\n - '.join(parser.get_parsing_errors()))
+            desc %= (http_response.get_url(), "\n - ".join(parser.get_parsing_errors()))
 
-            i = Info('Failed to parse Open API specification',
-                     desc,
-                     http_response.id,
-                     self.get_name())
+            i = Info(
+                "Failed to parse Open API specification",
+                desc,
+                http_response.id,
+                self.get_name(),
+            )
             i.set_url(http_response.get_url())
 
-            kb.kb.append(self, 'open_api', i)
+            kb.kb.append(self, "open_api", i)
             om.out.error(i.get_desc())
 
             return
 
         # Save it to the kb!
-        desc = ('An Open API specification was found at: "%s", the scanner'
-                ' was able to extract %s API endpoints which will be audited'
-                ' for vulnerabilities.')
+        desc = (
+            'An Open API specification was found at: "%s", the scanner'
+            " was able to extract %s API endpoints which will be audited"
+            " for vulnerabilities."
+        )
         desc %= (http_response.get_url(), len(parser.get_api_calls()))
 
-        i = Info('Open API specification found', desc, http_response.id, self.get_name())
+        i = Info(
+            "Open API specification found", desc, http_response.id, self.get_name()
+        )
         i.set_url(http_response.get_url())
 
-        kb.kb.append(self, 'open_api', i)
+        kb.kb.append(self, "open_api", i)
         om.out.information(i.get_desc())
 
         # Warn the user about missing credentials
         if self._query_string_auth or self._header_auth:
             return
 
-        desc = ('An Open API specification was found at: "%s", but no credentials'
-                ' were provided in the `open_api` plugin. The scanner will try'
-                ' to audit the identified endpoints but coverage will most likely'
-                ' be reduced due to missing authentication.')
+        desc = (
+            'An Open API specification was found at: "%s", but no credentials'
+            " were provided in the `open_api` plugin. The scanner will try"
+            " to audit the identified endpoints but coverage will most likely"
+            " be reduced due to missing authentication."
+        )
         desc %= http_response.get_url()
 
-        i = Info('Open API missing credentials', desc, http_response.id, self.get_name())
+        i = Info(
+            "Open API missing credentials", desc, http_response.id, self.get_name()
+        )
         i.set_url(http_response.get_url())
 
-        kb.kb.append(self, 'open_api', i)
+        kb.kb.append(self, "open_api", i)
         om.out.information(i.get_desc())
 
     def _set_authentication_data(self, fuzzable_request):
@@ -346,7 +359,7 @@ class open_api(CrawlPlugin):
 
         for directory in self.DIRECTORIES:
             for filename in self.FILENAMES:
-                spec_url = base_url.url_join('%s%s' % (directory, filename))
+                spec_url = base_url.url_join("%s%s" % (directory, filename))
 
                 if not self._should_analyze(spec_url):
                     continue
@@ -388,13 +401,10 @@ class open_api(CrawlPlugin):
         """
         args = zip(
             self._spec_url_generator_current_path(fuzzable_request),
-            repeat(debugging_id)
+            repeat(debugging_id),
         )
 
-        self.worker_pool.map_multi_args(
-            self._extract_api_calls,
-            args
-        )
+        self.worker_pool.map_multi_args(self._extract_api_calls, args)
 
     def _has_custom_spec_location(self):
         """
@@ -403,7 +413,7 @@ class open_api(CrawlPlugin):
 
         :return: True if the plugin is configured to read a custom API spec
         """
-        return self._custom_spec_location != ''
+        return self._custom_spec_location != ""
 
     def _analyze_custom_spec(self):
         """
@@ -416,19 +426,23 @@ class open_api(CrawlPlugin):
 
         self._first_run = False
 
-        url = URL('file://%s' % os.path.abspath(self._custom_spec_location))
+        url = URL("file://%s" % os.path.abspath(self._custom_spec_location))
 
         ext = os.path.splitext(self._custom_spec_location)[1][1:].lower()
-        if ext not in ('yaml', 'json'):
-            om.out.error('Skip loading custom API spec '
-                         'because of unknown file extension: %s' % ext)
+        if ext not in ("yaml", "json"):
+            om.out.error(
+                "Skip loading custom API spec "
+                "because of unknown file extension: %s" % ext
+            )
             return
 
-        with open(self._custom_spec_location, 'r') as f:
+        with open(self._custom_spec_location, "r") as f:
             custom_spec_as_string = f.read()
 
-        headers = Headers([('content-type', 'application/%s' % ext)])
-        http_response = HTTPResponse(200, custom_spec_as_string, headers, url, url, _id=1)
+        headers = Headers([("content-type", "application/%s" % ext)])
+        http_response = HTTPResponse(
+            200, custom_spec_as_string, headers, url, url, _id=1
+        )
 
         self._extract_api_calls_from_response(url, http_response)
 
@@ -438,57 +452,83 @@ class open_api(CrawlPlugin):
         """
         ol = OptionList()
 
-        d = 'Query string parameters to add in each API request'
-        h = ('Some REST APIs use query string parameters, such as `api_key`'
-             ' for authentication. Set this parameter to configure one or more'
-             ' query string parameters which will be added to each API HTTP'
-             ' request. An example value for this field is: "api_key=0x12345"')
-        o = opt_factory('query_string_auth', self._query_string_auth, d, QUERY_STRING, help=h)
+        d = "Query string parameters to add in each API request"
+        h = (
+            "Some REST APIs use query string parameters, such as `api_key`"
+            " for authentication. Set this parameter to configure one or more"
+            " query string parameters which will be added to each API HTTP"
+            ' request. An example value for this field is: "api_key=0x12345"'
+        )
+        o = opt_factory(
+            "query_string_auth", self._query_string_auth, d, QUERY_STRING, help=h
+        )
         ol.add(o)
 
-        d = 'Headers to add in each API request'
-        h = ('Some REST APIs use HTTP headers, such as `X-Authenticate` or `Basic`'
-             ' for authentication. Set this parameter to configure one or more'
-             ' HTTP headers which will be added to each API request.'
-             ' An example value for this field is: "Basic: bearer 0x12345"')
-        o = opt_factory('header_auth', self._header_auth, d, HEADER, help=h)
+        d = "Headers to add in each API request"
+        h = (
+            "Some REST APIs use HTTP headers, such as `X-Authenticate` or `Basic`"
+            " for authentication. Set this parameter to configure one or more"
+            " HTTP headers which will be added to each API request."
+            ' An example value for this field is: "Basic: bearer 0x12345"'
+        )
+        o = opt_factory("header_auth", self._header_auth, d, HEADER, help=h)
         ol.add(o)
 
-        d = 'Disable Open API spec validation'
-        h = 'By default, the plugin validates Open API specification before extracting endpoints.'
-        o = opt_factory('no_spec_validation', self._no_spec_validation, d, BOOL, help=h)
+        d = "Disable Open API spec validation"
+        h = "By default, the plugin validates Open API specification before extracting endpoints."
+        o = opt_factory("no_spec_validation", self._no_spec_validation, d, BOOL, help=h)
         ol.add(o)
 
-        d = 'Path to Open API specification'
-        h = ('By default, the plugin looks for the API specification on the target,'
-             ' but sometimes applications do not provide an API specification.'
-             ' Set this parameter to specify a local path to the API specification.'
-             ' The file must have .json or .yaml extension.')
-        o = opt_factory('custom_spec_location', self._custom_spec_location, d, INPUT_FILE, help=h)
+        d = "Path to Open API specification"
+        h = (
+            "By default, the plugin looks for the API specification on the target,"
+            " but sometimes applications do not provide an API specification."
+            " Set this parameter to specify a local path to the API specification."
+            " The file must have .json or .yaml extension."
+        )
+        o = opt_factory(
+            "custom_spec_location", self._custom_spec_location, d, INPUT_FILE, help=h
+        )
         ol.add(o)
 
-        d = 'Automatic HTTP header discovery for further testing'
-        h = ('By default, the plugin looks for parameters which are passed to endpoints via HTTP headers,'
-             ' and enables them for further testing.'
-             ' Set this options to False if you would like to disable this feature.'
-             ' You can also set `misc-settings.fuzzable_headers` option to test only specific headers.')
-        o = opt_factory('discover_fuzzable_headers', self._discover_fuzzable_headers, d, BOOL, help=h)
+        d = "Automatic HTTP header discovery for further testing"
+        h = (
+            "By default, the plugin looks for parameters which are passed to endpoints via HTTP headers,"
+            " and enables them for further testing."
+            " Set this options to False if you would like to disable this feature."
+            " You can also set `misc-settings.fuzzable_headers` option to test only specific headers."
+        )
+        o = opt_factory(
+            "discover_fuzzable_headers",
+            self._discover_fuzzable_headers,
+            d,
+            BOOL,
+            help=h,
+        )
         ol.add(o)
 
-        d = 'Automatic path parameter discovery for further testing'
-        h = ('By default, URLs discovered by this plugin allow other plugins'
-             ' to inject content into the path only at locations declared as path'
-             ' parameters in the Open API specification.'
-             '\n'
-             ' For example, if the Open API specification declares an endpoint with the path'
-             ' `/store/product-{productID}`, only the `{productID}` part of the URL will be'
-             ' modified during fuzzing.'
-             '\n'
-             ' Set this option to False if you would like to disable this feature,'
-             ' and instead fuzz all path segments. If this option is set to False,'
-             ' the plugin will automatically set `misc-settings.fuzz_url_parts`'
-             ' and `misc-settings.fuzz_url_filenames` to True')
-        o = opt_factory('discover_fuzzable_url_parts', self._discover_fuzzable_url_parts, d, BOOL, help=h)
+        d = "Automatic path parameter discovery for further testing"
+        h = (
+            "By default, URLs discovered by this plugin allow other plugins"
+            " to inject content into the path only at locations declared as path"
+            " parameters in the Open API specification."
+            "\n"
+            " For example, if the Open API specification declares an endpoint with the path"
+            " `/store/product-{productID}`, only the `{productID}` part of the URL will be"
+            " modified during fuzzing."
+            "\n"
+            " Set this option to False if you would like to disable this feature,"
+            " and instead fuzz all path segments. If this option is set to False,"
+            " the plugin will automatically set `misc-settings.fuzz_url_parts`"
+            " and `misc-settings.fuzz_url_filenames` to True"
+        )
+        o = opt_factory(
+            "discover_fuzzable_url_parts",
+            self._discover_fuzzable_url_parts,
+            d,
+            BOOL,
+            help=h,
+        )
         ol.add(o)
 
         return ol
@@ -501,12 +541,16 @@ class open_api(CrawlPlugin):
         :param options_list: A dictionary with the options for the plugin.
         :return: No value is returned.
         """
-        self._query_string_auth = options_list['query_string_auth'].get_value()
-        self._header_auth = options_list['header_auth'].get_value()
-        self._no_spec_validation = options_list['no_spec_validation'].get_value()
-        self._custom_spec_location = options_list['custom_spec_location'].get_value()
-        self._discover_fuzzable_headers = options_list['discover_fuzzable_headers'].get_value()
-        self._discover_fuzzable_url_parts = options_list['discover_fuzzable_url_parts'].get_value()
+        self._query_string_auth = options_list["query_string_auth"].get_value()
+        self._header_auth = options_list["header_auth"].get_value()
+        self._no_spec_validation = options_list["no_spec_validation"].get_value()
+        self._custom_spec_location = options_list["custom_spec_location"].get_value()
+        self._discover_fuzzable_headers = options_list[
+            "discover_fuzzable_headers"
+        ].get_value()
+        self._discover_fuzzable_url_parts = options_list[
+            "discover_fuzzable_url_parts"
+        ].get_value()
 
     def get_long_desc(self):
         """

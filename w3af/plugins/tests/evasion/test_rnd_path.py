@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from w3af.core.data.parsers.doc.url import URL
@@ -27,40 +28,39 @@ from w3af.plugins.evasion.rnd_path import rnd_path
 
 
 class TestEvasion(unittest.TestCase):
-    
+
     def test_add_path_to_base_url(self):
         rp = rnd_path()
 
-        u = URL('http://www.w3af.com/')
-        r = HTTPRequest( u )
-        url_string = rp.modify_request( r ).url_object.url_string
-        
-        self.assertRegex(url_string, 'http://www.w3af.com/\w*/../')
-        
+        u = URL("http://www.w3af.com/")
+        r = HTTPRequest(u)
+        url_string = rp.modify_request(r).url_object.url_string
+
+        self.assertRegex(url_string, "http://www.w3af.com/\w*/../")
+
     def test_add_path_to_path_url(self):
         rp = rnd_path()
-        
-        u = URL('http://www.w3af.com/abc/')
-        r = HTTPRequest( u )
-        url_string = rp.modify_request( r ).url_object.url_string
-        
-        self.assertRegex(url_string, 'http://www.w3af.com/\w*/../abc/')
-    
+
+        u = URL("http://www.w3af.com/abc/")
+        r = HTTPRequest(u)
+        url_string = rp.modify_request(r).url_object.url_string
+
+        self.assertRegex(url_string, "http://www.w3af.com/\w*/../abc/")
+
     def test_add_with_filename(self):
         rp = rnd_path()
-        
-        u = URL('http://www.w3af.com/abc/def.htm')
-        r = HTTPRequest( u )
-        url_string = rp.modify_request( r ).url_object.url_string
-        
-        self.assertRegex(url_string, 'http://www.w3af.com/\w*/../abc/def.htm')
+
+        u = URL("http://www.w3af.com/abc/def.htm")
+        r = HTTPRequest(u)
+        url_string = rp.modify_request(r).url_object.url_string
+
+        self.assertRegex(url_string, "http://www.w3af.com/\w*/../abc/def.htm")
 
     def test_add_with_qs(self):
         rp = rnd_path()
-        
-        u = URL('http://www.w3af.com/abc/def.htm?id=1')
-        r = HTTPRequest( u )
-        url_string = rp.modify_request( r ).url_object.url_string
-        
-        self.assertRegex(url_string, 'http://www.w3af.com/\w*/../abc/def.htm\?id=1')
-        
+
+        u = URL("http://www.w3af.com/abc/def.htm?id=1")
+        r = HTTPRequest(u)
+        url_string = rp.modify_request(r).url_object.url_string
+
+        self.assertRegex(url_string, "http://www.w3af.com/\w*/../abc/def.htm\?id=1")

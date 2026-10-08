@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from w3af.core.data.export.html_export import html_export
@@ -51,44 +52,52 @@ EXPECTED_POST_REPEATED = """
 class TestHTMLExport(unittest.TestCase):
 
     def test_export_GET(self):
-        http_request = 'GET http://www.w3af.org/ HTTP/1.1\n' \
-                       'Host: www.w3af.org\n' \
-                       'Foo: bar\n' \
-                       '\n'
+        http_request = (
+            "GET http://www.w3af.org/ HTTP/1.1\n"
+            "Host: www.w3af.org\n"
+            "Foo: bar\n"
+            "\n"
+        )
         html_code = html_export(http_request)
         self.assertTrue(EXPECTED_SIMPLE in html_code)
 
     def test_export_POST(self):
-        http_request = 'POST http://www.w3af.org/ HTTP/1.1\n' \
-                       'Host: www.w3af.org\n' \
-                       'Content-Length: 3\n' \
-                       'Content-Type: application/x-www-form-urlencoded\n' \
-                       '\n' \
-                       'a=1'
+        http_request = (
+            "POST http://www.w3af.org/ HTTP/1.1\n"
+            "Host: www.w3af.org\n"
+            "Content-Length: 3\n"
+            "Content-Type: application/x-www-form-urlencoded\n"
+            "\n"
+            "a=1"
+        )
         html_code = html_export(http_request)
         self.assertTrue(EXPECTED_POST in html_code)
 
     def test_export_POST_repeated(self):
-        http_request = 'POST http://www.w3af.org/ HTTP/1.1\n' \
-                       'Host: www.w3af.org\n' \
-                       'Content-Length: 7\n' \
-                       'Content-Type: application/x-www-form-urlencoded\n' \
-                       'Foo: spam\n' \
-                       'Foo: eggs\n' \
-                       '\n' \
-                       'a=1&a=2'
+        http_request = (
+            "POST http://www.w3af.org/ HTTP/1.1\n"
+            "Host: www.w3af.org\n"
+            "Content-Length: 7\n"
+            "Content-Type: application/x-www-form-urlencoded\n"
+            "Foo: spam\n"
+            "Foo: eggs\n"
+            "\n"
+            "a=1&a=2"
+        )
         html_code = html_export(http_request)
         self.assertTrue(EXPECTED_POST_REPEATED in html_code)
 
     def test_export_inject(self):
-        http_request = 'POST http://www.w3af.org/ HTTP/1.1\n' \
-                       'Host: www.w3af.org\n' \
-                       'Content-Length: 7\n' \
-                       'Content-Type: application/x-www-form-urlencoded\n' \
-                       'Foo: spam\n' \
-                       'Foo: eggs\n' \
-                       '\n' \
-                       'a"<=1&a=2"<3'
+        http_request = (
+            "POST http://www.w3af.org/ HTTP/1.1\n"
+            "Host: www.w3af.org\n"
+            "Content-Length: 7\n"
+            "Content-Type: application/x-www-form-urlencoded\n"
+            "Foo: spam\n"
+            "Foo: eggs\n"
+            "\n"
+            'a"<=1&a=2"<3'
+        )
         html_code = html_export(http_request)
         self.assertTrue('"2&quot;&lt;3"' in html_code)
         self.assertTrue('"a&quot;&lt;"' in html_code)

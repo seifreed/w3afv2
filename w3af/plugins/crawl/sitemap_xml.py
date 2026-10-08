@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import xml.dom.minidom
 
 import w3af.core.controllers.output_manager as om
@@ -47,10 +48,10 @@ class sitemap_xml(CrawlPlugin):
                                    (among other things) the URL to test.
         """
         base_url = fuzzable_request.get_url().base_url()
-        sitemap_url = base_url.url_join('sitemap.xml')
+        sitemap_url = base_url.url_join("sitemap.xml")
         response = self._uri_opener.GET(sitemap_url, cache=True)
 
-        if '</urlset>' not in response:
+        if "</urlset>" not in response:
             return
 
         if is_404(response):
@@ -60,7 +61,7 @@ class sitemap_xml(CrawlPlugin):
         fr = FuzzableRequest.from_http_response(response)
         self.output_queue.put(fr)
 
-        om.out.debug('Parsing xml file with xml.dom.minidom.')
+        om.out.debug("Parsing xml file with xml.dom.minidom.")
         try:
             dom = xml.dom.minidom.parseString(response.get_body())
         except Exception as e:
@@ -76,7 +77,7 @@ class sitemap_xml(CrawlPlugin):
             try:
                 url = url.childNodes[0].data
             except Exception as e:
-                msg = 'Sitemap file at %s has an invalid format: %s'
+                msg = "Sitemap file at %s has an invalid format: %s"
                 args = (response.get_url(), e)
                 om.out.debug(msg % args)
                 continue

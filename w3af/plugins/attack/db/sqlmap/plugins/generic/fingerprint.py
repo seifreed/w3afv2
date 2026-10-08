@@ -11,6 +11,7 @@ from lib.core.data import logger
 from lib.core.enums import OS
 from lib.core.exception import SqlmapUndefinedMethod
 
+
 class Fingerprint:
     """
     This class defines generic fingerprint functionalities for plugins.
@@ -45,12 +46,12 @@ class Fingerprint:
         msg = "do you want to provide the OS? [(W)indows/(l)inux]"
 
         while True:
-            os = readInput(msg, default='W').upper()
+            os = readInput(msg, default="W").upper()
 
-            if os == 'W':
+            if os == "W":
                 Backend.setOs(OS.WINDOWS)
                 break
-            elif os == 'L':
+            elif os == "L":
                 Backend.setOs(OS.LINUX)
                 break
             else:

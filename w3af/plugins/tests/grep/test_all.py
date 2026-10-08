@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 import os
 import cProfile
@@ -40,58 +41,61 @@ class test_all(unittest.TestCase):
     PROFILING = False
 
     def setUp(self):
-        self.url_str = 'http://moth/'
+        self.url_str = "http://moth/"
         self.url_inst = URL(self.url_str)
 
         self._w3af = w3afCore()
         self._plugins = []
-        for pname in self._w3af.plugins.get_plugin_list('grep'):
-            self._plugins.append(
-                self._w3af.plugins.get_plugin_inst('grep', pname))
+        for pname in self._w3af.plugins.get_plugin_list("grep"):
+            self._plugins.append(self._w3af.plugins.get_plugin_inst("grep", pname))
 
     # TODO: Is there a nicer way to do this? If I add a new grep plugin I won't
     #       remember about adding the patch...
-    @patch('w3af.plugins.grep.motw.is_404', side_effect=repeat(False))
-    @patch('w3af.plugins.grep.password_profiling.is_404', side_effect=repeat(False))
-    @patch('w3af.plugins.grep.meta_tags.is_404', side_effect=repeat(False))
-    @patch('w3af.plugins.grep.lang.is_404', side_effect=repeat(False))
-    @patch('w3af.plugins.grep.code_disclosure.is_404', side_effect=repeat(False))
+    @patch("w3af.plugins.grep.motw.is_404", side_effect=repeat(False))
+    @patch("w3af.plugins.grep.password_profiling.is_404", side_effect=repeat(False))
+    @patch("w3af.plugins.grep.meta_tags.is_404", side_effect=repeat(False))
+    @patch("w3af.plugins.grep.lang.is_404", side_effect=repeat(False))
+    @patch("w3af.plugins.grep.code_disclosure.is_404", side_effect=repeat(False))
     def test_image_with_image_content_type(self, *args):
         """
         Verify that our plugins don't break when we send them an image.
         """
-        file_path = os.path.join(ROOT_PATH, 'plugins', 'tests', 'grep',
-                                 'data', 'w3af.png')        
+        file_path = os.path.join(
+            ROOT_PATH, "plugins", "tests", "grep", "data", "w3af.png"
+        )
         body = open(file_path).read()
-        hdrs = Headers(list({'Content-Type': 'image/png'}.items()))
-        response = HTTPResponse(200, body, hdrs, self.url_inst, self.url_inst,
-                                _id=random.randint(1, 5000))
+        hdrs = Headers(list({"Content-Type": "image/png"}.items()))
+        response = HTTPResponse(
+            200, body, hdrs, self.url_inst, self.url_inst, _id=random.randint(1, 5000)
+        )
         request = FuzzableRequest(self.url_inst)
-        
+
         for pinst in self._plugins:
             pinst.grep(request, response)
 
     # TODO: Is there a nicer way to do this? If I add a new grep plugin I won't
     #       remember about adding the patch...
-    @patch('w3af.plugins.grep.motw.is_404', side_effect=repeat(False))
-    @patch('w3af.plugins.grep.password_profiling.is_404', side_effect=repeat(False))
-    @patch('w3af.plugins.grep.meta_tags.is_404', side_effect=repeat(False))
-    @patch('w3af.plugins.grep.lang.is_404', side_effect=repeat(False))
-    @patch('w3af.plugins.grep.code_disclosure.is_404', side_effect=repeat(False))        
+    @patch("w3af.plugins.grep.motw.is_404", side_effect=repeat(False))
+    @patch("w3af.plugins.grep.password_profiling.is_404", side_effect=repeat(False))
+    @patch("w3af.plugins.grep.meta_tags.is_404", side_effect=repeat(False))
+    @patch("w3af.plugins.grep.lang.is_404", side_effect=repeat(False))
+    @patch("w3af.plugins.grep.code_disclosure.is_404", side_effect=repeat(False))
     def test_image_with_text_html_content_type(self, *args):
         """
         Verify that our plugins don't break when we send them an image with
         a text/html content type.
         """
-        file_path = os.path.join(ROOT_PATH, 'plugins', 'tests', 'grep',
-                                 'data', 'w3af.png')        
+        file_path = os.path.join(
+            ROOT_PATH, "plugins", "tests", "grep", "data", "w3af.png"
+        )
         body = open(file_path).read()
         # Here is the change from the previous test:
-        hdrs = Headers(list({'Content-Type': 'text/html'}.items()))
-        response = HTTPResponse(200, body, hdrs, self.url_inst, self.url_inst,
-                                _id=random.randint(1, 5000))
+        hdrs = Headers(list({"Content-Type": "text/html"}.items()))
+        response = HTTPResponse(
+            200, body, hdrs, self.url_inst, self.url_inst, _id=random.randint(1, 5000)
+        )
         request = FuzzableRequest(self.url_inst)
-        
+
         for pinst in self._plugins:
             pinst.grep(request, response)
 
@@ -117,11 +121,11 @@ class test_all(unittest.TestCase):
 
     # TODO: Is there a nicer way to do this? If I add a new grep plugin I won't
     #       remember about adding the patch...
-    @patch('w3af.plugins.grep.motw.is_404', side_effect=repeat(False))
-    @patch('w3af.plugins.grep.password_profiling.is_404', side_effect=repeat(False))
-    @patch('w3af.plugins.grep.meta_tags.is_404', side_effect=repeat(False))
-    @patch('w3af.plugins.grep.lang.is_404', side_effect=repeat(False))
-    @patch('w3af.plugins.grep.code_disclosure.is_404', side_effect=repeat(False))
+    @patch("w3af.plugins.grep.motw.is_404", side_effect=repeat(False))
+    @patch("w3af.plugins.grep.password_profiling.is_404", side_effect=repeat(False))
+    @patch("w3af.plugins.grep.meta_tags.is_404", side_effect=repeat(False))
+    @patch("w3af.plugins.grep.lang.is_404", side_effect=repeat(False))
+    @patch("w3af.plugins.grep.code_disclosure.is_404", side_effect=repeat(False))
     def test_all_grep_plugins(self, *args):
         """
         Run a set of 5 html files through all grep plugins.
@@ -129,6 +133,7 @@ class test_all(unittest.TestCase):
         As with the previous test, the only thing we want to see is if the grep
         plugin crashes or not. We're not asserting any results.
         """
+
         def profile_me():
             """
             To be profiled
@@ -136,16 +141,21 @@ class test_all(unittest.TestCase):
             for _ in range(1):
                 for counter in range(1, 5):
 
-                    file_name = 'test-' + str(counter) + '.html'
-                    file_path = os.path.join(ROOT_PATH, 'plugins', 'tests',
-                                             'grep', 'data', file_name)
+                    file_name = "test-" + str(counter) + ".html"
+                    file_path = os.path.join(
+                        ROOT_PATH, "plugins", "tests", "grep", "data", file_name
+                    )
 
                     body = open(file_path).read()
-                    hdrs = Headers(list({'Content-Type': 'text/html'}.items()))
-                    response = HTTPResponse(200, body, hdrs,
-                                            URL(self.url_str + str(counter)),
-                                            URL(self.url_str + str(counter)),
-                                            _id=random.randint(1, 5000))
+                    hdrs = Headers(list({"Content-Type": "text/html"}.items()))
+                    response = HTTPResponse(
+                        200,
+                        body,
+                        hdrs,
+                        URL(self.url_str + str(counter)),
+                        URL(self.url_str + str(counter)),
+                        _id=random.randint(1, 5000),
+                    )
 
                     request = FuzzableRequest(self.url_inst)
                     for pinst in self._plugins:
@@ -156,7 +166,7 @@ class test_all(unittest.TestCase):
 
         if self.PROFILING:
             #   For profiling
-            cProfile.run('profile_me()', 'output.stats')
+            cProfile.run("profile_me()", "output.stats")
         else:
             #   The only test here is that we don't get any traceback
             profile_me()

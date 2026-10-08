@@ -17,6 +17,6 @@ class dotdict(dict):
 
         self[key] = value
 
-    #__setattr__ = dict.__setitem__
+    # __setattr__ = dict.__setitem__
     __getattr__ = dict.get
     __delattr__ = dict.__delitem__

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.plugins.attack.payloads.payload_handler as payload_handler
 import w3af.core.controllers.output_manager as om
 
@@ -33,22 +34,23 @@ class Shell(ExploitResult):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def __init__(self, vuln, uri_opener, worker_pool):
         ExploitResult.__init__(self)
-        
+
         if not isinstance(vuln, Vuln):
-            raise TypeError('Expected Vuln instance in Shell ctor.')
-        
+            raise TypeError("Expected Vuln instance in Shell ctor.")
+
         self.set_url_opener(uri_opener)
         self.set_worker_pool(worker_pool)
         self._vuln = vuln
-        
+
         self._rOS = None
         self._rSystem = None
         self._rUser = None
         self._rSystemName = None
         self.id = 0
-    
+
     def get_remote_os(self):
         return self._rOS
 
@@ -77,15 +79,15 @@ class Shell(ExploitResult):
 
     def set_worker_pool(self, worker_pool):
         self.worker_pool = worker_pool
-    
+
     def get_worker_pool(self):
         return self.worker_pool
 
     def help(self, command):
         """
-        :return: A string with the 
+        :return: A string with the
         """
-        raise NotImplementedError('Please implement the help() method.')
+        raise NotImplementedError("Please implement the help() method.")
 
     def generic_user_input(self, command, params):
         """
@@ -100,20 +102,20 @@ class Shell(ExploitResult):
         #
         #    Commands that are common to all shells:
         #
-        if command.strip() == 'help':
+        if command.strip() == "help":
             help_command = None
             if len(params) >= 1:
                 help_command = params[0]
             return self.help(help_command)
 
-        elif command == 'payload':
+        elif command == "payload":
             #
             #    Run the payload
             #
             if params:
                 return self._payload(params)
 
-        elif command == 'lsp':
+        elif command == "lsp":
             #
             #    Based on the syscalls that we have available, list the payloads
             #    that can be run
@@ -123,7 +125,7 @@ class Shell(ExploitResult):
         #
         #    Call the shell subclass method if needed
         #
-        elif hasattr(self, 'specific_user_input'):
+        elif hasattr(self, "specific_user_input"):
             # forward to the plugin
             response = self.specific_user_input(command, params)
 
@@ -173,7 +175,7 @@ class Shell(ExploitResult):
         #    Handle payload desc xyz
         #
         if len(parameters) == 2:
-            if parameters[0] == 'desc':
+            if parameters[0] == "desc":
                 payload_name = parameters[1]
 
                 if payload_name not in payload_handler.get_payload_list():
@@ -191,8 +193,7 @@ class Shell(ExploitResult):
             return 'Unknown payload name: "%s"' % payload_name
 
         if payload_name in payload_handler.runnable_payloads(self):
-            om.out.debug(
-                'Payload %s can be run. Starting execution.' % payload_name)
+            om.out.debug("Payload %s can be run. Starting execution." % payload_name)
 
             # Note: The payloads are actually writing to om.out.console
             # so there is no need to get the result. If someone wants to
@@ -204,16 +205,17 @@ class Shell(ExploitResult):
             except TypeError:
                 # We get here when the user calls the payload with an incorrect
                 # number of parameters:
-                payload = payload_handler.get_payload_instance(
-                    payload_name, self)
+                payload = payload_handler.get_payload_instance(payload_name, self)
                 result = payload.get_desc()
             except ValueError as ve:
                 # We get here when one of the parameters provided by the user is
                 # not of the correct type, or something like that.
                 result = str(ve)
         else:
-            result = ('The payload could not be run because the current shell'
-                      ' doesn\'t have the required capabilities.')
+            result = (
+                "The payload could not be run because the current shell"
+                " doesn't have the required capabilities."
+            )
 
         return result
 
@@ -225,7 +227,7 @@ class Shell(ExploitResult):
         """
         payloads = payload_handler.runnable_payloads(self)
         payloads.sort()
-        return '\n'.join(payloads)
+        return "\n".join(payloads)
 
     def end(self):
         """
@@ -236,7 +238,7 @@ class Shell(ExploitResult):
         :return: None
         """
         pass
-    
+
     def get_name(self):
         """
         This method is called when the shell is used, in order to create a prompt
@@ -244,15 +246,17 @@ class Shell(ExploitResult):
 
         :return: The name of the shell ( os_commanding_shell, dav, etc )
         """
-        msg = 'You should implement the get_name method for classes that'\
-              'inherit from "shell"'
+        msg = (
+            "You should implement the get_name method for classes that"
+            'inherit from "shell"'
+        )
         raise NotImplementedError(msg)
 
     def identify_os(self):
         """
         Identify the remote operating system and get some remote variables to
         show to the user.
-        
+
         Internally it needs to set the following attributes which are None by
         default:
             self._rOS = None
@@ -261,31 +265,31 @@ class Shell(ExploitResult):
             self._rSystemName = None
 
         """
-        msg = 'Shell instances need to implement the identify_os method.'
+        msg = "Shell instances need to implement the identify_os method."
         raise NotImplementedError(msg)
 
     def __repr__(self):
         if not self._rOS:
             self.identify_os()
         fmt = '<%s object (ruser: "%s" | rsystem: "%s")>'
-        return fmt % (self.get_name(), self.get_remote_user(),
-                      self.get_remote_system())
+        return fmt % (self.get_name(), self.get_remote_user(), self.get_remote_system())
 
     __str__ = __repr__
-    
+
     def __getattr__(self, name):
         """
         All the other methods are forwarded to the vuln object except for
         the magic methods.
         """
-        if name.startswith('__'):
-            raise AttributeError("%s instance has no attribute '%s'" %
-                                (self.__class__.__name__, name))
+        if name.startswith("__"):
+            raise AttributeError(
+                "%s instance has no attribute '%s'" % (self.__class__.__name__, name)
+            )
         return getattr(self._vuln, name)
-    
+
     def __setitem__(self, key, value):
         self._vuln[key] = value
-    
+
     def __getitem__(self, key):
         return self._vuln[key]
 
@@ -297,20 +301,22 @@ class Shell(ExploitResult):
                 - A vulnerability
                 - None: replacing the ExtendedUrllib we don't want to pickle
                 - None: replacing the Pool we don't want to pickle
-        
+
         When unpickling cPickle will create the Shell using:
             Shell(vuln, None, None)
-        
+
         So, the UI has the responsibility to assign a ExtendedUrllib and a
         Pool to the Shell before it is used again.
         """
         class_name = self.__class__.__name__
-        if class_name != 'Shell':
-            msg = 'You need to implement __reduce__ for the Shell subclass' \
-                  ' "%s". See #2181 for more details.'
+        if class_name != "Shell":
+            msg = (
+                "You need to implement __reduce__ for the Shell subclass"
+                ' "%s". See #2181 for more details.'
+            )
             raise NotImplementedError(msg % class_name)
 
         return self.__class__, (self._vuln, None, None)
-    
+
     def __eq__(self, other):
         return self._vuln == other._vuln

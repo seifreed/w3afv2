@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.kb.vuln_templates.base_template import BaseTemplate
 
 
@@ -26,9 +27,10 @@ class SQLiTemplate(BaseTemplate):
     """
     Vulnerability template for SQL injection vulnerability.
     """
+
     def __init__(self):
         super(SQLiTemplate, self).__init__()
-        
+
         self.name = self.get_vulnerability_name()
 
     def get_kb_location(self):
@@ -36,7 +38,7 @@ class SQLiTemplate(BaseTemplate):
         :return: A tuple with the location where the vulnerability will be
                  saved, example return value would be: ('eval', 'eval')
         """
-        return 'sqli', 'sqli'
+        return "sqli", "sqli"
 
     def get_vulnerability_name(self):
         """
@@ -45,7 +47,7 @@ class SQLiTemplate(BaseTemplate):
                  string which can contain any information, not used for any
                  strict matching of vulns before exploiting.
         """
-        return '(Blind) SQL injection'
+        return "(Blind) SQL injection"
 
     def get_vulnerability_desc(self):
-        return 'Blind and error based SQL injection vulnerability.'
+        return "Blind and error based SQL injection vulnerability."

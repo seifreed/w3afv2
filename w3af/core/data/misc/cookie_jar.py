@@ -19,10 +19,16 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 import time
 
-from http.cookiejar import MozillaCookieJar, LoadError, _warn_unhandled_exception, Cookie
+from http.cookiejar import (
+    MozillaCookieJar,
+    LoadError,
+    _warn_unhandled_exception,
+    Cookie,
+)
 
 
 class ImprovedMozillaCookieJar(MozillaCookieJar):
@@ -56,14 +62,16 @@ class ImprovedMozillaCookieJar(MozillaCookieJar):
                 split_values = line.split("\t")
 
                 if len(split_values) != 7:
-                    msg = 'Expected seven tab delimited fields, got %s in %s: %s'
+                    msg = "Expected seven tab delimited fields, got %s in %s: %s"
                     args = (len(split_values), filename, line)
                     raise LoadError(msg % args)
 
-                domain, domain_specified, path, secure, expires, name, value = split_values
+                domain, domain_specified, path, secure, expires, name, value = (
+                    split_values
+                )
 
-                secure = (secure == "TRUE")
-                domain_specified = (domain_specified == "TRUE")
+                secure = secure == "TRUE"
+                domain_specified = domain_specified == "TRUE"
                 if name == "":
                     # cookies.txt regards 'Set-Cookie: foo' as a cookie
                     # with no name, whereas cookielib regards it as a
@@ -75,18 +83,22 @@ class ImprovedMozillaCookieJar(MozillaCookieJar):
 
                 if domain_specified != initial_dot:
                     if domain_specified:
-                        msg = ('The second tab delimited field (domain_specified) is'
-                               ' set to %s and the domain does NOT start with a dot (%s).'
-                               ' This is not acceptable by the Mozilla Cookie format.'
-                               ' Issue found at %s: %s')
+                        msg = (
+                            "The second tab delimited field (domain_specified) is"
+                            " set to %s and the domain does NOT start with a dot (%s)."
+                            " This is not acceptable by the Mozilla Cookie format."
+                            " Issue found at %s: %s"
+                        )
                         args = (domain_specified, domain, filename, line)
                         raise LoadError(msg % args)
 
                     else:
-                        msg = ('The second tab delimited field (domain_specified) is'
-                               ' set to %s and the domain starts with a dot (%s).'
-                               ' This is not acceptable by the Mozilla Cookie format.'
-                               ' Issue found at %s: %s')
+                        msg = (
+                            "The second tab delimited field (domain_specified) is"
+                            " set to %s and the domain starts with a dot (%s)."
+                            " This is not acceptable by the Mozilla Cookie format."
+                            " Issue found at %s: %s"
+                        )
                         args = (domain_specified, domain, filename, line)
                         raise LoadError(msg % args)
 
@@ -96,16 +108,24 @@ class ImprovedMozillaCookieJar(MozillaCookieJar):
                     discard = True
 
                 # assume path_specified is false
-                c = Cookie(0, name, value,
-                           None, False,
-                           domain, domain_specified, initial_dot,
-                           path, False,
-                           secure,
-                           expires,
-                           discard,
-                           None,
-                           None,
-                           {})
+                c = Cookie(
+                    0,
+                    name,
+                    value,
+                    None,
+                    False,
+                    domain,
+                    domain_specified,
+                    initial_dot,
+                    path,
+                    False,
+                    secure,
+                    expires,
+                    discard,
+                    None,
+                    None,
+                    {},
+                )
                 if not ignore_discard and c.discard:
                     continue
                 if not ignore_expires and c.is_expired(now):
@@ -116,4 +136,6 @@ class ImprovedMozillaCookieJar(MozillaCookieJar):
             raise
         except Exception:
             _warn_unhandled_exception()
-            raise LoadError("invalid Netscape format cookies file %r: %r" % (filename, line))
+            raise LoadError(
+                "invalid Netscape format cookies file %r: %r" % (filename, line)
+            )

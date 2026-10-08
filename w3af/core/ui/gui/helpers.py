@@ -39,6 +39,7 @@ class PropagateBuffer(object):
 
     :author: Facundo Batista <facundobatista =at= taniquetil.com.ar>
     """
+
     def __init__(self, target):
         self.target = target
         self.alerted = {}
@@ -73,6 +74,7 @@ class PropagateBufferPayload(object):
 
     :author: Facundo Batista <facundobatista =at= taniquetil.com.ar>
     """
+
     def __init__(self, target, *payload):
         self.target = target
         self.alerted = {}
@@ -117,7 +119,7 @@ def clean_description(desc):
     return textwrap.dedent(desc)
 
 
-#-- the following are for thread handling
+# -- the following are for thread handling
 
 _threadPool = []
 
@@ -144,19 +146,21 @@ class RegistThread(threading.Thread):
 
     :author: Facundo Batista <facundobatista =at= taniquetil.com.ar>
     """
+
     def __init__(self):
         _threadPool.append(self)
         self.my_thread_ended = False
 
         super(RegistThread, self).__init__()
-        self.name = 'RegistThread'
+        self.name = "RegistThread"
         self.daemon = True
 
         self.start()
 
-#--
 
-#-- the following is for core wrapping
+# --
+
+# -- the following is for core wrapping
 
 
 def FriendlyExceptionDlg(message):
@@ -164,6 +168,7 @@ def FriendlyExceptionDlg(message):
 
     :param message: text received in the friendly exception.
     """
+
     class w3af_message_dialog(gtk.MessageDialog):
         def dialog_response_cb(self, widget, response_id):
             """
@@ -177,13 +182,14 @@ def FriendlyExceptionDlg(message):
             """
             if not self.modal:
                 self.set_modal(True)
-            self.connect('response', self.dialog_response_cb)
+            self.connect("response", self.dialog_response_cb)
             self.show()
 
-    dlg = w3af_message_dialog(None, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING,
-                              gtk.BUTTONS_OK, message)
+    dlg = w3af_message_dialog(
+        None, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_OK, message
+    )
     dlg.set_icon_from_file(W3AF_ICON)
-    dlg.set_title('Error')
+    dlg.set_title("Error")
     dlg.dialog_run()
     return
 
@@ -196,6 +202,7 @@ class _Wrapper(object):
 
     :author: Facundo Batista <facundobatista =at= taniquetil.com.ar>
     """
+
     def __init__(self, friendly):
         self.friendly = friendly
 
@@ -208,9 +215,10 @@ class _Wrapper(object):
                 FriendlyExceptionDlg(str(err))
             raise
 
+
 coreWrap = _Wrapper(BaseFrameworkException)
 
-#--
+# --
 # Trying to not use threads anymore, but still need to
 # supervise queues
 
@@ -228,6 +236,7 @@ class IteratedQueue(RegistThread):
 
     :author: Facundo Batista <facundobatista =at= taniquetil.com.ar>
     """
+
     CLEANUP_NUM = 1000
 
     def __init__(self, queue):
@@ -292,6 +301,7 @@ class BroadcastWrapper(object):
 
     :author: Facundo Batista <facundobatista =at= taniquetil.com.ar>
     """
+
     def __init__(self, *values):
         self.initvalues = values
         self.widgets = []
@@ -308,13 +318,14 @@ class BroadcastWrapper(object):
             for w in self.widgets:
                 realmeth = getattr(w, attr)
                 realmeth(*args, **kwargs)
+
         return call
+
 
 # This is a helper for debug, you just should connect the
 # 'event' event to this debugHandler
 
-event_types = [i for i in list(vars(gtk.gdk).values()) if type(i)
-               is gtk.gdk.EventType]
+event_types = [i for i in list(vars(gtk.gdk).values()) if type(i) is gtk.gdk.EventType]
 
 
 def debugHandler(widget, event, *a):
@@ -328,12 +339,17 @@ class Throbber(gtk.ToolButton):
 
     :author: Facundo Batista <facundobatista =at= taniquetil.com.ar>
     """
+
     def __init__(self):
         self.img_static = gtk.Image()
-        self.img_static.set_from_file(os.path.join(GUI_DATA_PATH, 'throbber_static.gif'))
+        self.img_static.set_from_file(
+            os.path.join(GUI_DATA_PATH, "throbber_static.gif")
+        )
         self.img_static.show()
         self.img_animat = gtk.Image()
-        self.img_animat.set_from_file(os.path.join(GUI_DATA_PATH,'throbber_animat.gif'))
+        self.img_animat.set_from_file(
+            os.path.join(GUI_DATA_PATH, "throbber_animat.gif")
+        )
         self.img_animat.show()
 
         super(Throbber, self).__init__(self.img_static, "")
@@ -373,7 +389,7 @@ def loadIcon(stock_item_id):
     """
     stock_item = getattr(gtk, stock_item_id)
 
-    local_icon = os.path.join(GUI_DATA_PATH, 'icons', '16', '%s.png' % stock_item)
+    local_icon = os.path.join(GUI_DATA_PATH, "icons", "16", "%s.png" % stock_item)
     if os.path.exists(local_icon):
         im = gtk.Image()
         im.set_from_file(local_icon)
@@ -385,7 +401,7 @@ def loadIcon(stock_item_id):
             icon = icon_theme.load_icon(stock_item, 16, ())
         except:
             # If param id not found use this image
-            icon = loadImage('missing-image.png').get_pixbuf()
+            icon = loadImage("missing-image.png").get_pixbuf()
         return icon
 
 
@@ -397,6 +413,7 @@ class SensitiveAnd(object):
 
     :author: Facundo Batista <facundobatista =at= taniquetil.com.ar>
     """
+
     def __init__(self, target, falseDefaults=None):
         if falseDefaults is None:
             falseDefaults = []
@@ -411,15 +428,16 @@ class SensitiveAnd(object):
 
 
 import w3af.core.data.constants.severity as severity
+
 KB_ICONS = {
-    ("excp", None): loadImage('warning-black-animated.gif'),
-    ("info", None): loadImage('information.png'),
-    ("vuln", None): loadImage('vulnerability.png'),
-    ("shell", None): loadImage('shell.png'),
-    ("info", severity.INFORMATION): loadImage('information.png'),
-    ("vuln", severity.LOW): loadImage('vulnerability_l.png'),
-    ("vuln", severity.MEDIUM): loadImage('vulnerability_m.png'),
-    ("vuln", severity.HIGH): loadImage('vulnerability_h.png'),
+    ("excp", None): loadImage("warning-black-animated.gif"),
+    ("info", None): loadImage("information.png"),
+    ("vuln", None): loadImage("vulnerability.png"),
+    ("shell", None): loadImage("shell.png"),
+    ("info", severity.INFORMATION): loadImage("information.png"),
+    ("vuln", severity.LOW): loadImage("vulnerability_l.png"),
+    ("vuln", severity.MEDIUM): loadImage("vulnerability_m.png"),
+    ("vuln", severity.HIGH): loadImage("vulnerability_h.png"),
 }
 KB_COLOR_LEVEL = {
     ("info", None): 0,
@@ -444,8 +462,7 @@ class DrawingAreaStringRepresentation(gtk.DrawingArea):
 
         self.props.has_tooltip = True
 
-        self.set_events(gtk.gdk.POINTER_MOTION_MASK |
-                        gtk.gdk.POINTER_MOTION_HINT_MASK)
+        self.set_events(gtk.gdk.POINTER_MOTION_MASK | gtk.gdk.POINTER_MOTION_HINT_MASK)
         self.connect("expose-event", self.area_expose_cb)
         self.connect("query-tooltip", self.query_tooltip)
         self.show()
@@ -453,12 +470,12 @@ class DrawingAreaStringRepresentation(gtk.DrawingArea):
     def area_expose_cb(self, area, event):
         self.draw()
         return True
-    
+
     def query_tooltip(self, widget, x, y, keyboard_tip, tooltip, data=None):
         if keyboard_tip:
             return False
-        
-        tooltip.set_markup('Representation of HTTP response body')
+
+        tooltip.set_markup("Representation of HTTP response body")
         return True
 
     def set_string_representation(self, str_repr):
@@ -492,4 +509,5 @@ class DrawingAreaStringRepresentation(gtk.DrawingArea):
         if self.window is not None:
             style = self.get_style()
             self.window.draw_rectangle(
-                style.white_gc, True, 0, 0, self.width + 1, self.height + 1)
+                style.white_gc, True, 0, 0, self.width + 1, self.height + 1
+            )

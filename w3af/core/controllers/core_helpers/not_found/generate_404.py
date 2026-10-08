@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import random
 import string
 import itertools
@@ -27,7 +28,10 @@ import w3af.core.controllers.output_manager as om
 
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.controllers.misc.decorators import retry
-from w3af.core.controllers.exceptions import HTTPRequestException, FourOhFourDetectionException
+from w3af.core.controllers.exceptions import (
+    HTTPRequestException,
+    FourOhFourDetectionException,
+)
 from w3af.core.controllers.core_helpers.not_found.response import FourOhFourResponse
 
 
@@ -44,17 +48,17 @@ def generate_404_without_filename():
 
 
 def generate_404_without_name(extension):
-    return '%s.%s' % (rand_alnum(5), extension)
+    return "%s.%s" % (rand_alnum(5), extension)
 
 
 def generate_404_for_short_filename(filename, extension):
-    mod_filename = '%s%s' % (rand_alnum(4), filename)
+    mod_filename = "%s%s" % (rand_alnum(4), filename)
     return append_extension_if_exists(mod_filename, extension)
 
 
 def generate_404_by_rot3(filename, extension, seed=1):
     plus_three_filename = [c for c in filename]
-    mod_filename = ''.join(plus_three_filename)
+    mod_filename = "".join(plus_three_filename)
 
     letters = string.ascii_letters
     digits = string.digits
@@ -80,7 +84,7 @@ def generate_404_by_rot3(filename, extension, seed=1):
             else:
                 plus_three_filename[i] = c
 
-        mod_filename = ''.join(plus_three_filename)
+        mod_filename = "".join(plus_three_filename)
         if mod_filename != filename:
             break
 
@@ -88,7 +92,7 @@ def generate_404_by_rot3(filename, extension, seed=1):
 
 
 def generate_404_by_flipping_bytes(filename, extension, seed=1):
-    mod_filename = ''
+    mod_filename = ""
 
     for i, (x, y) in enumerate(grouper(filename, 2)):
 
@@ -132,7 +136,7 @@ def generate_404_by_shuffle(filename, extension, seed):
     filename = [c for c in filename]
 
     random.shuffle(filename)
-    mod_filename = ''.join(filename)
+    mod_filename = "".join(filename)
 
     return append_extension_if_exists(mod_filename, extension)
 
@@ -141,13 +145,13 @@ def append_extension_if_exists(filename, extension):
     final_result = filename
 
     if extension is not None:
-        final_result += '.%s' % extension
+        final_result += ".%s" % extension
 
     return final_result
 
 
 def split_filename(filename):
-    split = filename.rsplit('.', 1)
+    split = filename.rsplit(".", 1)
 
     if len(split) == 2:
         orig_filename, extension = split
@@ -211,9 +215,7 @@ def generate_404_filename(filename, seed=1):
     #
     # Flip some bytes to generate a new filename
     #
-    mod_filename = generate_404_by_flipping_bytes(orig_filename,
-                                                  extension,
-                                                  seed=seed)
+    mod_filename = generate_404_by_flipping_bytes(orig_filename, extension, seed=seed)
 
     if mod_filename != filename:
         return mod_filename
@@ -278,13 +280,13 @@ def get_url_for_404_request(http_response, seed=1):
     path = response_url.get_path()
     filename = response_url.get_file_name()
 
-    if path == '/' or filename:
+    if path == "/" or filename:
         relative_url = generate_404_filename(filename, seed=seed)
         url_404 = response_url.copy()
         url_404.set_file_name(relative_url)
 
     else:
-        relative_url = '../%s/' % rand_alnum(8, seed=seed)
+        relative_url = "../%s/" % rand_alnum(8, seed=seed)
         url_404 = response_url.url_join(relative_url)
 
     return url_404
@@ -301,17 +303,16 @@ def send_404(uri_opener, url_404, debugging_id=None):
         # Note that the cache is used for this request because url_404 was
         # generated using a predictable algorithm, by caching the 404 responses
         # we might be speeding up other calls to is_404
-        response = uri_opener.GET(url_404,
-                                  cache=True,
-                                  grep=False,
-                                  debugging_id=debugging_id)
+        response = uri_opener.GET(
+            url_404, cache=True, grep=False, debugging_id=debugging_id
+        )
     except HTTPRequestException as hre:
         message = 'Exception found while detecting 404: "%s" (did:%s)'
         args = (hre, debugging_id)
         om.out.debug(message % args)
         raise FourOhFourDetectionException(message % args)
     else:
-        msg = 'Received response for 404 URL %s (id:%s, did:%s, len:%s)'
+        msg = "Received response for 404 URL %s (id:%s, did:%s, len:%s)"
         args = (url_404, response.id, debugging_id, len(response.body))
         om.out.debug(msg % args)
 

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.data.parsers.parser_cache as parser_cache
 
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
@@ -55,15 +56,14 @@ class meta_generator(GrepPlugin):
     def _save_to_kb(self, request, response, generator):
         desc = 'Found generator meta tag value: "%s"' % generator
 
-        info = Info('Generator information', desc, response.id, self.get_name())
+        info = Info("Generator information", desc, response.id, self.get_name())
         info.set_uri(response.get_uri())
         info.add_to_highlight(generator)
         info[MetaTagsInfoSet.ITAG] = generator
 
-        self.kb_append_uniq_group(self,
-                                  'content_generator',
-                                  info,
-                                  group_klass=MetaTagsInfoSet)
+        self.kb_append_uniq_group(
+            self, "content_generator", info, group_klass=MetaTagsInfoSet
+        )
 
     def _get_generators(self, response):
         """
@@ -72,19 +72,19 @@ class meta_generator(GrepPlugin):
         """
         generators = set()
 
-        for tag in parser_cache.dpc.get_tags_by_filter(response, ('meta',)):
+        for tag in parser_cache.dpc.get_tags_by_filter(response, ("meta",)):
             # pylint: disable=E1101
-            name_attr_val = tag.attrib.get('name', None)
+            name_attr_val = tag.attrib.get("name", None)
             # pylint: enable=E1101
 
             if name_attr_val is None:
                 continue
 
-            if 'generator' != name_attr_val.lower():
+            if "generator" != name_attr_val.lower():
                 continue
 
             # pylint: disable=E1101
-            content_attr_val = tag.attrib.get('content', None)
+            content_attr_val = tag.attrib.get("content", None)
             # pylint: enable=E1101
 
             if not content_attr_val:
@@ -106,14 +106,14 @@ class meta_generator(GrepPlugin):
 
 class MetaTagsInfoSet(InfoSet):
 
-    ITAG = 'generator'
+    ITAG = "generator"
 
     TEMPLATE = (
-        'The application returned {{ uris | length }} HTTP responses containing'
+        "The application returned {{ uris | length }} HTTP responses containing"
         ' the generator meta tag value "{{ generator }}". The first ten URLs '
-        ' that match are:\n'
-        ''
-        '{% for url in uris[:10] %}'
-        ' - {{ url }}\n'
-        '{% endfor %}'
+        " that match are:\n"
+        ""
+        "{% for url in uris[:10] %}"
+        " - {{ url }}\n"
+        "{% endfor %}"
     )

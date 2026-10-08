@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import urllib.request, urllib.parse, urllib.error
 import re
 
@@ -33,11 +34,14 @@ class bing(SearchEngine):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
-    BLACKLISTED_DOMAINS = {'cc.bingj.com',
-                           'www.microsofttranslator.com',
-                           'onlinehelp.microsoft.com',
-                           'go.microsoft.com',
-                           'msn.com'}
+
+    BLACKLISTED_DOMAINS = {
+        "cc.bingj.com",
+        "www.microsofttranslator.com",
+        "onlinehelp.microsoft.com",
+        "go.microsoft.com",
+        "msn.com",
+    }
 
     def __init__(self, urlOpener):
         SearchEngine.__init__(self)
@@ -50,19 +54,22 @@ class bing(SearchEngine):
         This method is based from the msn.py file from the massive enumeration
         toolset, coded by pdp and released under GPL v2.
         """
-        url = 'http://www.bing.com/search?'
-        query = urllib.parse.urlencode({'q': query,
-                                  'first': start + 1,
-                                  'FORM': 'PERE'})
+        url = "http://www.bing.com/search?"
+        query = urllib.parse.urlencode({"q": query, "first": start + 1, "FORM": "PERE"})
         url_instance = URL(url + query)
-        response = self._uri_opener.GET(url_instance, headers=self._headers,
-                                        cache=True, grep=False,
-                                        follow_redirects=True)
+        response = self._uri_opener.GET(
+            url_instance,
+            headers=self._headers,
+            cache=True,
+            grep=False,
+            follow_redirects=True,
+        )
 
         # This regex might become outdated, but the good thing is that we have
         # test_bing.py which is going to fail and tell us that it's outdated
-        re_match = re.findall('<a href="((http|https)(.*?))" h="ID=SERP,',
-                              response.get_body())
+        re_match = re.findall(
+            '<a href="((http|https)(.*?))" h="ID=SERP,', response.get_body()
+        )
 
         results = set()
 
@@ -74,7 +81,7 @@ class bing(SearchEngine):
             else:
                 # Test for full match.
                 if url.get_domain() not in self.BLACKLISTED_DOMAINS:
-                    
+
                     # Now test for partial match
                     for blacklisted_domain in self.BLACKLISTED_DOMAINS:
                         if blacklisted_domain in url.get_domain():
@@ -91,19 +98,22 @@ class BingResult(object):
     """
     Dummy class that represents the search result.
     """
+
     def __init__(self, url):
         if not isinstance(url, URL):
-            msg = ('The url __init__ parameter of a BingResult object must'
-                   ' be of url.URL type.')
+            msg = (
+                "The url __init__ parameter of a BingResult object must"
+                " be of url.URL type."
+            )
             raise TypeError(msg)
 
         self.URL = url
 
     def __repr__(self):
-        return '<bing result %s>' % self.URL
-    
+        return "<bing result %s>" % self.URL
+
     def __eq__(self, other):
         return self.URL == other.URL
-    
+
     def __hash__(self):
         return hash(self.URL)

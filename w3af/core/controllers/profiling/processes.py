@@ -19,21 +19,21 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import json
 import multiprocessing
 
 from .utils import get_filename_fmt, dump_data_every_thread, cancel_thread
 
-
-PROFILING_OUTPUT_FMT = '/tmp/w3af-%s-%s.processes'
+PROFILING_OUTPUT_FMT = "/tmp/w3af-%s-%s.processes"
 DELAY_MINUTES = 2
 SAVE_PROCESS_PTR = []
 
 
 def should_dump_processes(wrapped):
     def inner():
-        _should_profile = os.environ.get('W3AF_PROCESSES', '0')
+        _should_profile = os.environ.get("W3AF_PROCESSES", "0")
 
         if _should_profile.isdigit() and int(_should_profile) == 1:
             return wrapped()
@@ -61,38 +61,40 @@ def dump_processes():
 
     for child in multiprocessing.active_children():
         pid = child._popen.pid
-        child_data = {'name': child.name,
-                      'daemon': child.daemon,
-                      'exitcode': child.exitcode,
-                      'target': child._target.__name__,
-                      'args': [],
-                      'kwargs': {}}
+        child_data = {
+            "name": child.name,
+            "daemon": child.daemon,
+            "exitcode": child.exitcode,
+            "target": child._target.__name__,
+            "args": [],
+            "kwargs": {},
+        }
 
         for arg in child._args:
             try:
                 json.dumps(arg)
             except (TypeError, UnicodeDecodeError):
                 try:
-                    child_data['args'].append(arg.__class__.__name__)
+                    child_data["args"].append(arg.__class__.__name__)
                 except:
-                    child_data['args'].append('undefined')
+                    child_data["args"].append("undefined")
             else:
-                child_data['args'].append(arg)
+                child_data["args"].append(arg)
 
         for key, value in child._kwargs.items():
             try:
                 json.dumps(value)
             except (TypeError, UnicodeDecodeError):
                 try:
-                    child_data['kwargs'][key] = value.__class__.__name__
+                    child_data["kwargs"][key] = value.__class__.__name__
                 except:
-                    child_data['kwargs'][key] = 'undefined'
+                    child_data["kwargs"][key] = "undefined"
             else:
-                child_data['kwargs'][key] = value
+                child_data["kwargs"][key] = value
 
         data[pid] = child_data
 
-    json.dump(data, open(output_file, 'w'), indent=4)
+    json.dump(data, open(output_file, "w"), indent=4)
 
 
 @should_dump_processes
@@ -102,4 +104,3 @@ def stop_process_dump():
     """
     cancel_thread(SAVE_PROCESS_PTR)
     dump_processes()
-

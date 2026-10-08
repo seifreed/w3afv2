@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from nose.plugins.attrib import attr
@@ -29,20 +30,18 @@ from w3af.core.controllers.w3afCore import w3afCore
 
 class TestMangleHandler(unittest.TestCase):
 
-    @attr('moth')
+    @attr("moth")
     def test_mangle_handler_raw_request_1326(self):
         """
         Reproduces [0] to make sure we don't make that mistake again.
 
         [0] https://github.com/andresriancho/w3af/issues/1326
         """
-        http_request = 'GET %s HTTP/1.1\n' \
-                       'Host: localhost\n' \
-                       'Foo: bar\n'
+        http_request = "GET %s HTTP/1.1\n" "Host: localhost\n" "Foo: bar\n"
         http_request %= get_moth_http()
 
         w3af_core = w3afCore()
-        w3af_core.plugins.set_plugins(['sed'], 'mangle')
+        w3af_core.plugins.set_plugins(["sed"], "mangle")
         w3af_core.plugins.init_plugins()
 
         resp = w3af_core.uri_opener.send_raw_request(http_request, None)

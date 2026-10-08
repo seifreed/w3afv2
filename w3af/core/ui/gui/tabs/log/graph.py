@@ -19,7 +19,6 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-
 import gtk
 import gobject
 import time
@@ -29,9 +28,7 @@ import w3af.core.data.constants.severity as severity
 
 from w3af.core.ui.gui.output.message_consumer import MessageConsumer
 from w3af.core.data.db.disk_list import DiskList
-from w3af.core.controllers.exceptions import (NoSuchTableException,
-                                              MalformedDBException)
-
+from w3af.core.controllers.exceptions import NoSuchTableException, MalformedDBException
 
 # margins (they have to be > 10)
 MIZQ = 20
@@ -54,18 +51,19 @@ class LogGraph(gtk.DrawingArea, MessageConsumer):
 
     :author: Facundo Batista <facundobatista =at= taniquetil.com.ar>
     """
+
     def __init__(self, w3af):
         gtk.DrawingArea.__init__(self)
         MessageConsumer.__init__(self)
-        
+
         self.w3af = w3af
-        
+
         self.pangolayout = self.create_pango_layout("")
 
         # store all messages to be able to redraw
-        self.all_messages = DiskList(table_prefix='gui_graph')
+        self.all_messages = DiskList(table_prefix="gui_graph")
         self._need_redraw = 0
-        
+
         # control variables
         self.alreadyStopped = False
         self.timeGrouping = 2
@@ -78,7 +76,7 @@ class LogGraph(gtk.DrawingArea, MessageConsumer):
         self.connect("expose-event", self.area_expose_cb)
         gobject.timeout_add(500, self.draw_handler)
         self.show()
-    
+
     def draw_handler(self):
         """
         Draws the graph.
@@ -92,9 +90,9 @@ class LogGraph(gtk.DrawingArea, MessageConsumer):
             reset = next(self._redraw_gen)
             if reset:
                 self._redraw_gen = None
-        
+
         return True
-    
+
     def handle_message(self, msg):
         """Adds a message to the all_messages DiskList which is then used as
         a source for drawing the graph.
@@ -102,10 +100,10 @@ class LogGraph(gtk.DrawingArea, MessageConsumer):
         @returns: True to keep calling it, and False when all it's done.
         """
         yield super(LogGraph, self).handle_message(msg)
-        
+
         mmseg = int(msg.get_real_time() * 1000)
         mtype = msg.get_type()
-        if mtype == 'vulnerability':
+        if mtype == "vulnerability":
             sever = msg.get_severity()
         else:
             sever = None
@@ -155,7 +153,7 @@ class LogGraph(gtk.DrawingArea, MessageConsumer):
             yield True
 
         self.window.clear()
-        (w, h) = self.window.get_size()
+        w, h = self.window.get_size()
 
         tspan = pan / self.timeGrouping
         usableWidth = w - MDER - self.realLeftMargin
@@ -176,11 +174,11 @@ class LogGraph(gtk.DrawingArea, MessageConsumer):
             tspan = pan / self.timeGrouping
 
         # real left margin
-        txts = ['', 'Vulns', 'Info', '', 'Debug']
+        txts = ["", "Vulns", "Info", "", "Debug"]
         maxw = 0
         for txt in txts:
             self.pangolayout.set_text(txt)
-            (tw, th) = self.pangolayout.get_pixel_size()
+            tw, th = self.pangolayout.get_pixel_size()
             if tw > maxw:
                 maxw = tw
         # 5 for the tick, 3 separating
@@ -188,38 +186,46 @@ class LogGraph(gtk.DrawingArea, MessageConsumer):
 
         # the axis
         self.gc.set_rgb_fg_color(colors.whitesmoke)
-        self.window.draw_rectangle(self.gc, True, lm, MSUP, w-MDER-lm, h-MINF-MSUP)
+        self.window.draw_rectangle(
+            self.gc, True, lm, MSUP, w - MDER - lm, h - MINF - MSUP
+        )
         self.gc.set_rgb_fg_color(colors.black)
-        self.window.draw_line(self.gc, lm, MSUP, lm, h-MINF+10)
-        self.window.draw_line(self.gc, lm, h-MINF, w-MDER, h-MINF)
+        self.window.draw_line(self.gc, lm, MSUP, lm, h - MINF + 10)
+        self.window.draw_line(self.gc, lm, h - MINF, w - MDER, h - MINF)
 
         # small horizontal ticks
-        for x,timepoint in self._calculateXTicks(w-lm-MDER):
-            posx = x + lm 
-            self.window.draw_line(self.gc, posx, h-MINF+5, posx, h-MINF)
+        for x, timepoint in self._calculateXTicks(w - lm - MDER):
+            posx = x + lm
+            self.window.draw_line(self.gc, posx, h - MINF + 5, posx, h - MINF)
             self.pangolayout.set_text(timepoint)
-            (tw, th) = self.pangolayout.get_pixel_size()
-            self.window.draw_layout(self.gc, posx-tw//2, h-MINF+10, self.pangolayout)
+            tw, th = self.pangolayout.get_pixel_size()
+            self.window.draw_layout(
+                self.gc, posx - tw // 2, h - MINF + 10, self.pangolayout
+            )
         self.pangolayout.set_text("[s]")
-        (tw, th) = self.pangolayout.get_pixel_size()
-        self.window.draw_layout(self.gc, w-MDER+5, h-MINF-th // 2, self.pangolayout)
+        tw, th = self.pangolayout.get_pixel_size()
+        self.window.draw_layout(
+            self.gc, w - MDER + 5, h - MINF - th // 2, self.pangolayout
+        )
 
         # small vertical ticks and texts
-        sep = (h-MSUP-MINF) / 4
+        sep = (h - MSUP - MINF) / 4
         self.posHorizItems = {}
         self.maxItemHeight = {}
         posyant = MSUP
-        for i,txt in enumerate(txts):
+        for i, txt in enumerate(txts):
             if not txt:
                 continue
-            posy = int(MSUP + i*sep)
+            posy = int(MSUP + i * sep)
             self.posHorizItems[txt] = posy
             self.maxItemHeight[txt] = posy - posyant - 1
             posyant = posy
-            self.window.draw_line(self.gc, lm-5, posy, lm, posy)
+            self.window.draw_line(self.gc, lm - 5, posy, lm, posy)
             self.pangolayout.set_text(txt)
             tw, th = self.pangolayout.get_pixel_size()
-            self.window.draw_layout(self.gc, lm-tw-8, posy-th//2, self.pangolayout)
+            self.window.draw_layout(
+                self.gc, lm - tw - 8, posy - th // 2, self.pangolayout
+            )
 
         # draw the info
         countingPixel = 0
@@ -227,8 +233,9 @@ class LogGraph(gtk.DrawingArea, MessageConsumer):
         mesind = 0
 
         while True:
-            for (mmseg, mtype, sever) in itertools.islice(self.all_messages,
-                                                          mesind, None, None):
+            for mmseg, mtype, sever in itertools.islice(
+                self.all_messages, mesind, None, None
+            ):
                 mesind += 1
                 pixel = (mmseg - self.timeBase) // self.timeGrouping
                 posx = self.realLeftMargin + pixel
@@ -237,20 +244,20 @@ class LogGraph(gtk.DrawingArea, MessageConsumer):
                 if posx > (w - MDER):
                     yield True
 
-                if mtype == 'debug':
+                if mtype == "debug":
                     if pixel == countingPixel:
                         pixelQuant += 1
                     else:
                         countingPixel = pixel
                         self._drawItem_debug(posx, pixelQuant)
                         pixelQuant = 1
-                elif mtype == 'information':
+                elif mtype == "information":
                     self._drawItem_info(posx)
-                elif mtype == 'vulnerability':
+                elif mtype == "vulnerability":
                     self._drawItem_vuln(posx, sever)
-                    
+
             yield False
-            
+
     def _drawItem_debug(self, posx, quant):
         posy = self.posHorizItems["Debug"] - 1
         quant = min(quant, self.maxItemHeight["Debug"])
@@ -273,8 +280,7 @@ class LogGraph(gtk.DrawingArea, MessageConsumer):
             sever = 10
         else:
             sever = 20
-        self.window.draw_rectangle(
-            self.gc, True, posx - 1, posy - sever, 2, sever)
+        self.window.draw_rectangle(self.gc, True, posx - 1, posy - sever, 2, sever)
         self.gc.set_rgb_fg_color(colors.black)
 
     def area_expose_cb(self, area, event):
@@ -290,4 +296,3 @@ class LogGraph(gtk.DrawingArea, MessageConsumer):
             punto = int(step * i)
             label = "%.2f" % (punto * self.timeGrouping / 1000)
             yield punto, label
-

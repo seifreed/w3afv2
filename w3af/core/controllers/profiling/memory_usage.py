@@ -19,18 +19,18 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 
 from .utils import get_filename_fmt, dump_data_every_thread, cancel_thread
 
-
-PROFILING_OUTPUT_FMT = '/tmp/w3af-%s-%s.memory'
+PROFILING_OUTPUT_FMT = "/tmp/w3af-%s-%s.memory"
 DELAY_MINUTES = 2
 SAVE_THREAD_PTR = []
 
 
 def user_wants_memory_profiling():
-    _should_profile = os.environ.get('W3AF_MEMORY_PROFILING', '0')
+    _should_profile = os.environ.get("W3AF_MEMORY_PROFILING", "0")
 
     if _should_profile.isdigit() and int(_should_profile) == 1:
         return True
@@ -63,6 +63,7 @@ def dump_objects():
     """
     # pylint: disable=E0401
     from meliae import scanner
+
     scanner.dump_all_objects(PROFILING_OUTPUT_FMT % get_filename_fmt())
     # pylint: enable=E0401
 

@@ -19,13 +19,14 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 SHOW_MAX_START = 3
 
 
 def mask_password_string(password):
     if len(password) <= SHOW_MAX_START:
-        return '*' * len(password)
+        return "*" * len(password)
 
     show = password[:SHOW_MAX_START]
-    mask = show + ('*' * (len(password) - SHOW_MAX_START))
+    mask = show + ("*" * (len(password) - SHOW_MAX_START))
     return mask

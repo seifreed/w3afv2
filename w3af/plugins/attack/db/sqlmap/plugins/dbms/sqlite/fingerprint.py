@@ -17,6 +17,7 @@ from lib.core.settings import SQLITE_ALIASES
 from lib.request import inject
 from plugins.generic.fingerprint import Fingerprint as GenericFingerprint
 
+
 class Fingerprint(GenericFingerprint):
     def __init__(self):
         GenericFingerprint.__init__(self, DBMS.SQLITE)
@@ -74,7 +75,9 @@ class Fingerprint(GenericFingerprint):
         infoMsg = "testing %s" % DBMS.SQLITE
         logger.info(infoMsg)
 
-        result = inject.checkBooleanExpression("LAST_INSERT_ROWID()=LAST_INSERT_ROWID()")
+        result = inject.checkBooleanExpression(
+            "LAST_INSERT_ROWID()=LAST_INSERT_ROWID()"
+        )
 
         if result:
             infoMsg = "confirming %s" % DBMS.SQLITE
@@ -92,7 +95,7 @@ class Fingerprint(GenericFingerprint):
                 logger.info(infoMsg)
 
                 result = inject.checkBooleanExpression("RANDOMBLOB(-1)>0")
-                version = '3' if result else '2'
+                version = "3" if result else "2"
                 Backend.setVersion(version)
 
             setDbms(DBMS.SQLITE)

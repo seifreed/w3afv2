@@ -17,6 +17,7 @@ from lib.core.settings import PGSQL_ALIASES
 from lib.request import inject
 from plugins.generic.fingerprint import Fingerprint as GenericFingerprint
 
+
 class Fingerprint(GenericFingerprint):
     def __init__(self):
         GenericFingerprint.__init__(self, DBMS.PGSQL)
@@ -45,7 +46,9 @@ class Fingerprint(GenericFingerprint):
         value += "active fingerprint: %s" % actVer
 
         if kb.bannerFp:
-            banVer = kb.bannerFp["dbmsVersion"] if 'dbmsVersion' in kb.bannerFp else None
+            banVer = (
+                kb.bannerFp["dbmsVersion"] if "dbmsVersion" in kb.bannerFp else None
+            )
             banVer = Format.getDbms([banVer])
             value += "\n%sbanner parsing fingerprint: %s" % (blank, banVer)
 
@@ -79,7 +82,9 @@ class Fingerprint(GenericFingerprint):
             infoMsg = "confirming %s" % DBMS.PGSQL
             logger.info(infoMsg)
 
-            result = inject.checkBooleanExpression("COALESCE([RANDNUM], NULL)=[RANDNUM]")
+            result = inject.checkBooleanExpression(
+                "COALESCE([RANDNUM], NULL)=[RANDNUM]"
+            )
 
             if not result:
                 warnMsg = "the back-end DBMS is not %s" % DBMS.PGSQL
@@ -111,21 +116,31 @@ class Fingerprint(GenericFingerprint):
                 Backend.setVersionList([">= 9.0.0", "< 9.1.0"])
             elif inject.checkBooleanExpression("2=(SELECT DIV(6,3))"):
                 Backend.setVersionList([">= 8.4.0", "< 9.0.0"])
-            elif inject.checkBooleanExpression("EXTRACT(ISODOW FROM CURRENT_TIMESTAMP)<8"):
+            elif inject.checkBooleanExpression(
+                "EXTRACT(ISODOW FROM CURRENT_TIMESTAMP)<8"
+            ):
                 Backend.setVersionList([">= 8.3.0", "< 8.4.0"])
             elif inject.checkBooleanExpression("ISFINITE(TRANSACTION_TIMESTAMP())"):
                 Backend.setVersionList([">= 8.2.0", "< 8.3.0"])
             elif inject.checkBooleanExpression("9=(SELECT GREATEST(5,9,1))"):
                 Backend.setVersionList([">= 8.1.0", "< 8.2.0"])
-            elif inject.checkBooleanExpression("3=(SELECT WIDTH_BUCKET(5.35,0.024,10.06,5))"):
+            elif inject.checkBooleanExpression(
+                "3=(SELECT WIDTH_BUCKET(5.35,0.024,10.06,5))"
+            ):
                 Backend.setVersionList([">= 8.0.0", "< 8.1.0"])
-            elif inject.checkBooleanExpression("'d'=(SELECT SUBSTR(MD5('sqlmap'),1,1))"):
+            elif inject.checkBooleanExpression(
+                "'d'=(SELECT SUBSTR(MD5('sqlmap'),1,1))"
+            ):
                 Backend.setVersionList([">= 7.4.0", "< 8.0.0"])
-            elif inject.checkBooleanExpression("'p'=(SELECT SUBSTR(CURRENT_SCHEMA(),1,1))"):
+            elif inject.checkBooleanExpression(
+                "'p'=(SELECT SUBSTR(CURRENT_SCHEMA(),1,1))"
+            ):
                 Backend.setVersionList([">= 7.3.0", "< 7.4.0"])
             elif inject.checkBooleanExpression("8=(SELECT BIT_LENGTH(1))"):
                 Backend.setVersionList([">= 7.2.0", "< 7.3.0"])
-            elif inject.checkBooleanExpression("'a'=(SELECT SUBSTR(QUOTE_LITERAL('a'),2,1))"):
+            elif inject.checkBooleanExpression(
+                "'a'=(SELECT SUBSTR(QUOTE_LITERAL('a'),2,1))"
+            ):
                 Backend.setVersionList([">= 7.1.0", "< 7.2.0"])
             elif inject.checkBooleanExpression("8=(SELECT POW(2,3))"):
                 Backend.setVersionList([">= 7.0.0", "< 7.1.0"])
@@ -155,14 +170,21 @@ class Fingerprint(GenericFingerprint):
         logger.info(infoMsg)
 
         self.createSupportTbl(self.fileTblName, self.tblField, "character(10000)")
-        inject.goStacked("INSERT INTO %s(%s) VALUES (%s)" % (self.fileTblName, self.tblField, "VERSION()"))
+        inject.goStacked(
+            "INSERT INTO %s(%s) VALUES (%s)"
+            % (self.fileTblName, self.tblField, "VERSION()")
+        )
 
         # Windows executables should always have ' Visual C++' or ' mingw'
         # patterns within the banner
         osWindows = (" Visual C++", "mingw")
 
         for osPattern in osWindows:
-            query = "(SELECT LENGTH(%s) FROM %s WHERE %s " % (self.tblField, self.fileTblName, self.tblField)
+            query = "(SELECT LENGTH(%s) FROM %s WHERE %s " % (
+                self.tblField,
+                self.fileTblName,
+                self.tblField,
+            )
             query += "LIKE '%" + osPattern + "%')>0"
 
             if inject.checkBooleanExpression(query):

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import types
 
@@ -31,35 +32,40 @@ def get_all_templates():
     :return: A list with instances of all available templates
     """
     templates = []
-    location = [ROOT_PATH, 'core', 'data', 'kb', 'vuln_templates']
+    location = [ROOT_PATH, "core", "data", "kb", "vuln_templates"]
     template_path = os.path.join(*location)
-    
+
     for fname in os.listdir(template_path):
-        if not fname.endswith('_template.py'):
+        if not fname.endswith("_template.py"):
             continue
-        
-        if fname == 'base_template.py':
+
+        if fname == "base_template.py":
             continue
-    
-        fname = fname.replace('.py', '')
-    
+
+        fname = fname.replace(".py", "")
+
         # Please read help(__import__) to understand why I have to set
         # fromlist to something that's not empty.
-        module_name = 'w3af.core.data.kb.vuln_templates.%s' % fname
-        module = __import__(module_name, fromlist=[None,])
+        module_name = "w3af.core.data.kb.vuln_templates.%s" % fname
+        module = __import__(
+            module_name,
+            fromlist=[
+                None,
+            ],
+        )
 
         klasses = dir(module)
         for kls_name in klasses:
-            
+
             kls = getattr(module, kls_name)
-            
+
             if not isinstance(kls, type):
                 continue
-            
+
             if issubclass(kls, BaseTemplate) and kls is not BaseTemplate:
                 template = kls()
                 templates.append(template)
-                
+
     return templates
 
 

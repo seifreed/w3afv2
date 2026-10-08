@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import os
 import tempfile
 import subprocess
@@ -40,23 +41,30 @@ class Gnome(XVFBServer):
         * https://fedorahosted.org/dogtail/browser/scripts/dogtail-run-headless?rev=099577f6152ebd229eae530fff6b2221f72f05ae
         * https://fedorahosted.org/dogtail/browser/scripts/dogtail-run-headless
     """
-    XINITRC = os.path.join(ROOT_PATH, 'core', 'ui', 'tests', 'wrappers',
-                           'gnome.xinitrc')
 
-    START_CMD = 'xinit %s -- %s %s -screen 0 %sx%sx16 -ac -noreset -shmem -fbdir %s'
-    START_CMD = START_CMD % (XINITRC, XVFBServer.XVFB_BIN, DISPLAY,
-                             XVFBServer.WIDTH, XVFBServer.HEIGTH,
-                             tempfile.gettempdir())
+    XINITRC = os.path.join(
+        ROOT_PATH, "core", "ui", "tests", "wrappers", "gnome.xinitrc"
+    )
+
+    START_CMD = "xinit %s -- %s %s -screen 0 %sx%sx16 -ac -noreset -shmem -fbdir %s"
+    START_CMD = START_CMD % (
+        XINITRC,
+        XVFBServer.XVFB_BIN,
+        DISPLAY,
+        XVFBServer.WIDTH,
+        XVFBServer.HEIGTH,
+        tempfile.gettempdir(),
+    )
 
     def start_sync(self):
         # Kill all previously running instances of "gnome"
         # TODO: This is a little bit rough, huh?
         subprocess.getoutput("pkill -f %s" % self.XINITRC)
-        
-        assert os.path.exists(self.XINITRC), 'gnome.xinitrc is required.'
-        
+
+        assert os.path.exists(self.XINITRC), "gnome.xinitrc is required."
+
         gnome_start = super(Gnome, self).start_sync()
-        
-        metacity_start = self.run_x_process('metacity --replace')
-        
+
+        metacity_start = self.run_x_process("metacity --replace")
+
         return gnome_start and metacity_start

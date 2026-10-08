@@ -9,8 +9,10 @@ from lib.core.enums import PRIORITY
 
 __priority__ = PRIORITY.HIGHEST
 
+
 def dependencies():
     pass
+
 
 def tamper(payload, **kwargs):
     """
@@ -39,24 +41,24 @@ def tamper(payload, **kwargs):
             comma, end = None, None
 
             for i in range(index + len("IFNULL("), len(payload)):
-                if depth == 1 and payload[i] == ',':
+                if depth == 1 and payload[i] == ",":
                     comma = i
 
-                elif depth == 1 and payload[i] == ')':
+                elif depth == 1 and payload[i] == ")":
                     end = i
                     break
 
-                elif payload[i] == '(':
+                elif payload[i] == "(":
                     depth += 1
 
-                elif payload[i] == ')':
+                elif payload[i] == ")":
                     depth -= 1
 
             if comma and end:
-                _ = payload[index + len("IFNULL("):comma]
-                __ = payload[comma + 1:end].lstrip()
+                _ = payload[index + len("IFNULL(") : comma]
+                __ = payload[comma + 1 : end].lstrip()
                 newVal = "IF(ISNULL(%s),%s,%s)" % (_, __, _)
-                payload = payload[:index] + newVal + payload[end + 1:]
+                payload = payload[:index] + newVal + payload[end + 1 :]
             else:
                 break
 

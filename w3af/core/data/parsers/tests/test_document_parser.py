@@ -20,6 +20,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 import time
 import os
@@ -31,83 +32,93 @@ from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.html import HTMLParser
 from w3af.core.data.parsers.doc.pdf import PDFParser
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.parsers.document_parser import (document_parser_factory,
-                                                    DocumentParser)
+from w3af.core.data.parsers.document_parser import (
+    document_parser_factory,
+    DocumentParser,
+)
 
 
 def _build_http_response(body_content, content_type):
     headers = Headers()
-    headers['content-type'] = content_type
+    headers["content-type"] = content_type
 
-    url = URL('http://w3af.com')
+    url = URL("http://w3af.com")
 
-    return HTTPResponse(200, body_content, headers, url, url, charset='utf-8')
+    return HTTPResponse(200, body_content, headers, url, url, charset="utf-8")
 
 
 class TestDocumentParserFactory(unittest.TestCase):
 
-    PDF_FILE = os.path.join(ROOT_PATH, 'core', 'data', 'parsers', 'doc',
-                            'tests', 'data', 'links.pdf')
-    
-    HTML_FILE = os.path.join(ROOT_PATH, 'core', 'data', 'parsers', 'doc',
-                             'tests', 'data', 'sharepoint-pl.html')
+    PDF_FILE = os.path.join(
+        ROOT_PATH, "core", "data", "parsers", "doc", "tests", "data", "links.pdf"
+    )
+
+    HTML_FILE = os.path.join(
+        ROOT_PATH,
+        "core",
+        "data",
+        "parsers",
+        "doc",
+        "tests",
+        "data",
+        "sharepoint-pl.html",
+    )
 
     def test_html_ok(self):
-        mime_types = ['text/html', 'TEXT/HTML', 'TEXT/plain',
-                      'application/xhtml+xml']
+        mime_types = ["text/html", "TEXT/HTML", "TEXT/plain", "application/xhtml+xml"]
 
         for mtype in mime_types:
-            parser = document_parser_factory(_build_http_response('body', mtype))
+            parser = document_parser_factory(_build_http_response("body", mtype))
 
             self.assertIsInstance(parser, DocumentParser)
             self.assertIsInstance(parser._parser, HTMLParser)
-            self.assertEqual(parser.get_clear_text_body(), 'body')
+            self.assertEqual(parser.get_clear_text_body(), "body")
 
     def test_html_upper(self):
-        parser = document_parser_factory(_build_http_response('', 'TEXT/HTML'))
+        parser = document_parser_factory(_build_http_response("", "TEXT/HTML"))
 
         self.assertIsInstance(parser, DocumentParser)
         self.assertIsInstance(parser._parser, HTMLParser)
 
     def test_pdf_case01(self):
         parser = document_parser_factory(
-            _build_http_response(open(self.PDF_FILE).read(),
-                                 'application/pdf'))
+            _build_http_response(open(self.PDF_FILE).read(), "application/pdf")
+        )
 
         self.assertIsInstance(parser, DocumentParser)
         self.assertIsInstance(parser._parser, PDFParser)
 
     def test_no_parser(self):
-        mime_types = ['application/bar', 'application/zip', 'video/abc',
-                      'image/jpeg']
+        mime_types = ["application/bar", "application/zip", "video/abc", "image/jpeg"]
 
         for mtype in mime_types:
-            response = _build_http_response('body', mtype)
-            self.assertRaises(BaseFrameworkException, document_parser_factory,
-                              response)
+            response = _build_http_response("body", mtype)
+            self.assertRaises(BaseFrameworkException, document_parser_factory, response)
 
     def test_no_parser_binary(self):
-        all_chars = ''.join([chr(i) for i in range(0,255)])
-        response = _build_http_response(all_chars, 'application/bar')
-        self.assertRaises(BaseFrameworkException, document_parser_factory,
-                          response)
-        
+        all_chars = "".join([chr(i) for i in range(0, 255)])
+        response = _build_http_response(all_chars, "application/bar")
+        self.assertRaises(BaseFrameworkException, document_parser_factory, response)
+
     def test_issue_106_invalid_url(self):
         """
         Issue to verify https://github.com/andresriancho/w3af/issues/106
         """
         sharepoint_pl = open(self.HTML_FILE).read()
-        parser = document_parser_factory(_build_http_response(sharepoint_pl,
-                                                              'text/html'))
+        parser = document_parser_factory(
+            _build_http_response(sharepoint_pl, "text/html")
+        )
 
         self.assertIsInstance(parser, DocumentParser)
         self.assertIsInstance(parser._parser, HTMLParser)
-        
+
         paths = []
         paths.extend(url.get_path_qs() for url in parser.get_references()[0])
         paths.extend(url.get_path_qs() for url in parser.get_references()[1])
-        
-        expected_paths = {'/szukaj/_vti_bin/search.asmx',
-                          '/_vti_bin/search.asmx?disco='}
-        
+
+        expected_paths = {
+            "/szukaj/_vti_bin/search.asmx",
+            "/_vti_bin/search.asmx?disco=",
+        }
+
         self.assertEqual(expected_paths, set(paths))

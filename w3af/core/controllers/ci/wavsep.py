@@ -20,15 +20,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-HTTP_WAVSEP = '/tmp/wavsep.txt'
-DEFAULT_WAVSEP = 'wavsep-fallback:80'
+HTTP_WAVSEP = "/tmp/wavsep.txt"
+DEFAULT_WAVSEP = "wavsep-fallback:80"
 
 
-def get_wavsep_http(path='/'):
+def get_wavsep_http(path="/"):
     try:
         wavsep_netloc = open(HTTP_WAVSEP).read().strip()
     except IOError:
         wavsep_netloc = DEFAULT_WAVSEP
 
-    return 'http://%s%s' % (wavsep_netloc, path)
-
+    return "http://%s%s" % (wavsep_netloc, path)

@@ -16,6 +16,7 @@ class spider(Payload):
 
     Usage: spider <recursion_level>
     """
+
     def api_read(self, recursion_level):
 
         def extract_files_from_payloads():
@@ -23,15 +24,24 @@ class spider(Payload):
             :return: A list of files that's mentioned in the other payloads
             I use this as a start point.
             """
-            payload_result = self.exec_payload('apache_config_files')
-            payload_files = list(payload_result['apache_config'].keys())
+            payload_result = self.exec_payload("apache_config_files")
+            payload_files = list(payload_result["apache_config"].keys())
 
-            key_payloads = ['dhcp_config_files', 'dns_config_files',
-                            'dns_config_files', 'ftp_config_files',
-                            'kerberos_config_files', 'kerberos_config_files',
-                            'ldap_config_files', 'mail_config_files',
-                            'mysql_config', 'users_config_files',
-                            'read_mail', 'log_reader', 'interesting_files']
+            key_payloads = [
+                "dhcp_config_files",
+                "dns_config_files",
+                "dns_config_files",
+                "ftp_config_files",
+                "kerberos_config_files",
+                "kerberos_config_files",
+                "ldap_config_files",
+                "mail_config_files",
+                "mysql_config",
+                "users_config_files",
+                "read_mail",
+                "log_reader",
+                "interesting_files",
+            ]
 
             for keyed_payload in key_payloads:
                 payload_result = self.exec_payload(keyed_payload)
@@ -57,8 +67,7 @@ class spider(Payload):
             # Compile
             regular_expressions = []
             for common_dirs in get_common_directories():
-                regex_string = '(' + common_dirs + \
-                    '.*?)[:| |\0|\'|"|<|\n|\r|\t]'
+                regex_string = "(" + common_dirs + ".*?)[:| |\0|'|\"|<|\n|\r|\t]"
                 regex = re.compile(regex_string, re.IGNORECASE)
                 regular_expressions.append(regex)
 
@@ -76,9 +85,20 @@ class spider(Payload):
             """
             :return: True if the file seems interesting
             """
-            keyword_list = ['passwords', 'passwd', 'password', 'access', 'auth',
-                            'authentication', 'authenticate', 'secret', 'key',
-                            'keys', 'permissions', 'perm']
+            keyword_list = [
+                "passwords",
+                "passwd",
+                "password",
+                "access",
+                "auth",
+                "authentication",
+                "authenticate",
+                "secret",
+                "key",
+                "keys",
+                "permissions",
+                "perm",
+            ]
 
             for key in keyword_list:
                 if key in filename or key in file_content:
@@ -89,7 +109,7 @@ class spider(Payload):
         try:
             recursion_level = int(recursion_level)
         except:
-            ValueError('recursion_level needs to be an integer.')
+            ValueError("recursion_level needs to be an integer.")
 
         self.result = {}
 
@@ -99,19 +119,16 @@ class spider(Payload):
 
             new_files = []
 
-            initial_file_list = [
-                f for f in initial_file_list if f not in self.result]
+            initial_file_list = [f for f in initial_file_list if f not in self.result]
 
             for filename, file_content in self.read_multi(initial_file_list):
 
                 if file_content:
                     #    Save it in the result
-                    self.result[filename] = is_interesting_file(
-                        filename, file_content)
+                    self.result[filename] = is_interesting_file(filename, file_content)
 
                     #    Extract info from it
-                    new_files.extend(
-                        extract_files_from_file(filename, file_content))
+                    new_files.extend(extract_files_from_file(filename, file_content))
 
             #
             #    Finish one pass, lets setup the next one
@@ -126,11 +143,11 @@ class spider(Payload):
         api_result = self.api_read(recursion_level)
 
         if not api_result:
-            return 'No files found.'
+            return "No files found."
         else:
-            rows = [['Filename', 'Interesting'], []]
+            rows = [["Filename", "Interesting"], []]
             for filename in api_result:
-                interesting = api_result[filename] and 'X' or ''
+                interesting = api_result[filename] and "X" or ""
                 rows.append([filename, interesting])
 
             result_table = table(rows)

@@ -20,6 +20,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 import copy
 
@@ -28,10 +29,10 @@ from w3af.core.data.misc.encoding import smart_unicode
 
 
 class TestToken(unittest.TestCase):
-    NAME = 'name'
-    VALUE = 'value'
-    PATH = 'path'
-    PAYLOAD = 'payload'
+    NAME = "name"
+    VALUE = "value"
+    PATH = "path"
+    PAYLOAD = "payload"
 
     def test_basic(self):
         token = DataToken(self.NAME, self.VALUE, self.PATH)
@@ -63,16 +64,16 @@ class TestToken(unittest.TestCase):
         self.assertEqual(token.get_path(), self.PATH)
 
     def test_invalid_utf8(self):
-        invalid_utf8 = '\xf3'
+        invalid_utf8 = "\xf3"
         token = DataToken(self.NAME, invalid_utf8, self.PATH)
 
         self.assertRaises(UnicodeDecodeError, str, token)
 
         encoded_token = smart_unicode(token)
-        self.assertEqual(encoded_token, '\xf3')
+        self.assertEqual(encoded_token, "\xf3")
 
     def test_unicodeencodeerror(self):
-        _unicode = 'í'
+        _unicode = "í"
         token = DataToken(self.NAME, _unicode, self.PATH)
 
-        self.assertEqual(str(token), 'í')
+        self.assertEqual(str(token), "í")

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 
 import w3af.core.data.constants.severity as severity
@@ -31,7 +32,7 @@ def passes_luhn_check(value):
     """
     The Luhn check against the value which can be an array of digits,
     numeric string or a positive integer.
-    
+
     Example credit card numbers can be found here:
 
     https://www.paypal.com/en_US/vhelp/paypalmanager_help/credit_card_numbers.htm
@@ -66,7 +67,7 @@ class credit_cards(GrepPlugin):
     def __init__(self):
         GrepPlugin.__init__(self)
 
-        cc_regex = '((^|\s)\d{4}[- ]?(\d{4}[- ]?\d{4}|\d{6})[- ]?(\d{5}|\d{4})($|\s))'
+        cc_regex = "((^|\s)\d{4}[- ]?(\d{4}[- ]?\d{4}|\d{6})[- ]?(\d{5}|\d{4})($|\s))"
         #    (^|[^\d])                        Match the start of the string, or something that's NOT a digit
         #    \d{4}[- ]?                       Match four digits, and then (optionally) a "-" or a space
         #    (\d{4}[- ]?\d{4}|\d{6})          Match one of the following:
@@ -102,13 +103,18 @@ class credit_cards(GrepPlugin):
             desc = 'The URL: "%s" discloses the credit card number: "%s"'
             desc %= (response.get_url(), card)
 
-            v = Vuln('Credit card number disclosure', desc,
-                     severity.LOW, response.id, self.get_name())
+            v = Vuln(
+                "Credit card number disclosure",
+                desc,
+                severity.LOW,
+                response.id,
+                self.get_name(),
+            )
 
             v.set_url(response.get_url())
             v.add_to_highlight(card)
 
-            self.kb_append_uniq(self, 'credit_cards', v, 'URL')
+            self.kb_append_uniq(self, "credit_cards", v, "URL")
 
     def _find_card(self, body):
         """

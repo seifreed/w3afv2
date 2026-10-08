@@ -19,26 +19,25 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import string
 import functools
 
-from w3af.core.data.misc.constants.web_encodings import (HEX_MAP,
-                                                         HEX_FORMAT,
-                                                         DEC_FORMAT,
-                                                         DEC_PADDED_FORMAT,
-                                                         URL_HEX_FORMAT,
-                                                         SPECIAL_CHARS,
-                                                         HTML_ENCODE_NAMES)
-
+from w3af.core.data.misc.constants.web_encodings import (
+    HEX_MAP,
+    HEX_FORMAT,
+    DEC_FORMAT,
+    DEC_PADDED_FORMAT,
+    URL_HEX_FORMAT,
+    SPECIAL_CHARS,
+    HTML_ENCODE_NAMES,
+)
 
 HTML_ENCODING_FUNCTIONS = []
 URL_ENCODING_FUNCTIONS = []
 
 
-def url_encode(data,
-               by_code_replacer=None,
-               replace_by_code=None,
-               should_upper=False):
+def url_encode(data, by_code_replacer=None, replace_by_code=None, should_upper=False):
     """
     This is a generic function which can be used to generate all the functions
     we need for URL encoding.
@@ -61,32 +60,31 @@ def url_encode(data,
 
         result.append(char)
 
-    return ''.join(result)
+    return "".join(result)
 
 
 def generate_url_encoding_functions():
     by_code_replacers = (
         lambda c: c,
         lambda c: URL_HEX_FORMAT % HEX_MAP.get(c, c),
-        lambda c: URL_HEX_FORMAT % HEX_MAP.get(c, c) if c != ' ' else '+'
+        lambda c: URL_HEX_FORMAT % HEX_MAP.get(c, c) if c != " " else "+",
     )
 
     replace_by_codes = (
         # No character is replaced
         {},
-
         # RFC 2396 Uniform Resource Identifiers reserved
-        {';', '/', '?', ':', '@', '&', '=', '+', '$', ','},
-
+        {";", "/", "?", ":", "@", "&", "=", "+", "$", ","},
         # RFC 2396 Uniform Resource Identifiers reserved without the slash
-        {';', '?', ':', '@', '&', '=', '+', '$', ','},
-
+        {";", "?", ":", "@", "&", "=", "+", "$", ","},
         # All not in printable
         {chr(c) for c in range(256) if chr(c) not in string.printable},
-
         # All not in digits, letters and dot
-        {chr(c) for c in range(256) if chr(c) not in string.digits + string.ascii_letters + '.'},
-
+        {
+            chr(c)
+            for c in range(256)
+            if chr(c) not in string.digits + string.ascii_letters + "."
+        },
         # All characters are replaced
         HEX_MAP,
     )
@@ -100,20 +98,24 @@ def generate_url_encoding_functions():
     for by_code_replacer in by_code_replacers:
         for replace_by_code in replace_by_codes:
             for should_upper in should_uppers:
-                functor = functools.partial(url_encode,
-                                            by_code_replacer=by_code_replacer,
-                                            replace_by_code=replace_by_code,
-                                            should_upper=should_upper)
+                functor = functools.partial(
+                    url_encode,
+                    by_code_replacer=by_code_replacer,
+                    replace_by_code=replace_by_code,
+                    should_upper=should_upper,
+                )
 
                 URL_ENCODING_FUNCTIONS.append(functor)
 
 
-def html_encode(data,
-                by_code_replacer=None,
-                by_name_replacer=None,
-                replace_by_code=None,
-                replace_by_name=None,
-                should_upper=False):
+def html_encode(
+    data,
+    by_code_replacer=None,
+    by_name_replacer=None,
+    replace_by_code=None,
+    replace_by_name=None,
+    should_upper=False,
+):
     """
     This is a generic function which can be used to generate all the functions
     we need for HTML encoding.
@@ -145,7 +147,7 @@ def html_encode(data,
 
         result.append(char)
 
-    return ''.join(result)
+    return "".join(result)
 
 
 def generate_html_encoding_functions():
@@ -153,7 +155,7 @@ def generate_html_encoding_functions():
         lambda c: c,
         lambda c: HEX_FORMAT % HEX_MAP.get(c, c),
         lambda c: DEC_FORMAT % ord(c),
-        lambda c: DEC_PADDED_FORMAT % ord(c)
+        lambda c: DEC_PADDED_FORMAT % ord(c),
     )
 
     by_name_replacers = (
@@ -164,8 +166,8 @@ def generate_html_encoding_functions():
     replace_by_codes = (
         {},
         SPECIAL_CHARS,
-        {'&', '<', '>'},
-        {'&', '<', '>', '"'},
+        {"&", "<", ">"},
+        {"&", "<", ">", '"'},
         HEX_MAP,
     )
 
@@ -173,8 +175,8 @@ def generate_html_encoding_functions():
         {},
         SPECIAL_CHARS,
         HTML_ENCODE_NAMES,
-        {'&', '<', '>'},
-        {'&', '<', '>', '"'},
+        {"&", "<", ">"},
+        {"&", "<", ">", '"'},
         HEX_MAP,
     )
 
@@ -189,12 +191,14 @@ def generate_html_encoding_functions():
             for replace_by_code in replace_by_codes:
                 for replace_by_name in replace_by_names:
                     for should_upper in should_uppers:
-                        functor = functools.partial(html_encode,
-                                                    by_code_replacer=by_code_replacer,
-                                                    by_name_replacer=by_name_replacer,
-                                                    replace_by_code=replace_by_code,
-                                                    replace_by_name=replace_by_name,
-                                                    should_upper=should_upper)
+                        functor = functools.partial(
+                            html_encode,
+                            by_code_replacer=by_code_replacer,
+                            by_name_replacer=by_name_replacer,
+                            replace_by_code=replace_by_code,
+                            replace_by_name=replace_by_name,
+                            should_upper=should_upper,
+                        )
 
                         HTML_ENCODING_FUNCTIONS.append(functor)
 
@@ -205,7 +209,7 @@ def unicode_escape(data):
         Double quotes become: \\u0022
         Single quotes become: \\u0027
     """
-    return data.replace('"', '\\u0022').replace("'", '\\u0027')
+    return data.replace('"', "\\u0022").replace("'", "\\u0027")
 
 
 def backslash_escape(data):
@@ -217,7 +221,4 @@ def backslash_escape(data):
     return data.replace('"', '\\"').replace("'", "\\'")
 
 
-JSON_ENCODING_FUNCTIONS = (
-    unicode_escape,
-    backslash_escape
-)
+JSON_ENCODING_FUNCTIONS = (unicode_escape, backslash_escape)

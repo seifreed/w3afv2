@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 import urllib.request, urllib.parse, urllib.error
 
@@ -39,13 +40,15 @@ class strange_parameters(GrepPlugin):
 
     :author: Andres Riancho ((andres.riancho@gmail.com))
     """
-    STRANGE_RE_CHARS = re.compile(r'([a-zA-Z0-9. ]+)')
 
-    STRANGE_RE_LIST = [re.compile(r'\w+\(.*?\)')]
+    STRANGE_RE_CHARS = re.compile(r"([a-zA-Z0-9. ]+)")
 
-    SQL_RE = re.compile(r'(SELECT .*? FROM|'
-                        r'INSERT INTO .*? VALUES|'
-                        r'UPDATE .*? SET .*? WHERE)', re.IGNORECASE)
+    STRANGE_RE_LIST = [re.compile(r"\w+\(.*?\)")]
+
+    SQL_RE = re.compile(
+        r"(SELECT .*? FROM|" r"INSERT INTO .*? VALUES|" r"UPDATE .*? SET .*? WHERE)",
+        re.IGNORECASE,
+    )
 
     def __init__(self):
         GrepPlugin.__init__(self)
@@ -98,20 +101,21 @@ class strange_parameters(GrepPlugin):
         if request.sent(token_value):
             return False
 
-        desc = ('The URI: "%s" has a parameter named: "%s" with value:'
-                ' "%s", which is very uncommon and requires manual'
-                ' inspection.')
+        desc = (
+            'The URI: "%s" has a parameter named: "%s" with value:'
+            ' "%s", which is very uncommon and requires manual'
+            " inspection."
+        )
         args = (response.get_uri(), token_name, token_value)
         args = tuple(smart_str_ignore(i) for i in args)
         desc %= args
 
-        i = Info('Uncommon query string parameter', desc, response.id,
-                 self.get_name())
-        i['parameter_value'] = token_value
+        i = Info("Uncommon query string parameter", desc, response.id, self.get_name())
+        i["parameter_value"] = token_value
         i.add_to_highlight(token_value)
         i.set_uri(ref)
 
-        self.kb_append(self, 'strange_parameters', i)
+        self.kb_append(self, "strange_parameters", i)
         return True
 
     def _analyze_SQL(self, request, response, ref, token_name, token_value):
@@ -126,17 +130,24 @@ class strange_parameters(GrepPlugin):
             if request.sent(match):
                 continue
 
-            desc = ('The URI: "%s" has a parameter named: "%s" with value:'
-                    ' "%s", which is a SQL query.')
+            desc = (
+                'The URI: "%s" has a parameter named: "%s" with value:'
+                ' "%s", which is a SQL query.'
+            )
             desc %= (response.get_uri(), token_name, token_value)
 
-            v = Vuln('Parameter has SQL sentence', desc, severity.LOW,
-                     response.id, self.get_name())
-            v['parameter_value'] = token_value
+            v = Vuln(
+                "Parameter has SQL sentence",
+                desc,
+                severity.LOW,
+                response.id,
+                self.get_name(),
+            )
+            v["parameter_value"] = token_value
             v.add_to_highlight(token_value)
             v.set_uri(ref)
 
-            self.kb_append(self, 'strange_parameters', v)
+            self.kb_append(self, "strange_parameters", v)
             return True
 
         return False
@@ -153,10 +164,10 @@ class strange_parameters(GrepPlugin):
         # they contain multiple "special characters", but we don't care about
         # them enough to report them
         #
-        if decoded_value.startswith('http://'):
+        if decoded_value.startswith("http://"):
             return False
 
-        if decoded_value.startswith('https://'):
+        if decoded_value.startswith("https://"):
             return False
 
         #
@@ -169,7 +180,7 @@ class strange_parameters(GrepPlugin):
         #
         # Which are strange in all cases, except from wicket!
         #
-        if 'wicket:' in parameter or 'wicket:' in decoded_parameter:
+        if "wicket:" in parameter or "wicket:" in decoded_parameter:
             return False
 
         #
@@ -184,7 +195,7 @@ class strange_parameters(GrepPlugin):
         # Split the parameter by any character that is not A-Za-z0-9 and if
         # the length is greater than X then report it
         #
-        split_value = [x for x in self.STRANGE_RE_CHARS.split(value) if x != '']
+        split_value = [x for x in self.STRANGE_RE_CHARS.split(value) if x != ""]
         if len(split_value) > 4:
             if not request.sent(value):
                 return True

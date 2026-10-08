@@ -20,12 +20,15 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import urllib.request, urllib.parse, urllib.error
 
 from w3af.core.data.constants.encodings import UTF8
 from w3af.core.data.misc.encoding import is_known_encoding
 
-NOT_IMPLEMENTED_FMT = 'You should create your own parser class and implement the %s() method.'
+NOT_IMPLEMENTED_FMT = (
+    "You should create your own parser class and implement the %s() method."
+)
 
 
 class BaseParser(object):
@@ -34,13 +37,14 @@ class BaseParser(object):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
-    SAFE_CHARS = (('\x00', '%00'),)
+
+    SAFE_CHARS = (("\x00", "%00"),)
 
     def __init__(self, http_response):
 
         encoding = http_response.get_charset()
         if not is_known_encoding(encoding):
-            raise ValueError('Unknown encoding: %s' % encoding)
+            raise ValueError("Unknown encoding: %s" % encoding)
 
         # "set_base_url"
         url = http_response.get_url()
@@ -103,7 +107,7 @@ class BaseParser(object):
         try:
             dec_url = dec_url.decode(UTF8)
         except UnicodeDecodeError:
-            dec_url = dec_url.decode(enc, 'ignore')
+            dec_url = dec_url.decode(enc, "ignore")
         #
         # TODO: Lines below will remain commented until we make a
         # decision regarding which is the (right?) way to decode URLs.
@@ -131,7 +135,7 @@ class BaseParser(object):
         """
         :return: A list of forms.
         """
-        raise NotImplementedError(NOT_IMPLEMENTED_FMT % 'get_forms')
+        raise NotImplementedError(NOT_IMPLEMENTED_FMT % "get_forms")
 
     def get_references(self):
         """
@@ -147,31 +151,31 @@ class BaseParser(object):
                  came out of a regular expression. The second list if less
                  trustworthy.
         """
-        raise NotImplementedError(NOT_IMPLEMENTED_FMT % 'get_references')
+        raise NotImplementedError(NOT_IMPLEMENTED_FMT % "get_references")
 
     def get_emails(self, domain=None):
         """
         :return: A set with email addresses
         """
-        raise NotImplementedError(NOT_IMPLEMENTED_FMT % 'get_emails')
+        raise NotImplementedError(NOT_IMPLEMENTED_FMT % "get_emails")
 
     def get_comments(self):
         """
         :return: A list of comments.
         """
-        raise NotImplementedError(NOT_IMPLEMENTED_FMT % 'get_comments')
+        raise NotImplementedError(NOT_IMPLEMENTED_FMT % "get_comments")
 
     def get_meta_redir(self):
         """
         :return: Returns list of meta redirections.
         """
-        raise NotImplementedError(NOT_IMPLEMENTED_FMT % 'get_meta_redir')
+        raise NotImplementedError(NOT_IMPLEMENTED_FMT % "get_meta_redir")
 
     def get_meta_tags(self):
         """
         :return: Returns list of all meta tags.
         """
-        raise NotImplementedError(NOT_IMPLEMENTED_FMT % 'get_meta_tags')
+        raise NotImplementedError(NOT_IMPLEMENTED_FMT % "get_meta_tags")
 
     def _return_empty_list(self, *args, **kwds):
         """
@@ -188,7 +192,7 @@ class BaseParser(object):
         """
         :return: A clear text representation of the HTTP response body.
         """
-        raise NotImplementedError(NOT_IMPLEMENTED_FMT % 'get_clear_text_body')
+        raise NotImplementedError(NOT_IMPLEMENTED_FMT % "get_clear_text_body")
 
     def clear(self):
         """

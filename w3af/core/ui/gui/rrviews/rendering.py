@@ -19,50 +19,53 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import gtk
 
-RENDERING_ENGINES = {'webkit': False,
-                     'gtkhtml2': False,
-                     'moz': False}
+RENDERING_ENGINES = {"webkit": False, "gtkhtml2": False, "moz": False}
 
 try:
     import webkit
-    RENDERING_ENGINES['webkit'] = True
+
+    RENDERING_ENGINES["webkit"] = True
 except ImportError:
     pass
 
 try:
     import gtkmozembed
-    RENDERING_ENGINES['moz'] = True
+
+    RENDERING_ENGINES["moz"] = True
 except ImportError:
     pass
 
 try:
     import gtkhtml2
+
     # This brings crashes like:
     #    HtmlView-ERROR **: file htmlview.c: line 1906 (html_view_insert_node):
     #    assertion failed: (node->style != NULL)
     #   TODO: Change this to True when gtkhtml2 is fixed
-    RENDERING_ENGINES['gtkhtml2'] = False
+    RENDERING_ENGINES["gtkhtml2"] = False
 except ImportError:
     pass
 
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.constants.encodings import UTF8
 
-
-NO_RENDER_MSG = 'If you want to render HTML responses, install at least one' \
-                ' of the following rendering engines: python-webkit,' \
-                ' python-gtkmozembed, python-gtkhtml2'
+NO_RENDER_MSG = (
+    "If you want to render HTML responses, install at least one"
+    " of the following rendering engines: python-webkit,"
+    " python-gtkmozembed, python-gtkhtml2"
+)
 
 
 def getRenderingView(w3af, parentView):
     """Return RenderingView with best web engine or raise exception."""
-    if RENDERING_ENGINES['webkit']:
+    if RENDERING_ENGINES["webkit"]:
         return WebKitRenderingView(w3af, parentView)
-    elif RENDERING_ENGINES['moz']:
+    elif RENDERING_ENGINES["moz"]:
         return MozRenderingView(w3af, parentView)
-    elif RENDERING_ENGINES['gtkhtml2']:
+    elif RENDERING_ENGINES["gtkhtml2"]:
         return GtkHtmlRenderingView(w3af, parentView)
 
     raise BaseFrameworkException(NO_RENDER_MSG)
@@ -70,19 +73,20 @@ def getRenderingView(w3af, parentView):
 
 class RenderingView(gtk.VBox):
     """Rendering view."""
+
     def __init__(self, w3af, parentView):
         """Make object."""
         gtk.VBox.__init__(self)
-        self.id = 'RenderingView'
-        self.label = 'Rendered'
+        self.id = "RenderingView"
+        self.label = "Rendered"
         self.parentView = parentView
 
     def show_object(self, obj):
         """Show object in view."""
-        raise BaseFrameworkException('Child MUST implement a clear() method.')
+        raise BaseFrameworkException("Child MUST implement a clear() method.")
 
     def clear(self):
-        raise BaseFrameworkException('Child MUST implement a clear() method.')
+        raise BaseFrameworkException("Child MUST implement a clear() method.")
 
     def get_object(self):
         """Return object (request or response)."""
@@ -112,7 +116,7 @@ class GtkHtmlRenderingView(RenderingView):
             return
         if not len(obj.get_body()):
             return
-        mime_type = 'text/html'
+        mime_type = "text/html"
         try:
             document = gtkhtml2.Document()
             document.clear()
@@ -125,9 +129,9 @@ class GtkHtmlRenderingView(RenderingView):
             # can't display
             pass
         except Exception as e:
-            print((_('gtkhtml2 exception:'), type(e), str(e)))
-            print((_('Please report this issue here:')))
-            print('https://github.com/andresriancho/w3af/issues/new')
+            print((_("gtkhtml2 exception:"), type(e), str(e)))
+            print((_("Please report this issue here:")))
+            print("https://github.com/andresriancho/w3af/issues/new")
 
     def clear(self):
         """Clear view."""
@@ -149,11 +153,12 @@ class MozRenderingView(RenderingView):
 
     def show_object(self, obj):
         """Show object in view."""
-        mime_type = 'text/html'
+        mime_type = "text/html"
         # mimeType = obj.content_type
         if obj.is_text_or_html():
-            self._renderingWidget.render_data(obj.get_body(
-            ), int(len(obj.get_body())), str(obj.get_uri()), mime_type)
+            self._renderingWidget.render_data(
+                obj.get_body(), int(len(obj.get_body())), str(obj.get_uri()), mime_type
+            )
 
     def clear(self):
         """Clear view."""
@@ -169,8 +174,8 @@ class WebKitRenderingView(RenderingView):
         self._renderingWidget = webkit.WebView()
         # Settings
         settings = self._renderingWidget.get_settings()
-        settings.set_property('auto-load-images', True)
-        settings.set_property('enable-scripts', False)
+        settings.set_property("auto-load-images", True)
+        settings.set_property("enable-scripts", False)
         sw_rendered_html = gtk.ScrolledWindow()
         sw_rendered_html.add(self._renderingWidget)
         sw_rendered_html.show_all()
@@ -178,7 +183,7 @@ class WebKitRenderingView(RenderingView):
 
     def show_object(self, obj):
         """Show object in view."""
-        mime_type = 'text/html'
+        mime_type = "text/html"
         load_string = self._renderingWidget.load_string
 
         try:
@@ -194,7 +199,7 @@ class WebKitRenderingView(RenderingView):
             else:
                 raise Exception
         except Exception:
-            load_string(_("Can't render response"), mime_type, 'UTF-8', 'error')
+            load_string(_("Can't render response"), mime_type, "UTF-8", "error")
 
     def clear(self):
         """Clear view."""

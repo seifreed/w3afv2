@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.misc.is_ip_address import is_ip_address
 from w3af.core.data.options.baseoption import BaseOption
@@ -41,23 +42,27 @@ class IPPortOption(BaseOption):
 
     def validate(self, value):
         try:
-            ip, port = value.split(':')
+            ip, port = value.split(":")
         except Exception:
-            msg = 'Invalid IP and port specification, the correct format is'\
-                  ' <ip-address>:<port> , for example:  127.0.0.1:8080.'
+            msg = (
+                "Invalid IP and port specification, the correct format is"
+                " <ip-address>:<port> , for example:  127.0.0.1:8080."
+            )
             raise BaseFrameworkException(msg)
         else:
             if not is_ip_address(ip):
                 msg = 'Invalid IP address specified ("%s")' % ip
                 raise BaseFrameworkException(msg)
-            
+
             try:
                 port = int(port)
                 assert port > 0
                 assert port < 65536
             except:
-                msg = 'Invalid port specified, it needs to be a number between'\
-                      ' 1 and 65535.'
+                msg = (
+                    "Invalid port specified, it needs to be a number between"
+                    " 1 and 65535."
+                )
                 raise BaseFrameworkException(msg)
 
             return value

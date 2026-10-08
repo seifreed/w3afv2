@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.data.constants.severity as severity
 
 from w3af.core.data.kb.vuln import Vuln
@@ -70,21 +71,23 @@ class code_disclosure(GrepPlugin):
         if response_is_404 and self._report_404_match:
             self._report_404_match = False
 
-            desc = ('The URL: "%s" has a %s code disclosure'
-                    ' vulnerability in the customized 404 script.')
-            name = 'Code disclosure vulnerability in 404 page'
+            desc = (
+                'The URL: "%s" has a %s code disclosure'
+                " vulnerability in the customized 404 script."
+            )
+            name = "Code disclosure vulnerability in 404 page"
         else:
             desc = 'The URL: "%s" has a %s code disclosure vulnerability.'
-            name = 'Code disclosure vulnerability'
+            name = "Code disclosure vulnerability"
 
         # Report the vulnerability
-        desc %= (response.get_url(), ' or '.join(list(lang)))
+        desc %= (response.get_url(), " or ".join(list(lang)))
 
         v = Vuln(name, desc, severity.LOW, response.id, self.get_name())
         v.set_url(response.get_url())
         v.add_to_highlight(match.group())
-        
-        self.kb_append_uniq(self, 'code_disclosure', v, 'URL')
+
+        self.kb_append_uniq(self, "code_disclosure", v, "URL")
 
     def get_long_desc(self):
         """

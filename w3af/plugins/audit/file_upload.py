@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 
 from itertools import repeat
@@ -38,7 +39,9 @@ from w3af.core.controllers.exceptions import BaseFrameworkException
 
 from w3af.core.data.parsers.utils.re_extract import ReExtract
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.constants.file_templates.file_templates import get_template_with_payload
+from w3af.core.data.constants.file_templates.file_templates import (
+    get_template_with_payload,
+)
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.fuzzer.fuzzer import create_mutants
@@ -54,26 +57,30 @@ class file_upload(AuditPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    TEMPLATE_DIR = os.path.join(ROOT_PATH, 'core', 'data', 'constants', 'file_templates')
+    TEMPLATE_DIR = os.path.join(
+        ROOT_PATH, "core", "data", "constants", "file_templates"
+    )
 
     MAX_BRUTEFORCE_FINDS = 250
 
-    UPLOAD_PATHS = ['uploads',
-                    'upload',
-                    'up',
-                    'files',
-                    'file',
-                    'user',
-                    'content',
-                    'images',
-                    'documents',
-                    'docs',
-                    'downloads',
-                    'download',
-                    'down',
-                    'public',
-                    'pub',
-                    'private']
+    UPLOAD_PATHS = [
+        "uploads",
+        "upload",
+        "up",
+        "files",
+        "file",
+        "user",
+        "content",
+        "images",
+        "documents",
+        "docs",
+        "downloads",
+        "download",
+        "down",
+        "public",
+        "pub",
+        "private",
+    ]
 
     def __init__(self):
         AuditPlugin.__init__(self)
@@ -83,7 +90,7 @@ class file_upload(AuditPlugin):
         self._urt_lock = RLock()
 
         # User configured
-        self._extensions = ['gif', 'html', 'bmp', 'jpg', 'png', 'txt']
+        self._extensions = ["gif", "html", "bmp", "jpg", "png", "txt"]
 
     def audit(self, freq, orig_response, debugging_id):
         """
@@ -93,7 +100,7 @@ class file_upload(AuditPlugin):
         :param orig_response: The HTTP response associated with the fuzzable request
         :param debugging_id: A unique identifier for this call to audit()
         """
-        if freq.get_method().upper() != 'POST' or not freq.get_file_vars():
+        if freq.get_method().upper() != "POST" or not freq.get_file_vars():
             return
 
         # Unique payload for the files we upload
@@ -102,13 +109,15 @@ class file_upload(AuditPlugin):
         for file_parameter in freq.get_file_vars():
             for extension in self._extensions:
 
-                _, file_content, file_name = get_template_with_payload(extension, payload)
+                _, file_content, file_name = get_template_with_payload(
+                    extension, payload
+                )
 
                 # Only file handlers are passed to the create_mutants functions
                 named_stringio = NamedStringIO(file_content, file_name)
-                mutants = create_mutants(freq,
-                                         [named_stringio],
-                                         fuzzable_param_list=[file_parameter])
+                mutants = create_mutants(
+                    freq, [named_stringio], fuzzable_param_list=[file_parameter]
+                )
 
                 for mutant in mutants:
                     mutant.uploaded_file_name = file_name
@@ -117,10 +126,12 @@ class file_upload(AuditPlugin):
                     mutant.file_payload = payload
                     mutant.debugging_id = debugging_id
 
-                self._send_mutants_in_threads(self._uri_opener.send_mutant,
-                                              mutants,
-                                              self._analyze_result,
-                                              debugging_id=debugging_id)
+                self._send_mutants_in_threads(
+                    self._uri_opener.send_mutant,
+                    mutants,
+                    self._analyze_result,
+                    debugging_id=debugging_id,
+                )
 
     def _analyze_result(self, mutant, mutant_response):
         """
@@ -193,18 +204,22 @@ class file_upload(AuditPlugin):
         #   seen in the HTTP response body do contain the file we uploaded
         #
         args = (len(to_verify_filtered), debugging_id)
-        msg = ('audit.file_upload will search for the uploaded file in %s URLs'
-               ' extracted from the HTTP response body (did=%s).')
+        msg = (
+            "audit.file_upload will search for the uploaded file in %s URLs"
+            " extracted from the HTTP response body (did=%s)."
+        )
         om.out.debug(msg % args)
 
         mutant_repeater = repeat(mutant)
         debugging_id_repeater = repeat(debugging_id)
         http_response_repeater = repeat(mutant_response)
 
-        args = zip(to_verify_filtered,
-                    mutant_repeater,
-                    http_response_repeater,
-                    debugging_id_repeater)
+        args = zip(
+            to_verify_filtered,
+            mutant_repeater,
+            http_response_repeater,
+            debugging_id_repeater,
+        )
 
         self.worker_pool.map_multi_args(self._confirm_file_upload, args)
 
@@ -222,9 +237,11 @@ class file_upload(AuditPlugin):
             return []
 
         # Apply the regular expressions and extract links
-        re_extract = ReExtract(mutant_response.get_body(),
-                               mutant_response.get_uri(),
-                               mutant_response.get_charset())
+        re_extract = ReExtract(
+            mutant_response.get_body(),
+            mutant_response.get_uri(),
+            mutant_response.get_charset(),
+        )
         re_extract.parse()
 
         return re_extract.get_references()
@@ -255,11 +272,12 @@ class file_upload(AuditPlugin):
         :return: None
         """
         # Gen expr for directories where I can search for the uploaded file
-        domain_path_set = set(u.get_domain_path() for u in
-                              kb.kb.get_all_known_urls())
+        domain_path_set = set(u.get_domain_path() for u in kb.kb.get_all_known_urls())
 
-        msg = ('audit.file_upload will search for the uploaded file in %s'
-               ' known application paths (did=%s).')
+        msg = (
+            "audit.file_upload will search for the uploaded file in %s"
+            " known application paths (did=%s)."
+        )
         args = (len(domain_path_set), debugging_id)
         om.out.debug(msg % args)
 
@@ -271,13 +289,14 @@ class file_upload(AuditPlugin):
         mutant_repeater = repeat(mutant)
         debugging_id_repeater = repeat(debugging_id)
         http_response_repeater = repeat(mutant_response)
-        url_generator = self._generate_urls(domain_path_set,
-                                            mutant.uploaded_file_name)
+        url_generator = self._generate_urls(domain_path_set, mutant.uploaded_file_name)
 
-        args = zip(url_generator,
-                    mutant_repeater,
-                    http_response_repeater,
-                    debugging_id_repeater)
+        args = zip(
+            url_generator,
+            mutant_repeater,
+            http_response_repeater,
+            debugging_id_repeater,
+        )
 
         self.worker_pool.map_multi_args(self._confirm_file_upload, args)
 
@@ -289,10 +308,9 @@ class file_upload(AuditPlugin):
         :param mutant: The mutant that originated the file on the remote end
         :param http_response: The HTTP response associated with sending mutant
         """
-        response = self._uri_opener.GET(path,
-                                        cache=False,
-                                        grep=False,
-                                        debugging_id=debugging_id)
+        response = self._uri_opener.GET(
+            path, cache=False, grep=False, debugging_id=debugging_id
+        )
 
         if mutant.file_payload not in response.body:
             return
@@ -300,20 +318,22 @@ class file_upload(AuditPlugin):
         if self._has_bug(mutant):
             return
 
-        desc = 'A file upload to a directory inside the webroot was found at: %s'
+        desc = "A file upload to a directory inside the webroot was found at: %s"
         desc %= mutant.found_at()
 
-        v = Vuln.from_mutant('Insecure file upload',
-                             desc,
-                             severity.HIGH,
-                             [http_response.id, response.id],
-                             self.get_name(),
-                             mutant)
+        v = Vuln.from_mutant(
+            "Insecure file upload",
+            desc,
+            severity.HIGH,
+            [http_response.id, response.id],
+            self.get_name(),
+            mutant,
+        )
 
-        v['file_dest'] = response.get_url()
-        v['file_vars'] = mutant.get_file_vars()
+        v["file_dest"] = response.get_url()
+        v["file_vars"] = mutant.get_file_vars()
 
-        self.kb_append_uniq(self, 'file_upload', v)
+        self.kb_append_uniq(self, "file_upload", v)
 
     def _generate_urls(self, domain_path_set, uploaded_file_name):
         """
@@ -359,7 +379,7 @@ class file_upload(AuditPlugin):
 
         for url in domain_path_list:
             for common_path in self.UPLOAD_PATHS:
-                possible_location = url.url_join(common_path + '/')
+                possible_location = url.url_join(common_path + "/")
                 possible_location = possible_location.url_join(uploaded_file_name)
 
                 if not seen.contains(possible_location):
@@ -372,10 +392,12 @@ class file_upload(AuditPlugin):
         """
         ol = OptionList()
 
-        d = 'Extensions that w3af will try to upload through the form.'
-        h = ('When finding a form with a file upload, this plugin will try to'
-             ' upload a set of files with the extensions specified here.')
-        o = opt_factory('extensions', self._extensions, d, 'list', help=h)
+        d = "Extensions that w3af will try to upload through the form."
+        h = (
+            "When finding a form with a file upload, this plugin will try to"
+            " upload a set of files with the extensions specified here."
+        )
+        o = opt_factory("extensions", self._extensions, d, "list", help=h)
 
         ol.add(o)
 
@@ -389,7 +411,7 @@ class file_upload(AuditPlugin):
         :param options_list: A dictionary with the options for the plugin.
         :return: No value is returned.
         """
-        self._extensions = options_list['extensions'].get_value()
+        self._extensions = options_list["extensions"].get_value()
 
     def get_long_desc(self):
         """

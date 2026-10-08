@@ -19,13 +19,13 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import sys
 
 from w3af import ROOT_PATH
 
-PAYLOAD_PATH = os.path.join(ROOT_PATH, 'plugins', 'attack', 'payloads',
-                            'payloads')
+PAYLOAD_PATH = os.path.join(ROOT_PATH, "plugins", "attack", "payloads", "payloads")
 
 
 def payload_to_file(payload_name):
@@ -33,7 +33,7 @@ def payload_to_file(payload_name):
     :param payload_name: The name of the payload.
     :return: The filename related to the payload.
     """
-    return os.path.join(PAYLOAD_PATH, payload_name + '.py')
+    return os.path.join(PAYLOAD_PATH, payload_name + ".py")
 
 
 def is_payload(function_name):
@@ -88,12 +88,11 @@ def get_payload_instance(payload_name, shell_obj):
     """
     :return: A payload instance.
     """
-    name = '.'.join(['w3af', 'plugins', 'attack', 'payloads', 'payloads',
-                     payload_name])
+    name = ".".join(["w3af", "plugins", "attack", "payloads", "payloads", payload_name])
     __import__(name)
     module = sys.modules[name]
     klass = getattr(module, payload_name)
-    return klass(*(shell_obj, ))
+    return klass(*(shell_obj,))
 
 
 def get_payload_desc(payload_name):
@@ -101,10 +100,11 @@ def get_payload_desc(payload_name):
     >>> get_payload_desc('tcp')
     'This payload shows TCP socket information'
     """
+
     class FakePayload(object):
         def __init__(self):
             self.worker_pool = None
-            
+
     payload = get_payload_instance(payload_name, FakePayload())
     return payload.get_desc()
 
@@ -117,10 +117,11 @@ def get_payload_list():
     True
     """
     result = []
-    py_list = [x for x in os.listdir(PAYLOAD_PATH) if 
-               x.endswith('.py') and x != '__init__.py']
+    py_list = [
+        x for x in os.listdir(PAYLOAD_PATH) if x.endswith(".py") and x != "__init__.py"
+    ]
     for p in py_list:
-        p = p.replace('.py', '')
+        p = p.replace(".py", "")
         result.append(p)
 
     return result

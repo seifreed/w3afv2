@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
 
@@ -34,6 +35,7 @@ class robots_txt(CrawlPlugin):
     Analyze the robots.txt file and find new URLs
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     @runonce(exc_class=RunOnce)
     def crawl(self, fuzzable_request, debugging_id):
         """
@@ -44,7 +46,7 @@ class robots_txt(CrawlPlugin):
                                 (among other things) the URL to test.
         """
         base_url = fuzzable_request.get_url().base_url()
-        robots_url = base_url.url_join('robots.txt')
+        robots_url = base_url.url_join("robots.txt")
         http_response = self._uri_opener.GET(robots_url, cache=True)
 
         if is_404(http_response):
@@ -65,16 +67,18 @@ class robots_txt(CrawlPlugin):
         self.worker_pool.map(self.http_get_and_parse, urls)
 
         # Save it to the kb!
-        desc = ('A robots.txt file was found at: "%s", this file might'
-                ' expose private URLs and requires a manual review. The'
-                ' scanner will add all URLs listed in this files to the'
-                ' analysis queue.')
+        desc = (
+            'A robots.txt file was found at: "%s", this file might'
+            " expose private URLs and requires a manual review. The"
+            " scanner will add all URLs listed in this files to the"
+            " analysis queue."
+        )
         desc %= robots_url
 
-        i = Info('robots.txt file', desc, http_response.id, self.get_name())
+        i = Info("robots.txt file", desc, http_response.id, self.get_name())
         i.set_url(robots_url)
 
-        kb.kb.append(self, 'robots.txt', i)
+        kb.kb.append(self, "robots.txt", i)
         om.out.information(i.get_desc())
 
     def _extract_urls(self, base_url, http_response):
@@ -87,23 +91,23 @@ class robots_txt(CrawlPlugin):
         """
         dirs = []
 
-        for line in http_response.get_body().split('\n'):
+        for line in http_response.get_body().split("\n"):
 
             line = line.strip()
 
             if not len(line):
                 continue
 
-            if line[0] == '#':
+            if line[0] == "#":
                 continue
 
-            if 'ALLOW' not in line.upper():
+            if "ALLOW" not in line.upper():
                 continue
 
-            if ':' not in line.upper():
+            if ":" not in line.upper():
                 continue
 
-            url = line[line.find(':') + 1:]
+            url = line[line.find(":") + 1 :]
             url = url.strip()
             try:
                 url = base_url.url_join(url)

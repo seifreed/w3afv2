@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
 
@@ -35,10 +36,9 @@ class http_in_body(GrepPlugin):
 
     HTTP = (
         # GET / HTTP/1.0
-        ('[a-zA-Z]{3,6} .*? HTTP/1.[01]', 'REQUEST'),
-
+        ("[a-zA-Z]{3,6} .*? HTTP/1.[01]", "REQUEST"),
         # HTTP/1.1 200 OK
-        ('HTTP/1.[01] [0-9][0-9][0-9] [a-zA-Z]*', 'RESPONSE')
+        ("HTTP/1.[01] [0-9][0-9][0-9] [a-zA-Z]*", "RESPONSE"),
     )
     _multi_re = MultiRE(HTTP)
 
@@ -59,7 +59,7 @@ class http_in_body(GrepPlugin):
 
         if not response.is_text_or_html():
             return
-            
+
         body_without_tags = response.get_clear_text_body()
         if body_without_tags is None:
             return
@@ -68,34 +68,37 @@ class http_in_body(GrepPlugin):
 
         for match, _, _, reqres in self._multi_re.query(body_without_tags):
 
-            if reqres == 'REQUEST':
-                desc = 'An HTTP request was found in the HTTP body of a response.'
-                i = Info('HTTP Request in HTTP body', desc, response.id, self.get_name())
+            if reqres == "REQUEST":
+                desc = "An HTTP request was found in the HTTP body of a response."
+                i = Info(
+                    "HTTP Request in HTTP body", desc, response.id, self.get_name()
+                )
                 i.set_uri(uri)
                 i.add_to_highlight(match.group(0))
-                kb.kb.append(self, 'request', i)
+                kb.kb.append(self, "request", i)
 
-            if reqres == 'RESPONSE':
-                desc = 'An HTTP response was found in the HTTP body of a response.'
-                i = Info('HTTP Response in HTTP body', desc, response.id, self.get_name())
+            if reqres == "RESPONSE":
+                desc = "An HTTP response was found in the HTTP body of a response."
+                i = Info(
+                    "HTTP Response in HTTP body", desc, response.id, self.get_name()
+                )
                 i.set_uri(uri)
                 i.add_to_highlight(match.group(0))
-                kb.kb.append(self, 'response', i)
+                kb.kb.append(self, "response", i)
 
     def end(self):
         """
         This method is called when the plugin wont be used anymore.
         """
-        item_fmt = '- %s  (id: %s)'
-        msg = ('The following URLs have an HTTP %s in the HTTP'
-               ' response body:')
-        
-        for info_type in ['request', 'response']:
-            if kb.kb.get('http_in_body', info_type):
-                
+        item_fmt = "- %s  (id: %s)"
+        msg = "The following URLs have an HTTP %s in the HTTP" " response body:"
+
+        for info_type in ["request", "response"]:
+            if kb.kb.get("http_in_body", info_type):
+
                 om.out.information(msg % info_type)
-                
-                for i in kb.kb.get('http_in_body', info_type):
+
+                for i in kb.kb.get("http_in_body", info_type):
                     om.out.information(item_fmt % (i.get_uri(), i.get_id()))
 
     def get_long_desc(self):

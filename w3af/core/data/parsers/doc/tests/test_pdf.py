@@ -20,6 +20,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 import os
 
@@ -31,34 +32,34 @@ from w3af.core.data.parsers.doc.url import URL
 
 
 class TestPDF(unittest.TestCase):
-    
-    SIMPLE_SAMPLE = os.path.join(ROOT_PATH, 'core', 'data', 'parsers', 'doc',
-                                 'tests', 'data', 'simple.pdf')
-    LINKS_SAMPLE = os.path.join(ROOT_PATH, 'core', 'data', 'parsers', 'doc',
-                                'tests', 'data', 'links.pdf')
-    
+
+    SIMPLE_SAMPLE = os.path.join(
+        ROOT_PATH, "core", "data", "parsers", "doc", "tests", "data", "simple.pdf"
+    )
+    LINKS_SAMPLE = os.path.join(
+        ROOT_PATH, "core", "data", "parsers", "doc", "tests", "data", "links.pdf"
+    )
+
     def test_pdf_to_text(self):
         text = pdf_to_text(open(self.SIMPLE_SAMPLE).read())
-        self.assertIn('Hello', text)
-        self.assertIn('World', text)
+        self.assertIn("Hello", text)
+        self.assertIn("World", text)
 
     def test_pdf_to_text_no_pdf(self):
-        text = pdf_to_text('hello world')
-        self.assertEqual('', text)
-    
+        text = pdf_to_text("hello world")
+        self.assertEqual("", text)
+
     def test_pdf_parser(self):
         body = open(self.LINKS_SAMPLE).read()
-        hdrs = Headers(list({'Content-Type': 'application/pdf'}.items()))
-        response = HTTPResponse(200, body, hdrs,
-                                URL('http://moth/'),
-                                URL('http://moth/'),
-                                _id=1)        
-        
+        hdrs = Headers(list({"Content-Type": "application/pdf"}.items()))
+        response = HTTPResponse(
+            200, body, hdrs, URL("http://moth/"), URL("http://moth/"), _id=1
+        )
+
         parser = PDFParser(response)
         parser.parse()
         parsed, re_refs = parser.get_references()
-        
+
         self.assertEqual(parsed, [])
-        self.assertEqual(re_refs, [URL('http://moth/pdf/')])
-        self.assertEqual(parser.get_clear_text_body().strip(),
-                         'http://moth/pdf/')
+        self.assertEqual(re_refs, [URL("http://moth/pdf/")])
+        self.assertEqual(parser.get_clear_text_body().strip(), "http://moth/pdf/")

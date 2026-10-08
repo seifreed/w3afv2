@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import textwrap
 from functools import wraps
 
@@ -27,7 +28,7 @@ import w3af.core.controllers.output_manager as om
 
 from w3af.core.controllers.threads.threadpool import return_args
 
-SYSCALL_LIST = ['read', 'write', 'execute', 'unlink', 'is_open_port']
+SYSCALL_LIST = ["read", "write", "execute", "unlink", "is_open_port"]
 
 
 class Payload(object):
@@ -42,7 +43,7 @@ class Payload(object):
                  provided by the shell_obj.
         """
         available_syscalls = self.get_shell_syscalls()
-        
+
         run_options = self.get_payload_implemented_methods()
 
         return available_syscalls.intersection(run_options)
@@ -55,8 +56,9 @@ class Payload(object):
         :return: The payload result.
         """
         try:
-            return payload_handler.exec_payload(self.shell, payload_name,
-                                                args, use_api=True)
+            return payload_handler.exec_payload(
+                self.shell, payload_name, args, use_api=True
+            )
         except:
             #
             #    Run the payload name with any shell that has the capabilities
@@ -64,13 +66,16 @@ class Payload(object):
             #    it doesn't have the capabilities).
             #
             try:
-                return payload_handler.exec_payload(None, payload_name, args,
-                                                    use_api=True)
+                return payload_handler.exec_payload(
+                    None, payload_name, args, use_api=True
+                )
             except:
-                msg = 'The payload you are trying to run ("%s") can not be' \
-                      ' run because it is trying to call another payload'\
-                      ' ("%s") which is failing because there are no shells'\
-                      ' that support the required system calls.'
+                msg = (
+                    'The payload you are trying to run ("%s") can not be'
+                    " run because it is trying to call another payload"
+                    ' ("%s") which is failing because there are no shells'
+                    " that support the required system calls."
+                )
                 om.out.console(msg)
 
                 # TODO: Should I raise an exception here?
@@ -86,9 +91,9 @@ class Payload(object):
         run_options = self.get_payload_implemented_methods()
 
         # pylint: disable=E1101
-        if 'execute' in run_options and 'execute' in available_syscalls:
+        if "execute" in run_options and "execute" in available_syscalls:
             return self.run_execute(*args)
-        elif 'is_open_port' in run_options and 'is_open_port' in available_syscalls:
+        elif "is_open_port" in run_options and "is_open_port" in available_syscalls:
             return self.run_is_open_port(*args)
         else:
             return self.run_read(*args)
@@ -103,9 +108,9 @@ class Payload(object):
         run_options = self.get_payload_implemented_methods()
 
         # pylint: disable=E1101
-        if 'execute' in run_options and 'execute' in available_syscalls:
+        if "execute" in run_options and "execute" in available_syscalls:
             return self.api_execute(*args)
-        elif 'is_open_port' in run_options and 'is_open_port' in available_syscalls:
+        elif "is_open_port" in run_options and "is_open_port" in available_syscalls:
             return self.api_is_open_port(*args)
         else:
             return self.api_read(*args)
@@ -114,7 +119,7 @@ class Payload(object):
         """
         :return: The operating system requirement to run this payload.
         """
-        return 'linux'
+        return "linux"
 
     def read_multi(self, fname_iter, error_handler=None):
         """
@@ -140,28 +145,31 @@ class Payload(object):
         if self.__doc__ is not None:
             return textwrap.dedent(self.__doc__).strip()
         else:
-            return 'No help available for this payload.'
+            return "No help available for this payload."
 
     def get_shell_syscalls(self, _filter=lambda x: x):
         """
         :return: A set with the syscalls that the shell implements
         """
         available_syscalls = []
-        
+
         for syscall in SYSCALL_LIST:
-            
+
             try:
                 getattr(self.shell, syscall)
             except AttributeError:
                 pass
             else:
                 available_syscalls.append(syscall)
-        
-        available_syscalls = [_filter(syscall) for syscall in available_syscalls
-                              if _filter(syscall) is not None]
-        
+
+        available_syscalls = [
+            _filter(syscall)
+            for syscall in available_syscalls
+            if _filter(syscall) is not None
+        ]
+
         return set(available_syscalls)
-    
+
     def get_payload_implemented_methods(self):
         """
         :return: A list of all methods that the current payload implements,
@@ -169,18 +177,18 @@ class Payload(object):
                  methods run_execute and run_read exist.
         """
         implemented_methods = []
-        
+
         for syscall in SYSCALL_LIST:
-            
-            implemented_method = 'run_' + syscall
-            
+
+            implemented_method = "run_" + syscall
+
             try:
                 getattr(self, implemented_method)
             except AttributeError:
                 pass
             else:
                 implemented_methods.append(syscall)
-        
+
         return set(implemented_methods)
 
 
@@ -195,6 +203,6 @@ def read_error_handler(func):
         try:
             return func(*args, **kwargs)
         except Exception:
-            return args[0], ''
+            return args[0], ""
 
     return error_handler_wrapper

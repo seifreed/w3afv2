@@ -19,10 +19,11 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from nose.tools import nottest
 from w3af.core.controllers.ci.moth import get_moth_http
 
-PROFILE_URL = 'http://127.0.0.1:8000/audit/sql_injection/'
+PROFILE_URL = "http://127.0.0.1:8000/audit/sql_injection/"
 
 FAST_TEST_PROFILE = """[profile]
 description = sqli
@@ -150,19 +151,21 @@ url_parameter =
 
 @nottest
 def get_test_profile(profile=FAST_TEST_PROFILE):
-    moth = get_moth_http('/')
+    moth = get_moth_http("/")
 
-    target_url = PROFILE_URL.replace('http://127.0.0.1:8000/', moth)
-    profile = profile.replace('http://127.0.0.1:8000/', moth)
+    target_url = PROFILE_URL.replace("http://127.0.0.1:8000/", moth)
+    profile = profile.replace("http://127.0.0.1:8000/", moth)
 
     return profile, target_url
 
 
 def get_expected_vuln_names():
-    return ['SQL injection'] * 4
+    return ["SQL injection"] * 4
 
 
 def get_expected_vuln_urls(target_url):
-    return ['%swhere_integer_qs.py' % target_url,
-            '%swhere_string_single_qs.py' % target_url,
-            '%swhere_integer_form.py' % target_url]
+    return [
+        "%swhere_integer_qs.py" % target_url,
+        "%swhere_string_single_qs.py" % target_url,
+        "%swhere_integer_form.py" % target_url,
+    ]

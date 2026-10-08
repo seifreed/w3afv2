@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import os
 
 from nose.plugins.attrib import attr
@@ -29,66 +30,67 @@ from w3af.core.controllers.ci.moth import get_moth_http
 
 class TestBasicAuth(PluginTest):
 
-    target_url_easy = get_moth_http('/auth/basic/weak/')
-    target_url_impossible = get_moth_http('/auth/basic/impossible/')
+    target_url_easy = get_moth_http("/auth/basic/weak/")
+    target_url_impossible = get_moth_http("/auth/basic/impossible/")
 
-    BASE_PATH = os.path.join(ROOT_PATH, 'plugins', 'tests', 'bruteforce')
+    BASE_PATH = os.path.join(ROOT_PATH, "plugins", "tests", "bruteforce")
 
-    small_users_negative = os.path.join(BASE_PATH, 'small-users-negative.txt')
-    small_users_positive = os.path.join(BASE_PATH, 'small-users-positive.txt')
-    small_passwords = os.path.join(BASE_PATH, 'small-passwords.txt')
+    small_users_negative = os.path.join(BASE_PATH, "small-users-negative.txt")
+    small_users_positive = os.path.join(BASE_PATH, "small-users-positive.txt")
+    small_passwords = os.path.join(BASE_PATH, "small-passwords.txt")
 
     _run_configs = {
-        'positive': {
-            'target': None,
-            'plugins': {
-                'bruteforce': (PluginConfig('basic_auth',
-                                            ('users_file', small_users_positive,
-                                             PluginConfig.STR),
-                                            (
-                                            'passwd_file', small_passwords, PluginConfig.STR),),
-                               ),
-                'grep': (PluginConfig('http_auth_detect'),),
-            }
+        "positive": {
+            "target": None,
+            "plugins": {
+                "bruteforce": (
+                    PluginConfig(
+                        "basic_auth",
+                        ("users_file", small_users_positive, PluginConfig.STR),
+                        ("passwd_file", small_passwords, PluginConfig.STR),
+                    ),
+                ),
+                "grep": (PluginConfig("http_auth_detect"),),
+            },
         },
-
-        'negative': {
-            'target': None,
-            'plugins': {
-                'bruteforce': (PluginConfig('basic_auth',
-                                            ('users_file', small_users_negative,
-                                             PluginConfig.STR),
-                                            (
-                                            'passwd_file', small_passwords, PluginConfig.STR),),
-                               ),
-                'grep': (PluginConfig('http_auth_detect'),),
-            }
-        }
+        "negative": {
+            "target": None,
+            "plugins": {
+                "bruteforce": (
+                    PluginConfig(
+                        "basic_auth",
+                        ("users_file", small_users_negative, PluginConfig.STR),
+                        ("passwd_file", small_passwords, PluginConfig.STR),
+                    ),
+                ),
+                "grep": (PluginConfig("http_auth_detect"),),
+            },
+        },
     }
 
-    @attr('smoke')
+    @attr("smoke")
     def test_found_credentials(self):
         # Run the scan
-        cfg = self._run_configs['positive']
-        self._scan(self.target_url_easy, cfg['plugins'])
+        cfg = self._run_configs["positive"]
+        self._scan(self.target_url_easy, cfg["plugins"])
 
         # Assert the general results
-        vulns = self.kb.get('basic_auth', 'auth')
+        vulns = self.kb.get("basic_auth", "auth")
         self.assertEqual(len(vulns), 1)
 
         vuln = vulns[0]
 
-        self.assertEqual(vuln.get_name(), 'Guessable credentials')
+        self.assertEqual(vuln.get_name(), "Guessable credentials")
 
         self.assertEqual(vuln.get_url().url_string, self.target_url_easy)
-        self.assertEqual(vuln['user'], 'admin')
-        self.assertEqual(vuln['pass'], 'admin')
+        self.assertEqual(vuln["user"], "admin")
+        self.assertEqual(vuln["pass"], "admin")
 
     def test_not_found_credentials(self):
         # Run the scan
-        cfg = self._run_configs['negative']
-        self._scan(self.target_url_impossible, cfg['plugins'])
+        cfg = self._run_configs["negative"]
+        self._scan(self.target_url_impossible, cfg["plugins"])
 
         # Assert the general results
-        vulns = self.kb.get('basic_auth', 'auth')
+        vulns = self.kb.get("basic_auth", "auth")
         self.assertEqual(len(vulns), 0)

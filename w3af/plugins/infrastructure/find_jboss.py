@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from itertools import repeat
 
 import w3af.core.data.kb.knowledge_base as kb
@@ -40,33 +41,46 @@ class find_jboss(InfrastructurePlugin):
 
     :author: Nahuel Sanchez (nsanchez@bonsai-sec.com)
     """
+
     JBOSS_VULNS = (
-        {'url': '/admin-console/',
-         'name': 'JBoss Admin Console enabled',
-         'desc': 'Jboss Admin Console was found!',
-         'type': 'info'},
-        {'url': '/jmx-console/',
-         'name': 'JBoss JMX Console found',
-         'desc': 'JMX Console found without Auth Enabled',
-         'type': 'vuln'},
-        {'url': '/status',
-         'name': 'JBoss Status Servlet found',
-         'desc': 'JBoss Status Servlet gives valuable information',
-         'type': 'info'},
-        {'url': '/web-console/ServerInfo.jsp',
-         'name': 'WebConsole ServerInfo.jsp found',
-         'desc': 'WebConsole ServerInfo.jsp gives valuable information',
-         'type': 'info'},
-        {'url': '/WebConsole/Invoker',
-         'name': 'WebConsole Invoker found',
-         'desc': 'JBoss WebConsole Invoker enables attackers to send any JMX '
-         'command to JBoss AS',
-         'type': 'vuln'},
-        {'url': '/invoker/JMXInvokerServlet',
-         'name': 'JMX Invoker enabled without Auth',
-         'desc': 'JMX Invoker enables attackers to send any JMX command to '
-         'JBoss AS',
-         'type': 'vuln'}
+        {
+            "url": "/admin-console/",
+            "name": "JBoss Admin Console enabled",
+            "desc": "Jboss Admin Console was found!",
+            "type": "info",
+        },
+        {
+            "url": "/jmx-console/",
+            "name": "JBoss JMX Console found",
+            "desc": "JMX Console found without Auth Enabled",
+            "type": "vuln",
+        },
+        {
+            "url": "/status",
+            "name": "JBoss Status Servlet found",
+            "desc": "JBoss Status Servlet gives valuable information",
+            "type": "info",
+        },
+        {
+            "url": "/web-console/ServerInfo.jsp",
+            "name": "WebConsole ServerInfo.jsp found",
+            "desc": "WebConsole ServerInfo.jsp gives valuable information",
+            "type": "info",
+        },
+        {
+            "url": "/WebConsole/Invoker",
+            "name": "WebConsole Invoker found",
+            "desc": "JBoss WebConsole Invoker enables attackers to send any JMX "
+            "command to JBoss AS",
+            "type": "vuln",
+        },
+        {
+            "url": "/invoker/JMXInvokerServlet",
+            "name": "JMX Invoker enabled without Auth",
+            "desc": "JMX Invoker enables attackers to send any JMX command to "
+            "JBoss AS",
+            "type": "vuln",
+        },
     )
 
     @runonce(exc_class=RunOnce)
@@ -83,30 +97,29 @@ class find_jboss(InfrastructurePlugin):
 
         args_iter = zip(repeat(base_url), self.JBOSS_VULNS)
         otm_send_request = one_to_many(self.send_request)
-        response_pool = self.worker_pool.imap_unordered(otm_send_request,
-                                                        args_iter)
+        response_pool = self.worker_pool.imap_unordered(otm_send_request, args_iter)
 
         for vuln_db_instance, response in response_pool:
 
             if is_404(response):
                 continue
 
-            vuln_url = base_url.url_join(vuln_db_instance['url'])
-            name = vuln_db_instance['name']
-            desc = vuln_db_instance['desc']
+            vuln_url = base_url.url_join(vuln_db_instance["url"])
+            name = vuln_db_instance["name"]
+            desc = vuln_db_instance["desc"]
 
-            if vuln_db_instance['type'] == 'info':
+            if vuln_db_instance["type"] == "info":
                 o = Info(name, desc, response.id, self.get_name())
             else:
                 o = Vuln(name, desc, severity.LOW, response.id, self.get_name())
 
             o.set_url(vuln_url)
-            kb.kb.append(self, 'find_jboss', o)
+            kb.kb.append(self, "find_jboss", o)
 
             self.output_queue.put(FuzzableRequest(response.get_uri()))
 
     def send_request(self, base_url, vuln_db_instance):
-        vuln_url = base_url.url_join(vuln_db_instance['url'])
+        vuln_url = base_url.url_join(vuln_db_instance["url"])
         response = self._uri_opener.GET(vuln_url)
         return vuln_db_instance, response
 

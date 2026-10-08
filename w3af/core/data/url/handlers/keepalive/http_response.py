@@ -15,12 +15,14 @@ def close_on_error(read_meth):
     Decorator function. When calling decorated `read_meth` if an error occurs
     we'll proceed to invoke `inst`'s close() method.
     """
+
     def new_read_meth(inst):
         try:
             return read_meth(inst)
         except http.client.HTTPException:
             inst.close()
             raise
+
     return new_read_meth
 
 
@@ -47,15 +49,16 @@ class HTTPResponse(http.client.HTTPResponse):
     # modification from socket.py
 
     def __init__(self, sock, debuglevel=0, strict=0, method=None):
-        http.client.HTTPResponse.__init__(self, sock, debuglevel, strict=strict,
-                                      method=method)
+        http.client.HTTPResponse.__init__(
+            self, sock, debuglevel, strict=strict, method=method
+        )
         self.fileno = sock.fileno
         self.code = None
-        self._rbuf = ''
+        self._rbuf = ""
         self._rbufsize = 8096
-        self._handler = None     # inserted by the handler later
-        self._host = None        # (same)
-        self._url = None         # (same)
+        self._handler = None  # inserted by the handler later
+        self._host = None  # (same)
+        self._url = None  # (same)
         self._connection = None  # (same)
         self._method = method
         self._multiread = None
@@ -88,15 +91,15 @@ class HTTPResponse(http.client.HTTPResponse):
         fetched, and throw an exception in case it is too big.
         """
         if self.fp is None:
-            return ''
+            return ""
 
-        max_file_size = cf.get('max_file_size') or None
+        max_file_size = cf.get("max_file_size") or None
         if max_file_size:
             if self.length > max_file_size:
                 self.status = NO_CONTENT
-                self.reason = 'No Content'  # Reason-Phrase
+                self.reason = "No Content"  # Reason-Phrase
                 self.close()
-                return ''
+                return ""
 
         if self.chunked:
             return self._read_chunked(amt)
@@ -108,7 +111,7 @@ class HTTPResponse(http.client.HTTPResponse):
             else:
                 s = self._safe_read(self.length)
                 self.length = 0
-            self.close()        # we read everything
+            self.close()  # we read everything
             return s
 
         if self.length is not None:
@@ -148,11 +151,11 @@ class HTTPResponse(http.client.HTTPResponse):
 
         self.status = status
         self.reason = reason.strip()
-        if version == 'HTTP/1.0':
+        if version == "HTTP/1.0":
             self.version = 10
-        elif version.startswith('HTTP/1.'):
-            self.version = 11   # use HTTP/1.1 code for HTTP/1.x where x>=1
-        elif version == 'HTTP/0.9':
+        elif version.startswith("HTTP/1."):
+            self.version = 11  # use HTTP/1.1 code for HTTP/1.x where x>=1
+        elif version == "HTTP/0.9":
             self.version = 9
         else:
             raise http.client.UnknownProtocol(version)
@@ -167,13 +170,13 @@ class HTTPResponse(http.client.HTTPResponse):
         self.msg = http.client.HTTPMessage(self.fp, 0)
         if self.debuglevel > 0:
             for hdr in self.msg.headers:
-                print("header:", hdr, end=' ')
+                print("header:", hdr, end=" ")
 
         # don't let the msg keep an fp
         self.msg.fp = None
 
         # are we using the chunked-style of transfer encoding?
-        tr_enc = self.msg.getheader('transfer-encoding')
+        tr_enc = self.msg.getheader("transfer-encoding")
         if tr_enc and tr_enc.lower() == "chunked":
             self.chunked = 1
             self.chunk_left = None
@@ -198,17 +201,18 @@ class HTTPResponse(http.client.HTTPResponse):
             self.length = None
 
         # does the body have a fixed length? (of zero)
-        if (status == NO_CONTENT or status == http.client.NOT_MODIFIED or
-            100 <= status < 200 or      # 1xx codes
-            self._method == 'HEAD'):
+        if (
+            status == NO_CONTENT
+            or status == http.client.NOT_MODIFIED
+            or 100 <= status < 200  # 1xx codes
+            or self._method == "HEAD"
+        ):
             self.length = 0
 
         # if the connection remains open, and we aren't using chunked, and
         # a content-length was not provided, then assume that the connection
         # WILL close.
-        if not self.will_close and \
-           not self.chunked and \
-           self.length is None:
+        if not self.will_close and not self.chunked and self.length is None:
             self.will_close = 1
 
     def _get_content_length(self):
@@ -223,14 +227,14 @@ class HTTPResponse(http.client.HTTPResponse):
 
         :return: The content length (as integer)
         """
-        length = self.msg.getheader('content-length')
+        length = self.msg.getheader("content-length")
 
         if length is None:
             # This is a response where there is no content-length header,
             # most likely a chunked response
             return None
 
-        split = length.split(',')
+        split = length.split(",")
         split = [int(cl) for cl in split]
         return min(split)
 
@@ -255,14 +259,14 @@ class HTTPResponse(http.client.HTTPResponse):
         # to do multiple reads to this response...
         #
         # TODO: Is this OK? What if a HEAD method actually returns something?!
-        if self._method == 'HEAD':
+        if self._method == "HEAD":
             # This indicates that we have read all that we needed from the socket
             # and that the socket can be reused!
             #
             # This like fixes the bug with title "GET is much faster than HEAD".
             # https://sourceforge.net/tracker2/?func=detail&aid=2202532&group_id=170274&atid=853652
             self.close()
-            return ''
+            return ""
 
         if self._multiread is None:
             # read all
@@ -278,17 +282,17 @@ class HTTPResponse(http.client.HTTPResponse):
                 return s
         else:
             s = self._rbuf + self._multiread
-            self._rbuf = ''
+            self._rbuf = ""
             return s
 
     def readline(self, limit=-1):
-        i = self._rbuf.find('\n')
+        i = self._rbuf.find("\n")
 
         while i < 0 and not (0 < limit <= len(self._rbuf)):
             new = self._raw_read(self._rbufsize)
             if not new:
                 break
-            i = new.find('\n')
+            i = new.find("\n")
             if i >= 0:
                 i += len(self._rbuf)
             self._rbuf = self._rbuf + new
@@ -330,34 +334,34 @@ class HTTPResponse(http.client.HTTPResponse):
         Overriding to add "max" support
         http://tools.ietf.org/id/draft-thomson-hybi-http-timeout-01.html#p-max
         """
-        keep_alive = self.msg.getheader('keep-alive')
+        keep_alive = self.msg.getheader("keep-alive")
 
-        if keep_alive and keep_alive.lower().endswith('max=1'):
+        if keep_alive and keep_alive.lower().endswith("max=1"):
             # We close right before the "max" deadline
-            debug('will_close = True due to max=1')
+            debug("will_close = True due to max=1")
             return True
 
-        conn = self.msg.getheader('connection')
+        conn = self.msg.getheader("connection")
 
         # Is the remote end saying we need to keep the connection open?
-        if conn and 'keep-alive' in conn.lower():
-            debug('will_close = False due to Connection: keep-alive')
+        if conn and "keep-alive" in conn.lower():
+            debug("will_close = False due to Connection: keep-alive")
             return False
 
         # Is the remote end saying we need to close the connection?
-        elif conn and 'close' in conn.lower():
-            debug('will_close = True due to Connection: close')
+        elif conn and "close" in conn.lower():
+            debug("will_close = True due to Connection: close")
             return True
 
         if self.version == 11:
             # An HTTP/1.1 connection is assumed to stay open unless explicitly
             # closed.
-            debug('will_close = False due to default keep-alive in 1.1')
+            debug("will_close = False due to default keep-alive in 1.1")
             return False
 
         # Proxy-Connection is a netscape hack.
-        pconn = self.msg.getheader('proxy-connection')
-        if pconn and 'keep-alive' in pconn.lower():
+        pconn = self.msg.getheader("proxy-connection")
+        if pconn and "keep-alive" in pconn.lower():
             return False
 
         # otherwise, assume it will close

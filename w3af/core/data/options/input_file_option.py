@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import zlib
 import base64
@@ -30,16 +31,16 @@ from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.options.baseoption import BaseOption
 from w3af.core.data.options.option_types import INPUT_FILE
 
-ROOT_PATH_VAR = '%ROOT_PATH%'
+ROOT_PATH_VAR = "%ROOT_PATH%"
 
 
 class InputFileOption(BaseOption):
 
     _type = INPUT_FILE
 
-    DATA_PREFIX = 'w3af-'
-    DATA_SUFFIX = '-sc.dat'
-    DATA_PROTO = 'base64://'
+    DATA_PREFIX = "w3af-"
+    DATA_SUFFIX = "-sc.dat"
+    DATA_PROTO = "base64://"
 
     def set_value(self, value):
         """
@@ -57,7 +58,7 @@ class InputFileOption(BaseOption):
 
         [0] https://github.com/andresriancho/w3af/issues/10949
         """
-        if value == '':
+        if value == "":
             self._value = value
             return
 
@@ -96,8 +97,10 @@ class InputFileOption(BaseOption):
             try:
                 return self.encode_b64_data(self._value)
             except Exception as e:
-                msg = ('An exception occurred while encoding "%s" for storing'
-                       ' into the profile: "%s"')
+                msg = (
+                    'An exception occurred while encoding "%s" for storing'
+                    ' into the profile: "%s"'
+                )
                 raise BaseFrameworkException(msg % (self._value, e))
 
         #
@@ -126,10 +129,10 @@ class InputFileOption(BaseOption):
             try:
                 return self.create_tempfile(value)
             except zlib.error:
-                msg = 'The self contained file raised a zlib decoding error'
+                msg = "The self contained file raised a zlib decoding error"
                 raise BaseFrameworkException(msg)
             except TypeError:
-                msg = 'The self contained file raised a base64 decode error'
+                msg = "The self contained file raised a base64 decode error"
                 raise BaseFrameworkException(msg)
 
         #
@@ -139,29 +142,38 @@ class InputFileOption(BaseOption):
 
         directory = os.path.abspath(os.path.dirname(value))
         if not os.path.isdir(directory):
-            msg = ('Invalid input file option value "%s", the directory does'
-                   ' not exist.')
+            msg = (
+                'Invalid input file option value "%s", the directory does' " not exist."
+            )
             raise BaseFrameworkException(msg % value)
 
         if not os.access(directory, os.R_OK):
-            msg = ('Invalid input file option value "%s", the user does not'
-                   ' have enough permissions to read from the specified'
-                   ' directory.')
+            msg = (
+                'Invalid input file option value "%s", the user does not'
+                " have enough permissions to read from the specified"
+                " directory."
+            )
             raise BaseFrameworkException(msg % value)
 
         if not os.path.exists(value):
-            msg = ('Invalid input file option value "%s", the specified file'
-                   ' does not exist.')
+            msg = (
+                'Invalid input file option value "%s", the specified file'
+                " does not exist."
+            )
             raise BaseFrameworkException(msg % value)
 
         if not os.access(value, os.R_OK):
-            msg = ('Invalid input file option value "%s", the user does not'
-                   ' have enough permissions to read the specified file.')
+            msg = (
+                'Invalid input file option value "%s", the user does not'
+                " have enough permissions to read the specified file."
+            )
             raise BaseFrameworkException(msg % value)
 
         if not os.path.isfile(value):
-            msg = ('Invalid input file option value "%s", the path does not'
-                   ' point to a file.')
+            msg = (
+                'Invalid input file option value "%s", the path does not'
+                " point to a file."
+            )
             raise BaseFrameworkException(msg % value)
 
         return value
@@ -185,11 +197,13 @@ class InputFileOption(BaseOption):
         return False
 
     def create_tempfile(self, encoded_data):
-        _file = tempfile.NamedTemporaryFile(mode='w+b',
-                                            suffix=self.DATA_SUFFIX,
-                                            prefix=self.DATA_PREFIX,
-                                            delete=False,
-                                            dir=get_temp_dir())
+        _file = tempfile.NamedTemporaryFile(
+            mode="w+b",
+            suffix=self.DATA_SUFFIX,
+            prefix=self.DATA_PREFIX,
+            delete=False,
+            dir=get_temp_dir(),
+        )
 
         data = self.decode_b64_data(encoded_data)
 
@@ -207,9 +221,9 @@ class InputFileOption(BaseOption):
                              the base64:// specification at the beginning.
         :return: The decoded data
         """
-        encoded_data = encoded_data[len(self.DATA_PROTO):]
+        encoded_data = encoded_data[len(self.DATA_PROTO) :]
         encoded_data = base64.b64decode(encoded_data)
-        return encoded_data.decode('zlib')
+        return encoded_data.decode("zlib")
 
     def encode_b64_data(self, filename):
         """
@@ -219,6 +233,5 @@ class InputFileOption(BaseOption):
         :return: Encoded data which can be decoded using decode_b64_data, this
                  output is usually stored in a profile.
         """
-        data = base64.b64encode(open(filename).read().encode('zlib')).strip()
-        return '%s%s' % (self.DATA_PROTO, data)
-
+        data = base64.b64encode(open(filename).read().encode("zlib")).strip()
+        return "%s%s" % (self.DATA_PROTO, data)

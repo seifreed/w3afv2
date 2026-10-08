@@ -25,67 +25,74 @@ from w3af.plugins.tests.helper import PluginTest, PluginConfig
 
 class TestDav(PluginTest):
 
-    target_vuln_all = 'http://moth/w3af/audit/dav/write-all/'
-    target_no_privs = 'http://moth/w3af/audit/dav/no-privileges/'
-    target_safe_all = 'http://moth/w3af/audit/eval/'
+    target_vuln_all = "http://moth/w3af/audit/dav/write-all/"
+    target_no_privs = "http://moth/w3af/audit/dav/no-privileges/"
+    target_safe_all = "http://moth/w3af/audit/eval/"
 
     _run_configs = {
-        'cfg': {
-            'target': None,
-            'plugins': {
-                'audit': (PluginConfig('dav',),),
-            }
+        "cfg": {
+            "target": None,
+            "plugins": {
+                "audit": (
+                    PluginConfig(
+                        "dav",
+                    ),
+                ),
+            },
         },
     }
 
-    @attr('ci_fails')
+    @attr("ci_fails")
     def test_found_all_dav(self):
-        cfg = self._run_configs['cfg']
-        self._scan(self.target_vuln_all, cfg['plugins'])
+        cfg = self._run_configs["cfg"]
+        self._scan(self.target_vuln_all, cfg["plugins"])
 
-        vulns = self.kb.get('dav', 'dav')
+        vulns = self.kb.get("dav", "dav")
 
-        EXPECTED_NAMES = set(['Insecure DAV configuration'] * 2)
+        EXPECTED_NAMES = set(["Insecure DAV configuration"] * 2)
 
-        self.assertEqual(EXPECTED_NAMES,
-                          set([v.get_name() for v in vulns])
-                          )
+        self.assertEqual(EXPECTED_NAMES, set([v.get_name() for v in vulns]))
 
-        self.assertEqual(set(['PUT', 'PROPFIND']),
-                          set([v.get_method() for v in vulns]))
+        self.assertEqual(set(["PUT", "PROPFIND"]), set([v.get_method() for v in vulns]))
 
-        self.assertTrue(all([self.target_vuln_all == str(
-            v.get_url().get_domain_path()) for v in vulns]))
+        self.assertTrue(
+            all(
+                [
+                    self.target_vuln_all == str(v.get_url().get_domain_path())
+                    for v in vulns
+                ]
+            )
+        )
 
-    @attr('ci_fails')
+    @attr("ci_fails")
     def test_no_privileges(self):
         """
         DAV is configured but the directory doesn't have the file-system permissions
         to allow the Apache process to write to it.
         """
-        cfg = self._run_configs['cfg']
-        self._scan(self.target_no_privs, cfg['plugins'])
+        cfg = self._run_configs["cfg"]
+        self._scan(self.target_no_privs, cfg["plugins"])
 
-        vulns = self.kb.get('dav', 'dav')
+        vulns = self.kb.get("dav", "dav")
 
         self.assertEqual(len(vulns), 2, vulns)
 
-        iname = 'DAV incorrect configuration'
+        iname = "DAV incorrect configuration"
         info_no_privs = [i for i in vulns if i.get_name() == iname][0]
 
-        vname = 'Insecure DAV configuration'
+        vname = "Insecure DAV configuration"
         vuln_propfind = [v for v in vulns if v.get_name() == vname][0]
-         
-        info_url =  str(info_no_privs.get_url().get_domain_path())
-        vuln_url =  str(vuln_propfind.get_url().get_domain_path())
-        
+
+        info_url = str(info_no_privs.get_url().get_domain_path())
+        vuln_url = str(vuln_propfind.get_url().get_domain_path())
+
         self.assertEqual(self.target_no_privs, info_url)
         self.assertEqual(self.target_no_privs, vuln_url)
 
-    @attr('ci_fails')
+    @attr("ci_fails")
     def test_not_found_dav(self):
-        cfg = self._run_configs['cfg']
-        self._scan(self.target_safe_all, cfg['plugins'])
+        cfg = self._run_configs["cfg"]
+        self._scan(self.target_safe_all, cfg["plugins"])
 
-        vulns = self.kb.get('dav', 'dav')
+        vulns = self.kb.get("dav", "dav")
         self.assertEqual(0, len(vulns))

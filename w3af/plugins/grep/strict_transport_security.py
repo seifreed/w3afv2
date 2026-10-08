@@ -19,11 +19,12 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 
-STS_HEADER = 'Strict-Transport-Security'
+STS_HEADER = "Strict-Transport-Security"
 MAX_REPORTS = 50
 
 
@@ -33,6 +34,7 @@ class strict_transport_security(GrepPlugin):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def __init__(self):
         super(strict_transport_security, self).__init__()
         self._reports = 0
@@ -48,7 +50,7 @@ class strict_transport_security(GrepPlugin):
         if self._reports > MAX_REPORTS:
             return
 
-        if request.get_url().get_protocol() != 'https':
+        if request.get_url().get_protocol() != "https":
             return
 
         sts_header_value, _ = response.get_headers().iget(STS_HEADER, None)
@@ -57,15 +59,22 @@ class strict_transport_security(GrepPlugin):
 
         self._reports += 1
 
-        desc = 'The web server uses HTTPS but does not set the '\
-               ' Strict-Transport-Security header.'
-        i = Info('Missing Strict Transport Security header', desc,
-                 response.id, self.get_name())
+        desc = (
+            "The web server uses HTTPS but does not set the "
+            " Strict-Transport-Security header."
+        )
+        i = Info(
+            "Missing Strict Transport Security header",
+            desc,
+            response.id,
+            self.get_name(),
+        )
         i.set_url(response.get_url())
         i[STSInfoSet.ITAG] = response.get_url().get_domain()
 
-        self.kb_append_uniq_group(self, 'strict_transport_security', i,
-                                  group_klass=STSInfoSet)
+        self.kb_append_uniq_group(
+            self, "strict_transport_security", i, group_klass=STSInfoSet
+        )
 
     def get_long_desc(self):
         """
@@ -80,14 +89,13 @@ class strict_transport_security(GrepPlugin):
 
 
 class STSInfoSet(InfoSet):
-    ITAG = 'domain'
+    ITAG = "domain"
     TEMPLATE = (
-        'The remote web server sent {{ uris|length }} HTTPS responses which'
-        ' do not contain the Strict-Transport-Security header. The first ten'
-        ' URLs which did not send the header are:\n'
-        ''
-        '{% for url in uris[:10] %}'
-        ' - {{ url }}\n'
-        '{% endfor %}'
+        "The remote web server sent {{ uris|length }} HTTPS responses which"
+        " do not contain the Strict-Transport-Security header. The first ten"
+        " URLs which did not send the header are:\n"
+        ""
+        "{% for url in uris[:10] %}"
+        " - {{ url }}\n"
+        "{% endfor %}"
     )
-

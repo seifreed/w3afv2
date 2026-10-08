@@ -18,31 +18,32 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 from nose.plugins.attrib import attr
 from w3af.plugins.tests.helper import PluginTest, PluginConfig
 
 
-@attr('fails')
+@attr("fails")
 class TestSharedHosting(PluginTest):
 
-    base_url = 'http://www.cybsec.com/'
+    base_url = "http://www.cybsec.com/"
 
     _run_configs = {
-        'cfg': {
-        'target': base_url,
-        'plugins': {'infrastructure': (PluginConfig('shared_hosting'),)}
+        "cfg": {
+            "target": base_url,
+            "plugins": {"infrastructure": (PluginConfig("shared_hosting"),)},
         }
     }
 
     def test_shared_hosting(self):
-        cfg = self._run_configs['cfg']
-        self._scan(cfg['target'], cfg['plugins'])
+        cfg = self._run_configs["cfg"]
+        self._scan(cfg["target"], cfg["plugins"])
 
-        domains = self.kb.raw_read('shared_hosting', 'domains')
+        domains = self.kb.raw_read("shared_hosting", "domains")
         self.assertGreater(len(domains), 30, len(domains))
 
-        infos = self.kb.get('shared_hosting', 'shared_hosting')
+        infos = self.kb.get("shared_hosting", "shared_hosting")
         self.assertEqual(len(infos), 1, infos)
 
         info = infos[0]
-        self.assertEqual('Shared hosting', info.get_name())
+        self.assertEqual("Shared hosting", info.get_name())

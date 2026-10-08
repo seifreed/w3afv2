@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.data.parsers.parser_cache as parser_cache
 
 from w3af.core.controllers.exceptions import BaseFrameworkException
@@ -36,6 +37,7 @@ class form_autocomplete(GrepPlugin):
     :author: Javier Andalia (jandalia =at= gmail.com)
     :author: Andres Riancho (andres.riancho =at= gmail.com)
     """
+
     def grep(self, request, response):
         """
         Plugin entry point, test existence of HTML auto-completable forms
@@ -69,18 +71,22 @@ class form_autocomplete(GrepPlugin):
                         continue
 
                     url = response.get_url()
-                    desc = ('The URL: "%s" has a "<form>" element with '
-                            'auto-complete enabled.')
+                    desc = (
+                        'The URL: "%s" has a "<form>" element with '
+                        "auto-complete enabled."
+                    )
                     desc %= url
 
-                    i = Info('Auto-completable form', desc, response.id,
-                             self.get_name())
-                    i.add_to_highlight('autocomplete')
+                    i = Info(
+                        "Auto-completable form", desc, response.id, self.get_name()
+                    )
+                    i.add_to_highlight("autocomplete")
                     i.set_url(url)
                     i[AutoCompleteInfoSet.ITAG] = form.get_action().uri2url()
 
-                    self.kb_append_uniq_group(self, 'form_autocomplete', i,
-                                              group_klass=AutoCompleteInfoSet)
+                    self.kb_append_uniq_group(
+                        self, "form_autocomplete", i, group_klass=AutoCompleteInfoSet
+                    )
                     break
 
     def get_long_desc(self):
@@ -94,13 +100,13 @@ class form_autocomplete(GrepPlugin):
 
 
 class AutoCompleteInfoSet(InfoSet):
-    ITAG = 'action'
+    ITAG = "action"
     TEMPLATE = (
-        'The application contains {{ uris|length }} different URLs with a'
-        ' <form> element which has auto-complete enabled for password fields.'
-        ' The first {{ uris|sample_count }} vulnerable URLs are:\n'
-        ''
-        '{% for url in uris[:10] %}'
-        ' - {{ url }}\n'
-        '{% endfor %}'
+        "The application contains {{ uris|length }} different URLs with a"
+        " <form> element which has auto-complete enabled for password fields."
+        " The first {{ uris|sample_count }} vulnerable URLs are:\n"
+        ""
+        "{% for url in uris[:10] %}"
+        " - {{ url }}\n"
+        "{% endfor %}"
     )

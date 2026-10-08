@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.data.kb.knowledge_base as kb
 import w3af.core.data.constants.severity as severity
 import w3af.core.data.parsers.parser_cache as parser_cache
@@ -42,7 +43,7 @@ class path_disclosure(GrepPlugin):
         GrepPlugin.__init__(self)
 
         # Internal variables
-        self._reported = DiskList(table_prefix='path_disclosure')
+        self._reported = DiskList(table_prefix="path_disclosure")
         self._signature_re = None
 
     def setup(self):
@@ -55,10 +56,10 @@ class path_disclosure(GrepPlugin):
         all_signatures = []
 
         for common_directory in get_common_directories():
-            regex_string = '[^A-Za-z0-9\._\-\\/\+~](%s.*?)[^A-Za-z0-9\._\-\\/\+~]'
+            regex_string = "[^A-Za-z0-9\._\-\\/\+~](%s.*?)[^A-Za-z0-9\._\-\\/\+~]"
             regex_string = regex_string % common_directory
             all_signatures.append(regex_string)
-            
+
         self._signature_re = MultiRE(all_signatures, hint_len=1)
 
     def grep(self, request, response):
@@ -107,13 +108,18 @@ class path_disclosure(GrepPlugin):
             desc = 'The URL: "%s" has a path disclosure vulnerability which discloses "%s".'
             desc %= (response.get_url(), match)
 
-            v = Vuln('Path disclosure vulnerability', desc, severity.LOW,
-                     response.id, self.get_name())
+            v = Vuln(
+                "Path disclosure vulnerability",
+                desc,
+                severity.LOW,
+                response.id,
+                self.get_name(),
+            )
             v.add_to_highlight(match)
             v.set_url(real_url)
-            v['path'] = match
+            v["path"] = match
 
-            self.kb_append(self, 'path_disclosure', v)
+            self.kb_append(self, "path_disclosure", v)
             return v
 
     def _is_false_positive(self, match, request, response):
@@ -220,20 +226,20 @@ class path_disclosure(GrepPlugin):
         If a path disclosure was found, I can create a list of full paths to
         all URLs ever visited. This method updates that list.
         """
-        path_disc_vulns = kb.kb.get('path_disclosure', 'path_disclosure')
+        path_disc_vulns = kb.kb.get("path_disclosure", "path_disclosure")
         url_list = kb.kb.get_all_known_urls()
-        
+
         # Now I find the longest match between one of the URLs that w3af has
         # discovered, and one of the path disclosure strings that this plugin
         # has found. I use the longest match because with small match_list I
         # have more probability of making a mistake.
-        longest_match = ''
+        longest_match = ""
         longest_path_disc_vuln = None
         for path_disc_vuln in path_disc_vulns:
             for url in url_list:
                 path_and_file = url.get_path()
 
-                if path_disc_vuln['path'].endswith(path_and_file):
+                if path_disc_vuln["path"].endswith(path_and_file):
                     if len(longest_match) < len(path_and_file):
                         longest_match = path_and_file
                         longest_path_disc_vuln = path_disc_vuln
@@ -245,7 +251,7 @@ class path_disclosure(GrepPlugin):
             return
 
         # Get the webroot
-        webroot = longest_path_disc_vuln['path'].replace(longest_match, '')
+        webroot = longest_path_disc_vuln["path"].replace(longest_match, "")
 
         #
         # This if fixes a strange case reported by Olle
@@ -255,19 +261,19 @@ class path_disclosure(GrepPlugin):
         #
         if not webroot:
             return
-        
+
         # Check what path separator we should use (linux / windows)
-        path_sep = '/' if webroot.startswith('/') else '\\'
+        path_sep = "/" if webroot.startswith("/") else "\\"
 
         # Create the remote locations
         remote_locations = []
         for url in url_list:
-            remote_path = url.get_path().replace('/', path_sep)
+            remote_path = url.get_path().replace("/", path_sep)
             remote_locations.append(webroot + remote_path)
         remote_locations = list(set(remote_locations))
 
-        kb.kb.raw_write(self, 'list_files', remote_locations)
-        kb.kb.raw_write(self, 'webroot', webroot)
+        kb.kb.raw_write(self, "list_files", remote_locations)
+        kb.kb.raw_write(self, "webroot", webroot)
 
     def end(self):
         self._reported.cleanup()

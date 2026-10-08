@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from w3af.core.data.user_agent.random_user_agent import get_random_user_agent
@@ -26,13 +27,13 @@ from w3af.core.data.user_agent.random_user_agent import get_random_user_agent
 
 class TestRandomUserAgent(unittest.TestCase):
     def test_get_random_ua(self):
-        EXPECTED = ('Mozilla', 'Windows', 'MSIE', 'Opera')
-        
+        EXPECTED = ("Mozilla", "Windows", "MSIE", "Opera")
+
         for _ in range(100):
             rnd_ua = get_random_user_agent()
-            
+
             for estr in EXPECTED:
                 if estr in rnd_ua:
                     return
-                
-        self.assertTrue(False, 'Failed to find %s' % (EXPECTED,))
+
+        self.assertTrue(False, "Failed to find %s" % (EXPECTED,))

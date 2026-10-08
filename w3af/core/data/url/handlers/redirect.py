@@ -19,20 +19,21 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import urllib.request, urllib.error, urllib.parse
 
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.HTTPRequest import HTTPRequest
 
 GET_HEAD_CODES = {301, 302, 303, 307}
-GET_HEAD = {'GET', 'HEAD'}
+GET_HEAD = {"GET", "HEAD"}
 
 POST_CODES = {301, 302, 303}
-POST = 'POST'
+POST = "POST"
 
-REMOVE_ON_REDIRECT = {'content-length', 'content-type'}
-LOCATION = 'location'
-URI = 'uri'
+REMOVE_ON_REDIRECT = {"content-length", "content-type"}
+LOCATION = "location"
+URI = "uri"
 
 
 class HTTP30XHandler(urllib.request.HTTPRedirectHandler):
@@ -55,25 +56,30 @@ class HTTP30XHandler(urllib.request.HTTPRedirectHandler):
         original object and setting the target URL to the one received in the
         30x response.
         """
-        new_headers = dict((k, v) for k, v in list(request.headers.items())
-                           if k.lower() not in REMOVE_ON_REDIRECT)
+        new_headers = dict(
+            (k, v)
+            for k, v in list(request.headers.items())
+            if k.lower() not in REMOVE_ON_REDIRECT
+        )
 
         orig_method = request.get_method()
-        method = orig_method if orig_method in GET_HEAD else 'GET'
+        method = orig_method if orig_method in GET_HEAD else "GET"
 
-        new_request = HTTPRequest(new_url_obj,
-                                  headers=new_headers,
-                                  origin_req_host=request.get_origin_req_host(),
-                                  method=method,
-                                  timeout=request.timeout,
-                                  unverifiable=True,
-                                  follow_redirects=True,
-                                  cookies=request.cookies,
-                                  cache=request.get_from_cache,
-                                  error_handling=request.error_handling,
-                                  retries=request.retries_left,
-                                  new_connection=request.new_connection,
-                                  use_basic_auth=request.use_basic_auth)
+        new_request = HTTPRequest(
+            new_url_obj,
+            headers=new_headers,
+            origin_req_host=request.get_origin_req_host(),
+            method=method,
+            timeout=request.timeout,
+            unverifiable=True,
+            follow_redirects=True,
+            cookies=request.cookies,
+            cache=request.get_from_cache,
+            error_handling=request.error_handling,
+            retries=request.retries_left,
+            new_connection=request.new_connection,
+            use_basic_auth=request.use_basic_auth,
+        )
 
         return new_request
 
@@ -116,8 +122,9 @@ class HTTP30XHandler(urllib.request.HTTPRedirectHandler):
         # other than HTTP or HTTPS
         #
         new_url_lower = new_url_str.lower()
-        if not (new_url_lower.startswith('http://') or
-                new_url_lower.startswith('https://')):
+        if not (
+            new_url_lower.startswith("http://") or new_url_lower.startswith("https://")
+        ):
             # The target URI seems to be pointing to file:// or ftp://
             # Return the original response and continue
             return response
@@ -129,7 +136,7 @@ class HTTP30XHandler(urllib.request.HTTPRedirectHandler):
 
         # loop detection
         # .redirect_dict has a key url if url was previously visited.
-        if hasattr(request, 'redirect_dict'):
+        if hasattr(request, "redirect_dict"):
             visited = new_request.redirect_dict = request.redirect_dict
 
             if visited.get(new_url_str, 0) >= self.max_repeats:
@@ -181,7 +188,7 @@ class HTTP30XHandler(urllib.request.HTTPRedirectHandler):
         Receive an HTTP request and response, and decides if it should follow
         the redirection or not.
         """
-        follow_redirects = getattr(request, 'follow_redirects', False)
+        follow_redirects = getattr(request, "follow_redirects", False)
 
         if not follow_redirects:
             # Do not follow any redirects, just return the original response
@@ -194,6 +201,5 @@ class HTTP30XHandler(urllib.request.HTTPRedirectHandler):
             return self.do_follow_redirect(request, response)
 
         return response
-    
-    https_response = http_response
 
+    https_response = http_response

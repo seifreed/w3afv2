@@ -18,8 +18,13 @@ from lib.core.settings import IGNORE_SPACE_AFFECTED_KEYWORDS
 
 __priority__ = PRIORITY.LOW
 
+
 def dependencies():
-    singleTimeWarnMessage("tamper script '%s' is only meant to be run against %s > 5.1.13" % (os.path.basename(__file__).split(".")[0], DBMS.MYSQL))
+    singleTimeWarnMessage(
+        "tamper script '%s' is only meant to be run against %s > 5.1.13"
+        % (os.path.basename(__file__).split(".")[0], DBMS.MYSQL)
+    )
+
 
 def tamper(payload, **kwargs):
     """
@@ -43,10 +48,16 @@ def tamper(payload, **kwargs):
     """
 
     def process(match):
-        word = match.group('word')
-        randomStr = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase) for _ in range(random.randint(6, 12)))
+        word = match.group("word")
+        randomStr = "".join(
+            random.choice(string.ascii_uppercase + string.ascii_lowercase)
+            for _ in range(random.randint(6, 12))
+        )
 
-        if word.upper() in kb.keywords and word.upper() not in IGNORE_SPACE_AFFECTED_KEYWORDS:
+        if (
+            word.upper() in kb.keywords
+            and word.upper() not in IGNORE_SPACE_AFFECTED_KEYWORDS
+        ):
             return match.group().replace(word, "%s%%23%s%%0A" % (word, randomStr))
         else:
             return match.group()
@@ -54,13 +65,20 @@ def tamper(payload, **kwargs):
     retVal = ""
 
     if payload:
-        payload = re.sub(r"(?<=\W)(?P<word>[A-Za-z_]+)(?=\W|\Z)", lambda match: process(match), payload)
+        payload = re.sub(
+            r"(?<=\W)(?P<word>[A-Za-z_]+)(?=\W|\Z)",
+            lambda match: process(match),
+            payload,
+        )
 
         for i in range(len(payload)):
             if payload[i].isspace():
-                randomStr = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase) for _ in range(random.randint(6, 12)))
+                randomStr = "".join(
+                    random.choice(string.ascii_uppercase + string.ascii_lowercase)
+                    for _ in range(random.randint(6, 12))
+                )
                 retVal += "%%23%s%%0A" % randomStr
-            elif payload[i] == '#' or payload[i:i + 3] == '-- ':
+            elif payload[i] == "#" or payload[i : i + 3] == "-- ":
                 retVal += payload[i:]
                 break
             else:

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 import compiler
 
@@ -74,52 +75,56 @@ print response_body
 class TestPythonExport(unittest.TestCase):
 
     def test_export_GET(self):
-        http_request = 'GET http://www.w3af.org/ HTTP/1.1\n' \
-                       'Host: www.w3af.org\n' \
-                       'Foo: bar\n' \
-                       '\n'
+        http_request = (
+            "GET http://www.w3af.org/ HTTP/1.1\n"
+            "Host: www.w3af.org\n"
+            "Foo: bar\n"
+            "\n"
+        )
         python_code = python_export(http_request)
-        self.assertTrue(
-            compiler.compile(python_code, 'python_export.tmp', 'exec'))
+        self.assertTrue(compiler.compile(python_code, "python_export.tmp", "exec"))
         self.assertEqual(python_code, EXPECTED_SIMPLE)
 
     def test_export_POST(self):
-        http_request = 'POST http://www.w3af.org/ HTTP/1.1\n' \
-                       'Host: www.w3af.org\n' \
-                       'Content-Length: 3\n' \
-                       'Content-Type: application/x-www-form-urlencoded\n' \
-                       '\n' \
-                       'a=1'
+        http_request = (
+            "POST http://www.w3af.org/ HTTP/1.1\n"
+            "Host: www.w3af.org\n"
+            "Content-Length: 3\n"
+            "Content-Type: application/x-www-form-urlencoded\n"
+            "\n"
+            "a=1"
+        )
         python_code = python_export(http_request)
-        self.assertTrue(
-            compiler.compile(python_code, 'python_export.tmp', 'exec'))
+        self.assertTrue(compiler.compile(python_code, "python_export.tmp", "exec"))
         self.assertEqual(python_code, EXPECTED_POST)
 
     def test_export_POST_repeated(self):
-        http_request = 'POST http://www.w3af.org/ HTTP/1.1\n' \
-                       'Host: www.w3af.org\n' \
-                       'Content-Length: 7\n' \
-                       'Content-Type: application/x-www-form-urlencoded\n' \
-                       'Foo: spam\n' \
-                       'Foo: eggs\n' \
-                       '\n' \
-                       'a=1&a=2'
+        http_request = (
+            "POST http://www.w3af.org/ HTTP/1.1\n"
+            "Host: www.w3af.org\n"
+            "Content-Length: 7\n"
+            "Content-Type: application/x-www-form-urlencoded\n"
+            "Foo: spam\n"
+            "Foo: eggs\n"
+            "\n"
+            "a=1&a=2"
+        )
         python_code = python_export(http_request)
-        self.assertTrue(
-            compiler.compile(python_code, 'python_export.tmp', 'exec'))
+        self.assertTrue(compiler.compile(python_code, "python_export.tmp", "exec"))
         self.assertEqual(python_code, EXPECTED_POST_REPEATED)
 
     def test_export_inject(self):
-        http_request = 'POST http://www.w3af.org/ HTTP/1.1\n' \
-                       'Host: www.w3af.org\n' \
-                       'Content-Length: 7\n' \
-                       'Content-Type: application/x-www-form-urlencoded\n' \
-                       'Foo: sp"am\n' \
-                       'Foo: eggs\n' \
-                       '\n' \
-                       'a=1&a=2"3'
+        http_request = (
+            "POST http://www.w3af.org/ HTTP/1.1\n"
+            "Host: www.w3af.org\n"
+            "Content-Length: 7\n"
+            "Content-Type: application/x-www-form-urlencoded\n"
+            'Foo: sp"am\n'
+            "Foo: eggs\n"
+            "\n"
+            'a=1&a=2"3'
+        )
         python_code = python_export(http_request)
-        self.assertTrue(
-            compiler.compile(python_code, 'python_export.tmp', 'exec'))
-        self.assertIn('a=1&a=2%223', python_code)
-        self.assertIn("sp\\\"am", python_code)
+        self.assertTrue(compiler.compile(python_code, "python_export.tmp", "exec"))
+        self.assertIn("a=1&a=2%223", python_code)
+        self.assertIn('sp\\"am', python_code)

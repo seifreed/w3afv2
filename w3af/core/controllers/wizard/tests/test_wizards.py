@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 
 from nose.plugins.attrib import attr
@@ -34,15 +35,15 @@ class test_wizards(object):
 
     unique_wizard_ids = []
 
-    @attr('smoke')
+    @attr("smoke")
     def test_all_wizards(self):
-        mod = 'w3af.core.controllers.wizard.wizards.%s'
+        mod = "w3af.core.controllers.wizard.wizards.%s"
         w3af_core = w3afCore()
 
-        for filename in os.listdir('w3af/core/controllers/wizard/wizards/'):
+        for filename in os.listdir("w3af/core/controllers/wizard/wizards/"):
             wizard_id, ext = os.path.splitext(filename)
 
-            if wizard_id in ('__init__', '.git') or ext == '.pyc':
+            if wizard_id in ("__init__", ".git") or ext == ".pyc":
                 continue
 
             klass = mod % wizard_id
@@ -53,14 +54,14 @@ class test_wizards(object):
             wizard_inst = factory(klass, w3af_core)
             yield self._test_wizard_fail, wizard_inst
 
-    @attr('smoke')
+    @attr("smoke")
     def _test_wizard_correct(self, wizard_inst):
         """
         @see test_questions.py for a complete test of questions.py and all the
              instances of that class that live in the questions directory.
         """
         wid = wizard_inst.get_name()
-        assert wid != ''
+        assert wid != ""
         assert wid not in self.unique_wizard_ids
         self.unique_wizard_ids.append(wid)
 
@@ -75,7 +76,7 @@ class test_wizards(object):
                 filled_opt = self._correctly_fill_options(opt)
                 wizard_inst.set_answer(filled_opt)
 
-    @attr('smoke')
+    @attr("smoke")
     def _test_wizard_fail(self, wizard_inst):
         """
         @see test_questions.py for a complete test of questions.py and all the
@@ -109,16 +110,16 @@ class test_wizards(object):
                  what he's doing and doesn't make any mistakes.
         """
         values = {
-            'target': URL('http://www.w3af.org'),
-            'target_os': 'Unix',
-            'target_framework': 'PHP'
+            "target": URL("http://www.w3af.org"),
+            "target_os": "Unix",
+            "target_framework": "PHP",
         }
 
         for option in option_list:
             if isinstance(option, BoolOption):
-                value = 'true'
+                value = "true"
             else:
-                value = values.get(option.get_name(), 'abc')
+                value = values.get(option.get_name(), "abc")
             option.set_value(value)
 
         return option_list
@@ -129,16 +130,16 @@ class test_wizards(object):
                  doesn't know what he's doing and makes all the mistakes.
         """
         values = {
-            'target': URL('foo://www.w3af.org'),
-            'target_os': 'Minix',
-            'target_framework': 'C++'
+            "target": URL("foo://www.w3af.org"),
+            "target_os": "Minix",
+            "target_framework": "C++",
         }
 
         for option in option_list:
             if isinstance(option, BoolOption):
-                value = 'true'
+                value = "true"
             else:
-                value = values.get(option.get_name(), '#FAIL')
+                value = values.get(option.get_name(), "#FAIL")
             option.set_value(value)
 
         return option_list

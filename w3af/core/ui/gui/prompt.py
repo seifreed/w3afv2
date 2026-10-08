@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import os
 import gtk
 import gobject
@@ -37,13 +38,14 @@ class PromptView(gtk.TextView, MessageConsumer):
 
     :author: Facundo Batista <facundobatista =at= taniquetil.com.ar>
     """
+
     def __init__(self, prompt_text, procfunc):
         gtk.TextView.__init__(self)
         MessageConsumer.__init__(self)
 
         self.prompt_text = prompt_text
         self.procfunc = procfunc
-        
+
         self.set_wrap_mode(gtk.WRAP_CHAR)
 
         # keys
@@ -60,7 +62,7 @@ class PromptView(gtk.TextView, MessageConsumer):
         # mono spaced font looks more like a terminal to me =)
         # and works better with the output of some unix commands
         # that are run remotely and displayed in the console
-        pangoFont = pango.FontDescription('Courier 11')
+        pangoFont = pango.FontDescription("Courier 11")
         self.modify_font(pangoFont)
 
         # Buttons, buffers and stuff:
@@ -85,13 +87,13 @@ class PromptView(gtk.TextView, MessageConsumer):
         :return: True to keep running
         """
         super(PromptView, self).handle_message(msg)
-        
-        if msg.get_type() == 'console':
+
+        if msg.get_type() == "console":
             # Handling new lines
             text = msg.get_msg()
             if msg.get_new_line():
-                text += '\n'
-    
+                text += "\n"
+
             self.insert_into_textbuffer(text)
             yield True
 
@@ -104,7 +106,7 @@ class PromptView(gtk.TextView, MessageConsumer):
         """
         iterl = self.textbuffer.get_end_iter()
         # Handling carriage returns (special case for some apps)
-        if text.startswith('\r'):
+        if text.startswith("\r"):
             # overwrite the old text:
             # 1: delete it
             # 2: write
@@ -120,7 +122,8 @@ class PromptView(gtk.TextView, MessageConsumer):
             old_text = self.textbuffer.get_text(iterini, delete_start)
             old_text_length = len(old_text)
             delete_end = self.textbuffer.get_iter_at_offset(
-                text_length + old_text_length)
+                text_length + old_text_length
+            )
 
             # Delete
             self.textbuffer.delete(iterl, delete_end)
@@ -132,8 +135,7 @@ class PromptView(gtk.TextView, MessageConsumer):
         iterl = self.textbuffer.get_end_iter()
         self.textbuffer.place_cursor(iterl)
         self.cursorLimit = self.textbuffer.get_property("cursor-position")
-        self.user_started = self.textbuffer.create_mark(
-            "user-input", iterl, True)
+        self.user_started = self.textbuffer.create_mark("user-input", iterl, True)
 
     def get_text(self):
         """Returns the textbuffer content."""
@@ -145,8 +147,7 @@ class PromptView(gtk.TextView, MessageConsumer):
     def _button_press(self, widg, event):
         """The mouse button is down."""
         if self.cursorPosition is None:
-            self.cursorPosition = self.textbuffer.get_property(
-                "cursor-position")
+            self.cursorPosition = self.textbuffer.get_property("cursor-position")
         return False
 
     def _button_release(self, widg, event):
@@ -212,8 +213,7 @@ class PromptView(gtk.TextView, MessageConsumer):
         # In some strange cases `self.user_started` can be None causing
         # a TypeError raised by get_iter_at_mark(). This hack is to prevent it.
         if not self.user_started:
-            self.user_started = textbuffer.create_mark("user-input",
-                                                       iter_end, True)
+            self.user_started = textbuffer.create_mark("user-input", iter_end, True)
 
         iter_start = textbuffer.get_iter_at_mark(self.user_started)
         text = textbuffer.get_text(iter_start, iter_end)
@@ -244,12 +244,11 @@ class PromptView(gtk.TextView, MessageConsumer):
         iterl = self.textbuffer.get_end_iter()
         self.textbuffer.insert(iterl, self.prompt_text + "> ")
         self.scroll_to_mark(self.textbuffer.get_insert(), 0)
-        
+
         iterl = self.textbuffer.get_end_iter()
         self.textbuffer.place_cursor(iterl)
         self.cursorLimit = self.textbuffer.get_property("cursor-position")
-        self.user_started = self.textbuffer.create_mark("user-input",
-                                                        iterl, True)
+        self.user_started = self.textbuffer.create_mark("user-input", iterl, True)
 
     def _key(self, widg, event):
         """Separates the special keys from the other."""
@@ -261,13 +260,16 @@ class PromptView(gtk.TextView, MessageConsumer):
         # reset the cursor after moving it with the mouse
         if self.cursorPosition is not None:
             # special: don't reset for ctrl-C, as we want to copy the selected stuff
-            if event.state & gtk.gdk.CONTROL_MASK and event.keyval == gtk.gdk.keyval_from_name("c"):
+            if (
+                event.state & gtk.gdk.CONTROL_MASK
+                and event.keyval == gtk.gdk.keyval_from_name("c")
+            ):
                 return False
             iterl = self.textbuffer.get_iter_at_offset(self.cursorPosition)
             self.textbuffer.place_cursor(iterl)
             self.cursorPosition = None
 
-#        print gtk.gdk.keyval_name(event.keyval)
+        #        print gtk.gdk.keyval_name(event.keyval)
         return False
 
 
@@ -279,15 +281,16 @@ class PromptDialog(gtk.Dialog):
 
     :author: Facundo Batista <facundobatista =at= taniquetil.com.ar>
     """
+
     def __init__(self, title, prompt_text, procfunc):
         super(PromptDialog, self).__init__(title, None, gtk.DIALOG_MODAL, ())
-        self.set_icon_from_file(os.path.join(GUI_DATA_PATH, 'shell.png'))
+        self.set_icon_from_file(os.path.join(GUI_DATA_PATH, "shell.png"))
 
         # the toolbar
         box = gtk.HBox()
         but = gtk.Button(stock=gtk.STOCK_SAVE)
-        but.set_property('image-position', gtk.POS_TOP)
-        but.connect('clicked', self._save)
+        but.set_property("image-position", gtk.POS_TOP)
+        but.connect("clicked", self._save)
         box.pack_start(but, False, False)
         self.vbox.pack_start(box, False, False)
         self.vbox.pack_start(gtk.HSeparator(), False, False, padding=5)
@@ -307,23 +310,28 @@ class PromptDialog(gtk.Dialog):
     def _save(self, widg):
         """Saves the content to a file."""
         text = self.prompt.get_text()
-        dlg = gtk.FileChooserDialog(title=_('Choose output file...'),
-                                    action=gtk.FILE_CHOOSER_ACTION_SAVE,
-                                    buttons=(gtk.STOCK_CANCEL,
-                                             gtk.RESPONSE_CANCEL,
-                                             gtk.STOCK_SAVE,
-                                             gtk.RESPONSE_OK))
+        dlg = gtk.FileChooserDialog(
+            title=_("Choose output file..."),
+            action=gtk.FILE_CHOOSER_ACTION_SAVE,
+            buttons=(
+                gtk.STOCK_CANCEL,
+                gtk.RESPONSE_CANCEL,
+                gtk.STOCK_SAVE,
+                gtk.RESPONSE_OK,
+            ),
+        )
         resp = dlg.run()
         fname = dlg.get_filename()
         dlg.destroy()
         if resp == gtk.RESPONSE_OK and fname is not None:
-            fh = open(fname, 'w')
+            fh = open(fname, "w")
             fh.write(text)
             fh.close()
         return
 
 
 if __name__ == "__main__":
+
     def proc_func(x):
         x = x.decode("utf8")
         return x[::-1]

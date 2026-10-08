@@ -1,8 +1,6 @@
 from utils.output import KeyValueOutput
 
-
-HTTP_ERRORS = ('Failed to HTTP',
-               'Raising HTTP error')
+HTTP_ERRORS = ("Failed to HTTP", "Raising HTTP error")
 
 
 def get_http_errors(scan_log_filename, scan):
@@ -14,6 +12,4 @@ def get_http_errors(scan_log_filename, scan):
             if error in line:
                 error_count += 1
 
-    return KeyValueOutput('http_errors',
-                          'HTTP errors',
-                          error_count)
+    return KeyValueOutput("http_errors", "HTTP errors", error_count)

@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 # Used to log responses in deque
-SUCCESS = 'Success'
+SUCCESS = "Success"
 
 
 class ResponseMeta(object):
@@ -29,10 +29,8 @@ class ResponseMeta(object):
     Stores response meta-data to be able to track errors and timeouts in the
     extended urllib library.
     """
-    __slots__ = ('successful',
-                 'message',
-                 'rtt',
-                 'host')
+
+    __slots__ = ("successful", "message", "rtt", "host")
 
     def __init__(self, successful, message, rtt=None, host=None):
         self.successful = successful
@@ -41,7 +39,7 @@ class ResponseMeta(object):
         self.host = host
 
     def __str__(self):
-        fmt = '<ResponseMeta (successful: %s, message: %s, rtt: %s, host: %s)'
+        fmt = "<ResponseMeta (successful: %s, message: %s, rtt: %s, host: %s)"
         args = (self.successful, self.message, self.rtt, self.host)
         return fmt % args
 

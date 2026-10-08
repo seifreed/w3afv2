@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 
 import w3af.core.controllers.output_manager as om
@@ -41,15 +42,16 @@ class cross_domain_js(GrepPlugin):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def __init__(self):
         GrepPlugin.__init__(self)
 
         # User configured settings
         # Not 100% secure, but can be considered as safe in 99,9% of the cases
         # Taken from https://github.com/WPO-Foundation/webpagetest/blob/master/agent/wpthook/cdn.h#L46
-        self._secure_js_file = os.path.join(ROOT_PATH, 'plugins', 'grep',
-                                            'cross_domain_js',
-                                            'secure-js-sources.txt')
+        self._secure_js_file = os.path.join(
+            ROOT_PATH, "plugins", "grep", "cross_domain_js", "secure-js-sources.txt"
+        )
 
         # Internal variables
         self._secure_domain_multi_in = None
@@ -70,9 +72,9 @@ class cross_domain_js(GrepPlugin):
         if not response.is_text_or_html():
             return
 
-        for tag in parser_cache.dpc.get_tags_by_filter(response, ('script',)):
+        for tag in parser_cache.dpc.get_tags_by_filter(response, ("script",)):
             # pylint: disable=E1101
-            script_src = tag.attrib.get('src', None)
+            script_src = tag.attrib.get("src", None)
             # pylint: enable=E1101
 
             if script_src is None:
@@ -106,29 +108,30 @@ class cross_domain_js(GrepPlugin):
             # It's a third party that we trust
             return
 
-        to_highlight = script_tag.attrib.get('src')
-        desc = ('The URL: "%s" has a script tag with a source that points'
-                ' to a third party site ("%s"). This practice is not'
-                ' recommended, the security of the current site is being'
-                ' delegated to the external entity.')
-        desc %= (smart_str_ignore(response_url),
-                 smart_str_ignore(script_domain))
+        to_highlight = script_tag.attrib.get("src")
+        desc = (
+            'The URL: "%s" has a script tag with a source that points'
+            ' to a third party site ("%s"). This practice is not'
+            " recommended, the security of the current site is being"
+            " delegated to the external entity."
+        )
+        desc %= (smart_str_ignore(response_url), smart_str_ignore(script_domain))
 
-        i = Info('Cross-domain javascript source', desc,
-                 response.id, self.get_name())
+        i = Info("Cross-domain javascript source", desc, response.id, self.get_name())
         i.set_url(response_url)
         i.add_to_highlight(to_highlight)
         i[CrossDomainInfoSet.ITAG] = script_domain
 
-        self.kb_append_uniq_group(self, 'cross_domain_js', i,
-                                  group_klass=CrossDomainInfoSet)
+        self.kb_append_uniq_group(
+            self, "cross_domain_js", i, group_klass=CrossDomainInfoSet
+        )
 
     def set_options(self, options_list):
         """
         Handle user configuration parameters.
         :return: None
         """
-        secure_js_file = options_list['secure_js_file'].get_value()
+        secure_js_file = options_list["secure_js_file"].get_value()
         self._load_secure_js_file(secure_js_file)
 
     def _load_secure_js_file(self, secure_js_file):
@@ -138,7 +141,7 @@ class cross_domain_js(GrepPlugin):
         if not secure_js_file:
             return
 
-        if secure_js_file == 'None':
+        if secure_js_file == "None":
             return
 
         secure_js_domains = set()
@@ -155,8 +158,8 @@ class cross_domain_js(GrepPlugin):
         """
         ol = OptionList()
 
-        d = 'Path to file containing a list of trusted JavaScript domains'
-        o = opt_factory('secure_js_file', self._secure_js_file, d, INPUT_FILE)
+        d = "Path to file containing a list of trusted JavaScript domains"
+        o = opt_factory("secure_js_file", self._secure_js_file, d, INPUT_FILE)
         ol.add(o)
 
         return ol
@@ -176,17 +179,17 @@ class cross_domain_js(GrepPlugin):
 
 class CrossDomainInfoSet(InfoSet):
 
-    ITAG = 'domain'
+    ITAG = "domain"
 
     TEMPLATE = (
-        'The application contains {{ uris|length }} different URLs with a'
-        ' script tag which includes JavaScript source from the potentially'
+        "The application contains {{ uris|length }} different URLs with a"
+        " script tag which includes JavaScript source from the potentially"
         ' insecure "{{ domain }}" third party site. This practice is not'
-        ' recommended because it delegates the security of the site to an'
-        ' external entity. The first {{ uris|sample_count }} vulnerable URLs'
-        ' are:\n'
-        ''
-        '{% for url in uris[:10] %}'
-        ' - {{ url }}\n'
-        '{% endfor %}'
+        " recommended because it delegates the security of the site to an"
+        " external entity. The first {{ uris|sample_count }} vulnerable URLs"
+        " are:\n"
+        ""
+        "{% for url in uris[:10] %}"
+        " - {{ url }}\n"
+        "{% endfor %}"
     )

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from w3af.core.data.kb.vuln_templates.dav_template import DAVTemplate
@@ -29,16 +30,14 @@ class DAVTemplateTest(unittest.TestCase):
     def test_store_in_kb(self):
         dt = DAVTemplate()
         dt.store_in_kb()
-        
+
         stored_data = kb.get(*dt.get_kb_location())
-        
+
         self.assertEqual(len(stored_data), 1)
-        
+
         stored_vuln = stored_data[0]
         created_vuln = dt.create_vuln()
-        
+
         stored_vuln.set_id(created_vuln.get_id())
-        
+
         self.assertEqual(stored_vuln, created_vuln)
-        
-        

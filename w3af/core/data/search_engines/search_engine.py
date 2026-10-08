@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers import output_manager as om
 from w3af.core.data.dc.headers import Headers
@@ -36,7 +37,12 @@ class SearchEngine(object):
         # Based on some tests performed by Nahuel Sanchez, Google will allow
         # us to automate searches if we use this user agent:
         #
-        hdrs = [('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36')]
+        hdrs = [
+            (
+                "User-Agent",
+                "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36",
+            )
+        ]
         self._headers = Headers(hdrs)
 
     def get_n_results(self, query, limit=0):
@@ -45,7 +51,7 @@ class SearchEngine(object):
         """
         start = 0
         result = set()
-        
+
         while True:
             try:
                 search_results = self.search(query, start, 10)
@@ -53,31 +59,33 @@ class SearchEngine(object):
                 om.out.debug(str(w3))
                 raise
             except Exception as e:
-                msg = 'An unhandled exception was found in ' \
-                      'search_engines.SearchEngine.search(): "%s"' % str(e)
+                msg = (
+                    "An unhandled exception was found in "
+                    'search_engines.SearchEngine.search(): "%s"' % str(e)
+                )
                 om.out.error(msg)
                 raise BaseFrameworkException(msg)
             else:
                 len_before = len(result)
                 result.update(list(search_results))
                 len_after = len(result)
-                
+
                 start += 10
-                
+
                 # If I keep finding new links, and the length of the result is
                 # less than the limit, continue searching!
                 if len_after > len_before and len(result) < limit:
                     continue
-                
+
                 break
 
         # Do some debug..
         if result:
-            om.out.debug('Search engine result: ')
+            om.out.debug("Search engine result: ")
             for res in result:
-                om.out.debug('- ' + res.URL)
+                om.out.debug("- " + res.URL)
         else:
-            om.out.debug('Search engine returned no results.')
+            om.out.debug("Search engine returned no results.")
 
         return result
 
@@ -96,8 +104,9 @@ class SearchEngine(object):
                 om.out.debug(str(w3))
                 raise
             except Exception as e:
-                msg = ('Unhandled exception in SearchEngine.'
-                       'get_n_result_pages(): "%s"')
+                msg = (
+                    "Unhandled exception in SearchEngine." 'get_n_result_pages(): "%s"'
+                )
                 om.out.debug(msg % e)
                 raise
             else:
@@ -133,7 +142,8 @@ class SearchEngine(object):
         :param count: How many results to get from start
         """
         raise NotImplementedError(
-            'SearchEngine subclasses should implement the search method.')
+            "SearchEngine subclasses should implement the search method."
+        )
 
     def page_search(self, query, start, count=10):
         """
@@ -147,4 +157,5 @@ class SearchEngine(object):
         :param count: How many results to get from start
         """
         raise NotImplementedError(
-            'SearchEngine subclasses should implement the page_search method.')
+            "SearchEngine subclasses should implement the page_search method."
+        )

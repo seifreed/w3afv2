@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import copy
 import queue
 import select
@@ -54,7 +55,7 @@ class sqlmap(AttackPlugin):
         """
         :return: The type of exploit, SHELL, PROXY, etc.
         """
-        return 'shell'
+        return "shell"
 
     def get_kb_location(self):
         """
@@ -67,7 +68,7 @@ class sqlmap(AttackPlugin):
         Then the exploit plugin that exploits os_commanding
         ( attack.os_commanding ) should return 'os_commanding' in this method.
         """
-        return ['sqli', 'blind_sqli']
+        return ["sqli", "blind_sqli"]
 
     def _generate_shell(self, vuln_obj):
         """
@@ -78,8 +79,9 @@ class sqlmap(AttackPlugin):
         # Check if we really can execute commands on the remote server
         if self._verify_vuln(vuln_obj):
             # Create the shell object
-            shell_obj = SQLMapShell(vuln_obj, self._uri_opener,
-                                    self.worker_pool, self._sqlmap)
+            shell_obj = SQLMapShell(
+                vuln_obj, self._uri_opener, self.worker_pool, self._sqlmap
+            )
             return shell_obj
         else:
             return None
@@ -93,9 +95,11 @@ class sqlmap(AttackPlugin):
         mutant = vuln_obj.get_mutant()
 
         if not isinstance(mutant, (QSMutant, PostDataMutant)):
-            msg = ('The SQL injection vulnerability at %s can not be exploited'
-                   ' by w3af\'s sqlmap wrapper because it can only handle'
-                   ' query string and url-encoded post data parameters.')
+            msg = (
+                "The SQL injection vulnerability at %s can not be exploited"
+                " by w3af's sqlmap wrapper because it can only handle"
+                " query string and url-encoded post data parameters."
+            )
             om.out.console(msg % (mutant.get_url(),))
             return False
 
@@ -104,7 +108,7 @@ class sqlmap(AttackPlugin):
         # When the original value of the parameter was empty, mostly when it
         # was an HTML form, sqlmap can't find the vulnerability (and w3af does)
         # so we're adding a '1' here just in case.
-        parameter_values = {orig_value, '1'}
+        parameter_values = {orig_value, "1"}
 
         for pvalue in parameter_values:
             mutant = copy.deepcopy(mutant)
@@ -118,10 +122,12 @@ class sqlmap(AttackPlugin):
             try:
                 sqlmap = SQLMapWrapper(target, self._uri_opener)
             except TypeError:
-                issue_url = 'https://github.com/andresriancho/w3af/issues/6439'
-                msg = ('w3af\'s sqlmap wrapper has some limitations, and you'
-                       ' just found one of them. For more information please'
-                       ' visit %s .')
+                issue_url = "https://github.com/andresriancho/w3af/issues/6439"
+                msg = (
+                    "w3af's sqlmap wrapper has some limitations, and you"
+                    " just found one of them. For more information please"
+                    " visit %s ."
+                )
                 om.out.console(msg % issue_url)
                 return False
 
@@ -134,17 +140,21 @@ class sqlmap(AttackPlugin):
                     # Not sure when we get here
                     return False
 
-                taint_error = 'provided tainted parameter'
-                if not (taint_error in sqlmap.last_stdout or
-                        taint_error in sqlmap.last_stderr):
+                taint_error = "provided tainted parameter"
+                if not (
+                    taint_error in sqlmap.last_stdout
+                    or taint_error in sqlmap.last_stderr
+                ):
                     # Some error that we don't have a special handling for
                     return False
 
-                issue_url = 'https://github.com/andresriancho/w3af/issues/1989'
-                msg = ('w3af\'s sqlmap wrapper has some limitations, and you'
-                       ' just found one of them. For more information please'
-                       ' visit %s and add the steps required to reproduce this'
-                       ' issue which will help us debug and fix it.')
+                issue_url = "https://github.com/andresriancho/w3af/issues/1989"
+                msg = (
+                    "w3af's sqlmap wrapper has some limitations, and you"
+                    " just found one of them. For more information please"
+                    " visit %s and add the steps required to reproduce this"
+                    " issue which will help us debug and fix it."
+                )
                 om.out.console(msg % issue_url)
                 return False
 
@@ -153,7 +163,7 @@ class sqlmap(AttackPlugin):
                 return True
             else:
                 sqlmap.cleanup()
-        
+
         return False
 
     def get_root_probability(self):
@@ -183,48 +193,49 @@ class RunFunctor(Process):
     def __init__(self, functor, params):
         super(RunFunctor, self).__init__()
         self.daemon = True
-        self.name = 'SQLMapWrapper'
-        
+        self.name = "SQLMapWrapper"
+
         self.functor = functor
         self.params = params
         self.user_input = queue.Queue()
-        
+
         class FakeProcess(object):
             def poll(self):
                 return None
+
         self.process = FakeProcess()
-        
+
     def run(self):
         cmd, process = self.functor(*self.params)
 
         if process is None:
             # Something really bad happen with sqlmap
-            om.out.console('Failed to start the sqlmap subprocess')
+            om.out.console("Failed to start the sqlmap subprocess")
             return
-        
+
         self.process = process
-        
-        om.out.information('Wrapped SQLMap command: %s' % cmd)
-        
+
+        om.out.information("Wrapped SQLMap command: %s" % cmd)
+
         try:
             while process.poll() is None:
                 read_ready, _, _ = select.select([process.stdout], [], [], 0.1)
-                
+
                 if read_ready:
                     line = process.stdout.read(1)
                     om.out.console(line, new_line=False)
-                    
+
         except KeyboardInterrupt:
-            om.out.information('Terminating SQLMap after Ctrl+C.')
+            om.out.information("Terminating SQLMap after Ctrl+C.")
             process.terminate()
-        
+
         final_content = process.stdout.read()
         om.out.console(final_content, new_line=False)
 
 
 class SQLMapShell(ReadShell):
 
-    ALIAS = ('dbs', 'tables', 'users', 'dump')
+    ALIAS = ("dbs", "tables", "users", "dump")
 
     def __init__(self, vuln, uri_opener, worker_pool, sqlmap):
         self.sqlmap = sqlmap
@@ -240,51 +251,50 @@ class SQLMapShell(ReadShell):
         # Documented here:
         #   http://goo.gl/jhRznU
         #   http://thomas-cokelaer.info/blog/2011/09/382/
-        resp = ReadShell.specific_user_input(self, command, params,
-                                             return_err=False)
-        
+        resp = ReadShell.specific_user_input(self, command, params, return_err=False)
+
         if resp is not None:
             return resp
-        
+
         # SQLMap specific code starts
         params = tuple(params)
         functor = None
-        
+
         if command in self.ALIAS:
             functor = getattr(self.sqlmap, command)
-        
-        if command == 'sqlmap':
+
+        if command == "sqlmap":
             functor = self.sqlmap.direct
-        
+
         if functor is not None:
             # TODO: I run this in a different thread in order to be able to
             #       (in the future) handle stdin and all other UI inputs.
             sqlmap_thread = RunFunctor(functor, params)
             sqlmap_thread.start()
             sqlmap_thread.join()
-            
+
             # Returning this empty string makes the console avoid printing
             # a message that says that the command was not found
-            return ''
-        
+            return ""
+
         return
-    
-    @read_debug        
+
+    @read_debug
     def read(self, filename):
         return self.sqlmap.read(filename)
-    
+
     def get_name(self):
-        return 'sqlmap'
-    
+        return "sqlmap"
+
     def end(self):
         self.sqlmap.cleanup()
-    
+
     def __repr__(self):
         """
         :return: A string representation of this shell.
         """
-        return '<sqlmap shell object>'
-    
+        return "<sqlmap shell object>"
+
     def identify_os(self):
         """
         Identify the remote operating system by reading different files from
@@ -293,22 +303,22 @@ class SQLMapShell(ReadShell):
         try:
             self._rOS = read_os_detection(self.read)
         except OSDetectionException as osde:
-            om.out.debug('%s' % osde)
-            self._rOS = 'unknown'
-        
+            om.out.debug("%s" % osde)
+            self._rOS = "unknown"
+
         # TODO: Could we determine this by calling some payloads?
-        self._rSystem = 'sqlmap'
-        self._rSystemName = 'db'
-        self._rUser = 'sqlmap'
-        
+        self._rSystem = "sqlmap"
+        self._rSystemName = "db"
+        self._rUser = "sqlmap"
+
     def help(self, command):
         """
         Handle the help command.
         """
-        if command in ('read', 'download'):
+        if command in ("read", "download"):
             return super(SQLMapShell, self).help(command)
-        
-        elif command == 'sqlmap':
+
+        elif command == "sqlmap":
             _help = """\
             sqlmap:
                 Run sqlmap and specify any extra parameters.

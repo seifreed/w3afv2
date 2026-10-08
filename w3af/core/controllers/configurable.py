@@ -30,6 +30,7 @@ class Configurable(object):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def set_options(self, options_list):
         """
         Sets the Options given on the options_list to self. The options
@@ -41,8 +42,9 @@ class Configurable(object):
 
         :return: No value is returned.
         """
-        raise NotImplementedError('Configurable object is not implementing '
-                                  'required method set_options')
+        raise NotImplementedError(
+            "Configurable object is not implementing " "required method set_options"
+        )
 
     def get_options(self):
         """
@@ -55,11 +57,12 @@ class Configurable(object):
 
         :return: OptionList.
         """
-        raise NotImplementedError('Configurable object is not implementing '
-                                  'required method get_options')
+        raise NotImplementedError(
+            "Configurable object is not implementing " "required method get_options"
+        )
 
     def get_name(self):
         return type(self).__name__
 
     def get_type(self):
-        return 'configurable'
+        return "configurable"

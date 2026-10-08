@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-
 import w3af.core.data.constants.severity as severity
 
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
@@ -34,21 +33,22 @@ class mx_injection(AuditPlugin):
     Find MX injection vulnerabilities.
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
-    MX_PAYLOADS = ['"', 'iDontExist', '']
+
+    MX_PAYLOADS = ['"', "iDontExist", ""]
 
     MX_ERRORS = (
-        'Unexpected extra arguments to Select',
-        'Bad or malformed request',
-        'Could not access the following folders',
+        "Unexpected extra arguments to Select",
+        "Bad or malformed request",
+        "Could not access the following folders",
         # Removing! Too many false positives...
         # 'A000',
         # 'A001',
-        'Invalid mailbox name',
-        'To check for outside changes to the folder list go to the folders page',
-        'go to the folders page',
-        'Query: SELECT',
-        'Query: FETCH',
-        'IMAP command'
+        "Invalid mailbox name",
+        "To check for outside changes to the folder list go to the folders page",
+        "go to the folders page",
+        "Query: SELECT",
+        "Query: FETCH",
+        "IMAP command",
     )
     _multi_in = MultiIn(MX_ERRORS)
 
@@ -65,14 +65,14 @@ class mx_injection(AuditPlugin):
         :param orig_response: The HTTP response associated with the fuzzable request
         :param debugging_id: A unique identifier for this call to audit()
         """
-        mutants = create_mutants(freq,
-                                 self.MX_PAYLOADS,
-                                 orig_resp=orig_response)
+        mutants = create_mutants(freq, self.MX_PAYLOADS, orig_resp=orig_response)
 
-        self._send_mutants_in_threads(self._uri_opener.send_mutant,
-                                      mutants,
-                                      self._analyze_result,
-                                      debugging_id=debugging_id)
+        self._send_mutants_in_threads(
+            self._uri_opener.send_mutant,
+            mutants,
+            self._analyze_result,
+            debugging_id=debugging_id,
+        )
 
     def _analyze_result(self, mutant, response):
         """
@@ -86,14 +86,19 @@ class mx_injection(AuditPlugin):
             if mx_error in mutant.get_original_response_body():
                 continue
 
-            desc = 'MX injection was found at: %s' % mutant.found_at()
+            desc = "MX injection was found at: %s" % mutant.found_at()
 
-            v = Vuln.from_mutant('MX injection vulnerability', desc,
-                                 severity.MEDIUM, response.id,
-                                 self.get_name(), mutant)
+            v = Vuln.from_mutant(
+                "MX injection vulnerability",
+                desc,
+                severity.MEDIUM,
+                response.id,
+                self.get_name(),
+                mutant,
+            )
 
             v.add_to_highlight(mx_error)
-            self.kb_append_uniq(self, 'mx_injection', v)
+            self.kb_append_uniq(self, "mx_injection", v)
             break
 
     def get_long_desc(self):

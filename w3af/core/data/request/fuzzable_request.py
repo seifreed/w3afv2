@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import string
 import base64
 import hashlib
@@ -42,20 +43,14 @@ from w3af.core.data.request.request_mixin import RequestMixIn
 from w3af.core.data.constants.encodings import DEFAULT_ENCODING
 from w3af.core.data.misc.encoding import smart_str_ignore
 
-
-ALL_CHARS = ''.join(chr(i) for i in range(256))
+ALL_CHARS = "".join(chr(i) for i in range(256))
 TRANS_TABLE = str.maketrans(ALL_CHARS, ALL_CHARS)
-DELETE_CHARS = ''.join(['\\',
-                        "'",
-                        '"',
-                        '+',
-                        ' ',
-                        chr(0),
-                        chr(int("0D", 16)),
-                        chr(int("0A", 16))])
+DELETE_CHARS = "".join(
+    ["\\", "'", '"', "+", " ", chr(0), chr(int("0D", 16)), chr(int("0A", 16))]
+)
 
 
-TYPE_ERROR = 'FuzzableRequest __init__ parameter %s needs to be of %s type'
+TYPE_ERROR = "FuzzableRequest __init__ parameter %s needs to be of %s type"
 
 
 class FuzzableRequest(RequestMixIn, DiskItem):
@@ -71,32 +66,34 @@ class FuzzableRequest(RequestMixIn, DiskItem):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     # In most cases we don't care about these headers, even if provided by the
     # user, since they will be calculated based on the attributes we are
     # going to store and these won't be updated.
-    REMOVE_HEADERS = ('content-length',)
+    REMOVE_HEADERS = ("content-length",)
 
-    __slots__ = ('_method',
-                 '_cookie',
-                 '_post_data',
-                 '_headers',
-                 '_uri',
-                 '_url',
-                 '_sent_info_comp',
-                 '_force_fuzzing_headers',
-                 '_force_fuzzing_url_parts')
+    __slots__ = (
+        "_method",
+        "_cookie",
+        "_post_data",
+        "_headers",
+        "_uri",
+        "_url",
+        "_sent_info_comp",
+        "_force_fuzzing_headers",
+        "_force_fuzzing_url_parts",
+    )
 
-    def __init__(self, uri, method='GET', headers=None, cookie=None,
-                 post_data=None):
+    def __init__(self, uri, method="GET", headers=None, cookie=None, post_data=None):
         super(FuzzableRequest, self).__init__()
 
         # Note: Do not check for the URI/Headers type here, since I'm doing it
         # in set_uri() and set_headers() already.
         if cookie is not None and not isinstance(cookie, Cookie):
-            raise TypeError(TYPE_ERROR % ('cookie', 'Cookie'))
+            raise TypeError(TYPE_ERROR % ("cookie", "Cookie"))
 
         if post_data is not None and not isinstance(post_data, DataContainer):
-            raise TypeError(TYPE_ERROR % ('post_data', 'DataContainer'))
+            raise TypeError(TYPE_ERROR % ("post_data", "DataContainer"))
 
         # Internal variables
         self._method = method
@@ -142,19 +139,19 @@ class FuzzableRequest(RequestMixIn, DiskItem):
                  FuzzableRequest instance to the default headers. Any specific
                  headers override the default (empty) ones.
         """
-        fuzzable_headers = cf.cf.get('fuzzable_headers') or []
-        req_headers = [(h, '') for h in fuzzable_headers]
+        fuzzable_headers = cf.cf.get("fuzzable_headers") or []
+        req_headers = [(h, "") for h in fuzzable_headers]
         return Headers(init_val=req_headers)
 
     @classmethod
-    def from_parts(cls, url, method='GET', post_data=None, headers=None):
+    def from_parts(cls, url, method="GET", post_data=None, headers=None):
         """
         :return: An instance of FuzzableRequest from the provided parameters.
         """
         if isinstance(url, str):
             url = URL(url)
 
-        if post_data == '':
+        if post_data == "":
             post_data = None
 
         elif isinstance(post_data, str):
@@ -170,7 +167,7 @@ class FuzzableRequest(RequestMixIn, DiskItem):
                  is set.
         """
         cookie = Cookie.from_http_response(http_response)
-        return cls(http_response.get_uri(), method='GET', cookie=cookie)
+        return cls(http_response.get_uri(), method="GET", cookie=cookie)
 
     @classmethod
     def from_http_request(cls, request):
@@ -183,26 +180,30 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         headers.update(request.unredirected_hdrs)
         headers = Headers(list(headers.items()))
 
-        post_data = request.get_data() or ''
+        post_data = request.get_data() or ""
 
-        return cls.from_parts(request.url_object, method=request.get_method(),
-                              headers=headers, post_data=post_data)
+        return cls.from_parts(
+            request.url_object,
+            method=request.get_method(),
+            headers=headers,
+            post_data=post_data,
+        )
 
     @classmethod
     def from_form(cls, form, headers=None):
-        if form.get_method().upper() == 'POST':
-            r = cls(form.get_action(),
-                    method=form.get_method(),
-                    headers=headers,
-                    post_data=form)
+        if form.get_method().upper() == "POST":
+            r = cls(
+                form.get_action(),
+                method=form.get_method(),
+                headers=headers,
+                post_data=form,
+            )
         else:
             # The default is a GET request
             form_action = form.get_action()
             form_action.querystring = form
 
-            r = cls(form_action,
-                    method=form.get_method(),
-                    headers=headers)
+            r = cls(form_action, method=form.get_method(), headers=headers)
 
         return r
 
@@ -219,7 +220,10 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         :param base64_data: A string generated by to_base64
         :return: A FuzzableRequest instance
         """
-        from w3af.core.data.parsers.doc.http_request_parser import raw_http_request_parser
+        from w3af.core.data.parsers.doc.http_request_parser import (
+            raw_http_request_parser,
+        )
+
         raw_http_request = base64.b64decode(base64_data)
         return raw_http_request_parser(raw_http_request)
 
@@ -227,8 +231,7 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         """
         This basically removes characters that are used as escapes such as \
         """
-        return string.translate(heterogen_string, TRANS_TABLE,
-                                deletions=DELETE_CHARS)
+        return string.translate(heterogen_string, TRANS_TABLE, deletions=DELETE_CHARS)
 
     def sent(self, needle):
         """
@@ -310,7 +313,7 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         # Filter the short haystacks
         haystacks = {h for h in haystacks if len(h) >= 3}
 
-        haystack = '--'.join(haystacks)
+        haystack = "--".join(haystacks)
 
         for needle in needles:
             if needle in haystack:
@@ -330,8 +333,8 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         """
         :return: A string representation of this fuzzable request.
         """
-        short_fmt = 'Method: %s | %s'
-        long_fmt = 'Method: %s | %s | %s: (%s)'
+        short_fmt = "Method: %s | %s"
+        long_fmt = "Method: %s | %s | %s: (%s)"
 
         if self.get_raw_data():
             parameters = self.get_raw_data().get_param_names()
@@ -343,18 +346,16 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         if not parameters:
             output = short_fmt % (self.get_method(), self.get_url())
         else:
-            jparams = ', '.join(parameters)
-            output = long_fmt % (self.get_method(), self.get_url(),
-                                 dc_type, jparams)
+            jparams = ", ".join(parameters)
+            output = long_fmt % (self.get_method(), self.get_url(), dc_type, jparams)
 
         return output.encode(DEFAULT_ENCODING)
 
     def __unicode__(self):
-        return str(self).decode(encoding=DEFAULT_ENCODING, errors='ignore')
+        return str(self).decode(encoding=DEFAULT_ENCODING, errors="ignore")
 
     def __repr__(self):
-        return '<fuzzable request | %s | %s>' % (self.get_method(),
-                                                 self.get_uri())
+        return "<fuzzable request | %s | %s>" % (self.get_method(), self.get_uri())
 
     def __eq__(self, other):
         """
@@ -367,15 +368,17 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         :return: True if the requests are equal.
         """
         if isinstance(other, FuzzableRequest):
-            return (self.get_method() == other.get_method() and
-                    self.get_uri() == other.get_uri() and
-                    self.get_raw_data() == other.get_raw_data() and
-                    self.get_headers() == other.get_headers())
+            return (
+                self.get_method() == other.get_method()
+                and self.get_uri() == other.get_uri()
+                and self.get_raw_data() == other.get_raw_data()
+                and self.get_headers() == other.get_headers()
+            )
 
         return False
 
     def get_eq_attrs(self):
-        return ['_method', '_uri', '_post_data', '_headers']
+        return ["_method", "_uri", "_post_data", "_headers"]
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -409,7 +412,7 @@ class FuzzableRequest(RequestMixIn, DiskItem):
             msg = 'The "uri" parameter of a %s must be of url.URL type.'
             raise TypeError(msg % type(self).__name__)
 
-        self._url = URL(url.url_string.replace(' ', '%20'))
+        self._url = URL(url.url_string.replace(" ", "%20"))
         self._uri = self._url
 
     def set_uri(self, uri):
@@ -431,7 +434,7 @@ class FuzzableRequest(RequestMixIn, DiskItem):
 
     def set_headers(self, headers):
         if headers is not None and not isinstance(headers, Headers):
-            raise TypeError(TYPE_ERROR % ('headers', 'Headers'))
+            raise TypeError(TYPE_ERROR % ("headers", "Headers"))
 
         for header_name in self.REMOVE_HEADERS:
             try:
@@ -457,10 +460,10 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         :param headers: A list of header names.
         """
         if headers is None:
-            raise TypeError('headers should not be null')
+            raise TypeError("headers should not be null")
 
         if not isinstance(headers, collections.Iterable):
-            raise TypeError(TYPE_ERROR % ('_force_fuzzing_headers', 'iterable'))
+            raise TypeError(TYPE_ERROR % ("_force_fuzzing_headers", "iterable"))
 
         self._force_fuzzing_headers = set(headers)
 
@@ -477,10 +480,10 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         :param url_parts: An iterable of (path part, is variable) tuples.
         """
         if url_parts is None:
-            raise TypeError('url_parts should not be null')
+            raise TypeError("url_parts should not be null")
 
         if not isinstance(url_parts, collections.Iterable):
-            raise TypeError(TYPE_ERROR % ('_force_fuzzing_url_parts', 'iterable'))
+            raise TypeError(TYPE_ERROR % ("_force_fuzzing_url_parts", "iterable"))
 
         self._force_fuzzing_url_parts = tuple(url_parts)
 
@@ -492,7 +495,7 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         return list(self._force_fuzzing_url_parts)
 
     def set_referer(self, referer):
-        self._headers['Referer'] = str(referer)
+        self._headers["Referer"] = str(referer)
 
     def set_cookie(self, cookie):
         """
@@ -525,8 +528,10 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         Set the DataContainer which we'll use for post-data
         """
         if not isinstance(post_data, DataContainer):
-            raise TypeError('The "post_data" parameter of a %s must be of '
-                            'DataContainer type.' % type(self).__name__)
+            raise TypeError(
+                'The "post_data" parameter of a %s must be of '
+                "DataContainer type." % type(self).__name__
+            )
         self._post_data = post_data
 
     def get_data(self):
@@ -575,8 +580,9 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         """
         wire_headers = Headers()
 
-        for k, v in chain(list(self._headers.items()),
-                          list(self.get_post_data_headers().items())):
+        for k, v in chain(
+            list(self._headers.items()), list(self.get_post_data_headers().items())
+        ):
 
             # Please note that here we're overwriting the headers from the
             # fuzzable request with the headers from the data container,
@@ -600,7 +606,7 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         return wire_headers
 
     def get_referer(self):
-        return self.get_headers().get('Referer', None)
+        return self.get_headers().get("Referer", None)
 
     def get_cookie(self):
         return self._cookie

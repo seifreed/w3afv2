@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from w3af.core.data.db.cached_disk_dict import CachedDiskDict
@@ -74,21 +75,13 @@ class TestCachedDiskDict(unittest.TestCase):
         self.assertEqual(list(self.cdd._in_memory.keys()), [1, 2, 3])
         self.assertEqual(list(self.cdd._disk_dict.keys()), [4])
         self.assertEqual(self.cdd[1], 6789)
-        self.assertEqual(self.cdd._access_count,
-                         {1: 3,
-                          2: 2,
-                          3: 2,
-                          4: 1})
+        self.assertEqual(self.cdd._access_count, {1: 3, 2: 2, 3: 2, 4: 1})
 
         self.cdd[4]
         self.cdd[4]
         self.cdd[4]
 
-        self.assertEqual(self.cdd._access_count,
-                         {1: 3,
-                          2: 2,
-                          3: 2,
-                          4: 4})
+        self.assertEqual(self.cdd._access_count, {1: 3, 2: 2, 3: 2, 4: 4})
 
         self.assertEqual(list(self.cdd._in_memory.keys()), [1, 2, 4])
         self.assertEqual(list(self.cdd._disk_dict.keys()), [3])
@@ -130,5 +123,6 @@ class TestCachedDiskDict(unittest.TestCase):
         self.assertEqual(list(self.cdd._in_memory.keys()), [1, 2, 3])
         self.assertEqual(list(self.cdd._disk_dict.keys()), [4])
 
-        self.assertEqual([(k, v) for (k, v) in self.cdd.items()],
-                         [(1, 1), (2, 2), (3, 3), (4, 4)])
+        self.assertEqual(
+            [(k, v) for (k, v) in self.cdd.items()], [(1, 1), (2, 2), (3, 3), (4, 4)]
+        )

@@ -25,26 +25,24 @@ from w3af.plugins.tests.helper import PluginTest, PluginConfig
 
 class TestURLFuzzer(PluginTest):
 
-    base_url = 'http://moth/w3af/crawl/url_fuzzer'
+    base_url = "http://moth/w3af/crawl/url_fuzzer"
 
     _run_configs = {
-        'standalone': {
-            'target': base_url + '/index.html',
-            'plugins': {'crawl': (PluginConfig('url_fuzzer'),)}
+        "standalone": {
+            "target": base_url + "/index.html",
+            "plugins": {"crawl": (PluginConfig("url_fuzzer"),)},
         },
     }
 
-    @attr('ci_fails')
+    @attr("ci_fails")
     def test_fuzzer_found_urls(self):
-        cfg = self._run_configs['standalone']
-        self._scan(cfg['target'], cfg['plugins'])
-        
-        expected_urls = ('/index.html', '/index.html~',
-                         '/index.html.zip', '.tgz')
+        cfg = self._run_configs["standalone"]
+        self._scan(cfg["target"], cfg["plugins"])
+
+        expected_urls = ("/index.html", "/index.html~", "/index.html.zip", ".tgz")
         urls = self.kb.get_all_known_urls()
-        
+
         self.assertEqual(
             set(str(u) for u in urls),
-            set((self.base_url + end) for end in expected_urls)
+            set((self.base_url + end) for end in expected_urls),
         )
-        

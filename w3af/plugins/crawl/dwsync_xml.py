@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import xml.dom.minidom
 
 import w3af.core.controllers.output_manager as om
@@ -38,11 +39,11 @@ class dwsync_xml(CrawlPlugin):
     :author: Tomas Velazquez (tomas.velazquezz@gmail.com)
     """
 
-    DWSYNC = '_notes/dwsync.xml'
+    DWSYNC = "_notes/dwsync.xml"
 
     def __init__(self):
         CrawlPlugin.__init__(self)
-        
+
         # Internal variables
         self._analyzed_dirs = DiskSet()
 
@@ -73,10 +74,10 @@ class dwsync_xml(CrawlPlugin):
         if is_404(response):
             return
 
-        if '</dwsync>' not in response.get_body():
+        if "</dwsync>" not in response.get_body():
             return
 
-        om.out.debug('Parsing dwsync.xml file at %s' % dwsync_url)
+        om.out.debug("Parsing dwsync.xml file at %s" % dwsync_url)
 
         try:
             dom = xml.dom.minidom.parseString(response.get_body())
@@ -87,9 +88,9 @@ class dwsync_xml(CrawlPlugin):
 
         parsed_url_list = set()
 
-        for file_entry in dom.getElementsByTagName('file'):
+        for file_entry in dom.getElementsByTagName("file"):
             try:
-                _file = file_entry.getAttribute('name')
+                _file = file_entry.getAttribute("name")
                 url = domain_path.url_join(_file)
                 parsed_url_list.add(url)
             except ValueError as ve:
@@ -100,15 +101,22 @@ class dwsync_xml(CrawlPlugin):
                 om.out.debug(msg % e)
 
         if parsed_url_list:
-            desc = ('A dwsync.xml file was found at: %s. The contents'
-                    ' of this file disclose %s file names')
+            desc = (
+                "A dwsync.xml file was found at: %s. The contents"
+                " of this file disclose %s file names"
+            )
             desc %= (response.get_url(), len(parsed_url_list))
 
-            v = Vuln('dwsync.xml file found', desc, severity.LOW,
-                     response.id, self.get_name())
+            v = Vuln(
+                "dwsync.xml file found",
+                desc,
+                severity.LOW,
+                response.id,
+                self.get_name(),
+            )
             v.set_url(response.get_url())
 
-            kb.kb.append(self, 'dwsync_xml', v)
+            kb.kb.append(self, "dwsync_xml", v)
             om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
             self.worker_pool.map(self.http_get_and_parse, parsed_url_list)

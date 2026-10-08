@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 import urllib.request, urllib.error, urllib.parse
 
@@ -33,18 +34,18 @@ from w3af.core.data.url import opener_settings
 
 
 class TestErrorHandler(unittest.TestCase):
-    
+
     def setUp(self):
         consecutive_number_generator.reset()
-    
-    @attr('moth')
+
+    @attr("moth")
     def test_error_handler_id(self):
         """
         Verify that the error handler works as expected, in other words, do NOT
         crash on response codes not in range 200-300.
         """
-        fail_url = URL(get_moth_http('/abc/def/do-not-exist.foo'))
-        
+        fail_url = URL(get_moth_http("/abc/def/do-not-exist.foo"))
+
         settings = opener_settings.OpenerSettings()
         settings.build_openers()
         opener = settings.get_custom_opener()

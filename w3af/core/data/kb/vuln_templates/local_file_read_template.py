@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.kb.vuln_templates.base_template import BaseTemplate
 from w3af.core.data.options.opt_factory import opt_factory
 
@@ -27,45 +28,46 @@ class LocalFileReadTemplate(BaseTemplate):
     """
     Vulnerability template for local file read vulnerability.
     """
+
     def __init__(self):
         super(LocalFileReadTemplate, self).__init__()
-        
+
         self.name = self.get_vulnerability_name()
-        self.payload = '/etc/passwd'
-        self.file_pattern = 'root:x:0:0:'
-        
+        self.payload = "/etc/passwd"
+        self.file_pattern = "root:x:0:0:"
+
     def get_options(self):
         ol = super(LocalFileReadTemplate, self).get_options()
-        
-        d = 'Payload used to detect the vulnerability (i.e. ../../etc/passwd)'
-        o = opt_factory('payload', self.payload, d, 'string')
+
+        d = "Payload used to detect the vulnerability (i.e. ../../etc/passwd)"
+        o = opt_factory("payload", self.payload, d, "string")
         ol.add(o)
 
-        d = 'File pattern used to detect the vulnerability (i.e. root:x:0:0:)'
-        o = opt_factory('file_pattern', self.file_pattern, d, 'string')
+        d = "File pattern used to detect the vulnerability (i.e. root:x:0:0:)"
+        o = opt_factory("file_pattern", self.file_pattern, d, "string")
         ol.add(o)
-        
+
         return ol
-    
+
     def set_options(self, options_list):
         super(LocalFileReadTemplate, self).set_options(options_list)
-        self.payload = options_list['payload'].get_value()
-        self.file_pattern = options_list['file_pattern'].get_value()
-    
+        self.payload = options_list["payload"].get_value()
+        self.file_pattern = options_list["file_pattern"].get_value()
+
     def create_vuln(self):
         v = super(LocalFileReadTemplate, self).create_vuln()
 
         v.get_mutant().set_token_value(self.payload)
-        v['file_pattern'] = self.file_pattern
+        v["file_pattern"] = self.file_pattern
 
         return v
-    
+
     def get_kb_location(self):
         """
         :return: A tuple with the location where the vulnerability will be
                  saved, example return value would be: ('lfi', 'lfi')
         """
-        return 'lfi', 'lfi'
+        return "lfi", "lfi"
 
     def get_vulnerability_name(self):
         """
@@ -74,7 +76,7 @@ class LocalFileReadTemplate(BaseTemplate):
                  string which can contain any information, not used for any
                  strict matching of vulns before exploiting.
         """
-        return 'Arbitrary file read'
+        return "Arbitrary file read"
 
     def get_vulnerability_desc(self):
-        return 'Arbitrary local file read vulnerability.'
+        return "Arbitrary local file read vulnerability."

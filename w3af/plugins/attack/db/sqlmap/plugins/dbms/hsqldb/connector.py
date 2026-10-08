@@ -20,6 +20,7 @@ from lib.core.data import logger
 from lib.core.exception import SqlmapConnectionException
 from plugins.generic.connector import Connector as GenericConnector
 
+
 class Connector(GenericConnector):
     """
     Homepage: https://pypi.python.org/pypi/JayDeBeApi/ & http://jpype.sourceforge.net/
@@ -45,12 +46,11 @@ class Connector(GenericConnector):
             raise SqlmapConnectionException(msg[0])
 
         try:
-            driver = 'org.hsqldb.jdbc.JDBCDriver'
-            connection_string = 'jdbc:hsqldb:mem:.' #'jdbc:hsqldb:hsql://%s/%s' % (self.hostname, self.db)
-            self.connector = jaydebeapi.connect(driver,
-                                        connection_string,
-                                        str(self.user),
-                                        str(self.password))
+            driver = "org.hsqldb.jdbc.JDBCDriver"
+            connection_string = "jdbc:hsqldb:mem:."  #'jdbc:hsqldb:hsql://%s/%s' % (self.hostname, self.db)
+            self.connector = jaydebeapi.connect(
+                driver, connection_string, str(self.user), str(self.password)
+            )
         except Exception as msg:
             raise SqlmapConnectionException(msg[0])
 
@@ -61,7 +61,10 @@ class Connector(GenericConnector):
         try:
             return self.cursor.fetchall()
         except Exception as msg:
-            logger.log(logging.WARN if conf.dbmsHandler else logging.DEBUG, "(remote) %s" % msg[1])
+            logger.log(
+                logging.WARN if conf.dbmsHandler else logging.DEBUG,
+                "(remote) %s" % msg[1],
+            )
             return None
 
     def execute(self, query):
@@ -70,8 +73,11 @@ class Connector(GenericConnector):
         try:
             self.cursor.execute(query)
             retVal = True
-        except Exception as msg: #todo fix with specific error
-            logger.log(logging.WARN if conf.dbmsHandler else logging.DEBUG, "(remote) %s" % msg[1])
+        except Exception as msg:  # todo fix with specific error
+            logger.log(
+                logging.WARN if conf.dbmsHandler else logging.DEBUG,
+                "(remote) %s" % msg[1],
+            )
 
         self.connector.commit()
 
@@ -82,7 +88,9 @@ class Connector(GenericConnector):
 
         upper_query = query.upper()
 
-        if query and not (upper_query.startswith("SELECT ") or upper_query.startswith("VALUES ")):
+        if query and not (
+            upper_query.startswith("SELECT ") or upper_query.startswith("VALUES ")
+        ):
             query = "VALUES %s" % query
 
         if query and upper_query.startswith("SELECT ") and " FROM " not in upper_query:

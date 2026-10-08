@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 
 from w3af.core.data.parsers.doc.baseparser import BaseParser
@@ -45,16 +46,13 @@ class ReExtract(BaseParser):
     #   mod_python/3.3.1
     #
     # used in _find_relative() method
-    PHP_VERSION_RE = re.compile(r'.*?/\d\.\d\.\d')
+    PHP_VERSION_RE = re.compile(r".*?/\d\.\d\.\d")
 
     QUOTES = {"'", '"'}
 
-    def __init__(self,
-                 doc_string,
-                 base_url,
-                 encoding,
-                 relative=True,
-                 require_quotes=False):
+    def __init__(
+        self, doc_string, base_url, encoding, relative=True, require_quotes=False
+    ):
         self._re_urls = set()
 
         self._encoding = encoding
@@ -140,19 +138,19 @@ class ReExtract(BaseParser):
             else:
                 url_lower = url.url_string.lower()
 
-                if url_lower.startswith('http://') or url_lower.startswith('https://'):
+                if url_lower.startswith("http://") or url_lower.startswith("https://"):
                     self._re_urls.add(url)
 
     def _filter_false_urls(self, potential_url_mo):
         potential_url = potential_url_mo.group(0)
 
-        if potential_url.startswith('//'):
+        if potential_url.startswith("//"):
             return False
 
-        if potential_url.startswith('://'):
+        if potential_url.startswith("://"):
             return False
 
-        if potential_url.startswith('HTTP/'):
+        if potential_url.startswith("HTTP/"):
             return False
 
         if self.PHP_VERSION_RE.match(potential_url):

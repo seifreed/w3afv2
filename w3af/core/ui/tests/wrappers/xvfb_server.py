@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import subprocess
 import subprocess
 import shutil
@@ -40,38 +41,44 @@ class XVFBServer(threading.Thread):
     features). Gnome is started once the Xvfb is ready and all the Gnome stuff
     is handled in gnome.py
     """
+
     WIDTH = 1024
     HEIGTH = 768
 
-    REQUIRED_BINS = ['convert', 'xvnc4viewer', 'Xvfb', 'x11vnc']
-    
-    XVFB_BIN = '/usr/bin/Xvfb'
-    START_CMD = '%s %s -screen 0 %sx%sx16 -fbdir %s' % (XVFB_BIN, DISPLAY, WIDTH,
-                                                        HEIGTH, tempfile.gettempdir())
+    REQUIRED_BINS = ["convert", "xvnc4viewer", "Xvfb", "x11vnc"]
 
-    SCREEN_XWD_FILE_0 = '%s/Xvfb_screen0' % tempfile.gettempdir()
+    XVFB_BIN = "/usr/bin/Xvfb"
+    START_CMD = "%s %s -screen 0 %sx%sx16 -fbdir %s" % (
+        XVFB_BIN,
+        DISPLAY,
+        WIDTH,
+        HEIGTH,
+        tempfile.gettempdir(),
+    )
+
+    SCREEN_XWD_FILE_0 = "%s/Xvfb_screen0" % tempfile.gettempdir()
 
     def __init__(self):
         super(XVFBServer, self).__init__()
-        self.name = 'XVFBServer'
+        self.name = "XVFBServer"
         self.daemon = True
 
         self.xvfb_process = None
         self.xvfb_start_result = None
         self.vnc_server_running = False
-        
+
         self.verify_required_bins()
-    
+
     def verify_required_bins(self):
         for binary in self.REQUIRED_BINS:
-            status, _ = subprocess.getstatusoutput('which %s' % binary)
+            status, _ = subprocess.getstatusoutput("which %s" % binary)
             if status != 0:
                 raise RuntimeError('Missing binary requirement "%s".' % binary)
 
     def is_installed(self):
-        status, output = subprocess.getstatusoutput('%s --fake' % self.XVFB_BIN)
+        status, output = subprocess.getstatusoutput("%s --fake" % self.XVFB_BIN)
 
-        if status == 256 and 'use: X [:<display>] [option]' in output:
+        if status == 256 and "use: X [:<display>] [option]" in output:
             return True
 
         return False
@@ -94,9 +101,9 @@ class XVFBServer(threading.Thread):
     def run(self):
         if self.is_installed():
             args = shlex.split(self.START_CMD)
-            self.xvfb_process = subprocess.Popen(args, shell=False,
-                                                 stdout=subprocess.PIPE,
-                                                 stderr=subprocess.PIPE)
+            self.xvfb_process = subprocess.Popen(
+                args, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            )
 
             # pylint: disable=E1101
             # E1101: Instance of 'Popen' has no 'wait' member
@@ -113,7 +120,7 @@ class XVFBServer(threading.Thread):
     def stop(self):
         if self.is_running():
             # pylint: disable=E1101
-            # E1101: Instance of 'Popen' has no 'terminate' member            
+            # E1101: Instance of 'Popen' has no 'terminate' member
             self.xvfb_process.terminate()
             self.xvfb_process = None
 
@@ -149,7 +156,7 @@ class XVFBServer(threading.Thread):
         if not self.is_running():
             return False
 
-        display_cmd = 'DISPLAY=%s %s' % (display, cmd)
+        display_cmd = "DISPLAY=%s %s" % (display, cmd)
 
         if block:
             subprocess.getoutput(display_cmd)
@@ -157,7 +164,7 @@ class XVFBServer(threading.Thread):
             args = (display_cmd,)
             th = threading.Thread(target=subprocess.getoutput, args=args)
             th.daemon = True
-            th.name = 'XvfbProcess'
+            th.name = "XvfbProcess"
             th.start()
 
         return True
@@ -174,11 +181,11 @@ class XVFBServer(threading.Thread):
 
         if self.is_running():
 
-            for xwd_file in (self.SCREEN_XWD_FILE_0, ):
-                temp_file = tempfile.mkstemp(prefix='xvfb-screenshot-')[1]
+            for xwd_file in (self.SCREEN_XWD_FILE_0,):
+                temp_file = tempfile.mkstemp(prefix="xvfb-screenshot-")[1]
                 shutil.copy(xwd_file, temp_file)
-                target_jpeg = temp_file + '.jpeg'
-                convert_cmd = 'convert %s %s' % (temp_file, target_jpeg)
+                target_jpeg = temp_file + ".jpeg"
+                convert_cmd = "convert %s %s" % (temp_file, target_jpeg)
                 _, _ = subprocess.getstatusoutput(convert_cmd)
 
                 os.unlink(temp_file)
@@ -193,10 +200,10 @@ class XVFBServer(threading.Thread):
         (magic++).
         """
         if self.is_running():
-            args = ('x11vnc -display %s -shared -forever' % DISPLAY,)
+            args = ("x11vnc -display %s -shared -forever" % DISPLAY,)
             th = threading.Thread(target=subprocess.getoutput, args=args)
             th.daemon = True
-            th.name = 'VNCServer'
+            th.name = "VNCServer"
             th.start()
             self.vnc_server_running = True
             return True
@@ -209,8 +216,8 @@ class XVFBServer(threading.Thread):
             self.start_vnc_server()
             time.sleep(3)
 
-        args = ('DISPLAY=:0 xvnc4viewer localhost',)
+        args = ("DISPLAY=:0 xvnc4viewer localhost",)
         th = threading.Thread(target=subprocess.getoutput, args=args)
         th.daemon = True
-        th.name = 'VNCClient'
+        th.name = "VNCClient"
         th.start()

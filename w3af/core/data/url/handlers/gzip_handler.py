@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import urllib.request, urllib.error, urllib.parse
 import gzip
 import zlib
@@ -34,14 +35,10 @@ class HTTPGzipProcessor(urllib.request.BaseHandler):
     handler_order = 200
 
     def __init__(self):
-        self._decompression_methods = [
-            self._gzip_0,
-            self._zlib_0,
-            self._zlib_1
-        ]
+        self._decompression_methods = [self._gzip_0, self._zlib_0, self._zlib_1]
 
     def http_request(self, request):
-        request.add_header('Accept-encoding', 'gzip, deflate')
+        request.add_header("Accept-encoding", "gzip, deflate")
         return request
 
     def http_response(self, request, response):
@@ -98,7 +95,7 @@ class HTTPGzipProcessor(urllib.request.BaseHandler):
             # The decompression method that worked should be moved to the
             # beginning of the list (if not there yet)
             if self._decompression_methods.index(decompression_method) != 0:
-            
+
                 dm_temp = self._decompression_methods[:]
                 dm_temp.remove(decompression_method)
                 dm_temp.insert(0, decompression_method)
@@ -113,14 +110,14 @@ class HTTPGzipProcessor(urllib.request.BaseHandler):
         :return: True if the HTTP response contains headers that indicate the
                  content is compressed and this handler should decompress it
         """
-        for enc_hdr in response.info().getheaders('Content-encoding'):
-            if 'gzip' in enc_hdr:
+        for enc_hdr in response.info().getheaders("Content-encoding"):
+            if "gzip" in enc_hdr:
                 return True
 
-            if 'compress' in enc_hdr:
+            if "compress" in enc_hdr:
                 return True
 
-            if 'deflate' in enc_hdr:
+            if "deflate" in enc_hdr:
                 return True
 
         return False

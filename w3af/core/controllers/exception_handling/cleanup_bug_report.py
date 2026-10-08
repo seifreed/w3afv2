@@ -19,13 +19,13 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 import os
 
 import w3af.core.data.kb.config as cf
 
-
-EXPLICIT_CRASH_REPORT = os.environ.get('EXPLICIT_CRASH_REPORT', '0') == '1'
+EXPLICIT_CRASH_REPORT = os.environ.get("EXPLICIT_CRASH_REPORT", "0") == "1"
 
 
 def cleanup_bug_report(_input):
@@ -44,21 +44,21 @@ def cleanup_bug_report(_input):
     if EXPLICIT_CRASH_REPORT:
         return _input
 
-    user_re = '/home/(.*?)/'
-    user_re_win = 'C:\\\\Documents and Settings\\\\(.*?)\\\\'
+    user_re = "/home/(.*?)/"
+    user_re_win = "C:\\\\Documents and Settings\\\\(.*?)\\\\"
 
-    _input = re.sub(user_re, '/home/user/', _input)
-    _input = re.sub(user_re_win, 'C:/user/', _input)
+    _input = re.sub(user_re, "/home/user/", _input)
+    _input = re.sub(user_re_win, "C:/user/", _input)
 
-    targets = cf.cf.get('targets')
+    targets = cf.cf.get("targets")
     if targets is not None:
         domains = [url.get_domain() for url in targets]
         paths = [url.get_path() for url in targets if len(url.get_path()) >= 3]
-        
+
         for domain in domains:
-            _input = _input.replace(domain, 'domain')
+            _input = _input.replace(domain, "domain")
 
         for path in paths:
-            _input = _input.replace(path, '/path/foo/')
+            _input = _input.replace(path, "/path/foo/")
 
     return _input

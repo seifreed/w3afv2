@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import sys
 import time
 import queue
@@ -36,7 +37,7 @@ from .pool276 import ThreadPool, RUN, create_detailed_pickling_error, mapstar
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.controllers.threads.decorators import apply_with_return_error
 
-__all__ = ['Pool', 'return_args', 'one_to_many']
+__all__ = ["Pool", "return_args", "one_to_many"]
 
 
 class one_to_many(object):
@@ -44,6 +45,7 @@ class one_to_many(object):
     This is a simple wrapper that translates one argument to many in a function
     call. Useful for passing to the threadpool map function.
     """
+
     def __init__(self, func):
         self.func_orig = func
 
@@ -60,6 +62,7 @@ class return_args(object):
     Utility function that returns the args in the result, useful when calling
     functions like imap_unordered().
     """
+
     def __init__(self, func, *args, **kwds):
         self.func = partial(func, *args, **kwds)
 
@@ -82,7 +85,7 @@ class DaemonProcess(Process):
 
     def get_state(self):
         state = self.worker.get_state()
-        state['name'] = self.name
+        state["name"] = self.name
         return state
 
     def is_idle(self):
@@ -105,7 +108,7 @@ class DaemonProcess(Process):
         """
         assert self._parent is current_process()
 
-        if hasattr(self._parent, '_children'):
+        if hasattr(self._parent, "_children"):
             self._parent._children[self] = None
 
         self._start_called = True
@@ -185,12 +188,12 @@ def add_traceback_string(_exception):
     except_type, except_class, tb = sys.exc_info()
 
     tb = traceback.format_exception(type(_exception), _exception, tb)
-    _exception.original_traceback_string = ''.join(tb)
+    _exception.original_traceback_string = "".join(tb)
 
 
 class Worker(object):
 
-    __slots__ = ('func', 'args', 'kwargs', 'start_time', 'job', 'id')
+    __slots__ = ("func", "args", "kwargs", "start_time", "job", "id")
 
     def __init__(self):
         self.func = None
@@ -239,20 +242,22 @@ class Worker(object):
     def get_state(self):
         func_name, func_args = self.get_real_func_name_args()
 
-        return {'func_name': func_name,
-                'args': func_args,
-                'kwargs': self.kwargs,
-                'start_time': self.start_time,
-                'idle': self.is_idle(),
-                'job': self.job,
-                'worker_id': self.id}
+        return {
+            "func_name": func_name,
+            "args": func_args,
+            "kwargs": self.kwargs,
+            "start_time": self.start_time,
+            "idle": self.is_idle(),
+            "job": self.job,
+            "worker_id": self.id,
+        }
 
     def __call__(self, inqueue, outqueue, initializer=None, initargs=(), maxtasks=None):
         assert maxtasks is None or (type(maxtasks) in (int, int) and maxtasks > 0)
 
         put = outqueue.put
         get = inqueue.get
-        if hasattr(inqueue, '_writer'):
+        if hasattr(inqueue, "_writer"):
             inqueue._writer.close()
             outqueue._reader.close()
 
@@ -264,11 +269,11 @@ class Worker(object):
             try:
                 task = get()
             except (EOFError, IOError):
-                debug('worker got EOFError or IOError -- exiting')
+                debug("worker got EOFError or IOError -- exiting")
                 break
 
             if task is None:
-                debug('worker got sentinel -- exiting')
+                debug("worker got sentinel -- exiting")
                 break
 
             job, i, func, args, kwds = task
@@ -309,14 +314,20 @@ class Worker(object):
 
                 completed += 1
 
-        debug('worker exiting after %d tasks' % completed)
+        debug("worker exiting after %d tasks" % completed)
 
 
 class Pool(ThreadPool):
 
-    def __init__(self, processes=None, initializer=None, initargs=(),
-                 worker_names=None, maxtasksperchild=None,
-                 max_queued_tasks=0):
+    def __init__(
+        self,
+        processes=None,
+        initializer=None,
+        initargs=(),
+        worker_names=None,
+        maxtasksperchild=None,
+        max_queued_tasks=0,
+    ):
         """
         Overriding this method in order to:
             * Name the pool worker threads
@@ -352,7 +363,7 @@ class Pool(ThreadPool):
         # limit.
         #
         if max_queued_tasks != 0:
-            assert max_queued_tasks - 1 > 0, 'max_queued_tasks needs to be at least 2'
+            assert max_queued_tasks - 1 > 0, "max_queued_tasks needs to be at least 2"
 
         self._setup_queues(max_queued_tasks - 1)
         self._taskqueue = queue.Queue(maxsize=1)
@@ -371,26 +382,31 @@ class Pool(ThreadPool):
         if processes < 1:
             raise ValueError("Number of processes must be at least 1")
 
-        if initializer is not None and not hasattr(initializer, '__call__'):
-            raise TypeError('initializer must be a callable')
+        if initializer is not None and not hasattr(initializer, "__call__"):
+            raise TypeError("initializer must be a callable")
 
         self._processes = processes
         self._pool = []
         self._repopulate_pool()
 
         self._worker_handler = threading.Thread(
-            target=Pool._handle_workers,
-            args=(self, ),
-            name='PoolWorkerHandler')
+            target=Pool._handle_workers, args=(self,), name="PoolWorkerHandler"
+        )
         self._worker_handler.daemon = True
         self._worker_handler._state = RUN
         self._worker_handler.start()
 
         self._task_handler = threading.Thread(
             target=Pool._handle_tasks,
-            args=(self._taskqueue, self._quick_put, self._outqueue,
-                  self._pool, self._cache),
-            name='PoolTaskHandler')
+            args=(
+                self._taskqueue,
+                self._quick_put,
+                self._outqueue,
+                self._pool,
+                self._cache,
+            ),
+            name="PoolTaskHandler",
+        )
         self._task_handler.daemon = True
         self._task_handler._state = RUN
         self._task_handler.start()
@@ -398,17 +414,27 @@ class Pool(ThreadPool):
         self._result_handler = threading.Thread(
             target=Pool._handle_results,
             args=(self._outqueue, self._quick_get, self._cache),
-            name='PoolResultHandler')
+            name="PoolResultHandler",
+        )
         self._result_handler.daemon = True
         self._result_handler._state = RUN
         self._result_handler.start()
 
         self._terminate = Finalize(
-            self, self._terminate_pool,
-            args=(self._taskqueue, self._inqueue, self._outqueue, self._pool,
-                  self._worker_handler, self._task_handler,
-                  self._result_handler, self._cache),
-            exitpriority=15)
+            self,
+            self._terminate_pool,
+            args=(
+                self._taskqueue,
+                self._inqueue,
+                self._outqueue,
+                self._pool,
+                self._worker_handler,
+                self._task_handler,
+                self._result_handler,
+                self._cache,
+            ),
+            exitpriority=15,
+        )
 
     def get_inqueue(self):
         return self._inqueue
@@ -437,17 +463,21 @@ class Pool(ThreadPool):
         what it is doing.
         """
         for i in range(self._processes - len(self._pool)):
-            w = self.Process(target=Worker(),
-                             args=(self._inqueue,
-                                   self._outqueue,
-                                   self._initializer,
-                                   self._initargs,
-                                   self._maxtasksperchild))
+            w = self.Process(
+                target=Worker(),
+                args=(
+                    self._inqueue,
+                    self._outqueue,
+                    self._initializer,
+                    self._initargs,
+                    self._maxtasksperchild,
+                ),
+            )
             self._pool.append(w)
-            w.name = w.name.replace('Process', 'PoolWorker')
+            w.name = w.name.replace("Process", "PoolWorker")
             w.daemon = True
             w.start()
-            debug('added worker')
+            debug("added worker")
 
     def get_worker_count(self):
         return len(self._pool)
@@ -473,8 +503,8 @@ class Pool(ThreadPool):
         :param count: The new process count
         :return: None
         """
-        assert self._maxtasksperchild, 'Can only adjust size if maxtasksperchild is set'
-        assert count >= 1, 'Number of processes must be at least 1'
+        assert self._maxtasksperchild, "Can only adjust size if maxtasksperchild is set"
+        assert count >= 1, "Number of processes must be at least 1"
         self._processes = count
         self._repopulate_pool()
 
@@ -524,7 +554,7 @@ class Pool(ThreadPool):
                     #
                     continue
                 else:
-                    debug('cleaning up worker %d' % i)
+                    debug("cleaning up worker %d" % i)
                 cleaned = True
                 del self._pool[i]
         return cleaned
@@ -545,9 +575,11 @@ class Pool(ThreadPool):
         delay = 0.1
 
         for _ in range(int(timeout / delay)):
-            if (self._inqueue.qsize() == 0 and
-                    self._outqueue.qsize() == 0 and
-                    self._taskqueue.qsize() == 0):
+            if (
+                self._inqueue.qsize() == 0
+                and self._outqueue.qsize() == 0
+                and self._taskqueue.qsize() == 0
+            ):
                 break
 
             time.sleep(delay)

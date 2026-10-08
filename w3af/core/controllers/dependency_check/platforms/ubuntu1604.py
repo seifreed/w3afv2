@@ -19,13 +19,14 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from .ubuntu1204 import Ubuntu1204
 from .system_info import distribution_matches
 
 
 class Ubuntu1604(Ubuntu1204):
-    SYSTEM_NAME = 'Ubuntu 16.04'
+    SYSTEM_NAME = "Ubuntu 16.04"
 
     @staticmethod
     def is_current_platform():
-        return distribution_matches('ubuntu', '16.04')
+        return distribution_matches("ubuntu", "16.04")

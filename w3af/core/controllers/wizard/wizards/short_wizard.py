@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.controllers.wizard.wizard import wizard
 
 
@@ -31,8 +32,7 @@ class short_wizard(wizard):
         """
         wizard.__init__(self, w3af_core)
 
-        self._question_lst = self._get_instances(['target_1', 'target_2'],
-                                                 w3af_core)
+        self._question_lst = self._get_instances(["target_1", "target_2"], w3af_core)
 
     def get_wizard_description(self):
         """
@@ -40,10 +40,10 @@ class short_wizard(wizard):
 
         :return: A string that describes what the wizard will let you configure.
         """
-        return 'This is a small demo wizard to be able to code the GUI'
+        return "This is a small demo wizard to be able to code the GUI"
 
     def get_name(self):
         """
         :return: The name of the wizard.
         """
-        return 'Short wizard'
+        return "Short wizard"

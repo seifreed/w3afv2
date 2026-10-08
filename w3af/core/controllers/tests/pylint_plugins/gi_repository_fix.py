@@ -1,7 +1,6 @@
 from astroid import MANAGER, register_module_extender
 from astroid.builder import AstroidBuilder
 
-
 CODE_FIX = """
 class Notify(object):
     def Notification(*args, **kwds): pass
@@ -15,4 +14,4 @@ def gi_repository_transform():
 
 
 def register(linter):
-    register_module_extender(MANAGER, 'gi.repository', gi_repository_transform)
+    register_module_extender(MANAGER, "gi.repository", gi_repository_transform)

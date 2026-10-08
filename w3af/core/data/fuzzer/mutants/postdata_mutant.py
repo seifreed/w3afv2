@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.fuzzer.mutants.mutant import Mutant
 from w3af.core.data.dc.generic.form import Form
 
@@ -27,6 +28,7 @@ class PostDataMutant(Mutant):
     """
     This class is a post data mutant.
     """
+
     def set_dc(self, data_container):
         self._freq.set_data(data_container)
 
@@ -35,7 +37,7 @@ class PostDataMutant(Mutant):
 
     @staticmethod
     def get_mutant_type():
-        return 'post data'
+        return "post data"
 
     def found_at(self):
         """
@@ -44,13 +46,17 @@ class PostDataMutant(Mutant):
         fmt = '"%s", using HTTP method %s. The sent post-data was: "%s"'
         fmt += ' which modifies the "%s" parameter.'
 
-        return fmt % (self.get_uri(), self.get_method(),
-                      self.get_dc().get_short_printable_repr(),
-                      self.get_token().get_name())
+        return fmt % (
+            self.get_uri(),
+            self.get_method(),
+            self.get_dc().get_short_printable_repr(),
+            self.get_token().get_name(),
+        )
 
     @classmethod
-    def create_mutants(cls, freq, mutant_str_list, fuzzable_param_list,
-                       append, fuzzer_config):
+    def create_mutants(
+        cls, freq, mutant_str_list, fuzzable_param_list, append, fuzzer_config
+    ):
         """
         This is a very important method which is called in order to create
         mutants. Usually called from fuzzer.py module.
@@ -58,6 +64,6 @@ class PostDataMutant(Mutant):
         if not isinstance(freq.get_raw_data(), Form):
             return []
 
-        return cls._create_mutants_worker(freq, cls, mutant_str_list,
-                                          fuzzable_param_list,
-                                          append, fuzzer_config)
+        return cls._create_mutants_worker(
+            freq, cls, mutant_str_list, fuzzable_param_list, append, fuzzer_config
+        )

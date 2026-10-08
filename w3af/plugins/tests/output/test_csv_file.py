@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import os
 import csv
 import json
@@ -35,65 +36,71 @@ from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 class TestCSVFile(PluginTest):
 
-    OUTPUT_FILE = 'output-unittest.csv'
+    OUTPUT_FILE = "output-unittest.csv"
 
-    target_url = get_moth_http('/audit/xss/simple_xss.py?text=1')
+    target_url = get_moth_http("/audit/xss/simple_xss.py?text=1")
 
     _run_configs = {
-        'cfg': {
-            'target': target_url,
-            'plugins': {
-                'audit': (
+        "cfg": {
+            "target": target_url,
+            "plugins": {
+                "audit": (
                     PluginConfig(
-                        'xss',
-                         ('checkStored', True, PluginConfig.BOOL),
-                         ('numberOfChecks', 3, PluginConfig.INT)),
+                        "xss",
+                        ("checkStored", True, PluginConfig.BOOL),
+                        ("numberOfChecks", 3, PluginConfig.INT),
+                    ),
                 ),
-                'crawl': (
+                "crawl": (
                     PluginConfig(
-                        'web_spider',
-                        ('only_forward', True, PluginConfig.BOOL)),
+                        "web_spider", ("only_forward", True, PluginConfig.BOOL)
+                    ),
                 ),
-                'output': (
+                "output": (
                     PluginConfig(
-                        'csv_file',
-                        ('output_file', OUTPUT_FILE, PluginConfig.STR)),
-                )
+                        "csv_file", ("output_file", OUTPUT_FILE, PluginConfig.STR)
+                    ),
+                ),
             },
         }
     }
 
     def test_found_xss(self):
-        cfg = self._run_configs['cfg']
-        self._scan(cfg['target'], cfg['plugins'])
+        cfg = self._run_configs["cfg"]
+        self._scan(cfg["target"], cfg["plugins"])
 
-        xss_vulns = self.kb.get('xss', 'xss')
+        xss_vulns = self.kb.get("xss", "xss")
         file_vulns = self._from_csv_get_vulns()
 
         self.assertEqual(
             set(sorted([v.get_url() for v in xss_vulns])),
-            set(sorted([v.get_url() for v in file_vulns]))
+            set(sorted([v.get_url() for v in file_vulns])),
         )
 
         self.assertEqual(
             set(sorted([v.get_method() for v in xss_vulns])),
-            set(sorted([v.get_method() for v in file_vulns]))
+            set(sorted([v.get_method() for v in file_vulns])),
         )
 
         self.assertEqual(
             set(sorted([v.get_id()[0] for v in xss_vulns])),
-            set(sorted([v.get_id()[0] for v in file_vulns]))
+            set(sorted([v.get_id()[0] for v in file_vulns])),
         )
 
     def _from_csv_get_vulns(self):
         file_vulns = []
-        vuln_reader = csv.reader(open(self.OUTPUT_FILE, 'rb'), delimiter=',',
-                                 quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        vuln_reader = csv.reader(
+            open(self.OUTPUT_FILE, "rb"),
+            delimiter=",",
+            quotechar="|",
+            quoting=csv.QUOTE_MINIMAL,
+        )
 
         for severity, name, method, uri, var, post_data, _id, desc in vuln_reader:
             mutant = create_mutant_from_params(method, uri, var, post_data)
-            v = Vuln.from_mutant(name, desc, severity, json.loads(_id),
-                                 'TestCase', mutant)
+            v = Vuln.from_mutant(
+                name, desc, severity, json.loads(_id), "TestCase", mutant
+            )
             file_vulns.append(v)
 
         return file_vulns
@@ -108,15 +115,16 @@ class TestCSVFile(PluginTest):
 def create_mutant_from_params(method, uri, var, post_data):
     uri = URL(uri)
 
-    if method.upper() == 'GET' and var in uri.querystring:
+    if method.upper() == "GET" and var in uri.querystring:
         MutantKlass = QSMutant
         headers = Headers()
     else:
         MutantKlass = PostDataMutant
-        headers = Headers([('content-type', URLEncodedForm.ENCODING)])
+        headers = Headers([("content-type", URLEncodedForm.ENCODING)])
 
-    freq = FuzzableRequest.from_parts(uri, method=method,
-                                      post_data=post_data, headers=headers)
+    freq = FuzzableRequest.from_parts(
+        uri, method=method, post_data=post_data, headers=headers
+    )
     mutant = MutantKlass(freq)
     mutant.get_dc().set_token((var, 0))
     return mutant

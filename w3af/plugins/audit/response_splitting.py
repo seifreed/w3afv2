@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.constants.severity as severity
 
@@ -29,8 +28,8 @@ from w3af.core.data.fuzzer.fuzzer import create_mutants
 from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.kb.info import Info
 
-HEADER_NAME = 'vulnerable073b'
-HEADER_VALUE = 'ae5cw3af'
+HEADER_NAME = "vulnerable073b"
+HEADER_VALUE = "ae5cw3af"
 
 
 class response_splitting(AuditPlugin):
@@ -39,16 +38,19 @@ class response_splitting(AuditPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    HEADER_INJECTION_TESTS = ("w3af\r\n" + HEADER_NAME + ": " + HEADER_VALUE,
-                              "w3af\r" + HEADER_NAME + ": " + HEADER_VALUE,
-                              "w3af\n" + HEADER_NAME + ": " + HEADER_VALUE)
+    HEADER_INJECTION_TESTS = (
+        "w3af\r\n" + HEADER_NAME + ": " + HEADER_VALUE,
+        "w3af\r" + HEADER_NAME + ": " + HEADER_VALUE,
+        "w3af\n" + HEADER_NAME + ": " + HEADER_VALUE,
+    )
 
     # A list of error strings produced by the programming framework
     # when we try to modify a header, and the HTML output is already being
     # written to the cable, or something similar.
     HEADER_ERRORS = (
-        'Header may not contain more than a single header, new line detected',
-        'Cannot modify header information - headers already sent')
+        "Header may not contain more than a single header, new line detected",
+        "Cannot modify header information - headers already sent",
+    )
 
     def audit(self, freq, orig_response, debugging_id):
         """
@@ -60,10 +62,12 @@ class response_splitting(AuditPlugin):
         """
         mutants = create_mutants(freq, self.HEADER_INJECTION_TESTS)
 
-        self._send_mutants_in_threads(self._uri_opener.send_mutant,
-                                      mutants,
-                                      self._analyze_result,
-                                      debugging_id=debugging_id)
+        self._send_mutants_in_threads(
+            self._uri_opener.send_mutant,
+            mutants,
+            self._analyze_result,
+            debugging_id=debugging_id,
+        )
 
     def _analyze_result(self, mutant, response):
         """
@@ -77,12 +81,17 @@ class response_splitting(AuditPlugin):
         if not self._header_was_injected(mutant, response):
             return
 
-        desc = 'Response splitting was found at: %s' % mutant.found_at()
-        v = Vuln.from_mutant('Response splitting vulnerability', desc,
-                             severity.MEDIUM, response.id,
-                             self.get_name(), mutant)
+        desc = "Response splitting was found at: %s" % mutant.found_at()
+        v = Vuln.from_mutant(
+            "Response splitting vulnerability",
+            desc,
+            severity.MEDIUM,
+            response.id,
+            self.get_name(),
+            mutant,
+        )
 
-        self.kb_append_uniq(self, 'response_splitting', v)
+        self.kb_append_uniq(self, "response_splitting", v)
 
     def _report_php_errors(self, mutant, response):
         # When trying to send a response splitting to PHP 5.1.2 I get:
@@ -91,16 +100,22 @@ class response_splitting(AuditPlugin):
             if error not in response:
                 continue
 
-            desc = ('The variable "%s" at URL "%s" modifies the HTTP'
-                    ' response headers, but this error was sent while'
-                    ' testing for response splitting: "%s".')
+            desc = (
+                'The variable "%s" at URL "%s" modifies the HTTP'
+                " response headers, but this error was sent while"
+                ' testing for response splitting: "%s".'
+            )
             args = (mutant.get_token_name(), mutant.get_url(), error)
             desc %= args
-            i = Info.from_mutant('Parameter modifies response headers',
-                                 desc, response.id, self.get_name(),
-                                 mutant)
+            i = Info.from_mutant(
+                "Parameter modifies response headers",
+                desc,
+                response.id,
+                self.get_name(),
+                mutant,
+            )
 
-            self.kb_append_uniq(self, 'response_splitting', i)
+            self.kb_append_uniq(self, "response_splitting", i)
             break
 
     def _header_was_injected(self, mutant, response):
@@ -124,17 +139,23 @@ class response_splitting(AuditPlugin):
             #
             # This is a case where we have a partial header injection
             #
-            msg = ('The vulnerable header was added to the HTTP response,'
-                   ' but the value is not what w3af expected (%s: %s).'
-                   ' Please verify manually.')
+            msg = (
+                "The vulnerable header was added to the HTTP response,"
+                " but the value is not what w3af expected (%s: %s)."
+                " Please verify manually."
+            )
             msg %= (HEADER_NAME, HEADER_VALUE)
             om.out.information(msg)
 
-            i = Info.from_mutant('Parameter modifies response headers',
-                                 msg, response.id, self.get_name(),
-                                 mutant)
+            i = Info.from_mutant(
+                "Parameter modifies response headers",
+                msg,
+                response.id,
+                self.get_name(),
+                mutant,
+            )
 
-            self.kb_append_uniq(self, 'response_splitting', i)
+            self.kb_append_uniq(self, "response_splitting", i)
 
         return False
 

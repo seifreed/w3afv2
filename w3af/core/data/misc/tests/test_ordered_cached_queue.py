@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import time
 import unittest
 import threading
@@ -181,8 +182,7 @@ class TestOrderedCachedQueue(unittest.TestCase):
             queue.get()
             queue.task_done()
 
-        t = threading.Thread(target=queue_get_after_delay,
-                             args=(q,))
+        t = threading.Thread(target=queue_get_after_delay, args=(q,))
         t.start()
 
         start = time.time()
@@ -212,8 +212,7 @@ class TestOrderedCachedQueue(unittest.TestCase):
                 queue.get()
                 queue.task_done()
 
-        t = threading.Thread(target=queue_get_after_delay,
-                             args=(q,))
+        t = threading.Thread(target=queue_get_after_delay, args=(q,))
         t.start()
 
         start = time.time()
@@ -229,17 +228,14 @@ class TestOrderedCachedQueue(unittest.TestCase):
 def create_simple_fuzzable_request(unique_id):
     unique_id = str(unique_id)
 
-    url = URL('http://w3af.com/')
-    headers = Headers([('Hello', 'World')])
-    post_data = KeyValueContainer(init_val=[('a', [unique_id])])
+    url = URL("http://w3af.com/")
+    headers = Headers([("Hello", "World")])
+    post_data = KeyValueContainer(init_val=[("a", [unique_id])])
 
-    return FuzzableRequest(url,
-                           method='GET',
-                           post_data=post_data,
-                           headers=headers)
+    return FuzzableRequest(url, method="GET", post_data=post_data, headers=headers)
 
 
 def read_fuzzable_request_parameter(fuzzable_request):
-    value = fuzzable_request.get_raw_data()['a'][0]
+    value = fuzzable_request.get_raw_data()["a"][0]
     value = int(value)
     return value

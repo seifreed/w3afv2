@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.parsers.doc.html import HTMLParser
 from w3af.core.data.parsers.doc.pdf import PDFParser
 from w3af.core.data.parsers.doc.swf import SWFParser
@@ -34,12 +35,9 @@ class DocumentParser(object):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     # WARNING! The order of this list is important. See note below
-    PARSERS = [WMLParser,
-               JavaScriptParser,
-               PDFParser,
-               SWFParser,
-               HTMLParser]
+    PARSERS = [WMLParser, JavaScriptParser, PDFParser, SWFParser, HTMLParser]
 
     def __init__(self, http_resp):
         """
@@ -55,7 +53,7 @@ class DocumentParser(object):
         self._response_repr = None
 
         if http_resp.is_image():
-            msg = 'There is no parser for images.'
+            msg = "There is no parser for images."
             raise BaseFrameworkException(msg)
 
         for parser in self.PARSERS:

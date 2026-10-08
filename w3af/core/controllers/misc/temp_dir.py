@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import stat
 import errno
@@ -26,7 +27,7 @@ import shutil
 
 from w3af.core.controllers.misc.home_dir import get_home_dir
 
-TEMP_DIR = os.path.join(get_home_dir(), 'tmp', str(os.getpid()))
+TEMP_DIR = os.path.join(get_home_dir(), "tmp", str(os.getpid()))
 
 
 def get_temp_dir():
@@ -62,4 +63,3 @@ def remove_temp_dir(ignore_errors=False):
     Remove the temp directory.
     """
     shutil.rmtree(get_temp_dir(), ignore_errors=ignore_errors)
-

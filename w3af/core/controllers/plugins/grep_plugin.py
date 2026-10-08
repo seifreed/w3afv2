@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.controllers.output_manager as om
 
 from w3af.core.controllers.plugins.plugin import Plugin
@@ -33,6 +34,7 @@ class GrepPlugin(Plugin):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def __init__(self):
         super(GrepPlugin, self).__init__()
 
@@ -59,7 +61,7 @@ class GrepPlugin(Plugin):
             # happens at lower layers.
             #
             # https://github.com/andresriancho/w3af/issues/8949
-            om.out.debug('%s' % ffde)
+            om.out.debug("%s" % ffde)
 
     def grep(self, fuzzable_request, response):
         """
@@ -68,8 +70,10 @@ class GrepPlugin(Plugin):
         :param fuzzable_request: The request that was sent
         :param response: The HTTP response obj
         """
-        raise NotImplementedError('Plugin "%s" must not implement required '
-                                  'method grep' % self.__class__.__name__)
+        raise NotImplementedError(
+            'Plugin "%s" must not implement required '
+            "method grep" % self.__class__.__name__
+        )
 
     def get_type(self):
-        return 'grep'
+        return "grep"

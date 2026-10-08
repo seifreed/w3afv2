@@ -19,19 +19,22 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import urllib.request, urllib.error, urllib.parse
 import base64
 
 
-class FastHTTPBasicAuthHandler(urllib.request.AbstractBasicAuthHandler,
-                               urllib.request.BaseHandler):
+class FastHTTPBasicAuthHandler(
+    urllib.request.AbstractBasicAuthHandler, urllib.request.BaseHandler
+):
     """
     The AbstractBasicAuthHandler only sends the basic HTTP credentials after
     receiving a 401 which makes scans much slower (1 returns 401, 1 with the
     credentials returns 200).
-    
-    Created this handler to always send the configured credentials. 
+
+    Created this handler to always send the configured credentials.
     """
+
     handler_order = 200  # response processing before HTTPEquivProcessor
 
     def http_request(self, request):
@@ -41,9 +44,9 @@ class FastHTTPBasicAuthHandler(urllib.request.AbstractBasicAuthHandler,
         # Add the headers for the authorization...
         user, pw = self.passwd.find_user_password(None, request.get_full_url())
         if pw is not None:
-            raw = '%s:%s' % (user, pw)
-            auth = 'Basic %s' % base64.b64encode(raw).strip()
-            request.add_header('Authorization', auth)
+            raw = "%s:%s" % (user, pw)
+            auth = "Basic %s" % base64.b64encode(raw).strip()
+            request.add_header("Authorization", auth)
 
         return request
 

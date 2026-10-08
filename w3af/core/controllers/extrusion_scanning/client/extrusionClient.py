@@ -41,6 +41,7 @@ class extrusionClient:
         """
         Performs the connections.
         """
+
         def conn(sock, host, port):
             try:
                 sock.connect((host, port))
@@ -55,19 +56,20 @@ class extrusionClient:
         for port in self._udpPorts:
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             try:
-                s.sendto('', (self._host, int(port)))
+                s.sendto("", (self._host, int(port)))
             except:
                 pass
+
 
 if __name__ == "__main__":
     # do the work
     try:
         ipAddress = sys.argv[1]
-        tcpPorts = sys.argv[2].split(',')
-        udpPorts = sys.argv[3].split(',')
+        tcpPorts = sys.argv[2].split(",")
+        udpPorts = sys.argv[3].split(",")
     except:
-        print('Bad parameters.')
+        print("Bad parameters.")
     else:
         ec = extrusionClient(ipAddress, tcpPorts, udpPorts)
         ec.start()
-        print('OK.')
+        print("OK.")

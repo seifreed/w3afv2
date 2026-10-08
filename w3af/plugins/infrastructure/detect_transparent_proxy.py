@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import socket
 
 import w3af.core.controllers.output_manager as om
@@ -44,16 +45,18 @@ class detect_transparent_proxy(InfrastructurePlugin):
                                     (among other things) the URL to test.
         """
         if self._is_proxyed_conn(fuzzable_request):
-            desc = 'Your ISP seems to have a transparent proxy installed,'\
-                   ' this can influence scan results in unexpected ways.'
-           
-            i = Info('Transparent proxy detected', desc, 1, self.get_name())
+            desc = (
+                "Your ISP seems to have a transparent proxy installed,"
+                " this can influence scan results in unexpected ways."
+            )
+
+            i = Info("Transparent proxy detected", desc, 1, self.get_name())
             i.set_url(fuzzable_request.get_url())
-            
-            kb.kb.append(self, 'detect_transparent_proxy', i)
+
+            kb.kb.append(self, "detect_transparent_proxy", i)
             om.out.information(i.get_desc())
         else:
-            om.out.information('Your ISP has no transparent proxy.')
+            om.out.information("Your ISP has no transparent proxy.")
 
     def _is_proxyed_conn(self, fuzzable_request):
         """
@@ -62,9 +65,19 @@ class detect_transparent_proxy(InfrastructurePlugin):
 
         :return: True if proxy is present.
         """
-        random_ips = ['1.2.3.4', '5.6.7.8', '9.8.7.6', '1.2.1.2', '1.0.0.1',
-                      '60.60.60.60', '44.44.44.44', '11.22.33.44', '11.22.33.11',
-                      '7.99.7.99', '87.78.87.78']
+        random_ips = [
+            "1.2.3.4",
+            "5.6.7.8",
+            "9.8.7.6",
+            "1.2.1.2",
+            "1.0.0.1",
+            "60.60.60.60",
+            "44.44.44.44",
+            "11.22.33.44",
+            "11.22.33.11",
+            "7.99.7.99",
+            "87.78.87.78",
+        ]
 
         for ip_address in random_ips:
             sock_obj = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

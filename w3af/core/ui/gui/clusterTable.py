@@ -18,12 +18,12 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import threading
 
 import gtk
 import gobject
 from w3af.core.ui.gui import helpers, entries
-
 
 # The clustering stuff
 from cluster import HierarchicalClustering
@@ -49,8 +49,8 @@ class ClusterCellWindow(entries.RememberingWindow):
 
         # Create a new window
         super(ClusterCellWindow, self).__init__(
-            w3af, "clusterWindow", "w3af - HTTP Response Clustering",
-            "cluster")
+            w3af, "clusterWindow", "w3af - HTTP Response Clustering", "cluster"
+        )
         self.set_size_request(400, 400)
 
         # Quit event.
@@ -63,7 +63,7 @@ class ClusterCellWindow(entries.RememberingWindow):
         dist_hbox = gtk.HBox()
 
         distanceLabel = gtk.Label()
-        distanceLabel.set_text('Distance between clusters: ')
+        distanceLabel.set_text("Distance between clusters: ")
 
         distanceBackButton = gtk.Button(stock=gtk.STOCK_GO_BACK)
         distanceBackButton.connect("clicked", self._go_back)
@@ -98,8 +98,7 @@ class ClusterCellWindow(entries.RememberingWindow):
         self._cl_data_widget = None
 
         def _helper():
-            self._cl_data_widget = clusterCellData(
-                self._data, level=self._level)
+            self._cl_data_widget = clusterCellData(self._data, level=self._level)
             self._sw.add(self._cl_data_widget)
 
         # Create the widget that shows the data in a different thread
@@ -113,7 +112,7 @@ class ClusterCellWindow(entries.RememberingWindow):
         self.throbber = helpers.Throbber()
         self.throbber.running(True)
         self.calculating_label = gtk.Label()
-        self.calculating_label.set_markup('<i>Creating clusters...</i>')
+        self.calculating_label.set_markup("<i>Creating clusters...</i>")
         self._progressHBox = gtk.HBox()
         self._progressHBox.pack_start(self.throbber)
         self._progressHBox.pack_start(self.calculating_label)
@@ -147,7 +146,7 @@ class ClusterCellWindow(entries.RememberingWindow):
         self._cl_data_widget.set_new_level(self._level)
 
     def delete_event(self, widget, event, data=None):
-        #gtk.main_quit()
+        # gtk.main_quit()
         return False
 
 
@@ -176,8 +175,7 @@ class clusterCellData(gtk.TreeView):
         clusteredData = cl.getlevel(level)
 
         self._parsed_clusteredData = self._parse(clusteredData)
-        self._column_names = ['Group %d' % i for i in range(len(
-            clusteredData))]
+        self._column_names = ["Group %d" % i for i in range(len(clusteredData))]
 
         # Start with the treeview and liststore creation
         dynamicListStoreTypes = [str for i in range(len(self._column_names))]
@@ -259,21 +257,32 @@ class clusterCellData(gtk.TreeView):
 
         # pylint: disable=E1101
         if "path-cross-event" not in gobject.signal_list_names(gtk.TreeView):
-            gobject.signal_new("path-cross-event", gtk.TreeView,
-                               gobject.SIGNAL_RUN_LAST,
-                               gobject.TYPE_BOOLEAN, (gtk.gdk.Event,))
+            gobject.signal_new(
+                "path-cross-event",
+                gtk.TreeView,
+                gobject.SIGNAL_RUN_LAST,
+                gobject.TYPE_BOOLEAN,
+                (gtk.gdk.Event,),
+            )
 
-            gobject.signal_new("column-cross-event", gtk.TreeView,
-                               gobject.SIGNAL_RUN_LAST,
-                               gobject.TYPE_BOOLEAN, (gtk.gdk.Event,))
+            gobject.signal_new(
+                "column-cross-event",
+                gtk.TreeView,
+                gobject.SIGNAL_RUN_LAST,
+                gobject.TYPE_BOOLEAN,
+                (gtk.gdk.Event,),
+            )
 
-            gobject.signal_new("cell-cross-event", gtk.TreeView,
-                               gobject.SIGNAL_RUN_LAST,
-                               gobject.TYPE_BOOLEAN, (gtk.gdk.Event,))
+            gobject.signal_new(
+                "cell-cross-event",
+                gtk.TreeView,
+                gobject.SIGNAL_RUN_LAST,
+                gobject.TYPE_BOOLEAN,
+                (gtk.gdk.Event,),
+            )
         # pylint: enable=E1101
 
-        self.connect(
-            "leave-notify-event", self.on_treeview_leave_notify, popup_win)
+        self.connect("leave-notify-event", self.on_treeview_leave_notify, popup_win)
         self.connect("motion-notify-event", self.on_treeview_motion_notify)
 
         self.connect("path-cross-event", self.emit_cell_cross_signal)
@@ -304,8 +313,7 @@ class clusterCellData(gtk.TreeView):
             ]
         """
         # First we find the largest list inside the original list
-        larger_list = [len(i) for i in clusteredData if isinstance(
-            i, type([]))]
+        larger_list = [len(i) for i in clusteredData if isinstance(i, type([]))]
         larger_list.sort()
         larger_list.reverse()
 
@@ -321,19 +329,20 @@ class clusterCellData(gtk.TreeView):
                 # We have a list to pad
                 i = [w.get_id() for w in i]
                 for j in range(larger_list - len(i)):
-                    i.append('')
+                    i.append("")
                 padded_list.append(i)
             else:
                 # Its an object, create a list and pad it.
                 tmp = []
                 tmp.append(i.get_id())
                 for j in range(larger_list - len(tmp)):
-                    tmp.append('')
+                    tmp.append("")
                 padded_list.append(tmp)
 
         # transpose
-        resList = [['' for w in range(len(padded_list))]
-                   for i in range(len(padded_list[0]))]
+        resList = [
+            ["" for w in range(len(padded_list))] for i in range(len(padded_list[0]))
+        ]
 
         for x, padded_list in enumerate(padded_list):
             for y, paddedItem in enumerate(padded_list):
@@ -347,8 +356,7 @@ class clusterCellData(gtk.TreeView):
 
     def on_treeview_motion_notify(self, treeview, event):
 
-        current_path, current_column = self.get_current_cell_data(
-            treeview, event)[:2]
+        current_path, current_column = self.get_current_cell_data(treeview, event)[:2]
 
         if self.current_path != current_path:
             self.current_path = current_path
@@ -362,12 +370,12 @@ class clusterCellData(gtk.TreeView):
 
         try:
             current_path, current_column = treeview.get_path_at_pos(
-                int(event.x), int(event.y))[:2]
+                int(event.x), int(event.y)
+            )[:2]
         except:
             return (None, None, None, None, None, None)
 
-        current_cell_area = treeview.get_cell_area(
-            current_path, current_column)
+        current_cell_area = treeview.get_cell_area(current_path, current_column)
         treeview_root_coords = treeview.get_bin_window().get_origin()
 
         cell_x = treeview_root_coords[0] + current_cell_area.x
@@ -384,7 +392,7 @@ class clusterCellData(gtk.TreeView):
         # I'm talking about the self._colDict[ current_column ]!
         currentId = self.liststore[path[0]][self._colDict[view_column]]
         # Search the Id and show the data
-        print(('I should show the data for', currentId, 'in a different window.'))
+        print(("I should show the data for", currentId, "in a different window."))
 
     def _getInfoForId(self, id):
         """
@@ -393,23 +401,25 @@ class clusterCellData(gtk.TreeView):
         try:
             obj = [i for i in self._data if i.get_id() == int(id)][0]
         except Exception as e:
-            return ''
+            return ""
         else:
-            msg = '<b><i>Code: </i></b>%s\n<b><i>Message: </i></b>%s' \
-                  '\n<b><i>URI: </i></b>%s'
+            msg = (
+                "<b><i>Code: </i></b>%s\n<b><i>Message: </i></b>%s"
+                "\n<b><i>URI: </i></b>%s"
+            )
             return msg % (obj.get_code(), obj.get_msg(), obj.get_uri())
 
     def handle_popup(self, treeview, event, popup_win):
-        current_path, current_column, cell_x, cell_y, cell_x_, cell_y_ = \
+        current_path, current_column, cell_x, cell_y, cell_x_, cell_y_ = (
             self.get_current_cell_data(treeview, event)
+        )
 
         if cell_x is not None:
             # Search the Id and show the data
             # FIXME: I'm sure there is another way to do this... but...
             # what a hell... nobody reads the code ;)
             # I'm talking about the self._colDict[ current_column ]!
-            currentId = self.liststore[current_path[0]][
-                self._colDict[current_column]]
+            currentId = self.liststore[current_path[0]][self._colDict[current_column]]
             info = self._getInfoForId(currentId)
             if not info:
                 # hide!
@@ -419,10 +429,15 @@ class clusterCellData(gtk.TreeView):
                 popup_win.get_child().set_markup(info)
                 popup_width, popup_height = popup_win.get_size()
                 pos_x, pos_y = self.compute_tooltip_position(
-                    treeview, cell_x, cell_y,
-                    cell_x_, cell_y_,
+                    treeview,
+                    cell_x,
+                    cell_y,
+                    cell_x_,
+                    cell_y_,
                     popup_width,
-                    popup_height, event)
+                    popup_height,
+                    event,
+                )
                 popup_win.move(int(pos_x), int(pos_y))
                 popup_win.show_all()
         else:
@@ -432,13 +447,20 @@ class clusterCellData(gtk.TreeView):
         treeview.emit("cell-cross-event", event)
 
     def compute_tooltip_position(
-        self, treeview, cell_x, cell_y, cell_x_, cell_y_,
-            popup_width, popup_height, event):
+        self,
+        treeview,
+        cell_x,
+        cell_y,
+        cell_x_,
+        cell_y_,
+        popup_width,
+        popup_height,
+        event,
+    ):
         screen_width = gtk.gdk.screen_width()
         screeen_height = gtk.gdk.screen_height()
 
-        pos_x = treeview.get_bin_window(
-        ).get_origin()[0] + event.x - popup_width / 2
+        pos_x = treeview.get_bin_window().get_origin()[0] + event.x - popup_width / 2
         if pos_x < 0:
             pos_x = 0
         elif pos_x + popup_width > screen_width:
@@ -454,23 +476,36 @@ class clusterCellData(gtk.TreeView):
 def main():
     gtk.main()
 
+
 if __name__ == "__main__":
 
     from w3af.core.data.parsers.doc.url import URL
-    url_instance = URL('http://a/index.html')
+
+    url_instance = URL("http://a/index.html")
 
     #    We create the data
     data = [
-        HTTPResponse(200, 'my data1 looks like this and has no errors',
-                     {}, url_instance, url_instance, _id=1),
-        HTTPResponse(200, 'errors? i like errors like this one: SQL',
-                     {}, url_instance, url_instance, _id=2),
-        HTTPResponse(200, 'my data is really happy', {},
-                     url_instance, url_instance, _id=3),
         HTTPResponse(
-            200, 'my data1 loves me', {}, url_instance, url_instance, _id=4),
+            200,
+            "my data1 looks like this and has no errors",
+            {},
+            url_instance,
+            url_instance,
+            _id=1,
+        ),
         HTTPResponse(
-            200, 'my data likes me', {}, url_instance, url_instance, _id=5)
+            200,
+            "errors? i like errors like this one: SQL",
+            {},
+            url_instance,
+            url_instance,
+            _id=2,
+        ),
+        HTTPResponse(
+            200, "my data is really happy", {}, url_instance, url_instance, _id=3
+        ),
+        HTTPResponse(200, "my data1 loves me", {}, url_instance, url_instance, _id=4),
+        HTTPResponse(200, "my data likes me", {}, url_instance, url_instance, _id=5),
     ]
 
     cl_win = ClusterCellWindow(None, data=data)

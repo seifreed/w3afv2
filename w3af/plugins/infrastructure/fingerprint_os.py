@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
 
@@ -69,28 +70,30 @@ class fingerprint_os(InfrastructurePlugin):
             last_url = dirs[-1]
             last_url = last_url.url_string
 
-            windows_url = URL(last_url[0:-1] + '\\' + filename)
+            windows_url = URL(last_url[0:-1] + "\\" + filename)
             windows_response = self._uri_opener.GET(windows_url)
 
             original_response = self._uri_opener.GET(freq_url)
 
-            if fuzzy_equal(original_response.get_body(),
-                                    windows_response.get_body(), 0.98):
-                desc = 'Fingerprinted this host as a Microsoft Windows system.'
-                os_str = 'windows'
+            if fuzzy_equal(
+                original_response.get_body(), windows_response.get_body(), 0.98
+            ):
+                desc = "Fingerprinted this host as a Microsoft Windows system."
+                os_str = "windows"
             else:
-                desc = 'Fingerprinted this host as a *nix system. Detection for'\
-                       ' this operating system is weak, "if not windows then'\
-                       ' linux".'
-                os_str = 'unix'
+                desc = (
+                    "Fingerprinted this host as a *nix system. Detection for"
+                    ' this operating system is weak, "if not windows then'
+                    ' linux".'
+                )
+                os_str = "unix"
 
             response_ids = [windows_response.id, original_response.id]
-            i = Info('Operating system', desc, response_ids,
-                     self.get_name())
+            i = Info("Operating system", desc, response_ids, self.get_name())
             i.set_url(windows_response.get_url())
-            
-            kb.kb.raw_write(self, 'operating_system_str', os_str)
-            kb.kb.append(self, 'operating_system', i)
+
+            kb.kb.raw_write(self, "operating_system_str", os_str)
+            kb.kb.append(self, "operating_system", i)
             om.out.information(i.get_desc())
             return True
 

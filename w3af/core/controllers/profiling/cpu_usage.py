@@ -19,18 +19,18 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 
 from .utils import get_filename_fmt, dump_data_every_thread, cancel_thread
 
-
-PROFILING_OUTPUT_FMT = '/tmp/w3af-%s-%s.cpu'
+PROFILING_OUTPUT_FMT = "/tmp/w3af-%s-%s.cpu"
 DELAY_MINUTES = 2
 SAVE_THREAD_PTR = []
 
 
 def user_wants_cpu_profiling():
-    _should_profile = os.environ.get('W3AF_CPU_PROFILING', '0')
+    _should_profile = os.environ.get("W3AF_CPU_PROFILING", "0")
 
     if _should_profile.isdigit() and int(_should_profile) == 1:
         return True
@@ -55,6 +55,7 @@ def start_cpu_profiling():
     :return: None
     """
     import yappi
+
     yappi.start()
 
     dump_data_every_thread(dump_data, DELAY_MINUTES, SAVE_THREAD_PTR)
@@ -64,8 +65,7 @@ def dump_data():
     import yappi
 
     # pylint: disable=E1101
-    yappi.get_func_stats().save(PROFILING_OUTPUT_FMT % get_filename_fmt(),
-                                type="pstat")
+    yappi.get_func_stats().save(PROFILING_OUTPUT_FMT % get_filename_fmt(), type="pstat")
     # pylint: enable=E1101
 
 

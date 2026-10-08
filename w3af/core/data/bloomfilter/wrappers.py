@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import string
 from random import choice
@@ -34,6 +35,7 @@ class GenericBloomFilter(object):
     The idea is to give a consistent API to all the other sections of the code
     and allow the use of different bloom filter implementations.
     """
+
     def __init__(self, capacity, error_rate=0.01):
         self.capacity = capacity
         self.error_rate = error_rate
@@ -66,6 +68,6 @@ class GenericBloomFilter(object):
         if not os.path.exists(tempdir):
             os.makedirs(tempdir)
 
-        filename = ''.join([choice(string.ascii_letters) for _ in range(12)])
-        temp_file = os.path.join(tempdir, filename + '-w3af.bloom')
+        filename = "".join([choice(string.ascii_letters) for _ in range(12)])
+        temp_file = os.path.join(tempdir, filename + "-w3af.bloom")
         return temp_file

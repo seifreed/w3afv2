@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.bloomfilter.seekfile_bloom import FileSeekBloomFilter
 from w3af.core.data.bloomfilter.tests.generic_filter_test import GenericFilterTest
 from w3af.core.data.bloomfilter.wrappers import GenericBloomFilter
@@ -32,8 +33,7 @@ class TestFileSeekBloomFilterLarge(GenericFilterTest):
     def setUp(self):
         super(TestFileSeekBloomFilterLarge, self).setUp()
         temp_file = GenericBloomFilter.get_temp_file()
-        self.filter = FileSeekBloomFilter(self.CAPACITY, self.ERROR_RATE,
-                                          temp_file)
+        self.filter = FileSeekBloomFilter(self.CAPACITY, self.ERROR_RATE, temp_file)
 
 
 class TestFileSeekBloomFilterSmall(GenericFilterTest):
@@ -44,5 +44,4 @@ class TestFileSeekBloomFilterSmall(GenericFilterTest):
     def setUp(self):
         super(TestFileSeekBloomFilterSmall, self).setUp()
         temp_file = GenericBloomFilter.get_temp_file()
-        self.filter = FileSeekBloomFilter(self.CAPACITY, self.ERROR_RATE,
-                                          temp_file)
+        self.filter = FileSeekBloomFilter(self.CAPACITY, self.ERROR_RATE, temp_file)

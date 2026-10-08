@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 import w3af.core.data.kb.knowledge_base as kb
@@ -45,16 +46,16 @@ class TestCacheControl(unittest.TestCase):
         No cache control, but the content is not sensitive (sent over http) so
         no bug is stored in KB.
         """
-        body = 'abc'
-        url = URL('http://www.w3af.com/')
-        headers = Headers([('content-type', 'text/html')])
-        request = FuzzableRequest(url, method='GET')
+        body = "abc"
+        url = URL("http://www.w3af.com/")
+        headers = Headers([("content-type", "text/html")])
+        request = FuzzableRequest(url, method="GET")
         resp = HTTPResponse(200, body, headers, url, url, _id=1)
-        
+
         self.plugin.grep(request, resp)
         self.plugin.end()
-        
-        infos = kb.kb.get('cache_control', 'cache_control')
+
+        infos = kb.kb.get("cache_control", "cache_control")
         self.assertEqual(len(infos), 0)
 
     def test_cache_control_images(self):
@@ -62,16 +63,16 @@ class TestCacheControl(unittest.TestCase):
         No cache control, but the content is not sensitive (is an image)
         so no bug is stored in KB.
         """
-        body = 'abc'
-        url = URL('https://www.w3af.com/image.png')
-        headers = Headers([('content-type', 'image/jpeg')])
-        request = FuzzableRequest(url, method='GET')
+        body = "abc"
+        url = URL("https://www.w3af.com/image.png")
+        headers = Headers([("content-type", "image/jpeg")])
+        request = FuzzableRequest(url, method="GET")
         resp = HTTPResponse(200, body, headers, url, url, _id=1)
-        
+
         self.plugin.grep(request, resp)
         self.plugin.end()
-        
-        infos = kb.kb.get('cache_control', 'cache_control')
+
+        infos = kb.kb.get("cache_control", "cache_control")
         self.assertEqual(len(infos), 0)
 
     def test_cache_control_empty_body(self):
@@ -79,55 +80,59 @@ class TestCacheControl(unittest.TestCase):
         No cache control, but the content is not sensitive (since it is an
         empty string) so no bug is stored in KB.
         """
-        body = ''
-        url = URL('https://www.w3af.com/')
-        headers = Headers([('content-type', 'text/html')])
-        request = FuzzableRequest(url, method='GET')
+        body = ""
+        url = URL("https://www.w3af.com/")
+        headers = Headers([("content-type", "text/html")])
+        request = FuzzableRequest(url, method="GET")
         resp = HTTPResponse(200, body, headers, url, url, _id=1)
-        
+
         self.plugin.grep(request, resp)
         self.plugin.end()
-        
-        infos = kb.kb.get('cache_control', 'cache_control')
+
+        infos = kb.kb.get("cache_control", "cache_control")
         self.assertEqual(len(infos), 0)
-        
+
     def test_cache_control_correct_headers(self):
         """
         Sensitive content with cache control headers so NO BUG is stored in KB.
         """
-        body = 'abc'
-        url = URL('https://www.w3af.com/')
-        headers = Headers([('content-type', 'text/html'),
-                           ('Pragma', 'No-cache'),
-                           ('Cache-Control', 'No-store')])
-        request = FuzzableRequest(url, method='GET')
+        body = "abc"
+        url = URL("https://www.w3af.com/")
+        headers = Headers(
+            [
+                ("content-type", "text/html"),
+                ("Pragma", "No-cache"),
+                ("Cache-Control", "No-store"),
+            ]
+        )
+        request = FuzzableRequest(url, method="GET")
         resp = HTTPResponse(200, body, headers, url, url, _id=1)
-        
+
         self.plugin.grep(request, resp)
         self.plugin.end()
-        
-        infos = kb.kb.get('cache_control', 'cache_control')
+
+        infos = kb.kb.get("cache_control", "cache_control")
         self.assertEqual(len(infos), 0)
 
     def test_cache_control_correct_meta(self):
         """
         Sensitive content with cache control meta tags so no bug is stored in KB.
         """
-        body = 'abc'
+        body = "abc"
         meta_1 = '<meta http-equiv="Pragma" content="no-cache">'
         meta_2 = '<meta http-equiv="Cache-Control" content="no-store">'
-        html = '<html><head>%s%s</head><body>%s</body></html>'
+        html = "<html><head>%s%s</head><body>%s</body></html>"
         response_body = html % (meta_1, meta_2, body)
-        
-        url = URL('https://www.w3af.com/')
-        headers = Headers([('content-type', 'text/html')])
-        request = FuzzableRequest(url, method='GET')
+
+        url = URL("https://www.w3af.com/")
+        headers = Headers([("content-type", "text/html")])
+        request = FuzzableRequest(url, method="GET")
         resp = HTTPResponse(200, response_body, headers, url, url, _id=1)
-        
+
         self.plugin.grep(request, resp)
         self.plugin.end()
-        
-        infos = kb.kb.get('cache_control', 'cache_control')
+
+        infos = kb.kb.get("cache_control", "cache_control")
         self.assertEqual(len(infos), 0)
 
     def test_cache_control_incorrect_headers(self):
@@ -135,35 +140,39 @@ class TestCacheControl(unittest.TestCase):
         Sensitive content with INCORRECT cache control headers bug should be
         stored in KB.
         """
-        body = 'abc'
-        url = URL('https://www.w3af.com/')
-        headers = Headers([('content-type', 'text/html'),
-                           ('Pragma', 'Cache'),
-                           ('Cache-Control', 'Store')])
-        request = FuzzableRequest(url, method='GET')
+        body = "abc"
+        url = URL("https://www.w3af.com/")
+        headers = Headers(
+            [
+                ("content-type", "text/html"),
+                ("Pragma", "Cache"),
+                ("Cache-Control", "Store"),
+            ]
+        )
+        request = FuzzableRequest(url, method="GET")
         resp = HTTPResponse(200, body, headers, url, url, _id=1)
-        
+
         self.plugin.grep(request, resp)
         self.plugin.end()
-        
-        infos = kb.kb.get('cache_control', 'cache_control')
+
+        infos = kb.kb.get("cache_control", "cache_control")
         self.assertEqual(len(infos), 1)
-        
+
     def test_cache_control_no_headers(self):
         """
         Sensitive content without cache control headers so bug is stored in KB.
         """
-        body = 'abc'
-        url = URL('https://www.w3af.com/')
-        headers = Headers([('content-type', 'text/html')])
-        request = FuzzableRequest(url, method='GET')
+        body = "abc"
+        url = URL("https://www.w3af.com/")
+        headers = Headers([("content-type", "text/html")])
+        request = FuzzableRequest(url, method="GET")
         resp = HTTPResponse(200, body, headers, url, url, _id=1)
-        
+
         self.plugin.grep(request, resp)
         self.plugin.end()
-        
-        infos = kb.kb.get('cache_control', 'cache_control')
+
+        infos = kb.kb.get("cache_control", "cache_control")
         self.assertEqual(len(infos), 1)
-        
+
         info = infos[0]
-        self.assertEqual(info.get_name(), 'Missing cache control for HTTPS content')
+        self.assertEqual(info.get_name(), "Missing cache control for HTTPS content")

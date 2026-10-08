@@ -18,12 +18,15 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import unittest
 
 from w3af.core.data.context.context.main import get_context
-from w3af.core.data.context.context.html import (ScriptText,
-                                                 HtmlAttrSingleQuote,
-                                                 HtmlAttrDoubleQuote)
+from w3af.core.data.context.context.html import (
+    ScriptText,
+    HtmlAttrSingleQuote,
+    HtmlAttrDoubleQuote,
+)
 
 
 class TestJavaScriptInHTML(unittest.TestCase):
@@ -35,7 +38,7 @@ class TestJavaScriptInHTML(unittest.TestCase):
             </script>
         </html>
         """
-        payload = 'PAYLOAD'
+        payload = "PAYLOAD"
         context = get_context(html, payload)[0]
         self.assertIsInstance(context, ScriptText)
         self.assertFalse(context.can_break())
@@ -60,7 +63,7 @@ class TestJavaScriptInHTML(unittest.TestCase):
 
         :return: Should not find a XSS
         """
-        payload = 'PAYLOAD:PAYLOAD'
+        payload = "PAYLOAD:PAYLOAD"
         html = """
         <html>
             <form>
@@ -80,7 +83,7 @@ class TestJavaScriptInHTML(unittest.TestCase):
             <a href="javascript:PAYLOAD">foo</a>
         </html>
         """
-        context = get_context(html, 'PAYLOAD')[0]
+        context = get_context(html, "PAYLOAD")[0]
         self.assertIsInstance(context, HtmlAttrDoubleQuote)
         self.assertTrue(context.is_executable())
 
@@ -90,7 +93,7 @@ class TestJavaScriptInHTML(unittest.TestCase):
             <a href="javascript:foo();PAYLOAD">foo</a>
         </html>
         """
-        context = get_context(html, 'PAYLOAD')[0]
+        context = get_context(html, "PAYLOAD")[0]
         self.assertIsInstance(context, HtmlAttrDoubleQuote)
         self.assertTrue(context.is_executable())
 
@@ -100,7 +103,7 @@ class TestJavaScriptInHTML(unittest.TestCase):
             <a href=" javascript:foo();PAYLOAD">foo</a>
         </html>
         """
-        context = get_context(html, 'PAYLOAD')[0]
+        context = get_context(html, "PAYLOAD")[0]
         self.assertIsInstance(context, HtmlAttrDoubleQuote)
         self.assertTrue(context.is_executable())
 
@@ -110,7 +113,7 @@ class TestJavaScriptInHTML(unittest.TestCase):
             <a href="http://w3af.org/PAYLOAD">foo</a>
         </html>
         """
-        context = get_context(html, 'PAYLOAD')[0]
+        context = get_context(html, "PAYLOAD")[0]
         self.assertIsInstance(context, HtmlAttrDoubleQuote)
         self.assertFalse(context.is_executable())
 
@@ -120,7 +123,7 @@ class TestJavaScriptInHTML(unittest.TestCase):
             <input type="button" value="ClickMe" onClick="PAYLOAD">
         </html>
         """
-        payload = 'PAYLOAD'
+        payload = "PAYLOAD"
         contexts = get_context(html, payload)
 
         self.assertEqual(len(contexts), 1, contexts)
@@ -195,7 +198,7 @@ class TestJavaScriptInHTML(unittest.TestCase):
             <input type="button" onClick="foo(PAYLOAD)">
         </html>
         """
-        payload = 'PAYLOAD'
+        payload = "PAYLOAD"
         context = get_context(html, payload)[0]
 
         self.assertIsInstance(context, HtmlAttrDoubleQuote)
@@ -208,7 +211,7 @@ class TestJavaScriptInHTML(unittest.TestCase):
             <input type="button" onclick="foo();PAYLOAD;bar()">
         </html>
         """
-        payload = 'PAYLOAD'
+        payload = "PAYLOAD"
         context = get_context(html, payload)[0]
 
         self.assertIsInstance(context, HtmlAttrDoubleQuote)
@@ -240,7 +243,7 @@ class TestJavaScriptInHTML(unittest.TestCase):
             <img src="%s" />
         </html>
         """
-        payload = 'PAYLOAD:'
+        payload = "PAYLOAD:"
         context = get_context(html % payload, payload)[0]
         self.assertTrue(context.can_break())
         self.assertIsInstance(context, HtmlAttrDoubleQuote)
@@ -251,12 +254,12 @@ class TestJavaScriptInHTML(unittest.TestCase):
             <a onclick="PAYLOAD">foo</a>
         </html>
         """
-        context = get_context(html, 'PAYLOAD')[0]
+        context = get_context(html, "PAYLOAD")[0]
         self.assertTrue(context.is_executable())
         self.assertIsInstance(context, HtmlAttrDoubleQuote)
 
     def test_payload_href(self):
-        payload = 'PAYLOAD:'
+        payload = "PAYLOAD:"
         html = """
         <html>
             <a href="%s">foo</a>
@@ -274,7 +277,7 @@ class TestJavaScriptInHTML(unittest.TestCase):
             </script>
         </html>
         """
-        self.assertIsInstance(get_context(html, 'PAYLOAD')[0], ScriptText)
+        self.assertIsInstance(get_context(html, "PAYLOAD")[0], ScriptText)
 
     def test_payload_with_space_equal_not_executable_attr(self):
         """
@@ -287,7 +290,7 @@ class TestJavaScriptInHTML(unittest.TestCase):
             <frame bar="PAYLOAD">
         </html>
         """
-        context = get_context(html, 'PAYLOAD')[0]
+        context = get_context(html, "PAYLOAD")[0]
         self.assertFalse(context.is_executable())
 
     def test_payload_with_space_equal_src_executable(self):
@@ -301,4 +304,4 @@ class TestJavaScriptInHTML(unittest.TestCase):
             <frame src="5vrws =">
         </html>
         """
-        self.assertEqual(get_context(html, '5vrws%20%3D'), [])
+        self.assertEqual(get_context(html, "5vrws%20%3D"), [])

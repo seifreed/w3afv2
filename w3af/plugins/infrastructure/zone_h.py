@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 
 import w3af.core.controllers.output_manager as om
@@ -54,13 +55,13 @@ class zone_h(InfrastructurePlugin):
         # http://www.zone-h.org/archive/domain=cyprus-stones.com
 
         # TODO: Keep this URL updated!
-        zone_h_url_str = 'http://www.zone-h.org/archive/domain=%s' % target_domain
+        zone_h_url_str = "http://www.zone-h.org/archive/domain=%s" % target_domain
         zone_h_url = URL(zone_h_url_str)
 
         try:
             response = self._uri_opener.GET(zone_h_url)
         except BaseFrameworkException as e:
-            msg = 'An exception was raised while running zone-h plugin.'
+            msg = "An exception was raised while running zone-h plugin."
             msg += ' Exception: "%s"' % e
             om.out.debug(msg)
         else:
@@ -82,36 +83,46 @@ class zone_h(InfrastructurePlugin):
 
         # This is the string I have to parse:
         # in the zone_h response, they are two like this, the first has to be ignored!
-        regex = 'Total notifications: <b>(\d*)</b> of which <b>(\d*)</b> single ip and <b>(\d*)</b> mass'
+        regex = "Total notifications: <b>(\d*)</b> of which <b>(\d*)</b> single ip and <b>(\d*)</b> mass"
         regex_result = re.findall(regex, response.get_body())
 
         try:
             total_attacks = int(regex_result[0][0])
         except IndexError:
-            om.out.debug('An error was generated during the parsing of the zone_h website.')
+            om.out.debug(
+                "An error was generated during the parsing of the zone_h website."
+            )
         else:
 
             # Do the if...
             if total_attacks > 1:
-                desc = 'The target site was defaced more than one time in the'\
-                       ' past. For more information please visit the following'\
-                       ' URL: "%s".' % response.get_url()
-                       
-                v = Vuln('Previous defacements', desc,
-                         severity.MEDIUM, response.id, self.get_name())
+                desc = (
+                    "The target site was defaced more than one time in the"
+                    " past. For more information please visit the following"
+                    ' URL: "%s".' % response.get_url()
+                )
+
+                v = Vuln(
+                    "Previous defacements",
+                    desc,
+                    severity.MEDIUM,
+                    response.id,
+                    self.get_name(),
+                )
                 v.set_url(response.get_url())
-                
-                kb.kb.append(self, 'defacements', v)
+
+                kb.kb.append(self, "defacements", v)
                 om.out.information(v.get_desc())
             elif total_attacks == 1:
-                desc = 'The target site was defaced in the past. For more'\
-                       ' information please visit the following URL: "%s".'
+                desc = (
+                    "The target site was defaced in the past. For more"
+                    ' information please visit the following URL: "%s".'
+                )
                 desc = desc % response.get_url()
-                i = Info('Previous defacements', desc, response.id,
-                         self.get_name())
+                i = Info("Previous defacements", desc, response.id, self.get_name())
                 i.set_url(response.get_url())
 
-                kb.kb.append(self, 'defacements', i)
+                kb.kb.append(self, "defacements", i)
                 om.out.information(i.get_desc())
 
     def get_long_desc(self):

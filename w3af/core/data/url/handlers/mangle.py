@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import urllib.request, urllib.error, urllib.parse
 
 from w3af.core.data.url.HTTPResponse import HTTPResponse
@@ -93,7 +94,7 @@ class MangledKeepAliveHTTPResponse(kaHTTPResponse):
 
         :see: https://github.com/andresriancho/w3af/issues/2172
         """
-        self._rbuf = ''
+        self._rbuf = ""
         self._method = None
 
     def close(self):

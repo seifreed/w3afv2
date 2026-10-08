@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.controllers.tests.core_test_suite.test_pause_stop import CountTestMixin
 from w3af.core.data.db.history import HistoryItem
@@ -27,17 +28,20 @@ class TestHistoryAccess(CountTestMixin):
     """
     Test that we're able to access the HTTP request and response History after
     the scan has finished.
-    
+
     @see: Inherit from TestW3afCorePause to get the nice setUp().
     """
+
     def test_history_access(self):
         self.count_plugin.loops = 1
         self.w3afcore.start()
-        
-        history_item = HistoryItem() 
+
+        history_item = HistoryItem()
         self.assertTrue(history_item.load(1))
         self.assertEqual(history_item.id, 1)
-        self.assertEqual(history_item.get_request().get_uri().url_string,
-                         get_moth_http())
-        self.assertEqual(history_item.get_response().get_uri().url_string,
-                         get_moth_http())
+        self.assertEqual(
+            history_item.get_request().get_uri().url_string, get_moth_http()
+        )
+        self.assertEqual(
+            history_item.get_response().get_uri().url_string, get_moth_http()
+        )

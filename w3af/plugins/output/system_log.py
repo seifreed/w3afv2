@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import syslog
 import string
 
@@ -37,6 +38,7 @@ class system_log(OutputPlugin):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     # The message priority based on the python syslog module documentation [0] is:
     #
     #   LOG_EMERG, LOG_ALERT, LOG_CRIT, LOG_ERR,
@@ -51,11 +53,11 @@ class system_log(OutputPlugin):
 
         # User configured setting
         self.verbose = False
-        self.scan_id = ''
+        self.scan_id = ""
 
     def _create_message(self, message):
-        message = ''.join(ch for ch in message if ch in string.printable)
-        return '[%s] %s' % (self.scan_id, message)
+        message = "".join(ch for ch in message if ch in string.printable)
+        return "[%s] %s" % (self.scan_id, message)
 
     @catch_ioerror
     def debug(self, message, new_line=True):
@@ -103,13 +105,13 @@ class system_log(OutputPlugin):
 
         :return: No value is returned.
         """
-        self.verbose = option_list['verbose'].get_value()
-        self.scan_id = option_list['scan_id'].get_value()
+        self.verbose = option_list["verbose"].get_value()
+        self.scan_id = option_list["scan_id"].get_value()
 
         if not self.scan_id:
             self.scan_id = rand_alnum(8)
 
-        syslog.openlog('w3af', logoption=syslog.LOG_PID)
+        syslog.openlog("w3af", logoption=syslog.LOG_PID)
 
     def get_options(self):
         """
@@ -117,13 +119,13 @@ class system_log(OutputPlugin):
         """
         ol = OptionList()
 
-        d = 'Enable verbose output for syslog'
-        o = opt_factory('verbose', self.verbose, d, BOOL)
+        d = "Enable verbose output for syslog"
+        o = opt_factory("verbose", self.verbose, d, BOOL)
         ol.add(o)
 
-        d = 'String to be included in all syslog messages'
-        h = 'Use this string to identify each individual scan in the log'
-        o = opt_factory('scan_id', self.scan_id, d, STRING, help=h)
+        d = "String to be included in all syslog messages"
+        h = "Use this string to identify each individual scan in the log"
+        o = opt_factory("scan_id", self.scan_id, d, STRING, help=h)
         ol.add(o)
 
         return ol

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
 import w3af.plugins.infrastructure.oHmap.hmap as upstream_hmap
@@ -37,6 +38,7 @@ class hmap(InfrastructurePlugin):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def __init__(self):
         InfrastructurePlugin.__init__(self)
 
@@ -53,7 +55,7 @@ class hmap(InfrastructurePlugin):
         :param fuzzable_request: A fuzzable_request instance that contains
                                     (among other things) the URL to test.
         """
-        msg = 'Hmap web server fingerprint is starting, this may take a while.'
+        msg = "Hmap web server fingerprint is starting, this may take a while."
         om.out.information(msg)
 
         url = fuzzable_request.get_url()
@@ -62,11 +64,13 @@ class hmap(InfrastructurePlugin):
         port = url.get_port()
         ssl = False
 
-        if protocol == 'https':
+        if protocol == "https":
             ssl = True
 
         try:
-            results = upstream_hmap.testServer(ssl, server, port, 1, self._gen_fp, self._threads)
+            results = upstream_hmap.testServer(
+                ssl, server, port, 1, self._gen_fp, self._threads
+            )
         except BaseFrameworkException as w3:
             msg = 'A BaseFrameworkException occurred while running hmap: "%s"'
             om.out.error(msg % w3)
@@ -87,24 +91,26 @@ class hmap(InfrastructurePlugin):
         desc = 'The most accurate fingerprint for this HTTP server is: "%s".'
         desc %= server
 
-        i = Info('Webserver fingerprint', desc, 1, self.get_name())
-        i['server'] = server
+        i = Info("Webserver fingerprint", desc, 1, self.get_name())
+        i["server"] = server
         om.out.information(i.get_desc())
 
         # Save the results in the KB so that other plugins can use this
         # information
-        kb.kb.append(self, 'server', i)
-        kb.kb.raw_write(self, 'server_string', server)
+        kb.kb.append(self, "server", i)
+        kb.kb.raw_write(self, "server_string", server)
 
         #
         # Fingerprint file generated (this is independent from the results)
         #
         if self._gen_fp:
-            msg = ('Hmap fingerprint file generated, please send a mail to'
-                   ' w3af-develop@lists.sourceforge.net including the'
-                   ' fingerprint file, your name and what server you'
-                   ' fingerprinted. New fingerprints make the hmap plugin'
-                   ' more powerful and accurate.')
+            msg = (
+                "Hmap fingerprint file generated, please send a mail to"
+                " w3af-develop@lists.sourceforge.net including the"
+                " fingerprint file, your name and what server you"
+                " fingerprinted. New fingerprints make the hmap plugin"
+                " more powerful and accurate."
+            )
             om.out.information(msg)
 
     def get_options(self):
@@ -113,16 +119,20 @@ class hmap(InfrastructurePlugin):
         """
         ol = OptionList()
 
-        d = 'Generate a fingerprint file.'
-        h = ('Define if we will generate a fingerprint file based on the'
-             ' findings made during this execution.')
-        o = opt_factory('gen_fingerprint', self._gen_fp, d, 'boolean', help=h)
+        d = "Generate a fingerprint file."
+        h = (
+            "Define if we will generate a fingerprint file based on the"
+            " findings made during this execution."
+        )
+        o = opt_factory("gen_fingerprint", self._gen_fp, d, "boolean", help=h)
         ol.add(o)
 
-        d = 'Concurrent HTTP requests'
-        h = ('Define how many threads are used to send HTTP requests to the'
-             ' remote server. IoT devices might crash if this is set too high.')
-        o = opt_factory('threads', self._threads, d, 'integer', help=h)
+        d = "Concurrent HTTP requests"
+        h = (
+            "Define how many threads are used to send HTTP requests to the"
+            " remote server. IoT devices might crash if this is set too high."
+        )
+        o = opt_factory("threads", self._threads, d, "integer", help=h)
         ol.add(o)
 
         return ol
@@ -135,8 +145,8 @@ class hmap(InfrastructurePlugin):
         :param options_list: A dictionary with the options for the plugin.
         :return: No value is returned.
         """
-        self._gen_fp = options_list['gen_fingerprint'].get_value()
-        self._threads = options_list['threads'].get_value()
+        self._gen_fp = options_list["gen_fingerprint"].get_value()
+        self._threads = options_list["threads"].get_value()
 
     def get_plugin_deps(self):
         """
@@ -145,7 +155,7 @@ class hmap(InfrastructurePlugin):
         """
         # I don't really use the server_header plugin here, but it is nice to have
         # two opinions about what we are dealing with.
-        return ['infrastructure.server_header']
+        return ["infrastructure.server_header"]
 
     def get_long_desc(self):
         """

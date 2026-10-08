@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.plugins.tests.helper import PluginTest, PluginConfig
 from w3af.plugins.grep.password_profiling import password_profiling
@@ -29,71 +30,67 @@ from functools import cmp_to_key
 
 class TestPasswordProfiling(PluginTest):
 
-    password_profiling_url = get_moth_http('/grep/password_profiling/')
+    password_profiling_url = get_moth_http("/grep/password_profiling/")
 
     _run_configs = {
-        'cfg1': {
-            'target': password_profiling_url,
-            'plugins': {
-                'grep': (PluginConfig('password_profiling'),),
-                'crawl': (
-                    PluginConfig('web_spider',
-                                 ('only_forward', True, PluginConfig.BOOL)),
-                )
-
-            }
+        "cfg1": {
+            "target": password_profiling_url,
+            "plugins": {
+                "grep": (PluginConfig("password_profiling"),),
+                "crawl": (
+                    PluginConfig(
+                        "web_spider", ("only_forward", True, PluginConfig.BOOL)
+                    ),
+                ),
+            },
         }
     }
 
     def test_collected_passwords(self):
-        cfg = self._run_configs['cfg1']
-        self._scan(cfg['target'], cfg['plugins'])
-        
+        cfg = self._run_configs["cfg1"]
+        self._scan(cfg["target"], cfg["plugins"])
+
         def sortfunc(x_obj, y_obj):
             return cmp(x_obj[1], y_obj[1])
 
         # pylint: disable=E1103
-        # Pylint fails to detect the object types that come out of the KB            
-        collected_passwords = self.kb.raw_read('password_profiling',
-                                               'password_profiling')
+        # Pylint fails to detect the object types that come out of the KB
+        collected_passwords = self.kb.raw_read(
+            "password_profiling", "password_profiling"
+        )
 
         collected_passwords = list(collected_passwords.keys())
         # pylint: enable=E1103
         collected_passwords.sort(key=cmp_to_key(sortfunc))
 
-        self.assertIn('Moth', collected_passwords)
-        self.assertIn('application', collected_passwords)
-        self.assertIn('creators', collected_passwords)
+        self.assertIn("Moth", collected_passwords)
+        self.assertIn("application", collected_passwords)
+        self.assertIn("creators", collected_passwords)
 
     def test_merge_password_profiling(self):
         pp = password_profiling()
-        
-        old_data = {'foobar': 1, 'spameggs': 2}
-        data = {'charlotte': 3, 'and': 55, 'spameggs': 1}
-        lang = 'en'
-        
-        url = URL('http://moth/')
+
+        old_data = {"foobar": 1, "spameggs": 2}
+        data = {"charlotte": 3, "and": 55, "spameggs": 1}
+        lang = "en"
+
+        url = URL("http://moth/")
         request = FuzzableRequest(url)
-        
+
         merged_map = pp.merge_maps(old_data, data, request, lang)
-        
-        self.assertEqual(merged_map, {'foobar': 1,
-                                      'spameggs': 3,
-                                      'charlotte': 3})
+
+        self.assertEqual(merged_map, {"foobar": 1, "spameggs": 3, "charlotte": 3})
 
     def test_merge_password_profiling_unknown_lang(self):
         pp = password_profiling()
-        
-        old_data = {'foobar': 1, 'spameggs': 2}
-        data = {'charlotte': 3, 'and': 55, 'spameggs': 1}
-        lang = 'hu'
-        
-        url = URL('http://moth/')
-        request = FuzzableRequest(url)
-        
-        merged_map = pp.merge_maps(old_data, data, request, lang)
-        
-        self.assertEqual(merged_map, {'foobar': 1,
-                                      'spameggs': 3,
-                                      'charlotte': 3})
 
+        old_data = {"foobar": 1, "spameggs": 2}
+        data = {"charlotte": 3, "and": 55, "spameggs": 1}
+        lang = "hu"
+
+        url = URL("http://moth/")
+        request = FuzzableRequest(url)
+
+        merged_map = pp.merge_maps(old_data, data, request, lang)
+
+        self.assertEqual(merged_map, {"foobar": 1, "spameggs": 3, "charlotte": 3})

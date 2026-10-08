@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from w3af.core.data.parsers.doc.url import URL
@@ -27,37 +28,39 @@ from w3af.plugins.evasion.self_reference import self_reference
 
 
 class TestEvasion(unittest.TestCase):
-    
+
     def test_add_to_base_url(self):
         sr = self_reference()
 
-        u = URL('http://www.w3af.com/')
+        u = URL("http://www.w3af.com/")
         r = HTTPRequest(u)
-        
-        self.assertEqual(sr.modify_request(r).url_object.url_string,
-                         'http://www.w3af.com/./')
+
+        self.assertEqual(
+            sr.modify_request(r).url_object.url_string, "http://www.w3af.com/./"
+        )
 
     def test_add_to_url_with_path(self):
         sr = self_reference()
-        
-        u = URL('http://www.w3af.com/abc/')
+
+        u = URL("http://www.w3af.com/abc/")
         r = HTTPRequest(u)
-        
-        self.assertEqual(sr.modify_request(r).url_object.url_string,
-                         'http://www.w3af.com/./abc/./')
+
+        self.assertEqual(
+            sr.modify_request(r).url_object.url_string, "http://www.w3af.com/./abc/./"
+        )
 
     def test_add_to_url_with_qs(self):
         sr = self_reference()
-        
-        u = URL('http://www.w3af.com/abc/def.htm?id=1')
+
+        u = URL("http://www.w3af.com/abc/def.htm?id=1")
         r = HTTPRequest(u)
-        
-        self.assertEqual(sr.modify_request(r).url_object.url_string,
-                         'http://www.w3af.com/./abc/./def.htm?id=1')
+
+        self.assertEqual(
+            sr.modify_request(r).url_object.url_string,
+            "http://www.w3af.com/./abc/./def.htm?id=1",
+        )
 
         #
         #    The plugins should not modify the original request
         #
-        self.assertEqual(u.url_string,
-                         'http://www.w3af.com/abc/def.htm?id=1')
-
+        self.assertEqual(u.url_string, "http://www.w3af.com/abc/def.htm?id=1")

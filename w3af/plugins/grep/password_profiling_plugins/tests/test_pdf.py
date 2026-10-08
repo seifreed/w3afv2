@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 import os
 
@@ -27,15 +28,29 @@ from w3af.plugins.grep.password_profiling_plugins.pdf import pdf
 
 
 class TestPDF(unittest.TestCase):
-    
+
     def test_extract_pdf(self):
-        fname = os.path.join(ROOT_PATH, 'plugins', 'grep',
-                             'password_profiling_plugins', 'tests', 'test.pdf')
-        
+        fname = os.path.join(
+            ROOT_PATH,
+            "plugins",
+            "grep",
+            "password_profiling_plugins",
+            "tests",
+            "test.pdf",
+        )
+
         pdf_inst = pdf()
-        
+
         words = pdf_inst._get_pdf_content(open(fname).read())
 
-        EXPECTED_RESULT = ['Testing,', 'testing,', '123.', 'Text', 'in',
-                           'page', 'number', 'two.']
+        EXPECTED_RESULT = [
+            "Testing,",
+            "testing,",
+            "123.",
+            "Text",
+            "in",
+            "page",
+            "number",
+            "two.",
+        ]
         self.assertEqual(EXPECTED_RESULT, words)

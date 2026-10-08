@@ -20,17 +20,17 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import http.cookies
 import sys
 
 # Cookie pickling bug is fixed in Python 2.7.9 and Python 3.4.3+
 # http://bugs.python.org/issue22775
 COOKIE_PICKLES_PROPERLY = (
-    (sys.version_info[:2] == (2, 7) and sys.version_info >= (2, 7, 9)) or
-    sys.version_info >= (3, 4, 3)
-)
+    sys.version_info[:2] == (2, 7) and sys.version_info >= (2, 7, 9)
+) or sys.version_info >= (3, 4, 3)
 
-COOKIE_HEADERS = ('set-cookie', 'cookie', 'cookie2')
+COOKIE_HEADERS = ("set-cookie", "cookie", "cookie2")
 
 
 class SerializableSimpleCookie(http.cookies.SimpleCookie):
@@ -40,7 +40,9 @@ class SerializableSimpleCookie(http.cookies.SimpleCookie):
     https://code.djangoproject.com/ticket/15863
     https://code.djangoproject.com/attachment/ticket/15863/ticket_15863.diff
     """
+
     if not COOKIE_PICKLES_PROPERLY:
+
         def __setitem__(self, key, value):
             # Apply the fix from http://bugs.python.org/issue22775 where
             # it's not fixed in Python itself
@@ -67,7 +69,7 @@ def parse_cookie(cookie_header_value):
     #     self.__ParseString(rawdata)
     #
     # Should read "if isinstance(rawdata, basestring)"
-    cookie_header_value = cookie_header_value.encode('utf-8')
+    cookie_header_value = cookie_header_value.encode("utf-8")
 
     # Note to self: This line may print some chars to the console
     cookie_object.load(cookie_header_value)

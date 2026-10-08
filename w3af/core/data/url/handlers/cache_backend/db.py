@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import sqlite3
 
 import w3af.core.controllers.output_manager as om
@@ -62,15 +63,14 @@ class SQLCachedResponse(CachedResponse):
     def _get_hist_obj(self):
         hist_obj = self._hist_obj
         if hist_obj is None:
-            historyobjs = HistoryItem().find([('alias', self._hash_id, "=")])
+            historyobjs = HistoryItem().find([("alias", self._hash_id, "=")])
             self._hist_obj = hist_obj = historyobjs[0] if historyobjs else None
         return hist_obj
 
     @staticmethod
     def store_in_cache(request, response):
         # Create the http response object
-        resp = HTTPResponse.from_httplib_resp(response,
-                                              original_url=request.url_object)
+        resp = HTTPResponse.from_httplib_resp(response, original_url=request.url_object)
         resp.set_id(response.id)
         resp.set_alias(gen_hash(request))
 
@@ -83,10 +83,10 @@ class SQLCachedResponse(CachedResponse):
             hi.save()
         except sqlite3.Error as e:
             msg = 'A sqlite3 error was raised: "%s".' % e
-            
-            if 'disk' in str(e).lower():
-                msg += ' Please check if your disk is full.'
-                
+
+            if "disk" in str(e).lower():
+                msg += " Please check if your disk is full."
+
             raise ScanMustStopException(msg)
 
         except OverflowError:
@@ -95,9 +95,11 @@ class SQLCachedResponse(CachedResponse):
 
         except Exception as ex:
             args = (ex, resp.get_id(), request.get_uri(), resp.get_code())
-            msg = ('Exception while inserting request/response to the'
-                   ' database: "%s". The request/response that generated'
-                   ' the error is: %s %s %s')
+            msg = (
+                "Exception while inserting request/response to the"
+                ' database: "%s". The request/response that generated'
+                " the error is: %s %s %s"
+            )
             om.out.error(msg % args)
             raise Exception(msg % args)
 
@@ -114,7 +116,7 @@ class SQLCachedResponse(CachedResponse):
     def init():
         create_temp_dir()
         HistoryItem().init()
-    
+
     @staticmethod
     def clear():
         """

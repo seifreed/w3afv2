@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import copy
 
 import w3af.core.data.constants.severity as severity
@@ -38,8 +39,7 @@ class dav(AuditPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    CONTENT_TYPE = Headers([('content-type',
-                             'application/xml; charset="utf-8"')])
+    CONTENT_TYPE = Headers([("content-type", 'application/xml; charset="utf-8"')])
 
     def __init__(self):
         AuditPlugin.__init__(self)
@@ -79,66 +79,86 @@ class dav(AuditPlugin):
         for apply_res in results:
             apply_res.get()
 
-    #pylint: disable=C0103
+    # pylint: disable=C0103
     def _SEARCH(self, domain_path):
         """
         Test SEARCH method.
         """
-        content = ("<?xml version='1.0'?>\r\n"
-                   "<g:searchrequest xmlns:g='DAV:'>\r\n"
-                   "<g:sql>\r\n"
-                   "Select 'DAV:displayname' from scope()\r\n"
-                   "</g:sql>\r\n"
-                   "</g:searchrequest>\r\n")
+        content = (
+            "<?xml version='1.0'?>\r\n"
+            "<g:searchrequest xmlns:g='DAV:'>\r\n"
+            "<g:sql>\r\n"
+            "Select 'DAV:displayname' from scope()\r\n"
+            "</g:sql>\r\n"
+            "</g:searchrequest>\r\n"
+        )
 
-        res = self._uri_opener.SEARCH(domain_path, data=content,
-                                      headers=self.CONTENT_TYPE)
+        res = self._uri_opener.SEARCH(
+            domain_path, data=content, headers=self.CONTENT_TYPE
+        )
 
-        content_matches = '<a:response>' in res or '<a:status>' in res or 'xmlns:a="DAV:"' in res
+        content_matches = (
+            "<a:response>" in res or "<a:status>" in res or 'xmlns:a="DAV:"' in res
+        )
 
         if content_matches and res.get_code() in range(200, 300):
-            msg = ('Directory listing with HTTP SEARCH method was found at'
-                   'directory: "%s".' % domain_path)
-                  
-            v = Vuln('Insecure DAV configuration', msg, severity.MEDIUM,
-                     res.id, self.get_name())
+            msg = (
+                "Directory listing with HTTP SEARCH method was found at"
+                'directory: "%s".' % domain_path
+            )
+
+            v = Vuln(
+                "Insecure DAV configuration",
+                msg,
+                severity.MEDIUM,
+                res.id,
+                self.get_name(),
+            )
 
             v.set_url(res.get_url())
-            v.set_method('SEARCH')
-            
-            self.kb_append(self, 'dav', v)
+            v.set_method("SEARCH")
 
-    #pylint: disable=C0103
+            self.kb_append(self, "dav", v)
+
+    # pylint: disable=C0103
     def _PROPFIND(self, domain_path):
         """
         Test PROPFIND method
         """
-        content = ("<?xml version='1.0'?>\r\n"
-                   "<a:propfind xmlns:a='DAV:'>\r\n"
-                   "<a:prop>\r\n"
-                   "<a:displayname:/>\r\n"
-                   "</a:prop>\r\n"
-                   "</a:propfind>\r\n")
+        content = (
+            "<?xml version='1.0'?>\r\n"
+            "<a:propfind xmlns:a='DAV:'>\r\n"
+            "<a:prop>\r\n"
+            "<a:displayname:/>\r\n"
+            "</a:prop>\r\n"
+            "</a:propfind>\r\n"
+        )
 
         headers = copy.deepcopy(self.CONTENT_TYPE)
-        headers['Depth'] = '1'
+        headers["Depth"] = "1"
 
-        res = self._uri_opener.PROPFIND(domain_path, data=content,
-                                        headers=headers)
+        res = self._uri_opener.PROPFIND(domain_path, data=content, headers=headers)
 
         if "D:href" in res and res.get_code() in range(200, 300):
-            msg = ('Directory listing with HTTP PROPFIND method was found at'
-                   ' directory: "%s".' % domain_path)
+            msg = (
+                "Directory listing with HTTP PROPFIND method was found at"
+                ' directory: "%s".' % domain_path
+            )
 
-            v = Vuln('Insecure DAV configuration', msg, severity.MEDIUM,
-                     res.id, self.get_name())
+            v = Vuln(
+                "Insecure DAV configuration",
+                msg,
+                severity.MEDIUM,
+                res.id,
+                self.get_name(),
+            )
 
             v.set_url(res.get_url())
-            v.set_method('PROPFIND')
+            v.set_method("PROPFIND")
 
-            self.kb_append(self, 'dav', v)
+            self.kb_append(self, "dav", v)
 
-    #pylint: disable=C0103
+    # pylint: disable=C0103
     def _PUT(self, domain_path):
         """
         Tests PUT method.
@@ -146,68 +166,81 @@ class dav(AuditPlugin):
         # upload
         url = domain_path.url_join(rand_alpha(5))
         rnd_content = rand_alnum(6)
-        headers = Headers([('content-type', 'text/plain')])
+        headers = Headers([("content-type", "text/plain")])
 
-        put_response = self._uri_opener.PUT(url, data=rnd_content,
-                                            headers=headers)
+        put_response = self._uri_opener.PUT(url, data=rnd_content, headers=headers)
 
         # check if uploaded
         res = self._uri_opener.GET(url, cache=True)
         if res.get_body() == rnd_content:
-            msg = ('File upload with HTTP PUT method was found at resource:'
-                   ' "%s". A test file was uploaded to: "%s".')
+            msg = (
+                "File upload with HTTP PUT method was found at resource:"
+                ' "%s". A test file was uploaded to: "%s".'
+            )
             msg = msg % (domain_path, res.get_url())
-            
-            v = Vuln('Publicly writable directory', msg, severity.HIGH,
-                     [put_response.id, res.id], self.get_name())
+
+            v = Vuln(
+                "Publicly writable directory",
+                msg,
+                severity.HIGH,
+                [put_response.id, res.id],
+                self.get_name(),
+            )
 
             v.set_url(url)
-            v.set_method('PUT')
-            
-            self.kb_append(self, 'dav', v)
+            v.set_method("PUT")
+
+            self.kb_append(self, "dav", v)
 
         # Report some common errors
         elif put_response.get_code() == 500:
-            msg = ('DAV seems to be incorrectly configured. The web server'
-                   ' answered with a 500 error code. In most cases, this means'
-                   ' that the DAV extension failed in some way. This error was'
-                   ' found at: "%s".' % put_response.get_url())
+            msg = (
+                "DAV seems to be incorrectly configured. The web server"
+                " answered with a 500 error code. In most cases, this means"
+                " that the DAV extension failed in some way. This error was"
+                ' found at: "%s".' % put_response.get_url()
+            )
 
-            i = Info('DAV incorrect configuration', msg, res.id, self.get_name())
+            i = Info("DAV incorrect configuration", msg, res.id, self.get_name())
 
             i.set_url(url)
-            i.set_method('PUT')
-            
-            self.kb_append(self, 'dav', i)
+            i.set_method("PUT")
+
+            self.kb_append(self, "dav", i)
 
         # Report some common errors
         elif put_response.get_code() == 403:
             # handle false positive when PUT method is not supported
             # https://github.com/andresriancho/w3af/pull/2724/files
-            if 'supported' in put_response.get_body().lower():
+            if "supported" in put_response.get_body().lower():
                 return
-            
-            msg = ('DAV seems to be correctly configured and allowing you to'
-                   ' use the PUT method but the directory does not have the'
-                   ' right permissions that would allow the web server to'
-                   ' write to it. This error was found at: "%s".')
+
+            msg = (
+                "DAV seems to be correctly configured and allowing you to"
+                " use the PUT method but the directory does not have the"
+                " right permissions that would allow the web server to"
+                ' write to it. This error was found at: "%s".'
+            )
             msg = msg % put_response.get_url()
-            
-            i = Info('DAV incorrect configuration', msg,
-                     [put_response.id, res.id], self.get_name())
+
+            i = Info(
+                "DAV incorrect configuration",
+                msg,
+                [put_response.id, res.id],
+                self.get_name(),
+            )
 
             i.set_url(url)
-            i.set_method('PUT')
-            
-            self.kb_append(self, 'dav', i)
+            i.set_method("PUT")
+
+            self.kb_append(self, "dav", i)
 
     def get_plugin_deps(self):
         """
         :return: A list with the names of the plugins that should be run before
                  the current one.
         """
-        return ['infrastructure.allowed_methods',
-                'infrastructure.server_header']
+        return ["infrastructure.allowed_methods", "infrastructure.server_header"]
 
     def get_long_desc(self):
         """

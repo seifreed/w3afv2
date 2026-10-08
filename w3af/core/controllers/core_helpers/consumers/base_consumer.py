@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import sys
 import time
@@ -42,11 +43,11 @@ def task_decorator(method):
     Makes sure that for each task we call _add_task() and _task_done()
     which will avoid some ugly race conditions.
     """
-    
+
     @wraps(method)
     def _wrapper(self, *args, **kwds):
-        rnd_id = os.urandom(32).encode('hex')
-        function_id = '%s_%s' % (method.__name__, rnd_id)
+        rnd_id = os.urandom(32).encode("hex")
+        function_id = "%s_%s" % (method.__name__, rnd_id)
 
         self._add_task(function_id)
 
@@ -58,7 +59,7 @@ def task_decorator(method):
         else:
             self._task_done(function_id)
             return result
-    
+
     return _wrapper
 
 
@@ -72,19 +73,25 @@ class BaseConsumer(Process):
 
     THREAD_POOL_SIZE = 10
 
-    def __init__(self, consumer_plugins, w3af_core, thread_name,
-                 create_pool=True, max_pool_queued_tasks=0,
-                 max_in_queue_size=0, thread_pool_size=None):
+    def __init__(
+        self,
+        consumer_plugins,
+        w3af_core,
+        thread_name,
+        create_pool=True,
+        max_pool_queued_tasks=0,
+        max_in_queue_size=0,
+        thread_pool_size=None,
+    ):
         """
         :param consumer_plugins: Instances of base_consumer plugins in a list
         :param w3af_core: The w3af core that we'll use for status reporting
         :param thread_name: How to name the current thread, eg. Auditor
         :param create_pool: True to create a worker pool for this consumer
         """
-        super(BaseConsumer, self).__init__(name='%sController' % thread_name)
+        super(BaseConsumer, self).__init__(name="%sController" % thread_name)
 
-        self.in_queue = CachedQueue(maxsize=max_in_queue_size,
-                                    name=thread_name + 'In')
+        self.in_queue = CachedQueue(maxsize=max_in_queue_size, name=thread_name + "In")
 
         #
         # Crawl and infrastructure plugins write to this queue using:
@@ -127,7 +134,7 @@ class BaseConsumer(Process):
         # maxsize sent to this CachedQueue to 75
         #
         # But just in case I'm using a CachedQueue!
-        self._out_queue = CachedQueue(maxsize=75, name=thread_name + 'Out')
+        self._out_queue = CachedQueue(maxsize=75, name=thread_name + "Out")
 
         self._thread_name = thread_name
         self._consumer_plugins = consumer_plugins
@@ -141,9 +148,11 @@ class BaseConsumer(Process):
         self._threadpool = None
 
         if create_pool:
-            self._threadpool = Pool(thread_pool_size or self.THREAD_POOL_SIZE,
-                                    worker_names='%sWorker' % thread_name,
-                                    max_queued_tasks=max_pool_queued_tasks)
+            self._threadpool = Pool(
+                thread_pool_size or self.THREAD_POOL_SIZE,
+                worker_names="%sWorker" % thread_name,
+                max_queued_tasks=max_pool_queued_tasks,
+            )
 
     def get_pool(self):
         return self._threadpool
@@ -195,30 +204,34 @@ class BaseConsumer(Process):
         if not self._poison_pill_sent:
             return
 
-        msg = ('The %s input queue received the POISON_PILL. Processing %s'
-               ' tasks from input queue and %s tasks from output queue before'
-               ' breaking out of the loop')
-        args = (self._thread_name,
-                self.in_queue.qsize(),
-                self.out_queue.qsize())
+        msg = (
+            "The %s input queue received the POISON_PILL. Processing %s"
+            " tasks from input queue and %s tasks from output queue before"
+            " breaking out of the loop"
+        )
+        args = (self._thread_name, self.in_queue.qsize(), self.out_queue.qsize())
         om.out.debug(msg % args)
 
         if len(self._tasks_in_progress):
-            msg = 'The %s consumer has %s tasks in progress'
+            msg = "The %s consumer has %s tasks in progress"
             args = (self._thread_name, len(self._tasks_in_progress))
             om.out.debug(msg % args)
 
         if self._threadpool is not None:
 
-            msg = ('The %s consumer pool has %s tasks in the input queue'
-                   ' and %s tasks in the output queue')
-            args = (self._thread_name,
-                    self._threadpool.get_inqueue().qsize(),
-                    self._threadpool.get_outqueue().qsize())
+            msg = (
+                "The %s consumer pool has %s tasks in the input queue"
+                " and %s tasks in the output queue"
+            )
+            args = (
+                self._thread_name,
+                self._threadpool.get_inqueue().qsize(),
+                self._threadpool.get_outqueue().qsize(),
+            )
             om.out.debug(msg % args)
 
     def _process_poison_pill(self):
-        om.out.debug('Processing POISON_PILL in %s' % self._thread_name)
+        om.out.debug("Processing POISON_PILL in %s" % self._thread_name)
 
         try:
             self._shutdown_threadpool()
@@ -239,7 +252,7 @@ class BaseConsumer(Process):
 
     def _shutdown_threadpool(self):
         if self._threadpool is None:
-            msg = '%s pool is None. No shutdown required.'
+            msg = "%s pool is None. No shutdown required."
             om.out.debug(msg % self._thread_name)
             return
 
@@ -259,16 +272,16 @@ class BaseConsumer(Process):
         try:
             pool.close()
         except Exception as e:
-            args = ('closing', self.get_name(), e)
+            args = ("closing", self.get_name(), e)
             om.out.debug(msg_fmt % args)
 
-        msg = '%s pool is closed'
+        msg = "%s pool is closed"
         om.out.debug(msg % self._thread_name)
 
         try:
             pool.join()
         except Exception as e:
-            args = ('joining', self.get_name(), e)
+            args = ("joining", self.get_name(), e)
             om.out.debug(msg_fmt % args)
 
             # First try to call join(), which is nice and waits for all the
@@ -276,13 +289,13 @@ class BaseConsumer(Process):
             try:
                 pool.terminate()
             except Exception as e:
-                args = ('terminating', self.get_name(), e)
+                args = ("terminating", self.get_name(), e)
                 om.out.debug(msg_fmt % args)
             else:
-                msg = '%s pool has been terminated after failed call to join'
+                msg = "%s pool has been terminated after failed call to join"
                 om.out.debug(msg % self._thread_name)
 
-        msg = '%s pool has been joined'
+        msg = "%s pool has been joined"
         om.out.debug(msg % self._thread_name)
 
     def _call_teardown(self):
@@ -341,7 +354,7 @@ class BaseConsumer(Process):
 
         So, for each _add_task() there has to be a _task_done() even if the
         task ends in an error or exception.
-        
+
         Recommendation: Do NOT set the callback for apply_async to call
         _task_done, the Python2.7 pool implementation won't call it if the
         function raised an exception and you'll end up with tasks in progress
@@ -350,7 +363,7 @@ class BaseConsumer(Process):
         try:
             self._tasks_in_progress.pop(function_id)
         except KeyError:
-            raise AssertionError('The function with ID %s was not found!' % function_id)
+            raise AssertionError("The function with ID %s was not found!" % function_id)
 
     def _add_task(self, function_id):
         """
@@ -382,7 +395,7 @@ class BaseConsumer(Process):
         # https://github.com/andresriancho/w3af/pull/16063
         if self._poison_pill_sent and not force:
             return
-        
+
         return self.in_queue.put(work)
 
     def in_queue_put_iter(self, work_iter):
@@ -416,7 +429,7 @@ class BaseConsumer(Process):
 
             if self._threadpool._outqueue.qsize() > 0:
                 return True
-        
+
         return False
 
     @property
@@ -441,7 +454,7 @@ class BaseConsumer(Process):
         # send the poison pill
         self.in_queue_put(POISON_PILL, force=True)
 
-        msg = 'Sent POISON_PILL to the %s consumer in_queue'
+        msg = "Sent POISON_PILL to the %s consumer in_queue"
         om.out.debug(msg % self._thread_name)
 
     def join(self):
@@ -449,7 +462,7 @@ class BaseConsumer(Process):
         Poison the loop and wait for all queued work to finish this might take
         some time to process.
         """
-        msg = 'Called %s consumer join()'
+        msg = "Called %s consumer join()"
         om.out.debug(msg % self._thread_name)
 
         start_time = time.time()
@@ -457,25 +470,25 @@ class BaseConsumer(Process):
         if not self.is_alive():
             # This return has a long history, follow it here:
             # https://github.com/andresriancho/w3af/issues/1172
-            msg = 'The %s consumer thread was not alive'
+            msg = "The %s consumer thread was not alive"
             om.out.debug(msg % self._thread_name)
             return
 
         self.send_poison_pill()
 
-        msg = 'Calling join() on %s.in_queue (qsize:%s)'
+        msg = "Calling join() on %s.in_queue (qsize:%s)"
         args = (self._thread_name, self.in_queue.qsize())
         om.out.debug(msg % args)
 
         self.in_queue.join()
 
-        msg = 'Successfully joined the %s consumer in_queue'
+        msg = "Successfully joined the %s consumer in_queue"
         om.out.debug(msg % self._thread_name)
 
         self._shutdown_threadpool()
 
         spent_time = time.time() - start_time
-        om.out.debug('%s took %.2f seconds to join()' % (self._thread_name, spent_time))
+        om.out.debug("%s took %.2f seconds to join()" % (self._thread_name, spent_time))
 
     def _clear_input_output_queues(self):
         #
@@ -546,11 +559,9 @@ class BaseConsumer(Process):
         status.set_running_plugin(phase, plugin_name, log=False)
         status.set_current_fuzzable_request(phase, fuzzable_request)
 
-        exception_data = ExceptionData(status,
-                                       _exception,
-                                       tb,
-                                       enabled_plugins,
-                                       store_tb=False)
+        exception_data = ExceptionData(
+            status, _exception, tb, enabled_plugins, store_tb=False
+        )
         self._out_queue.put(exception_data)
 
     def add_observer(self, observer):

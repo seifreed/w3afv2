@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 from nose.plugins.attrib import attr
 
 import w3af.core.data.constants.severity as severity
@@ -32,33 +33,31 @@ from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.plugins.tests.helper import PluginTest, PluginConfig
 
 
-@attr('ci_ready')
-@attr('smoke')
+@attr("ci_ready")
+@attr("smoke")
 class TestErrorPages(PluginTest):
 
-    target_url = get_moth_http('/grep/error_pages/index.html')
+    target_url = get_moth_http("/grep/error_pages/index.html")
 
     _run_configs = {
-        'cfg': {
-            'target': target_url,
-            'plugins': {
-                'grep': (PluginConfig('error_pages'),)
-            }
+        "cfg": {
+            "target": target_url,
+            "plugins": {"grep": (PluginConfig("error_pages"),)},
         }
     }
 
     def test_found_vuln(self):
-        cfg = self._run_configs['cfg']
-        self._scan(cfg['target'], cfg['plugins'])
+        cfg = self._run_configs["cfg"]
+        self._scan(cfg["target"], cfg["plugins"])
 
-        infos = self.kb.get('error_pages', 'error_page')
+        infos = self.kb.get("error_pages", "error_page")
         self.assertEqual(1, len(infos))
         info = infos[0]
 
         self.assertEqual(1, len(infos), infos)
         self.assertEqual(self.target_url, str(info.get_url()))
         self.assertEqual(severity.INFORMATION, info.get_severity())
-        self.assertTrue(info.get_name().startswith('Descriptive error page'))
+        self.assertTrue(info.get_name().startswith("Descriptive error page"))
 
     def setUp(self):
         super(TestErrorPages, self).setUp()
@@ -69,43 +68,45 @@ class TestErrorPages(PluginTest):
         plugin = error_pages()
 
         body = plugin.ERROR_PAGES[5]
-        headers = Headers(list({'content-type': 'text/html'}.items()))
+        headers = Headers(list({"content-type": "text/html"}.items()))
 
         for i in range(plugin.MAX_REPORTED_PER_MSG * 2):
-            url = URL('http://www.w3af.com/%s' % i)
-            request = FuzzableRequest(url, method='GET')
+            url = URL("http://www.w3af.com/%s" % i)
+            request = FuzzableRequest(url, method="GET")
             response = HTTPResponse(200, body, headers, url, url, _id=1)
 
             plugin.grep(request, response)
 
         plugin.end()
 
-        self.assertEqual(len(kb.kb.get('error_pages', 'error_page')),
-                         plugin.MAX_REPORTED_PER_MSG + 1)
+        self.assertEqual(
+            len(kb.kb.get("error_pages", "error_page")), plugin.MAX_REPORTED_PER_MSG + 1
+        )
 
     def test_found_vuln_max_reports_two_different(self):
         kb.kb.cleanup()
         plugin = error_pages()
 
         body = plugin.ERROR_PAGES[5]
-        headers = Headers(list({'content-type': 'text/html'}.items()))
+        headers = Headers(list({"content-type": "text/html"}.items()))
 
         for i in range(plugin.MAX_REPORTED_PER_MSG * 2):
-            url = URL('http://www.w3af.com/%s' % i)
-            request = FuzzableRequest(url, method='GET')
+            url = URL("http://www.w3af.com/%s" % i)
+            request = FuzzableRequest(url, method="GET")
             response = HTTPResponse(200, body, headers, url, url, _id=1)
 
             plugin.grep(request, response)
 
         # Note that here I chose a different error message
         body = plugin.ERROR_PAGES[7]
-        url = URL('http://www.w3af.com/iamdifferent')
-        request = FuzzableRequest(url, method='GET')
+        url = URL("http://www.w3af.com/iamdifferent")
+        request = FuzzableRequest(url, method="GET")
         response = HTTPResponse(200, body, headers, url, url, _id=1)
 
         plugin.grep(request, response)
 
         plugin.end()
 
-        self.assertEqual(len(kb.kb.get('error_pages', 'error_page')),
-                         plugin.MAX_REPORTED_PER_MSG + 2)
+        self.assertEqual(
+            len(kb.kb.get("error_pages", "error_page")), plugin.MAX_REPORTED_PER_MSG + 2
+        )

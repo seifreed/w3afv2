@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import gtk
 import queue
 import threading
@@ -27,12 +28,14 @@ import gobject
 from w3af.core.ui.gui.helpers import end_threads, Throbber
 from w3af.core.ui.gui.entries import EmailEntry
 from w3af.core.ui.gui.constants import W3AF_ICON
-from w3af.core.controllers.easy_contribution.github_issues import (GithubIssues,
-                                                                   OAUTH_TOKEN,
-                                                                   LoginFailed,
-                                                                   OAUTH_AUTH_FAILED,
-                                                                   OAuthTokenInvalid,
-                                                                   DEFAULT_BUG_QUERY_TEXT)
+from w3af.core.controllers.easy_contribution.github_issues import (
+    GithubIssues,
+    OAUTH_TOKEN,
+    LoginFailed,
+    OAUTH_AUTH_FAILED,
+    OAuthTokenInvalid,
+    DEFAULT_BUG_QUERY_TEXT,
+)
 
 
 class SimpleBaseWindow(gtk.Window):
@@ -58,12 +61,13 @@ class bug_report_worker(threading.Thread):
     The simplest threading object possible to report bugs to the network without
     blocking the UI.
     """
+
     FINISHED = -1
 
     def __init__(self, bug_report_function, bugs_to_report):
         threading.Thread.__init__(self)
         self.daemon = True
-        
+
         self.bug_report_function = bug_report_function
         self.bugs_to_report = bugs_to_report
         self.output = queue.Queue()
@@ -98,19 +102,21 @@ class report_bug_show_result(gtk.MessageDialog):
                                going to be the parameters for the
                                bug_report_function.
         """
-        gtk.MessageDialog.__init__(self,
-                                   None,
-                                   gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                                   gtk.MESSAGE_INFO,
-                                   gtk.BUTTONS_OK,
-                                   None)
+        gtk.MessageDialog.__init__(
+            self,
+            None,
+            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+            gtk.MESSAGE_INFO,
+            gtk.BUTTONS_OK,
+            None,
+        )
 
         self.bug_report_function = bug_report_function
         self.bugs_to_report = bugs_to_report
         self.ticket_ids_in_markup = 0
         self.reported_ids = []
 
-        self.set_title('Bug report results')
+        self.set_title("Bug report results")
         self.set_icon_from_file(W3AF_ICON)
 
         # Disable OK button until the worker finishes the bug reporting process
@@ -121,11 +127,13 @@ class report_bug_show_result(gtk.MessageDialog):
         #
         #    Main text
         #
-        text = ('Thank you for reporting your bugs, it helps us improve our'
-                ' scanning engine. If you want to get involved with the project'
-                ' please send an email to our <a href="mailto:%s">mailing list'
-                ' </a>.')
-        text %= 'w3af-develop@lists.sourceforge.net'
+        text = (
+            "Thank you for reporting your bugs, it helps us improve our"
+            " scanning engine. If you want to get involved with the project"
+            ' please send an email to our <a href="mailto:%s">mailing list'
+            " </a>."
+        )
+        text %= "w3af-develop@lists.sourceforge.net"
         # All these lines are here to add a label instead of the easy "set_
         # markup" in order to avoid a bug where the label text appears selected
         msg_area = self.get_message_area()
@@ -136,8 +144,7 @@ class report_bug_show_result(gtk.MessageDialog):
         label.select_region(0, 0)
         msg_area.pack_start(label)
 
-        self.worker = bug_report_worker(
-            self.bug_report_function, self.bugs_to_report)
+        self.worker = bug_report_worker(self.bug_report_function, self.bugs_to_report)
         self.worker.start()
         gobject.timeout_add(200, self.add_result_from_worker)
 
@@ -146,7 +153,7 @@ class report_bug_show_result(gtk.MessageDialog):
         #
         #    Empty markup for the ticket ids
         #
-        self.link_label = gtk.Label('')
+        self.link_label = gtk.Label("")
         self.link_label.set_line_wrap(True)
         self.link_label.set_use_markup(True)
         self.status_hbox.pack_end(self.link_label)
@@ -222,8 +229,9 @@ class report_bug_show_result(gtk.MessageDialog):
         if len(current_markup) == 0 or needs_new_line:
             needs_delim = False
 
-        current_markup += (
-            '\n' if needs_new_line else '') + (', ' if needs_delim else '')
+        current_markup += ("\n" if needs_new_line else "") + (
+            ", " if needs_delim else ""
+        )
         current_markup += new_link
 
         self.link_label.set_markup(current_markup)
@@ -254,27 +262,28 @@ class dlg_ask_credentials(gtk.MessageDialog):
                 params is the email or the sourceforge username and password,
                 in the anon case, the params are empty.
         """
-        gtk.MessageDialog.__init__(self,
-                                   None,
-                                   gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                                   gtk.MESSAGE_QUESTION,
-                                   gtk.BUTTONS_OK,
-                                   None)
+        gtk.MessageDialog.__init__(
+            self,
+            None,
+            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+            gtk.MESSAGE_QUESTION,
+            gtk.BUTTONS_OK,
+            None,
+        )
 
         self._invalid_login = invalid_login
 
         self.set_icon_from_file(W3AF_ICON)
-        self.set_title('Bug report method - Step 1/2')
+        self.set_title("Bug report method - Step 1/2")
 
     def run(self):
         """
         Setup the dialog and return the results to the invoker.
         """
-        msg = _('\nChoose how to report the bug(s)')
+        msg = _("\nChoose how to report the bug(s)")
 
         if self._invalid_login:
-            msg += _(
-                '<b><i>Invalid credentials, please try again.</i></b>\n\n')
+            msg += _("<b><i>Invalid credentials, please try again.</i></b>\n\n")
 
         self.set_markup(msg)
 
@@ -296,8 +305,7 @@ class dlg_ask_credentials(gtk.MessageDialog):
 
         # Create the text input field
         self.email_entry = EmailEntry(self._email_entry_changed)
-        self.email_entry.connect(
-            "activate", lambda x: self.response(gtk.RESPONSE_OK))
+        self.email_entry.connect("activate", lambda x: self.response(gtk.RESPONSE_OK))
 
         # Create a horizontal box to pack the entry and a label
         email_hbox = gtk.HBox()
@@ -319,8 +327,7 @@ class dlg_ask_credentials(gtk.MessageDialog):
 
         # Create the text input field
         user_entry = gtk.Entry()
-        user_entry.connect(
-            "activate", lambda x: self.response(gtk.RESPONSE_OK))
+        user_entry.connect("activate", lambda x: self.response(gtk.RESPONSE_OK))
 
         user_hbox = gtk.HBox()
         user_hbox.pack_start(gtk.Label("Username:  "), False, 5, 5)
@@ -330,8 +337,7 @@ class dlg_ask_credentials(gtk.MessageDialog):
         # Create the password entry
         passwd_entry = gtk.Entry()
         passwd_entry.set_visibility(False)
-        passwd_entry.connect(
-            "activate", lambda x: self.response(gtk.RESPONSE_OK))
+        passwd_entry.connect("activate", lambda x: self.response(gtk.RESPONSE_OK))
 
         passwd_hbox = gtk.HBox()
         passwd_hbox.pack_start(gtk.Label("Password:  "), False, 5, 5)
@@ -340,8 +346,10 @@ class dlg_ask_credentials(gtk.MessageDialog):
 
         # Some secondary text
         warning_label = gtk.Label()
-        warning = _("\nYour credentials won't be stored in your computer,\n"
-                    "  and will only be sent over HTTPS connections.")
+        warning = _(
+            "\nYour credentials won't be stored in your computer,\n"
+            "  and will only be sent over HTTPS connections."
+        )
         warning_label.set_text(warning)
         gh_vbox.pack_start(warning_label, True, True, 0)
         gh_vbox.set_sensitive(False)
@@ -351,12 +359,29 @@ class dlg_ask_credentials(gtk.MessageDialog):
         self.vbox.pack_start(separator, True, True, 0)
 
         # Handling of sensitiviness between the radio contents
-        anon_button.connect("toggled", self._radio_callback_anon, [
-        ], [email_hbox, gh_vbox])
-        email_button.connect("toggled", self._radio_callback_email,
-                             [email_hbox, ], [gh_vbox, ])
+        anon_button.connect(
+            "toggled", self._radio_callback_anon, [], [email_hbox, gh_vbox]
+        )
+        email_button.connect(
+            "toggled",
+            self._radio_callback_email,
+            [
+                email_hbox,
+            ],
+            [
+                gh_vbox,
+            ],
+        )
         gh_button.connect(
-            "toggled", self._radio_callback_gh, [gh_vbox, ], [email_hbox, ])
+            "toggled",
+            self._radio_callback_gh,
+            [
+                gh_vbox,
+            ],
+            [
+                email_hbox,
+            ],
+        )
 
         # Go go go!
         self.show_all()
@@ -369,15 +394,16 @@ class dlg_ask_credentials(gtk.MessageDialog):
         #
         # Get the results, generate the result tuple and return
         #
-        active_label = [r.get_label(
-        ) for r in anon_button.get_group() if r.get_active()]
+        active_label = [
+            r.get_label() for r in anon_button.get_group() if r.get_active()
+        ]
         active_label = active_label[0].lower()
 
-        if 'email' in active_label:
+        if "email" in active_label:
             method = self.METHOD_EMAIL
             email = self.email_entry.get_text()
             params = (email,)
-        elif 'sourceforge' in active_label:
+        elif "sourceforge" in active_label:
             method = self.METHOD_GH
             user = user_entry.get_text()
             passwd = passwd_entry.get_text()
@@ -434,14 +460,16 @@ class dlg_ask_credentials(gtk.MessageDialog):
 
 
 def dlg_invalid_token(parent):
-    md = gtk.MessageDialog(parent,
-                           gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                           gtk.MESSAGE_WARNING,
-                           gtk.BUTTONS_OK,
-                           OAUTH_AUTH_FAILED)
+    md = gtk.MessageDialog(
+        parent,
+        gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+        gtk.MESSAGE_WARNING,
+        gtk.BUTTONS_OK,
+        OAUTH_AUTH_FAILED,
+    )
 
     md.set_icon_from_file(W3AF_ICON)
-    md.set_title('GitHub authentication failed')
+    md.set_title("GitHub authentication failed")
     return md
 
 
@@ -453,21 +481,23 @@ class dlg_ask_bug_info(gtk.MessageDialog):
                     (user_exit, bug_summary, bug_description)
 
         """
-        gtk.MessageDialog.__init__(self,
-                                   None,
-                                   gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                                   gtk.MESSAGE_QUESTION,
-                                   gtk.BUTTONS_OK,
-                                   None)
+        gtk.MessageDialog.__init__(
+            self,
+            None,
+            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+            gtk.MESSAGE_QUESTION,
+            gtk.BUTTONS_OK,
+            None,
+        )
 
         self.set_icon_from_file(W3AF_ICON)
-        self.set_title('Bug information - Step 2/2')
+        self.set_title("Bug information - Step 2/2")
 
     def run(self):
-        msg = 'Please provide the following information about the bug\n'
+        msg = "Please provide the following information about the bug\n"
         self.set_markup(msg)
 
-        #create the text input field
+        # create the text input field
         summary_entry = gtk.Entry()
 
         sw = gtk.ScrolledWindow()
@@ -480,7 +510,7 @@ class dlg_ask_bug_info(gtk.MessageDialog):
         buffer.set_text(DEFAULT_BUG_QUERY_TEXT)
         sw.add(description_text_view)
 
-        #create a horizontal box to pack the entry and a label
+        # create a horizontal box to pack the entry and a label
         summary_hbox = gtk.HBox()
         summary_hbox.pack_start(gtk.Label("Summary    "), False, 5, 5)
         summary_hbox.pack_end(summary_entry)
@@ -489,7 +519,7 @@ class dlg_ask_bug_info(gtk.MessageDialog):
         description_hbox.pack_start(gtk.Label("Description"), False, 5, 5)
         description_hbox.pack_start(sw, True, True, 0)
 
-        #add it and show it
+        # add it and show it
         self.vbox.pack_start(summary_hbox, True, True, 0)
         self.vbox.pack_start(description_hbox, True, True, 0)
         self.show_all()
@@ -502,8 +532,7 @@ class dlg_ask_bug_info(gtk.MessageDialog):
             return True, None, None
 
         summary = summary_entry.get_text()
-        description = buffer.get_text(
-            buffer.get_start_iter(), buffer.get_end_iter())
+        description = buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter())
 
         self.destroy()
 
@@ -515,7 +544,7 @@ class GithubBugReport(object):
     Class that models user interaction with Github to report ONE bug.
     """
 
-    def __init__(self, tback='', fname=None, plugins=''):
+    def __init__(self, tback="", fname=None, plugins=""):
         self.gh = None
         self.tback = tback
         self.fname = fname
@@ -528,8 +557,12 @@ class GithubBugReport(object):
         if user_exit:
             return
 
-        rbsr = report_bug_show_result(self._report_bug_to_github,
-                                      [(gh, summary, userdesc, email), ])
+        rbsr = report_bug_show_result(
+            self._report_bug_to_github,
+            [
+                (gh, summary, userdesc, email),
+            ],
+        )
         rbsr.run()
 
     def _info_and_login(self):
@@ -553,9 +586,15 @@ class GithubBugReport(object):
         Send bug to github.
         """
         try:
-            ticket_url, ticket_id = gh.report_bug(summary, userdesc, self.tback,
-                                                  self.fname, self.plugins,
-                                                  self.autogen, email)
+            ticket_url, ticket_id = gh.report_bug(
+                summary,
+                userdesc,
+                self.tback,
+                self.fname,
+                self.plugins,
+                self.autogen,
+                email,
+            )
         except:
             return None, None
         else:
@@ -651,14 +690,20 @@ class GithubMultiBugReport(GithubBugReport):
         """
         Send bug to github.
         """
-        userdesc = 'No user description was provided for this bug report given'\
-                   ' that it was related to handled exceptions in scan with id'\
-                   ' %s' % scan_id
+        userdesc = (
+            "No user description was provided for this bug report given"
+            " that it was related to handled exceptions in scan with id"
+            " %s" % scan_id
+        )
         try:
-            ticket_url, ticket_id = gh.report_bug(None, userdesc, tback=tback,
-                                                  plugins=plugins,
-                                                  autogen=self.autogen,
-                                                  email=email)
+            ticket_url, ticket_id = gh.report_bug(
+                None,
+                userdesc,
+                tback=tback,
+                plugins=plugins,
+                autogen=self.autogen,
+                email=email,
+            )
         except:
             return None, None
         else:

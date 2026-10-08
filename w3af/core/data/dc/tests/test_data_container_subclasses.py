@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import unittest
 
 from w3af.core.data.dc.cookie import Cookie
@@ -28,8 +29,14 @@ from w3af.core.data.dc.urlencoded_form import URLEncodedForm
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.dc.query_string import QueryString
 
-ALL_SUBCLASSES = {Cookie, KeyValueContainer, NonRepeatKeyValueContainer,
-                  URLEncodedForm, Headers, QueryString}
+ALL_SUBCLASSES = {
+    Cookie,
+    KeyValueContainer,
+    NonRepeatKeyValueContainer,
+    URLEncodedForm,
+    Headers,
+    QueryString,
+}
 
 
 class TestDataContainerSubClasses(unittest.TestCase):
@@ -37,7 +44,7 @@ class TestDataContainerSubClasses(unittest.TestCase):
         for subclass in ALL_SUBCLASSES:
             inst = subclass()
 
-            inst._to_str_with_separators('=', '&')
+            inst._to_str_with_separators("=", "&")
             inst.iter_bound_tokens()
             inst.iter_tokens()
             inst.iter_setters()

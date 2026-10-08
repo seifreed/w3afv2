@@ -89,10 +89,10 @@ class time_analysis:
             if (receiveTime - sentTime) > (self._average * TIME_DEVIATION_MULTIPLIER):
                 # The time deviation was to big, report it.
                 ### TODO: Check WHY this AINT working and enable output again
-                #om.out.vulnerability('time_analysis detected a big time deviation when ' +
+                # om.out.vulnerability('time_analysis detected a big time deviation when ' +
                 #'requesting the URI: ' + uri + ' with method: ' + method +
                 #' and the following data: ' + str(dc) + ' . The average time for a response is: ' +
-                #str(self._average) + ' , this response took: ' + str(receiveTime - sentTime))
+                # str(self._average) + ' , this response took: ' + str(receiveTime - sentTime))
                 pass
 
     def _calculateAvg(self, uri, method, dc):
@@ -114,7 +114,7 @@ class time_analysis:
             self._registerResponse(uri, method, dc)
         else:
             # Something went really wrong, the tuple aint registered anywhere
-            om.out.error('time_analysis plugin detected an internal error.')
+            om.out.error("time_analysis plugin detected an internal error.")
 
         if self._numberOfRequests == AVERAGE_CALCULATION:
             # Now we are going to calculate the average time

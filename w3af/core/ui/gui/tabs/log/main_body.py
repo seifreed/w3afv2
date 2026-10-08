@@ -19,7 +19,6 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-
 from w3af.core.ui.gui.entries import RememberingVPaned, RememberingHPaned
 from w3af.core.ui.gui.tabs.log.messages import Messages
 from w3af.core.ui.gui.tabs.log.graph import LogGraph
@@ -33,6 +32,7 @@ class LogBody(RememberingVPaned):
 
     :author: Facundo Batista <facundobatista =at= taniquetil.com.ar>
     """
+
     def __init__(self, w3af):
         super(LogBody, self).__init__(w3af, "pane-logbody")
         self.w3af = w3af
@@ -44,17 +44,16 @@ class LogBody(RememberingVPaned):
         # The log and status visualization
         graph = LogGraph(w3af)
         stats = StatsViewer(w3af)
-        
+
         bottom_hbox.pack1(stats)
         bottom_hbox.pack2(graph)
         bottom_hbox.show_all()
-        
+
         messag = Messages()
         messag.show()
-        
+
         # Add to the main vpan
         self.pack1(messag)
         self.pack2(bottom_hbox)
 
         self.show()
-

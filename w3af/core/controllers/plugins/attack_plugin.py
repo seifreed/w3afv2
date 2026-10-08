@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import copy
 
 import w3af.core.controllers.output_manager as om
@@ -28,12 +29,14 @@ from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
 from w3af.core.controllers.plugins.plugin import Plugin
 from w3af.core.controllers.misc.common_attack_methods import CommonAttackMethods
-from w3af.core.controllers.exceptions import (NoVulnerabilityFoundException,
-                                              ExploitFailedException,
-                                              HTTPRequestException,
-                                              ScanMustStopException,
-                                              ScanMustStopByUnknownReasonExc,
-                                              ScanMustStopByUserRequest)
+from w3af.core.controllers.exceptions import (
+    NoVulnerabilityFoundException,
+    ExploitFailedException,
+    HTTPRequestException,
+    ScanMustStopException,
+    ScanMustStopByUnknownReasonExc,
+    ScanMustStopByUserRequest,
+)
 
 
 class AttackPlugin(Plugin, CommonAttackMethods):
@@ -63,15 +66,15 @@ class AttackPlugin(Plugin, CommonAttackMethods):
         """
         :param vuln: The vulnerability object to exploit.
         """
-        msg = 'Plugin is not implementing required method _generate_shell'
+        msg = "Plugin is not implementing required method _generate_shell"
         raise NotImplementedError(msg)
 
     def get_exploitable_vulns(self):
         vulns = []
-        
+
         for location in self.get_kb_location():
             vulns.extend(kb.kb.get(location, location))
-        
+
         return vulns
 
     def can_exploit(self, vuln_to_exploit=None):
@@ -82,13 +85,13 @@ class AttackPlugin(Plugin, CommonAttackMethods):
         :return: True if we can exploit a vuln stored in the kb.
         """
         if vuln_to_exploit is not None:
-            error_msg = 'can_exploit requires an integer list got %s instead.'
+            error_msg = "can_exploit requires an integer list got %s instead."
             if not isinstance(vuln_to_exploit, list):
                 raise TypeError(error_msg % type(vuln_to_exploit))
-            
+
             if not all([isinstance(_id, int) for _id in vuln_to_exploit]):
                 raise TypeError(error_msg % type(vuln_to_exploit))
-        
+
         vulns = self.get_exploitable_vulns()
         if vuln_to_exploit is not None:
             vulns = [v for v in vulns if v.get_id() == vuln_to_exploit]
@@ -101,7 +104,7 @@ class AttackPlugin(Plugin, CommonAttackMethods):
         """
         :return: The type of exploit, SHELL, PROXY, etc.
         """
-        msg = 'Plugin is not implementing required method get_attack_type'
+        msg = "Plugin is not implementing required method get_attack_type"
         raise NotImplementedError(msg)
 
     def GET2POST(self, vuln):
@@ -117,18 +120,20 @@ class AttackPlugin(Plugin, CommonAttackMethods):
         if mutant is None:
             return vuln_copy
 
-        if mutant.get_method() == 'POST':
+        if mutant.get_method() == "POST":
             # No need to work !
             return vuln_copy
 
         else:
             # Need to create a new PostDataMutant, to be able to easily change
             # the values which we want to send in the HTTP post-data
-            fre = FuzzableRequest(mutant.get_url(),
-                                  headers=mutant.get_headers(),
-                                  method='POST',
-                                  cookie=mutant.get_cookie(),
-                                  post_data=mutant.get_uri().querystring)
+            fre = FuzzableRequest(
+                mutant.get_url(),
+                headers=mutant.get_headers(),
+                method="POST",
+                cookie=mutant.get_cookie(),
+                post_data=mutant.get_uri().querystring,
+            )
             pdm = PostDataMutant(fre)
             vuln_copy.set_mutant(pdm)
 
@@ -143,11 +148,11 @@ class AttackPlugin(Plugin, CommonAttackMethods):
                  that will never return a root shell, and 1 for an exploit that
                  WILL ALWAYS return a root shell.
         """
-        msg = 'Plugin is not implementing required method get_root_probability'
+        msg = "Plugin is not implementing required method get_root_probability"
         raise NotImplementedError(msg)
 
     def get_type(self):
-        return 'attack'
+        return "attack"
 
     def get_kb_location(self):
         """
@@ -159,11 +164,11 @@ class AttackPlugin(Plugin, CommonAttackMethods):
 
         Then the exploit plugin that exploits os_commanding
         (attack.os_commanding) should return ['os_commanding',] in this method.
-        
+
         If there is more than one location the implementation should return
         ['a', 'b', ..., 'n']
         """
-        msg = 'Plugin is not implementing required method get_kb_location.'
+        msg = "Plugin is not implementing required method get_kb_location."
         raise NotImplementedError(msg)
 
     def exploit(self, vuln_to_exploit=None):
@@ -174,11 +179,11 @@ class AttackPlugin(Plugin, CommonAttackMethods):
         :return: A list of shells of proxies generated by the exploitation phase
         """
         if not self.can_exploit():
-            fmt = 'No %s vulnerabilities have been found.'
-            msg = fmt % ' or '.join(self.get_kb_location())
+            fmt = "No %s vulnerabilities have been found."
+            msg = fmt % " or ".join(self.get_kb_location())
             raise NoVulnerabilityFoundException(msg)
 
-        om.out.information(self.get_name() + ' exploit plugin is starting.')
+        om.out.information(self.get_name() + " exploit plugin is starting.")
         generated_shells = []
 
         for vuln in self.get_exploitable_vulns():
@@ -192,23 +197,30 @@ class AttackPlugin(Plugin, CommonAttackMethods):
             #   vulnerability
             #
             if not isinstance(vuln.get_url(), URL):
-                msg = '%s plugin can NOT exploit vulnerability with id "%s" as'\
-                      ' it doesn\'t have an URL.'
+                msg = (
+                    '%s plugin can NOT exploit vulnerability with id "%s" as'
+                    " it doesn't have an URL."
+                )
                 om.out.debug(msg % (self.get_name(), vuln.get_id()))
                 continue
 
             if not isinstance(vuln.get_method(), str):
-                msg = '%s plugin can NOT exploit vulnerability with id "%s" as'\
-                      ' it doesn\'t have an HTTP method.'
+                msg = (
+                    '%s plugin can NOT exploit vulnerability with id "%s" as'
+                    " it doesn't have an HTTP method."
+                )
                 om.out.debug(msg % (self.get_name(), vuln.get_id()))
                 continue
 
             # Try to get a shell using a vuln
             try:
                 s = self._generate_shell(vuln)
-            except (HTTPRequestException, ScanMustStopException,
-                    ScanMustStopByUnknownReasonExc,
-                    ScanMustStopByUserRequest) as e:
+            except (
+                HTTPRequestException,
+                ScanMustStopException,
+                ScanMustStopByUnknownReasonExc,
+                ScanMustStopByUserRequest,
+            ) as e:
                 # We get here when there were errors in the exploitation process
                 # and we raise this custom exception to let the user know that
                 # something went wrong.
@@ -216,13 +228,17 @@ class AttackPlugin(Plugin, CommonAttackMethods):
                 raise ExploitFailedException(msg % e)
 
             if s is not None:
-                kb.kb.append(self.get_name(), 'shell', s)
+                kb.kb.append(self.get_name(), "shell", s)
                 generated_shells.append(s)
-                om.out.console('Vulnerability successfully exploited.'
-                               ' Generated shell object %s' % s)
+                om.out.console(
+                    "Vulnerability successfully exploited."
+                    " Generated shell object %s" % s
+                )
                 if self._generate_only_one:
                     # A shell was generated, I only need one point of exec.
-                    return [s, ]
+                    return [
+                        s,
+                    ]
                 else:
                     # Keep adding all shells to the kb
                     # this is done 5 lines before this comment

@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-
 import w3af.core.data.kb.config as cf
 import w3af.core.controllers.output_manager as om
 
@@ -31,10 +30,16 @@ from w3af.core.data.db.cached_disk_dict import CachedDiskDict
 from w3af.core.controllers.misc.diff import chunked_diff
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal, MAX_FUZZY_LENGTH
 from w3af.core.controllers.core_helpers.not_found.response import FourOhFourResponse
-from w3af.core.controllers.core_helpers.not_found.generate_404 import send_request_generate_404
-from w3af.core.controllers.core_helpers.not_found.decorators import LRUCache404, PreventMultipleThreads
-from w3af.core.controllers.core_helpers.not_found.fuzzy_equal_for_diff import fuzzy_equal_for_diff
-
+from w3af.core.controllers.core_helpers.not_found.generate_404 import (
+    send_request_generate_404,
+)
+from w3af.core.controllers.core_helpers.not_found.decorators import (
+    LRUCache404,
+    PreventMultipleThreads,
+)
+from w3af.core.controllers.core_helpers.not_found.fuzzy_equal_for_diff import (
+    fuzzy_equal_for_diff,
+)
 
 IS_EQUAL_RATIO = 0.90
 NOT_404_RESPONSE_CODES = (200, 500, 301, 302, 303, 307, 401)
@@ -64,8 +69,9 @@ class Fingerprint404(object):
         #   The most commonly used keys for this dict are stored in memory
         #   while the least commonly used are stored in SQLite
         #
-        self._404_responses = CachedDiskDict(max_in_memory=MAX_404_IN_MEMORY,
-                                             table_prefix='is_404')
+        self._404_responses = CachedDiskDict(
+            max_in_memory=MAX_404_IN_MEMORY, table_prefix="is_404"
+        )
 
     def is_404(self, http_response):
         """
@@ -113,7 +119,7 @@ class Fingerprint404(object):
         return False
 
     def _is_never_404(self, domain_path):
-        if domain_path in cf.cf.get('never_404'):
+        if domain_path in cf.cf.get("never_404"):
             return True
 
         return False
@@ -130,14 +136,14 @@ class Fingerprint404(object):
         #
         # First we handle the user configured exceptions:
         #
-        if domain_path in cf.cf.get('always_404'):
+        if domain_path in cf.cf.get("always_404"):
             return True
 
         #
         # The user configured setting. "If this string is in the response,
         # then it is a 404"
         #
-        string_match_404 = cf.cf.get('string_match_404')
+        string_match_404 = cf.cf.get("string_match_404")
 
         if string_match_404:
             if string_match_404 in http_response:
@@ -208,14 +214,18 @@ class Fingerprint404(object):
 
         # Trivial performance improvement that prevents running fuzzy_equal
         if query.code in NOT_404_RESPONSE_CODES and known_404.code == 404:
-            msg = ('"%s" (id:%s, code:%s, len:%s, did:%s) is NOT a 404'
-                   ' [known 404 with ID %s uses 404 code]')
-            args = (http_response.get_url(),
-                    http_response.id,
-                    http_response.get_code(),
-                    len(http_response.get_body()),
-                    debugging_id,
-                    known_404.id)
+            msg = (
+                '"%s" (id:%s, code:%s, len:%s, did:%s) is NOT a 404'
+                " [known 404 with ID %s uses 404 code]"
+            )
+            args = (
+                http_response.get_url(),
+                http_response.id,
+                http_response.get_code(),
+                len(http_response.get_body()),
+                debugging_id,
+                known_404.id,
+            )
             om.out.debug(msg % args)
             return False
 
@@ -223,43 +233,55 @@ class Fingerprint404(object):
         # avoid calling it for cases where we know it won't match, for
         # example in comparing an image and an html
         if query.content_type != known_404.content_type:
-            msg = ('"%s" (id:%s, code:%s, len:%s, did:%s) is NOT a 404'
-                   ' [document type mismatch with known 404 with ID %s]')
-            args = (http_response.get_url(),
-                    http_response.id,
-                    http_response.get_code(),
-                    len(http_response.get_body()),
-                    debugging_id,
-                    known_404.id)
+            msg = (
+                '"%s" (id:%s, code:%s, len:%s, did:%s) is NOT a 404'
+                " [document type mismatch with known 404 with ID %s]"
+            )
+            args = (
+                http_response.get_url(),
+                http_response.id,
+                http_response.get_code(),
+                len(http_response.get_body()),
+                debugging_id,
+                known_404.id,
+            )
             om.out.debug(msg % args)
             return False
 
         # This is the simplest case. If they are 100% equal, no matter how
         # large or complex the responses are, then query is a 404
         if known_404.body == query.body:
-            msg = ('"%s" (id:%s, code:%s, len:%s, did:%s) is a 404'
-                   ' [string equals with 404 DB entry with ID %s]')
-            args = (http_response.get_url(),
-                    http_response.id,
-                    http_response.get_code(),
-                    len(http_response.get_body()),
-                    debugging_id,
-                    known_404.id)
+            msg = (
+                '"%s" (id:%s, code:%s, len:%s, did:%s) is a 404'
+                " [string equals with 404 DB entry with ID %s]"
+            )
+            args = (
+                http_response.get_url(),
+                http_response.id,
+                http_response.get_code(),
+                len(http_response.get_body()),
+                debugging_id,
+                known_404.id,
+            )
             om.out.debug(msg % args)
             return True
 
         is_fuzzy_equal = fuzzy_equal(known_404.body, query.body, IS_EQUAL_RATIO)
 
         if not is_fuzzy_equal:
-            msg = ('"%s" (id:%s, code:%s, len:%s, did:%s) is NOT a 404'
-                   ' [similarity_ratio < %s with known 404 with ID %s]')
-            args = (http_response.get_url(),
-                    http_response.id,
-                    http_response.get_code(),
-                    len(http_response.get_body()),
-                    debugging_id,
-                    IS_EQUAL_RATIO,
-                    known_404.id)
+            msg = (
+                '"%s" (id:%s, code:%s, len:%s, did:%s) is NOT a 404'
+                " [similarity_ratio < %s with known 404 with ID %s]"
+            )
+            args = (
+                http_response.get_url(),
+                http_response.id,
+                http_response.get_code(),
+                len(http_response.get_body()),
+                debugging_id,
+                IS_EQUAL_RATIO,
+                known_404.id,
+            )
             om.out.debug(msg % args)
             return False
 
@@ -288,15 +310,19 @@ class Fingerprint404(object):
             # identify one as a valid page and another as a 404, but the
             # fuzzy_equal() function will return True, indicating that they
             # are equal because 99% of the bytes are the same.
-            msg = ('"%s" (id:%s, code:%s, len:%s, did:%s) is a 404'
-                   ' [similarity_ratio > %s with 404 DB entry with ID %s]')
-            args = (http_response.get_url(),
-                    http_response.id,
-                    http_response.get_code(),
-                    len(http_response.get_body()),
-                    debugging_id,
-                    IS_EQUAL_RATIO,
-                    known_404.id)
+            msg = (
+                '"%s" (id:%s, code:%s, len:%s, did:%s) is a 404'
+                " [similarity_ratio > %s with 404 DB entry with ID %s]"
+            )
+            args = (
+                http_response.get_url(),
+                http_response.id,
+                http_response.get_code(),
+                len(http_response.get_body()),
+                debugging_id,
+                IS_EQUAL_RATIO,
+                known_404.id,
+            )
             om.out.debug(msg % args)
             return True
 
@@ -306,12 +332,13 @@ class Fingerprint404(object):
             #
             # The way to handle this case is to send an extra HTTP
             # request that will act as a tie-breaker.
-            return self._handle_large_http_responses(http_response,
-                                                     query,
-                                                     known_404,
-                                                     debugging_id)
+            return self._handle_large_http_responses(
+                http_response, query, known_404, debugging_id
+            )
 
-    def _handle_large_http_responses(self, http_response, query, known_404, debugging_id):
+    def _handle_large_http_responses(
+        self, http_response, query, known_404, debugging_id
+    ):
         """
         When HTTP response bodies are large the fuzzy_equal() will generate
         404 false positives. This is explained in a comment above,
@@ -348,10 +375,9 @@ class Fingerprint404(object):
             #
             # Send exclude=[known_404_1.url] to prevent the function from sending
             # an HTTP request to the same forced 404 URL
-            known_404_2 = send_request_generate_404(self._uri_opener,
-                                                    http_response,
-                                                    debugging_id,
-                                                    exclude=[known_404_1.url])
+            known_404_2 = send_request_generate_404(
+                self._uri_opener, http_response, debugging_id, exclude=[known_404_1.url]
+            )
 
             known_404_1.diff, _ = chunked_diff(known_404_1.body, known_404_2.body)
             known_404_1.diff_with_id = known_404_2.id
@@ -363,33 +389,49 @@ class Fingerprint404(object):
         is_fuzzy_equal = fuzzy_equal_for_diff(diff_x, diff_y, IS_EQUAL_RATIO)
 
         if not is_fuzzy_equal:
-            msg = ('"%s" (id:%s, code:%s, len:%s, did:%s) is NOT a 404'
-                   ' [similarity_ratio < %s with diff of 404]'
-                   ' [Request IDs: %s]')
-            args = (http_response.get_url(),
-                    http_response.id,
-                    http_response.get_code(),
-                    len(http_response.get_body()),
-                    debugging_id,
-                    IS_EQUAL_RATIO,
-                    ', '.join([str(http_response.id),
-                               str(known_404_1.id),
-                               str(known_404_1.diff_with_id)]))
-            om.out.debug(msg % args)
-            return False
-
-        msg = ('"%s" (id:%s, code:%s, len:%s, did:%s) is a 404'
-               ' [similarity_ratio > %s with diff of 404]'
-               ' [Request IDs: %s]')
-        args = (http_response.get_url(),
+            msg = (
+                '"%s" (id:%s, code:%s, len:%s, did:%s) is NOT a 404'
+                " [similarity_ratio < %s with diff of 404]"
+                " [Request IDs: %s]"
+            )
+            args = (
+                http_response.get_url(),
                 http_response.id,
                 http_response.get_code(),
                 len(http_response.get_body()),
                 debugging_id,
                 IS_EQUAL_RATIO,
-                ', '.join([str(http_response.id),
-                           str(known_404_1.id),
-                           str(known_404_1.diff_with_id)]))
+                ", ".join(
+                    [
+                        str(http_response.id),
+                        str(known_404_1.id),
+                        str(known_404_1.diff_with_id),
+                    ]
+                ),
+            )
+            om.out.debug(msg % args)
+            return False
+
+        msg = (
+            '"%s" (id:%s, code:%s, len:%s, did:%s) is a 404'
+            " [similarity_ratio > %s with diff of 404]"
+            " [Request IDs: %s]"
+        )
+        args = (
+            http_response.get_url(),
+            http_response.id,
+            http_response.get_code(),
+            len(http_response.get_body()),
+            debugging_id,
+            IS_EQUAL_RATIO,
+            ", ".join(
+                [
+                    str(http_response.id),
+                    str(known_404_1.id),
+                    str(known_404_1.diff_with_id),
+                ]
+            ),
+        )
         om.out.debug(msg % args)
         return True
 
@@ -410,9 +452,9 @@ class Fingerprint404(object):
         if serialized_known_404 is not None:
             return FourOhFourResponse.loads(serialized_known_404)
 
-        known_404 = send_request_generate_404(self._uri_opener,
-                                              http_response,
-                                              debugging_id)
+        known_404 = send_request_generate_404(
+            self._uri_opener, http_response, debugging_id
+        )
 
         self._404_responses[query.normalized_path] = known_404.dumps()
         return known_404
@@ -432,6 +474,3 @@ def is_404(http_response):
     # Get an instance of the 404 database
     fp_404_db = fingerprint_404_singleton()
     return fp_404_db.is_404(http_response)
-
-
-

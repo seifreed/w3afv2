@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
 
@@ -47,22 +48,22 @@ class finger_pks(InfrastructurePlugin):
 
         pks_se = pks(self._uri_opener)
         results = pks_se.search(root_domain)
-        pks_url = 'http://pgp.mit.edu:11371/'
+        pks_url = "http://pgp.mit.edu:11371/"
 
         for result in results:
-            mail = result.username + '@' + root_domain
-            
+            mail = result.username + "@" + root_domain
+
             desc = 'The mail account: "%s" was found at: "%s".'
             desc %= (mail, pks_url)
 
-            i = Info('Email account', desc, result.id, self.get_name())
+            i = Info("Email account", desc, result.id, self.get_name())
             i.set_url(URL(pks_url))
-            i['mail'] = mail
-            i['user'] = result.username
-            i['name'] = result.name
-            i['url_list'] = {URL(pks_url)}
-            
-            kb.kb.append('emails', 'emails', i)
+            i["mail"] = mail
+            i["user"] = result.username
+            i["name"] = result.name
+            i["url_list"] = {URL(pks_url)}
+
+            kb.kb.append("emails", "emails", i)
             om.out.information(i.get_desc())
 
     def get_long_desc(self):

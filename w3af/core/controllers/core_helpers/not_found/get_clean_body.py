@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.url.HTTPResponse import HTTPResponse
 from w3af.core.data.url.helpers import get_clean_body_impl
 
@@ -40,9 +41,9 @@ def get_clean_body(response):
     :return: A string that represents the "cleaned" response body of the
              response.
     """
-    return get_clean_body_from_parts(response.body,
-                                     response.get_uri(),
-                                     response.doc_type)
+    return get_clean_body_from_parts(
+        response.body, response.get_uri(), response.doc_type
+    )
 
 
 def get_clean_body_from_parts(body, uri, doc_type):
@@ -67,20 +68,21 @@ def get_clean_body_from_parts(body, uri, doc_type):
     url = uri.uri2url()
 
     # Do some real work...
-    base_urls = [url,
-                 url.switch_protocol(),
-                 uri,
-                 uri.switch_protocol()]
+    base_urls = [url, url.switch_protocol(), uri, uri.switch_protocol()]
 
     to_replace = []
 
     for base_url in base_urls:
         to_replace.extend([u.url_string for u in base_url.get_directories()])
-        to_replace.extend(base_url.url_string.split('/'))
-        to_replace.extend([base_url.url_string,
-                           base_url.all_but_scheme(),
-                           base_url.get_path_qs(),
-                           base_url.get_path()])
+        to_replace.extend(base_url.url_string.split("/"))
+        to_replace.extend(
+            [
+                base_url.url_string,
+                base_url.all_but_scheme(),
+                base_url.get_path_qs(),
+                base_url.get_path(),
+            ]
+        )
 
     # Filter some strings
     to_replace = [trs for trs in to_replace if len(trs) > 6]

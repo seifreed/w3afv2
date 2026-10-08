@@ -1,9 +1,17 @@
 import http.client
 import socket
-from urllib.request import (OpenerDirector, ProxyHandler, UnknownHandler,
-                            HTTPHandler, HTTPDefaultErrorHandler,
-                            HTTPRedirectHandler, HTTPErrorProcessor,
-                            HTTPSHandler, Request)
+from urllib.request import (
+    OpenerDirector,
+    ProxyHandler,
+    UnknownHandler,
+    HTTPHandler,
+    HTTPDefaultErrorHandler,
+    HTTPRedirectHandler,
+    HTTPErrorProcessor,
+    HTTPSHandler,
+    Request,
+)
+
 
 class CustomOpenerDirector(OpenerDirector):
     def open(self, full_url, data=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
@@ -24,7 +32,7 @@ class CustomOpenerDirector(OpenerDirector):
         protocol = req.get_type()
 
         # pre-process request
-        meth_name = protocol+"_request"
+        meth_name = protocol + "_request"
         for processor in self.process_request.get(protocol, []):
             meth = getattr(processor, meth_name)
             req = meth(req)
@@ -32,7 +40,7 @@ class CustomOpenerDirector(OpenerDirector):
         response = self._open(req, data)
 
         # post-process response
-        meth_name = protocol+"_response"
+        meth_name = protocol + "_response"
         for processor in self.process_response.get(protocol, []):
             meth = getattr(processor, meth_name)
             response = meth(req, response)
@@ -55,9 +63,14 @@ def build_opener(director_klass, handlers):
         return isinstance(obj, type)
 
     opener = director_klass()
-    default_classes = [ProxyHandler, UnknownHandler, HTTPHandler,
-                       HTTPDefaultErrorHandler, HTTPRedirectHandler,
-                       HTTPErrorProcessor]
+    default_classes = [
+        ProxyHandler,
+        UnknownHandler,
+        HTTPHandler,
+        HTTPDefaultErrorHandler,
+        HTTPRedirectHandler,
+        HTTPErrorProcessor,
+    ]
     default_classes.append(HTTPSHandler)
     skip = set()
     for klass in default_classes:

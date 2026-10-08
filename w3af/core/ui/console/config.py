@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.controllers.output_manager as om
 
 from w3af.core.ui.console.menu import menu
@@ -37,7 +38,7 @@ class ConfigMenu(menu):
     """
 
     def __init__(self, name, console, w3af, parent, configurable):
-        menu.__init__(self, 'config:' + name, console, w3af, parent)
+        menu.__init__(self, "config:" + name, console, w3af, parent)
 
         self._configurable = configurable
         self._options = self._configurable.get_options()
@@ -52,7 +53,7 @@ class ConfigMenu(menu):
             self._opt_dict[k] = o
 
         self._group_options_by_tabid()
-        self._load_help('config')
+        self._load_help("config")
 
     def _cmd_view(self, params):
         """
@@ -64,8 +65,8 @@ class ConfigMenu(menu):
         # https://github.com/andresriancho/w3af/issues/291
         self._options = self._configurable.get_options()
         self._group_options_by_tabid()
-        
-        table = [['Setting', 'Value', 'Modified', 'Description']]
+
+        table = [["Setting", "Value", "Modified", "Description"]]
         for tabid in list(self._tabbed_options.keys()):
             tab_opts = self._tabbed_options[tabid]
 
@@ -74,9 +75,14 @@ class ConfigMenu(menu):
 
                 if opt_name in self._unsaved_options:
                     unsaved_name = opt_name
-                    row = [unsaved_name, self._unsaved_options[opt_name], 'Yes', opt.get_desc()]
+                    row = [
+                        unsaved_name,
+                        self._unsaved_options[opt_name],
+                        "Yes",
+                        opt.get_desc(),
+                    ]
                 else:
-                    row = [opt_name, opt.get_value_str(), '', opt.get_desc()]
+                    row = [opt_name, opt.get_value_str(), "", opt.get_desc()]
                 table.append(row)
 
             table.append([])
@@ -99,16 +105,16 @@ class ConfigMenu(menu):
 
     def _cmd_set(self, params):
         if len(params) < 2:
-            om.out.console('Invalid call to set, please see the help:')
-            self._cmd_help(['set'])
+            om.out.console("Invalid call to set, please see the help:")
+            self._cmd_help(["set"])
             return
-            
+
         if params[0] not in self._options:
             raise BaseFrameworkException('Unknown option: "%s".' % params[0])
-        
+
         name = params[0]
-        value = ' '.join(params[1:])
-        
+        value = " ".join(params[1:])
+
         # This set_value might raise a BaseFrameworkException, for example this
         # might happen when the configuration parameter is an integer and
         # the user sets it to 'abc'
@@ -136,7 +142,7 @@ class ConfigMenu(menu):
         # The first one has an implied save:
         if self._child_call:
             self._cmd_save([])
-    
+
     def _cmd_save(self, tokens):
         try:
             for unsaved_opt_name, unsaved_val in self._unsaved_options.items():
@@ -149,17 +155,20 @@ class ConfigMenu(menu):
                 self._w3af.plugins.set_plugin_options(
                     self._configurable.get_type(),
                     self._configurable.get_name(),
-                    self._options)
+                    self._options,
+                )
 
         except BaseFrameworkException as e:
-            msg = 'Identified an error with the user-defined settings:\n\n'\
-                  '    - %s \n\n'\
-                  'No information has been saved.'
+            msg = (
+                "Identified an error with the user-defined settings:\n\n"
+                "    - %s \n\n"
+                "No information has been saved."
+            )
             raise BaseFrameworkException(msg % e)
         else:
-            om.out.console('The configuration has been saved.')
+            om.out.console("The configuration has been saved.")
             self._unsaved_options = {}
-    
+
     def _cmd_back(self, tokens):
         try:
             self._cmd_save(tokens)
@@ -179,8 +188,8 @@ class ConfigMenu(menu):
 
             opt = self._options[paramName]
             paramType = opt.get_type()
-            if paramType == 'boolean':
-                values = [opt.get_default_value() == 'True' and 'False' or 'True']
+            if paramType == "boolean":
+                values = [opt.get_default_value() == "True" and "False" or "True"]
             else:
                 values = self._memory[paramName]
 
@@ -195,11 +204,10 @@ class ConfigMenu(menu):
                 opt = self._opt_dict[optName]
                 om.out.console(opt.get_desc())
                 if opt.get_help():
-                    om.out.console('')
+                    om.out.console("")
                     om.out.console(opt.get_help())
                 om.out.console("Type: %s" % opt.get_type())
-                om.out.console(
-                    'Current value is: "%s"' % opt.get_default_value())
+                om.out.console('Current value is: "%s"' % opt.get_default_value())
                 return
 
         menu._cmd_help(self, params)

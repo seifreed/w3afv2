@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import uuid
 
@@ -38,9 +39,10 @@ from w3af.core.controllers.ci.constants import ARTIFACTS_DIR
 class Info(dict):
     """
     This class represents an information that is saved to the kb.
-    
+
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def __init__(self, name, desc, response_ids, plugin_name, vulndb_id=None):
         """
         :param name: The vulnerability name, will be checked against the values
@@ -89,11 +91,11 @@ class Info(dict):
                  taken from the mutant.
         """
         if not isinstance(mutant, Mutant):
-            raise TypeError('Mutant expected in from_mutant.')
-        
+            raise TypeError("Mutant expected in from_mutant.")
+
         inst = cls(name, desc, response_ids, plugin_name)
         inst.set_mutant(mutant)
-            
+
         return inst
 
     @classmethod
@@ -103,7 +105,7 @@ class Info(dict):
                  taken from the fuzzable request.
         """
         if not isinstance(freq, FuzzableRequest):
-            raise TypeError('FuzzableRequest expected in from_fr.')
+            raise TypeError("FuzzableRequest expected in from_fr.")
 
         mutant = EmptyMutant(freq)
 
@@ -112,16 +114,16 @@ class Info(dict):
     @classmethod
     def from_info(cls, other_info):
         """
-        :return: A clone of other_info. 
+        :return: A clone of other_info.
         """
         if not isinstance(other_info, Info):
-            raise TypeError('Info expected in from_info.')
-        
+            raise TypeError("Info expected in from_info.")
+
         name = other_info.get_name()
         desc = other_info.get_desc(with_id=False)
         response_ids = other_info.get_id()
         plugin_name = other_info.get_plugin_name()
-        
+
         inst = cls(name, desc, response_ids, plugin_name)
         inst._string_matches = other_info.get_to_highlight()
         inst._mutant = other_info.get_mutant()
@@ -170,38 +172,37 @@ class Info(dict):
 
             owasp_top_10_references = []
             for owasp_version, risk_id, ref in self.get_owasp_top_10_references():
-                data = {'owasp_version': owasp_version,
-                        'risk_id': risk_id,
-                        'link': ref}
+                data = {"owasp_version": owasp_version, "risk_id": risk_id, "link": ref}
                 owasp_top_10_references.append(data)
 
             references = []
             for ref in self.get_references():
-                data = {'url': ref.url,
-                        'title': ref.title}
+                data = {"url": ref.url, "title": ref.title}
                 references.append(data)
 
-        _data = {'url': str(self.get_url()),
-                 'var': self.get_token_name(),
-                 'response_ids': self.get_id(),
-                 'vulndb_id': self.get_vulndb_id(),
-                 'name': self.get_name(),
-                 'desc': self.get_desc(with_id=False),
-                 'long_description': long_description,
-                 'fix_guidance': fix_guidance,
-                 'fix_effort': fix_effort,
-                 'tags': tags,
-                 'wasc_ids': wasc_ids,
-                 'wasc_urls': wasc_urls,
-                 'cwe_urls': cwe_urls,
-                 'cwe_ids': cwe_ids,
-                 'references': references,
-                 'owasp_top_10_references': owasp_top_10_references,
-                 'plugin_name': self.get_plugin_name(),
-                 'severity': self.get_severity(),
-                 'attributes': attributes,
-                 'highlight': list(self.get_to_highlight()),
-                 'uniq_id': self.get_uniq_id()}
+        _data = {
+            "url": str(self.get_url()),
+            "var": self.get_token_name(),
+            "response_ids": self.get_id(),
+            "vulndb_id": self.get_vulndb_id(),
+            "name": self.get_name(),
+            "desc": self.get_desc(with_id=False),
+            "long_description": long_description,
+            "fix_guidance": fix_guidance,
+            "fix_effort": fix_effort,
+            "tags": tags,
+            "wasc_ids": wasc_ids,
+            "wasc_urls": wasc_urls,
+            "cwe_urls": cwe_urls,
+            "cwe_ids": cwe_ids,
+            "references": references,
+            "owasp_top_10_references": owasp_top_10_references,
+            "plugin_name": self.get_plugin_name(),
+            "severity": self.get_severity(),
+            "attributes": attributes,
+            "highlight": list(self.get_to_highlight()),
+            "uniq_id": self.get_uniq_id(),
+        }
 
         return _data
 
@@ -234,9 +235,9 @@ class Info(dict):
             return
 
         if not is_valid_name(name):
-            missing = os.path.join(ARTIFACTS_DIR, 'missing-vulndb.txt')
-            missing = open(missing, 'a')
-            missing.write('%s\n' % name)
+            missing = os.path.join(ARTIFACTS_DIR, "missing-vulndb.txt")
+            missing = open(missing, "a")
+            missing.write("%s\n" % name)
             missing.close()
 
     def get_name(self):
@@ -266,15 +267,15 @@ class Info(dict):
 
     def set_desc(self, desc):
         if not isinstance(desc, str):
-            raise TypeError('Descriptions need to be strings.')
-        
+            raise TypeError("Descriptions need to be strings.")
+
         if len(desc) <= 15:
-            raise ValueError('Description too short.')
-        
+            raise ValueError("Description too short.")
+
         self._desc = desc
 
     def get_desc(self, with_id=True):
-        return self._get_desc_impl('information', with_id)
+        return self._get_desc_impl("information", with_id)
 
     def get_vulndb_id(self):
         return self._vulndb_id
@@ -286,8 +287,10 @@ class Info(dict):
 
         if not DBVuln.is_valid_id(vulndb_id, language=self.get_vulndb_lang()):
             all_db_ids = DBVuln.get_all_db_ids(language=self.get_vulndb_lang())
-            msg = ('Invalid vulnerability DB id %s. There are %s entries in'
-                   ' the vulnerability database but none is the specified one.')
+            msg = (
+                "Invalid vulnerability DB id %s. There are %s entries in"
+                " the vulnerability database but none is the specified one."
+            )
             args = (vulndb_id, len(all_db_ids))
             raise ValueError(msg % args)
 
@@ -298,7 +301,7 @@ class Info(dict):
         :return: The language code (es, en, etc.) to use when reading from
                  the vulnerability database.
         """
-        return cf.cf.get('vulndb_language') or DBVuln.DEFAULT_LANG
+        return cf.cf.get("vulndb_language") or DBVuln.DEFAULT_LANG
 
     def has_db_details(self):
         """
@@ -385,8 +388,9 @@ class Info(dict):
             return self._vulndb
 
         if self._vulndb_id is not None:
-            self._vulndb = DBVuln.from_id(self._vulndb_id,
-                                          language=self.get_vulndb_lang())
+            self._vulndb = DBVuln.from_id(
+                self._vulndb_id, language=self.get_vulndb_lang()
+            )
             return self._vulndb
 
     def _get_desc_impl(self, what, with_id=True):
@@ -396,20 +400,20 @@ class Info(dict):
         if not self._id:
             return self._desc
 
-        if self._desc[-1] != '\n' and not self._desc.strip().endswith('.'):
-            self._desc += '. '
+        if self._desc[-1] != "\n" and not self._desc.strip().endswith("."):
+            self._desc += ". "
 
         # One request OR more than one request
         desc_to_return = self._desc
         if len(self._id) > 1:
             id_range = self._convert_to_range_wrapper(self._id)
 
-            desc_to_return += ' This %s was found in the requests' % what
-            desc_to_return += ' with ids %s.' % id_range
+            desc_to_return += " This %s was found in the requests" % what
+            desc_to_return += " with ids %s." % id_range
 
         elif len(self._id) == 1:
-            desc_to_return += ' This %s was found in the request' % what
-            desc_to_return += ' with id %s.' % self._id[0]
+            desc_to_return += " This %s was found in the request" % what
+            desc_to_return += " with id %s." % self._id[0]
 
         return desc_to_return
 
@@ -427,7 +431,7 @@ class Info(dict):
                  without the trailing comma.
         """
         res = self._convert_to_range(list_of_integers)
-        if res.endswith(','):
+        if res.endswith(","):
             res = res[:-1]
         return res
 
@@ -446,58 +450,60 @@ class Info(dict):
 
         for num in seq[1:]:
             # Is it a new sub-sequence?
-            is_new_seq = (num != last + 1)
+            is_new_seq = num != last + 1
             if is_new_seq:  # End of sequence
                 if dist:  # multi-elems sequence
-                    res.append('%s to %s' % (first, last))
+                    res.append("%s to %s" % (first, last))
                 else:  # one-elem sequence
                     res.append(first)
                 if is_last_in_seq(num):
-                    res.append('and' + ' %s' % num)
+                    res.append("and" + " %s" % num)
                     break
                 dist = 0
                 first = num
             else:
                 if is_last_in_seq(num):
-                    res.append('%s to %s' % (first, num))
+                    res.append("%s to %s" % (first, num))
                     break
                 dist += 1
             last = num
 
-        res_str = ', '.join(str(ele) for ele in res)
-        return res_str.replace(', and', ' and')
+        res_str = ", ".join(str(ele) for ele in res)
+        return res_str.replace(", and", " and")
 
     def __str__(self):
         return self._desc
 
     def __repr__(self):
         return '<info object for issue: "%s">' % self._desc
-    
+
     def get_uniq_id(self):
         """
         :return: A uniq identifier for this info object. Since info objects are
                  persisted to SQLite and then re-generated for showing them to
                  the user, we can't use id() to know if two info objects are
                  the same or not.
-                 
+
                  Also, for some special cases it's not enough to be able to use
                  __eq__ since the code was already designed to use id().
-                 
+
                  This method was added as part of the KB to SQLite migration
                  and might disappear in the future. If possible use __eq__
                  to verify if two instances are the same.
         """
         return self._uniq_id
-    
+
     def __eq__(self, other):
-        return (self.get_uri() == other.get_uri() and
-                self.get_method() == other.get_method() and
-                self.get_token_name() == other.get_token_name() and
-                self.get_dc() == other.get_dc() and
-                self.get_id() == other.get_id() and
-                self.get_name() == other.get_name() and
-                self.get_desc() == other.get_desc() and
-                self.get_plugin_name() == other.get_plugin_name())
+        return (
+            self.get_uri() == other.get_uri()
+            and self.get_method() == other.get_method()
+            and self.get_token_name() == other.get_token_name()
+            and self.get_dc() == other.get_dc()
+            and self.get_id() == other.get_id()
+            and self.get_name() == other.get_name()
+            and self.get_desc() == other.get_desc()
+            and self.get_plugin_name() == other.get_plugin_name()
+        )
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -537,15 +543,17 @@ class Info(dict):
         if isinstance(_id, list):
             # A list with more than one ID:
             # Ensuring that all of them are actually integers
-            error_msg = 'All request/response ids have to be integers.'
+            error_msg = "All request/response ids have to be integers."
             for i in _id:
                 assert isinstance(i, int), error_msg
             _id.sort()
             self._id = _id
         elif isinstance(_id, int):
-            self._id = [_id, ]
+            self._id = [
+                _id,
+            ]
         else:
-            msg = 'IDs need to be lists of int or int not %s'
+            msg = "IDs need to be lists of int or int not %s"
             raise TypeError(msg % type(_id))
 
     def get_id(self):
@@ -627,7 +635,6 @@ class Info(dict):
     def add_to_highlight(self, *str_match):
         for s in str_match:
             if not isinstance(s, str):
-                raise TypeError('Only able to highlight strings.')
-            
-            self._string_matches.add(s)
+                raise TypeError("Only able to highlight strings.")
 
+            self._string_matches.add(s)

@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-
 import unittest
 
 from w3af.core.data.parsers.doc.url import URL
@@ -37,20 +36,24 @@ class TestGetCleanBody(unittest.TestCase):
         Trying to fix issue 14955
         https://github.com/andresriancho/w3af/issues/14955
         """
-        url = URL('http://w3af.org/.git/.git/.git/index')
-        headers = Headers([('Content-Type', 'text/html')])
+        url = URL("http://w3af.org/.git/.git/.git/index")
+        headers = Headers([("Content-Type", "text/html")])
 
-        body = ('<head><title>Document Moved</title></head>'
-                '<body><h1>Object Moved</h1>This document may be found '
-                '<a HREF="http://w3af.org/.git/.git/.git/index/">here</a></body>')
+        body = (
+            "<head><title>Document Moved</title></head>"
+            "<body><h1>Object Moved</h1>This document may be found "
+            '<a HREF="http://w3af.org/.git/.git/.git/index/">here</a></body>'
+        )
 
         resp = HTTPResponse(200, body, headers, url, url)
 
         clean_body = get_clean_body(resp)
 
-        ebody = ('<head><title>Document Moved</title></head>'
-                 '<body><h1>Object Moved</h1>This document may be found '
-                 '<a HREF="/">here</a></body>')
+        ebody = (
+            "<head><title>Document Moved</title></head>"
+            "<body><h1>Object Moved</h1>This document may be found "
+            '<a HREF="/">here</a></body>'
+        )
         self.assertEqual(clean_body, ebody)
 
     def test_get_clean_body_14956(self):
@@ -58,22 +61,26 @@ class TestGetCleanBody(unittest.TestCase):
         Trying to fix issue 14956
         https://github.com/andresriancho/w3af/issues/14956
         """
-        url = URL('http://w3af.org/install.php?mode=phpinfo')
-        headers = Headers([('Content-Type', 'text/html')])
+        url = URL("http://w3af.org/install.php?mode=phpinfo")
+        headers = Headers([("Content-Type", "text/html")])
 
         # Note that the redirect changes the protocol, which is probably why the
         # get_clean_body wasn't removing the URL from the body
         #
         # Also, after this URL is not removed
-        body = ('<head><title>Document Moved</title></head>'
-                '<body><h1>Object Moved</h1>This document may be found '
-                '<a HREF="https://w3af.org/install.php?mode=phpinfo">here</a></body>')
+        body = (
+            "<head><title>Document Moved</title></head>"
+            "<body><h1>Object Moved</h1>This document may be found "
+            '<a HREF="https://w3af.org/install.php?mode=phpinfo">here</a></body>'
+        )
 
         resp = HTTPResponse(200, body, headers, url, url)
 
         clean_body = get_clean_body(resp)
 
-        ebody = ('<head><title>Document Moved</title></head>'
-                 '<body><h1>Object Moved</h1>This document may be found '
-                 '<a HREF="">here</a></body>')
+        ebody = (
+            "<head><title>Document Moved</title></head>"
+            "<body><h1>Object Moved</h1>This document may be found "
+            '<a HREF="">here</a></body>'
+        )
         self.assertEqual(clean_body, ebody)

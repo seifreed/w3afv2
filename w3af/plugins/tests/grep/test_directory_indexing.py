@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 from nose.plugins.attrib import attr
 
 from w3af.core.controllers.ci.moth import get_moth_http
@@ -26,28 +27,26 @@ from w3af.plugins.tests.helper import PluginTest, PluginConfig
 import w3af.core.data.constants.severity as severity
 
 
-@attr('ci_ready')
+@attr("ci_ready")
 class TestDirectoryIndexing(PluginTest):
 
-    dir_indexing_url = get_moth_http('/grep/directory_indexing/index.html')
+    dir_indexing_url = get_moth_http("/grep/directory_indexing/index.html")
 
     _run_configs = {
-        'cfg1': {
-            'target': dir_indexing_url,
-            'plugins': {
-                'grep': (PluginConfig('directory_indexing'),)
-            }
+        "cfg1": {
+            "target": dir_indexing_url,
+            "plugins": {"grep": (PluginConfig("directory_indexing"),)},
         }
     }
 
     def test_found_vuln(self):
-        cfg = self._run_configs['cfg1']
-        self._scan(cfg['target'], cfg['plugins'])
-        
-        vulns = self.kb.get('directory_indexing', 'directory')
+        cfg = self._run_configs["cfg1"]
+        self._scan(cfg["target"], cfg["plugins"])
+
+        vulns = self.kb.get("directory_indexing", "directory")
         self.assertEqual(1, len(vulns))
         v = vulns[0]
-        
+
         self.assertEqual(self.dir_indexing_url, str(v.get_url()))
         self.assertEqual(severity.LOW, v.get_severity())
-        self.assertEqual('Directory indexing',v.get_name())
+        self.assertEqual("Directory indexing", v.get_name())

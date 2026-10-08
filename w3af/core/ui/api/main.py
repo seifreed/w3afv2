@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import socket
 import argparse
 
@@ -36,23 +37,33 @@ def main():
     try:
         args = process_cmd_args_config(app)
     except argparse.ArgumentTypeError as ate:
-        print(('%s' % ate))
+        print(("%s" % ate))
         return 1
 
     # And finally start the app:
     try:
 
         if args.disable_ssl:
-            app.run(host=app.config['HOST'], port=app.config['PORT'],
-                    debug=args.verbose, use_reloader=False, threaded=True)
+            app.run(
+                host=app.config["HOST"],
+                port=app.config["PORT"],
+                debug=args.verbose,
+                use_reloader=False,
+                threaded=True,
+            )
         else:
-            cert_key = SSLCertificate().get_cert_key(app.config['HOST'])
+            cert_key = SSLCertificate().get_cert_key(app.config["HOST"])
 
-            app.run(host=app.config['HOST'], port=app.config['PORT'],
-                    debug=args.verbose, use_reloader=False, threaded=True,
-                    ssl_context=cert_key)
+            app.run(
+                host=app.config["HOST"],
+                port=app.config["PORT"],
+                debug=args.verbose,
+                use_reloader=False,
+                threaded=True,
+                ssl_context=cert_key,
+            )
     except socket.error as se:
-        print(('Failed to start REST API server: %s' % se.strerror))
+        print(("Failed to start REST API server: %s" % se.strerror))
         return 1
 
     return 0

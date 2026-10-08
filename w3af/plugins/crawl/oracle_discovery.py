@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 
 import w3af.core.data.kb.knowledge_base as kb
@@ -36,20 +37,21 @@ class oracle_discovery(CrawlPlugin):
     Find Oracle applications on the remote web server.
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
-    ORACLE_URL = ('/portal/page',
-                  '/reports/rwservlet/showenv')
+
+    ORACLE_URL = ("/portal/page", "/reports/rwservlet/showenv")
 
     ORACLE_RE = (
         # Example string:
         # <html><head><title>PPE is working</title></head><body>
         # PPE version 1.3.4 is working.</body></html>
-        ('<html><head><title>PPE is working</title></head>'
-         '<body>(PPE) version (.*?) is working.</body></html>'),
-
+        (
+            "<html><head><title>PPE is working</title></head>"
+            "<body>(PPE) version (.*?) is working.</body></html>"
+        ),
         # Example strings:
         # Reports Servlet Omgevingsvariabelen 9.0.4.2.0
         # Reports Servlet Variables de Entorno 9.0.4.0.33
-        '(Reports Servlet) [\w ]* ([\d\.]*?)',
+        "(Reports Servlet) [\w ]* ([\d\.]*?)",
     )
 
     ORACLE_RE = [re.compile(regex) for regex in ORACLE_RE]
@@ -63,8 +65,7 @@ class oracle_discovery(CrawlPlugin):
         :param fuzzable_request: A fuzzable_request instance that contains
                                     (among other things) the URL to test.
         """
-        self.worker_pool.map(self.send_and_check,
-                             self.url_generator(fuzzable_request))
+        self.worker_pool.map(self.send_and_check, self.url_generator(fuzzable_request))
 
     def url_generator(self, fuzzable_request):
         base_url = fuzzable_request.get_url().base_url()
@@ -85,10 +86,12 @@ class oracle_discovery(CrawlPlugin):
                 desc = '"%s" version "%s" was detected at "%s".'
                 desc %= (mo.group(1).title(), mo.group(2).title(), response.get_url())
 
-                i = Info('Oracle Application Server', desc, response.id, self.get_name())
+                i = Info(
+                    "Oracle Application Server", desc, response.id, self.get_name()
+                )
                 i.set_url(response.get_url())
 
-                kb.kb.append(self, 'oracle_discovery', i)
+                kb.kb.append(self, "oracle_discovery", i)
                 om.out.information(i.get_desc())
 
                 fr = FuzzableRequest.from_http_response(response)
@@ -97,9 +100,11 @@ class oracle_discovery(CrawlPlugin):
                 break
 
         else:
-            msg = ('oracle_discovery found the URL: "%s" but failed to'
-                   ' parse it as an Oracle page. The first 50 bytes of'
-                   ' the response body is: "%s".')
+            msg = (
+                'oracle_discovery found the URL: "%s" but failed to'
+                " parse it as an Oracle page. The first 50 bytes of"
+                ' the response body is: "%s".'
+            )
             body_start = response.get_body()[:50]
             om.out.debug(msg % (response.get_url(), body_start))
 

@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import gtk
 
 from w3af.core.ui.gui.output.message_consumer import MessageConsumer
@@ -31,6 +32,7 @@ class _LineScroller(gtk.TextView, MessageConsumer):
 
     :author: Facundo Batista <facundobatista =at= taniquetil.com.ar>
     """
+
     def __init__(self, scroll_bar, active_filter, possible):
         """
         :param scroll_bar: Gtk Vertical Scrollbar object
@@ -39,7 +41,7 @@ class _LineScroller(gtk.TextView, MessageConsumer):
         """
         gtk.TextView.__init__(self)
         MessageConsumer.__init__(self)
-        
+
         self.set_editable(False)
         self.set_cursor_visible(False)
         self.set_wrap_mode(gtk.WRAP_WORD)
@@ -48,9 +50,9 @@ class _LineScroller(gtk.TextView, MessageConsumer):
         self.possible = set(possible)
         self.active_filter = active_filter
         self.text_position = 0
-        
-        self.all_messages = DiskList(table_prefix='gui_messages')
-        
+
+        self.all_messages = DiskList(table_prefix="gui_messages")
+
         # scroll bar
         self.freeze_scrollbar = False
         scroll_bar.connect("value-changed", self.scroll_changed)
@@ -73,7 +75,7 @@ class _LineScroller(gtk.TextView, MessageConsumer):
         self.active_filter = filtinfo
         textbuff = self.textbuffer
         textbuff.set_text("")
-        for (mtype, text) in self.all_messages:
+        for mtype, text in self.all_messages:
             if mtype in filtinfo:
                 colortag = self.bg_colors[mtype]
                 iterl = textbuff.get_end_iter()
@@ -89,7 +91,7 @@ class _LineScroller(gtk.TextView, MessageConsumer):
         yield super(_LineScroller, self).handle_message(msg)
 
         textbuff = self.textbuffer
-                
+
         text = "[%s] %s\n" % (msg.get_time(), msg.get_msg())
         mtype = msg.get_type()
 
@@ -100,7 +102,7 @@ class _LineScroller(gtk.TextView, MessageConsumer):
             self.all_messages.append((mtype, text))
             antpos = self.text_position
             self.text_position += len(text)
-    
+
             if mtype in self.active_filter:
                 iterl = textbuff.get_end_iter()
                 colortag = self.bg_colors[mtype]
@@ -119,8 +121,9 @@ class _LineScroller(gtk.TextView, MessageConsumer):
         the scroll bar should be stopped.
         """
         adj = vscrollbar.get_adjustment()
-        self.freeze_scrollbar = \
+        self.freeze_scrollbar = (
             False if adj.value >= (adj.upper - adj.page_size) else True
+        )
 
 
 class Messages(gtk.VBox, Searchable):
@@ -130,6 +133,7 @@ class Messages(gtk.VBox, Searchable):
 
     :author: Facundo Batista <facundobatista =at= taniquetil.com.ar>
     """
+
     def __init__(self):
         gtk.VBox.__init__(self)
 
@@ -143,14 +147,15 @@ class Messages(gtk.VBox, Searchable):
             but.connect("clicked", self.type_filter, signal)
             self.filters[signal] = initial
             upbox.pack_start(but, False, False)
-            
+
         make_but(_("Vulnerabilities"), "vulnerability", True)
         make_but(_("Information"), "information", True)
         make_but(_("Error"), "error", True)
-        
-        search = entries.SemiStockButton(_("Search"), gtk.STOCK_FIND,
-                                         _("Search in the text"))
-        
+
+        search = entries.SemiStockButton(
+            _("Search"), gtk.STOCK_FIND, _("Search in the text")
+        )
+
         upbox.pack_end(search, False, False)
         upbox.show_all()
         self.pack_start(upbox, expand=False, fill=False)
@@ -159,8 +164,9 @@ class Messages(gtk.VBox, Searchable):
         sw_mess = gtk.ScrolledWindow()
         sw_mess.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         newfilter = [k for k, v in list(self.filters.items()) if v]
-        self.sclines = _LineScroller(sw_mess.get_vscrollbar(),
-                                     newfilter, list(self.filters.keys()))
+        self.sclines = _LineScroller(
+            sw_mess.get_vscrollbar(), newfilter, list(self.filters.keys())
+        )
         sw_mess.add(self.sclines)
         sw_mess.show()
         self.pack_start(sw_mess, expand=True, fill=True)

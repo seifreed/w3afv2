@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import unittest
 
@@ -38,55 +39,55 @@ class TestKeys(PluginTest):
 
     def setUp(self):
         self.plugin = keys()
-        kb.kb.clear('keys', 'keys')
+        kb.kb.clear("keys", "keys")
 
     def tearDown(self):
-        self.plugin.end()        
-        
+        self.plugin.end()
+
     def test_private_key(self):
-        body = '-----BEGIN PRIVATE KEY-----'
-        url = URL('http://www.w3af.com/')
-        headers = Headers([('content-type', 'text/html')])
+        body = "-----BEGIN PRIVATE KEY-----"
+        url = URL("http://www.w3af.com/")
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, url, url, _id=1)
-        request = FuzzableRequest(url, method='GET')
+        request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
-        
-        data = kb.kb.get('keys', 'keys')
+
+        data = kb.kb.get("keys", "keys")
         self.assertEqual(len(data), 1)
         self.assertEqual(type(data[0]), Vuln)
 
     def test_public_key(self):
-        body = '-----BEGIN PUBLIC KEY-----'
-        url = URL('http://www.w3af.com/')
-        headers = Headers([('content-type', 'text/html')])
+        body = "-----BEGIN PUBLIC KEY-----"
+        url = URL("http://www.w3af.com/")
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, url, url, _id=1)
-        request = FuzzableRequest(url, method='GET')
+        request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        data = kb.kb.get('keys', 'keys')
+        data = kb.kb.get("keys", "keys")
         self.assertEqual(len(data), 1)
         self.assertEqual(type(data[0]), Info)
 
     def test_xml_key(self):
-        body = '<RSAKeyValue>'
-        url = URL('http://www.w3af.com/')
-        headers = Headers([('content-type', 'text/html')])
+        body = "<RSAKeyValue>"
+        url = URL("http://www.w3af.com/")
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, url, url, _id=1)
-        request = FuzzableRequest(url, method='GET')
+        request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        data = kb.kb.get('keys', 'keys')
+        data = kb.kb.get("keys", "keys")
         self.assertEqual(len(data), 1)
 
     def test_public_ecdsa_key(self):
-        body = 'ecdsa-sha2-nistp256'
-        url = URL('http://www.w3af.com/')
-        headers = Headers([('content-type', 'text/html')])
+        body = "ecdsa-sha2-nistp256"
+        url = URL("http://www.w3af.com/")
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, url, url, _id=1)
-        request = FuzzableRequest(url, method='GET')
+        request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        data = kb.kb.get('keys', 'keys')
+        data = kb.kb.get("keys", "keys")
         self.assertEqual(len(data), 1)
         self.assertEqual(type(data[0]), Info)
 
@@ -95,22 +96,22 @@ class TestKeys(PluginTest):
         -----BEGIN OPENSSH PRIVATE KEY----- ssh-ed25519
         ------------------------------test <RSAKeyValue> <PrivateKey>
         """
-        url = URL('http://www.w3af.com/')
-        headers = Headers([('content-type', 'text/html')])
+        url = URL("http://www.w3af.com/")
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, url, url, _id=1)
-        request = FuzzableRequest(url, method='GET')
+        request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        data = kb.kb.get('keys', 'keys')
+        data = kb.kb.get("keys", "keys")
         self.assertEqual(len(data), 3)
 
     def test_no_match(self):
-        body = '-----BEGIN-----ssh----- BEGIN PRIVATE PUBLIC KEY'
-        url = URL('http://www.w3af.com/')
-        headers = Headers([('content-type', 'text/html')])
+        body = "-----BEGIN-----ssh----- BEGIN PRIVATE PUBLIC KEY"
+        url = URL("http://www.w3af.com/")
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, url, url, _id=1)
-        request = FuzzableRequest(url, method='GET')
+        request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        data = kb.kb.get('keys', 'keys')
+        data = kb.kb.get("keys", "keys")
         self.assertEqual(len(data), 0)

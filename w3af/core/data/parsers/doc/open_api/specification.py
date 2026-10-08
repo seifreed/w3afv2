@@ -20,6 +20,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import json
 import yaml
 import logging
@@ -36,13 +37,14 @@ import w3af.core.controllers.output_manager as om
 from w3af.core.data.parsers.doc.open_api.parameters import ParameterHandler
 from w3af.core.data.parsers.doc.open_api.relaxed_spec import RelaxedSpec
 
-
 # Silence please.
-SILENCE = ('bravado_core.resource',
-           'bravado_core.spec',
-           'swagger_spec_validator.ref_validators',
-           'bravado_core.model',
-           'swagger_spec_validator.validator20')
+SILENCE = (
+    "bravado_core.resource",
+    "bravado_core.spec",
+    "swagger_spec_validator.ref_validators",
+    "bravado_core.model",
+    "swagger_spec_validator.validator20",
+)
 
 for to_silence in SILENCE:
     logger = logging.getLogger(to_silence)
@@ -89,12 +91,14 @@ class SpecificationHandler(object):
                 operations = self._set_operation_params(operation)
 
                 for _operation in operations:
-                    data = (self.spec,
-                            api_resource_name,
-                            resource,
-                            operation_name,
-                            _operation,
-                            _operation.params)
+                    data = (
+                        self.spec,
+                        api_resource_name,
+                        resource,
+                        operation_name,
+                        _operation,
+                        _operation.params,
+                    )
                     yield data
 
     def _set_operation_params(self, operation):
@@ -127,29 +131,32 @@ class SpecificationHandler(object):
         :return: A Spec instance which holds all the dict information in an
                  accessible way.
         """
-        config = {'use_models': False,
-                  'use_spec_url_for_base_path': False}
+        config = {"use_models": False, "use_spec_url_for_base_path": False}
 
         if not self.validate_swagger_spec:
-            om.out.debug('Open API spec validation disabled')
-            config.update({
-                'validate_swagger_spec': False,
-                'validate_requests': False,
-                'validate_responses': False
-            })
+            om.out.debug("Open API spec validation disabled")
+            config.update(
+                {
+                    "validate_swagger_spec": False,
+                    "validate_requests": False,
+                    "validate_responses": False,
+                }
+            )
 
         url_string = self.http_response.get_url().url_string
 
         self._apply_known_fixes_before_parsing(spec_dict)
 
         try:
-            self.spec = RelaxedSpec.from_dict(spec_dict,
-                                              origin_url=url_string,
-                                              config=config)
+            self.spec = RelaxedSpec.from_dict(
+                spec_dict, origin_url=url_string, config=config
+            )
         except Exception as e:
-            msg = ('The document at "%s" is not a valid Open API specification.'
-                   ' The following exception was raised while parsing the dict'
-                   ' into a specification object: "%s"')
+            msg = (
+                'The document at "%s" is not a valid Open API specification.'
+                " The following exception was raised while parsing the dict"
+                ' into a specification object: "%s"'
+            )
             args = (self.http_response.get_url(), e)
 
             om.out.debug(msg % args)
@@ -178,15 +185,15 @@ class SpecificationHandler(object):
         :param spec_dict: The dict, as received from the wire.
         :return: A new (potentially unchanged) spec_dict
         """
-        swagger = spec_dict.get('swagger', None)
-        openapi = spec_dict.get('openapi', None)
+        swagger = spec_dict.get("swagger", None)
+        openapi = spec_dict.get("openapi", None)
 
         if swagger is not None or openapi is not None:
             # No changes are required
             return
 
         # We choose one and cross our fingers
-        spec_dict['swagger'] = '2.0'
+        spec_dict["swagger"] = "2.0"
 
     def _add_info_version_to_spec_dict(self, spec_dict):
         """
@@ -195,15 +202,15 @@ class SpecificationHandler(object):
         :param spec_dict: The dict, as received from the wire.
         :return: A new (potentially unchanged) spec_dict
         """
-        info = spec_dict.get('info', dict())
-        version = info.get('version', None)
+        info = spec_dict.get("info", dict())
+        version = info.get("version", None)
 
         if version is not None:
             # No changes are required
             return
 
-        spec_dict['info'] = info
-        spec_dict['info']['version'] = '1.0.0'
+        spec_dict["info"] = info
+        spec_dict["info"]["version"] = "1.0.0"
 
     def _add_license_name(self, spec_dict):
         """
@@ -213,18 +220,20 @@ class SpecificationHandler(object):
         :param spec_dict: The dict, as received from the wire.
         :return: A new (potentially unchanged) spec_dict
         """
-        info = spec_dict.get('info', dict())
-        license = info.get('license', dict())
-        name = license.get('name', None)
+        info = spec_dict.get("info", dict())
+        license = info.get("license", dict())
+        name = license.get("name", None)
 
         if name is not None:
             # No changes are required
             return
 
-        spec_dict['info'] = info
-        spec_dict['info']['license'] = license
-        spec_dict['info']['license']['name'] = 'Apache 2.0'
-        spec_dict['info']['license']['url'] = 'https://www.apache.org/licenses/LICENSE-2.0.html'
+        spec_dict["info"] = info
+        spec_dict["info"]["license"] = license
+        spec_dict["info"]["license"]["name"] = "Apache 2.0"
+        spec_dict["info"]["license"][
+            "url"
+        ] = "https://www.apache.org/licenses/LICENSE-2.0.html"
 
     def _load_spec_dict(self):
         """
@@ -245,7 +254,7 @@ class SpecificationHandler(object):
                 # checks that we have a JSON or YAML object, but well... just in
                 # case we use a try / except.
                 #
-                msg = 'The OpenAPI specification at %s is not in JSON or YAML format'
+                msg = "The OpenAPI specification at %s is not in JSON or YAML format"
                 args = (self.http_response.get_url(),)
 
                 om.out.error(msg % args)

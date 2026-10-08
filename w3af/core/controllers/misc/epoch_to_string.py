@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import time
 import datetime
 
@@ -49,22 +50,20 @@ def epoch_to_string(start_time):
     minutes, seconds = divmod(time_delta.seconds, 60)
     hours, minutes = divmod(minutes, 60)
 
-    msg = ''
+    msg = ""
 
     if weeks == days == hours == minutes == seconds == 0:
-        msg += '0 seconds'
+        msg += "0 seconds"
     else:
         if weeks:
-            msg += str(weeks) + ' week%s ' % ('s' if weeks > 1 else '')
+            msg += str(weeks) + " week%s " % ("s" if weeks > 1 else "")
         if days:
-            msg += str(days) + ' day%s ' % ('s' if days > 1 else '')
+            msg += str(days) + " day%s " % ("s" if days > 1 else "")
         if hours:
-            msg += str(hours) + ' hour%s ' % ('s' if hours > 1 else '')
+            msg += str(hours) + " hour%s " % ("s" if hours > 1 else "")
         if minutes:
-            msg += str(
-                minutes) + ' minute%s ' % ('s' if minutes > 1 else '')
+            msg += str(minutes) + " minute%s " % ("s" if minutes > 1 else "")
         if seconds:
-            msg += str(
-                seconds) + ' second%s' % ('s' if seconds > 1 else '')
+            msg += str(seconds) + " second%s" % ("s" if seconds > 1 else "")
 
     return msg

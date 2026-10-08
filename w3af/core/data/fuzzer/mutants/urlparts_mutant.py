@@ -19,14 +19,14 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import urllib.request, urllib.parse, urllib.error
 import copy
 
 from w3af.core.data.fuzzer.mutants.mutant import Mutant
 from w3af.core.data.dc.generic.nr_kv_container import NonRepeatKeyValueContainer
 
-
-TOKEN = 'token'
+TOKEN = "token"
 
 
 class URLPartsContainer(NonRepeatKeyValueContainer):
@@ -38,21 +38,24 @@ class URLPartsContainer(NonRepeatKeyValueContainer):
         self.set_token((TOKEN,))
 
     def __reduce__(self):
-        return (self.__class__,
-                (self.url_start, self[TOKEN], self.url_end),
-                {'token': self.token})
+        return (
+            self.__class__,
+            (self.url_start, self[TOKEN], self.url_end),
+            {"token": self.token},
+        )
 
 
 class URLPartsMutant(Mutant):
     """
     This class is a urlparts mutant.
     """
+
     def __init__(self, freq):
         Mutant.__init__(self, freq)
 
         self._double_encoding = False
-        self._safe_encode_chars = ''
-        self._url_parts_dc = URLPartsContainer(None, '', None)
+        self._safe_encode_chars = ""
+        self._url_parts_dc = URLPartsContainer(None, "", None)
 
     def get_dc(self):
         return self._url_parts_dc
@@ -65,7 +68,7 @@ class URLPartsMutant(Mutant):
 
     @staticmethod
     def get_mutant_type():
-        return 'urlparts'
+        return "urlparts"
 
     def set_double_encoding(self, double_encoding):
         self._double_encoding = double_encoding
@@ -85,14 +88,16 @@ class URLPartsMutant(Mutant):
 
         # Please note that this double encoding is needed if we want to work
         # with mod_rewrite
-        encoded = urllib.parse.quote_plus(self._url_parts_dc[TOKEN].get_value(),
-                                    self._safe_encode_chars)
+        encoded = urllib.parse.quote_plus(
+            self._url_parts_dc[TOKEN].get_value(), self._safe_encode_chars
+        )
         if self._double_encoding:
             encoded = urllib.parse.quote_plus(encoded, safe=self._safe_encode_chars)
 
-        domain_path.set_path('%s%s%s' % (self._url_parts_dc.url_start,
-                                         encoded,
-                                         self._url_parts_dc.url_end))
+        domain_path.set_path(
+            "%s%s%s"
+            % (self._url_parts_dc.url_start, encoded, self._url_parts_dc.url_end)
+        )
         return domain_path
 
     def get_uri(self):
@@ -101,35 +106,40 @@ class URLPartsMutant(Mutant):
         """
         # Please note that this double encoding is needed if we want to work
         # with mod_rewrite
-        encoded = urllib.parse.quote_plus(self._url_parts_dc[TOKEN].get_value(),
-                                    self._safe_encode_chars)
+        encoded = urllib.parse.quote_plus(
+            self._url_parts_dc[TOKEN].get_value(), self._safe_encode_chars
+        )
         if self._double_encoding:
             encoded = urllib.parse.quote_plus(encoded, safe=self._safe_encode_chars)
 
-        path = '%s%s%s' % (self._url_parts_dc.url_start,
-                           encoded,
-                           self._url_parts_dc.url_end)
+        path = "%s%s%s" % (
+            self._url_parts_dc.url_start,
+            encoded,
+            self._url_parts_dc.url_end,
+        )
         modified_uri = self._freq.get_uri().copy()
         modified_uri.path = path
         return modified_uri
 
     def set_url(self, u):
-        msg = "You can't change the value of the URL in a URLPartsMutant"\
-              " instance."
+        msg = "You can't change the value of the URL in a URLPartsMutant" " instance."
         raise ValueError(msg)
 
     def found_at(self):
         """
         :return: A string representing WHAT was fuzzed.
         """
-        fmt = '"%s", using HTTP method %s. The modified parameter was the URL'\
-              ' path, with value: "%s".'
+        fmt = (
+            '"%s", using HTTP method %s. The modified parameter was the URL'
+            ' path, with value: "%s".'
+        )
 
         return fmt % (self.get_url(), self.get_method(), self.get_token_value())
 
     @classmethod
-    def create_mutants(cls, freq, mutant_str_list, fuzzable_param_list,
-                       append, fuzzer_config):
+    def create_mutants(
+        cls, freq, mutant_str_list, fuzzable_param_list, append, fuzzer_config
+    ):
         """
         This is a very important method which is called in order to create
         mutants. Usually called from fuzzer.py module.
@@ -137,17 +147,31 @@ class URLPartsMutant(Mutant):
         forced_parts = freq.get_force_fuzzing_url_parts()
 
         if forced_parts:
-            return cls._create_mutants_forced_parts(freq, mutant_str_list, fuzzable_param_list,
-                                                    append, fuzzer_config, forced_parts)
+            return cls._create_mutants_forced_parts(
+                freq,
+                mutant_str_list,
+                fuzzable_param_list,
+                append,
+                fuzzer_config,
+                forced_parts,
+            )
 
-        return cls._create_mutants_all_parts(freq, mutant_str_list, fuzzable_param_list,
-                                             append, fuzzer_config)
+        return cls._create_mutants_all_parts(
+            freq, mutant_str_list, fuzzable_param_list, append, fuzzer_config
+        )
 
     @classmethod
-    def _create_mutants_forced_parts(cls, freq, mutant_str_list, fuzzable_param_list,
-                                     append, fuzzer_config, forced_parts):
+    def _create_mutants_forced_parts(
+        cls,
+        freq,
+        mutant_str_list,
+        fuzzable_param_list,
+        append,
+        fuzzer_config,
+        forced_parts,
+    ):
         res = []
-        path_sep = '/'
+        path_sep = "/"
         for idx, part in enumerate(forced_parts):
             p_chunk, is_variable = part
 
@@ -155,12 +179,11 @@ class URLPartsMutant(Mutant):
                 continue
 
             for mutant_str in mutant_str_list:
-                url_start = ''.join((pc for pc, _ in forced_parts[:idx]))
-                url_end = ''.join((pc for pc, _ in forced_parts[idx + 1:]))
-                url_token = (p_chunk if append else '') + mutant_str
+                url_start = "".join((pc for pc, _ in forced_parts[:idx]))
+                url_end = "".join((pc for pc, _ in forced_parts[idx + 1 :]))
+                url_token = (p_chunk if append else "") + mutant_str
 
-                url_parts_container = URLPartsContainer(url_start, url_token,
-                                                        url_end)
+                url_parts_container = URLPartsContainer(url_start, url_token, url_end)
 
                 freq_copy = copy.deepcopy(freq)
                 m = cls(freq_copy)
@@ -179,13 +202,14 @@ class URLPartsMutant(Mutant):
         return res
 
     @classmethod
-    def _create_mutants_all_parts(cls, freq, mutant_str_list, fuzzable_param_list,
-                                  append, fuzzer_config):
-        if not fuzzer_config['fuzz_url_parts']:
+    def _create_mutants_all_parts(
+        cls, freq, mutant_str_list, fuzzable_param_list, append, fuzzer_config
+    ):
+        if not fuzzer_config["fuzz_url_parts"]:
             return []
 
         res = []
-        path_sep = '/'
+        path_sep = "/"
         path = freq.get_url().get_path()
         path_chunks = path.split(path_sep)
 
@@ -194,12 +218,11 @@ class URLPartsMutant(Mutant):
                 continue
 
             for mutant_str in mutant_str_list:
-                url_start = path_sep.join(path_chunks[:idx] + [''])
-                url_end = path_sep.join([''] + path_chunks[idx + 1:])
-                url_token = (p_chunk if append else '') + mutant_str
+                url_start = path_sep.join(path_chunks[:idx] + [""])
+                url_end = path_sep.join([""] + path_chunks[idx + 1 :])
+                url_token = (p_chunk if append else "") + mutant_str
 
-                url_parts_container = URLPartsContainer(url_start, url_token,
-                                                        url_end)
+                url_parts_container = URLPartsContainer(url_start, url_token, url_end)
 
                 freq_copy = copy.deepcopy(freq)
                 m = cls(freq_copy)

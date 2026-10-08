@@ -20,9 +20,12 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.data.kb.config as cf
 
-from w3af.core.data.constants.file_templates.file_templates import get_template_with_payload
+from w3af.core.data.constants.file_templates.file_templates import (
+    get_template_with_payload,
+)
 from w3af.core.data.dc.utils.token import DataToken
 from w3af.core.controllers.misc.io import NamedStringIO
 
@@ -31,17 +34,17 @@ class FileDataToken(DataToken):
     def __init__(self, name, value, filename, path):
         super(FileDataToken, self).__init__(name, value, path)
 
-        default_extension = cf.cf.get('fuzzed_files_extension', 'gif')
+        default_extension = cf.cf.get("fuzzed_files_extension", "gif")
 
         if filename is None:
             extension = default_extension
         else:
-            extension = filename.rsplit('.', 1)[-1]
+            extension = filename.rsplit(".", 1)[-1]
             extension = extension or default_extension
 
         self._extension = extension
         self._filename = filename
-        self._payload = ''
+        self._payload = ""
         self._original_value = self._value = self.build_file(value)
 
     def get_payload(self):
@@ -61,8 +64,7 @@ class FileDataToken(DataToken):
         # NamedStringIO is a basestring subclass
         #
         if isinstance(value, str) and not isinstance(value, NamedStringIO):
-            _, file_content, fname = get_template_with_payload(self._extension,
-                                                               value)
+            _, file_content, fname = get_template_with_payload(self._extension, value)
 
             # I have to create the NamedStringIO with a "name",
             # required for MultipartContainer to properly encode this as
@@ -81,5 +83,8 @@ class FileDataToken(DataToken):
         and the FileDataToken implementation takes +1 parameter
         """
         args = (self._name, self._value, self._filename, self._path)
-        return self.__class__, args, {'_payload': self._payload,
-                                      '_original_value': self._original_value}
+        return (
+            self.__class__,
+            args,
+            {"_payload": self._payload, "_original_value": self._original_value},
+        )

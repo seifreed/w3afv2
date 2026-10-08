@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 import json
 import collections
@@ -67,11 +68,13 @@ class vulners_db(GrepPlugin):
         GrepPlugin.__init__(self)
 
         # Vulners rules JSON url
-        self._vulners_rules_url = URL('https://raw.githubusercontent.com/vulnersCom/detect-rules/master/rules.json')
+        self._vulners_rules_url = URL(
+            "https://raw.githubusercontent.com/vulnersCom/detect-rules/master/rules.json"
+        )
 
         # Vulners shared objects
         self._vulners_api = None
-        self._vulners_api_key = ''
+        self._vulners_api_key = ""
         self.rules_table = None
         self.rules_updated = False
 
@@ -125,32 +128,43 @@ class vulners_db(GrepPlugin):
             for software_name in software_list:
                 matched_rule = self.rules_table[software_name]
 
-                vulnerabilities_map = self.check_vulners(software_name=matched_rule['alias'].encode(),
-                                                         software_version=detected_version,
-                                                         check_type=matched_rule['type'].encode())
+                vulnerabilities_map = self.check_vulners(
+                    software_name=matched_rule["alias"].encode(),
+                    software_version=detected_version,
+                    check_type=matched_rule["type"].encode(),
+                )
 
-                flattened_vulnerability_list = [item for sublist in list(vulnerabilities_map.values()) for item in sublist]
+                flattened_vulnerability_list = [
+                    item
+                    for sublist in list(vulnerabilities_map.values())
+                    for item in sublist
+                ]
                 for bulletin in flattened_vulnerability_list:
-                    if bulletin['id'] not in vulnerabilities_summary:
-                        vulnerabilities_summary[bulletin['id']] = bulletin
+                    if bulletin["id"] not in vulnerabilities_summary:
+                        vulnerabilities_summary[bulletin["id"]] = bulletin
 
         # Now add KB's for found vulnerabilities
         for bulletin in list(vulnerabilities_summary.values()):
 
-            v = Vuln(name=bulletin['id'],
-                     desc=bulletin['description'] or bulletin.get('sourceData', bulletin['title']),
-                     severity=cvss_to_severity(bulletin.get('cvss', {}).get('score', 0)),
-                     response_ids=response.id,
-                     plugin_name=self.get_name())
+            v = Vuln(
+                name=bulletin["id"],
+                desc=bulletin["description"]
+                or bulletin.get("sourceData", bulletin["title"]),
+                severity=cvss_to_severity(bulletin.get("cvss", {}).get("score", 0)),
+                response_ids=response.id,
+                plugin_name=self.get_name(),
+            )
 
             v.set_url(response.get_url())
 
-            v[VulnerableSoftwareInfoSet.ITAG] = bulletin['id']
+            v[VulnerableSoftwareInfoSet.ITAG] = bulletin["id"]
 
-            self.kb_append_uniq_group(location_a=self,
-                                      location_b='HTML',
-                                      info=v,
-                                      group_klass=VulnerableSoftwareInfoSet)
+            self.kb_append_uniq_group(
+                location_a=self,
+                location_b="HTML",
+                info=v,
+                group_klass=VulnerableSoftwareInfoSet,
+            )
 
     def update_vulners_rules(self):
         """
@@ -166,17 +180,19 @@ class vulners_db(GrepPlugin):
         # But in this case we're breaking that general rule to retrieve the
         # DB at the beginning of the scan
         try:
-            http_response = self._uri_opener.GET(self._vulners_rules_url,
-                                                 binary_response=True,
-                                                 respect_size_limit=False)
+            http_response = self._uri_opener.GET(
+                self._vulners_rules_url, binary_response=True, respect_size_limit=False
+            )
         except Exception as e:
             msg = 'Failed to download Vulners regex rules table: "%s"'
             om.out.error(msg % e)
             return
 
         if http_response.get_code() != 200:
-            msg = ('Failed to download the Vulners regex rules table, unexpected'
-                   ' HTTP response code %s')
+            msg = (
+                "Failed to download the Vulners regex rules table, unexpected"
+                " HTTP response code %s"
+            )
             om.out.error(msg % http_response.get_code())
             return
 
@@ -186,13 +202,17 @@ class vulners_db(GrepPlugin):
         # Adapt it for MultiRe structure [(regex,alias)] removing regex duplicated
         regex_aliases = collections.defaultdict(list)
         for software_name in self.rules_table:
-            regex_aliases[self.rules_table[software_name].get('regex')] += [software_name]
+            regex_aliases[self.rules_table[software_name].get("regex")] += [
+                software_name
+            ]
 
         # Now create fast RE filter
         # Using re.IGNORECASE because w3af is modifying headers when making RAW dump.
         # Why so? Raw must be raw!
-        self._multi_re = MultiRE(((regex, regex_aliases.get(regex)) for regex in regex_aliases),
-                                 re.IGNORECASE)
+        self._multi_re = MultiRE(
+            ((regex, regex_aliases.get(regex)) for regex in regex_aliases),
+            re.IGNORECASE,
+        )
 
     def setup_vulners_api(self):
         try:
@@ -210,12 +230,14 @@ class vulners_db(GrepPlugin):
         if not software_version:
             return {}
 
-        cached_result = self._vulnerability_cache.get((software_name, software_version, check_type))
+        cached_result = self._vulnerability_cache.get(
+            (software_name, software_version, check_type)
+        )
         if cached_result:
             return cached_result
 
         args = (software_name, software_version, check_type)
-        om.out.debug('Detected %s version %s (check type: %s)' % args)
+        om.out.debug("Detected %s version %s (check type: %s)" % args)
 
         vulnerabilities = {}
 
@@ -224,11 +246,15 @@ class vulners_db(GrepPlugin):
         # We will do it in try-except mode to work properly with potential network
         # connectivity problem or in case Vulners is down.
         try:
-            if check_type == 'software':
-                vulnerabilities = self._vulners_api.softwareVulnerabilities(software_name, software_version)
-            elif check_type == 'cpe':
+            if check_type == "software":
+                vulnerabilities = self._vulners_api.softwareVulnerabilities(
+                    software_name, software_version
+                )
+            elif check_type == "cpe":
                 cpe_string = "%s:%s" % (software_name, software_version)
-                vulnerabilities = self._vulners_api.cpeVulnerabilities(cpe_string.encode())
+                vulnerabilities = self._vulners_api.cpeVulnerabilities(
+                    cpe_string.encode()
+                )
         except Exception as e:
             msg = 'Failed to make Vulners API request: "%s"'
             om.out.error(msg % e)
@@ -237,7 +263,9 @@ class vulners_db(GrepPlugin):
             return {}
 
         # If call was OK cache the data and return results
-        self._vulnerability_cache[(software_name, software_version, check_type)] = vulnerabilities
+        self._vulnerability_cache[(software_name, software_version, check_type)] = (
+            vulnerabilities
+        )
         return vulnerabilities
 
     def get_options(self):
@@ -246,9 +274,11 @@ class vulners_db(GrepPlugin):
         """
         ol = OptionList()
 
-        d = ('Vulners API key for extended scanning rate limits.'
-             ' Obtain an API key for free at https://vulners.com/')
-        o = opt_factory('vulners_api_key', self._vulners_api_key, d, STRING)
+        d = (
+            "Vulners API key for extended scanning rate limits."
+            " Obtain an API key for free at https://vulners.com/"
+        )
+        o = opt_factory("vulners_api_key", self._vulners_api_key, d, STRING)
         ol.add(o)
         return ol
 
@@ -259,7 +289,7 @@ class vulners_db(GrepPlugin):
         :param options_list: A dictionary with the options for the plugin.
         :return: No value is returned.
         """
-        self._vulners_api_key = options_list['vulners_api_key'].get_value()
+        self._vulners_api_key = options_list["vulners_api_key"].get_value()
 
     def get_long_desc(self):
         """
@@ -279,14 +309,14 @@ class vulners_db(GrepPlugin):
 
 
 class VulnerableSoftwareInfoSet(InfoSet):
-    ITAG = 'vulnerability_id'
+    ITAG = "vulnerability_id"
     TEMPLATE = (
-        'Vulners plugin detected software with known vulnerabilities.'
+        "Vulners plugin detected software with known vulnerabilities."
         ' The identified vulnerability is "{{ name }}".\n'
-        '\n'
-        ' The first ten URLs where vulnerable software was detected are:\n'
-        ''
-        '{% for url in uris[:10] %}'
-        ' - {{ url }}\n'
-        '{% endfor %}'
+        "\n"
+        " The first ten URLs where vulnerable software was detected are:\n"
+        ""
+        "{% for url in uris[:10] %}"
+        " - {{ url }}\n"
+        "{% endfor %}"
     )

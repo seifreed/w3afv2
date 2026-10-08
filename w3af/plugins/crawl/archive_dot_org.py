@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 from itertools import repeat
 
@@ -42,9 +43,11 @@ class archive_dot_org(CrawlPlugin):
     :author: Darren Bilby, thanks for the good idea!
     """
 
-    ARCHIVE_START_URL = 'http://web.archive.org/web/*/%s'
-    INTERESTING_URLS_RE = '<a href="(http://web\.archive\.org/web/\d*?/https?://%s/.*?)"'
-    NOT_IN_ARCHIVE = '<p>Wayback Machine doesn&apos;t have that page archived.</p>'
+    ARCHIVE_START_URL = "http://web.archive.org/web/*/%s"
+    INTERESTING_URLS_RE = (
+        '<a href="(http://web\.archive\.org/web/\d*?/https?://%s/.*?)"'
+    )
+    NOT_IN_ARCHIVE = "<p>Wayback Machine doesn&apos;t have that page archived.</p>"
 
     def __init__(self):
         CrawlPlugin.__init__(self)
@@ -68,8 +71,10 @@ class archive_dot_org(CrawlPlugin):
         domain = fuzzable_request.get_url().get_domain()
 
         if is_private_site(domain):
-            msg = 'There is no point in searching archive.org for "%s"'\
-                  ' because it is a private site that will never be indexed.'
+            msg = (
+                'There is no point in searching archive.org for "%s"'
+                " because it is a private site that will never be indexed."
+            )
             om.out.information(msg % domain)
             raise RunOnce(msg)
 
@@ -80,12 +85,17 @@ class archive_dot_org(CrawlPlugin):
 
         if self.NOT_IN_ARCHIVE in http_response.body:
             msg = 'There is no point in searching archive.org for "%s"'
-            msg += ' because they are not indexing this site.'
+            msg += " because they are not indexing this site."
             om.out.information(msg % domain)
             raise RunOnce(msg)
 
         references = self._spider_archive(
-            [start_url, ], self._max_depth, domain)
+            [
+                start_url,
+            ],
+            self._max_depth,
+            domain,
+        )
         self._analyze_urls(references)
 
     def _analyze_urls(self, references):
@@ -99,17 +109,17 @@ class archive_dot_org(CrawlPlugin):
 
         # Translate archive.org URL's to normal URL's
         for url in references:
-            url = url.url_string[url.url_string.index('http', 1):]
+            url = url.url_string[url.url_string.index("http", 1) :]
             real_urls.append(URL(url))
 
         real_urls = list(set(real_urls))
 
         if len(real_urls):
-            om.out.debug('Archive.org cached the following pages:')
+            om.out.debug("Archive.org cached the following pages:")
             for u in real_urls:
-                om.out.debug('- %s' % u)
+                om.out.debug("- %s" % u)
         else:
-            om.out.debug('Archive.org did not find any pages.')
+            om.out.debug("Archive.org did not find any pages.")
 
         # Verify if they exist in the target site and add them to
         # the result if they do. Send the requests using threads:
@@ -148,12 +158,10 @@ class archive_dot_org(CrawlPlugin):
             if max_depth - 1 > 0:
                 if new_urls:
                     res.extend(new_urls)
-                    res.extend(self._spider_archive(new_urls,
-                                                    max_depth - 1,
-                                                    domain))
+                    res.extend(self._spider_archive(new_urls, max_depth - 1, domain))
             else:
-                msg = 'Some sections of the archive.org site were not analyzed'
-                msg += ' because of the configured max_depth.'
+                msg = "Some sections of the archive.org site were not analyzed"
+                msg += " because of the configured max_depth."
                 om.out.debug(msg)
                 return new_urls
 
@@ -177,15 +185,19 @@ class archive_dot_org(CrawlPlugin):
         response = self._uri_opener.GET(url, cache=True)
 
         if not is_404(response):
-            msg = 'The URL: "%s" was found at archive.org and is'\
-                  ' STILL AVAILABLE in the target site.'
+            msg = (
+                'The URL: "%s" was found at archive.org and is'
+                " STILL AVAILABLE in the target site."
+            )
             om.out.debug(msg % url)
 
             fr = FuzzableRequest(response.get_uri())
             self.output_queue.put(fr)
         else:
-            msg = 'The URL: "%s" was found at archive.org and was'\
-                  ' DELETED from the target site.'
+            msg = (
+                'The URL: "%s" was found at archive.org and was'
+                " DELETED from the target site."
+            )
             om.out.debug(msg % url)
 
     def get_options(self):
@@ -194,10 +206,12 @@ class archive_dot_org(CrawlPlugin):
         """
         ol = OptionList()
 
-        d = 'Maximum recursion depth for spidering process'
-        h = 'The plugin will spider the archive.org site related to the target'\
-            ' site with the maximum depth specified in this parameter.'
-        o = opt_factory('max_depth', self._max_depth, d, 'integer', help=h)
+        d = "Maximum recursion depth for spidering process"
+        h = (
+            "The plugin will spider the archive.org site related to the target"
+            " site with the maximum depth specified in this parameter."
+        )
+        o = opt_factory("max_depth", self._max_depth, d, "integer", help=h)
         ol.add(o)
 
         return ol
@@ -210,7 +224,7 @@ class archive_dot_org(CrawlPlugin):
         :param options_list: A dictionary with the options for the plugin.
         :return: No value is returned.
         """
-        self._max_depth = options_list['max_depth'].get_value()
+        self._max_depth = options_list["max_depth"].get_value()
 
     def get_long_desc(self):
         """

@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import tempfile
 
 import w3af.core.data.constants.severity as severity
@@ -34,17 +35,21 @@ from w3af.plugins.attack.payloads.base_payload import Payload
 class php_sca(Payload):
 
     KB_DATA = {
-        'XSS': {'kb_key': ('xss', 'xss'),
-                'severity': severity.MEDIUM,
-                'name': 'Cross site scripting vulnerability'},
-
-        'OS_COMMANDING': {'kb_key': ('os_commanding', 'os_commanding'),
-                          'severity': severity.HIGH,
-                          'name': 'OS commanding vulnerability'},
-
-        'FILE_INCLUDE': {'kb_key': ('lfi', 'lfi'),
-                         'severity': severity.MEDIUM,
-                         'name': 'Local file inclusion vulnerability'},
+        "XSS": {
+            "kb_key": ("xss", "xss"),
+            "severity": severity.MEDIUM,
+            "name": "Cross site scripting vulnerability",
+        },
+        "OS_COMMANDING": {
+            "kb_key": ("os_commanding", "os_commanding"),
+            "severity": severity.HIGH,
+            "name": "OS commanding vulnerability",
+        },
+        "FILE_INCLUDE": {
+            "kb_key": ("lfi", "lfi"),
+            "severity": severity.MEDIUM,
+            "name": "Local file inclusion vulnerability",
+        },
     }
 
     def api_read(self, localtmpdir=None):
@@ -52,23 +57,24 @@ class php_sca(Payload):
         :param localtmpdir: Local temporary directory where to save
                             the remote code.
         """
+
         def write_vuln_to_kb(vulnty, url, funcs):
             vulndata = php_sca.KB_DATA[vulnty]
             for f in funcs:
-                vuln_sev = vulndata['severity']
-                desc = name = vulndata['name']
-                
-                v = Vuln(name, desc, vuln_sev, 1, 'PHP Static Code Analyzer')
+                vuln_sev = vulndata["severity"]
+                desc = name = vulndata["name"]
+
+                v = Vuln(name, desc, vuln_sev, 1, "PHP Static Code Analyzer")
                 v.set_uri(url)
                 v.set_token((f.vulnsources[0], 0))
 
-                args = list(vulndata['kb_key']) + [v]
+                args = list(vulndata["kb_key"]) + [v]
 
                 # TODO: Extract the method from the PHP code
                 #     $_GET == GET
                 #     $_POST == POST
                 #     $_REQUEST == GET
-                v.set_method('GET')
+                v.set_method("GET")
 
                 # TODO: Extract all the other variables that are
                 # present in the PHP file using the SCA
@@ -77,8 +83,8 @@ class php_sca(Payload):
                 #
                 # TODO: This needs to be checked! OS Commanding specific
                 #       attributes.
-                v['os'] = 'unix'
-                v['separator'] = ''
+                v["os"] = "unix"
+                v["separator"] = ""
 
                 kb.kb.append(*args)
 
@@ -86,7 +92,7 @@ class php_sca(Payload):
             localtmpdir = tempfile.mkdtemp()
 
         res = {}
-        files = self.exec_payload('get_source_code', args=(localtmpdir,))
+        files = self.exec_payload("get_source_code", args=(localtmpdir,))
 
         # Error handling
         if isinstance(files, str):
@@ -108,8 +114,16 @@ class php_sca(Payload):
                 write_vuln_to_kb(vulnty, url, funcs)
                 # Fill res dict
                 res.setdefault(vulnty, []).extend(
-                    [{'loc': url, 'lineno': fc.lineno, 'funcname': fc.name,
-                      'vulnsrc': str(fc.vulnsources[0])} for fc in funcs])
+                    [
+                        {
+                            "loc": url,
+                            "lineno": fc.lineno,
+                            "funcname": fc.name,
+                            "vulnsrc": str(fc.vulnsources[0]),
+                        }
+                        for fc in funcs
+                    ]
+                )
 
         return res
 
@@ -117,13 +131,12 @@ class php_sca(Payload):
 
         api_res = self.api_read()
         if not api_res:
-            return 'No vulnerability was found.'
+            return "No vulnerability was found."
 
-        rows = [['Vuln Type', 'Remote Location', 'Vuln Param', 'Lineno'], []]
+        rows = [["Vuln Type", "Remote Location", "Vuln Param", "Lineno"], []]
         for vulnty, files in api_res.items():
             for f in files:
-                rows.append(
-                    [vulnty, str(f['loc']), f['vulnsrc'], str(f['lineno'])])
+                rows.append([vulnty, str(f["loc"]), f["vulnsrc"], str(f["lineno"])])
 
         restable = table(rows)
         restable.draw(100)

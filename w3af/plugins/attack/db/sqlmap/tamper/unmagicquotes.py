@@ -11,8 +11,10 @@ from lib.core.enums import PRIORITY
 
 __priority__ = PRIORITY.NORMAL
 
+
 def dependencies():
     pass
+
 
 def tamper(payload, **kwargs):
     """
@@ -36,7 +38,7 @@ def tamper(payload, **kwargs):
         retVal = ""
 
         for i in range(len(payload)):
-            if payload[i] == '\'' and not found:
+            if payload[i] == "'" and not found:
                 retVal += "%bf%27"
                 found = True
             else:
@@ -48,6 +50,6 @@ def tamper(payload, **kwargs):
             if _ != retVal:
                 retVal = _
                 retVal += "-- "
-            elif not any(_ in retVal for _ in ('#', '--', '/*')):
+            elif not any(_ in retVal for _ in ("#", "--", "/*")):
                 retVal += "-- "
     return retVal

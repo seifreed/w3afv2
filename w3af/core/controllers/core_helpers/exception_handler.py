@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import random
 import hashlib
@@ -32,13 +33,17 @@ import w3af.core.controllers.output_manager as om
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.controllers.misc.traceback_utils import get_exception_location
 from w3af.core.controllers.core_helpers.status import CoreStatus
-from w3af.core.controllers.exception_handling.cleanup_bug_report import cleanup_bug_report
-from w3af.core.controllers.exceptions import (ScanMustStopException,
-                                              ScanMustStopByUserRequest,
-                                              HTTPRequestException,
-                                              ScanMustStopByUnknownReasonExc)
+from w3af.core.controllers.exception_handling.cleanup_bug_report import (
+    cleanup_bug_report,
+)
+from w3af.core.controllers.exceptions import (
+    ScanMustStopException,
+    ScanMustStopByUserRequest,
+    HTTPRequestException,
+    ScanMustStopByUnknownReasonExc,
+)
 
-DEBUG = os.environ.get('DEBUG', '0') == '1'
+DEBUG = os.environ.get("DEBUG", "0") == "1"
 
 
 class ExceptionHandler(object):
@@ -50,13 +55,15 @@ class ExceptionHandler(object):
     """
 
     MAX_EXCEPTIONS_PER_PLUGIN = 3
-    NO_HANDLING = (MemoryError,
-                   OSError,
-                   IOError,
-                   ScanMustStopByUnknownReasonExc,
-                   ScanMustStopException,
-                   ScanMustStopByUserRequest,
-                   HTTPRequestException)
+    NO_HANDLING = (
+        MemoryError,
+        OSError,
+        IOError,
+        ScanMustStopByUnknownReasonExc,
+        ScanMustStopException,
+        ScanMustStopByUserRequest,
+        HTTPRequestException,
+    )
 
     if DEBUG:
         NO_HANDLING = list(NO_HANDLING)
@@ -70,10 +77,12 @@ class ExceptionHandler(object):
         self._scan_id = None
 
     def handle_exception_data(self, exception_data):
-        self.handle(exception_data.status,
-                    exception_data.exception,
-                    (_, _, exception_data.traceback),
-                    exception_data.enabled_plugins)
+        self.handle(
+            exception_data.status,
+            exception_data.exception,
+            (_, _, exception_data.traceback),
+            exception_data.enabled_plugins,
+        )
 
     def handle(self, current_status, exception, exec_info, enabled_plugins):
         """
@@ -106,7 +115,7 @@ class ExceptionHandler(object):
         if isinstance(exception, self.NO_HANDLING):
             raise exception.with_traceback(tb)
 
-        stop_on_first_exception = cf.cf.get('stop_on_first_exception')
+        stop_on_first_exception = cf.cf.get("stop_on_first_exception")
         if stop_on_first_exception:
             raise exception.with_traceback(tb)
 
@@ -119,15 +128,19 @@ class ExceptionHandler(object):
 
             count = 0
             for stored_edata in self._exception_data:
-                if edata.plugin == stored_edata.plugin and \
-                   edata.phase == stored_edata.phase:
+                if (
+                    edata.plugin == stored_edata.plugin
+                    and edata.phase == stored_edata.phase
+                ):
                     count += 1
 
             if count < self.MAX_EXCEPTIONS_PER_PLUGIN:
                 self._exception_data.append(edata)
                 msg = edata.get_summary()
-                msg += (' The scan will continue but some vulnerabilities might'
-                        ' not be identified.')
+                msg += (
+                    " The scan will continue but some vulnerabilities might"
+                    " not be identified."
+                )
                 om.out.error(msg)
 
         filename = self.write_crash_file(edata)
@@ -147,7 +160,7 @@ class ExceptionHandler(object):
 
         :return: None
         """
-        filename = 'w3af-crash-%s.txt' % rand_alnum(5)
+        filename = "w3af-crash-%s.txt" % rand_alnum(5)
         filename = os.path.join(tempfile.gettempdir(), filename)
         crash_dump = open(filename, "w")
         crash_dump.write(edata.get_details())
@@ -190,52 +203,60 @@ class ExceptionHandler(object):
         """
         summary = self.generate_summary()
 
-        if not summary['total_exceptions']:
-            fmt_without_exceptions = 'No exceptions were raised during scan with id: %s.'
+        if not summary["total_exceptions"]:
+            fmt_without_exceptions = (
+                "No exceptions were raised during scan with id: %s."
+            )
             without_exceptions = fmt_without_exceptions % self.get_scan_id()
             return without_exceptions
 
-        fmt_with_exceptions = ('During the current scan (with id: %s) w3af'
-                               ' caught %s exceptions in it\'s plugins. The'
-                               ' scan was able to continue by ignoring those'
-                               ' failures but the result is most likely'
-                               ' incomplete.\n'
-                               '\n'
-                               'These are the phases and plugins that raised'
-                               ' exceptions:\n'
-                               '%s\n'
-                               'We recommend you report these vulnerabilities'
-                               ' to the developers in order to help increase'
-                               ' the project\'s stability.\n'
-                               '\n'
-                               'To report these bugs just run the "report"'
-                               ' command.')
+        fmt_with_exceptions = (
+            "During the current scan (with id: %s) w3af"
+            " caught %s exceptions in it's plugins. The"
+            " scan was able to continue by ignoring those"
+            " failures but the result is most likely"
+            " incomplete.\n"
+            "\n"
+            "These are the phases and plugins that raised"
+            " exceptions:\n"
+            "%s\n"
+            "We recommend you report these vulnerabilities"
+            " to the developers in order to help increase"
+            " the project's stability.\n"
+            "\n"
+            'To report these bugs just run the "report"'
+            " command."
+        )
 
-        phase_plugin_str = ''
+        phase_plugin_str = ""
 
-        for phase in summary['exceptions']:
-            for plugin, fr, exception, _ in summary['exceptions'][phase]:
-                phase_plugin_str += '- %s.%s\n' % (phase, plugin)
+        for phase in summary["exceptions"]:
+            for plugin, fr, exception, _ in summary["exceptions"][phase]:
+                phase_plugin_str += "- %s.%s\n" % (phase, plugin)
 
-        with_exceptions = fmt_with_exceptions % (self.get_scan_id(),
-                                                 summary['total_exceptions'],
-                                                 phase_plugin_str)
+        with_exceptions = fmt_with_exceptions % (
+            self.get_scan_id(),
+            summary["total_exceptions"],
+            phase_plugin_str,
+        )
         return with_exceptions
 
     def generate_summary(self):
         """
         :return: A dict with information about exceptions.
         """
-        res = {'total_exceptions': len(self._exception_data), 'exceptions': {}}
-        exception_dict = res['exceptions']
+        res = {"total_exceptions": len(self._exception_data), "exceptions": {}}
+        exception_dict = res["exceptions"]
 
         for exception in self._exception_data:
             phase = exception.phase
 
-            data = (exception.plugin,
-                    exception.fuzzable_request,
-                    exception.exception,
-                    exception.traceback_str)
+            data = (
+                exception.plugin,
+                exception.fuzzable_request,
+                exception.exception,
+                exception.traceback_str,
+            )
 
             if phase not in exception_dict:
                 exception_dict[phase] = [data]
@@ -340,10 +361,10 @@ class ExceptionData(object):
             self.filename = os.path.join(path, filename)
 
         # See add_traceback_string()
-        if hasattr(self.exception, 'original_traceback_string'):
+        if hasattr(self.exception, "original_traceback_string"):
             traceback_string = self.exception.original_traceback_string
         else:
-            traceback_string = ''.join(traceback.format_tb(tb))
+            traceback_string = "".join(traceback.format_tb(tb))
             self.exception.original_traceback_string = traceback_string
 
         self.traceback_str = cleanup_bug_report(traceback_string)
@@ -352,16 +373,20 @@ class ExceptionData(object):
         return self.traceback_str
 
     def get_summary(self):
-        res = ('A "%s" exception was found while running %s.%s on "%s".'
-               ' The exception was: "%s" at %s:%s():%s.')
-        res = res % (self.get_exception_class(),
-                     self.phase,
-                     self.plugin,
-                     self.fuzzable_request,
-                     self.exception_msg,
-                     self.filename,
-                     self.function_name,
-                     self.lineno)
+        res = (
+            'A "%s" exception was found while running %s.%s on "%s".'
+            ' The exception was: "%s" at %s:%s():%s.'
+        )
+        res = res % (
+            self.get_exception_class(),
+            self.phase,
+            self.plugin,
+            self.fuzzable_request,
+            self.exception_msg,
+            self.filename,
+            self.function_name,
+            self.lineno,
+        )
         return res
 
     def get_exception_class(self):
@@ -369,24 +394,28 @@ class ExceptionData(object):
 
     def get_details(self):
         res = self.get_summary()
-        res += ' The full traceback is:\n\n%s' % self.traceback_str
+        res += " The full traceback is:\n\n%s" % self.traceback_str
         return res
 
     def get_where(self):
-        return '%s.%s:%s' % (self.phase, self.plugin, self.lineno)
+        return "%s.%s:%s" % (self.phase, self.plugin, self.lineno)
 
     def to_json(self):
-        return {'function_name': self.function_name,
-                'lineno': self.lineno,
-                'exception': self.exception_msg,
-                'traceback': self.traceback_str,
-                'plugin': str(self.plugin),
-                'phase': str(self.phase)}
+        return {
+            "function_name": self.function_name,
+            "lineno": self.lineno,
+            "exception": self.exception_msg,
+            "traceback": self.traceback_str,
+            "plugin": str(self.plugin),
+            "phase": str(self.phase),
+        }
 
     def __str__(self):
         return self.get_details()
 
     def __repr__(self):
-        return '<ExceptionData - %s:%s - "%s">' % (self.filename,
-                                                   self.lineno,
-                                                   self.exception_msg)
+        return '<ExceptionData - %s:%s - "%s">' % (
+            self.filename,
+            self.lineno,
+            self.exception_msg,
+        )

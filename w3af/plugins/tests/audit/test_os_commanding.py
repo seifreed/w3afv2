@@ -18,41 +18,42 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.plugins.tests.helper import PluginTest, PluginConfig
 
 
 class TestOSCommanding(PluginTest):
-    target_url = get_moth_http('/audit/os_commanding/')
+    target_url = get_moth_http("/audit/os_commanding/")
 
     _run_configs = {
-        'cfg': {
-            'target': target_url,
-            'plugins': {
-                'audit': (PluginConfig('os_commanding'),),
-                'crawl': (
+        "cfg": {
+            "target": target_url,
+            "plugins": {
+                "audit": (PluginConfig("os_commanding"),),
+                "crawl": (
                     PluginConfig(
-                        'web_spider',
-                        ('only_forward', True, PluginConfig.BOOL)),
-                )
-            }
+                        "web_spider", ("only_forward", True, PluginConfig.BOOL)
+                    ),
+                ),
+            },
         }
     }
 
     def test_found_osc(self):
         # Run the scan
-        cfg = self._run_configs['cfg']
-        self._scan(cfg['target'], cfg['plugins'])
+        cfg = self._run_configs["cfg"]
+        self._scan(cfg["target"], cfg["plugins"])
 
         # Assert the general results
-        vulns = self.kb.get('os_commanding', 'os_commanding')
+        vulns = self.kb.get("os_commanding", "os_commanding")
 
         # Verify the specifics about the vulnerabilities
         EXPECTED = [
-            ('trivial_osc.py', 'cmd'),
-            ('param_osc.py', 'param'),
-            ('blind_osc.py', 'cmd')
+            ("trivial_osc.py", "cmd"),
+            ("param_osc.py", "param"),
+            ("blind_osc.py", "cmd"),
         ]
 
-        self.assertAllVulnNamesEqual('OS commanding vulnerability', vulns)
+        self.assertAllVulnNamesEqual("OS commanding vulnerability", vulns)
         self.assertExpectedVulnsFound(EXPECTED, vulns)

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 import httpretty
 
@@ -28,12 +29,11 @@ from w3af.core.data.search_engines.pks import pks
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.controllers.misc.temp_dir import create_temp_dir
 
-
 #
 # Good idea to update this every now and then using:
 # wget 'http://pgp.mit.edu:11371/pks/lookup?op=index&search=bonsai-sec.com'
 #
-BODY = '''\
+BODY = """\
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd" >
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -51,7 +51,7 @@ pub  2048R/<a href="/pks/lookup?op=get&amp;search=0x8C9D86461E9B9265">1E9B9265</
 </pre><hr /><pre>
 pub  1024D/<a href="/pks/lookup?op=get&amp;search=0x3608ED24EB0B8821">EB0B8821</a> 2010-04-11 <a href="/pks/lookup?op=vindex&amp;search=0x3608ED24EB0B8821">Nahuel Grisolia &lt;nahuel@bonsai-sec.com&gt;</a>
 </pre></body></html>
-'''
+"""
 
 
 class TestPKS(unittest.TestCase):
@@ -62,14 +62,13 @@ class TestPKS(unittest.TestCase):
 
     @httpretty.activate
     def test_get_result(self):
-        domain = 'bonsai-sec.com'
-        url = 'http://pgp.mit.edu:11371/pks/lookup?op=index&search=%s' % domain
+        domain = "bonsai-sec.com"
+        url = "http://pgp.mit.edu:11371/pks/lookup?op=index&search=%s" % domain
 
         httpretty.register_uri(httpretty.GET, url, body=BODY)
 
         result = self.pks_se.search(domain)
         self.assertEqual(len(result), 2)
 
-        expected = {'lucas'}
-        self.assertTrue(set([r.username for r in result]).issuperset(expected),
-                        result)
+        expected = {"lucas"}
+        self.assertTrue(set([r.username for r in result]).issuperset(expected), result)

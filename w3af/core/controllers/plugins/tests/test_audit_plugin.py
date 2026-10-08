@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from nose.plugins.attrib import attr
@@ -32,7 +33,7 @@ from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.controllers.w3afCore import w3afCore
 
 
-@attr('moth')
+@attr("moth")
 class TestAuditPlugin(unittest.TestCase):
 
     def setUp(self):
@@ -42,23 +43,23 @@ class TestAuditPlugin(unittest.TestCase):
     def tearDown(self):
         self.w3af.quit()
         kb.cleanup()
-    
+
     def test_audit_return_vulns(self):
-        plugin_inst = self.w3af.plugins.get_plugin_inst('audit', 'sqli')
-        
-        target_url = get_moth_http('/audit/sql_injection/where_string_single_qs.py')
-        uri = URL(target_url + '?uname=pablo')
+        plugin_inst = self.w3af.plugins.get_plugin_inst("audit", "sqli")
+
+        target_url = get_moth_http("/audit/sql_injection/where_string_single_qs.py")
+        uri = URL(target_url + "?uname=pablo")
         freq = FuzzableRequest(uri)
-        
+
         vulns = plugin_inst.audit_return_vulns(freq)
-        
+
         self.assertEqual(len(vulns), 1, vulns)
-        
+
         vuln = vulns[0]
-        self.assertEqual("syntax error", vuln['error'])
-        self.assertEqual("Unknown database", vuln['db'])
+        self.assertEqual("syntax error", vuln["error"])
+        self.assertEqual("Unknown database", vuln["db"])
         self.assertEqual(target_url, str(vuln.get_url()))
-        
+
         self.assertEqual(plugin_inst._store_kb_vulns, False)
 
     def test_http_timeout_with_plugin(self):
@@ -76,10 +77,10 @@ class TestAuditPlugin(unittest.TestCase):
 
         port = upper_daemon.get_port()
 
-        url = URL('http://127.0.0.1:%s/' % port)
+        url = URL("http://127.0.0.1:%s/" % port)
         freq = FuzzableRequest(url)
 
-        plugin_inst = self.w3af.plugins.get_plugin_inst('audit', 'sqli')
+        plugin_inst = self.w3af.plugins.get_plugin_inst("audit", "sqli")
         plugin_inst._uri_opener.settings.set_configured_timeout(1)
         plugin_inst._uri_opener.clear_timeout()
 

@@ -20,31 +20,31 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-
 import w3af.core.data.constants.severity as severity
 
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
-from w3af.core.controllers.delay_detection.exact_delay_controller import ExactDelayController
+from w3af.core.controllers.delay_detection.exact_delay_controller import (
+    ExactDelayController,
+)
 from w3af.core.controllers.delay_detection.exact_delay import ExactDelay
 from w3af.plugins.audit.os_commanding import Command
 from w3af.core.data.fuzzer.mutants.headers_mutant import HeadersMutant
 from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 
-
-TEST_HEADER = 'User-Agent'
+TEST_HEADER = "User-Agent"
 
 
 class PingDelay(Command, ExactDelay):
     def __init__(self, delay_fmt):
-        Command.__init__(self, delay_fmt, 'unix', '')
+        Command.__init__(self, delay_fmt, "unix", "")
         ExactDelay.__init__(self, delay_fmt)
         self._delay_delta = 1
 
 
 class SleepDelay(Command, ExactDelay):
     def __init__(self, delay_fmt):
-        Command.__init__(self, delay_fmt, 'unix', '')
+        Command.__init__(self, delay_fmt, "unix", "")
         ExactDelay.__init__(self, delay_fmt)
 
 
@@ -53,8 +53,11 @@ class shell_shock(AuditPlugin):
     Find shell shock vulnerabilities.
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
-    DELAY_TESTS = [PingDelay('() { test; }; ping -c %s 127.0.0.1'),
-                   ExactDelay('() { test; }; sleep %s')]
+
+    DELAY_TESTS = [
+        PingDelay("() { test; }; ping -c %s 127.0.0.1"),
+        ExactDelay("() { test; }; sleep %s"),
+    ]
 
     def __init__(self):
         super(shell_shock, self).__init__()
@@ -78,9 +81,11 @@ class shell_shock(AuditPlugin):
             # We are implementing these methods for detecting shell-shock vulns
             # if you know about other methods, or have improvements on these
             # please let us know. Pull-requests are also welcome.
-            for detection_method in [self._with_header_echo_injection,
-                                     #self._with_body_echo_injection,
-                                     self._with_time_delay]:
+            for detection_method in [
+                self._with_header_echo_injection,
+                # self._with_body_echo_injection,
+                self._with_time_delay,
+            ]:
                 if detection_method(freq, debugging_id):
                     break
 
@@ -92,8 +97,8 @@ class shell_shock(AuditPlugin):
         :param freq: A FuzzableRequest
         :return: True if a vulnerability was found
         """
-        injected_header = 'shellshock'
-        injected_value = 'check'
+        injected_header = "shellshock"
+        injected_value = "check"
         payload = '() { :;}; echo "%s: %s"' % (injected_header, injected_value)
 
         mutant = self.create_mutant(freq, TEST_HEADER)
@@ -103,13 +108,18 @@ class shell_shock(AuditPlugin):
         header_value, header_name = response.get_headers().iget(injected_header)
 
         if header_value is not None and injected_value in header_value.lower():
-            desc = 'Shell shock was found at: %s' % mutant.found_at()
+            desc = "Shell shock was found at: %s" % mutant.found_at()
 
-            v = Vuln.from_mutant('Shell shock vulnerability', desc,
-                                 severity.HIGH, [response.id],
-                                 self.get_name(), mutant)
+            v = Vuln.from_mutant(
+                "Shell shock vulnerability",
+                desc,
+                severity.HIGH,
+                [response.id],
+                self.get_name(),
+                mutant,
+            )
 
-            self.kb_append_uniq(self, 'shell_shock', v)
+            self.kb_append_uniq(self, "shell_shock", v)
             return True
 
     def _with_body_echo_injection(self, freq, debugging_id):
@@ -124,13 +134,14 @@ class shell_shock(AuditPlugin):
 
     def create_mutant(self, freq, header_name):
         headers = freq.get_headers()
-        headers[header_name] = ''
+        headers[header_name] = ""
         freq.set_headers(headers)
 
-        fuzzer_config = {'fuzzable_headers': [TEST_HEADER]}
+        fuzzer_config = {"fuzzable_headers": [TEST_HEADER]}
 
-        mutant = HeadersMutant.create_mutants(freq, [''], [TEST_HEADER],
-                                              False, fuzzer_config)[0]
+        mutant = HeadersMutant.create_mutants(
+            freq, [""], [TEST_HEADER], False, fuzzer_config
+        )[0]
 
         return mutant
 
@@ -141,9 +152,11 @@ class shell_shock(AuditPlugin):
         :param freq: A FuzzableRequest
         :return: True if a vulnerability was found
         """
-        self._send_mutants_in_threads(func=self._find_delay_in_mutant,
-                                      iterable=self._generate_delay_tests(freq, debugging_id),
-                                      callback=lambda x, y: None)
+        self._send_mutants_in_threads(
+            func=self._find_delay_in_mutant,
+            iterable=self._generate_delay_tests(freq, debugging_id),
+            callback=lambda x, y: None,
+        )
 
     def _generate_delay_tests(self, freq, debugging_id):
         for delay_obj in self.DELAY_TESTS:
@@ -158,7 +171,7 @@ class shell_shock(AuditPlugin):
         :param delay_obj: The delay to use
         :param debugging_id: The debugging ID for logging
         """
-        (mutant, delay_obj, debugging_id) = delayed_mutant
+        mutant, delay_obj, debugging_id = delayed_mutant
         ed = ExactDelayController(mutant, delay_obj, self._uri_opener)
         ed.set_debugging_id(debugging_id)
         success, responses = ed.delay_is_controlled()
@@ -167,13 +180,18 @@ class shell_shock(AuditPlugin):
             return False
 
         mutant.set_token_value(delay_obj.get_string_for_delay(3))
-        desc = 'Shell shock was found at: %s' % mutant.found_at()
+        desc = "Shell shock was found at: %s" % mutant.found_at()
 
-        v = Vuln.from_mutant('Shell shock vulnerability', desc,
-                             severity.HIGH, [r.id for r in responses],
-                             self.get_name(), mutant)
+        v = Vuln.from_mutant(
+            "Shell shock vulnerability",
+            desc,
+            severity.HIGH,
+            [r.id for r in responses],
+            self.get_name(),
+            mutant,
+        )
 
-        self.kb_append_uniq(self, 'shell_shock', v)
+        self.kb_append_uniq(self, "shell_shock", v)
         return True
 
     def get_long_desc(self):

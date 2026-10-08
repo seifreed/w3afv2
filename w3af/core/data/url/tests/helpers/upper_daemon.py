@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import socketserver
 import threading
 import time
@@ -32,6 +33,7 @@ class UpperTCPHandler(socketserver.BaseRequestHandler):
     override the handle() method to implement communication to the
     client.
     """
+
     def handle(self):
         # self.request is the TCP socket connected to the client
         self.data = self.request.recv(1024).strip()
@@ -48,18 +50,18 @@ class UpperDaemon(threading.Thread):
 
     http://docs.python.org/2/library/socketserver.html
     """
+
     def __init__(self, handler=UpperTCPHandler):
         super(UpperDaemon, self).__init__()
         self.daemon = True
         self.server = None
         self.handler = handler
-        self.server_address = ('127.0.0.1', 0)
+        self.server_address = ("127.0.0.1", 0)
 
     def run(self):
         # Zero in the port means: bind to any free port
-        self.server = socketserver.TCPServer(self.server_address,
-                                             self.handler)
-    
+        self.server = socketserver.TCPServer(self.server_address, self.handler)
+
         try:
             self.server.serve_forever()
         except AttributeError:
@@ -68,22 +70,22 @@ class UpperDaemon(threading.Thread):
             pass
 
     def get_host_port(self):
-        return '127.0.0.1:%s' % self.get_port()
+        return "127.0.0.1:%s" % self.get_port()
 
     def get_port(self):
         if self.server is not None:
             port = self.server.server_address[1]
             if port != 0:
                 return port
-    
+
     def wait_for_start(self):
         while self.server is None or self.get_port() is None:
             time.sleep(0.5)
-    
+
     @property
     def requests(self):
         return self.server.RequestHandlerClass.requests
-    
+
     def shutdown(self):
         self.server.RequestHandlerClass.requests = []
         self.server.shutdown()

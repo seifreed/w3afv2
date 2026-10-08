@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import copy
 
 from w3af.core.data.constants.ignored_params import is_in_ignored_parameters
@@ -30,6 +31,7 @@ class Mutant(DiskItem):
     """
     This class is a wrapper for fuzzable requests that has been modified.
     """
+
     def __init__(self, freq):
         super(Mutant, self).__init__()
 
@@ -115,7 +117,7 @@ class Mutant(DiskItem):
         raise AttributeError(msg % args)
 
     def __repr__(self):
-        fmt = '<mutant-%s | %s | %s >'
+        fmt = "<mutant-%s | %s | %s >"
         return fmt % (self.get_mutant_type(), self.get_method(), self.get_uri())
 
     def get_original_response_body(self):
@@ -125,8 +127,10 @@ class Mutant(DiskItem):
         requests the fuzzable request for the first time.
         """
         if self._original_response_body is None:
-            raise ValueError('[mutant error] You should set the original '
-                             'response body before getting its value!')
+            raise ValueError(
+                "[mutant error] You should set the original "
+                "response body before getting its value!"
+            )
         return self._original_response_body
 
     def set_original_response_body(self, orig_body):
@@ -137,17 +141,20 @@ class Mutant(DiskItem):
     # the magic methods.
     #
     def __getattr__(self, name):
-        if name.startswith('__'):
-            raise AttributeError("%s instance has no attribute '%s'" %
-                                 (self.__class__.__name__, name))
+        if name.startswith("__"):
+            raise AttributeError(
+                "%s instance has no attribute '%s'" % (self.__class__.__name__, name)
+            )
         return getattr(self._freq, name)
 
     def get_eq_attrs(self):
-        return ['_freq', '_original_response_body']
+        return ["_freq", "_original_response_body"]
 
     def __eq__(self, other):
-        return (self.get_token() == other.get_token() and
-                self.get_fuzzable_request() == other.get_fuzzable_request())
+        return (
+            self.get_token() == other.get_token()
+            and self.get_fuzzable_request() == other.get_fuzzable_request()
+        )
 
     def found_at(self):
         """
@@ -160,46 +167,53 @@ class Mutant(DiskItem):
         token = dc.get_token()
 
         msg = '"%s", using HTTP method %s. The sent data was: "%s"'
-        msg %= (smart_str_ignore(self.get_url()),
-                smart_str_ignore(self.get_method()),
-                smart_str_ignore(dc_short))
+        msg %= (
+            smart_str_ignore(self.get_url()),
+            smart_str_ignore(self.get_method()),
+            smart_str_ignore(dc_short),
+        )
 
         if token is not None:
-            msg += ' The modified parameter was "%s".' % smart_str_ignore(token.get_name())
+            msg += ' The modified parameter was "%s".' % smart_str_ignore(
+                token.get_name()
+            )
 
         return msg
 
     @staticmethod
     def get_mutant_type():
-        return 'generic'
+        return "generic"
 
     @classmethod
     def get_mutant_class(cls):
         return cls.__name__
 
     @classmethod
-    def create_mutants(cls, freq, payload_list, fuzzable_param_list,
-                       append, fuzzer_config):
+    def create_mutants(
+        cls, freq, payload_list, fuzzable_param_list, append, fuzzer_config
+    ):
         """
         This is a very important method which is called in order to create
         mutants. Usually called from fuzzer.py module.
         """
-        return cls._create_mutants_worker(freq, cls, payload_list,
-                                          fuzzable_param_list,
-                                          append, fuzzer_config)
+        return cls._create_mutants_worker(
+            freq, cls, payload_list, fuzzable_param_list, append, fuzzer_config
+        )
 
     @staticmethod
-    def _create_mutants_worker(freq, mutant_cls, payload_list,
-                               fuzzable_param_list, append,
-                               fuzzer_config):
+    def _create_mutants_worker(
+        freq, mutant_cls, payload_list, fuzzable_param_list, append, fuzzer_config
+    ):
         """
         An auxiliary function to create_mutants.
 
         :return: A list of mutants.
         """
         if not issubclass(mutant_cls, Mutant):
-            msg = 'mutant_cls parameter needs to be one of the known mutant'\
-                  ' classes, not %s.'
+            msg = (
+                "mutant_cls parameter needs to be one of the known mutant"
+                " classes, not %s."
+            )
             raise ValueError(msg % mutant_cls)
 
         result = []
@@ -235,7 +249,7 @@ class Mutant(DiskItem):
 
                 # But I only perform this task in HTML forms, everything
                 # else is left as it is:
-                if hasattr(dc_copy, 'smart_fill'):
+                if hasattr(dc_copy, "smart_fill"):
                     dc_copy.smart_fill()
 
                 if append:
@@ -243,11 +257,11 @@ class Mutant(DiskItem):
                         # This prevents me from flattening the special type to
                         # a string in a couple of lines below where I apply the
                         # string formatting
-                        msg = 'Incorrect payload type %s'
+                        msg = "Incorrect payload type %s"
                         raise RuntimeError(msg % type(payload))
 
                     original_value = token.get_original_value()
-                    token.set_value('%s%s' % (original_value, payload))
+                    token.set_value("%s%s" % (original_value, payload))
                 else:
                     token.set_value(payload)
 

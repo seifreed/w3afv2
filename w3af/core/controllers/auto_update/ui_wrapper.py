@@ -18,10 +18,10 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import os
 
-from w3af.core.controllers.misc.home_dir import (verify_dir_has_perm,
-                                                 W3AF_LOCAL_PATH)
+from w3af.core.controllers.misc.home_dir import verify_dir_has_perm, W3AF_LOCAL_PATH
 from w3af.core.controllers.auto_update.version_manager import VersionMgr
 from w3af.core.controllers.auto_update.utils import is_git_repo
 
@@ -35,18 +35,20 @@ class UIUpdater(object):
         self._force_upd = force
         self._ask = ask
         self._logger = logger
-        self._callbacks = {'callback_onupdate_confirm': ask}
+        self._callbacks = {"callback_onupdate_confirm": ask}
         self._registries = {}
 
     @property
     def _vmngr(self):
-        vmngr = getattr(self, '__vmngr', None)
+        vmngr = getattr(self, "__vmngr", None)
         if vmngr is None:
             vmngr = VersionMgr(log=self._logger)
             [setattr(vmngr, n, c) for n, c in list(self._callbacks.items())]
-            [vmngr.register(ev, val[0], val[1]) for ev, val in
-             list(self._registries.items())]
-            setattr(self, '__vmngr', vmngr)
+            [
+                vmngr.register(ev, val[0], val[1])
+                for ev, val in list(self._registries.items())
+            ]
+            setattr(self, "__vmngr", vmngr)
         return vmngr
 
     def _add_callback(self, callback_name, callback):
@@ -56,8 +58,11 @@ class UIUpdater(object):
         self._registries[event] = (func, msg)
 
     def update(self):
-        if self._force_upd in (None, True) and is_git_repo() and \
-        verify_dir_has_perm(W3AF_LOCAL_PATH, os.W_OK, levels=1):
+        if (
+            self._force_upd in (None, True)
+            and is_git_repo()
+            and verify_dir_has_perm(W3AF_LOCAL_PATH, os.W_OK, levels=1)
+        ):
             try:
                 resp = self._call_update()
                 self._handle_update_output(resp)
@@ -67,7 +72,7 @@ class UIUpdater(object):
                 self._logger('An error occurred while updating: "%s"' % ex)
 
             # TODO: Please read https://github.com/andresriancho/w3af/issues/6
-            # for more information on what's missing here 
+            # for more information on what's missing here
             """
             if repo_has_conflicts():
                 self._log("Oops!... w3af can't be started. It seems that the "

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from threading import RLock
 
 import w3af.core.controllers.output_manager as om
@@ -78,7 +79,7 @@ class server_header(InfrastructurePlugin):
             #
             return
 
-        server, header_name = response.get_headers().iget('server')
+        server, header_name = response.get_headers().iget("server")
 
         if server in self._server_headers:
             return
@@ -89,41 +90,41 @@ class server_header(InfrastructurePlugin):
             desc = 'The server header for the remote web server is: "%s".'
             desc %= server
 
-            i = Info('Server header', desc, response.id, self.get_name())
-            i['server'] = server
-            i.add_to_highlight(header_name + ':')
+            i = Info("Server header", desc, response.id, self.get_name())
+            i["server"] = server
+            i.add_to_highlight(header_name + ":")
 
             om.out.information(i.get_desc())
 
             # Save the results in the KB so the user can look at it
-            kb.kb.append(self, 'server', i)
+            kb.kb.append(self, "server", i)
 
             # Also save this for easy internal use
             # other plugins can use this information
-            kb.kb.raw_write(self, 'server_string', server)
+            kb.kb.raw_write(self, "server_string", server)
         else:
             # strange !
-            desc = ('The remote HTTP Server omitted the "server" header in'
-                    ' its response.')
-            i = Info('Omitted server header', desc, response.id,
-                     self.get_name())
+            desc = (
+                'The remote HTTP Server omitted the "server" header in' " its response."
+            )
+            i = Info("Omitted server header", desc, response.id, self.get_name())
 
             om.out.information(i.get_desc())
 
             # Save the results in the KB so that other plugins can use this
             # information
-            kb.kb.append(self, 'omitted_server_header', i)
+            kb.kb.append(self, "omitted_server_header", i)
 
             # Also save this for easy internal use
             # other plugins can use this information
-            kb.kb.raw_write(self, 'server_string', '')
+            kb.kb.raw_write(self, "server_string", "")
 
     def _check_x_power(self, fuzzable_request, response):
         """
         Analyze X-Powered-By header.
         """
         for header_name in list(response.get_headers().keys()):
-            for needle in ['ASPNET', 'POWERED']:
+            for needle in ["ASPNET", "POWERED"]:
                 if needle in header_name.upper():
                     powered_by = response.get_headers()[header_name]
 
@@ -135,9 +136,9 @@ class server_header(InfrastructurePlugin):
                     desc = 'The %s header for the target HTTP server is "%s".'
                     desc %= (header_name, powered_by)
 
-                    i = Info('Powered-by header', desc, response.id, self.get_name())
-                    i['powered_by'] = powered_by
-                    i.add_to_highlight(header_name + ':')
+                    i = Info("Powered-by header", desc, response.id, self.get_name())
+                    i["powered_by"] = powered_by
+                    i.add_to_highlight(header_name + ":")
 
                     om.out.information(i.get_desc())
 
@@ -149,10 +150,10 @@ class server_header(InfrastructurePlugin):
                     #
                     # But I have seen an IIS server with PHP that returns
                     # both the ASP.NET and the PHP headers
-                    kb.kb.append(self, 'powered_by', i)
+                    kb.kb.append(self, "powered_by", i)
 
                     # Save the list to the KB
-                    kb.kb.raw_write(self, 'powered_by_string', list(powered_by))
+                    kb.kb.raw_write(self, "powered_by_string", list(powered_by))
 
     def get_long_desc(self):
         """

@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import os
 import shutil
 
@@ -30,20 +31,21 @@ from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.controllers.misc.file_lock import FileLock
 
 
-@attr('smoke')
+@attr("smoke")
 class TestCrawlExceptions(PluginTest):
 
-    target_url = get_moth_http('/grep/csp/')
+    target_url = get_moth_http("/grep/csp/")
 
     _run_configs = {
-        'cfg': {
-            'target': target_url,
-            'plugins': {
-                'crawl': (
-                    PluginConfig('failing_spider',
-                                 ('only_forward', True, PluginConfig.BOOL)),
+        "cfg": {
+            "target": target_url,
+            "plugins": {
+                "crawl": (
+                    PluginConfig(
+                        "failing_spider", ("only_forward", True, PluginConfig.BOOL)
+                    ),
                 )
-            }
+            },
         },
     }
 
@@ -54,10 +56,10 @@ class TestCrawlExceptions(PluginTest):
 
         In the tearDown method, I'll remove the file.
         """
-        self.src = os.path.join(ROOT_PATH, 'plugins', 'tests', 'crawl',
-                                'failing_spider.py')
-        self.dst = os.path.join(ROOT_PATH, 'plugins', 'crawl',
-                                'failing_spider.py')
+        self.src = os.path.join(
+            ROOT_PATH, "plugins", "tests", "crawl", "failing_spider.py"
+        )
+        self.dst = os.path.join(ROOT_PATH, "plugins", "crawl", "failing_spider.py")
 
         # This lock prevents others (which also implement the locking) from
         # removing our file
@@ -72,8 +74,8 @@ class TestCrawlExceptions(PluginTest):
         if os.path.exists(self.dst):
             os.remove(self.dst)
 
-        if os.path.exists(self.dst + 'c'):  # pyc file
-            os.remove(self.dst + 'c')
+        if os.path.exists(self.dst + "c"):  # pyc file
+            os.remove(self.dst + "c")
 
         # Allow others to create the failing_spider.py file
         self.lock.release()
@@ -81,18 +83,18 @@ class TestCrawlExceptions(PluginTest):
         super(TestCrawlExceptions, self).tearDown()
 
     def test_spider_found_urls(self):
-        cfg = self._run_configs['cfg']
+        cfg = self._run_configs["cfg"]
 
         # This is a very special case in which I don't want the assertion in
         # the _scan() to trigger on me!
-        self._scan(cfg['target'], cfg['plugins'], assert_exceptions=False)
+        self._scan(cfg["target"], cfg["plugins"], assert_exceptions=False)
 
         caught_exceptions = self.w3afcore.exception_handler.get_all_exceptions()
         self.assertEqual(len(caught_exceptions), 1)
-        
+
         edata = caught_exceptions[0]
-        self.assertEqual(edata.get_where(), 'crawl.failing_spider:45')
-        
+        self.assertEqual(edata.get_where(), "crawl.failing_spider:45")
+
         # I tried to make some more advanced unittests here, but it was
         # very difficult to get a result that was NOT random from failing_spider
         # + exception_handler .

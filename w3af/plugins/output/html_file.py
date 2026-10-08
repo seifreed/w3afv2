@@ -20,6 +20,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import time
 import datetime
@@ -48,20 +49,22 @@ class html_file(OutputPlugin):
 
     :author: Andres Riancho ((andres.riancho@gmail.com))
     """
+
     def __init__(self):
         OutputPlugin.__init__(self)
 
         # Internal variables
         self._initialized = False
-        self._additional_info = DiskList(table_prefix='html_file')
+        self._additional_info = DiskList(table_prefix="html_file")
         self._enabled_plugins = {}
-        self.template_root = os.path.join(ROOT_PATH, 'plugins', 'output',
-                                          'html_file', 'templates')
+        self.template_root = os.path.join(
+            ROOT_PATH, "plugins", "output", "html_file", "templates"
+        )
 
         # User configured parameters
         self._verbose = False
-        self._output_file_name = '~/report.html'
-        self._template = os.path.join(self.template_root, 'complete.html')
+        self._output_file_name = "~/report.html"
+        self._template = os.path.join(self.template_root, "complete.html")
 
     def debug(self, message, new_line=True):
         """
@@ -71,7 +74,7 @@ class html_file(OutputPlugin):
         """
         if self._verbose:
             to_print = self._clean_string(message)
-            self._append_additional_info(to_print, 'debug')
+            self._append_additional_info(to_print, "debug")
 
     def do_nothing(self, *args, **kwargs):
         pass
@@ -85,7 +88,7 @@ class html_file(OutputPlugin):
         an action for error messages.
         """
         to_print = self._clean_string(message)
-        self._append_additional_info(to_print, 'error')
+        self._append_additional_info(to_print, "error")
 
     def console(self, message, new_line=True):
         """
@@ -93,7 +96,7 @@ class html_file(OutputPlugin):
         outside.
         """
         to_print = self._clean_string(message)
-        self._append_additional_info(to_print, 'console')
+        self._append_additional_info(to_print, "console")
 
     def _append_additional_info(self, message, msg_type):
         """
@@ -117,9 +120,9 @@ class html_file(OutputPlugin):
 
         :return: No value is returned.
         """
-        self._output_file_name = option_list['output_file'].get_value()
-        self._verbose = option_list['verbose'].get_value()
-        self._template = option_list['template'].get_value()
+        self._output_file_name = option_list["output_file"].get_value()
+        self._verbose = option_list["verbose"].get_value()
+        self._template = option_list["template"].get_value()
 
     def get_options(self):
         """
@@ -127,16 +130,16 @@ class html_file(OutputPlugin):
         """
         ol = OptionList()
 
-        d = 'The path to the HTML template used to render the report.'
-        o = opt_factory('template', self._template, d, INPUT_FILE)
+        d = "The path to the HTML template used to render the report."
+        o = opt_factory("template", self._template, d, INPUT_FILE)
         ol.add(o)
 
-        d = 'File name where this plugin will write to'
-        o = opt_factory('output_file', self._output_file_name, d, OUTPUT_FILE)
+        d = "File name where this plugin will write to"
+        o = opt_factory("output_file", self._output_file_name, d, OUTPUT_FILE)
         ol.add(o)
 
-        d = 'True if debug information will be appended to the report.'
-        o = opt_factory('verbose', self._verbose, d, 'boolean')
+        d = "True if debug information will be appended to the report."
+        o = opt_factory("verbose", self._verbose, d, "boolean")
         ol.add(o)
 
         return ol
@@ -174,11 +177,11 @@ class html_file(OutputPlugin):
             * Get the debug data
             * Send all the data to jinja2 for rendering the template
         """
-        target_urls = [t.url_string for t in cf.cf.get('targets')]
+        target_urls = [t.url_string for t in cf.cf.get("targets")]
 
-        target_domain = 'unknown'
+        target_domain = "unknown"
 
-        target_domains = cf.cf.get('target_domains')
+        target_domains = cf.cf.get("target_domains")
         if target_domains and len(target_domains) > 0:
             target_domain = target_domains[0]
 
@@ -187,16 +190,18 @@ class html_file(OutputPlugin):
         debug_log = ((t, l, smart_unicode(m)) for (t, l, m) in self._additional_info)
         known_urls = kb.kb.get_all_known_urls()
 
-        context = {'target_urls': target_urls,
-                   'target_domain': target_domain,
-                   'enabled_plugins': enabled_plugins,
-                   'findings': findings,
-                   'debug_log': debug_log,
-                   'known_urls': known_urls}
+        context = {
+            "target_urls": target_urls,
+            "target_domain": target_domain,
+            "enabled_plugins": enabled_plugins,
+            "findings": findings,
+            "debug_log": debug_log,
+            "known_urls": known_urls,
+        }
 
         # The file was verified to exist when setting the plugin configuration
-        template_fh = open(os.path.expanduser(self._template), 'r')
-        output_fh = open(os.path.expanduser(self._output_file_name), 'w')
+        template_fh = open(os.path.expanduser(self._template), "r")
+        output_fh = open(os.path.expanduser(self._output_file_name), "w")
 
         self._render_html_file(template_fh, context, output_fh)
 
@@ -210,10 +215,12 @@ class html_file(OutputPlugin):
         """
         severity_icon = functools.partial(get_severity_icon, self.template_root)
 
-        env_config = {'undefined': StrictUndefined,
-                      'trim_blocks': True,
-                      'autoescape': True,
-                      'lstrip_blocks': True}
+        env_config = {
+            "undefined": StrictUndefined,
+            "trim_blocks": True,
+            "autoescape": True,
+            "lstrip_blocks": True,
+        }
 
         try:
             jinja2_env = Environment(**env_config)
@@ -224,15 +231,15 @@ class html_file(OutputPlugin):
             # workaround for Kali
             #
             # https://github.com/andresriancho/w3af/issues/9552
-            env_config.pop('lstrip_blocks')
+            env_config.pop("lstrip_blocks")
             jinja2_env = Environment(**env_config)
 
-        jinja2_env.filters['render_markdown'] = render_markdown
-        jinja2_env.filters['request'] = request_dump
-        jinja2_env.filters['response'] = response_dump
-        jinja2_env.filters['severity_icon'] = severity_icon
-        jinja2_env.filters['severity_text'] = get_severity_text
-        jinja2_env.globals['get_current_date'] = get_current_date
+        jinja2_env.filters["render_markdown"] = render_markdown
+        jinja2_env.filters["request"] = request_dump
+        jinja2_env.filters["response"] = response_dump
+        jinja2_env.filters["severity_icon"] = severity_icon
+        jinja2_env.filters["severity_text"] = get_severity_text
+        jinja2_env.globals["get_current_date"] = get_current_date
         jinja2_env.loader = FileSystemLoader(self.template_root)
 
         template = jinja2_env.from_string(template_fh.read())
@@ -241,7 +248,7 @@ class html_file(OutputPlugin):
         report_stream.enable_buffering(5)
 
         for report_section in report_stream:
-            output_fh.write(report_section.encode('utf-8'))
+            output_fh.write(report_section.encode("utf-8"))
 
         return True
 
@@ -310,22 +317,24 @@ def get_current_date():
 
 
 def get_severity_icon(template_root, severity):
-    icon_file = os.path.join(template_root, '%s.png' % severity.lower())
-    fmt = 'data:image/png;base64,%s'
+    icon_file = os.path.join(template_root, "%s.png" % severity.lower())
+    fmt = "data:image/png;base64,%s"
 
     if os.path.exists(icon_file):
-        return fmt % open(icon_file).read().encode('base64')
+        return fmt % open(icon_file).read().encode("base64")
 
     return fmt
 
 
 def get_severity_text(severity):
-    if severity.lower() == 'information':
-        severity = 'info'
+    if severity.lower() == "information":
+        severity = "info"
 
-    color_map = {'high': 'danger',
-                 'medium': 'warning',
-                 'low': 'success',
-                 'info': 'info'}
+    color_map = {
+        "high": "danger",
+        "medium": "warning",
+        "low": "success",
+        "info": "info",
+    }
     fmt = '<h3 class="text-%s">%s</h3>'
     return fmt % (color_map[severity.lower()], severity.upper())

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.misc.factory import factory
 
@@ -50,7 +51,7 @@ class wizard:
         :return: A list of question objects
         """
         res = []
-        mod = 'w3af.core.controllers.wizard.questions.question_%s'
+        mod = "w3af.core.controllers.wizard.questions.question_%s"
         for question_id in question_list:
             klass = mod % question_id
             question_inst = factory(klass, w3af_core)
@@ -78,11 +79,15 @@ class wizard:
             return None
 
         # Find the next one
-        possibleQuestions = [q for q in self._question_lst if q.get_question_id(
-        ) == self._nextQuestionId]
+        possibleQuestions = [
+            q for q in self._question_lst if q.get_question_id() == self._nextQuestionId
+        ]
         if len(possibleQuestions) != 1:
-            raise BaseFrameworkException('We have more than one next question. Please verify your wizard definition.\
-                          Possible questions are: ' + str(possibleQuestions))
+            raise BaseFrameworkException(
+                "We have more than one next question. Please verify your wizard definition.\
+                          Possible questions are: "
+                + str(possibleQuestions)
+            )
         else:
             # return the next question
             self._currentQuestion = possibleQuestions[0]
@@ -110,13 +115,13 @@ class wizard:
 
         :return: A string that describes what the wizard will let you configure.
         """
-        return ''
+        return ""
 
     def get_name(self):
         """
         :return: The name of the wizard.
         """
-        return ''
+        return ""
 
     def set_answer(self, options_list):
         """
@@ -129,8 +134,7 @@ class wizard:
                                that was made to the user.
         """
         # This line may rise a BaseFrameworkException
-        self._nextQuestionId = self._currentQuestion.get_next_question_id(
-            options_list)
+        self._nextQuestionId = self._currentQuestion.get_next_question_id(options_list)
 
         # save the options selected by the user, to be able to perform a "previous"
         self._user_options = options_list

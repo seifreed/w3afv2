@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import xml.dom.minidom
 
 import w3af.core.controllers.output_manager as om
@@ -36,12 +37,12 @@ from w3af.core.data.request.fuzzable_request import FuzzableRequest
 class genexus_xml(CrawlPlugin):
     """
     Analyze the execute.xml and DeveloperMenu.xml files and find new URLs
-    
+
     :author: Daniel Maldonado (daniel_5502@yahoo.com.ar)
     :url: http://caceriadespammers.com.ar
     """
 
-    GENEXUS_DB = ('execute.xml', 'DeveloperMenu.xml')
+    GENEXUS_DB = ("execute.xml", "DeveloperMenu.xml")
 
     @runonce(exc_class=RunOnce)
     def crawl(self, fuzzable_request, debugging_id):
@@ -53,22 +54,24 @@ class genexus_xml(CrawlPlugin):
                                 (among other things) the URL to test.
         """
         base_url = fuzzable_request.get_url().base_url()
-        
+
         for file_name in self.GENEXUS_DB:
             genexus_url = base_url.url_join(file_name)
             http_response = self._uri_opener.GET(genexus_url, cache=True)
-            
-            if '</ObjLink>' not in http_response:
+
+            if "</ObjLink>" not in http_response:
                 return
 
             if is_404(http_response):
                 return
 
             # Save it to the kb!
-            desc = ('The "%s" file was found at: "%s", this file might'
-                    ' expose private URLs and requires a manual review. The'
-                    ' scanner will add all URLs listed in this file to the'
-                    ' crawl queue.')
+            desc = (
+                'The "%s" file was found at: "%s", this file might'
+                " expose private URLs and requires a manual review. The"
+                " scanner will add all URLs listed in this file to the"
+                " crawl queue."
+            )
             desc = desc % (file_name, genexus_url)
             title_info = 'GeneXus "%s" file' % file_name
 
@@ -85,7 +88,7 @@ class genexus_xml(CrawlPlugin):
             self._parse_xml(http_response, file_name, base_url)
 
     def _parse_xml(self, http_response, file_name, base_url):
-        om.out.debug('Parsing xml file with xml.dot.minidom.')
+        om.out.debug("Parsing xml file with xml.dot.minidom.")
         try:
             dom = xml.dom.minidom.parseString(http_response.get_body())
         except Exception as e:

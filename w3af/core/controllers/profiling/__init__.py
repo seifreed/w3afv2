@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.controllers.output_manager as om
 
 from .cpu_usage import start_cpu_profiling, stop_cpu_profiling
@@ -45,7 +46,7 @@ def start_profiling_no_core():
 
 
 def stop_profiling(w3af_core):
-    om.out.debug('Called stop_profiling()')
+    om.out.debug("Called stop_profiling()")
 
     try:
         stop_core_profiling(w3af_core)

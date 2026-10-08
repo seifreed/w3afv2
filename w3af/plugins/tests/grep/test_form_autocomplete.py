@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import unittest
 
 import w3af.core.data.kb.knowledge_base as kb
@@ -33,30 +34,33 @@ from w3af.plugins.grep.form_autocomplete import form_autocomplete
 
 class TestFormAutocomplete(PluginTest):
 
-    target_url = get_moth_http('/grep/form_autocomplete/')
+    target_url = get_moth_http("/grep/form_autocomplete/")
 
     _run_configs = {
-        'cfg1': {
-            'target': target_url,
-            'plugins': {
-                'grep': (PluginConfig('form_autocomplete'),),
-                'crawl': (
-                    PluginConfig('web_spider',
-                                 ('only_forward', True, PluginConfig.BOOL)),
-                )
-            }
+        "cfg1": {
+            "target": target_url,
+            "plugins": {
+                "grep": (PluginConfig("form_autocomplete"),),
+                "crawl": (
+                    PluginConfig(
+                        "web_spider", ("only_forward", True, PluginConfig.BOOL)
+                    ),
+                ),
+            },
         }
     }
 
     def test_found_vuln(self):
-        cfg = self._run_configs['cfg1']
-        self._scan(cfg['target'], cfg['plugins'])
-        vulns = self.kb.get('form_autocomplete', 'form_autocomplete')
+        cfg = self._run_configs["cfg1"]
+        self._scan(cfg["target"], cfg["plugins"])
+        vulns = self.kb.get("form_autocomplete", "form_autocomplete")
 
-        expected_results = ['form-default.html',
-                            'form-on.html',
-                            'form-on-field-on.html',
-                            'form-two-fields.html']
+        expected_results = [
+            "form-default.html",
+            "form-on.html",
+            "form-on-field-on.html",
+            "form-two-fields.html",
+        ]
 
         filenames = [vuln.get_url().get_file_name() for vuln in vulns]
         filenames.sort()
@@ -76,10 +80,10 @@ class TestFormAutocompleteRaw(unittest.TestCase):
 
     def test_form_autocomplete_group_info_set(self):
         body = '<form action="/login"><input type="password" name="p"></form>'
-        url_1 = URL('http://www.w3af.com/1')
-        url_2 = URL('http://www.w3af.com/2')
-        headers = Headers([('content-type', 'text/html')])
-        request = FuzzableRequest(url_1, method='GET')
+        url_1 = URL("http://www.w3af.com/1")
+        url_2 = URL("http://www.w3af.com/2")
+        headers = Headers([("content-type", "text/html")])
+        request = FuzzableRequest(url_1, method="GET")
         resp_1 = HTTPResponse(200, body, headers, url_1, url_1, _id=1)
         resp_2 = HTTPResponse(200, body, headers, url_2, url_2, _id=1)
 
@@ -87,15 +91,17 @@ class TestFormAutocompleteRaw(unittest.TestCase):
         self.plugin.grep(request, resp_2)
         self.plugin.end()
 
-        expected_desc = ('The application contains 2 different URLs with a'
-                         ' <form> element which has auto-complete enabled'
-                         ' for password fields. The first two vulnerable'
-                         ' URLs are:\n'
-                         ' - http://www.w3af.com/2\n'
-                         ' - http://www.w3af.com/1\n')
+        expected_desc = (
+            "The application contains 2 different URLs with a"
+            " <form> element which has auto-complete enabled"
+            " for password fields. The first two vulnerable"
+            " URLs are:\n"
+            " - http://www.w3af.com/2\n"
+            " - http://www.w3af.com/1\n"
+        )
 
         # pylint: disable=E1103
-        info_set = kb.kb.get_one('form_autocomplete', 'form_autocomplete')
+        info_set = kb.kb.get_one("form_autocomplete", "form_autocomplete")
         self.assertEqual(set(info_set.get_urls()), {url_1, url_2})
         self.assertEqual(info_set.get_desc(), expected_desc)
         # pylint: enable=E1103

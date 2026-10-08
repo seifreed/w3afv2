@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import unittest
 import lxml.etree as etree
@@ -26,13 +27,12 @@ import lxml.etree as etree
 from nose.plugins.skip import SkipTest
 from w3af import ROOT_PATH
 
-PHISHTANK_DB = os.path.join(ROOT_PATH, 'plugins', 'crawl', 'phishtank',
-                            'index.xml')
+PHISHTANK_DB = os.path.join(ROOT_PATH, "plugins", "crawl", "phishtank", "index.xml")
 
 
 class TestPhishTankParseMethods(unittest.TestCase):
     def test_target_parser(self):
-        raise SkipTest('This method is awful in terms of memory usage')
+        raise SkipTest("This method is awful in terms of memory usage")
 
         phishtank_db_fd = open(PHISHTANK_DB)
 
@@ -42,11 +42,11 @@ class TestPhishTankParseMethods(unittest.TestCase):
         etree.parse(phishtank_db_fd, parser)
 
     def test_iterparse(self):
-        raise SkipTest('This method is awful in terms of memory usage')
+        raise SkipTest("This method is awful in terms of memory usage")
 
         phishtank_db_fd = open(PHISHTANK_DB)
 
-        context = etree.iterparse(phishtank_db_fd, events=('end',), html=True)
+        context = etree.iterparse(phishtank_db_fd, events=("end",), html=True)
         for action, elem in context:
             pass
 
@@ -54,10 +54,12 @@ class TestPhishTankParseMethods(unittest.TestCase):
         """
         https://stackoverflow.com/questions/12160418/why-is-lxml-etree-iterparse-eating-up-all-my-memory
         """
-        raise SkipTest('This method is awful in terms of memory usage, even'
-                       ' with the calls to elem.clear() which I hoped would'
-                       ' improve it. This solution also has the issue of'
-                       ' being awfully slow.')
+        raise SkipTest(
+            "This method is awful in terms of memory usage, even"
+            " with the calls to elem.clear() which I hoped would"
+            " improve it. This solution also has the issue of"
+            " being awfully slow."
+        )
 
         def fast_iter(context, func, *args, **kwargs):
             """
@@ -83,6 +85,7 @@ class TestPhishTankParseMethods(unittest.TestCase):
         def process_element(elem):
             pass
 
-        context = etree.iterparse(phishtank_db_fd, events=('end',),
-                                  tag='entry', html=True)
+        context = etree.iterparse(
+            phishtank_db_fd, events=("end",), tag="entry", html=True
+        )
         fast_iter(context, process_element)

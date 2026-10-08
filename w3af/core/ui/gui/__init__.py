@@ -19,18 +19,20 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 
-GUI_DATA_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                             'data')
+GUI_DATA_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "data")
 
 try:
-    _('blah')
+    _("blah")
 except:
     import builtins
-    builtins.__dict__['_'] = lambda x: x
+
+    builtins.__dict__["_"] = lambda x: x
 
 
 def setUpPackage():
     import builtins
-    builtins.__dict__['_'] = lambda x: x
+
+    builtins.__dict__["_"] = lambda x: x

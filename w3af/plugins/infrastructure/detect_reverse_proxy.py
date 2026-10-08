@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 
 import w3af.core.data.kb.knowledge_base as kb
@@ -39,9 +40,15 @@ class detect_reverse_proxy(InfrastructurePlugin):
     def __init__(self):
         InfrastructurePlugin.__init__(self)
 
-        self._proxy_header_list = ['Via', 'Reverse-Via', 'X-Forwarded-For',
-                                   'Proxy-Connection', 'Max-Forwards',
-                                   'X-Forwarded-Host', 'X-Forwarded-Server']
+        self._proxy_header_list = [
+            "Via",
+            "Reverse-Via",
+            "X-Forwarded-For",
+            "Proxy-Connection",
+            "Max-Forwards",
+            "X-Forwarded-Host",
+            "X-Forwarded-Server",
+        ]
 
     @runonce(exc_class=RunOnce)
     def discover(self, fuzzable_request, debugging_id):
@@ -51,17 +58,15 @@ class detect_reverse_proxy(InfrastructurePlugin):
                                     (among other things) the URL to test.
         """
         # detect using GET
-        if not kb.kb.get('detect_transparent_proxy', 'detect_transparent_proxy'):
-            response = self._uri_opener.GET(
-                fuzzable_request.get_url(), cache=True)
+        if not kb.kb.get("detect_transparent_proxy", "detect_transparent_proxy"):
+            response = self._uri_opener.GET(fuzzable_request.get_url(), cache=True)
             if self._has_proxy_headers(response):
                 self._report_finding(response)
 
         # detect using TRACE
         # only if I wasn't able to do it with GET
-        if not kb.kb.get('detect_reverse_proxy', 'detect_reverse_proxy'):
-            response = self._uri_opener.TRACE(
-                fuzzable_request.get_url(), cache=True)
+        if not kb.kb.get("detect_reverse_proxy", "detect_reverse_proxy"):
+            response = self._uri_opener.TRACE(fuzzable_request.get_url(), cache=True)
             if self._has_proxy_content(response):
                 self._report_finding(response)
 
@@ -78,15 +83,16 @@ class detect_reverse_proxy(InfrastructurePlugin):
         # TRACK / HTTP/1.1
         # Reverse-Via: MUTUN ------> find this!
         # ....
-        if not kb.kb.get('detect_reverse_proxy', 'detect_reverse_proxy'):
-            response = self._uri_opener.TRACK(
-                fuzzable_request.get_url(), cache=True)
+        if not kb.kb.get("detect_reverse_proxy", "detect_reverse_proxy"):
+            response = self._uri_opener.TRACK(fuzzable_request.get_url(), cache=True)
             if self._has_proxy_content(response):
                 self._report_finding(response)
 
         # Report failure to detect reverse proxy
-        if not kb.kb.get('detect_reverse_proxy', 'detect_reverse_proxy'):
-            om.out.information('The remote web server doesn\'t seem to have a reverse proxy.')
+        if not kb.kb.get("detect_reverse_proxy", "detect_reverse_proxy"):
+            om.out.information(
+                "The remote web server doesn't seem to have a reverse proxy."
+            )
 
     def _report_finding(self, response):
         """
@@ -94,12 +100,12 @@ class detect_reverse_proxy(InfrastructurePlugin):
 
         :param response: The response that triggered the detection
         """
-        desc = 'The remote web server seems to have a reverse proxy installed.'
+        desc = "The remote web server seems to have a reverse proxy installed."
 
-        i = Info('Reverse proxy identified', desc, response.id, self.get_name())
+        i = Info("Reverse proxy identified", desc, response.id, self.get_name())
         i.set_url(response.get_url())
 
-        kb.kb.append(self, 'detect_reverse_proxy', i)
+        kb.kb.append(self, "detect_reverse_proxy", i)
         om.out.information(i.get_desc())
 
     def _has_proxy_headers(self, response):
@@ -121,14 +127,13 @@ class detect_reverse_proxy(InfrastructurePlugin):
         :return: True if the remote web server has a reverse proxy
         """
         response_body = response.get_body().upper()
-        #remove duplicated spaces from body
-        whitespace = re.compile('\s+')
-        response_body = re.sub(whitespace, ' ', response_body)
+        # remove duplicated spaces from body
+        whitespace = re.compile("\s+")
+        response_body = re.sub(whitespace, " ", response_body)
 
         for proxy_header in self._proxy_header_list:
             # Create possible header matches
-            possible_matches = [proxy_header.upper(
-            ) + ':', proxy_header.upper() + ' :']
+            possible_matches = [proxy_header.upper() + ":", proxy_header.upper() + " :"]
             for possible_match in possible_matches:
                 if possible_match in response_body:
                     return True
@@ -139,7 +144,7 @@ class detect_reverse_proxy(InfrastructurePlugin):
         :return: A list with the names of the plugins that should be run before
         the current one.
         """
-        return ['infrastructure.detect_transparent_proxy']
+        return ["infrastructure.detect_transparent_proxy"]
 
     def get_long_desc(self):
         """

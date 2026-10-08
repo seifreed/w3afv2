@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import unittest
 import time
 
@@ -40,5 +41,5 @@ class TestDiskSpaceObserver(unittest.TestCase):
     def test_raises(self):
         observer = DiskSpaceObserver()
         observer.last_call = time.time() - observer.ANALYZE_EVERY - 1
-        observer.MIN_FREE_BYTES = (2 ** 52) * 1024 * 1024
+        observer.MIN_FREE_BYTES = (2**52) * 1024 * 1024
         self.assertRaises(IOError, observer.analyze_disk_space)

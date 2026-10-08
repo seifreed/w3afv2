@@ -19,11 +19,14 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.constants.severity as severity
 
 from w3af.core.data.kb.vuln import Vuln
-from w3af.core.controllers.delay_detection.exact_delay_controller import ExactDelayController
+from w3af.core.controllers.delay_detection.exact_delay_controller import (
+    ExactDelayController,
+)
 from w3af.core.controllers.delay_detection.exact_delay import ExactDelay
 
 
@@ -35,6 +38,7 @@ class BlindSQLTimeDelay(object):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     DELAYS = [
         # MSSQL
         ExactDelay("1;waitfor delay '0:0:%s'--"),
@@ -43,7 +47,6 @@ class BlindSQLTimeDelay(object):
         ExactDelay("1';waitfor delay '0:0:%s'--"),
         ExactDelay("1');waitfor delay '0:0:%s'--"),
         ExactDelay("1'));waitfor delay '0:0:%s'--"),
-
         # MySQL 5
         #
         # Note: These payloads are better than "1 or SLEEP(%s)" since they
@@ -54,18 +57,15 @@ class BlindSQLTimeDelay(object):
         #
         ExactDelay("1 AND (SELECT * FROM (SELECT(SLEEP(%s)))foo)"),
         ExactDelay("1 OR (SELECT * FROM (SELECT(SLEEP(%s)))foo)"),
-
         # Single and double quote string concat
         ExactDelay("'+(SELECT * FROM (SELECT(SLEEP(%s)))foo)+'"),
         ExactDelay('"+(SELECT * FROM (SELECT(SLEEP(%s)))foo)+"'),
-
         # These are required, they don't cover the same case than the previous
         # ones (string concat).
         ExactDelay("' AND (SELECT * FROM (SELECT(SLEEP(%s)))foo) AND '1'='1"),
         ExactDelay('" AND (SELECT * FROM (SELECT(SLEEP(%s)))foo) AND "1"="1'),
         ExactDelay("' OR (SELECT * FROM (SELECT(SLEEP(%s)))foo) OR '1'='2"),
         ExactDelay('" OR (SELECT * FROM (SELECT(SLEEP(%s)))foo) OR "1"="2'),
-
         # MySQL 4
         #
         # MySQL 4 doesn't have a sleep function, so I have to use
@@ -88,12 +88,10 @@ class BlindSQLTimeDelay(object):
         # ExactDelay("1 or BENCHMARK(2500000,MD5(1))") )
         # ExactDelay("1' or BENCHMARK(2500000,MD5(1)) or '1'='1") )
         # ExactDelay('1" or BENCHMARK(2500000,MD5(1)) or "1"="1') )
-
         # PostgreSQL
         ExactDelay("1 or pg_sleep(%s)"),
         ExactDelay("1' or pg_sleep(%s) and '1'='1"),
         ExactDelay('1" or pg_sleep(%s) and "1"="1'),
-
         # TODO: Add Oracle support
         # TODO: Add XXXXX support
         # TODO: https://github.com/andresriancho/w3af/issues/12385
@@ -123,14 +121,19 @@ class BlindSQLTimeDelay(object):
         if success:
             # Now I can be sure that I found a vuln, we control the response
             # time with the delay
-            desc = 'Blind SQL injection using time delays was found at: %s'
+            desc = "Blind SQL injection using time delays was found at: %s"
             desc %= mutant.found_at()
 
             response_ids = [r.id for r in responses]
 
-            v = Vuln.from_mutant('Blind SQL injection vulnerability', desc,
-                                 severity.HIGH, response_ids, 'blind_sqli',
-                                 mutant)
+            v = Vuln.from_mutant(
+                "Blind SQL injection vulnerability",
+                desc,
+                severity.HIGH,
+                response_ids,
+                "blind_sqli",
+                mutant,
+            )
 
             om.out.debug(v.get_desc())
 
@@ -140,7 +143,7 @@ class BlindSQLTimeDelay(object):
         """
         :return: A list of statements that are going to be used to test for
                  blind SQL injections. The statements are objects.
-                 
+
                  IMPORTANT: Note that I need this function that generates
                  unique instances of the delay objects! Adding this to a list
                  that's defined at the class level will bring threading issues
@@ -148,4 +151,4 @@ class BlindSQLTimeDelay(object):
         return self.DELAYS
 
     def __repr__(self):
-        return '<BlindSQLTimeDelay did=%s>' % self.get_debugging_id()
+        return "<BlindSQLTimeDelay did=%s>" % self.get_debugging_id()

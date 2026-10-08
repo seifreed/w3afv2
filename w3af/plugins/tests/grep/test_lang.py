@@ -18,52 +18,52 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.plugins.tests.helper import PluginTest, PluginConfig
 
 
 class TestLang(PluginTest):
 
-    langs_url = get_moth_http('/grep/lang/%s.html')
+    langs_url = get_moth_http("/grep/lang/%s.html")
 
     _run_configs = {
-        'direct': {
-            'target': None,
-            'plugins': {
-                'grep': (PluginConfig('lang'),),
-            }
+        "direct": {
+            "target": None,
+            "plugins": {
+                "grep": (PluginConfig("lang"),),
+            },
         },
-
-        'crawl': {
-            'target': get_moth_http('/grep/'),
-            'plugins': {
-                'grep': (PluginConfig('lang'),),
-                'crawl': (
-                    PluginConfig('web_spider',
-                                 ('only_forward', True, PluginConfig.BOOL)),
-                )
-
-            }
-        }
+        "crawl": {
+            "target": get_moth_http("/grep/"),
+            "plugins": {
+                "grep": (PluginConfig("lang"),),
+                "crawl": (
+                    PluginConfig(
+                        "web_spider", ("only_forward", True, PluginConfig.BOOL)
+                    ),
+                ),
+            },
+        },
     }
 
     def test_id_es(self):
-        cfg = self._run_configs['direct']
-        self._scan(self.langs_url % 'es', cfg['plugins'])
+        cfg = self._run_configs["direct"]
+        self._scan(self.langs_url % "es", cfg["plugins"])
 
-        lang = self.kb.raw_read('lang', 'lang')
-        self.assertEqual('es', lang)
+        lang = self.kb.raw_read("lang", "lang")
+        self.assertEqual("es", lang)
 
     def test_id_en(self):
-        cfg = self._run_configs['direct']
-        self._scan(self.langs_url % 'en', cfg['plugins'])
+        cfg = self._run_configs["direct"]
+        self._scan(self.langs_url % "en", cfg["plugins"])
 
-        lang = self.kb.raw_read('lang', 'lang')
-        self.assertEqual('en', lang)
+        lang = self.kb.raw_read("lang", "lang")
+        self.assertEqual("en", lang)
 
     def test_id_en_crawl(self):
-        cfg = self._run_configs['crawl']
-        self._scan(self.langs_url % 'en', cfg['plugins'])
-        
-        lang = self.kb.raw_read('lang', 'lang')
-        self.assertEqual('en', lang)
+        cfg = self._run_configs["crawl"]
+        self._scan(self.langs_url % "en", cfg["plugins"])
+
+        lang = self.kb.raw_read("lang", "lang")
+        self.assertEqual("en", lang)

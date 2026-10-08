@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
@@ -37,12 +38,18 @@ class dot_net_event_validation(GrepPlugin):
     def __init__(self):
         GrepPlugin.__init__(self)
 
-        vs_regex = (r'<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE"'
-                    r' value=".*?" />')
-        ev_regex = (r'<input type="hidden" name="__EVENTVALIDATION"'
-                    r' id="__EVENTVALIDATION" value=".*?" />')
-        encryptedvs_regex = (r'<input type="hidden" name="__VIEWSTATEENCRYPTED"'
-                             r' id="__VIEWSTATEENCRYPTED" value=".*?" />')
+        vs_regex = (
+            r'<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE"'
+            r' value=".*?" />'
+        )
+        ev_regex = (
+            r'<input type="hidden" name="__EVENTVALIDATION"'
+            r' id="__EVENTVALIDATION" value=".*?" />'
+        )
+        encryptedvs_regex = (
+            r'<input type="hidden" name="__VIEWSTATEENCRYPTED"'
+            r' id="__VIEWSTATEENCRYPTED" value=".*?" />'
+        )
 
         self._viewstate = re.compile(vs_regex, re.IGNORECASE)
         self._eventvalidation = re.compile(ev_regex, re.IGNORECASE)
@@ -64,34 +71,45 @@ class dot_net_event_validation(GrepPlugin):
 
         # I have __viewstate!, verify if event validation is enabled
         if not self._eventvalidation.search(response.get_body()):
-            desc = ('The URL: "%s" has .NET Event Validation disabled. This'
-                    ' programming/configuration error should be manually'
-                    ' verified.')
+            desc = (
+                'The URL: "%s" has .NET Event Validation disabled. This'
+                " programming/configuration error should be manually"
+                " verified."
+            )
             desc %= response.get_url()
 
-            i = Info('.NET Event Validation is disabled', desc, response.id,
-                     self.get_name())
+            i = Info(
+                ".NET Event Validation is disabled", desc, response.id, self.get_name()
+            )
             i.set_url(response.get_url())
             i.add_to_highlight(viewstate_mo.group())
             i[EVDisabledInfoSet.ITAG] = response.get_url().get_domain()
 
-            self.kb_append_uniq_group(self, self.get_name(), i,
-                                      group_klass=EVDisabledInfoSet)
+            self.kb_append_uniq_group(
+                self, self.get_name(), i, group_klass=EVDisabledInfoSet
+            )
 
         if not self._encryptedVs.search(response.get_body()):
             # Nice! We can decode the viewstate! =)
-            desc = ('The URL: "%s" has .NET ViewState encryption disabled.'
-                    ' This programming/configuration error could be'
-                    ' exploited to decode the viewstate contents.')
+            desc = (
+                'The URL: "%s" has .NET ViewState encryption disabled.'
+                " This programming/configuration error could be"
+                " exploited to decode the viewstate contents."
+            )
             desc %= response.get_url()
 
-            i = Info('.NET ViewState encryption is disabled', desc, response.id,
-                     self.get_name())
+            i = Info(
+                ".NET ViewState encryption is disabled",
+                desc,
+                response.id,
+                self.get_name(),
+            )
             i.set_url(response.get_url())
             i[EVClearTextInfoSet.ITAG] = response.get_url().get_domain()
 
-            self.kb_append_uniq_group(self, self.get_name(), i,
-                                      group_klass=EVClearTextInfoSet)
+            self.kb_append_uniq_group(
+                self, self.get_name(), i, group_klass=EVClearTextInfoSet
+            )
 
     def get_long_desc(self):
         """
@@ -112,28 +130,28 @@ class dot_net_event_validation(GrepPlugin):
 
 
 class EVDisabledInfoSet(InfoSet):
-    ITAG = 'domain'
+    ITAG = "domain"
     TEMPLATE = (
-        'The application contains {{ uris|length }} unique URLs which have'
-        ' .NET Event Validation disabled. This programming / configuration'
-        ' error should be manually verified. The first {{ uris|sample_count }}'
-        ' vulnerable URLs are:\n'
-        ''
-        '{% for url in uris[:10] %}'
-        ' - {{ url }}\n'
-        '{% endfor %}'
+        "The application contains {{ uris|length }} unique URLs which have"
+        " .NET Event Validation disabled. This programming / configuration"
+        " error should be manually verified. The first {{ uris|sample_count }}"
+        " vulnerable URLs are:\n"
+        ""
+        "{% for url in uris[:10] %}"
+        " - {{ url }}\n"
+        "{% endfor %}"
     )
 
 
 class EVClearTextInfoSet(InfoSet):
-    ITAG = 'domain'
+    ITAG = "domain"
     TEMPLATE = (
-        'The application contains {{ uris|length }} unique URLs with .NET'
-        ' ViewState encryption disabled. This programming / configuration error'
-        ' can be exploited to decode and inspect the ViewState contents.'
-        ' The first {{ uris|sample_count }} vulnerable URLs are:\n'
-        ''
-        '{% for url in uris[:10] %}'
-        ' - {{ url }}\n'
-        '{% endfor %}'
+        "The application contains {{ uris|length }} unique URLs with .NET"
+        " ViewState encryption disabled. This programming / configuration error"
+        " can be exploited to decode and inspect the ViewState contents."
+        " The first {{ uris|sample_count }} vulnerable URLs are:\n"
+        ""
+        "{% for url in uris[:10] %}"
+        " - {{ url }}\n"
+        "{% endfor %}"
     )

@@ -26,6 +26,7 @@ class DiskItem(object):
     This is a very simple class that's intended to be a base class for objects
     that want to be stored in a DiskList of DiskSet.
     """
+
     __slots__ = ()
 
     def get_eq_attrs(self):

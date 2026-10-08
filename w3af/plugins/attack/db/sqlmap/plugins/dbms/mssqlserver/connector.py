@@ -19,6 +19,7 @@ from lib.core.data import logger
 from lib.core.exception import SqlmapConnectionException
 from plugins.generic.connector import Connector as GenericConnector
 
+
 class Connector(GenericConnector):
     """
     Homepage: http://pymssql.sourceforge.net/
@@ -40,7 +41,14 @@ class Connector(GenericConnector):
         self.initConnection()
 
         try:
-            self.connector = pymssql.connect(host="%s:%d" % (self.hostname, self.port), user=self.user, password=self.password, database=self.db, login_timeout=conf.timeout, timeout=conf.timeout)
+            self.connector = pymssql.connect(
+                host="%s:%d" % (self.hostname, self.port),
+                user=self.user,
+                password=self.password,
+                database=self.db,
+                login_timeout=conf.timeout,
+                timeout=conf.timeout,
+            )
         except (pymssql.Error, _mssql.MssqlDatabaseException) as msg:
             raise SqlmapConnectionException(msg)
 
@@ -51,7 +59,10 @@ class Connector(GenericConnector):
         try:
             return self.cursor.fetchall()
         except (pymssql.Error, _mssql.MssqlDatabaseException) as msg:
-            logger.log(logging.WARN if conf.dbmsHandler else logging.DEBUG, "(remote) %s" % str(msg).replace("\n", " "))
+            logger.log(
+                logging.WARN if conf.dbmsHandler else logging.DEBUG,
+                "(remote) %s" % str(msg).replace("\n", " "),
+            )
             return None
 
     def execute(self, query):
@@ -61,7 +72,10 @@ class Connector(GenericConnector):
             self.cursor.execute(utf8encode(query))
             retVal = True
         except (pymssql.OperationalError, pymssql.ProgrammingError) as msg:
-            logger.log(logging.WARN if conf.dbmsHandler else logging.DEBUG, "(remote) %s" % str(msg).replace("\n", " "))
+            logger.log(
+                logging.WARN if conf.dbmsHandler else logging.DEBUG,
+                "(remote) %s" % str(msg).replace("\n", " "),
+            )
         except pymssql.InternalError as msg:
             raise SqlmapConnectionException(msg)
 

@@ -19,29 +19,30 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.controllers.output_manager as om
 
 from w3af.core.controllers.auto_update.ui_wrapper import UIUpdater
 
 
 def ask(msg):
-    return input(msg + ' [y/N] ').lower() in ('y', 'yes')
+    return input(msg + " [y/N] ").lower() in ("y", "yes")
 
 
 class ConsoleUIUpdater(UIUpdater):
 
     def __init__(self, force):
         UIUpdater.__init__(self, force=force, ask=ask, logger=om.out.console)
-    
+
         # Show revisions logs function
         def show_log(msg, get_logs):
             if ask(msg):
                 om.out.console(get_logs())
-                
+
         # Add callbacks
-        self._add_callback('callback_onupdate_confirm', ask)
-        self._add_callback('callback_onupdate_show_log', show_log)
-    
+        self._add_callback("callback_onupdate_confirm", ask)
+        self._add_callback("callback_onupdate_show_log", show_log)
+
     def _handle_update_output(self, upd_output):
         # Nothing special to do here.
         pass

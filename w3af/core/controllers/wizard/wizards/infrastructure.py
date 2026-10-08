@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.controllers.wizard.wizard import wizard
 
 
@@ -31,12 +32,16 @@ class infrastructure(wizard):
         """
         wizard.__init__(self, w3af_core)
 
-        self._question_lst = self._get_instances(['infrastructure_1',
-                                                  'infrastructure_2',
-                                                  'infrastructure_3',
-                                                  'infrastructure_4',
-                                                  'infrastructure_internet_1'],
-                                                 w3af_core)
+        self._question_lst = self._get_instances(
+            [
+                "infrastructure_1",
+                "infrastructure_2",
+                "infrastructure_3",
+                "infrastructure_4",
+                "infrastructure_internet_1",
+            ],
+            w3af_core,
+        )
 
     def get_wizard_description(self):
         """
@@ -51,4 +56,4 @@ class infrastructure(wizard):
         """
         :return: The name of the wizard.
         """
-        return 'Infrastructure wizard'
+        return "Infrastructure wizard"

@@ -18,11 +18,15 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import time
 
 import w3af.core.controllers.output_manager as om
 
-from w3af.core.controllers.profiling.thread_time import thread_active_time, CPU_TIME_IS_ACTIVE
+from w3af.core.controllers.profiling.thread_time import (
+    thread_active_time,
+    CPU_TIME_IS_ACTIVE,
+)
 
 
 class TimeStamp(object):
@@ -36,7 +40,9 @@ class TimeStamp(object):
 
 
 class TookLine(object):
-    def __init__(self, w3af_core, plugin_name, method_name, debugging_id=None, method_params=None):
+    def __init__(
+        self, w3af_core, plugin_name, method_name, debugging_id=None, method_params=None
+    ):
         """
         Write the "took X seconds" line to the debug log
 
@@ -57,13 +63,13 @@ class TookLine(object):
         self._end = None
 
         self.start()
-    
+
     def start(self):
         self._start = TimeStamp()
-    
+
     def end(self):
         self._end = TimeStamp()
-        
+
     def send(self):
         """
         Write the "took X seconds" line to the debug log
@@ -87,9 +93,11 @@ class TookLine(object):
 
         # If debugging_id was defined then we add it to the parameters
         if self._debugging_id:
-            method_params['did'] = self._debugging_id
+            method_params["did"] = self._debugging_id
 
-        params_str = ','.join('%s="%s"' % (key, value) for key, value in method_params.items())
+        params_str = ",".join(
+            '%s="%s"' % (key, value) for key, value in method_params.items()
+        )
 
         #
         #   Query the extended urllib to check if it has RTT data regarding this debugging_id
@@ -103,7 +111,7 @@ class TookLine(object):
             #               your HTTP requests and thus the sum(RTT) is higher than the wall
             #               time
             #
-            msg = '%.2fs %i%% sending HTTP requests'
+            msg = "%.2fs %i%% sending HTTP requests"
             msg %= (rtt, rtt / spent_wall_time * 100)
             parentheses_data.append(msg)
 
@@ -122,7 +130,7 @@ class TookLine(object):
             spent_cpu_time = self._end.thread_cpu_time - self._start.thread_cpu_time
 
             if (spent_cpu_time / spent_wall_time) >= 0.2:
-                msg = '%.2fs %i%% consuming CPU cycles'
+                msg = "%.2fs %i%% consuming CPU cycles"
                 msg %= (spent_cpu_time, spent_cpu_time / spent_wall_time * 100)
 
                 parentheses_data.append(msg)
@@ -130,18 +138,15 @@ class TookLine(object):
         #
         # Now we write the line to the log
         #
-        args = (self._plugin_name,
-                self._method_name,
-                params_str,
-                spent_wall_time)
+        args = (self._plugin_name, self._method_name, params_str, spent_wall_time)
 
-        msg = '%s.%s(%s) took %.2fs to run'
+        msg = "%s.%s(%s) took %.2fs to run"
         msg %= args
 
         #
         # Adding any extras we might have
         #
         if parentheses_data:
-            msg += ' (%s)' % ', '.join(parentheses_data)
+            msg += " (%s)" % ", ".join(parentheses_data)
 
         om.out.debug(msg)

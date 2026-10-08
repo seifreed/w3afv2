@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.data.parsers.parser_cache as parser_cache
 
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
@@ -31,14 +32,16 @@ class feeds(GrepPlugin):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
-    TAGS = ('rss', 'feed', 'opml')
+
+    TAGS = ("rss", "feed", "opml")
 
     def __init__(self):
         GrepPlugin.__init__(self)
-        self._feed_types = {'rss': 'RSS',  # <rss version="...">
-                            'feed': 'OPML',  # <feed version="..."
-                            'opml': 'OPML'  # <opml version="...">
-                            }
+        self._feed_types = {
+            "rss": "RSS",  # <rss version="...">
+            "feed": "OPML",  # <feed version="..."
+            "opml": "OPML",  # <opml version="...">
+        }
 
     def grep(self, request, response):
         """
@@ -53,18 +56,18 @@ class feeds(GrepPlugin):
         for tag in parser_cache.dpc.get_tags_by_filter(response, self.TAGS):
             # pylint: disable=E1101
             feed_tag = tag.name
-            version = tag.attrib.get('version', 'unknown')
+            version = tag.attrib.get("version", "unknown")
             # pylint: disable=E1101
             feed_type = self._feed_types[feed_tag.lower()]
 
             desc = 'The URL "%s" is a %s version %s feed.'
             desc %= (uri, feed_type, version)
 
-            i = Info('Content feed resource', desc, response.id, self.get_name())
+            i = Info("Content feed resource", desc, response.id, self.get_name())
             i.set_uri(uri)
             i.add_to_highlight(feed_type)
-            
-            self.kb_append_uniq(self, 'feeds', i, 'URL')
+
+            self.kb_append_uniq(self, "feeds", i, "URL")
 
     def get_long_desc(self):
         """

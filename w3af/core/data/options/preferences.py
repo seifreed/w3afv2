@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-
 import os
 
 from configparser import RawConfigParser
@@ -34,13 +33,14 @@ class Preferences(object):
 
     It also support saving into files.
     """
+
     def __init__(self, label=None):
         self.sections = {}
         self.options = {}
         if label:
-            self.filename = os.path.join(get_home_dir(), label + '.cfg')
+            self.filename = os.path.join(get_home_dir(), label + ".cfg")
 
-    def add_section(self, section='default', label=None, options_list=None):
+    def add_section(self, section="default", label=None, options_list=None):
         """Add a section named section to the instance."""
         self.sections[section] = label
         self.options[section] = options_list
@@ -121,8 +121,7 @@ class Preferences(object):
                 for option in options:
                     if self.has_option(section, option):
                         try:
-                            self.set_value(section, option,
-                                           config.get(section, option))
+                            self.set_value(section, option, config.get(section, option))
                         except BaseFrameworkException:
                             # In some cases the user touches the file by hand
                             # and then the framework will fail to validate
@@ -138,5 +137,5 @@ class Preferences(object):
             for option in self.options[section]:
                 config.set(section, option.get_name(), option.get_value_str())
 
-        with open(self.filename, 'w') as configfile:
+        with open(self.filename, "w") as configfile:
             config.write(configfile)

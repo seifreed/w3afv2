@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import hashlib
 
 
@@ -67,9 +68,9 @@ class BasePayloadTransfer(object):
         :param remote_filename: The remote file where the uploaded content should be in
         :return: True if the file was successfully uploaded.
         """
-        if '/etc/passwd' in self._exec_method('md5sum /etc/passwd'):
-            md5sum_res = self._exec_method('md5sum ' + remote_filename)
-            hash_ = md5sum_res.split(' ')[0]
+        if "/etc/passwd" in self._exec_method("md5sum /etc/passwd"):
+            md5sum_res = self._exec_method("md5sum " + remote_filename)
+            hash_ = md5sum_res.split(" ")[0]
 
             m = hashlib.md5()
             m.update(file_content)

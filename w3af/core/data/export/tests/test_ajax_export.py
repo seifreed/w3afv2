@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from w3af.core.data.export.ajax_export import ajax_export
@@ -136,21 +137,25 @@ xmlhttp.send(post_data);
 class TestAjaxExport(unittest.TestCase):
 
     def test_export_GET(self):
-        http_request = 'GET http://www.w3af.org/ HTTP/1.1\n' \
-                       'Host: www.w3af.org\n' \
-                       'Foo: bar\n' \
-                       '\n'
+        http_request = (
+            "GET http://www.w3af.org/ HTTP/1.1\n"
+            "Host: www.w3af.org\n"
+            "Foo: bar\n"
+            "\n"
+        )
         ajax_code = ajax_export(http_request)
 
         self.assertEqual(ajax_code, EXPECTED_SIMPLE)
 
     def test_export_POST(self):
-        http_request = 'POST http://www.w3af.org/ HTTP/1.1\n' \
-                       'Host: www.w3af.org\n' \
-                       'Content-Length: 3\n' \
-                       'Content-Type: application/x-www-form-urlencoded\n' \
-                       '\n' \
-                       'a=1'
+        http_request = (
+            "POST http://www.w3af.org/ HTTP/1.1\n"
+            "Host: www.w3af.org\n"
+            "Content-Length: 3\n"
+            "Content-Type: application/x-www-form-urlencoded\n"
+            "\n"
+            "a=1"
+        )
         ajax_code = ajax_export(http_request)
 
         self.assertEqual(ajax_code, EXPECTED_POST)

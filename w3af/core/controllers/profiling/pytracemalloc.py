@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import sys
 import gc
@@ -26,7 +27,7 @@ import pickle
 
 
 def user_wants_pytracemalloc():
-    _should_profile = os.environ.get('W3AF_PYTRACEMALLOC', '0')
+    _should_profile = os.environ.get("W3AF_PYTRACEMALLOC", "0")
 
     if _should_profile.isdigit() and int(_should_profile) == 1:
         return True
@@ -40,14 +41,13 @@ if user_wants_pytracemalloc():
         # http://pytracemalloc.readthedocs.org/install.html
         import tracemalloc
     except ImportError as ie:
-        print(('Failed to import tracemalloc: %s' % ie))
+        print(("Failed to import tracemalloc: %s" % ie))
         sys.exit(-1)
 
 
 from .utils import get_filename_fmt, dump_data_every_thread, cancel_thread
 
-
-PROFILING_OUTPUT_FMT = '/tmp/w3af-%s-%s.tracemalloc'
+PROFILING_OUTPUT_FMT = "/tmp/w3af-%s-%s.tracemalloc"
 DELAY_MINUTES = 2
 SAVE_TRACEMALLOC_PTR = []
 
@@ -83,7 +83,7 @@ def dump_tracemalloc():
     snapshot = tracemalloc.take_snapshot()
 
     output_file = PROFILING_OUTPUT_FMT % get_filename_fmt()
-    with open(output_file, 'wb') as fp:
+    with open(output_file, "wb") as fp:
         pickle.dump(snapshot, fp, 2)
 
     # Make sure the snapshot goes away

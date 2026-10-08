@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from w3af.core.controllers.plugins.plugin import Plugin
@@ -28,13 +29,12 @@ from w3af.plugins.crawl.find_dvcs import find_dvcs
 class TestPlugin(unittest.TestCase):
     def test_get_desc_trivial(self):
         p = Plugin()
-        p.__doc__ = 'abc'
-        
-        self.assertEqual(p.get_desc(), 'abc')
+        p.__doc__ = "abc"
+
+        self.assertEqual(p.get_desc(), "abc")
 
     def test_get_desc_complex(self):
         p = find_dvcs()
         desc = p.get_desc()
-        
-        self.assertNotIn('author', desc)
 
+        self.assertNotIn("author", desc)

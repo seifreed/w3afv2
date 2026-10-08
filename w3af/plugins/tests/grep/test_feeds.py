@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 import w3af.core.data.kb.knowledge_base as kb
@@ -33,69 +34,69 @@ class test_feeds(unittest.TestCase):
 
     def setUp(self):
         self.plugin = feeds()
-        kb.kb.clear('feeds', 'feeds')
+        kb.kb.clear("feeds", "feeds")
 
     def tearDown(self):
         self.plugin.end()
 
     def test_rss(self):
         body = 'header <rss version="3"> footer'
-        url = URL('http://www.w3af.com/')
-        headers = Headers([('content-type', 'text/html')])
+        url = URL("http://www.w3af.com/")
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, url, url, _id=1)
-        request = FuzzableRequest(url, method='GET')
+        request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        self.assertEqual(len(kb.kb.get('feeds', 'feeds')), 1)
-        i = kb.kb.get('feeds', 'feeds')[0]
-        self.assertTrue('RSS' in i.get_desc())
-        self.assertTrue('3' in i.get_desc())
+        self.assertEqual(len(kb.kb.get("feeds", "feeds")), 1)
+        i = kb.kb.get("feeds", "feeds")[0]
+        self.assertTrue("RSS" in i.get_desc())
+        self.assertTrue("3" in i.get_desc())
 
     def test_feed(self):
         body = 'header <feed foo="4" version="3"> footer'
-        url = URL('http://www.w3af.com/')
-        headers = Headers([('content-type', 'text/html')])
+        url = URL("http://www.w3af.com/")
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, url, url, _id=1)
-        request = FuzzableRequest(url, method='GET')
+        request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        self.assertEqual(len(kb.kb.get('feeds', 'feeds')), 1)
-        i = kb.kb.get('feeds', 'feeds')[0]
-        self.assertTrue('OPML' in i.get_desc())
-        self.assertTrue('3' in i.get_desc())
+        self.assertEqual(len(kb.kb.get("feeds", "feeds")), 1)
+        i = kb.kb.get("feeds", "feeds")[0]
+        self.assertTrue("OPML" in i.get_desc())
+        self.assertTrue("3" in i.get_desc())
 
     def test_opml(self):
         body = 'header <opml version="3" foo="4"> footer'
-        url = URL('http://www.w3af.com/')
-        headers = Headers([('content-type', 'text/html')])
+        url = URL("http://www.w3af.com/")
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, url, url, _id=1)
-        request = FuzzableRequest(url, method='GET')
+        request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        self.assertEqual(len(kb.kb.get('feeds', 'feeds')), 1)
-        i = kb.kb.get('feeds', 'feeds')[0]
-        self.assertTrue('OPML' in i.get_desc())
-        self.assertTrue('3' in i.get_desc())
+        self.assertEqual(len(kb.kb.get("feeds", "feeds")), 1)
+        i = kb.kb.get("feeds", "feeds")[0]
+        self.assertTrue("OPML" in i.get_desc())
+        self.assertTrue("3" in i.get_desc())
 
     def test_no_feeds(self):
         body = 'header <nofeed version="3" foo="4"> footer'
-        url = URL('http://www.w3af.com/')
-        headers = Headers([('content-type', 'text/html')])
+        url = URL("http://www.w3af.com/")
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, url, url, _id=1)
-        request = FuzzableRequest(url, method='GET')
+        request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        self.assertEqual(len(kb.kb.get('feeds', 'feeds')), 0)
+        self.assertEqual(len(kb.kb.get("feeds", "feeds")), 0)
 
     def test_no_version(self):
         body = 'header <rss foo="3"> footer'
-        url = URL('http://www.w3af.com/')
-        headers = Headers([('content-type', 'text/html')])
+        url = URL("http://www.w3af.com/")
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, url, url, _id=1)
-        request = FuzzableRequest(url, method='GET')
+        request = FuzzableRequest(url, method="GET")
         self.plugin.grep(request, response)
 
-        self.assertEqual(len(kb.kb.get('feeds', 'feeds')), 1)
-        i = kb.kb.get('feeds', 'feeds')[0]
-        self.assertTrue('RSS' in i.get_desc())
-        self.assertTrue('unknown' in i.get_desc())
+        self.assertEqual(len(kb.kb.get("feeds", "feeds")), 1)
+        i = kb.kb.get("feeds", "feeds")[0]
+        self.assertTrue("RSS" in i.get_desc())
+        self.assertTrue("unknown" in i.get_desc())

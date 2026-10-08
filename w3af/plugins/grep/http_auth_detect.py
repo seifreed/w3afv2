@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 
 import w3af.core.controllers.output_manager as om
@@ -42,7 +43,7 @@ class http_auth_detect(GrepPlugin):
     def __init__(self):
         GrepPlugin.__init__(self)
 
-        self._auth_uri_regex = re.compile('.*://[\w%]*?:[\w%]*?@[\w\.]{3,40}')
+        self._auth_uri_regex = re.compile(".*://[\w%]*?:[\w%]*?@[\w\.]{3,40}")
 
     def grep(self, request, response):
         """
@@ -56,8 +57,10 @@ class http_auth_detect(GrepPlugin):
         if response.get_code() == 401:
 
             # Doing this after the other if in order to be faster.
-            already_reported = [i.get_url().get_domain_path() for i in
-                                kb.kb.get('http_auth_detect', 'auth')]
+            already_reported = [
+                i.get_url().get_domain_path()
+                for i in kb.kb.get("http_auth_detect", "auth")
+            ]
             if response.get_url().get_domain_path() not in already_reported:
 
                 # Perform all the work in this method
@@ -78,16 +81,20 @@ class http_auth_detect(GrepPlugin):
         #
         if self._url_has_auth(response.get_uri()):
             # An authentication URI was found!
-            desc = ('The resource: "%s" has a user and password in'
-                    ' the URI.')
+            desc = 'The resource: "%s" has a user and password in' " the URI."
             desc %= response.get_uri()
-            v = Vuln('Basic HTTP credentials', desc, severity.HIGH,
-                     response.id, self.get_name())
+            v = Vuln(
+                "Basic HTTP credentials",
+                desc,
+                severity.HIGH,
+                response.id,
+                self.get_name(),
+            )
 
             v.set_url(response.get_url())
             v.add_to_highlight(response.get_uri().url_string)
 
-            kb.kb.append(self, 'userPassUri', v)
+            kb.kb.append(self, "userPassUri", v)
             om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
         #
@@ -108,21 +115,28 @@ class http_auth_detect(GrepPlugin):
 
             if self._url_has_auth(url):
 
-                desc = ('The resource: "%s" has a user and password in the'
-                        ' body. The offending URL is: "%s".')
+                desc = (
+                    'The resource: "%s" has a user and password in the'
+                    ' body. The offending URL is: "%s".'
+                )
                 desc %= (response.get_url(), url)
-                
-                v = Vuln('Basic HTTP credentials', desc,
-                         severity.HIGH, response.id, self.get_name())
+
+                v = Vuln(
+                    "Basic HTTP credentials",
+                    desc,
+                    severity.HIGH,
+                    response.id,
+                    self.get_name(),
+                )
 
                 v.set_url(response.get_url())
                 v.add_to_highlight(url.url_string)
 
-                kb.kb.append(self, 'userPassUri', v)
+                kb.kb.append(self, "userPassUri", v)
                 om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
     def _url_has_auth(self, url):
-        if '@' not in url.url_string:
+        if "@" not in url.url_string:
             return False
 
         if not self._auth_uri_regex.match(url.url_string):
@@ -132,65 +146,79 @@ class http_auth_detect(GrepPlugin):
 
     def _get_realm(self, response):
         for key in response.get_headers():
-            if key.lower() == 'www-authenticate':
+            if key.lower() == "www-authenticate":
                 realm = response.get_headers()[key]
                 return realm
-        
+
         return None
-        
+
     def _report_no_realm(self, response):
         # Report this strange case
-        desc = ('The resource: "%s" requires authentication (HTTP Code'
-                ' 401) but the www-authenticate header is not present.'
-                ' This requires human verification.')
+        desc = (
+            'The resource: "%s" requires authentication (HTTP Code'
+            " 401) but the www-authenticate header is not present."
+            " This requires human verification."
+        )
         desc %= response.get_url()
-        i = Info('Authentication without www-authenticate header', desc,
-                 response.id, self.get_name())
+        i = Info(
+            "Authentication without www-authenticate header",
+            desc,
+            response.id,
+            self.get_name(),
+        )
         i.set_url(response.get_url())
 
-        kb.kb.append(self, 'non_rfc_auth', i)
+        kb.kb.append(self, "non_rfc_auth", i)
         om.out.information(i.get_desc())
-        
+
     def _analyze_401(self, response):
         """
         Analyze a 401 response and report it.
         :return: None
         """
         realm = self._get_realm(response)
-        
+
         if realm is None:
             self._report_no_realm(response)
             return
-        
-        insecure = response.get_url().get_protocol() == 'http'
+
+        insecure = response.get_url().get_protocol() == "http"
         vuln_severity = severity.HIGH if insecure else severity.LOW
-        
+
         desc = 'The resource: "%s" requires HTTP authentication'
         if insecure:
-            desc += (' over a non-encrypted channel, which allows'
-                     ' potential intruders to sniff traffic and capture'
-                     ' valid credentials.')
+            desc += (
+                " over a non-encrypted channel, which allows"
+                " potential intruders to sniff traffic and capture"
+                " valid credentials."
+            )
         else:
-            desc += '.'
-        
+            desc += "."
+
         desc += ' The received authentication realm is: "%s".'
         desc = desc % (response.get_url(), realm)
-        
+
         # Report the common case, were a realm is set.
-        if 'ntlm' in realm.lower():
-            
-            v = Vuln('NTLM authentication', desc,
-                     vuln_severity, response.id, self.get_name())
+        if "ntlm" in realm.lower():
+
+            v = Vuln(
+                "NTLM authentication", desc, vuln_severity, response.id, self.get_name()
+            )
 
         else:
-            v = Vuln('HTTP Basic authentication', desc,
-                     vuln_severity, response.id, self.get_name())
+            v = Vuln(
+                "HTTP Basic authentication",
+                desc,
+                vuln_severity,
+                response.id,
+                self.get_name(),
+            )
 
         v.set_url(response.get_url())
-        v['message'] = realm
+        v["message"] = realm
         v.add_to_highlight(realm)
 
-        kb.kb.append(self, 'auth', v)
+        kb.kb.append(self, "auth", v)
         om.out.information(v.get_desc())
 
     def get_long_desc(self):

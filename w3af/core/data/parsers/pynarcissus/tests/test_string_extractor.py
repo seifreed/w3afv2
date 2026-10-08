@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 import os
 
@@ -26,7 +27,7 @@ from w3af.core.data.parsers.pynarcissus.string_extractor import StringExtractor
 
 
 class JSParserMixin(object):
-    DATA_PATH = 'w3af/core/data/parsers/pynarcissus/tests/data/'
+    DATA_PATH = "w3af/core/data/parsers/pynarcissus/tests/data/"
 
     def get_file_contents(self, filename):
         test_file = os.path.join(self.DATA_PATH, filename)
@@ -35,20 +36,29 @@ class JSParserMixin(object):
 
 class TestStringExtractor(unittest.TestCase, JSParserMixin):
     def test_1_js(self):
-        e = StringExtractor(self.get_file_contents('test_1.js'))
-        expected = {'John', 'Doe', 'blue', 'demo', ' is ', ' years old.'}
+        e = StringExtractor(self.get_file_contents("test_1.js"))
+        expected = {"John", "Doe", "blue", "demo", " is ", " years old."}
 
         self.assertEqual(e.get_strings(), expected)
 
     def test_2_js(self):
-        e = StringExtractor(self.get_file_contents('test_2.js'))
-        expected = {'John', 'Doe', 'blue', 'Sally', 'Rally', 'green',
-                    'My father is ', '. My mother is ', 'demo'}
+        e = StringExtractor(self.get_file_contents("test_2.js"))
+        expected = {
+            "John",
+            "Doe",
+            "blue",
+            "Sally",
+            "Rally",
+            "green",
+            "My father is ",
+            ". My mother is ",
+            "demo",
+        }
 
         self.assertEqual(e.get_strings(), expected)
 
     def test_3_js(self):
-        e = StringExtractor(self.get_file_contents('test_3.js'))
-        expected = {'Good day', 'Good evening', 'demo', ''}
+        e = StringExtractor(self.get_file_contents("test_3.js"))
+        expected = {"Good day", "Good evening", "demo", ""}
 
         self.assertEqual(e.get_strings(), expected)

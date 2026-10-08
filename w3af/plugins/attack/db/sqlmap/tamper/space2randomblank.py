@@ -11,8 +11,10 @@ from lib.core.enums import PRIORITY
 
 __priority__ = PRIORITY.LOW
 
+
 def dependencies():
     pass
+
 
 def tamper(payload, **kwargs):
     """
@@ -52,13 +54,13 @@ def tamper(payload, **kwargs):
                     retVal += random.choice(blanks)
                     continue
 
-            elif payload[i] == '\'':
+            elif payload[i] == "'":
                 quote = not quote
 
             elif payload[i] == '"':
                 doublequote = not doublequote
 
-            elif payload[i] == ' ' and not doublequote and not quote:
+            elif payload[i] == " " and not doublequote and not quote:
                 retVal += random.choice(blanks)
                 continue
 

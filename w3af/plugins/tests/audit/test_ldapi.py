@@ -25,22 +25,22 @@ from w3af.plugins.tests.helper import PluginTest, PluginConfig
 
 class TestLDAPI(PluginTest):
 
-    target_url = 'http://moth/w3af/audit/LDAP/simple_ldap.php'
+    target_url = "http://moth/w3af/audit/LDAP/simple_ldap.php"
 
     _run_configs = {
-        'cfg': {
-            'target': target_url + '?i=xxx',
-            'plugins': {
-                'audit': (PluginConfig('ldapi'),),
-            }
+        "cfg": {
+            "target": target_url + "?i=xxx",
+            "plugins": {
+                "audit": (PluginConfig("ldapi"),),
+            },
         }
     }
 
-    @attr('ci_fails')
+    @attr("ci_fails")
     def test_found_ldapi(self):
-        cfg = self._run_configs['cfg']
-        self._scan(cfg['target'], cfg['plugins'])
-        vulns = self.kb.get('ldapi', 'ldapi')
+        cfg = self._run_configs["cfg"]
+        self._scan(cfg["target"], cfg["plugins"])
+        vulns = self.kb.get("ldapi", "ldapi")
         self.assertEqual(1, len(vulns))
         # Now some tests around specific details of the found vuln
         vuln = vulns[0]

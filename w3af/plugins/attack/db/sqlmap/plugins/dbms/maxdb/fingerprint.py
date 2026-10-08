@@ -18,6 +18,7 @@ from lib.request import inject
 from lib.request.connect import Connect as Request
 from plugins.generic.fingerprint import Fingerprint as GenericFingerprint
 
+
 class Fingerprint(GenericFingerprint):
     def __init__(self):
         GenericFingerprint.__init__(self, DBMS.MAXDB)
@@ -40,13 +41,17 @@ class Fingerprint(GenericFingerprint):
         minor, major = None, None
 
         for version in (6, 7):
-            result = inject.checkBooleanExpression("%d=(SELECT MAJORVERSION FROM SYSINFO.VERSION)" % version)
+            result = inject.checkBooleanExpression(
+                "%d=(SELECT MAJORVERSION FROM SYSINFO.VERSION)" % version
+            )
 
             if result:
                 major = version
 
         for version in range(0, 10):
-            result = inject.checkBooleanExpression("%d=(SELECT MINORVERSION FROM SYSINFO.VERSION)" % version)
+            result = inject.checkBooleanExpression(
+                "%d=(SELECT MINORVERSION FROM SYSINFO.VERSION)" % version
+            )
 
             if result:
                 minor = version

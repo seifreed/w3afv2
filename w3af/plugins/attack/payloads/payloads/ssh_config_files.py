@@ -7,22 +7,23 @@ class ssh_config_files(Payload):
     """
     This payload shows SSH Server configuration files
     """
+
     def api_read(self):
         result = {}
         files = []
 
         def parse_hostkey(config):
-            hostkey = re.findall('(?<=HostKey )(.*)', config, re.MULTILINE)
+            hostkey = re.findall("(?<=HostKey )(.*)", config, re.MULTILINE)
             if hostkey:
                 return hostkey
             else:
-                return ''
+                return ""
 
-        files.append('/etc/ssh/sshd_config')
-        files.append('/etc/rssh.conf')
-        files.append('/usr/local/etc/sshd_config')
-        files.append('/etc/sshd_config')
-        files.append('/etc/openssh/sshd_config')
+        files.append("/etc/ssh/sshd_config")
+        files.append("/etc/rssh.conf")
+        files.append("/usr/local/etc/sshd_config")
+        files.append("/etc/sshd_config")
+        files.append("/etc/openssh/sshd_config")
 
         for file_ in files:
             hostkey = parse_hostkey(self.shell.read(file_))
@@ -40,14 +41,18 @@ class ssh_config_files(Payload):
         api_result = self.api_read()
 
         if not api_result:
-            return 'SSH configuration files not found.'
+            return "SSH configuration files not found."
         else:
             rows = []
-            rows.append(['SSH configuration files'])
+            rows.append(["SSH configuration files"])
             rows.append([])
 
             for filename in api_result:
-                rows.append([filename, ])
+                rows.append(
+                    [
+                        filename,
+                    ]
+                )
 
             result_table = table(rows)
             result_table.draw(80)

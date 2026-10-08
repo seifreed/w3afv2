@@ -19,11 +19,11 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 import json
 
-
-FORM_ID_FORMAT_ERROR = '''\
+FORM_ID_FORMAT_ERROR = """\
 The provided form-id JSON is incorrect. Form ids must be JSON objects with the
 following structure:
 
@@ -41,7 +41,7 @@ expressions.
 
 Please read the documentation for more details and examples on how to configure
 the form-id setting.
-'''
+"""
 
 
 class FormIDMatcher(object):
@@ -62,11 +62,11 @@ class FormIDMatcher(object):
     :see: https://github.com/andresriancho/w3af/issues/15161
     """
 
-    ALLOWED_ATTRS = ['action', 'inputs', 'attributes', 'hosted_at_url',
-                     'method']
+    ALLOWED_ATTRS = ["action", "inputs", "attributes", "hosted_at_url", "method"]
 
-    def __init__(self, action=None, inputs=None, attributes=None,
-                 hosted_at_url=None, method=None):
+    def __init__(
+        self, action=None, inputs=None, attributes=None, hosted_at_url=None, method=None
+    ):
         """
         :param action: Regular expression object matching URL where
                        the form is sent
@@ -76,8 +76,7 @@ class FormIDMatcher(object):
                               where the form should
         :param method: The HTTP method used to submit the form
         """
-        self.verify_data_types(action, inputs, attributes, hosted_at_url,
-                               method)
+        self.verify_data_types(action, inputs, attributes, hosted_at_url, method)
 
         self.action = action
         self.inputs = inputs
@@ -85,8 +84,7 @@ class FormIDMatcher(object):
         self.hosted_at_url = hosted_at_url
         self.method = method
 
-    def verify_data_types(self, action, inputs, attributes, hosted_at_url,
-                          method):
+    def verify_data_types(self, action, inputs, attributes, hosted_at_url, method):
         """
         Strict attribute type checking to make sure we get what we expect from
         all the callers
@@ -137,15 +135,15 @@ class FormIDMatcher(object):
         """
         data = {}
 
-        for unmodified in ['inputs', 'attributes', 'method']:
+        for unmodified in ["inputs", "attributes", "method"]:
             if self.__dict__[unmodified] is not None:
                 data[unmodified] = self.__dict__[unmodified]
 
         if self.action is not None:
-            data['action'] = self.action.pattern
+            data["action"] = self.action.pattern
 
         if self.hosted_at_url is not None:
-            data['hosted_at_url'] = self.hosted_at_url.pattern
+            data["hosted_at_url"] = self.hosted_at_url.pattern
 
         return data
 
@@ -183,11 +181,11 @@ class FormIDMatcher(object):
         if not isinstance(json_list_item, dict):
             raise ValueError(FORM_ID_FORMAT_ERROR)
 
-        action = json_list_item.get('action', None)
-        inputs = json_list_item.get('inputs', None)
-        attributes = json_list_item.get('attributes', None)
-        hosted_at_url = json_list_item.get('hosted_at_url', None)
-        method = json_list_item.get('method', None)
+        action = json_list_item.get("action", None)
+        inputs = json_list_item.get("inputs", None)
+        attributes = json_list_item.get("attributes", None)
+        hosted_at_url = json_list_item.get("hosted_at_url", None)
+        method = json_list_item.get("method", None)
 
         for json_attr in json_list_item:
             if json_attr not in cls.ALLOWED_ATTRS:
@@ -210,4 +208,4 @@ class FormIDMatcher(object):
         return cls(action, inputs, attributes, hosted_at_url, method)
 
     def __str__(self):
-        return '<FormIDMatcher: %s>' % self.__dict__
+        return "<FormIDMatcher: %s>" % self.__dict__

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 
 import w3af.core.controllers.output_manager as om
@@ -40,6 +41,7 @@ class frontpage_version(InfrastructurePlugin):
     Search FrontPage Server Info file and if it finds it will determine its version.
     :author: Viktor Gazdag ( woodspeed@gmail.com )
     """
+
     VERSION_RE = re.compile('FPVersion="(.*?)"', re.IGNORECASE)
     ADMIN_URL_RE = re.compile('FPAdminScriptUrl="(.*?)"', re.IGNORECASE)
     AUTHOR_URL_RE = re.compile('FPAuthorScriptUrl="(.*?)"', re.IGNORECASE)
@@ -70,11 +72,12 @@ class frontpage_version(InfrastructurePlugin):
             # Request the file
             frontpage_info_url = domain_path.url_join("_vti_inf.html")
             try:
-                response = self._uri_opener.GET(frontpage_info_url,
-                                                cache=True)
+                response = self._uri_opener.GET(frontpage_info_url, cache=True)
             except BaseFrameworkException as w3:
-                fmt = ('Failed to GET Frontpage Server _vti_inf.html file: "%s". '
-                       'Exception: "%s".')
+                fmt = (
+                    'Failed to GET Frontpage Server _vti_inf.html file: "%s". '
+                    'Exception: "%s".'
+                )
                 om.out.debug(fmt % (frontpage_info_url, w3))
             else:
                 # Check if it's a Frontpage Info file
@@ -99,17 +102,23 @@ class frontpage_version(InfrastructurePlugin):
         if version_mo and admin_mo and author_mo:
             self._exec = False
 
-            desc = ('The FrontPage Configuration Information file was found'
-                    ' at: "%s" and the version of FrontPage Server Extensions'
-                    ' is: "%s".')
+            desc = (
+                "The FrontPage Configuration Information file was found"
+                ' at: "%s" and the version of FrontPage Server Extensions'
+                ' is: "%s".'
+            )
             desc %= (response.get_url(), version_mo.group(1))
 
-            i = Info('FrontPage configuration information', desc, response.id,
-                     self.get_name())
+            i = Info(
+                "FrontPage configuration information",
+                desc,
+                response.id,
+                self.get_name(),
+            )
             i.set_url(response.get_url())
-            i['version'] = version_mo.group(1)
-            
-            kb.kb.append(self, 'frontpage_version', i)
+            i["version"] = version_mo.group(1)
+
+            kb.kb.append(self, "frontpage_version", i)
             om.out.information(i.get_desc())
 
             #
@@ -125,8 +134,10 @@ class frontpage_version(InfrastructurePlugin):
         else:
             # This is strange... we found a _vti_inf file, but there is no
             # frontpage information in it... IPS? WAF? honeypot?
-            msg = '[IMPROVEMENT] Invalid frontPage configuration information'\
-                  ' found at %s (id: %s).'
+            msg = (
+                "[IMPROVEMENT] Invalid frontPage configuration information"
+                " found at %s (id: %s)."
+            )
             msg = msg % (response.get_url(), response.id)
             om.out.debug(msg)
 
@@ -138,29 +149,32 @@ class frontpage_version(InfrastructurePlugin):
         :param frontpage_admin: A regex match object.
         :return: None. All the info is saved to the kb.
         """
-        admin_location = response.get_url().get_domain_path().url_join(
-            frontpage_admin.group(1))
-        
+        admin_location = (
+            response.get_url().get_domain_path().url_join(frontpage_admin.group(1))
+        )
+
         # Check for anomalies in the location of admin.exe
-        if frontpage_admin.group(1) != '_vti_bin/_vti_adm/admin.exe':
-            name = 'Customized frontpage configuration'
-            
-            desc = 'The FPAdminScriptUrl is at: "%s" instead of the default'\
-                   ' location "_vti_bin/_vti_adm/admin.exe". This is very'\
-                   ' uncommon.'
+        if frontpage_admin.group(1) != "_vti_bin/_vti_adm/admin.exe":
+            name = "Customized frontpage configuration"
+
+            desc = (
+                'The FPAdminScriptUrl is at: "%s" instead of the default'
+                ' location "_vti_bin/_vti_adm/admin.exe". This is very'
+                " uncommon."
+            )
             desc = desc % admin_location
-            
+
         else:
-            name = 'FrontPage FPAdminScriptUrl'
+            name = "FrontPage FPAdminScriptUrl"
 
             desc = 'The FPAdminScriptUrl is at: "%s".'
             desc = desc % admin_location
 
         i = Info(name, desc, response.id, self.get_name())
         i.set_url(admin_location)
-        i['FPAdminScriptUrl'] = admin_location
-        
-        kb.kb.append(self, 'frontpage_version', i)
+        i["FPAdminScriptUrl"] = admin_location
+
+        kb.kb.append(self, "frontpage_version", i)
         om.out.information(i.get_desc())
 
     def _analyze_author(self, response, frontpage_author):
@@ -175,24 +189,26 @@ class frontpage_version(InfrastructurePlugin):
         author_location = domain_path.url_join(frontpage_author.group(1))
 
         # Check for anomalies in the location of author.exe
-        if frontpage_author.group(1) != '_vti_bin/_vti_aut/author.exe':
-            name = 'Customized frontpage configuration'
+        if frontpage_author.group(1) != "_vti_bin/_vti_aut/author.exe":
+            name = "Customized frontpage configuration"
 
-            desc = ('The FPAuthorScriptUrl is at: "%s" instead of the default'
-                    ' location: "/_vti_bin/_vti_adm/author.exe". This is very'
-                    ' uncommon.')
+            desc = (
+                'The FPAuthorScriptUrl is at: "%s" instead of the default'
+                ' location: "/_vti_bin/_vti_adm/author.exe". This is very'
+                " uncommon."
+            )
             desc %= author_location
         else:
-            name = 'FrontPage FPAuthorScriptUrl'
+            name = "FrontPage FPAuthorScriptUrl"
 
             desc = 'The FPAuthorScriptUrl is at: "%s".'
             desc %= author_location
 
         i = Info(name, desc, response.id, self.get_name())
         i.set_url(author_location)
-        i['FPAuthorScriptUrl'] = author_location
-        
-        kb.kb.append(self, 'frontpage_version', i)
+        i["FPAuthorScriptUrl"] = author_location
+
+        kb.kb.append(self, "frontpage_version", i)
         om.out.information(i.get_desc())
 
     def get_long_desc(self):

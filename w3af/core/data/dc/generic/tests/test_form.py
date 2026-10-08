@@ -20,6 +20,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 import pickle
 import copy
@@ -32,7 +33,7 @@ from w3af.core.data.parsers.utils.form_constants import INPUT_TYPE_PASSWD
 from w3af.core.data.parsers.utils.form_params import FormParameters
 
 
-@attr('smoke')
+@attr("smoke")
 class TestForm(unittest.TestCase):
 
     def test_require_implementation(self):
@@ -48,58 +49,79 @@ class TestForm(unittest.TestCase):
 
     def test_mutant_smart_fill_simple(self):
         form_params = FormParameters()
-        form_params.add_field_by_attrs({'name': 'username', 'value': ''})
-        form_params.add_field_by_attrs({'name': 'address', 'value': ''})
-        form_params['username'][0] = DataToken('username', '', ('username', 0))
+        form_params.add_field_by_attrs({"name": "username", "value": ""})
+        form_params.add_field_by_attrs({"name": "address", "value": ""})
+        form_params["username"][0] = DataToken("username", "", ("username", 0))
 
         form = Form(form_params)
 
         form.smart_fill()
 
-        self.assertEqual(form['username'], ['', ])
-        self.assertEqual(form['address'], ['Bonsai Street 123', ])
-        self.assertIsInstance(form['username'][0], DataToken)
+        self.assertEqual(
+            form["username"],
+            [
+                "",
+            ],
+        )
+        self.assertEqual(
+            form["address"],
+            [
+                "Bonsai Street 123",
+            ],
+        )
+        self.assertIsInstance(form["username"][0], DataToken)
         self.assertIs(form.get_form_params(), form_params)
 
     def test_mutant_iter_bound_tokens(self):
         form_params = FormParameters()
-        form_params.add_field_by_attrs({'name': 'username',
-                                        'value': '',
-                                        'type': 'password'})
-        form_params.add_field_by_attrs({'name': 'address', 'value': ''})
+        form_params.add_field_by_attrs(
+            {"name": "username", "value": "", "type": "password"}
+        )
+        form_params.add_field_by_attrs({"name": "address", "value": ""})
 
         form = Form(form_params)
 
         for form_copy, _ in form.iter_bound_tokens():
             self.assertIsInstance(form_copy, Form)
             self.assertEqual(list(form_copy.items()), list(form.items()))
-            self.assertEqual(form_copy.get_parameter_type('username'),
-                              INPUT_TYPE_PASSWD)
+            self.assertEqual(
+                form_copy.get_parameter_type("username"), INPUT_TYPE_PASSWD
+            )
 
     def test_mutant_smart_fill_with_file(self):
         form_params = FormParameters()
-        form_params.add_field_by_attrs({'name': 'username', 'value': ''})
-        form_params.add_field_by_attrs({'name': 'address', 'value': ''})
-        form_params.add_field_by_attrs({'name': 'file', 'type': 'file'})
+        form_params.add_field_by_attrs({"name": "username", "value": ""})
+        form_params.add_field_by_attrs({"name": "address", "value": ""})
+        form_params.add_field_by_attrs({"name": "file", "type": "file"})
 
         form = Form(form_params)
-        form['username'][0] = DataToken('username', '', ('username', 0))
+        form["username"][0] = DataToken("username", "", ("username", 0))
         form.smart_fill()
 
-        self.assertEqual(form['username'], ['', ])
-        self.assertEqual(form['address'], ['Bonsai Street 123', ])
-        self.assertIsInstance(form['username'][0], DataToken)
+        self.assertEqual(
+            form["username"],
+            [
+                "",
+            ],
+        )
+        self.assertEqual(
+            form["address"],
+            [
+                "Bonsai Street 123",
+            ],
+        )
+        self.assertIsInstance(form["username"][0], DataToken)
 
-        str_file = form['file'][0]
-        self.assertEqual(str_file.name[-4:], '.gif')
-        self.assertIn('GIF', str_file)
+        str_file = form["file"][0]
+        self.assertEqual(str_file.name[-4:], ".gif")
+        self.assertIn("GIF", str_file)
 
         self.assertIs(form.get_form_params(), form_params)
 
     def test_login_form_utils(self):
         form_params = FormParameters()
-        form_params.add_field_by_attrs({'name': 'username', 'type': 'text'})
-        form_params.add_field_by_attrs({'name': 'pwd', 'type': 'password'})
+        form_params.add_field_by_attrs({"name": "username", "type": "text"})
+        form_params.add_field_by_attrs({"name": "pwd", "type": "password"})
 
         form = Form(form_params)
 
@@ -109,26 +131,26 @@ class TestForm(unittest.TestCase):
         self.assertEqual(form.get_parameter_type_count(), (1, 1, 0))
 
         user_token, pass_token = form.get_login_tokens()
-        self.assertEqual(user_token.get_name(), 'username')
-        self.assertEqual(pass_token.get_name(), 'pwd')
-        self.assertEqual(user_token.get_value(), '')
-        self.assertEqual(pass_token.get_value(), '')
+        self.assertEqual(user_token.get_name(), "username")
+        self.assertEqual(pass_token.get_name(), "pwd")
+        self.assertEqual(user_token.get_value(), "")
+        self.assertEqual(pass_token.get_value(), "")
 
-        form.set_login_username('andres')
-        self.assertEqual(form['username'][0], 'andres')
-        self.assertEqual(form['pwd'][0], '')
+        form.set_login_username("andres")
+        self.assertEqual(form["username"][0], "andres")
+        self.assertEqual(form["pwd"][0], "")
 
-        form.set_login_username('pablo')
-        form.set_login_password('long-complex')
-        self.assertEqual(form['username'][0], 'pablo')
-        self.assertEqual(form['pwd'][0], 'long-complex')
+        form.set_login_username("pablo")
+        form.set_login_password("long-complex")
+        self.assertEqual(form["username"][0], "pablo")
+        self.assertEqual(form["pwd"][0], "long-complex")
 
         self.assertIs(form.get_form_params(), form_params)
 
     def test_cpickle_simple(self):
         form_params = FormParameters()
-        form_params.add_field_by_attrs({'name': 'username', 'type': 'text'})
-        form_params.add_field_by_attrs({'name': 'pwd', 'type': 'password'})
+        form_params.add_field_by_attrs({"name": "username", "type": "text"})
+        form_params.add_field_by_attrs({"name": "pwd", "type": "password"})
 
         form = Form(form_params)
 
@@ -138,11 +160,11 @@ class TestForm(unittest.TestCase):
 
     def test_cpickle_unsync(self):
         form_params = FormParameters()
-        form_params.add_field_by_attrs({'name': 'username', 'type': 'text'})
-        form_params.add_field_by_attrs({'name': 'pwd', 'type': 'password'})
+        form_params.add_field_by_attrs({"name": "username", "type": "text"})
+        form_params.add_field_by_attrs({"name": "pwd", "type": "password"})
 
         form = Form(form_params)
-        form['xyz'] = ['1', '2']
+        form["xyz"] = ["1", "2"]
 
         pickled_form = pickle.loads(pickle.dumps(form))
 
@@ -150,41 +172,41 @@ class TestForm(unittest.TestCase):
 
     def test_keep_sync(self):
         form_params = FormParameters()
-        form_params.add_field_by_attrs({'name': 'username', 'type': 'text'})
-        form_params.add_field_by_attrs({'name': 'pwd', 'type': 'password'})
+        form_params.add_field_by_attrs({"name": "username", "type": "text"})
+        form_params.add_field_by_attrs({"name": "pwd", "type": "password"})
 
         form = Form(form_params)
 
-        self.assertNotIn('address', form_params)
-        self.assertNotIn('address', form)
+        self.assertNotIn("address", form_params)
+        self.assertNotIn("address", form)
 
         # Add to the form_params
-        form_params['address'] = ['']
-        self.assertIn('address', form_params)
-        self.assertIn('address', form)
+        form_params["address"] = [""]
+        self.assertIn("address", form_params)
+        self.assertIn("address", form)
 
         # Add to the Form object
-        form['company'] = ['']
-        self.assertIn('company', form_params)
-        self.assertIn('company', form)
+        form["company"] = [""]
+        self.assertIn("company", form_params)
+        self.assertIn("company", form)
 
         # Del from the Form object
-        del form['address']
-        self.assertNotIn('address', form)
-        self.assertNotIn('address', form_params)
+        del form["address"]
+        self.assertNotIn("address", form)
+        self.assertNotIn("address", form_params)
 
         # Del from the FormParams object
-        del form_params['company']
-        self.assertNotIn('company', form)
-        self.assertNotIn('company', form_params)
+        del form_params["company"]
+        self.assertNotIn("company", form)
+        self.assertNotIn("company", form_params)
 
     def test_form_copy(self):
         form_params = FormParameters()
-        form_params.add_field_by_attrs({'name': 'username', 'type': 'text'})
-        form_params.add_field_by_attrs({'name': 'pwd', 'type': 'password'})
+        form_params.add_field_by_attrs({"name": "username", "type": "text"})
+        form_params.add_field_by_attrs({"name": "pwd", "type": "password"})
 
         form = Form(form_params)
-        form.set_token(('username', 0))
+        form.set_token(("username", 0))
 
         form_copy = copy.deepcopy(form)
 

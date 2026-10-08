@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
 
@@ -37,24 +36,25 @@ class password_profiling(GrepPlugin):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
-    COMMON_WORDS = common_words
-    COMMON_WORDS['unknown'] = COMMON_WORDS['en']
 
-    BANNED_WORDS = {'forbidden', 'browsing', 'index'}
+    COMMON_WORDS = common_words
+    COMMON_WORDS["unknown"] = COMMON_WORDS["en"]
+
+    BANNED_WORDS = {"forbidden", "browsing", "index"}
     BANNED_STATUS = {500, 401, 403, 404}
-    ALLOWED_METHODS = {'POST', 'GET'}
+    ALLOWED_METHODS = {"POST", "GET"}
 
     def __init__(self):
         GrepPlugin.__init__(self)
-        
+
         self._need_init = True
         self.captured_lang = None
-        
+
         # TODO: develop more plugins, there is a, pure-python metadata reader
         # named hachoir-metadata it will be useful for writing A LOT of plugins
-        
+
         # Plugins to run
-        self._plugins_names_dict = ['html', 'pdf']
+        self._plugins_names_dict = ["html", "pdf"]
         self._plugins = []
 
     def grep(self, request, response):
@@ -94,11 +94,11 @@ class password_profiling(GrepPlugin):
         """
         Initial setup that's run until we have the language or lang plugin
         gave up
-        
+
         :return: True if we were able to get the language from the lang plugin
         """
         if self._need_init:
-            captured_lang = kb.kb.raw_read('lang', 'lang')
+            captured_lang = kb.kb.raw_read("lang", "lang")
             if captured_lang is None or captured_lang == []:
                 # The lang plugin is still trying to identify the language
                 return False
@@ -107,9 +107,9 @@ class password_profiling(GrepPlugin):
                 kb.kb.raw_write(self.get_name(), self.get_name(), {})
                 self._need_init = False
                 return True
-        
+
         return True
-    
+
     def _trim_data(self, data):
         """
         If the password profiling information dict grows too large, we want to
@@ -131,7 +131,7 @@ class password_profiling(GrepPlugin):
             new_data[key] = value
 
         return new_data
-                
+
     def merge_maps(self, old_data, data, request, lang):
         """
         "merge" both maps and update the repetitions, the maps contain:
@@ -147,7 +147,7 @@ class password_profiling(GrepPlugin):
                 old_data[word] += data[word]
             else:
                 old_data[word] = data[word]
-        
+
         return old_data
 
     def _should_ignore_word(self, word, lang, request):
@@ -172,7 +172,7 @@ class password_profiling(GrepPlugin):
             return True
 
         if lang not in self.COMMON_WORDS:
-            lang = 'unknown'
+            lang = "unknown"
 
         if lower_word in self.COMMON_WORDS[lang]:
             return True
@@ -186,14 +186,14 @@ class password_profiling(GrepPlugin):
         """
         Runs password profiling plugins to collect data from HTML, TXT,
         PDF, etc files.
-        
+
         :param response: A HTTPResponse object
         :return: A map with word:repetitions
         """
         # Create plugin instances only once
         if not self._plugins:
             for plugin_name in self._plugins_names_dict:
-                plugin_klass = 'w3af.plugins.grep.password_profiling_plugins.%s'
+                plugin_klass = "w3af.plugins.grep.password_profiling_plugins.%s"
                 plugin_instance = factory(plugin_klass % plugin_name)
                 self._plugins.append(plugin_instance)
 
@@ -224,10 +224,10 @@ class password_profiling(GrepPlugin):
         items.sort(key=cmp_to_key(sort_func))
         items = items[:100]
 
-        om.out.information('Password profiling TOP 100:')
+        om.out.information("Password profiling TOP 100:")
 
         for i, (password, repetitions) in enumerate(items):
-            msg = ' - [%s] %s with %s repetitions'
+            msg = " - [%s] %s with %s repetitions"
             args = (i + 1, password, repetitions)
             om.out.information(msg % args)
 
@@ -236,7 +236,7 @@ class password_profiling(GrepPlugin):
         :return: A list with the names of the plugins that should be run before
                  the current one.
         """
-        return ['grep.lang']
+        return ["grep.lang"]
 
     def get_long_desc(self):
         """

@@ -13,13 +13,16 @@ class get_source_code(Payload):
 
     Usage: get_source_code <output_directory>
     """
+
     def api_read(self, output_directory):
         if not os.path.isdir(output_directory):
             try:
                 os.makedirs(output_directory)
             except:
-                msg = 'The output directory "%s" does not exist and was'\
-                      ' unable to create it.'
+                msg = (
+                    'The output directory "%s" does not exist and was'
+                    " unable to create it."
+                )
                 raise ValueError(msg % output_directory)
 
         elif not os.access(output_directory, os.W_OK):
@@ -28,8 +31,8 @@ class get_source_code(Payload):
 
         result = {}
 
-        apache_root_directory = self.exec_payload('apache_root_directory')
-        webroot_list = apache_root_directory['apache_root_directory']
+        apache_root_directory = self.exec_payload("apache_root_directory")
+        webroot_list = apache_root_directory["apache_root_directory"]
 
         url_list = kb.kb.get_all_known_urls()
 
@@ -50,7 +53,8 @@ class get_source_code(Payload):
                     # Create the file path to be written to disk
                     # FIXME: The webroot[1:] only works in Linux. For windows with C:\ it won't work
                     local_full_path = os.path.join(
-                        output_directory, webroot[1:], relative_path_file)
+                        output_directory, webroot[1:], relative_path_file
+                    )
 
                     #    Create the local directories (if needed)
                     local_directory = os.path.dirname(local_full_path)
@@ -58,7 +62,7 @@ class get_source_code(Payload):
                         os.makedirs(local_directory)
 
                     #    Write the file!
-                    fh = open(local_full_path, 'w')
+                    fh = open(local_full_path, "w")
                     fh.write(file_content)
                     fh.close()
 
@@ -70,9 +74,15 @@ class get_source_code(Payload):
         api_result = self.api_read(output_directory)
 
         if not api_result:
-            return 'Failed to download the application source code.'
+            return "Failed to download the application source code."
         else:
-            rows = [['Remote file', 'Local file', ], []]
+            rows = [
+                [
+                    "Remote file",
+                    "Local file",
+                ],
+                [],
+            ]
 
             for url, (remote_filename, local_filename) in list(api_result.items()):
                 rows.append([remote_filename, local_filename])

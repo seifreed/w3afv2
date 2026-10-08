@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 import subprocess
 
@@ -33,6 +34,7 @@ class TestExtrusionScanner(unittest.TestCase):
     """
     Test the extrusion scanner's basic features.
     """
+
     def test_basic(self):
         es = extrusionScanner(subprocess.getoutput)
 
@@ -40,14 +42,14 @@ class TestExtrusionScanner(unittest.TestCase):
 
         self.assertTrue(es.estimate_scan_time() >= 8)
 
-        self.assertTrue(es.is_available(54545, 'tcp'))
+        self.assertTrue(es.is_available(54545, "tcp"))
 
     @onlyroot
-    @attr('ci_fails')
+    @attr("ci_fails")
     def test_scan(self):
         # FIXME: This unittest will only work in Linux
-        cf.cf.save('interface', 'lo')
-        cf.cf.save('local_ip_address', '127.0.0.1')
+        cf.cf.save("interface", "lo")
+        cf.cf.save("local_ip_address", "127.0.0.1")
         es = extrusionScanner(subprocess.getoutput)
 
         inbound_port = es.get_inbound_port()

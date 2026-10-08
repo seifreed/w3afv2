@@ -18,6 +18,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import random
 import string
 import unittest
@@ -42,7 +43,7 @@ class TestDiskList(unittest.TestCase):
     def setUp(self):
         create_temp_dir()
 
-    @attr('smoke')
+    @attr("smoke")
     def test_int(self):
         dl = DiskList()
 
@@ -62,15 +63,15 @@ class TestDiskList(unittest.TestCase):
         dl.append(1)
         dl.append(2)
         dl.append(3)
-        
-        self.assertEqual(str(dl), '<DiskList [1, 2, 3]>')
-            
-    @attr('smoke')
+
+        self.assertEqual(str(dl), "<DiskList [1, 2, 3]>")
+
+    @attr("smoke")
     def test_string(self):
         dl = DiskList()
 
         for i in range(0, 1000):
-            rnd = ''.join(random.choice(string.ascii_letters) for i in range(40))
+            rnd = "".join(random.choice(string.ascii_letters) for i in range(40))
             _ = dl.append(rnd)
 
         self.assertEqual(rnd in dl, True)
@@ -83,40 +84,52 @@ class TestDiskList(unittest.TestCase):
     def test_unicode(self):
         dl = DiskList()
 
-        dl.append('à')
-        dl.append('המלצת השבוע')
-        dl.append(['à', ])
+        dl.append("à")
+        dl.append("המלצת השבוע")
+        dl.append(
+            [
+                "à",
+            ]
+        )
 
-        self.assertEqual(dl[0], 'à')
-        self.assertEqual(dl[1], 'המלצת השבוע')
-        self.assertEqual(dl[2], ['à', ])
+        self.assertEqual(dl[0], "à")
+        self.assertEqual(dl[1], "המלצת השבוע")
+        self.assertEqual(
+            dl[2],
+            [
+                "à",
+            ],
+        )
 
-    @attr('smoke')
+    @attr("smoke")
     def test_urlobject(self):
         dl = DiskList()
 
-        dl.append(URL('http://w3af.org/?id=2'))
-        dl.append(URL('http://w3af.org/?id=3'))
+        dl.append(URL("http://w3af.org/?id=2"))
+        dl.append(URL("http://w3af.org/?id=3"))
 
-        self.assertEqual(dl[0], URL('http://w3af.org/?id=2'))
-        self.assertEqual(dl[1], URL('http://w3af.org/?id=3'))
-        self.assertNotIn(URL('http://w3af.org/?id=4'), dl)
-        self.assertIn(URL('http://w3af.org/?id=2'), dl)
+        self.assertEqual(dl[0], URL("http://w3af.org/?id=2"))
+        self.assertEqual(dl[1], URL("http://w3af.org/?id=3"))
+        self.assertNotIn(URL("http://w3af.org/?id=4"), dl)
+        self.assertIn(URL("http://w3af.org/?id=2"), dl)
 
     def test_fuzzable_request(self):
         dl = DiskList()
 
-        uri = URL('http://w3af.org/?id=2')
-        qsr1 = FuzzableRequest(uri, method='GET', headers=Headers(
-            [('Referer', 'http://w3af.org/')]))
+        uri = URL("http://w3af.org/?id=2")
+        qsr1 = FuzzableRequest(
+            uri, method="GET", headers=Headers([("Referer", "http://w3af.org/")])
+        )
 
-        uri = URL('http://w3af.org/?id=3')
-        qsr2 = FuzzableRequest(uri, method='OPTIONS', headers=Headers(
-            [('Referer', 'http://w3af.org/')]))
+        uri = URL("http://w3af.org/?id=3")
+        qsr2 = FuzzableRequest(
+            uri, method="OPTIONS", headers=Headers([("Referer", "http://w3af.org/")])
+        )
 
-        uri = URL('http://w3af.org/?id=7')
-        qsr3 = FuzzableRequest(uri, method='FOO', headers=Headers(
-            [('Referer', 'http://w3af.org/')]))
+        uri = URL("http://w3af.org/?id=7")
+        qsr3 = FuzzableRequest(
+            uri, method="FOO", headers=Headers([("Referer", "http://w3af.org/")])
+        )
 
         dl.append(qsr1)
         dl.append(qsr2)
@@ -137,7 +150,7 @@ class TestDiskList(unittest.TestCase):
     def test_pickle(self):
         dl = DiskList()
 
-        dl.append('a')
+        dl.append("a")
         dl.append(1)
         dl.append([3, 2, 1])
 
@@ -145,34 +158,34 @@ class TestDiskList(unittest.TestCase):
         for i in dl:
             values.append(i)
 
-        self.assertEqual(values[0], 'a')
+        self.assertEqual(values[0], "a")
         self.assertEqual(values[1], 1)
         self.assertEqual(values[2], [3, 2, 1])
 
     def test_getitem(self):
         dl = DiskList()
 
-        dl.append('a')
+        dl.append("a")
         dl.append(1)
         dl.append([3, 2, 1])
 
-        self.assertEqual(dl[0], 'a')
+        self.assertEqual(dl[0], "a")
         self.assertEqual(dl[1], 1)
         self.assertEqual(dl[2], [3, 2, 1])
         self.assertRaises(IndexError, dl.__getitem__, 3)
-        
+
     def test_getitem_negative(self):
         dl = DiskList()
 
-        dl.append('a')
-        dl.append('b')
-        dl.append('c')
+        dl.append("a")
+        dl.append("b")
+        dl.append("c")
 
-        self.assertEqual(dl[-1], 'c')
-        self.assertEqual(dl[-2], 'b')
-        self.assertEqual(dl[-3], 'a')
+        self.assertEqual(dl[-1], "c")
+        self.assertEqual(dl[-2], "b")
+        self.assertEqual(dl[-3], "a")
         self.assertRaises(IndexError, dl.__getitem__, -4)
-        
+
     def test_not(self):
         dl = DiskList()
         self.assertFalse(dl)
@@ -180,11 +193,11 @@ class TestDiskList(unittest.TestCase):
     def test_extend(self):
         dl = DiskList()
 
-        dl.append('a')
+        dl.append("a")
         dl.extend([1, 2, 3])
 
         self.assertEqual(len(dl), 4)
-        self.assertEqual(dl[0], 'a')
+        self.assertEqual(dl[0], "a")
         self.assertEqual(dl[1], 1)
         self.assertEqual(dl[2], 2)
         self.assertEqual(dl[3], 3)
@@ -192,8 +205,8 @@ class TestDiskList(unittest.TestCase):
     def test_clear(self):
         dl = DiskList()
 
-        dl.append('a')
-        dl.append('b')
+        dl.append("a")
+        dl.append("b")
 
         self.assertEqual(len(dl), 2)
 
@@ -204,26 +217,26 @@ class TestDiskList(unittest.TestCase):
     def test_sorted(self):
         dl = DiskList()
 
-        dl.append('abc')
-        dl.append('def')
-        dl.append('aaa')
+        dl.append("abc")
+        dl.append("def")
+        dl.append("aaa")
 
         sorted_dl = sorted(dl)
 
-        self.assertEqual(['aaa', 'abc', 'def'], sorted_dl)
+        self.assertEqual(["aaa", "abc", "def"], sorted_dl)
 
     def test_ordered_iter(self):
         dl = DiskList()
 
-        dl.append('abc')
-        dl.append('def')
-        dl.append('aaa')
+        dl.append("abc")
+        dl.append("def")
+        dl.append("aaa")
 
         sorted_dl = []
         for i in dl.ordered_iter():
             sorted_dl.append(i)
 
-        self.assertEqual(['aaa', 'abc', 'def'], sorted_dl)
+        self.assertEqual(["aaa", "abc", "def"], sorted_dl)
 
     def test_reverse_iteration(self):
         dl = DiskList()
@@ -270,15 +283,15 @@ class TestDiskList(unittest.TestCase):
         disk_list = DiskList()
         table_name = disk_list.table_name
         db = get_default_temp_db_instance()
-        
+
         self.assertTrue(db.table_exists(table_name))
-        
+
         disk_list.cleanup()
-        
+
         self.assertFalse(db.table_exists(table_name))
 
     def test_table_name_with_prefix(self):
-        _unittest = 'unittest'
+        _unittest = "unittest"
         disk_list = DiskList(_unittest)
 
         self.assertIn(_unittest, disk_list.table_name)
@@ -300,55 +313,55 @@ class TestDiskList(unittest.TestCase):
 
     def test_islice(self):
         disk_list = DiskList()
-        disk_list.extend('ABCDEFG')
-        
-        EXPECTED = 'CDEFG'
-        result = ''
-        
+        disk_list.extend("ABCDEFG")
+
+        EXPECTED = "CDEFG"
+        result = ""
+
         for c in itertools.islice(disk_list, 2, None, None):
             result += c
-        
+
         self.assertEqual(EXPECTED, result)
-    
+
     def test_many_instances(self):
         all_instances = []
         amount = 200
-        
+
         for _ in range(amount):
             disk_list = DiskList()
             all_instances.append(disk_list)
-        
+
         self.assertEqual(len(all_instances), amount)
-    
+
     def test_slice_all(self):
         disk_list = DiskList()
-        disk_list.append('1')
-        disk_list.append('2')
-        
+        disk_list.append("1")
+        disk_list.append("2")
+
         dl_copy = disk_list[:]
-        self.assertIn('1', dl_copy)
-        self.assertIn('2', dl_copy)
+        self.assertIn("1", dl_copy)
+        self.assertIn("2", dl_copy)
 
     def test_slice_greater_than_length(self):
         disk_list = DiskList()
-        disk_list.append('1')
-        disk_list.append('2')
+        disk_list.append("1")
+        disk_list.append("2")
 
         dl_copy = disk_list[:50]
-        self.assertIn('1', dl_copy)
-        self.assertIn('2', dl_copy)
+        self.assertIn("1", dl_copy)
+        self.assertIn("2", dl_copy)
         self.assertEqual(2, len(dl_copy))
 
     def test_slice_first_N(self):
         disk_list = DiskList()
-        disk_list.append('1')
-        disk_list.append('2')
-        disk_list.append('3')
-        
+        disk_list.append("1")
+        disk_list.append("2")
+        disk_list.append("3")
+
         dl_copy = disk_list[:1]
-        self.assertIn('1', dl_copy)
-        self.assertNotIn('2', dl_copy)
-        self.assertNotIn('3', dl_copy)
+        self.assertIn("1", dl_copy)
+        self.assertNotIn("2", dl_copy)
+        self.assertNotIn("3", dl_copy)
 
     def test_no_specific_serializer_with_string(self):
         #
@@ -374,8 +387,7 @@ class TestDiskList(unittest.TestCase):
         #   a simple string.
         #
         count = 30000
-        dl = DiskList(load=lambda x: x,
-                      dump=lambda x: x)
+        dl = DiskList(load=lambda x: x, dump=lambda x: x)
 
         for i in range(0, count):
             i_str = str(i)
@@ -391,8 +403,8 @@ class TestDiskList(unittest.TestCase):
         #   This test runs in 28.14 seconds on my workstation
         #
         body = '<html><a href="http://moth/abc.jsp">test</a></html>'
-        headers = Headers([('Content-Type', 'text/html')])
-        url = URL('http://w3af.com')
+        headers = Headers([("Content-Type", "text/html")])
+        url = URL("http://w3af.com")
         response = HTTPResponse(200, body, headers, url, url, _id=1)
 
         count = 30000
@@ -410,13 +422,12 @@ class TestDiskList(unittest.TestCase):
         #   This test runs in 26.42 seconds on my workstation
         #
         body = '<html><a href="http://moth/abc.jsp">test</a></html>'
-        headers = Headers([('Content-Type', 'text/html')])
-        url = URL('http://w3af.com')
+        headers = Headers([("Content-Type", "text/html")])
+        url = URL("http://w3af.com")
         response = HTTPResponse(200, body, headers, url, url, _id=1)
 
         def dump(http_response):
-            return msgpack.dumps(http_response.to_dict(),
-                                 use_bin_type=True)
+            return msgpack.dumps(http_response.to_dict(), use_bin_type=True)
 
         def load(serialized_object):
             data = msgpack.loads(serialized_object, raw=False)
@@ -431,4 +442,3 @@ class TestDiskList(unittest.TestCase):
 
             # This tests the deserialization
             _ = dl[i]
-

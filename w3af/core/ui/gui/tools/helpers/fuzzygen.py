@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 
 try:
@@ -46,6 +47,7 @@ class FuzzyGenerator(object):
 
     :author: Facundo Batista <facundobatista =at= taniquetil.com.ar>
     """
+
     def __init__(self, txt1, txt2):
         # separate the sane and replaceable info
         self.torp1, self.sane1 = self._dissect(txt1)
@@ -80,8 +82,7 @@ class FuzzyGenerator(object):
         try:
             it = eval(text, namespace)
         except Exception as e:
-            msg = _("%s: %s (generated from %r)") % (e.__class__.__name__, e,
-                                                     text)
+            msg = _("%s: %s (generated from %r)") % (e.__class__.__name__, e, text)
             raise FuzzyError(msg)
 
         try:
@@ -100,9 +101,9 @@ class FuzzyGenerator(object):
         #    fix for bug #164086
         #
         try:
-            header = txt.split('\n')[0]
-            url_string = header.split(' ')[1]
-            replaced_url_string = url_string.replace('%24', '$')
+            header = txt.split("\n")[0]
+            url_string = header.split(" ")[1]
+            replaced_url_string = url_string.replace("%24", "$")
             txt = txt.replace(url_string, replaced_url_string)
         except:
             pass

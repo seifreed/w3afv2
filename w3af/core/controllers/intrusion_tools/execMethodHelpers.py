@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.controllers.output_manager as om
 
 from w3af.core.controllers.exceptions import BaseFrameworkException
@@ -32,28 +33,27 @@ def os_detection_exec(exec_method):
     a BaseFrameworkException if unknown.
     """
     try:
-        linux1 = exec_method('echo -n w3af')
-        linux2 = exec_method('head -n 1 /etc/passwd')
+        linux1 = exec_method("echo -n w3af")
+        linux2 = exec_method("head -n 1 /etc/passwd")
     except BaseFrameworkException:
         pass
     else:
-        if 'w3af' in linux1 and linux2.count(':') > 3:
+        if "w3af" in linux1 and linux2.count(":") > 3:
             om.out.debug('Identified remote OS as Linux, returning "linux".')
-            return 'linux'
+            return "linux"
 
     try:
         # Try if it's a windows system
-        win1 = exec_method('type %SYSTEMROOT%\\win.ini')
-        win2 = exec_method('echo /?')
+        win1 = exec_method("type %SYSTEMROOT%\\win.ini")
+        win2 = exec_method("echo /?")
     except BaseFrameworkException:
         pass
     else:
-        if '[fonts]' in win1 and 'ECHO' in win2:
-            om.out.debug(
-                'Identified remote OS as Windows, returning "windows".')
-            return 'windows'
+        if "[fonts]" in win1 and "ECHO" in win2:
+            om.out.debug('Identified remote OS as Windows, returning "windows".')
+            return "windows"
 
-    raise BaseFrameworkException('Failed to get/identify the remote OS.')
+    raise BaseFrameworkException("Failed to get/identify the remote OS.")
 
 
 def get_remote_temp_file(exec_method):
@@ -64,13 +64,13 @@ def get_remote_temp_file(exec_method):
              remote OS.
     """
     os = os_detection_exec(exec_method)
-    if os == 'windows':
-        _filename = exec_method('echo %TEMP%').strip() + '\\'
+    if os == "windows":
+        _filename = exec_method("echo %TEMP%").strip() + "\\"
         _filename += rand_alnum(6)
 
         # verify exists
-        dir_res = exec_method('dir ' + _filename).strip().lower()
-        if 'not found' in dir_res:
+        dir_res = exec_method("dir " + _filename).strip().lower()
+        if "not found" in dir_res:
             return _filename
         else:
             # Shit, the file exists, run again and see what we can do
@@ -78,17 +78,17 @@ def get_remote_temp_file(exec_method):
 
         return _filename
 
-    elif os == 'linux':
-        _filename = '/tmp/' + rand_alnum(6)
+    elif os == "linux":
+        _filename = "/tmp/" + rand_alnum(6)
 
         # verify exists
-        ls_res = exec_method('ls ' + _filename).strip()
-        if 'No such file' in ls_res:
+        ls_res = exec_method("ls " + _filename).strip()
+        if "No such file" in ls_res:
             return _filename
         else:
             # Shit, the file exists, run again and see what we can do
             return get_remote_temp_file(exec_method)
 
     else:
-        msg = 'Failed to create filename for a temporary file in the remote host.'
+        msg = "Failed to create filename for a temporary file in the remote host."
         raise BaseFrameworkException(msg)

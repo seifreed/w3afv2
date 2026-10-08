@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.misc.decorators import runonce
@@ -43,27 +44,26 @@ class jetleak(InfrastructurePlugin):
                                     (among other things) the URL to test.
         """
         url = fuzzable_request.get_url()
-        headers = Headers([('Referer', '\x00')])
+        headers = Headers([("Referer", "\x00")])
 
-        response = self._uri_opener.GET(url,
-                                        cache=False,
-                                        grep=False,
-                                        headers=headers)
+        response = self._uri_opener.GET(url, cache=False, grep=False, headers=headers)
 
         if response.get_code() != 400:
             return
 
-        if 'Illegal character 0x0 in state' not in response.get_msg():
+        if "Illegal character 0x0 in state" not in response.get_msg():
             return
 
-        desc = ('The application appears to be running a version of Jetty'
-                ' vulnerable to CVE-2015-2080, which allows attackers to'
-                ' read arbitrary server memory buffers')
+        desc = (
+            "The application appears to be running a version of Jetty"
+            " vulnerable to CVE-2015-2080, which allows attackers to"
+            " read arbitrary server memory buffers"
+        )
 
-        v = Vuln('JetLeak', desc, HIGH, response.id, self.get_name())
+        v = Vuln("JetLeak", desc, HIGH, response.id, self.get_name())
         v.set_url(response.get_url())
 
-        self.kb_append_uniq(self, 'jetleak', v)
+        self.kb_append_uniq(self, "jetleak", v)
 
     def get_long_desc(self):
         """
@@ -72,4 +72,3 @@ class jetleak(InfrastructurePlugin):
         return """
         Detect CVE-2015-2080 Jetty vulnerability also known as JetLeak
         """
-

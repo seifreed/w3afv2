@@ -14,14 +14,15 @@ def python_major():
     result = sys.version_info[0]
     return result
 
+
 if python_major() == 2:
-    empty_bytes = ''
-    null_byte = '\0'
+    empty_bytes = ""
+    null_byte = "\0"
     bytes_type = str
 
     def intlist_to_binary(intlist):
         """Convert a list of integers to a binary string type"""
-        return ''.join(chr(byte) for byte in intlist)
+        return "".join(chr(byte) for byte in intlist)
 
     def string_to_binary(string):
         """Convert a text string to a binary string type"""
@@ -34,8 +35,9 @@ if python_major() == 2:
     def binary_to_string(binary):
         """Convert a binary string to a text string"""
         return binary
+
 elif python_major() == 3:
-    empty_bytes = ''.encode('utf-8')
+    empty_bytes = "".encode("utf-8")
     null_byte = bytes([0])
     bytes_type = bytes
 
@@ -46,7 +48,7 @@ elif python_major() == 3:
     def string_to_binary(string):
         """Convert a text string (or binary string type) to a binary string type"""
         if isinstance(string, str):
-            return string.encode('latin-1')
+            return string.encode("latin-1")
         else:
             return string
 
@@ -56,8 +58,8 @@ elif python_major() == 3:
 
     def binary_to_string(binary):
         """Convert a binary string to a text string"""
-        return binary.decode('latin-1')
+        return binary.decode("latin-1")
+
 else:
-    sys.stderr.write(
-        '%s: Python < 2 or > 3 not (yet) supported\n' % sys.argv[0])
+    sys.stderr.write("%s: Python < 2 or > 3 not (yet) supported\n" % sys.argv[0])
     sys.exit(1)

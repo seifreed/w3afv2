@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 
 import w3af.core.controllers.output_manager as om
@@ -35,12 +36,12 @@ class motw(GrepPlugin):
     :author: Sharad Ganapathy sharadgana |at| gmail.com
     """
 
-    STRING_MATCH = 'saved from url='
+    STRING_MATCH = "saved from url="
 
     def __init__(self):
         GrepPlugin.__init__(self)
 
-        self._motw_re = re.compile('<!--\s*saved from url=\((\d\d\d\d)\)(.*?)\s*-->')
+        self._motw_re = re.compile("<!--\s*saved from url=\((\d\d\d\d)\)(.*?)\s*-->")
 
     def grep(self, request, response):
         """
@@ -52,10 +53,10 @@ class motw(GrepPlugin):
         """
         if not response.is_text_or_html():
             return
-        
+
         body = response.get_body()
         body = body[:2048]
-        
+
         if self.STRING_MATCH not in body:
             return
 
@@ -78,17 +79,19 @@ class motw(GrepPlugin):
             i = self.create_info(desc, response, motw_match)
 
         else:
-            desc = ('The URL: "%s" will be executed in Local Machine'
-                    ' Zone security context because the indicated length'
-                    ' is greater than the actual URL length.')
+            desc = (
+                'The URL: "%s" will be executed in Local Machine'
+                " Zone security context because the indicated length"
+                " is greater than the actual URL length."
+            )
             desc %= response.get_url()
             i = self.create_info(desc, response, motw_match)
-            i['local_machine'] = True
+            i["local_machine"] = True
 
-        kb.kb.append(self, 'motw', i)
+        kb.kb.append(self, "motw", i)
 
     def create_info(self, desc, response, motw_match):
-        i = Info('Mark of the web', desc, response.id, self.get_name())
+        i = Info("Mark of the web", desc, response.id, self.get_name())
         i.set_url(response.get_url())
         i.add_to_highlight(motw_match.group(0))
         return i
@@ -97,20 +100,20 @@ class motw(GrepPlugin):
         """
         This method is called when the plugin wont be used anymore.
         """
-        pretty_msg = {'motw': 'The following URLs contain a MOTW:'}
+        pretty_msg = {"motw": "The following URLs contain a MOTW:"}
 
         for motw_type in pretty_msg:
             inform = []
-            for i in kb.kb.get('motw', motw_type):
+            for i in kb.kb.get("motw", motw_type):
                 inform.append(i)
 
             if inform:
                 om.out.information(pretty_msg[motw_type])
                 for i in inform:
-                    if 'local_machine' not in i:
-                        om.out.information('- %s' % i.get_url())
+                    if "local_machine" not in i:
+                        om.out.information("- %s" % i.get_url())
                     else:
-                        msg = '- %s [Executed in Local machine context]'
+                        msg = "- %s [Executed in Local machine context]"
                         om.out.information(msg % i.get_url())
 
     def get_long_desc(self):

@@ -19,9 +19,10 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 
 from w3af.core.controllers.misc.home_dir import get_home_dir
 
 # Global cache location
-CACHE_LOCATION = os.path.join(get_home_dir(), 'urllib2cache')
+CACHE_LOCATION = os.path.join(get_home_dir(), "urllib2cache")

@@ -18,37 +18,39 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import os
 
 from w3af.core.data.context.tests.context_test import ContextTest
 from w3af.core.data.context.context import get_context
-from w3af.core.data.context.context.html import (HtmlTag,
-                                                 CSSText,
-                                                 HtmlAttr,
-                                                 HtmlText,
-                                                 ScriptText,
-                                                 HtmlComment,
-                                                 HtmlTagClose,
-                                                 HtmlAttrNoQuote,
-                                                 HtmlAttrBackticks,
-                                                 HtmlAttrSingleQuote,
-                                                 HtmlAttrDoubleQuote)
+from w3af.core.data.context.context.html import (
+    HtmlTag,
+    CSSText,
+    HtmlAttr,
+    HtmlText,
+    ScriptText,
+    HtmlComment,
+    HtmlTagClose,
+    HtmlAttrNoQuote,
+    HtmlAttrBackticks,
+    HtmlAttrSingleQuote,
+    HtmlAttrDoubleQuote,
+)
 
 
 class TestHTMLContext(ContextTest):
 
-    SAMPLES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                               'samples')
+    SAMPLES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "samples")
 
     def test_payload_only_payload(self):
-        html = 'PAYLOAD'
-        contexts = get_context(html, 'PAYLOAD')
+        html = "PAYLOAD"
+        contexts = get_context(html, "PAYLOAD")
         self.assertEqual(len(contexts), 1)
         self.assertIsInstance(contexts[0], HtmlText)
 
     def test_payload_empty(self):
-        html = ''
-        self.assertEqual(get_context(html, 'PAYLOAD'), [])
+        html = ""
+        self.assertEqual(get_context(html, "PAYLOAD"), [])
 
     def test_payload_in_html_text(self):
         html = """
@@ -58,7 +60,7 @@ class TestHTMLContext(ContextTest):
             </body>
         </html>
         """
-        contexts = get_context(html, 'PAYLOAD')
+        contexts = get_context(html, "PAYLOAD")
         self.assertEqual(len(contexts), 1)
         self.assertIsInstance(contexts[0], HtmlText)
 
@@ -70,7 +72,7 @@ class TestHTMLContext(ContextTest):
             </body>
         </html>
         """
-        payload = 'PAYLOAD'
+        payload = "PAYLOAD"
         contexts = get_context(html % payload.lower(), payload)
         self.assertEqual(len(contexts), 1)
         self.assertIsInstance(contexts[0], HtmlText)
@@ -81,7 +83,7 @@ class TestHTMLContext(ContextTest):
             <!-- <body>PAYLOAD</body> -->
         </html>
         """
-        contexts = get_context(html, 'PAYLOAD')
+        contexts = get_context(html, "PAYLOAD")
         self.assertEqual(len(contexts), 1)
         self.assertIsInstance(contexts[0], HtmlComment)
 
@@ -91,7 +93,7 @@ class TestHTMLContext(ContextTest):
             <tag attr="PAYLOAD" />
         </html>
         """
-        contexts = get_context(html, 'PAYLOAD')
+        contexts = get_context(html, "PAYLOAD")
         self.assertEqual(len(contexts), 1)
         self.assertIsInstance(contexts[0], HtmlAttrDoubleQuote)
 
@@ -101,7 +103,7 @@ class TestHTMLContext(ContextTest):
             <tag spam='eggs' attr="PAYLOAD" />
         </html>
         """
-        contexts = get_context(html, 'PAYLOAD')
+        contexts = get_context(html, "PAYLOAD")
         self.assertEqual(len(contexts), 1)
         self.assertIsInstance(contexts[0], HtmlAttrDoubleQuote)
 
@@ -113,7 +115,7 @@ class TestHTMLContext(ContextTest):
             </a>
         </html>
         """
-        contexts = get_context(html, 'PAYLOAD')
+        contexts = get_context(html, "PAYLOAD")
         self.assertEqual(len(contexts), 1)
         self.assertIsInstance(contexts[0], HtmlAttrSingleQuote)
 
@@ -125,7 +127,7 @@ class TestHTMLContext(ContextTest):
             </a>
         </html>
         """
-        contexts = get_context(html, 'PAYLOAD')
+        contexts = get_context(html, "PAYLOAD")
         self.assertEqual(len(contexts), 1)
         self.assertIsInstance(contexts[0], HtmlAttrSingleQuote)
 
@@ -137,7 +139,7 @@ class TestHTMLContext(ContextTest):
             </a>
         </html>
         """
-        contexts = get_context(html, 'PAYLOAD')
+        contexts = get_context(html, "PAYLOAD")
         self.assertEqual(len(contexts), 1)
         self.assertIsInstance(contexts[0], HtmlAttrDoubleQuote)
 
@@ -149,7 +151,7 @@ class TestHTMLContext(ContextTest):
             </a>
         </html>
         """
-        contexts = get_context(html, 'PAYLOAD')
+        contexts = get_context(html, "PAYLOAD")
         self.assertEqual(len(contexts), 1)
         self.assertIsInstance(contexts[0], HtmlAttrBackticks)
 
@@ -161,7 +163,7 @@ class TestHTMLContext(ContextTest):
             </a>
         </html>
         """
-        contexts = get_context(html, 'PAYLOAD')
+        contexts = get_context(html, "PAYLOAD")
         self.assertEqual(len(contexts), 1)
         self.assertIsInstance(contexts[0], HtmlAttrNoQuote)
 
@@ -173,7 +175,7 @@ class TestHTMLContext(ContextTest):
             <tag>bar</tag>
         </html>
         """
-        contexts = get_context(html, 'PAYLOAD')
+        contexts = get_context(html, "PAYLOAD")
         self.assertEqual(len(contexts), 1)
         self.assertIsInstance(contexts[0], HtmlText)
 
@@ -185,7 +187,7 @@ class TestHTMLContext(ContextTest):
             <tag>bar</tag>
         </html>
         """
-        contexts = get_context(html, 'PAYLOAD')
+        contexts = get_context(html, "PAYLOAD")
         self.assertEqual(len(contexts), 1)
         self.assertIsInstance(contexts[0], HtmlText)
 
@@ -197,7 +199,7 @@ class TestHTMLContext(ContextTest):
             </script>
         </html>
         """
-        contexts = get_context(html, 'PAYLOAD')
+        contexts = get_context(html, "PAYLOAD")
         self.assertEqual(len(contexts), 1)
         self.assertIsInstance(contexts[0], ScriptText)
 
@@ -207,7 +209,7 @@ class TestHTMLContext(ContextTest):
             <a attr="</a>">PAYLOAD</a>
         </html>
         """
-        contexts = get_context(html, 'PAYLOAD')
+        contexts = get_context(html, "PAYLOAD")
         self.assertEqual(len(contexts), 1)
         self.assertIsInstance(contexts[0], HtmlText)
 
@@ -217,7 +219,7 @@ class TestHTMLContext(ContextTest):
             <a>Quoting the great Linus Torvalds: "PAYLOAD<"</a>
         </html>
         """
-        contexts = get_context(html, 'PAYLOAD')
+        contexts = get_context(html, "PAYLOAD")
         self.assertEqual(len(contexts), 1)
 
         context = contexts[0]
@@ -253,7 +255,7 @@ class TestHTMLContext(ContextTest):
         <PAYLOAD></x>
         </foo>
         """
-        contexts = get_context(html, 'PAYLOAD')
+        contexts = get_context(html, "PAYLOAD")
         self.assertEqual(len(contexts), 1, contexts)
 
         self.assertIsInstance(contexts[0], HtmlTag)
@@ -263,7 +265,7 @@ class TestHTMLContext(ContextTest):
         <foo>
         </PAYLOAD>
         """
-        contexts = get_context(html, 'PAYLOAD')
+        contexts = get_context(html, "PAYLOAD")
         self.assertEqual(len(contexts), 1, contexts)
 
         self.assertIsInstance(contexts[0], HtmlTagClose)
@@ -272,7 +274,7 @@ class TestHTMLContext(ContextTest):
         html = """
         <a PAYLOAD="/xyz">foo</a>
         """
-        contexts = get_context(html, 'PAYLOAD')
+        contexts = get_context(html, "PAYLOAD")
 
         self.assertEqual(len(contexts), 1, contexts)
         context = contexts[0]
@@ -280,8 +282,8 @@ class TestHTMLContext(ContextTest):
         self.assertIsInstance(context, HtmlAttr)
 
     def test_django_500_sample(self):
-        html = open(os.path.join(self.SAMPLES_DIR, 'django-500.html')).read()
-        contexts = get_context(html, 'QUBD5 =')
+        html = open(os.path.join(self.SAMPLES_DIR, "django-500.html")).read()
+        contexts = get_context(html, "QUBD5 =")
 
         self.assertEqual(len(contexts), 9)
         for context in contexts:
@@ -307,7 +309,7 @@ class TestHTMLContext(ContextTest):
             <a href="http://external/abc/PAYLOAD">Check link href</a>
         </html>
         """
-        contexts = get_context(html, 'PAYLOAD')
+        contexts = get_context(html, "PAYLOAD")
         self.assertEqual(len(contexts), 1, contexts)
 
         self.assertIsInstance(contexts[0], HtmlAttrDoubleQuote)
@@ -322,7 +324,7 @@ class TestHTMLContext(ContextTest):
             <a href="http://external/abc/PAYLOAD">Check link href</a>
         </html>
         """
-        contexts = get_context(html, 'PAYLOAD')
+        contexts = get_context(html, "PAYLOAD")
 
         self.assertEqual(len(contexts), 2, contexts)
         self.assertIsInstance(contexts[0], HtmlComment)
@@ -338,7 +340,7 @@ class TestHTMLContext(ContextTest):
             <a href="http://external/abc/PAYLOAD">Check link href</a>
         </html>
         """
-        contexts = get_context(html, 'PAYLOAD')
+        contexts = get_context(html, "PAYLOAD")
 
         self.assertEqual(len(contexts), 2, contexts)
         self.assertIsInstance(contexts[0], HtmlComment)
@@ -348,21 +350,21 @@ class TestHTMLContext(ContextTest):
         html = """
         <a PAYLOAD="/xyz
         """
-        contexts = get_context(html, 'PAYLOAD')
+        contexts = get_context(html, "PAYLOAD")
         self.assertEqual(len(contexts), 0, contexts)
 
     def test_broken_2(self):
         html = """
         <a PAYLOAD="/xyz" /<
         """
-        contexts = get_context(html, 'PAYLOAD')
+        contexts = get_context(html, "PAYLOAD")
         self.assertEqual(len(contexts), 0, contexts)
 
     def test_broken_3(self):
         html = """
         <a PAYLOAD="/xyz"><
         """
-        contexts = get_context(html, 'PAYLOAD')
+        contexts = get_context(html, "PAYLOAD")
         self.assertEqual(len(contexts), 1, contexts)
         self.assertIsInstance(contexts[0], HtmlAttr)
 
@@ -370,7 +372,7 @@ class TestHTMLContext(ContextTest):
         html = """
         <a PAYLOAD="/xyz"></
         """
-        contexts = get_context(html, 'PAYLOAD')
+        contexts = get_context(html, "PAYLOAD")
         self.assertEqual(len(contexts), 1, contexts)
         self.assertIsInstance(contexts[0], HtmlAttr)
 
@@ -378,14 +380,14 @@ class TestHTMLContext(ContextTest):
         html = """
         <a foo="/xyz"></PAYLOAD
         """
-        contexts = get_context(html, 'PAYLOAD')
+        contexts = get_context(html, "PAYLOAD")
         self.assertEqual(len(contexts), 0, contexts)
 
     def test_script_text(self):
         html = """
         <script>foo(); bar(PAYLOAD);</script>
         """
-        contexts = get_context(html, 'PAYLOAD')
+        contexts = get_context(html, "PAYLOAD")
         self.assertEqual(len(contexts), 1, contexts)
         self.assertIsInstance(contexts[0], ScriptText)
 
@@ -393,7 +395,7 @@ class TestHTMLContext(ContextTest):
         html = """
         <style>foo(); bar(PAYLOAD);</style>
         """
-        contexts = get_context(html, 'PAYLOAD')
+        contexts = get_context(html, "PAYLOAD")
         self.assertEqual(len(contexts), 1, contexts)
         self.assertIsInstance(contexts[0], CSSText)
 
@@ -405,7 +407,7 @@ class TestHTMLContext(ContextTest):
         //-->
         </script>
         """
-        contexts = get_context(html, 'PAYLOAD')
+        contexts = get_context(html, "PAYLOAD")
         self.assertEqual(len(contexts), 1, contexts)
         self.assertIsInstance(contexts[0], ScriptText)
 
@@ -419,7 +421,7 @@ class TestHTMLContext(ContextTest):
             </body>
         </html>
         """
-        contexts = get_context(html, 'PAYLOAD')
+        contexts = get_context(html, "PAYLOAD")
         self.assertEqual(len(contexts), 0)
 
     def test_payload_inside_noscript_2(self):
@@ -430,5 +432,5 @@ class TestHTMLContext(ContextTest):
             </noscript>
         </html>
         """
-        contexts = get_context(html, 'PAYLOAD')
+        contexts = get_context(html, "PAYLOAD")
         self.assertEqual(len(contexts), 0)

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import sys
 import traceback
 
@@ -31,16 +32,14 @@ from w3af.core.ui.api.utils.auth import requires_auth
 
 @app.errorhandler(404)
 def not_found(error):
-    response = jsonify({'code': 404,
-                        'message': 'Not found'})
+    response = jsonify({"code": 404, "message": "Not found"})
     response.status_code = 404
     return response
 
 
 @app.errorhandler(405)
 def method_not_allowed(error):
-    response = jsonify({'code': 405,
-                        'message': 'Method not allowed'})
+    response = jsonify({"code": 405, "message": "Method not allowed"})
     response.status_code = 405
     return response
 
@@ -54,7 +53,7 @@ def error_500_handler(error):
     Please note that this will only work if the Flask application is run without
     the debug flag on.
     """
-    new_issue = 'https://github.com/andresriancho/w3af/issues/new'
+    new_issue = "https://github.com/andresriancho/w3af/issues/new"
 
     try:
         # Extract the filename and line number where the exception was raised
@@ -63,20 +62,28 @@ def error_500_handler(error):
         filename = basename(filepath)
         lineno, function_name = get_last_call_info(exc_traceback)
 
-        response = jsonify({'code': 500,
-                            'message': str(error),
-                            'filename': filename,
-                            'line_number': lineno,
-                            'function_name': function_name,
-                            'exception_type': error.__class__.__name__,
-                            'please': new_issue})
+        response = jsonify(
+            {
+                "code": 500,
+                "message": str(error),
+                "filename": filename,
+                "line_number": lineno,
+                "function_name": function_name,
+                "exception_type": error.__class__.__name__,
+                "please": new_issue,
+            }
+        )
     except Exception as e:
         # I don't want to fail in the exception handler
-        response = jsonify({'code': 500,
-                            'exception': str(error),
-                            'handler_exception': str(e),
-                            'please': new_issue,
-                            'message': 'REST API error'})
+        response = jsonify(
+            {
+                "code": 500,
+                "exception": str(error),
+                "handler_exception": str(e),
+                "please": new_issue,
+                "message": "REST API error",
+            }
+        )
 
     response.status_code = 500
     return response
@@ -84,16 +91,16 @@ def error_500_handler(error):
 
 def get_last_call_info(main_tb):
     current = main_tb
-    while getattr(current, 'tb_next', None) is not None:
+    while getattr(current, "tb_next", None) is not None:
         current = current.tb_next
 
     return current.tb_lineno, current.tb_frame.f_code.co_name
 
 
-@app.route('/raise-500', methods=['GET'])
+@app.route("/raise-500", methods=["GET"])
 @requires_auth
 def raise_500():
     """
     This exists for testing error_500_handler
     """
-    raise ValueError('Foo!')
+    raise ValueError("Foo!")

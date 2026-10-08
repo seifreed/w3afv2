@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import re
 import unittest
@@ -30,10 +31,10 @@ from w3af import ROOT_PATH
 from w3af.core.data.constants.vulns import VULNS
 from w3af.core.controllers.ci.constants import ARTIFACTS_DIR
 
-       
+
 class TestVulnsConstants(unittest.TestCase):
-    
-    LOCATION = os.path.join(ROOT_PATH, 'core', 'data', 'constants', 'vulns.py')
+
+    LOCATION = os.path.join(ROOT_PATH, "core", "data", "constants", "vulns.py")
 
     def get_all_vulnerability_names(self):
         # Just skip the entire license header
@@ -41,7 +42,7 @@ class TestVulnsConstants(unittest.TestCase):
         for _ in range(21):
             vulns_file.readline()
 
-        return re.findall('[\'"](.*?)[\'"] ?:', vulns_file.read())
+        return re.findall("['\"](.*?)['\"] ?:", vulns_file.read())
 
     def test_vulnerability_names_unique(self):
         dups = []
@@ -54,31 +55,30 @@ class TestVulnsConstants(unittest.TestCase):
         self.assertEqual(dups, [])
 
     def get_all_plugins_source(self):
-        plugins_path = os.path.join(ROOT_PATH, 'plugins')
-        vuln_template_path = os.path.join(ROOT_PATH, 'core', 'data', 'kb',
-                                          'vuln_templates')
+        plugins_path = os.path.join(ROOT_PATH, "plugins")
+        vuln_template_path = os.path.join(
+            ROOT_PATH, "core", "data", "kb", "vuln_templates"
+        )
 
-        all_plugin_sources = ''
+        all_plugin_sources = ""
         for dir_name, subdir_list, file_list in os.walk(plugins_path):
 
-            if dir_name in ('test', 'tests'):
+            if dir_name in ("test", "tests"):
                 continue
 
             for fname in file_list:
-                if not fname.endswith('.py'):
+                if not fname.endswith(".py"):
                     continue
 
-                if fname.startswith('test_'):
+                if fname.startswith("test_"):
                     continue
 
-                if fname == '__init__.py':
+                if fname == "__init__.py":
                     continue
 
                 full_path = os.path.join(plugins_path, dir_name, fname)
 
-                ignores = {'/attack/db/sqlmap/',
-                           '/attack/payloads/',
-                           '/plugins/tests/'}
+                ignores = {"/attack/db/sqlmap/", "/attack/payloads/", "/plugins/tests/"}
 
                 should_continue = False
                 for ignore in ignores:
@@ -94,13 +94,13 @@ class TestVulnsConstants(unittest.TestCase):
         for dir_name, subdir_list, file_list in os.walk(vuln_template_path):
 
             for fname in file_list:
-                if not fname.endswith('.py'):
+                if not fname.endswith(".py"):
                     continue
 
-                if fname.startswith('test_'):
+                if fname.startswith("test_"):
                     continue
 
-                if fname == '__init__.py':
+                if fname == "__init__.py":
                     continue
 
                 full_path = os.path.join(vuln_template_path, dir_name, fname)
@@ -111,9 +111,11 @@ class TestVulnsConstants(unittest.TestCase):
     def test_all_vulnerability_names_from_db_are_used(self):
         vuln_names = list(VULNS.keys())
         all_plugin_sources = self.get_all_plugins_source()
-        missing_ignore = {'TestCase',
-                          'Target redirect',
-                          'Blind SQL injection vulnerability'}
+        missing_ignore = {
+            "TestCase",
+            "Target redirect",
+            "Blind SQL injection vulnerability",
+        }
 
         for vuln_name in vuln_names:
             if vuln_name in missing_ignore:
@@ -124,10 +126,9 @@ class TestVulnsConstants(unittest.TestCase):
 
     def test_all_vulnerability_names_from_source_in_db(self):
         vuln_names = list(VULNS.keys())
-        vuln_names_re = ' (Info|Vuln)\\(["\'](.*?)["\'] ?,.*?\\)'
+        vuln_names_re = " (Info|Vuln)\\([\"'](.*?)[\"'] ?,.*?\\)"
         all_plugin_sources = self.get_all_plugins_source()
-        vuln_names_in_source = re.findall(vuln_names_re, all_plugin_sources,
-                                          re.DOTALL)
+        vuln_names_in_source = re.findall(vuln_names_re, all_plugin_sources, re.DOTALL)
 
         extracted = []
         not_in_db = []
@@ -152,7 +153,7 @@ class TestVulnsConstants(unittest.TestCase):
 
         self.assertEqual(invalid, [])
 
-    @attr('ci_ignore')
+    @attr("ci_ignore")
     def test_vuln_updated(self):
         """
         Each time we call Info.set_name during a test (and only during tests,
@@ -168,7 +169,7 @@ class TestVulnsConstants(unittest.TestCase):
         Since we want to run this test at the end, we tag it as ci_fails for the
         main running to ignore it, but then we run it manually from circle.yml
         """
-        missing = os.path.join(ARTIFACTS_DIR, 'missing-vulndb.txt')
+        missing = os.path.join(ARTIFACTS_DIR, "missing-vulndb.txt")
 
         if not os.path.exists(missing):
             # Perfect!

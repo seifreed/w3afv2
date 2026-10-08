@@ -20,15 +20,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-HTTP_SQLMAP_TESTENV = '/tmp/sqlmap-testenv.txt'
-DEFAULT_SQLMAP_TESTENV = 'sqlmap-testenv-fallback:80'
+HTTP_SQLMAP_TESTENV = "/tmp/sqlmap-testenv.txt"
+DEFAULT_SQLMAP_TESTENV = "sqlmap-testenv-fallback:80"
 
 
-def get_sqlmap_testenv_http(path='/'):
+def get_sqlmap_testenv_http(path="/"):
     try:
         sqlmap_testenv_netloc = open(HTTP_SQLMAP_TESTENV).read().strip()
     except IOError:
         sqlmap_testenv_netloc = DEFAULT_SQLMAP_TESTENV
 
-    return 'http://%s%s' % (sqlmap_testenv_netloc, path)
-
+    return "http://%s%s" % (sqlmap_testenv_netloc, path)

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.options.baseoption import BaseOption
 from w3af.core.data.options.option_types import FLOAT
@@ -42,5 +43,5 @@ class FloatOption(BaseOption):
         try:
             return float(value)
         except Exception:
-            msg = 'Invalid float configured by user.'
+            msg = "Invalid float configured by user."
             raise BaseFrameworkException(msg)

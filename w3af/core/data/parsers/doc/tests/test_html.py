@@ -20,6 +20,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 import os
 
@@ -39,8 +40,10 @@ from w3af.core.data.parsers.doc.html import HTMLParser
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.doc.tests.test_sgml import build_http_response
 from w3af.core.data.parsers.doc.tests.data.constants import *
-from w3af.core.data.parsers.utils.form_params import (FormParameters,
-                                                      DEFAULT_FORM_ENCODING)
+from w3af.core.data.parsers.utils.form_params import (
+    FormParameters,
+    DEFAULT_FORM_ENCODING,
+)
 
 
 class RaiseHTMLParser(HTMLParser):
@@ -48,17 +51,17 @@ class RaiseHTMLParser(HTMLParser):
         raise ex
 
 
-@attr('smoke')
+@attr("smoke")
 class TestHTMLParser(unittest.TestCase):
-    
-    url = URL('http://w3af.com')
+
+    url = URL("http://w3af.com")
 
     def test_forms(self):
-        body = HTML_DOC % \
-            {'head': '',
-             'body': FORM_METHOD_GET % {'form_content': ''} +
-                     FORM_WITHOUT_ACTION % {'form_content': ''}
-             }
+        body = HTML_DOC % {
+            "head": "",
+            "body": FORM_METHOD_GET % {"form_content": ""}
+            + FORM_WITHOUT_ACTION % {"form_content": ""},
+        }
         resp = build_http_response(self.url, body)
         p = RaiseHTMLParser(resp)
         p.parse()
@@ -66,11 +69,16 @@ class TestHTMLParser(unittest.TestCase):
 
     def test_no_forms(self):
         # No form should be parsed
-        body = HTML_DOC % \
-            {'head': '',
-             'body': (INPUT_TEXT_WITH_NAME + INPUT_HIDDEN + SELECT_WITH_ID +
-                      TEXTAREA_WITH_ID_AND_DATA + INPUT_FILE_WITH_NAME)
-             }
+        body = HTML_DOC % {
+            "head": "",
+            "body": (
+                INPUT_TEXT_WITH_NAME
+                + INPUT_HIDDEN
+                + SELECT_WITH_ID
+                + TEXTAREA_WITH_ID_AND_DATA
+                + INPUT_FILE_WITH_NAME
+            ),
+        }
         resp = build_http_response(self.url, body)
         p = RaiseHTMLParser(resp)
         p.parse()
@@ -80,22 +88,23 @@ class TestHTMLParser(unittest.TestCase):
         """
         When the form has no 'method' => 'GET' will be used
         """
-        body = HTML_DOC % \
-            {'head': '',
-             'body': FORM_WITHOUT_METHOD % {'form_content': ''}}
+        body = HTML_DOC % {
+            "head": "",
+            "body": FORM_WITHOUT_METHOD % {"form_content": ""},
+        }
         resp = build_http_response(self.url, body)
         p = RaiseHTMLParser(resp)
         p.parse()
-        self.assertEqual('GET', p.forms[0].get_method())
+        self.assertEqual("GET", p.forms[0].get_method())
 
     def test_form_without_action(self):
         """
         If the form has no 'content' => HTTPResponse's url will be used
         """
-        body = HTML_DOC % \
-            {'head': '',
-                     'body': FORM_WITHOUT_ACTION % {'form_content': ''}
-             }
+        body = HTML_DOC % {
+            "head": "",
+            "body": FORM_WITHOUT_ACTION % {"form_content": ""},
+        }
         resp = build_http_response(self.url, body)
         p = RaiseHTMLParser(resp)
         p.parse()
@@ -127,9 +136,9 @@ class TestHTMLParser(unittest.TestCase):
         form = p.forms[0]
 
         self.assertEqual(self.url, form.get_action())
-        self.assertEqual('POST', form.get_method())
-        self.assertIn('input', form)
-        self.assertIn('csrfmiddlewaretoken', form)
+        self.assertEqual("POST", form.get_method())
+        self.assertIn("input", form)
+        self.assertIn("csrfmiddlewaretoken", form)
 
     def test_inputs_in_out_form(self):
         # We expect that the form contains all the inputs (both those declared
@@ -137,14 +146,19 @@ class TestHTMLParser(unittest.TestCase):
         # those same inputs but declared before them
 
         # 1st body
-        body = HTML_DOC % \
-            {'head': '',
-             'body': (INPUT_TEXT_WITH_NAME + INPUT_TEXT_WITH_ID +
-                      INPUT_FILE_WITH_NAME + INPUT_SUBMIT_WITH_NAME +
-                      (FORM_WITHOUT_METHOD % {'form_content': ''}) +  # form in the middle
-                      INPUT_RADIO_WITH_NAME + INPUT_CHECKBOX_WITH_NAME +
-                      INPUT_HIDDEN)
-             }
+        body = HTML_DOC % {
+            "head": "",
+            "body": (
+                INPUT_TEXT_WITH_NAME
+                + INPUT_TEXT_WITH_ID
+                + INPUT_FILE_WITH_NAME
+                + INPUT_SUBMIT_WITH_NAME
+                + (FORM_WITHOUT_METHOD % {"form_content": ""})  # form in the middle
+                + INPUT_RADIO_WITH_NAME
+                + INPUT_CHECKBOX_WITH_NAME
+                + INPUT_HIDDEN
+            ),
+        }
         resp = build_http_response(self.url, body)
         p = RaiseHTMLParser(resp)
         p.parse()
@@ -155,25 +169,28 @@ class TestHTMLParser(unittest.TestCase):
         # have the expected values
         f = p.forms[0]
 
-        self.assertEqual(['bar'], f['foo1'])         # text input
-        self.assertEqual(['bar'], f['foo2'])         # text input
-        self.assertEqual([''], f['foo5'])            # radio input
-        self.assertEqual([''], f['foo6'])            # checkbox input
-        self.assertEqual(['bar'], f['foo7'])         # hidden input
-        self.assertEqual([''], f['foo4'])            # submit input
-        self.assertEqual(['bar'], f['foo3'])         # file input
+        self.assertEqual(["bar"], f["foo1"])  # text input
+        self.assertEqual(["bar"], f["foo2"])  # text input
+        self.assertEqual([""], f["foo5"])  # radio input
+        self.assertEqual([""], f["foo6"])  # checkbox input
+        self.assertEqual(["bar"], f["foo7"])  # hidden input
+        self.assertEqual([""], f["foo4"])  # submit input
+        self.assertEqual(["bar"], f["foo3"])  # file input
 
         # 2nd body
-        body2 = HTML_DOC % \
-            {'head': '',
-             'body': FORM_WITHOUT_METHOD %
-            {'form_content':
-             INPUT_TEXT_WITH_NAME + INPUT_TEXT_WITH_ID +
-             INPUT_FILE_WITH_NAME + INPUT_SUBMIT_WITH_NAME +
-             INPUT_RADIO_WITH_NAME + INPUT_CHECKBOX_WITH_NAME +
-             INPUT_HIDDEN
-             }
-             }
+        body2 = HTML_DOC % {
+            "head": "",
+            "body": FORM_WITHOUT_METHOD
+            % {
+                "form_content": INPUT_TEXT_WITH_NAME
+                + INPUT_TEXT_WITH_ID
+                + INPUT_FILE_WITH_NAME
+                + INPUT_SUBMIT_WITH_NAME
+                + INPUT_RADIO_WITH_NAME
+                + INPUT_CHECKBOX_WITH_NAME
+                + INPUT_HIDDEN
+            },
+        }
         resp2 = build_http_response(self.url, body2)
         p2 = RaiseHTMLParser(resp2)
         p2.parse()
@@ -182,22 +199,22 @@ class TestHTMLParser(unittest.TestCase):
         self.assertEqual(f, p2.forms[0])
 
     def test_textareas_in_out_form(self):
-        body = HTML_DOC % \
-            {'head': '',
-             'body': (
-                 TEXTAREA_WITH_ID_AND_DATA +
-                 FORM_WITHOUT_METHOD %
-                 {'form_content': TEXTAREA_WITH_NAME_AND_DATA} +
-                 TEXTAREA_WITH_NAME_EMPTY)
-             }
+        body = HTML_DOC % {
+            "head": "",
+            "body": (
+                TEXTAREA_WITH_ID_AND_DATA
+                + FORM_WITHOUT_METHOD % {"form_content": TEXTAREA_WITH_NAME_AND_DATA}
+                + TEXTAREA_WITH_NAME_EMPTY
+            ),
+        }
         resp = build_http_response(self.url, body)
         p = RaiseHTMLParser(resp)
         p.parse()
 
         # textarea are parsed as regular inputs
         f = p.forms[0]
-        self.assertEqual(f.get('sample_id'), f.get('sample_name'))
-        self.assertEqual(f.get('sample_id'), ['sample_value'])
+        self.assertEqual(f.get("sample_id"), f.get("sample_name"))
+        self.assertEqual(f.get("sample_id"), ["sample_value"])
 
         # Last <textarea> with empty name wasn't parsed
         self.assertEqual(2, len(f))
@@ -206,13 +223,14 @@ class TestHTMLParser(unittest.TestCase):
         # Both <select> are expected to be parsed inside the form. Because
         # they have the same name/id the same entry will be used in the form
         # although the values will be duplicated when applies.
-        body = HTML_DOC % \
-            {'head': '',
-             'body': (
-                 SELECT_WITH_NAME +
-                 FORM_WITHOUT_METHOD % {'form_content': SELECT_WITH_ID} +
-                 '<select><option value="xxx"/><option value="yyy"/></select>')
-             }
+        body = HTML_DOC % {
+            "head": "",
+            "body": (
+                SELECT_WITH_NAME
+                + FORM_WITHOUT_METHOD % {"form_content": SELECT_WITH_ID}
+                + '<select><option value="xxx"/><option value="yyy"/></select>'
+            ),
+        }
         resp = build_http_response(self.url, body)
         p = RaiseHTMLParser(resp)
         p.parse()
@@ -225,25 +243,23 @@ class TestHTMLParser(unittest.TestCase):
         f = p.forms[0]
 
         # meta has all the values
-        select_values = f.meta['vehicle'][0].values
-        self.assertIn('car', select_values)
-        self.assertIn('plane', select_values)
-        self.assertIn('bike', select_values)
+        select_values = f.meta["vehicle"][0].values
+        self.assertIn("car", select_values)
+        self.assertIn("plane", select_values)
+        self.assertIn("bike", select_values)
 
         # The "current" value is the first that was found
-        self.assertEqual(f['vehicle'], ['car'])
+        self.assertEqual(f["vehicle"], ["car"])
 
         # "xxx" and "yyy" options were not parsed because they are outside the
         # form tag and doesn't have a name attribute
-        self.assertNotIn('xxx', f.get_option_names())
-        self.assertNotIn('yyy', f.get_option_names())
+        self.assertNotIn("xxx", f.get_option_names())
+        self.assertNotIn("yyy", f.get_option_names())
 
     def test_form_with_repeated_parameter_names(self):
         # Setup
-        form = FORM_METHOD_POST % {'form_content':
-                                   TEXTAREA_WITH_NAME_AND_DATA * 2}
-        body = HTML_DOC % {'head': '',
-                           'body': form}
+        form = FORM_METHOD_POST % {"form_content": TEXTAREA_WITH_NAME_AND_DATA * 2}
+        body = HTML_DOC % {"head": "", "body": form}
         resp = build_http_response(self.url, body)
         p = RaiseHTMLParser(resp)
 
@@ -255,32 +271,31 @@ class TestHTMLParser(unittest.TestCase):
         form = p.forms[0]
 
         self.assertIsInstance(form, FormParameters)
-        self.assertEqual(form['sample_name'], ['sample_value',
-                                               'sample_value'])
+        self.assertEqual(form["sample_name"], ["sample_value", "sample_value"])
 
     def test_a_link_absolute(self):
-        headers = Headers([('content-type', 'text/html')])
+        headers = Headers([("content-type", "text/html")])
         resp = build_http_response(self.url, A_LINK_ABSOLUTE, headers=headers)
         p = RaiseHTMLParser(resp)
         p.parse()
 
-        self.assertEqual([URL('http://w3af.com/home.php')], p.references[0])
+        self.assertEqual([URL("http://w3af.com/home.php")], p.references[0])
 
     def test_script_tag_link_extraction(self):
-        body = '''<script>window.location = "http://w3af.com/";</script>'''
+        body = """<script>window.location = "http://w3af.com/";</script>"""
         resp = build_http_response(self.url, body)
         p = RaiseHTMLParser(resp)
         p.parse()
 
-        self.assertEqual([URL('http://w3af.com/')], p.references[1])
+        self.assertEqual([URL("http://w3af.com/")], p.references[1])
 
     def test_script_tag_link_extraction_relative(self):
-        body = '''<script>window.location = "/foo.php";</script>'''
+        body = """<script>window.location = "/foo.php";</script>"""
         resp = build_http_response(self.url, body)
         p = RaiseHTMLParser(resp)
         p.parse()
 
-        self.assertEqual([URL('http://w3af.com/foo.php')], p.references[1])
+        self.assertEqual([URL("http://w3af.com/foo.php")], p.references[1])
 
     def test_tricky_multipart_get_form_11997(self):
         body = """
@@ -297,7 +312,7 @@ class TestHTMLParser(unittest.TestCase):
         self.assertEqual(len(p.forms), 1)
         form = p.forms[0]
 
-        self.assertEqual(form.get_method(), 'GET')
+        self.assertEqual(form.get_method(), "GET")
         self.assertIsInstance(form, FormParameters)
         self.assertEqual(form.get_form_encoding(), DEFAULT_FORM_ENCODING)
 
@@ -316,9 +331,9 @@ class TestHTMLParser(unittest.TestCase):
         self.assertEqual(len(p.forms), 1)
         form = p.forms[0]
 
-        self.assertEqual(form.get_method(), 'GET')
+        self.assertEqual(form.get_method(), "GET")
         self.assertIsInstance(form, FormParameters)
-        self.assertEqual(form.get_form_encoding(), 'ilove/bugs')
+        self.assertEqual(form.get_form_encoding(), "ilove/bugs")
 
         # But it translates to url-encoded form afterwards
         dc = dc_from_form_params(form)
@@ -326,12 +341,12 @@ class TestHTMLParser(unittest.TestCase):
 
     def tearDown(self):
         # set the defaults back
-        cf.cf.save('form_id_list', FormIDMatcherList('[]'))
-        cf.cf.save('form_id_action', EXCLUDE)
+        cf.cf.save("form_id_list", FormIDMatcherList("[]"))
+        cf.cf.save("form_id_action", EXCLUDE)
 
     def test_form_exclude_two_of_two(self):
         user_value = '[{"action": "/foo", "method": "get"}, {"action": "/bar", "method": "post"}]'
-        cf.cf.save('form_id_list', FormIDMatcherList(user_value))
+        cf.cf.save("form_id_list", FormIDMatcherList(user_value))
 
         body = """
         <html>
@@ -353,7 +368,7 @@ class TestHTMLParser(unittest.TestCase):
 
     def test_form_exclude_one_of_two(self):
         user_value = '[{"action": "/foo", "method": "get"}, {"action": "/nomatch", "method": "post"}]'
-        cf.cf.save('form_id_list', FormIDMatcherList(user_value))
+        cf.cf.save("form_id_list", FormIDMatcherList(user_value))
 
         body = """
         <html>
@@ -372,11 +387,11 @@ class TestHTMLParser(unittest.TestCase):
         p.parse()
 
         self.assertEqual(len(p.forms), 1)
-        self.assertEqual(p.forms[0]._action, URL('http://w3af.com/bar'))
+        self.assertEqual(p.forms[0]._action, URL("http://w3af.com/bar"))
 
     def test_form_exclude_zero_of_two(self):
         user_value = '[{"action": "/foo", "method": "post"}, {"action": "/nomatch", "method": "post"}]'
-        cf.cf.save('form_id_list', FormIDMatcherList(user_value))
+        cf.cf.save("form_id_list", FormIDMatcherList(user_value))
 
         body = """
         <html>
@@ -398,8 +413,8 @@ class TestHTMLParser(unittest.TestCase):
 
     def test_form_include_zero_of_two(self):
         user_value = '[{"action": "/foo", "method": "post"}, {"action": "/nomatch", "method": "post"}]'
-        cf.cf.save('form_id_list', FormIDMatcherList(user_value))
-        cf.cf.save('form_id_action', INCLUDE)
+        cf.cf.save("form_id_list", FormIDMatcherList(user_value))
+        cf.cf.save("form_id_action", INCLUDE)
 
         body = """
         <html>
@@ -421,8 +436,8 @@ class TestHTMLParser(unittest.TestCase):
 
     def test_form_include_one_of_two(self):
         user_value = '[{"action": "/foo", "method": "get"}, {"action": "/nomatch", "method": "post"}]'
-        cf.cf.save('form_id_list', FormIDMatcherList(user_value))
-        cf.cf.save('form_id_action', INCLUDE)
+        cf.cf.save("form_id_list", FormIDMatcherList(user_value))
+        cf.cf.save("form_id_action", INCLUDE)
 
         body = """
         <html>
@@ -444,8 +459,8 @@ class TestHTMLParser(unittest.TestCase):
 
     def test_form_include_two_of_two(self):
         user_value = '[{"action": "/foo", "method": "get"}, {"action": "/bar", "method": "post"}]'
-        cf.cf.save('form_id_list', FormIDMatcherList(user_value))
-        cf.cf.save('form_id_action', INCLUDE)
+        cf.cf.save("form_id_list", FormIDMatcherList(user_value))
+        cf.cf.save("form_id_action", INCLUDE)
 
         body = """
         <html>
@@ -467,8 +482,8 @@ class TestHTMLParser(unittest.TestCase):
 
     def test_form_include_two_of_two_one_form_id(self):
         user_value = '[{"action": "/abc.*"}]'
-        cf.cf.save('form_id_list', FormIDMatcherList(user_value))
-        cf.cf.save('form_id_action', INCLUDE)
+        cf.cf.save("form_id_list", FormIDMatcherList(user_value))
+        cf.cf.save("form_id_action", INCLUDE)
 
         body = """
         <html>
@@ -489,12 +504,13 @@ class TestHTMLParser(unittest.TestCase):
         self.assertEqual(len(p.forms), 2)
 
     def test_unicodedecoreerror_ascii_url(self):
-        HTML_FILE = os.path.join(ROOT_PATH, 'core', 'data', 'parsers', 'doc',
-                                 'tests', 'data', 'se.html')
+        HTML_FILE = os.path.join(
+            ROOT_PATH, "core", "data", "parsers", "doc", "tests", "data", "se.html"
+        )
         body = open(HTML_FILE).read()
 
         headers = Headers()
-        headers['content-type'] = 'text/html; charset=utf-8'
+        headers["content-type"] = "text/html; charset=utf-8"
 
         r = build_http_response(self.url, body, headers=headers)
         p = RaiseHTMLParser(r)

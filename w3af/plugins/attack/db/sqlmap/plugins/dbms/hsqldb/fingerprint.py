@@ -19,6 +19,7 @@ from lib.core.settings import HSQLDB_ALIASES
 from lib.request import inject
 from plugins.generic.fingerprint import Fingerprint as GenericFingerprint
 
+
 class Fingerprint(GenericFingerprint):
     def __init__(self):
         GenericFingerprint.__init__(self, DBMS.HSQLDB)
@@ -47,7 +48,9 @@ class Fingerprint(GenericFingerprint):
         value += "active fingerprint: %s" % actVer
 
         if kb.bannerFp:
-            banVer = kb.bannerFp["dbmsVersion"] if 'dbmsVersion' in kb.bannerFp else None
+            banVer = (
+                kb.bannerFp["dbmsVersion"] if "dbmsVersion" in kb.bannerFp else None
+            )
 
             if re.search(r"-log$", kb.data.banner):
                 banVer += ", logging enabled"
@@ -114,10 +117,17 @@ class Fingerprint(GenericFingerprint):
                 if banner:
                     Backend.setVersion("= %s" % banner)
                 else:
-                    if inject.checkBooleanExpression("(SELECT [RANDNUM] FROM (VALUES(0)))=[RANDNUM]"):
+                    if inject.checkBooleanExpression(
+                        "(SELECT [RANDNUM] FROM (VALUES(0)))=[RANDNUM]"
+                    ):
                         Backend.setVersionList([">= 2.0.0", "< 2.3.0"])
                     else:
-                        banner = unArrayizeValue(inject.getValue("\"org.hsqldbdb.Library.getDatabaseFullProductVersion\"()", safeCharEncode=True))
+                        banner = unArrayizeValue(
+                            inject.getValue(
+                                '"org.hsqldbdb.Library.getDatabaseFullProductVersion"()',
+                                safeCharEncode=True,
+                            )
+                        )
                         if banner:
                             Backend.setVersion("= %s" % banner)
                         else:

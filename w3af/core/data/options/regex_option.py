@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 
 from w3af.core.controllers.exceptions import BaseFrameworkException
@@ -44,8 +45,10 @@ class RegexOption(BaseOption):
         try:
             re.compile(value)
         except Exception as e:
-            msg = 'The regular expression "%s" is invalid, the compilation'\
-                  ' error was: "%s".'
+            msg = (
+                'The regular expression "%s" is invalid, the compilation'
+                ' error was: "%s".'
+            )
             raise BaseFrameworkException(msg % (value, e))
         else:
             return value

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import json
 
 from collections import OrderedDict
@@ -32,8 +33,10 @@ class FormID(object):
 
     :see: https://github.com/andresriancho/w3af/issues/15161
     """
-    def __init__(self, action=None, inputs=None, attributes=None,
-                 hosted_at_url=None, method=None):
+
+    def __init__(
+        self, action=None, inputs=None, attributes=None, hosted_at_url=None, method=None
+    ):
         """
         :param action: URL (object) where the form is sent
         :param inputs: A list with the names of the form parameters
@@ -97,9 +100,13 @@ class FormID(object):
 
         :return: This object as a JSON dict
         """
-        data = OrderedDict([('action', self.action.get_path()),
-                            ('hosted_at_url', self.hosted_at_url.get_path()),
-                            ('inputs', self.inputs),
-                            ('attributes', self.attributes),
-                            ('method', self.method)])
+        data = OrderedDict(
+            [
+                ("action", self.action.get_path()),
+                ("hosted_at_url", self.hosted_at_url.get_path()),
+                ("inputs", self.inputs),
+                ("attributes", self.attributes),
+                ("method", self.method),
+            ]
+        )
         return json.dumps(data)

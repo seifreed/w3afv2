@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
 
@@ -60,17 +61,15 @@ class domain_dot(InfrastructurePlugin):
             self._already_tested.add((domain, extension))
 
             # Generate the new URL
-            domain_dot = domain + '.'
+            domain_dot = domain + "."
             orig_url = fuzzable_request.get_url()
             try:
                 # GET the original response
-                original_response = self._uri_opener.GET(orig_url,
-                                                         cache=False)
+                original_response = self._uri_opener.GET(orig_url, cache=False)
                 # GET the response with the modified domain
                 # (with the trailing dot)
-                headers = Headers([('Host', domain_dot)])
-                response = self._uri_opener.GET(orig_url, cache=False,
-                                                headers=headers)
+                headers = Headers([("Host", domain_dot)])
+                response = self._uri_opener.GET(orig_url, cache=False, headers=headers)
             except BaseFrameworkException as w3:
                 om.out.error(str(w3))
             else:
@@ -85,18 +84,24 @@ class domain_dot(InfrastructurePlugin):
         """
         if fuzzy_not_equal(original_resp.get_body(), resp.get_body(), 0.7):
             response_ids = [original_resp.id, resp.id]
-            desc = '[Manual verification required] The response body for a ' \
-                  'request with a trailing dot in the domain, and the response ' \
-                  'body without a trailing dot in the domain differ. This could ' \
-                  'indicate a misconfiguration in the virtual host settings. In ' \
-                  'some cases, this misconfiguration permits the attacker to ' \
-                  'read the source code of the web application.'
-            
-            i = Info('Potential virtual host misconfiguration', desc,
-                     response_ids, self.get_name())
-            
+            desc = (
+                "[Manual verification required] The response body for a "
+                "request with a trailing dot in the domain, and the response "
+                "body without a trailing dot in the domain differ. This could "
+                "indicate a misconfiguration in the virtual host settings. In "
+                "some cases, this misconfiguration permits the attacker to "
+                "read the source code of the web application."
+            )
+
+            i = Info(
+                "Potential virtual host misconfiguration",
+                desc,
+                response_ids,
+                self.get_name(),
+            )
+
             om.out.information(desc)
-            kb.kb.append(self, 'domain_dot', i)
+            kb.kb.append(self, "domain_dot", i)
 
     def get_long_desc(self):
         """

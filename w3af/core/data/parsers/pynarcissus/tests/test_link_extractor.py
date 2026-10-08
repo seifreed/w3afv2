@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from w3af.core.data.parsers.utils.url_regex import URL_RE
@@ -31,15 +32,16 @@ class TestLinkExtractor(unittest.TestCase, JSParserMixin):
     """
     :see: Docstring in StringExtractor
     """
+
     def test_jquery(self):
-        e = JSLinkExtractor(self.get_file_contents('jquery.js'))
+        e = JSLinkExtractor(self.get_file_contents("jquery.js"))
         expected = set()
 
         self.assertEqual(e.get_links(), expected)
 
     def test_jquery_re(self):
         urls = set()
-        merged_strings = self.get_file_contents('jquery.js')
+        merged_strings = self.get_file_contents("jquery.js")
 
         for x in URL_RE.findall(merged_strings):
             try:

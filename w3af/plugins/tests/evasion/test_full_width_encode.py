@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from w3af.core.data.parsers.doc.url import URL
@@ -27,26 +28,27 @@ from w3af.plugins.evasion.full_width_encode import full_width_encode
 
 
 class TestEvasion(unittest.TestCase):
-    
+
     def test_no_modification(self):
         fwe = full_width_encode()
 
-        u = URL('http://www.w3af.com/')
-        r = HTTPRequest( u )
-        self.assertEqual(fwe.modify_request( r ).url_object.url_string,
-                         'http://www.w3af.com/')
+        u = URL("http://www.w3af.com/")
+        r = HTTPRequest(u)
+        self.assertEqual(
+            fwe.modify_request(r).url_object.url_string, "http://www.w3af.com/"
+        )
 
     def test_modify_path_filename(self):
         fwe = full_width_encode()
-        
-        u = URL('http://www.w3af.com/hola-mundo')
-        r = HTTPRequest( u )
-        self.assertEqual(fwe.modify_request( r ).url_object.url_string,
-                         'http://www.w3af.com/%uFF48%uFF4f%uFF4c%uFF41%uFF0d%uFF4d%uFF55%uFF4e%uFF44%uFF4f')
+
+        u = URL("http://www.w3af.com/hola-mundo")
+        r = HTTPRequest(u)
+        self.assertEqual(
+            fwe.modify_request(r).url_object.url_string,
+            "http://www.w3af.com/%uFF48%uFF4f%uFF4c%uFF41%uFF0d%uFF4d%uFF55%uFF4e%uFF44%uFF4f",
+        )
 
         #
         #    The plugins should not modify the original request
         #
-        self.assertEqual(u.url_string,
-                         'http://www.w3af.com/hola-mundo')
-        
+        self.assertEqual(u.url_string, "http://www.w3af.com/hola-mundo")

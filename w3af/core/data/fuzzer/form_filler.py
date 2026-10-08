@@ -20,6 +20,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 
 import w3af.core.controllers.output_manager as om
@@ -27,82 +28,207 @@ import w3af.core.data.kb.config as cf
 
 from w3af.core.controllers.misc.io import NamedStringIO
 from w3af.core.controllers.misc.decorators import memoized
-from w3af.core.data.constants.file_templates.file_templates import get_file_from_template
+from w3af.core.data.constants.file_templates.file_templates import (
+    get_file_from_template,
+)
 from functools import cmp_to_key
 
-
 PARAM_NAME_KNOWLEDGE = {
-    'John8212': ['username', 'user', 'uname', 'usuario', 'benutzername',
-                 'benutzer', 'nickname', 'logname', 'ident'],
-    'John': ['name', 'nombre', 'nome', 'name', 'naam'],
-    'Smith': ['lastname', 'surname', 'apellido', 'sobrenome', 'vorname',
-              'nachname'],
-
-    'FrAmE30.': ['pass', 'word', 'pswd', 'pwd', 'auth', 'password', 'passwort',
-                 'contraseña', 'senha', 'key', 'hash', 'pword', 'passe'],
-
-    'w3af@email.com': ['mail', 'email', 'e-mail', 'correo', 'correio', 'to',
-                       'cc', 'bcc'],
-    'http://www.w3af.org/': ['link', 'enlace', 'target', 'destino', 'website',
-                             'web', 'url', 'page', 'homepage'],
-
-    'AK': ['state', 'estado'],
-    'Argentina': ['location', 'country', 'pais', 'país', 'land'],
-    'English': ['language', 'lang', 'idioma'],
-    'Buenos Aires': ['city', 'ciudad', 'cidade', 'stadt'],
-    'Bonsai Street 123': ['addr', 'address', 'residence', 'dirección', 'direccion',
-                          'residencia', 'endereço', 'endereco', 'residência',
-                          'addresse', 'wohnsitz', 'wohnort', 'street', 'calle'],
-
-    'Bonsai': ['company', 'empresa', 'companhia', 'unternehmen'],
-    'Manager': ['position', 'jon', 'cargo', 'posição', 'unternehmung', 'position'],
-
-    '90210': ['postal', 'zip', 'postleitzahl', 'plz', 'postais'],
-    '3419': ['pin', 'id', 'suffix'],
-    '22': ['floor', 'age', 'piso', 'edad', 'stock', 'alter', 'port', 'puerto',
-           'number', 'numero', 'número', 'int', 'integer', 'entero'],
-    '7.8': ['float', 'long', 'decimal'],
-    '555': ['area', 'prefijo', 'prefix'],
-    '55550178': ['phone', 'fax', 'code', 'telefono',
-                 'código', 'codigo', 'telefon', 'tel', 'code', 'nummer', 'call',
-                 'llamar', 'passport', 'pasaporte'],
-    '987654320': ['ssn', 'social'],
-    'C00001234': ['passport'],
-    '7': ['month', 'day', 'birthday', 'birthmonth', 'mes', 'dia', 'día', 'monat', 'tag',
-          'geburts', 'mês', 'amount', 'cantidad', 'precio', 'price', 'value',
-          'type', 'tipo', 'article', 'score', 'puntos', 'hour', 'hora', 'minute',
-          'minuto', 'second', 'segundo', 'weight', 'peso', 'largo', 'length',
-          'height', 'altura', 'step', 'pageid'],
-    '1982': ['year', 'birthyear', 'año', 'ano', 'jahr', 'since', 'desde'],
-
-    'Hello World': ['content', 'text', 'words', 'query', 'search', 'keyword',
-                    'title', 'desc', 'data', 'payload', 'answer', 'respuesta',
-                    'description', 'descripcion', 'message', 'mensaje', 'excerpt',
-                    'comment', 'comentario'],
-
-    'Spam or Eggs?': ['question', 'pregunta'],
-
-    '<html>w3af</html>': ['html', 'wysiwyg'],
-
-    'Blue': ['color'],
-
-    '1': ['debug', 'is_admin', 'admin', 'verbose'],
-
-    '127.0.0.1': ['ip', 'ipaddress', 'host', 'server', 'servidor'],
-    '255.255.255.0': ['netmask', 'mask', 'mascara'],
-    'www.w3af.org': ['domain', 'dominio'],
-
-    '4271a25e-7211-4306-b527-46196eb2af28': ['token', 'uuid', 'unique-id', 'random']
+    "John8212": [
+        "username",
+        "user",
+        "uname",
+        "usuario",
+        "benutzername",
+        "benutzer",
+        "nickname",
+        "logname",
+        "ident",
+    ],
+    "John": ["name", "nombre", "nome", "name", "naam"],
+    "Smith": ["lastname", "surname", "apellido", "sobrenome", "vorname", "nachname"],
+    "FrAmE30.": [
+        "pass",
+        "word",
+        "pswd",
+        "pwd",
+        "auth",
+        "password",
+        "passwort",
+        "contraseña",
+        "senha",
+        "key",
+        "hash",
+        "pword",
+        "passe",
+    ],
+    "w3af@email.com": [
+        "mail",
+        "email",
+        "e-mail",
+        "correo",
+        "correio",
+        "to",
+        "cc",
+        "bcc",
+    ],
+    "http://www.w3af.org/": [
+        "link",
+        "enlace",
+        "target",
+        "destino",
+        "website",
+        "web",
+        "url",
+        "page",
+        "homepage",
+    ],
+    "AK": ["state", "estado"],
+    "Argentina": ["location", "country", "pais", "país", "land"],
+    "English": ["language", "lang", "idioma"],
+    "Buenos Aires": ["city", "ciudad", "cidade", "stadt"],
+    "Bonsai Street 123": [
+        "addr",
+        "address",
+        "residence",
+        "dirección",
+        "direccion",
+        "residencia",
+        "endereço",
+        "endereco",
+        "residência",
+        "addresse",
+        "wohnsitz",
+        "wohnort",
+        "street",
+        "calle",
+    ],
+    "Bonsai": ["company", "empresa", "companhia", "unternehmen"],
+    "Manager": ["position", "jon", "cargo", "posição", "unternehmung", "position"],
+    "90210": ["postal", "zip", "postleitzahl", "plz", "postais"],
+    "3419": ["pin", "id", "suffix"],
+    "22": [
+        "floor",
+        "age",
+        "piso",
+        "edad",
+        "stock",
+        "alter",
+        "port",
+        "puerto",
+        "number",
+        "numero",
+        "número",
+        "int",
+        "integer",
+        "entero",
+    ],
+    "7.8": ["float", "long", "decimal"],
+    "555": ["area", "prefijo", "prefix"],
+    "55550178": [
+        "phone",
+        "fax",
+        "code",
+        "telefono",
+        "código",
+        "codigo",
+        "telefon",
+        "tel",
+        "code",
+        "nummer",
+        "call",
+        "llamar",
+        "passport",
+        "pasaporte",
+    ],
+    "987654320": ["ssn", "social"],
+    "C00001234": ["passport"],
+    "7": [
+        "month",
+        "day",
+        "birthday",
+        "birthmonth",
+        "mes",
+        "dia",
+        "día",
+        "monat",
+        "tag",
+        "geburts",
+        "mês",
+        "amount",
+        "cantidad",
+        "precio",
+        "price",
+        "value",
+        "type",
+        "tipo",
+        "article",
+        "score",
+        "puntos",
+        "hour",
+        "hora",
+        "minute",
+        "minuto",
+        "second",
+        "segundo",
+        "weight",
+        "peso",
+        "largo",
+        "length",
+        "height",
+        "altura",
+        "step",
+        "pageid",
+    ],
+    "1982": ["year", "birthyear", "año", "ano", "jahr", "since", "desde"],
+    "Hello World": [
+        "content",
+        "text",
+        "words",
+        "query",
+        "search",
+        "keyword",
+        "title",
+        "desc",
+        "data",
+        "payload",
+        "answer",
+        "respuesta",
+        "description",
+        "descripcion",
+        "message",
+        "mensaje",
+        "excerpt",
+        "comment",
+        "comentario",
+    ],
+    "Spam or Eggs?": ["question", "pregunta"],
+    "<html>w3af</html>": ["html", "wysiwyg"],
+    "Blue": ["color"],
+    "1": ["debug", "is_admin", "admin", "verbose"],
+    "127.0.0.1": ["ip", "ipaddress", "host", "server", "servidor"],
+    "255.255.255.0": ["netmask", "mask", "mascara"],
+    "www.w3af.org": ["domain", "dominio"],
+    "4271a25e-7211-4306-b527-46196eb2af28": ["token", "uuid", "unique-id", "random"],
 }
 
 FILE_NAME_KNOWLEDGE = {
-    'gif': ['img', 'image', 'imagen', 'gif', 'picture', 'art', 'logo', 'brand',
-            'avatar'],
-    'bmp': ['bitmap', 'bmp'],
-    'jpg': ['jpeg', 'jpg'],
-    'png': ['png'],
-    'txt': ['text', 'ascii', 'texto', 'csv', 'note', 'nota'],
-    'html': ['html', 'page', 'info', 'htm', 'design'],
+    "gif": [
+        "img",
+        "image",
+        "imagen",
+        "gif",
+        "picture",
+        "art",
+        "logo",
+        "brand",
+        "avatar",
+    ],
+    "bmp": ["bitmap", "bmp"],
+    "jpg": ["jpeg", "jpg"],
+    "png": ["png"],
+    "txt": ["text", "ascii", "texto", "csv", "note", "nota"],
+    "html": ["html", "page", "info", "htm", "design"],
 }
 
 
@@ -129,7 +255,7 @@ def get_match_rate(variable_name, variable_name_db):
     return match_rate
 
 
-def smart_fill(variable_name, db=PARAM_NAME_KNOWLEDGE, default='56'):
+def smart_fill(variable_name, db=PARAM_NAME_KNOWLEDGE, default="56"):
     """
     This method returns a "smart" option for a variable name inside a form. For
     example, if the variable_name is "username" a smart_fill response would be
@@ -203,11 +329,9 @@ def guess_extension(var_name, file_name):
         if extension:
             return extension
 
-    guessed_extension = smart_fill(var_name, db=FILE_NAME_KNOWLEDGE,
-                                   default=None)
+    guessed_extension = smart_fill(var_name, db=FILE_NAME_KNOWLEDGE, default=None)
     if guessed_extension is not None:
         return guessed_extension
 
     # Oops!
-    return cf.cf.get('fuzzed_files_extension', 'gif')
-
+    return cf.cf.get("fuzzed_files_extension", "gif")

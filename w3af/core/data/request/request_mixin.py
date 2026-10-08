@@ -19,12 +19,13 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import hashlib
 
-CR = '\r'
-LF = '\n'
+CR = "\r"
+LF = "\n"
 CRLF = CR + LF
-SP = ' '
+SP = " "
 
 
 class RequestMixIn(object):
@@ -42,12 +43,12 @@ class RequestMixIn(object):
                  by the RFC, and the POST-data (potentially) holding raw bytes
                  such as an image content.
         """
-        data = self.get_data() or ''
+        data = self.get_data() or ""
 
         request_head = self.dump_request_head(ignore_headers=ignore_headers)
-        request_head = request_head.encode('utf-8')
+        request_head = request_head.encode("utf-8")
 
-        return '%s%s%s' % (request_head, CRLF, data)
+        return "%s%s%s" % (request_head, CRLF, data)
 
     def get_request_hash(self, ignore_headers=()):
         """
@@ -59,16 +60,20 @@ class RequestMixIn(object):
         """
         :return: request first line as sent to the wire.
         """
-        return '%s %s HTTP/1.1%s' % (self.get_method(),
-                                      self.get_uri().url_encode(),
-                                      CRLF)
+        return "%s %s HTTP/1.1%s" % (
+            self.get_method(),
+            self.get_uri().url_encode(),
+            CRLF,
+        )
 
     def dump_request_head(self, ignore_headers=()):
         """
         :return: A string with the head of the request
         """
-        return '%s%s' % (self.get_request_line(),
-                          self.dump_headers(ignore_headers=ignore_headers))
+        return "%s%s" % (
+            self.get_request_line(),
+            self.dump_headers(ignore_headers=ignore_headers),
+        )
 
     def dump_headers(self, ignore_headers=()):
         """

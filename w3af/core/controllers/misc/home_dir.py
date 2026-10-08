@@ -19,13 +19,14 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import sys
 import shutil
 
 from w3af import ROOT_PATH
 
-HOME_DIR = os.path.join(os.path.expanduser('~'), '.w3af')
+HOME_DIR = os.path.join(os.path.expanduser("~"), ".w3af")
 
 # Point to the directory where w3af_console , w3af_gui and profiles/ live
 # Also, the root of the git repository
@@ -52,7 +53,7 @@ def create_home_dir():
                 return False
 
     # webroot for some plugins
-    webroot = os.path.join(home_path, 'webroot')
+    webroot = os.path.join(home_path, "webroot")
     if not os.path.exists(webroot):
         try:
             os.makedirs(webroot)
@@ -66,18 +67,20 @@ def create_home_dir():
                 return False
 
     # and the profile directory
-    home_profiles = os.path.join(home_path, 'profiles')
+    home_profiles = os.path.join(home_path, "profiles")
 
     # I need to check in two different paths to support installing w3af as
     # a module. Note the gen_data_files.py code in the w3af-module.
-    default_profiles_paths = [os.path.join(W3AF_LOCAL_PATH, 'profiles'),
-                              os.path.join(ROOT_PATH, 'profiles'),
-                              os.path.join(ROOT_PATH, '../profiles'),
-                              os.path.join(sys.prefix, 'profiles'),
-                              os.path.join(sys.exec_prefix, 'profiles'),
-                              # https://github.com/andresriancho/w3af-module/issues/4
-                              os.path.join(sys.prefix, 'local', 'profiles'),
-                              os.path.join(sys.exec_prefix, 'local', 'profiles')]
+    default_profiles_paths = [
+        os.path.join(W3AF_LOCAL_PATH, "profiles"),
+        os.path.join(ROOT_PATH, "profiles"),
+        os.path.join(ROOT_PATH, "../profiles"),
+        os.path.join(sys.prefix, "profiles"),
+        os.path.join(sys.exec_prefix, "profiles"),
+        # https://github.com/andresriancho/w3af-module/issues/4
+        os.path.join(sys.prefix, "local", "profiles"),
+        os.path.join(sys.exec_prefix, "local", "profiles"),
+    ]
 
     if not os.path.exists(home_profiles):
         for default_profile_path in default_profiles_paths:
@@ -101,7 +104,7 @@ def get_home_dir():
     :return: The location of the w3af directory inside the home directory of
         the current user.
     """
-    return os.environ.get('W3AF_HOME_DIR', HOME_DIR)
+    return os.environ.get("W3AF_HOME_DIR", HOME_DIR)
 
 
 def verify_dir_has_perm(path, perm, levels=0):
@@ -115,8 +118,8 @@ def verify_dir_has_perm(path, perm, levels=0):
     :param levels: Depth levels to test
     """
     if not os.path.exists(path):
-        raise RuntimeError('%s does NOT exist!' % path)
-    
+        raise RuntimeError("%s does NOT exist!" % path)
+
     path = os.path.normpath(path)
     pdepth = len(path.split(os.path.sep))
 
@@ -129,7 +132,7 @@ def verify_dir_has_perm(path, perm, levels=0):
     # From 1st to `levels`th
     for root, dirs, files in os.walk(path):
         currentlevel = len(root.split(os.path.sep)) - pdepth
-        
+
         if currentlevel > levels:
             break
         elif ".git" in dirs:
@@ -138,7 +141,6 @@ def verify_dir_has_perm(path, perm, levels=0):
         for file_path in (os.path.join(root, f) for f in dirs + files):
             if os.path.exists(file_path):
                 if not os.access(file_path, perm):
-                    #print('No permissions for "%s".' % file_path)
+                    # print('No permissions for "%s".' % file_path)
                     return False
     return True
-

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.controllers.output_manager as om
 
 
@@ -27,8 +28,14 @@ def download_debug(fn):
         #   Run the original function
         result = fn(self, remote_filename, local_filename)
 
-        msg = 'download( "' + remote_filename + '" , "' + \
-            local_filename + '") == ' + result
+        msg = (
+            'download( "'
+            + remote_filename
+            + '" , "'
+            + local_filename
+            + '") == '
+            + result
+        )
 
         #   Print the message to the debug output
         om.out.debug(msg)

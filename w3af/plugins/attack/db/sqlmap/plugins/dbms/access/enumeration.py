@@ -8,6 +8,7 @@ See the file 'LICENSE' for copying permission
 from lib.core.data import logger
 from plugins.generic.enumeration import Enumeration as GenericEnumeration
 
+
 class Enumeration(GenericEnumeration):
     def __init__(self):
         GenericEnumeration.__init__(self)
@@ -23,11 +24,15 @@ class Enumeration(GenericEnumeration):
         logger.warn(warnMsg)
 
     def getCurrentDb(self):
-        warnMsg = "on Microsoft Access it is not possible to get name of the current database"
+        warnMsg = (
+            "on Microsoft Access it is not possible to get name of the current database"
+        )
         logger.warn(warnMsg)
 
     def isDba(self):
-        warnMsg = "on Microsoft Access it is not possible to test if current user is DBA"
+        warnMsg = (
+            "on Microsoft Access it is not possible to test if current user is DBA"
+        )
         logger.warn(warnMsg)
 
     def getUsers(self):
@@ -43,7 +48,9 @@ class Enumeration(GenericEnumeration):
         return {}
 
     def getPrivileges(self, *args):
-        warnMsg = "on Microsoft Access it is not possible to enumerate the user privileges"
+        warnMsg = (
+            "on Microsoft Access it is not possible to enumerate the user privileges"
+        )
         logger.warn(warnMsg)
 
         return {}

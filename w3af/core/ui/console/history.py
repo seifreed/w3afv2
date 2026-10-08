@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import copy
 
 
@@ -27,6 +28,7 @@ class historyTable(object):
     A wrapper around a dictionary which stores menu-related history objects.
     :author: Alexander Berezhnoy (alexander.berezhnoy |at| gmail.com)
     """
+
     def __init__(self):
         self._table = {}
 

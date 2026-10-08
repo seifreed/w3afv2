@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 import compiler
 import subprocess
@@ -30,8 +31,7 @@ from w3af.core.data.db.startup_cfg import StartUpConfig
 class TestW3afConsole(unittest.TestCase):
     def test_compiles(self):
         try:
-            compiler.compile(open('w3af_console').read(),
-                             '/tmp/foo.tmp', 'exec')
+            compiler.compile(open("w3af_console").read(), "/tmp/foo.tmp", "exec")
         except SyntaxError as se:
             self.assertTrue(False, 'Error in w3af_console code "%s"' % se)
 
@@ -46,18 +46,20 @@ class TestW3afConsole(unittest.TestCase):
         # find the "correct" / "virtual" python executable using which and
         # then pass that one to Popen
         python_executable = sys.executable
-        
-        p = subprocess.Popen([python_executable, 'w3af_console', '-n'],
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE,
-                             stdin=subprocess.PIPE,
-                             shell=False,
-                             universal_newlines=True)
 
-        expected_prompt = 'w3af>>>'
-        
-        stdout, stderr = p.communicate('exit\r\n')
-                
+        p = subprocess.Popen(
+            [python_executable, "w3af_console", "-n"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            stdin=subprocess.PIPE,
+            shell=False,
+            universal_newlines=True,
+        )
+
+        expected_prompt = "w3af>>>"
+
+        stdout, stderr = p.communicate("exit\r\n")
+
         msg = 'Failed to find "%s" in "%s" using "%s" as python executable.'
         msg = msg % (expected_prompt, stdout, python_executable)
         self.assertIn(expected_prompt, stdout, msg)

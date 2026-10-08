@@ -20,6 +20,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import unittest
 from functools import partial
@@ -39,28 +40,28 @@ from w3af.core.data.parsers.doc.tests.data.constants import *
 
 
 def build_http_response(url, body_content, headers=Headers()):
-    if 'content-type' not in headers:
-        headers['content-type'] = 'text/html'
-    return HTTPResponse(200, body_content, headers, url, url, charset='utf-8')
+    if "content-type" not in headers:
+        headers["content-type"] = "text/html"
+    return HTTPResponse(200, body_content, headers, url, url, charset="utf-8")
 
 
-@attr('smoke')
+@attr("smoke")
 class TestSGMLParser(unittest.TestCase):
 
-    url = URL('http://w3af.com')
+    url = URL("http://w3af.com")
 
     def test_get_emails_filter(self):
-        resp = build_http_response(self.url, '')
+        resp = build_http_response(self.url, "")
         p = SGMLParser(resp)
-        p._emails = {'a@w3af.com', 'foo@not.com'}
+        p._emails = {"a@w3af.com", "foo@not.com"}
 
-        self.assertEqual(p.get_emails(), {'a@w3af.com', 'foo@not.com'})
+        self.assertEqual(p.get_emails(), {"a@w3af.com", "foo@not.com"})
 
-        self.assertEqual(p.get_emails(domain='w3af.com'), ['a@w3af.com'])
-        self.assertEqual(p.get_emails(domain='not.com'), ['foo@not.com'])
+        self.assertEqual(p.get_emails(domain="w3af.com"), ["a@w3af.com"])
+        self.assertEqual(p.get_emails(domain="not.com"), ["foo@not.com"])
 
     def test_extract_emails_blank(self):
-        resp = build_http_response(self.url, '')
+        resp = build_http_response(self.url, "")
         p = SGMLParser(resp)
 
         self.assertEqual(p.get_emails(), set())
@@ -71,27 +72,30 @@ class TestSGMLParser(unittest.TestCase):
         p = SGMLParser(resp)
         p.parse()
 
-        expected_res = {'abc@w3af.com'}
+        expected_res = {"abc@w3af.com"}
         self.assertEqual(p.get_emails(), expected_res)
 
     def test_extract_emails_mailto_dup(self):
-        body = '<a href="mailto:abc@w3af.com">a</a>'\
-               '<a href="mailto:abc@w3af.com">b</a>'
+        body = (
+            '<a href="mailto:abc@w3af.com">a</a>' '<a href="mailto:abc@w3af.com">b</a>'
+        )
         resp = build_http_response(self.url, body)
         p = SGMLParser(resp)
         p.parse()
 
-        expected_res = {'abc@w3af.com'}
+        expected_res = {"abc@w3af.com"}
         self.assertEqual(p.get_emails(), expected_res)
 
     def test_extract_emails_mailto_not_dup(self):
-        body = '<a href="mailto:abc@w3af.com">a</a>'\
-               '<a href="mailto:abc_def@w3af.com">b</a>'
+        body = (
+            '<a href="mailto:abc@w3af.com">a</a>'
+            '<a href="mailto:abc_def@w3af.com">b</a>'
+        )
         resp = build_http_response(self.url, body)
         p = SGMLParser(resp)
         p.parse()
 
-        expected_res = {'abc@w3af.com', 'abc_def@w3af.com'}
+        expected_res = {"abc@w3af.com", "abc_def@w3af.com"}
         self.assertEqual(p.get_emails(), expected_res)
 
     def test_mailto_ignored_in_links(self):
@@ -104,41 +108,42 @@ class TestSGMLParser(unittest.TestCase):
         self.assertEqual(parsed, [])
 
     def test_mailto_subject_body(self):
-        body = '<a href="mailto:abc@w3af.com?subject=testing out mailto'\
-               '&body=Just testing">test</a>'
+        body = (
+            '<a href="mailto:abc@w3af.com?subject=testing out mailto'
+            '&body=Just testing">test</a>'
+        )
         resp = build_http_response(self.url, body)
         p = SGMLParser(resp)
         p.parse()
 
-        expected_res = {'abc@w3af.com'}
+        expected_res = {"abc@w3af.com"}
         self.assertEqual(p.get_emails(), expected_res)
 
     def test_parser_attrs(self):
-        body_content = HTML_DOC % {'head': '', 'body': ''}
+        body_content = HTML_DOC % {"head": "", "body": ""}
         p = SGMLParser(build_http_response(self.url, body_content))
 
         # Assert parser has these attrs correctly initialized
-        self.assertFalse(getattr(p, '_inside_form'))
-        self.assertFalse(getattr(p, '_inside_select'))
-        self.assertFalse(getattr(p, '_inside_text_area'))
-        self.assertFalse(getattr(p, '_inside_script'))
+        self.assertFalse(getattr(p, "_inside_form"))
+        self.assertFalse(getattr(p, "_inside_select"))
+        self.assertFalse(getattr(p, "_inside_text_area"))
+        self.assertFalse(getattr(p, "_inside_script"))
 
-        self.assertEqual(set(), getattr(p, '_tag_and_url'))
-        self.assertEqual([], getattr(p, '_forms'))
-        self.assertEqual([], getattr(p, '_comments_in_doc'))
-        self.assertEqual([], getattr(p, '_meta_redirs'))
-        self.assertEqual([], getattr(p, '_meta_tags'))
+        self.assertEqual(set(), getattr(p, "_tag_and_url"))
+        self.assertEqual([], getattr(p, "_forms"))
+        self.assertEqual([], getattr(p, "_comments_in_doc"))
+        self.assertEqual([], getattr(p, "_meta_redirs"))
+        self.assertEqual([], getattr(p, "_meta_tags"))
 
     def test_baseurl(self):
-        body = HTML_DOC % {'head': BASE_TAG, 'body': ''}
+        body = HTML_DOC % {"head": BASE_TAG, "body": ""}
         resp = build_http_response(self.url, body)
         p = SGMLParser(resp)
         p.parse()
-        self.assertEqual(URL('http://www.w3afbase.com/'), p._base_url)
+        self.assertEqual(URL("http://www.w3afbase.com/"), p._base_url)
 
     def test_meta_tags(self):
-        body = HTML_DOC % {'head': META_REFRESH + META_REFRESH_WITH_URL,
-                           'body': ''}
+        body = HTML_DOC % {"head": META_REFRESH + META_REFRESH_WITH_URL, "body": ""}
         resp = build_http_response(self.url, body)
 
         p = SGMLParser(resp)
@@ -147,11 +152,13 @@ class TestSGMLParser(unittest.TestCase):
         self.assertEqual(2, len(p.meta_redirs))
         self.assertIn("2;url=http://crawler.w3af.com/", p.meta_redirs)
         self.assertIn("600", p.meta_redirs)
-        self.assertEqual([URL('http://crawler.w3af.com/')], p.references[0])
+        self.assertEqual([URL("http://crawler.w3af.com/")], p.references[0])
 
     def test_meta_tags_with_single_quotes(self):
-        body = HTML_DOC % {'head': META_REFRESH + META_REFRESH_WITH_URL_AND_QUOTES,
-                           'body': ''}
+        body = HTML_DOC % {
+            "head": META_REFRESH + META_REFRESH_WITH_URL_AND_QUOTES,
+            "body": "",
+        }
         resp = build_http_response(self.url, body)
 
         p = SGMLParser(resp)
@@ -160,13 +167,14 @@ class TestSGMLParser(unittest.TestCase):
         self.assertEqual(2, len(p.meta_redirs))
         self.assertIn("2;url='http://crawler.w3af.com/'", p.meta_redirs)
         self.assertIn("600", p.meta_redirs)
-        self.assertEqual([URL('http://crawler.w3af.com/')], p.references[0])
+        self.assertEqual([URL("http://crawler.w3af.com/")], p.references[0])
 
     def test_case_sensitivity(self):
         """
         Ensure handler methods are *always* called with lowered-cased
         tag and attribute names
         """
+
         def islower(s):
             il = False
             if isinstance(s, str):
@@ -181,8 +189,13 @@ class TestSGMLParser(unittest.TestCase):
             islower(tag.attrib)
             return orig_start(tag)
 
-        tags = (A_LINK_ABSOLUTE, INPUT_CHECKBOX_WITH_NAME, SELECT_WITH_NAME,
-                TEXTAREA_WITH_ID_AND_DATA, INPUT_HIDDEN)
+        tags = (
+            A_LINK_ABSOLUTE,
+            INPUT_CHECKBOX_WITH_NAME,
+            SELECT_WITH_NAME,
+            TEXTAREA_WITH_ID_AND_DATA,
+            INPUT_HIDDEN,
+        )
         ops = "lower", "upper", "title"
 
         for indexes in combinations(list(range(len(tags))), 2):
@@ -195,7 +208,7 @@ class TestSGMLParser(unittest.TestCase):
                     ele = getattr(tag, choice(ops))()
                 body_elems.append(ele)
 
-            body = HTML_DOC % {'head': '', 'body': ''.join(body_elems)}
+            body = HTML_DOC % {"head": "", "body": "".join(body_elems)}
             resp = build_http_response(self.url, body)
             p = SGMLParser(resp)
             orig_start = p.start
@@ -218,8 +231,7 @@ class TestSGMLParser(unittest.TestCase):
         p.parse()
         parsed_refs = p.references[0]
         self.assertEqual(1, len(parsed_refs))
-        self.assertEqual(
-            'http://w3af.com/x.py?a=1', parsed_refs[0].url_string)
+        self.assertEqual("http://w3af.com/x.py?a=1", parsed_refs[0].url_string)
 
     def test_reference_with_colon(self):
         body = """
@@ -237,9 +249,9 @@ class TestSGMLParser(unittest.TestCase):
         self.assertEqual(0, len(parsed_refs))
 
     def test_get_clear_text_body(self):
-        html = 'header <b>ABC</b>-<b>DEF</b>-<b>XYZ</b> footer'
-        clear_text = 'header ABC-DEF-XYZ footer'
-        headers = Headers([('Content-Type', 'text/html')])
+        html = "header <b>ABC</b>-<b>DEF</b>-<b>XYZ</b> footer"
+        clear_text = "header ABC-DEF-XYZ footer"
+        headers = Headers([("Content-Type", "text/html")])
         r = build_http_response(self.url, html, headers)
 
         p = SGMLParser(r)
@@ -248,9 +260,9 @@ class TestSGMLParser(unittest.TestCase):
         self.assertEqual(clear_text, p.get_clear_text_body())
 
     def test_get_clear_text_body_memoized(self):
-        html = 'header <b>ABC</b>-<b>DEF</b>-<b>XYZ</b> footer'
-        clear_text = 'header ABC-DEF-XYZ footer'
-        headers = Headers([('Content-Type', 'text/html')])
+        html = "header <b>ABC</b>-<b>DEF</b>-<b>XYZ</b> footer"
+        clear_text = "header ABC-DEF-XYZ footer"
+        headers = Headers([("Content-Type", "text/html")])
         r = build_http_response(self.url, html, headers)
 
         p = SGMLParser(r)
@@ -261,11 +273,11 @@ class TestSGMLParser(unittest.TestCase):
 
     def test_get_clear_text_body_encodings(self):
 
-        raise SkipTest('Not sure why this one is failing :S')
+        raise SkipTest("Not sure why this one is failing :S")
 
         for lang_desc, (body, encoding) in TEST_RESPONSES.items():
-            encoding_header = 'text/html; charset=%s' % encoding
-            headers = Headers([('Content-Type', encoding_header)])
+            encoding_header = "text/html; charset=%s" % encoding
+            headers = Headers([("Content-Type", encoding_header)])
 
             encoded_body = body.encode(encoding)
             r = build_http_response(self.url, encoded_body, headers)
@@ -282,16 +294,16 @@ class TestSGMLParser(unittest.TestCase):
         """
         :see: https://github.com/andresriancho/w3af/issues/4402
         """
-        test_file_path = 'core/data/url/tests/data/encoding_4402.php'
+        test_file_path = "core/data/url/tests/data/encoding_4402.php"
         test_file = os.path.join(ROOT_PATH, test_file_path)
-        body = open(test_file, 'rb').read()
+        body = open(test_file, "rb").read()
 
         sample_encodings = [encoding for _, (_, encoding) in TEST_RESPONSES.items()]
-        sample_encodings.extend(['', 'utf-8'])
+        sample_encodings.extend(["", "utf-8"])
 
         for encoding in sample_encodings:
-            encoding_header = 'text/html; charset=%s' % encoding
-            headers = Headers([('Content-Type', encoding_header)])
+            encoding_header = "text/html; charset=%s" % encoding
+            headers = Headers([("Content-Type", encoding_header)])
 
             r = build_http_response(self.url, body, headers)
 
@@ -304,54 +316,53 @@ class TestSGMLParser(unittest.TestCase):
 class TestTagsByFilter(unittest.TestCase):
     def test_basic(self):
         body = '<html><a href="/abc">foo</a></html>'
-        url = URL('http://www.w3af.com/')
+        url = URL("http://www.w3af.com/")
         headers = Headers()
-        headers['content-type'] = 'text/html'
-        resp = HTTPResponse(200, body, headers, url, url, charset='utf-8')
+        headers["content-type"] = "text/html"
+        resp = HTTPResponse(200, body, headers, url, url, charset="utf-8")
 
         p = SGMLParser(resp)
-        tags = p.get_tags_by_filter(('a',), yield_text=True)
+        tags = p.get_tags_by_filter(("a",), yield_text=True)
         tags = list(tags)
 
-        self.assertEqual(tags, [Tag('a', {'href': '/abc'}, 'foo')])
+        self.assertEqual(tags, [Tag("a", {"href": "/abc"}, "foo")])
 
     def test_two(self):
         body = '<html><a href="/abc">foo</a><b>bar</b></html>'
-        url = URL('http://www.w3af.com/')
+        url = URL("http://www.w3af.com/")
         headers = Headers()
-        headers['content-type'] = 'text/html'
-        resp = HTTPResponse(200, body, headers, url, url, charset='utf-8')
+        headers["content-type"] = "text/html"
+        resp = HTTPResponse(200, body, headers, url, url, charset="utf-8")
 
         p = SGMLParser(resp)
-        tags = p.get_tags_by_filter(('a', 'b'), yield_text=True)
+        tags = p.get_tags_by_filter(("a", "b"), yield_text=True)
         tags = list(tags)
 
-        self.assertEqual([Tag('a', {'href': '/abc'}, 'foo'),
-                          Tag('b', {}, 'bar')], tags)
+        self.assertEqual([Tag("a", {"href": "/abc"}, "foo"), Tag("b", {}, "bar")], tags)
 
     def test_nested_with_text(self):
         body = '<html><a href="/abc">foo<div>bar</div></a></html>'
-        url = URL('http://www.w3af.com/')
+        url = URL("http://www.w3af.com/")
         headers = Headers()
-        headers['content-type'] = 'text/html'
-        resp = HTTPResponse(200, body, headers, url, url, charset='utf-8')
+        headers["content-type"] = "text/html"
+        resp = HTTPResponse(200, body, headers, url, url, charset="utf-8")
 
         p = SGMLParser(resp)
-        tags = p.get_tags_by_filter(('a', 'b'), yield_text=True)
+        tags = p.get_tags_by_filter(("a", "b"), yield_text=True)
         tags = list(tags)
 
-        self.assertEqual([Tag('a', {'href': '/abc'}, 'foo')], tags)
+        self.assertEqual([Tag("a", {"href": "/abc"}, "foo")], tags)
 
     def test_none(self):
         body = '<html><a href="/abc">foo<div>bar</div></a></html>'
-        url = URL('http://www.w3af.com/')
+        url = URL("http://www.w3af.com/")
         headers = Headers()
-        headers['content-type'] = 'text/html'
-        resp = HTTPResponse(200, body, headers, url, url, charset='utf-8')
+        headers["content-type"] = "text/html"
+        resp = HTTPResponse(200, body, headers, url, url, charset="utf-8")
 
         p = SGMLParser(resp)
         tags = p.get_tags_by_filter(None)
         tags = list(tags)
         tag_names = [tag.name for tag in tags]
 
-        self.assertEqual(tag_names, ['html', 'body', 'a', 'div'])
+        self.assertEqual(tag_names, ["html", "body", "a", "div"])

@@ -20,6 +20,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import threading
 import urllib.request, urllib.parse, urllib.error
 import base64
@@ -35,6 +36,7 @@ from w3af.core.ui.gui import entries
 
 class SimpleTextView(gtk.TextView):
     """Simple abstraction of the text view."""
+
     def __init__(self):
         gtk.TextView.__init__(self)
         self.buffer = self.get_buffer()
@@ -50,9 +52,9 @@ class SimpleTextView(gtk.TextView):
         :param str_in: The input parameter to "repr()"
         :return: The repr'ed string
         """
-        res = ''
+        res = ""
         for c in str_in:
-            if repr(c)[1:-1] != c and c not in ['\n', '\r', '\t']:
+            if repr(c)[1:-1] != c and c not in ["\n", "\r", "\t"]:
                 res += repr(c)[1:-1]
             else:
                 res += c
@@ -78,7 +80,7 @@ class SimpleTextView(gtk.TextView):
             # when decoding stuff that can NOT be represented in unicode.
             # Example: base64 decode /w== returns \xff which raises an exception
             # here if we use unicode(newtext)
-            newtext = newtext.replace('\0', '\\x00')
+            newtext = newtext.replace("\0", "\\x00")
 
             try:
                 newtext = str(newtext)
@@ -101,10 +103,11 @@ class EncodeDecode(entries.RememberingWindow):
 
     :author: Facundo Batista <facundobatista =at= taniquetil.com.ar>
     """
+
     def __init__(self, w3af):
         super(EncodeDecode, self).__init__(
-            w3af, "encodedecode", _("w3af - Encode / Decode"),
-            "Encode_and_Decode")
+            w3af, "encodedecode", _("w3af - Encode / Decode"), "Encode_and_Decode"
+        )
         self.w3af = w3af
         # Split panes
         vpan = entries.RememberingVPaned(w3af, "pane-encodedecode")
@@ -119,23 +122,25 @@ class EncodeDecode(entries.RememberingWindow):
         # Middle buttons, left
         hbox = gtk.HBox()
         cb = gtk.combo_box_new_text()
-        for (lab, fnc) in _butNameFunc_enc:
+        for lab, fnc in _butNameFunc_enc:
             cb.append_text(lab)
             b = gtk.Button(lab)
         cb.set_active(0)
         hbox.pack_start(cb, False, False, padding=10)
         b = entries.SemiStockButton(
-            "Encode", gtk.STOCK_GO_DOWN, _("Encode the upper text"))
+            "Encode", gtk.STOCK_GO_DOWN, _("Encode the upper text")
+        )
         b.connect("clicked", self._encode, cb)
         hbox.pack_start(b, False, False)
         # Middle buttons, rigth
         cb = gtk.combo_box_new_text()
-        for (lab, fnc) in _butNameFunc_dec:
+        for lab, fnc in _butNameFunc_dec:
             cb.append_text(lab)
             b = gtk.Button(lab)
         cb.set_active(0)
         b = entries.SemiStockButton(
-            "Decode", gtk.STOCK_GO_UP, _("Decode the lower text"))
+            "Decode", gtk.STOCK_GO_UP, _("Decode the lower text")
+        )
         hbox.pack_end(b, False, False, padding=10)
         b.connect("clicked", self._decode, cb)
         hbox.pack_end(cb, False, False)
@@ -162,9 +167,14 @@ class EncodeDecode(entries.RememberingWindow):
         # clear the output text, this will introduce a small blink
         out.set_text("")
         # go busy
-        busy = gtk.gdk.Window(self.window, gtk.gdk.screen_width(),
-                              gtk.gdk.screen_height(), gtk.gdk.WINDOW_CHILD,
-                              0, gtk.gdk.INPUT_ONLY)
+        busy = gtk.gdk.Window(
+            self.window,
+            gtk.gdk.screen_width(),
+            gtk.gdk.screen_height(),
+            gtk.gdk.WINDOW_CHILD,
+            0,
+            gtk.gdk.INPUT_ONLY,
+        )
         busy.set_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
         busy.show()
         while gtk.events_pending():
@@ -182,11 +192,13 @@ class EncodeDecode(entries.RememberingWindow):
             if proc.ok:
                 out.set_text(proc.result, use_repr)
             else:
-                msg = _("An error was generated during the execution:\n\t\t-"
-                        " Invalid input for that operation.\n\n"
-                        "The string that you are trying to encode/decode"
-                        " can\'t be encoded/decoded using this algorithm."
-                        " A detailed error follows:\n\t\t- ")
+                msg = _(
+                    "An error was generated during the execution:\n\t\t-"
+                    " Invalid input for that operation.\n\n"
+                    "The string that you are trying to encode/decode"
+                    " can't be encoded/decoded using this algorithm."
+                    " A detailed error follows:\n\t\t- "
+                )
                 out.set_text(msg + str(proc.exception), use_repr=False)
                 self.w3af.mainwin.sb(_("Problem processing that string!"))
             return False
@@ -209,6 +221,7 @@ class EncodeDecode(entries.RememberingWindow):
 
 class ThreadedProc(threading.Thread):
     """Encodes or decodes the text in a different thread."""
+
     def __init__(self, event, func, text):
         self.event = event
         self.func = func
@@ -240,9 +253,10 @@ def _get_nibbles(char):
     except:
         # We get here with chars like \t
         # that translate to 0x9 (they "don't have" first and second nibble")
-        x = '0'
+        x = "0"
         y = hex(ord(char))[2:]
     return x, y
+
 
 # These are the encoding and decoding functions:
 
@@ -305,9 +319,9 @@ def b64decode(t):
     try:
         result = base64.b64decode(t)
     except TypeError:
-        msg = 'The base64 encoded string doesn\'t have '
-        msg += 'a correct padding.\nYou can try to fix this error by adding characters '
-        msg += 'to the end of the string.'
+        msg = "The base64 encoded string doesn't have "
+        msg += "a correct padding.\nYou can try to fix this error by adding characters "
+        msg += "to the end of the string."
         raise BaseFrameworkException(msg)
     return result
 
@@ -529,7 +543,7 @@ def random_upper(t):
 
     This function has no tests, because its random nature.
     """
-    return "".join((c.upper() if random.random() > .5 else c) for c in t)
+    return "".join((c.upper() if random.random() > 0.5 else c) for c in t)
 
 
 def random_lower(t):
@@ -537,7 +551,7 @@ def random_lower(t):
 
     This function has no tests, because its random nature.
     """
-    return "".join((c.lower() if random.random() > .5 else c) for c in t)
+    return "".join((c.lower() if random.random() > 0.5 else c) for c in t)
 
 
 def mysql_encode(t):
@@ -589,4 +603,3 @@ _butNameFunc_dec = [
     (_("Base64 Decode"), b64decode),
     (_("Hex Decoding"), hex_decoding),
 ]
-

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 
 from w3af.core.controllers.exceptions import BaseFrameworkException
@@ -30,18 +31,20 @@ class ListOption(BaseOption):
 
     _type = LIST
 
-    LST_VALIDATION_RE = re.compile('((".*?"|\'.*?\'|.*?),)*(".*?"|\'.*?\'|.*?)', re.U)
-    LST_PARSE_RE = re.compile('(".*?"|\'.*?\'|.*?),', re.U)
+    LST_VALIDATION_RE = re.compile("((\".*?\"|'.*?'|.*?),)*(\".*?\"|'.*?'|.*?)", re.U)
+    LST_PARSE_RE = re.compile("(\".*?\"|'.*?'|.*?),", re.U)
 
-    VALID_EXAMPLES = ('Examples of valid list specifications are:\n'
-                      '\n'
-                      ' - a,b,c\n'
-                      ' - a,"b c",d\n'
-                      ' - \'a\',\'b c\',\'d\'\n')
+    VALID_EXAMPLES = (
+        "Examples of valid list specifications are:\n"
+        "\n"
+        " - a,b,c\n"
+        ' - a,"b c",d\n'
+        " - 'a','b c','d'\n"
+    )
 
     def _get_str(self, value):
         if isinstance(value, list):
-            return ','.join([str(i) for i in value])
+            return ",".join([str(i) for i in value])
 
     def set_value(self, value):
         """
@@ -60,12 +63,14 @@ class ListOption(BaseOption):
     def validate(self, value):
         # Raise an exception if the user specified a list using [...] and
         # make it clear that they need to use comma separated format
-        if value.startswith('[') or value.endswith(']'):
-            raise BaseFrameworkException('Invalid list specified, use of [...] is not'
-                                         ' supported. %s' % self.VALID_EXAMPLES)
+        if value.startswith("[") or value.endswith("]"):
+            raise BaseFrameworkException(
+                "Invalid list specified, use of [...] is not"
+                " supported. %s" % self.VALID_EXAMPLES
+            )
 
         # Add the "," at the end to make parsing easier
-        temp_value = value + ','
+        temp_value = value + ","
 
         mo = self.LST_VALIDATION_RE.match(temp_value)
 
@@ -87,8 +92,9 @@ class ListOption(BaseOption):
                 continue
 
             # Now I check for single and double quotes
-            if (item.startswith('"') and item.endswith('"')) or \
-               (item.startswith("'") and item.endswith("'")):
+            if (item.startswith('"') and item.endswith('"')) or (
+                item.startswith("'") and item.endswith("'")
+            ):
                 item = item[1:-1]
 
             res.append(item)

@@ -20,6 +20,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from bravado_core.spec import Spec
 from bravado_core import formatter
 from bravado_core.formatter import SwaggerFormat
@@ -36,6 +37,7 @@ class RelaxedSpec(Spec):
     to be too strict while scanning real-life APIs that may not follow *all*
     of the OpenAPI specification, but are still usable.
     """
+
     def get_format(self, format_name):
         """
         One of the first things I noticed was that developers create custom
@@ -68,18 +70,14 @@ class RelaxedSpec(Spec):
         generic_format = SwaggerFormat(
             # name of the format as used in the Swagger spec
             format=format_name,
-
             # Callable to convert a python object to a string
             to_wire=lambda input_string: input_string,
-
             # Callable to convert a string to a python object
             to_python=lambda input_string: input_string,
-
             # Callable to validate the input string
             validate=validate_generic,
-
             # Description
-            description='Generic format for w3af fuzzer'
+            description="Generic format for w3af fuzzer",
         )
 
         return generic_format

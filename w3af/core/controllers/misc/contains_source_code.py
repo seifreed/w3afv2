@@ -19,78 +19,70 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 import string
 
 from w3af.core.data.quick_match.multi_re import MultiRE
 
-PHP = 'PHP'
-ASP = 'ASP'
-JSP = 'JSP'
-ASPX = 'ASPX'
-UNKNOWN = 'Unknown'
-SHELL = 'Shell script'
-JAVA = 'Java'
-RUBY = 'Ruby'
-PYTHON = 'Python'
-GROOVY = 'Groovy'
+PHP = "PHP"
+ASP = "ASP"
+JSP = "JSP"
+ASPX = "ASPX"
+UNKNOWN = "Unknown"
+SHELL = "Shell script"
+JAVA = "Java"
+RUBY = "Ruby"
+PYTHON = "Python"
+GROOVY = "Groovy"
 
 
 SOURCE_CODE = (
-    ('<\?php .*?\?>', {PHP}),
-    ('<\?php\n.*?\?>', {PHP}),       # These two are required for perf #2129
-    ('<\?php\r.*?\?>', {PHP}),       # and are repeated over the list
-
+    ("<\?php .*?\?>", {PHP}),
+    ("<\?php\n.*?\?>", {PHP}),  # These two are required for perf #2129
+    ("<\?php\r.*?\?>", {PHP}),  # and are repeated over the list
     # Need to review how to re-add these in the future
     # https://github.com/andresriancho/w3af/issues/2129
     #
-    #('<\? .*?\?>', {PHP}),
-    #('<\?\n.*?\?>', {PHP}),
-    #('<\?\r.*?\?>', {PHP}),
-
-    ('<% .*?%>', {ASP, JSP}),
-    ('<%\n.*?%>', {ASP, JSP}),
-    ('<%\r.*?%>', {ASP, JSP}),
-
-    ('<%@ .*?%>', {ASPX}),          # http://goo.gl/zEjHA4
-    ('<%@\n.*?%>', {ASPX}),
-    ('<%@\r.*?%>', {ASPX}),
-
-    ('<asp:.*?%>', {ASPX}),
-    ('<jsp:.*?>', {JSP}),
-
-    ('<%! .*%>', {JSP}),
-    ('<%!\n.*%>', {JSP}),
-    ('<%!\r.*%>', {JSP}),
-    ('<%=.*%>', {JSP, PHP, RUBY}),
-
-    ('<!--\s*%.*?%(--)?>', {PHP}),
-    ('<!--\s*\?.*?\?(--)?>', {ASP, JSP}),
-    ('<!--\s*jsp:.*?(--)?>', {JSP}),
-
-    ('#include <', {UNKNOWN}),
-
-    ('#!/usr/', {SHELL}),
-    ('#!/opt/', {SHELL}),
-    ('#!/bin/', {SHELL}),
-
-    ('(^|\W)import java\.', {JAVA}),
-    ('(^|\W)public class \w{1,60}\s?\{\s.*\Wpublic', {JAVA}),
-    ('(^|\W)package\s\w+\;', {JAVA}),
-
-    ('<!--g:render', {GROOVY}),
-
+    # ('<\? .*?\?>', {PHP}),
+    # ('<\?\n.*?\?>', {PHP}),
+    # ('<\?\r.*?\?>', {PHP}),
+    ("<% .*?%>", {ASP, JSP}),
+    ("<%\n.*?%>", {ASP, JSP}),
+    ("<%\r.*?%>", {ASP, JSP}),
+    ("<%@ .*?%>", {ASPX}),  # http://goo.gl/zEjHA4
+    ("<%@\n.*?%>", {ASPX}),
+    ("<%@\r.*?%>", {ASPX}),
+    ("<asp:.*?%>", {ASPX}),
+    ("<jsp:.*?>", {JSP}),
+    ("<%! .*%>", {JSP}),
+    ("<%!\n.*%>", {JSP}),
+    ("<%!\r.*%>", {JSP}),
+    ("<%=.*%>", {JSP, PHP, RUBY}),
+    ("<!--\s*%.*?%(--)?>", {PHP}),
+    ("<!--\s*\?.*?\?(--)?>", {ASP, JSP}),
+    ("<!--\s*jsp:.*?(--)?>", {JSP}),
+    ("#include <", {UNKNOWN}),
+    ("#!/usr/", {SHELL}),
+    ("#!/opt/", {SHELL}),
+    ("#!/bin/", {SHELL}),
+    ("(^|\W)import java\.", {JAVA}),
+    ("(^|\W)public class \w{1,60}\s?\{\s.*\Wpublic", {JAVA}),
+    ("(^|\W)package\s\w+\;", {JAVA}),
+    ("<!--g:render", {GROOVY}),
     # Python
-    ('(^|\W)def .*?\(.*?\):(\n|\r)', {PYTHON}),
-
+    ("(^|\W)def .*?\(.*?\):(\n|\r)", {PYTHON}),
     # Ruby
-    ('(^|\W)class \w{1,60}\s*<?\s*[a-zA-Z0-9_:]{0,90}.*?\W(def|validates)\s.*?\send($|\W)', {RUBY}),
+    (
+        "(^|\W)class \w{1,60}\s*<?\s*[a-zA-Z0-9_:]{0,90}.*?\W(def|validates)\s.*?\send($|\W)",
+        {RUBY},
+    ),
 )
 
-BLACKLIST = {'xml', 'xpacket'}
+BLACKLIST = {"xml", "xpacket"}
 
 _multi_re = MultiRE(SOURCE_CODE, re.IGNORECASE | re.DOTALL, hint_len=2)
-assert _multi_re._regexes_with_no_keywords == [], 'Performance issue in MultiRE'
+assert _multi_re._regexes_with_no_keywords == [], "Performance issue in MultiRE"
 
 
 def contains_source_code(http_response):
@@ -133,7 +125,7 @@ def is_false_positive(http_response, match, detected_langs):
     # them:
     for lang in detected_langs:
         if lang in {PHP, ASP, JSP, ASPX}:
-            if 'javascript' in http_response.content_type:
+            if "javascript" in http_response.content_type:
                 return True
 
     # Avoid some false positives in large binary files where we might

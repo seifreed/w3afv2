@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import gc
 import unittest
 import datetime
@@ -63,8 +64,11 @@ class TestVersionMgr(unittest.TestCase):
         SC = StartUpConfig
         vmgr = self.vmgr
 
-        for freq, diffdays in ((SC.FREQ_DAILY, 1), (SC.FREQ_WEEKLY, 8),
-                               (SC.FREQ_MONTHLY, 34)):
+        for freq, diffdays in (
+            (SC.FREQ_DAILY, 1),
+            (SC.FREQ_WEEKLY, 8),
+            (SC.FREQ_MONTHLY, 34),
+        ):
 
             vmgr._start_cfg = start_cfg = StartUpConfig()
             start_cfg._autoupd = True
@@ -76,19 +80,19 @@ class TestVersionMgr(unittest.TestCase):
             self.assertTrue(vmgr._has_to_update())
 
     def test_added_new_dependencies(self):
-        start = 'cb751e941bfa2063ebcef711642ed5d22ff9db87'
-        end = '9c5f5614412dce67ac13411e1eebd754b4c6fb6a'
-        
+        start = "cb751e941bfa2063ebcef711642ed5d22ff9db87"
+        end = "9c5f5614412dce67ac13411e1eebd754b4c6fb6a"
+
         changelog = ChangeLog(start, end)
-        
+
         self.assertTrue(self.vmgr._added_new_dependencies(changelog))
-        
+
     def test_not_added_new_dependencies(self):
-        start = '479f30c95873c3e4f8370ceb91f8aeb74794d047'
-        end = '87924241bf70c2321bc9f567e3d2ce62ee264fee'
-        
+        start = "479f30c95873c3e4f8370ceb91f8aeb74794d047"
+        end = "87924241bf70c2321bc9f567e3d2ce62ee264fee"
+
         changelog = ChangeLog(start, end)
-        
+
         self.assertFalse(self.vmgr._added_new_dependencies(changelog))
 
     def test_update_not_required_not_forced(self):
@@ -112,18 +116,18 @@ class TestVersionMgr(unittest.TestCase):
         self.vmgr.register(VersionMgr.ON_UPDATE, on_update_mock, None)
 
         self.vmgr.update()
-        
+
         self.assertEqual(on_update_check_mock.call_count, 0)
         self.assertEqual(on_already_latest_mock.call_count, 0)
         self.assertEqual(on_update_mock.call_count, 0)
 
-    @attr('ci_fails')
+    @attr("ci_fails")
     def test_update_required_not_forced(self):
         """
         Test that we check if we're on the latest version if the latest
         local installation update was 3 days ago and the frequency is set to
         daily.
-        
+
         The local repository is in the latest version (git pull is run before)
 
         In CircleCI this fails with the following message:
@@ -132,9 +136,9 @@ class TestVersionMgr(unittest.TestCase):
             for your current branch, you must specify a branch on the command
             line.
         """
-        git_client = GitClient('.')
+        git_client = GitClient(".")
         git_client.pull()
-        
+
         self.vmgr._start_cfg = start_cfg = StartUpConfig()
         start_cfg._autoupd = True
         start_cfg._freq = StartUpConfig.FREQ_DAILY
@@ -151,18 +155,18 @@ class TestVersionMgr(unittest.TestCase):
         self.vmgr.register(VersionMgr.ON_UPDATE, on_update_mock, None)
 
         self.vmgr.update()
-        
+
         self.assertEqual(on_update_check_mock.call_count, 1)
         self.assertEqual(on_already_latest_mock.call_count, 1)
         self.assertEqual(on_update_mock.call_count, 0)
-        
-    @attr('ci_fails')
+
+    @attr("ci_fails")
     def test_update_required_outdated_not_forced(self):
         """
         Test that we check if we're on the latest version if the latest
         local installation update was 3 days ago and the frequency is set to
         daily.
-        
+
         The local repository is NOT in the latest version. A 'git reset --hard'
         is run at the beginning of this test to reset the repo to a revision
         before the latest one.
@@ -176,30 +180,36 @@ class TestVersionMgr(unittest.TestCase):
         *****   WARNING     *****
         """
         try:
-            git_client = GitClient('.')
+            git_client = GitClient(".")
             head_id = git_client.get_local_head_id()
             one_before_head = git_client.get_parent_for_revision(head_id)
             git_client.reset_to_previous_state(one_before_head)
-            
+
             self.vmgr._start_cfg = start_cfg = StartUpConfig()
             start_cfg._autoupd = True
             start_cfg._freq = StartUpConfig.FREQ_DAILY
-    
+
             last_upd = datetime.date.today() - datetime.timedelta(days=3)
             start_cfg._lastupd = last_upd
-    
+
             on_update_check_mock = MagicMock()
             on_already_latest_mock = MagicMock()
             on_update_mock = MagicMock()
-    
+
             self.vmgr.register(VersionMgr.ON_UPDATE_CHECK, on_update_check_mock, None)
-            self.vmgr.register(VersionMgr.ON_ALREADY_LATEST, on_already_latest_mock, None)
+            self.vmgr.register(
+                VersionMgr.ON_ALREADY_LATEST, on_already_latest_mock, None
+            )
             self.vmgr.register(VersionMgr.ON_UPDATE, on_update_mock, None)
 
-            self.vmgr.callback_onupdate_confirm = MagicMock(side_effect=[True,])
-    
+            self.vmgr.callback_onupdate_confirm = MagicMock(
+                side_effect=[
+                    True,
+                ]
+            )
+
             self.vmgr.update()
-            
+
             self.assertEqual(on_update_check_mock.call_count, 1)
             self.assertEqual(on_already_latest_mock.call_count, 0)
             self.assertEqual(on_update_mock.call_count, 1)

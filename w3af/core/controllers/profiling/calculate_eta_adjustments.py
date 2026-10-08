@@ -8,24 +8,24 @@ import argparse
 try:
     from terminaltables import AsciiTable
 except ImportError:
-    print('Missing dependency, please run:\n'
-          '\n'
-          '    pip install terminaltables'
-          '\n')
+    print(
+        "Missing dependency, please run:\n" "\n" "    pip install terminaltables" "\n"
+    )
     sys.exit(1)
 
 
-ROOT_PATH = os.path.realpath(os.path.join(__file__, '../../../../../'))
+ROOT_PATH = os.path.realpath(os.path.join(__file__, "../../../../../"))
 sys.path.append(ROOT_PATH)
 
 from w3af.core.controllers.core_helpers.status import CoreStatus, Adjustment
-from .scan_log_analysis import (get_first_timestamp,
-                               get_line_epoch,
-                               CRAWL_INFRA_FINISHED,
-                               JOIN_TIMES)
+from .scan_log_analysis import (
+    get_first_timestamp,
+    get_line_epoch,
+    CRAWL_INFRA_FINISHED,
+    JOIN_TIMES,
+)
 
-
-HELP = '''\
+HELP = """\
 Usage: ./calculate_eta_adjustments.py <scan.log>
 
 This is a command line tool that calculates the ETA adjustments required to
@@ -36,37 +36,51 @@ have been used on each call to get_eta() to obtain the correct ETA for that poin
 in time.
 
 This tool requires a scan log for a finished scan!
-'''
+"""
 
 
-CALCULATED_ETA = re.compile('Calculated (.*?) ETA: (.*?) seconds. \(input speed:(.*?),'
-                            ' output speed:(.*?), queue size: (.*?), adjustment known: (.*?),'
-                            ' adjustment unknown: (.*?), average: (.*?), run time: .*?\)')
+CALCULATED_ETA = re.compile(
+    "Calculated (.*?) ETA: (.*?) seconds. \(input speed:(.*?),"
+    " output speed:(.*?), queue size: (.*?), adjustment known: (.*?),"
+    " adjustment unknown: (.*?), average: (.*?), run time: .*?\)"
+)
 
-CRAWL = 'crawl'
-AUDIT = 'audit'
-GREP = 'grep'
+CRAWL = "crawl"
+AUDIT = "audit"
+GREP = "grep"
 
-TABLE_HEADER = ['Timestamp',
-                'Phase end',
-                'Real ETA',
-                'Calculated ETA',
-                'Delta',
-                'Q(input speed)',
-                'Q(output speed)',
-                'Q(size)',
-                'Adj (known)',
-                'Adj (unknown)',
-                'Adj (avg)',
-                'New adj (known)',
-                'New adj (unknown)',
-                'Perfect ETA']
+TABLE_HEADER = [
+    "Timestamp",
+    "Phase end",
+    "Real ETA",
+    "Calculated ETA",
+    "Delta",
+    "Q(input speed)",
+    "Q(output speed)",
+    "Q(size)",
+    "Adj (known)",
+    "Adj (unknown)",
+    "Adj (avg)",
+    "New adj (known)",
+    "New adj (unknown)",
+    "Perfect ETA",
+]
 
 
 class CalculatedETA(object):
-    def __init__(self, phase, eta, input_speed, output_speed, queue_size,
-                 adjustment_known, adjustment_unknown, adjustment_average,
-                 timestamp, phase_end_timestamp):
+    def __init__(
+        self,
+        phase,
+        eta,
+        input_speed,
+        output_speed,
+        queue_size,
+        adjustment_known,
+        adjustment_unknown,
+        adjustment_average,
+        timestamp,
+        phase_end_timestamp,
+    ):
         self.phase = phase
         self.eta = eta
         self.input_speed = input_speed
@@ -116,7 +130,9 @@ class CalculatedETA(object):
         t_queued = self.queue_size / self.output_speed * self.adjustment_known
         perfect_eta = self.phase_end_timestamp - self.timestamp
 
-        perfect_ratio = perfect_eta - t_queued / ((self.input_speed * t_queued) / self.output_speed)
+        perfect_ratio = perfect_eta - t_queued / (
+            (self.input_speed * t_queued) / self.output_speed
+        )
         return perfect_ratio
 
     def _calculate_perfect_known(self):
@@ -167,7 +183,7 @@ def create_eta_table(scan):
         if CRAWL_INFRA_FINISHED in line:
             phase_end_timestamps[CRAWL] = get_line_epoch(line) - first_timestamp
 
-        if 'seconds to join' not in line:
+        if "seconds to join" not in line:
             continue
 
         match = JOIN_TIMES.search(line)
@@ -192,8 +208,8 @@ def create_eta_table(scan):
         timestamp = get_line_epoch(line) - first_timestamp
 
         eta = match.group(2)
-        if eta == 'None':
-            eta = '0.0'
+        if eta == "None":
+            eta = "0.0"
 
         eta = float(eta)
 
@@ -203,23 +219,25 @@ def create_eta_table(scan):
         queue_size = int(match.group(5))
         adjustment_known = float(match.group(6))
         adjustment_unknown = float(match.group(7))
-        adjustment_average = 'true' in match.group(8).lower()
+        adjustment_average = "true" in match.group(8).lower()
 
         if phase not in phase_end_timestamps:
             continue
 
         phase_end_timestamp = phase_end_timestamps[phase]
 
-        calculated_eta = CalculatedETA(phase,
-                                       eta,
-                                       input_speed,
-                                       output_speed,
-                                       queue_size,
-                                       adjustment_known,
-                                       adjustment_unknown,
-                                       adjustment_average,
-                                       timestamp,
-                                       phase_end_timestamp)
+        calculated_eta = CalculatedETA(
+            phase,
+            eta,
+            input_speed,
+            output_speed,
+            queue_size,
+            adjustment_known,
+            adjustment_unknown,
+            adjustment_average,
+            timestamp,
+            phase_end_timestamp,
+        )
 
         calculated_etas.append(calculated_eta)
 
@@ -229,8 +247,8 @@ def create_eta_table(scan):
     # Print the tables!
     for phase in (GREP, AUDIT, CRAWL):
         print(phase)
-        print(('=' * len(phase)))
-        print('')
+        print(("=" * len(phase)))
+        print("")
 
         table_data = [TABLE_HEADER]
 
@@ -242,48 +260,54 @@ def create_eta_table(scan):
 
             adjustment = Adjustment(known=adj_known, unknown=adj_unknown)
 
-            recalculated_eta = status.calculate_eta(calculated_eta.input_speed,
-                                                    calculated_eta.output_speed,
-                                                    calculated_eta.queue_size,
-                                                    _type=phase,
-                                                    adjustment=adjustment)
+            recalculated_eta = status.calculate_eta(
+                calculated_eta.input_speed,
+                calculated_eta.output_speed,
+                calculated_eta.queue_size,
+                _type=phase,
+                adjustment=adjustment,
+            )
 
-            data = [calculated_eta.timestamp,
-                    calculated_eta.phase_end_timestamp,
-                    calculated_eta.phase_end_timestamp - calculated_eta.timestamp,
-                    calculated_eta.eta,
-                    calculated_eta.get_delta(),
-                    calculated_eta.input_speed,
-                    calculated_eta.output_speed,
-                    calculated_eta.queue_size,
-                    calculated_eta.adjustment_known,
-                    calculated_eta.adjustment_unknown,
-                    calculated_eta.adjustment_average,
-                    #'%.2f' % adj_known,
-                    #'%.2f' % adj_unknown,
-                    #'%.2f' % recalculated_eta,
-                    'TBD',
-                    'TBD',
-                    'TBD']
+            data = [
+                calculated_eta.timestamp,
+                calculated_eta.phase_end_timestamp,
+                calculated_eta.phase_end_timestamp - calculated_eta.timestamp,
+                calculated_eta.eta,
+                calculated_eta.get_delta(),
+                calculated_eta.input_speed,
+                calculated_eta.output_speed,
+                calculated_eta.queue_size,
+                calculated_eta.adjustment_known,
+                calculated_eta.adjustment_unknown,
+                calculated_eta.adjustment_average,
+                #'%.2f' % adj_known,
+                #'%.2f' % adj_unknown,
+                #'%.2f' % recalculated_eta,
+                "TBD",
+                "TBD",
+                "TBD",
+            ]
 
             table_data.append(data)
 
         table = AsciiTable(table_data)
         print((table.table))
-        print('')
-        print('')
+        print("")
+        print("")
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='w3af ETA adjustment calculator', usage=HELP)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="w3af ETA adjustment calculator", usage=HELP
+    )
 
-    parser.add_argument('scan_log', action='store')
+    parser.add_argument("scan_log", action="store")
     parsed_args = parser.parse_args()
 
     try:
         scan = open(parsed_args.scan_log)
     except:
-        print('The scan log file does not exist!')
+        print("The scan log file does not exist!")
         sys.exit(2)
 
     create_eta_table(scan)

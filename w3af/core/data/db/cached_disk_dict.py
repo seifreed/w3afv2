@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from collections import Counter
 
 from w3af.core.data.db.disk_dict import DiskDict
@@ -34,11 +35,12 @@ class CachedDiskDict(object):
     fast read / writes are required, and items can take considerable amounts
     of memory.
     """
+
     def __init__(self, max_in_memory=50, table_prefix=None):
         """
         :param max_in_memory: The max number of items to keep in memory
         """
-        assert max_in_memory > 0, 'In-memory items must be > 0'
+        assert max_in_memory > 0, "In-memory items must be > 0"
 
         table_prefix = self._get_table_prefix(table_prefix)
 
@@ -52,10 +54,10 @@ class CachedDiskDict(object):
 
     def _get_table_prefix(self, table_prefix):
         if table_prefix is None:
-            table_prefix = 'cached_disk_dict_%s' % rand_alpha(16)
+            table_prefix = "cached_disk_dict_%s" % rand_alpha(16)
         else:
             args = (table_prefix, rand_alpha(16))
-            table_prefix = 'cached_disk_dict_%s_%s' % args
+            table_prefix = "cached_disk_dict_%s_%s" % args
 
         return table_prefix
 

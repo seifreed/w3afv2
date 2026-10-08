@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import io
 
 from pdfminer.converter import HTMLConverter
@@ -38,6 +39,7 @@ class PDFParser(BaseParser):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def __init__(self, http_response):
         super(PDFParser, self).__init__(http_response)
 
@@ -52,7 +54,7 @@ class PDFParser(BaseParser):
         :return: True if the document parameter is a string that contains a PDF
                  document.
         """
-        if http_resp.content_type not in ('application/x-pdf', 'application/pdf'):
+        if http_resp.content_type not in ("application/x-pdf", "application/pdf"):
             return False
 
         document = http_resp.body
@@ -65,7 +67,7 @@ class PDFParser(BaseParser):
         # things like %%EOF\n , or %%EOF\r, or %%EOF\r\n.
         #
         # So... just to be sure I search in the last 12 characters.
-        if document.startswith('%PDF-') and '%%EOF' in document[-12:]:
+        if document.startswith("%PDF-") and "%%EOF" in document[-12:]:
             return True
 
         return False
@@ -113,29 +115,35 @@ def pdf_to_text(pdf_string):
 
     # According to https://github.com/euske/pdfminer/issues/61 it is a good idea
     # to set laparams to None, which will speed-up parsing
-    device = NoPageHTMLConverter(rsrcmgr, output, codec='utf-8',
-                                 layoutmode='normal',
-                                 laparams=None, imagewriter=None,
-                                 showpageno=False)
+    device = NoPageHTMLConverter(
+        rsrcmgr,
+        output,
+        codec="utf-8",
+        layoutmode="normal",
+        laparams=None,
+        imagewriter=None,
+        showpageno=False,
+    )
 
     document_io = io.StringIO(pdf_string)
     pagenos = set()
     try:
         interpreter = PDFPageInterpreter(rsrcmgr, device)
-        for page in PDFPage.get_pages(document_io, pagenos, maxpages=0,
-                                      caching=True, check_extractable=True):
+        for page in PDFPage.get_pages(
+            document_io, pagenos, maxpages=0, caching=True, check_extractable=True
+        ):
             page.rotate = (page.rotate + 0) % 360
             interpreter.process_page(page)
     except PDFSyntaxError:
-        return ''
-    
+        return ""
+
     device.close()
     output.seek(0)
-    output_str = output.read().decode('utf-8')
-    return SGMLParser.ANY_TAG_MATCH.sub('', output_str)
+    output_str = output.read().decode("utf-8")
+    return SGMLParser.ANY_TAG_MATCH.sub("", output_str)
 
 
 class NoPageHTMLConverter(HTMLConverter):
     def write_footer(self):
-        self.write('</body></html>\n')
+        self.write("</body></html>\n")
         return

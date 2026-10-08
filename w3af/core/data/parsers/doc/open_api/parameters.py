@@ -20,13 +20,13 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import random
 import datetime
 
 from bravado_core.operation import Operation
 
-from w3af.core.data.fuzzer.form_filler import (smart_fill,
-                                               smart_fill_file)
+from w3af.core.data.fuzzer.form_filler import smart_fill, smart_fill_file
 
 
 class OpenAPIParamResolutionException(Exception):
@@ -35,14 +35,16 @@ class OpenAPIParamResolutionException(Exception):
 
 class ParameterHandler(object):
 
-    DEFAULT_VALUES_BY_TYPE = {'int64': 42,
-                              'int32': 42,
-                              'integer': 42,
-                              'float': 4.2,
-                              'double': 4.2,
-                              'date': datetime.date(2017, 0o6, 30),
-                              'date-time': datetime.datetime(2017, 0o6, 30, 23, 59, 45),
-                              'boolean': True}
+    DEFAULT_VALUES_BY_TYPE = {
+        "int64": 42,
+        "int32": 42,
+        "integer": 42,
+        "float": 4.2,
+        "double": 4.2,
+        "date": datetime.date(2017, 0o6, 30),
+        "date-time": datetime.datetime(2017, 0o6, 30, 23, 59, 45),
+        "boolean": True,
+    }
 
     def __init__(self, spec, operation):
         """
@@ -63,10 +65,12 @@ class ParameterHandler(object):
         self._fix_common_spec_issues()
 
         # Make a copy of the operation
-        operation = Operation.from_spec(self.operation.swagger_spec,
-                                        self.operation.path_name,
-                                        self.operation.http_method,
-                                        self.operation.op_spec)
+        operation = Operation.from_spec(
+            self.operation.swagger_spec,
+            self.operation.path_name,
+            self.operation.http_method,
+            self.operation.op_spec,
+        )
 
         for parameter_name, parameter in list(operation.params.items()):
             # We make sure that all parameters have a fill attribute
@@ -125,11 +129,11 @@ class ParameterHandler(object):
         """
         for parameter_name, parameter in list(self.operation.params.items()):
 
-            param_format = parameter.param_spec.get('format', None)
-            param_type = parameter.param_spec.get('type', None)
+            param_format = parameter.param_spec.get("format", None)
+            param_type = parameter.param_spec.get("type", None)
 
-            if param_format == 'string' and param_type == 'string':
-                del parameter.param_spec['format']
+            if param_format == "string" and param_type == "string":
+                del parameter.param_spec["format"]
 
     def _fix_string_with_invalid_format(self):
         """
@@ -153,15 +157,15 @@ class ParameterHandler(object):
 
         :return: None
         """
-        invalid_formats = ['int32', 'int64', 'float', 'double', '']
+        invalid_formats = ["int32", "int64", "float", "double", ""]
 
         for parameter_name, parameter in list(self.operation.params.items()):
 
-            param_format = parameter.param_spec.get('format', None)
-            param_type = parameter.param_spec.get('type', None)
+            param_format = parameter.param_spec.get("format", None)
+            param_type = parameter.param_spec.get("type", None)
 
-            if param_format in invalid_formats and param_type == 'string':
-                del parameter.param_spec['format']
+            if param_format in invalid_formats and param_type == "string":
+                del parameter.param_spec["format"]
 
     def _fix_bad_default_for_number_type(self):
         """
@@ -185,12 +189,12 @@ class ParameterHandler(object):
 
         :return: None
         """
-        fix_formats = ['double', 'float', 'int32', 'int64']
+        fix_formats = ["double", "float", "int32", "int64"]
 
         for parameter_name, parameter in list(self.operation.params.items()):
 
-            param_format = parameter.param_spec.get('format', None)
-            param_default = parameter.param_spec.get('default', None)
+            param_format = parameter.param_spec.get("format", None)
+            param_default = parameter.param_spec.get("default", None)
 
             if param_format not in fix_formats:
                 continue
@@ -201,7 +205,7 @@ class ParameterHandler(object):
             if param_default.isdigit():
                 continue
 
-            parameter.param_spec['default'] = 0
+            parameter.param_spec["default"] = 0
 
     def _fix_bad_example_for_number_type(self):
         """
@@ -225,12 +229,12 @@ class ParameterHandler(object):
 
         :return: None
         """
-        fix_formats = ['double', 'float', 'int32', 'int64']
+        fix_formats = ["double", "float", "int32", "int64"]
 
         for parameter_name, parameter in list(self.operation.params.items()):
 
-            param_format = parameter.param_spec.get('format', None)
-            param_example = parameter.param_spec.get('example', None)
+            param_format = parameter.param_spec.get("format", None)
+            param_example = parameter.param_spec.get("example", None)
 
             if param_format not in fix_formats:
                 continue
@@ -241,7 +245,7 @@ class ParameterHandler(object):
             if param_example.isdigit():
                 continue
 
-            parameter.param_spec['example'] = 0
+            parameter.param_spec["example"] = 0
 
     def _set_param_value(self, parameter):
         """
@@ -270,8 +274,8 @@ class ParameterHandler(object):
         :param param_spec: The parameter specification
         :return: A valid value, string, int, dict, etc.
         """
-        if 'schema' in param_spec:
-            param_spec = param_spec['schema']
+        if "schema" in param_spec:
+            param_spec = param_spec["schema"]
 
         value = self._get_param_value_for_primitive(param_spec)
         if value is not None:
@@ -293,31 +297,31 @@ class ParameterHandler(object):
         #
         # Easiest cases, the parameter already has a default or example value
         #
-        default_value = parameter_spec.get('default', None)
+        default_value = parameter_spec.get("default", None)
 
         if default_value is not None:
             return default_value
 
-        example_value = parameter_spec.get('example', None)
+        example_value = parameter_spec.get("example", None)
 
         if example_value is not None:
             return example_value
 
         # This handles the case where the value is an enum and can only be selected
         # from a predefined option list
-        if 'enum' in parameter_spec:
-            if parameter_spec['enum']:
-                return parameter_spec['enum'][0]
+        if "enum" in parameter_spec:
+            if parameter_spec["enum"]:
+                return parameter_spec["enum"][0]
 
-        if parameter_type in ('integer', 'float', 'double', 'int32', 'int64'):
+        if parameter_type in ("integer", "float", "double", "int32", "int64"):
             _max = None
             _min = None
 
-            if 'maximum' in parameter_spec:
-                _max = parameter_spec['maximum']
+            if "maximum" in parameter_spec:
+                _max = parameter_spec["maximum"]
 
-            if 'minimum' in parameter_spec:
-                _min = parameter_spec['minimum']
+            if "minimum" in parameter_spec:
+                _min = parameter_spec["minimum"]
 
             # Only do something if max or min are set
             if _max is not None or _min is not None:
@@ -334,15 +338,15 @@ class ParameterHandler(object):
         if default_value is not None:
             return default_value
 
-        parameter_name = parameter_spec.get('name', None)
+        parameter_name = parameter_spec.get("name", None)
 
-        if parameter_type == 'string':
-            parameter_name = 'unknown' if parameter_name is None else parameter_name
+        if parameter_type == "string":
+            parameter_name = "unknown" if parameter_name is None else parameter_name
             return smart_fill(parameter_name)
 
-        if parameter_type == 'file':
-            parameter_name = 'unknown' if parameter_name is None else parameter_name
-            return smart_fill_file(parameter_name, 'cat.png')
+        if parameter_type == "file":
+            parameter_name = "unknown" if parameter_name is None else parameter_name
+            return smart_fill_file(parameter_name, "cat.png")
 
     @staticmethod
     def _get_parameter_type(param_spec):
@@ -354,10 +358,10 @@ class ParameterHandler(object):
         Fetch it and return.
         """
         try:
-            parameter_type = param_spec['format']
+            parameter_type = param_spec["format"]
         except KeyError:
             try:
-                parameter_type = param_spec['type']
+                parameter_type = param_spec["type"]
             except KeyError:
                 # This is not a primitive type, most likely a model
                 return None
@@ -375,8 +379,7 @@ class ParameterHandler(object):
         if parameter_type is None:
             return None
 
-        value = self._get_param_value_for_type_and_spec(parameter_type,
-                                                        param_spec)
+        value = self._get_param_value_for_type_and_spec(parameter_type, param_spec)
         if value is not None:
             return value
 
@@ -397,17 +400,17 @@ class ParameterHandler(object):
         :param param_spec: The parameter spec
         :return: A python list (json array) containing values
         """
-        if param_spec.get('type', None) != 'array':
+        if param_spec.get("type", None) != "array":
             return None
 
-        if param_spec.get('items', None) is None:
+        if param_spec.get("items", None) is None:
             # Potentially invalid array specification, we just return
             # an empty array
             return []
 
         # Do we have a default value which can be used?
-        if 'default' in param_spec['items']:
-            return [param_spec['items']['default']]
+        if "default" in param_spec["items"]:
+            return [param_spec["items"]["default"]]
 
         #
         # The array definition is a little bit more complex than just
@@ -435,7 +438,7 @@ class ParameterHandler(object):
         #
         # And we need to fill the array with one or more tags
         #
-        item_param_spec = param_spec['items']
+        item_param_spec = param_spec["items"]
 
         value = self._get_param_value(item_param_spec)
         if value is not None:
@@ -496,9 +499,7 @@ class ParameterHandler(object):
         """
         already_defined_objects = already_defined_objects or []
 
-        merged = {'required': [],
-                  'properties': {},
-                  'type': 'object'}
+        merged = {"required": [], "properties": {}, "type": "object"}
 
         for part in all_parts:
 
@@ -509,15 +510,19 @@ class ParameterHandler(object):
 
             already_defined_objects.append(part)
 
-            object_definition = self._get_object_definition_impl(part, already_defined_objects)
+            object_definition = self._get_object_definition_impl(
+                part, already_defined_objects
+            )
 
-            if 'required' in object_definition:
-                for required in object_definition['required']:
-                    merged['required'].append(required)
+            if "required" in object_definition:
+                for required in object_definition["required"]:
+                    merged["required"].append(required)
 
-            if 'properties' in object_definition:
-                for property_name, property_def in list(object_definition['properties'].items()):
-                    merged['properties'][property_name] = property_def
+            if "properties" in object_definition:
+                for property_name, property_def in list(
+                    object_definition["properties"].items()
+                ):
+                    merged["properties"][property_name] = property_def
 
         return merged
 
@@ -528,17 +533,17 @@ class ParameterHandler(object):
         """
         already_defined_objects = already_defined_objects or []
 
-        if '$ref' in param_spec:
-            ref = {'$ref': param_spec['$ref']}
+        if "$ref" in param_spec:
+            ref = {"$ref": param_spec["$ref"]}
             param_spec = self.spec.deref(ref)
 
-        if 'allOf' in param_spec:
-            all_parts = param_spec['allOf']
+        if "allOf" in param_spec:
+            all_parts = param_spec["allOf"]
             param_spec = self._merge_all_parts(all_parts, already_defined_objects)
 
-        if 'schema' in param_spec:
-            if '$ref' in param_spec['schema']:
-                ref = {'$ref': param_spec['schema']['$ref']}
+        if "schema" in param_spec:
+            if "$ref" in param_spec["schema"]:
+                ref = {"$ref": param_spec["schema"]["$ref"]}
                 param_spec = self.spec.deref(ref)
             else:
                 # The definition is not a reference, the param_spec['schema'] looks like:
@@ -548,10 +553,10 @@ class ParameterHandler(object):
                 #  u'type': u'object',
                 #  u'properties': {u'age': {u'type': u'integer', u'format': u'int32'}},
                 #  u'required': [u'name']}
-                param_spec = param_spec['schema']
+                param_spec = param_spec["schema"]
 
-        if 'type' in param_spec:
-            if param_spec['type'] == 'object':
+        if "type" in param_spec:
+            if param_spec["type"] == "object":
                 # In this case the param_spec holds these values:
                 #
                 # {u'x-model': u'Pet Owner',
@@ -578,16 +583,18 @@ class ParameterHandler(object):
 
         :return: A dict containing all the fields specified in properties.
         """
-        if param_spec.get('type', None) != 'object':
+        if param_spec.get("type", None) != "object":
             return {}
 
         created_object = {}
 
-        for property_name, property_data in list(param_spec.get('properties', {}).items()):
+        for property_name, property_data in list(
+            param_spec.get("properties", {}).items()
+        ):
 
             # This helps us choose a better value for filling the parameter
-            if 'name' not in property_data:
-                property_data['name'] = property_name
+            if "name" not in property_data:
+                property_data["name"] = property_name
 
             value = self._get_param_value(property_data)
             created_object[property_name] = value
@@ -619,7 +626,9 @@ class ParameterHandler(object):
         :param parameter: The parameter which we need to check.
         :return: True if the parameter is a header with defined default value, False otherwise.
         """
-        return ParameterHandler._is_header(parameter) and ParameterHandler._parameter_has_default(parameter)
+        return ParameterHandler._is_header(
+            parameter
+        ) and ParameterHandler._parameter_has_default(parameter)
 
     @staticmethod
     def _is_header(parameter):
@@ -629,7 +638,7 @@ class ParameterHandler(object):
         :param parameter: The parameter which we need to check.
         :return: True if the parameter is a header, False otherwise.
         """
-        return parameter.param_spec.get('in', None) == 'header'
+        return parameter.param_spec.get("in", None) == "header"
 
     @staticmethod
     def _parameter_has_default(parameter):
@@ -642,7 +651,7 @@ class ParameterHandler(object):
         if ParameterHandler._spec_has_default(parameter.param_spec):
             return True
 
-        schema = parameter.param_spec.get('schema', None)
+        schema = parameter.param_spec.get("schema", None)
         if schema is not None:
             return ParameterHandler._spec_has_default(schema)
 
@@ -655,11 +664,11 @@ class ParameterHandler(object):
         :param spec: The spec which we need to check.
         :return: True is the spec defines a default value, False otherwise.
         """
-        default = spec.get('default', None)
+        default = spec.get("default", None)
         if default is not None:
             return True
 
-        enum = spec.get('enum', None)
+        enum = spec.get("enum", None)
         if enum is not None:
             return len(enum) > 0
 

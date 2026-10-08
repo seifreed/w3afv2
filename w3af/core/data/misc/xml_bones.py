@@ -19,12 +19,12 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from lxml import etree
 from io import StringIO
 
 from w3af.core.data.misc.encoding import smart_str_ignore
 from w3af.core.data.constants.encodings import DEFAULT_ENCODING
-
 
 ROUND = 20.0
 
@@ -50,23 +50,25 @@ def get_xml_bones(document):
     :return: The bones of the XML document, which is commonly used as an input
              for a hash function, which is then used as a key for an LRU.
     """
-    parser = etree.HTMLParser(target=BoneCollector(),
-                              no_network=True,
-                              recover=True,
-                              encoding=DEFAULT_ENCODING,
-                              remove_comments=True,
-                              remove_pis=True)
+    parser = etree.HTMLParser(
+        target=BoneCollector(),
+        no_network=True,
+        recover=True,
+        encoding=DEFAULT_ENCODING,
+        remove_comments=True,
+        remove_pis=True,
+    )
 
     document = smart_str_ignore(document, encoding=DEFAULT_ENCODING)
     etree.parse(StringIO(document), parser)
 
     # pylint: disable=E1101
-    return ''.join(parser.target.bones)
+    return "".join(parser.target.bones)
 
 
 class BoneCollector(object):
 
-    __slots__ = ('bones',)
+    __slots__ = ("bones",)
 
     def __init__(self):
         self.bones = []
@@ -76,13 +78,13 @@ class BoneCollector(object):
 
         for attr, value in attrib.items():
             args = (attr, round_N(len(value)))
-            self.bones.append('%s%s' % args)
+            self.bones.append("%s%s" % args)
 
     def end(self, tag):
         self.bones.append(tag)
 
     def data(self, data):
-        self.bones.append('%s' % round_N(len(data)))
+        self.bones.append("%s" % round_N(len(data)))
 
     def comment(self, text):
         pass
@@ -106,36 +108,38 @@ def get_xml_bones_iterparse(document, _round_N=round_N):
              for a hash function, which is then used as a key for an LRU.
     """
     if not document:
-        return ''
+        return ""
 
     output = []
     append = output.append
 
     document = smart_str_ignore(document, encoding=DEFAULT_ENCODING)
     document_io = StringIO(document)
-    events = {'start', 'end'}
+    events = {"start", "end"}
 
-    context = etree.iterparse(document_io,
-                              events=events,
-                              remove_comments=True,
-                              remove_pis=True,
-                              html=True,
-                              recover=True,
-                              encoding=DEFAULT_ENCODING,
-                              huge_tree=False,
-                              resolve_entities=False)
+    context = etree.iterparse(
+        document_io,
+        events=events,
+        remove_comments=True,
+        remove_pis=True,
+        html=True,
+        recover=True,
+        encoding=DEFAULT_ENCODING,
+        huge_tree=False,
+        resolve_entities=False,
+    )
 
     for event, elem in context:
-        if event == 'start':
+        if event == "start":
             append(elem.tag)
 
             for attr, value in elem.attrib.items():
-                append('%s%s' % (attr, _round_N(len(value))))
+                append("%s%s" % (attr, _round_N(len(value))))
 
             if elem.text is not None:
-                append('%s' % _round_N(len(elem.text)))
+                append("%s" % _round_N(len(elem.text)))
 
         else:
-            append('/%s' % elem.tag)
+            append("/%s" % elem.tag)
 
-    return ''.join(output)
+    return "".join(output)

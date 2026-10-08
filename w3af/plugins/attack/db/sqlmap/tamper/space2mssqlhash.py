@@ -9,6 +9,7 @@ from lib.core.enums import PRIORITY
 
 __priority__ = PRIORITY.LOW
 
+
 def tamper(payload, **kwargs):
     """
     Replaces space character (' ') with a pound character ('#') followed by
@@ -31,7 +32,7 @@ def tamper(payload, **kwargs):
         for i in range(len(payload)):
             if payload[i].isspace():
                 retVal += "%23%0A"
-            elif payload[i] == '#' or payload[i:i + 3] == '-- ':
+            elif payload[i] == "#" or payload[i : i + 3] == "-- ":
                 retVal += payload[i:]
                 break
             else:

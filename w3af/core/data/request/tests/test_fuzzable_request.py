@@ -20,6 +20,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 import pickle
 import copy
@@ -40,89 +41,93 @@ from w3af.core.data.db.disk_set import DiskSet
 from w3af.core.data.dc.multipart_container import MultipartContainer
 
 
-@attr('smoke')
+@attr("smoke")
 class TestFuzzableRequest(unittest.TestCase):
 
     def setUp(self):
-        self.url = URL('http://w3af.com/a/b/c.php')
+        self.url = URL("http://w3af.com/a/b/c.php")
 
     def test_dump_case01(self):
-        expected = '\r\n'.join(['GET http://w3af.com/a/b/c.php HTTP/1.1',
-                                 'Hello: World',
-                                 '',
-                                 'a=b'])
+        expected = "\r\n".join(
+            ["GET http://w3af.com/a/b/c.php HTTP/1.1", "Hello: World", "", "a=b"]
+        )
 
-        headers = Headers([('Hello', 'World')])
-        post_data = KeyValueContainer(init_val=[('a', ['b'])])
-        fr = FuzzableRequest(self.url, method='GET', post_data=post_data,
-                             headers=headers)
+        headers = Headers([("Hello", "World")])
+        post_data = KeyValueContainer(init_val=[("a", ["b"])])
+        fr = FuzzableRequest(
+            self.url, method="GET", post_data=post_data, headers=headers
+        )
 
         self.assertEqual(fr.dump(), expected)
 
     def test_dump_case02(self):
-        expected = '\r\n'.join(['GET http://w3af.com/a/b/c.php HTTP/1.1',
-                                 'Hola: Múndo',
-                                 '',
-                                 'a=b'])
+        expected = "\r\n".join(
+            ["GET http://w3af.com/a/b/c.php HTTP/1.1", "Hola: Múndo", "", "a=b"]
+        )
 
-        headers = Headers([('Hola', 'Múndo')])
-        post_data = KeyValueContainer(init_val=[('a', ['b'])])
-        fr = FuzzableRequest(self.url, method='GET', post_data=post_data,
-                             headers=headers)
+        headers = Headers([("Hola", "Múndo")])
+        post_data = KeyValueContainer(init_val=[("a", ["b"])])
+        fr = FuzzableRequest(
+            self.url, method="GET", post_data=post_data, headers=headers
+        )
 
-        self.assertEqual(fr.dump(), expected.encode('utf-8'))
+        self.assertEqual(fr.dump(), expected.encode("utf-8"))
 
     def test_dump_case03(self):
-        header_value = ''.join(chr(i) for i in range(256))
-        
-        expected = '\r\n'.join(['GET http://w3af.com/a/b/c.php HTTP/1.1',
-                                 'Hola: %s' % smart_unicode(header_value),
-                                 '',
-                                 'a=b'])
+        header_value = "".join(chr(i) for i in range(256))
 
-        headers = Headers([('Hola', header_value)])
-        post_data = KeyValueContainer(init_val=[('a', ['b'])])
-        fr = FuzzableRequest(self.url, method='GET', post_data=post_data,
-                             headers=headers)
+        expected = "\r\n".join(
+            [
+                "GET http://w3af.com/a/b/c.php HTTP/1.1",
+                "Hola: %s" % smart_unicode(header_value),
+                "",
+                "a=b",
+            ]
+        )
+
+        headers = Headers([("Hola", header_value)])
+        post_data = KeyValueContainer(init_val=[("a", ["b"])])
+        fr = FuzzableRequest(
+            self.url, method="GET", post_data=post_data, headers=headers
+        )
 
         self.assertEqual(fr.dump(), expected)
 
     def test_dump_mangle(self):
-        fr = FuzzableRequest(URL('http://www.w3af.com/'),
-                             headers=Headers([('Host', 'www.w3af.com')]))
+        fr = FuzzableRequest(
+            URL("http://www.w3af.com/"), headers=Headers([("Host", "www.w3af.com")])
+        )
 
-        expected = '\r\n'.join(['GET http://www.w3af.com/ HTTP/1.1',
-                                 'Host: www.w3af.com',
-                                 '',
-                                 ''])
-        
+        expected = "\r\n".join(
+            ["GET http://www.w3af.com/ HTTP/1.1", "Host: www.w3af.com", "", ""]
+        )
+
         self.assertEqual(fr.dump(), expected)
-        
-        fr.set_method('POST')
-        fr.set_data(KeyValueContainer(init_val=[('data', ['23'])]))
-        
-        expected = '\r\n'.join(['POST http://www.w3af.com/ HTTP/1.1',
-                                 'Host: www.w3af.com',
-                                 '',
-                                 'data=23'])
-        
+
+        fr.set_method("POST")
+        fr.set_data(KeyValueContainer(init_val=[("data", ["23"])]))
+
+        expected = "\r\n".join(
+            ["POST http://www.w3af.com/ HTTP/1.1", "Host: www.w3af.com", "", "data=23"]
+        )
+
         self.assertEqual(fr.dump(), expected)
 
     def test_export_import_without_post_data(self):
-        fr = FuzzableRequest(URL('http://www.w3af.com/'))
+        fr = FuzzableRequest(URL("http://www.w3af.com/"))
 
         imported_fr = FuzzableRequest.from_base64(fr.to_base64())
         self.assertEqual(imported_fr, fr)
-    
+
     def test_export_import_with_post_data(self):
-        dc = KeyValueContainer(init_val=[('a', ['1'])])
-        fr = FuzzableRequest(URL('http://www.w3af.com/'), post_data=dc)
+        dc = KeyValueContainer(init_val=[("a", ["1"])])
+        fr = FuzzableRequest(URL("http://www.w3af.com/"), post_data=dc)
 
         imported_fr = FuzzableRequest.from_base64(fr.to_base64())
         self.assertEqual(imported_fr, fr)
 
     def test_equal(self):
-        u = URL('http://www.w3af.com/')
+        u = URL("http://www.w3af.com/")
         fr1 = FuzzableRequest(u)
         fr2 = FuzzableRequest(u)
         self.assertEqual(fr1, fr2)
@@ -130,102 +135,109 @@ class TestFuzzableRequest(unittest.TestCase):
         fr1 = FuzzableRequest(URL("http://www.w3af.com/a"))
         fr2 = FuzzableRequest(URL("http://www.w3af.com/b"))
         self.assertNotEqual(fr1, fr2)
-        
+
         fr1 = FuzzableRequest(u)
-        fr2 = FuzzableRequest(u, method='POST')
+        fr2 = FuzzableRequest(u, method="POST")
         self.assertNotEqual(fr1, fr2)
-    
+
     def test_set_url(self):
-        self.assertRaises(TypeError, FuzzableRequest, 'http://www.google.com/')
-        
-        url = URL('http://www.google.com/')
+        self.assertRaises(TypeError, FuzzableRequest, "http://www.google.com/")
+
+        url = URL("http://www.google.com/")
         r = FuzzableRequest(url)
         self.assertEqual(r.get_url(), url)
 
     def test_str_no_qs(self):
-        fr = FuzzableRequest(URL('http://www.w3af.com/'))
-        expected = 'Method: GET | http://www.w3af.com/'
+        fr = FuzzableRequest(URL("http://www.w3af.com/"))
+        expected = "Method: GET | http://www.w3af.com/"
         self.assertEqual(str(fr), expected)
 
     def test_str_qs(self):
         fr = FuzzableRequest(URL("http://www.w3af.com/?id=3"))
-        expected = 'Method: GET | http://www.w3af.com/ |' \
-                   ' Query string: (id)'
+        expected = "Method: GET | http://www.w3af.com/ |" " Query string: (id)"
         self.assertEqual(str(fr), expected)
 
     def test_str_with_postdata(self):
-        headers = Headers([('content-type', URLEncodedForm.ENCODING)])
-        fr = FuzzableRequest.from_parts('http://www.w3af.com/', post_data='a=1',
-                                        headers=headers)
-        expected = 'Method: GET | http://www.w3af.com/ | URL encoded ' \
-                   'form: (a)'
+        headers = Headers([("content-type", URLEncodedForm.ENCODING)])
+        fr = FuzzableRequest.from_parts(
+            "http://www.w3af.com/", post_data="a=1", headers=headers
+        )
+        expected = "Method: GET | http://www.w3af.com/ | URL encoded " "form: (a)"
         self.assertEqual(str(fr), expected)
 
     def test_str_with_qs_and_postdata(self):
-        headers = Headers([('content-type', URLEncodedForm.ENCODING)])
-        fr = FuzzableRequest.from_parts("http://www.w3af.com/?id=3",
-                                        post_data='a=1&b=3&a=2',
-                                        headers=headers)
-        expected = 'Method: GET | http://www.w3af.com/ | URL encoded ' \
-                   'form: (a, a, b)'
+        headers = Headers([("content-type", URLEncodedForm.ENCODING)])
+        fr = FuzzableRequest.from_parts(
+            "http://www.w3af.com/?id=3", post_data="a=1&b=3&a=2", headers=headers
+        )
+        expected = "Method: GET | http://www.w3af.com/ | URL encoded " "form: (a, a, b)"
         self.assertEqual(str(fr), expected)
 
     def test_repr(self):
-        url = 'http://www.w3af.com/'
+        url = "http://www.w3af.com/"
         fr = FuzzableRequest(URL(url))
 
-        self.assertEqual(repr(fr), '<fuzzable request | GET | %s>' % url)
+        self.assertEqual(repr(fr), "<fuzzable request | GET | %s>" % url)
 
     def test_sent_url_unicode_decode_1(self):
-        f = FuzzableRequest(URL('http://example.com/a%c3%83b'))
-        self.assertTrue(f.sent('aÃb'))
+        f = FuzzableRequest(URL("http://example.com/a%c3%83b"))
+        self.assertTrue(f.sent("aÃb"))
 
     def test_sent_url_unicode_decode_2(self):
-        f = FuzzableRequest(URL('http://example.com/aÃb'))
-        self.assertTrue(f.sent('aÃb'))
+        f = FuzzableRequest(URL("http://example.com/aÃb"))
+        self.assertTrue(f.sent("aÃb"))
 
     def test_sent_url_unicode_decode_3(self):
-        f = FuzzableRequest(URL('http://example.com/aÃb'))
-        self.assertTrue(f.sent('aÃb'))
+        f = FuzzableRequest(URL("http://example.com/aÃb"))
+        self.assertTrue(f.sent("aÃb"))
 
     def test_sent_headers(self):
-        f = FuzzableRequest(URL('''http://example.com/'''),
-                            headers=Headers([('User-Agent', 'payload')]))
-        self.assertTrue(f.sent('payload'))
+        f = FuzzableRequest(
+            URL("""http://example.com/"""), headers=Headers([("User-Agent", "payload")])
+        )
+        self.assertTrue(f.sent("payload"))
 
     def test_sent_headers_false(self):
-        f = FuzzableRequest(URL('''http://example.com/'''),
-                            headers=Headers([('User-Agent', 'payload')]))
-        self.assertFalse(f.sent('payload-not-sent'))
+        f = FuzzableRequest(
+            URL("""http://example.com/"""), headers=Headers([("User-Agent", "payload")])
+        )
+        self.assertFalse(f.sent("payload-not-sent"))
 
     def test_sent_url(self):
-        f = FuzzableRequest(URL('''http://example.com/a?p=d'z"0&paged=2'''))
-        self.assertTrue(f.sent('d%5C%27z%5C%220'))
+        f = FuzzableRequest(URL("""http://example.com/a?p=d'z"0&paged=2"""))
+        self.assertTrue(f.sent("d%5C%27z%5C%220"))
 
-        f = FuzzableRequest(URL('http://example.com/a?p=<SCrIPT>alert("bsMs")'
-                                '</SCrIPT>'))
-        self.assertTrue(f.sent('<SCrIPT>alert(\"bsMs\")</SCrIPT>'))
+        f = FuzzableRequest(
+            URL('http://example.com/a?p=<SCrIPT>alert("bsMs")' "</SCrIPT>")
+        )
+        self.assertTrue(f.sent('<SCrIPT>alert("bsMs")</SCrIPT>'))
 
-        f = FuzzableRequest(URL('http://example.com/?p=<ScRIPT>a=/PlaO/%0A'
-                                'fake_alert(a.source)</SCRiPT>'))
-        self.assertTrue(f.sent('<ScRIPT>a=/PlaO/fake_alert(a.source)</SCRiPT>'))
+        f = FuzzableRequest(
+            URL(
+                "http://example.com/?p=<ScRIPT>a=/PlaO/%0A"
+                "fake_alert(a.source)</SCRiPT>"
+            )
+        )
+        self.assertTrue(f.sent("<ScRIPT>a=/PlaO/fake_alert(a.source)</SCRiPT>"))
 
     def test_sent_post_data(self):
         form_params = FormParameters()
-        form_params.add_field_by_attr_items([("name", "username"), ("value", """d'z"0""")])
+        form_params.add_field_by_attr_items(
+            [("name", "username"), ("value", """d'z"0""")]
+        )
         form_params.add_field_by_attr_items([("name", "address"), ("value", "")])
 
         form = dc_from_form_params(form_params)
 
-        f = FuzzableRequest(URL('http://example.com/'), post_data=form)
-        self.assertTrue(f.sent('d%5C%27z%5C%220'))
+        f = FuzzableRequest(URL("http://example.com/"), post_data=form)
+        self.assertTrue(f.sent("d%5C%27z%5C%220"))
 
     def test_from_form_POST(self):
         form_params = FormParameters()
         form_params.add_field_by_attr_items([("name", "username"), ("value", "abc")])
         form_params.add_field_by_attr_items([("name", "address"), ("value", "")])
-        form_params.set_action(URL('http://example.com/?id=1'))
-        form_params.set_method('post')
+        form_params.set_action(URL("http://example.com/?id=1"))
+        form_params.set_method("post")
 
         form = dc_from_form_params(form_params)
 
@@ -233,23 +245,23 @@ class TestFuzzableRequest(unittest.TestCase):
 
         self.assertIs(fr.get_uri(), form.get_action())
         self.assertIs(fr.get_raw_data(), form)
-        self.assertEqual(fr.get_method(), 'POST')
-        self.assertEqual(fr.get_uri().querystring, QueryString([('id', ['1'])]))
+        self.assertEqual(fr.get_method(), "POST")
+        self.assertEqual(fr.get_uri().querystring, QueryString([("id", ["1"])]))
 
     def test_from_form_GET(self):
         form_params = FormParameters()
         form_params.add_field_by_attr_items([("name", "username"), ("value", "abc")])
         form_params.add_field_by_attr_items([("name", "address"), ("value", "")])
-        form_params.set_action(URL('http://example.com/'))
-        form_params.set_method('GET')
+        form_params.set_action(URL("http://example.com/"))
+        form_params.set_method("GET")
 
         form = dc_from_form_params(form_params)
         fr = FuzzableRequest.from_form(form)
 
-        expected_url = 'http://example.com/?username=abc&address='
+        expected_url = "http://example.com/?username=abc&address="
         self.assertEqual(fr.get_uri().url_string, expected_url)
-        self.assertEqual(fr.get_uri().querystring, 'username=abc&address=')
-        self.assertEqual(fr.get_method(), 'GET')
+        self.assertEqual(fr.get_uri().querystring, "username=abc&address=")
+        self.assertEqual(fr.get_method(), "GET")
         self.assertIsNot(fr.get_raw_data(), form)
         self.assertIsInstance(fr.get_uri().querystring, URLEncodedForm)
 
@@ -261,18 +273,18 @@ class TestFuzzableRequest(unittest.TestCase):
         form_params = FormParameters()
         form_params.add_field_by_attr_items([("name", "username"), ("value", "abc")])
         form_params.add_field_by_attr_items([("name", "address"), ("value", "")])
-        form_params.set_action(URL('http://example.com/'))
+        form_params.set_action(URL("http://example.com/"))
         # Without a method
-        #form_params.set_method('GET')
+        # form_params.set_method('GET')
 
         form = dc_from_form_params(form_params)
         fr = FuzzableRequest.from_form(form)
 
-        expected_url = 'http://example.com/?username=abc&address='
+        expected_url = "http://example.com/?username=abc&address="
         self.assertEqual(fr.get_uri().url_string, expected_url)
-        self.assertEqual(fr.get_uri().querystring, 'username=abc&address=')
+        self.assertEqual(fr.get_uri().querystring, "username=abc&address=")
         self.assertIsInstance(fr.get_uri().querystring, URLEncodedForm)
-        self.assertEqual(fr.get_method(), 'GET')
+        self.assertEqual(fr.get_method(), "GET")
         self.assertIsNot(fr.get_raw_data(), form)
 
     def test_pickle(self):
@@ -299,38 +311,51 @@ class TestFuzzableRequest(unittest.TestCase):
         form_params = FormParameters()
         form_params.add_field_by_attr_items([("name", "username"), ("value", "abc")])
         form_params.add_field_by_attr_items([("name", "address"), ("value", "")])
-        form_params.set_action(URL('http://example.com/?id=1'))
-        form_params.set_method('post')
+        form_params.set_action(URL("http://example.com/?id=1"))
+        form_params.set_method("post")
 
         form = dc_from_form_params(form_params)
 
         return FuzzableRequest.from_form(form)
-    
+
     def test_multipart_fuzzable_request_store(self):
-        boundary, post_data = multipart_encode([('a', 'bcd'), ], [])
+        boundary, post_data = multipart_encode(
+            [
+                ("a", "bcd"),
+            ],
+            [],
+        )
         multipart_boundary = MultipartContainer.MULTIPART_HEADER
 
-        headers = Headers([('content-length', str(len(post_data))),
-                           ('content-type', multipart_boundary % boundary)])
+        headers = Headers(
+            [
+                ("content-length", str(len(post_data))),
+                ("content-type", multipart_boundary % boundary),
+            ]
+        )
 
         dc = MultipartContainer.from_postdata(headers, post_data)
         post_data = str(dc)
 
-        fr = FuzzableRequest.from_parts(URL('http://www.w3af.com/'),
-                                        method='POST', post_data=post_data,
-                                        headers=headers)
-        
+        fr = FuzzableRequest.from_parts(
+            URL("http://www.w3af.com/"),
+            method="POST",
+            post_data=post_data,
+            headers=headers,
+        )
+
         disk_set = DiskSet()
         disk_set.add(fr)
 
         fr_read = disk_set[0]
 
         self.assertIsInstance(fr_read.get_raw_data(), MultipartContainer)
-        self.assertIn('a', fr_read.get_raw_data())
+        self.assertIn("a", fr_read.get_raw_data())
 
     def test_force_fuzzing_headers(self):
-        fr = FuzzableRequest(URL('http://www.w3af.com/'),
-                             headers=Headers([('Host', 'www.w3af.com')]))
+        fr = FuzzableRequest(
+            URL("http://www.w3af.com/"), headers=Headers([("Host", "www.w3af.com")])
+        )
 
         self.assertEqual(fr.get_force_fuzzing_headers(), [])
 
@@ -340,21 +365,20 @@ class TestFuzzableRequest(unittest.TestCase):
         with self.assertRaises(TypeError):
             fr.set_force_fuzzing_headers(1)
 
-        fr.set_force_fuzzing_headers(['X-Foo-Header',
-                                      'X-Bar-Header',
-                                      'X-Awesome-Header',
-                                      'X-Bar-Header'])
+        fr.set_force_fuzzing_headers(
+            ["X-Foo-Header", "X-Bar-Header", "X-Awesome-Header", "X-Bar-Header"]
+        )
         force_fuzzing_headers = fr.get_force_fuzzing_headers()
         self.assertEqual(len(force_fuzzing_headers), 3)
-        self.assertIn('X-Foo-Header', force_fuzzing_headers)
-        self.assertIn('X-Bar-Header', force_fuzzing_headers)
-        self.assertIn('X-Awesome-Header', force_fuzzing_headers)
+        self.assertIn("X-Foo-Header", force_fuzzing_headers)
+        self.assertIn("X-Bar-Header", force_fuzzing_headers)
+        self.assertIn("X-Awesome-Header", force_fuzzing_headers)
 
         modified_force_fuzzing_headers = fr.get_force_fuzzing_headers()
-        modified_force_fuzzing_headers.append('X-Another-Header')
+        modified_force_fuzzing_headers.append("X-Another-Header")
         force_fuzzing_headers = fr.get_force_fuzzing_headers()
         self.assertEqual(len(force_fuzzing_headers), 3)
-        self.assertNotIn('X-Another-Header', force_fuzzing_headers)
+        self.assertNotIn("X-Another-Header", force_fuzzing_headers)
 
         fr.set_force_fuzzing_headers(tuple())
         self.assertEqual(fr.get_force_fuzzing_headers(), [])

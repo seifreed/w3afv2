@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from flask import jsonify
 
 import w3af.core.data.kb.knowledge_base as kb
@@ -29,7 +30,7 @@ from w3af.core.ui.api.utils.auth import requires_auth
 from w3af.core.ui.api.utils.scans import get_scan_info_from_id
 
 
-@app.route('/scans/<int:scan_id>/urls/', methods=['GET'])
+@app.route("/scans/<int:scan_id>/urls/", methods=["GET"])
 @requires_auth
 def get_url_list(scan_id):
     """
@@ -40,8 +41,7 @@ def get_url_list(scan_id):
     """
     scan_info = get_scan_info_from_id(scan_id)
     if scan_info is None:
-        abort(404, 'Scan not found')
+        abort(404, "Scan not found")
 
     data = [str(u) for u in kb.kb.get_all_known_urls()]
-    return jsonify({'items': data})
-
+    return jsonify({"items": data})

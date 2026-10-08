@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from ..requirements import CORE_PIP_PACKAGES, GUI_PIP_PACKAGES, CORE, GUI
 from ..external.retirejs import retirejs_is_installed
 
@@ -28,11 +29,10 @@ class Platform(object):
     Simple base class for defining platforms/operating systems for dependency
     checks.
     """
-    PIP_PACKAGES = {CORE: CORE_PIP_PACKAGES,
-                    GUI: GUI_PIP_PACKAGES}
 
-    SYSTEM_PACKAGES = {CORE: [],
-                       GUI: []}
+    PIP_PACKAGES = {CORE: CORE_PIP_PACKAGES, GUI: GUI_PIP_PACKAGES}
+
+    SYSTEM_PACKAGES = {CORE: [], GUI: []}
 
     @staticmethod
     def is_current_platform():
@@ -60,7 +60,6 @@ class Platform(object):
         if retirejs_is_installed():
             return []
 
-        return ['npm install -g retire@2.0.3',
-                'npm update -g retire']
+        return ["npm install -g retire@2.0.3", "npm update -g retire"]
 
     EXTERNAL_COMMAND_HANDLERS = [retirejs_handler]

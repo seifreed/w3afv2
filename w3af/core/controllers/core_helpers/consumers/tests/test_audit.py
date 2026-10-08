@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import unittest
 import httpretty
 
@@ -51,11 +52,11 @@ class TestAuditConsumer(unittest.TestCase):
         audit_consumer = audit(audit_plugins, w3af_core)
         audit_consumer.start()
 
-        url = 'http://w3af.org/?id=1'
+        url = "http://w3af.org/?id=1"
 
-        httpretty.register_uri(httpretty.GET, url,
-                               body='hello world',
-                               content_type='application/html')
+        httpretty.register_uri(
+            httpretty.GET, url, body="hello world", content_type="application/html"
+        )
 
         url = URL(url)
         fr = FuzzableRequest(url)
@@ -69,14 +70,18 @@ class TestAuditConsumer(unittest.TestCase):
         # Now that xss.audit() was called, we want to simulate network errors
         # that will put the uri opener in a state where it always answers with
         # ScanMustStopException
-        w3af_core.uri_opener._stop_exception = ScanMustStopException('mock')
+        w3af_core.uri_opener._stop_exception = ScanMustStopException("mock")
 
         # And now we just call terminate() which injects the poison pill and will
         # call teardown, which should call xss.end(), which should try to send HTTP
         # requests, which will raise a ScanMustStopException
-        with patch('w3af.core.controllers.core_helpers.consumers.audit.om.out') as om_mock:
+        with patch(
+            "w3af.core.controllers.core_helpers.consumers.audit.om.out"
+        ) as om_mock:
             audit_consumer.terminate()
 
-            msg = ('Spent 0.00 seconds running xss.end() until a scan must'
-                   ' stop exception was raised.')
+            msg = (
+                "Spent 0.00 seconds running xss.end() until a scan must"
+                " stop exception was raised."
+            )
             self.assertIn(call.debug(msg), om_mock.mock_calls)

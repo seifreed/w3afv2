@@ -17,8 +17,8 @@ def get_known_problems(scan_log_filename, scan):
     #
     found_grep_teardown = None
 
-    grep_teardown = 'Finished Grep consumer _teardown'
-    discover_call = '.discover(uri='
+    grep_teardown = "Finished Grep consumer _teardown"
+    discover_call = ".discover(uri="
 
     for line in scan:
         if grep_teardown in line:
@@ -26,15 +26,15 @@ def get_known_problems(scan_log_filename, scan):
             continue
 
         if discover_call in line and found_grep_teardown:
-            data = ('The grep consumer was finished at:\n'
-                    '    %s\n' 
-                    'But calls to discover were found after:\n'
-                    '    %s' % (found_grep_teardown, line))
+            data = (
+                "The grep consumer was finished at:\n"
+                "    %s\n"
+                "But calls to discover were found after:\n"
+                "    %s" % (found_grep_teardown, line)
+            )
 
-            return KeyValueOutput('known_problems',
-                                  'Known scanner race condition found!',
-                                  data)
+            return KeyValueOutput(
+                "known_problems", "Known scanner race condition found!", data
+            )
 
-    return KeyValueOutput('known_problems',
-                          'No known problems found',
-                          [])
+    return KeyValueOutput("known_problems", "No known problems found", [])

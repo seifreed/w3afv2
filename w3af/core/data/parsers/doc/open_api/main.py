@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import json
 
 from yaml import load
@@ -30,7 +31,10 @@ except ImportError:
 
 import w3af.core.controllers.output_manager as om
 
-from w3af.core.controllers.misc.traceback_utils import get_traceback, get_exception_location
+from w3af.core.controllers.misc.traceback_utils import (
+    get_traceback,
+    get_exception_location,
+)
 from w3af.core.data.parsers.doc.baseparser import BaseParser
 from w3af.core.data.parsers.doc.open_api.specification import SpecificationHandler
 from w3af.core.data.parsers.doc.open_api.requests import RequestFactory
@@ -41,6 +45,7 @@ from w3af.core.data.parsers.doc.open_api.requests import RequestFactory
 # Removing the import will break things!
 #
 from w3af.core.data.parsers.doc.open_api.operation_mp import build_params_monkey_patch
+
 _ = build_params_monkey_patch
 
 
@@ -58,27 +63,27 @@ class OpenAPI(BaseParser):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    CONTENT_TYPES = ('application/json',
-                     'text/yaml',
-                     'text/x-yaml',
-                     'application/yaml',
-                     'application/x-yaml',
-                     'application/octet-stream',
-                     'application/vnd.oai.openapi',
-                     'application/vnd.oai.openapi+json',
-                     'application/vnd.oai.openapi;version=2.0')
+    CONTENT_TYPES = (
+        "application/json",
+        "text/yaml",
+        "text/x-yaml",
+        "application/yaml",
+        "application/x-yaml",
+        "application/octet-stream",
+        "application/vnd.oai.openapi",
+        "application/vnd.oai.openapi+json",
+        "application/vnd.oai.openapi;version=2.0",
+    )
 
-    KEYWORDS = ('consumes',
-                'produces',
-                'swagger',
-                'openapi',
-                'paths')
+    KEYWORDS = ("consumes", "produces", "swagger", "openapi", "paths")
 
-    def __init__(self,
-                 http_response,
-                 validate_swagger_spec=False,
-                 discover_fuzzable_headers=True,
-                 discover_fuzzable_url_parts=True):
+    def __init__(
+        self,
+        http_response,
+        validate_swagger_spec=False,
+        discover_fuzzable_headers=True,
+        discover_fuzzable_url_parts=True,
+    ):
         super(OpenAPI, self).__init__(http_response)
 
         # Result
@@ -144,7 +149,7 @@ class OpenAPI(BaseParser):
         :param http_resp: The HTTP response we want to parse
         :return: True if it seems that this response body holds JSON or YAML
         """
-        return ':' in '\n'.join(http_resp.body.split('\n')[:20])
+        return ":" in "\n".join(http_resp.body.split("\n")[:20])
 
     @staticmethod
     def can_parse(http_resp):
@@ -192,14 +197,16 @@ class OpenAPI(BaseParser):
         The method also looks for all parameters which are passed to endpoints via headers,
         and stores them in to the fuzzable request
         """
-        self._specification_handler = SpecificationHandler(self.get_http_response(),
-                                                           validate_swagger_spec=self.validate_swagger_spec)
+        self._specification_handler = SpecificationHandler(
+            self.get_http_response(), validate_swagger_spec=self.validate_swagger_spec
+        )
 
         for data in self._specification_handler.get_api_information():
             try:
                 request_factory = RequestFactory(*data)
-                fuzzable_request = request_factory.get_fuzzable_request(self.discover_fuzzable_headers,
-                                                                        self.discover_fuzzable_url_parts)
+                fuzzable_request = request_factory.get_fuzzable_request(
+                    self.discover_fuzzable_headers, self.discover_fuzzable_url_parts
+                )
             except Exception as e:
                 #
                 # This is a strange situation because parsing of the OpenAPI
@@ -216,10 +223,12 @@ class OpenAPI(BaseParser):
                 path, filename, _function, line = get_exception_location(tb)
                 spec_url = self.get_http_response().get_url()
 
-                msg = ('Failed to generate a fuzzable request for one of the'
-                       ' OpenAPI operations. The parser will continue with the'
-                       ' next operation. The OpenAPI specification is at "%s" and'
-                       ' the exception was: "%s" at %s/%s:%s():%s.')
+                msg = (
+                    "Failed to generate a fuzzable request for one of the"
+                    " OpenAPI operations. The parser will continue with the"
+                    ' next operation. The OpenAPI specification is at "%s" and'
+                    ' the exception was: "%s" at %s/%s:%s():%s.'
+                )
 
                 args = (spec_url, e, path, filename, _function, line)
 
@@ -238,7 +247,7 @@ class OpenAPI(BaseParser):
         :param fuzzable_request: The fuzzable request with a call to the REST API
         :return: True if we should scan this fuzzable request
         """
-        if fuzzable_request.get_method().upper() == 'DELETE':
+        if fuzzable_request.get_method().upper() == "DELETE":
             return False
 
         return True

@@ -16,14 +16,19 @@ import configparser
 from operator import itemgetter
 
 TIMEOUT = 10
-CONFIG_FILE = 'sqlharvest.cfg'
-TABLES_FILE = 'tables.txt'
-USER_AGENT = 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; AskTB5.3)'
-SEARCH_URL = 'http://www.google.com/m?source=mobileproducts&dc=gorganic'
-MAX_FILE_SIZE = 2 * 1024 * 1024  # if a result (.sql) file for downloading is more than 2MB in size just skip it
-QUERY = 'CREATE TABLE ext:sql'
+CONFIG_FILE = "sqlharvest.cfg"
+TABLES_FILE = "tables.txt"
+USER_AGENT = "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; AskTB5.3)"
+SEARCH_URL = "http://www.google.com/m?source=mobileproducts&dc=gorganic"
+MAX_FILE_SIZE = (
+    2 * 1024 * 1024
+)  # if a result (.sql) file for downloading is more than 2MB in size just skip it
+QUERY = "CREATE TABLE ext:sql"
 REGEX_URLS = r';u=([^"]+?)&amp;q='
-REGEX_RESULT = r'(?i)CREATE TABLE\s*(/\*.*\*/)?\s*(IF NOT EXISTS)?\s*(?P<result>[^\(;]+)'
+REGEX_RESULT = (
+    r"(?i)CREATE TABLE\s*(/\*.*\*/)?\s*(IF NOT EXISTS)?\s*(?P<result>[^\(;]+)"
+)
+
 
 def main():
     tables = dict()
@@ -46,10 +51,10 @@ def main():
     i = int(config.get("options", "index"))
 
     try:
-        with open(TABLES_FILE, 'r') as f:
+        with open(TABLES_FILE, "r") as f:
             for line in f:
-                if len(line) > 0 and ',' in line:
-                    temp = line.split(',')
+                if len(line) > 0 and "," in line:
+                    temp = line.split(",")
                     tables[temp[0]] = int(temp[1])
     except:
         pass
@@ -64,13 +69,16 @@ def main():
             files = []
 
             try:
-                conn = opener.open("%s&q=%s&start=%d&sa=N" % (SEARCH_URL, QUERY.replace(' ', '+'), i * 10))
+                conn = opener.open(
+                    "%s&q=%s&start=%d&sa=N"
+                    % (SEARCH_URL, QUERY.replace(" ", "+"), i * 10)
+                )
                 page = conn.read()
                 for match in re.finditer(REGEX_URLS, page):
                     files.append(urllib.parse.unquote(match.group(1)))
                     if len(files) >= 10:
                         break
-                abort = (files == old_files)
+                abort = files == old_files
 
             except KeyboardInterrupt:
                 raise
@@ -102,11 +110,18 @@ def main():
 
                     for match in re.finditer(REGEX_RESULT, page):
                         counter += 1
-                        table = match.group("result").strip().strip("`\"'").replace('"."', ".").replace("].[", ".").strip('[]')
+                        table = (
+                            match.group("result")
+                            .strip()
+                            .strip("`\"'")
+                            .replace('"."', ".")
+                            .replace("].[", ".")
+                            .strip("[]")
+                        )
 
-                        if table and not any(_ in table for _ in ('>', '<', '--', ' ')):
+                        if table and not any(_ in table for _ in (">", "<", "--", " ")):
                             found = True
-                            sys.stdout.write('*')
+                            sys.stdout.write("*")
 
                             if table in tables:
                                 tables[table] += 1
@@ -128,14 +143,15 @@ def main():
         pass
 
     finally:
-        with open(TABLES_FILE, 'w+') as f:
+        with open(TABLES_FILE, "w+") as f:
             tables = sorted(list(tables.items()), key=itemgetter(1), reverse=True)
             for table, count in tables:
                 f.write("%s,%d\n" % (table, count))
 
         config.set("options", "index", str(i + 1))
-        with open(CONFIG_FILE, 'w+') as f:
+        with open(CONFIG_FILE, "w+") as f:
             config.write(f)
+
 
 if __name__ == "__main__":
     main()

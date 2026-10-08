@@ -6,14 +6,13 @@ import argparse
 try:
     import plotille
 except ImportError:
-    print('Missing dependency, please run:\n    pip install plotille')
+    print("Missing dependency, please run:\n    pip install plotille")
     sys.exit(1)
 
 from .main.main import generate_console_output, generate_json_output
 from .main.watch import watch
 
-
-HELP = '''\
+HELP = """\
 Usage: ./scan_log_analysis.py <scan.log> [--output=out.json]
 
 This is a command line tool that helps identify differences in two scans.
@@ -32,26 +31,34 @@ It is also possible to just watch one graph in the console using:
 
 Where <function-name> is the name of the function in the scan_log_analysis.py file
 you want to watch.
-'''
+"""
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='w3af scan log analyzer', usage=HELP)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="w3af scan log analyzer", usage=HELP)
 
-    parser.add_argument('scan_log', action='store')
+    parser.add_argument("scan_log", action="store")
 
-    parser.add_argument('--watch', action='store', dest='watch',
-                        help='Show only one graph and refresh every 5 seconds.')
+    parser.add_argument(
+        "--watch",
+        action="store",
+        dest="watch",
+        help="Show only one graph and refresh every 5 seconds.",
+    )
 
-    parser.add_argument('--output', action='store', dest='output',
-                        help='Filename where JSON output will be written to.')
+    parser.add_argument(
+        "--output",
+        action="store",
+        dest="output",
+        help="Filename where JSON output will be written to.",
+    )
 
     parsed_args = parser.parse_args()
 
     try:
         scan = open(parsed_args.scan_log)
     except:
-        print('The scan log file does not exist!')
+        print("The scan log file does not exist!")
         sys.exit(2)
 
     if parsed_args.output:

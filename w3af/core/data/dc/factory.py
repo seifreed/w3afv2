@@ -20,6 +20,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import json
 
 import w3af.core.controllers.output_manager as om
@@ -33,11 +34,12 @@ from w3af.core.data.dc.generic.plain import PlainContainer
 from w3af.core.data.parsers.utils.form_params import FormParameters
 from w3af.core.data.dc.utils.json_encoder import DateTimeJSONEncoder
 
-
-POST_DATA_CONTAINERS = (MultipartContainer,
-                        JSONContainer,
-                        XmlRpcContainer,
-                        URLEncodedForm)
+POST_DATA_CONTAINERS = (
+    MultipartContainer,
+    JSONContainer,
+    XmlRpcContainer,
+    URLEncodedForm,
+)
 
 
 def dc_from_hdrs_post(headers, post_data):
@@ -57,7 +59,7 @@ def dc_from_hdrs_post(headers, post_data):
         except (ValueError, TypeError) as e:
             pass
     else:
-        content_type, _ = headers.iget('content-type', 'None')
+        content_type, _ = headers.iget("content-type", "None")
         msg = 'Unknown post-data. Content-type: "%s" and/or post-data "%s"'
         om.out.debug(msg % (content_type, post_data[:50]))
 
@@ -77,7 +79,7 @@ def dc_from_form_params(form_parameters):
         # we must send it as multipart.
         return MultipartContainer(form_parameters)
 
-    if 'multipart' in form_parameters.get_form_encoding().lower():
+    if "multipart" in form_parameters.get_form_encoding().lower():
         # If there are no files but the web developer specified the multipart
         # form encoding, then we'll use multipart also
         return MultipartContainer(form_parameters)
@@ -99,7 +101,7 @@ def dc_from_content_type_and_raw_params(content_type, params):
     :param params: A dict containing parameters and values.
     :return: A data container
     """
-    temp_headers = Headers([('Content-Type', content_type)])
+    temp_headers = Headers([("Content-Type", content_type)])
 
     for data_container_cls in POST_DATA_CONTAINERS:
         if data_container_cls.content_type_matches(temp_headers):
@@ -117,15 +119,17 @@ def _create_instance_from_form_params(data_container_cls, params):
     form_params = FormParameters()
 
     for param_name, param_value in params.items():
-        form_params.add_field_by_attrs({'name': param_name, 'value': param_value})
+        form_params.add_field_by_attrs({"name": param_name, "value": param_value})
 
     return data_container_cls(form_params)
 
 
 def _create_instance(data_container_cls, params):
-    post_data_container_builder = {MultipartContainer: _create_instance_from_form_params,
-                                   JSONContainer: _create_instance_from_json_string,
-                                   URLEncodedForm: _create_instance_from_form_params}
+    post_data_container_builder = {
+        MultipartContainer: _create_instance_from_form_params,
+        JSONContainer: _create_instance_from_json_string,
+        URLEncodedForm: _create_instance_from_form_params,
+    }
 
     builder_func = post_data_container_builder[data_container_cls]
     return builder_func(data_container_cls, params)

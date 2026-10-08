@@ -14,8 +14,13 @@ from lib.core.enums import PRIORITY
 
 __priority__ = PRIORITY.LOW
 
+
 def dependencies():
-    singleTimeWarnMessage("tamper script '%s' is only meant to be run against %s" % (os.path.basename(__file__).split(".")[0], DBMS.MYSQL))
+    singleTimeWarnMessage(
+        "tamper script '%s' is only meant to be run against %s"
+        % (os.path.basename(__file__).split(".")[0], DBMS.MYSQL)
+    )
+
 
 def tamper(payload, **kwargs):
     """
@@ -43,7 +48,7 @@ def tamper(payload, **kwargs):
     #   CR      0D      carriage return
     #   VT      0B      vertical TAB        (MySQL and Microsoft SQL Server only)
     #           A0      non-breaking space
-    blanks = ('%09', '%0A', '%0C', '%0D', '%0B', '%A0')
+    blanks = ("%09", "%0A", "%0C", "%0D", "%0B", "%A0")
     retVal = payload
 
     if payload:
@@ -57,7 +62,7 @@ def tamper(payload, **kwargs):
                     retVal += random.choice(blanks)
                     continue
 
-            elif payload[i] == '\'':
+            elif payload[i] == "'":
                 quote = not quote
 
             elif payload[i] == '"':

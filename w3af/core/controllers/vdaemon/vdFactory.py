@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.controllers.output_manager as om
 
 from w3af.core.controllers.vdaemon.lnxVd import lnxVd
@@ -38,14 +39,13 @@ def get_virtual_daemon(exec_method):
     except BaseFrameworkException as w3:
         raise w3
     else:
-        if os == 'windows':
-            om.out.debug(
-                'Identified remote OS as Windows, returning winVd object.')
+        if os == "windows":
+            om.out.debug("Identified remote OS as Windows, returning winVd object.")
             return winVd(exec_method)
-        elif os == 'linux':
-            om.out.debug(
-                'Identified remote OS as Linux, returning lnxVd object.')
+        elif os == "linux":
+            om.out.debug("Identified remote OS as Linux, returning lnxVd object.")
             return lnxVd(exec_method)
         else:
             raise BaseFrameworkException(
-                'Failed to get a virtual daemon for the remote OS: ' + os)
+                "Failed to get a virtual daemon for the remote OS: " + os
+            )

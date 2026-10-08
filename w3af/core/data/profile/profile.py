@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import codecs
 import shutil
@@ -39,10 +40,10 @@ class profile(object):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    PROFILE_SECTION = 'profile'
-    EXTENSION = '.pw3af'
+    PROFILE_SECTION = "profile"
+    EXTENSION = ".pw3af"
 
-    def __init__(self, profname='', workdir=None):
+    def __init__(self, profname="", workdir=None):
         """
         Creating a profile instance like p = profile() is done in order to be
         able to create a new profile from scratch and then call
@@ -72,8 +73,10 @@ class profile(object):
                     raise BaseFrameworkException(msg % (profname, e))
                 else:
                     if not self.get_name():
-                        msg = ('The profile with name "%s" does NOT contain a'
-                               ' [profile] section with the "name" attribute.')
+                        msg = (
+                            'The profile with name "%s" does NOT contain a'
+                            ' [profile] section with the "name" attribute.'
+                        )
                         raise BaseFrameworkException(msg % (profname,))
 
         # Save the profname variable
@@ -126,12 +129,12 @@ class profile(object):
                         continue
 
                     try:
-                        name = config.get(self.PROFILE_SECTION, 'name')
+                        name = config.get(self.PROFILE_SECTION, "name")
                     except:
                         # Any errors simply break name detection
                         continue
                     else:
-                        if '%s%s' % (name, self.EXTENSION) == profile_name:
+                        if "%s%s" % (name, self.EXTENSION) == profile_name:
                             return profile_path_file
 
         msg = 'The profile "%s" wasn\'t found.'
@@ -139,12 +142,14 @@ class profile(object):
 
     @staticmethod
     def is_valid_profile_name(profile_name):
-        valid = string.ascii_letters + string.digits + '_-'
+        valid = string.ascii_letters + string.digits + "_-"
 
         for char in profile_name:
             if char not in valid:
-                msg = ('Invalid profile name. Allowed characters are '
-                       ' letters, digits, _ and - .')
+                msg = (
+                    "Invalid profile name. Allowed characters are "
+                    " letters, digits, _ and - ."
+                )
                 raise BaseFrameworkException(msg)
 
         return True
@@ -158,11 +163,11 @@ class profile(object):
             if os.path.exists(workdir):
                 yield workdir
 
-            profile_path = os.path.join(workdir, 'profiles')
+            profile_path = os.path.join(workdir, "profiles")
             if os.path.exists(profile_path):
                 yield profile_path
 
-        profile_path = os.path.join(get_home_dir(), 'profiles')
+        profile_path = os.path.join(get_home_dir(), "profiles")
         if os.path.exists(profile_path):
             yield profile_path
 
@@ -180,8 +185,9 @@ class profile(object):
         try:
             os.unlink(self.profile_file_name)
         except Exception as e:
-            msg = ('An exception occurred while removing the profile.'
-                   ' Exception: "%s".')
+            msg = (
+                "An exception occurred while removing the profile." ' Exception: "%s".'
+            )
             raise BaseFrameworkException(msg % e)
         else:
             return True
@@ -205,7 +211,7 @@ class profile(object):
         try:
             shutil.copyfile(self.profile_file_name, new_profile_path_name)
         except Exception as e:
-            msg = 'An exception occurred while copying the profile. Exception:'
+            msg = "An exception occurred while copying the profile. Exception:"
             msg += ' "%s".' % e
             raise BaseFrameworkException(msg % e)
         else:
@@ -231,7 +237,7 @@ class profile(object):
             if already_enabled_plugin not in plugin_names:
                 # The plugin was disabled!
                 # I should remove the section from the config
-                section = '%s.%s' % (plugin_type, already_enabled_plugin)
+                section = "%s.%s" % (plugin_type, already_enabled_plugin)
                 self._config.remove_section(section)
 
         # Now enable the plugins that the user wants to run
@@ -249,7 +255,7 @@ class profile(object):
         for section in self._config.sections():
             # Section is something like audit.xss or crawl.web_spider
             try:
-                _type, name = section.split('.')
+                _type, name = section.split(".")
             except:
                 pass
             else:
@@ -257,8 +263,9 @@ class profile(object):
                     res.append(name)
         return res
 
-    def set_plugin_options(self, plugin_type, plugin_name, options,
-                           self_contained=False):
+    def set_plugin_options(
+        self, plugin_type, plugin_name, options, self_contained=False
+    ):
         """
         Set the plugin options.
         :param plugin_type: 'audit', 'output', etc.
@@ -266,16 +273,14 @@ class profile(object):
         :param options: an OptionList
         :return: None
         """
-        section = '%s.%s' % (plugin_type, plugin_name)
+        section = "%s.%s" % (plugin_type, plugin_name)
         if section not in self._config.sections():
             self._config.add_section(section)
 
         for option in options:
             value = option.get_value_for_profile(self_contained=self_contained)
 
-            self._config.set(section,
-                             option.get_name(),
-                             value)
+            self._config.set(section, option.get_name(), value)
 
     def get_plugin_options(self, plugin_type, plugin_name):
         """
@@ -283,14 +288,14 @@ class profile(object):
                 { 'LICENSE_KEY':'AAAA' }
         """
         # Get the plugin defaults with their types
-        plugin = 'w3af.plugins.%s.%s' % (plugin_type, plugin_name)
+        plugin = "w3af.plugins.%s.%s" % (plugin_type, plugin_name)
         plugin_instance = factory(plugin)
         options_list = plugin_instance.get_options()
 
         for section in self._config.sections():
             # Section is something like audit.xss or crawl.web_spider
             try:
-                _type, name = section.split('.')
+                _type, name = section.split(".")
             except:
                 pass
             else:
@@ -300,8 +305,7 @@ class profile(object):
                             value = self._config.get(section, option)
                         except KeyError:
                             # We should never get here...
-                            msg = ('The option "%s" is unknown for the'
-                                   ' "%s" plugin.')
+                            msg = 'The option "%s" is unknown for the' ' "%s" plugin.'
                             args = (option, plugin_name)
                             raise BaseFrameworkException(msg % args)
                         else:
@@ -315,7 +319,7 @@ class profile(object):
         :param options: an OptionList
         :return: None
         """
-        self._set_x_settings('misc-settings', options)
+        self._set_x_settings("misc-settings", options)
 
     def set_http_settings(self, options):
         """
@@ -323,7 +327,7 @@ class profile(object):
         :param options: an OptionList
         :return: None
         """
-        self._set_x_settings('http-settings', options)
+        self._set_x_settings("http-settings", options)
 
     def _set_x_settings(self, section, options):
         """
@@ -337,8 +341,7 @@ class profile(object):
             self._config.add_section(section)
 
         for option in options:
-            self._config.set(section, option.get_name(),
-                             option.get_value_for_profile())
+            self._config.set(section, option.get_name(), option.get_value_for_profile())
 
     def get_misc_settings(self):
         """
@@ -346,8 +349,9 @@ class profile(object):
         :return: The misc settings in an OptionList
         """
         from w3af.core.controllers.misc_settings import MiscSettings
+
         misc_settings = MiscSettings()
-        return self._get_x_settings('misc-settings', misc_settings)
+        return self._get_x_settings("misc-settings", misc_settings)
 
     def get_http_settings(self):
         """
@@ -355,8 +359,9 @@ class profile(object):
         :return: The http settings in an OptionList
         """
         import w3af.core.data.url.opener_settings as opener_settings
+
         url_settings = opener_settings.OpenerSettings()
-        return self._get_x_settings('http-settings', url_settings)
+        return self._get_x_settings("http-settings", url_settings)
 
     def _get_x_settings(self, section, configurable_instance):
         """
@@ -393,7 +398,7 @@ class profile(object):
         if self.PROFILE_SECTION not in self._config.sections():
             self._config.add_section(self.PROFILE_SECTION)
 
-        self._config.set(self.PROFILE_SECTION, 'name', name)
+        self._config.set(self.PROFILE_SECTION, "name", name)
 
     def get_name(self):
         """
@@ -404,7 +409,7 @@ class profile(object):
             # or [profile]
             if section == self.PROFILE_SECTION:
                 for option in self._config.options(section):
-                    if option == 'name':
+                    if option == "name":
                         return self._config.get(section, option)
 
         # Something went wrong
@@ -416,10 +421,10 @@ class profile(object):
         :param target: The target URL of the profile
         :return: None
         """
-        section = 'target'
+        section = "target"
         if section not in self._config.sections():
             self._config.add_section(section)
-        self._config.set(section, 'target', target)
+        self._config.set(section, "target", target)
 
     def get_target(self):
         """
@@ -433,10 +438,9 @@ class profile(object):
         for section in self._config.sections():
             # Section is something like audit.xss or crawl.web_spider
             # or [profile] or [target]
-            if section == 'target':
+            if section == "target":
                 for option in self._config.options(section):
-                    options[option].set_value(
-                        self._config.get(section, option))
+                    options[option].set_value(self._config.get(section, option))
 
         return options
 
@@ -449,7 +453,7 @@ class profile(object):
         if self.PROFILE_SECTION not in self._config.sections():
             self._config.add_section(self.PROFILE_SECTION)
 
-        self._config.set(self.PROFILE_SECTION, 'description', desc)
+        self._config.set(self.PROFILE_SECTION, "description", desc)
 
     def get_desc(self):
         """
@@ -460,13 +464,13 @@ class profile(object):
             # or [profile]
             if section == self.PROFILE_SECTION:
                 for option in self._config.options(section):
-                    if option == 'description':
+                    if option == "description":
                         return self._config.get(section, option)
 
         # Something went wrong
         return None
 
-    def save(self, file_name=''):
+    def save(self, file_name=""):
         """
         Saves the profile to file_name.
 
@@ -474,20 +478,21 @@ class profile(object):
         """
         if not self.profile_file_name:
             if not file_name:
-                raise BaseFrameworkException('Error saving profile, profile'
-                                             ' file name is required.')
+                raise BaseFrameworkException(
+                    "Error saving profile, profile" " file name is required."
+                )
             else:
                 # The user's specified a file_name!
                 if not file_name.endswith(self.EXTENSION):
                     file_name += self.EXTENSION
 
             if os.path.sep not in file_name:
-                file_name = os.path.join(get_home_dir(), 'profiles', file_name)
+                file_name = os.path.join(get_home_dir(), "profiles", file_name)
 
             self.profile_file_name = file_name
 
         try:
-            file_handler = open(self.profile_file_name, 'w')
+            file_handler = open(self.profile_file_name, "w")
         except:
             msg = 'Failed to open profile file: "%s"'
             raise BaseFrameworkException(msg % self.profile_file_name)

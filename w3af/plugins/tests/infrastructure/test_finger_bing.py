@@ -18,27 +18,28 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 from nose.plugins.attrib import attr
 
 from w3af.plugins.tests.helper import PluginTest, PluginConfig
 
 
-@attr('fails')
+@attr("fails")
 class TestFingerBing(PluginTest):
 
-    base_url = 'http://www.bonsai-sec.com/'
+    base_url = "http://www.bonsai-sec.com/"
 
     _run_configs = {
-        'cfg': {
-            'target': base_url,
-            'plugins': {'infrastructure': (PluginConfig('finger_bing'),)}
+        "cfg": {
+            "target": base_url,
+            "plugins": {"infrastructure": (PluginConfig("finger_bing"),)},
         }
     }
 
     def test_find_bing_email(self):
-        cfg = self._run_configs['cfg']
-        self._scan(cfg['target'], cfg['plugins'])
+        cfg = self._run_configs["cfg"]
+        self._scan(cfg["target"], cfg["plugins"])
 
-        emails = self.kb.get('emails', 'emails')
+        emails = self.kb.get("emails", "emails")
 
         self.assertEqual(len(emails), 3, emails)

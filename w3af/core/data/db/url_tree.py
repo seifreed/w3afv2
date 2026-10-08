@@ -40,7 +40,7 @@ def url_tree_factory():
 
 
 class URLNode(object):
-    __slots__ = ('path', 'is_leaf')
+    __slots__ = ("path", "is_leaf")
 
     def __init__(self, path, is_leaf):
         self.path = path
@@ -116,11 +116,11 @@ class URLTree(object):
         """
         tree_path = []
 
-        protocol_domain = '%s://%s' % (url.get_protocol(), url.get_net_location())
+        protocol_domain = "%s://%s" % (url.get_protocol(), url.get_net_location())
         tree_path.append(protocol_domain)
 
         path = url.get_path()
-        split_path = path.split('/')
+        split_path = path.split("/")
 
         tree_path.extend(split_path)
 

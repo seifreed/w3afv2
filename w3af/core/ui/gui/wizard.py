@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import gtk
 import os
 import cgi
@@ -64,7 +65,7 @@ class QuestOptions(gtk.VBox):
             try:
                 opt.widg
             except Exception as e:
-                raise Exception(str(e) + ' || ' + opt.get_name())
+                raise Exception(str(e) + " || " + opt.get_name())
             # end of debugging code
 
             if hasattr(opt.widg, "is_valid"):
@@ -73,9 +74,10 @@ class QuestOptions(gtk.VBox):
         if invalid:
             msg = "The configuration can't be saved, there is a problem in the"
             msg += " following parameter(s):\n\n" + "\n-".join(invalid)
-            dlg = gtk.MessageDialog(None, gtk.DIALOG_MODAL,
-                                    gtk.MESSAGE_WARNING, gtk.BUTTONS_OK, msg)
-            dlg.set_title('Configuration error')
+            dlg = gtk.MessageDialog(
+                None, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_OK, msg
+            )
+            dlg.set_title("Configuration error")
             dlg.run()
             dlg.destroy()
             return
@@ -97,7 +99,8 @@ class QuestOptions(gtk.VBox):
         self.activeQuestion = quest
         self.remove(self.widg)
         self.widg = confpanel.OnlyOptions(
-            self, self.w3af, Quest(quest), gtk.Button(), gtk.Button())
+            self, self.w3af, Quest(quest), gtk.Button(), gtk.Button()
+        )
         self.pack_start(self.widg)
 
     def ask_final(self):
@@ -121,18 +124,24 @@ class Wizard(entries.RememberingWindow):
 
     :author: Facundo Batista <facundobatista =at= taniquetil.com.ar>
     """
+
     def __init__(self, w3af, wizard):
         super(Wizard, self).__init__(
-            w3af, "wizard", "w3af Wizard: " + wizard.get_name(), "Wizards",
-            guessResize=False)
+            w3af,
+            "wizard",
+            "w3af Wizard: " + wizard.get_name(),
+            "Wizards",
+            guessResize=False,
+        )
         self.w3af = w3af
         self.wizard = wizard
 
         # the image at the left
         mainhbox = gtk.HBox()
         self.vbox.pack_start(mainhbox)
-        leftframe = gtk.image_new_from_file(os.path.join(GUI_DATA_PATH,
-                                                         'wizard_frame.png'))
+        leftframe = gtk.image_new_from_file(
+            os.path.join(GUI_DATA_PATH, "wizard_frame.png")
+        )
         mainhbox.pack_start(leftframe, False, False)
         mainvbox = gtk.VBox()
         mainhbox.pack_start(mainvbox)
@@ -173,17 +182,19 @@ class Wizard(entries.RememberingWindow):
         description = self.panel.widg.get_children()[0].get_text()
         if not filename:
             msg = "The configuration can't be saved, you need to insert a profile name!\n\n"
-            dlg = gtk.MessageDialog(None, gtk.DIALOG_MODAL,
-                                    gtk.MESSAGE_WARNING, gtk.BUTTONS_OK, msg)
-            dlg.set_title('Missing info')
+            dlg = gtk.MessageDialog(
+                None, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_OK, msg
+            )
+            dlg.set_title("Missing info")
             dlg.run()
             dlg.destroy()
             return
 
         filename = cgi.escape(filename)
         try:
-            helpers.coreWrap(self.w3af.profiles.save_current_to_new_profile,
-                             filename, description)
+            helpers.coreWrap(
+                self.w3af.profiles.save_current_to_new_profile, filename, description
+            )
         except BaseFrameworkException:
             self.w3af.mainwin.sb(_("There was a problem saving the profile!"))
             return
@@ -230,9 +241,11 @@ class Wizard(entries.RememberingWindow):
     def _buildFinal(self):
         """End titles window."""
         self.qtitle.set_markup("<b>The wizard has finished</b>")
-        self.quest.set_text("There are no more questions, you correctly created a new "
-                            "configuration for w3af.\n\nPlease provide a name and a "
-                            "description for the new profile:")
+        self.quest.set_text(
+            "There are no more questions, you correctly created a new "
+            "configuration for w3af.\n\nPlease provide a name and a "
+            "description for the new profile:"
+        )
         self.panel.ask_final()
         self.nextbtn.set_label("  Save  ")
         self.finalQ = True
@@ -240,6 +253,7 @@ class Wizard(entries.RememberingWindow):
 
 class SimpleRadioButton(gtk.VBox):
     """Simple to use radiobutton."""
+
     def __init__(self, callback):
         super(SimpleRadioButton, self).__init__()
         self.selected = None
@@ -265,22 +279,24 @@ class WizardChooser(entries.RememberingWindow):
 
     :author: Facundo Batista <facundobatista =at= taniquetil.com.ar>
     """
+
     def __init__(self, w3af):
         super(WizardChooser, self).__init__(
-            w3af, "wizardchooser", "w3af - Wizard Chooser", "Wizards",
-            guessResize=False)
+            w3af, "wizardchooser", "w3af - Wizard Chooser", "Wizards", guessResize=False
+        )
         self.w3af = w3af
 
         # the image at the left
         mainhbox = gtk.HBox()
         self.vbox.pack_start(mainhbox)
-        leftframe = gtk.image_new_from_file(os.path.join(GUI_DATA_PATH,
-                                                         'wizard_frame.png'))
+        leftframe = gtk.image_new_from_file(
+            os.path.join(GUI_DATA_PATH, "wizard_frame.png")
+        )
         vb = gtk.VBox()
         vb.pack_end(leftframe, False, False)
         eb = gtk.EventBox()
         eb.add(vb)
-        color = gtk.gdk.color_parse('#FFFFFF')
+        color = gtk.gdk.color_parse("#FFFFFF")
         eb.modify_bg(gtk.STATE_NORMAL, color)
         mainhbox.pack_start(eb, False, False)
         mainvbox = gtk.VBox()
@@ -333,13 +349,14 @@ class WizardChooser(entries.RememberingWindow):
     def _getWizards(self):
         """Returns the existing wizards."""
         wizs = []
-        wizard_path = os.path.join(ROOT_PATH, 'core/controllers/wizard/wizards')
-        
+        wizard_path = os.path.join(ROOT_PATH, "core/controllers/wizard/wizards")
+
         for arch in os.listdir(wizard_path):
             if arch.endswith(".py") and not arch.startswith("__"):
                 base = arch[:-3]
-                modbase = __import__("w3af.core.controllers.wizard.wizards." +
-                                     base, fromlist=[None])
+                modbase = __import__(
+                    "w3af.core.controllers.wizard.wizards." + base, fromlist=[None]
+                )
                 cls = getattr(modbase, base)
                 wizard_instance = cls(self.w3af)
                 wizs.append(wizard_instance)

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import mimetypes
 
@@ -56,18 +57,18 @@ def _split_vars_files(data):
         pname = token.get_name()
         value = token.get_value()
 
-        enc_pname = smart_str(pname, encoding=DEFAULT_ENCODING, errors='ignore')
+        enc_pname = smart_str(pname, encoding=DEFAULT_ENCODING, errors="ignore")
 
         if is_file_like(value):
             if not value.closed:
                 v_files.append((enc_pname, value))
             else:
-                v_vars.append((enc_pname, ''))
-        elif hasattr(value, 'isFile'):
+                v_vars.append((enc_pname, ""))
+        elif hasattr(value, "isFile"):
             v_files.append((enc_pname, value))
         else:
             # Ensuring we actually send a string
-            value = smart_str(value, encoding=DEFAULT_ENCODING, errors='ignore')
+            value = smart_str(value, encoding=DEFAULT_ENCODING, errors="ignore")
             v_vars.append((enc_pname, value))
 
     return v_vars, v_files
@@ -94,7 +95,7 @@ def get_boundary():
 
     :return:
     """
-    return 'b08c02-53d780-e2bc43-1d5278-a3c0d9-a5c0d9'
+    return "b08c02-53d780-e2bc43-1d5278-a3c0d9-a5c0d9"
 
 
 def multipart_encode(_vars, files, boundary=None, _buffer=None):
@@ -102,26 +103,26 @@ def multipart_encode(_vars, files, boundary=None, _buffer=None):
         boundary = get_boundary()
 
     if _buffer is None:
-        _buffer = ''
+        _buffer = ""
 
     for key, value in _vars:
-        _buffer += '--%s\r\n' % boundary
+        _buffer += "--%s\r\n" % boundary
         _buffer += 'Content-Disposition: form-data; name="%s"' % key
-        _buffer += '\r\n\r\n' + value + '\r\n'
+        _buffer += "\r\n\r\n" + value + "\r\n"
 
     for key, fd in files:
         fd.seek(0)
         filename = fd.name.split(os.path.sep)[-1]
 
         guessed_mime = mimetypes.guess_type(filename)[0]
-        content_type = guessed_mime or 'application/octet-stream'
-        args = (smart_str(key, errors='ignore'), smart_str(filename, errors='ignore'))
+        content_type = guessed_mime or "application/octet-stream"
+        args = (smart_str(key, errors="ignore"), smart_str(filename, errors="ignore"))
 
-        _buffer += '--%s\r\n' % boundary
+        _buffer += "--%s\r\n" % boundary
         _buffer += 'Content-Disposition: form-data; name="%s"; filename="%s"\r\n' % args
-        _buffer += 'Content-Type: %s\r\n' % content_type
-        _buffer += '\r\n%s\r\n' % fd.read()
+        _buffer += "Content-Type: %s\r\n" % content_type
+        _buffer += "\r\n%s\r\n" % fd.read()
 
-    _buffer += '--%s--\r\n\r\n' % boundary
+    _buffer += "--%s--\r\n\r\n" % boundary
 
     return boundary, _buffer

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
 from w3af.core.data.constants.http_messages import W3C_REASONS
@@ -31,6 +32,7 @@ class strange_reason(GrepPlugin):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def grep(self, request, response):
         """
         Analyze if the HTTP response reason messages are strange.
@@ -52,18 +54,20 @@ class strange_reason(GrepPlugin):
             return
 
         # Create a new info object from scratch and save it to the kb:
-        desc = ('The remote Web server sent a strange HTTP reason'
-                ' message "%s", manual inspection is recommended.')
+        desc = (
+            "The remote Web server sent a strange HTTP reason"
+            ' message "%s", manual inspection is recommended.'
+        )
         desc %= response.get_msg()
 
-        i = Info('Strange HTTP Reason message',
-                 desc, response.id, self.get_name())
+        i = Info("Strange HTTP Reason message", desc, response.id, self.get_name())
         i.set_url(response.get_url())
         i.add_to_highlight(response.get_msg())
         i[StrangeHeaderInfoSet.ITAG] = response.get_msg()
 
-        self.kb_append_uniq_group(self, 'strange_reason', i,
-                                  group_klass=StrangeHeaderInfoSet)
+        self.kb_append_uniq_group(
+            self, "strange_reason", i, group_klass=StrangeHeaderInfoSet
+        )
 
     def get_long_desc(self):
         """
@@ -76,14 +80,14 @@ class strange_reason(GrepPlugin):
 
 
 class StrangeHeaderInfoSet(InfoSet):
-    ITAG = 'reason'
+    ITAG = "reason"
     TEMPLATE = (
-        'The remote web server sent {{ uris|length }} HTTP responses with'
+        "The remote web server sent {{ uris|length }} HTTP responses with"
         ' the uncommon status message "{{ reason }}", manual inspection is'
-        ' recommended. The first ten URLs which sent the uncommon message'
-        ' are:\n'
-        ''
-        '{% for url in uris[:10] %}'
-        ' - {{ url }}\n'
-        '{% endfor %}'
+        " recommended. The first ten URLs which sent the uncommon message"
+        " are:\n"
+        ""
+        "{% for url in uris[:10] %}"
+        " - {{ url }}\n"
+        "{% endfor %}"
     )

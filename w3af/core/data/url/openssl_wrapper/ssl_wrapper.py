@@ -13,6 +13,7 @@ IANAL but I believe that the guys from ssl-sni made a mistake at changing the
 license (basically they can't). So I'm choosing to use the original Apache
 License, Version 2.0 for this file.
 """
+
 import ssl
 import time
 import socket
@@ -30,8 +31,7 @@ CERT_REQUIRED = ssl.CERT_REQUIRED
 _openssl_cert_reqs = {
     CERT_NONE: OpenSSL.SSL.VERIFY_NONE,
     CERT_OPTIONAL: OpenSSL.SSL.VERIFY_PEER,
-    CERT_REQUIRED: OpenSSL.SSL.VERIFY_PEER | \
-            OpenSSL.SSL.VERIFY_FAIL_IF_NO_PEER_CERT
+    CERT_REQUIRED: OpenSSL.SSL.VERIFY_PEER | OpenSSL.SSL.VERIFY_FAIL_IF_NO_PEER_CERT,
 }
 
 
@@ -60,6 +60,7 @@ class SSLSocket(object):
     [1] https://github.com/mpdehaan/certmaster/blob/master/certmaster/SSLConnection.py
     [2] https://github.com/andresriancho/w3af/issues/7989
     """
+
     def __init__(self, ssl_connection, sock):
         """
         :param ssl_connection: The established openssl connection
@@ -127,14 +128,14 @@ class SSLSocket(object):
             # empty string signalling that the other side has closed the
             # connection or that some kind of error happen and no more reads
             # should be done on this socket
-            return ''
+            return ""
         except OpenSSL.SSL.WantReadError:
             rd, wd, ed = select.select([self.sock], [], [], self.sock.gettimeout())
             if not rd:
                 # empty string signalling that the other side has closed the
                 # connection or that some kind of error happen and no more reads
                 # should be done on this socket
-                return ''
+                return ""
             else:
                 return self.recv(*args, **kwargs)
         else:
@@ -164,11 +165,10 @@ class SSLSocket(object):
         """
         x509 = self.ssl_conn.get_peer_certificate()
         if not x509:
-            raise ssl.SSLError('No peer certificate')
+            raise ssl.SSLError("No peer certificate")
 
         if binary_form:
-            return OpenSSL.crypto.dump_certificate(OpenSSL.crypto.FILETYPE_ASN1,
-                                                   x509)
+            return OpenSSL.crypto.dump_certificate(OpenSSL.crypto.FILETYPE_ASN1, x509)
 
         dns_name = []
         general_names = SubjectAltName()
@@ -177,7 +177,7 @@ class SSLSocket(object):
             ext = x509.get_extension(i)
             ext_name = ext.get_short_name()
 
-            if ext_name != 'subjectAltName':
+            if ext_name != "subjectAltName":
                 continue
 
             ext_dat = ext.get_data()
@@ -188,16 +188,14 @@ class SSLSocket(object):
                     continue
                 for entry in range(len(name)):
                     component = name.getComponentByPosition(entry)
-                    if component.getName() != 'dNSName':
+                    if component.getName() != "dNSName":
                         continue
-                    dns_name.append(('DNS', str(component.getComponent())))
+                    dns_name.append(("DNS", str(component.getComponent())))
 
         return {
-            'subject': (
-                (('commonName', x509.get_subject().CN),),
-            ),
-            'subjectAltName': dns_name,
-            'notAfter': x509.get_notAfter()
+            "subject": ((("commonName", x509.get_subject().CN),),),
+            "subjectAltName": dns_name,
+            "notAfter": x509.get_notAfter(),
         }
 
 
@@ -207,17 +205,24 @@ class OpenSSLReformattedError(Exception):
 
     def __str__(self):
         try:
-            return '*:%s:%s (glob)' % (self.e.args[0][0][1],
-                                       self.e.args[0][0][2])
+            return "*:%s:%s (glob)" % (self.e.args[0][0][1], self.e.args[0][0][2])
         except Exception:
-            return '%s' % self.e
+            return "%s" % self.e
 
 
-def wrap_socket(sock, keyfile=None, certfile=None, server_side=False,
-                cert_reqs=CERT_NONE, ssl_version=OpenSSL.SSL.TLSv1_1_METHOD,
-                ca_certs=None, do_handshake_on_connect=True,
-                suppress_ragged_eofs=True, server_hostname=None,
-                timeout=None):
+def wrap_socket(
+    sock,
+    keyfile=None,
+    certfile=None,
+    server_side=False,
+    cert_reqs=CERT_NONE,
+    ssl_version=OpenSSL.SSL.TLSv1_1_METHOD,
+    ca_certs=None,
+    do_handshake_on_connect=True,
+    suppress_ragged_eofs=True,
+    server_hostname=None,
+    timeout=None,
+):
     """
     Make a classic socket SSL aware
 
@@ -241,7 +246,7 @@ def wrap_socket(sock, keyfile=None, certfile=None, server_side=False,
         try:
             ctx.load_verify_locations(ca_certs, None)
         except OpenSSL.SSL.Error as e:
-            raise ssl.SSLError('Bad ca_certs: %r' % ca_certs, e)
+            raise ssl.SSLError("Bad ca_certs: %r" % ca_certs, e)
 
     cnx = OpenSSL.SSL.Connection(ctx, sock)
 
@@ -272,13 +277,20 @@ def wrap_socket(sock, keyfile=None, certfile=None, server_side=False,
             cnx.do_handshake()
             break
         except OpenSSL.SSL.WantReadError:
-            in_fds, out_fds, err_fds = select.select([sock, ], [], [], timeout)
+            in_fds, out_fds, err_fds = select.select(
+                [
+                    sock,
+                ],
+                [],
+                [],
+                timeout,
+            )
             if len(in_fds) == 0:
-                raise ssl.SSLError('do_handshake timed out')
+                raise ssl.SSLError("do_handshake timed out")
             else:
                 conn_time = int(time.time() - time_begin)
                 if conn_time > timeout:
-                    raise ssl.SSLError('do_handshake timed out')
+                    raise ssl.SSLError("do_handshake timed out")
                 else:
                     pass
         except OpenSSL.SSL.SysCallError as e:
@@ -287,6 +299,5 @@ def wrap_socket(sock, keyfile=None, certfile=None, server_side=False,
     sock.setblocking(1)
     ssl_socket = SSLSocket(cnx, sock)
     ssl_socket.settimeout(timeout)
-    
-    return ssl_socket
 
+    return ssl_socket

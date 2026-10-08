@@ -19,28 +19,36 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from functools import wraps
 
 import w3af.core.controllers.output_manager as om
 
 
 def read_debug(fn):
-    
+
     @wraps(fn)
     def new(self, filename):
         #   Run the original function
         result = fn(self, filename)
-        no_newline_result = result.replace('\n', '')
-        no_newline_result = no_newline_result.replace('\r', '')
+        no_newline_result = result.replace("\n", "")
+        no_newline_result = no_newline_result.replace("\r", "")
 
         #   Format the message
         if len(no_newline_result) > 25:
-            file_content = '"' + no_newline_result[:25] + '...' + '"'
+            file_content = '"' + no_newline_result[:25] + "..." + '"'
         else:
             file_content = '"' + no_newline_result[:25] + '"'
 
-        msg = 'read( "' + filename + '" , ' + file_content + \
-            ') == ' + str(len(file_content)) + ' bytes.'
+        msg = (
+            'read( "'
+            + filename
+            + '" , '
+            + file_content
+            + ") == "
+            + str(len(file_content))
+            + " bytes."
+        )
 
         #   Print the message to the debug output
         om.out.debug(msg)

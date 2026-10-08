@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 
 from w3af.core.controllers.plugins.evasion_plugin import EvasionPlugin
@@ -30,6 +31,7 @@ class rnd_path(EvasionPlugin):
     Add a random path to the URI.
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def modify_request(self, request):
         """
         Mangles the request
@@ -40,9 +42,9 @@ class rnd_path(EvasionPlugin):
         """
         # We mangle the URL
         path = request.url_object.get_path()
-        if re.match('^/', path):
+        if re.match("^/", path):
             random_alnum = rand_alnum()
-            path = '/' + random_alnum + '/..' + path
+            path = "/" + random_alnum + "/.." + path
 
         # Finally, we set all the mutants to the request in order to return it
         new_url = request.url_object.copy()

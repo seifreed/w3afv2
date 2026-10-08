@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.fuzzer.mutants.mutant import Mutant
 from w3af.core.data.request.empty_request import EmptyFuzzableRequest
 from w3af.core.data.dc.generic.nr_kv_container import NonRepeatKeyValueContainer
@@ -29,6 +30,7 @@ class EmptyMutant(Mutant):
     A Mutant which points its set_dc and get_dc to an internal container, not
     related with a FuzzableRequest
     """
+
     def __init__(self, freq=None):
         self._dc = NonRepeatKeyValueContainer()
 

@@ -20,6 +20,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.misc.encoding import smart_str
 
 
@@ -67,20 +68,21 @@ class DataToken(object):
         self._value = new_value
 
     def __repr__(self):
-        return '<DataToken for %s: "%s">' % (self.get_path(),
-                                             self.get_value())
+        return '<DataToken for %s: "%s">' % (self.get_path(), self.get_value())
 
     def __str__(self):
-        return smart_str(self._value, errors='ignore')
+        return smart_str(self._value, errors="ignore")
 
     def __unicode__(self):
         return str(self._value)
 
     def __eq__(self, other):
         if isinstance(other, DataToken):
-            return (self.get_name() == other.get_name() and
-                    self.get_value() == other.get_value() and
-                    self.get_path() == other.get_path())
+            return (
+                self.get_name() == other.get_name()
+                and self.get_value() == other.get_value()
+                and self.get_path() == other.get_path()
+            )
 
         elif isinstance(other, str):
             return self.get_value() == other
@@ -88,13 +90,14 @@ class DataToken(object):
         elif other is None:
             return False
         else:
-            raise RuntimeError('Can not compare %s with DataToken.' % other)
+            raise RuntimeError("Can not compare %s with DataToken." % other)
 
     def __reduce__(self):
-        return (self.__class__,
-                (self._name, self._value, self._path),
-                {'_payload': self._payload,
-                 '_original_value': self._original_value})
+        return (
+            self.__class__,
+            (self._name, self._value, self._path),
+            {"_payload": self._payload, "_original_value": self._original_value},
+        )
 
     def __getattr__(self, attr):
         # see if this object has attr
@@ -108,4 +111,3 @@ class DataToken(object):
 
     def __len__(self):
         return len(str(self))
-

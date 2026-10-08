@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.kb.vuln_templates.base_template import BaseTemplate
 
 
@@ -26,20 +27,21 @@ class XPathTemplate(BaseTemplate):
     """
     Vulnerability template for eval vulnerability.
     """
+
     def __init__(self):
         super(XPathTemplate, self).__init__()
-        
+
         self.name = self.get_vulnerability_name()
-        
+
     def create_vuln(self):
         v = super(XPathTemplate, self).create_vuln()
-        
+
         mutant = self.create_mutant_from_params()
         mutant.set_dc(self.data)
         mutant.set_token((self.vulnerable_parameter, 0))
 
         v.set_mutant(mutant)
-        
+
         return v
 
     def get_kb_location(self):
@@ -47,7 +49,7 @@ class XPathTemplate(BaseTemplate):
         :return: A tuple with the location where the vulnerability will be
                  saved, example return value would be: ('eval', 'eval')
         """
-        return 'xpath', 'xpath'
+        return "xpath", "xpath"
 
     def get_vulnerability_name(self):
         """
@@ -56,7 +58,7 @@ class XPathTemplate(BaseTemplate):
                  string which can contain any information, not used for any
                  strict matching of vulns before exploiting.
         """
-        return 'XPath injection'
+        return "XPath injection"
 
     def get_vulnerability_desc(self):
-        return 'XPath injection vulnerability'
+        return "XPath injection vulnerability"

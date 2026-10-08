@@ -25,30 +25,34 @@ from w3af.plugins.tests.helper import PluginTest, PluginConfig
 
 class TestWSDLFinder(PluginTest):
 
-    base_url = 'http://moth/w3af/crawl/wsdl_finder/'
+    base_url = "http://moth/w3af/crawl/wsdl_finder/"
 
     _run_configs = {
-        'cfg': {
-            'target': base_url,
-            'plugins': {'crawl': (PluginConfig('wsdl_finder'),
-                                  PluginConfig('web_spider',
-                                               (
-                                               'only_forward', True, PluginConfig.BOOL))),
-                        }
+        "cfg": {
+            "target": base_url,
+            "plugins": {
+                "crawl": (
+                    PluginConfig("wsdl_finder"),
+                    PluginConfig(
+                        "web_spider", ("only_forward", True, PluginConfig.BOOL)
+                    ),
+                ),
+            },
         }
     }
 
-    @attr('ci_fails')
+    @attr("ci_fails")
     def test_wsdl_found(self):
-        cfg = self._run_configs['cfg']
-        self._scan(cfg['target'], cfg['plugins'])
+        cfg = self._run_configs["cfg"]
+        self._scan(cfg["target"], cfg["plugins"])
 
-        infos = self.kb.get('wsdl_greper', 'wsdl')
+        infos = self.kb.get("wsdl_greper", "wsdl")
 
         self.assertEqual(len(infos), 1, infos)
 
         info = infos[0]
 
-        self.assertIn('WSDL resource', info.get_name())
-        self.assertEqual(info.get_url().url_string,
-                          self.base_url + 'web_service_server.php')
+        self.assertIn("WSDL resource", info.get_name())
+        self.assertEqual(
+            info.get_url().url_string, self.base_url + "web_service_server.php"
+        )

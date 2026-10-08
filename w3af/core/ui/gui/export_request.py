@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import gtk
 
 from w3af.core.ui.gui import entries
@@ -45,17 +46,19 @@ class export_request(entries.RememberingWindow):
 
     :author: Andres Riancho < andres.riancho | gmail.com >
     """
+
     def __init__(self, w3af, initial_request=None):
         super(export_request, self).__init__(
-            w3af, "exportreq", "w3af - Export Requests", "Export_Requests")
+            w3af, "exportreq", "w3af - Export Requests", "Export_Requests"
+        )
         self.w3af = w3af
 
         # different ways of exporting data
         self._exporters = [
-            ('HTML', html_export),
-            ('Ajax', ajax_export),
-            ('Python', python_export),
-            ('Ruby', ruby_export)
+            ("HTML", html_export),
+            ("Ajax", ajax_export),
+            ("Python", python_export),
+            ("Ruby", ruby_export),
         ]
 
         # splitted panes
@@ -73,13 +76,14 @@ class export_request(entries.RememberingWindow):
         # middle widgets that show the export method
         table = gtk.Table(1, 6, homogeneous=True)
         cb = gtk.combo_box_new_text()
-        for (lab, fnc) in self._exporters:
+        for lab, fnc in self._exporters:
             cb.append_text(lab)
             b = gtk.Button(lab)
         cb.set_active(0)
         table.attach(cb, 2, 3, 0, 1)
         b = entries.SemiStockButton(
-            "Export", gtk.STOCK_GO_DOWN, _("Export the request"))
+            "Export", gtk.STOCK_GO_DOWN, _("Export the request")
+        )
         b.connect("clicked", self._export, cb)
         table.attach(b, 3, 4, 0, 1)
         vbox.pack_start(table, False, False, padding=5)
@@ -95,7 +99,8 @@ class export_request(entries.RememberingWindow):
         vbox.pack_start(sw, True, True, padding=5)
 
         b = entries.SemiStockButton(
-            "Save request as...", gtk.STOCK_SAVE_AS, _("Save request as..."))
+            "Save request as...", gtk.STOCK_SAVE_AS, _("Save request as...")
+        )
         b.connect("clicked", self._save_as)
         vbox.pack_start(b, False, False, padding=5)
 
@@ -105,8 +110,8 @@ class export_request(entries.RememberingWindow):
         if initial_request is None:
             self.http_request.set_text(export_request_example)
         else:
-            (request_header, request_body) = initial_request
-            self.http_request.set_text(request_header + '\n\n' + request_body)
+            request_header, request_body = initial_request
+            self.http_request.set_text(request_header + "\n\n" + request_body)
         func = self._exporters[0][1]
         self.exported_text.set_text(func(self.http_request.get_text()))
 
@@ -131,19 +136,28 @@ class export_request(entries.RememberingWindow):
         Save the exported data to a file using a file chooser.
         """
         chooser = gtk.FileChooserDialog(
-            title='Save as...', action=gtk.FILE_CHOOSER_ACTION_SAVE,
-            buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN, gtk.RESPONSE_OK))
+            title="Save as...",
+            action=gtk.FILE_CHOOSER_ACTION_SAVE,
+            buttons=(
+                gtk.STOCK_CANCEL,
+                gtk.RESPONSE_CANCEL,
+                gtk.STOCK_OPEN,
+                gtk.RESPONSE_OK,
+            ),
+        )
 
         response = chooser.run()
         if response == gtk.RESPONSE_OK:
             # Save the contents of the self.exported_text to the selected file
             filename = chooser.get_filename()
             try:
-                fh = open(filename, 'w')
+                fh = open(filename, "w")
                 fh.write(self.exported_text.get_text())
             except:
                 msg = _("Failed to save exported data to file")
-                dlg = gtk.MessageDialog(None, gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR, gtk.BUTTONS_OK, msg)
+                dlg = gtk.MessageDialog(
+                    None, gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR, gtk.BUTTONS_OK, msg
+                )
                 opt = dlg.run()
                 dlg.destroy()
         elif response == gtk.RESPONSE_CANCEL:

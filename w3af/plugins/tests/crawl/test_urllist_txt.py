@@ -25,34 +25,34 @@ from w3af.plugins.tests.helper import PluginTest, PluginConfig
 
 class TestURLListTxt(PluginTest):
 
-    base_url = 'http://moth/w3af/'
+    base_url = "http://moth/w3af/"
 
     _run_configs = {
-        'cfg': {
-            'target': base_url,
-            'plugins': {'crawl': (PluginConfig('urllist_txt'),)}
+        "cfg": {
+            "target": base_url,
+            "plugins": {"crawl": (PluginConfig("urllist_txt"),)},
         }
     }
 
-    @attr('ci_fails')
+    @attr("ci_fails")
     def test_urllist_txt(self):
-        cfg = self._run_configs['cfg']
-        self._scan(cfg['target'], cfg['plugins'])
+        cfg = self._run_configs["cfg"]
+        self._scan(cfg["target"], cfg["plugins"])
 
-        infos = self.kb.get('urllist_txt', 'urllist.txt')
+        infos = self.kb.get("urllist_txt", "urllist.txt")
 
         self.assertEqual(len(infos), 1, infos)
 
         info = infos[0]
 
-        self.assertTrue(info.get_name().startswith('urllist.txt file'))
-        self.assertEqual(info.get_url().url_string, 'http://moth/urllist.txt')
+        self.assertTrue(info.get_name().startswith("urllist.txt file"))
+        self.assertEqual(info.get_url().url_string, "http://moth/urllist.txt")
 
         urls = self.kb.get_all_known_urls()
 
         self.assertEqual(len(urls), 2, urls)
 
-        hidden_url = 'http://moth/hidden/'
+        hidden_url = "http://moth/hidden/"
 
         for url in urls:
             if url.url_string == hidden_url:

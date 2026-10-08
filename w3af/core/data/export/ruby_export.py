@@ -21,6 +21,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.parsers.doc.http_request_parser import http_request_parser
 
 
@@ -36,25 +37,28 @@ def ruby_export(request_string):
              request.
     """
     # get the header and the body
-    splitted_request = request_string.split('\n\n')
+    splitted_request = request_string.split("\n\n")
     header = splitted_request[0]
-    body = '\n\n'.join(splitted_request[1:])
+    body = "\n\n".join(splitted_request[1:])
 
     http_request = http_request_parser(header, body)
 
     # Now I do the real magic...
-    res = 'require \'net/https\'\n\n'
+    res = "require 'net/https'\n\n"
 
-    res += 'url = URI.parse("' + ruby_escape_string(
-        http_request.get_uri().url_string) + '")\n'
+    res += (
+        'url = URI.parse("'
+        + ruby_escape_string(http_request.get_uri().url_string)
+        + '")\n'
+    )
 
-    if http_request.get_data() != '\n' and http_request.get_data():
+    if http_request.get_data() != "\n" and http_request.get_data():
         escaped_data = ruby_escape_string(str(http_request.get_data()))
         res += 'data = "' + escaped_data + '"\n'
     else:
-        res += 'data = nil\n'
+        res += "data = nil\n"
 
-    res += 'headers = {\n'
+    res += "headers = {\n"
     headers = http_request.get_headers()
     for header_name, header_value in headers.items():
         header_value = ruby_escape_string(header_value)
@@ -62,17 +66,17 @@ def ruby_export(request_string):
         res += '    "' + header_name + '" => "' + header_value + '",\n'
 
     res = res[:-2]
-    res += '\n}\n'
+    res += "\n}\n"
 
     method = http_request.get_method()
-    res += 'res = Net::HTTP.start(url.host, url.port) do |http|\n'
-    res += '    http.use_ssl = '
-    if http_request.get_url().get_protocol().lower() == 'https':
-        res += 'true\n'
+    res += "res = Net::HTTP.start(url.host, url.port) do |http|\n"
+    res += "    http.use_ssl = "
+    if http_request.get_url().get_protocol().lower() == "https":
+        res += "true\n"
     else:
-        res += 'false\n'
+        res += "false\n"
     res += '    http.send_request("' + method + '", url.path, data, headers)\n'
-    res += 'end\n\n'
-    res += 'puts res.body\n'
+    res += "end\n\n"
+    res += "puts res.body\n"
 
     return res

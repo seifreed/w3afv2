@@ -21,11 +21,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 # Browser List
-INTERNET_EXPLORER_7 = 'Internet Explorer 7'
-INTERNET_EXPLORER_6 = 'Internet Explorer 6'
-NETSCAPE_IE = 'Netscape with IE rendering engine'
-NETSCAPE_G = 'Netscape with Gecko rendering engine'
-FIREFOX = 'Mozilla Firefox'
-OPERA = 'Opera'
-NETSCAPE_4 = 'Older versions of Netscape'
-ALL = 'ALL browsers'
+INTERNET_EXPLORER_7 = "Internet Explorer 7"
+INTERNET_EXPLORER_6 = "Internet Explorer 6"
+NETSCAPE_IE = "Netscape with IE rendering engine"
+NETSCAPE_G = "Netscape with Gecko rendering engine"
+FIREFOX = "Mozilla Firefox"
+OPERA = "Opera"
+NETSCAPE_4 = "Older versions of Netscape"
+ALL = "ALL browsers"

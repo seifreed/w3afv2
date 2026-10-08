@@ -40,6 +40,7 @@ class finger_google(InfrastructurePlugin):
     Search Google using the Google API to get a list of users for a domain.
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def __init__(self):
         InfrastructurePlugin.__init__(self)
 
@@ -78,8 +79,10 @@ class finger_google(InfrastructurePlugin):
         """
         Only search for mail addresses in the google result page.
         """
-        search_string = '@' + self._domain_root
-        result_page_objects = self._google.get_n_result_pages(search_string, self._result_limit)
+        search_string = "@" + self._domain_root
+        result_page_objects = self._google.get_n_result_pages(
+            search_string, self._result_limit
+        )
 
         for result in result_page_objects:
             self._parse_document(result)
@@ -88,7 +91,7 @@ class finger_google(InfrastructurePlugin):
         """
         Performs a complete search for email addresses.
         """
-        search_string = '@' + self._domain_root
+        search_string = "@" + self._domain_root
         google_results = self._google.search(search_string, self._result_limit)
         self.worker_pool.map(self._find_accounts, google_results)
 
@@ -99,13 +102,11 @@ class finger_google(InfrastructurePlugin):
         :param google_result: GoogleResult instance
         :return: A list of valid accounts
         """
-        om.out.debug('Searching for emails in: ' + google_result.URL)
+        om.out.debug("Searching for emails in: " + google_result.URL)
 
         grep_res = google_result.URL.get_domain() == self._domain
 
-        response = self._uri_opener.GET(google_result.URL,
-                                        cache=True,
-                                        grep=grep_res)
+        response = self._uri_opener.GET(google_result.URL, cache=True, grep=grep_res)
         self._parse_document(response)
 
     def _parse_document(self, response):
@@ -130,35 +131,36 @@ class finger_google(InfrastructurePlugin):
                 desc = 'The mail account: "%s" was found at: "%s".'
                 desc %= (mail, response.get_uri())
 
-                i = Info('Email account',
-                         desc,
-                         response.id,
-                         self.get_name())
+                i = Info("Email account", desc, response.id, self.get_name())
                 i.set_url(response.get_uri())
-                i['mail'] = mail
-                i['user'] = mail.split('@')[0]
-                i['url_list'] = {response.get_uri()}
+                i["mail"] = mail
+                i["user"] = mail.split("@")[0]
+                i["url_list"] = {response.get_uri()}
 
-                self.kb_append('emails', 'emails', i)
+                self.kb_append("emails", "emails", i)
 
     def get_options(self):
         """
         :return: A list of option objects for this plugin.
         """
         ol = OptionList()
-        
+
         d = 'Fetch the first "result_limit" results from the Google search'
-        o = opt_factory('result_limit', self._result_limit, d, 'integer')
+        o = opt_factory("result_limit", self._result_limit, d, "integer")
         ol.add(o)
-        
-        d = ('Do a fast search, when this feature is enabled, not all mail'
-             ' addresses are found')
-        h = ('This method is faster, because it only searches for emails in'
-             ' the small page snippet that Google shows to the user after'
-             ' performing a common search.')
-        o = opt_factory('fast_search', self._fast_search, d, 'boolean', help=h)
+
+        d = (
+            "Do a fast search, when this feature is enabled, not all mail"
+            " addresses are found"
+        )
+        h = (
+            "This method is faster, because it only searches for emails in"
+            " the small page snippet that Google shows to the user after"
+            " performing a common search."
+        )
+        o = opt_factory("fast_search", self._fast_search, d, "boolean", help=h)
         ol.add(o)
-        
+
         return ol
 
     def set_options(self, options_list):
@@ -169,8 +171,8 @@ class finger_google(InfrastructurePlugin):
         :param options_list: A dictionary with the options for the plugin.
         :return: No value is returned.
         """
-        self._result_limit = options_list['result_limit'].get_value()
-        self._fast_search = options_list['fast_search'].get_value()
+        self._result_limit = options_list["result_limit"].get_value()
+        self._fast_search = options_list["fast_search"].get_value()
 
     def get_long_desc(self):
         """

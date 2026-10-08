@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-
 import re
 
 import w3af.core.controllers.output_manager as om
@@ -44,34 +43,67 @@ class html_comments(GrepPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    HTML_RE = re.compile('<[a-zA-Z]+ .*?>.*?</[a-zA-Z]+>')
+    HTML_RE = re.compile("<[a-zA-Z]+ .*?>.*?</[a-zA-Z]+>")
 
     HTML_FALSE_POSITIVES = {
-        '[if IE]',
-        '[if !IE]',
-        '[if IE 7 ]',
-        '[if IE 8 ]',
-        '[if IE 9]',
-        '[if lte IE 8]',
-        '[if lte IE 9]',
+        "[if IE]",
+        "[if !IE]",
+        "[if IE 7 ]",
+        "[if IE 8 ]",
+        "[if IE 9]",
+        "[if lte IE 8]",
+        "[if lte IE 9]",
     }
 
     INTERESTING_WORDS = (
         # In English
-        'user', 'pass', 'xxx', 'fix', 'bug', 'broken', 'oops', 'hack',
-        'caution', 'todo', 'note', 'warning', '!!!', '???', 'shit',
-        'pass', 'password', 'passwd', 'pwd', 'secret', 'stupid',
-        
+        "user",
+        "pass",
+        "xxx",
+        "fix",
+        "bug",
+        "broken",
+        "oops",
+        "hack",
+        "caution",
+        "todo",
+        "note",
+        "warning",
+        "!!!",
+        "???",
+        "shit",
+        "pass",
+        "password",
+        "passwd",
+        "pwd",
+        "secret",
+        "stupid",
         # In Spanish
-        'tonto', 'porqueria', 'cuidado', 'usuario', 'contraseña',
-        'puta', 'email', 'security', 'captcha', 'pinga', 'cojones',
-        
+        "tonto",
+        "porqueria",
+        "cuidado",
+        "usuario",
+        "contraseña",
+        "puta",
+        "email",
+        "security",
+        "captcha",
+        "pinga",
+        "cojones",
         # In Portuguese
-        'banco', 'bradesco', 'itau', 'visa', 'bancoreal', 'transfêrencia',
-        'depósito', 'cartão', 'crédito', 'dados pessoais'
+        "banco",
+        "bradesco",
+        "itau",
+        "visa",
+        "bancoreal",
+        "transfêrencia",
+        "depósito",
+        "cartão",
+        "crédito",
+        "dados pessoais",
     )
 
-    _multi_in = MultiIn([' %s ' % w for w in INTERESTING_WORDS])
+    _multi_in = MultiIn([" %s " % w for w in INTERESTING_WORDS])
 
     def grep(self, request, response):
         """
@@ -83,12 +115,12 @@ class html_comments(GrepPlugin):
         """
         if not response.is_text_or_html():
             return
-        
+
         try:
             dp = parser_cache.dpc.get_document_parser_for(response)
         except BaseFrameworkException:
             return
-        
+
         for comment in dp.get_comments():
             self._interesting_word(comment, request, response)
             self._html_in_comment(comment, request, response)
@@ -106,22 +138,21 @@ class html_comments(GrepPlugin):
             if request.sent(comment):
                 continue
 
-            desc = ('A comment with the string "%s" was found in: "%s".'
-                    ' This could be interesting.')
+            desc = (
+                'A comment with the string "%s" was found in: "%s".'
+                " This could be interesting."
+            )
             desc %= (word, response.get_url())
 
-            i = Info.from_fr('Interesting HTML comment',
-                             desc,
-                             response.id,
-                             self.get_name(),
-                             request)
+            i = Info.from_fr(
+                "Interesting HTML comment", desc, response.id, self.get_name(), request
+            )
             i.add_to_highlight(word)
             i[HTMLCommentHidesHTMLInfoSet.ITAG] = comment
 
-            self.kb_append_uniq_group(self,
-                                      'interesting_comments',
-                                      i,
-                                      group_klass=HTMLCommentHidesHTMLInfoSet)
+            self.kb_append_uniq_group(
+                self, "interesting_comments", i, group_klass=HTMLCommentHidesHTMLInfoSet
+            )
 
     def _html_in_comment(self, comment, request, response):
         """
@@ -146,27 +177,30 @@ class html_comments(GrepPlugin):
         # There is HTML code in the comment, report it
         #
         comment = comment.strip()
-        comment = comment.replace('\n', '')
-        comment = comment.replace('\r', '')
+        comment = comment.replace("\n", "")
+        comment = comment.replace("\r", "")
         comment = comment[:40]
 
-        desc = ('A comment containing HTML code "%s" was found in: "%s".'
-                ' This could be interesting.')
+        desc = (
+            'A comment containing HTML code "%s" was found in: "%s".'
+            " This could be interesting."
+        )
         desc %= (comment, response.get_url())
 
-        i = Info.from_fr('HTML comment contains HTML code',
-                         desc,
-                         response.id,
-                         self.get_name(),
-                         request)
+        i = Info.from_fr(
+            "HTML comment contains HTML code",
+            desc,
+            response.id,
+            self.get_name(),
+            request,
+        )
         i.set_uri(response.get_uri())
         i.add_to_highlight(html_in_comment.group(0))
         i[HTMLCommentHidesHTMLInfoSet.ITAG] = comment
 
-        self.kb_append_uniq_group(self,
-                                  'html_comment_hides_html',
-                                  i,
-                                  group_klass=HTMLCommentHidesHTMLInfoSet)
+        self.kb_append_uniq_group(
+            self, "html_comment_hides_html", i, group_klass=HTMLCommentHidesHTMLInfoSet
+        )
 
     def get_long_desc(self):
         """
@@ -180,26 +214,26 @@ class html_comments(GrepPlugin):
 
 
 class HTMLCommentHidesHTMLInfoSet(InfoSet):
-    ITAG = 'html_comment'
+    ITAG = "html_comment"
     TEMPLATE = (
-        'A total of {{ uris|length }} HTTP requests contained an HTML comment'
+        "A total of {{ uris|length }} HTTP requests contained an HTML comment"
         ' that includes HTML tags: "{{ html_comment }}". The first ten matching'
-        ' URLs are:\n'
-        ''
-        '{% for url in uris[:10] %}'
-        ' - {{ url }}\n'
-        '{% endfor %}'
+        " URLs are:\n"
+        ""
+        "{% for url in uris[:10] %}"
+        " - {{ url }}\n"
+        "{% endfor %}"
     )
 
 
 class HTMLCommentInterestingWordInfoSet(InfoSet):
-    ITAG = 'word'
+    ITAG = "word"
     TEMPLATE = (
-        'A total of {{ uris|length }} HTTP requests contained an HTML comment '
+        "A total of {{ uris|length }} HTTP requests contained an HTML comment "
         ' that included the interesting word "{{ word }}". The first ten matching'
-        ' URLs are:\n'
-        ''
-        '{% for url in uris[:10] %}'
-        ' - {{ url }}\n'
-        '{% endfor %}'
+        " URLs are:\n"
+        ""
+        "{% for url in uris[:10] %}"
+        " - {{ url }}\n"
+        "{% endfor %}"
     )

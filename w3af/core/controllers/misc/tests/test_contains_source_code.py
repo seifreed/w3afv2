@@ -20,6 +20,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import unittest
 
@@ -32,13 +33,20 @@ from w3af import ROOT_PATH
 
 
 class TestContainsSourceCode(unittest.TestCase):
-    TEST_FILE = os.path.join(ROOT_PATH, 'core', 'controllers', 'misc', 'tests',
-                             'data', 'code-detect-false-positive.jpg')
+    TEST_FILE = os.path.join(
+        ROOT_PATH,
+        "core",
+        "controllers",
+        "misc",
+        "tests",
+        "data",
+        "code-detect-false-positive.jpg",
+    )
 
     def create_response(self, body, content_type=None):
-        content_type = content_type if content_type is not None else 'text/html'
-        headers = Headers([('Content-Type', content_type)])
-        url = URL('http://www.w3af.org/')
+        content_type = content_type if content_type is not None else "text/html"
+        headers = Headers([("Content-Type", content_type)])
+        url = URL("http://www.w3af.org/")
         return HTTPResponse(200, body, headers, url, url)
 
     def test_php(self):
@@ -47,99 +55,105 @@ class TestContainsSourceCode(unittest.TestCase):
 
         self.assertNotEqual(match, None)
         self.assertEqual(lang, {PHP})
-    
+
     def test_no_code_case01(self):
         source = self.create_response('foo <?php echo "bar')
         match, lang = contains_source_code(source)
-        
+
         self.assertEqual(match, None)
         self.assertEqual(lang, None)
-    
+
     def test_no_code_case02(self):
         source = self.create_response('foo <?xml ?> "bar')
         match, lang = contains_source_code(source)
-        
+
         self.assertEqual(match, None)
         self.assertEqual(lang, None)
 
     def test_no_code_case03(self):
         source = self.create_response('foo <?php xpacket ?> "bar')
         match, lang = contains_source_code(source)
-        
+
         self.assertEqual(match, None)
         self.assertEqual(lang, None)
 
     def test_code_case04(self):
         source = self.create_response('foo <?php ypacket ?> "bar')
         match, lang = contains_source_code(source)
-        
+
         self.assertNotEqual(match, None)
         self.assertEqual(lang, {PHP})
 
     def test_code_python(self):
-        source = self.create_response('''
+        source = self.create_response("""
                  def foo(self):
                     pass
-                 ''')
+                 """)
         match, lang = contains_source_code(source)
 
         self.assertNotEqual(match, None)
         self.assertEqual(lang, {PYTHON})
 
     def test_code_java(self):
-        source = self.create_response('''
+        source = self.create_response("""
                  public class Person{
                     public void printPerson() {
                       System.out.println(name + ", " + this.getAge());
                     }
                  }
-                 ''')
+                 """)
         match, lang = contains_source_code(source)
 
         self.assertNotEqual(match, None)
         self.assertEqual(lang, {JAVA})
 
     def test_code_ruby_01(self):
-        source = self.create_response('''class Person < ActiveRecord::Base
+        source = self.create_response("""class Person < ActiveRecord::Base
                         validates :name, presence: true
-                    end''')
+                    end""")
         match, lang = contains_source_code(source)
 
         self.assertNotEqual(match, None)
         self.assertEqual(lang, {RUBY})
 
     def test_code_ruby_02(self):
-        source = self.create_response('''class Person
+        source = self.create_response("""class Person
                         def say_hi
                             puts 'hi'
                         end
-                    end''')
+                    end""")
         match, lang = contains_source_code(source)
 
         self.assertNotEqual(match, None)
         self.assertEqual(lang, {RUBY})
 
     def test_code_false_positive_ruby_01(self):
-        source = self.create_response('var f=_.template("<div class="alert'
-                                      ' alert-error <% if (title) { %>'
-                                      ' alert-block <% } %>',
-                                      content_type='application/javascript')
+        source = self.create_response(
+            'var f=_.template("<div class="alert'
+            " alert-error <% if (title) { %>"
+            " alert-block <% } %>",
+            content_type="application/javascript",
+        )
         match, lang = contains_source_code(source)
         self.assertEqual(match, None)
 
     def test_code_false_positive_ruby_02(self):
-        source = self.create_response('class IPs on VPS or Dedicated Server'
-                                      ' <a href="/seo-hosting/">def</a>'
-                                      ' ga("send',
-                                      content_type='application/javascript')
+        source = self.create_response(
+            "class IPs on VPS or Dedicated Server"
+            ' <a href="/seo-hosting/">def</a>'
+            ' ga("send',
+            content_type="application/javascript",
+        )
         match, lang = contains_source_code(source)
         self.assertEqual(match, None)
 
     def test_code_false_positive_ruby_03(self):
-        source = self.create_response('class IPs on VPS or Dedicated Server'
-                                      ' <a href="/seo-hosting/"> def </a>'
-                                      ' ga("send',
-                                      content_type='application/javascript')
+        source = self.create_response(
+            "class IPs on VPS or Dedicated Server"
+            ' <a href="/seo-hosting/"> def </a>'
+            ' ga("send',
+            content_type="application/javascript",
+        )
         match, lang = contains_source_code(source)
         self.assertEqual(match, None)
 
@@ -148,9 +162,11 @@ class TestContainsSourceCode(unittest.TestCase):
         Will not match because of the </a> before end. End requires a space (\s)
         before the token.
         """
-        source = self.create_response('class IPs on VPS or Dedicated Server'
-                                      ' <a href="/seo-hosting/"> def </a>end',
-                                      content_type='application/javascript')
+        source = self.create_response(
+            "class IPs on VPS or Dedicated Server"
+            ' <a href="/seo-hosting/"> def </a>end',
+            content_type="application/javascript",
+        )
         match, lang = contains_source_code(source)
         self.assertEqual(match, None)
 
@@ -158,7 +174,8 @@ class TestContainsSourceCode(unittest.TestCase):
         """
         Java source code regex matches bootstrap.js
         """
-        source = self.create_response("""PUBLIC CLASS DEFINITION
+        source = self.create_response(
+            """PUBLIC CLASS DEFINITION
                                       // ==============================
 
                                       var Button = function (element, options) {
@@ -167,21 +184,22 @@ class TestContainsSourceCode(unittest.TestCase):
                                         this.isLoading = false
                                       }
                                       """,
-                                      content_type='application/javascript')
+            content_type="application/javascript",
+        )
         match, lang = contains_source_code(source)
         self.assertEqual(match, None)
 
     def test_code_false_positive_java_02(self):
-        source = self.create_response('''
+        source = self.create_response("""
                  public class Person{
                  }
-                 ''')
+                 """)
         match, lang = contains_source_code(source)
         self.assertEqual(match, None)
 
     def test_code_false_positive_image(self):
-        no_source = self.create_response(open(self.TEST_FILE).read(),
-                                         content_type='image/jpeg')
+        no_source = self.create_response(
+            open(self.TEST_FILE).read(), content_type="image/jpeg"
+        )
         match, lang = contains_source_code(no_source)
         self.assertEqual(match, None)
-

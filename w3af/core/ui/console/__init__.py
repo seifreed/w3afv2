@@ -1,10 +1,12 @@
 try:
-    _('blah')
+    _("blah")
 except:
     import builtins
-    builtins.__dict__['_'] = lambda x: x
+
+    builtins.__dict__["_"] = lambda x: x
 
 
 def setUpPackage():
     import builtins
-    builtins.__dict__['_'] = lambda x: x
+
+    builtins.__dict__["_"] = lambda x: x

@@ -19,21 +19,21 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import gtk
 import gobject
 import cairo
 import pango
 import random
 
-
 MIN_SPEED = 0
 MAX_SPEED = 400
 
 
 class Speedometer(gtk.DrawingArea):
-    
+
     # pylint: disable-msg=E1101
-    
+
     def __init__(self):
         super(Speedometer, self).__init__()
         self.connect("expose_event", self.do_expose_event)
@@ -62,7 +62,8 @@ class Speedometer(gtk.DrawingArea):
         # This invalidates the screen, causing the expose event to fire.
         self.alloc = self.get_allocation()
         rect = gtk.gdk.Rectangle(
-            self.alloc.x, self.alloc.y, self.alloc.width, self.alloc.height)
+            self.alloc.x, self.alloc.y, self.alloc.width, self.alloc.height
+        )
         self.window.invalidate_rect(rect, True)
 
         return True  # Causes timeout to tick again.
@@ -84,10 +85,11 @@ class Speedometer(gtk.DrawingArea):
 
     def draw(self, width, height):
         # First we draw the background
-        matrix = cairo.Matrix(1, 0, 0, 1, width / 2 - 126,
-                              height / 2 - 126)  # 126 is image width/2
+        matrix = cairo.Matrix(
+            1, 0, 0, 1, width / 2 - 126, height / 2 - 126
+        )  # 126 is image width/2
         self.background_ctx.transform(matrix)  # Make it so...
-        self.draw_image(self.background_ctx, 0, 0, 'speedometer.png')
+        self.draw_image(self.background_ctx, 0, 0, "speedometer.png")
 
         # Now we draw the requests per second
         self.draw_text()
@@ -123,16 +125,16 @@ class Speedometer(gtk.DrawingArea):
 
         # Now, change the matrix again to:
         cairo.Matrix.translate(
-            ThingMatrix, self.rx, self.ry)  # move it all to point of rotation
+            ThingMatrix, self.rx, self.ry
+        )  # move it all to point of rotation
         cairo.Matrix.rotate(ThingMatrix, self.rot)  # Do the rotation
-        cairo.Matrix.translate(
-            ThingMatrix, -self.rx, -self.ry)  # move it back again
+        cairo.Matrix.translate(ThingMatrix, -self.rx, -self.ry)  # move it back again
         cairo.Matrix.scale(ThingMatrix, self.sx, self.sy)  # Now scale it all
         cr.transform(ThingMatrix)  # and commit it to the context
 
         # Now, whatever is draw is "under the influence" of the
         # context and all that matrix magix we just did.
-        self.draw_image(cr, 0, 0, 'arrow.png')
+        self.draw_image(cr, 0, 0, "arrow.png")
 
         # Based on the current speed, and the current angle of the arrow I have to calculate
         # the angle to rotate (positive or negative).
@@ -160,7 +162,8 @@ class Speedometer(gtk.DrawingArea):
 
     def draw_text(self):
         self._layout = self.create_pango_layout(
-            str(self._current_speed) + ' req/second')
+            str(self._current_speed) + " req/second"
+        )
         self._layout.set_font_description(pango.FontDescription("Arial 13"))
         fontw, fonth = self._layout.get_pixel_size()
         self.text_ctx.move_to(150, 243)
@@ -198,6 +201,6 @@ def run(Widget):
     window.present()
     gtk.main()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     run(Speedometer)
-    

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import copy
 
 import w3af.core.data.constants.severity as severity
@@ -26,8 +27,7 @@ import w3af.core.data.constants.severity as severity
 from w3af.core.data.kb.vuln import Vuln
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal
-from w3af.core.controllers.exceptions import (ScanMustStopException,
-                                              HTTPRequestException)
+from w3af.core.controllers.exceptions import ScanMustStopException, HTTPRequestException
 
 
 class un_ssl(AuditPlugin):
@@ -71,11 +71,11 @@ class un_ssl(AuditPlugin):
         insecure_uri = initial_uri.copy()
         secure_uri = initial_uri.copy()
 
-        insecure_uri.set_protocol('http')
+        insecure_uri.set_protocol("http")
         insecure_fr = copy.deepcopy(freq)
         insecure_fr.set_url(insecure_uri)
 
-        secure_uri.set_protocol('https')
+        secure_uri.set_protocol("https")
         secure_fr = copy.deepcopy(freq)
         secure_fr.set_url(secure_uri)
 
@@ -83,11 +83,11 @@ class un_ssl(AuditPlugin):
         # the requests to fail quickly and without affecting the library's error
         # rate
         send_mutant = self._uri_opener.send_mutant
-        kwargs = {'grep': False, 'error_handling': False}
+        kwargs = {"grep": False, "error_handling": False}
 
         try:
             insecure_response = send_mutant(insecure_fr, **kwargs)
-            secure_response = send_mutant(secure_fr,  **kwargs)
+            secure_response = send_mutant(secure_fr, **kwargs)
         except (HTTPRequestException, ScanMustStopException):
             # No vulnerability to report since one of these threw an error
             # (because there is nothing listening on that port). It makes
@@ -106,25 +106,34 @@ class un_ssl(AuditPlugin):
             if self._redirects_to_secure(insecure_response, secure_response):
                 return
 
-            if insecure_response.get_code() == secure_response.get_code()\
-            and fuzzy_equal(insecure_response.get_body(),
-                            secure_response.get_body(),
-                            0.95):
+            if (
+                insecure_response.get_code() == secure_response.get_code()
+                and fuzzy_equal(
+                    insecure_response.get_body(), secure_response.get_body(), 0.95
+                )
+            ):
 
-                desc = ('Secure content can be accessed using the insecure'
-                        ' HTTP protocol. The vulnerable URLs used to verify'
-                        ' this vulnerability are:\n'
-                        ' - %s\n'
-                        ' - %s\n')
+                desc = (
+                    "Secure content can be accessed using the insecure"
+                    " HTTP protocol. The vulnerable URLs used to verify"
+                    " this vulnerability are:\n"
+                    " - %s\n"
+                    " - %s\n"
+                )
                 desc %= (secure_uri, insecure_uri)
 
                 response_ids = [insecure_response.id, secure_response.id]
 
-                v = Vuln.from_fr('Secure content over insecure channel',
-                                 desc, severity.MEDIUM, response_ids,
-                                 self.get_name(), freq)
+                v = Vuln.from_fr(
+                    "Secure content over insecure channel",
+                    desc,
+                    severity.MEDIUM,
+                    response_ids,
+                    self.get_name(),
+                    freq,
+                )
 
-                self.kb_append(self, 'un_ssl', v)
+                self.kb_append(self, "un_ssl", v)
 
                 # In most cases, when one resource is available, all are
                 # so we just stop searching for this vulnerability
@@ -146,10 +155,10 @@ class un_ssl(AuditPlugin):
         """
         if insecure_response.was_redirected():
             redirect_target = insecure_response.get_redir_url()
-            
-            if redirect_target.get_protocol() == 'https':
+
+            if redirect_target.get_protocol() == "https":
                 return True
-        
+
         return False
 
     def get_long_desc(self):

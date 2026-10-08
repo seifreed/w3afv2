@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import hashlib
 import json
 import os.path
@@ -42,10 +43,13 @@ class php_eggs(InfrastructurePlugin):
     Fingerprint the PHP version using documented easter eggs that exist in PHP.
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
-    PHP_EGGS = [('?=PHPB8B5F2A0-3C92-11d3-A3A9-4C7B08C10000', 'PHP Credits'),
-                ('?=PHPE9568F34-D428-11d2-A769-00AA001ACF42', 'PHP Logo'),
-                ('?=PHPE9568F35-D428-11d2-A769-00AA001ACF42', 'Zend Logo'),
-                ('?=PHPE9568F36-D428-11d2-A769-00AA001ACF42', 'PHP Logo 2')]
+
+    PHP_EGGS = [
+        ("?=PHPB8B5F2A0-3C92-11d3-A3A9-4C7B08C10000", "PHP Credits"),
+        ("?=PHPE9568F34-D428-11d2-A769-00AA001ACF42", "PHP Logo"),
+        ("?=PHPE9568F35-D428-11d2-A769-00AA001ACF42", "Zend Logo"),
+        ("?=PHPE9568F36-D428-11d2-A769-00AA001ACF42", "PHP Logo 2"),
+    ]
 
     # Empty EGG_DB array, will be filled with external data
     EGG_DB = {}
@@ -57,8 +61,9 @@ class php_eggs(InfrastructurePlugin):
         self._already_analyzed_ext = ScalableBloomFilter()
 
         # Internal DB
-        self._db_file = os.path.join(ROOT_PATH, 'plugins', 'infrastructure',
-                                     'php_eggs', 'eggs.json')
+        self._db_file = os.path.join(
+            ROOT_PATH, "plugins", "infrastructure", "php_eggs", "eggs.json"
+        )
 
         # Get data from external JSON file and fill EGG_DB array
         data = self.read_jsondata(self._db_file)
@@ -81,11 +86,11 @@ class php_eggs(InfrastructurePlugin):
         """
         egg_db = {}
 
-        for egg in json_egg_data['db']:
-            version = egg['version']
+        for egg in json_egg_data["db"]:
+            version = egg["version"]
             egg_db[version] = {}
 
-            for key in ('credits', 'php_1', 'php_2', 'zend'):
+            for key in ("credits", "php_1", "php_2", "zend"):
                 if key in egg:
                     egg_db[version][key] = egg[key]
 
@@ -127,8 +132,9 @@ class php_eggs(InfrastructurePlugin):
         HTTP GET the URLs for PHP Eggs
         :return: A list with the HTTP response objects
         """
+
         def http_get(fuzzable_request, egg):
-            (egg_url, egg_desc) = egg
+            egg_url, egg_desc = egg
             egg_url = fuzzable_request.get_url().uri2url().url_join(egg_url)
             response = self._uri_opener.GET(egg_url, cache=True, grep=False)
             return response, egg_url, egg_desc
@@ -163,8 +169,8 @@ class php_eggs(InfrastructurePlugin):
 
         for query_result in query_results:
             response = query_result.http_response
-            content_type, _ = response.get_headers().iget('content-type', '')
-            if 'image' in content_type:
+            content_type, _ = response.get_headers().iget("content-type", "")
+            if "image" in content_type:
                 images += 1
             else:
                 not_images += 1
@@ -174,16 +180,19 @@ class php_eggs(InfrastructurePlugin):
             # The remote web server has expose_php = On. Report all the findings
             #
             for query_result in query_results:
-                desc = ('The PHP framework running on the remote server has a'
-                        ' "%s" easter egg, access to the PHP egg is possible'
-                        ' through the URL: "%s".')
+                desc = (
+                    "The PHP framework running on the remote server has a"
+                    ' "%s" easter egg, access to the PHP egg is possible'
+                    ' through the URL: "%s".'
+                )
                 desc %= (query_result.egg_desc, query_result.egg_URL)
-                
-                i = Info('PHP Egg', desc, query_result.http_response.id,
-                         self.get_name())
+
+                i = Info(
+                    "PHP Egg", desc, query_result.http_response.id, self.get_name()
+                )
                 i.set_url(query_result.egg_URL)
-                
-                kb.kb.append(self, 'eggs', i)
+
+                kb.kb.append(self, "eggs", i)
                 om.out.information(i.get_desc())
 
             return True
@@ -219,47 +228,55 @@ class php_eggs(InfrastructurePlugin):
             if matching_versions:
 
                 if len(matching_versions) > 1:
-                    desc = ('A PHP easter egg was found that matches several'
-                            ' different versions of PHP. The PHP framework'
-                            ' version running on the remote server was'
-                            ' identified as one of the following:\n- %s')
+                    desc = (
+                        "A PHP easter egg was found that matches several"
+                        " different versions of PHP. The PHP framework"
+                        " version running on the remote server was"
+                        " identified as one of the following:\n- %s"
+                    )
                 else:
-                    desc = ('The PHP framework version running on the remote'
-                            ' server was identified as:\n- %s')
+                    desc = (
+                        "The PHP framework version running on the remote"
+                        " server was identified as:\n- %s"
+                    )
 
-                versions = '\n- '.join(matching_versions)
+                versions = "\n- ".join(matching_versions)
                 desc %= versions
-                
+
                 response_ids = [r.http_response.get_id() for r in query_results]
-                
-                i = Info('Fingerprinted PHP version', desc, response_ids,
-                         self.get_name())
-                i['version'] = matching_versions
-                
-                kb.kb.append(self, 'version', i)
+
+                i = Info(
+                    "Fingerprinted PHP version", desc, response_ids, self.get_name()
+                )
+                i["version"] = matching_versions
+
+                kb.kb.append(self, "version", i)
                 om.out.information(i.get_desc())
 
             if not found:
-                version = 'unknown'
-                powered_by_headers = kb.kb.raw_read('server_header',
-                                                    'powered_by_string')
+                version = "unknown"
+                powered_by_headers = kb.kb.raw_read(
+                    "server_header", "powered_by_string"
+                )
                 for v in powered_by_headers:
                     if not isinstance(v, str):
                         continue
 
-                    if 'php' not in v.lower():
+                    if "php" not in v.lower():
                         continue
 
                     try:
-                        version = v.split('/')[1]
+                        version = v.split("/")[1]
                         break
                     except IndexError:
                         pass
 
-                msg = ('The PHP version could not be identified using PHP eggs,'
-                       ' please send this signature and the PHP version to the'
-                       ' w3af project develop mailing list. Signature:'
-                       ' EGG_DB[\'%s\'] = %r\n')
+                msg = (
+                    "The PHP version could not be identified using PHP eggs,"
+                    " please send this signature and the PHP version to the"
+                    " w3af project develop mailing list. Signature:"
+                    " EGG_DB['%s'] = %r\n"
+                )
                 msg = msg % (version, desc_hashes)
                 om.out.information(msg)
 
@@ -268,7 +285,7 @@ class php_eggs(InfrastructurePlugin):
         :return: A list with the names of the plugins that should be run before
                  the current one.
         """
-        return ['infrastructure.server_header']
+        return ["infrastructure.server_header"]
 
     def get_long_desc(self):
         """
@@ -290,10 +307,8 @@ class php_eggs(InfrastructurePlugin):
 
 def md5_hash(body):
     if isinstance(body, str):
-        body = body.encode('utf-8')
+        body = body.encode("utf-8")
     return hashlib.md5(body).hexdigest()
 
 
-EggQueryResult = namedtuple('EggQueryResult', ['http_response',
-                                               'egg_desc',
-                                               'egg_URL'])
+EggQueryResult = namedtuple("EggQueryResult", ["http_response", "egg_desc", "egg_URL"])

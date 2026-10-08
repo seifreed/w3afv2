@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 from nose.plugins.attrib import attr
 
 from w3af.core.controllers.exceptions import RunOnce
@@ -30,39 +31,51 @@ from w3af.plugins.tests.helper import PluginTest, PluginConfig
 
 class TestArchiveDotOrg(PluginTest):
 
-    archive_url = 'http://w3af.org/'
+    archive_url = "http://w3af.org/"
 
     _run_config = {
-        'target': None,
-        'plugins': {'crawl': (PluginConfig('archive_dot_org',),)}
+        "target": None,
+        "plugins": {
+            "crawl": (
+                PluginConfig(
+                    "archive_dot_org",
+                ),
+            )
+        },
     }
 
-    @attr('ci_fails')
+    @attr("ci_fails")
     def test_found_urls(self):
-        self._scan(self.archive_url, self._run_config['plugins'])
+        self._scan(self.archive_url, self._run_config["plugins"])
         urls = self.kb.get_all_known_urls()
 
-        EXPECTED_URLS = ('download', 'take-a-tour', 'community', 'blog',
-                         'howtos', 'project-history')
+        EXPECTED_URLS = (
+            "download",
+            "take-a-tour",
+            "community",
+            "blog",
+            "howtos",
+            "project-history",
+        )
 
         expected_set = set((self.archive_url + end) for end in EXPECTED_URLS)
         urls_as_strings = set([u.url_string for u in urls])
 
-        msg = 'Got the following URLs %s and expected %s.'
+        msg = "Got the following URLs %s and expected %s."
         msg = msg % (urls_as_strings, expected_set)
 
         self.assertTrue(urls_as_strings.issuperset(expected_set), msg)
         self.assertGreater(len(urls), 50)
 
     def test_raise_on_local_domain(self):
-        url = URL('http://moth/')
-        fr = FuzzableRequest(url, method='GET')
+        url = URL("http://moth/")
+        fr = FuzzableRequest(url, method="GET")
         ado = archive_dot_org()
         self.assertRaises(RunOnce, ado.discover_wrapper, fr)
 
     def test_raise_on_domain_not_in_archive(self):
-        url = URL('http://www.w3af-scanner.org/')
-        fr = FuzzableRequest(url, method='GET')
+        url = URL("http://www.w3af-scanner.org/")
+        fr = FuzzableRequest(url, method="GET")
 
         ado = archive_dot_org()
         uri_opener = ExtendedUrllib()

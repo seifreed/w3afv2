@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import gtk
 
 from w3af.core.ui.gui.constants import W3AF_ICON
@@ -27,8 +28,9 @@ from w3af.core.data.constants.disclaimer import DISCLAIMER
 
 
 def ask(msg):
-    dlg = gtk.MessageDialog(None, gtk.DIALOG_MODAL,
-                            gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO, msg)
+    dlg = gtk.MessageDialog(
+        None, gtk.DIALOG_MODAL, gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO, msg
+    )
     dlg.set_icon_from_file(W3AF_ICON)
     opt = dlg.run()
     dlg.destroy()
@@ -47,9 +49,8 @@ class DisclaimerController(object):
         if startup_cfg.accepted_disclaimer:
             return True
 
-
-        QUESTION = 'Do you accept the terms and conditions?'
-        msg = DISCLAIMER + '\n\n' + QUESTION
+        QUESTION = "Do you accept the terms and conditions?"
+        msg = DISCLAIMER + "\n\n" + QUESTION
         user_response = ask(msg)
 
         if user_response:

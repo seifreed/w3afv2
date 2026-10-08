@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import sys
 import os
 import socket
@@ -38,6 +39,7 @@ class ConnectionManager(Process):
     object in order to relay the data between the w3afAgentServer and the
     w3afAgentClient.
     """
+
     def __init__(self, ip_address, port):
         Process.__init__(self)
         self.daemon = True
@@ -64,7 +66,7 @@ class ConnectionManager(Process):
 
         for conn in self._connections:
             conn.close()
-        om.out.debug('Stoped connection manager.')
+        om.out.debug("Stoped connection manager.")
 
     def run(self):
         """
@@ -80,8 +82,10 @@ class ConnectionManager(Process):
             self.sock.bind((self._ip_address, self._port))
             self.sock.listen(5)
         except Exception as e:
-            msg = '[w3afAgentServer] Failed to bind to %s:%s' % (
-                self._ip_address, self._port)
+            msg = "[w3afAgentServer] Failed to bind to %s:%s" % (
+                self._ip_address,
+                self._port,
+            )
             msg += '. Error: "%s".' % e
             raise BaseFrameworkException(msg)
 
@@ -90,17 +94,19 @@ class ConnectionManager(Process):
             try:
                 newsock, address = self.sock.accept()
             except KeyboardInterrupt as k:
-                om.out.console('Exiting.')
+                om.out.console("Exiting.")
                 break
             except socket.error:
                 # This catches socket timeouts
                 pass
             else:
-                om.out.debug('[ConnectionManager] Adding a new connection to the connection manager.')
+                om.out.debug(
+                    "[ConnectionManager] Adding a new connection to the connection manager."
+                )
                 self._connections.append(newsock)
                 if not self._reportedConnection:
                     self._reportedConnection = True
-                    om.out.console('w3afAgent service is up and running.')
+                    om.out.console("w3afAgent service is up and running.")
 
     def is_working(self):
         """
@@ -120,7 +126,8 @@ class ConnectionManager(Process):
             return res
         else:
             raise BaseFrameworkException(
-                '[ConnectionManager] No available connections.')
+                "[ConnectionManager] No available connections."
+            )
 
 
 class PipeThread(Process):
@@ -133,12 +140,13 @@ class PipeThread(Process):
         self.source = source
         self.sink = sink
 
-        om.out.debug('[PipeThread] Starting data forwarding: %s ( %s -> %s )' %
-                     (self, source.getpeername(), sink.getpeername()))
+        om.out.debug(
+            "[PipeThread] Starting data forwarding: %s ( %s -> %s )"
+            % (self, source.getpeername(), sink.getpeername())
+        )
 
         PipeThread.pipes.append(self)
-        om.out.debug(
-            '[PipeThread] Active forwardings: %s' % len(PipeThread.pipes))
+        om.out.debug("[PipeThread] Active forwardings: %s" % len(PipeThread.pipes))
 
         self._keep_running = True
 
@@ -161,7 +169,10 @@ class PipeThread(Process):
                 break
 
         PipeThread.pipes.remove(self)
-        om.out.debug('[PipeThread] Terminated one connection, active forwardings: %s' % len(PipeThread.pipes))
+        om.out.debug(
+            "[PipeThread] Terminated one connection, active forwardings: %s"
+            % len(PipeThread.pipes)
+        )
 
 
 class TCPRelay(Process):
@@ -181,11 +192,17 @@ class TCPRelay(Process):
         try:
             self.sock.bind((self._ip_address, self._port))
         except:
-            raise BaseFrameworkException('Port (' + self._ip_address +
-                                ':' + str(self._port) + ') already in use.')
+            raise BaseFrameworkException(
+                "Port ("
+                + self._ip_address
+                + ":"
+                + str(self._port)
+                + ") already in use."
+            )
         else:
-            om.out.debug('[TCPRelay] Bound to ' +
-                         self._ip_address + ':' + str(self._port))
+            om.out.debug(
+                "[TCPRelay] Bound to " + self._ip_address + ":" + str(self._port)
+            )
 
             self.sock.listen(5)
 
@@ -197,7 +214,7 @@ class TCPRelay(Process):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
-            s.connect(('localhost', self._port))
+            s.connect(("localhost", self._port))
             s.close()
         except:
             pass
@@ -205,7 +222,7 @@ class TCPRelay(Process):
         for pipe in self._pipes:
             pipe.stop()
 
-        om.out.debug('[TCPRelay] Stopped TCPRelay.')
+        om.out.debug("[TCPRelay] Stopped TCPRelay.")
 
     def run(self):
         while self._keep_running:
@@ -215,16 +232,18 @@ class TCPRelay(Process):
                 # This catches socket timeouts
                 pass
             else:
-                om.out.debug('[TCPRelay] New socks client connection.')
+                om.out.debug("[TCPRelay] New socks client connection.")
 
                 # Get an active connection from the connection manager and start forwarding data
                 try:
                     connToW3afClient = self._cm.get_connection()
                 except KeyboardInterrupt:
-                    om.out.information('Exiting.')
+                    om.out.information("Exiting.")
                     break
                 except:
-                    om.out.debug('[TCPRelay] Connection manager has no active connections.')
+                    om.out.debug(
+                        "[TCPRelay] Connection manager has no active connections."
+                    )
                 else:
                     pt1 = PipeThread(sock_cli, connToW3afClient)
                     self._pipes.append(pt1)
@@ -246,7 +265,7 @@ class w3afAgentServer(Process):
 
         #    Internal
         self._is_running = False
-        self._error = ''
+        self._error = ""
 
     def run(self):
         """
@@ -256,25 +275,30 @@ class w3afAgentServer(Process):
             self._cm = ConnectionManager(self._ip_address, self._listen_port)
             self._cm.start()
         except BaseFrameworkException as w3:
-            self._error = 'Failed to start connection manager inside w3afAgentServer, exception: ' + str(w3)
+            self._error = (
+                "Failed to start connection manager inside w3afAgentServer, exception: "
+                + str(w3)
+            )
         else:
             try:
-                self._TCPRelay = TCPRelay(
-                    self._ip_address, self._socks_port, self._cm)
+                self._TCPRelay = TCPRelay(self._ip_address, self._socks_port, self._cm)
                 self._TCPRelay.start()
             except BaseFrameworkException as w3:
-                self._error = 'Failed to start TCPRelay inside w3afAgentServer, exception: "%s"' % w3
+                self._error = (
+                    'Failed to start TCPRelay inside w3afAgentServer, exception: "%s"'
+                    % w3
+                )
                 self._cm.stop()
             else:
                 self._is_running = True
 
     def stop(self):
         if self._is_running:
-            om.out.debug('Stopping w3afAgentServer.')
+            om.out.debug("Stopping w3afAgentServer.")
             self._cm.stop()
             self._TCPRelay.stop()
         else:
-            om.out.debug('w3afAgentServer is not running, no need to stop it.')
+            om.out.debug("w3afAgentServer is not running, no need to stop it.")
 
     def get_error(self):
         return self._error
@@ -285,14 +309,15 @@ class w3afAgentServer(Process):
     def is_working(self):
         return self._cm.is_working()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     sys.path.append(os.getcwd())
-    sys.path.append('../../../../')
+    sys.path.append("../../../../")
 
     if len(sys.argv) != 3:
         print()
-        print('w3afAgent usage:')
-        print('python w3afAgentServer.py <bind-address> <bind-port>')
+        print("w3afAgent usage:")
+        print("python w3afAgentServer.py <bind-address> <bind-port>")
         print()
         sys.exit(-1)
 
@@ -302,4 +327,4 @@ if __name__ == '__main__':
     try:
         agent.run()
     except KeyboardInterrupt:
-        print('bye.')
+        print("bye.")

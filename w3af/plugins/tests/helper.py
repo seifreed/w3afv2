@@ -19,7 +19,6 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-
 import os
 import re
 import time
@@ -48,12 +47,11 @@ from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.kb.read_shell import ReadShell
 from w3af.core.data.kb.info_set import InfoSet
 
-
 os.chdir(W3AF_LOCAL_PATH)
-RE_COMPILE_TYPE = type(re.compile(''))
+RE_COMPILE_TYPE = type(re.compile(""))
 
 
-@attr('moth')
+@attr("moth")
 class PluginTest(unittest.TestCase):
     """
     These tests can be configured using two environment variables:
@@ -69,6 +67,7 @@ class PluginTest(unittest.TestCase):
     Remember that nosetests can't find test generators in unittest.TestCase,
     http://stackoverflow.com/questions/6689537/nose-test-generators-inside-class
     """
+
     MOCK_RESPONSES = []
     runconfig = {}
     kb = kb.kb
@@ -86,13 +85,15 @@ class PluginTest(unittest.TestCase):
         if self.MOCK_RESPONSES:
             httpretty.reset()
             httpretty.enable()
-            
+
             try:
                 url = URL(self.target_url)
             except ValueError as ve:
-                msg = ('When using MOCK_RESPONSES you need to set the'
-                       ' target_url attribute to a valid URL, exception was:'
-                       ' "%s".')
+                msg = (
+                    "When using MOCK_RESPONSES you need to set the"
+                    " target_url attribute to a valid URL, exception was:"
+                    ' "%s".'
+                )
                 raise Exception(msg % ve)
 
             domain = url.get_domain()
@@ -102,10 +103,9 @@ class PluginTest(unittest.TestCase):
             self._register_httpretty_uri(proto, domain, port)
 
     def _register_httpretty_uri(self, proto, domain, port):
-        assert isinstance(port, int), 'Port needs to be an integer'
+        assert isinstance(port, int), "Port needs to be an integer"
 
-        if (port == 80 and proto == 'http') or \
-           (port == 443 and proto == 'https'):
+        if (port == 80 and proto == "http") or (port == 443 and proto == "https"):
             re_str = "%s://%s/(.*)" % (proto, domain)
         else:
             re_str = "%s://%s:%s/(.*)" % (proto, domain, port)
@@ -113,9 +113,9 @@ class PluginTest(unittest.TestCase):
         all_methods = set(mock_resp.method for mock_resp in self.MOCK_RESPONSES)
 
         for http_method in all_methods:
-            httpretty.register_uri(http_method,
-                                   re.compile(re_str),
-                                   body=self.__internal_request_callback)
+            httpretty.register_uri(
+                http_method, re.compile(re_str), body=self.__internal_request_callback
+            )
 
     def tearDown(self):
         self.w3afcore.quit()
@@ -138,19 +138,17 @@ class PluginTest(unittest.TestCase):
 
     def assertAllVulnNamesEqual(self, vuln_name, vulns):
         if not vulns:
-            self.assertTrue(False, 'No vulnerabilities found to match')
+            self.assertTrue(False, "No vulnerabilities found to match")
 
         for vuln in vulns:
             self.assertEqual(vuln.get_name(), vuln_name)
 
     def assertExpectedVulnsFound(self, expected, found_vulns):
-        found_tokens = [(v.get_url().get_file_name(),
-                         v.get_token_name()) for v in found_vulns]
+        found_tokens = [
+            (v.get_url().get_file_name(), v.get_token_name()) for v in found_vulns
+        ]
 
-        self.assertEqual(
-            set(found_tokens),
-            set(expected)
-        )
+        self.assertEqual(set(found_tokens), set(expected))
 
     def tokenize_kb_vulns(self):
         all_info = self.kb.get_all_findings()
@@ -188,14 +186,13 @@ class PluginTest(unittest.TestCase):
             qs = str(uri.get_querystring())
 
             if qs:
-                data = path + '?' + qs
+                data = path + "?" + qs
             else:
                 data = path
 
             found.append(data)
 
-        self.assertEqual(set(found),
-                          set(expected))
+        self.assertEqual(set(found), set(expected))
 
     def __internal_request_callback(self, http_request, uri, headers):
         self.request_callback_call_count += 1
@@ -210,12 +207,12 @@ class PluginTest(unittest.TestCase):
             self.request_callback_match += 1
 
             fmt = (uri, match)
-            om.out.debug('[request_callback] URI %s matched %s' % fmt)
+            om.out.debug("[request_callback] URI %s matched %s" % fmt)
 
             return match.get_response(http_request, uri, headers)
 
         else:
-            om.out.debug('[request_callback] URI %s will return 404' % uri)
+            om.out.debug("[request_callback] URI %s will return 404" % uri)
             return MockResponse.get_404(http_request, uri, headers)
 
     @retry(tries=3, delay=0.5, backoff=2)
@@ -227,27 +224,29 @@ class PluginTest(unittest.TestCase):
                 response = urllib.request.urlopen(target.url_string)
                 response.read()
             except urllib.error.URLError as e:
-                if hasattr(e, 'code'):
+                if hasattr(e, "code"):
                     # pylint: disable=E1101
                     if e.code in (404, 403, 401):
                         continue
                     else:
-                        no_code = 'Unexpected code %s' % e.code
+                        no_code = "Unexpected code %s" % e.code
                         self.assertTrue(False, msg % (target, no_code))
                     # pylint: enable=E1101
 
                 self.assertTrue(False, msg % (target, e.reason))
-            
+
             except Exception as e:
                 self.assertTrue(False, msg % (target, e))
 
-    def _scan(self,
-              target,
-              plugins,
-              debug=False,
-              assert_exceptions=True,
-              verify_targets=True,
-              misc_settings=None):
+    def _scan(
+        self,
+        target,
+        plugins,
+        debug=False,
+        assert_exceptions=True,
+        verify_targets=True,
+        misc_settings=None,
+    ):
         """
         Setup env and start scan. Typically called from children's
         test methods.
@@ -270,33 +269,33 @@ class PluginTest(unittest.TestCase):
 
     def _set_target(self, target, verify_targets):
         if not isinstance(target, (str, tuple)):
-            raise TypeError('Expected basestring or tuple in scan target.')
-        
+            raise TypeError("Expected basestring or tuple in scan target.")
+
         if isinstance(target, tuple):
             target = tuple([URL(u) for u in target])
-            
+
         elif isinstance(target, str):
             target = (URL(target),)
-        
+
         if verify_targets and not self.MOCK_RESPONSES:
             self._verify_targets_up(target)
-        
+
         target_opts = create_target_option_list(*target)
         self.w3afcore.target.set_options(target_opts)
 
     def _set_enabled_plugins(self, plugins):
         # Enable plugins to be tested
         for ptype, plugincfgs in list(plugins.items()):
-            self.w3afcore.plugins.set_plugins([p.name for p in plugincfgs],
-                                              ptype)
+            self.w3afcore.plugins.set_plugins([p.name for p in plugincfgs], ptype)
 
             for pcfg in plugincfgs:
 
-                if pcfg.name == 'all':
+                if pcfg.name == "all":
                     continue
 
-                plugin_instance = self.w3afcore.plugins.get_plugin_inst(ptype,
-                                                                        pcfg.name)
+                plugin_instance = self.w3afcore.plugins.get_plugin_inst(
+                    ptype, pcfg.name
+                )
                 default_option_list = plugin_instance.get_options()
                 unit_test_options = pcfg.options
 
@@ -304,12 +303,13 @@ class PluginTest(unittest.TestCase):
                     if option.get_name() not in unit_test_options:
                         unit_test_options.add(option)
 
-                self.w3afcore.plugins.set_plugin_options(ptype, pcfg.name,
-                                                         unit_test_options)
+                self.w3afcore.plugins.set_plugin_options(
+                    ptype, pcfg.name, unit_test_options
+                )
 
     def _set_output_manager(self, debug):
         # Enable text output plugin for debugging
-        environ_debug = os.environ.get('DEBUG', '0') == '1'
+        environ_debug = os.environ.get("DEBUG", "0") == "1"
         if debug or environ_debug:
             self._configure_debug()
 
@@ -347,8 +347,15 @@ class PluginTest(unittest.TestCase):
             tracebacks = [e.get_details() for e in caught_exceptions]
             self.assertEqual(len(caught_exceptions), 0, tracebacks)
 
-    def _scan_assert(self, config, expected_path_param, ok_to_miss,
-                     kb_addresses, skip_startwith=(), debug=False):
+    def _scan_assert(
+        self,
+        config,
+        expected_path_param,
+        ok_to_miss,
+        kb_addresses,
+        skip_startwith=(),
+        debug=False,
+    ):
 
         # Make sure the subclass is properly configured
         self.assertIsNotNone(self.target_url)
@@ -364,7 +371,7 @@ class PluginTest(unittest.TestCase):
 
         found_path_param = set()
         for vuln in vulns:
-            path = vuln.get_url().get_path().replace(self.base_path, '')
+            path = vuln.get_url().get_path().replace(self.base_path, "")
             found_path_param.add((path, vuln.get_token_name()))
 
         self.assertEqual(expected_path_param, found_path_param)
@@ -373,7 +380,9 @@ class PluginTest(unittest.TestCase):
         #   Now we assert the unknowns
         #
         all_known_urls = self.kb.get_all_known_urls()
-        all_known_files = [u.get_path().replace(self.base_path, '') for u in all_known_urls]
+        all_known_files = [
+            u.get_path().replace(self.base_path, "") for u in all_known_urls
+        ]
 
         expected = [path for path, param in expected_path_param]
 
@@ -391,7 +400,7 @@ class PluginTest(unittest.TestCase):
             if should_continue:
                 continue
 
-            if path == '':
+            if path == "":
                 continue
 
             if path in ok_to_miss:
@@ -410,7 +419,7 @@ class PluginTest(unittest.TestCase):
         """
         :return: The test agent for easier log grep
         """
-        return 'Mozilla/4.0 (compatible; w3af.org; TestCase: %s)' % self.id()
+        return "Mozilla/4.0 (compatible; w3af.org; TestCase: %s)" % self.id()
 
     def _formatMessage(self, msg, standardMsg):
         """Honour the longMessage attribute when generating failure messages.
@@ -424,8 +433,8 @@ class PluginTest(unittest.TestCase):
               message
         """
         if msg:
-            data = '%s:\n%s' % (standardMsg, pprint.pformat(msg))
-            return data.replace('\\n', '\n')
+            data = "%s:\n%s" % (standardMsg, pprint.pformat(msg))
+            return data.replace("\\n", "\n")
 
         return standardMsg
 
@@ -433,8 +442,8 @@ class PluginTest(unittest.TestCase):
         """
         Configure debugging for the scans to be run.
         """
-        ptype = 'output'
-        pname = 'text_file'
+        ptype = "output"
+        pname = "text_file"
 
         enabled_output = self.w3afcore.plugins.get_enabled_plugins(ptype)
         enabled_output += [pname]
@@ -443,39 +452,39 @@ class PluginTest(unittest.TestCase):
         # Now we configure the output file to point to CircleCI's artifact
         # directory (when run on circle) and /tmp/ when run on our
         # workstation
-        output_dir = os.environ.get('CIRCLE_ARTIFACTS', tempfile.gettempdir())
+        output_dir = os.environ.get("CIRCLE_ARTIFACTS", tempfile.gettempdir())
         rnd = rand_alnum(6)
-        text_output = os.path.join(output_dir, 'output-%s.txt' % rnd)
-        http_output = os.path.join(output_dir, 'output-http-%s.txt' % rnd)
+        text_output = os.path.join(output_dir, "output-%s.txt" % rnd)
+        http_output = os.path.join(output_dir, "output-http-%s.txt" % rnd)
 
         text_file_inst = self.w3afcore.plugins.get_plugin_inst(ptype, pname)
 
         default_opts = text_file_inst.get_options()
-        default_opts['output_file'].set_value(text_output)
-        default_opts['http_output_file'].set_value(http_output)
-        default_opts['verbose'].set_value(True)
+        default_opts["output_file"].set_value(text_output)
+        default_opts["http_output_file"].set_value(http_output)
+        default_opts["verbose"].set_value(True)
 
-        print('Logging to %s' % text_output)
+        print("Logging to %s" % text_output)
 
         self.w3afcore.plugins.set_plugin_options(ptype, pname, default_opts)
 
 
 class PluginConfig(object):
 
-    BOOL = 'boolean'
-    STR = 'string'
-    LIST = 'list'
-    INT = 'integer'
-    URL = 'url'
-    INPUT_FILE = 'input_file'
-    QUERY_STRING = 'query_string'
-    HEADER = 'header'
+    BOOL = "boolean"
+    STR = "string"
+    LIST = "list"
+    INT = "integer"
+    URL = "url"
+    INPUT_FILE = "input_file"
+    QUERY_STRING = "query_string"
+    HEADER = "header"
 
     def __init__(self, name, *opts):
         self._name = name
         self._options = OptionList()
         for optname, optval, optty in opts:
-            self._options.append(opt_factory(optname, str(optval), '', optty))
+            self._options.append(opt_factory(optname, str(optval), "", optty))
 
     @property
     def name(self):
@@ -489,7 +498,7 @@ class PluginConfig(object):
 class ReadExploitTest(PluginTest):
     def _exploit_vuln(self, vuln_to_exploit_id, exploit_plugin):
         self.w3afcore.uri_opener.set_exploit_mode(True)
-        plugin = self.w3afcore.plugins.get_plugin_inst('attack', exploit_plugin)
+        plugin = self.w3afcore.plugins.get_plugin_inst("attack", exploit_plugin)
 
         self.assertTrue(plugin.can_exploit(vuln_to_exploit_id))
 
@@ -501,56 +510,57 @@ class ReadExploitTest(PluginTest):
         # Now I start testing the shell itself!
         #
         shell = exploit_result[0]
-        etc_passwd = shell.generic_user_input('read', ['/etc/passwd'])
-        self.assertIn('root', etc_passwd)
-        self.assertIn('/bin/bash', etc_passwd)
+        etc_passwd = shell.generic_user_input("read", ["/etc/passwd"])
+        self.assertIn("root", etc_passwd)
+        self.assertIn("/bin/bash", etc_passwd)
 
-        lsp = shell.generic_user_input('lsp', [])
-        self.assertTrue('apache_config_directory' in lsp)
+        lsp = shell.generic_user_input("lsp", [])
+        self.assertTrue("apache_config_directory" in lsp)
 
-        payload = shell.generic_user_input('payload',
-                                           ['apache_config_directory'])
+        payload = shell.generic_user_input("payload", ["apache_config_directory"])
         self.assertTrue(payload is None)
-        
+
         if isinstance(shell, ReadShell):
             _help = shell.help(None)
-            self.assertNotIn('execute', _help)
-            self.assertNotIn('upload', _help)
-            self.assertIn('read', _help)
-            
-            _help = shell.help('read')
-            self.assertIn('read', _help)
-            self.assertIn('/etc/passwd', _help)
-        
+            self.assertNotIn("execute", _help)
+            self.assertNotIn("upload", _help)
+            self.assertIn("read", _help)
+
+            _help = shell.help("read")
+            self.assertIn("read", _help)
+            self.assertIn("/etc/passwd", _help)
+
         return shell
 
 
 class ExecExploitTest(ReadExploitTest):
     def _exploit_vuln(self, vuln_to_exploit_id, exploit_plugin):
-        shell = super(ExecExploitTest, self)._exploit_vuln(vuln_to_exploit_id,
-                                                           exploit_plugin)
-        
-        etc_passwd = shell.generic_user_input('e', ['cat', '/etc/passwd'])
-        self.assertIn('root', etc_passwd)
-        self.assertIn('/bin/bash', etc_passwd)
-        
-        _help = shell.help(None)
-        self.assertIn('execute', _help)
-        self.assertIn('upload', _help)
-        self.assertIn('read', _help)
-        
-        _help = shell.help('read')
-        self.assertIn('read', _help)
-        self.assertIn('/etc/passwd', _help)
+        shell = super(ExecExploitTest, self)._exploit_vuln(
+            vuln_to_exploit_id, exploit_plugin
+        )
 
-        
-@attr('root')
+        etc_passwd = shell.generic_user_input("e", ["cat", "/etc/passwd"])
+        self.assertIn("root", etc_passwd)
+        self.assertIn("/bin/bash", etc_passwd)
+
+        _help = shell.help(None)
+        self.assertIn("execute", _help)
+        self.assertIn("upload", _help)
+        self.assertIn("read", _help)
+
+        _help = shell.help("read")
+        self.assertIn("read", _help)
+        self.assertIn("/etc/passwd", _help)
+
+
+@attr("root")
 def onlyroot(meth):
     """
     Function to decorate tests that should be called as root.
 
     Raises a nose SkipTest exception if the user doesn't have root permissions.
     """
+
     @wraps(meth)
     def test_inner_onlyroot(self, *args, **kwds):
         """Note that this method needs to start with test_ in order for nose
@@ -558,7 +568,8 @@ def onlyroot(meth):
         if os.geteuid() == 0 or os.getuid() == 0:
             return meth(self, *args, **kwds)
         else:
-            raise SkipTest('This test requires root privileges.')
+            raise SkipTest("This test requires root privileges.")
+
     test_inner_onlyroot.root = True
     return test_inner_onlyroot
 
@@ -566,29 +577,47 @@ def onlyroot(meth):
 def create_target_option_list(*target):
     opts = OptionList()
 
-    opt = opt_factory('target', '', '', URL_LIST)
-    opt.set_value(','.join([u.url_string for u in target]))
+    opt = opt_factory("target", "", "", URL_LIST)
+    opt.set_value(",".join([u.url_string for u in target]))
     opts.add(opt)
-    
-    opt = opt_factory('target_os', ('unknown', 'unix', 'windows'), '', 'combo')
+
+    opt = opt_factory("target_os", ("unknown", "unix", "windows"), "", "combo")
     opts.add(opt)
-    
-    opt = opt_factory('target_framework',
-                      ('unknown', 'php', 'asp', 'asp.net',
-                       'java', 'jsp', 'cfm', 'ruby', 'perl'),
-                      '', 'combo')
+
+    opt = opt_factory(
+        "target_framework",
+        ("unknown", "php", "asp", "asp.net", "java", "jsp", "cfm", "ruby", "perl"),
+        "",
+        "combo",
+    )
     opts.add(opt)
-    
+
     return opts
 
 
 class MockResponse(object):
-    NO_MOCK = 'httpretty can not mock this method'
-    KNOWN_METHODS = ('GET', 'PUT', 'POST', 'DELETE', 'HEAD', 'PATCH',
-                     'OPTIONS', 'CONNECT')
+    NO_MOCK = "httpretty can not mock this method"
+    KNOWN_METHODS = (
+        "GET",
+        "PUT",
+        "POST",
+        "DELETE",
+        "HEAD",
+        "PATCH",
+        "OPTIONS",
+        "CONNECT",
+    )
 
-    def __init__(self, url, body, content_type='text/html', status=200,
-                 method='GET', headers=None, delay=None):
+    def __init__(
+        self,
+        url,
+        body,
+        content_type="text/html",
+        status=200,
+        method="GET",
+        headers=None,
+        delay=None,
+    ):
         self.url = url
         self.body = body
         self.status = status
@@ -596,7 +625,7 @@ class MockResponse(object):
         self.delay = delay
 
         self.content_type = content_type
-        self.headers = {'Content-Type': content_type}
+        self.headers = {"Content-Type": content_type}
 
         if headers is not None:
             self.headers.update(headers)
@@ -606,7 +635,7 @@ class MockResponse(object):
 
         if isinstance(url, str):
             url = URL(url)
-            assert url.get_domain(), 'Need to specify the MockResponse domain'
+            assert url.get_domain(), "Need to specify the MockResponse domain"
 
     def __repr__(self):
         if isinstance(self.url, RE_COMPILE_TYPE):
@@ -614,13 +643,13 @@ class MockResponse(object):
         else:
             match = self.url
 
-        return '<MockResponse (%s|%s)>' % (match, self.status)
+        return "<MockResponse (%s|%s)>" % (match, self.status)
 
     @staticmethod
     def get_404(http_request, uri, headers):
         status = 404
-        body = 'Not found'
-        headers.update({'Content-Type': 'text/html', 'status': status})
+        body = "Not found"
+        headers.update({"Content-Type": "text/html", "status": status})
         return status, headers, body
 
     def get_response(self, http_request, uri, response_headers):
@@ -633,7 +662,7 @@ class MockResponse(object):
         if callable(self.body):
             return self.body(self, http_request, uri, response_headers)
 
-        response_headers.update({'status': self.status})
+        response_headers.update({"status": self.status})
         response_headers.update(self.headers)
 
         if self.delay is not None:

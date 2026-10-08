@@ -19,11 +19,14 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import gtk
 
 from w3af.core.controllers.exception_handling.helpers import gettempdir
-from w3af.core.ui.gui.exception_handling.common_windows import (SimpleBaseWindow,
-                                                                GithubMultiBugReport)
+from w3af.core.ui.gui.exception_handling.common_windows import (
+    SimpleBaseWindow,
+    GithubMultiBugReport,
+)
 
 
 class BugReportWindow(SimpleBaseWindow, GithubMultiBugReport):
@@ -58,13 +61,12 @@ class BugReportWindow(SimpleBaseWindow, GithubMultiBugReport):
         # the label for the title
         self.title_label = gtk.Label()
         self.title_label.set_line_wrap(True)
-        label_text = _(
-            '<b>The following exceptions were raised and handled</b>')
+        label_text = _("<b>The following exceptions were raised and handled</b>")
         self.title_label.set_markup(label_text)
         self.title_label.show()
 
         # A gtk.TextView for the exception
-        frame = gtk.Frame('Handled exceptions')
+        frame = gtk.Frame("Handled exceptions")
         sw = gtk.ScrolledWindow()
         sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         sw.set_size_request(200, 280)
@@ -75,20 +77,18 @@ class BugReportWindow(SimpleBaseWindow, GithubMultiBugReport):
         for edata in exception_list:
             where = edata.get_where()
             exception = str(edata.exception)
-            tdata = [where,
-                     exception]
+            tdata = [where, exception]
             self.treestore.append(None, tdata)
 
         # create the TreeView using treestore
         self.treeview = gtk.TreeView(self.treestore)
 
         # First column that holds the icon and the location
-        tvcol = gtk.TreeViewColumn('Location')
+        tvcol = gtk.TreeViewColumn("Location")
 
         cell = gtk.CellRendererPixbuf()
-        pb = self.treeview.render_icon(
-            gtk.STOCK_DND, gtk.ICON_SIZE_SMALL_TOOLBAR, None)
-        cell.set_property('pixbuf', pb)
+        pb = self.treeview.render_icon(gtk.STOCK_DND, gtk.ICON_SIZE_SMALL_TOOLBAR, None)
+        cell.set_property("pixbuf", pb)
         tvcol.pack_start(cell, expand=False)
 
         cell = gtk.CellRendererText()
@@ -97,7 +97,7 @@ class BugReportWindow(SimpleBaseWindow, GithubMultiBugReport):
         self.treeview.append_column(tvcol)
 
         # Second column that holds the exception
-        tvcol = gtk.TreeViewColumn('Exception')
+        tvcol = gtk.TreeViewColumn("Exception")
         cell = gtk.CellRendererText()
         tvcol.pack_start(cell, expand=True)
         tvcol.add_attribute(cell, "text", 1)
@@ -109,15 +109,17 @@ class BugReportWindow(SimpleBaseWindow, GithubMultiBugReport):
         # the label for the rest of the message
         self.label = gtk.Label()
         self.label.set_line_wrap(True)
-        label_text = _("<i>All these exceptions were stored in '%s' for your later"
-                       ' review.</i>\n\nReporting these is recommended and will'
-                       ' help us improve w3af. <b>You can contribute</b> to the'
-                       ' w3af project and submit these exceptions to our'
-                       ' bug tracking system from within this window only using'
-                       ' <i>two clicks</i>.\n\n'
-                       'w3af will only send the exception traceback and the'
-                       ' version information to Github, no personal or '
-                       ' confidential information is collected.')
+        label_text = _(
+            "<i>All these exceptions were stored in '%s' for your later"
+            " review.</i>\n\nReporting these is recommended and will"
+            " help us improve w3af. <b>You can contribute</b> to the"
+            " w3af project and submit these exceptions to our"
+            " bug tracking system from within this window only using"
+            " <i>two clicks</i>.\n\n"
+            "w3af will only send the exception traceback and the"
+            " version information to Github, no personal or "
+            " confidential information is collected."
+        )
         self.label.set_markup(label_text % gettempdir())
         self.label.show()
 
@@ -138,7 +140,7 @@ class BugReportWindow(SimpleBaseWindow, GithubMultiBugReport):
 
         self.vbox.pack_start(self.hbox, True, False, 10)
 
-        #self.resize(400,450)
+        # self.resize(400,450)
         self.add(self.vbox)
         self.show_all()
 

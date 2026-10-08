@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 
 from w3af.core.controllers.exceptions import BaseFrameworkException
@@ -26,7 +27,7 @@ from w3af.core.data.options.baseoption import BaseOption
 from w3af.core.data.options.option_types import OUTPUT_FILE
 from w3af.core.data.fuzzer.utils import rand_alpha
 
-DEV_NULL = '/dev/null'
+DEV_NULL = "/dev/null"
 
 
 class OutputFileOption(BaseOption):
@@ -44,7 +45,7 @@ class OutputFileOption(BaseOption):
         self._value = self.validate(value)
 
     def validate(self, value):
-        
+
         expanded_path = os.path.expanduser(value)
 
         # In some scenarios we want to allow the end-user to choose an output
@@ -53,7 +54,7 @@ class OutputFileOption(BaseOption):
         # For example, in output.text_file the user might want to log to the
         # text log, but doesn't care about the HTTP requests and responses. In
         # that case the user specifies /dev/null as the output
-        if expanded_path == '/dev/null':
+        if expanded_path == "/dev/null":
             return value
 
         # This is useful for testing, the user specifies a script with $rnd$ in the
@@ -62,7 +63,7 @@ class OutputFileOption(BaseOption):
         # The user can then run the same script over and over without caring about
         # overwriting his output files.
         rnd = rand_alpha(5)
-        value = expanded_path = expanded_path.replace('$rnd$', rnd)
+        value = expanded_path = expanded_path.replace("$rnd$", rnd)
 
         directory = os.path.abspath(os.path.dirname(expanded_path))
 
@@ -71,19 +72,22 @@ class OutputFileOption(BaseOption):
             raise BaseFrameworkException(msg % value)
 
         if not os.path.isdir(directory):
-            msg = ('Invalid file option "%s", the directory "%s" does'
-                   ' not exist.')
+            msg = 'Invalid file option "%s", the directory "%s" does' " not exist."
             raise BaseFrameworkException(msg % (value, directory))
 
         if not os.access(directory, os.W_OK):
-            msg = ('Invalid file option "%s", the user does not have'
-                   ' enough permissions to write to the specified directory.')
+            msg = (
+                'Invalid file option "%s", the user does not have'
+                " enough permissions to write to the specified directory."
+            )
             raise BaseFrameworkException(msg % value)
 
         if os.path.exists(value):
             if not os.access(value, os.W_OK):
-                msg = ('Invalid file option "%s", the user does not have'
-                       ' enough permissions to write to the file.')
+                msg = (
+                    'Invalid file option "%s", the user does not have'
+                    " enough permissions to write to the file."
+                )
                 raise BaseFrameworkException(msg % value)
 
         # Please note the following:
@@ -91,8 +95,8 @@ class OutputFileOption(BaseOption):
         #     '/home/foobar/workspace/threading2'
         #
         # This is why we need this check:
-        if value == '':
-            msg = 'Invalid file option, you have to specify a non-empty value.'
+        if value == "":
+            msg = "Invalid file option, you have to specify a non-empty value."
             raise BaseFrameworkException(msg)
 
         return value

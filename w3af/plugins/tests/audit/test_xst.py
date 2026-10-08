@@ -25,22 +25,29 @@ from w3af.plugins.tests.helper import PluginTest, PluginConfig
 
 class TestXST(PluginTest):
 
-    target_url = 'http://moth/w3af/'
+    target_url = "http://moth/w3af/"
 
     _run_config = {
-        'target': target_url,
-        'plugins': {
-            'audit': (PluginConfig('xst'),),
-        }
+        "target": target_url,
+        "plugins": {
+            "audit": (PluginConfig("xst"),),
+        },
     }
 
-    @attr('ci_fails')
+    @attr("ci_fails")
     def test_found_xst(self):
 
-        self._scan(self._run_config['target'], self._run_config['plugins'])
+        self._scan(self._run_config["target"], self._run_config["plugins"])
 
-        vulns = self.kb.get('xst', 'xst')
+        vulns = self.kb.get("xst", "xst")
         self.assertEqual(len(vulns), 1)
 
-        self.assertEqual(all(['Cross site tracing vulnerability' == vuln.get_name()
-                               for vuln in vulns]), True)
+        self.assertEqual(
+            all(
+                [
+                    "Cross site tracing vulnerability" == vuln.get_name()
+                    for vuln in vulns
+                ]
+            ),
+            True,
+        )

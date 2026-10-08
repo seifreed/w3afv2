@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.data.constants.severity as severity
 
 from w3af.core.data.db.disk_set import DiskSet
@@ -44,15 +45,15 @@ class click_jacking(GrepPlugin):
 
         self._total_http_request_count = 0
         self._vuln_count = 0
-        self._vuln_urls = DiskSet(table_prefix='click_jacking')
-        self._vuln_ids = DiskSet(table_prefix='click_jacking')
+        self._vuln_urls = DiskSet(table_prefix="click_jacking")
+        self._vuln_ids = DiskSet(table_prefix="click_jacking")
 
     def grep(self, request, response):
         """
         Check x-frame-options header
         """
         # Can not iframe a POST, PUT, etc.
-        if request.get_method() != 'GET':
+        if request.get_method() != "GET":
             return
 
         if response.get_code() in self.DO_NOT_FRAME:
@@ -88,13 +89,13 @@ class click_jacking(GrepPlugin):
         :param response: An HTTP response
         :return: True if the response has javascript content type
         """
-        if 'javascript' in response.content_type:
+        if "javascript" in response.content_type:
             return False
 
-        if 'css' in response.content_type:
+        if "css" in response.content_type:
             return False
 
-        if 'application/xml' in response.content_type:
+        if "application/xml" in response.content_type:
             return False
 
         return True
@@ -117,10 +118,7 @@ class click_jacking(GrepPlugin):
         :param response: HTTP response
         :return: True if the response is protected
         """
-        methods = [
-            self._is_protected_with_x_frame_options,
-            self._is_protected_with_csp
-        ]
+        methods = [self._is_protected_with_x_frame_options, self._is_protected_with_csp]
 
         for method in methods:
             if method(request, response):
@@ -138,9 +136,9 @@ class click_jacking(GrepPlugin):
         :return: True if the response is protected
         """
         headers = response.get_headers()
-        x_frame_options, header_name = headers.iget('x-frame-options', '')
+        x_frame_options, header_name = headers.iget("x-frame-options", "")
 
-        if x_frame_options.lower() in ('deny', 'sameorigin'):
+        if x_frame_options.lower() in ("deny", "sameorigin"):
             return True
 
         return False
@@ -156,7 +154,7 @@ class click_jacking(GrepPlugin):
         """
         # These are the policies that will be enforced by the browser
         non_report_only_policies = retrieve_csp_policies(response, False, True)
-        frame_ancestors = non_report_only_policies.get('frame-ancestors', [])
+        frame_ancestors = non_report_only_policies.get("frame-ancestors", [])
 
         #
         # This is the strictest policy, nobody can frame me!
@@ -164,7 +162,7 @@ class click_jacking(GrepPlugin):
         # Content-Security-Policy: frame-ancestors 'none';
         #
         for policy in frame_ancestors:
-            if policy.lower() == 'none':
+            if policy.lower() == "none":
                 return True
 
         #
@@ -173,17 +171,22 @@ class click_jacking(GrepPlugin):
         #   Content-Security-Policy: frame-ancestors '*';
         #   Content-Security-Policy: frame-ancestors 'https://*';
         #
-        insecure_ancestors = ('*',
-                              'http', 'https',
-                              'http://', 'https://',
-                              'http://*', 'https://*')
+        insecure_ancestors = (
+            "*",
+            "http",
+            "https",
+            "http://",
+            "https://",
+            "http://*",
+            "https://*",
+        )
 
         for policy in frame_ancestors:
             if policy.lower() in insecure_ancestors:
                 return False
 
         # Content-Security-Policy: frame-ancestors 'self';
-        if 'self' in frame_ancestors:
+        if "self" in frame_ancestors:
             return True
 
         # Content-Security-Policy: frame-ancestors 'foo.com' '*.somesite.com';
@@ -198,41 +201,49 @@ class click_jacking(GrepPlugin):
             return
 
         response_ids = [_id for _id in self._vuln_ids]
-        
+
         if self._total_http_request_count == self._vuln_count:
             # If none of the URLs implement protection, simply report
             # ONE vulnerability that says that
-            desc = 'The application has no protection against Click-Jacking attacks.'
+            desc = "The application has no protection against Click-Jacking attacks."
 
             if len(response_ids) >= self.MAX_SAMPLES:
-                desc += (' All the received HTTP responses were found to be'
-                         ' vulnerable, only the first %s samples were captured'
-                         ' as proof.' % self.MAX_SAMPLES)
+                desc += (
+                    " All the received HTTP responses were found to be"
+                    " vulnerable, only the first %s samples were captured"
+                    " as proof." % self.MAX_SAMPLES
+                )
 
         else:
             # If most of the URLs implement the protection but some
             # don't, report ONE vulnerability saying: "Most are protected,
             # but x, y are not
             if len(response_ids) >= self.MAX_SAMPLES:
-                desc = ('Multiple application URLs have no protection against'
-                        ' Click-Jacking attacks. Only the first %s samples were'
-                        ' captured as proof. The list of vulnerable URLs is:'
-                        '\n\n - ' % self.MAX_SAMPLES)
+                desc = (
+                    "Multiple application URLs have no protection against"
+                    " Click-Jacking attacks. Only the first %s samples were"
+                    " captured as proof. The list of vulnerable URLs is:"
+                    "\n\n - " % self.MAX_SAMPLES
+                )
             else:
-                desc = ('Multiple application URLs have no protection against'
-                        ' Click-Jacking attacks. The list of vulnerable URLs is:'
-                        '\n\n - ')
+                desc = (
+                    "Multiple application URLs have no protection against"
+                    " Click-Jacking attacks. The list of vulnerable URLs is:"
+                    "\n\n - "
+                )
 
-            desc += ' - '.join([str(url) + '\n' for url in self._vuln_urls])
+            desc += " - ".join([str(url) + "\n" for url in self._vuln_urls])
 
-        v = Vuln('Click-Jacking vulnerability',
-                 desc,
-                 severity.MEDIUM,
-                 response_ids,
-                 self.get_name())
-        
-        self.kb_append(self, 'click_jacking', v)
-        
+        v = Vuln(
+            "Click-Jacking vulnerability",
+            desc,
+            severity.MEDIUM,
+            response_ids,
+            self.get_name(),
+        )
+
+        self.kb_append(self, "click_jacking", v)
+
         self._vuln_urls.cleanup()
         self._vuln_ids.cleanup()
 

@@ -20,6 +20,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 import urllib.request, urllib.parse, urllib.error
 import sys
@@ -32,7 +33,7 @@ from w3af.core.data.constants.encodings import DEFAULT_ENCODING
 
 # This pattern matches a character entity reference (a decimal numeric
 # references, a hexadecimal numeric reference, or a named reference).
-CHAR_REF_PATT = re.compile(r'&(#(\d+|x[\da-fA-F]+)|[\w.:-]+);?', re.U)
+CHAR_REF_PATT = re.compile(r"&(#(\d+|x[\da-fA-F]+)|[\w.:-]+);?", re.U)
 
 
 def htmldecode(text, use_repr=False):
@@ -47,10 +48,10 @@ def htmldecode(text, use_repr=False):
         # In some cases the entity is invalid and it triggers an exception
         # in unichr, that's why I need to have a try/except
         try:
-            if entity.startswith('#x'):
+            if entity.startswith("#x"):
                 return chr(int(entity[2:], 16))
 
-            elif entity.startswith('#'):
+            elif entity.startswith("#"):
                 return chr(int(entity[1:]))
 
             elif entity in name2codepoint:
@@ -83,7 +84,7 @@ def htmldecode(text, use_repr=False):
     return CHAR_REF_PATT.sub(entitydecode, text)
 
 
-def urlencode(query, encoding, safe='/<>"\'=:()'):
+def urlencode(query, encoding, safe="/<>\"'=:()"):
     """
     This is my version of urllib.urlencode. It adds "/" as a safe character
     and also adds support for "repeated parameter names".
@@ -136,18 +137,18 @@ def urlencode(query, encoding, safe='/<>"\'=:()'):
                 # is this a sufficient test for sequence-ness?
                 len(v)
             except TypeError:
-                v = [(v if v is None else str(v))]
+                v = [v if v is None else str(v)]
 
         for ele in v:
             if not ele:
-                to_append = k + '='
+                to_append = k + "="
             else:
                 ele = to_encodable_string(ele, encoding)
-                to_append = k + '=' + urllib.parse.quote(ele, safe)
-                
+                to_append = k + "=" + urllib.parse.quote(ele, safe)
+
             l.append(to_append)
 
-    return '&'.join(l)
+    return "&".join(l)
 
 
 def to_encodable_string(obj, encoding):
@@ -176,7 +177,7 @@ def to_encodable_string(obj, encoding):
         # decoding on the server side and the whole string would
         # be ignored by the server. Thus I just ignore the offending
         # char(s) and continue with the rest of the ele content
-        obj = obj.encode(encoding, errors='ignore')
+        obj = obj.encode(encoding, errors="ignore")
     else:
         obj = str(obj)
 

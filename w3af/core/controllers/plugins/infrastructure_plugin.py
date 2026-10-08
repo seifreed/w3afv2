@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.controllers.plugins.plugin import Plugin
 from w3af.core.controllers.misc.safe_deepcopy import safe_deepcopy
 from w3af.core.controllers.exceptions import BaseFrameworkException
@@ -35,6 +36,7 @@ class InfrastructurePlugin(Plugin):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def discover_wrapper(self, fuzzable_request, debugging_id):
         """
         Wrapper around the discover method to perform generic tasks such
@@ -56,7 +58,7 @@ class InfrastructurePlugin(Plugin):
             # happens at lower layers.
             #
             # https://github.com/andresriancho/w3af/issues/8949
-            om.out.debug('%s' % ffde)
+            om.out.debug("%s" % ffde)
 
     def discover(self, fuzzable_request, debugging_id):
         """
@@ -67,8 +69,8 @@ class InfrastructurePlugin(Plugin):
         :return: None. These plugins should store information in the KB. Results
                  from this method will be ignored by the core.
         """
-        msg = 'Plugin is not implementing required method discover'
+        msg = "Plugin is not implementing required method discover"
         raise BaseFrameworkException(msg)
 
     def get_type(self):
-        return 'infrastructure'
+        return "infrastructure"

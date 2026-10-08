@@ -19,12 +19,12 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.parsers.doc.sgml import SGMLParser
 from w3af.core.data.parsers.utils.form_params import FormParameters
 from w3af.core.data.parsers.utils.form_fields import get_value_by_key
 
-
-WML_HEADER = '<!DOCTYPE wml PUBLIC'.lower()
+WML_HEADER = "<!DOCTYPE wml PUBLIC".lower()
 
 
 class WMLParser(SGMLParser):
@@ -33,12 +33,13 @@ class WMLParser(SGMLParser):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
-    PARSE_TAGS = SGMLParser.TAGS_WITH_URLS.union({'go', 'postfield',
-                                                  'setvar', 'input',
-                                                  'select', 'option'})
+
+    PARSE_TAGS = SGMLParser.TAGS_WITH_URLS.union(
+        {"go", "postfield", "setvar", "input", "select", "option"}
+    )
 
     def __init__(self, http_response):
-        self._select_tag_name = ''
+        self._select_tag_name = ""
         self._source_url = http_response.get_url()
 
         SGMLParser.__init__(self, http_response)
@@ -52,7 +53,7 @@ class WMLParser(SGMLParser):
         :return: True if the document parameter is a string that contains a
                  WML document.
         """
-        if 'wml' not in http_resp.content_type:
+        if "wml" not in http_resp.content_type:
             return False
 
         document = http_resp.get_body().lower()
@@ -64,8 +65,8 @@ class WMLParser(SGMLParser):
 
     def _handle_go_tag_start(self, tag, tag_name, attrs):
         self._inside_form = True
-        method = attrs.get('method', 'GET').upper()
-        action = attrs.get('href', None)
+        method = attrs.get("method", "GET").upper()
+        action = attrs.get("href", None)
 
         if action is None:
             action = self._source_url
@@ -80,9 +81,9 @@ class WMLParser(SGMLParser):
                 action = self._source_url
 
         # Create the form
-        f = FormParameters(encoding=self._encoding,
-                           attributes=attrs,
-                           hosted_at_url=self._source_url)
+        f = FormParameters(
+            encoding=self._encoding, attributes=attrs, hosted_at_url=self._source_url
+        )
         f.set_method(method)
         f.set_action(action)
 
@@ -103,7 +104,7 @@ class WMLParser(SGMLParser):
         if not self._inside_form:
             return
 
-        self._select_tag_name = get_value_by_key(attrs, 'name', 'id')
+        self._select_tag_name = get_value_by_key(attrs, "name", "id")
 
         if self._select_tag_name:
             self._inside_select = True
@@ -119,7 +120,7 @@ class WMLParser(SGMLParser):
 
         # Working with the last form in the list
         f = self._forms[-1]
-        attrs['name'] = self._select_tag_name
+        attrs["name"] = self._select_tag_name
         f.add_field_by_attrs(attrs)
 
     _handle_postfield_tag_start = _handle_input_tag_start

@@ -9,6 +9,7 @@ from lib.core.data import logger
 from lib.core.exception import SqlmapUnsupportedFeatureException
 from plugins.generic.enumeration import Enumeration as GenericEnumeration
 
+
 class Enumeration(GenericEnumeration):
     def __init__(self):
         GenericEnumeration.__init__(self)
@@ -44,7 +45,9 @@ class Enumeration(GenericEnumeration):
         return {}
 
     def getDbs(self):
-        warnMsg = "on SQLite it is not possible to enumerate databases (use only '--tables')"
+        warnMsg = (
+            "on SQLite it is not possible to enumerate databases (use only '--tables')"
+        )
         logger.warn(warnMsg)
 
         return []

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 
 import w3af.core.controllers.output_manager as om
@@ -41,12 +42,14 @@ class sed(ManglePlugin):
 
     def __init__(self):
         ManglePlugin.__init__(self)
-        self._manglers = {'q': {'b': set(), 'h': set()},
-                          's': {'b': set(), 'h': set()},}
-        
+        self._manglers = {
+            "q": {"b": set(), "h": set()},
+            "s": {"b": set(), "h": set()},
+        }
+
         # User options
         self._user_option_fix_content_len = True
-        self._expressions = ''
+        self._expressions = ""
 
     def mangle_request(self, request):
         """
@@ -56,14 +59,14 @@ class sed(ManglePlugin):
         :return: A mangled version of the request.
         """
         data = request.get_data()
-        for regex, string in self._manglers['q']['b']:
+        for regex, string in self._manglers["q"]["b"]:
             data = regex.sub(string, data)
 
         header_string = str(request.get_headers())
-        
-        for regex, string in self._manglers['q']['h']:
+
+        for regex, string in self._manglers["q"]["h"]:
             header_string = regex.sub(string, header_string)
-        
+
         headers_inst = Headers.from_string(header_string)
 
         request.set_headers(headers_inst)
@@ -79,21 +82,23 @@ class sed(ManglePlugin):
         """
         body = response.get_body()
 
-        for regex, string in self._manglers['s']['b']:
+        for regex, string in self._manglers["s"]["b"]:
             body = regex.sub(string, body)
 
         response.set_body(body)
 
         header_string = str(response.get_headers())
 
-        for regex, string in self._manglers['s']['h']:
+        for regex, string in self._manglers["s"]["h"]:
             header_string = regex.sub(string, header_string)
 
         try:
             mangled_header = Headers.from_string(header_string)
         except ValueError:
-            error = 'Your header modifications created an invalid header'\
-                    ' string that could NOT be parsed back to a Header object.'
+            error = (
+                "Your header modifications created an invalid header"
+                " string that could NOT be parsed back to a Header object."
+            )
             om.out.error(error)
         else:
             response.set_headers(mangled_header)
@@ -114,35 +119,43 @@ class sed(ManglePlugin):
 
         :return: No value is returned.
         """
-        self._user_option_fix_content_len = option_list['fix_content_len'].get_value()
+        self._user_option_fix_content_len = option_list["fix_content_len"].get_value()
 
-        self._expressions = ','.join(option_list['expressions'].get_value())
-        found_expressions = re.findall('([qs])([bh])/(.*?)/(.*?)/;?',
-                                       self._expressions)
+        self._expressions = ",".join(option_list["expressions"].get_value())
+        found_expressions = re.findall("([qs])([bh])/(.*?)/(.*?)/;?", self._expressions)
 
-        if len(found_expressions) == 0 and len(option_list['expressions'].get_value()) != 0:
-            msg = 'The user specified expression is invalid.'
+        if (
+            len(found_expressions) == 0
+            and len(option_list["expressions"].get_value()) != 0
+        ):
+            msg = "The user specified expression is invalid."
             raise BaseFrameworkException(msg)
 
         for exp in found_expressions:
             req_res, body_header, regex_str, target_str = exp
 
-            if req_res not in ('q', 's'):
-                msg = 'The first letter of the sed expression should be "q"'\
-                      ' for indicating request or "s" for response, got "%s"'\
-                      ' instead.'
+            if req_res not in ("q", "s"):
+                msg = (
+                    'The first letter of the sed expression should be "q"'
+                    ' for indicating request or "s" for response, got "%s"'
+                    " instead."
+                )
                 raise BaseFrameworkException(msg % req_res)
 
-            if body_header not in ('b', 'h'):
-                msg = 'The second letter of the expression should be "b"'\
-                      ' for body or "h" for header, got "%s" instead.'
+            if body_header not in ("b", "h"):
+                msg = (
+                    'The second letter of the expression should be "b"'
+                    ' for body or "h" for header, got "%s" instead.'
+                )
                 raise BaseFrameworkException(msg % body_header)
 
             try:
                 regex = re.compile(regex_str)
             except re.error as re_err:
-                msg = 'Regular expression compilation error at "%s", the'\
-                      ' original exception was "%s".'
+                msg = (
+                    'Regular expression compilation error at "%s", the'
+                    ' original exception was "%s".'
+                )
                 raise BaseFrameworkException(msg % (regex_str, re_err))
 
             self._manglers[req_res][body_header].add((regex, target_str))
@@ -153,27 +166,30 @@ class sed(ManglePlugin):
         """
         ol = OptionList()
 
-        d = 'Stream edition expressions'
-        h = ('Stream edition expressions are strings that tell the sed plugin'
-             ' which transformations to apply to the HTTP requests and'
-             ' responses. The sed plugin uses regular expressions, some'
-             ' examples:\n'
-             '\n'
-             '    - qh/User/NotLuser/\n'
-             '      This will make sed search in the the re[q]uest [h]eader'
-             ' for the string User and replace it with NotLuser.\n'
-             '\n'
-             '    - sb/[fF]orm/form\n'
-             '      This will make sed search in the re[s]ponse [b]ody for'\
-             ' the strings form or Form and replace it with form.\n'
-             '\n'
-             'Multiple expressions can be specified separated by commas.')
-        o = opt_factory('expressions', self._expressions, d, 'list', help=h)
+        d = "Stream edition expressions"
+        h = (
+            "Stream edition expressions are strings that tell the sed plugin"
+            " which transformations to apply to the HTTP requests and"
+            " responses. The sed plugin uses regular expressions, some"
+            " examples:\n"
+            "\n"
+            "    - qh/User/NotLuser/\n"
+            "      This will make sed search in the the re[q]uest [h]eader"
+            " for the string User and replace it with NotLuser.\n"
+            "\n"
+            "    - sb/[fF]orm/form\n"
+            "      This will make sed search in the re[s]ponse [b]ody for"
+            " the strings form or Form and replace it with form.\n"
+            "\n"
+            "Multiple expressions can be specified separated by commas."
+        )
+        o = opt_factory("expressions", self._expressions, d, "list", help=h)
         ol.add(o)
 
-        d = 'Fix the content length header after mangling'
-        o = opt_factory('fix_content_len', self._user_option_fix_content_len,
-                        d, 'boolean')
+        d = "Fix the content length header after mangling"
+        o = opt_factory(
+            "fix_content_len", self._user_option_fix_content_len, d, "boolean"
+        )
         ol.add(o)
 
         return ol

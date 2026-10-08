@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
 from w3af.core.data.dc.generic.form import Form
 from w3af.core.data.dc.utils.file_token import FileDataToken
@@ -31,9 +32,10 @@ class FileContentMutant(PostDataMutant):
     This class is a file content mutant, this means that the payload is sent
     in the content of a file which is uploaded over multipart/post
     """
+
     @staticmethod
     def get_mutant_type():
-        return 'file content'
+        return "file content"
 
     def found_at(self):
         """
@@ -42,19 +44,22 @@ class FileContentMutant(PostDataMutant):
         dc = self.get_dc()
         dc_short = dc.get_short_printable_repr()
 
-        msg = '"%s", using HTTP method %s. The sent post-data was: "%s"' \
-              " which modified the uploaded file content."
+        msg = (
+            '"%s", using HTTP method %s. The sent post-data was: "%s"'
+            " which modified the uploaded file content."
+        )
 
         return msg % (self.get_url(), self.get_method(), dc_short)
 
     @classmethod
-    def create_mutants(cls, freq, payload_list, fuzzable_param_list,
-                       append, fuzzer_config):
+    def create_mutants(
+        cls, freq, payload_list, fuzzable_param_list, append, fuzzer_config
+    ):
         """
         This is a very important method which is called in order to create
         mutants. Usually called from fuzzer.py module.
         """
-        if not fuzzer_config['fuzz_form_files']:
+        if not fuzzer_config["fuzz_form_files"]:
             return []
 
         if not freq.get_file_vars():
@@ -67,9 +72,9 @@ class FileContentMutant(PostDataMutant):
         multipart_container = OnlyTokenFilesMultipartContainer(form)
         freq.set_data(multipart_container)
 
-        res = cls._create_mutants_worker(freq, cls, payload_list,
-                                         freq.get_file_vars(),
-                                         append, fuzzer_config)
+        res = cls._create_mutants_worker(
+            freq, cls, payload_list, freq.get_file_vars(), append, fuzzer_config
+        )
         return res
 
 
@@ -81,6 +86,7 @@ class OnlyTokenFilesMultipartContainer(MultipartContainer):
     Also, when fuzzing I'll be creating my tokens using FileDataToken: a great
     way to abstract the fact that payloads are sent in the content of a file.
     """
+
     def set_token(self, token_path):
         """
         Modified to pass the filename to the FileDataToken
@@ -93,7 +99,7 @@ class OnlyTokenFilesMultipartContainer(MultipartContainer):
                     token = val
                 else:
                     if key in self.get_file_vars():
-                        fname = val.filename if hasattr(val, 'filename') else None
+                        fname = val.filename if hasattr(val, "filename") else None
                         token = FileDataToken(key, val, fname, ipath)
                     else:
                         token = DataToken(key, val, ipath)

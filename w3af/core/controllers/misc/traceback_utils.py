@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import sys
 import traceback
@@ -50,9 +51,9 @@ def get_exception_location(tb):
     file_name = os.path.basename(file_path)
 
     current = tb
-    while getattr(current, 'tb_next', None) is not None:
+    while getattr(current, "tb_next", None) is not None:
         current = current.tb_next
 
-    function_name = '%s()' % current.tb_frame.f_code.co_name
+    function_name = "%s()" % current.tb_frame.f_code.co_name
 
     return path, file_name, function_name, current.tb_lineno

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import textwrap
 
 import w3af.core.controllers.output_manager as om
@@ -46,7 +47,7 @@ class ReadShell(Shell):
 
         TODO: When is this going to be called?
         """
-        if command == 'read':
+        if command == "read":
             _help = """\
             read:
                 The read command echoes the content of a file to the console. The
@@ -56,7 +57,7 @@ class ReadShell(Shell):
             Examples:
                 read /etc/passwd
             """
-        elif command == 'download':
+        elif command == "download":
             _help = """\
             download:
                 The download command reads a file in the remote system and saves
@@ -91,16 +92,16 @@ class ReadShell(Shell):
         remote_content = self.read(remote_filename)
 
         if not remote_content:
-            return 'Remote file does not exist.'
+            return "Remote file does not exist."
         else:
             try:
-                fh = open(local_filename, 'w')
+                fh = open(local_filename, "w")
             except:
-                return 'Failed to open local file for writing.'
+                return "Failed to open local file for writing."
             else:
                 fh.write(remote_content)
                 fh.close()
-                return 'Success.'
+                return "Success."
 
     def specific_user_input(self, command, parameters, return_err=True):
         """
@@ -117,25 +118,27 @@ class ReadShell(Shell):
         #
         #    Read remote files
         #
-        if command == 'read':
+        if command == "read":
             if len(parameters) == 1:
                 filename = parameters[0]
                 return self.read(filename)
             else:
-                return 'Only one parameter is expected. Usage examples: ' \
-                       '"read /etc/passwd", "read \'/var/foo bar/spam.eggs\'"'
+                return (
+                    "Only one parameter is expected. Usage examples: "
+                    '"read /etc/passwd", "read \'/var/foo bar/spam.eggs\'"'
+                )
 
         #
         #    Download remote files
         #
-        elif command == 'download' and len(parameters) == 2:
+        elif command == "download" and len(parameters) == 2:
             remote_filename = parameters[0]
             local_filename = parameters[1]
             return self.download(remote_filename, local_filename)
 
         elif return_err:
             return 'Command "%s" not found. Please type "help".' % command
-        
+
         return
 
     def identify_os(self):
@@ -146,18 +149,18 @@ class ReadShell(Shell):
         try:
             self._rOS = read_os_detection(self.read)
         except OSDetectionException:
-            self._rOS = 'unknown'
+            self._rOS = "unknown"
 
         # TODO: Could we determine this by calling some payloads?
-        self._rSystem = 'unknown'
-        self._rSystemName = 'unknown'
-        self._rUser = 'file-reader'
+        self._rSystem = "unknown"
+        self._rSystemName = "unknown"
+        self._rUser = "file-reader"
 
     def end(self):
         """
         Cleanup. In this case, do nothing.
         """
-        om.out.debug('Shell cleanup complete.')
+        om.out.debug("Shell cleanup complete.")
 
     def __repr__(self):
         """

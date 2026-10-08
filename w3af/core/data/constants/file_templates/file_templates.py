@@ -19,21 +19,20 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 
 from w3af import ROOT_PATH
 from w3af.core.data.fuzzer.utils import rand_alnum, rand_alpha
 from w3af.core.data.misc.encoding import smart_str
 
-
-TEMPLATE_DIR = os.path.join(ROOT_PATH, 'core', 'data', 'constants',
-                            'file_templates')
+TEMPLATE_DIR = os.path.join(ROOT_PATH, "core", "data", "constants", "file_templates")
 
 
 def get_file_from_template(extension):
     file_name = "%s.%s" % (rand_alpha(7), extension)
 
-    template_file = os.path.join(TEMPLATE_DIR, 'template.%s' % extension)
+    template_file = os.path.join(TEMPLATE_DIR, "template.%s" % extension)
     if os.path.exists(template_file):
         file_content = open(template_file).read()
         success = True
@@ -47,5 +46,5 @@ def get_file_from_template(extension):
 def get_template_with_payload(extension, payload):
     success, file_content, file_name = get_file_from_template(extension)
     # TODO: Add support for file types which have some type of CRC
-    file_content = file_content.replace('A' * 239, smart_str(payload))
+    file_content = file_content.replace("A" * 239, smart_str(payload))
     return success, file_content, file_name

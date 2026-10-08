@@ -17,6 +17,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import smtplib
 
 from email.mime.text import MIMEText
@@ -48,38 +49,40 @@ class email_report(OutputPlugin):
         self.targets = []
         self._exec = False
 
-        self.smtpServer = 'localhost'
+        self.smtpServer = "localhost"
         self.smtpPort = 25
-        self.toAddrs = ''
-        self.fromAddr = ''
+        self.toAddrs = ""
+        self.fromAddr = ""
 
     def log_enabled_plugins(self, plugins_dict, options_dict):
-        self.targets = cf.cf.get('targets')
+        self.targets = cf.cf.get("targets")
 
     def set_options(self, option_list):
-        self.smtpServer = option_list['smtpServer'].get_value()
-        self.smtpPort = option_list['smtpPort'].get_value()
-        self.fromAddr = option_list['fromAddr'].get_value()
-        self.toAddrs = option_list['toAddrs'].get_value()
+        self.smtpServer = option_list["smtpServer"].get_value()
+        self.smtpPort = option_list["smtpPort"].get_value()
+        self.fromAddr = option_list["fromAddr"].get_value()
+        self.toAddrs = option_list["toAddrs"].get_value()
 
     def get_options(self):
         ol = OptionList()
 
-        d = 'SMTP server ADDRESS to send notifications through, e.g.' \
-            ' smtp.yourdomain.com'
-        o = opt_factory('smtpServer', self.smtpServer, d, 'string')
+        d = (
+            "SMTP server ADDRESS to send notifications through, e.g."
+            " smtp.yourdomain.com"
+        )
+        o = opt_factory("smtpServer", self.smtpServer, d, "string")
         ol.add(o)
 
-        d = 'SMTP server PORT'
-        o = opt_factory('smtpPort', self.smtpPort, d, 'integer')
+        d = "SMTP server PORT"
+        o = opt_factory("smtpPort", self.smtpPort, d, "integer")
         ol.add(o)
 
-        d = 'Recipient email address'
-        o = opt_factory('toAddrs', self.toAddrs, d, 'list')
+        d = "Recipient email address"
+        o = opt_factory("toAddrs", self.toAddrs, d, "list")
         ol.add(o)
 
         d = '"From" email address'
-        o = opt_factory('fromAddr', self.fromAddr, d, 'string')
+        o = opt_factory("fromAddr", self.fromAddr, d, "string")
         ol.add(o)
 
         return ol
@@ -96,20 +99,22 @@ class email_report(OutputPlugin):
         vulns = kb.kb.get_all_vulns()
 
         for v in vulns:
-            data += v.get_desc() + '\n'
+            data += v.get_desc() + "\n"
 
         msg = MIMEText(data)
-        msg['From'] = self.fromAddr
-        msg['To'] = ', '.join(self.toAddrs)
-        msg['Subject'] = 'w3af report on %s' % self.targets[0]
+        msg["From"] = self.fromAddr
+        msg["To"] = ", ".join(self.toAddrs)
+        msg["Subject"] = "w3af report on %s" % self.targets[0]
 
         try:
             server = smtplib.SMTP(self.smtpServer, self.smtpPort)
             server.sendmail(self.fromAddr, self.toAddrs, msg.as_string())
             server.quit()
         except Exception as e:
-            msg = 'The SMTP settings in email_report plugin seem to be'\
-                  ' incorrect. Original error: "%s".'
+            msg = (
+                "The SMTP settings in email_report plugin seem to be"
+                ' incorrect. Original error: "%s".'
+            )
             om.out.error(msg % e)
 
     def get_long_desc(self):

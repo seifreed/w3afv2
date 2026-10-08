@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import difflib
 
 from w3af.core.controllers.misc.diff import split_by_sep
@@ -165,7 +166,4 @@ def relative_distance(a_str, b_str):
     a_split = split_by_sep(a_str)
     b_split = split_by_sep(b_str)
 
-    return difflib.SequenceMatcher(None,
-                                   a_split,
-                                   b_split).quick_ratio()
-
+    return difflib.SequenceMatcher(None, a_split, b_split).quick_ratio()

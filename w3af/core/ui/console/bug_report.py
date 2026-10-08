@@ -24,11 +24,13 @@ import w3af.core.controllers.output_manager as om
 
 from w3af.core.ui.console.menu import menu
 from w3af.core.ui.console.util import suggest
-from w3af.core.controllers.easy_contribution.github_issues import (GithubIssues,
-                                                                   OAUTH_TOKEN,
-                                                                   OAUTH_AUTH_FAILED,
-                                                                   LoginFailed,
-                                                                   OAuthTokenInvalid)
+from w3af.core.controllers.easy_contribution.github_issues import (
+    GithubIssues,
+    OAUTH_TOKEN,
+    OAUTH_AUTH_FAILED,
+    LoginFailed,
+    OAuthTokenInvalid,
+)
 
 
 class bug_report_menu(menu):
@@ -38,9 +40,10 @@ class bug_report_menu(menu):
 
     :author: Andres Riancho (andres.riancho |at| gmail.com)
     """
+
     def __init__(self, name, console, w3af_core, parent=None, **other):
         menu.__init__(self, name, console, w3af_core, parent)
-        self._load_help('bug-report')
+        self._load_help("bug-report")
 
     def _cmd_summary(self, params):
         summary = self._w3af.exception_handler.generate_summary_str()
@@ -50,21 +53,19 @@ class bug_report_menu(menu):
         all_edata = self._w3af.exception_handler.get_unique_exceptions()
 
         if len(params) == 0:
-            ptype = 'all'
+            ptype = "all"
         elif len(params) == 1 and params[0] in self._w3af.plugins.get_plugin_types():
             ptype = params[0]
         else:
-            om.out.console('Invalid parameter type, please read help:')
-            self._cmd_help(['list'])
+            om.out.console("Invalid parameter type, please read help:")
+            self._cmd_help(["list"])
             return
 
-        table = [('ID', 'Phase', 'Plugin', 'Exception'),
-                 ()]
+        table = [("ID", "Phase", "Plugin", "Exception"), ()]
         eid = 0
         for edata in all_edata:
-            if edata.phase == ptype or ptype == 'all':
-                table_line = ((str(
-                    eid), edata.phase, edata.plugin, str(edata.exception)))
+            if edata.phase == ptype or ptype == "all":
+                table_line = (str(eid), edata.phase, edata.plugin, str(edata.exception))
                 table.append(table_line)
             eid += 1
 
@@ -77,18 +78,16 @@ class bug_report_menu(menu):
         all_edata = self._w3af.exception_handler.get_unique_exceptions()
 
         if len(params) != 1:
-            om.out.console(
-                'The exception ID needs to be specified, please read help:')
-            self._cmd_help(['details'])
+            om.out.console("The exception ID needs to be specified, please read help:")
+            self._cmd_help(["details"])
             return
         elif not params[0].isdigit():
-            om.out.console(
-                'The exception ID needs to be an integer, please read help:')
-            self._cmd_help(['details'])
+            om.out.console("The exception ID needs to be an integer, please read help:")
+            self._cmd_help(["details"])
             return
         elif int(params[0]) > len(all_edata) - 1 or int(params[0]) < 0:
-            om.out.console('Invalid ID specified, please read help:')
-            self._cmd_help(['details'])
+            om.out.console("Invalid ID specified, please read help:")
+            self._cmd_help(["details"])
             return
         else:
             eid = int(params[0])
@@ -102,20 +101,20 @@ class bug_report_menu(menu):
         all_edata = self._w3af.exception_handler.get_unique_exceptions()
 
         if not all_edata:
-            om.out.console('There are no exceptions to report for this scan.')
+            om.out.console("There are no exceptions to report for this scan.")
             return
 
         report_bug_eids = []
 
         for data in params:
-            id_list = data.split(',')
+            id_list = data.split(",")
             for eid in id_list:
                 if not eid.isdigit():
-                    om.out.console('Exception IDs must be integers.')
+                    om.out.console("Exception IDs must be integers.")
                 else:
                     eid = int(eid)
                     if not eid < len(all_edata):
-                        om.out.console('Exception ID out of range.')
+                        om.out.console("Exception ID out of range.")
                     else:
                         report_bug_eids.append(eid)
 
@@ -135,7 +134,7 @@ class bug_report_menu(menu):
             gh = GithubIssues(OAUTH_TOKEN)
             gh.login()
         except LoginFailed:
-            msg = 'Failed to contact github.com. Please try again later.'
+            msg = "Failed to contact github.com. Please try again later."
             om.out.console(msg)
         except OAuthTokenInvalid:
             om.out.console(OAUTH_AUTH_FAILED)
@@ -145,15 +144,15 @@ class bug_report_menu(menu):
             plugins = edata.enabled_plugins
             summary = str(edata.exception)
 
-            ticket_id, ticket_url = gh.report_bug(summary, desc,
-                                                  tback=traceback_str,
-                                                  plugins=plugins)
+            ticket_id, ticket_url = gh.report_bug(
+                summary, desc, tback=traceback_str, plugins=plugins
+            )
 
             if ticket_id is None:
-                fmt = '    [%s/%s] Failed to report bug with id %s.'
+                fmt = "    [%s/%s] Failed to report bug with id %s."
                 msg = fmt % (num, total, eid)
             else:
-                fmt = '    [%s/%s] Bug with id %s reported at %s'
+                fmt = "    [%s/%s] Bug with id %s reported at %s"
                 msg = fmt % (num, total, eid, ticket_url)
 
             om.out.console(str(msg))

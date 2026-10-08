@@ -20,6 +20,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.dc.generic.data_container import DataContainer
 from w3af.core.data.constants.encodings import UTF8
 
@@ -36,6 +37,7 @@ class PlainContainer(DataContainer):
     One of the most notable features is that it will save the content-type
     header and echo it back when serialized to send to the wire.
     """
+
     def __init__(self, plain_data, content_type=None, encoding=UTF8):
         super(PlainContainer, self).__init__(encoding=encoding)
         self.plain_data = plain_data
@@ -43,8 +45,7 @@ class PlainContainer(DataContainer):
 
     def __reduce__(self):
         args = (self.plain_data, self.content_type_header_value)
-        return self.__class__, args, {'token': self.token,
-                                      'encoding': self.encoding}
+        return self.__class__, args, {"token": self.token, "encoding": self.encoding}
 
     def __contains__(self, item):
         return False
@@ -57,11 +58,11 @@ class PlainContainer(DataContainer):
 
     @classmethod
     def from_postdata(cls, headers, post_data):
-        content_type, _ = headers.iget('content-type', None)
+        content_type, _ = headers.iget("content-type", None)
         return cls(post_data, content_type)
 
     def get_type(self):
-        return 'Plain data container'
+        return "Plain data container"
 
     def iter_setters(self):
         """
@@ -79,7 +80,7 @@ class PlainContainer(DataContainer):
         :return: A string with a short printable representation of self which is
                  shorter in length than MAX_PRINTABLE
         """
-        return self.plain_data[:self.MAX_PRINTABLE]
+        return self.plain_data[: self.MAX_PRINTABLE]
 
     def is_variant_of(self, other):
         """
@@ -109,7 +110,7 @@ class PlainContainer(DataContainer):
                  the required headers will make it to the wire.
         """
         if self.content_type_header_value:
-            return [('content-type', self.content_type_header_value)]
+            return [("content-type", self.content_type_header_value)]
 
         return []
 

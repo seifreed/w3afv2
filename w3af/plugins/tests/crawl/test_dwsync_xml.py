@@ -18,44 +18,48 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 from w3af.plugins.tests.helper import PluginTest, PluginConfig, MockResponse
 
 
 class TestDWSyncXML(PluginTest):
 
-    target_url = 'http://mock'
+    target_url = "http://mock"
 
     _run_configs = {
-        'cfg': {
-            'target': target_url,
-            'plugins': {'crawl': (PluginConfig('dwsync_xml'),)}
+        "cfg": {
+            "target": target_url,
+            "plugins": {"crawl": (PluginConfig("dwsync_xml"),)},
         }
     }
 
-    DWSYNC = ('<dwsync>'
-              '    <file name="/secret/" server="sitename.com/www/"'
-              '          local="129063550024489121"'
-              '          remote="129063549600000000" />'
-              '</dwsync>')
+    DWSYNC = (
+        "<dwsync>"
+        '    <file name="/secret/" server="sitename.com/www/"'
+        '          local="129063550024489121"'
+        '          remote="129063549600000000" />'
+        "</dwsync>"
+    )
 
-    MOCK_RESPONSES = [MockResponse('http://mock/_notes/dwsync.xml', DWSYNC),
-                      MockResponse('http://mock/secret/', 'Secret directory')]
+    MOCK_RESPONSES = [
+        MockResponse("http://mock/_notes/dwsync.xml", DWSYNC),
+        MockResponse("http://mock/secret/", "Secret directory"),
+    ]
 
     def test_dwsync_xml(self):
-        cfg = self._run_configs['cfg']
-        self._scan(cfg['target'], cfg['plugins'])
+        cfg = self._run_configs["cfg"]
+        self._scan(cfg["target"], cfg["plugins"])
 
-        infos = self.kb.get('dwsync_xml', 'dwsync_xml')
+        infos = self.kb.get("dwsync_xml", "dwsync_xml")
         self.assertEqual(len(infos), 1, infos)
 
         info = infos[0]
-        self.assertEqual(info.get_name(), 'dwsync.xml file found')
+        self.assertEqual(info.get_name(), "dwsync.xml file found")
 
-        expected_urls = ('/', '/_notes/dwsync.xml', '/secret/')
+        expected_urls = ("/", "/_notes/dwsync.xml", "/secret/")
         urls = self.kb.get_all_known_urls()
 
         self.assertEqual(
             set(str(u) for u in urls),
-            set((self.target_url + end) for end in expected_urls)
+            set((self.target_url + end) for end in expected_urls),
         )
-

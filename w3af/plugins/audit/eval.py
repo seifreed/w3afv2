@@ -19,13 +19,16 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.constants.severity as severity
 
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
-from w3af.core.controllers.delay_detection.exact_delay_controller import ExactDelayController
+from w3af.core.controllers.delay_detection.exact_delay_controller import (
+    ExactDelayController,
+)
 from w3af.core.controllers.delay_detection.exact_delay import ExactDelay
 from w3af.core.data.fuzzer.fuzzer import create_mutants
 from w3af.core.data.fuzzer.utils import rand_alpha
@@ -41,6 +44,7 @@ class eval(AuditPlugin):
     :author: Viktor Gazdag ( woodspeed@gmail.com )
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     PRINT_REPEATS = 5
 
     PRINT_STRINGS = (
@@ -52,7 +56,7 @@ class eval(AuditPlugin):
         # http://docs.python.org/reference/simple_stmts.html#the-exec-statement
         "print('%%s'*%s)" % PRINT_REPEATS,
         # ASP
-        "Response.Write(new String(\"%%s\",%s))" % PRINT_REPEATS,
+        'Response.Write(new String("%%s",%s))' % PRINT_REPEATS,
         # NodeJS
         "response.end((new Array(%s+1)).join('%%s'))" % PRINT_REPEATS,
         ";response.end((new Array(%s+1)).join('%%s'))" % PRINT_REPEATS,
@@ -77,9 +81,16 @@ class eval(AuditPlugin):
         # Note: The Sleep in ASP.NET is uppercase
         ExactDelay("Thread.Sleep(%s);", mult=1000),
         # NodeJS eval
-        ExactDelay("var cd;var d=new Date();do{cd=new Date();}while(cd-d<%s)", mult=1000),
-        ExactDelay(";var cd;var d=new Date();do{cd=new Date();}while(cd-d<%s)", mult=1000),
-        ExactDelay('";var cd;var d=new Date();do{cd=new Date();}while(cd-d<%s);var x="', mult=1000)
+        ExactDelay(
+            "var cd;var d=new Date();do{cd=new Date();}while(cd-d<%s)", mult=1000
+        ),
+        ExactDelay(
+            ";var cd;var d=new Date();do{cd=new Date();}while(cd-d<%s)", mult=1000
+        ),
+        ExactDelay(
+            '";var cd;var d=new Date();do{cd=new Date();}while(cd-d<%s);var x="',
+            mult=1000,
+        ),
     )
 
     def __init__(self):
@@ -118,22 +129,31 @@ class eval(AuditPlugin):
 
         mutants = create_mutants(freq, print_strings, orig_resp=orig_response)
 
-        self._send_mutants_in_threads(self._uri_opener.send_mutant,
-                                      mutants,
-                                      self._analyze_echo,
-                                      debugging_id=debugging_id)
+        self._send_mutants_in_threads(
+            self._uri_opener.send_mutant,
+            mutants,
+            self._analyze_echo,
+            debugging_id=debugging_id,
+        )
 
     def _fuzz_with_time_delay(self, freq, debugging_id):
         """
         Tests an URL for eval() usage vulnerabilities using time delays.
         :param freq: A FuzzableRequest
         """
-        self._send_mutants_in_threads(func=self._find_delay_in_mutant,
-                                      iterable=self._generate_delay_tests(freq, debugging_id),
-                                      callback=lambda x, y: None)
+        self._send_mutants_in_threads(
+            func=self._find_delay_in_mutant,
+            iterable=self._generate_delay_tests(freq, debugging_id),
+            callback=lambda x, y: None,
+        )
 
     def _generate_delay_tests(self, freq, debugging_id):
-        for mutant in create_mutants(freq, ['', ]):
+        for mutant in create_mutants(
+            freq,
+            [
+                "",
+            ],
+        ):
             #
             # Don't try to find an eval() using a time delay method if we already found
             # it via echo
@@ -152,7 +172,7 @@ class eval(AuditPlugin):
         :param delay_obj: The delay to use
         :param debugging_id: The debugging ID for logging
         """
-        (mutant, delay_obj, debugging_id) = delayed_mutant
+        mutant, delay_obj, debugging_id = delayed_mutant
         if self._has_bug(mutant):
             return
 
@@ -161,16 +181,21 @@ class eval(AuditPlugin):
         success, responses = ed_inst.delay_is_controlled()
 
         if success:
-            desc = 'eval() input injection was found at: %s'
+            desc = "eval() input injection was found at: %s"
             desc %= mutant.found_at()
 
             response_ids = [r.id for r in responses]
 
-            v = Vuln.from_mutant('eval() input injection vulnerability',
-                                 desc, severity.HIGH, response_ids,
-                                 self.get_name(), mutant)
+            v = Vuln.from_mutant(
+                "eval() input injection vulnerability",
+                desc,
+                severity.HIGH,
+                response_ids,
+                self.get_name(),
+                mutant,
+            )
 
-            self.kb_append_uniq(self, 'eval', v)
+            self.kb_append_uniq(self, "eval", v)
 
     def _analyze_echo(self, mutant, response):
         """
@@ -179,17 +204,21 @@ class eval(AuditPlugin):
         """
         eval_error_list = self._find_eval_result(response)
         for eval_error in eval_error_list:
-            if not re.search(eval_error,
-                             mutant.get_original_response_body(), re.I):
+            if not re.search(eval_error, mutant.get_original_response_body(), re.I):
 
-                desc = 'eval() input injection was found at: %s'
+                desc = "eval() input injection was found at: %s"
                 desc = desc % mutant.found_at()
 
-                v = Vuln.from_mutant('eval() input injection vulnerability',
-                                     desc, severity.HIGH, response.id,
-                                     self.get_name(), mutant)
+                v = Vuln.from_mutant(
+                    "eval() input injection vulnerability",
+                    desc,
+                    severity.HIGH,
+                    response.id,
+                    self.get_name(),
+                    mutant,
+                )
 
-                self.kb_append_uniq(self, 'eval', v)
+                self.kb_append_uniq(self, "eval", v)
 
     def _find_eval_result(self, response):
         """
@@ -201,9 +230,11 @@ class eval(AuditPlugin):
         res = []
 
         if self._expected_result in response.body.lower():
-            msg = ('Verified eval() input injection, found the concatenated'
-                   ' random string: "%s" in the response body. The'
-                   ' vulnerability was found on response with id %s.')
+            msg = (
+                "Verified eval() input injection, found the concatenated"
+                ' random string: "%s" in the response body. The'
+                " vulnerability was found on response with id %s."
+            )
             om.out.debug(msg % (self._expected_result, response.id))
             res.append(self._expected_result)
 
@@ -215,18 +246,22 @@ class eval(AuditPlugin):
         """
         opt_list = OptionList()
 
-        desc = 'Use time delay (sleep() technique)'
-        _help = ('If set to True, w3af will checks insecure eval() usage by'
-                 ' analyzing of time delay result of script execution.')
-        opt = opt_factory('use_time_delay', self._use_time_delay,
-                          desc, 'boolean', help=_help)
+        desc = "Use time delay (sleep() technique)"
+        _help = (
+            "If set to True, w3af will checks insecure eval() usage by"
+            " analyzing of time delay result of script execution."
+        )
+        opt = opt_factory(
+            "use_time_delay", self._use_time_delay, desc, "boolean", help=_help
+        )
         opt_list.add(opt)
 
-        desc = 'Use echo technique'
-        _help = ('If set to True, w3af will checks insecure eval() usage by'
-                 ' grepping result of script execution for test strings.')
-        opt = opt_factory('use_echo', self._use_echo, desc,
-                          'boolean', help=_help)
+        desc = "Use echo technique"
+        _help = (
+            "If set to True, w3af will checks insecure eval() usage by"
+            " grepping result of script execution for test strings."
+        )
+        opt = opt_factory("use_echo", self._use_echo, desc, "boolean", help=_help)
         opt_list.add(opt)
 
         return opt_list
@@ -239,8 +274,8 @@ class eval(AuditPlugin):
         :param options_list: A dictionary with the options for the plugin.
         :return: No value is returned.
         """
-        self._use_time_delay = options_list['use_time_delay'].get_value()
-        self._use_echo = options_list['use_echo'].get_value()
+        self._use_time_delay = options_list["use_time_delay"].get_value()
+        self._use_echo = options_list["use_echo"].get_value()
 
     def get_long_desc(self):
         """

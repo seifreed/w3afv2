@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
 from w3af.core.data.dc.json_container import JSONContainer
 
@@ -27,15 +28,16 @@ class JSONMutant(PostDataMutant):
     """
     This class is a JSON mutant.
     """
+
     @staticmethod
     def get_mutant_type():
-        return 'JSON data'
+        return "JSON data"
 
     def get_headers(self):
         # TODO: Not working?
-        #headers = super(XmlRpcMutant, self).get_headers()
+        # headers = super(XmlRpcMutant, self).get_headers()
         headers = self.get_fuzzable_request().get_headers()
-        headers['Content-Type'] = 'application/json'
+        headers["Content-Type"] = "application/json"
         return headers
 
     def found_at(self):
@@ -47,12 +49,16 @@ class JSONMutant(PostDataMutant):
         :return: A string representing WHAT was fuzzed.
         """
         fmt = '"%s", using HTTP method %s. The sent JSON-data was: "%s"'
-        return fmt % (self.get_url(), self.get_method(),
-                      self.get_dc().get_short_printable_repr())
+        return fmt % (
+            self.get_url(),
+            self.get_method(),
+            self.get_dc().get_short_printable_repr(),
+        )
 
     @classmethod
-    def create_mutants(cls, freq, mutant_str_list, fuzzable_param_list,
-                       append, fuzzer_config):
+    def create_mutants(
+        cls, freq, mutant_str_list, fuzzable_param_list, append, fuzzer_config
+    ):
         """
         This is a very important method which is called in order to create
         mutants. Usually called from fuzzer.py module.
@@ -60,6 +66,6 @@ class JSONMutant(PostDataMutant):
         if not isinstance(freq.get_raw_data(), JSONContainer):
             return []
 
-        return cls._create_mutants_worker(freq, cls, mutant_str_list,
-                                          fuzzable_param_list,
-                                          append, fuzzer_config)
+        return cls._create_mutants_worker(
+            freq, cls, mutant_str_list, fuzzable_param_list, append, fuzzer_config
+        )

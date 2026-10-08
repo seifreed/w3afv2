@@ -19,7 +19,11 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
-from w3af.core.controllers.exception_handling.helpers import gettempdir, create_crash_file
+
+from w3af.core.controllers.exception_handling.helpers import (
+    gettempdir,
+    create_crash_file,
+)
 from w3af.core.ui.gui.exception_handling import handled_bug_report
 
 
@@ -52,7 +56,7 @@ def handle_exceptions(w3af_core):
     # Create the dialog that allows the user to send the bugs, potentially more
     # than one since we captured all of them during the scan using the new
     # exception_handler, to Github.
-    title = _('Handled exceptions to report')
+    title = _("Handled exceptions to report")
     bug_report_win = handled_bug_report.BugReportWindow(w3af_core, title)
 
     # Blocks waiting for user interaction

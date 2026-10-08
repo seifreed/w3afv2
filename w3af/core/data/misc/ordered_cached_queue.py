@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import uuid
 import queue
 import bisect
@@ -47,9 +48,9 @@ class OrderedCachedQueue(queue.Queue, QueueSpeedMeasurement):
     memory swapping, etc.
     """
 
-    LAST_MD5_HASH = 'f' * 32
+    LAST_MD5_HASH = "f" * 32
 
-    def __init__(self, maxsize=0, name='Unknown'):
+    def __init__(self, maxsize=0, name="Unknown"):
         self.name = name
         self.max_in_memory = maxsize
         self.processed_tasks = 0
@@ -83,7 +84,7 @@ class OrderedCachedQueue(queue.Queue, QueueSpeedMeasurement):
         self.queue_order = list()
         self.hash_to_uuid = dict()
         self.memory = dict()
-        self.disk = DiskDict(table_prefix='%sCachedQueue' % self.name)
+        self.disk = DiskDict(table_prefix="%sCachedQueue" % self.name)
 
     def _qsize(self, _len=len):
         return _len(self.memory) + _len(self.disk)
@@ -119,14 +120,18 @@ class OrderedCachedQueue(queue.Queue, QueueSpeedMeasurement):
             #   If you see many messages like this in the scan log, then you
             #   might want to experiment with a larger maxsize for this queue
             #
-            msg = ('OrderedCachedQueue.put() will write a %r item to the %s'
-                   ' DiskDict. This uses more CPU and disk IO than storing'
-                   ' in memory but will avoid high memory usage issues. The'
-                   ' current %s DiskDict size is %s.')
-            args = (self._get_class_name(item),
-                    self.get_name(),
-                    self.get_name(),
-                    len(self.disk))
+            msg = (
+                "OrderedCachedQueue.put() will write a %r item to the %s"
+                " DiskDict. This uses more CPU and disk IO than storing"
+                " in memory but will avoid high memory usage issues. The"
+                " current %s DiskDict size is %s."
+            )
+            args = (
+                self._get_class_name(item),
+                self.get_name(),
+                self.get_name(),
+                len(self.disk),
+            )
             om.out.debug(msg % args)
 
         #
@@ -185,9 +190,11 @@ class OrderedCachedQueue(queue.Queue, QueueSpeedMeasurement):
                 #   If you see many messages like this in the scan log, then you
                 #   might want to experiment with a larger maxsize for this queue
                 #
-                msg = ('OrderedCachedQueue.get() from %s DiskDict was used to'
-                       ' read an item from disk. The current %s DiskDict'
-                       ' size is %s.')
+                msg = (
+                    "OrderedCachedQueue.get() from %s DiskDict was used to"
+                    " read an item from disk. The current %s DiskDict"
+                    " size is %s."
+                )
                 args = (self.get_name(), self.get_name(), len(self.disk))
                 om.out.debug(msg % args)
 
@@ -205,7 +212,7 @@ class OrderedCachedQueue(queue.Queue, QueueSpeedMeasurement):
 
         When the count of unfinished tasks drops to zero, join() unblocks.
         """
-        msg = 'Called join on %s with %s unfinished tasks'
+        msg = "Called join on %s with %s unfinished tasks"
         args = (self.name, self.unfinished_tasks)
         om.out.debug(msg % args)
 
@@ -215,7 +222,7 @@ class OrderedCachedQueue(queue.Queue, QueueSpeedMeasurement):
                 result = self.all_tasks_done.wait(timeout=5)
 
                 if result is None:
-                    msg = 'Still have %s unfinished tasks in %s join()'
+                    msg = "Still have %s unfinished tasks in %s join()"
                     args = (self.unfinished_tasks, self.name)
                     om.out.debug(msg % args)
         finally:

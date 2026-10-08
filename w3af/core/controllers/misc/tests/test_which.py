@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from w3af.core.controllers.misc.which import which
@@ -26,8 +27,7 @@ from w3af.core.controllers.misc.which import which
 
 class TestWhich(unittest.TestCase):
     def test_which_simple(self):
-        python_executables = which('python')
-        
+        python_executables = which("python")
+
         for exec_name in python_executables:
-            self.assertTrue(exec_name.endswith('python'))
-        
+            self.assertTrue(exec_name.endswith("python"))

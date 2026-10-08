@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.options.baseoption import BaseOption
 from w3af.core.data.options.option_types import HEADER
@@ -46,5 +47,5 @@ class HeaderOption(BaseOption):
         try:
             return Headers.from_string(value)
         except Exception:
-            msg = 'Invalid HTTP header configured by user.'
+            msg = "Invalid HTTP header configured by user."
             raise BaseFrameworkException(msg)

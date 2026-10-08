@@ -6,12 +6,13 @@ class read_mail(Payload):
     """
     This payload shows local emails stored on /var/mail/
     """
+
     def fname_generator(self):
         directory_list = []
-        directory_list.append('/var/mail/')
-        directory_list.append('/var/spool/mail/')
+        directory_list.append("/var/mail/")
+        directory_list.append("/var/spool/mail/")
 
-        users = self.exec_payload('users')
+        users = self.exec_payload("users")
         for directory in directory_list:
             for user in users:
                 yield directory + user
@@ -22,7 +23,7 @@ class read_mail(Payload):
         file_path_iter = self.fname_generator()
         for file_path, content in self.read_multi(file_path_iter):
             if content:
-                result[file_path] = 'Yes'
+                result[file_path] = "Yes"
 
         return result
 
@@ -30,13 +31,17 @@ class read_mail(Payload):
         api_result = self.api_read()
 
         if not api_result:
-            return 'No email files could be read.'
+            return "No email files could be read."
         else:
             rows = []
-            rows.append(['Email files'])
+            rows.append(["Email files"])
             rows.append([])
             for filename in api_result:
-                rows.append([filename, ])
+                rows.append(
+                    [
+                        filename,
+                    ]
+                )
 
             result_table = table(rows)
             result_table.draw(80)

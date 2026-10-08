@@ -18,7 +18,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-
 import os
 import re
 
@@ -44,9 +43,10 @@ class user_defined_regex(GrepPlugin):
         GrepPlugin.__init__(self)
 
         # User defined options
-        self._single_regex = ''
-        self._regex_file_path = os.path.join(ROOT_PATH, 'plugins', 'grep',
-                                             'user_defined_regex', 'empty.txt')
+        self._single_regex = ""
+        self._regex_file_path = os.path.join(
+            ROOT_PATH, "plugins", "grep", "user_defined_regex", "empty.txt"
+        )
 
         # Internal variables
         # Improved performance by compiling all the regular expressions
@@ -91,19 +91,27 @@ class user_defined_regex(GrepPlugin):
                     else:
                         str_match = match_object.group(0)
                         if len(str_match) > 20:
-                            str_match = str_match[:20] + '...'
-                            
-                        desc = 'User defined regular expression "%s" matched a' \
-                               ' response. The matched string is: "%s".'
+                            str_match = str_match[:20] + "..."
+
+                        desc = (
+                            'User defined regular expression "%s" matched a'
+                            ' response. The matched string is: "%s".'
+                        )
                         desc %= (regex.pattern, str_match)
-                        
-                        info_inst = Info('User defined regular expression match',
-                                         desc, response.id, self.get_name())
+
+                        info_inst = Info(
+                            "User defined regular expression match",
+                            desc,
+                            response.id,
+                            self.get_name(),
+                        )
                         info_inst.set_url(response.get_url())
-                        
+
                         om.out.information(desc)
 
-                        self.kb_append_uniq(self, 'user_defined_regex', info_inst, 'URL')
+                        self.kb_append_uniq(
+                            self, "user_defined_regex", info_inst, "URL"
+                        )
 
                     # Save the info_inst
                     self._regexlist_compiled[index] = (regex, info_inst)
@@ -119,8 +127,8 @@ class user_defined_regex(GrepPlugin):
         #   Add the regexes from the file
         #
         self._regexlist_compiled = []
-        regex_file_path = options_list['regex_file_path'].get_value()
-        if regex_file_path and not regex_file_path == 'None':
+        regex_file_path = options_list["regex_file_path"].get_value()
+        if regex_file_path and not regex_file_path == "None":
             self._regex_file_path = regex_file_path
 
             try:
@@ -143,7 +151,7 @@ class user_defined_regex(GrepPlugin):
         #
         #   Add the single regex
         #
-        self._single_regex = options_list['single_regex'].get_value()
+        self._single_regex = options_list["single_regex"].get_value()
         if self._single_regex:
             # Please note that the regex compilation can not fail because
             # the option is of type REGEX and there is a validation made in
@@ -158,10 +166,10 @@ class user_defined_regex(GrepPlugin):
         #
         if tmp_not_compiled_all:
             # get a string like (regexA)|(regexB)|(regexC)
-            all_in_one_uncompiled = '(' + ')|('.join(
-                tmp_not_compiled_all) + ')'
-            self._all_in_one = re.compile(all_in_one_uncompiled,
-                                          re.IGNORECASE | re.DOTALL)
+            all_in_one_uncompiled = "(" + ")|(".join(tmp_not_compiled_all) + ")"
+            self._all_in_one = re.compile(
+                all_in_one_uncompiled, re.IGNORECASE | re.DOTALL
+            )
 
     def get_options(self):
         """
@@ -169,18 +177,19 @@ class user_defined_regex(GrepPlugin):
         """
         ol = OptionList()
 
-        d = 'Single regex to use in the grep process.'
-        o = opt_factory('single_regex', self._single_regex, d, REGEX)
+        d = "Single regex to use in the grep process."
+        o = opt_factory("single_regex", self._single_regex, d, REGEX)
         ol.add(o)
 
-        d = 'Path to file with regular expressions to use in the grep process.'
-        h = 'Attention: The file will be loaded line by line into memory,'\
-            ' because the regex will be pre-compiled in order to achieve '\
-            ' better performance during the scan process. \n\n'\
-            'A list of example regular expressions can be found at '\
+        d = "Path to file with regular expressions to use in the grep process."
+        h = (
+            "Attention: The file will be loaded line by line into memory,"
+            " because the regex will be pre-compiled in order to achieve "
+            " better performance during the scan process. \n\n"
+            "A list of example regular expressions can be found at "
             '"plugins/grep/user_defined_regex/".'
-        o = opt_factory('regex_file_path', self._regex_file_path, d,
-                        INPUT_FILE, help=h)
+        )
+        o = opt_factory("regex_file_path", self._regex_file_path, d, INPUT_FILE, help=h)
         ol.add(o)
 
         return ol

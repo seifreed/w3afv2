@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import time
 
 import w3af.core.controllers.output_manager as om
@@ -27,8 +28,10 @@ import w3af.core.data.kb.config as cf
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.controllers.exceptions import ScanMustStopException
 from w3af.core.controllers.profiling.took_helper import TookLine
-from w3af.core.controllers.core_helpers.consumers.base_consumer import (BaseConsumer,
-                                                                        task_decorator)
+from w3af.core.controllers.core_helpers.consumers.base_consumer import (
+    BaseConsumer,
+    task_decorator,
+)
 
 
 class audit(BaseConsumer):
@@ -45,21 +48,23 @@ class audit(BaseConsumer):
         """
         max_qsize = self.THREAD_POOL_SIZE * 2
 
-        super(audit, self).__init__(audit_plugins,
-                                    w3af_core,
-                                    thread_name=self.get_name(),
-                                    max_pool_queued_tasks=max_qsize,
-                                    max_in_queue_size=max_qsize)
+        super(audit, self).__init__(
+            audit_plugins,
+            w3af_core,
+            thread_name=self.get_name(),
+            max_pool_queued_tasks=max_qsize,
+            max_in_queue_size=max_qsize,
+        )
 
     def get_name(self):
-        return 'Auditor'
+        return "Auditor"
 
     def _teardown(self):
-        msg = 'Starting Audit consumer _teardown() with %s plugins'
+        msg = "Starting Audit consumer _teardown() with %s plugins"
         om.out.debug(msg % len(self._consumer_plugins))
 
         for plugin in self._consumer_plugins:
-            om.out.debug('Calling %s.end()' % plugin.get_name())
+            om.out.debug("Calling %s.end()" % plugin.get_name())
             start_time = time.time()
 
             try:
@@ -73,30 +78,31 @@ class audit(BaseConsumer):
                 # We `pass` instead of `break` because some plugins might
                 # still be able to `end()` without sending HTTP requests to
                 # the remote server
-                msg_fmt = ('Spent %.2f seconds running %s.end() until a'
-                           ' scan must stop exception was raised')
+                msg_fmt = (
+                    "Spent %.2f seconds running %s.end() until a"
+                    " scan must stop exception was raised"
+                )
                 self._log_end_took(msg_fmt, start_time, plugin)
 
             except Exception as e:
-                msg_fmt = ('Spent %.2f seconds running %s.end() until an'
-                           ' unhandled exception was found')
+                msg_fmt = (
+                    "Spent %.2f seconds running %s.end() until an"
+                    " unhandled exception was found"
+                )
                 self._log_end_took(msg_fmt, start_time, plugin)
 
-                self.handle_exception('audit',
-                                      plugin.get_name(),
-                                      'plugin.end()',
-                                      e)
+                self.handle_exception("audit", plugin.get_name(), "plugin.end()", e)
 
             else:
-                msg_fmt = 'Spent %.2f seconds running %s.end()'
+                msg_fmt = "Spent %.2f seconds running %s.end()"
                 self._log_end_took(msg_fmt, start_time, plugin)
 
-        om.out.debug('Finished Audit consumer _teardown()')
+        om.out.debug("Finished Audit consumer _teardown()")
 
     def get_original_response(self, fuzzable_request):
         plugin = self._consumer_plugins[0]
         return plugin.get_original_response(fuzzable_request)
-        
+
     def _consume(self, fuzzable_request):
         """
         Consume a fuzzable_request that was found by the crawl/infrastructure
@@ -108,11 +114,11 @@ class audit(BaseConsumer):
 
             * Send the fuzzable_request and http_response instances to all
               plugins in different threads in order for them to work on them
-        
+
         Getting the original response at this level is a performance
         enhancement to avoid sending the same HTTP request many times, once
         for each audit plugin that needed the http_response.
-        
+
         :param fuzzable_request: A FuzzableRequest instance
         """
         if not self._should_audit(fuzzable_request):
@@ -121,9 +127,12 @@ class audit(BaseConsumer):
         try:
             orig_resp = self.get_original_response(fuzzable_request)
         except Exception as e:
-            self.handle_exception('audit',
-                                  'audit.get_original_response()',
-                                  'audit.get_original_response()', e)
+            self.handle_exception(
+                "audit",
+                "audit.get_original_response()",
+                "audit.get_original_response()",
+                e,
+            )
             return
 
         self._run_observers(fuzzable_request)
@@ -133,10 +142,10 @@ class audit(BaseConsumer):
             # plugin result was JUST taken from the Queue. The good thing is
             # that the "client" reads the status once every 500ms so the user
             # will see things "moving" and will be happy
-            self._w3af_core.status.set_running_plugin('audit',
-                                                      plugin.get_name())
-            self._w3af_core.status.set_current_fuzzable_request('audit',
-                                                                fuzzable_request)
+            self._w3af_core.status.set_running_plugin("audit", plugin.get_name())
+            self._w3af_core.status.set_current_fuzzable_request(
+                "audit", fuzzable_request
+            )
 
             # Note that if we don't limit the input queue size for the thread
             # pool we might end up with a lot of queued calls here! The calls
@@ -160,7 +169,7 @@ class audit(BaseConsumer):
         #
         # First setup the blacklist
         #
-        blacklist_urls = cf.cf.get('blacklist_audit') or []
+        blacklist_urls = cf.cf.get("blacklist_audit") or []
         blacklist_urls = {url.uri2url() for url in blacklist_urls}
 
         #
@@ -169,8 +178,10 @@ class audit(BaseConsumer):
         url = fuzzable_request.get_uri().uri2url()
 
         if url in blacklist_urls:
-            msg = ('%s was included in the audit blacklist, the scan engine'
-                   ' is NOT going to perform fuzzing on this URL')
+            msg = (
+                "%s was included in the audit blacklist, the scan engine"
+                " is NOT going to perform fuzzing on this URL"
+            )
             om.out.debug(msg % url)
             return False
 
@@ -185,9 +196,9 @@ class audit(BaseConsumer):
             for observer in self._observers:
                 observer.audit(self, fuzzable_request)
         except Exception as e:
-            self.handle_exception('audit',
-                                  'audit._run_observers()',
-                                  'audit._run_observers()', e)
+            self.handle_exception(
+                "audit", "audit._run_observers()", "audit._run_observers()", e
+            )
 
     @task_decorator
     def _audit(self, function_id, plugin, fuzzable_request, orig_resp, debugging_id):
@@ -204,18 +215,17 @@ class audit(BaseConsumer):
         args = (plugin.get_name(), debugging_id, fuzzable_request.get_uri())
         om.out.debug('%s.audit(did="%s", uri="%s")' % args)
 
-        took_line = TookLine(self._w3af_core,
-                             plugin.get_name(),
-                             'audit',
-                             debugging_id=debugging_id,
-                             method_params={'uri': fuzzable_request.get_uri()})
+        took_line = TookLine(
+            self._w3af_core,
+            plugin.get_name(),
+            "audit",
+            debugging_id=debugging_id,
+            method_params={"uri": fuzzable_request.get_uri()},
+        )
 
         try:
             plugin.audit_with_copy(fuzzable_request, orig_resp, debugging_id)
         except Exception as e:
-            self.handle_exception('audit',
-                                  plugin.get_name(),
-                                  fuzzable_request,
-                                  e)
+            self.handle_exception("audit", plugin.get_name(), fuzzable_request, e)
 
         took_line.send()

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import json
 import time
 import base64
@@ -30,20 +31,22 @@ from w3af.core.ui.api.db.master import SCANS
 
 
 class APIUnitTest(unittest.TestCase):
-    PASSWORD = 'password'
-    AUTHORIZATION = base64.b64encode('%s:%s' % ('admin', PASSWORD))
-    HEADERS = {'Content-type': 'application/json',
-               'Accept': 'application/json',
-               'Authorization': 'Basic %s' % AUTHORIZATION}
+    PASSWORD = "password"
+    AUTHORIZATION = base64.b64encode("%s:%s" % ("admin", PASSWORD))
+    HEADERS = {
+        "Content-type": "application/json",
+        "Accept": "application/json",
+        "Authorization": "Basic %s" % AUTHORIZATION,
+    }
 
     def setUp(self):
         # Raise exceptions
-        app.config['TESTING'] = True
+        app.config["TESTING"] = True
         app.testing = True
 
         # Configure authentication
-        app.config['PASSWORD'] = hashlib.sha512(self.PASSWORD).hexdigest()
-        app.config['USERNAME'] = 'admin'
+        app.config["PASSWORD"] = hashlib.sha512(self.PASSWORD).hexdigest()
+        app.config["USERNAME"] = "admin"
 
         self.app = app.test_client()
 
@@ -66,13 +69,13 @@ class APIUnitTest(unittest.TestCase):
         for _ in range(10):
             time.sleep(0.5)
 
-            response = self.app.get('/scans/', headers=self.HEADERS)
+            response = self.app.get("/scans/", headers=self.HEADERS)
 
             self.assertEqual(response.status_code, 200, response.data)
-            if json.loads(response.data)['items'][0]['status'] != 'Stopped':
+            if json.loads(response.data)["items"][0]["status"] != "Stopped":
                 return response
 
-        raise RuntimeError('Timeout waiting for scan to run')
+        raise RuntimeError("Timeout waiting for scan to run")
 
     def wait_until_finish(self, wait_loops=150):
         """
@@ -84,11 +87,11 @@ class APIUnitTest(unittest.TestCase):
         for _ in range(wait_loops):
             time.sleep(0.5)
 
-            response = self.app.get('/scans/', headers=self.HEADERS)
+            response = self.app.get("/scans/", headers=self.HEADERS)
             self.assertEqual(response.status_code, 200, response.data)
 
-            status = json.loads(response.data)['items'][0]['status']
-            if status != 'Running':
+            status = json.loads(response.data)["items"][0]["status"]
+            if status != "Running":
                 return response
 
         msg = 'Timeout waiting for scan to finish, latest status is: "%s"'

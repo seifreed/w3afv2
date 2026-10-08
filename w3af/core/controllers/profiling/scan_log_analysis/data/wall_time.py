@@ -5,8 +5,8 @@ from utils.output import KeyValueOutput
 from utils.output import ListOutput, ListOutputItem
 from functools import cmp_to_key
 
-SCAN_TOOK_RE = re.compile('took (\d*\.\d\d)s to run')
-PLUGIN_TOOK_RE = re.compile('\] (.*?)\.(grep|audit|discover)\(.*?\) took (.*?)s to run')
+SCAN_TOOK_RE = re.compile("took (\d*\.\d\d)s to run")
+PLUGIN_TOOK_RE = re.compile("\] (.*?)\.(grep|audit|discover)\(.*?\) took (.*?)s to run")
 
 
 def show_generic_spent_time(scan, name, must_have):
@@ -21,10 +21,11 @@ def show_generic_spent_time(scan, name, must_have):
         if match:
             spent_time += float(match.group(1))
 
-    return KeyValueOutput('%s_spent_time' % name,
-                          'Time spent running %s plugins' % name,
-                          {'human': epoch_to_string(spent_time),
-                           'seconds': spent_time})
+    return KeyValueOutput(
+        "%s_spent_time" % name,
+        "Time spent running %s plugins" % name,
+        {"human": epoch_to_string(spent_time), "seconds": spent_time},
+    )
 
 
 def get_plugin_time(scan_log_filename, scan):
@@ -32,7 +33,7 @@ def get_plugin_time(scan_log_filename, scan):
     spent_time_by_plugin = dict()
 
     for line in scan:
-        if 'took' not in line:
+        if "took" not in line:
             continue
 
         match = PLUGIN_TOOK_RE.search(line)
@@ -56,7 +57,7 @@ def get_plugin_time(scan_log_filename, scan):
     if not spent_time_by_plugin:
         return
 
-    output = ListOutput('plugin_wall_clock_stats')
+    output = ListOutput("plugin_wall_clock_stats")
 
     def sort_by_value(a, b):
         return cmp(b[1], a[1])
@@ -70,25 +71,27 @@ def get_plugin_time(scan_log_filename, scan):
         spent_time_dict = dict(spent_time_items)
 
         # round
-        spent_time_dict = dict((plugin_name, round(took)) for plugin_name, took in spent_time_dict.items())
+        spent_time_dict = dict(
+            (plugin_name, round(took)) for plugin_name, took in spent_time_dict.items()
+        )
 
-        title = 'Top10 wall time used by %s plugins (seconds)'
+        title = "Top10 wall time used by %s plugins (seconds)"
         output.append(ListOutputItem(title % plugin_type, spent_time_dict))
 
     return output
 
 
 def get_discovery_time(scan_log_filename, scan):
-    return show_generic_spent_time(scan, 'discover', '.discover(')
+    return show_generic_spent_time(scan, "discover", ".discover(")
 
 
 def get_audit_time(scan_log_filename, scan):
-    return show_generic_spent_time(scan, 'audit', '.audit(')
+    return show_generic_spent_time(scan, "audit", ".audit(")
 
 
 def get_grep_time(scan_log_filename, scan):
-    return show_generic_spent_time(scan, 'grep', '.grep(')
+    return show_generic_spent_time(scan, "grep", ".grep(")
 
 
 def get_output_time(scan_log_filename, scan):
-    return show_generic_spent_time(scan, 'output', '.flush(')
+    return show_generic_spent_time(scan, "output", ".flush(")

@@ -6,11 +6,12 @@ class mysql_config(Payload):
     """
     This payload shows MySQL configuration files.
     """
+
     def api_read(self):
         result = {}
-        files = ['my.cnf', 'debian.cnf']
+        files = ["my.cnf", "debian.cnf"]
 
-        directory_list = self.exec_payload('mysql_config_directory')['directory']
+        directory_list = self.exec_payload("mysql_config_directory")["directory"]
 
         for _file in files:
             for directory in directory_list:
@@ -27,9 +28,9 @@ class mysql_config(Payload):
         api_result = self.api_read()
 
         if not api_result:
-            return 'MySQL configuration files not found.'
+            return "MySQL configuration files not found."
         else:
-            rows = [['MySQL configuration file', 'Content'], []]
+            rows = [["MySQL configuration file", "Content"], []]
             for filename in api_result:
                 rows.append([filename, api_result[filename]])
                 rows.append([])

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 
 from itertools import repeat
@@ -33,80 +34,83 @@ from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.plugins.crawl.phpinfo_analysis.analysis import (register_globals,
-                                                          allow_url_fopen,
-                                                          allow_url_include,
-                                                          display_errors,
-                                                          expose_php,
-                                                          lowest_privilege_test,
-                                                          disable_functions,
-                                                          curl_file_support,
-                                                          cgi_force_redirect,
-                                                          session_cookie_httponly,
-                                                          session_save_path,
-                                                          session_use_trans,
-                                                          default_charset,
-                                                          enable_dl,
-                                                          memory_limit,
-                                                          post_max_size,
-                                                          upload_max_filesize,
-                                                          upload_tmp_dir,
-                                                          file_uploads,
-                                                          magic_quotes_gpc,
-                                                          open_basedir,
-                                                          session_hash_function)
-
+from w3af.plugins.crawl.phpinfo_analysis.analysis import (
+    register_globals,
+    allow_url_fopen,
+    allow_url_include,
+    display_errors,
+    expose_php,
+    lowest_privilege_test,
+    disable_functions,
+    curl_file_support,
+    cgi_force_redirect,
+    session_cookie_httponly,
+    session_save_path,
+    session_use_trans,
+    default_charset,
+    enable_dl,
+    memory_limit,
+    post_max_size,
+    upload_max_filesize,
+    upload_tmp_dir,
+    file_uploads,
+    magic_quotes_gpc,
+    open_basedir,
+    session_hash_function,
+)
 
 PHP_INFO_FILES = {
-    'phpinfo.php',
-    'PhpInfo.php',
-    'PHPinfo.php',
-    'PHPINFO.php',
-    'phpInfo.php',
-    'info.php',
-    'test.php?mode=phpinfo',
-    'index.php?view=phpinfo',
-    'index.php?mode=phpinfo',
-    'TEST.php?mode=phpinfo',
-    'install.php?mode=phpinfo',
-    'INSTALL.php?mode=phpinfo',
-    'admin.php?mode=phpinfo',
-    'phpversion.php',
-    'phpVersion.php',
-    'test1.php',
-    'phpinfo1.php',
-    'phpInfo1.php',
-    'info1.php',
-    'PHPversion.php',
-    'x.php',
-    'xx.php',
-    'xxx.php'
+    "phpinfo.php",
+    "PhpInfo.php",
+    "PHPinfo.php",
+    "PHPINFO.php",
+    "phpInfo.php",
+    "info.php",
+    "test.php?mode=phpinfo",
+    "index.php?view=phpinfo",
+    "index.php?mode=phpinfo",
+    "TEST.php?mode=phpinfo",
+    "install.php?mode=phpinfo",
+    "INSTALL.php?mode=phpinfo",
+    "admin.php?mode=phpinfo",
+    "phpversion.php",
+    "phpVersion.php",
+    "test1.php",
+    "phpinfo1.php",
+    "phpInfo1.php",
+    "info1.php",
+    "PHPversion.php",
+    "x.php",
+    "xx.php",
+    "xxx.php",
 }
 
 PHP_INFO_FILES_LOWERCASE = {i.lower() for i in PHP_INFO_FILES}
 
-ANALYSIS_FUNCTIONS = (register_globals,
-                      allow_url_fopen,
-                      allow_url_include,
-                      display_errors,
-                      expose_php,
-                      lowest_privilege_test,
-                      disable_functions,
-                      curl_file_support,
-                      cgi_force_redirect,
-                      session_cookie_httponly,
-                      session_save_path,
-                      session_use_trans,
-                      default_charset,
-                      enable_dl,
-                      memory_limit,
-                      post_max_size,
-                      upload_max_filesize,
-                      upload_tmp_dir,
-                      file_uploads,
-                      magic_quotes_gpc,
-                      open_basedir,
-                      session_hash_function)
+ANALYSIS_FUNCTIONS = (
+    register_globals,
+    allow_url_fopen,
+    allow_url_include,
+    display_errors,
+    expose_php,
+    lowest_privilege_test,
+    disable_functions,
+    curl_file_support,
+    cgi_force_redirect,
+    session_cookie_httponly,
+    session_save_path,
+    session_use_trans,
+    default_charset,
+    enable_dl,
+    memory_limit,
+    post_max_size,
+    upload_max_filesize,
+    upload_tmp_dir,
+    file_uploads,
+    magic_quotes_gpc,
+    open_basedir,
+    session_hash_function,
+)
 
 
 class phpinfo(CrawlPlugin):
@@ -117,8 +121,11 @@ class phpinfo(CrawlPlugin):
     :author: Aung Khant (aungkhant[at]yehg.net)
     """
 
-    PHP_VERSION_RE = re.compile('(<tr class="h"><td>\n|alt="PHP Logo" /></a>)'
-                                '<h1 class="p">PHP Version (.*?)</h1>', re.I)
+    PHP_VERSION_RE = re.compile(
+        '(<tr class="h"><td>\n|alt="PHP Logo" /></a>)'
+        '<h1 class="p">PHP Version (.*?)</h1>',
+        re.I,
+    )
     SYSTEM_RE = re.compile('System </td><td class="v">(.*?)</td></tr>', re.I)
 
     def __init__(self):
@@ -140,7 +147,7 @@ class phpinfo(CrawlPlugin):
 
             if domain_path in self._analyzed_dirs:
                 continue
-            
+
             self._analyzed_dirs.add(domain_path)
 
             url_repeater = repeat(domain_path)
@@ -159,15 +166,15 @@ class phpinfo(CrawlPlugin):
 
     def _should_use_lowercase_db(self):
         # pylint: disable=E1103
-        identified_os = kb.kb.raw_read('fingerprint_os', 'operating_system_str')
+        identified_os = kb.kb.raw_read("fingerprint_os", "operating_system_str")
 
         if not isinstance(identified_os, str):
-            identified_os = cf.cf.get('target_os')
+            identified_os = cf.cf.get("target_os")
 
         identified_os = identified_os.lower()
         # pylint: enable=E1103
 
-        if 'windows' in identified_os:
+        if "windows" in identified_os:
             return True
 
         return False
@@ -179,9 +186,7 @@ class phpinfo(CrawlPlugin):
         """
         php_info_url = domain_path.url_join(php_info_filename)
 
-        response = self._uri_opener.GET(php_info_url,
-                                        cache=True,
-                                        grep=False)
+        response = self._uri_opener.GET(php_info_url, cache=True, grep=False)
 
         if is_404(response):
             return
@@ -200,16 +205,19 @@ class phpinfo(CrawlPlugin):
         fr = FuzzableRequest.from_http_response(response)
         self.output_queue.put(fr)
 
-        desc = ('The phpinfo() file was found at: %s. The version'
-                ' of PHP is: "%s" and the system information is:'
-                ' "%s".')
+        desc = (
+            "The phpinfo() file was found at: %s. The version"
+            ' of PHP is: "%s" and the system information is:'
+            ' "%s".'
+        )
         desc %= (response.get_url(), php_version.group(2), sysinfo.group(1))
 
-        v = Vuln('phpinfo() file found', desc, severity.MEDIUM,
-                 response.id, self.get_name())
+        v = Vuln(
+            "phpinfo() file found", desc, severity.MEDIUM, response.id, self.get_name()
+        )
         v.set_url(response.get_url())
 
-        kb.kb.append(self, 'phpinfo', v)
+        kb.kb.append(self, "phpinfo", v)
         om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
         if not self._has_audited:

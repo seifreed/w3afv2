@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import time
 import random
 import unittest
@@ -33,10 +34,10 @@ from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
-@attr('smoke')
+@attr("smoke")
 class TestGetAverageRTT(unittest.TestCase):
 
-    MOCK_URL = 'http://www.w3af.org/'
+    MOCK_URL = "http://www.w3af.org/"
 
     def setUp(self):
         self.uri_opener = ExtendedUrllib()
@@ -48,14 +49,14 @@ class TestGetAverageRTT(unittest.TestCase):
     @staticmethod
     def request_callback_05(request, uri, headers):
         time.sleep(0.5)
-        body = 'Yup'
+        body = "Yup"
         return 200, headers, body
 
     @httpretty.activate
     def test_get_average_rtt_for_mutant_all_equal(self):
-        httpretty.register_uri(httpretty.GET,
-                               self.MOCK_URL,
-                               body=TestGetAverageRTT.request_callback_05)
+        httpretty.register_uri(
+            httpretty.GET, self.MOCK_URL, body=TestGetAverageRTT.request_callback_05
+        )
 
         mock_url = URL(self.MOCK_URL)
         fuzzable_request = FuzzableRequest(mock_url)
@@ -70,12 +71,10 @@ class TestGetAverageRTT(unittest.TestCase):
 
         def request_callback(request, uri, headers):
             time.sleep(0.4 + random.randint(1, 9) / 100.0)
-            body = 'Yup'
+            body = "Yup"
             return 200, headers, body
 
-        httpretty.register_uri(httpretty.GET,
-                               self.MOCK_URL,
-                               body=request_callback)
+        httpretty.register_uri(httpretty.GET, self.MOCK_URL, body=request_callback)
 
         mock_url = URL(self.MOCK_URL)
         fuzzable_request = FuzzableRequest(mock_url)
@@ -92,9 +91,11 @@ class TestGetAverageRTT(unittest.TestCase):
         #       Calculating the average using 0.3 , 0.2 , 2.0 is madness
         #
 
-        httpretty.register_uri(httpretty.GET,
-                               self.MOCK_URL,
-                               body=RequestCallBackWithDelays([0.3, 0.2, 2.0]))
+        httpretty.register_uri(
+            httpretty.GET,
+            self.MOCK_URL,
+            body=RequestCallBackWithDelays([0.3, 0.2, 2.0]),
+        )
 
         mock_url = URL(self.MOCK_URL)
         fuzzable_request = FuzzableRequest(mock_url)
@@ -106,9 +107,9 @@ class TestGetAverageRTT(unittest.TestCase):
 
     @httpretty.activate
     def test_get_average_rtt_for_mutant_with_threads(self):
-        httpretty.register_uri(httpretty.GET,
-                               self.MOCK_URL,
-                               body=TestGetAverageRTT.request_callback_05)
+        httpretty.register_uri(
+            httpretty.GET, self.MOCK_URL, body=TestGetAverageRTT.request_callback_05
+        )
 
         pool = ThreadPool(25)
         mock_url = URL(self.MOCK_URL)
@@ -116,8 +117,10 @@ class TestGetAverageRTT(unittest.TestCase):
 
         iterations = 50
 
-        results = pool.map(self.uri_opener.get_average_rtt_for_mutant,
-                           repeat(fuzzable_request, iterations))
+        results = pool.map(
+            self.uri_opener.get_average_rtt_for_mutant,
+            repeat(fuzzable_request, iterations),
+        )
 
         self.assertEqual(len(results), iterations)
 
@@ -139,5 +142,5 @@ class RequestCallBackWithDelays(object):
         time.sleep(self.delays[self.call])
         self.call += 1
 
-        body = 'Yup'
+        body = "Yup"
         return 200, headers, body

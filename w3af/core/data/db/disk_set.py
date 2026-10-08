@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import threading
 
 from w3af.core.data.db.disk_list import DiskList
@@ -35,7 +36,7 @@ class DiskSet(DiskList):
         super(DiskSet, self).__init__(table_prefix=table_prefix)
 
         self.lock = threading.RLock()
-    
+
     def add(self, value):
         """
         Append a value to the DiskSet (only if the value is not already
@@ -63,12 +64,12 @@ class DiskSet(DiskList):
                 self.add(value)
 
     def extend(self, *args):
-        raise RuntimeError('Not a valid DiskSet method.')
+        raise RuntimeError("Not a valid DiskSet method.")
 
     def append(self, *args):
-        raise RuntimeError('Not a valid DiskSet method.')
+        raise RuntimeError("Not a valid DiskSet method.")
 
     def __unicode__(self):
-        return '<DiskSet [%s]>' % ', '.join([str(i) for i in self])
-    
+        return "<DiskSet [%s]>" % ", ".join([str(i) for i in self])
+
     __str__ = __unicode__

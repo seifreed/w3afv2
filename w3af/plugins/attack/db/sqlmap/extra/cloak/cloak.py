@@ -14,6 +14,7 @@ import zlib
 from optparse import OptionError
 from optparse import OptionParser
 
+
 def hideAscii(data):
     retVal = ""
     for i in range(len(data)):
@@ -24,12 +25,14 @@ def hideAscii(data):
 
     return retVal
 
+
 def cloak(inputFile=None, data=None):
     if data is None:
         with open(inputFile, "rb") as f:
             data = f.read()
 
     return hideAscii(zlib.compress(data))
+
 
 def decloak(inputFile=None, data=None):
     if data is None:
@@ -38,32 +41,38 @@ def decloak(inputFile=None, data=None):
     try:
         data = zlib.decompress(hideAscii(data))
     except:
-        print(('ERROR: the provided input file \'%s\' does not contain valid cloaked content' % inputFile))
+        print(
+            (
+                "ERROR: the provided input file '%s' does not contain valid cloaked content"
+                % inputFile
+            )
+        )
         sys.exit(1)
     finally:
         f.close()
 
     return data
 
+
 def main():
-    usage = '%s [-d] -i <input file> [-o <output file>]' % sys.argv[0]
-    parser = OptionParser(usage=usage, version='0.1')
+    usage = "%s [-d] -i <input file> [-o <output file>]" % sys.argv[0]
+    parser = OptionParser(usage=usage, version="0.1")
 
     try:
-        parser.add_option('-d', dest='decrypt', action="store_true", help='Decrypt')
-        parser.add_option('-i', dest='inputFile', help='Input file')
-        parser.add_option('-o', dest='outputFile', help='Output file')
+        parser.add_option("-d", dest="decrypt", action="store_true", help="Decrypt")
+        parser.add_option("-i", dest="inputFile", help="Input file")
+        parser.add_option("-o", dest="outputFile", help="Output file")
 
-        (args, _) = parser.parse_args()
+        args, _ = parser.parse_args()
 
         if not args.inputFile:
-            parser.error('Missing the input file, -h for help')
+            parser.error("Missing the input file, -h for help")
 
     except (OptionError, TypeError) as e:
         parser.error(e)
 
     if not os.path.isfile(args.inputFile):
-        print(('ERROR: the provided input file \'%s\' is non existent' % args.inputFile))
+        print(("ERROR: the provided input file '%s' is non existent" % args.inputFile))
         sys.exit(1)
 
     if not args.decrypt:
@@ -73,13 +82,14 @@ def main():
 
     if not args.outputFile:
         if not args.decrypt:
-            args.outputFile = args.inputFile + '_'
+            args.outputFile = args.inputFile + "_"
         else:
             args.outputFile = args.inputFile[:-1]
 
-    f = open(args.outputFile, 'wb')
+    f = open(args.outputFile, "wb")
     f.write(data)
     f.close()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

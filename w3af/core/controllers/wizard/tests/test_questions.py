@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 
 from nose.plugins.attrib import attr
@@ -33,7 +34,7 @@ class test_questions(object):
 
     unique_question_ids = []
 
-    @attr('smoke')
+    @attr("smoke")
     def test_all_questions(self):
         """
         This is a very basic test where we perform the following:
@@ -42,13 +43,13 @@ class test_questions(object):
             * Exercise all setters
             * Make sure "back" works
         """
-        mod = 'w3af.core.controllers.wizard.questions.%s'
+        mod = "w3af.core.controllers.wizard.questions.%s"
         w3af_core = w3afCore()
 
-        for filename in os.listdir('w3af/core/controllers/wizard/questions/'):
+        for filename in os.listdir("w3af/core/controllers/wizard/questions/"):
             question_id, ext = os.path.splitext(filename)
 
-            if question_id in ('__init__', '.git') or ext == '.pyc':
+            if question_id in ("__init__", ".git") or ext == ".pyc":
                 continue
 
             klass = mod % question_id
@@ -56,20 +57,20 @@ class test_questions(object):
 
             yield self._test_qid, question_inst
 
-    @attr('smoke')
+    @attr("smoke")
     def _test_qid(self, question_inst):
         """
         Ahhh, nose's magic of test generators :D
         """
         orig = question_inst.get_question_title()
-        question_inst.set_question_title('New')
+        question_inst.set_question_title("New")
         new = question_inst.get_question_title()
-        assert 'New' == new
+        assert "New" == new
 
         orig = question_inst.get_question_string()
-        question_inst.set_question_string('New')
+        question_inst.set_question_string("New")
         new = question_inst.get_question_string()
-        assert 'New' == new
+        assert "New" == new
 
         opt = question_inst.get_option_objects()
         assert isinstance(opt, OptionList) == True

@@ -25,26 +25,27 @@ from w3af.plugins.tests.helper import PluginTest, PluginConfig
 
 class TestFindCAPTCHAS(PluginTest):
 
-    base_url = 'http://moth/w3af/crawl/find_captcha/'
+    base_url = "http://moth/w3af/crawl/find_captcha/"
 
     _run_configs = {
-        'cfg': {
-            'target': base_url,
-            'plugins': {'crawl': (PluginConfig('find_captchas'),)}
+        "cfg": {
+            "target": base_url,
+            "plugins": {"crawl": (PluginConfig("find_captchas"),)},
         }
     }
 
-    @attr('ci_fails')
+    @attr("ci_fails")
     def test_find_captcha(self):
-        cfg = self._run_configs['cfg']
-        self._scan(cfg['target'], cfg['plugins'])
+        cfg = self._run_configs["cfg"]
+        self._scan(cfg["target"], cfg["plugins"])
 
-        infos = self.kb.get('find_captchas', 'CAPTCHA')
+        infos = self.kb.get("find_captchas", "CAPTCHA")
 
         self.assertEqual(len(infos), 1, infos)
 
         info = infos[0]
 
-        self.assertEqual(info.get_name(), 'Captcha image detected')
+        self.assertEqual(info.get_name(), "Captcha image detected")
         self.assertEqual(
-            info.get_url().url_string, self.base_url + 'securimage_show.php')
+            info.get_url().url_string, self.base_url + "securimage_show.php"
+        )

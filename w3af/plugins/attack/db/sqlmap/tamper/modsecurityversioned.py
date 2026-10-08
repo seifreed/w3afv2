@@ -10,8 +10,10 @@ from lib.core.enums import PRIORITY
 
 __priority__ = PRIORITY.HIGHER
 
+
 def dependencies():
     pass
+
 
 def tamper(payload, **kwargs):
     """
@@ -35,13 +37,18 @@ def tamper(payload, **kwargs):
     retVal = payload
 
     if payload:
-        postfix = ''
-        for comment in ('#', '--', '/*'):
+        postfix = ""
+        for comment in ("#", "--", "/*"):
             if comment in payload:
-                postfix = payload[payload.find(comment):]
-                payload = payload[:payload.find(comment)]
+                postfix = payload[payload.find(comment) :]
+                payload = payload[: payload.find(comment)]
                 break
-        if ' ' in payload:
-            retVal = "%s /*!30%s%s*/%s" % (payload[:payload.find(' ')], randomInt(3), payload[payload.find(' ') + 1:], postfix)
+        if " " in payload:
+            retVal = "%s /*!30%s%s*/%s" % (
+                payload[: payload.find(" ")],
+                randomInt(3),
+                payload[payload.find(" ") + 1 :],
+                postfix,
+            )
 
     return retVal

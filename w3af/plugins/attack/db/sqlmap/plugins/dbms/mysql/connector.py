@@ -18,6 +18,7 @@ from lib.core.data import logger
 from lib.core.exception import SqlmapConnectionException
 from plugins.generic.connector import Connector as GenericConnector
 
+
 class Connector(GenericConnector):
     """
     Homepage: http://code.google.com/p/pymysql/
@@ -36,7 +37,15 @@ class Connector(GenericConnector):
         self.initConnection()
 
         try:
-            self.connector = pymysql.connect(host=self.hostname, user=self.user, passwd=self.password, db=self.db, port=self.port, connect_timeout=conf.timeout, use_unicode=True)
+            self.connector = pymysql.connect(
+                host=self.hostname,
+                user=self.user,
+                passwd=self.password,
+                db=self.db,
+                port=self.port,
+                connect_timeout=conf.timeout,
+                use_unicode=True,
+            )
         except (pymysql.OperationalError, pymysql.InternalError) as msg:
             raise SqlmapConnectionException(msg[1])
         except struct.error as msg:
@@ -49,7 +58,10 @@ class Connector(GenericConnector):
         try:
             return self.cursor.fetchall()
         except pymysql.ProgrammingError as msg:
-            logger.log(logging.WARN if conf.dbmsHandler else logging.DEBUG, "(remote) %s" % msg[1])
+            logger.log(
+                logging.WARN if conf.dbmsHandler else logging.DEBUG,
+                "(remote) %s" % msg[1],
+            )
             return None
 
     def execute(self, query):
@@ -59,7 +71,10 @@ class Connector(GenericConnector):
             self.cursor.execute(query)
             retVal = True
         except (pymysql.OperationalError, pymysql.ProgrammingError) as msg:
-            logger.log(logging.WARN if conf.dbmsHandler else logging.DEBUG, "(remote) %s" % msg[1])
+            logger.log(
+                logging.WARN if conf.dbmsHandler else logging.DEBUG,
+                "(remote) %s" % msg[1],
+            )
         except pymysql.InternalError as msg:
             raise SqlmapConnectionException(msg[1])
 

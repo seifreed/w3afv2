@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-
 import w3af.core.data.constants.severity as severity
 
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
@@ -34,12 +33,13 @@ class format_string(AuditPlugin):
     Find format string vulnerabilities.
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     FORMAT_STRING_LENS = [1, 10, 25, 100]
     FORMAT_STRINGS = [create_format_string(i) for i in FORMAT_STRING_LENS]
 
     ERROR_STRINGS = (
         # TODO: Add more error strings here
-        '<title>500 Internal Server Error</title>\n',
+        "<title>500 Internal Server Error</title>\n",
     )
 
     def audit(self, freq, orig_response, debugging_id):
@@ -50,14 +50,14 @@ class format_string(AuditPlugin):
         :param orig_response: The HTTP response associated with the fuzzable request
         :param debugging_id: A unique identifier for this call to audit()
         """
-        mutants = create_mutants(freq,
-                                 self.FORMAT_STRINGS,
-                                 orig_resp=orig_response)
+        mutants = create_mutants(freq, self.FORMAT_STRINGS, orig_resp=orig_response)
 
-        self._send_mutants_in_threads(self._uri_opener.send_mutant,
-                                      mutants,
-                                      self._analyze_result,
-                                      debugging_id=debugging_id)
+        self._send_mutants_in_threads(
+            self._uri_opener.send_mutant,
+            mutants,
+            self._analyze_result,
+            debugging_id=debugging_id,
+        )
 
     def _analyze_result(self, mutant, response):
         """
@@ -77,17 +77,24 @@ class format_string(AuditPlugin):
             if error in mutant.get_original_response_body():
                 continue
 
-            desc = ('A possible (detection is really hard...) format'
-                    ' string vulnerability was found at: %s')
+            desc = (
+                "A possible (detection is really hard...) format"
+                " string vulnerability was found at: %s"
+            )
             desc %= mutant.found_at()
 
-            v = Vuln.from_mutant('Format string vulnerability', desc,
-                                 severity.MEDIUM, response.id,
-                                 self.get_name(), mutant)
+            v = Vuln.from_mutant(
+                "Format string vulnerability",
+                desc,
+                severity.MEDIUM,
+                response.id,
+                self.get_name(),
+                mutant,
+            )
 
             v.add_to_highlight(error)
 
-            self.kb_append_uniq(self, 'format_string', v)
+            self.kb_append_uniq(self, "format_string", v)
             break
 
     def get_plugin_deps(self):
@@ -95,7 +102,7 @@ class format_string(AuditPlugin):
         :return: A list with the names of the plugins that should be run before
                  the current one.
         """
-        return ['grep.error_500']
+        return ["grep.error_500"]
 
     def get_long_desc(self):
         """

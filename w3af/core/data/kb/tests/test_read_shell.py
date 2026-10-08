@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from w3af.core.data.kb.read_shell import ReadShell
@@ -26,29 +27,28 @@ from w3af.core.data.kb.tests.test_vuln import MockVuln
 
 
 class TestReadShell(unittest.TestCase):
-    
+
     def test_help_format(self):
         shell = ReadShell(MockVuln(), None, None)
         _help = shell.help(None)
-        
-        self.assertFalse(_help.startswith(' '))
-        
-        self.assertIn('    help', _help)
+
+        self.assertFalse(_help.startswith(" "))
+
+        self.assertIn("    help", _help)
         # Note that I add an extra space
-        self.assertNotIn('     help', _help)
-    
+        self.assertNotIn("     help", _help)
+
     def test_help_contents(self):
         shell = ReadShell(MockVuln(), None, None)
         _help = shell.help(None)
-        
-        self.assertNotIn('execute', _help)
-        self.assertNotIn('upload', _help)
-        self.assertIn('read', _help)
+
+        self.assertNotIn("execute", _help)
+        self.assertNotIn("upload", _help)
+        self.assertIn("read", _help)
 
     def test_help_contents_specific(self):
         shell = ReadShell(MockVuln(), None, None)
-        _help = shell.help('read')
-        
-        self.assertIn('read', _help)
-        self.assertIn('/etc/passwd', _help)
+        _help = shell.help("read")
 
+        self.assertIn("read", _help)
+        self.assertIn("/etc/passwd", _help)

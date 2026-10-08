@@ -36,11 +36,12 @@ class lnxVd(vdaemon):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def _clean_up(self):
         """
         Removes the created file and the crontab entry.
         """
-        self._exec_method(*('/bin/rm ' + self._remote_filename,))
+        self._exec_method(*("/bin/rm " + self._remote_filename,))
 
     def _exec_payload(self, remote_filename):
         """
@@ -53,20 +54,21 @@ class lnxVd(vdaemon):
         """
         cH = crontabHandler(self._exec_method)
         if not cH.can_delay():
-            msg = '[lnxVd] Failed to create cron entry.'
+            msg = "[lnxVd] Failed to create cron entry."
             om.out.debug(msg)
             raise BaseFrameworkException(msg)
         else:
             wait_time = cH.add_to_schedule(remote_filename)
 
-            om.out.console('Crontab entry successfully added. Waiting for shellcode execution.')
+            om.out.console(
+                "Crontab entry successfully added. Waiting for shellcode execution."
+            )
             time.sleep(wait_time + 3)
 
-            om.out.debug(
-                'Shellcode successfully executed, restoring old crontab.')
+            om.out.debug("Shellcode successfully executed, restoring old crontab.")
             cH.restore_old_schedule()
 
-            om.out.debug('All done, check metasploit for results.')
+            om.out.debug("All done, check metasploit for results.")
 
     def get_os(self):
-        return 'linux'
+        return "linux"

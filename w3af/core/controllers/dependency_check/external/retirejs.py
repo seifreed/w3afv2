@@ -19,31 +19,31 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import subprocess
 
 from w3af.core.controllers.misc.which import which
 
-
-SUPPORTED_RETIREJS = '2.'
+SUPPORTED_RETIREJS = "2."
 
 
 def retirejs_is_installed():
     """
     :return: True if retirejs is installed and we were able to parse the version.
     """
-    paths_to_retire = which('retire')
+    paths_to_retire = which("retire")
     if not paths_to_retire:
         return False
 
     path_to_retire = paths_to_retire[0]
 
     try:
-        version = subprocess.check_output('%s --version' % path_to_retire, shell=True)
+        version = subprocess.check_output("%s --version" % path_to_retire, shell=True)
     except subprocess.CalledProcessError:
         return False
 
     version = version.strip()
-    version_split = version.split('.')
+    version_split = version.split(".")
 
     # Just check that the version has the format 1.6.0
     if len(version_split) != 3:

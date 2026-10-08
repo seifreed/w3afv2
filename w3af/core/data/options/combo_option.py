@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.options.baseoption import BaseOption
 from w3af.core.data.options.option_types import COMBO
@@ -33,7 +34,7 @@ class ComboOption(BaseOption):
 
     _type = COMBO
 
-    def __init__(self, name, default_value, desc, _help='', tabid=''):
+    def __init__(self, name, default_value, desc, _help="", tabid=""):
         """
         :param name: The name of the ComboOption
         :param default_value: The default value of the ComboOption;
@@ -67,4 +68,4 @@ class ComboOption(BaseOption):
         if value in self._combo_options:
             return value
         else:
-            raise BaseFrameworkException('The option you selected is invalid.')
+            raise BaseFrameworkException("The option you selected is invalid.")

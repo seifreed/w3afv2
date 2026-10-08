@@ -20,6 +20,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 import shutil
 import os
@@ -30,32 +31,29 @@ from w3af.core.data.profile.profile import profile
 class TestProfiles(unittest.TestCase):
 
     def test_load_profile_using_name_in_file(self):
-        p = profile('OWASP_TOP10', workdir='.')
-        target_tmp = '/tmp/OWASP_TOP10.pw3af'
+        p = profile("OWASP_TOP10", workdir=".")
+        target_tmp = "/tmp/OWASP_TOP10.pw3af"
 
-        shutil.copy(p.profile_file_name, '/tmp/')
+        shutil.copy(p.profile_file_name, "/tmp/")
         profile_content = open(target_tmp).read()
-        profile_content = profile_content.replace('name = OWASP_TOP10',
-                                                  'name = foobar')
-        open(target_tmp, 'w').write(profile_content)
+        profile_content = profile_content.replace("name = OWASP_TOP10", "name = foobar")
+        open(target_tmp, "w").write(profile_content)
 
-        p = profile('foobar', workdir='/tmp/')
+        p = profile("foobar", workdir="/tmp/")
         self.assertEqual(target_tmp, p.profile_file_name)
 
         os.unlink(target_tmp)
 
     def test_remove_profile_using_name_in_file(self):
-        p = profile('OWASP_TOP10', workdir='.')
-        target_tmp = '/tmp/OWASP_TOP10.pw3af'
+        p = profile("OWASP_TOP10", workdir=".")
+        target_tmp = "/tmp/OWASP_TOP10.pw3af"
 
-        shutil.copy(p.profile_file_name, '/tmp/')
+        shutil.copy(p.profile_file_name, "/tmp/")
         profile_content = open(target_tmp).read()
-        profile_content = profile_content.replace('name = OWASP_TOP10',
-                                                  'name = foobar')
-        open(target_tmp, 'w').write(profile_content)
+        profile_content = profile_content.replace("name = OWASP_TOP10", "name = foobar")
+        open(target_tmp, "w").write(profile_content)
 
-        p = profile('foobar', workdir='/tmp/')
+        p = profile("foobar", workdir="/tmp/")
         p.remove()
 
         self.assertFalse(os.path.exists(target_tmp))
-

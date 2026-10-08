@@ -20,6 +20,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.bloomfilter.bloomfilter import BloomFilter
 
 
@@ -27,8 +28,13 @@ class ScalableBloomFilter(object):
     SMALL_SET_GROWTH = 2  # slower, but takes up less memory
     LARGE_SET_GROWTH = 4  # faster, but takes up more memory faster
 
-    def __init__(self, initial_capacity=15000, error_rate=0.00001,
-                 mode=SMALL_SET_GROWTH, filter_impl=BloomFilter):
+    def __init__(
+        self,
+        initial_capacity=15000,
+        error_rate=0.00001,
+        mode=SMALL_SET_GROWTH,
+        filter_impl=BloomFilter,
+    ):
         """Implements a space-efficient probabilistic data structure that
         grows as more items are added while maintaining a steady false
         positive rate
@@ -93,11 +99,10 @@ class ScalableBloomFilter(object):
         if _filter is None or len(_filter) >= _filter.capacity:
             num_filters = len(self.filters)
 
-            new_capacity = self.initial_capacity * (self.scale ** num_filters)
-            new_error_rate = self.error_rate * (self.ratio ** num_filters)
+            new_capacity = self.initial_capacity * (self.scale**num_filters)
+            new_error_rate = self.error_rate * (self.ratio**num_filters)
 
-            _filter = self.filter_impl(capacity=new_capacity,
-                                       error_rate=new_error_rate)
+            _filter = self.filter_impl(capacity=new_capacity, error_rate=new_error_rate)
 
             self.filters.append(_filter)
         _filter.add(key)

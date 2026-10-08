@@ -19,13 +19,14 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import csv
 import os
 
 import w3af.core.controllers.output_manager as om
 
-OS = 'os'
-APPLICATION = 'applications'
+OS = "os"
+APPLICATION = "applications"
 DB_PATH = os.path.dirname(os.path.realpath(__file__))
 
 
@@ -33,10 +34,10 @@ def get_users_from_csv(ident):
     """
     :return: A list of users from the user dir database.
     """
-    assert ident in (APPLICATION, OS), 'Invalid identification'
+    assert ident in (APPLICATION, OS), "Invalid identification"
 
-    csv_db = os.path.join(DB_PATH, '%s.csv' % ident)
-    file_handler = open(csv_db, 'rb')
+    csv_db = os.path.join(DB_PATH, "%s.csv" % ident)
+    file_handler = open(csv_db, "rb")
     reader = csv.reader(file_handler)
 
     while True:
@@ -57,7 +58,7 @@ def get_users_from_csv(ident):
             if not csv_row:
                 continue
 
-            if csv_row[0].startswith('#'):
+            if csv_row[0].startswith("#"):
                 continue
 
             om.out.debug('Invalid user_dir input: "%r"' % csv_row)

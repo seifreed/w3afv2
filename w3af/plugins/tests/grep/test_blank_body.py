@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 import w3af.core.data.kb.knowledge_base as kb
@@ -36,38 +37,38 @@ class test_blank_body(unittest.TestCase):
         create_temp_dir()
         kb.kb.cleanup()
         self.plugin = blank_body()
-        self.url = URL('http://www.w3af.com/')
+        self.url = URL("http://www.w3af.com/")
         self.request = FuzzableRequest(self.url)
 
     def tearDown(self):
         self.plugin.end()
 
     def test_blank_body(self):
-        body = ''
-        headers = Headers([('content-type', 'text/html')])
+        body = ""
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get('blank_body', 'blank_body')), 1)
+        self.assertEqual(len(kb.kb.get("blank_body", "blank_body")), 1)
 
     def test_blank_body_none(self):
-        body = 'header body footer'
-        headers = Headers([('content-type', 'text/html')])
+        body = "header body footer"
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, self.url, self.url, _id=1)
         self.plugin.grep(self.request, response)
-        self.assertEqual(len(kb.kb.get('ssn', 'ssn')), 0)
+        self.assertEqual(len(kb.kb.get("ssn", "ssn")), 0)
 
     def test_blank_body_method(self):
-        body = ''
-        headers = Headers([('content-type', 'text/html')])
+        body = ""
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, self.url, self.url, _id=1)
-        request = FuzzableRequest(self.url, method='ARGENTINA')
+        request = FuzzableRequest(self.url, method="ARGENTINA")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get('ssn', 'ssn')), 0)
+        self.assertEqual(len(kb.kb.get("ssn", "ssn")), 0)
 
     def test_blank_body_code(self):
-        body = ''
-        headers = Headers([('content-type', 'text/html')])
+        body = ""
+        headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(401, body, headers, self.url, self.url, _id=1)
-        request = FuzzableRequest(self.url, method='GET')
+        request = FuzzableRequest(self.url, method="GET")
         self.plugin.grep(request, response)
-        self.assertEqual(len(kb.kb.get('blank_body', 'blank_body')), 0)
+        self.assertEqual(len(kb.kb.get("blank_body", "blank_body")), 0)

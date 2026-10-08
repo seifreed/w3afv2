@@ -20,6 +20,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 import os
 
@@ -34,8 +35,9 @@ from w3af.core.controllers.exceptions import BaseFrameworkException
 
 class TestCoreProfiles(unittest.TestCase):
 
-    INPUT_FILE = os.path.relpath(os.path.join(ROOT_PATH, 'plugins', 'audit',
-                                              'ssl_certificate', 'ca.pem'))
+    INPUT_FILE = os.path.relpath(
+        os.path.join(ROOT_PATH, "plugins", "audit", "ssl_certificate", "ca.pem")
+    )
 
     def setUp(self):
         super(TestCoreProfiles, self).setUp()
@@ -45,64 +47,64 @@ class TestCoreProfiles(unittest.TestCase):
         super(TestCoreProfiles, self).tearDown()
         self.core.worker_pool.terminate_join()
 
-    @attr('smoke')
+    @attr("smoke")
     def test_use_profile(self):
-        self.core.profiles.use_profile('OWASP_TOP10', workdir='.')
+        self.core.profiles.use_profile("OWASP_TOP10", workdir=".")
 
         enabled_plugins = self.core.plugins.get_all_enabled_plugins()
 
-        self.assertIn('sqli', enabled_plugins['audit'])
-        self.assertIn('credit_cards', enabled_plugins['grep'])
-        self.assertIn('private_ip', enabled_plugins['grep'])
-        self.assertIn('dns_wildcard', enabled_plugins['infrastructure'])
-        self.assertIn('web_spider', enabled_plugins['crawl'])
+        self.assertIn("sqli", enabled_plugins["audit"])
+        self.assertIn("credit_cards", enabled_plugins["grep"])
+        self.assertIn("private_ip", enabled_plugins["grep"])
+        self.assertIn("dns_wildcard", enabled_plugins["infrastructure"])
+        self.assertIn("web_spider", enabled_plugins["crawl"])
 
     def test_save_current_to_new_profile(self):
-        self.core.profiles.use_profile('OWASP_TOP10', workdir='.')
+        self.core.profiles.use_profile("OWASP_TOP10", workdir=".")
 
-        audit = self.core.plugins.get_enabled_plugins('audit')
+        audit = self.core.plugins.get_enabled_plugins("audit")
         disabled_plugin = audit[-1]
         audit = audit[:-1]
-        self.core.plugins.set_plugins(audit, 'audit')
-        enabled = self.core.plugins.get_enabled_plugins('audit')
+        self.core.plugins.set_plugins(audit, "audit")
+        enabled = self.core.plugins.get_enabled_plugins("audit")
         self.assertEqual(set(enabled), set(audit))
         self.assertTrue(disabled_plugin not in enabled)
 
-        new_profile_name = 'save-current-new'
+        new_profile_name = "save-current-new"
         self.core.profiles.save_current_to_new_profile(new_profile_name)
 
         # Get a new, clean instance of the core.
         clean_core = w3afCore()
-        audit = clean_core.plugins.get_enabled_plugins('audit')
+        audit = clean_core.plugins.get_enabled_plugins("audit")
         self.assertEqual(audit, [])
 
         clean_core.profiles.use_profile(new_profile_name)
         enabled_plugins = clean_core.plugins.get_all_enabled_plugins()
 
-        self.assertNotIn(disabled_plugin, enabled_plugins['audit'])
-        self.assertIn('credit_cards', enabled_plugins['grep'])
-        self.assertIn('private_ip', enabled_plugins['grep'])
-        self.assertIn('dns_wildcard', enabled_plugins['infrastructure'])
-        self.assertIn('web_spider', enabled_plugins['crawl'])
+        self.assertNotIn(disabled_plugin, enabled_plugins["audit"])
+        self.assertIn("credit_cards", enabled_plugins["grep"])
+        self.assertIn("private_ip", enabled_plugins["grep"])
+        self.assertIn("dns_wildcard", enabled_plugins["infrastructure"])
+        self.assertIn("web_spider", enabled_plugins["crawl"])
 
         # cleanup
         clean_core.profiles.remove_profile(new_profile_name)
         clean_core.worker_pool.terminate_join()
 
     def test_remove_profile(self):
-        self.core.profiles.save_current_to_new_profile('unittest-remove')
-        self.core.profiles.remove_profile('unittest-remove')
+        self.core.profiles.save_current_to_new_profile("unittest-remove")
+        self.core.profiles.remove_profile("unittest-remove")
 
-        self.assertRaises(BaseFrameworkException,
-                          self.core.profiles.use_profile,
-                          'unittest-remove')
+        self.assertRaises(
+            BaseFrameworkException, self.core.profiles.use_profile, "unittest-remove"
+        )
 
     def test_remove_profile_not_exists(self):
-        self.assertRaises(BaseFrameworkException,
-                          self.core.profiles.remove_profile,
-                          'not-exists')
+        self.assertRaises(
+            BaseFrameworkException, self.core.profiles.remove_profile, "not-exists"
+        )
 
-    @attr('smoke')
+    @attr("smoke")
     def test_use_all_profiles(self):
         """
         This test catches the errors in my profiles that generate these
@@ -127,7 +129,7 @@ class TestCoreProfiles(unittest.TestCase):
         the profile file to fix it.
         ************************************************************************
         """
-        valid, invalid = self.core.profiles.get_profile_list('.')
+        valid, invalid = self.core.profiles.get_profile_list(".")
 
         self.assertTrue(len(valid) > 5)
         self.assertEqual(len(invalid), 0)
@@ -135,27 +137,26 @@ class TestCoreProfiles(unittest.TestCase):
         for profile_inst in valid:
             profile_name = profile_inst.get_name()
 
-            self.core.profiles.use_profile(profile_name, workdir='.')
+            self.core.profiles.use_profile(profile_name, workdir=".")
 
     def test_cant_start_new_thread_bug(self):
         """
         This tests that https://github.com/andresriancho/w3af/issues/56 was
         properly fixed after the change in how sqlite threads were managed.
         """
-        valid, _ = self.core.profiles.get_profile_list('.')
+        valid, _ = self.core.profiles.get_profile_list(".")
 
         for _ in range(10):
             for profile_inst in valid:
                 profile_name = profile_inst.get_name()
 
-                self.core.profiles.use_profile(profile_name, workdir='.')
+                self.core.profiles.use_profile(profile_name, workdir=".")
 
     def test_use_profile_variable_replace(self):
-        self.core.profiles.use_profile('OWASP_TOP10', workdir='.')
+        self.core.profiles.use_profile("OWASP_TOP10", workdir=".")
 
-        plugin_opts = self.core.plugins.get_plugin_options('audit',
-                                                           'ssl_certificate')
-        ca_path = plugin_opts['caFileName'].get_value()
+        plugin_opts = self.core.plugins.get_plugin_options("audit", "ssl_certificate")
+        ca_path = plugin_opts["caFileName"].get_value()
         self.assertEqual(ca_path, self.INPUT_FILE)
 
     def test_load_save_as_no_changes(self):
@@ -168,29 +169,30 @@ class TestCoreProfiles(unittest.TestCase):
             * Save it again
             * Make a diff between the old and new, it should be empty
         """
-        self.core.profiles.use_profile('OWASP_TOP10', workdir='.')
-        self.core.profiles.save_current_to_new_profile('unittest-OWASP_TOP10')
+        self.core.profiles.use_profile("OWASP_TOP10", workdir=".")
+        self.core.profiles.save_current_to_new_profile("unittest-OWASP_TOP10")
 
         # Diff the two profile files
-        p1 = profile('OWASP_TOP10', workdir='.')
-        p2 = profile('unittest-OWASP_TOP10', workdir='.')
+        p1 = profile("OWASP_TOP10", workdir=".")
+        p2 = profile("unittest-OWASP_TOP10", workdir=".")
 
         assertProfilesEqual(p1.profile_file_name, p2.profile_file_name)
 
         # cleanup
-        self.core.profiles.remove_profile('unittest-OWASP_TOP10')
+        self.core.profiles.remove_profile("unittest-OWASP_TOP10")
 
 
-def assertProfilesEqual(profile_filename_a, profile_filename_b,
-                        skip_sections=None, skip_options=None):
+def assertProfilesEqual(
+    profile_filename_a, profile_filename_b, skip_sections=None, skip_options=None
+):
     """
     Compares two profiles
     """
     if skip_options is None:
-        skip_options = {'local_ip_address', 'description', 'name'}
+        skip_options = {"local_ip_address", "description", "name"}
 
     if skip_sections is None:
-        skip_sections = {'target'}
+        skip_sections = {"target"}
 
     original = ConfigParser()
     original.read(profile_filename_a)
@@ -210,8 +212,7 @@ def assertProfilesEqual(profile_filename_a, profile_filename_b,
                 continue
 
             saved_value = saved.get(section_name, orig_name)
-            msg = ('The "%s" option of the "%s" section changed from'
-                   ' "%s" to "%s"')
+            msg = 'The "%s" option of the "%s" section changed from' ' "%s" to "%s"'
             args = (orig_name, section_name, orig_value, saved_value)
             assert saved_value == orig_value, msg % args
 
@@ -227,7 +228,6 @@ def assertProfilesEqual(profile_filename_a, profile_filename_b,
                 continue
 
             orig_value = original.get(section_name, saved_name)
-            msg = ('The "%s" option of the "%s" section changed from'
-                   ' "%s" to "%s"')
+            msg = 'The "%s" option of the "%s" section changed from' ' "%s" to "%s"'
             args = (saved_name, section_name, orig_value, saved_value)
             assert saved_value == orig_value, msg % args

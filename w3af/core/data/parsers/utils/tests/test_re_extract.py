@@ -20,6 +20,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from w3af.core.data.parsers.utils.re_extract import ReExtract
@@ -28,12 +29,12 @@ from w3af.core.data.parsers.doc.url import URL
 
 class TestReExtract(unittest.TestCase):
     def test_relative_regex(self):
-        doc_string = '123 ../../foobar/uploads/foo.png 465'
-        base_url = URL('https://w3af.org/abc/def/')
+        doc_string = "123 ../../foobar/uploads/foo.png 465"
+        base_url = URL("https://w3af.org/abc/def/")
 
-        re_extract = ReExtract(doc_string, base_url, 'utf-8')
+        re_extract = ReExtract(doc_string, base_url, "utf-8")
         re_extract.parse()
 
         references = re_extract.get_references()
 
-        self.assertEqual(references, [URL('https://w3af.org/foobar/uploads/foo.png')])
+        self.assertEqual(references, [URL("https://w3af.org/foobar/uploads/foo.png")])

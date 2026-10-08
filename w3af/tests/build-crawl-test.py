@@ -8,8 +8,7 @@ import random
 
 from jinja2 import Template
 
-
-USAGE = '''\
+USAGE = """\
 Usage:
 
     ./build-crawl-test.py --pages=200 --parameters-per-page=0.3 --forms=0.1 --form-params=3 --output=site/
@@ -42,18 +41,20 @@ Parameters:
     - form-params: The number of parameters to include in each form
     
     - output: The output directory where all the files will be created
-'''
+"""
 
 
 def _main():
 
-    long_params = ['pages=',
-                   'parameters-per-page=',
-                   'forms=',
-                   'form-params=',
-                   'output=']
+    long_params = [
+        "pages=",
+        "parameters-per-page=",
+        "forms=",
+        "form-params=",
+        "output=",
+    ]
 
-    options, remainder = getopt.getopt(sys.argv[1:], 'p:q:f:g:o', long_params)
+    options, remainder = getopt.getopt(sys.argv[1:], "p:q:f:g:o", long_params)
 
     pages = None
     parameters_per_page = None
@@ -62,23 +63,23 @@ def _main():
     output = None
 
     for opt, arg in options:
-        if opt in ('-p', '--pages'):
+        if opt in ("-p", "--pages"):
             pages = arg
-        elif opt in ('-q', '--parameters-per-page'):
+        elif opt in ("-q", "--parameters-per-page"):
             parameters_per_page = arg
-        elif opt in ('-f', '--forms'):
+        elif opt in ("-f", "--forms"):
             forms = arg
-        elif opt in ('-g', '--form-params'):
+        elif opt in ("-g", "--form-params"):
             form_params = arg
-        elif opt in ('-o', '--output'):
+        elif opt in ("-o", "--output"):
             output = arg
 
     try:
         pages = int(pages)
         assert pages >= 1
     except:
-        print('Error in --pages parameter')
-        print('')
+        print("Error in --pages parameter")
+        print("")
         print(USAGE)
         sys.exit(1)
 
@@ -86,8 +87,8 @@ def _main():
         parameters_per_page = float(parameters_per_page)
         assert parameters_per_page > 0
     except:
-        print('Error in --parameters-per-page parameter')
-        print('')
+        print("Error in --parameters-per-page parameter")
+        print("")
         print(USAGE)
         sys.exit(1)
 
@@ -95,8 +96,8 @@ def _main():
         forms = float(forms)
         assert forms > 0
     except:
-        print('Error in --forms parameter')
-        print('')
+        print("Error in --forms parameter")
+        print("")
         print(USAGE)
         sys.exit(1)
 
@@ -104,8 +105,8 @@ def _main():
         form_params = float(form_params)
         assert form_params >= 1
     except:
-        print('Error in --form-params parameter')
-        print('')
+        print("Error in --form-params parameter")
+        print("")
         print(USAGE)
         sys.exit(1)
 
@@ -114,8 +115,8 @@ def _main():
         assert os.path.exists(output)
         assert os.path.isdir(output)
     except:
-        print('Error in --output parameter')
-        print('')
+        print("Error in --output parameter")
+        print("")
         print(USAGE)
         sys.exit(1)
 
@@ -123,7 +124,7 @@ def _main():
     sys.exit(0)
 
 
-PAGE_TEMPLATE = Template('''\
+PAGE_TEMPLATE = Template("""\
 <html>
     <head>
         <title>{{ title }}</title>
@@ -147,7 +148,7 @@ PAGE_TEMPLATE = Template('''\
         {% endfor %}
     </body>
 </html>
-''')
+""")
 
 
 class Form(object):
@@ -157,9 +158,7 @@ class Form(object):
 
 
 def render(title, hrefs, forms):
-    return PAGE_TEMPLATE.render(title=title,
-                                hrefs=hrefs,
-                                forms=forms)
+    return PAGE_TEMPLATE.render(title=title, hrefs=hrefs, forms=forms)
 
 
 def render_index_html(href):
@@ -168,16 +167,16 @@ def render_index_html(href):
 
 
 def generate_page_path(page_num):
-    return generate_identifier(page_num, 'PATH')
+    return generate_identifier(page_num, "PATH")
 
 
 def generate_page_filename(page_num):
-    return generate_identifier(page_num, 'FILENAME') + '.html'
+    return generate_identifier(page_num, "FILENAME") + ".html"
 
 
 def generate_parameter_name(page_num, form_num, param_num):
-    param_id = '%s-%s-%s' % (page_num, form_num, param_num)
-    return generate_identifier(param_id, 'PARAMETER')
+    param_id = "%s-%s-%s" % (page_num, form_num, param_num)
+    return generate_identifier(param_id, "PARAMETER")
 
 
 def generate_identifier(num, _type):
@@ -188,9 +187,9 @@ def generate_identifier(num, _type):
 
 def build_href(page_path, page_filename, qs):
     if qs:
-        return '/' + page_path + '/' + page_filename + '?' + qs
+        return "/" + page_path + "/" + page_filename + "?" + qs
     else:
-        return '/' + page_path + '/' + page_filename
+        return "/" + page_path + "/" + page_filename
 
 
 def get_query_string_for_page(page_num, parameters_per_page):
@@ -200,22 +199,22 @@ def get_query_string_for_page(page_num, parameters_per_page):
 
     for qs_num in range(int(parameters_per_page)):
         param_name = generate_parameter_name(page_num, qs_num, qs_num)
-        param_value = '1'
+        param_value = "1"
 
-        query_string.append('%s=%s' % (param_name, param_value))
+        query_string.append("%s=%s" % (param_name, param_value))
 
-    return '&'.join(query_string)
+    return "&".join(query_string)
 
 
 def generate_index_html(output):
     page_path = generate_page_path(0)
     page_filename = generate_page_filename(0)
 
-    href = '/' + page_path + '/' + page_filename
+    href = "/" + page_path + "/" + page_filename
 
     index_html = render_index_html(href)
 
-    open(os.path.join(output, 'index.html'), 'w').write(index_html)
+    open(os.path.join(output, "index.html"), "w").write(index_html)
 
 
 def get_probabilistic_count(count):
@@ -227,7 +226,7 @@ def get_probabilistic_count(count):
     decimal_part = count - integer
     decimal_part *= 100
 
-    print((random.randint(0, 100) , decimal_part))
+    print((random.randint(0, 100), decimal_part))
     if random.randint(0, 100) > decimal_part:
         return integer + 1
 
@@ -285,14 +284,17 @@ def generate_site(pages, parameters_per_page, forms, form_params, output):
 
             form_path = generate_page_path(action_num)
             form_filename = generate_page_filename(action_num)
-            action = '/' + form_path + '/' + form_filename
+            action = "/" + form_path + "/" + form_filename
 
-            params = [generate_parameter_name(page_num, form_num, i) for i in range(int(form_params_i))]
+            params = [
+                generate_parameter_name(page_num, form_num, i)
+                for i in range(int(form_params_i))
+            ]
 
             generated_forms.append(Form(action, params))
 
         page_content = render(title, hrefs, generated_forms)
-        open(output_file, 'w').write(page_content)
+        open(output_file, "w").write(page_content)
 
 
 if __name__ == "__main__":

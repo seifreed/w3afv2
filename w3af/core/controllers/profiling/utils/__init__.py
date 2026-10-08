@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import datetime
 import threading
@@ -42,10 +43,12 @@ def dump_data_every_thread(func, delay_minutes, save_thread_ptr):
         # queue the next run in the lines below
         pass
 
-    save_thread = threading.Timer(delay_minutes * 60,
-                                  dump_data_every_thread,
-                                  args=(func, delay_minutes, save_thread_ptr))
-    save_thread.name = 'ProfilingDumpData'
+    save_thread = threading.Timer(
+        delay_minutes * 60,
+        dump_data_every_thread,
+        args=(func, delay_minutes, save_thread_ptr),
+    )
+    save_thread.name = "ProfilingDumpData"
     save_thread.daemon = True
     save_thread.start()
 

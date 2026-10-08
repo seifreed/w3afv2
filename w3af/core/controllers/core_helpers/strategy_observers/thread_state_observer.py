@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 import sys
 import time
@@ -35,11 +36,14 @@ class ThreadStateObserver(StrategyObserver):
     """
     Monitor number jobs which are running in the different threads.
     """
+
     ANALYZE_EVERY = 30
     STACK_TRACE_MIN_TIME = 120
-    DISCOVER_WORKER_RE = re.compile('<bound method CrawlInfrastructure._discover_worker'
-                                    ' of <CrawlInfrastructure\(CrawlInfraController,'
-                                    ' started daemon .*?\)>>')
+    DISCOVER_WORKER_RE = re.compile(
+        "<bound method CrawlInfrastructure._discover_worker"
+        " of <CrawlInfrastructure\(CrawlInfraController,"
+        " started daemon .*?\)>>"
+    )
 
     def __init__(self):
         super(ThreadStateObserver, self).__init__()
@@ -86,17 +90,21 @@ class ThreadStateObserver(StrategyObserver):
             if self.crawl_infra_thread is None:
 
                 pool = consumer.get_pool()
-                self.crawl_infra_thread = threading.Thread(target=self.thread_worker,
-                                                           args=(pool, 'CrawlInfraWorker'),
-                                                           name='CrawlInfraPoolStateObserver')
+                self.crawl_infra_thread = threading.Thread(
+                    target=self.thread_worker,
+                    args=(pool, "CrawlInfraWorker"),
+                    name="CrawlInfraPoolStateObserver",
+                )
                 self.crawl_infra_thread.start()
 
         with self._worker_thread_lock:
             if self.worker_thread is None:
                 pool = consumer._w3af_core.worker_pool
-                self.worker_thread = threading.Thread(target=self.thread_worker,
-                                                      args=(pool, 'Worker'),
-                                                      name='WorkerPoolStateObserver')
+                self.worker_thread = threading.Thread(
+                    target=self.thread_worker,
+                    args=(pool, "Worker"),
+                    name="WorkerPoolStateObserver",
+                )
                 self.worker_thread.start()
 
     def audit(self, consumer, *args):
@@ -115,9 +123,11 @@ class ThreadStateObserver(StrategyObserver):
                 return
 
             pool = consumer.get_pool()
-            self.audit_thread = threading.Thread(target=self.thread_worker,
-                                                 args=(pool, 'AuditorWorker'),
-                                                 name='AuditPoolStateObserver')
+            self.audit_thread = threading.Thread(
+                target=self.thread_worker,
+                args=(pool, "AuditorWorker"),
+                name="AuditPoolStateObserver",
+            )
             self.audit_thread.start()
 
     def grep(self, consumer, *args):
@@ -136,9 +146,11 @@ class ThreadStateObserver(StrategyObserver):
                 return
 
             pool = consumer.get_pool()
-            self.grep_thread = threading.Thread(target=self.thread_worker,
-                                                args=(pool, 'GrepWorker'),
-                                                name='GrepPoolStateObserver')
+            self.grep_thread = threading.Thread(
+                target=self.thread_worker,
+                args=(pool, "GrepWorker"),
+                name="GrepPoolStateObserver",
+            )
             self.grep_thread.start()
 
     def thread_worker(self, pool, name):
@@ -162,8 +174,10 @@ class ThreadStateObserver(StrategyObserver):
             # Now the real deal
             #
             if pool is None:
-                self.write_to_log('The %s consumer finished all tasks and closed the pool.' % name)
-                self.write_to_log('100%% of %s workers are idle.' % name)
+                self.write_to_log(
+                    "The %s consumer finished all tasks and closed the pool." % name
+                )
+                self.write_to_log("100%% of %s workers are idle." % name)
                 break
 
             inspect_data = pool.inspect_threads()
@@ -189,14 +203,14 @@ class ThreadStateObserver(StrategyObserver):
         workers_to_inspect = []
 
         for worker_state in inspect_data:
-            if worker_state['idle'] or worker_state['start_time'] is None:
+            if worker_state["idle"] or worker_state["start_time"] is None:
                 continue
 
-            spent = time.time() - worker_state['start_time']
+            spent = time.time() - worker_state["start_time"]
             if spent < self.STACK_TRACE_MIN_TIME:
                 continue
 
-            workers_to_inspect.append(worker_state['worker_id'])
+            workers_to_inspect.append(worker_state["worker_id"])
 
         #
         #   If there is nothing to do, just return to reduce the performance
@@ -214,26 +228,26 @@ class ThreadStateObserver(StrategyObserver):
             if thread is None:
                 continue
 
-            if not hasattr(thread, 'get_state'):
+            if not hasattr(thread, "get_state"):
                 continue
 
             state = thread.get_state()
-            worker_id = state['worker_id']
+            worker_id = state["worker_id"]
 
             if worker_id not in workers_to_inspect:
                 continue
 
             trace = []
             for filename, lineno, name, line in traceback.extract_stack(frame):
-                trace.append('%s:%s @ %s()' % (filename, lineno, name))
+                trace.append("%s:%s @ %s()" % (filename, lineno, name))
 
             trace = trace[-10:]
-            trace = ', '.join(trace)
+            trace = ", ".join(trace)
 
             # Now save the trace to the inspect_data
             for worker_state in inspect_data:
-                if worker_state['worker_id'] == worker_id:
-                    worker_state['trace'] = trace
+                if worker_state["worker_id"] == worker_id:
+                    worker_state["trace"] = trace
 
         return inspect_data
 
@@ -243,27 +257,24 @@ class ThreadStateObserver(StrategyObserver):
                 return thread
 
     def pool_queue_sizes_to_log(self, pool, name, pool_queue_sizes):
-        inqueue_size = pool_queue_sizes.get('inqueue_size', None)
-        outqueue_size = pool_queue_sizes.get('outqueue_size', None)
+        inqueue_size = pool_queue_sizes.get("inqueue_size", None)
+        outqueue_size = pool_queue_sizes.get("outqueue_size", None)
 
-        msg = '%s worker pool has %s tasks in inqueue and %s tasks in outqueue'
-        args = (name,
-                inqueue_size,
-                outqueue_size)
+        msg = "%s worker pool has %s tasks in inqueue and %s tasks in outqueue"
+        args = (name, inqueue_size, outqueue_size)
 
         self.write_to_log(msg % args)
 
     def internal_thread_data_to_log(self, pool, name, internal_thread_data):
-        worker_handler = internal_thread_data['worker_handler']
-        task_handler = internal_thread_data['task_handler']
-        result_handler = internal_thread_data['result_handler']
+        worker_handler = internal_thread_data["worker_handler"]
+        task_handler = internal_thread_data["task_handler"]
+        result_handler = internal_thread_data["result_handler"]
 
-        msg = ('%s worker pool internal thread state:'
-               ' (worker: %s, task: %s, result: %s)')
-        args = (name,
-                worker_handler,
-                task_handler,
-                result_handler)
+        msg = (
+            "%s worker pool internal thread state:"
+            " (worker: %s, task: %s, result: %s)"
+        )
+        args = (name, worker_handler, task_handler, result_handler)
 
         self.write_to_log(msg % args)
 
@@ -285,7 +296,7 @@ class ThreadStateObserver(StrategyObserver):
         name = pool.worker_names
 
         if not len(inspect_data):
-            self.write_to_log('No pool workers at %s.' % (name,))
+            self.write_to_log("No pool workers at %s." % (name,))
             return
 
         #
@@ -294,14 +305,14 @@ class ThreadStateObserver(StrategyObserver):
         idle_workers = []
 
         for worker_state in inspect_data:
-            if worker_state['idle']:
+            if worker_state["idle"]:
                 idle_workers.append(worker_state)
                 continue
 
-            if worker_state['start_time'] is None:
+            if worker_state["start_time"] is None:
                 continue
 
-            spent = time.time() - worker_state['start_time']
+            spent = time.time() - worker_state["start_time"]
 
             # Save us some disk space and sanity, only log worker state if it has
             # been running for at least 10 seconds
@@ -309,7 +320,7 @@ class ThreadStateObserver(StrategyObserver):
                 continue
 
             parts = []
-            for arg in worker_state['args']:
+            for arg in worker_state["args"]:
                 try:
                     arg_repr = repr(arg)
                 except UnicodeEncodeError:
@@ -322,10 +333,10 @@ class ThreadStateObserver(StrategyObserver):
 
                 parts.append(arg_str)
 
-            args_str = ', '.join(parts)
+            args_str = ", ".join(parts)
 
             short_kwargs = {}
-            for key, value in worker_state['kwargs']:
+            for key, value in worker_state["kwargs"]:
                 try:
                     value_repr = repr(value)
                 except UnicodeEncodeError:
@@ -340,22 +351,26 @@ class ThreadStateObserver(StrategyObserver):
 
             kwargs_str = smart_str_ignore(short_kwargs)
 
-            func_name = smart_str_ignore(worker_state['func_name'])
+            func_name = smart_str_ignore(worker_state["func_name"])
             func_name = self.clean_function_name(func_name)
 
-            message = ('Worker with ID %s(%s) has been running job %s for %.2f seconds.'
-                       ' The job is: %s(%s, kwargs=%s)')
-            message %= (worker_state['name'],
-                        worker_state['worker_id'],
-                        worker_state['job'],
-                        spent,
-                        func_name,
-                        args_str,
-                        kwargs_str)
+            message = (
+                "Worker with ID %s(%s) has been running job %s for %.2f seconds."
+                " The job is: %s(%s, kwargs=%s)"
+            )
+            message %= (
+                worker_state["name"],
+                worker_state["worker_id"],
+                worker_state["job"],
+                spent,
+                func_name,
+                args_str,
+                kwargs_str,
+            )
 
-            trace = worker_state.get('trace', None)
+            trace = worker_state.get("trace", None)
             if trace is not None:
-                message += '. Function call tree: %s' % trace
+                message += ". Function call tree: %s" % trace
 
             self.write_to_log(message)
 
@@ -364,8 +379,8 @@ class ThreadStateObserver(StrategyObserver):
         #   the log easier to read
         #
         for worker_state in idle_workers:
-            message = 'Worker with ID %s(%s) is idle.'
-            message %= (worker_state['name'], worker_state['worker_id'])
+            message = "Worker with ID %s(%s) is idle."
+            message %= (worker_state["name"], worker_state["worker_id"])
             self.write_to_log(message)
 
         #
@@ -375,17 +390,17 @@ class ThreadStateObserver(StrategyObserver):
         idle_workers = 0.0
 
         for worker_state in inspect_data:
-            if worker_state['idle']:
+            if worker_state["idle"]:
                 idle_workers += 1
 
         idle_perc = (idle_workers / total_workers) * 100
-        self.write_to_log('%i%% of %s workers are idle.' % (idle_perc, name))
+        self.write_to_log("%i%% of %s workers are idle." % (idle_perc, name))
 
     def write_to_log(self, message):
         om.out.debug(message)
 
     def clean_function_name(self, function_name):
         if self.DISCOVER_WORKER_RE.search(function_name):
-            return '_discover_worker'
+            return "_discover_worker"
 
         return function_name

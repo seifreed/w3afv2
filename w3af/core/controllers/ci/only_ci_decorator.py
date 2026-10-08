@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from functools import wraps
 from w3af.core.controllers.ci.detect import is_running_on_ci
 
@@ -28,9 +29,10 @@ def only_ci(decorated_func):
     This decorator runs the function that's being decorated only if the code
     is being run in CI environment.
     """
+
     @wraps(decorated_func)
     def _inner_func(*args, **kwds):
         if is_running_on_ci():
             return decorated_func(*args, **kwds)
-    
+
     return _inner_func

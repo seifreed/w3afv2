@@ -46,14 +46,14 @@ def commonPrefix(completions):
                 j = 0
                 break
 
-        result = str1[:i + j]
+        result = str1[: i + j]
         return result
 
     # cut the prefix
-    strs = [v[len(p):] for (p, v) in completions]
+    strs = [v[len(p) :] for (p, v) in completions]
 
     if len(strs) == 0:
-        return ''
+        return ""
 
     if len(strs) == 1:
         return strs[0]
@@ -61,31 +61,31 @@ def commonPrefix(completions):
     result, tail = strs[0], strs[1:]
     for i in range(len(tail)):
         result = cp(result, tail[i])
-        if result == '':
+        if result == "":
             break
 
     return result
 
 
-def splitPath(path, sep='/'):
+def splitPath(path, sep="/"):
     """
-        Chops the first part of a /-separated path and returns a tuple
-        of the first part and the tail.
-        If no separator in the path, the tail is None
+    Chops the first part of a /-separated path and returns a tuple
+    of the first part and the tail.
+    If no separator in the path, the tail is None
     """
     sepIdx = path.find(sep)
     if sepIdx < 0:
         return (path, None)
 
-    return path[:sepIdx], path[sepIdx + 1:]
+    return path[:sepIdx], path[sepIdx + 1 :]
 
 
-def removePrefix(s, prefix='!'):
+def removePrefix(s, prefix="!"):
     """
     If the string starts from the prefix, the prefix is removed.
     """
     if s.startswith(prefix):
-        return s[len(prefix):]
+        return s[len(prefix) :]
     else:
         return s
 
@@ -108,14 +108,14 @@ def suggest(tree, part, skipList=[]):
         dir = False
         list = tree
 
-#    skipList = []
-#    if allowSet:
-#        chunks = [removePrefix(s) for s in part.split(',')]
-#        if len(chunks) > 1:
-            # skipList is used to not to suggest items which are already in the set
-#           skipList, part = chunks[:-1], chunks[-1]
-#        else:
-#            part = chunks[0]
+    #    skipList = []
+    #    if allowSet:
+    #        chunks = [removePrefix(s) for s in part.split(',')]
+    #        if len(chunks) > 1:
+    # skipList is used to not to suggest items which are already in the set
+    #           skipList, part = chunks[:-1], chunks[-1]
+    #        else:
+    #            part = chunks[0]
 
     completions = []
     # if the part is the complete word from the list, we suggest syntax: space, slash or comma
@@ -128,13 +128,16 @@ def suggest(tree, part, skipList=[]):
     #       hint = ' '
 
     lp = len(part)
-    completions += [(part, v) for v in map(str, list) if v.startswith(
-        part) and v not in skipList and lp != len(v)]
+    completions += [
+        (part, v)
+        for v in map(str, list)
+        if v.startswith(part) and v not in skipList and lp != len(v)
+    ]
 
-#    suffix = allowSet and ',' or ' '
-    suffix = ' '
+    #    suffix = allowSet and ',' or ' '
+    suffix = " "
 
-    #if not allowSet:
+    # if not allowSet:
     #    completions = [(p, s+' ') for (p, s) in completions]
 
     if part in list:
@@ -142,13 +145,13 @@ def suggest(tree, part, skipList=[]):
     else:
         if len(completions) == 1:  # and not allowSet:
             theOption = completions[0]
-            completions = [(theOption[0], theOption[1] + ' ')]
+            completions = [(theOption[0], theOption[1] + " ")]
 
     return completions
 
 
 def formatParagraph(text, width):
-    lines = text.split('\n')
+    lines = text.split("\n")
     formatedLines = [formatParagraphLine(l, width) for l in lines]
     result = []
     for fl in formatedLines:
@@ -163,27 +166,27 @@ def formatParagraphLine(text, width):
     words = text.split()
     tail = words
     result = []
-    buf = ''
+    buf = ""
 
     while len(tail):
         curWord, tail = tail[0], tail[1:]
         if len(buf) + len(curWord) + 1 > width:
-            if buf == '':
+            if buf == "":
                 row = curWord
-                buf = ''
+                buf = ""
             else:
                 row = buf
                 buf = curWord
 
-            row += ' ' * (width - len(row))
+            row += " " * (width - len(row))
             result.append(row)
         else:
             if len(buf):
-                buf += ' '
+                buf += " "
             buf += curWord
 
     if len(buf):
-        result.append(buf + ' ' * (width - len(buf)))
+        result.append(buf + " " * (width - len(buf)))
     return result
 
 

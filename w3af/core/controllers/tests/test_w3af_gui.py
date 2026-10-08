@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 import compiler
 
@@ -26,6 +27,6 @@ import compiler
 class TestW3afGUI(unittest.TestCase):
     def test_compiles(self):
         try:
-            compiler.compile(open('w3af_gui').read(), '/tmp/foo.tmp', 'exec')
+            compiler.compile(open("w3af_gui").read(), "/tmp/foo.tmp", "exec")
         except SyntaxError as se:
             self.assertTrue(False, 'Error in w3af_gui code "%s"' % se)

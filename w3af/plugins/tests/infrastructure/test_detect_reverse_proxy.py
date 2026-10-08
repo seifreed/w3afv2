@@ -25,31 +25,31 @@ from w3af.plugins.tests.helper import PluginTest, PluginConfig
 
 class TestDetectReverseProxy(PluginTest):
 
-    proxied_url = 'http://moth/w3af/infrastructure/detect_reverse_proxy/'
-    simple_url = 'http://moth/'
+    proxied_url = "http://moth/w3af/infrastructure/detect_reverse_proxy/"
+    simple_url = "http://moth/"
 
     _run_configs = {
-        'cfg': {
-        'target': None,
-        'plugins': {'infrastructure': (PluginConfig('detect_reverse_proxy'),)}
+        "cfg": {
+            "target": None,
+            "plugins": {"infrastructure": (PluginConfig("detect_reverse_proxy"),)},
         }
     }
 
-    @attr('ci_fails')
+    @attr("ci_fails")
     def test_detect_reverse_proxy(self):
-        cfg = self._run_configs['cfg']
-        self._scan(self.proxied_url, cfg['plugins'])
+        cfg = self._run_configs["cfg"]
+        self._scan(self.proxied_url, cfg["plugins"])
 
-        infos = self.kb.get('detect_reverse_proxy', 'detect_reverse_proxy')
+        infos = self.kb.get("detect_reverse_proxy", "detect_reverse_proxy")
         self.assertEqual(len(infos), 1, infos)
 
         info = infos[0]
-        self.assertEqual('Reverse proxy identified', info.get_name())
+        self.assertEqual("Reverse proxy identified", info.get_name())
 
-    @attr('ci_fails')
+    @attr("ci_fails")
     def test_not_detect_reverse_proxy(self):
-        cfg = self._run_configs['cfg']
-        self._scan(self.simple_url, cfg['plugins'])
+        cfg = self._run_configs["cfg"]
+        self._scan(self.simple_url, cfg["plugins"])
 
-        infos = self.kb.get('detect_reverse_proxy', 'detect_reverse_proxy')
+        infos = self.kb.get("detect_reverse_proxy", "detect_reverse_proxy")
         self.assertEqual(len(infos), 0, infos)

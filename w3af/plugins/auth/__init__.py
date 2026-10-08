@@ -1,5 +1,3 @@
-
-
 def get_long_description():
     """
     :return: The description for the plugin type.

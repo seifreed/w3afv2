@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 import w3af.core.data.kb.knowledge_base as kb
@@ -41,60 +42,60 @@ class TestURLInSession(unittest.TestCase):
         self.plugin.end()
 
     def test_url_session_false(self):
-        body = 'abc'
-        url = URL('http://www.w3af.com/')
-        headers = Headers([('content-type', 'text/html')])
-        request = FuzzableRequest(url, method='GET')
+        body = "abc"
+        url = URL("http://www.w3af.com/")
+        headers = Headers([("content-type", "text/html")])
+        request = FuzzableRequest(url, method="GET")
         resp = HTTPResponse(200, body, headers, url, url, _id=1)
-        
+
         self.plugin.grep(request, resp)
-        
-        infos = kb.kb.get('url_session', 'url_session')
+
+        infos = kb.kb.get("url_session", "url_session")
         self.assertEqual(len(infos), 0)
-    
+
     def test_url_session_in_url(self):
-        body = 'abc'
-        url = URL('http://www.w3af.com/?JSESSIONID=231badb19b93e44f47da1bd64a8147f2')
-        headers = Headers([('content-type', 'text/html')])
-        request = FuzzableRequest(url, method='GET')
+        body = "abc"
+        url = URL("http://www.w3af.com/?JSESSIONID=231badb19b93e44f47da1bd64a8147f2")
+        headers = Headers([("content-type", "text/html")])
+        request = FuzzableRequest(url, method="GET")
         resp = HTTPResponse(200, body, headers, url, url, _id=1)
-        
+
         self.plugin.grep(request, resp)
-        
-        infos = kb.kb.get('url_session', 'url_session')
+
+        infos = kb.kb.get("url_session", "url_session")
         self.assertEqual(len(infos), 1)
-        
+
         info = infos[0]
-        self.assertEqual(info.get_name(), 'Session ID in URL')       
-    
+        self.assertEqual(info.get_name(), "Session ID in URL")
+
     def test_url_session_in_body(self):
-        url = 'http://www.w3af.com/?JSESSIONID=231badb19b93e44f47da1bd64a8147f2'
+        url = "http://www.w3af.com/?JSESSIONID=231badb19b93e44f47da1bd64a8147f2"
         body = 'abc <a href="%s">def</a> footer' % url
-        url = URL('http://www.w3af.com/')
-        headers = Headers([('content-type', 'text/html')])
-        request = FuzzableRequest(url, method='GET')
+        url = URL("http://www.w3af.com/")
+        headers = Headers([("content-type", "text/html")])
+        request = FuzzableRequest(url, method="GET")
         resp = HTTPResponse(200, body, headers, url, url, _id=1)
-        
+
         self.plugin.grep(request, resp)
-        
-        infos = kb.kb.get('url_session', 'url_session')
+
+        infos = kb.kb.get("url_session", "url_session")
         self.assertEqual(len(infos), 1)
-        
+
         info = infos[0]
-        self.assertEqual(info.get_name(), 'Session ID in URL')
-    
+        self.assertEqual(info.get_name(), "Session ID in URL")
+
     def test_url_session_in_body_and_url(self):
-        url = 'http://www.w3af.com/?JSESSIONID=231badb19b93e44f47da1bd64a8147f2'
+        url = "http://www.w3af.com/?JSESSIONID=231badb19b93e44f47da1bd64a8147f2"
         body = 'abc <a href="%s">def</a> footer' % url
         url = URL(url)
-        headers = Headers([('content-type', 'text/html')])
-        request = FuzzableRequest(url, method='GET')
+        headers = Headers([("content-type", "text/html")])
+        request = FuzzableRequest(url, method="GET")
         resp = HTTPResponse(200, body, headers, url, url, _id=1)
-        
+
         self.plugin.grep(request, resp)
-        
-        infos = kb.kb.get('url_session', 'url_session')
+
+        infos = kb.kb.get("url_session", "url_session")
         self.assertEqual(len(infos), 1)
-        
+
         info = infos[0]
-        self.assertEqual(info.get_name(), 'Session ID in URL')
+        self.assertEqual(info.get_name(), "Session ID in URL")

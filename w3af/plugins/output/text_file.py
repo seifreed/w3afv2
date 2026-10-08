@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import time
 import os
 
@@ -34,11 +35,10 @@ from w3af.core.data.options.option_types import OUTPUT_FILE
 from w3af.core.data.options.output_file_option import DEV_NULL
 from w3af.core.data.options.option_list import OptionList
 
-
-REQUEST_HEADER_FMT = '=' * 40 + 'Request %s - %s ' + '=' * 40 + '\n'
-RESPONSE_HEADER_FMT = '\n' + '=' * 40 + 'Response %s - %s ' + '=' * 39 + '\n'
-LONG_LOG_FMT = '[%s - %s - %s] '
-SHORT_LOG_FMT = '[%s - %s] '
+REQUEST_HEADER_FMT = "=" * 40 + "Request %s - %s " + "=" * 40 + "\n"
+RESPONSE_HEADER_FMT = "\n" + "=" * 40 + "Response %s - %s " + "=" * 39 + "\n"
+LONG_LOG_FMT = "[%s - %s - %s] "
+SHORT_LOG_FMT = "[%s - %s] "
 
 
 class text_file(OutputPlugin):
@@ -52,8 +52,8 @@ class text_file(OutputPlugin):
         OutputPlugin.__init__(self)
 
         # User configured parameters
-        self._output_file_name = '~/output.txt'
-        self._http_file_name = '~/output-http.txt'
+        self._output_file_name = "~/output.txt"
+        self._http_file_name = "~/output-http.txt"
         self.verbose = True
 
         # Internal variables
@@ -69,14 +69,14 @@ class text_file(OutputPlugin):
         self._show_caller = False
 
     def _init(self):
-        
+
         self._initialized = True
-        
+
         self._output_file_name = os.path.expanduser(self._output_file_name)
         self._http_file_name = os.path.expanduser(self._http_file_name)
-        
+
         try:
-            self._log = open(self._output_file_name,  'w')
+            self._log = open(self._output_file_name, "w")
         except IOError as io:
             msg = 'Can\'t open report file "%s" for writing, error: %s.'
             args = (os.path.abspath(self._output_file_name), io.strerror)
@@ -93,7 +93,7 @@ class text_file(OutputPlugin):
         try:
             # Images aren't ascii, so this file that logs every request/response,
             # will be binary.
-            self._http = open(self._http_file_name, 'wb')
+            self._http = open(self._http_file_name, "wb")
         except IOError as io:
             msg = 'Can\'t open HTTP report file "%s" for writing, error: %s.'
             args = (os.path.abspath(self._http_file_name), io.strerror)
@@ -111,15 +111,18 @@ class text_file(OutputPlugin):
         """
         if self._log is None:
             return
-        
+
         try:
             self._log.write(msg)
         except Exception as e:
             self._log = None
-            msg = ('An exception was raised while trying to write to the output'
-                   ' file "%s", error: "%s". Disabling output to this file.')
-            om.out.error(msg % (self._output_file_name, e),
-                         ignore_plugins={self.get_name()})
+            msg = (
+                "An exception was raised while trying to write to the output"
+                ' file "%s", error: "%s". Disabling output to this file.'
+            )
+            om.out.error(
+                msg % (self._output_file_name, e), ignore_plugins={self.get_name()}
+            )
 
         if flush and self._log is not None:
             self._log.flush()
@@ -133,15 +136,18 @@ class text_file(OutputPlugin):
         """
         if self._http is None:
             return
-        
+
         try:
             self._http.write(msg)
         except Exception as e:
             self._http = None
-            msg = ('An exception was raised while trying to write to the output'
-                   ' file "%s", error: "%s". Disabling output to this file.')
-            om.out.error(msg % (self._http_file_name, e),
-                         ignore_plugins={self.get_name()})
+            msg = (
+                "An exception was raised while trying to write to the output"
+                ' file "%s", error: "%s". Disabling output to this file.'
+            )
+            om.out.error(
+                msg % (self._http_file_name, e), ignore_plugins={self.get_name()}
+            )
 
     def flush(self):
         """
@@ -161,7 +167,7 @@ class text_file(OutputPlugin):
         """
         # https://github.com/andresriancho/w3af/issues/3586
         if string_to_clean is None:
-            return ''
+            return ""
 
         # This will escape the string using \x00-style escapes, which is much
         # better than just printing null bytes (or any other non-printable char)
@@ -183,7 +189,7 @@ class text_file(OutputPlugin):
         to_print = self._clean_string_for_file(to_print)
 
         if new_line:
-            to_print += '\n'
+            to_print += "\n"
 
         now = time.localtime(time.time())
         the_time = time.strftime("%c", now)
@@ -202,7 +208,7 @@ class text_file(OutputPlugin):
         action for debug messages.
         """
         if self.verbose:
-            self.write(message, 'debug', new_line)
+            self.write(message, "debug", new_line)
 
     def information(self, message, new_line=True):
         """
@@ -210,7 +216,7 @@ class text_file(OutputPlugin):
         called from a plugin or from the framework. This method should take an
         action for informational messages.
         """
-        self.write(message, 'information', new_line)
+        self.write(message, "information", new_line)
 
     def error(self, message, new_line=True):
         """
@@ -218,7 +224,7 @@ class text_file(OutputPlugin):
         called from a plugin or from the framework. This method should take an
         action for error messages.
         """
-        self.write(message, 'error', new_line, flush=True)
+        self.write(message, "error", new_line, flush=True)
 
     def vulnerability(self, message, new_line=True, severity=severity.MEDIUM):
         """
@@ -226,13 +232,13 @@ class text_file(OutputPlugin):
         called from a plugin or from the framework. This method should take an
         action when a vulnerability is found.
         """
-        self.write(message, 'vulnerability', new_line)
+        self.write(message, "vulnerability", new_line)
 
     def console(self, message, new_line=True):
         """
         This method is used by the w3af console to print messages to the outside
         """
-        self.write(message, 'console', new_line)
+        self.write(message, "console", new_line)
 
     def log_enabled_plugins(self, plugins_dict, options_dict):
         """
@@ -246,22 +252,24 @@ class text_file(OutputPlugin):
         """
         now = time.localtime(time.time())
         the_time = time.strftime("%c", now)
-        timestamp = '[ %s - Enabled plugins ] ' % the_time
+        timestamp = "[ %s - Enabled plugins ] " % the_time
 
-        to_print = ''
+        to_print = ""
 
         for plugin_type in plugins_dict:
-            to_print += self._create_plugin_info(plugin_type,
-                                                 plugins_dict[plugin_type],
-                                                 options_dict[plugin_type])
+            to_print += self._create_plugin_info(
+                plugin_type, plugins_dict[plugin_type], options_dict[plugin_type]
+            )
 
         # And now the target information
-        str_targets = ', '.join(smart_str_ignore(u.url_string) for u in cf.cf.get('targets'))
-        to_print += 'target\n'
-        to_print += '    set target ' + str_targets + '\n'
-        to_print += '    back'
+        str_targets = ", ".join(
+            smart_str_ignore(u.url_string) for u in cf.cf.get("targets")
+        )
+        to_print += "target\n"
+        to_print += "    set target " + str_targets + "\n"
+        to_print += "    back"
 
-        to_print = to_print.replace('\n', '\n' + timestamp) + '\n'
+        to_print = to_print.replace("\n", "\n" + timestamp) + "\n"
 
         self._write_to_file(timestamp + to_print)
 
@@ -283,9 +291,9 @@ class text_file(OutputPlugin):
 
         :return: No value is returned.
         """
-        self.verbose = option_list['verbose'].get_value()
-        self._output_file_name = option_list['output_file'].get_value()
-        self._http_file_name = option_list['http_output_file'].get_value()
+        self.verbose = option_list["verbose"].get_value()
+        self._output_file_name = option_list["output_file"].get_value()
+        self._http_file_name = option_list["http_output_file"].get_value()
 
         self._init()
 
@@ -295,16 +303,16 @@ class text_file(OutputPlugin):
         """
         ol = OptionList()
 
-        d = 'Enable if verbose output is needed'
-        o = opt_factory('verbose', self.verbose, d, 'boolean')
+        d = "Enable if verbose output is needed"
+        o = opt_factory("verbose", self.verbose, d, "boolean")
         ol.add(o)
 
-        d = 'File name where this plugin will write to'
-        o = opt_factory('output_file', self._output_file_name, d, OUTPUT_FILE)
+        d = "File name where this plugin will write to"
+        o = opt_factory("output_file", self._output_file_name, d, OUTPUT_FILE)
         ol.add(o)
 
-        d = 'File name where this plugin will write HTTP requests and responses'
-        o = opt_factory('http_output_file', self._http_file_name, d, OUTPUT_FILE)
+        d = "File name where this plugin will write HTTP requests and responses"
+        o = opt_factory("http_output_file", self._http_file_name, d, OUTPUT_FILE)
         ol.add(o)
 
         return ol
@@ -334,12 +342,12 @@ class text_file(OutputPlugin):
         request_hdr = REQUEST_HEADER_FMT % (response.id, the_time)
         self._write_to_http_log(request_hdr)
         self._write_to_http_log(request.dump())
-        
+
         response_hdr = RESPONSE_HEADER_FMT % (response.id, the_time)
         self._write_to_http_log(response_hdr)
         self._write_to_http_log(response.dump())
 
-        self._write_to_http_log('\n' + '=' * (len(request_hdr) - 1) + '\n')
+        self._write_to_http_log("\n" + "=" * (len(request_hdr) - 1) + "\n")
 
     def get_long_desc(self):
         """

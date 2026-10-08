@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from .ubuntu1204 import Ubuntu1204
 from .ubuntu1404 import Ubuntu1404
 from .ubuntu1410 import Ubuntu1410
@@ -39,23 +40,23 @@ from .elementaryOS02 import ElementaryOS02
 from .default import DefaultPlatform
 
 KNOWN_PLATFORMS = [
-                   CentOS65,
-                   CentOS,
-                   Debian76,
-                   Debian78,
-                   Debian80,
-                   ElementaryOS02,
-                   Fedora,
-                   Kali,
-                   Kali2,
-                   MacOSX,
-                   OpenBSD5,
-                   SuSE,
-                   Ubuntu1204,
-                   Ubuntu1404,
-                   Ubuntu1410,
-                   Ubuntu1604,
-                   Ubuntu1804
+    CentOS65,
+    CentOS,
+    Debian76,
+    Debian78,
+    Debian80,
+    ElementaryOS02,
+    Fedora,
+    Kali,
+    Kali2,
+    MacOSX,
+    OpenBSD5,
+    SuSE,
+    Ubuntu1204,
+    Ubuntu1404,
+    Ubuntu1410,
+    Ubuntu1604,
+    Ubuntu1804,
 ]
 
 

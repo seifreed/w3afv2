@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 
 import w3af.core.controllers.output_manager as om
@@ -36,8 +37,10 @@ class wordpress_fullpathdisclosure(CrawlPlugin):
     :author: Andres Tarantini ( atarantini@gmail.com )
     """
 
-    CHECK_PATHS = ['wp-content/plugins/akismet/akismet.php',
-                   'wp-content/plugins/hello.php']
+    CHECK_PATHS = [
+        "wp-content/plugins/akismet/akismet.php",
+        "wp-content/plugins/hello.php",
+    ]
 
     def __init__(self):
         CrawlPlugin.__init__(self)
@@ -53,7 +56,7 @@ class wordpress_fullpathdisclosure(CrawlPlugin):
         """
         # Check if there is a wordpress installation in this directory
         domain_path = fuzzable_request.get_url().get_domain_path()
-        wp_unique_url = domain_path.url_join('wp-login.php')
+        wp_unique_url = domain_path.url_join("wp-login.php")
         response = self._uri_opener.GET(wp_unique_url, cache=True)
 
         # If wp_unique_url is not 404, wordpress = true
@@ -67,8 +70,7 @@ class wordpress_fullpathdisclosure(CrawlPlugin):
         self._already_tested.add(wp_unique_url)
 
         extracted_paths = self._extract_paths(domain_path)
-        self._force_disclosures(domain_path,
-                                self.CHECK_PATHS + extracted_paths)
+        self._force_disclosures(domain_path, self.CHECK_PATHS + extracted_paths)
 
     def _extract_paths(self, domain_path):
         """
@@ -87,13 +89,13 @@ class wordpress_fullpathdisclosure(CrawlPlugin):
         theme_paths = []
         response_body = wp_root_response.get_body()
 
-        theme_regexp = '%swp-content/themes/(.*)/style.css' % domain_path
+        theme_regexp = "%swp-content/themes/(.*)/style.css" % domain_path
         theme = re.search(theme_regexp, response_body, re.IGNORECASE)
 
         if theme:
             theme_name = theme.group(1)
-            for fname in ('header', 'footer'):
-                path_fname = 'wp-content/themes/%s/%s.php' % (theme_name, fname)
+            for fname in ("header", "footer"):
+                path_fname = "wp-content/themes/%s/%s.php" % (theme_name, fname)
                 theme_paths.append(path_fname)
 
         return theme_paths
@@ -113,14 +115,17 @@ class wordpress_fullpathdisclosure(CrawlPlugin):
                 continue
 
             response_body = response.get_body()
-            if 'Fatal error: ' in response_body:
-                desc = 'Analyze the HTTP response body to find the full path'\
-                       ' where wordpress was installed.'
-                i = Info('WordPress path disclosure', desc, response.id,
-                         self.get_name())
+            if "Fatal error: " in response_body:
+                desc = (
+                    "Analyze the HTTP response body to find the full path"
+                    " where wordpress was installed."
+                )
+                i = Info(
+                    "WordPress path disclosure", desc, response.id, self.get_name()
+                )
                 i.set_url(pvuln_url)
-                
-                kb.kb.append(self, 'info', i)
+
+                kb.kb.append(self, "info", i)
                 om.out.information(i.get_desc())
                 break
 

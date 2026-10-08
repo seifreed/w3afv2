@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import subprocess
 import sys
 import os
@@ -31,8 +32,8 @@ from w3af.plugins.tests.helper import PluginTest, PluginConfig
 from w3af.core.controllers.ci.detect import is_running_on_ci
 from w3af.core.data.db.startup_cfg import StartUpConfig
 
-SCRIPT_PATH = '/tmp/script-1557.w3af'
-OUTPUT_PATH = '/tmp/1557-output-w3af.txt'
+SCRIPT_PATH = "/tmp/script-1557.w3af"
+OUTPUT_PATH = "/tmp/1557-output-w3af.txt"
 TEST_SCRIPT_1557 = """\
 plugins
 
@@ -90,35 +91,36 @@ class TestStrategy(PluginTest):
         https://github.com/andresriancho/w3af/issues/1557
         """
         script = TEST_SCRIPT_1557 % (OUTPUT_PATH, get_wavsep_http())
-        open(SCRIPT_PATH, 'w').write(script)
+        open(SCRIPT_PATH, "w").write(script)
 
         python_executable = sys.executable
 
-        VULN_STRING = 'A Cross Site Scripting vulnerability was found at'
+        VULN_STRING = "A Cross Site Scripting vulnerability was found at"
         URL_VULN_RE = re.compile('%s: "(.*?)"' % VULN_STRING)
         all_previous_vulns = []
 
         loops = 2 if is_running_on_ci() else 10
 
         for i in range(loops):
-            print(('Start run #%s' % i))
+            print(("Start run #%s" % i))
             found_vulns = set()
 
-            p = subprocess.Popen([python_executable, 'w3af_console',
-                                  '-n', '-s', SCRIPT_PATH],
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE,
-                                 stdin=subprocess.PIPE,
-                                 shell=False,
-                                 universal_newlines=True)
+            p = subprocess.Popen(
+                [python_executable, "w3af_console", "-n", "-s", SCRIPT_PATH],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                stdin=subprocess.PIPE,
+                shell=False,
+                universal_newlines=True,
+            )
 
             stdout, stderr = p.communicate()
             i_vuln_count = stdout.count(VULN_STRING)
-            print(('%s vulnerabilities found' % i_vuln_count))
+            print(("%s vulnerabilities found" % i_vuln_count))
 
             self.assertNotEqual(i_vuln_count, 0, stdout)
 
-            for line in stdout.split('\n'):
+            for line in stdout.split("\n"):
                 if VULN_STRING in line:
                     found_vulns.add(URL_VULN_RE.search(line).group(1))
 
@@ -129,27 +131,28 @@ class TestStrategy(PluginTest):
 
 
 class TestSameFuzzableRequestSet(PluginTest):
-    target_url = get_moth_http('/audit/sql_injection/'
-                               'where_string_single_qs.py?uname=pablo')
+    target_url = get_moth_http(
+        "/audit/sql_injection/" "where_string_single_qs.py?uname=pablo"
+    )
 
     _run_configs = {
-        'cfg': {
-            'target': target_url,
-            'plugins': {
-                'audit': (PluginConfig('sqli'),),
-            }
+        "cfg": {
+            "target": target_url,
+            "plugins": {
+                "audit": (PluginConfig("sqli"),),
+            },
         }
     }
 
-    @attr('smoke')
-    @attr('moth')
+    @attr("smoke")
+    @attr("moth")
     def test_same_fr_set_object(self):
-        cfg = self._run_configs['cfg']
+        cfg = self._run_configs["cfg"]
 
         id_before_fr = id(self.kb.get_all_known_fuzzable_requests())
         id_before_ur = id(self.kb.get_all_known_urls())
 
-        self._scan(cfg['target'], cfg['plugins'])
+        self._scan(cfg["target"], cfg["plugins"])
 
         id_after_fr = id(self.kb.get_all_known_fuzzable_requests())
         id_after_ur = id(self.kb.get_all_known_urls())

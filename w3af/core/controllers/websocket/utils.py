@@ -19,28 +19,36 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import base64
 import string
 import random
 
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.dc.headers import Headers
-from w3af.core.controllers.exceptions import (BaseFrameworkException,
-                                              HTTPRequestException)
+from w3af.core.controllers.exceptions import (
+    BaseFrameworkException,
+    HTTPRequestException,
+)
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.constants.websockets import (WEBSOCKET_UPGRADE_HEADERS,
-                                                 DEFAULT_PROTOCOL_VERSION)
+from w3af.core.data.constants.websockets import (
+    WEBSOCKET_UPGRADE_HEADERS,
+    DEFAULT_PROTOCOL_VERSION,
+)
 
 
 def gen_ws_sec_key():
     _set = string.ascii_uppercase + string.digits
-    key = ''.join(random.choice(_set) for _ in range(16))
+    key = "".join(random.choice(_set) for _ in range(16))
     return base64.b64encode(key)
 
 
-def build_ws_upgrade_request(web_socket_url, extra_headers=None,
-                             web_socket_version=DEFAULT_PROTOCOL_VERSION,
-                             origin=None):
+def build_ws_upgrade_request(
+    web_socket_url,
+    extra_headers=None,
+    web_socket_version=DEFAULT_PROTOCOL_VERSION,
+    origin=None,
+):
     """
     Create a GET request with the required HTTP headers to upgrade to web
     sockets
@@ -52,7 +60,7 @@ def build_ws_upgrade_request(web_socket_url, extra_headers=None,
     :return: An HTTP request
     """
     request_headers = Headers()
-    request_headers['Sec-WebSocket-Key'] = gen_ws_sec_key()
+    request_headers["Sec-WebSocket-Key"] = gen_ws_sec_key()
 
     for key, value in list(WEBSOCKET_UPGRADE_HEADERS.items()):
         request_headers[key] = value
@@ -62,23 +70,22 @@ def build_ws_upgrade_request(web_socket_url, extra_headers=None,
             request_headers[key] = value
 
     # Allows me to connect to web socket endpoints with different versions
-    request_headers['Sec-WebSocket-Version'] = str(web_socket_version)
+    request_headers["Sec-WebSocket-Version"] = str(web_socket_version)
 
     if origin is not None:
-        request_headers['Origin'] = origin
+        request_headers["Origin"] = origin
     else:
         # If no origin is specified, guess:
-        scheme = 'https://' if 'wss://' in web_socket_url else 'http://'
+        scheme = "https://" if "wss://" in web_socket_url else "http://"
         args = (scheme, web_socket_url.get_domain())
-        request_headers['Origin'] = '%s%s' % args
+        request_headers["Origin"] = "%s%s" % args
 
     # Replace the protocol so we can easily send a request
-    forged_url = web_socket_url.url_string.replace('wss://', 'https://', 1)
-    forged_url = forged_url.replace('ws://', 'http://', 1)
+    forged_url = web_socket_url.url_string.replace("wss://", "https://", 1)
+    forged_url = forged_url.replace("ws://", "http://", 1)
     forged_url = URL(forged_url)
 
-    upgrade_request = FuzzableRequest(forged_url, 'GET',
-                                      headers=request_headers)
+    upgrade_request = FuzzableRequest(forged_url, "GET", headers=request_headers)
     return upgrade_request
 
 
@@ -91,8 +98,9 @@ def negotiate_websocket_version(uri_opener, websocket_url):
     :return: The websocket version to use
     """
     for version in {13, 12, 14}:
-        upgrade_request = build_ws_upgrade_request(websocket_url,
-                                                   web_socket_version=version)
+        upgrade_request = build_ws_upgrade_request(
+            websocket_url, web_socket_version=version
+        )
 
         try:
             upgrade_response = uri_opener.send_mutant(upgrade_request)
@@ -111,7 +119,7 @@ def negotiate_websocket_version(uri_opener, websocket_url):
             # servers are really nice and tell us which version they want to
             # use, others simply say: "400" and nothing else
             headers = upgrade_response.get_headers()
-            version, _ = headers.iget('Sec-WebSocket-Version', None)
+            version, _ = headers.iget("Sec-WebSocket-Version", None)
 
             if version is None:
                 # Test the next version
@@ -152,9 +160,9 @@ def is_successful_upgrade(upgrade_response):
 
     headers = upgrade_response.get_headers()
 
-    upgrade_value, _ = headers.iget('Upgrade', None)
-    connection_value, _ = headers.iget('Connection', None)
-    sec_websocket_accept_value, _ = headers.iget('Sec-WebSocket-Accept', None)
+    upgrade_value, _ = headers.iget("Upgrade", None)
+    connection_value, _ = headers.iget("Connection", None)
+    sec_websocket_accept_value, _ = headers.iget("Sec-WebSocket-Accept", None)
 
     # Relaxed check
     if upgrade_value and connection_value and sec_websocket_accept_value:

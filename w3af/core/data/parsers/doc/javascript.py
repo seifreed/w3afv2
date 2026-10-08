@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.parsers.doc.baseparser import BaseParser
 from w3af.core.data.parsers.utils.re_extract import ReExtract
 
@@ -29,9 +30,8 @@ class JavaScriptParser(BaseParser):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
-    PARSE_TYPES = ('javascript',
-                   'ecmascript',
-                   'jscript')
+
+    PARSE_TYPES = ("javascript", "ecmascript", "jscript")
 
     def __init__(self, http_response):
         super(JavaScriptParser, self).__init__(http_response)
@@ -58,10 +58,12 @@ class JavaScriptParser(BaseParser):
         """
         Get the URLs using a regex
         """
-        re_extract = ReExtract(self.get_http_response().get_body(),
-                               self._base_url,
-                               self._encoding,
-                               require_quotes=True)
+        re_extract = ReExtract(
+            self.get_http_response().get_body(),
+            self._base_url,
+            self._encoding,
+            require_quotes=True,
+        )
         re_extract.parse()
         self._re_urls = re_extract.get_references()
 
@@ -90,4 +92,3 @@ class JavaScriptParser(BaseParser):
     get_references_of_tag = get_forms = BaseParser._return_empty_list
     get_comments = BaseParser._return_empty_list
     get_meta_redir = get_meta_tags = get_emails = BaseParser._return_empty_list
-

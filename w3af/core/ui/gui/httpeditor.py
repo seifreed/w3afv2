@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import re
 
@@ -30,13 +31,13 @@ from w3af.core.data.constants import severity
 from w3af.core.ui.gui.common.searchable import Searchable
 from w3af.core.ui.gui.tools.encdec import EncodeDecode
 
-
 SEVERITY_TO_COLOR = {
-    severity.INFORMATION: 'green',
-    severity.LOW: 'blue',
-    severity.MEDIUM: 'yellow',
-    severity.HIGH: 'red'}
-SEVERITY_TO_COLOR.setdefault('yellow')
+    severity.INFORMATION: "green",
+    severity.LOW: "blue",
+    severity.MEDIUM: "yellow",
+    severity.HIGH: "red",
+}
+SEVERITY_TO_COLOR.setdefault("yellow")
 
 
 class HttpEditor(gtk.VBox, Searchable):
@@ -44,7 +45,7 @@ class HttpEditor(gtk.VBox, Searchable):
     Special class for editing HTTP requests/responses.
     """
 
-    HTTP_HEAD_BODY_SPLIT_RE = re.compile('(\r\n\r\n|\n\n)')
+    HTTP_HEAD_BODY_SPLIT_RE = re.compile("(\r\n\r\n|\n\n)")
 
     def __init__(self, w3af):
         gtk.VBox.__init__(self)
@@ -59,22 +60,23 @@ class HttpEditor(gtk.VBox, Searchable):
         # Font
         self.set_wrap(True)
         self.textView.set_border_width(5)
-        fontDesc = pango.FontDescription('monospace')
+        fontDesc = pango.FontDescription("monospace")
         if fontDesc:
             self.textView.modify_font(fontDesc)
-        
+
         # Syntax highlight
         self._lang_man = gtksourceview.LanguageManager()
         spath = self._lang_man.get_search_path()
-        spath.append(os.path.join(ROOT_PATH, 'core', 'ui', 'gui'))
+        spath.append(os.path.join(ROOT_PATH, "core", "ui", "gui"))
         self._lang_man.set_search_path(spath)
-        self.set_language('http')
-        #b.set_highlight_syntax(True)
+        self.set_language("http")
+        # b.set_highlight_syntax(True)
 
         self.reset_bg_color()
         for sev in SEVERITY_TO_COLOR:
-            self.textView.get_buffer(
-            ).create_tag(sev, background=SEVERITY_TO_COLOR[sev])
+            self.textView.get_buffer().create_tag(
+                sev, background=SEVERITY_TO_COLOR[sev]
+            )
         self.textView.show()
         # Scroll where the textView goes
         sw1 = gtk.ScrolledWindow()
@@ -85,7 +87,7 @@ class HttpEditor(gtk.VBox, Searchable):
         self.pack_start(sw1, expand=True, fill=True)
         # Create the search widget
         Searchable.__init__(self, self.textView, small=True)
-    
+
     #
     # Interface
     #
@@ -104,14 +106,14 @@ class HttpEditor(gtk.VBox, Searchable):
         Taken from: http://ha.ckers.org/xss.html
         """
         return [
-            '";!--\'<XSS>=&{()}\\xss<script>alert(document.cookie)</script>',
+            "\";!--'<XSS>=&{()}\\xss<script>alert(document.cookie)</script>",
             """';alert(String.fromCharCode(88,83,83))//\\\';alert(String.fromCharCode(88,83,83))//";alert(String.fromCharCode(88,83,83))//\";alert(String.fromCharCode(88,83,83))//--></SCRIPT>">'><SCRIPT>alert(String.fromCharCode(88,83,83))</SCRIPT>""",
-            '<SCRIPT SRC=http://ha.ckers.org/xss.js></SCRIPT>',
+            "<SCRIPT SRC=http://ha.ckers.org/xss.js></SCRIPT>",
             '<IMG """><SCRIPT>alert("XSS")</SCRIPT>">',
             '<SCRIPT/SRC="http://ha.ckers.org/xss.js"></SCRIPT>',
             '<<SCRIPT>alert("XSS");//<</SCRIPT>',
             """<SCRIPT>a=/XSS/alert(a.source)</SCRIPT>""",
-            '\\";alert(\'XSS\');//'
+            "\\\";alert('XSS');//",
         ]
 
     def _insert_payload(self, widg, payload):
@@ -119,7 +121,7 @@ class HttpEditor(gtk.VBox, Searchable):
         b.insert_at_cursor(payload)
 
     def get_languages(self):
-        return ['http', 'html', 'xml', 'css', 'js']
+        return ["http", "html", "xml", "css", "js"]
 
     def _activate_lang(self, widg, lang):
         self.set_language(lang)
@@ -127,7 +129,7 @@ class HttpEditor(gtk.VBox, Searchable):
     def _populate_popup(self, textview, menu):
         menu.append(gtk.SeparatorMenuItem())
         # Enc/Dec
-        encdec = gtk.MenuItem(_('Send selected text to Encode/Decode tool'))
+        encdec = gtk.MenuItem(_("Send selected text to Encode/Decode tool"))
         encdec.connect("activate", self._send2enc)
         menu.append(encdec)
         # Syntax menu
@@ -142,7 +144,7 @@ class HttpEditor(gtk.VBox, Searchable):
         # Strings payloads
         payloadMenu = gtk.Menu()
         for i in self.get_string_payloads():
-            payloadItem = gtk.MenuItem(i[:50] + ' ...')
+            payloadItem = gtk.MenuItem(i[:50] + " ...")
             payloadItem.connect("activate", self._insert_payload, i)
             payloadMenu.append(payloadItem)
         opc = gtk.MenuItem(_("String payloads"))
@@ -167,7 +169,7 @@ class HttpEditor(gtk.VBox, Searchable):
         if sel:
             return buf.get_text(sel[0], sel[1])
         else:
-            return ''
+            return ""
 
     def get_text(self):
         buf = self.textView.get_buffer()
@@ -175,7 +177,7 @@ class HttpEditor(gtk.VBox, Searchable):
 
     def get_split_text(self):
         raw_text = self.get_text()
-        
+
         # else return tuple: (headers, data)
         split_raw_text = self.HTTP_HEAD_BODY_SPLIT_RE.split(raw_text, 1)
         split_raw_text = [r.strip() for r in split_raw_text]
@@ -183,26 +185,26 @@ class HttpEditor(gtk.VBox, Searchable):
         if len(split_raw_text) == 1:
             # no postdata
             headers = split_raw_text[0]
-            data = ''
+            data = ""
         else:
             # We'll always have 2 here, since we passed 1 as a second
             # parameter to split
             headers = split_raw_text[0]
             data = split_raw_text[2]
-                
+
         return headers, data
-    
+
     def set_text(self, text, fixUtf8=False):
         buf = self.textView.get_buffer()
         if fixUtf8:
-            #buf.set_text(self._to_utf8(text))
+            # buf.set_text(self._to_utf8(text))
             buf.set_text(text)
         else:
             buf.set_text(text)
 
     def set_editable(self, e):
         return self.textView.set_editable(e)
-    
+
     #
     # Inherit SourceView methods
     #
@@ -222,7 +224,7 @@ class HttpEditor(gtk.VBox, Searchable):
             self.textView.set_wrap_mode(gtk.WRAP_WORD)
         else:
             self.textView.set_wrap_mode(gtk.WRAP_NONE)
-            
+
     #
     # Private methods
     #
@@ -238,7 +240,7 @@ class HttpEditor(gtk.VBox, Searchable):
         text = repr(text)
         text = text[1:-1]
 
-        for special_char in ['\n', '\r', '\t']:
+        for special_char in ["\n", "\r", "\t"]:
             text = text.replace(repr(special_char)[1:-1], special_char)
         text = text.replace("\\'", "'")
         text = text.replace('\\\\"', '\\"')
@@ -257,8 +259,7 @@ class HttpEditor(gtk.VBox, Searchable):
         self.textView.modify_base(gtk.STATE_NORMAL, color)
 
     def reset_bg_color(self):
-        self.textView.modify_base(
-            gtk.STATE_NORMAL, gtk.gdk.color_parse("#FFFFFF"))
+        self.textView.modify_base(gtk.STATE_NORMAL, gtk.gdk.color_parse("#FFFFFF"))
 
     def get_buffer(self):
         return self.textView.get_buffer()

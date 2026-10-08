@@ -19,53 +19,55 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-
 from w3af.plugins.tests.helper import PluginTest, PluginConfig, MockResponse
 
 RUN_CONFIG = {
-    'cfg': {
-        'target': None,
-        'plugins': {
-            'audit': (PluginConfig('shell_shock'),),
-            'crawl': (
-                PluginConfig(
-                    'web_spider',
-                    ('only_forward', True, PluginConfig.BOOL)),
-            )
-        }
+    "cfg": {
+        "target": None,
+        "plugins": {
+            "audit": (PluginConfig("shell_shock"),),
+            "crawl": (
+                PluginConfig("web_spider", ("only_forward", True, PluginConfig.BOOL)),
+            ),
+        },
     }
 }
 
 
 class BasicShellShockTest(PluginTest):
 
-    target_url = 'http://shell.com/cgi.bin'
+    target_url = "http://shell.com/cgi.bin"
 
-    MOCK_RESPONSES = [MockResponse(url='http://shell.com/cgi.bin',
-                                   body='foo bar',
-                                   method='GET',
-                                   status=200,
-                                   headers={'shellshock': 'check'})]
+    MOCK_RESPONSES = [
+        MockResponse(
+            url="http://shell.com/cgi.bin",
+            body="foo bar",
+            method="GET",
+            status=200,
+            headers={"shellshock": "check"},
+        )
+    ]
 
     def test_shell_shock_basic(self):
-        cfg = RUN_CONFIG['cfg']
-        self._scan(self.target_url, cfg['plugins'])
-        vulns = self.kb.get('shell_shock', 'shell_shock')
+        cfg = RUN_CONFIG["cfg"]
+        self._scan(self.target_url, cfg["plugins"])
+        vulns = self.kb.get("shell_shock", "shell_shock")
         self.assertEqual(1, len(vulns))
 
 
 class BasicNegativeShellShockTest(PluginTest):
 
-    target_url = 'http://shell.com/cgi.bin'
+    target_url = "http://shell.com/cgi.bin"
 
     # No headers are returned here
-    MOCK_RESPONSES = [MockResponse(url='http://shell.com/cgi.bin',
-                                   body='foo bar',
-                                   method='GET',
-                                   status=200)]
+    MOCK_RESPONSES = [
+        MockResponse(
+            url="http://shell.com/cgi.bin", body="foo bar", method="GET", status=200
+        )
+    ]
 
     def test_shell_shock_basic(self):
-        cfg = RUN_CONFIG['cfg']
-        self._scan(self.target_url, cfg['plugins'])
-        vulns = self.kb.get('shell_shock', 'shell_shock')
+        cfg = RUN_CONFIG["cfg"]
+        self._scan(self.target_url, cfg["plugins"])
+        vulns = self.kb.get("shell_shock", "shell_shock")
         self.assertEqual(0, len(vulns))

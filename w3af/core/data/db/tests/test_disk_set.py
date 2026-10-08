@@ -18,6 +18,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 import threading
 
@@ -38,7 +39,7 @@ class TestDiskSet(unittest.TestCase):
     def setUp(self):
         create_temp_dir()
 
-    @attr('smoke')
+    @attr("smoke")
     def test_add(self):
         ds = DiskSet()
         ds.add(1)
@@ -48,34 +49,34 @@ class TestDiskSet(unittest.TestCase):
 
         self.assertEqual(list(ds), [1, 2, 3])
         self.assertEqual(len(ds), 3)
-        self.assertEqual(str(ds), '<DiskSet [1, 2, 3]>')
+        self.assertEqual(str(ds), "<DiskSet [1, 2, 3]>")
 
     def test_add_urlobject(self):
         ds = DiskSet()
 
-        ds.add(URL('http://w3af.org/?id=2'))
-        ds.add(URL('http://w3af.org/?id=3'))
-        ds.add(URL('http://w3af.org/?id=3'))
+        ds.add(URL("http://w3af.org/?id=2"))
+        ds.add(URL("http://w3af.org/?id=3"))
+        ds.add(URL("http://w3af.org/?id=3"))
 
-        self.assertEqual(ds[0], URL('http://w3af.org/?id=2'))
-        self.assertEqual(ds[1], URL('http://w3af.org/?id=3'))
+        self.assertEqual(ds[0], URL("http://w3af.org/?id=2"))
+        self.assertEqual(ds[1], URL("http://w3af.org/?id=3"))
         self.assertEqual(len(ds), 2)
-        self.assertFalse(URL('http://w3af.org/?id=4') in ds)
-        self.assertTrue(URL('http://w3af.org/?id=2') in ds)
+        self.assertFalse(URL("http://w3af.org/?id=4") in ds)
+        self.assertTrue(URL("http://w3af.org/?id=2") in ds)
 
     def test_add_QsRequest(self):
         ds = DiskSet()
 
-        uri = URL('http://w3af.org/?id=2')
-        hdr = Headers([('Referer', 'http://w3af.org/')])
+        uri = URL("http://w3af.org/?id=2")
+        hdr = Headers([("Referer", "http://w3af.org/")])
 
-        qsr1 = FuzzableRequest(uri, method='GET', headers=hdr)
+        qsr1 = FuzzableRequest(uri, method="GET", headers=hdr)
 
-        uri = URL('http://w3af.org/?id=3')
-        qsr2 = FuzzableRequest(uri, method='GET', headers=hdr)
+        uri = URL("http://w3af.org/?id=3")
+        qsr2 = FuzzableRequest(uri, method="GET", headers=hdr)
 
-        uri = URL('http://w3af.org/?id=7')
-        qsr3 = FuzzableRequest(uri, method='FOO', headers=hdr)
+        uri = URL("http://w3af.org/?id=7")
+        qsr3 = FuzzableRequest(uri, method="FOO", headers=hdr)
 
         ds.add(qsr1)
         ds.add(qsr2)
@@ -117,8 +118,7 @@ class TestDiskSet(unittest.TestCase):
             # For testing the uniqueness of DiskSets
             add_dups = not add_dups
             if add_dups:
-                th = threading.Thread(
-                    target=worker, args=(range(_min, _max),))
+                th = threading.Thread(target=worker, args=(range(_min, _max),))
                 threads.append(th)
 
             _min = _max
@@ -137,27 +137,27 @@ class TestDiskSet(unittest.TestCase):
 
         ds_as_list.sort()
         self.assertEqual(ds_as_list, list(range(1000)))
-    
+
     def test_remove_table(self):
         disk_set = DiskSet()
         disk_set.add(1)
         disk_set.add(2)
-        
+
         table_name = disk_set.table_name
         db = get_default_temp_db_instance()
-        
+
         self.assertTrue(db.table_exists(table_name))
 
         disk_set.cleanup()
-        
+
         self.assertFalse(db.table_exists(table_name))
 
     def test_store_fuzzable_request(self):
         form_params = FormParameters()
         form_params.add_field_by_attr_items([("name", "username"), ("value", "abc")])
         form_params.add_field_by_attr_items([("name", "address"), ("value", "")])
-        form_params.set_action(URL('http://example.com/?id=1'))
-        form_params.set_method('post')
+        form_params.set_action(URL("http://example.com/?id=1"))
+        form_params.set_method("post")
 
         form = dc_from_form_params(form_params)
 
@@ -175,15 +175,15 @@ class TestDiskSet(unittest.TestCase):
         ds = DiskSet()
 
         # Add a simple fr, without post-data
-        fr = FuzzableRequest(URL('http://example.com/?id=1'))
+        fr = FuzzableRequest(URL("http://example.com/?id=1"))
         ds.add(fr)
 
         # Add a fr with post-data
         form_params = FormParameters()
         form_params.add_field_by_attr_items([("name", "username"), ("value", "abc")])
         form_params.add_field_by_attr_items([("name", "address"), ("value", "")])
-        form_params.set_action(URL('http://example.com/?id=1'))
-        form_params.set_method('post')
+        form_params.set_action(URL("http://example.com/?id=1"))
+        form_params.set_method("post")
 
         form = dc_from_form_params(form_params)
 
@@ -197,7 +197,7 @@ class TestDiskSet(unittest.TestCase):
         self.assertIsNot(stored_fr, fr)
 
     def test_table_name_with_prefix(self):
-        _unittest = 'unittest'
+        _unittest = "unittest"
         disk_set = DiskSet(_unittest)
 
         self.assertIn(_unittest, disk_set.table_name)

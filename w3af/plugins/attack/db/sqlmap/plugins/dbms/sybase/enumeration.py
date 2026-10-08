@@ -28,6 +28,7 @@ from lib.utils.brute import columnExists
 from lib.utils.pivotdumptable import pivotDumpTable
 from plugins.generic.enumeration import Enumeration as GenericEnumeration
 
+
 class Enumeration(GenericEnumeration):
     def __init__(self):
         GenericEnumeration.__init__(self)
@@ -41,13 +42,25 @@ class Enumeration(GenericEnumeration):
         randStr = randomStr()
         query = rootQuery.inband.query
 
-        if any(isTechniqueAvailable(_) for _ in (PAYLOAD.TECHNIQUE.UNION, PAYLOAD.TECHNIQUE.ERROR, PAYLOAD.TECHNIQUE.QUERY)) or conf.direct:
+        if (
+            any(
+                isTechniqueAvailable(_)
+                for _ in (
+                    PAYLOAD.TECHNIQUE.UNION,
+                    PAYLOAD.TECHNIQUE.ERROR,
+                    PAYLOAD.TECHNIQUE.QUERY,
+                )
+            )
+            or conf.direct
+        ):
             blinds = (False, True)
         else:
             blinds = (True,)
 
         for blind in blinds:
-            retVal = pivotDumpTable("(%s) AS %s" % (query, randStr), ['%s.name' % randStr], blind=blind)
+            retVal = pivotDumpTable(
+                "(%s) AS %s" % (query, randStr), ["%s.name" % randStr], blind=blind
+            )
 
             if retVal:
                 kb.data.cachedUsers = list(retVal[0].values())[0]
@@ -97,13 +110,25 @@ class Enumeration(GenericEnumeration):
         randStr = randomStr()
         query = rootQuery.inband.query
 
-        if any(isTechniqueAvailable(_) for _ in (PAYLOAD.TECHNIQUE.UNION, PAYLOAD.TECHNIQUE.ERROR, PAYLOAD.TECHNIQUE.QUERY)) or conf.direct:
+        if (
+            any(
+                isTechniqueAvailable(_)
+                for _ in (
+                    PAYLOAD.TECHNIQUE.UNION,
+                    PAYLOAD.TECHNIQUE.ERROR,
+                    PAYLOAD.TECHNIQUE.QUERY,
+                )
+            )
+            or conf.direct
+        ):
             blinds = [False, True]
         else:
             blinds = [True]
 
         for blind in blinds:
-            retVal = pivotDumpTable("(%s) AS %s" % (query, randStr), ['%s.name' % randStr], blind=blind)
+            retVal = pivotDumpTable(
+                "(%s) AS %s" % (query, randStr), ["%s.name" % randStr], blind=blind
+            )
 
             if retVal:
                 kb.data.cachedDbs = list(retVal[0].values())[0]
@@ -124,7 +149,7 @@ class Enumeration(GenericEnumeration):
             conf.db = self.getCurrentDb()
 
         if conf.db:
-            dbs = conf.db.split(',')
+            dbs = conf.db.split(",")
         else:
             dbs = self.getDbs()
 
@@ -134,10 +159,23 @@ class Enumeration(GenericEnumeration):
         dbs = [_f for _f in dbs if _f]
 
         infoMsg = "fetching tables for database"
-        infoMsg += "%s: %s" % ("s" if len(dbs) > 1 else "", ", ".join(db if isinstance(db, str) else db[0] for db in sorted(dbs)))
+        infoMsg += "%s: %s" % (
+            "s" if len(dbs) > 1 else "",
+            ", ".join(db if isinstance(db, str) else db[0] for db in sorted(dbs)),
+        )
         logger.info(infoMsg)
 
-        if any(isTechniqueAvailable(_) for _ in (PAYLOAD.TECHNIQUE.UNION, PAYLOAD.TECHNIQUE.ERROR, PAYLOAD.TECHNIQUE.QUERY)) or conf.direct:
+        if (
+            any(
+                isTechniqueAvailable(_)
+                for _ in (
+                    PAYLOAD.TECHNIQUE.UNION,
+                    PAYLOAD.TECHNIQUE.ERROR,
+                    PAYLOAD.TECHNIQUE.QUERY,
+                )
+            )
+            or conf.direct
+        ):
             blinds = [False, True]
         else:
             blinds = [True]
@@ -148,7 +186,9 @@ class Enumeration(GenericEnumeration):
             for blind in blinds:
                 randStr = randomStr()
                 query = rootQuery.inband.query % db
-                retVal = pivotDumpTable("(%s) AS %s" % (query, randStr), ['%s.name' % randStr], blind=blind)
+                retVal = pivotDumpTable(
+                    "(%s) AS %s" % (query, randStr), ["%s.name" % randStr], blind=blind
+                )
 
                 if retVal:
                     for table in list(retVal[0].values())[0]:
@@ -163,7 +203,9 @@ class Enumeration(GenericEnumeration):
 
         return kb.data.cachedTables
 
-    def getColumns(self, onlyColNames=False, colTuple=None, bruteForce=None, dumpMode=False):
+    def getColumns(
+        self, onlyColNames=False, colTuple=None, bruteForce=None, dumpMode=False
+    ):
         self.forceDbmsEnum()
 
         if conf.db is None or conf.db == CURRENT_DB:
@@ -176,7 +218,7 @@ class Enumeration(GenericEnumeration):
             conf.db = self.getCurrentDb()
 
         elif conf.db is not None:
-            if  ',' in conf.db:
+            if "," in conf.db:
                 errMsg = "only one database name is allowed when enumerating "
                 errMsg += "the tables' columns"
                 raise SqlmapMissingMandatoryOptionException(errMsg)
@@ -184,18 +226,18 @@ class Enumeration(GenericEnumeration):
         conf.db = safeSQLIdentificatorNaming(conf.db)
 
         if conf.col:
-            colList = conf.col.split(',')
+            colList = conf.col.split(",")
         else:
             colList = []
 
         if conf.excludeCol:
-            colList = [_ for _ in colList if _ not in conf.excludeCol.split(',')]
+            colList = [_ for _ in colList if _ not in conf.excludeCol.split(",")]
 
         for col in colList:
             colList[colList.index(col)] = safeSQLIdentificatorNaming(col)
 
         if conf.tbl:
-            tblList = conf.tbl.split(',')
+            tblList = conf.tbl.split(",")
         else:
             self.getTables()
 
@@ -233,33 +275,50 @@ class Enumeration(GenericEnumeration):
                             columns[colName] = colType
 
                     if conf.db in kb.data.cachedColumns:
-                        kb.data.cachedColumns[safeSQLIdentificatorNaming(conf.db)][safeSQLIdentificatorNaming(tbl, True)] = columns
+                        kb.data.cachedColumns[safeSQLIdentificatorNaming(conf.db)][
+                            safeSQLIdentificatorNaming(tbl, True)
+                        ] = columns
                     else:
-                        kb.data.cachedColumns[safeSQLIdentificatorNaming(conf.db)] = {safeSQLIdentificatorNaming(tbl, True): columns}
+                        kb.data.cachedColumns[safeSQLIdentificatorNaming(conf.db)] = {
+                            safeSQLIdentificatorNaming(tbl, True): columns
+                        }
 
                 return kb.data.cachedColumns
 
             message = "do you want to use common column existence check? [y/N/q] "
-            choice = readInput(message, default='Y' if 'Y' in message else 'N').upper()
+            choice = readInput(message, default="Y" if "Y" in message else "N").upper()
 
-            if choice == 'N':
+            if choice == "N":
                 return
-            elif choice == 'Q':
+            elif choice == "Q":
                 raise SqlmapUserQuitException
             else:
                 return columnExists(paths.COMMON_COLUMNS)
 
         rootQuery = queries[DBMS.SYBASE].columns
 
-        if any(isTechniqueAvailable(_) for _ in (PAYLOAD.TECHNIQUE.UNION, PAYLOAD.TECHNIQUE.ERROR, PAYLOAD.TECHNIQUE.QUERY)) or conf.direct:
+        if (
+            any(
+                isTechniqueAvailable(_)
+                for _ in (
+                    PAYLOAD.TECHNIQUE.UNION,
+                    PAYLOAD.TECHNIQUE.ERROR,
+                    PAYLOAD.TECHNIQUE.QUERY,
+                )
+            )
+            or conf.direct
+        ):
             blinds = [False, True]
         else:
             blinds = [True]
 
         for tbl in tblList:
-            if conf.db is not None and len(kb.data.cachedColumns) > 0 \
-               and conf.db in kb.data.cachedColumns and tbl in \
-               kb.data.cachedColumns[conf.db]:
+            if (
+                conf.db is not None
+                and len(kb.data.cachedColumns) > 0
+                and conf.db in kb.data.cachedColumns
+                and tbl in kb.data.cachedColumns[conf.db]
+            ):
                 infoMsg = "fetched tables' columns on "
                 infoMsg += "database '%s'" % unsafeSQLIdentificatorNaming(conf.db)
                 logger.info(infoMsg)
@@ -268,7 +327,9 @@ class Enumeration(GenericEnumeration):
 
             if dumpMode and colList:
                 table = {}
-                table[safeSQLIdentificatorNaming(tbl)] = dict((_, None) for _ in colList)
+                table[safeSQLIdentificatorNaming(tbl)] = dict(
+                    (_, None) for _ in colList
+                )
                 kb.data.cachedColumns[safeSQLIdentificatorNaming(conf.db)] = table
                 continue
 
@@ -279,15 +340,42 @@ class Enumeration(GenericEnumeration):
 
             for blind in blinds:
                 randStr = randomStr()
-                query = rootQuery.inband.query % (conf.db, conf.db, conf.db, conf.db, conf.db, conf.db, conf.db, unsafeSQLIdentificatorNaming(tbl))
-                retVal = pivotDumpTable("(%s) AS %s" % (query, randStr), ['%s.name' % randStr, '%s.usertype' % randStr], blind=blind)
+                query = rootQuery.inband.query % (
+                    conf.db,
+                    conf.db,
+                    conf.db,
+                    conf.db,
+                    conf.db,
+                    conf.db,
+                    conf.db,
+                    unsafeSQLIdentificatorNaming(tbl),
+                )
+                retVal = pivotDumpTable(
+                    "(%s) AS %s" % (query, randStr),
+                    ["%s.name" % randStr, "%s.usertype" % randStr],
+                    blind=blind,
+                )
 
                 if retVal:
                     table = {}
                     columns = {}
 
-                    for name, type_ in filterPairValues(list(zip(retVal[0]["%s.name" % randStr], retVal[0]["%s.usertype" % randStr]))):
-                        columns[name] = SYBASE_TYPES.get(int(type_) if isinstance(type_, str) and type_.isdigit() else type_, type_)
+                    for name, type_ in filterPairValues(
+                        list(
+                            zip(
+                                retVal[0]["%s.name" % randStr],
+                                retVal[0]["%s.usertype" % randStr],
+                            )
+                        )
+                    ):
+                        columns[name] = SYBASE_TYPES.get(
+                            (
+                                int(type_)
+                                if isinstance(type_, str) and type_.isdigit()
+                                else type_
+                            ),
+                            type_,
+                        )
 
                     table[safeSQLIdentificatorNaming(tbl)] = columns
                     kb.data.cachedColumns[safeSQLIdentificatorNaming(conf.db)] = table

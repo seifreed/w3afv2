@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import time
 import socket
 import urllib.request, urllib.error, urllib.parse
@@ -30,9 +31,9 @@ from w3af.plugins.tests.helper import PluginTest, PluginConfig
 from w3af.plugins.crawl.spider_man import TERMINATE_URL
 
 BROWSE_URLS = (
-    ('GET', '/audit/', None),
-    ('GET', '/audit/sql_injection/where_integer_qs.py', 'id=1'),
-    ('POST', '/audit/sql_injection/where_integer_form.py', 'text=abc'),
+    ("GET", "/audit/", None),
+    ("GET", "/audit/sql_injection/where_integer_qs.py", "id=1"),
+    ("POST", "/audit/sql_injection/where_integer_form.py", "text=abc"),
 )
 
 
@@ -53,25 +54,27 @@ class BrowserThread(Process):
         for i in range(120):
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:
-                s.connect(('127.0.0.1', self.proxy_port))
+                s.connect(("127.0.0.1", self.proxy_port))
             except:
                 time.sleep(0.5)
             else:
                 break
 
-        proxy_cfg = {'http': 'http://127.0.0.1:%s/' % self.proxy_port,
-                     'https': 'http://127.0.0.1:%s/' % self.proxy_port}
+        proxy_cfg = {
+            "http": "http://127.0.0.1:%s/" % self.proxy_port,
+            "https": "http://127.0.0.1:%s/" % self.proxy_port,
+        }
         proxy_support = urllib.request.ProxyHandler(proxy_cfg)
         opener = urllib.request.build_opener(proxy_support)
         # Avoid this, it might influence other tests!
-        #urllib2.install_opener(opener)
+        # urllib2.install_opener(opener)
 
         all_urls = BROWSE_URLS
 
         for method, path, payload in all_urls:
             url = self.url_resolver(path)
 
-            if method == 'POST':
+            if method == "POST":
                 req = urllib.request.Request(url, payload)
                 try:
                     response = opener.open(req)
@@ -83,7 +86,7 @@ class BrowserThread(Process):
                 if payload is None:
                     full_url = url
                 else:
-                    full_url = url + '?' + payload
+                    full_url = url + "?" + payload
 
                 try:
                     response = opener.open(full_url)
@@ -102,10 +105,9 @@ class BrowserThread(Process):
 
 class TestSpiderman(PluginTest):
 
-    def generic_spiderman_run(self,
-                              run_config,
-                              url_resolver=get_moth_http,
-                              proxy_port=44444):
+    def generic_spiderman_run(
+        self, run_config, url_resolver=get_moth_http, proxy_port=44444
+    ):
         """
         The difficult thing with this test is that the scan will block until
         we browse through the spider_man proxy to the spider_man.TERMINATE_URL,
@@ -121,7 +123,7 @@ class TestSpiderman(PluginTest):
         bt = BrowserThread(url_resolver, proxy_port)
         bt.start()
 
-        self._scan(run_config['target'], run_config['plugins'])
+        self._scan(run_config["target"], run_config["plugins"])
 
         # Fetch all the results
         bt.join()
@@ -129,10 +131,10 @@ class TestSpiderman(PluginTest):
         responses = bt.responses
 
         expected_response_contents = (
-            'Trivial Blind SQL injection',
-            'reachable using a query string',
-            'no such column: abc',
-            'spider_man plugin finished its execution.',
+            "Trivial Blind SQL injection",
+            "reachable using a query string",
+            "no such column: abc",
+            "spider_man plugin finished its execution.",
         )
 
         # The browser that used spiderman needs to get these responses
@@ -151,11 +153,15 @@ class TestHTTPSpiderman(TestSpiderman):
         port = get_unused_port()
 
         run_config = {
-                'target': get_moth_http(),
-                'plugins': {'crawl': (PluginConfig('spider_man',
-                                                   ('listen_port', port,
-                                                    PluginConfig.INT),
-                                                   ),)}
+            "target": get_moth_http(),
+            "plugins": {
+                "crawl": (
+                    PluginConfig(
+                        "spider_man",
+                        ("listen_port", port, PluginConfig.INT),
+                    ),
+                )
+            },
         }
 
         self.generic_spiderman_run(run_config, get_moth_http, port)
@@ -167,11 +173,15 @@ class TestHTTPSSpiderman(TestSpiderman):
         port = get_unused_port()
 
         run_config = {
-                'target': get_moth_https(),
-                'plugins': {'crawl': (PluginConfig('spider_man',
-                                                   ('listen_port', port,
-                                                    PluginConfig.INT),
-                                                   ),)}
+            "target": get_moth_https(),
+            "plugins": {
+                "crawl": (
+                    PluginConfig(
+                        "spider_man",
+                        ("listen_port", port, PluginConfig.INT),
+                    ),
+                )
+            },
         }
 
         self.generic_spiderman_run(run_config, get_moth_https, port)

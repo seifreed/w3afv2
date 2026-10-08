@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.options.bool_option import BoolOption
 from w3af.core.data.options.integer_option import IntegerOption
 from w3af.core.data.options.positive_integer_option import PositiveIntegerOption
@@ -39,12 +40,28 @@ from w3af.core.data.options.url_list_option import URLListOption
 from w3af.core.data.options.form_id_list_option import FormIDListOption
 
 from w3af.core.data.options.option_types import (
-    BOOL, INT, POSITIVE_INT, FLOAT, STRING, URL, IPPORT,
-    LIST, REGEX, COMBO, INPUT_FILE, QUERY_STRING, HEADER,
-    OUTPUT_FILE, PORT, IP, URL_LIST, FORM_ID_LIST)
+    BOOL,
+    INT,
+    POSITIVE_INT,
+    FLOAT,
+    STRING,
+    URL,
+    IPPORT,
+    LIST,
+    REGEX,
+    COMBO,
+    INPUT_FILE,
+    QUERY_STRING,
+    HEADER,
+    OUTPUT_FILE,
+    PORT,
+    IP,
+    URL_LIST,
+    FORM_ID_LIST,
+)
 
 
-def opt_factory(name, default_value, desc, _type, help='', tabid=''):
+def opt_factory(name, default_value, desc, _type, help="", tabid=""):
     """
     A factory function which will generate one of the Option objects based
     on the _type passed as parameter.
@@ -70,5 +87,4 @@ def opt_factory(name, default_value, desc, _type, help='', tabid=''):
         FORM_ID_LIST: FormIDListOption,
     }
 
-    return option_klasses[_type](name, default_value, desc, _help=help,
-                                 tabid=tabid)
+    return option_klasses[_type](name, default_value, desc, _help=help, tabid=tabid)

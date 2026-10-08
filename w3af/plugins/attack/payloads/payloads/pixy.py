@@ -27,22 +27,28 @@ class pixy(Payload):
         #    First we check if pixy is actually installed
         #
         pixy_path = os.path.expanduser(pixy_location)
-        pixy_full = os.path.join(pixy_path, 'run-all.pl')
+        pixy_full = os.path.join(pixy_path, "run-all.pl")
 
         #    Run the command and check its working
-        proc = subprocess.Popen(pixy_full,
-                                shell=True,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE,
-                                )
+        proc = subprocess.Popen(
+            pixy_full,
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
         stdout_value = proc.communicate()[0]
-        if 'usage: check [options] file' not in stdout_value:
-            ValueError('Please specify the correct pixy location')
+        if "usage: check [options] file" not in stdout_value:
+            ValueError("Please specify the correct pixy location")
 
         #
         #    Get the source code!
         #
-        self.exec_payload('get_source_code', [local_temp_dir, ])
+        self.exec_payload(
+            "get_source_code",
+            [
+                local_temp_dir,
+            ],
+        )
 
         #
         #    Analyze it with Pixy :)
@@ -51,20 +57,20 @@ class pixy(Payload):
             """
             Extract info from :param pixy_output and save it to self.result.
             """
-            splitted_output = pixy_output.split('\n')
+            splitted_output = pixy_output.split("\n")
 
             for line_number, line in enumerate(splitted_output):
-                if 'Vulnerability detected!' in line:
-                    if 'xss' in splitted_output[line_number + 3]:
-                        vuln_type = 'XSS'
+                if "Vulnerability detected!" in line:
+                    if "xss" in splitted_output[line_number + 3]:
+                        vuln_type = "XSS"
                         location = splitted_output[line_number + 2][2:]
                         if vuln_type not in self.result:
                             self.result[vuln_type] = []
                         self.result[vuln_type].append(location)
 
-                elif 'directly tainted' in line:
-                    if 'sql' in splitted_output[line_number + 2]:
-                        vuln_type = 'SQLi'
+                elif "directly tainted" in line:
+                    if "sql" in splitted_output[line_number + 2]:
+                        vuln_type = "SQLi"
                         location = splitted_output[line_number + 1][2:]
                         if vuln_type not in self.result:
                             self.result[vuln_type] = []
@@ -75,12 +81,13 @@ class pixy(Payload):
                 full_path = os.path.join(path, item)
 
                 if os.path.isfile(full_path):
-                    pixy_full_with_target = pixy_full + ' ' + full_path
-                    proc = subprocess.Popen(pixy_full_with_target,
-                                            shell=True,
-                                            stdout=subprocess.PIPE,
-                                            stderr=subprocess.PIPE,
-                                            )
+                    pixy_full_with_target = pixy_full + " " + full_path
+                    proc = subprocess.Popen(
+                        pixy_full_with_target,
+                        shell=True,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                    )
                     stdout_value = proc.communicate()[0]
 
                     extract_info(stdout_value)
@@ -93,10 +100,10 @@ class pixy(Payload):
         api_result = self.api_read(local_temp_dir, pixy_location)
 
         if not api_result:
-            return 'No vulnerabilities were identified.'
+            return "No vulnerabilities were identified."
         else:
             rows = []
-            rows.append(['Vulnerability type', 'Location'])
+            rows.append(["Vulnerability type", "Location"])
             rows.append([])
             for vuln_type in api_result:
                 for vuln_location in api_result[vuln_type]:

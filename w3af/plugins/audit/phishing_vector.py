@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.constants.severity as severity
 import w3af.core.data.parsers.parser_cache as parser_cache
@@ -37,17 +36,19 @@ class phishing_vector(AuditPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    TAGS = ('iframe', 'frame')
+    TAGS = ("iframe", "frame")
 
     # I test this with different URL handlers because the developer may have
     # blacklisted http:// and https:// but missed ftp://.
     #
     # I also use hTtp instead of http because I want to evade some (stupid)
     # case sensitive filters
-    TEST_URLS = ('hTtp://w3af.org/',
-                 'htTps://w3af.org/',
-                 'fTp://w3af.org/',
-                 '//w3af.org')
+    TEST_URLS = (
+        "hTtp://w3af.org/",
+        "htTps://w3af.org/",
+        "fTp://w3af.org/",
+        "//w3af.org",
+    )
 
     def audit(self, freq, orig_response, debugging_id):
         """
@@ -59,12 +60,14 @@ class phishing_vector(AuditPlugin):
         """
         mutants = create_mutants(freq, self.TEST_URLS)
 
-        self._send_mutants_in_threads(self._uri_opener.send_mutant,
-                                      mutants,
-                                      self._analyze_result,
-                                      debugging_id=debugging_id)
+        self._send_mutants_in_threads(
+            self._uri_opener.send_mutant,
+            mutants,
+            self._analyze_result,
+            debugging_id=debugging_id,
+        )
 
-        om.out.debug('Finished audit.phishing_vector (did=%s)' % debugging_id)
+        om.out.debug("Finished audit.phishing_vector (did=%s)" % debugging_id)
 
     def _contains_payload(self, response):
         """
@@ -101,7 +104,7 @@ class phishing_vector(AuditPlugin):
 
         for tag in parser_cache.dpc.get_tags_by_filter(response, self.TAGS):
             # pylint: disable=E1101
-            src_attr = tag.attrib.get('src', None)
+            src_attr = tag.attrib.get("src", None)
             # pylint: enable=E1101
 
             if src_attr is None:
@@ -112,18 +115,26 @@ class phishing_vector(AuditPlugin):
                     continue
 
                 # Vuln vuln!
-                desc = 'A phishing vector was found at: %s'
+                desc = "A phishing vector was found at: %s"
                 desc %= mutant.found_at()
 
-                v = Vuln.from_mutant('Phishing vector', desc, severity.LOW,
-                                     response.id, self.get_name(), mutant)
+                v = Vuln.from_mutant(
+                    "Phishing vector",
+                    desc,
+                    severity.LOW,
+                    response.id,
+                    self.get_name(),
+                    mutant,
+                )
 
                 v.add_to_highlight(src_attr)
-                self.kb_append_uniq(self, 'phishing_vector', v)
+                self.kb_append_uniq(self, "phishing_vector", v)
                 break
 
-        msg = ('Performed HTTP response analysis at audit.phishing_vector URL %s,'
-               ' HTTP response ID %s.')
+        msg = (
+            "Performed HTTP response analysis at audit.phishing_vector URL %s,"
+            " HTTP response ID %s."
+        )
         args = (response.get_uri(), response.id)
         om.out.debug(msg % args)
 

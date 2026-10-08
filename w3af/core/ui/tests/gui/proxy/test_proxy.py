@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import os
 import urllib.request, urllib.error, urllib.parse
 import threading
@@ -29,49 +30,50 @@ from w3af.core.data.url.tests.helpers.http_daemon import HTTPDaemon
 
 
 class TestProxy(XpresserUnittest):
-    
-    IMAGES = os.path.join(GUI_TEST_ROOT_PATH, 'proxy', 'images')
-    EXTRA_IMAGES = os.path.join(GUI_TEST_ROOT_PATH, 'tools_menu', 'images')
-    
+
+    IMAGES = os.path.join(GUI_TEST_ROOT_PATH, "proxy", "images")
+    EXTRA_IMAGES = os.path.join(GUI_TEST_ROOT_PATH, "tools_menu", "images")
+
     def setUp(self):
         XpresserUnittest.setUp(self)
-        self.click('proxy-menu-icon')
-        self.find('proxy-tabs')
+        self.click("proxy-menu-icon")
+        self.find("proxy-tabs")
 
         self.http_daemon = HTTPDaemon()
         self.http_daemon.start()
         self.http_daemon.wait_for_start()
 
-        proxy_url = '127.0.0.1:8080'
-        proxy_support = urllib.request.ProxyHandler({'http': proxy_url,
-                                              'https': proxy_url})
+        proxy_url = "127.0.0.1:8080"
+        proxy_support = urllib.request.ProxyHandler(
+            {"http": proxy_url, "https": proxy_url}
+        )
         self.opener = urllib.request.build_opener(proxy_support)
-        
+
     def tearDown(self):
-        self.click('close-with-cross')
-        self.click('yes')
-        
+        self.click("close-with-cross")
+        self.click("yes")
+
         self.http_daemon.shutdown()
-        
+
         XpresserUnittest.tearDown(self)
-    
+
     def test_basic_forwarding(self):
         port = self.http_daemon.get_port()
-        http_response = self.opener.open('http://127.0.0.1:%s/foo' % port).read()
-        self.assertEqual('ABCDEF\n', http_response)
+        http_response = self.opener.open("http://127.0.0.1:%s/foo" % port).read()
+        self.assertEqual("ABCDEF\n", http_response)
 
     def test_intercept(self):
-        
-        self.click('intercept')
+
+        self.click("intercept")
 
         def ui_clicker():
             # Click on the proxy button that will forward the request
             try:
-                self.find('GET_http')
-                self.click('send-request')
-                self.find('200_OK')
-                self.click('next_request')
-                self.find('empty_intercept')
+                self.find("GET_http")
+                self.click("send-request")
+                self.find("200_OK")
+                self.click("next_request")
+                self.find("empty_intercept")
             except:
                 pass
 
@@ -79,7 +81,7 @@ class TestProxy(XpresserUnittest):
         t.start()
 
         port = self.http_daemon.get_port()
-        http_response = self.opener.open('http://127.0.0.1:%s/foo' % port).read()
-        self.assertEqual('ABCDEF\n', http_response)
+        http_response = self.opener.open("http://127.0.0.1:%s/foo" % port).read()
+        self.assertEqual("ABCDEF\n", http_response)
 
         t.join()

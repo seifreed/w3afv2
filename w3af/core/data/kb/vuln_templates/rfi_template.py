@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.kb.vuln_templates.base_template import BaseTemplate
 
 
@@ -26,17 +27,18 @@ class RFITemplate(BaseTemplate):
     """
     Vulnerability template for RFI vulnerability.
     """
+
     def __init__(self):
         super(RFITemplate, self).__init__()
-        
+
         self.name = self.get_vulnerability_name()
-        
+
     def get_kb_location(self):
         """
         :return: A tuple with the location where the vulnerability will be saved,
                  example return value would be: ('eval', 'eval')
         """
-        return ('rfi', 'rfi')
+        return ("rfi", "rfi")
 
     def get_vulnerability_name(self):
         """
@@ -45,7 +47,7 @@ class RFITemplate(BaseTemplate):
                  string which can contain any information, not used for any
                  strict matching of vulns before exploiting.
         """
-        return 'Code execution via remote file inclusion'
+        return "Code execution via remote file inclusion"
 
     def get_vulnerability_desc(self):
-        return 'Code execution vulnerability through remote file inclusion.'
+        return "Code execution vulnerability through remote file inclusion."

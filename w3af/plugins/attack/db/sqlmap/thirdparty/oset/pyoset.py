@@ -3,8 +3,6 @@
 
 """Partially backported python ABC classes"""
 
-
-
 try:
     from collections import MutableSet
 except ImportError:
@@ -19,8 +17,8 @@ class OrderedSet(MutableSet):
 
     def __init__(self, iterable=None):
         self.end = end = []
-        end += [None, end, end]         # sentinel node for doubly linked list
-        self.map = {}                   # key --> [key, prev, next]
+        end += [None, end, end]  # sentinel node for doubly linked list
+        self.map = {}  # key --> [key, prev, next]
         if iterable is not None:
             self |= iterable
 
@@ -61,15 +59,15 @@ class OrderedSet(MutableSet):
 
     def pop(self, last=True):
         if not self:
-            raise KeyError('set is empty')
+            raise KeyError("set is empty")
         key = next(reversed(self)) if last else next(iter(self))
         self.discard(key)
         return key
 
     def __repr__(self):
         if not self:
-            return '%s()' % (self.__class__.__name__,)
-        return '%s(%r)' % (self.__class__.__name__, list(self))
+            return "%s()" % (self.__class__.__name__,)
+        return "%s(%r)" % (self.__class__.__name__, list(self))
 
     def __eq__(self, other):
         if isinstance(other, OrderedSet):
@@ -78,6 +76,7 @@ class OrderedSet(MutableSet):
 
     def __del__(self):
         if all([KEY, PREV, NEXT]):
-            self.clear()                    # remove circular references
+            self.clear()  # remove circular references
+
 
 oset = OrderedSet

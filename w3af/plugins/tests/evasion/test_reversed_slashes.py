@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from w3af.core.data.parsers.doc.url import URL
@@ -27,33 +28,36 @@ from w3af.plugins.evasion.reversed_slashes import reversed_slashes
 
 
 class TestEvasion(unittest.TestCase):
-    
+
     def test_no_modification(self):
         rs = reversed_slashes()
 
-        u = URL('http://www.w3af.com/')
-        r = HTTPRequest( u )
-        self.assertEqual(rs.modify_request( r ).url_object.url_string,
-                         'http://www.w3af.com/')
+        u = URL("http://www.w3af.com/")
+        r = HTTPRequest(u)
+        self.assertEqual(
+            rs.modify_request(r).url_object.url_string, "http://www.w3af.com/"
+        )
 
     def test_path_file(self):
         rs = reversed_slashes()
-        
-        u = URL('http://www.w3af.com/abc/def.htm')
-        r = HTTPRequest( u )
-        self.assertEqual(rs.modify_request( r ).url_object.url_string,
-                         'http://www.w3af.com/abc\\def.htm')
+
+        u = URL("http://www.w3af.com/abc/def.htm")
+        r = HTTPRequest(u)
+        self.assertEqual(
+            rs.modify_request(r).url_object.url_string,
+            "http://www.w3af.com/abc\\def.htm",
+        )
 
     def test_long_path_file(self):
         rs = reversed_slashes()
-        
-        u = URL('http://www.w3af.com/abc/123/def.htm')
-        r = HTTPRequest( u )
-        self.assertEqual(rs.modify_request( r ).url_object.url_string,
-                         'http://www.w3af.com/abc\\123\\def.htm')
+
+        u = URL("http://www.w3af.com/abc/123/def.htm")
+        r = HTTPRequest(u)
+        self.assertEqual(
+            rs.modify_request(r).url_object.url_string,
+            "http://www.w3af.com/abc\\123\\def.htm",
+        )
         #
         #    The plugins should not modify the original request
         #
-        self.assertEqual(u.url_string,
-                         'http://www.w3af.com/abc/123/def.htm')
-
+        self.assertEqual(u.url_string, "http://www.w3af.com/abc/123/def.htm")

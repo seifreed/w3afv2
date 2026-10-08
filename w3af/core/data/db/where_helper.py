@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 class WhereHelper(object):
     """Simple WHERE condition maker."""
+
     conditions = {}
     _values = []
 
@@ -34,9 +35,9 @@ class WhereHelper(object):
             self.sql()
         return self._values
 
-    def _makePair(self, field, value, oper='=', conjunction='AND'):
+    def _makePair(self, field, value, oper="=", conjunction="AND"):
         """Auxiliary method."""
-        result = ' ' + conjunction + ' ' + field + ' ' + oper + ' ?'
+        result = " " + conjunction + " " + field + " " + oper + " ?"
         return (result, value)
 
     def sql(self, whereStr=True):
@@ -52,21 +53,20 @@ class WhereHelper(object):
         ' WHERE field = ? AND foo = ?'
         >>>
         """
-        result = ''
+        result = ""
         self._values = []
 
         for cond in self.conditions:
             if isinstance(cond[0], list):
                 item, oper = cond
-                tmpWhere = ''
+                tmpWhere = ""
                 for tmpField in item:
                     tmpName, tmpValue, tmpOper = tmpField
-                    sql, value = self._makePair(
-                        tmpName, tmpValue, tmpOper, oper)
+                    sql, value = self._makePair(tmpName, tmpValue, tmpOper, oper)
                     self._values.append(value)
                     tmpWhere += sql
                 if tmpWhere:
-                    result += " AND (" + tmpWhere[len(oper) + 1:] + ")"
+                    result += " AND (" + tmpWhere[len(oper) + 1 :] + ")"
             else:
                 sql, value = self._makePair(cond[0], cond[1], cond[2])
                 self._values.append(value)
@@ -74,9 +74,9 @@ class WhereHelper(object):
         result = result[5:]
 
         if whereStr and result:
-            result = ' WHERE ' + result
+            result = " WHERE " + result
 
         return result
 
     def __str__(self):
-        return self.sql() + ' | ' + str(list(self.values()))
+        return self.sql() + " | " + str(list(self.values()))

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import textwrap
 
 import w3af.plugins.attack.payloads.payload_handler as payload_handler
@@ -26,7 +27,9 @@ import w3af.core.controllers.output_manager as om
 
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.intrusion_tools.execMethodHelpers import os_detection_exec
-from w3af.core.controllers.payload_transfer.payload_transfer_factory import payload_transfer_factory
+from w3af.core.controllers.payload_transfer.payload_transfer_factory import (
+    payload_transfer_factory,
+)
 from w3af.core.data.kb.shell import Shell
 from w3af.plugins.attack.payloads.decorators.read_decorator import read_debug
 from w3af.plugins.attack.payloads.decorators.download_decorator import download_debug
@@ -53,7 +56,7 @@ class ExecShell(Shell):
         """
         Handle the help command.
         """
-        if command == 'read':
+        if command == "read":
             _help = """\
             read:
                 The read command echoes the content of a file to the console. The
@@ -63,7 +66,7 @@ class ExecShell(Shell):
             Examples:
                 read /etc/passwd
             """
-        elif command == 'download':
+        elif command == "download":
             _help = """\
             download:
                 The download command reads a file in the remote system and saves
@@ -72,7 +75,7 @@ class ExecShell(Shell):
             Examples:
                 download /etc/passwd /tmp/passwd
             """
-        else:        
+        else:
             _help = """\
             Available commands:
                 help                            Display this information
@@ -102,16 +105,16 @@ class ExecShell(Shell):
         remote_content = self.read(remote_filename)
 
         if not remote_content:
-            return 'Remote file does not exist.'
+            return "Remote file does not exist."
         else:
             try:
-                fh = open(local_filename, 'w')
+                fh = open(local_filename, "w")
             except:
-                return 'Failed to open local file for writing.'
+                return "Failed to open local file for writing."
             else:
                 fh.write(remote_content)
                 fh.close()
-                return 'Success.'
+                return "Success."
 
     def upload(self, local_filename, remote_filename):
         """
@@ -125,14 +128,14 @@ class ExecShell(Shell):
         :return: The message to show to the user.
         """
         try:
-            fh = open(local_filename, 'r')
+            fh = open(local_filename, "r")
         except:
-            return 'Failed to open local file for reading.'
+            return "Failed to open local file for reading."
         else:
             file_content = fh.read()
             fh.close()
             self.write(remote_filename, file_content)
-            return 'Success.'
+            return "Success."
 
     def write(self, remote_filename, file_content):
         """
@@ -150,20 +153,20 @@ class ExecShell(Shell):
                 ptf = payload_transfer_factory(self.execute)
                 self._transfer_handler = ptf.get_transfer_handler()
             except BaseFrameworkException as e:
-                return '%s' % e
+                return "%s" % e
 
         if not self._transfer_handler.can_transfer():
-            return 'Failed to transfer, the transfer handler failed.'
+            return "Failed to transfer, the transfer handler failed."
         else:
-            msg = 'The file transfer will take %s seconds'
+            msg = "The file transfer will take %s seconds"
             handler = self._transfer_handler
             estimated_time = handler.estimate_transfer_time(len(file_content))
             om.out.debug(msg % estimated_time)
 
             self._transfer_handler.transfer(file_content, remote_filename)
-            om.out.debug('Finished file transfer.')
+            om.out.debug("Finished file transfer.")
 
-            return 'File upload was successful.'
+            return "File upload was successful."
 
     def specific_user_input(self, command, parameters):
         """
@@ -178,18 +181,20 @@ class ExecShell(Shell):
         #
         #    Read remote files
         #
-        if command == 'read':
+        if command == "read":
             if len(parameters) == 1:
                 filename = parameters[0]
                 return self.read(filename)
             else:
-                return 'Only one parameter is expected. Usage examples: ' \
-                       '"read /etc/passwd", "read \'/var/foo bar/spam.eggs\'"'
+                return (
+                    "Only one parameter is expected. Usage examples: "
+                    '"read /etc/passwd", "read \'/var/foo bar/spam.eggs\'"'
+                )
 
         #
         #    Write remote files
         #
-        elif command == 'write' and len(parameters) == 2:
+        elif command == "write" and len(parameters) == 2:
             filename = parameters[0]
             content = parameters[1]
             return self.write(filename, content)
@@ -197,7 +202,7 @@ class ExecShell(Shell):
         #
         #    Upload local files to the remote system
         #
-        elif command == 'upload' and len(parameters) == 2:
+        elif command == "upload" and len(parameters) == 2:
             remote_filename = parameters[1]
             local_filename = parameters[0]
             return self.upload(local_filename, remote_filename)
@@ -209,8 +214,8 @@ class ExecShell(Shell):
         #
         #    Execute the command in the remote host
         #
-        elif command in ['e', 'exec', 'execute']:
-            return self.execute(' '.join(parameters))
+        elif command in ["e", "exec", "execute"]:
+            return self.execute(" ".join(parameters))
 
         else:
             return 'Command "%s" not found. Please type "help".' % command
@@ -223,10 +228,10 @@ class ExecShell(Shell):
                      - del %s
                  The %s will be replaced by the file to be read.
         """
-        if self._rOS == 'windows':
-            return 'del %s'
+        if self._rOS == "windows":
+            return "del %s"
         else:
-            return 'rm -rf %s'
+            return "rm -rf %s"
 
     def unlink(self, filename):
         """
@@ -247,13 +252,13 @@ class ExecShell(Shell):
                      - type %s
                  The %s will be replaced by the file to be read.
         """
-        if self._rOS == 'windows':
-            command = 'type %s'
+        if self._rOS == "windows":
+            command = "type %s"
         else:
-            command = 'cat %s'
+            command = "cat %s"
 
-        if ' ' in filename:
-            return command.replace('%s', '"%s"')
+        if " " in filename:
+            return command.replace("%s", '"%s"')
 
         return command
 
@@ -287,7 +292,7 @@ class ExecShell(Shell):
         """
         payloads = payload_handler.runnable_payloads(self)
         payloads.sort()
-        return '\n'.join(payloads)
+        return "\n".join(payloads)
 
     def end(self):
         """
@@ -315,25 +320,25 @@ class ExecShell(Shell):
         """
         self._rOS = os_detection_exec(self.execute)
 
-        if self._rOS == 'linux':
-            self._rUser = self.execute('whoami').strip()
-            self._rSystem = self.execute('uname -o -r -n -m -s').strip()
-            self._rSystemName = self.execute('uname -n').strip()
-        elif self._rOS == 'windows':
-            self._rUser = self.execute('echo %USERDOMAIN%\%USERNAME%').strip()
+        if self._rOS == "linux":
+            self._rUser = self.execute("whoami").strip()
+            self._rSystem = self.execute("uname -o -r -n -m -s").strip()
+            self._rSystemName = self.execute("uname -n").strip()
+        elif self._rOS == "windows":
+            self._rUser = self.execute("echo %USERDOMAIN%\%USERNAME%").strip()
             self._rSystem = self.execute(
-                'echo %COMPUTERNAME% - %OS% - %PROCESSOR_IDENTIFIER%').strip()
-            self._rSystemName = self.execute('echo %COMPUTERNAME%').strip()
+                "echo %COMPUTERNAME% - %OS% - %PROCESSOR_IDENTIFIER%"
+            ).strip()
+            self._rSystemName = self.execute("echo %COMPUTERNAME%").strip()
         else:
-            self._rUser = 'unknown'
-            self._rSystem = 'unknown'
-            self._rSystemName = 'unknown'
+            self._rUser = "unknown"
+            self._rSystem = "unknown"
+            self._rSystemName = "unknown"
 
     def __repr__(self):
         if not self._rOS:
             self.identify_os()
         fmt = '<%s object (ruser: "%s" | rsystem: "%s")>'
-        return fmt % (self.get_name(), self.get_remote_user(), 
-                      self.get_remote_system())
+        return fmt % (self.get_name(), self.get_remote_user(), self.get_remote_system())
 
     __str__ = __repr__

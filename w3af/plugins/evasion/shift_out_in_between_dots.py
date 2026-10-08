@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.controllers.plugins.evasion_plugin import EvasionPlugin
 
 
@@ -26,9 +27,10 @@ class shift_out_in_between_dots(EvasionPlugin):
     """
     Insert between dots shift-in and shift-out control characters which are
     cancelled each other when they are below
-    
+
     :author: Jose Ramon Palanco( jose.palanco@hazent.com )
     """
+
     def modify_request(self, request):
         """
         Mangles the request
@@ -39,7 +41,7 @@ class shift_out_in_between_dots(EvasionPlugin):
         """
         # We mangle the URL
         path = request.url_object.get_path()
-        path = path.replace('/../', '/.%0E%0F./')
+        path = path.replace("/../", "/.%0E%0F./")
 
         # Finally, we set all the mutants to the request in order to return it
         new_url = request.url_object.copy()

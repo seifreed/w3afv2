@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os.path
 
 from itertools import chain
@@ -38,9 +39,11 @@ class PasswordBruteforcer(object):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def __init__(self, url):
-        self.passwd_file = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                        'passwords.txt')
+        self.passwd_file = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "passwords.txt"
+        )
         self.l337_p4sswd = True
         self.use_profiling = True
         self.profiling_number = 50
@@ -52,8 +55,10 @@ class PasswordBruteforcer(object):
         TODO: I need a way to calculate the __len__ of this generator in order
               to avoid the "iterable = list(iterable)" in pool.py
         """
-        pwd_chain = chain(self._read_pwd_file(),
-                          self._special_passwords(),)
+        pwd_chain = chain(
+            self._read_pwd_file(),
+            self._special_passwords(),
+        )
 
         for pwd in unique_everseen(pwd_chain):
             yield pwd
@@ -65,7 +70,7 @@ class PasswordBruteforcer(object):
     def _special_passwords(self):
         yield self._url.get_domain()
         yield self._url.get_root_domain()
-        
+
         if self.use_profiling:
             for pwd in get_profiling_results(self.profiling_number):
                 yield pwd
@@ -85,17 +90,19 @@ class UserPasswordBruteforcer(object):
 
     def __init__(self, url):
         # Config params for user generation
-        self.users_file = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                       'users.txt')
-        self.combo_file = ''
+        self.users_file = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "users.txt"
+        )
+        self.combo_file = ""
         self.combo_separator = ":"
         self.use_emails = True
         self.use_SVN_users = True
         self.pass_eq_user = True
 
         # Config params for password generation
-        self.passwd_file = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                        'passwords.txt')
+        self.passwd_file = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "passwords.txt"
+        )
         self.l337_p4sswd = True
         self.use_profiling = True
         self.profiling_number = 50
@@ -121,15 +128,17 @@ class UserPasswordBruteforcer(object):
         for user, pwd in self._combo():
             yield user, pwd
 
-        user_chain = chain(self._user_from_file(),
-                           self._special_users(),)
+        user_chain = chain(
+            self._user_from_file(),
+            self._special_users(),
+        )
 
         for user in unique_everseen(user_chain):
 
             if self.pass_eq_user:
                 yield user, user
 
-            yield user, ''
+            yield user, ""
 
             for pwd in self._new_password_bruteforcer():
                 yield user, pwd
@@ -146,17 +155,17 @@ class UserPasswordBruteforcer(object):
         yield self._url.get_domain()
 
         if self.use_emails:
-            emails = kb.kb.get('emails', 'emails')
-            for user in [v['user'] for v in emails]:
+            emails = kb.kb.get("emails", "emails")
+            for user in [v["user"] for v in emails]:
                 yield user
 
-            emails = kb.kb.get('emails', 'emails')
-            for user in [v['mail'] for v in emails]:
+            emails = kb.kb.get("emails", "emails")
+            for user in [v["mail"] for v in emails]:
                 yield user
 
         if self.use_SVN_users:
-            users = kb.kb.get('svn_users', 'users')
-            for user in [v['user'] for v in users]:
+            users = kb.kb.get("svn_users", "users")
+            for user in [v["user"] for v in users]:
                 yield user
 
         if self.use_profiling:
@@ -184,12 +193,14 @@ def get_profiling_results(self, max_items=50):
         return cmp(y[1], x[1])
 
     # pylint: disable=E1103
-    kb_data = kb.kb.raw_read('password_profiling', 'password_profiling')
+    kb_data = kb.kb.raw_read("password_profiling", "password_profiling")
 
     if not kb_data:
-        msg = ('No password profiling information collected for using during'
-               ' the bruteforce process, please try to enable crawl.web_spider'
-               ' and grep.password_profiling plugins and try again.')
+        msg = (
+            "No password profiling information collected for using during"
+            " the bruteforce process, please try to enable crawl.web_spider"
+            " and grep.password_profiling plugins and try again."
+        )
         om.out.debug(msg)
         return []
 

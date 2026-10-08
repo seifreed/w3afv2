@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import w3af.core.data.kb.config as cf
 
 from w3af.plugins.tests.helper import PluginTest, PluginConfig
@@ -26,14 +27,14 @@ from w3af.core.controllers.ci.php_moth import get_php_moth_http
 
 class PayloadTestHelperExec(PluginTest):
 
-    target_rce = get_php_moth_http('/audit/rfi/rfi-rce.php')
+    target_rce = get_php_moth_http("/audit/rfi/rfi-rce.php")
 
     _run_configs = {
-        'cfg': {
-            'target': target_rce + '?file=section.php',
-            'plugins': {
-                'audit': (PluginConfig('rfi'),),
-            }
+        "cfg": {
+            "target": target_rce + "?file=section.php",
+            "plugins": {
+                "audit": (PluginConfig("rfi"),),
+            },
         }
     }
 
@@ -43,11 +44,11 @@ class PayloadTestHelperExec(PluginTest):
                  vuln_id.
         """
         # Run the scan
-        cfg = self._run_configs['cfg']
-        self._scan(cfg['target'], cfg['plugins'])
+        cfg = self._run_configs["cfg"]
+        self._scan(cfg["target"], cfg["plugins"])
 
         # Assert the general results
-        vulns = self.kb.get('rfi', 'rfi')
+        vulns = self.kb.get("rfi", "rfi")
         self.assertEqual(1, len(vulns))
 
         vuln = vulns[0]
@@ -58,7 +59,7 @@ class PayloadTestHelperExec(PluginTest):
     def _get_shell(self):
         vuln, vuln_to_exploit_id = self._scan_wrapper()
 
-        plugin = self.w3afcore.plugins.get_plugin_inst('attack', 'rfi')
+        plugin = self.w3afcore.plugins.get_plugin_inst("attack", "rfi")
 
         self.assertTrue(plugin.can_exploit(vuln_to_exploit_id))
 
@@ -71,5 +72,5 @@ class PayloadTestHelperExec(PluginTest):
 
     def setUp(self):
         super(PayloadTestHelperExec, self).setUp()
-        cf.cf.save('target_os', 'unix')
+        cf.cf.save("target_os", "unix")
         self.shell = self._get_shell()

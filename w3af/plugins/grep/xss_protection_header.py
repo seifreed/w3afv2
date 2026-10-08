@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
@@ -31,6 +32,7 @@ class xss_protection_header(GrepPlugin):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def grep(self, request, response):
         """
         Plugin entry point.
@@ -40,21 +42,28 @@ class xss_protection_header(GrepPlugin):
         :return: None, all results are saved in the kb.
         """
         headers = response.get_headers()
-        heaver_value, header_name = headers.iget('x-xss-protection', '')
+        heaver_value, header_name = headers.iget("x-xss-protection", "")
         heaver_value = heaver_value.strip()
 
-        if heaver_value == '0':
-            desc = 'The remote web server sent the HTTP X-XSS-Protection'\
-                   ' header with a 0 value, which disables Internet' \
-                   ' Explorer\'s XSS filter. In most cases, this is a bad' \
-                   ' practice and should be subject to review.'
-            i = Info('Insecure X-XSS-Protection header usage', desc,
-                     response.id, self.get_name())
-            i.add_to_highlight('X-XSS-Protection')
+        if heaver_value == "0":
+            desc = (
+                "The remote web server sent the HTTP X-XSS-Protection"
+                " header with a 0 value, which disables Internet"
+                " Explorer's XSS filter. In most cases, this is a bad"
+                " practice and should be subject to review."
+            )
+            i = Info(
+                "Insecure X-XSS-Protection header usage",
+                desc,
+                response.id,
+                self.get_name(),
+            )
+            i.add_to_highlight("X-XSS-Protection")
             i.set_uri(response.get_uri())
-            
-            self.kb_append_uniq_group(self, 'xss_protection_header', i,
-                                      group_klass=XSSProtectionInfoSet)
+
+            self.kb_append_uniq_group(
+                self, "xss_protection_header", i, group_klass=XSSProtectionInfoSet
+            )
 
     def get_long_desc(self):
         """
@@ -68,14 +77,14 @@ class xss_protection_header(GrepPlugin):
 
 class XSSProtectionInfoSet(InfoSet):
     TEMPLATE = (
-        'The remote web server sent {{ uris|length }} HTTP responses with'
+        "The remote web server sent {{ uris|length }} HTTP responses with"
         ' the X-XSS-Protection header with a value of "0", which disables'
-        ' Internet Explorer\'s XSS filter. The first ten URLs which sent'
-        ' the insecure header are:\n'
-        ''
-        '{% for url in uris[:10] %}'
-        ' - {{ url }}\n'
-        '{% endfor %}'
+        " Internet Explorer's XSS filter. The first ten URLs which sent"
+        " the insecure header are:\n"
+        ""
+        "{% for url in uris[:10] %}"
+        " - {{ url }}\n"
+        "{% endfor %}"
     )
 
     def match(self, info):

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
 
@@ -48,7 +49,7 @@ class urllist_txt(CrawlPlugin):
                                     (among other things) the URL to test.
         """
         base_url = fuzzable_request.get_url().base_url()
-        urllist_url = base_url.url_join('urllist.txt')
+        urllist_url = base_url.url_join("urllist.txt")
         http_response = self._uri_opener.GET(urllist_url, cache=True)
 
         if is_404(http_response):
@@ -58,24 +59,25 @@ class urllist_txt(CrawlPlugin):
             return
 
         # Save it to the kb!
-        desc = ('A urllist.txt file was found at: "%s", this file might'
-                ' expose private URLs and requires a manual review. The'
-                ' scanner will add all URLs listed in this files to the'
-                ' analysis queue.')
+        desc = (
+            'A urllist.txt file was found at: "%s", this file might'
+            " expose private URLs and requires a manual review. The"
+            " scanner will add all URLs listed in this files to the"
+            " analysis queue."
+        )
         desc %= urllist_url
 
-        i = Info('urllist.txt file', desc, http_response.id, self.get_name())
+        i = Info("urllist.txt file", desc, http_response.id, self.get_name())
         i.set_url(urllist_url)
 
-        kb.kb.append(self, 'urllist.txt', i)
+        kb.kb.append(self, "urllist.txt", i)
         om.out.information(i.get_desc())
 
         # Even in the case where it is NOT a valid urllist.txt it might be
         # the case where some URLs are present, so I'm going to extract them
         # from the file as if it is a valid urllist.txt
 
-        url_generator = self._extract_urls_generator(base_url,
-                                                     http_response.get_body())
+        url_generator = self._extract_urls_generator(base_url, http_response.get_body())
 
         # Send the requests using threads:
         self.worker_pool.map(self.http_get_and_parse, url_generator)
@@ -86,11 +88,11 @@ class urllist_txt(CrawlPlugin):
         """
         is_urllist = 5
 
-        for line in body.split('\n'):
+        for line in body.split("\n"):
 
             line = line.strip()
 
-            if line.startswith('#'):
+            if line.startswith("#"):
                 is_urllist += 1
                 continue
 
@@ -98,11 +100,11 @@ class urllist_txt(CrawlPlugin):
                 is_urllist += 1
                 continue
 
-            if line.startswith('<'):
+            if line.startswith("<"):
                 is_urllist -= 1
                 continue
 
-            if line.endswith('>'):
+            if line.endswith(">"):
                 is_urllist -= 1
                 continue
 
@@ -118,11 +120,11 @@ class urllist_txt(CrawlPlugin):
         :param body: The urllist.txt body
         @yield: a URL object from the urllist.txt body
         """
-        for line in body.split('\n'):
+        for line in body.split("\n"):
 
             line = line.strip()
 
-            if line.startswith('#'):
+            if line.startswith("#"):
                 continue
 
             if not line:

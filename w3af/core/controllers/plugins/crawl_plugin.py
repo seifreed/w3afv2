@@ -19,12 +19,15 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.controllers.misc.safe_deepcopy import safe_deepcopy
 from w3af.core.controllers.plugins.plugin import Plugin
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
-from w3af.core.controllers.exceptions import (BaseFrameworkException,
-                                              FourOhFourDetectionException)
+from w3af.core.controllers.exceptions import (
+    BaseFrameworkException,
+    FourOhFourDetectionException,
+)
 
 import w3af.core.controllers.output_manager as om
 
@@ -37,6 +40,7 @@ class CrawlPlugin(Plugin):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def discover_wrapper(self, fuzzable_request, debugging_id):
         """
         Wrapper around the crawl method in order to perform some generic tasks.
@@ -44,8 +48,9 @@ class CrawlPlugin(Plugin):
         :param fuzzable_request: The target to use for infrastructure plugins.
         :param debugging_id: A unique identifier for this call to discover()
         """
-        om.out.debug('[%s] Crawling "%s"' % (self.get_name(),
-                                             fuzzable_request.get_uri()))
+        om.out.debug(
+            '[%s] Crawling "%s"' % (self.get_name(), fuzzable_request.get_uri())
+        )
 
         # I copy the fuzzable request, to avoid cross plugin contamination
         # in other words, if one plugin modified the fuzzable request object
@@ -60,7 +65,7 @@ class CrawlPlugin(Plugin):
             # happens at lower layers.
             #
             # https://github.com/andresriancho/w3af/issues/8949
-            om.out.debug('%s' % ffde)
+            om.out.debug("%s" % ffde)
 
     def crawl(self, fuzzable_request, debugging_id):
         """
@@ -73,23 +78,23 @@ class CrawlPlugin(Plugin):
         :return: A list with of new fuzzable request objects found by this
                  plugin. Can be empty.
         """
-        msg = 'Plugin is not implementing required method crawl'
+        msg = "Plugin is not implementing required method crawl"
         raise BaseFrameworkException(msg)
 
     def get_type(self):
-        return 'crawl'
-    
+        return "crawl"
+
     def http_get_and_parse(self, url, *args, **kwargs):
         """
         Perform an HTTP GET to url, and if the response is not a 404 then put()
         a FuzzableRequest with the url in the output queue, so it can be
         parsed later by web_spider.py (or any other plugin which does parsing)
-        
+
         :return: The http response that was generated as a response to "GET url"
         """
-        fr = FuzzableRequest(url, method='GET')
+        fr = FuzzableRequest(url, method="GET")
 
-        on_success = kwargs.pop('on_success', None)
+        on_success = kwargs.pop("on_success", None)
         http_response = self._uri_opener.send_mutant(fr, cache=True, *args, **kwargs)
 
         # The 204 check is because of Plugin.handle_url_error()
@@ -111,9 +116,9 @@ class CrawlPlugin(Plugin):
         :param kwargs: kwargs for send_mutant
         :return: The HTTP response
         """
-        fr = FuzzableRequest(url, method='GET')
+        fr = FuzzableRequest(url, method="GET")
 
-        on_success = kwargs.pop('on_success', None)
+        on_success = kwargs.pop("on_success", None)
         http_response = self._uri_opener.send_mutant(fr, cache=True, *args, **kwargs)
 
         if on_success is not None:

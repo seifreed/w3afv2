@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import unittest
 
 from ..current_platform import KNOWN_PLATFORMS
@@ -32,8 +33,13 @@ class TestAllPlatforms(unittest.TestCase):
         self.assertEqual(1, results.count(True), results)
 
     def test_attributes(self):
-        REQUIRED_ATTRS = ['PIP_PACKAGES', 'SYSTEM_PACKAGES', 'SYSTEM_NAME',
-                          'PKG_MANAGER_CMD', 'PIP_CMD']
+        REQUIRED_ATTRS = [
+            "PIP_PACKAGES",
+            "SYSTEM_PACKAGES",
+            "SYSTEM_NAME",
+            "PKG_MANAGER_CMD",
+            "PIP_CMD",
+        ]
 
         for required_attr in REQUIRED_ATTRS:
             for platform in KNOWN_PLATFORMS:
@@ -47,10 +53,18 @@ class TestAllPlatforms(unittest.TestCase):
 
     def test_gui_includes_core(self):
         for platform in KNOWN_PLATFORMS:
-            self.assertTrue(all(dependency in platform.PIP_PACKAGES[GUI]
-                                for dependency in platform.PIP_PACKAGES[CORE]))
-            self.assertTrue(all(package in platform.SYSTEM_PACKAGES[GUI]
-                                for package in platform.SYSTEM_PACKAGES[CORE]))
+            self.assertTrue(
+                all(
+                    dependency in platform.PIP_PACKAGES[GUI]
+                    for dependency in platform.PIP_PACKAGES[CORE]
+                )
+            )
+            self.assertTrue(
+                all(
+                    package in platform.SYSTEM_PACKAGES[GUI]
+                    for package in platform.SYSTEM_PACKAGES[CORE]
+                )
+            )
 
     def test_more_than_three_dependencies(self):
         for platform in KNOWN_PLATFORMS:
@@ -59,7 +73,7 @@ class TestAllPlatforms(unittest.TestCase):
 
     def test_os_package_is_installed(self):
         # Just looking for exceptions
-        [p.os_package_is_installed('foo') for p in KNOWN_PLATFORMS]
+        [p.os_package_is_installed("foo") for p in KNOWN_PLATFORMS]
 
     def test_after_hook(self):
         # Just looking for exceptions

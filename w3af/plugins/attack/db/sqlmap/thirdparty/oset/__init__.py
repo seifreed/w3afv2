@@ -1,3 +1,3 @@
-"""Main Ordered Set module """
+"""Main Ordered Set module"""
 
 from .pyoset import oset

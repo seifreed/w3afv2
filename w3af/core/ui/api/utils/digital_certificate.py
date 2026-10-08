@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import os
 import socket
 
@@ -28,9 +29,9 @@ from w3af.core.controllers.misc.home_dir import get_home_dir
 
 class SSLCertificate(object):
     def __init__(self):
-        ssl_dir = os.path.join(get_home_dir(), 'ssl')
-        self.key_path = os.path.join(ssl_dir, 'w3af.key')
-        self.cert_path = os.path.join(ssl_dir, 'w3af.crt')
+        ssl_dir = os.path.join(get_home_dir(), "ssl")
+        self.key_path = os.path.join(ssl_dir, "w3af.key")
+        self.cert_path = os.path.join(ssl_dir, "w3af.crt")
         if not os.path.exists(ssl_dir):
             os.makedirs(ssl_dir)
 
@@ -45,23 +46,23 @@ class SSLCertificate(object):
         key = crypto.PKey()
         key.generate_key(crypto.TYPE_RSA, 2048)
         cert = crypto.X509()
-        cert.get_subject().C = 'US'
-        cert.get_subject().ST = 'CA'
-        cert.get_subject().L = 'w3af.org'
-        cert.get_subject().O = 'w3af.org'
-        cert.get_subject().OU = 'w3af.org'
+        cert.get_subject().C = "US"
+        cert.get_subject().ST = "CA"
+        cert.get_subject().L = "w3af.org"
+        cert.get_subject().O = "w3af.org"
+        cert.get_subject().OU = "w3af.org"
         cert.get_subject().CN = host
         cert.set_serial_number(111111111111111111111111111)
         cert.gmtime_adj_notBefore(0)
         cert.gmtime_adj_notAfter(10 * 365 * 24 * 60 * 60)
         cert.set_issuer(cert.get_subject())
         cert.set_pubkey(key)
-        cert.sign(key, 'sha256')
+        cert.sign(key, "sha256")
 
-        with open(self.cert_path, 'w') as f:
+        with open(self.cert_path, "w") as f:
             f.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
 
-        with open(self.key_path, 'w') as f:
+        with open(self.key_path, "w") as f:
             f.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, key))
 
     def get_cert_key(self, host=None):

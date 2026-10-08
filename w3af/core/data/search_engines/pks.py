@@ -19,14 +19,17 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import re
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.data.search_engines.search_engine import SearchEngine
 from w3af.core.data.parsers.doc.sgml import SGMLParser
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.controllers.exceptions import (HTTPRequestException,
-                                              BaseFrameworkException)
+from w3af.core.controllers.exceptions import (
+    HTTPRequestException,
+    BaseFrameworkException,
+)
 
 
 class pks(SearchEngine):
@@ -46,9 +49,11 @@ class pks(SearchEngine):
 
         :param hostname: The hostname from which we want to get emails from.
         """
-        if hostname.count('//'):
-            msg = 'You must provide the PKS search engine with a root domain'\
-                  ' name (as returned by URL.get_root_domain).'
+        if hostname.count("//"):
+            msg = (
+                "You must provide the PKS search engine with a root domain"
+                " name (as returned by URL.get_root_domain)."
+            )
             raise BaseFrameworkException(msg)
 
         res = self.met_search(hostname)
@@ -63,12 +68,13 @@ class pks(SearchEngine):
         This method is based from the pks.py file from the massive enumeration
         toolset, coded by pdp and released under GPL v2.
         """
-        url = URL('http://pgp.mit.edu:11371/pks/lookup')
-        url.querystring = [('op', ['index']), ('search', [query])]
+        url = URL("http://pgp.mit.edu:11371/pks/lookup")
+        url.querystring = [("op", ["index"]), ("search", [query])]
 
         try:
-            response = self._uri_opener.GET(url, headers=self._headers,
-                                            cache=True, grep=False)
+            response = self._uri_opener.GET(
+                url, headers=self._headers, cache=True, grep=False
+            )
         except HTTPRequestException:
             # Very naive exception handling for the case where we can't reach
             # the PKS server (it's down, blocking us, bad internet connection)
@@ -76,12 +82,12 @@ class pks(SearchEngine):
 
         content = response.get_body()
 
-        content = re.sub('(<.*?>|&lt;|&gt;)', '', content)
+        content = re.sub("(<.*?>|&lt;|&gt;)", "", content)
 
         results = []
         accounts = []
 
-        for line in content.split('\n')[2:]:
+        for line in content.split("\n")[2:]:
             if not line.strip():
                 continue
 
@@ -89,17 +95,17 @@ class pks(SearchEngine):
 
             if len(tokens) >= 5:
                 email = tokens[-1]
-                name = ' '.join(tokens[3:-1])
+                name = " ".join(tokens[3:-1])
 
                 if SGMLParser.EMAIL_RE.match(email):
 
-                    account = email.split('@')[0]
-                    domain = email.split('@')[1]
+                    account = email.split("@")[0]
+                    domain = email.split("@")[1]
 
                     if domain == query:
                         if account not in accounts:
                             accounts.append(account)
-                            
+
                             pksr = PKSResult(name, account, domain, response.id)
                             results.append(pksr)
 
@@ -114,4 +120,4 @@ class PKSResult(object):
         self.id = _id
 
     def __repr__(self):
-        return '<PKSResult: %s@%s>' % (self.name, self.domain)
+        return "<PKSResult: %s@%s>" % (self.name, self.domain)

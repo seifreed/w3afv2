@@ -11,9 +11,9 @@ class DiskDeque(object):
     """
 
     def __init__(self, iterable=(), maxsize=-1):
-        if not hasattr(self, 'data'):
+        if not hasattr(self, "data"):
             self.left = self.right = 0
-            self.data = DiskDict(table_prefix='deque')
+            self.data = DiskDict(table_prefix="deque")
         self.maxsize = maxsize
         self.extend(iterable)
 
@@ -31,7 +31,7 @@ class DiskDeque(object):
 
     def pop(self):
         if self.left == self.right:
-            raise IndexError('cannot pop from empty deque')
+            raise IndexError("cannot pop from empty deque")
         self.right -= 1
         elem = self.data[self.right]
         del self.data[self.right]
@@ -39,7 +39,7 @@ class DiskDeque(object):
 
     def popleft(self):
         if self.left == self.right:
-            raise IndexError('cannot pop from empty deque')
+            raise IndexError("cannot pop from empty deque")
         elem = self.data[self.left]
         del self.data[self.left]
         self.left += 1
@@ -86,8 +86,8 @@ class DiskDeque(object):
         data = self.data
         if i < 0:
             i += size
-        for j in range(self.left+i, self.right-1):
-            data[j] = data[j+1]
+        for j in range(self.left + i, self.right - 1):
+            data[j] = data[j + 1]
         self.pop()
 
     def __len__(self):
@@ -100,9 +100,9 @@ class DiskDeque(object):
 
     def __repr__(self, _track=[]):
         if id(self) in _track:
-            return '...'
+            return "..."
         _track.append(id(self))
-        r = 'deque(%r)' % (list(self),)
+        r = "deque(%r)" % (list(self),)
         _track.remove(id(self))
         return r
 
@@ -120,8 +120,8 @@ class DiskDeque(object):
 
     def __deepcopy__(self, memo={}):
         from copy import deepcopy
+
         result = self.__class__()
         memo[id(self)] = result
         result.__init__(deepcopy(tuple(self), memo))
         return result
-

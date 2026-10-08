@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import datetime
 
 from nose.plugins.skip import SkipTest
@@ -34,31 +35,30 @@ from w3af.core.data.misc.file_utils import days_since_file_update
 
 class TestGHDB(PluginTest):
 
-    private_url = 'http://moth/'
+    private_url = "http://moth/"
 
     _run_configs = {
-        'cfg': {
-            'target': None,
-            'plugins': {'crawl': (PluginConfig('ghdb'),)}
-        }
+        "cfg": {"target": None, "plugins": {"crawl": (PluginConfig("ghdb"),)}}
     }
 
-    @attr('ci_fails')
+    @attr("ci_fails")
     def test_ghdb_private(self):
-        cfg = self._run_configs['cfg']
+        cfg = self._run_configs["cfg"]
 
-        with patch('w3af.plugins.crawl.web_diff.om.out') as om_mock:
-            self._scan(self.private_url, cfg['plugins'])
+        with patch("w3af.plugins.crawl.web_diff.om.out") as om_mock:
+            self._scan(self.private_url, cfg["plugins"])
 
-            msg = 'There is no point in searching google for "site:moth".' \
-                  ' Google doesn\'t index private pages.'
+            msg = (
+                'There is no point in searching google for "site:moth".'
+                " Google doesn't index private pages."
+            )
 
             self.assertIn(call.information(msg), om_mock.mock_calls)
 
-        vulns = self.kb.get('ghdb', 'vuln')
+        vulns = self.kb.get("ghdb", "vuln")
         self.assertEqual(len(vulns), 0, vulns)
 
-    @attr('ci_fails')
+    @attr("ci_fails")
     def test_ghdb_match(self):
 
         call_count = 0
@@ -68,38 +68,51 @@ class TestGHDB(PluginTest):
             call_count += 1
             if call_count == 52:
 
-                return [google_result, ]
+                return [
+                    google_result,
+                ]
             else:
                 return []
 
-        pmodule = 'w3af.plugins.crawl.ghdb.%s'
-        with patch(pmodule % 'is_private_site') as private_site_mock:
-            with patch.object(google, 'get_n_results') as google_mock_method:
+        pmodule = "w3af.plugins.crawl.ghdb.%s"
+        with patch(pmodule % "is_private_site") as private_site_mock:
+            with patch.object(google, "get_n_results") as google_mock_method:
 
                 # Mock
                 private_site_mock.return_value = False
 
-                google_result = GoogleResult(
-                    URL('http://moth/w3af/crawl/ghdb/'))
-                google_mock_method.side_effect = [[], ] * 50 + [[google_result, ]] +\
-                                                 [[], ] * 50000
+                google_result = GoogleResult(URL("http://moth/w3af/crawl/ghdb/"))
+                google_mock_method.side_effect = (
+                    [
+                        [],
+                    ]
+                    * 50
+                    + [
+                        [
+                            google_result,
+                        ]
+                    ]
+                    + [
+                        [],
+                    ]
+                    * 50000
+                )
 
                 # Scan
-                cfg = self._run_configs['cfg']
-                self._scan(self.private_url, cfg['plugins'])
+                cfg = self._run_configs["cfg"]
+                self._scan(self.private_url, cfg["plugins"])
 
         # Assert
-        vulns = self.kb.get('ghdb', 'vuln')
+        vulns = self.kb.get("ghdb", "vuln")
         self.assertEqual(len(vulns), 1, vulns)
 
         vuln = vulns[0]
-        self.assertEqual(
-            vuln.get_url().url_string, 'http://moth/w3af/crawl/ghdb/')
+        self.assertEqual(vuln.get_url().url_string, "http://moth/w3af/crawl/ghdb/")
         self.assertEqual(vuln.get_severity(), severity.MEDIUM)
-        self.assertEqual(vuln.get_name(), 'Google hack database match')
+        self.assertEqual(vuln.get_name(), "Google hack database match")
 
     def test_xml_parsing(self):
-        ghdb_inst = self.w3afcore.plugins.get_plugin_inst('crawl', 'ghdb')
+        ghdb_inst = self.w3afcore.plugins.get_plugin_inst("crawl", "ghdb")
 
         ghdb_set = ghdb_inst._read_ghdb()
 
@@ -109,18 +122,20 @@ class TestGHDB(PluginTest):
             self.assertIsInstance(ghdb_inst, GoogleHack)
 
     def test_too_old_xml(self):
-        ghdb_inst = self.w3afcore.plugins.get_plugin_inst('crawl', 'ghdb')
+        ghdb_inst = self.w3afcore.plugins.get_plugin_inst("crawl", "ghdb")
 
         ghdb_file = ghdb_inst._ghdb_file
         is_older = days_since_file_update(ghdb_file, 30)
 
-        msg = ('The GHDB database is too old, please update it by running the'
-               ' following command:'
-               '\n'
-               '<secret wget-command>\n'
-               'git commit -m "Update GHDB" w3af/plugins/crawl/ghdb/GHDB.xml\n'
-               'git push\n'
-               '\n'
-               'Also remember to run this unittest again to verify that the'
-               ' downloaded file can be parsed by the plugin.')
+        msg = (
+            "The GHDB database is too old, please update it by running the"
+            " following command:"
+            "\n"
+            "<secret wget-command>\n"
+            'git commit -m "Update GHDB" w3af/plugins/crawl/ghdb/GHDB.xml\n'
+            "git push\n"
+            "\n"
+            "Also remember to run this unittest again to verify that the"
+            " downloaded file can be parsed by the plugin."
+        )
         self.assertFalse(is_older, msg)

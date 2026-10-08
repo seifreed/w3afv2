@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import inspect
 
 import w3af.core.data.constants.severity as severity
@@ -37,10 +38,7 @@ class OutputPlugin(Plugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    STRING_CLEAN = [('\0', '\\0'),
-                    ('\t', '\\t'),
-                    ('\n', '\\n'),
-                    ('\r', '\\r')]
+    STRING_CLEAN = [("\0", "\\0"), ("\t", "\\t"), ("\n", "\\n"), ("\r", "\\r")]
 
     def __init__(self):
         Plugin.__init__(self)
@@ -51,7 +49,7 @@ class OutputPlugin(Plugin):
         self.is_running_flush = False
 
     def get_type(self):
-        return 'output'
+        return "output"
 
     def debug(self, message, new_line=True):
         """
@@ -171,7 +169,7 @@ class OutputPlugin(Plugin):
         """
         # https://github.com/andresriancho/w3af/issues/3586
         if string_to_clean is None:
-            return ''
+            return ""
 
         for char, replace in self.STRING_CLEAN:
             string_to_clean = string_to_clean.replace(char, replace)
@@ -205,20 +203,20 @@ class OutputPlugin(Plugin):
             the_stack = inspect.stack()
 
             for item in the_stack:
-                if item[1].startswith('plugins/'):
+                if item[1].startswith("plugins/"):
                     # Now I have the caller item from the stack, I want to do
                     # some things with it...
-                    res = item[1].replace('plugins/', '')
-                    res = res.replace('/', '.')
-                    return res.replace('.py', '')
+                    res = item[1].replace("plugins/", "")
+                    res = res.replace("/", ".")
+                    return res.replace(".py", "")
             else:
                 # From the unknown caller, I just need the name of the function
                 item = the_stack[which_stack_item]
-                res = item[1].split('/')[-1:][0]
-                return res.replace('.py', '')
+                res = item[1].split("/")[-1:][0]
+                return res.replace(".py", "")
 
         except Exception:
-            return 'unknown-caller'
+            return "unknown-caller"
 
     def _create_plugin_info(self, plugin_type, plugins_list, plugins_options):
         """
@@ -230,25 +228,25 @@ class OutputPlugin(Plugin):
                                  plugin_type that are enabled.
         :param plugins_options: The options for the plugins
         """
-        response = ''
+        response = ""
 
         # Only work if something is enabled
         if plugins_list:
-            response = 'plugins\n'
-            response += '    ' + plugin_type + ' ' + ', '.join(plugins_list) + '\n'
+            response = "plugins\n"
+            response += "    " + plugin_type + " " + ", ".join(plugins_list) + "\n"
 
             for plugin_name in plugins_list:
                 if plugin_name in plugins_options:
-                    response += '    ' + plugin_type + ' config ' + plugin_name + '\n'
+                    response += "    " + plugin_type + " config " + plugin_name + "\n"
 
                     for plugin_option in plugins_options[plugin_name]:
                         name = str(plugin_option.get_name())
                         value = str(plugin_option.get_value())
-                        response += '        set ' + name + ' ' + value + '\n'
+                        response += "        set " + name + " " + value + "\n"
 
-                    response += '        back\n'
+                    response += "        back\n"
 
-            response += '    back\n'
+            response += "    back\n"
 
         # The response
         return response

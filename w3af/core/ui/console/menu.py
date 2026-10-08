@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import pprint
 
 import w3af.core.data.kb.knowledge_base as kb
@@ -34,9 +35,10 @@ class menu(object):
     """
     Menu objects handle the commands and completion requests.
     Menus form an hierarchy and are able to delegate requests to their children.
-    
+
     :author: Alexander Berezhnoy (alexander.berezhnoy |at| gmail.com)
     """
+
     def __init__(self, name, console, w3af, parent=None, **other):
         self._name = name
         self._history = history()
@@ -49,9 +51,9 @@ class menu(object):
         self._console = console
         self._children = {}
         self._child_call = False
-        
-        self._load_help('common')
-        helpMainRepository.load_help('keys', self._keysHelp)
+
+        self._load_help("common")
+        helpMainRepository.load_help("keys", self._keysHelp)
 
         self._initHandlers()
 
@@ -72,28 +74,29 @@ class menu(object):
         if self._parent is None:
             return self._name
         else:
-            return self._parent.get_path() + '/' + self._name
+            return self._parent.get_path() + "/" + self._name
 
     def get_history(self):
         return self._history
 
     def _initHandlers(self):
-        self._universalCommands = ['back', 'exit', 'keys', 'print']
+        self._universalCommands = ["back", "exit", "keys", "print"]
 
         self._paramHandlers = {}
-        for cmd in [c for c in dir(self) if c.startswith('_cmd_')]:
+        for cmd in [c for c in dir(self) if c.startswith("_cmd_")]:
             self._handlers[cmd[5:]] = getattr(self, cmd)
 
         for cmd in list(self._handlers.keys()):
             try:
-                pHandler = getattr(self, '_para_' + cmd)
+                pHandler = getattr(self, "_para_" + cmd)
                 self._paramHandlers[cmd] = pHandler
             except:
                 pass
 
     def _load_help(self, name, vars=None):
         helpMainRepository.load_help(name, self._help, vars)
-#        self._help = load_help(name, self._help, vars)
+
+    #        self._help = load_help(name, self._help, vars)
 
     def addChild(self, name, constructor):
         if type(constructor) in (tuple, list):
@@ -102,9 +105,10 @@ class menu(object):
             params = []
 
         self._children[name] = constructor(
-            name, self._console, self._w3af, self, *params)
+            name, self._console, self._w3af, self, *params
+        )
 
-    def suggest_commands(self, part='', onlyLocal=False):
+    def suggest_commands(self, part="", onlyLocal=False):
 
         first, rest = splitPath(part)
 
@@ -155,7 +159,7 @@ class menu(object):
         """
         This will set _child_call to True for handling the "set" command:
             w3af>>> target set target http://w3af.org/
-        
+
         While this won't ever set it to true:
             w3af>>> target
             w3af/config:target>>> set target http://w3af.org/
@@ -209,16 +213,16 @@ class menu(object):
 
     def _cmd_print(self, params):
         if not len(params):
-            raise BaseFrameworkException('Variable is expected')
+            raise BaseFrameworkException("Variable is expected")
 
-        small_locals = {'kb': kb, 'w3af_core': self._w3af}
+        small_locals = {"kb": kb, "w3af_core": self._w3af}
         small_globals = {}
 
-        eval_variable = ' '.join(params)
+        eval_variable = " ".join(params)
         try:
             res = eval(eval_variable, small_globals, small_locals)
         except:
-            om.out.console('Unknown variable.')
+            om.out.console("Unknown variable.")
         else:
             pp = pprint.PrettyPrinter(indent=4)
             output = pp.pformat(res)

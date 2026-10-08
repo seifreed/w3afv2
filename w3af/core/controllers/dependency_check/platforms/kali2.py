@@ -19,14 +19,14 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 from .kali import Kali
 from .system_info import distribution_matches
 
 
 class Kali2(Kali):
-    SYSTEM_NAME = 'Kali 2.0'
+    SYSTEM_NAME = "Kali 2.0"
 
     @staticmethod
     def is_current_platform():
-        return distribution_matches('kali', '2.0')
-
+        return distribution_matches("kali", "2.0")

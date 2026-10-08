@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
+
 import urllib.request, urllib.error, urllib.parse
 import threading
 
@@ -32,66 +33,74 @@ from w3af.plugins.tests.helper import PluginTest, PluginConfig
 
 class TestRFI(PluginTest):
 
-    target_rce = get_php_moth_http('/audit/rfi/rfi-rce.php')
-    target_read = get_php_moth_http('/audit/rfi/rfi-read.php')
+    target_rce = get_php_moth_http("/audit/rfi/rfi-rce.php")
+    target_read = get_php_moth_http("/audit/rfi/rfi-read.php")
     unused_port = get_unused_port()
 
     _run_configs = {
-        'remote_rce': {
-            'target': target_rce + '?file=abc.txt',
-            'plugins': {
-                'audit': (PluginConfig('rfi'),),
-            }
+        "remote_rce": {
+            "target": target_rce + "?file=abc.txt",
+            "plugins": {
+                "audit": (PluginConfig("rfi"),),
+            },
         },
-
-        'local_rce': {
-            'target': target_rce + '?file=abc.txt',
-            'plugins': {
-                'audit': (PluginConfig('rfi',
-                                       ('use_w3af_site', False, PluginConfig.BOOL),
-                                       ('listen_port', unused_port, PluginConfig.INT)),),
-            }
+        "local_rce": {
+            "target": target_rce + "?file=abc.txt",
+            "plugins": {
+                "audit": (
+                    PluginConfig(
+                        "rfi",
+                        ("use_w3af_site", False, PluginConfig.BOOL),
+                        ("listen_port", unused_port, PluginConfig.INT),
+                    ),
+                ),
+            },
         },
-
-        'local_read': {
-            'target': target_read + '?file=abc.txt',
-            'plugins': {
-                'audit': (PluginConfig('rfi',
-                                       ('use_w3af_site', False, PluginConfig.BOOL),
-                                       ('listen_port', unused_port, PluginConfig.INT)),),
-            }
+        "local_read": {
+            "target": target_read + "?file=abc.txt",
+            "plugins": {
+                "audit": (
+                    PluginConfig(
+                        "rfi",
+                        ("use_w3af_site", False, PluginConfig.BOOL),
+                        ("listen_port", unused_port, PluginConfig.INT),
+                    ),
+                ),
+            },
         },
-
-        'remote_read': {
-            'target': target_read + '?file=abc.txt',
-            'plugins': {
-                'audit': (PluginConfig('rfi',
-                                       ('use_w3af_site', False, PluginConfig.BOOL),
-                                       ('listen_port', unused_port, PluginConfig.INT)),),
-            }
-        }
-
+        "remote_read": {
+            "target": target_read + "?file=abc.txt",
+            "plugins": {
+                "audit": (
+                    PluginConfig(
+                        "rfi",
+                        ("use_w3af_site", False, PluginConfig.BOOL),
+                        ("listen_port", unused_port, PluginConfig.INT),
+                    ),
+                ),
+            },
+        },
     }
 
     def test_found_rfi_with_w3af_site(self):
-        cfg = self._run_configs['remote_rce']
-        self._scan(cfg['target'], cfg['plugins'])
+        cfg = self._run_configs["remote_rce"]
+        self._scan(cfg["target"], cfg["plugins"])
 
         # Assert the general results
-        vulns = self.kb.get('rfi', 'rfi')
+        vulns = self.kb.get("rfi", "rfi")
         self.assertEqual(len(vulns), 1)
 
         vuln = vulns[0]
         self.assertEqual("Remote code execution", vuln.get_name())
         self.assertEqual(self.target_rce, vuln.get_url().url_string)
 
-    @attr('smoke')
+    @attr("smoke")
     def test_found_rfi_with_local_server_rce(self):
-        cfg = self._run_configs['local_rce']
-        self._scan(cfg['target'], cfg['plugins'])
+        cfg = self._run_configs["local_rce"]
+        self._scan(cfg["target"], cfg["plugins"])
 
         # Assert the general results
-        vulns = self.kb.get('rfi', 'rfi')
+        vulns = self.kb.get("rfi", "rfi")
         self.assertEqual(len(vulns), 1)
 
         vuln = vulns[0]
@@ -99,11 +108,11 @@ class TestRFI(PluginTest):
         self.assertEqual(self.target_rce, vuln.get_url().url_string)
 
     def test_found_rfi_with_local_server_read(self):
-        cfg = self._run_configs['local_read']
-        self._scan(cfg['target'], cfg['plugins'])
+        cfg = self._run_configs["local_read"]
+        self._scan(cfg["target"], cfg["plugins"])
 
         # Assert the general results
-        vulns = self.kb.get('rfi', 'rfi')
+        vulns = self.kb.get("rfi", "rfi")
         self.assertEqual(len(vulns), 1)
 
         vuln = vulns[0]
@@ -111,11 +120,11 @@ class TestRFI(PluginTest):
         self.assertEqual(self.target_read, vuln.get_url().url_string)
 
     def test_found_rfi_with_remote_server_read(self):
-        cfg = self._run_configs['remote_read']
-        self._scan(cfg['target'], cfg['plugins'])
+        cfg = self._run_configs["remote_read"]
+        self._scan(cfg["target"], cfg["plugins"])
 
         # Assert the general results
-        vulns = self.kb.get('rfi', 'rfi')
+        vulns = self.kb.get("rfi", "rfi")
         self.assertEqual(len(vulns), 1)
 
         vuln = vulns[0]
@@ -124,17 +133,17 @@ class TestRFI(PluginTest):
 
     def test_custom_web_server(self):
         RFIWebHandler.RESPONSE_BODY = '<? echo "hello world"; ?>'
-        ws = HTTPServer(('127.0.0.1', 0), '.', RFIWebHandler)
+        ws = HTTPServer(("127.0.0.1", 0), ".", RFIWebHandler)
         ws.wait_for_start()
         port = ws.get_port()
 
         server_thread = threading.Thread(target=ws.serve_forever)
-        server_thread.name = 'WebServer'
+        server_thread.name = "WebServer"
         server_thread.daemon = True
         server_thread.start()
 
-        foobar_url = 'http://localhost:%s/foobar' % port
-        spameggs_url = 'http://localhost:%s/spameggs' % port
+        foobar_url = "http://localhost:%s/foobar" % port
+        spameggs_url = "http://localhost:%s/spameggs" % port
 
         response_foobar = urllib.request.urlopen(foobar_url).read()
         response_spameggs = urllib.request.urlopen(spameggs_url).read()

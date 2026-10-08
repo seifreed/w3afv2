@@ -14,7 +14,7 @@ def check_files(file_list):
     checked = []
     for file in file_list:
         try:
-            if open(file).read() != '':
+            if open(file).read() != "":
                 checked.append(file)
         except IOError:
             pass
@@ -22,12 +22,12 @@ def check_files(file_list):
 
 
 def get_files(file_content):
-    files = re.findall('.*', file_content, re.MULTILINE)
+    files = re.findall(".*", file_content, re.MULTILINE)
     if files:
-        #files = check_files(files)
+        # files = check_files(files)
         for file in files:
-            #get_files(file)
+            # get_files(file)
             files.append(file)
         return files
     else:
-        return ''
+        return ""

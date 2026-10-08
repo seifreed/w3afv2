@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import time
 import unittest
 
@@ -43,34 +44,34 @@ class TestStrangeHeaders(unittest.TestCase):
         self.plugin.end()
 
     def test_strange_headers_positive(self):
-        body = 'Hello world'
-        url = URL('http://www.w3af.com/')
-        headers = Headers([('content-type', 'text/html'),
-                           ('hello-world', 'yes!')])
-        request = FuzzableRequest(url, method='GET')
+        body = "Hello world"
+        url = URL("http://www.w3af.com/")
+        headers = Headers([("content-type", "text/html"), ("hello-world", "yes!")])
+        request = FuzzableRequest(url, method="GET")
 
         resp_positive = HTTPResponse(200, body, headers, url, url, _id=1)
         self.plugin.grep(request, resp_positive)
 
-        info_sets = kb.kb.get('strange_headers', 'strange_headers')
+        info_sets = kb.kb.get("strange_headers", "strange_headers")
         self.assertEqual(len(info_sets), 1)
 
         info = info_sets[0]
-        expected_desc = ('The remote web server sent 1 HTTP responses with'
-                         ' the uncommon response header "hello-world", one'
-                         ' of the received header values is "yes!". The'
-                         ' first ten URLs which sent the uncommon header'
-                         ' are:\n - http://www.w3af.com/\n')
-        self.assertEqual(info.get_name(), 'Strange header')
+        expected_desc = (
+            "The remote web server sent 1 HTTP responses with"
+            ' the uncommon response header "hello-world", one'
+            ' of the received header values is "yes!". The'
+            " first ten URLs which sent the uncommon header"
+            " are:\n - http://www.w3af.com/\n"
+        )
+        self.assertEqual(info.get_name(), "Strange header")
         self.assertEqual(info.get_url(), url)
         self.assertEqual(info.get_desc(), expected_desc)
 
     def test_strange_headers_timing(self):
-        body = 'Hello world'
-        url = URL('http://www.w3af.com/')
-        headers = Headers([('content-type', 'text/html'),
-                           ('hello-world', 'yes!')])
-        request = FuzzableRequest(url, method='GET')
+        body = "Hello world"
+        url = URL("http://www.w3af.com/")
+        headers = Headers([("content-type", "text/html"), ("hello-world", "yes!")])
+        request = FuzzableRequest(url, method="GET")
 
         resp_positive = HTTPResponse(200, body, headers, url, url, _id=1)
 
@@ -83,54 +84,49 @@ class TestStrangeHeaders(unittest.TestCase):
         # print('Profiling run in %s seconds' % spent)
 
     def test_strange_headers_no_group(self):
-        body = 'Hello world'
+        body = "Hello world"
 
-        url_1 = URL('http://www.w3af.com/1')
-        headers_1 = Headers([('content-type', 'text/html'),
-                             ('hello-world', 'yes!')])
-        request_1 = FuzzableRequest(url_1, method='GET')
+        url_1 = URL("http://www.w3af.com/1")
+        headers_1 = Headers([("content-type", "text/html"), ("hello-world", "yes!")])
+        request_1 = FuzzableRequest(url_1, method="GET")
         resp_1 = HTTPResponse(200, body, headers_1, url_1, url_1, _id=1)
         self.plugin.grep(request_1, resp_1)
 
-        url_2 = URL('http://www.w3af.com/2')
-        headers_2 = Headers([('content-type', 'text/html'),
-                             ('bye-bye', 'chau')])
-        request_2 = FuzzableRequest(url_2, method='GET')
+        url_2 = URL("http://www.w3af.com/2")
+        headers_2 = Headers([("content-type", "text/html"), ("bye-bye", "chau")])
+        request_2 = FuzzableRequest(url_2, method="GET")
         resp_2 = HTTPResponse(200, body, headers_2, url_2, url_2, _id=2)
         self.plugin.grep(request_2, resp_2)
 
-        info_sets = kb.kb.get('strange_headers', 'strange_headers')
+        info_sets = kb.kb.get("strange_headers", "strange_headers")
         self.assertEqual(len(info_sets), 2)
 
     def test_strange_headers_group(self):
-        body = 'Hello world'
+        body = "Hello world"
 
-        url_1 = URL('http://www.w3af.com/1')
-        headers_1 = Headers([('content-type', 'text/html'),
-                           ('hello-world', 'yes!')])
-        request_1 = FuzzableRequest(url_1, method='GET')
+        url_1 = URL("http://www.w3af.com/1")
+        headers_1 = Headers([("content-type", "text/html"), ("hello-world", "yes!")])
+        request_1 = FuzzableRequest(url_1, method="GET")
         resp_1 = HTTPResponse(200, body, headers_1, url_1, url_1, _id=1)
         self.plugin.grep(request_1, resp_1)
 
-        url_2 = URL('http://www.w3af.com/2')
-        headers_2 = Headers([('content-type', 'text/html'),
-                           ('hello-world', 'nope')])
-        request_2 = FuzzableRequest(url_2, method='GET')
+        url_2 = URL("http://www.w3af.com/2")
+        headers_2 = Headers([("content-type", "text/html"), ("hello-world", "nope")])
+        request_2 = FuzzableRequest(url_2, method="GET")
         resp_2 = HTTPResponse(200, body, headers_2, url_2, url_2, _id=2)
         self.plugin.grep(request_2, resp_2)
 
-        info_sets = kb.kb.get('strange_headers', 'strange_headers')
+        info_sets = kb.kb.get("strange_headers", "strange_headers")
         self.assertEqual(len(info_sets), 1)
 
     def test_strange_headers_negative(self):
-        body = 'Hello world'
-        url = URL('http://www.w3af.com/')
-        headers = Headers([('content-type', 'text/html'),
-                           ('x-pad', 'yes!')])
-        request = FuzzableRequest(url, method='GET')
+        body = "Hello world"
+        url = URL("http://www.w3af.com/")
+        headers = Headers([("content-type", "text/html"), ("x-pad", "yes!")])
+        request = FuzzableRequest(url, method="GET")
 
         resp_positive = HTTPResponse(200, body, headers, url, url, _id=1)
         self.plugin.grep(request, resp_positive)
 
-        infos = kb.kb.get('strange_headers', 'strange_headers')
+        infos = kb.kb.get("strange_headers", "strange_headers")
         self.assertEqual(len(infos), 0)

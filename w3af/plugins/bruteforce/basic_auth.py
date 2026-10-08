@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import base64
 import time
 
@@ -39,6 +40,7 @@ class basic_auth(BruteforcePlugin):
     Bruteforce HTTP basic authentication.
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
     def audit(self, freq, debugging_id=None):
         """
         Tries to bruteforce a basic HTTP auth. This is not fast!
@@ -48,8 +50,9 @@ class basic_auth(BruteforcePlugin):
                              call to audit(). Plugins need to send this ID to
                              the ExtendedUrllib to get improved logging.
         """
-        auth_url_list = [i.get_url().get_domain_path() for i in
-                         kb.kb.get('http_auth_detect', 'auth')]
+        auth_url_list = [
+            i.get_url().get_domain_path() for i in kb.kb.get("http_auth_detect", "auth")
+        ]
 
         domain_path = freq.get_url().get_domain_path()
 
@@ -98,20 +101,21 @@ class basic_auth(BruteforcePlugin):
 
         user, passwd = combination
 
-        raw_values = '%s:%s' % (user, passwd)
-        auth = 'Basic %s' % base64.b64encode(raw_values).strip()
-        headers = Headers([('Authorization', auth)])
+        raw_values = "%s:%s" % (user, passwd)
+        auth = "Basic %s" % base64.b64encode(raw_values).strip()
+        headers = Headers([("Authorization", auth)])
 
-        fr = FuzzableRequest(url, headers=headers, method='GET')
+        fr = FuzzableRequest(url, headers=headers, method="GET")
 
         try:
-            response = self._uri_opener.send_mutant(fr,
-                                                    cache=False,
-                                                    grep=False,
-                                                    debugging_id=debugging_id)
+            response = self._uri_opener.send_mutant(
+                fr, cache=False, grep=False, debugging_id=debugging_id
+            )
         except BaseFrameworkException as w3:
-            msg = ('Exception raised while brute-forcing basic authentication,'
-                   ' error message: "%s".')
+            msg = (
+                "Exception raised while brute-forcing basic authentication,"
+                ' error message: "%s".'
+            )
             om.out.debug(msg % w3)
             return
 
@@ -123,30 +127,30 @@ class basic_auth(BruteforcePlugin):
 
         password_for_report = self._get_password_for_report(passwd)
 
-        desc = ('Found authentication credentials to: "%s".'
-                ' A valid user and password combination is: %s/%s .')
+        desc = (
+            'Found authentication credentials to: "%s".'
+            " A valid user and password combination is: %s/%s ."
+        )
         desc %= (url, user, password_for_report)
-        v = Vuln('Guessable credentials', desc,
-                 severity.HIGH, response.id, self.get_name())
+        v = Vuln(
+            "Guessable credentials", desc, severity.HIGH, response.id, self.get_name()
+        )
         v.set_url(url)
 
-        v['user'] = user
-        v['pass'] = passwd
-        v['response'] = response
-        v['request'] = fr
+        v["user"] = user
+        v["pass"] = passwd
+        v["response"] = response
+        v["request"] = fr
 
-        kb.kb.append(self, 'auth', v)
-        om.out.vulnerability(v.get_desc(),
-                             severity=v.get_severity())
+        kb.kb.append(self, "auth", v)
+        om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
     def _configure_credentials_in_opener(self):
         """
         Configure the main urllib with the newly found credentials.
         """
-        for v in kb.kb.get('basic_auth', 'auth'):
-            self._uri_opener.settings.set_basic_auth(v.get_url(),
-                                                     v['user'],
-                                                     v['pass'])
+        for v in kb.kb.get("basic_auth", "auth"):
+            self._uri_opener.settings.set_basic_auth(v.get_url(), v["user"], v["pass"])
 
     def end(self):
         self._configure_credentials_in_opener()

@@ -19,10 +19,13 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
+
 import gtk
 
 from w3af.core.ui.gui.exception_handling.common_windows import (
-    SimpleBaseWindow, GithubBugReport)
+    SimpleBaseWindow,
+    GithubBugReport,
+)
 
 
 class user_reports_bug(SimpleBaseWindow, GithubBugReport):
@@ -33,8 +36,7 @@ class user_reports_bug(SimpleBaseWindow, GithubBugReport):
 
     def __init__(self):
         SimpleBaseWindow.__init__(self)
-        GithubBugReport.__init__(
-            self, 'No traceback available on user bug report.')
+        GithubBugReport.__init__(self, "No traceback available on user bug report.")
 
         # We got here because of the user going to the Help menu and
         # then clicking on "Report a bug"
@@ -42,7 +44,7 @@ class user_reports_bug(SimpleBaseWindow, GithubBugReport):
 
         # Set generic window settings
         self.set_modal(True)
-        self.set_title('Report bug to developers')
+        self.set_title("Report bug to developers")
 
         self.vbox = gtk.VBox()
         self.vbox.set_border_width(10)
@@ -50,13 +52,15 @@ class user_reports_bug(SimpleBaseWindow, GithubBugReport):
         # the label for the rest of the message
         self.label = gtk.Label()
         self.label.set_line_wrap(True)
-        label_text = _(
-            '<b>You can contribute</b> with the w3af project by submitting')
-        label_text += _(' a bug report to our system using this window.')
-        label_text += _(' It\'s a simple <i>two step process</i>.\n\n')
-        label_text += _('w3af will only send the text you enter and the version information to')
+        label_text = _("<b>You can contribute</b> with the w3af project by submitting")
+        label_text += _(" a bug report to our system using this window.")
+        label_text += _(" It's a simple <i>two step process</i>.\n\n")
         label_text += _(
-            ' Github, no personal or confidential information is collected.\n')
+            "w3af will only send the text you enter and the version information to"
+        )
+        label_text += _(
+            " Github, no personal or confidential information is collected.\n"
+        )
         self.label.set_markup(label_text)
         self.label.show()
 
@@ -80,7 +84,7 @@ class user_reports_bug(SimpleBaseWindow, GithubBugReport):
 
         self.vbox.pack_start(self.hbox, True, False)
 
-        #self.resize(400,450)
+        # self.resize(400,450)
         self.add(self.vbox)
         self.show_all()
 
