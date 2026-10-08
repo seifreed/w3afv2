@@ -1,23 +1,22 @@
 import logging
+from typing import ClassVar
 
-try:
-    from fabric.colors import red, yellow, green
-except ImportError:
-    # In case we don't have fabric
-    red = yellow = green = lambda x: x
+from termcolor import colored
 
 
 def configure_logging(log_file):
-    logging.basicConfig(filename=log_file,
-                        format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
-                        datefmt='%m-%d %H:%M',
-                        filemode='w',
-                        level=logging.DEBUG)
-    
+    logging.basicConfig(
+        filename=log_file,
+        format="%(asctime)s %(name)-12s %(levelname)-8s %(message)s",
+        datefmt="%m-%d %H:%M",
+        filemode="w",
+        level=logging.DEBUG,
+    )
+
     # define a Handler which writes INFO messages or higher to the sys.stderr
     console = ColorLog()
     console.setLevel(logging.INFO)
-    logging.getLogger('').addHandler(console)
+    logging.getLogger("").addHandler(console)
 
 
 class ColorLog(logging.Handler):
@@ -25,12 +24,13 @@ class ColorLog(logging.Handler):
     A class to print colored messages to stdout
     """
 
-    COLORS = {logging.CRITICAL: red,
-              logging.ERROR: red,
-              logging.WARNING: yellow,
-              logging.INFO: green,
-              logging.DEBUG: lambda x: x}
-    
+    COLORS: ClassVar[dict[int, str]] = {
+        logging.CRITICAL: "red",
+        logging.ERROR: "red",
+        logging.WARNING: "yellow",
+        logging.INFO: "green",
+    }
+
     def __init__(self):
         logging.Handler.__init__(self)
 
@@ -38,5 +38,6 @@ class ColorLog(logging.Handler):
         return False
 
     def emit(self, record):
-        color = self.COLORS.get(record.levelno, lambda x: x)
-        print((color(record.msg)))
+        color = self.COLORS.get(record.levelno)
+        message = str(record.msg)
+        print(colored(message, color) if color else message)
