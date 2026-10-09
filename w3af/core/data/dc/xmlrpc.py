@@ -20,11 +20,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from xml.sax import SAXException
-
 from w3af.core.data.constants.encodings import UTF8
 from w3af.core.data.dc.generic.kv_container import KeyValueContainer
 from w3af.core.data.parsers.doc.xmlrpc import build_xmlrpc, parse_xmlrpc
+from w3af.core.data.parsers.utils.safe_sax import XMLParseError
 
 ERR_MSG = 'Unsupported xml_data "%s" for xmlrpc container.'
 XMLRPC_WORDS = (
@@ -78,7 +77,7 @@ class XmlRpcContainer(KeyValueContainer):
         """
         try:
             read_handler = parse_xmlrpc(xml_post_data)
-        except (SAXException, TypeError) as error:
+        except (XMLParseError, TypeError) as error:
             raise ValueError(ERR_MSG % xml_post_data[:50]) from error
         else:
             # Tried to do this with self.update but it was failing :S
