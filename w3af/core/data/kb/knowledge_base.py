@@ -175,7 +175,7 @@ class BasicKnowledgeBase:
         :param location_b: The "b" address
         :param info_inst: The Info instance we want to store
         :param group_klass: If required, will be used to create a new InfoSet
-        :return: True if the data is in the cache
+        :return: The cached InfoSet or None if it has not been recorded.
         """
         key = self._get_max_info_instances_key(
             location_a, location_b, info_inst, group_klass
@@ -188,7 +188,7 @@ class BasicKnowledgeBase:
         return (location_a, location_b, repr(info_inst.get(group_klass.ITAG)))
 
     def _record_reached_max_info_instances(
-        self, location_a, location_b, info_inst, group_klass
+        self, location_a, location_b, info_inst, group_klass, info_set
     ):
         """
         Stores the tuple containing
@@ -204,12 +204,13 @@ class BasicKnowledgeBase:
         :param location_b: The "b" address
         :param info_inst: The Info instance we want to store
         :param group_klass: If required, will be used to create a new InfoSet
+        :param info_set: The matching InfoSet to cache
         :return: None
         """
         key = self._get_max_info_instances_key(
             location_a, location_b, info_inst, group_klass
         )
-        self._reached_max_info_instances_cache[key] = True
+        self._reached_max_info_instances_cache[key] = copy.deepcopy(info_set)
 
     def append_uniq_group(self, location_a, location_b, info_inst, group_klass=InfoSet):
         """
@@ -244,10 +245,11 @@ class BasicKnowledgeBase:
 
             # This performs a quick check against a LRU cache to prevent
             # queries to the DB
-            if self._has_reached_max_info_instances(
+            cached_info_set = self._has_reached_max_info_instances(
                 location_a, location_b, info_inst, group_klass
-            ):
-                return info_inst, False
+            )
+            if cached_info_set is not None:
+                return copy.deepcopy(cached_info_set), False
 
             for info_set in self.get_iter(location_a, location_b):
                 if not isinstance(info_set, InfoSet):
@@ -262,7 +264,7 @@ class BasicKnowledgeBase:
                         # instances. This works together with _has_reached_max_info_instances()
                         # to reduce SQLite queries
                         self._record_reached_max_info_instances(
-                            location_a, location_b, info_inst, group_klass
+                            location_a, location_b, info_inst, group_klass, info_set
                         )
 
                         # The info set instance was not modified, so we just return

@@ -74,6 +74,8 @@ vendorizado requieren una revisión separada antes de cerrar la puntuación.
   `DataToken.__str__`, se sustituyó `collections.Iterable` por
   `collections.abc.Iterable`, se dio ID estable a shells de KB y se eliminó un
   sombreado que impedía deserializar valores de la KB.
+- La caché del límite de `InfoSet` conserva ahora una copia del grupo y cumple
+  el tipo de retorno documentado en `append_uniq_group`.
 
 ## Revisión actualizada
 
@@ -82,9 +84,10 @@ La puntuación global permanece en **2.5/10** (Clean Code 3/10, Clean Architectu
 `core.data` todavía importa ampliamente desde `controllers`; los gates globales
 no se han completado y quedan defectos funcionales abiertos.
 
-En las suites DB/KB/headers revisadas: **109 pasaron, 5 fallaron y 1 fue omitida**.
-Los fallos que permanecen son `HistoryItem.test_find` (filtro `has_qs`), dos
-pruebas de identidad/concurrencia de `InfoSet` y dos fixtures de mutants RFI.
+En las suites DB/KB/headers revisadas: **110 pasaron, 4 fallaron y 1 fue omitida**.
+Los fallos que permanecen son `HistoryItem.test_find` (filtro `has_qs`), una
+prueba de concurrencia de `InfoSet` y dos fixtures de mutants RFI. La prueba de
+identidad del `InfoSet` tras alcanzar el máximo ya pasa.
 Los warnings de dependencias siguen visibles. Las pruebas focalizadas para
 `Headers`, `DataToken`, IDs de Shell y la migración de excepciones pasan.
 
