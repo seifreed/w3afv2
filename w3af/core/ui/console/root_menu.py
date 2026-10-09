@@ -28,6 +28,7 @@ from multiprocessing.dummy import Process
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.ui.console.io.console as term
+from w3af.core.controllers.console_tables import table
 from w3af.core.controllers.misc.get_w3af_version import get_w3af_version
 from w3af.core.controllers.misc_settings import MiscSettings
 from w3af.core.exceptions import (
@@ -41,7 +42,6 @@ from w3af.core.ui.console.kb_menu import kbMenu
 from w3af.core.ui.console.menu import menu
 from w3af.core.ui.console.plugins import pluginsMenu
 from w3af.core.ui.console.profiles import ProfilesMenu
-from w3af.core.ui.console.tables import table
 from w3af.core.ui.console.util import mapDict
 
 
@@ -251,7 +251,7 @@ class rootMenu(menu):
         # Get the information and print it to the console
         status_information_str = self._w3af.status.get_long_status()
         t = table([(status_information_str,)])
-        t.draw()
+        t.draw(term.terminal_size()[0])
         om.out.console("")
 
     def _cmd_version(self, params):

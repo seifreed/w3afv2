@@ -69,7 +69,7 @@ class PluginTest(unittest.TestCase):
     MOCK_RESPONSES: ClassVar[list["MockResponse"]] = []
     kb = kb.kb
     target_url: str | None = None
-    base_path = None
+    base_path: str | None = None
 
     def setUp(self):
         self.kb.cleanup()

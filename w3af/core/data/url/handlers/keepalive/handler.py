@@ -128,7 +128,7 @@ class KeepAliveHandler:
     def _remove_connection(self, conn):
         self._cm.remove_connection(conn, reason="remove connection")
 
-    def do_open(self, req):
+    def do_open_keepalive(self, req):
         """
         Called by handler's url_open method.
         """
@@ -432,7 +432,7 @@ class HTTPHandler(KeepAliveHandler, urllib.request.HTTPHandler):
         urllib.request.HTTPHandler.__init__(self, debuglevel=0)
 
     def http_open(self, req):
-        return self.do_open(req)
+        return self.do_open_keepalive(req)
 
     def get_connection(self, request):
         return HTTPConnection(request.host, timeout=request.get_timeout())
@@ -457,7 +457,7 @@ class HTTPSHandler(KeepAliveHandler, urllib.request.HTTPSHandler):
                 self._proxy = None
 
     def https_open(self, req):
-        return self.do_open(req)
+        return self.do_open_keepalive(req)
 
     def get_connection(self, request):
         use_proxy = getattr(request, "use_proxy", False)

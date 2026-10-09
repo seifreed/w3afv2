@@ -26,7 +26,7 @@ from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 class WAFTest:
     domain = "httpretty-mock"
-    target_url = f"http://{domain}/"
+    target_url: str | None = f"http://{domain}/"
 
     _run_configs: ClassVar[dict] = {
         "cfg": {

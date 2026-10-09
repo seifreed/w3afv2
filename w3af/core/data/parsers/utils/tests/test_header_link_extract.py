@@ -95,3 +95,12 @@ class TestHeaderURLGenerator(unittest.TestCase):
     def test_x_pingback_invalid(self):
         extra_headers = [("x-pingback", "")]
         self.assertEqual(self.get_urls(extra_headers), [])
+
+    def test_unparseable_link_is_logged(self):
+        extra_headers = [("link", "<http://[bad>; rel=shortlink")]
+
+        logger = "w3af.core.data.parsers.utils.header_link_extract"
+        with self.assertLogs(logger, level="DEBUG") as logs:
+            self.assertEqual(self.get_urls(extra_headers), [])
+
+        self.assertIn("failed to correctly parse as an URL", logs.output[0])

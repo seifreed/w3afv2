@@ -528,7 +528,7 @@ class FindingsCache:
 
 class XMLNode:
 
-    TEMPLATE = None
+    TEMPLATE: str | None = None
     TEMPLATE_INST = None
 
     def __init__(self, jinja2_env):

@@ -48,7 +48,7 @@ class xss(AuditPlugin):
     """
 
     # TODO: Reduce the number of payloads by concatenating similar/related ones
-    PAYLOADS: ClassVar = [
+    BASE_PAYLOADS: ClassVar = [
         # Start a new tag
         "<",
         # Escape HTML comments
@@ -69,7 +69,7 @@ class xss(AuditPlugin):
         # Escape HTML attribute values without string delimiters
         " =",
     ]
-    PAYLOADS: ClassVar = [f"{RANDOMIZE}{p}{RANDOMIZE}" for p in PAYLOADS]
+    PAYLOADS: ClassVar = [f"{RANDOMIZE}{p}{RANDOMIZE}" for p in BASE_PAYLOADS]
 
     IGNORE_EXTENSIONS_FOR_PERSISTENT_XSS: ClassVar = set()
     IGNORE_EXTENSIONS_FOR_PERSISTENT_XSS.update(JAVASCRIPT)

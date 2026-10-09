@@ -92,7 +92,7 @@ class TestKeepalive(unittest.TestCase):
 
         # Replace with mocked out ConnMgr.
         kah._cm = conn_mgr_mock
-        kah.do_open(req)
+        kah.do_open_keepalive(req)
 
         ## Verify ##
         kah._start_transaction.assert_called_once_with(conn, req)
@@ -129,8 +129,8 @@ class TestKeepalive(unittest.TestCase):
         # We raise URLTimeoutError each time the connection timeouts, the
         # keepalive handler doesn't take any decisions like
         # ScanMustStopByKnownReasonExc, which is the job of the extended urllib
-        self.assertRaises(URLTimeoutError, kah.do_open, req)
-        self.assertRaises(URLTimeoutError, kah.do_open, req)
+        self.assertRaises(URLTimeoutError, kah.do_open_keepalive, req)
+        self.assertRaises(URLTimeoutError, kah.do_open_keepalive, req)
 
         self.assertEqual(len(conn_mgr.get_available_connection.call_args_list), 2)
         self.assertEqual(len(conn_mgr.remove_connection.call_args_list), 3)
