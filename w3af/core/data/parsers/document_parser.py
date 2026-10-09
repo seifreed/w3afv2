@@ -38,7 +38,7 @@ class DocumentParser:
     # WARNING! The order of this list is important. See note below
     PARSERS = (WMLParser, JavaScriptParser, PDFParser, SWFParser, HTMLParser)
 
-    def __init__(self, http_resp):
+    def __init__(self, http_resp, parsers=PARSERS):
         """
         Create the proper parser instance, please note that the order in which
         we ask for the type is not random, first we discard the images which
@@ -55,7 +55,7 @@ class DocumentParser:
             msg = "There is no parser for images."
             raise BaseFrameworkException(msg)
 
-        for parser in self.PARSERS:
+        for parser in parsers:
             if parser.can_parse(http_resp):
                 self._parser = parser(http_resp)
                 self._parser.parse()

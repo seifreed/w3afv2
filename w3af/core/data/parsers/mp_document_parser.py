@@ -117,7 +117,17 @@ class MultiProcessingDocumentParser:
     # The feature was tested in test_pebble_limit_memory_usage.py
     MEMORY_LIMIT = get_memory_limit()
 
-    def __init__(self):
+    def __init__(
+        self,
+        parser_timeout=PARSER_TIMEOUT,
+        max_workers=MAX_WORKERS,
+        memory_limit=MEMORY_LIMIT,
+        parsers=DocumentParser.PARSERS,
+    ):
+        self.parser_timeout = parser_timeout
+        self.max_workers = max_workers
+        self.memory_limit = memory_limit
+        self.parsers = parsers
         self._pool = None
         self._start_lock = threading.RLock()
 
@@ -132,10 +142,10 @@ class MultiProcessingDocumentParser:
                 # Start the process pool
                 log_queue = om.manager.get_in_queue()
                 self._pool = ProcessPool(
-                    self.MAX_WORKERS,
+                    self.max_workers,
                     max_tasks=20,
                     initializer=init_worker,
-                    initargs=(log_queue, self.MEMORY_LIMIT),
+                    initargs=(log_queue, self.memory_limit),
                 )
 
         return self._pool
@@ -167,12 +177,12 @@ class MultiProcessingDocumentParser:
 
         filename = write_http_response_to_temp_file(http_response)
 
-        apply_args = (process_document_parser, filename, self.DEBUG)
+        apply_args = (process_document_parser, filename, self.parsers, self.DEBUG)
 
         # Push the task to the workers
         try:
             future = self._pool.schedule(
-                apply_with_return_error, args=(apply_args,), timeout=self.PARSER_TIMEOUT
+                apply_with_return_error, args=(apply_args,), timeout=self.parser_timeout
             )
         except RuntimeError as rte:
             # Remove the temp file used to send data to the process
@@ -195,7 +205,7 @@ class MultiProcessingDocumentParser:
                 "[timeout] The parser took more than %s seconds"
                 ' to complete parsing of "%s", killed it!'
             )
-            args = (self.PARSER_TIMEOUT, http_response.get_url())
+            args = (self.parser_timeout, http_response.get_url())
             raise TimeoutError(msg % args)
         except ProcessExpired:
             # We reach here when the process died because of an error, we
@@ -221,7 +231,7 @@ class MultiProcessingDocumentParser:
                     ' while trying to parse "%s". The parser was stopped in'
                     " order to prevent OOM issues."
                 )
-                args = (self.MEMORY_LIMIT, http_response.get_url())
+                args = (self.memory_limit, http_response.get_url())
                 om.out.debug(msg % args)
                 raise ParserMemoryLimitError(msg % args)
 
@@ -263,6 +273,7 @@ class MultiProcessingDocumentParser:
         apply_args = (
             process_get_tags_by_filter,
             filename,
+            self.parsers,
             tags,
             yield_text,
             self.DEBUG,
@@ -273,7 +284,7 @@ class MultiProcessingDocumentParser:
         #
         try:
             future = self._pool.schedule(
-                apply_with_return_error, args=(apply_args,), timeout=self.PARSER_TIMEOUT
+                apply_with_return_error, args=(apply_args,), timeout=self.parser_timeout
             )
         except RuntimeError as rte:
             # Remove the temp file used to send data to the process
@@ -310,7 +321,7 @@ class MultiProcessingDocumentParser:
                     ' while trying to parse "%s". The parser was stopped in'
                     " order to prevent OOM issues."
                 )
-                args = (self.MEMORY_LIMIT, http_response.get_url())
+                args = (self.memory_limit, http_response.get_url())
                 om.out.debug(msg % args)
 
             return []
@@ -327,14 +338,14 @@ def raise_parsing_error(process_result):
     raise DocumentParsingError(str(error)) from error
 
 
-def process_get_tags_by_filter(filename, tags, yield_text, debug):
+def process_get_tags_by_filter(filename, parsers, tags, yield_text, debug):
     """
     Simple wrapper to get the current process id and store it in a shared object
     so we can kill the process if needed.
     """
     http_resp = load_http_response_from_temp_file(filename)
 
-    document_parser = DocumentParser(http_resp)
+    document_parser = DocumentParser(http_resp, parsers)
     parser = document_parser.get_parser()
 
     # Not all parsers have tags
@@ -355,7 +366,7 @@ def process_get_tags_by_filter(filename, tags, yield_text, debug):
     return result_filename
 
 
-def process_document_parser(filename, debug):
+def process_document_parser(filename, parsers, debug):
     """
     Simple wrapper to get the current process id and store it in a shared object
     so we can kill the process if needed.
@@ -370,7 +381,7 @@ def process_document_parser(filename, debug):
 
     try:
         # Parse
-        document_parser = DocumentParser(http_resp)
+        document_parser = DocumentParser(http_resp, parsers)
     except Exception as e:
         if debug:
             msg = (
