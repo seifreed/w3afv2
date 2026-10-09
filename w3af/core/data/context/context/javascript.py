@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 from io import StringIO
+from typing import ClassVar
 
 from w3af.core.data.context.constants import CONTEXT_DETECTOR
 from w3af.core.data.context.context.base import BaseContext
@@ -29,11 +30,11 @@ STRING_DELIMITERS = {'"', "'"}
 
 
 class ScriptSingleLineComment(BaseContext):
-    CAN_BREAK = {"\n", "\r"}
+    CAN_BREAK: ClassVar[set[str]] = {"\n", "\r"}
 
 
 class ScriptMultiLineComment(BaseContext):
-    CAN_BREAK = {"*/"}
+    CAN_BREAK: ClassVar[set[str]] = {"*/"}
 
 
 class ScriptStringGeneric(BaseContext):
@@ -46,7 +47,7 @@ class ScriptSingleQuoteString(ScriptStringGeneric):
     """
 
     ATTR_DELIMITER = "'"
-    CAN_BREAK = {ATTR_DELIMITER}
+    CAN_BREAK: ClassVar[set[str]] = {ATTR_DELIMITER}
 
 
 class ScriptDoubleQuoteString(ScriptStringGeneric):
@@ -55,7 +56,7 @@ class ScriptDoubleQuoteString(ScriptStringGeneric):
     """
 
     ATTR_DELIMITER = '"'
-    CAN_BREAK = {ATTR_DELIMITER}
+    CAN_BREAK: ClassVar[set[str]] = {ATTR_DELIMITER}
 
 
 class ScriptExecutableContext(BaseContext):
@@ -66,7 +67,7 @@ class ScriptExecutableContext(BaseContext):
         * {"x": PAYLOAD}
     """
 
-    CAN_BREAK = {}
+    CAN_BREAK: ClassVar[set[str]] = set()
 
     def is_executable(self):
         return True

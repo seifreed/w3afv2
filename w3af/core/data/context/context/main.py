@@ -77,8 +77,7 @@ def get_context_iter(data, payload):
     context_detector = ContextDetectorHTMLParser(payload)
     context_detector.feed(data)
 
-    for context in context_detector.contexts:
-        yield context
+    yield from context_detector.contexts
 
     # Clear
     context_detector.close()
@@ -155,10 +154,9 @@ class ContextDetectorHTMLParser(HTMLParser):
         all_contexts = [HtmlAttrDoubleQuote, HtmlAttrSingleQuote]
 
         for context_klass in all_contexts:
-            attr_match = "%s%s%s" % (
-                context_klass.ATTR_DELIMITER,
-                attr_value,
-                context_klass.ATTR_DELIMITER,
+            attr_match = (
+                f"{context_klass.ATTR_DELIMITER}{attr_value}"
+                f"{context_klass.ATTR_DELIMITER}"
             )
             if attr_match in full_tag_text:
                 return context_klass(self.payload, attr_name, self.untidy(attr_value))

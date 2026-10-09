@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 from io import StringIO
+from typing import ClassVar
 
 from w3af.core.data.context.constants import CONTEXT_DETECTOR
 from w3af.core.data.context.context.base import BaseContext
@@ -40,19 +41,19 @@ class StyleContext(BaseContext):
 class GenericStyleContext(StyleContext):
     # These break characters are required for exploits like:
     # <div style="background-image: url(javascript:alert('XSS'))">
-    CAN_BREAK = {":", "("}
+    CAN_BREAK: ClassVar[set[str]] = {":", "("}
 
 
 class StyleSingleQuoteString(StyleContext):
-    CAN_BREAK = {"'", ":", "("}
+    CAN_BREAK: ClassVar[set[str]] = {"'", ":", "("}
 
 
 class StyleDoubleQuoteString(StyleContext):
-    CAN_BREAK = {'"', ":", "("}
+    CAN_BREAK: ClassVar[set[str]] = {'"', ":", "("}
 
 
 class StyleComment(StyleContext):
-    CAN_BREAK = {"*/", ":", "("}
+    CAN_BREAK: ClassVar[set[str]] = {"*/", ":", "("}
 
 
 ALL_CONTEXTS = [

@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
+from typing import ClassVar
 
 from w3af.core.data.context.constants import EXECUTABLE_ATTRS, JS_EVENTS
 from w3af.core.data.context.context.base import BaseContext
@@ -33,7 +34,7 @@ class HtmlTag(BaseContext):
     Matches <PAYLOAD></foo>
     """
 
-    CAN_BREAK = {" ", ">"}
+    CAN_BREAK: ClassVar[set[str]] = {" ", ">"}
 
 
 class HtmlTagClose(BaseContext):
@@ -41,7 +42,7 @@ class HtmlTagClose(BaseContext):
     Matches <foo></PAYLOAD>
     """
 
-    CAN_BREAK = {" ", ">"}
+    CAN_BREAK: ClassVar[set[str]] = {" ", ">"}
 
 
 class HtmlText(BaseContext):
@@ -49,7 +50,7 @@ class HtmlText(BaseContext):
     Matches <tag attr="value">PAYLOAD</tag>
     """
 
-    CAN_BREAK = {"<"}
+    CAN_BREAK: ClassVar[set[str]] = {"<"}
 
 
 class HtmlComment(BaseContext):
@@ -57,7 +58,7 @@ class HtmlComment(BaseContext):
     Matches <!-- PAYLOAD -->
     """
 
-    CAN_BREAK = {"-->"}
+    CAN_BREAK: ClassVar[set[str]] = {"-->"}
 
 
 class HtmlAttr(BaseContext):
@@ -65,7 +66,7 @@ class HtmlAttr(BaseContext):
     Matches <tag PAYLOAD="value" />
     """
 
-    CAN_BREAK = {" ", "="}
+    CAN_BREAK: ClassVar[set[str]] = {" ", "="}
 
 
 class ScriptText(HtmlText):
@@ -127,7 +128,7 @@ class HtmlDeclaration(BaseContext):
     (e.g. <!DOCTYPE html>).
     """
 
-    CAN_BREAK = {">"}
+    CAN_BREAK: ClassVar[set[str]] = {">"}
 
 
 class HtmlProcessingInstruction(BaseContext):
@@ -135,7 +136,7 @@ class HtmlProcessingInstruction(BaseContext):
     For example, for the processing instruction <?proc color='red'>
     """
 
-    CAN_BREAK = {">"}
+    CAN_BREAK: ClassVar[set[str]] = {">"}
 
 
 class HTMLAttrQuoteGeneric(BaseContext):
@@ -203,10 +204,7 @@ class HTMLAttrQuoteGeneric(BaseContext):
         if ":" not in self.payload:
             return False
 
-        if not self.value.startswith(self.payload):
-            return False
-
-        return True
+        return self.value.startswith(self.payload)
 
     def can_break_style(self):
         """
@@ -358,7 +356,7 @@ class HtmlAttrSingleQuote(HTMLAttrQuoteGeneric):
     """
 
     ATTR_DELIMITER = "'"
-    CAN_BREAK = {ATTR_DELIMITER}
+    CAN_BREAK: ClassVar[set[str]] = {ATTR_DELIMITER}
 
 
 class HtmlAttrDoubleQuote(HTMLAttrQuoteGeneric):
@@ -367,7 +365,7 @@ class HtmlAttrDoubleQuote(HTMLAttrQuoteGeneric):
     """
 
     ATTR_DELIMITER = '"'
-    CAN_BREAK = {ATTR_DELIMITER}
+    CAN_BREAK: ClassVar[set[str]] = {ATTR_DELIMITER}
 
 
 class HtmlAttrBackticks(HTMLAttrQuoteGeneric):
@@ -376,7 +374,7 @@ class HtmlAttrBackticks(HTMLAttrQuoteGeneric):
     """
 
     ATTR_DELIMITER = "`"
-    CAN_BREAK = {ATTR_DELIMITER}
+    CAN_BREAK: ClassVar[set[str]] = {ATTR_DELIMITER}
 
 
 class HtmlAttrNoQuote(HTMLAttrQuoteGeneric):
@@ -385,7 +383,7 @@ class HtmlAttrNoQuote(HTMLAttrQuoteGeneric):
     """
 
     ATTR_DELIMITER = ""
-    CAN_BREAK = {" "}
+    CAN_BREAK: ClassVar[set[str]] = {" "}
 
 
 ALL_CONTEXTS = [

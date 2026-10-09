@@ -964,3 +964,16 @@ global baja a 918 errores en 311 archivos. No se pudo ejecutar la GUI en este
 entorno (faltan GTK/Xpresser); Mypy dirigido conserva errores por esas
 dependencias y Bandit reporta la invocación controlada de `subprocess.Popen`,
 sin suprimir hallazgos. Score global: **4.9/10**.
+
+## Avance: contrato de `CAN_BREAK` y lint del subsistema
+
+`BaseContext.CAN_BREAK` declara ahora el estado `set[str] | None`; las
+subclases documentan el atributo como `ClassVar`, y el caso vacío de JavaScript
+usa un set en lugar de un dict vacío. Las validaciones ya no dependen de
+`assert`, que podía desaparecer con `python -O`, y tienen pruebas explícitas
+para ambos métodos. También se eliminaron los hallazgos Ruff del paquete de
+contextos (re-exportes, formato, flujo simple y atributos de clase). La suite
+pasa 108 tests y `BaseContext` alcanza 100% de cobertura; Black, Ruff y Bandit
+de producción pasan en el subsistema. Mypy global baja de 918 errores en 311
+archivos a 897 en 308. Score global: **4.9/10**; las gates y los problemas
+arquitectónicos del resto del proyecto siguen pendientes.

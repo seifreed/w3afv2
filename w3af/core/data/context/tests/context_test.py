@@ -21,6 +21,18 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
+from w3af.core.data.context.context.base import BaseContext
+
 
 class ContextTest(unittest.TestCase):
-    pass
+    def test_any_in_requires_a_break_set(self):
+        context = BaseContext("payload", "content")
+
+        with self.assertRaisesRegex(ValueError, "CAN_BREAK is None at BaseContext"):
+            context.can_break()
+
+    def test_all_in_requires_a_break_set(self):
+        context = BaseContext("payload", "content")
+
+        with self.assertRaisesRegex(ValueError, "CAN_BREAK is None at BaseContext"):
+            context.all_in(None, "content")
