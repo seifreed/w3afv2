@@ -28,6 +28,7 @@ import pytest
 from w3af.core.controllers.core_helpers.tests.test_profiles import (
     assertProfileOptionsPreserved,
 )
+from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.db.startup_cfg import StartUpConfig
 from w3af.core.data.profile.profile import profile
 from w3af.core.filesystem import create_temp_dir, remove_temp_dir
@@ -60,14 +61,14 @@ class TestProfilesConsoleUI(ConsoleTestHelper):
         try:
             profile_inst = profile(profile_name)
             profile_inst.remove()
-        except:
+        except BaseFrameworkException:
             pass
 
     def _assert_exists(self, profile_name):
         try:
             profile(profile_name)
-        except:
-            assert False, "The %s profile does NOT exist!" % profile_name
+        except BaseFrameworkException as error:
+            pytest.fail("The %s profile does NOT exist: %s" % (profile_name, error))
 
     def _assert_equal(self, profile_name_a, profile_name_b):
         p1 = profile(profile_name_a, workdir=".")
@@ -195,7 +196,12 @@ class TestProfilesConsoleUI(ConsoleTestHelper):
         create_temp_dir()
         try:
             saved_profile = profile(self.get_profile_name())
-            options = saved_profile.get_plugin_options("audit", "ssl_certificate")
+            plugin = self.console._w3af.plugins.get_quick_instance(
+                "audit", "ssl_certificate"
+            )
+            options = saved_profile.get_plugin_options(
+                "audit", "ssl_certificate", plugin.get_options()
+            )
             certificate_path = options["ca_file_name"].get_value()
             with open(certificate_path, "rb") as certificate_file:
                 self.assertIn(

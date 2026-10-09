@@ -1050,3 +1050,18 @@ incluyendo la prueba, sigue mostrando 59 errores en 37 archivos importados.
 Las declaraciones `core.data -> controllers` bajan de 55 a 54. Sigue pendiente
 el acoplamiento del perfil con `factory` al reconstruir opciones de plugins, así
 que la puntuación global permanece en **4.9/10**.
+
+## Avance: perfil sin dependencias de controllers
+
+`profile.get_plugin_options` ahora recibe la lista de defaults; `CoreProfiles`
+construye el plugin con `CorePlugins.get_quick_instance` y le pasa sus opciones.
+Esto conserva la construcción aislada del plugin y elimina el último import de
+`controllers` en `core.data.profile`. El test de perfil autocontenido de consola
+se actualizó para usar esa misma entrada de controller. Pasan 12 tests de
+perfiles; `profile.py` queda en 71% de cobertura. Black y Ruff pasan en todos
+los archivos Python modificados, Bandit pasa en producción; Mypy dirigido sigue
+con 70 errores en 46 archivos importados, y pytest muestra 9 warnings de
+deprecación de dependencias. Las declaraciones `core.data -> controllers`
+bajan de 54 a 53. La puntuación global continúa en **4.9/10**: quedan deuda
+arquitectónica en otras áreas, cobertura inferior al 100% y gates globales
+fallidos.

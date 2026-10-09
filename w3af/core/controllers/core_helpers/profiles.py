@@ -231,8 +231,11 @@ class CoreProfiles:
             for plugin_name in set(plugin_names) - set(unknown_plugins):
 
                 try:
-                    plugin_options = profile_inst.get_plugin_options(
+                    plugin_instance = self._w3af_core.plugins.get_quick_instance(
                         plugin_type, plugin_name
+                    )
+                    plugin_options = profile_inst.get_plugin_options(
+                        plugin_type, plugin_name, plugin_instance.get_options()
                     )
                     self._w3af_core.plugins.set_plugin_options(
                         plugin_type, plugin_name, plugin_options

@@ -25,7 +25,6 @@ import os
 import shutil
 import string
 
-from w3af.core.controllers.misc.factory import factory
 from w3af.core.data.constants.encodings import UTF8
 from w3af.core.exceptions import BaseFrameworkException
 from w3af.core.paths import get_home_dir
@@ -277,16 +276,12 @@ class profile:
 
             self._config.set(section, option.get_name(), value)
 
-    def get_plugin_options(self, plugin_type, plugin_name):
+    def get_plugin_options(self, plugin_type, plugin_name, options_list):
         """
+        :param options_list: The plugin's default options.
         :return: A dict with the options for a plugin. For example:
                 { 'LICENSE_KEY':'AAAA' }
         """
-        # Get the plugin defaults with their types
-        plugin = "w3af.plugins.%s.%s" % (plugin_type, plugin_name)
-        plugin_instance = factory(plugin)
-        options_list = plugin_instance.get_options()
-
         for section in self._config.sections():
             # Section is something like audit.xss or crawl.web_spider
             section_parts = section.split(".", maxsplit=1)
