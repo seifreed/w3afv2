@@ -660,3 +660,19 @@ gates globales siguen pendientes.
 La puntuación global pasa a **3.4/10**: se elimina una dependencia ascendente
 real desde `core.data` y se centraliza un contrato transversal, pero las
 dependencias restantes y la deuda de calidad global impiden una nota mayor.
+
+## Avance: detección de proceso fuera de controllers
+
+`is_main_process()` solo consulta `multiprocessing.current_process()` y lo
+usaban dos módulos de `core.data.parsers` para no iniciar workers al importar
+en procesos hijos. Se movió de `controllers.threads` a `core.process`, se
+actualizaron ambos callers y se eliminó la ubicación antigua sin alias. Una
+prueba con un worker `spawn` real comprueba el resultado en proceso hijo; junto
+con el caso del proceso principal, `core.process` alcanza **100% de cobertura**.
+
+Los cinco tests restantes de `parser_cache` pasan; se excluyó el test de timeout
+que no activa el timeout esperado en este entorno. Black, Ruff (`F401`, `I001`),
+compilación y `git diff --check` pasan en el cambio, y no quedan imports de la
+ruta anterior. La puntuación global pasa a **3.5/10**: otro servicio genérico
+sale de controllers, aunque siguen pendientes los acoplamientos restantes,
+fallos de integración de red y gates de calidad globales.

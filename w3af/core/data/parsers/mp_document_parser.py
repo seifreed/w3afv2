@@ -42,7 +42,6 @@ from w3af.core.controllers.profiling.cpu_usage import user_wants_cpu_profiling
 from w3af.core.controllers.profiling.memory_usage import user_wants_memory_profiling
 from w3af.core.controllers.profiling.pytracemalloc import user_wants_pytracemalloc
 from w3af.core.controllers.threads.decorators import apply_with_return_error
-from w3af.core.controllers.threads.is_main_process import is_main_process
 from w3af.core.data.parsers.document_parser import DocumentParser
 from w3af.core.data.parsers.ipc.serialization import (
     load_http_response_from_temp_file,
@@ -54,6 +53,7 @@ from w3af.core.data.parsers.ipc.serialization import (
     write_tags_to_temp_file,
 )
 from w3af.core.exceptions import ScanMustStopException
+from w3af.core.process import is_main_process
 
 # 128 MB
 DEFAULT_MEMORY_LIMIT = 128 * 1024 * 1024
