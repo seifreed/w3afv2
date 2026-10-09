@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import hashlib
 import json
 import os
-import shlex
 import tempfile
 
 import w3af.core.controllers.output_manager as om
@@ -40,9 +39,9 @@ from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.misc.encoding import smart_str_ignore
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
+from w3af.core.data.options.option_types import STRING
 from w3af.core.data.options.option_types import URL as URL_OPTION
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.filesystem import get_temp_dir
 
 
@@ -56,11 +55,8 @@ class retirejs(GrepPlugin):
     METHODS = ("GET",)
     HTTP_CODES = (200,)
 
-    RETIRE_CMD = "retire -j --outputformat json --outputpath %s --jspath %s"
-    RETIRE_CMD_VERSION = "retire --version"
-    RETIRE_CMD_JSREPO = (
-        "retire -j --outputformat json --outputpath %s --jsrepo %s --jspath %s"
-    )
+    RETIRE_PATH = "retire"
+    RETIRE_JSON_ARGS = ("-j", "--outputformat", "json", "--outputpath")
 
     RETIRE_VERSION = "2."
 
@@ -85,6 +81,7 @@ class retirejs(GrepPlugin):
 
         # User-configured parameters
         self._retire_db_url = self.RETIRE_DB_URL
+        self._retire_path = self.RETIRE_PATH
 
     def grep(self, request, response):
         """
@@ -117,20 +114,23 @@ class retirejs(GrepPlugin):
             return
 
         with self._plugin_lock:
-            batch = self._add_response_to_batch(response)
+            self._add_response_to_batch(response)
 
-            if not self._should_analyze_batch(batch):
+            if not self._should_analyze_batch():
                 return
 
-            self._analyze_batch(batch)
-            self._remove_batch(batch)
+            self._analyze_and_clear_batch()
 
-    def _remove_batch(self, batch):
-        for url, response_id, filename in batch:
+    def _analyze_and_clear_batch(self):
+        self._analyze_batch(self._batch)
+
+        for _, _, filename in self._batch:
             self._remove_file(filename)
 
-    def _should_analyze_batch(self, batch):
-        return len(batch) == self.BATCH_SIZE
+        self._batch = []
+
+    def _should_analyze_batch(self):
+        return len(self._batch) == self.BATCH_SIZE
 
     def _add_response_to_batch(self, response):
         """
@@ -138,12 +138,10 @@ class retirejs(GrepPlugin):
         batch.
 
         :param response: HTTP response body
-        :return: A copy of the batch
         """
         response_filename = self._save_response_to_file(response)
         data = (response.get_uri(), response.get_id(), response_filename)
         self._batch.append(data)
-        return self._batch[:]
 
     def _analyze_batch(self, batch):
         """
@@ -163,15 +161,9 @@ class retirejs(GrepPlugin):
 
         :return: None
         """
-        if not self._batch:
-            return
-
-        if not self._retirejs_is_installed():
-            return
-
-        self._analyze_batch(self._batch)
-        self._remove_batch(self._batch)
-        self._batch = []
+        # The batch is only filled after _retirejs_is_installed() succeeded
+        if self._batch:
+            self._analyze_and_clear_batch()
 
     def _download_retire_db(self):
         """
@@ -189,14 +181,10 @@ class retirejs(GrepPlugin):
             # w3af grep plugins shouldn't (by definition) perform HTTP requests
             # But in this case we're breaking that general rule to retrieve the
             # DB at the beginning of the scan
-            try:
-                http_response = self._uri_opener.GET(
-                    self._retire_db_url, binary_response=True, respect_size_limit=False
-                )
-            except HTTPRequestException as e:
-                msg = 'Failed to download the retirejs database: "%s"'
-                om.out.error(msg % e)
-                return
+            # Network errors are returned by the url opener proxy as a 204
+            http_response = self._uri_opener.GET(
+                self._retire_db_url, binary_response=True, respect_size_limit=False
+            )
 
             if http_response.get_code() != 200:
                 msg = (
@@ -239,7 +227,7 @@ class retirejs(GrepPlugin):
         return self._is_valid_retire_version and self._is_valid_retirejs_exit_code
 
     def _get_is_valid_retire_version(self):
-        cmd = shlex.split(self.RETIRE_CMD_VERSION)
+        cmd = [self._retire_path, "--version"]
 
         with tempfile.NamedTemporaryFile(
             prefix="retirejs-version-", suffix=".out", delete=False, mode="w"
@@ -278,11 +266,16 @@ class retirejs(GrepPlugin):
         ) as output_file:
             pass
 
-        args = (output_file.name, check_file.name)
-        cmd = self.RETIRE_CMD % args
+        cmd = [
+            self._retire_path,
+            *self.RETIRE_JSON_ARGS,
+            output_file.name,
+            "--jspath",
+            check_file.name,
+        ]
 
         try:
-            process = run_process(shlex.split(cmd), stdout=DEVNULL, stderr=DEVNULL)
+            process = run_process(cmd, stdout=DEVNULL, stderr=DEVNULL)
         except ExecutableNotFoundError:
             self._remove_file(output_file.name)
             self._remove_file(check_file.name)
@@ -310,7 +303,7 @@ class retirejs(GrepPlugin):
         # Avoid running this plugin twice on the same URL
         #
         url_hash = hashlib.md5(
-            response.get_url().url_string, usedforsecurity=False
+            smart_str_ignore(response.get_url().url_string), usedforsecurity=False
         ).hexdigest()
         if url_hash in self._analyzed_hashes:
             return False
@@ -361,12 +354,19 @@ class retirejs(GrepPlugin):
         ) as json_file:
             pass
 
-        args = (json_file.name, self._retire_db_filename, self._get_js_temp_directory())
-        cmd = self.RETIRE_CMD_JSREPO % args
+        cmd = [
+            self._retire_path,
+            *self.RETIRE_JSON_ARGS,
+            json_file.name,
+            "--jsrepo",
+            self._retire_db_filename,
+            "--jspath",
+            self._get_js_temp_directory(),
+        ]
 
         try:
             returncode = run_process(
-                shlex.split(cmd),
+                cmd,
                 stdout=DEVNULL,
                 stderr=DEVNULL,
                 timeout=self.RETIRE_TIMEOUT,
@@ -446,14 +446,10 @@ class retirejs(GrepPlugin):
 
         # Find the URL that triggered this vulnerability
         finding_file = json_finding.get("file")
-        url = None
-        response_id = None
-
         for url, response_id, batch_filename in batch:
             if batch_filename == finding_file:
                 break
-
-        if url is None:
+        else:
             om.out.debug("Batch filename mismatch in retirejs.")
             return
 
@@ -524,6 +520,11 @@ class retirejs(GrepPlugin):
         o = opt_factory("retire_db_url", self._retire_db_url, d, URL_OPTION)
         ol.add(o)
 
+        d = "Path to the retire.js executable"
+        h = "An absolute path, or a program name which is looked up in PATH."
+        o = opt_factory("retire_path", self._retire_path, d, STRING, help=h)
+        ol.add(o)
+
         return ol
 
     def set_options(self, options_list):
@@ -535,6 +536,7 @@ class retirejs(GrepPlugin):
         :return: No value is returned.
         """
         self._retire_db_url = options_list["retire_db_url"].get_value()
+        self._retire_path = options_list["retire_path"].get_value()
 
     def get_long_desc(self):
         """

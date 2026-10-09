@@ -140,7 +140,15 @@ class CannedRequestHandler(BaseHTTPRequestHandler):
         if isinstance(body, str):
             body = body.encode("utf-8")
 
-        self.send_response(reply.status, reply.reason)
+        # Like send_response(), but a canned Server or Date header replaces
+        # the default one instead of being sent twice
+        self.send_response_only(reply.status, reply.reason)
+        canned_names = {name.lower() for name in reply.headers}
+        if "server" not in canned_names:
+            self.send_header("Server", self.version_string())
+        if "date" not in canned_names:
+            self.send_header("Date", self.date_time_string())
+
         for name, value in reply.headers.items():
             if name.lower() not in FRAMING_HEADERS:
                 self.send_header(name, str(value))
