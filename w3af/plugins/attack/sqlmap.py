@@ -131,7 +131,7 @@ class sqlmap(AttackPlugin):
 
             try:
                 is_vuln = sqlmap.is_vulnerable()
-            except:
+            except OSError:
                 sqlmap.cleanup()
 
                 if sqlmap.last_stdout is None or sqlmap.last_stderr is None:
@@ -213,7 +213,7 @@ class RunFunctor(Process):
 
         self.process = process
 
-        om.out.information("Wrapped SQLMap command: %s" % cmd)
+        om.out.information(f"Wrapped SQLMap command: {cmd}")
 
         try:
             while process.poll() is None:
@@ -305,7 +305,7 @@ class SQLMapShell(ReadShell):
                 f'returning "{self._rOS}".'
             )
         except OSDetectionException as osde:
-            om.out.debug("%s" % osde)
+            om.out.debug(f"{osde}")
             self._rOS = "unknown"
 
         # TODO: Could we determine this by calling some payloads?

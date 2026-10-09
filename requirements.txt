@@ -33,6 +33,7 @@ pyparsing==3.3.3
 pyspnego==0.12.4
 PyYAML==6.0.3
 scapy==2.8.0
+sqlmap==1.10.10
 tblib==3.2.2
 termcolor==3.3.0
 tldextract==5.4.0

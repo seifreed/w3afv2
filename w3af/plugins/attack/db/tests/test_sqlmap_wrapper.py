@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import io
 import os
 import shutil
 import unittest
@@ -60,7 +61,7 @@ class TestSQLMapWrapper(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        output_dir = os.path.join(SQLMapWrapper.SQLMAP_LOCATION, "output")
+        output_dir = SQLMapWrapper.OUTPUT_DIR
         if os.path.exists(output_dir):
             shutil.rmtree(output_dir)
 
@@ -68,7 +69,7 @@ class TestSQLMapWrapper(unittest.TestCase):
     def tearDownClass(cls):
         # Doing this in both setupclass and teardownclass in order to be sure
         # that a ctrl+c doesn't break it
-        output_dir = os.path.join(SQLMapWrapper.SQLMAP_LOCATION, "output")
+        output_dir = SQLMapWrapper.OUTPUT_DIR
         if os.path.exists(output_dir):
             shutil.rmtree(output_dir)
 
@@ -120,9 +121,9 @@ class TestSQLMapWrapper(unittest.TestCase):
         ]
         cmd, process = self.sqlmap.run_sqlmap_with_pipes(prms)
 
-        self.assertIsInstance(process.stdout, file)
-        self.assertIsInstance(process.stderr, file)
-        self.assertIsInstance(process.stdin, file)
+        self.assertIsInstance(process.stdout, io.TextIOBase)
+        self.assertIsInstance(process.stderr, io.TextIOBase)
+        self.assertIsInstance(process.stdin, io.TextIOBase)
         self.assertIsInstance(cmd, str)
 
         self.assertIn("sqlmap.py", cmd)
@@ -131,15 +132,13 @@ class TestSQLMapWrapper(unittest.TestCase):
         target = Target(URL(self.SQLI_GET))
         params = target.to_params()
 
-        self.assertEqual(params, ["--url=%s" % self.SQLI_GET])
+        self.assertEqual(params, [f"--url={self.SQLI_GET}"])
 
     def test_target_post_data(self):
         target = Target(URL(self.SQLI_GET), self.DATA_POST)
         params = target.to_params()
 
-        self.assertEqual(
-            params, ["--url=%s" % self.SQLI_GET, "--data=%s" % self.DATA_POST]
-        )
+        self.assertEqual(params, [f"--url={self.SQLI_GET}", f"--data={self.DATA_POST}"])
 
     def test_no_coloring(self):
         params = self.sqlmap.get_wrapper_params()
@@ -166,7 +165,7 @@ class TestSQLMapWrapper(unittest.TestCase):
         vulnerable = self.sqlmap.is_vulnerable()
         self.assertTrue(vulnerable)
 
-        cmd, process = self.sqlmap.dbs()
+        _cmd, process = self.sqlmap.dbs()
         output = process.stdout.read()
 
         self.assertIn("on SQLite it is not possible to enumerate databases", output)
@@ -175,7 +174,7 @@ class TestSQLMapWrapper(unittest.TestCase):
         vulnerable = self.sqlmap.is_vulnerable()
         self.assertTrue(vulnerable)
 
-        cmd, process = self.sqlmap.tables()
+        _cmd, process = self.sqlmap.tables()
         output = process.stdout.read()
 
         self.assertIn("auth_group_permissions", output)
@@ -186,7 +185,7 @@ class TestSQLMapWrapper(unittest.TestCase):
         vulnerable = self.sqlmap.is_vulnerable()
         self.assertTrue(vulnerable)
 
-        cmd, process = self.sqlmap.users()
+        _cmd, process = self.sqlmap.users()
         output = process.stdout.read()
 
         self.assertIn("on SQLite it is not possible to enumerate the users", output)
@@ -195,7 +194,7 @@ class TestSQLMapWrapper(unittest.TestCase):
         vulnerable = self.sqlmap.is_vulnerable()
         self.assertTrue(vulnerable)
 
-        cmd, process = self.sqlmap.dump()
+        _cmd, process = self.sqlmap.dump()
         output = process.stdout.read()
 
         self.assertIn("django_session", output)
@@ -205,7 +204,7 @@ class TestSQLMapWrapper(unittest.TestCase):
         vulnerable = self.sqlmap.is_vulnerable()
         self.assertTrue(vulnerable, self.sqlmap.last_stdout)
 
-        cmd, process = self.sqlmap.direct("--tables")
+        _cmd, process = self.sqlmap.direct("--tables")
         output = process.stdout.read()
 
         self.assertIn("django_session", output)

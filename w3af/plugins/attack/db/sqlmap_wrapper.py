@@ -26,35 +26,21 @@ import shlex
 import subprocess
 import sys
 import tempfile
+from importlib.resources import files
 
 import w3af.core.controllers.output_manager as om
-from w3af import ROOT_PATH
 from w3af.core.controllers.daemons.proxy import Proxy
-from w3af.core.controllers.misc.which import which
 from w3af.core.data.parsers.doc.url import URL
+
+SQLMAP_SCRIPT = str(files("sqlmap") / "sqlmap.py")
 
 
 class SQLMapWrapper:
 
-    OUTPUT_DIR = "%s/%s" % (tempfile.gettempdir(), os.getpid())
-    DEBUG_ARGS = ["-v6"]
+    OUTPUT_DIR = os.path.join(tempfile.gettempdir(), str(os.getpid()))
+    DEBUG_ARGS = ("-v6",)
+    BASE_ARGS = (sys.executable, SQLMAP_SCRIPT, f"--output-dir={OUTPUT_DIR}")
 
-    # This was added for Debian (and most likely useful for other distributions)
-    # because we don't want to have a sqlmap.deb and duplicate the same files
-    # in w3af.deb
-    #
-    # https://github.com/andresriancho/w3af/issues/10538
-    #
-    INSTALLED_DEFAULT_ARGS = ["sqlmap", "--output-dir=%s" % OUTPUT_DIR]
-
-    # The embedded sqlmap (the whole directory) is removed in Debian
-    EMBEDDED_DEFAULT_ARGS = [
-        sys.executable,
-        "sqlmap.py",
-        "--output-dir=%s" % OUTPUT_DIR,
-    ]
-
-    SQLMAP_LOCATION = os.path.join(ROOT_PATH, "plugins", "attack", "db", "sqlmap")
     VULN_STR = "[INFO] the back-end DBMS is"
     NOT_VULN_STR = "all tested parameters do not appear to be injectable"
 
@@ -100,7 +86,7 @@ class SQLMapWrapper:
         self.proxy.start()
         self.proxy.wait_for_start()
 
-        self.local_proxy_url = "http://%s:%s/" % (host, self.proxy.get_bind_port())
+        self.local_proxy_url = f"http://{host}:{self.proxy.get_bind_port()}/"
 
     def __reduce__(self):
         """
@@ -126,7 +112,7 @@ class SQLMapWrapper:
 
         params = ["--batch"]
 
-        full_command, stdout, stderr = self.run_sqlmap(params)
+        full_command, stdout, _stderr = self.run_sqlmap(params)
 
         if full_command is None:
             # Something really bad happen with sqlmap
@@ -147,30 +133,6 @@ class SQLMapWrapper:
         fmt = 'Unexpected answer found in sqlmap output for command "%s": "%s"'
         raise NotImplementedError(fmt % (full_command, stdout))
 
-    def _get_base_args(self):
-        """
-        Simple logic to get the base args in different environments where:
-            * sqlmap is in PATH
-            * The embedded sqlmap is not available
-
-        :see: https://github.com/andresriancho/w3af/issues/10538
-
-        :return: The base args to execute sqlmap in this environment, or raise
-                 an exception if something is wrong.
-        """
-        if os.path.exists(self.SQLMAP_LOCATION):
-            # This is the most common scenario where the user installs w3af
-            # from source and wants to use the embedded sqlmap
-            return self.SQLMAP_LOCATION, self.EMBEDDED_DEFAULT_ARGS
-
-        # sqlmap is not embedded, most likely because the packager removed
-        # it and sqlmap executable is in path, make sure it's there before
-        # we return the base args
-        if not which("sqlmap"):
-            raise RuntimeError('The "sqlmap" command is not in PATH')
-
-        return os.getcwd(), self.INSTALLED_DEFAULT_ARGS
-
     def _run(self, custom_params):
         """
         Internal function used by run_sqlmap and run_sqlmap_with_pipes to
@@ -181,14 +143,13 @@ class SQLMapWrapper:
         if not os.path.exists(self.OUTPUT_DIR):
             os.mkdir(self.OUTPUT_DIR)
 
-        cwd, base_args = self._get_base_args()
         final_params = self.get_wrapper_params(custom_params)
         target_params = self.target.to_params()
 
-        all_params = base_args + final_params + target_params
+        all_params = [*self.BASE_ARGS, *final_params, *target_params]
 
         if self.debug:
-            all_params += self.DEBUG_ARGS
+            all_params.extend(self.DEBUG_ARGS)
 
         try:
             process = subprocess.Popen(
@@ -198,7 +159,6 @@ class SQLMapWrapper:
                 stderr=subprocess.PIPE,
                 shell=False,
                 universal_newlines=True,
-                cwd=cwd,
             )
         except OSError as os_err:
             # https://github.com/andresriancho/w3af/issues/10186
@@ -242,9 +202,9 @@ class SQLMapWrapper:
 
         self.last_stdout, self.last_stderr = process.communicate()
 
-        om.out.debug("[sqlmap_wrapper] %s" % self.last_command)
+        om.out.debug(f"[sqlmap_wrapper] {self.last_command}")
         for line in self.last_stdout.split("\n"):
-            om.out.debug("[sqlmap_wrapper] %s" % line)
+            om.out.debug(f"[sqlmap_wrapper] {line}")
 
         return self.last_command, self.last_stdout, self.last_stderr
 
@@ -289,7 +249,7 @@ class SQLMapWrapper:
             params.append("--disable-coloring")
 
         if self.local_proxy_url is not None:
-            params.append("--proxy=%s" % self.local_proxy_url)
+            params.append(f"--proxy={self.local_proxy_url}")
 
         if extra_params is not None:
             params.extend(extra_params)
@@ -330,24 +290,14 @@ class SQLMapWrapper:
         :param filename: The file to be read
         :return: The contents of the file that was passed as parameter
         """
-        cmd, process = self._wrap_param(["--file-read=%s" % filename])
-        local_file_re = re.compile("the local file '(.*?)' and")
-        # pylint: disable=E1101
+        _cmd, process = self._wrap_param([f"--file-read={filename}"])
         stdout = process.stdout.read()
-
-        try:
-            local_file = local_file_re.search(stdout).group(1)
-        except:
-            # FIXME: I'll have to fix this at some point... files that do not
-            # exist should raise an exception (or something similar), instead
-            # of just returning an empty string. This is a big FAIL from my
-            # initial design of the payloads/shell API.
+        match = re.search("the local file '(.*?)' and", stdout)
+        if match is None or not os.path.exists(match.group(1)):
             return ""
-        else:
-            if os.path.exists(local_file):
-                return open(local_file).read()
 
-        return
+        with open(match.group(1)) as local_file:
+            return local_file.read()
 
 
 class Target:
@@ -364,12 +314,12 @@ class Target:
         self.post_data = post_data
 
     def to_params(self):
-        params = ["--url=%s" % self.uri]
+        params = [f"--url={self.uri}"]
 
         if self.post_data is not None:
-            params.append("--data=%s" % self.post_data)
+            params.append(f"--data={self.post_data}")
 
         return params
 
     def __repr__(self):
-        return "<Target %s %s>" % (self.uri, self.post_data)
+        return f"<Target {self.uri} {self.post_data}>"
