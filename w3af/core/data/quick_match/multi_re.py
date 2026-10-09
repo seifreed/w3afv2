@@ -135,7 +135,7 @@ class MultiRE:
 
         for regex in regexes:
             compiled_regex = self._re_cache[regex]
-            matchobj = compiled_regex.search(matcher_target.lower())
+            matchobj = compiled_regex.search(matcher_target)
             if matchobj:
                 yield self._create_output(matchobj, regex, compiled_regex)
 

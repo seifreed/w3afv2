@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from guess_language import UNKNOWN as GUESS_UNKNOWN
 from guess_language import guess_language
 
 import w3af.core.controllers.output_manager as om
@@ -71,6 +72,12 @@ class lang(GrepPlugin):
             guessed_lang = guess_language(body)
         except IndexError:
             # I don't care about exception handling of the external lib
+            guessed_lang = UNKNOWN
+
+        if guessed_lang == GUESS_UNKNOWN:
+            # guess_language returns its own (non-picklable) UNKNOWN sentinel
+            # when it can not identify the language. Normalize it to our own
+            # string so it can be stored in the knowledge base.
             guessed_lang = UNKNOWN
 
         with self._plugin_lock:

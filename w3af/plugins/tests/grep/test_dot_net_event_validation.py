@@ -21,8 +21,20 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import ClassVar
 
-from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
+
+_VIEWSTATE = (
+    '<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="abc123" />'
+)
+_EVENTVALIDATION = (
+    '<input type="hidden" name="__EVENTVALIDATION"'
+    ' id="__EVENTVALIDATION" value="xyz789" />'
+)
+# Has VIEWSTATE and EVENTVALIDATION, but no VIEWSTATEENCRYPTED -> only the
+# "ViewState encryption is disabled" finding.
+_EVENT_VALIDATION_HTML = f"<html><body>{_VIEWSTATE}{_EVENTVALIDATION}</body></html>"
+# Has VIEWSTATE, no EVENTVALIDATION, no VIEWSTATEENCRYPTED -> both findings.
+_WITHOUT_EVENT_VALIDATION_HTML = f"<html><body>{_VIEWSTATE}</body></html>"
 
 RUN_CONFIGS = {
     "cfg": {
@@ -39,7 +51,31 @@ RUN_CONFIGS = {
 
 class TestEventValidation(PluginTest):
 
-    target_url = get_moth_http("/grep/dot_net_event_validation/")
+    target_url = "http://mock/grep/dot_net_event_validation/"
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(
+            url=target_url,
+            body=(
+                '<a href="event_validation.html">1</a>'
+                '<a href="without_event_validation.html">2</a>'
+            ),
+            method="GET",
+            status=200,
+        ),
+        MockResponse(
+            url=target_url + "event_validation.html",
+            body=_EVENT_VALIDATION_HTML,
+            method="GET",
+            status=200,
+        ),
+        MockResponse(
+            url=target_url + "without_event_validation.html",
+            body=_WITHOUT_EVENT_VALIDATION_HTML,
+            method="GET",
+            status=200,
+        ),
+    ]
 
     def test_found_vuln(self):
         self._scan(self.target_url, RUN_CONFIGS["cfg"]["plugins"])
@@ -87,8 +123,18 @@ class TestEventValidationGrouping(PluginTest):
             method="GET",
             status=200,
         ),
-        MockResponse(url="http://mock/1", body=html, method="GET", status=200),
-        MockResponse(url="http://mock/2", body=html, method="GET", status=200),
+        MockResponse(
+            url="http://mock/1",
+            body=f"<html><body><h1>Page one</h1>{html}</body></html>",
+            method="GET",
+            status=200,
+        ),
+        MockResponse(
+            url="http://mock/2",
+            body=f"<html><body><h1>Page two</h1>{html}</body></html>",
+            method="GET",
+            status=200,
+        ),
     ]
 
     def test_grouped_vulnerabilities(self):
@@ -104,7 +150,7 @@ class TestEventValidationGrouping(PluginTest):
                     " .NET Event Validation disabled. This programming"
                     " / configuration error should be manually"
                     " verified. The first two vulnerable URLs are:\n"
-                    " - http://mock/2\n - http://mock/1\n"
+                    " - http://mock/1\n - http://mock/2\n"
                 ),
             ),
             (
@@ -114,8 +160,8 @@ class TestEventValidationGrouping(PluginTest):
                     " ViewState encryption disabled. This programming"
                     " / configuration error can be exploited to decode"
                     " and inspect the ViewState contents. The first two"
-                    " vulnerable URLs are:\n - http://mock/2\n"
-                    " - http://mock/1\n"
+                    " vulnerable URLs are:\n - http://mock/1\n"
+                    " - http://mock/2\n"
                 ),
             ),
         }

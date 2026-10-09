@@ -67,7 +67,7 @@ class sed(ManglePlugin):
         headers_inst = Headers.from_string(header_string)
 
         request.set_headers(headers_inst)
-        request.add_data(data)
+        request.set_data(data)
         return request
 
     def mangle_response(self, response):

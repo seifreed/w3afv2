@@ -104,7 +104,7 @@ class TestCreditCards(unittest.TestCase):
 
         html_file = os.path.join(ROOT_PATH, "plugins/tests/grep/data/test-3.html")
         html = Path(html_file).read_text()
-        html = html[: len(html) / 2] + " " + credit_card + " " + html[len(html) / 2 :]
+        html = html[: len(html) // 2] + " " + credit_card + " " + html[len(html) // 2 :]
 
         url = URL("http://www.w3af.com/")
         headers = Headers([("content-type", "text/html")])

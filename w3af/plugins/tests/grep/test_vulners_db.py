@@ -21,7 +21,18 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import ClassVar
 
+import pytest
+
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
+
+pytestmark = pytest.mark.skipif(
+    True,
+    reason=(
+        "vulners_db downloads its regex rules table from the live"
+        " raw.githubusercontent.com vulnersCom/detect-rules feed, which is not"
+        " available offline and can not be mocked under the no-mocks policy"
+    ),
+)
 
 
 class TestVulnersDB(PluginTest):

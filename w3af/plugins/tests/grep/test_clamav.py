@@ -24,17 +24,46 @@ import base64
 import unittest
 from typing import ClassVar
 
-from clamav_client.clamd import ClamdNetworkSocket, ClamdUnixSocket
+import pytest
+from clamav_client.clamd import ClamdError, ClamdNetworkSocket, ClamdUnixSocket
 
 import w3af.core.data.kb.knowledge_base as kb
-from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.controllers.threads.threadpool import Pool
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.plugins.grep.clamav import ScanResult, clamav
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
+
+# The EICAR anti-malware test string, stored base64 encoded so this test file
+# itself never contains the literal signature (which would trip host AV).
+EICAR = base64.b64decode(
+    "WDVPIVAlQEFQWzRcUFpYNTQoUF4pN0NDKTd9JEVJQ0FSLVNUQU5EQVJELUFOVElWSVJVUy1URVNU"
+    "LUZJTEUhJEgrSCo="
+).decode("latin-1")
+
+
+def _clamd_available():
+    candidates = [
+        "/var/run/clamav/clamd.ctl",
+        "/opt/homebrew/var/run/clamav/clamd.sock",
+        "/tmp/clamd.socket",
+    ]
+    for path in candidates:
+        try:
+            if ClamdUnixSocket(path).ping():
+                return True
+        except (ClamdError, OSError):
+            continue
+    try:
+        return bool(ClamdNetworkSocket("127.0.0.1", 3310).ping())
+    except (ClamdError, OSError):
+        return False
+
+
+CLAMD_AVAILABLE = _clamd_available()
+CLAMD_REASON = "The ClamAV clamd daemon is not running"
 
 
 class TestClamAV(unittest.TestCase):
@@ -50,11 +79,9 @@ class TestClamAV(unittest.TestCase):
     def tearDown(self):
         self.plugin.end()
 
+    @pytest.mark.skipif(not CLAMD_AVAILABLE, reason=CLAMD_REASON)
     def test_clamav_eicar(self):
-        body = base64.b64decode(
-            "WDVPIVAlQEFQWzRcUFpYNTQoUF4pN0NDKTd9JEVJQ0FSLVNUQU5EQVJELUFOVElWSVJVUy1URVNU"
-            "LUZJTEUhJEgrSCo="
-        ).decode("latin-1")
+        body = EICAR
         url = URL("http://www.w3af.com/")
         headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, url, url, _id=1)
@@ -142,9 +169,27 @@ class TestClamAV(unittest.TestCase):
         self.assertEqual(clean, ScanResult(False, None))
 
 
+@pytest.mark.skipif(not CLAMD_AVAILABLE, reason=CLAMD_REASON)
 class TestClamAVScan(PluginTest):
 
-    target_url = get_moth_http("/grep/clamav/")
+    target_url = "http://mock/grep/clamav/"
+
+    INDEX = (
+        "<html><body>"
+        '<a href="eicar.com.txt">1</a>'
+        '<a href="eicar.com">2</a>'
+        '<a href="eicarcom2.zip">3</a>'
+        '<a href="eicar_com.zip">4</a>'
+        "</body></html>"
+    )
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse("http://mock/grep/clamav/", body=INDEX, method="GET"),
+        MockResponse("http://mock/grep/clamav/eicar.com.txt", body=EICAR),
+        MockResponse("http://mock/grep/clamav/eicar.com", body=EICAR),
+        MockResponse("http://mock/grep/clamav/eicarcom2.zip", body=EICAR),
+        MockResponse("http://mock/grep/clamav/eicar_com.zip", body=EICAR),
+    ]
 
     _run_configs: ClassVar[dict] = {
         "cfg": {

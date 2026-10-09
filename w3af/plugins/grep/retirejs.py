@@ -163,6 +163,12 @@ class retirejs(GrepPlugin):
 
         :return: None
         """
+        if not self._batch:
+            return
+
+        if not self._retirejs_is_installed():
+            return
+
         self._analyze_batch(self._batch)
         self._remove_batch(self._batch)
         self._batch = []
@@ -265,7 +271,7 @@ class retirejs(GrepPlugin):
         with tempfile.NamedTemporaryFile(
             prefix="retirejs-check-", suffix=".js", delete=False, dir=get_temp_dir()
         ) as check_file:
-            check_file.write("")
+            check_file.write(b"")
 
         with tempfile.NamedTemporaryFile(
             prefix="retirejs-output-", suffix=".json", delete=False, dir=get_temp_dir()
@@ -275,7 +281,13 @@ class retirejs(GrepPlugin):
         args = (output_file.name, check_file.name)
         cmd = self.RETIRE_CMD % args
 
-        process = run_process(shlex.split(cmd), stdout=DEVNULL, stderr=DEVNULL)
+        try:
+            process = run_process(shlex.split(cmd), stdout=DEVNULL, stderr=DEVNULL)
+        except ExecutableNotFoundError:
+            self._remove_file(output_file.name)
+            self._remove_file(check_file.name)
+            om.out.error("retire.js is not installed. Disabling grep.retirejs plugin.")
+            return False
 
         self._remove_file(output_file.name)
         self._remove_file(check_file.name)

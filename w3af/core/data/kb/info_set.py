@@ -151,10 +151,13 @@ class InfoSet:
         if self.TEMPLATE is None:
             return self.first_info.get_desc(with_id=with_id)
 
-        # We render the template using the information set data
+        # We render the template using the information set data. The URL and
+        # URI lists are sorted so the rendered description is deterministic,
+        # regardless of the order in which the grep plugins processed the
+        # responses (which is not guaranteed when the scan uses threads).
         context = {
-            "urls": [smart_unicode(u) for u in self.get_urls()],
-            "uris": [smart_unicode(u) for u in self.get_uris()],
+            "urls": sorted(smart_unicode(u) for u in self.get_urls()),
+            "uris": sorted(smart_unicode(u) for u in self.get_uris()),
             "severity": self.get_severity(),
             "name": self.get_name(),
             "id": self.get_id(),

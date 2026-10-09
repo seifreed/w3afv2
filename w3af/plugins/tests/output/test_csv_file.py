@@ -23,9 +23,10 @@ import contextlib
 import csv
 import json
 import os
+import re
+import urllib.parse
 from typing import ClassVar
 
-from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.dc.urlencoded_form import URLEncodedForm
 from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
@@ -33,14 +34,31 @@ from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
 from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
+
+
+def reflect_xss(mock_response, request, uri, response_headers):
+    """Reflect the `text` parameter unescaped, emulating a reflected XSS."""
+    response_headers["content-type"] = "text/html"
+    query = urllib.parse.urlsplit(request.uri).query
+    text = urllib.parse.parse_qs(query).get("text", [""])[0]
+    body = f"<html><body>You searched for: {text}</body></html>"
+    return 200, response_headers, body
 
 
 class TestCSVFile(PluginTest):
 
     OUTPUT_FILE = "output-unittest.csv"
 
-    target_url = get_moth_http("/audit/xss/simple_xss.py?text=1")
+    target_url = "http://mock/audit/xss/simple_xss.py?text=1"
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(
+            re.compile(r"http://mock/audit/xss/simple_xss\.py.*"),
+            body=reflect_xss,
+            method="GET",
+        ),
+    ]
 
     _run_configs: ClassVar[dict] = {
         "cfg": {
@@ -91,7 +109,7 @@ class TestCSVFile(PluginTest):
 
     def _from_csv_get_vulns(self):
         file_vulns = []
-        with open(self.OUTPUT_FILE, "rb") as csv_fd:
+        with open(self.OUTPUT_FILE, newline="") as csv_fd:
             vuln_reader = csv.reader(
                 csv_fd,
                 delimiter=",",
