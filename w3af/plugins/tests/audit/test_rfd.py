@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import re
 from typing import ClassVar
 
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
@@ -41,6 +42,13 @@ class TestJSONAllFiltered(PluginTest):
     target_url = "http://json-all-filtered/?q=rfd"
 
     MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(
+            url="http://json-all-filtered/?q=rfd",
+            body='{"q": "rfd"}',
+            content_type="text/json",
+            method="GET",
+            status=200,
+        ),
         MockResponse(
             url="http://json-all-filtered/%3B/w3af.cmd%3B/" "w3af.cmd?q=rfd",
             body='message "w3afExecToken"',
@@ -78,6 +86,13 @@ class TestJSON(PluginTest):
 
     MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
+            url="http://json/?q=rfd",
+            body='{"q": "rfd"}',
+            content_type="text/json",
+            method="GET",
+            status=200,
+        ),
+        MockResponse(
             url="http://json/%3B/w3af.cmd%3B/w3af.cmd?q=rfd",
             body='message "w3afExecToken"',
             content_type="text/json",
@@ -112,6 +127,13 @@ class TestJSONDobleQuotesFiltered(PluginTest):
     target_url = "http://json-filtered/?q=rfd"
 
     MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(
+            url="http://json-filtered/?q=rfd",
+            body='{"q": "rfd"}',
+            content_type="text/json",
+            method="GET",
+            status=200,
+        ),
         MockResponse(
             url="http://json-filtered/%3B/w3af.cmd%3B/w3af.cmd?q=rfd",
             body='message "w3afExecToken"',
@@ -149,6 +171,13 @@ class TestJSONP(PluginTest):
 
     MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
+            url="http://jsonp/?callback=rfd",
+            body='{"q": "rfd"}',
+            content_type="application/javascript",
+            method="GET",
+            status=200,
+        ),
+        MockResponse(
             url="http://jsonp/%3B/w3af.cmd%3B/w3af.cmd?callback" "=rfd",
             body='    rfd({ "Result": ' '{ "Timestamp": 1417601045 } }) ',
             content_type="application/javascript",
@@ -169,3 +198,40 @@ class TestJSONP(PluginTest):
         self._scan(self.target_url, cfg["plugins"])
         vulns = self.kb.get("rfd", "rfd")
         self.assertEqual(1, len(vulns))
+
+
+class TestRFDContentDispositionFilename(PluginTest):
+
+    target_url = "http://download/?q=rfd"
+
+    def responder(self, mock_response, request, uri, response_headers):
+        response_headers["Content-Type"] = "text/json"
+        response_headers["Content-Disposition"] = 'attachment; filename="safe.json"'
+        return 200, response_headers, '{"q": "rfd"}'
+
+    def setUp(self):
+        self.MOCK_RESPONSES = [
+            MockResponse(re.compile("http://download/.*"), self.responder)
+        ]
+        super().setUp()
+
+    def test_filename_disables_rfd(self):
+        self._scan(self.target_url, RUN_CONFIG["cfg"]["plugins"])
+        self.assertEqual([], self.kb.get("rfd", "rfd"))
+
+
+class TestRFDNotVulnerableContentType(PluginTest):
+
+    target_url = "http://html/?q=rfd"
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(
+            re.compile("http://html/.*"),
+            body="<html>rfd</html>",
+            content_type="text/html",
+        ),
+    ]
+
+    def test_html_disables_rfd(self):
+        self._scan(self.target_url, RUN_CONFIG["cfg"]["plugins"])
+        self.assertEqual([], self.kb.get("rfd", "rfd"))
