@@ -29,7 +29,6 @@ from functools import wraps
 
 from tldextract import TLDExtract
 
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.misc.is_ip_address import is_ip_address
 from w3af.core.data.constants.encodings import DEFAULT_ENCODING
 from w3af.core.data.db.disk_item import DiskItem
@@ -39,6 +38,7 @@ from w3af.core.data.misc.encoding import (
     is_known_encoding,
     smart_unicode,
 )
+from w3af.core.exceptions import BaseFrameworkException
 
 
 def set_changed(meth):

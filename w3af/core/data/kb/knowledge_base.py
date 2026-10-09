@@ -22,12 +22,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import copy
 import functools
+import logging
 import pickle
 import threading
 from collections.abc import Iterable
 
-# pylint: enable=E0401
-import w3af.core.controllers.output_manager as om
 from w3af.core.data.constants.severity import HIGH, INFORMATION, LOW, MEDIUM
 from w3af.core.data.db.dbms import get_default_persistent_db_instance
 from w3af.core.data.db.disk_set import DiskSet
@@ -43,6 +42,8 @@ from w3af.core.data.misc.cpickle_dumps import cpickle_dumps
 from w3af.core.data.misc.lru import SynchronizedLRUDict
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
+
+LOGGER = logging.getLogger(__name__)
 
 
 class BasicKnowledgeBase:
@@ -152,7 +153,7 @@ class BasicKnowledgeBase:
                 info_inst.get_token_name(),
                 info_inst.get_url(),
             )
-            om.out.debug(msg % args)
+            LOGGER.debug(msg, *args)
 
             return False
 

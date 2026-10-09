@@ -22,7 +22,8 @@ vendorizado requieren una revisión separada antes de cerrar la puntuación.
 ### Dependencias entre capas
 
 - El árbol contiene carpetas que sugieren capas, pero `w3af.core.data` importa
-  controladores, UI y plugins desde 115 archivos (205 coincidencias de import).
+  controladores desde 113 archivos (179 coincidencias de import); esto acopla
+  datos/dominio con detalles de aplicación e infraestructura.
   Esto acopla datos/dominio con detalles de aplicación e infraestructura.
 - Los módulos `w3af/core/data/kb/shell.py`, `read_shell.py` y `exec_shell.py`
   conocen payload handlers, output manager, controladores y plugins. La
@@ -45,9 +46,17 @@ vendorizado requieren una revisión separada antes de cerrar la puntuación.
 
 ### Calidad y verificabilidad
 
-- El análisis inicial de Ruff registró 5796 hallazgos en el repositorio. El
-  control de formato Black pasó en la revisión anterior, pero eso no compensa
-  errores estáticos ni demuestra mantenibilidad.
+- El gate global de Black pasa: 1967 archivos sin cambios requeridos.
+- Ruff global falla con 1260 hallazgos, dominados por nombres indefinidos
+  (645), `except` desnudos (222) y usos de imports estrella (89).
+- Mypy global falla con errores de imports, nombres y tipos en código propio y
+  en el vendor de sqlmap.
+- Bandit global falla y recorrió 2,256,458 líneas, incluyendo `venv` y código
+  vendorizado: 15,358 hallazgos Low, 966 Medium y 787 High. El output incluye
+  warnings del parser, y encontró 16 `# nosec` y 23 hallazgos deshabilitados,
+  incompatibles con la política del proyecto.
+- `pip-audit` no encontró vulnerabilidades conocidas; mostró warnings al leer
+  su caché local.
 - El conjunto de pruebas del gestor de plugins depende del ejecutable externo
   `retire`; en este entorno, dos pruebas fallan cuando no está instalado.
 - La cobertura observada en el módulo de plugins era 85% antes de este avance.
@@ -87,17 +96,18 @@ vendorizado requieren una revisión separada antes de cerrar la puntuación.
 ## Revisión actualizada
 
 La puntuación global permanece en **2.5/10** (Clean Code 3/10, Clean Architecture
-2/10). El traslado de las excepciones DB mejora una frontera concreta, pero
-`core.data` todavía importa ampliamente desde `controllers`; los gates globales
-no se han completado y quedan defectos funcionales abiertos.
+2/10). Se trasladaron errores DB a la capa de datos, el parser URL y la KB
+perdieron dos dependencias concretas de `controllers`, y los contratos Python 3
+se corrigieron. Aún así, `core.data` importa ampliamente desde `controllers` y
+las gates globales Ruff/mypy/Bandit fallan.
 
 En las suites integradas de URL, DB, histórico y KB: **203 pasaron, 3 fueron
 omitidas y no hubo fallos**. El archivo URL pasa con 113 pruebas y 2 omitidas;
 las pruebas de caché, query strings, shell IDs y RFI también pasan en conjunto.
 Persisten dos warnings de dependencias `ldap3/pyasn1`; no se suprimieron.
 
-Esta verificación no cubre el repositorio entero. Siguen pendientes las gates
-globales de Ruff/mypy/Bandit/pip-audit, la cobertura completa y las pruebas que
+Esta verificación no cubre la suite completa ni acredita cobertura global del
+100%. Quedan los defectos de lint/tipos/seguridad, y pruebas de plugins que
 requieren el ejecutable externo `retire`.
 
 ## Prioridades de refactor
