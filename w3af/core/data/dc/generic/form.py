@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from typing import ClassVar
+
 from w3af.core.data.dc.generic.kv_container import KeyValueContainer
 from w3af.core.data.dc.utils.token import DataToken
 from w3af.core.data.fuzzer.form_filler import smart_fill, smart_fill_file
@@ -41,8 +43,12 @@ class Form(KeyValueContainer):
              Javier Andalia (jandalia =at= gmail.com)
     """
 
-    AVOID_FILLING_FORM_TYPES = {"checkbox", "radio", "select"}
-    AVOID_STR_DUPLICATES = {INPUT_TYPE_CHECKBOX, INPUT_TYPE_RADIO, INPUT_TYPE_SELECT}
+    AVOID_FILLING_FORM_TYPES: ClassVar[frozenset[str]] = frozenset(
+        {"checkbox", "radio", "select"}
+    )
+    AVOID_STR_DUPLICATES: ClassVar[frozenset[str]] = frozenset(
+        {INPUT_TYPE_CHECKBOX, INPUT_TYPE_RADIO, INPUT_TYPE_SELECT}
+    )
 
     def __init__(self, form_params=None):
         """
@@ -222,7 +228,7 @@ class Form(KeyValueContainer):
         """
         assert self.is_login_form(), "Login form is required"
 
-        text, passwd, other = self.get_parameter_type_count()
+        text, _passwd, _other = self.get_parameter_type_count()
         assert text == 1, "Login form with username is required"
 
         for k, v, path, setter in self.iter_setters():

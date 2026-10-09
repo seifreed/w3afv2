@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import string
 
-from w3af.core.data.misc.encoding import smart_str_ignore
+from w3af.core.data.misc.encoding import smart_unicode
 
 NON_PRINTABLE_REPLACE = "."
 
@@ -34,7 +34,7 @@ def is_printable_chr(c):
 def filter_non_printable(_str):
     chars = []
 
-    for c in smart_str_ignore(_str):
+    for c in smart_unicode(_str, errors="ignore", on_error_guess=False):
         if is_printable_chr(c):
             chars.append(c)
         else:

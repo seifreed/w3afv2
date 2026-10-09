@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from xml.sax import SAXException
+
 from w3af.core.data.constants.encodings import UTF8
 from w3af.core.data.dc.generic.kv_container import KeyValueContainer
 from w3af.core.data.parsers.doc.xmlrpc import build_xmlrpc, parse_xmlrpc
@@ -76,8 +78,8 @@ class XmlRpcContainer(KeyValueContainer):
         """
         try:
             read_handler = parse_xmlrpc(xml_post_data)
-        except:
-            raise ValueError(ERR_MSG % xml_post_data[:50])
+        except (SAXException, TypeError) as error:
+            raise ValueError(ERR_MSG % xml_post_data[:50]) from error
         else:
             # Tried to do this with self.update but it was failing :S
             for k, v in list(read_handler.get_data_container().items()):

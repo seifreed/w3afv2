@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import json
+from types import MappingProxyType
 
 from w3af.core.data.constants.encodings import UTF8
 from w3af.core.data.dc.generic.data_container import DataContainer
@@ -42,7 +43,7 @@ class JSONContainer(DataContainer):
     """
 
     JSON_CONTENT_TYPE = "application/json"
-    DEFAULT_HEADERS = {"Content-Type": JSON_CONTENT_TYPE}
+    DEFAULT_HEADERS = MappingProxyType({"Content-Type": JSON_CONTENT_TYPE})
 
     def __init__(self, json_post_data, headers=None, encoding=UTF8):
         """
@@ -65,7 +66,7 @@ class JSONContainer(DataContainer):
 
         self._headers = headers
         if self._headers is None:
-            self._headers = JSONContainer.DEFAULT_HEADERS.copy()
+            self._headers = dict(JSONContainer.DEFAULT_HEADERS)
 
         self.parse_json(json_post_data)
 
@@ -88,7 +89,7 @@ class JSONContainer(DataContainer):
     def is_json(post_data):
         try:
             json.loads(post_data)
-        except:
+        except (TypeError, ValueError):
             return False
         else:
             return True
@@ -108,8 +109,8 @@ class JSONContainer(DataContainer):
         try:
             self._json = JSONContainer.get_mutable_json(json_post_data)
             self._raw_json = json_post_data
-        except:
-            raise ValueError(ERR_MSG % json_post_data[:50])
+        except (TypeError, ValueError) as error:
+            raise ValueError(ERR_MSG % json_post_data[:50]) from error
 
     @classmethod
     def from_postdata(cls, headers, post_data):
@@ -135,10 +136,7 @@ class JSONContainer(DataContainer):
         if token_value is None:
             return True
 
-        if isinstance(token_value, str):
-            return True
-
-        return False
+        return isinstance(token_value, str)
 
     def iter_setters(self):
         """

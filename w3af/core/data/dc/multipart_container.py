@@ -48,7 +48,7 @@ class MultipartContainer(Form):
 
     @staticmethod
     def content_type_matches(headers):
-        conttype, header_name = headers.iget("content-type", "")
+        conttype, _header_name = headers.iget("content-type", "")
         return conttype.lower().startswith("multipart/form-data")
 
     @classmethod

@@ -26,7 +26,12 @@ from itertools import chain, zip_longest
 from w3af.core.data.constants.encodings import UTF8
 from w3af.core.data.db.disk_item import DiskItem
 from w3af.core.data.dc.utils.token import DataToken
-from w3af.core.data.misc.encoding import smart_str_ignore
+from w3af.core.data.misc.encoding import smart_unicode
+
+
+def token_path_repr(path):
+    parts = ", ".join(smart_unicode(part, errors="ignore") for part in path)
+    return f"({parts})"
 
 
 class DataContainer(DiskItem):
@@ -113,11 +118,8 @@ class DataContainer(DiskItem):
 
                 return token
 
-        path_str = lambda path: "({})".format(
-            ", ".join([smart_str_ignore(i) for i in path])
-        )
-        ppath = path_str(token_path)
-        vpath = " - ".join([path_str(p) for _, _, p, _ in self.iter_setters()])
+        ppath = token_path_repr(token_path)
+        vpath = " - ".join(token_path_repr(p) for _, _, p, _ in self.iter_setters())
 
         if vpath:
             msg = 'Invalid token path "%s". Valid paths are: %s'

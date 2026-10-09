@@ -118,7 +118,7 @@ class Headers(NonRepeatKeyValueContainer):
         :param header_name: The header name to check (case insensitive)
         :return: True if the header name exists in this headers set
         """
-        value, stored_header_name = self.iget(header_name)
+        value, _stored_header_name = self.iget(header_name)
         return value is not None
 
     def getheaders(self, header_name):
@@ -131,7 +131,7 @@ class Headers(NonRepeatKeyValueContainer):
         :param header_name: The header name to query
         :return: A list with the header values
         """
-        header_value, stored_header_name = self.iget(header_name)
+        header_value, _stored_header_name = self.iget(header_name)
         if header_value is None:
             return []
 
@@ -149,7 +149,7 @@ class Headers(NonRepeatKeyValueContainer):
         if isinstance(k, str):
             k = smart_unicode(k, encoding=self.encoding)
         else:
-            raise ValueError("Header name must be a string.")
+            raise TypeError("Header name must be a string.")
 
         if isinstance(v, str):
             v = smart_unicode(v, encoding=self.encoding)
@@ -157,7 +157,7 @@ class Headers(NonRepeatKeyValueContainer):
             encoded_str = smart_unicode(v.get_value(), encoding=self.encoding)
             v.set_value(encoded_str)
         else:
-            raise ValueError("Header value must be a string.")
+            raise TypeError("Header value must be a string.")
 
         super().__setitem__(k, v)
 

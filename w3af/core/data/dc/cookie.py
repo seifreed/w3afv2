@@ -99,10 +99,7 @@ class Cookie(KeyValueContainer):
         # delete everything that the browsers usually keep to themselves, since
         # this cookie object is the one we're going to send to the wire
         #
-        for key in ["path", "expires", "domain", "max-age"]:
-            try:
-                del cookie_inst[key]
-            except:
-                pass
+        for key in ("path", "expires", "domain", "max-age"):
+            cookie_inst.pop(key, None)
 
         return cookie_inst
