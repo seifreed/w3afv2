@@ -19,8 +19,10 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import contextlib
 import json
 import os
+from typing import ClassVar
 
 import pytest
 
@@ -37,7 +39,7 @@ class TestJsonOutput(PluginTest):
 
     FILENAME = "output-unittest.json"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url + "?id=3",
             "plugins": {
@@ -61,25 +63,26 @@ class TestJsonOutput(PluginTest):
         self.assertEqual(len(kb_vulns), 1, kb_vulns)
 
         self.assertEqual(
-            set(sorted([v.get_url() for v in kb_vulns])),
-            set(sorted([v.get_url() for v in file_vulns])),
-            set(sorted([v.get_url() for v in kb_vulns])),
+            {v.get_url() for v in kb_vulns},
+            {v.get_url() for v in file_vulns},
+            {v.get_url() for v in kb_vulns},
         )
 
         self.assertEqual(
-            set(sorted([v.get_name() for v in kb_vulns])),
-            set(sorted([v.get_name() for v in file_vulns])),
-            set(sorted([v.get_name() for v in kb_vulns])),
+            {v.get_name() for v in kb_vulns},
+            {v.get_name() for v in file_vulns},
+            {v.get_name() for v in kb_vulns},
         )
 
         self.assertEqual(
-            set(sorted([v.get_plugin_name() for v in kb_vulns])),
-            set(sorted([v.get_plugin_name() for v in file_vulns])),
-            set(sorted([v.get_plugin_name() for v in kb_vulns])),
+            {v.get_plugin_name() for v in kb_vulns},
+            {v.get_plugin_name() for v in file_vulns},
+            {v.get_plugin_name() for v in kb_vulns},
         )
 
     def _from_json_get_vulns(self, filename):
-        json_data = json.load(open(filename, "r"))
+        with open(filename) as json_fd:
+            json_data = json.load(json_fd)
         vulns = []
 
         for finding in json_data["items"]:
@@ -92,9 +95,6 @@ class TestJsonOutput(PluginTest):
 
     def tearDown(self):
         super().tearDown()
-        try:
+        with contextlib.suppress(OSError):
             os.remove(self.FILENAME)
-        except:
-            pass
-        finally:
-            self.kb.cleanup()
+        self.kb.cleanup()

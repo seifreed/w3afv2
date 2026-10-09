@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 
@@ -26,7 +28,7 @@ class TestDWSyncXML(PluginTest):
 
     target_url = "http://mock"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {"crawl": (PluginConfig("dwsync_xml"),)},
@@ -41,7 +43,7 @@ class TestDWSyncXML(PluginTest):
         "</dwsync>"
     )
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse("http://mock/_notes/dwsync.xml", DWSYNC),
         MockResponse("http://mock/secret/", "Secret directory"),
     ]
@@ -60,6 +62,6 @@ class TestDWSyncXML(PluginTest):
         urls = self.kb.get_all_known_urls()
 
         self.assertEqual(
-            set(str(u) for u in urls),
-            set((self.target_url + end) for end in expected_urls),
+            {str(u) for u in urls},
+            {(self.target_url + end) for end in expected_urls},
         )

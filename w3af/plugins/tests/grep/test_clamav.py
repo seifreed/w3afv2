@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import base64
 import unittest
+from typing import ClassVar
 
 from clamav_client.clamd import ClamdNetworkSocket, ClamdUnixSocket
 
@@ -145,7 +146,7 @@ class TestClamAVScan(PluginTest):
 
     target_url = get_moth_http("/grep/clamav/")
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {

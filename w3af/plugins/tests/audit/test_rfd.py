@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 RUN_CONFIG = {
@@ -38,7 +40,7 @@ class TestJSONAllFiltered(PluginTest):
 
     target_url = "http://json-all-filtered/?q=rfd"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url="http://json-all-filtered/%3B/w3af.cmd%3B/" "w3af.cmd?q=rfd",
             body='message "w3afExecToken"',
@@ -74,7 +76,7 @@ class TestJSON(PluginTest):
 
     target_url = "http://json/?q=rfd"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url="http://json/%3B/w3af.cmd%3B/w3af.cmd?q=rfd",
             body='message "w3afExecToken"',
@@ -109,7 +111,7 @@ class TestJSONDobleQuotesFiltered(PluginTest):
 
     target_url = "http://json-filtered/?q=rfd"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url="http://json-filtered/%3B/w3af.cmd%3B/w3af.cmd?q=rfd",
             body='message "w3afExecToken"',
@@ -145,7 +147,7 @@ class TestJSONP(PluginTest):
 
     target_url = "http://jsonp/?callback=rfd"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url="http://jsonp/%3B/w3af.cmd%3B/w3af.cmd?callback" "=rfd",
             body='    rfd({ "Result": ' '{ "Timestamp": 1417601045 } }) ',

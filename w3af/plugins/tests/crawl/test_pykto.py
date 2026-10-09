@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 import re
 import unittest
+from typing import ClassVar
 
 import pytest
 
@@ -41,7 +42,7 @@ class TestPykto(PluginTest):
         ROOT_PATH, "plugins", "tests", "crawl", "pykto", "scan_database.db"
     )
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": base_url,
             "plugins": {
@@ -217,7 +218,7 @@ class TestNiktoTestParser(PluginTest):
         self.assertEqual(nikto_test.headers, "")
 
         generator = nikto_parser.test_generator()
-        cart32_test_from_db = [i for (i,) in generator if i.id == "000003"][0]
+        cart32_test_from_db = next(i for (i,) in generator if i.id == "000003")
 
         self.assertEqual(cart32_test_from_db.uri, nikto_test.uri)
         self.assertEqual(cart32_test_from_db.match_1, nikto_test.match_1)

@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.plugins.attack.payloads.payload_handler import exec_payload
 from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
     PayloadTestHelper,
@@ -27,7 +29,7 @@ from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
 
 class TestApacheConfigDirectory(PayloadTestHelper):
 
-    EXPECTED_RESULT = {"apache_directory": []}
+    EXPECTED_RESULT: ClassVar[dict] = {"apache_directory": []}
 
     def test_apache_config_directory(self):
         result = exec_payload(self.shell, "apache_config_directory", use_api=True)

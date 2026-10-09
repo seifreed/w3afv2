@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 import pytest
 
 from w3af.plugins.attack.payloads.payload_handler import exec_payload
@@ -30,7 +32,7 @@ from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
 @pytest.mark.smoke
 class test_cpu_info(PayloadTestHelper):
 
-    EXPECTED_RESULT = {
+    EXPECTED_RESULT: ClassVar[dict] = {
         "cpu_cores": "1",
         "cpu_info": "AMD Phenom(tm) II X4 945 Processor",
     }

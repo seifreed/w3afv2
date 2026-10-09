@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
 from unittest.mock import patch
 
 import pytest
@@ -34,7 +35,7 @@ class TestEmailReport(PluginTest):
     to_addrs = "w3af@mailinator.com"
     from_addr = "w3af@gmail.com"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {
@@ -75,7 +76,7 @@ class TestEmailReport(PluginTest):
 
         class DummySMTP:
             def __init__(self):
-                smtp = self
+                pass
 
             def login(self, username, password):
                 self.username = username

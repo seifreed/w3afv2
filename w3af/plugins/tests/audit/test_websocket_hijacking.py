@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.core.data.kb.info import Info
 from w3af.core.data.parsers.doc.url import URL
 from w3af.plugins.grep.websockets_links import WebSocketInfoSet
@@ -88,7 +90,7 @@ class OpenWebSocketsTest(WebSocketTest):
     target_url = "http://websocket.com/service"
     target_ws = "ws://websocket.com/service"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url=target_url,
             body="",
@@ -107,7 +109,7 @@ class NoWebSocketTest(WebSocketTest):
     target_url = "http://websocket.com/service"
     target_ws = "ws://websocket.com/service"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(url=target_url, body="Hi there", method="GET", status=200)
     ]
 
@@ -123,12 +125,9 @@ class OriginMatchBugTest(WebSocketTest):
     class OriginMatchBugMock(MockResponse):
         def matches(self, http_request, uri, response_headers):
             origin = http_request.headers.get("origin", "")
-            if origin.startswith(OriginMatchBugTest.target_url):
-                return True
+            return bool(origin.startswith(OriginMatchBugTest.target_url))
 
-            return False
-
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         OriginMatchBugMock(
             url=target_url,
             body="",
@@ -150,12 +149,9 @@ class OriginMatchTest(WebSocketTest):
     class OriginMatchMock(MockResponse):
         def matches(self, http_request, uri, response_headers):
             origin = http_request.headers.get("origin", "")
-            if origin == OriginMatchBugTest.target_url:
-                return True
+            return origin == OriginMatchBugTest.target_url
 
-            return False
-
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         OriginMatchMock(
             url=target_url,
             body="",
@@ -177,12 +173,9 @@ class BasicAuthWebSocketTest(WebSocketTest):
     class BasicAuthMock(MockResponse):
         def matches(self, http_request, uri, response_headers):
             authorization = http_request.headers.get("authorization", "")
-            if authorization:
-                return True
+            return bool(authorization)
 
-            return False
-
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         BasicAuthMock(
             url=target_url,
             body="",
@@ -221,7 +214,7 @@ class CookieAuthWebSocketTest(WebSocketTest):
         def matches(self, http_request, uri, response_headers):
             return True
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         CookieAuthMock(url=target_url, body=None, method="GET", status=None)
     ]
 
@@ -250,7 +243,7 @@ class OpenWebSocketsWithCrawlTest(WebSocketTest):
         "</html>"
     )
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(url=target_url, body=INDEX_BODY, method="GET", status=200),
         MockResponse(
             url=target_url + "ws-index", body=WS_BODY, method="GET", status=200

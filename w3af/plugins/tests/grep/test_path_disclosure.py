@@ -25,8 +25,8 @@ import unittest
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.request.fuzzable_request import FuzzableRequest as FuzzableRequest
-from w3af.core.data.url.http_response import HTTPResponse as HTTPResponse
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.data.url.http_response import HTTPResponse
 from w3af.plugins.grep.path_disclosure import path_disclosure
 
 
@@ -66,9 +66,9 @@ class TestPathDisclosure(unittest.TestCase):
     def test_path_disclosure_false_positive_6640(self):
         # see: https://github.com/andresriancho/w3af/issues/6640
         path = "/media/js/spotlight.js"
-        kb.kb.add_url(URL("http://mock%s" % path))
+        kb.kb.add_url(URL(f"http://mock{path}"))
 
-        res = self._create_response("header %s footer" % path)
+        res = self._create_response(f"header {path} footer")
         self.plugin.grep(self.request, res)
 
         infos = kb.kb.get("path_disclosure", "path_disclosure")

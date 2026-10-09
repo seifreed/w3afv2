@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
+from typing import ClassVar
 
 import pytest
 
@@ -38,7 +39,7 @@ from w3af.plugins.tests.helper import PluginConfig, PluginTest
 class TestCrossDomainJS(PluginTest):
     target_url = get_moth_http("/grep/cross_domain_js/")
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {
@@ -60,12 +61,12 @@ class TestCrossDomainJS(PluginTest):
         self.assertEqual(2, len(info_sets), info_sets)
 
         self.assertEqual(
-            set([i.get_attribute("domain") for i in info_sets]),
+            {i.get_attribute("domain") for i in info_sets},
             {"moth", "www.w3af.org"},
         )
 
         self.assertEqual(
-            set([i.get_name() for i in info_sets]), {"Cross-domain javascript source"}
+            {i.get_name() for i in info_sets}, {"Cross-domain javascript source"}
         )
 
         all_files = {

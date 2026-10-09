@@ -19,8 +19,10 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import pytest
+from typing import ClassVar
 from unittest import SkipTest
+
+import pytest
 
 from w3af.plugins.attack.payloads.payload_handler import exec_payload
 from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
@@ -30,7 +32,7 @@ from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
 
 class test_dhcp_config_files(PayloadTestHelper):
 
-    EXPECTED_RESULT = {}
+    EXPECTED_RESULT: ClassVar[dict] = {}
 
     def test_dhcp_config_files(self):
         result = exec_payload(self.shell, "dhcp_config_files", use_api=True)

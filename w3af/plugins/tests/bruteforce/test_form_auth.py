@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 import random
+from typing import ClassVar
 
 import pytest
 
@@ -36,7 +37,7 @@ class GenericFormAuthTest(PluginTest):
     small_users_positive = os.path.join(BASE_PATH, "small-users-positive.txt")
     small_passwords = os.path.join(BASE_PATH, "small-passwords.txt")
 
-    basic_config = {
+    basic_config: ClassVar[dict] = {
         "crawl": (
             PluginConfig(
                 "web_spider",
@@ -65,7 +66,7 @@ class FormAuthTest(GenericFormAuthTest):
 
     target_web_spider_url = get_moth_http("/bruteforce/form/")
 
-    negative_test = {
+    negative_test: ClassVar[dict] = {
         "crawl": (
             PluginConfig(
                 "web_spider",
@@ -167,7 +168,7 @@ class TestFormAuthFailedLoginMatchTrivial(GenericFormAuthTest):
 
         return 200, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url=target_url,
             body=FORM,
@@ -224,7 +225,7 @@ class TestFormAuthFailedLoginMatchWithStaticLargeResponse(GenericFormAuthTest):
         klass = TestFormAuthFailedLoginMatchWithStaticLargeResponse
 
         if username == "admin" and password == "admin":
-            body = "%s\n%s\n%s" % (
+            body = "{}\n{}\n{}".format(
                 klass.HEADER,
                 'Success, redirecting to the home page... <a href="/home">home<a>',
                 klass.FOOTER,
@@ -234,7 +235,7 @@ class TestFormAuthFailedLoginMatchWithStaticLargeResponse(GenericFormAuthTest):
 
         return 200, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url=target_url,
             body=FORM,
@@ -291,21 +292,21 @@ class TestFormAuthFailedLoginMatchWithLargeRandomFailedResponse(GenericFormAuthT
         klass = TestFormAuthFailedLoginMatchWithLargeRandomFailedResponse
 
         if username == "admin" and password == "admin":
-            body = "%s\n%s\n%s" % (
+            body = "{}\n{}\n{}".format(
                 klass.HEADER,
                 'Success, redirecting to the home page... <a href="/home">home<a>',
                 klass.FOOTER,
             )
         else:
-            body = "%s\n%s\n%s" % (
+            body = "{}\n{}\n{}".format(
                 klass.HEADER,
-                "Invalid username / password %s" % random.randint(1, 10000),
+                f"Invalid username / password {random.randint(1, 10000)}",
                 klass.FOOTER,
             )
 
         return 200, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url=target_url,
             body=FORM,
@@ -369,15 +370,15 @@ class TestFormAuthFailedLoginMatchWithLargeRandomFailedResponseShortSuccess(
         if username == "admin" and password == "admin":
             body = "Success, redirecting"
         else:
-            body = "%s\n%s\n%s" % (
+            body = "{}\n{}\n{}".format(
                 klass.HEADER,
-                "Invalid username / password %s" % random.randint(1, 10000),
+                f"Invalid username / password {random.randint(1, 10000)}",
                 klass.FOOTER,
             )
 
         return 200, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url=target_url,
             body=FORM,
@@ -439,9 +440,9 @@ class TestFormAuthFailedLoginMatchWithCAPTCHA(GenericFormAuthTest):
 
         klass = TestFormAuthFailedLoginMatchWithLargeRandomFailedResponse
 
-        body = "%s\n%s\n%s" % (
+        body = "{}\n{}\n{}".format(
             klass.HEADER,
-            "Invalid username / password %s" % random.randint(1, 10000),
+            f"Invalid username / password {random.randint(1, 10000)}",
             klass.FOOTER,
         )
 
@@ -450,9 +451,9 @@ class TestFormAuthFailedLoginMatchWithCAPTCHA(GenericFormAuthTest):
             captcha_count += 1
 
             if captcha_count > 2:
-                body = "%s\n%s\n%s" % (
+                body = "{}\n{}\n{}".format(
                     klass.HEADER,
-                    "Now you need to complete a CAPTCHA %s" % random.randint(1, 10000),
+                    f"Now you need to complete a CAPTCHA {random.randint(1, 10000)}",
                     klass.FOOTER,
                 )
             else:
@@ -461,7 +462,7 @@ class TestFormAuthFailedLoginMatchWithCAPTCHA(GenericFormAuthTest):
 
         return 200, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url=target_url,
             body=FORM,

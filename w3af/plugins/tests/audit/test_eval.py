@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.core.controllers.ci.mcir import get_mcir_http
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.plugins.tests.helper import PluginConfig, PluginTest
@@ -29,7 +31,7 @@ class TestEval(PluginTest):
     target_echo = get_moth_http("/audit/eval_vuln/eval_double.py")
     target_delay = get_moth_http("/audit/eval_vuln/eval_blind.py")
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "echo": {
             "target": target_echo + "?text=1",
             "plugins": {
@@ -97,7 +99,7 @@ class TestPHPEchoEval(PluginTest):
         "&submit=Inject%21"
     )
 
-    config = {
+    config: ClassVar[dict] = {
         "audit": (
             PluginConfig(
                 "eval",
@@ -133,7 +135,7 @@ class TestPHPSleepEval(PluginTest):
         "&submit=Inject%21"
     )
 
-    config = {
+    config: ClassVar[dict] = {
         "audit": (
             PluginConfig(
                 "eval",

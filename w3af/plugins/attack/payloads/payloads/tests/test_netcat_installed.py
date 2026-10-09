@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.plugins.attack.payloads.payload_handler import exec_payload
 from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
     PayloadTestHelper,
@@ -27,13 +29,13 @@ from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
 
 class test_netcat_installed(PayloadTestHelper):
 
-    EXISTS_EXPECTED_RESULT = {
+    EXISTS_EXPECTED_RESULT: ClassVar[dict] = {
         "netcat_installed": True,
         "path": "/bin/netcat",
         "supports_shell_bind": False,
     }
 
-    NOTEXISTS_EXPECTED_RESULT = {
+    NOTEXISTS_EXPECTED_RESULT: ClassVar[dict] = {
         "netcat_installed": False,
         "path": None,
         "supports_shell_bind": False,

@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 import pytest
 
 from w3af.plugins.attack.payloads.payload_handler import exec_payload
@@ -29,7 +31,7 @@ from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
 
 class test_apache_htaccess(PayloadTestHelper):
 
-    EXPECTED_RESULT = {
+    EXPECTED_RESULT: ClassVar[dict] = {
         "htaccess_files": {
             "/var/www/.htaccess": "#Completely useless, just to be found by the apache_htaccess payload."
         }

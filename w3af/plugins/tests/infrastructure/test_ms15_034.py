@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 
@@ -26,14 +28,14 @@ class TestFindMS14_034(PluginTest):
 
     target_url = "http://httpretty/"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {"infrastructure": (PluginConfig("ms15_034"),)},
         }
     }
 
-    MOCK_RESPONSES = [MockResponse(target_url, "PASS", status=416)]
+    MOCK_RESPONSES: ClassVar[list] = [MockResponse(target_url, "PASS", status=416)]
 
     def test_vulnerable_host(self):
         cfg = self._run_configs["cfg"]
@@ -51,14 +53,14 @@ class TestNotFindMS14_034(PluginTest):
 
     target_url = "http://httpretty/"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {"infrastructure": (PluginConfig("ms15_034"),)},
         }
     }
 
-    MOCK_RESPONSES = [MockResponse(target_url, "PASS", status=415)]
+    MOCK_RESPONSES: ClassVar[list] = [MockResponse(target_url, "PASS", status=415)]
 
     def test_vulnerable_host(self):
         cfg = self._run_configs["cfg"]

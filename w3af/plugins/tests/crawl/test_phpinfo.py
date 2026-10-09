@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
+from pathlib import Path
+from typing import ClassVar
 
 from w3af import ROOT_PATH
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
@@ -33,19 +35,19 @@ class TestPHPInfo516(PluginTest):
         ROOT_PATH, "plugins", "tests", "crawl", "phpinfo", "phpinfo-5.1.6.html"
     )
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             "http://httpretty/", body="index home page", method="GET", status=200
         ),
         MockResponse(
             "http://httpretty/phpversion.php",
-            body=open(PHPINFO).read(),
+            body=Path(PHPINFO).read_text(),
             method="GET",
             status=200,
         ),
     ]
 
-    _run_config = {
+    _run_config: ClassVar[dict] = {
         "target": target_url,
         "plugins": {"crawl": (PluginConfig("phpinfo"),)},
     }
@@ -64,7 +66,7 @@ class TestPHPInfo516(PluginTest):
         info_urls = [i.get_url().url_string for i in infos]
         self.assertIn(self.target_url + "phpversion.php", info_urls)
 
-        found_infos = set([i.get_name() for i in infos])
+        found_infos = {i.get_name() for i in infos}
 
         expected_infos = {
             "PHP register_globals: On",

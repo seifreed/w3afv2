@@ -23,6 +23,7 @@ import re
 import urllib.error
 import urllib.parse
 import urllib.request
+from typing import ClassVar
 
 from jinja2 import Template
 
@@ -45,13 +46,13 @@ class TestSSI(PluginTest):
             seeds = re.findall("[1-9]{5}", uri)
 
             if len(seeds) == 2:
-                body = "Contains evaluated user input %s%s" % tuple(seeds)
+                body = "Contains evaluated user input {}{}".format(*tuple(seeds))
             else:
                 body = "A regular body"
 
             return self.status, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         SSIMockResponse(re.compile(".*"), body=None, method="GET", status=200)
     ]
 
@@ -82,7 +83,7 @@ class TestJinja2SSI(PluginTest):
             body = template.render()
             return self.status, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         SSIMockResponse(re.compile(".*"), body=None, method="GET", status=200)
     ]
 

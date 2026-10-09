@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.plugins.attack.payloads.payload_handler import exec_payload
 from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
     PayloadTestHelper,
@@ -29,7 +31,7 @@ class test_route(PayloadTestHelper):
 
     # This is the output I got when I run it on my environment, but because
     # I want it to be more generic, I'll only use bits and pieces of this below
-    EXPECTED_RESULT = {
+    EXPECTED_RESULT: ClassVar[dict] = {
         "route": [
             {
                 "Destination": "0.0.0.0",
@@ -67,12 +69,8 @@ class test_route(PayloadTestHelper):
             self.assertEqual(mask.count("."), 3)
 
             self.assertTrue(
-                iface.startswith("eth")
-                or iface.startswith("wlan")
-                or iface.startswith("ppp")
-                or iface.startswith("vbox")
-                or iface.startswith("lxcbr")
-                or iface.startswith("docker")
-                or iface.startswith("lo"),
+                iface.startswith(
+                    ("eth", "wlan", "ppp", "vbox", "lxcbr", "docker", "lo")
+                ),
                 iface,
             )

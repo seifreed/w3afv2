@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
+from typing import ClassVar
 from unittest.mock import call, patch
 
 import pytest
@@ -34,7 +35,7 @@ class TestWebDiff(PluginTest):
     target_url = "http://moth/w3af/crawl/web_diff/"
     local_dir = os.path.join(ROOT_PATH, "plugins", "tests", "crawl", "web_diff")
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "basic": {
             "target": target_url,
             "plugins": {

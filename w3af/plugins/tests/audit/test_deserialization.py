@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import base64
+import binascii
 import json
 import os
 import pickle
@@ -28,6 +29,8 @@ import unittest
 import urllib.error
 import urllib.parse
 import urllib.request
+from pathlib import Path
+from typing import ClassVar
 
 from w3af.core.data.dc.cookie import Cookie
 from w3af.core.data.dc.urlencoded_form import URLEncodedForm
@@ -59,20 +62,20 @@ class TestDeserializePickle(PluginTest):
 
             try:
                 message = base64.b64decode(b64message)
-            except Exception as e:
+            except binascii.Error as e:
                 body = str(e)
                 return self.status, response_headers, body
 
             try:
                 pickle.loads(message)
-            except Exception as e:
+            except (pickle.UnpicklingError, EOFError, ValueError, TypeError) as e:
                 body = str(e)
                 return self.status, response_headers, body
 
             body = "Message received"
             return self.status, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         DeserializeMockResponse(re.compile(".*"), body=None, method="GET", status=200)
     ]
 
@@ -100,14 +103,14 @@ class TestDeserializePickleNotBase64(PluginTest):
 
             try:
                 pickle.loads(message)
-            except Exception as e:
+            except (pickle.UnpicklingError, EOFError, ValueError, TypeError) as e:
                 body = str(e)
                 return self.status, response_headers, body
 
             body = "Message received"
             return self.status, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         DeserializeMockResponse(re.compile(".*"), body=None, method="GET", status=200)
     ]
 
@@ -135,20 +138,20 @@ class TestShouldInjectIsCalled(PluginTest):
 
             try:
                 message = base64.b64decode(b64message)
-            except Exception as e:
+            except binascii.Error as e:
                 body = str(e)
                 return self.status, response_headers, body
 
             try:
                 pickle.loads(message)
-            except Exception as e:
+            except (pickle.UnpicklingError, EOFError, ValueError, TypeError) as e:
                 body = str(e)
                 return self.status, response_headers, body
 
             body = "Message received"
             return self.status, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         DeserializeMockResponse(re.compile(".*"), body=None, method="GET", status=200)
     ]
 
@@ -187,7 +190,7 @@ class TestShouldInject(unittest.TestCase):
 
     def test_should_not_inject_qs_with_b64(self):
         b64data = base64.b64encode("just some random b64 data here")
-        self.url = URL("http://moth/?id=%s" % b64data)
+        self.url = URL(f"http://moth/?id={b64data}")
         freq = FuzzableRequest(self.url)
 
         mutant = QSMutant.create_mutants(
@@ -198,7 +201,7 @@ class TestShouldInject(unittest.TestCase):
 
     def test_should_inject_qs_with_b64_pickle(self):
         b64data = base64.b64encode(pickle.dumps({"data": "here", "cookie": "A" * 16}))
-        self.url = URL("http://moth/?id=%s" % b64data)
+        self.url = URL(f"http://moth/?id={b64data}")
         freq = FuzzableRequest(self.url)
 
         mutant = QSMutant.create_mutants(
@@ -209,7 +212,7 @@ class TestShouldInject(unittest.TestCase):
 
     def test_should_not_inject_qs_with_b64_pickle_java(self):
         b64data = base64.b64encode(pickle.dumps(1))
-        self.url = URL("http://moth/?id=%s" % b64data)
+        self.url = URL(f"http://moth/?id={b64data}")
         freq = FuzzableRequest(self.url)
 
         mutant = QSMutant.create_mutants(
@@ -220,7 +223,7 @@ class TestShouldInject(unittest.TestCase):
 
     def test_should_inject_qs_with_pickle(self):
         pickle_data = pickle.dumps(1)
-        self.url = URL("http://moth/?id=%s" % pickle_data)
+        self.url = URL(f"http://moth/?id={pickle_data}")
         freq = FuzzableRequest(self.url)
 
         mutant = QSMutant.create_mutants(
@@ -252,7 +255,7 @@ class TestShouldInject(unittest.TestCase):
         b64data = base64.b64encode(pickle.dumps({"data": "here", "cookie": "A" * 16}))
 
         url = URL("http://moth/")
-        cookie = Cookie("foo=%s" % b64data)
+        cookie = Cookie(f"foo={b64data}")
         freq = FuzzableRequest(url, cookie=cookie)
 
         mutant = CookieMutant.create_mutants(
@@ -262,7 +265,7 @@ class TestShouldInject(unittest.TestCase):
         self.assertTrue(self.plugin._should_inject(mutant, "python"))
 
     def test_should_not_inject_random_binary(self):
-        self.url = URL("http://moth/?id=%s" % "\x00\x01\x02")
+        self.url = URL("http://moth/?id={}".format("\x00\x01\x02"))
         freq = FuzzableRequest(self.url)
 
         mutant = QSMutant.create_mutants(
@@ -289,7 +292,7 @@ class TestJSONPayloadIsValid(unittest.TestCase):
                     continue
 
                 if file_name.endswith(deserialization.PAYLOAD_EXTENSION):
-                    json_str = open(os.path.join(root, file_name)).read()
+                    json_str = Path(os.path.join(root, file_name)).read_text()
                     data = json.loads(json_str)
 
                     self.assertIn("1", data, file_name)
@@ -351,7 +354,7 @@ class TestExactDelay(unittest.TestCase):
                     continue
 
                 if file_name.endswith(deserialization.PAYLOAD_EXTENSION):
-                    json_str = open(os.path.join(root, file_name)).read()
+                    json_str = Path(os.path.join(root, file_name)).read_text()
                     payload = json.loads(json_str)
 
                     ed = B64DeserializationExactDelay(payload)
@@ -359,7 +362,7 @@ class TestExactDelay(unittest.TestCase):
                     try:
                         payload_1 = ed.get_string_for_delay(1)
                         payload_22 = ed.get_string_for_delay(22)
-                    except Exception as e:
+                    except (TypeError, ValueError, KeyError) as e:
                         msg = 'Raised exception "%s" on "%s"'
                         args = (e, file_name)
                         self.assertTrue(False, msg % args)

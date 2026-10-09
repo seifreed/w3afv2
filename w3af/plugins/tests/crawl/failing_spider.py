@@ -43,6 +43,10 @@ class failing_spider(web_spider):
         """
         for ending in self.blacklist:
             if fuzzable_req.get_url().url_string.endswith(ending):
-                raise Exception("UnitTest")
+                raise FailingSpiderError("UnitTest")
 
         return super().crawl(fuzzable_req)
+
+
+class FailingSpiderError(Exception):
+    """Exception raised by failing_spider to exercise crawl error handling."""

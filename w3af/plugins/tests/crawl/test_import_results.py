@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
+from typing import ClassVar
 
 from w3af import ROOT_PATH
 from w3af.core.controllers.ci.moth import get_moth_http
@@ -37,7 +38,7 @@ class TestImportResults(PluginTest):
     input_burp = os.path.join(BASE_PATH, "burp-no-base64.xml")
     input_burp_b64 = os.path.join(BASE_PATH, "burp-base64.xml")
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "w3af": {
             "target": base_url,
             "plugins": {
@@ -162,7 +163,7 @@ class TestImportResults(PluginTest):
             "http://127.0.0.1:8000/audit/xss/simple_xss_form.py",
             "http://127.0.0.1:8000/core/file_upload/upload.py",
         }
-        post_urls = set([fr.get_uri().url_string for fr in post_frs])
+        post_urls = {fr.get_uri().url_string for fr in post_frs}
 
         self.assertEqual(expected_post_urls, post_urls)
 
@@ -229,7 +230,7 @@ class TestImportResults(PluginTest):
             "http://127.0.0.1:8000/audit/xss/simple_xss_form.py",
             "http://127.0.0.1:8000/core/file_upload/upload.py",
         }
-        post_urls = set([fr.get_uri().url_string for fr in post_frs])
+        post_urls = {fr.get_uri().url_string for fr in post_frs}
 
         self.assertEqual(expected_post_urls, post_urls)
 

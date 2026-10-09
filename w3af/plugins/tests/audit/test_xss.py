@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
 from unittest import TestCase
 
 import pytest
@@ -44,10 +45,10 @@ class TestXSS(PluginTest):
     WAVSEP_BASE = "/wavsep/active/Reflected-XSS/RXSS-Detection-Evaluation-GET/"
     WAVSEP_PATH = get_wavsep_http(WAVSEP_BASE)
     WAVSEP_2919 = get_wavsep_http(
-        "%sCase16-Js2ScriptSupportingProperty.jsp" % WAVSEP_BASE
+        f"{WAVSEP_BASE}Case16-Js2ScriptSupportingProperty.jsp"
     )
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": None,
             "plugins": {
@@ -389,7 +390,7 @@ class TestXSSPayloadsBreak(TestCase):
 
             if not payload_broke_context:
                 klass_name = context.__class__.__name__
-                self.assertTrue(False, "No XSS payload breaks %s" % klass_name)
+                self.assertTrue(False, f"No XSS payload breaks {klass_name}")
 
     def test_xss_plugin_can_break_js(self):
         for context_klass in ALL_JS_CONTEXTS:
@@ -410,7 +411,7 @@ class TestXSSPayloadsBreak(TestCase):
 
             if not payload_broke_context:
                 klass_name = context.__class__.__name__
-                self.assertTrue(False, "No XSS payload breaks %s" % klass_name)
+                self.assertTrue(False, f"No XSS payload breaks {klass_name}")
 
     def test_xss_plugin_can_break_css(self):
         for context_klass in ALL_CSS_CONTEXTS:
@@ -431,4 +432,4 @@ class TestXSSPayloadsBreak(TestCase):
 
             if not payload_broke_context:
                 klass_name = context.__class__.__name__
-                self.assertTrue(False, "No XSS payload breaks %s" % klass_name)
+                self.assertTrue(False, f"No XSS payload breaks {klass_name}")

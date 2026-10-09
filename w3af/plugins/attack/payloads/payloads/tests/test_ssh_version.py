@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 import pytest
 
 from w3af.plugins.attack.payloads.payload_handler import exec_payload
@@ -31,7 +33,7 @@ class test_ssh_version(PayloadTestHelper):
 
     # Please note that this only works IF the remote end allows us to use
     # php wrappers and read the binary file with base64
-    EXPECTED_RESULT = {"ssh_version": "OpenSSH_5.9p1 Debian-5ubuntu1"}
+    EXPECTED_RESULT: ClassVar[dict] = {"ssh_version": "OpenSSH_5.9p1 Debian-5ubuntu1"}
 
     @pytest.mark.ci_fails
     def test_ssh_version(self):

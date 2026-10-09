@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 import pytest
 
 from w3af.core.data.kb.vuln_templates.dav_template import DAVTemplate
@@ -30,7 +32,7 @@ class TestDAVShell(ExecExploitTest):
 
     target_url = "http://moth/w3af/audit/dav/write-all/"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {

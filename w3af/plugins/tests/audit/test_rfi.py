@@ -23,6 +23,7 @@ import threading
 import urllib.error
 import urllib.parse
 import urllib.request
+from typing import ClassVar
 
 import pytest
 
@@ -39,7 +40,7 @@ class TestRFI(PluginTest):
     target_read = get_php_moth_http("/audit/rfi/rfi-read.php")
     unused_port = get_unused_port()
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "remote_rce": {
             "target": target_rce + "?file=abc.txt",
             "plugins": {
@@ -144,8 +145,8 @@ class TestRFI(PluginTest):
         server_thread.daemon = True
         server_thread.start()
 
-        foobar_url = "http://localhost:%s/foobar" % port
-        spameggs_url = "http://localhost:%s/spameggs" % port
+        foobar_url = f"http://localhost:{port}/foobar"
+        spameggs_url = f"http://localhost:{port}/spameggs"
 
         response_foobar = urllib.request.urlopen(foobar_url).read()
         response_spameggs = urllib.request.urlopen(spameggs_url).read()

@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 import pytest
 
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
@@ -29,7 +31,7 @@ class TestGenexusXML(PluginTest):
 
     target_url = "http://httpretty-mock/"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {"crawl": (PluginConfig("genexus_xml"),)},
@@ -67,7 +69,7 @@ class TestGenexusXML(PluginTest):
        </Object>
     </Objects>"""
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             "http://httpretty-mock/execute.xml",
             EXECUTE_XML,
@@ -109,6 +111,6 @@ class TestGenexusXML(PluginTest):
             "http://httpretty-mock/DeveloperMenu.xml",
             "http://httpretty-mock/",
         }
-        urls = set([u.url_string for u in urls])
+        urls = {u.url_string for u in urls}
 
         self.assertEqual(EXPECTED_URLS, urls)

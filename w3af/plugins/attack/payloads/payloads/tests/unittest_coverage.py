@@ -21,9 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 import unittest
+from unittest import SkipTest
 
 import pytest
-from unittest import SkipTest
 
 from w3af import ROOT_PATH
 from w3af.plugins.attack.payloads.payload_handler import get_payload_list
@@ -61,12 +61,12 @@ class TestUnittestCoverage(unittest.TestCase):
                 missing.append(payload)
 
         if missing:
-            msg = "The following payloads dont have unittests: %s" % (
+            msg = "The following payloads dont have unittests: {}".format(
                 ", ".join(sorted(missing))
             )
             self.assertTrue(False, msg)
 
     def _has_test(self, payload_name):
         tests = os.listdir(TEST_PATH)
-        fname = "test_%s.py" % payload_name
+        fname = f"test_{payload_name}.py"
         return fname in tests or payload_name in UNABLE_TO_TEST

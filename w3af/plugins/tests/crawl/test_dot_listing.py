@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
+from pathlib import Path
+from typing import ClassVar
 
 from w3af import ROOT_PATH
 from w3af.plugins.crawl.dot_listing import dot_listing
@@ -30,20 +32,20 @@ class TestDotListing(PluginTest):
 
     target_url = "http://mock"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {"crawl": (PluginConfig("dot_listing"),)},
         }
     }
 
-    DOT_LISTING = open(
+    DOT_LISTING = Path(
         os.path.join(
             ROOT_PATH, "plugins", "tests", "crawl", "dot_listing", "listing_test_1.txt"
         )
-    ).read()
+    ).read_text()
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse("http://mock/.listing", DOT_LISTING),
         MockResponse("http://mock/wasadhiya-7.mp3", "Secret file"),
         MockResponse("http://mock/", "Not here", status=404),
@@ -63,8 +65,8 @@ class TestDotListing(PluginTest):
         urls = self.kb.get_all_known_urls()
 
         self.assertEqual(
-            set(str(u) for u in urls),
-            set((self.target_url + end) for end in expected_urls),
+            {str(u) for u in urls},
+            {(self.target_url + end) for end in expected_urls},
         )
 
     def test_listing_extraction(self):
@@ -82,7 +84,7 @@ class TestDotListing(PluginTest):
         for i in range(1, 4):
             file_name = file_name_fmt % i
             file_path = os.path.join(listing_files_path, file_name)
-            file_content = open(file_path).read()
+            file_content = Path(file_path).read_text()
             for user, group, filename in dot_listing_inst._extract_info_from_listing(
                 file_content
             ):

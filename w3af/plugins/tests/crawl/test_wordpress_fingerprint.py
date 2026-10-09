@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 import pytest
 
 from w3af.core.data.misc.file_utils import days_since_file_update
@@ -31,7 +33,7 @@ class Testwordpress_fingerprint(PluginTest):
     wordpress_url = "http://wordpress/"
     moth_url = "http://moth/w3af/audit/"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "direct": {
             "target": wordpress_url,
             "plugins": {
@@ -69,22 +71,24 @@ class Testwordpress_fingerprint(PluginTest):
         for i in infos:
             self.assertEqual("Fingerprinted Wordpress version", i.get_name())
 
-        descriptions = set([i.get_desc(with_id=False) for i in infos])
-        expected_descriptions = set(
-            [
-                'WordPress version "3.4.1" found in the index header.',
-                'WordPress version "3.4.1" found in the readme.html file.',
+        descriptions = {i.get_desc(with_id=False) for i in infos}
+        expected_descriptions = {
+            'WordPress version "3.4.1" found in the index header.',
+            'WordPress version "3.4.1" found in the readme.html file.',
+            (
                 'WordPress version "3.4.1" fingerprinted by matching known md5'
                 " hashes to HTTP responses of static resources available at"
-                " the remote WordPress install.",
+                " the remote WordPress install."
+            ),
+            (
                 'The sysadmin used WordPress version "3.4.1.tar.gz"'
                 " during the installation, which was found by matching"
                 ' the contents of "http://wordpress/latest.tar.gz"'
                 " with the hashes of known releases. If the sysadmin"
                 " did not update wordpress, the current version will"
-                " still be the same.",
-            ]
-        )
+                " still be the same."
+            ),
+        }
         self.assertEqual(descriptions, expected_descriptions)
 
     def test_xml_parsing_case01(self):

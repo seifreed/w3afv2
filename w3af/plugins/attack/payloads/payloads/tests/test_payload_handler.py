@@ -59,7 +59,7 @@ class TestPayloadHandler(unittest.TestCase):
 
         for known_name in KNOWN_NAMES:
             self.assertTrue(
-                known_name in payload_list, "%s not in %s" % (known_name, payload_list)
+                known_name in payload_list, f"{known_name} not in {payload_list}"
             )
 
         self.assertTrue(len(payload_list), len(set(payload_list)))
@@ -78,11 +78,9 @@ class TestPayloadHandler(unittest.TestCase):
         shell = FakeExecShell()
         runnable = runnable_payloads(shell)
 
-        EXCEPTIONS = set(
-            [
-                "portscan",
-            ]
-        )
+        EXCEPTIONS = {
+            "portscan",
+        }
         all_payloads = get_payload_list()
         all_but_exceptions = set(all_payloads) - EXCEPTIONS
 

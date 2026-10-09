@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from httpretty import httpretty
 
 import w3af.core.data.kb.knowledge_base as kb
@@ -36,7 +38,7 @@ class TestDetailedBasic(PluginTest):
     check_string = "or read your input"
     data_format = "%u=%U&%p=%P&Login=Login"
 
-    _run_config = {
+    _run_config: ClassVar[dict] = {
         "target": target_url,
         "plugins": {
             "crawl": (
@@ -89,7 +91,7 @@ class TestDetailedFailAuth(PluginTest):
     check_string = "or read your input"
     data_format = "%u=%U&%p=%P&Login=Login"
 
-    _run_config = {
+    _run_config: ClassVar[dict] = {
         "target": target_url,
         "plugins": {
             "crawl": (
@@ -155,7 +157,7 @@ class TestDetailedRedirect(PluginTest):
     check_string = "Logged in"
     data_format = "%u=%U&%p=%P&Login=Login"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             "http://mock/auth/login_form.py",
             "",
@@ -173,7 +175,7 @@ class TestDetailedRedirect(PluginTest):
         MockResponse("http://mock/auth/verify.py", "Not logged in"),
     ]
 
-    _run_config = {
+    _run_config: ClassVar[dict] = {
         "target": target_url,
         "plugins": {
             "audit": (PluginConfig("xss"),),
@@ -219,7 +221,7 @@ class TestDetailedRedirectLoop(PluginTest):
     check_string = "Logged in"
     data_format = "%u=%U&%p=%P&Login=Login"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             "http://mock/auth/login_form.py",
             "",
@@ -245,7 +247,7 @@ class TestDetailedRedirectLoop(PluginTest):
         MockResponse("http://mock/auth/verify.py", "Not logged in"),
     ]
 
-    _run_config = {
+    _run_config: ClassVar[dict] = {
         "target": target_url,
         "plugins": {
             "audit": (PluginConfig("xss"),),
@@ -297,7 +299,7 @@ class TestDetailedSquareBrackets(PluginTest):
     check_string = "or read your input"
     data_format = "%u=%U&%p=%P&Login=Login"
 
-    _run_config = {
+    _run_config: ClassVar[dict] = {
         "target": target_url,
         "plugins": {
             "crawl": (

@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
+from typing import ClassVar
 
 from w3af.core.controllers.ci.w3af_moth import get_w3af_moth_http
 from w3af.core.data.dc.cookie import Cookie
@@ -38,7 +39,7 @@ class TestCSRF(PluginTest):
 
     target_url = get_w3af_moth_http("/w3af/audit/csrf/")
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {
@@ -75,8 +76,8 @@ class TestCSRF(PluginTest):
         # Assert the general results
         vulns = self.kb.get("csrf", "csrf")
 
-        self.assertEqual(set(expected), set([v.get_url().get_path() for v in vulns]))
-        self.assertTrue(all(["CSRF vulnerability" == v.get_name() for v in vulns]))
+        self.assertEqual(set(expected), {v.get_url().get_path() for v in vulns})
+        self.assertTrue(all("CSRF vulnerability" == v.get_name() for v in vulns))
 
     def test_resp_is_equal(self):
         url = URL("http://www.w3af.com/")

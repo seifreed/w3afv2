@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.core.data.parsers.doc.url import URL
 from w3af.plugins.crawl.payment_webhook_finder import payment_webhook_finder
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
@@ -36,7 +38,7 @@ def fill_kb_with_cgi_urls(target_url, add_url):
     :return: None
     """
     for i in range(payment_webhook_finder.MIN_URL_COUNT_FOR_EXTENSION_FILTER + 1):
-        url_str = "%s%s.cgi" % (target_url, i)
+        url_str = f"{target_url}{i}.cgi"
         url = URL(url_str)
         add_url(url)
 
@@ -44,7 +46,7 @@ def fill_kb_with_cgi_urls(target_url, add_url):
 class TestPaymentWebHookFinderGET(PluginTest):
     target_url = "http://httpretty/"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             "http://httpretty/", body="index home page", method="GET", status=200
         ),
@@ -59,7 +61,7 @@ class TestPaymentWebHookFinderGET(PluginTest):
         ),
     ]
 
-    _run_config = {
+    _run_config: ClassVar[dict] = {
         "target": target_url,
         "plugins": {"crawl": (PluginConfig("payment_webhook_finder"),)},
     }
@@ -78,7 +80,7 @@ class TestPaymentWebHookFinderGET(PluginTest):
 class TestPaymentWebHookFinderPOST(PluginTest):
     target_url = "http://httpretty/"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             "http://httpretty/", body="index home page", method="GET", status=200
         ),
@@ -93,7 +95,7 @@ class TestPaymentWebHookFinderPOST(PluginTest):
         ),
     ]
 
-    _run_config = {
+    _run_config: ClassVar[dict] = {
         "target": target_url,
         "plugins": {"crawl": (PluginConfig("payment_webhook_finder"),)},
     }

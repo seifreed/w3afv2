@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 import pytest
 
 from w3af.plugins.tests.helper import PluginConfig, PluginTest
@@ -29,7 +31,7 @@ class TestGoogleSpider(PluginTest):
 
     base_url = "http://www.bonsai-sec.com/"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": base_url,
             "plugins": {"crawl": (PluginConfig("google_spider"),)},
@@ -56,6 +58,6 @@ class TestGoogleSpider(PluginTest):
         urls = self.kb.get_all_known_urls()
 
         self.assertEqual(
-            set(str(u) for u in urls),
-            set((self.base_url + end) for end in EXPECTED_URLS),
+            {str(u) for u in urls},
+            {(self.base_url + end) for end in EXPECTED_URLS},
         )

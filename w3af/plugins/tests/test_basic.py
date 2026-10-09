@@ -21,6 +21,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 import unittest
+from pathlib import Path
+from typing import ClassVar
 
 import pytest
 
@@ -136,11 +138,7 @@ class TestBasic(unittest.TestCase):
                         plugin_type in self.w3afcore.plugins.get_plugin_types()
                     )
 
-                    msg = "%s is not of type %s in %s plugin dependency." % (
-                        plugin_name,
-                        plugin_type,
-                        plugin,
-                    )
+                    msg = f"{plugin_name} is not of type {plugin_type} in {plugin} plugin dependency."
                     self.assertIn(
                         plugin_name,
                         self.w3afcore.plugins.get_plugin_list(plugin_type),
@@ -195,7 +193,7 @@ class TestBasic(unittest.TestCase):
             if os.path.isdir(joined_entry):
                 continue
 
-            plugin_code = open(joined_entry).read()
+            plugin_code = Path(joined_entry).read_text()
 
             if "kb.kb.append" in plugin_code:
                 msg = (
@@ -256,7 +254,7 @@ class TestBasic(unittest.TestCase):
             for plugin in self.plugins[plugin_type]:
 
                 ptype = PLUGIN_TYPES[plugin_type]
-                msg = "%s is not of expected type %s" % (plugin, ptype)
+                msg = f"{plugin} is not of expected type {ptype}"
 
                 self.assertTrue(isinstance(plugin, ptype), msg)
                 self.assertEqual(plugin.get_type(), plugin_type, msg)
@@ -264,26 +262,19 @@ class TestBasic(unittest.TestCase):
                 # Also assert that the plugin called <Type>Plugin.__init__(self)
                 # and that the corresponding attrs are there
                 for attr in ALL_TYPES_ATTRS:
-                    msg = "Plugin %s doesn't have attribute %s: %r" % (
-                        plugin.get_name(),
-                        attr,
-                        dir(plugin),
-                    )
+                    msg = f"Plugin {plugin.get_name()} doesn't have attribute {attr}: {dir(plugin)!r}"
                     self.assertTrue(getattr(plugin, attr, False) != False, msg)
 
                 # Verify that the current plugin, and not the parent, defined
                 # the required methods
                 for attr in TYPES_AND_ATTRS[plugin.get_type()]:
-                    msg = "Plugin %s doesn't have attribute %s." % (
-                        plugin.get_name(),
-                        attr,
-                    )
+                    msg = f"Plugin {plugin.get_name()} doesn't have attribute {attr}."
                     self.assertTrue(defined_in_subclass(plugin, attr), msg)
 
 
 class TestFailOnInvalidURL(PluginTest):
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {"target": None, "plugins": {"infrastructure": (PluginConfig("hmap"),)}}
     }
 

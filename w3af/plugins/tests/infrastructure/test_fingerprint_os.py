@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 import pytest
 
 from w3af.plugins.tests.helper import PluginConfig, PluginTest
@@ -29,7 +31,7 @@ class TestFingerprintOS(PluginTest):
     modsecurity_url = "http://modsecurity/w3af/index.html"
     moth_url = "http://moth/w3af/index.html"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": None,
             "plugins": {"infrastructure": (PluginConfig("fingerprint_os"),)},

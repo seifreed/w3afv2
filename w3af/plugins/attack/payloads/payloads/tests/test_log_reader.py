@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 import pytest
 
 from w3af.plugins.attack.payloads.payload_handler import exec_payload
@@ -29,16 +31,14 @@ from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
 
 class test_log_reader(PayloadTestHelper):
 
-    EXPECTED_RESULT = set(
-        [
-            "/var/log/wtmp",
-            "/var/log/dpkg.log",
-            # The permissions changed and now we can't read it
-            # '/var/log/apt/term.log',
-            "/var/log/boot.log",
-            "/var/log/faillog",
-        ]
-    )
+    EXPECTED_RESULT: ClassVar[set] = {
+        "/var/log/wtmp",
+        "/var/log/dpkg.log",
+        # The permissions changed and now we can't read it
+        # '/var/log/apt/term.log',
+        "/var/log/boot.log",
+        "/var/log/faillog",
+    }
 
     @pytest.mark.ci_fails
     def test_log_reader(self):

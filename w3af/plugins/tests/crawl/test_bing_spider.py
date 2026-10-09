@@ -19,18 +19,21 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 import pytest
 
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
+
+BASE_URL = "http://www.bonsai-sec.com/"
 
 
 @pytest.mark.fails
 class TestBingSpider(PluginTest):
 
-    target_url = "http://www.bonsai-sec.com/"
-    target_url_fmt = "http://www.bonsai-sec.com/%s"
+    target_url = BASE_URL
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {"crawl": (PluginConfig("bing_spider"),)},
@@ -50,8 +53,8 @@ class TestBingSpider(PluginTest):
         "",
     )
 
-    MOCK_RESPONSES = [
-        MockResponse(target_url_fmt % eu, "Response body.") for eu in EXPECTED_URLS
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(f"{BASE_URL}{eu}", "Response body.") for eu in EXPECTED_URLS
     ]
 
     def test_found_urls(self):
@@ -60,7 +63,7 @@ class TestBingSpider(PluginTest):
 
         urls = self.kb.get_all_known_urls()
 
-        found_urls = (set(str(u) for u in urls),)
-        expected_urls = set((self.target_url + end) for end in self.EXPECTED_URLS)
+        found_urls = ({str(u) for u in urls},)
+        expected_urls = {(self.target_url + end) for end in self.EXPECTED_URLS}
 
         self.assertEqual(found_urls, expected_urls)

@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 import pytest
 
 from w3af.plugins.attack.payloads.payload_handler import exec_payload
@@ -31,7 +33,9 @@ class test_kernel_version(PayloadTestHelper):
 
     # Not using the whole thing since its not really useful and will
     # stop working after the first kernel update
-    EXPECTED_RESULT = {"kernel_version": "3.2.0-27-generic (buildd@allspice)"}
+    EXPECTED_RESULT: ClassVar[dict] = {
+        "kernel_version": "3.2.0-27-generic (buildd@allspice)"
+    }
 
     @pytest.mark.ci_fails
     def test_kernel_version(self):

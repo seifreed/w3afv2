@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
+from typing import ClassVar
 
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.ci.moth import get_moth_http
@@ -36,7 +37,7 @@ class TestGetEmails(PluginTest):
 
     get_emails_url = get_moth_http("/grep/get_emails/")
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg1": {
             "target": get_emails_url,
             "plugins": {
@@ -66,7 +67,7 @@ class TestGetEmails(PluginTest):
         all_email_info_sets = self.kb.get("emails", "external_emails")
         self.assertEqual(len(all_email_info_sets), len(expected))
 
-        all_emails = set([i.get_attribute("mail") for i in all_email_info_sets])
+        all_emails = {i.get_attribute("mail") for i in all_email_info_sets}
         self.assertEqual(all_emails, expected)
 
 

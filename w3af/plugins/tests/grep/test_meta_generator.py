@@ -89,8 +89,8 @@ class TestMetaGenerator(unittest.TestCase):
 
         self.assertEqual(len(info_sets), 2)
 
-        urls = set(i.get_url() for i in info_sets)
-        descs = set(i.get_desc() for i in info_sets)
+        urls = {i.get_url() for i in info_sets}
+        descs = {i.get_desc() for i in info_sets}
 
         self.assertEqual(urls, {self.url, self.url})
 

@@ -20,9 +20,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import tempfile
+from typing import ClassVar
+from unittest import SkipTest
 
 import pytest
-from unittest import SkipTest
 
 from w3af.plugins.attack.payloads.payload_handler import exec_payload
 from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
@@ -32,7 +33,7 @@ from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
 
 class test_pixy(PayloadTestHelper):
 
-    EXPECTED_RESULT = {}
+    EXPECTED_RESULT: ClassVar[dict] = {}
 
     def test_pixy(self):
         temp_dir = tempfile.mkdtemp()

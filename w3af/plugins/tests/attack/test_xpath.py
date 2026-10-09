@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
 from unittest.mock import MagicMock
 
 import pytest
@@ -33,7 +34,7 @@ class TestXPathShell(PluginTest):
 
     target_url = get_moth_http("/audit/xpath/xpath-attr-single.py")
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {

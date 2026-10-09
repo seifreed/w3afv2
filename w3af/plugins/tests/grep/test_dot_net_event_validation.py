@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
@@ -78,7 +80,7 @@ class TestEventValidationGrouping(PluginTest):
         'bxUzDQVBRPB2cN8nnSmNhVZ6WX0=" />'
     )
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url="http://mock/",
             body='<a href="/1">1</a>' '<a href="/2">2</a>',
@@ -97,20 +99,24 @@ class TestEventValidationGrouping(PluginTest):
         expected_vulns = {
             (
                 ".NET Event Validation is disabled",
-                "The application contains 2 unique URLs which have"
-                " .NET Event Validation disabled. This programming"
-                " / configuration error should be manually"
-                " verified. The first two vulnerable URLs are:\n"
-                " - http://mock/2\n - http://mock/1\n",
+                (
+                    "The application contains 2 unique URLs which have"
+                    " .NET Event Validation disabled. This programming"
+                    " / configuration error should be manually"
+                    " verified. The first two vulnerable URLs are:\n"
+                    " - http://mock/2\n - http://mock/1\n"
+                ),
             ),
             (
                 ".NET ViewState encryption is disabled",
-                "The application contains 2 unique URLs with .NET"
-                " ViewState encryption disabled. This programming"
-                " / configuration error can be exploited to decode"
-                " and inspect the ViewState contents. The first two"
-                " vulnerable URLs are:\n - http://mock/2\n"
-                " - http://mock/1\n",
+                (
+                    "The application contains 2 unique URLs with .NET"
+                    " ViewState encryption disabled. This programming"
+                    " / configuration error can be exploited to decode"
+                    " and inspect the ViewState contents. The first two"
+                    " vulnerable URLs are:\n - http://mock/2\n"
+                    " - http://mock/1\n"
+                ),
             ),
         }
 

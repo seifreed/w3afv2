@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
+from typing import ClassVar
 from unittest.mock import patch
 
 from httpretty.http import STATUSES
@@ -31,7 +32,7 @@ class TestJetLeak(PluginTest):
 
     target_url = "http://httpretty/"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {"infrastructure": (PluginConfig("jetleak"),)},
@@ -53,7 +54,7 @@ class TestJetLeak(PluginTest):
 
             return status, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         JettyMockResponse(re.compile(".*"), body=None, method="GET", status=200)
     ]
 
@@ -75,7 +76,7 @@ class TestNoJetLeak(PluginTest):
 
     target_url = "http://httpretty/"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {"infrastructure": (PluginConfig("jetleak"),)},
@@ -89,7 +90,7 @@ class TestNoJetLeak(PluginTest):
 
             return status, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         FixedJettyMockResponse(re.compile(".*"), body=None, method="GET", status=200)
     ]
 

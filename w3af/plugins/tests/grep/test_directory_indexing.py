@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 import pytest
 
 from w3af.core.controllers.ci.moth import get_moth_http
@@ -31,7 +33,7 @@ class TestDirectoryIndexing(PluginTest):
 
     dir_indexing_url = get_moth_http("/grep/directory_indexing/index.html")
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg1": {
             "target": dir_indexing_url,
             "plugins": {"grep": (PluginConfig("directory_indexing"),)},

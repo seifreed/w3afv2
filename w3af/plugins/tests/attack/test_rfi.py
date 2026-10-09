@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 import pytest
 
 from w3af.core.controllers.ci.php_moth import get_php_moth_http
@@ -33,7 +35,7 @@ class TestRFI(ExecExploitTest):
     target_url = get_php_moth_http("/audit/rfi/rfi-rce.php")
     unused_port = get_unused_port()
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {

@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.controllers.ci.w3af_moth import get_w3af_moth_http
 from w3af.core.controllers.ci.wavsep import get_wavsep_http
@@ -122,7 +124,7 @@ class TestOldMothBlindSQLI(PluginTest):
     base_path = "/w3af/audit/blind_sql_injection/"
     target_url = get_w3af_moth_http(base_path)
 
-    config = {
+    config: ClassVar[dict] = {
         "audit": (PluginConfig("blind_sqli"),),
         "crawl": (
             PluginConfig(

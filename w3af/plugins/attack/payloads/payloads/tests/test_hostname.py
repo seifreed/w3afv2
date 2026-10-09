@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import socket
+from typing import ClassVar
 
 import pytest
 
@@ -31,7 +32,7 @@ from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
 
 class test_hostname(PayloadTestHelper):
 
-    EXPECTED_RESULT = {
+    EXPECTED_RESULT: ClassVar[dict] = {
         "hostname": [
             socket.gethostname(),
         ]

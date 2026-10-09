@@ -25,6 +25,7 @@ import os
 import random
 import unittest
 from itertools import repeat
+from pathlib import Path
 from unittest.mock import patch
 
 from w3af import ROOT_PATH
@@ -62,7 +63,7 @@ class test_all(unittest.TestCase):
         file_path = os.path.join(
             ROOT_PATH, "plugins", "tests", "grep", "data", "w3af.png"
         )
-        body = open(file_path).read()
+        body = Path(file_path).read_text()
         hdrs = Headers(list({"Content-Type": "image/png"}.items()))
         response = HTTPResponse(
             200, body, hdrs, self.url_inst, self.url_inst, _id=random.randint(1, 5000)
@@ -87,7 +88,7 @@ class test_all(unittest.TestCase):
         file_path = os.path.join(
             ROOT_PATH, "plugins", "tests", "grep", "data", "w3af.png"
         )
-        body = open(file_path).read()
+        body = Path(file_path).read_text()
         # Here is the change from the previous test:
         hdrs = Headers(list({"Content-Type": "text/html"}.items()))
         response = HTTPResponse(
@@ -145,7 +146,7 @@ class test_all(unittest.TestCase):
                         ROOT_PATH, "plugins", "tests", "grep", "data", file_name
                     )
 
-                    body = open(file_path).read()
+                    body = Path(file_path).read_text()
                     hdrs = Headers(list({"Content-Type": "text/html"}.items()))
                     response = HTTPResponse(
                         200,

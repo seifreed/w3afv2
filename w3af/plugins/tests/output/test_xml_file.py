@@ -20,10 +20,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import base64
+import contextlib
 import io
 import os
 import os.path
 import unittest
+from pathlib import Path
+from typing import ClassVar
 from xml.etree import ElementTree
 
 import pytest
@@ -67,7 +70,7 @@ class TestXMLOutput(PluginTest):
     FILENAME = "output-unittest.xml"
     XSD = os.path.join(ROOT_PATH, "plugins", "output", "xml_file", "report.xsd")
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url + "?id=3",
             "plugins": {
@@ -91,30 +94,27 @@ class TestXMLOutput(PluginTest):
         self.assertEqual(len(kb_vulns), 1, kb_vulns)
 
         self.assertEqual(
-            set(sorted([v.get_url() for v in kb_vulns])),
-            set(sorted([v.get_url() for v in file_vulns])),
+            {v.get_url() for v in kb_vulns},
+            {v.get_url() for v in file_vulns},
         )
 
         self.assertEqual(
-            set(sorted([v.get_name() for v in kb_vulns])),
-            set(sorted([v.get_name() for v in file_vulns])),
+            {v.get_name() for v in kb_vulns},
+            {v.get_name() for v in file_vulns},
         )
 
         self.assertEqual(
-            set(sorted([v.get_plugin_name() for v in kb_vulns])),
-            set(sorted([v.get_plugin_name() for v in file_vulns])),
+            {v.get_plugin_name() for v in kb_vulns},
+            {v.get_plugin_name() for v in file_vulns},
         )
 
-        self.assertEqual(validate_xml(open(self.FILENAME).read(), self.XSD), "")
+        self.assertEqual(validate_xml(Path(self.FILENAME).read_text(), self.XSD), "")
 
     def tearDown(self):
         super().tearDown()
-        try:
+        with contextlib.suppress(OSError):
             os.remove(self.FILENAME)
-        except:
-            pass
-        finally:
-            self.kb.cleanup()
+        self.kb.cleanup()
 
     def test_error_null_byte(self):
         w3af_core = w3afCore()
@@ -258,7 +258,7 @@ class XMLParser:
 def get_vulns_from_xml(filename):
     xp = XMLParser()
     parser = etree.XMLParser(target=xp)
-    vulns = etree.fromstring(open(filename).read(), parser)
+    vulns = etree.fromstring(Path(filename).read_text(), parser)
     return vulns
 
 
@@ -290,10 +290,10 @@ class TestXMLOutputBinary(PluginTest):
         ROOT_PATH, "plugins", "tests", "output", "data", "nsepa32.rpm"
     )
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url="http://rpm-path-binary/",
-            body=open(TEST_FILE).read(),
+            body=Path(TEST_FILE).read_text(),
             content_type="text/plain",
             method="GET",
             status=200,
@@ -302,7 +302,7 @@ class TestXMLOutputBinary(PluginTest):
 
     FILENAME = "output-unittest.xml"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {
@@ -325,17 +325,14 @@ class TestXMLOutputBinary(PluginTest):
         try:
             tree = ElementTree.parse(self.FILENAME)
             tree.getroot()
-        except Exception as e:
-            self.assertTrue(False, 'Generated invalid XML: "%s"' % e)
+        except ElementTree.ParseError as e:
+            self.assertTrue(False, f'Generated invalid XML: "{e}"')
 
     def tearDown(self):
         super().tearDown()
-        try:
+        with contextlib.suppress(OSError):
             os.remove(self.FILENAME)
-        except:
-            pass
-        finally:
-            self.kb.cleanup()
+        self.kb.cleanup()
 
 
 class TestXML0x0B(PluginTest):
@@ -346,10 +343,10 @@ class TestXML0x0B(PluginTest):
         ROOT_PATH, "plugins", "tests", "output", "data", "0x0b.html"
     )
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url="http://0x0b-path-binary/",
-            body=open(TEST_FILE).read(),
+            body=Path(TEST_FILE).read_text(),
             content_type="text/plain",
             method="GET",
             status=200,
@@ -358,7 +355,7 @@ class TestXML0x0B(PluginTest):
 
     FILENAME = "output-unittest.xml"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {
@@ -381,24 +378,21 @@ class TestXML0x0B(PluginTest):
         try:
             tree = ElementTree.parse(self.FILENAME)
             tree.getroot()
-        except Exception as e:
-            self.assertTrue(False, 'Generated invalid XML: "%s"' % e)
+        except ElementTree.ParseError as e:
+            self.assertTrue(False, f'Generated invalid XML: "{e}"')
 
     def tearDown(self):
         super().tearDown()
-        try:
+        with contextlib.suppress(OSError):
             os.remove(self.FILENAME)
-        except:
-            pass
-        finally:
-            self.kb.cleanup()
+        self.kb.cleanup()
 
 
 class TestSpecialCharacterInURL(PluginTest):
 
     target_url = "http://hello.se/%C3%93%C3%B6"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url=target_url,
             body="hi there á! /var/www/site/x.php path",
@@ -410,7 +404,7 @@ class TestSpecialCharacterInURL(PluginTest):
 
     FILENAME = "output-unittest.xml"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {
@@ -433,17 +427,14 @@ class TestSpecialCharacterInURL(PluginTest):
         try:
             tree = ElementTree.parse(self.FILENAME)
             tree.getroot()
-        except Exception as e:
-            self.assertTrue(False, 'Generated invalid XML: "%s"' % e)
+        except ElementTree.ParseError as e:
+            self.assertTrue(False, f'Generated invalid XML: "{e}"')
 
     def tearDown(self):
         super().tearDown()
-        try:
+        with contextlib.suppress(OSError):
             os.remove(self.FILENAME)
-        except:
-            pass
-        finally:
-            self.kb.cleanup()
+        self.kb.cleanup()
 
 
 class XMLNodeGeneratorTest(unittest.TestCase):

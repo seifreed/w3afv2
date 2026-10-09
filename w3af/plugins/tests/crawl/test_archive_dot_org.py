@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 import pytest
 
 from w3af.core.controllers.exceptions import RunOnce
@@ -33,7 +35,7 @@ class TestArchiveDotOrg(PluginTest):
 
     archive_url = "http://w3af.org/"
 
-    _run_config = {
+    _run_config: ClassVar[dict] = {
         "target": None,
         "plugins": {
             "crawl": (
@@ -58,8 +60,8 @@ class TestArchiveDotOrg(PluginTest):
             "project-history",
         )
 
-        expected_set = set((self.archive_url + end) for end in EXPECTED_URLS)
-        urls_as_strings = set([u.url_string for u in urls])
+        expected_set = {(self.archive_url + end) for end in EXPECTED_URLS}
+        urls_as_strings = {u.url_string for u in urls}
 
         msg = "Got the following URLs %s and expected %s."
         msg = msg % (urls_as_strings, expected_set)

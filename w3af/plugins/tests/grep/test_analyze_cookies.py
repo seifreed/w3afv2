@@ -210,7 +210,7 @@ class TestAnalyzeCookies(unittest.TestCase):
         self.assertEqual(len(kb.kb.get("analyze_cookies", "invalid-cookies")), 0)
 
         msg = 'The remote platform is: "PHP"'
-        self.assertTrue(any([True for i in fingerprint if msg in i.get_desc()]))
+        self.assertTrue(any(True for i in fingerprint if msg in i.get_desc()))
 
     def test_analyze_cookies_secure_over_http(self):
         body = ""
@@ -232,7 +232,7 @@ class TestAnalyzeCookies(unittest.TestCase):
         self.assertEqual(len(kb.kb.get("analyze_cookies", "invalid-cookies")), 0)
 
         msg = "A cookie marked with the secure flag"
-        self.assertTrue(any([True for i in false_secure if msg in i.get_desc()]))
+        self.assertTrue(any(True for i in false_secure if msg in i.get_desc()))
 
     def test_analyze_cookies_no_httponly(self):
         body = ""

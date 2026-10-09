@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 import unittest
+from pathlib import Path
 
 import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
@@ -80,7 +81,7 @@ class TestCreditCards(unittest.TestCase):
             "_c3E6E547C-BFB7-4897-86EA-882A04BDE274_kDF867BE9-DEC5-0FFF-6629-127552370B17",
         )
         for card in invalid_cards:
-            body = '<A href="#123">%s</A>' % card
+            body = f'<A href="#123">{card}</A>'
             url = URL("http://www.w3af.com/")
             headers = Headers([("content-type", "text/html")])
             response = HTTPResponse(200, body, headers, url, url, _id=1)
@@ -102,7 +103,7 @@ class TestCreditCards(unittest.TestCase):
         credit_card = "3566 0020 2036 0505"
 
         html_file = os.path.join(ROOT_PATH, "plugins/tests/grep/data/test-3.html")
-        html = open(html_file).read()
+        html = Path(html_file).read_text()
         html = html[: len(html) / 2] + " " + credit_card + " " + html[len(html) / 2 :]
 
         url = URL("http://www.w3af.com/")

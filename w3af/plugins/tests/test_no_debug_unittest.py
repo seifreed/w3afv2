@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 import re
 import unittest
+from pathlib import Path
 
 from w3af import ROOT_PATH
 
@@ -53,7 +54,7 @@ class TestNoDebugUnittest(unittest.TestCase):
             if not unittest_file.endswith(".py") or not "test_" in unittest_file:
                 continue
 
-            test_code = open(unittest_file).read()
+            test_code = Path(unittest_file).read_text()
 
             if debug_scan.search(test_code):
                 msg = "%s unittest has debugging enabled in the scan method."

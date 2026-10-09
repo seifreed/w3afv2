@@ -19,7 +19,9 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import contextlib
 import os
+from typing import ClassVar
 
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
@@ -30,7 +32,7 @@ class TestExportRequests(PluginTest):
 
     target_url = get_moth_http("/grep/form_autocomplete/")
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {
@@ -57,18 +59,15 @@ class TestExportRequests(PluginTest):
 
         self.assertTrue(os.path.exists("output-fr.b64"))
 
-        self.assertEqual(
-            set(sorted(freq)), set(sorted(self._get_fuzzable_requests_from_file()))
-        )
+        self.assertEqual(set(freq), set(self._get_fuzzable_requests_from_file()))
 
     def _get_fuzzable_requests_from_file(self):
         # Get the contents of the output file
-        for line in open("output-fr.b64"):
-            yield FuzzableRequest.from_base64(line)
+        with open("output-fr.b64") as fr_fd:
+            for line in fr_fd:
+                yield FuzzableRequest.from_base64(line)
 
     def tearDown(self):
         super().tearDown()
-        try:
+        with contextlib.suppress(OSError):
             os.remove("output-fr.b64")
-        except:
-            pass

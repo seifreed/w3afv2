@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import json
 import re
-from functools import cmp_to_key
+from typing import ClassVar
 from unittest.mock import patch
 
 from w3af.core.data.dc.headers import Headers
@@ -41,7 +41,7 @@ class TestOpenAPIFindAllEndpointsWithAuth(PluginTest):
 
     target_url = "http://w3af.org/"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {
@@ -50,7 +50,7 @@ class TestOpenAPIFindAllEndpointsWithAuth(PluginTest):
                         "open_api",
                         (
                             "query_string_auth",
-                            "api_key=%s" % API_KEY,
+                            f"api_key={API_KEY}",
                             PluginConfig.QUERY_STRING,
                         ),
                     ),
@@ -59,9 +59,9 @@ class TestOpenAPIFindAllEndpointsWithAuth(PluginTest):
         }
     }
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
-            "http://w3af.org/swagger.json?api_key=%s" % API_KEY,
+            f"http://w3af.org/swagger.json?api_key={API_KEY}",
             IntParamQueryString().get_specification(),
             content_type="application/json",
         )
@@ -95,10 +95,7 @@ class TestOpenAPIFindAllEndpointsWithAuth(PluginTest):
         ]
 
         # Order them to be able to easily assert things
-        def by_path(fra, frb):
-            return cmp(fra.get_url().url_string, frb.get_url().url_string)
-
-        fuzzable_requests.sort(key=cmp_to_key(by_path))
+        fuzzable_requests.sort(key=lambda fr: fr.get_url().url_string)
 
         #
         # Assertions on call #1
@@ -152,14 +149,14 @@ class TestOpenAPINestedModelSpec(PluginTest):
 
     target_url = "http://w3af.org/"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {
                 "crawl": (
                     PluginConfig(
                         "open_api",
-                        ("header_auth", "Basic: %s" % BEARER, PluginConfig.HEADER),
+                        ("header_auth", f"Basic: {BEARER}", PluginConfig.HEADER),
                     ),
                 ),
                 "audit": (PluginConfig("sqli"),),
@@ -186,7 +183,7 @@ class TestOpenAPINestedModelSpec(PluginTest):
 
             return self.status, response_headers, response_body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         HeaderAuthenticatedMockResponse(
             "http://w3af.org/openapi.json",
             NestedModel().get_specification(),
@@ -228,10 +225,7 @@ class TestOpenAPINestedModelSpec(PluginTest):
         ]
 
         # Order them to be able to easily assert things
-        def by_path(fra, frb):
-            return cmp(fra.get_url().url_string, frb.get_url().url_string)
-
-        fuzzable_requests.sort(key=cmp_to_key(by_path))
+        fuzzable_requests.sort(key=lambda fr: fr.get_url().url_string)
 
         self.assertEqual(len(fuzzable_requests), 1)
 
@@ -258,11 +252,11 @@ class TestOpenAPINestedModelSpec(PluginTest):
 class TestOpenAPIRaisesWarningIfNoAuth(PluginTest):
     target_url = "http://w3af.org/"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {"target": target_url, "plugins": {"crawl": (PluginConfig("open_api"),)}}
     }
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             "http://w3af.org/openapi.json",
             NestedModel().get_specification(),
@@ -290,11 +284,11 @@ class TestOpenAPIRaisesWarningIfNoAuth(PluginTest):
 class TestOpenAPIRaisesWarningIfParsingError(PluginTest):
     target_url = "http://w3af.org/"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {"target": target_url, "plugins": {"crawl": (PluginConfig("open_api"),)}}
     }
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             "http://w3af.org/openapi.json",
             NestedModel().get_specification()[:-1],
@@ -336,11 +330,11 @@ class TestOpenAPIRaisesWarningIfParsingError(PluginTest):
 class TestOpenAPIFindsSpecInOtherDirectory(PluginTest):
     target_url = "http://w3af.org/"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {"target": target_url, "plugins": {"crawl": (PluginConfig("open_api"),)}}
     }
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             "http://w3af.org/api/v2/openapi.json",
             NestedModel().get_specification(),
@@ -365,11 +359,11 @@ class TestOpenAPIFindsSpecInOtherDirectory(PluginTest):
 class TestOpenAPIFindsSpecInOtherDirectory2(PluginTest):
     target_url = "http://w3af.org/a/b/c/"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {"target": target_url, "plugins": {"crawl": (PluginConfig("open_api"),)}}
     }
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             "http://w3af.org/a/openapi.json",
             NestedModel().get_specification(),
@@ -397,14 +391,14 @@ class TestOpenAPIFuzzURLParts(PluginTest):
     target_url = "http://petstore.swagger.io/"
     vulnerable_url = "http://petstore.swagger.io/api/pets/1%272%223"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {
                 "crawl": (
                     PluginConfig(
                         "open_api",
-                        ("header_auth", "X-API-Key: %s" % api_key, PluginConfig.HEADER),
+                        ("header_auth", f"X-API-Key: {api_key}", PluginConfig.HEADER),
                     ),
                 ),
                 "audit": (PluginConfig("sqli"),),
@@ -428,7 +422,7 @@ class TestOpenAPIFuzzURLParts(PluginTest):
 
             return status, response_headers, response_body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             "http://petstore.swagger.io/openapi.json",
             PetstoreSimpleModel().get_specification(),

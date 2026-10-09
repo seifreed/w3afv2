@@ -24,6 +24,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from email.header import decode_header
+from typing import ClassVar
 
 import pytest
 
@@ -44,7 +45,7 @@ class ResponseSplittingMockResponse(MockResponse):
             header_name_2, header_value_2 = headers_to_inject.split(":")
             header_name_2 = header_name_2.strip()
             header_value_2 = header_value_2.strip()
-        except:
+        except (IndexError, ValueError):
             return self.status, response_headers, self.body
         else:
             response_headers[header_name_1] = header_value_1
@@ -58,10 +59,10 @@ class TestResponseSplitting(PluginTest):
     target_url = "http://w3af.org/?header="
     target_url_re = re.compile("http://w3af\\.org/\\?header=.*")
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         ResponseSplittingMockResponse(target_url_re, body="", method="GET", status=200)
     ]
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {
@@ -99,7 +100,7 @@ class ResponseSplittingParameterModifiesResponseMockResponse(MockResponse):
             header_name_2, header_value_2 = headers_to_inject.split(":")
             header_name_2 = header_name_2.strip()
             header_value_2 = header_value_2.strip()
-        except:
+        except (IndexError, ValueError):
             return self.status, response_headers, self.body
         else:
             response_headers[header_name_1] = header_value_1
@@ -115,12 +116,12 @@ class TestResponseSplittingParameterModifiesResponse(PluginTest):
     target_url = "http://w3af.org/?header="
     target_url_re = re.compile("http://w3af\\.org/\\?header=.*")
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         ResponseSplittingParameterModifiesResponseMockResponse(
             target_url_re, body="", method="GET", status=200
         )
     ]
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {
@@ -158,7 +159,7 @@ class ResponseSplittingHeaderMockResponse(MockResponse):
             header_name_2, header_value_2 = headers_to_inject.split(":")
             header_name_2 = header_name_2.strip()
             header_value_2 = header_value_2.strip()
-        except:
+        except (IndexError, ValueError):
             return self.status, response_headers, self.body
         else:
             response_headers[header_name_1] = header_value_1
@@ -170,12 +171,12 @@ class TestResponseSplittingHeader(PluginTest):
     target_url = "http://w3af.org/"
     target_url_re = re.compile("http://w3af\\.org/.*")
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         ResponseSplittingHeaderMockResponse(
             target_url_re, body="", method="GET", status=200
         )
     ]
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {

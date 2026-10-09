@@ -23,6 +23,7 @@ import re
 import urllib.error
 import urllib.parse
 import urllib.request
+from typing import ClassVar
 from unittest.mock import patch
 from xml import sax
 
@@ -51,12 +52,12 @@ class TestXXESimple(PluginTest):
             try:
                 root = etree.fromstring(str(xml), parser=parser)
                 body = etree.tostring(root)
-            except Exception as e:
+            except (etree.LxmlError, ValueError) as e:
                 body = str(e)
 
             return self.status, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         XXEMockResponse(re.compile(".*"), body=None, method="GET", status=200)
     ]
 
@@ -102,14 +103,14 @@ class TestXXERemoteLoading(PluginTest):
 
             try:
                 sax.parseString(xml, handler)
-            except Exception as e:
+            except sax.SAXException as e:
                 body = str(e)
             else:
                 body = handler.chars
 
             return self.status, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         XXEMockResponse(re.compile(".*"), body=None, method="GET", status=200)
     ]
 
@@ -149,12 +150,12 @@ class TestXXENegativeWithError(PluginTest):
             try:
                 root = etree.fromstring(str(xml), parser=parser)
                 body = etree.tostring(root)
-            except Exception as e:
+            except (etree.LxmlError, ValueError) as e:
                 body = str(e)
 
             return self.status, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         XXEMockResponse(re.compile(".*"), body=None, method="GET", status=200)
     ]
 
@@ -190,12 +191,12 @@ class TestXXENegativeNoError(PluginTest):
             try:
                 root = etree.fromstring(str(xml), parser=parser)
                 body = etree.tostring(root)
-            except Exception:
+            except (etree.LxmlError, ValueError):
                 body = "Generic error here"
 
             return self.status, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         XXEMockResponse(re.compile(".*"), body=None, method="GET", status=200)
     ]
 
@@ -219,7 +220,7 @@ class TestXXEInParameter(PluginTest):
         "</note>"
     )
 
-    target_url = "http://mock/xxe.simple?xml=%s" % XML_NOTE
+    target_url = f"http://mock/xxe.simple?xml={XML_NOTE}"
 
     class XXEMockResponse(MockResponse):
         def get_response(self, http_request, uri, response_headers):
@@ -233,7 +234,7 @@ class TestXXEInParameter(PluginTest):
 
             try:
                 root = etree.fromstring(str(xml), parser=parser)
-            except Exception as e:
+            except (etree.LxmlError, ValueError) as e:
                 body = str(e)
                 return self.status, response_headers, body
 
@@ -243,7 +244,7 @@ class TestXXEInParameter(PluginTest):
 
             return self.status, response_headers, "Invalid XML."
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         XXEMockResponse(re.compile(".*"), body=None, method="GET", status=200)
     ]
 

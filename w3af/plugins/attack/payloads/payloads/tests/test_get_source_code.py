@@ -21,6 +21,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import shutil
 import tempfile
+from pathlib import Path
+from typing import ClassVar
 
 import pytest
 
@@ -32,7 +34,7 @@ from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
 
 class test_get_source_code(PayloadTestHelper):
 
-    EXPECTED_RESULT = {
+    EXPECTED_RESULT: ClassVar[dict] = {
         "https://moth/w3af/audit/local_file_read/local_file_read.php": (
             "/var/www/moth/w3af/audit/local_file_read/local_file_read.php",
             "tmp__random__/var/www/moth/w3af/audit/local_file_read/local_file_read.php",
@@ -50,12 +52,12 @@ class test_get_source_code(PayloadTestHelper):
 
         self.assertEqual(len(list(self.EXPECTED_RESULT.keys())), 1)
 
-        expected_url = list(self.EXPECTED_RESULT.keys())[0]
-        downloaded_url = list(result.items())[0][0].url_string
+        expected_url = next(iter(self.EXPECTED_RESULT.keys()))
+        downloaded_url = next(iter(result.items()))[0].url_string
         self.assertEqual(expected_url, downloaded_url)
 
-        downloaded_file_path = list(result.items())[0][1][1]
-        downloaded_file_content = open(downloaded_file_path).read()
+        downloaded_file_path = next(iter(result.items()))[1][1]
+        downloaded_file_content = Path(downloaded_file_path).read_text()
         self.assertTrue(self.CONTENT in downloaded_file_content)
 
         shutil.rmtree(temp_dir)

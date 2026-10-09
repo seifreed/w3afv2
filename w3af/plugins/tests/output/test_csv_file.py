@@ -19,9 +19,11 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import contextlib
 import csv
 import json
 import os
+from typing import ClassVar
 
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.dc.headers import Headers
@@ -40,7 +42,7 @@ class TestCSVFile(PluginTest):
 
     target_url = get_moth_http("/audit/xss/simple_xss.py?text=1")
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {
@@ -73,43 +75,42 @@ class TestCSVFile(PluginTest):
         file_vulns = self._from_csv_get_vulns()
 
         self.assertEqual(
-            set(sorted([v.get_url() for v in xss_vulns])),
-            set(sorted([v.get_url() for v in file_vulns])),
+            {v.get_url() for v in xss_vulns},
+            {v.get_url() for v in file_vulns},
         )
 
         self.assertEqual(
-            set(sorted([v.get_method() for v in xss_vulns])),
-            set(sorted([v.get_method() for v in file_vulns])),
+            {v.get_method() for v in xss_vulns},
+            {v.get_method() for v in file_vulns},
         )
 
         self.assertEqual(
-            set(sorted([v.get_id()[0] for v in xss_vulns])),
-            set(sorted([v.get_id()[0] for v in file_vulns])),
+            {v.get_id()[0] for v in xss_vulns},
+            {v.get_id()[0] for v in file_vulns},
         )
 
     def _from_csv_get_vulns(self):
         file_vulns = []
-        vuln_reader = csv.reader(
-            open(self.OUTPUT_FILE, "rb"),
-            delimiter=",",
-            quotechar="|",
-            quoting=csv.QUOTE_MINIMAL,
-        )
-
-        for severity, name, method, uri, var, post_data, _id, desc in vuln_reader:
-            mutant = create_mutant_from_params(method, uri, var, post_data)
-            v = Vuln.from_mutant(
-                name, desc, severity, json.loads(_id), "TestCase", mutant
+        with open(self.OUTPUT_FILE, "rb") as csv_fd:
+            vuln_reader = csv.reader(
+                csv_fd,
+                delimiter=",",
+                quotechar="|",
+                quoting=csv.QUOTE_MINIMAL,
             )
-            file_vulns.append(v)
+
+            for severity, name, method, uri, var, post_data, _id, desc in vuln_reader:
+                mutant = create_mutant_from_params(method, uri, var, post_data)
+                v = Vuln.from_mutant(
+                    name, desc, severity, json.loads(_id), "TestCase", mutant
+                )
+                file_vulns.append(v)
 
         return file_vulns
 
     def tearDown(self):
-        try:
+        with contextlib.suppress(OSError):
             os.remove(self.OUTPUT_FILE)
-        except:
-            pass
 
 
 def create_mutant_from_params(method, uri, var, post_data):

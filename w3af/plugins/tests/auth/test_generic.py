@@ -19,11 +19,17 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import pytest
+from typing import ClassVar
 from unittest import SkipTest
+
+import pytest
 
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.url.exceptions import (
+    ConnectionPoolException,
+    HTTPRequestException,
+)
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
@@ -33,7 +39,7 @@ class TestGeneric(PluginTest):
     base_url = get_moth_http("/auth/auth_1/")
     demo_testfire = "http://demo.testfire.net/bank/"
 
-    _run_config = {
+    _run_config: ClassVar[dict] = {
         "target": base_url,
         "plugins": {
             "crawl": (
@@ -63,7 +69,7 @@ class TestGeneric(PluginTest):
         },
     }
 
-    demo_testfire_net = {
+    demo_testfire_net: ClassVar[dict] = {
         "target": demo_testfire,
         "plugins": {
             "crawl": (
@@ -111,8 +117,8 @@ class TestGeneric(PluginTest):
         login_url = URL(self.demo_testfire + "login.aspx")
         try:
             res = uri_opener.GET(login_url)
-        except:
-            raise SkipTest("demo.testfire.net is unreachable!")
+        except (HTTPRequestException, ConnectionPoolException) as e:
+            raise SkipTest("demo.testfire.net is unreachable!") from e
         else:
             if not "Online Banking Login" in res.body:
                 raise SkipTest("demo.testfire.net has changed!")
@@ -120,7 +126,7 @@ class TestGeneric(PluginTest):
         self._scan(self.demo_testfire_net["target"], self.demo_testfire_net["plugins"])
 
         urls = self.kb.get_all_known_urls()
-        url_strings = set(str(u) for u in urls)
+        url_strings = {str(u) for u in urls}
 
         self.assertTrue(self.demo_testfire + "queryxpath.aspx" in url_strings)
         self.assertTrue(self.demo_testfire + "queryxpath.aspx.cs" in url_strings)

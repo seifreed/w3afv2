@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
 from unittest.mock import Mock
 
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
@@ -28,17 +29,17 @@ class TestUserDir(PluginTest):
 
     target_url = "http://httpretty/"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {"target": target_url, "plugins": {"crawl": (PluginConfig("user_dir"),)}}
     }
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse("http://httpretty/~www/", "www user home directory."),
         MockResponse("http://httpretty/~kmem/", "kmem user home directory."),
         MockResponse("http://httpretty//xfs/", "home sweet home"),
     ]
 
-    EXPECTED_RESULTS = {
+    EXPECTED_RESULTS: ClassVar[set] = {
         ("Web user home directory", "http://httpretty/~www/"),
         ("Web user home directory", "http://httpretty/~kmem/"),
         ("Web user home directory", "http://httpretty/xfs/"),
@@ -54,6 +55,6 @@ class TestUserDir(PluginTest):
         self._scan(cfg["target"], cfg["plugins"])
 
         users = self.kb.get("user_dir", "users")
-        scan_results = set([(i.get_name(), i.get_url().url_string) for i in users])
+        scan_results = {(i.get_name(), i.get_url().url_string) for i in users}
 
         self.assertEqual(self.EXPECTED_RESULTS, scan_results)

@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 import pytest
 
 import w3af.core.data.kb.knowledge_base as kb
@@ -38,7 +40,7 @@ class TestErrorPages(PluginTest):
 
     target_url = get_moth_http("/grep/error_pages/index.html")
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {"grep": (PluginConfig("error_pages"),)},
@@ -70,7 +72,7 @@ class TestErrorPages(PluginTest):
         headers = Headers(list({"content-type": "text/html"}.items()))
 
         for i in range(plugin.MAX_REPORTED_PER_MSG * 2):
-            url = URL("http://www.w3af.com/%s" % i)
+            url = URL(f"http://www.w3af.com/{i}")
             request = FuzzableRequest(url, method="GET")
             response = HTTPResponse(200, body, headers, url, url, _id=1)
 
@@ -90,7 +92,7 @@ class TestErrorPages(PluginTest):
         headers = Headers(list({"content-type": "text/html"}.items()))
 
         for i in range(plugin.MAX_REPORTED_PER_MSG * 2):
-            url = URL("http://www.w3af.com/%s" % i)
+            url = URL(f"http://www.w3af.com/{i}")
             request = FuzzableRequest(url, method="GET")
             response = HTTPResponse(200, body, headers, url, url, _id=1)
 

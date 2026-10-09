@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
+from typing import ClassVar
 
 from w3af.plugins.tests.constants.http_responses import get_apache_403
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
@@ -37,9 +38,9 @@ run_configs = {
 
 class TestFindBackdoor(PluginTest):
     domain = "httpretty-mock"
-    target_url = "http://%s/" % domain
+    target_url = f"http://{domain}/"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse("http://httpretty-mock/", "Hello world"),
         MockResponse("http://httpretty-mock/c99shell.php", "<html> c99shell</title>"),
     ]
@@ -65,11 +66,13 @@ class TestFalsePositiveFindBackdoor2017_1(PluginTest):
     """
 
     domain = "httpretty-mock"
-    target_url = "http://%s/" % domain
+    target_url = f"http://{domain}/"
 
     APACHE_403 = get_apache_403("/foobar", domain)
 
-    MOCK_RESPONSES = [MockResponse(re.compile("(.*)"), APACHE_403, status=403)]
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(re.compile("(.*)"), APACHE_403, status=403)
+    ]
 
     def test_2017_false_positive_backdoor_1(self):
         cfg = run_configs["base"]
@@ -82,11 +85,11 @@ class TestFalsePositiveFindBackdoor2017_1(PluginTest):
 
 class TestFalsePositiveFindBackdoor2017_2(PluginTest):
     domain = "httpretty-mock"
-    target_url = "http://%s/" % domain
+    target_url = f"http://{domain}/"
 
     APACHE_403 = get_apache_403("/forbidden/foobar", domain)
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse("http://httpretty-mock/", '<a href="/forbidden/">403</a>'),
         MockResponse(
             "http://httpretty-mock/forbidden/c99shell.php",

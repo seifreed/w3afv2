@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.core.data.constants import severity
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
@@ -27,11 +29,11 @@ class TestClickJackingVuln(PluginTest):
 
     target_url = "http://httpretty"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse("http://httpretty/", body="Hello world", method="GET", status=200)
     ]
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {
@@ -63,7 +65,7 @@ class TestClickJackingProtectedXFrameOptions(PluginTest):
 
     target_url = "http://httpretty"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             "http://httpretty/",
             body="Hello world",
@@ -73,7 +75,7 @@ class TestClickJackingProtectedXFrameOptions(PluginTest):
         )
     ]
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {
@@ -99,7 +101,7 @@ class TestClickJackingCSPNone(PluginTest):
 
     target_url = "http://httpretty"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             "http://httpretty/",
             body="Hello world",
@@ -109,7 +111,7 @@ class TestClickJackingCSPNone(PluginTest):
         )
     ]
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {
@@ -135,7 +137,7 @@ class TestClickJackingCSPWildcard(PluginTest):
 
     target_url = "http://httpretty"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             "http://httpretty/",
             body="Hello world",
@@ -145,7 +147,7 @@ class TestClickJackingCSPWildcard(PluginTest):
         )
     ]
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {
@@ -171,7 +173,7 @@ class TestClickJackingCSPSpecificDomain(PluginTest):
 
     target_url = "http://httpretty"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             "http://httpretty/",
             body="Hello world",
@@ -181,7 +183,7 @@ class TestClickJackingCSPSpecificDomain(PluginTest):
         )
     ]
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {
@@ -207,7 +209,7 @@ class TestClickJackingCSPSelf(PluginTest):
 
     target_url = "http://httpretty"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             "http://httpretty/",
             body="Hello world",
@@ -217,7 +219,7 @@ class TestClickJackingCSPSelf(PluginTest):
         )
     ]
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {
@@ -243,7 +245,7 @@ class TestClickJackingCSPSelfAndSpecificDomain(PluginTest):
 
     target_url = "http://httpretty"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             "http://httpretty/",
             body="Hello world",
@@ -253,7 +255,7 @@ class TestClickJackingCSPSelfAndSpecificDomain(PluginTest):
         )
     ]
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {

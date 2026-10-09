@@ -24,6 +24,8 @@ import re
 import urllib.error
 import urllib.parse
 import urllib.request
+from pathlib import Path
+from typing import ClassVar
 from unittest import SkipTest
 
 import pytest
@@ -47,7 +49,7 @@ class TestWebSpider(PluginTest):
 
     wivet = get_wivet_http()
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "basic": {
             "target": None,
             "plugins": {
@@ -67,14 +69,14 @@ class TestWebSpider(PluginTest):
 
         # Add the webroot to the list of expected files
         expected_files.append("")
-        expected_urls = set(
+        expected_urls = {
             URL(base_directory).url_join(end).url_string for end in expected_files
-        )
+        }
 
         # pylint: disable=E1101
         # Pylint fails to detect the object types that come out of the KB
         urls = self.kb.get_all_known_urls()
-        found_urls = set(str(u).decode("utf-8") for u in urls)
+        found_urls = {str(u).decode("utf-8") for u in urls}
 
         self.assertEqual(found_urls, expected_urls)
 
@@ -232,10 +234,10 @@ class TestWebSpider(PluginTest):
 
         urls = self.kb.get_all_known_urls()
 
-        found = set(
+        found = {
             str(u) for u in urls if inner_pages in str(u) and str(u).endswith(".php")
-        )
-        expected = set((self.wivet + inner_pages + end) for end in EXPECTED_URLS)
+        }
+        expected = {(self.wivet + inner_pages + end) for end in EXPECTED_URLS}
 
         self.assertEqual(found, expected)
 
@@ -309,7 +311,7 @@ class TestRelativePathsIn404(PluginTest):
 
     target_url = "http://mock/"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {"crawl": (PluginConfig("web_spider"),)},
@@ -320,10 +322,10 @@ class TestRelativePathsIn404(PluginTest):
         ROOT_PATH, "plugins", "tests", "crawl", "web_spider", "5834"
     )
 
-    GALERIA_HTML = open(os.path.join(TEST_ROOT, "galeria-root.html")).read()
-    INDEX_HTML = open(os.path.join(TEST_ROOT, "index.html")).read()
+    GALERIA_HTML = Path(os.path.join(TEST_ROOT, "galeria-root.html")).read_text()
+    INDEX_HTML = Path(os.path.join(TEST_ROOT, "index.html")).read_text()
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(re.compile("http://mock/galeria/.*"), GALERIA_HTML),
         MockResponse("http://mock/", "Thanks.", method="POST"),
         MockResponse("http://mock/", INDEX_HTML),
@@ -335,14 +337,14 @@ class TestRelativePathsIn404(PluginTest):
 
         # Define the expected/desired output
         expected_files = ["", "/galeria/", "/i18n/setlang/", "/reserva/resumen/"]
-        expected_urls = set(
+        expected_urls = {
             URL(self.target_url).url_join(end).url_string for end in expected_files
-        )
+        }
 
         # pylint: disable=E1101
         # Pylint fails to detect the object types that come out of the KB
         urls = self.kb.get_all_known_urls()
-        found_urls = set(str(u).decode("utf-8") for u in urls)
+        found_urls = {str(u).decode("utf-8") for u in urls}
 
         self.assertEqual(found_urls, expected_urls)
 
@@ -359,7 +361,7 @@ class TestDeadLock(PluginTest):
 
     target_url = "http://mock/"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {"crawl": (PluginConfig("web_spider"),)},
@@ -370,9 +372,9 @@ class TestDeadLock(PluginTest):
         ROOT_PATH, "plugins", "tests", "crawl", "web_spider", "5834"
     )
 
-    INDEX_HTML = open(os.path.join(TEST_ROOT, "index.html")).read()
+    INDEX_HTML = Path(os.path.join(TEST_ROOT, "index.html")).read_text()
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse("http://mock/", INDEX_HTML),
         MockResponse("http://mock/", "Thanks.", method="POST"),
     ]
@@ -391,12 +393,12 @@ class TestFormExclusions(PluginTest):
 
     target_url = "http://mock/"
 
-    scan_config = {
+    scan_config: ClassVar[dict] = {
         "target": target_url,
         "plugins": {"crawl": (PluginConfig("web_spider"),)},
     }
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             "http://mock/",
             "<html>"
@@ -422,14 +424,14 @@ class TestFormExclusions(PluginTest):
 
         # Define the expected/desired output
         expected_files = ["", "/in/"]
-        expected_urls = set(
+        expected_urls = {
             URL(self.target_url).url_join(end).url_string for end in expected_files
-        )
+        }
 
         # pylint: disable=E1101
         # Pylint fails to detect the object types that come out of the KB
         urls = self.kb.get_all_known_urls()
-        found_urls = set(str(u).decode("utf-8") for u in urls)
+        found_urls = {str(u).decode("utf-8") for u in urls}
 
         self.assertEqual(found_urls, expected_urls)
 
