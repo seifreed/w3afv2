@@ -22,22 +22,50 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import contextlib
 import json
 import os
+import re
+import urllib.parse
 from typing import ClassVar
 
 import pytest
 
-from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.kb.tests.test_vuln import MockVuln
 from w3af.core.data.parsers.doc.url import URL
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
+from w3af.tests.helpers.sqli_site import SQL_ERROR
+
+
+def _sqli_integer(mock_response, request, uri, response_headers):
+    """
+    Emulate an error-based SQL injection in an integer query-string parameter:
+    the value is concatenated into the query without escaping, so an unbalanced
+    quote produces a MySQL syntax error.
+    """
+    response_headers["content-type"] = "text/html"
+    query = urllib.parse.urlsplit(request.uri).query
+    value = urllib.parse.parse_qs(query).get("id", [""])[0]
+
+    if value.count("'") % 2 == 1 or '"' in value:
+        body = f"<html><body>{SQL_ERROR} near '{value}' at line 1</body></html>"
+    else:
+        body = f"<html><body>Results for {value}</body></html>"
+
+    return 200, response_headers, body
 
 
 @pytest.mark.smoke
 class TestJsonOutput(PluginTest):
 
-    target_url = get_moth_http("/audit/sql_injection/where_integer_qs.py")
+    target_url = "http://mock/audit/sql_injection/where_integer_qs.py"
 
     FILENAME = "output-unittest.json"
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(
+            re.compile(r"http://mock/audit/sql_injection/where_integer_qs\.py.*"),
+            body=_sqli_integer,
+            method="GET",
+        ),
+    ]
 
     _run_configs: ClassVar[dict] = {
         "cfg": {

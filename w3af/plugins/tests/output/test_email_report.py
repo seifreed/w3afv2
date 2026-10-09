@@ -19,19 +19,44 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import re
+import urllib.parse
+from typing import ClassVar
+
 import pytest
 
-from w3af.core.controllers.ci.moth import get_moth_http
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 from w3af.plugins.tests.output.smtp_server import LocalSMTPServer
+
+
+def _reflect_xss(mock_response, request, uri, response_headers):
+    """Reflect the `text` parameter unescaped, emulating a reflected XSS."""
+    response_headers["content-type"] = "text/html"
+    query = urllib.parse.urlsplit(request.uri).query
+    text = urllib.parse.parse_qs(query).get("text", [""])[0]
+    body = f"<html><body>You searched for: {text}</body></html>"
+    return 200, response_headers, body
 
 
 @pytest.mark.moth
 class TestEmailReport(PluginTest):
 
-    target_url = get_moth_http("/audit/xss/")
+    target_url = "http://mock/audit/xss/"
     to_addrs = "w3af@mailinator.com"
     from_addr = "w3af@gmail.com"
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(
+            target_url,
+            body='<html><body><a href="xss_1.py?text=1">one</a></body></html>',
+            method="GET",
+        ),
+        MockResponse(
+            re.compile(r"http://mock/audit/xss/xss_1\.py.*"),
+            body=_reflect_xss,
+            method="GET",
+        ),
+    ]
 
     def setUp(self):
         super().setUp()
