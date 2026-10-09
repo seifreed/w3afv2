@@ -34,9 +34,6 @@ from w3af.core.data.misc.constants.web_encodings import (
     URL_HEX_FORMAT,
 )
 
-HTML_ENCODING_FUNCTIONS: list[Callable[[str], str]] = []
-URL_ENCODING_FUNCTIONS: list[Callable[[str], str]] = []
-
 
 def url_encode(data, by_code_replacer=None, replace_by_code=None):
     """
@@ -53,7 +50,7 @@ def url_encode(data, by_code_replacer=None, replace_by_code=None):
     )
 
 
-def generate_url_encoding_functions():
+def _url_encoding_functions() -> list[Callable[[str], str]]:
     by_code_replacers = (
         lambda c: c,
         lambda c: URL_HEX_FORMAT % HEX_MAP.get(c, c),
@@ -81,15 +78,15 @@ def generate_url_encoding_functions():
 
     # Only lower case versions of the encoded characters are generated, the
     # case insensitive replace at remove_using_lower_case handles the rest
-    for by_code_replacer in by_code_replacers:
-        for replace_by_code in replace_by_codes:
-            functor = functools.partial(
-                url_encode,
-                by_code_replacer=by_code_replacer,
-                replace_by_code=replace_by_code,
-            )
-
-            URL_ENCODING_FUNCTIONS.append(functor)
+    return [
+        functools.partial(
+            url_encode,
+            by_code_replacer=by_code_replacer,
+            replace_by_code=replace_by_code,
+        )
+        for by_code_replacer in by_code_replacers
+        for replace_by_code in replace_by_codes
+    ]
 
 
 def html_encode(
@@ -123,7 +120,7 @@ def html_encode(
     return "".join(result)
 
 
-def generate_html_encoding_functions():
+def _html_encoding_functions() -> list[Callable[[str], str]]:
     by_code_replacers = (
         lambda c: c,
         lambda c: HEX_FORMAT % HEX_MAP.get(c, c),
@@ -155,19 +152,19 @@ def generate_html_encoding_functions():
 
     # Only lower case versions of the encoded characters are generated, the
     # case insensitive replace at remove_using_lower_case handles the rest
-    for by_code_replacer in by_code_replacers:
-        for by_name_replacer in by_name_replacers:
-            for replace_by_code in replace_by_codes:
-                for replace_by_name in replace_by_names:
-                    functor = functools.partial(
-                        html_encode,
-                        by_code_replacer=by_code_replacer,
-                        by_name_replacer=by_name_replacer,
-                        replace_by_code=replace_by_code,
-                        replace_by_name=replace_by_name,
-                    )
-
-                    HTML_ENCODING_FUNCTIONS.append(functor)
+    return [
+        functools.partial(
+            html_encode,
+            by_code_replacer=by_code_replacer,
+            by_name_replacer=by_name_replacer,
+            replace_by_code=replace_by_code,
+            replace_by_name=replace_by_name,
+        )
+        for by_code_replacer in by_code_replacers
+        for by_name_replacer in by_name_replacers
+        for replace_by_code in replace_by_codes
+        for replace_by_name in replace_by_names
+    ]
 
 
 def unicode_escape(data):
@@ -188,4 +185,6 @@ def backslash_escape(data):
     return data.replace('"', '\\"').replace("'", "\\'")
 
 
+URL_ENCODING_FUNCTIONS = _url_encoding_functions()
+HTML_ENCODING_FUNCTIONS = _html_encoding_functions()
 JSON_ENCODING_FUNCTIONS = (unicode_escape, backslash_escape)

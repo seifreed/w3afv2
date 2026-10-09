@@ -48,8 +48,6 @@ from w3af.core.data.misc.web_encodings import (
     HTML_ENCODING_FUNCTIONS,
     JSON_ENCODING_FUNCTIONS,
     URL_ENCODING_FUNCTIONS,
-    generate_html_encoding_functions,
-    generate_url_encoding_functions,
 )
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.handlers.keepalive import URLTimeoutError
@@ -181,10 +179,6 @@ def _multi_escape_table_impl(_input):
     :param _input: The string with special characters
     :return: A string generator with all special characters replaced
     """
-    if not HTML_ENCODING_FUNCTIONS:
-        generate_html_encoding_functions()
-        generate_url_encoding_functions()
-
     yield _input
 
     for encode in itertools.chain(

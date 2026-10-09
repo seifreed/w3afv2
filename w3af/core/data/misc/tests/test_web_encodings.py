@@ -7,8 +7,6 @@ from w3af.core.data.misc.web_encodings import (
     JSON_ENCODING_FUNCTIONS,
     URL_ENCODING_FUNCTIONS,
     backslash_escape,
-    generate_html_encoding_functions,
-    generate_url_encoding_functions,
     html_encode,
     unicode_escape,
     url_encode,
@@ -16,10 +14,6 @@ from w3af.core.data.misc.web_encodings import (
 
 
 def encoding_functions():
-    if not HTML_ENCODING_FUNCTIONS:
-        generate_html_encoding_functions()
-        generate_url_encoding_functions()
-
     return URL_ENCODING_FUNCTIONS, HTML_ENCODING_FUNCTIONS
 
 
