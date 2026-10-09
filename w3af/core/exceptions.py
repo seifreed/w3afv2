@@ -13,6 +13,10 @@ class BodyCutException(BaseFrameworkException):
     """Raised when response-body extraction boundaries exceed the body."""
 
 
+class FileException(BaseFrameworkException):
+    """Raised when framework-managed file operations fail."""
+
+
 class ScanMustStopException(Exception):
     """Signal that the current scan must stop."""
 

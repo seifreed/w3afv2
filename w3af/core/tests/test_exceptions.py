@@ -4,6 +4,7 @@ from urllib.request import Request
 from w3af.core.exceptions import (
     BaseFrameworkException,
     BodyCutException,
+    FileException,
     ScanMustStopByKnownReasonExc,
     ScanMustStopByUnknownReasonExc,
     ScanMustStopByUserRequest,
@@ -18,6 +19,12 @@ class TestFrameworkExceptions(unittest.TestCase):
 
         self.assertEqual(str(exception), "failure")
         self.assertIsInstance(BodyCutException("cut"), BaseFrameworkException)
+
+    def test_file_exception_is_a_framework_exception(self):
+        exception = FileException("file operation failed")
+
+        self.assertIsInstance(exception, BaseFrameworkException)
+        self.assertEqual(str(exception), "file operation failed")
 
     def test_scan_stop_includes_logged_errors(self):
         exception = ScanMustStopException("stopped", ("first", "second"))

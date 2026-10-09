@@ -738,3 +738,18 @@ Black, Ruff (`F401`, `I001`), compilación, import/smoke test y `git diff
 --check` pasan; no quedan referencias a `running_tests`. La puntuación global
 pasa a **3.9/10**: se retira una dependencia de test de una capa de runtime y
 código muerto, aunque siguen pendientes la deuda restante y las gates globales.
+
+## Avance: excepción de archivos en core
+
+`FileException` era una subclase vacía de `BaseFrameworkException` definida en
+`controllers.exceptions`, aunque el único caller de producción está en
+`core.data.url.handlers.cache_backend.disk`. Se movió a `core.exceptions` sin
+reexportación; el cache conserva el tipo y mensaje de error. Un test verifica
+su jerarquía y contenido.
+
+Los nueve tests de `core.exceptions` pasan con **100% de cobertura**. Black,
+Ruff (`F401`, `I001`), compilación y `git diff --check` pasan. Dos tests del
+cache pasan; el tercero depende de `w3af.org` y recibió HTTP 522 en vez del 404
+esperado, por lo que no es evidencia sobre la migración. La auditoría sube a
+**4.0/10**: se corrige una dependencia ascendente concreta, pero faltan muchas
+otras y las gates globales.

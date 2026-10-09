@@ -55,10 +55,6 @@ class ProxyException(BaseFrameworkException):
     """
 
 
-class FileException(BaseFrameworkException):
-    pass
-
-
 class OSDetectionException(BaseFrameworkException):
     pass
 
