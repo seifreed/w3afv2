@@ -153,6 +153,14 @@ class buffer_overflow(AuditPlugin):
         else:
             self._analyze_result(mutant, response)
 
+    def handle_url_error(self, uri, http_exception):
+        """
+        A request which makes the remote process crash is the signal this
+        plugin looks for, so the error is re-raised for _send_request to
+        report it instead of being replaced with an empty response.
+        """
+        return True, None
+
     def _analyze_result(self, mutant, response):
         """
         Analyze results of the _send_mutant method.
