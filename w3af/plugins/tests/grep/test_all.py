@@ -56,7 +56,7 @@ class test_all(unittest.TestCase):
         file_path = os.path.join(
             ROOT_PATH, "plugins", "tests", "grep", "data", "w3af.png"
         )
-        body = Path(file_path).read_text()
+        body = Path(file_path).read_bytes().decode("latin-1")
         hdrs = Headers(list({"Content-Type": "image/png"}.items()))
         response = HTTPResponse(
             200, body, hdrs, self.url_inst, self.url_inst, _id=random.randint(1, 5000)
@@ -74,7 +74,7 @@ class test_all(unittest.TestCase):
         file_path = os.path.join(
             ROOT_PATH, "plugins", "tests", "grep", "data", "w3af.png"
         )
-        body = Path(file_path).read_text()
+        body = Path(file_path).read_bytes().decode("latin-1")
         # Here is the change from the previous test:
         hdrs = Headers(list({"Content-Type": "text/html"}.items()))
         response = HTTPResponse(

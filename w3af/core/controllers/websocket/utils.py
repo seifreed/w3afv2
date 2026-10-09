@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import base64
-import random
+import secrets
 import string
 
 from w3af.core.controllers.exceptions import (
@@ -39,7 +39,7 @@ from w3af.core.data.url.exceptions import HTTPRequestException
 
 def gen_ws_sec_key():
     _set = string.ascii_uppercase + string.digits
-    key = "".join(random.choice(_set) for _ in range(16))
+    key = "".join(secrets.choice(_set) for _ in range(16))
     return base64.b64encode(key)
 
 

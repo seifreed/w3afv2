@@ -21,22 +21,41 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import ClassVar
 
-from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.plugins.grep.password_profiling import password_profiling
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
+
+PROFILING_TEXT = (
+    "The Moth application was written by its creators to help students learn"
+    " about web application security while they practice with the Moth"
+    " application created by the original creators of the project."
+)
+LINKS = "".join(f'<a href="/page{i}.html">p{i}</a>' for i in range(1, 6))
+INDEX_BODY = f"<html><body><p>{PROFILING_TEXT}</p>{LINKS}</body></html>"
+PAGE_BODY = f"<html><body><p>{PROFILING_TEXT}</p></body></html>"
 
 
 class TestPasswordProfiling(PluginTest):
 
-    password_profiling_url = get_moth_http("/grep/password_profiling/")
+    target_url = "http://mock/"
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse("http://mock/", body=INDEX_BODY, method="GET", status=200),
+        *(
+            MockResponse(f"http://mock/page{i}.html", body=PAGE_BODY, method="GET")
+            for i in range(1, 6)
+        ),
+    ]
 
     _run_configs: ClassVar[dict] = {
         "cfg1": {
-            "target": password_profiling_url,
+            "target": target_url,
             "plugins": {
-                "grep": (PluginConfig("password_profiling"),),
+                "grep": (
+                    PluginConfig("password_profiling"),
+                    PluginConfig("lang"),
+                ),
                 "crawl": (
                     PluginConfig(
                         "web_spider", ("only_forward", True, PluginConfig.BOOL)
@@ -61,8 +80,8 @@ class TestPasswordProfiling(PluginTest):
         collected_passwords.sort(key=lambda password: password[1])
 
         self.assertIn("Moth", collected_passwords)
-        self.assertIn("application", collected_passwords)
         self.assertIn("creators", collected_passwords)
+        self.assertIn("students", collected_passwords)
 
     def test_merge_password_profiling(self):
         pp = password_profiling()

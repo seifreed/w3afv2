@@ -172,25 +172,10 @@ class BaseConsumer(Process):
         """
         while True:
 
-            try:
-                work_unit = self.in_queue.get()
-            except KeyboardInterrupt:
-                # https://github.com/andresriancho/w3af/issues/9587
-                #
-                # If we don't do this, the thread will die and will never
-                # process the POISON_PILL, which will end up in an endless
-                # wait for .join()
-                continue
+            work_unit = self.in_queue.get()
 
             if work_unit == POISON_PILL:
-                try:
-                    self._process_poison_pill()
-                except Exception as e:
-                    logger.debug("Processing the poison pill failed", exc_info=True)
-                    msg = 'An exception was found while processing poison pill: "%s"'
-                    om.out.debug(msg % e)
-                finally:
-                    self.in_queue.task_done()
+                self._consume_poison_pill()
                 break
 
             else:
@@ -232,18 +217,26 @@ class BaseConsumer(Process):
             )
             om.out.debug(msg % args)
 
+    def _consume_poison_pill(self):
+        """
+        Process the POISON_PILL taken from the input queue, any errors are
+        logged because the consumer loop must always finish after it.
+        """
+        try:
+            self._process_poison_pill()
+        except Exception as e:
+            logger.debug("Processing the poison pill failed", exc_info=True)
+            msg = 'An exception was found while processing poison pill: "%s"'
+            om.out.debug(msg % e)
+        finally:
+            self.in_queue.task_done()
+
     def _process_poison_pill(self):
         om.out.debug(f"Processing POISON_PILL in {self._thread_name}")
 
         try:
             self._shutdown_threadpool()
-        except Exception:
-            logger.debug("Shutting down the thread pool failed", exc_info=True)
-
-        try:
             self._call_teardown()
-        except Exception:
-            logger.debug("Calling the consumer teardown failed", exc_info=True)
         finally:
             self._out_queue.put(POISON_PILL)
             self.set_has_finished()
@@ -259,45 +252,15 @@ class BaseConsumer(Process):
         #
         # Quickly set the threadpool attribute to None to prevent other calls
         # to this method from running close() or join() twice on the same pool
-        # This should never happen (only one POISON_PILL should ever be sent
-        # to a queue) but...
         #
         pool = self._threadpool
         self._threadpool = None
 
-        msg_fmt = 'Exception found while %s pool in %s consumer: "%s"'
+        pool.close()
+        om.out.debug(f"{self._thread_name} pool is closed")
 
-        try:
-            pool.close()
-        except Exception as e:
-            logger.debug("Closing the thread pool failed", exc_info=True)
-            args = ("closing", self.get_name(), e)
-            om.out.debug(msg_fmt % args)
-
-        msg = "%s pool is closed"
-        om.out.debug(msg % self._thread_name)
-
-        try:
-            pool.join()
-        except Exception as e:
-            logger.debug("Joining the thread pool failed", exc_info=True)
-            args = ("joining", self.get_name(), e)
-            om.out.debug(msg_fmt % args)
-
-            # First try to call join(), which is nice and waits for all the
-            # tasks to complete. If that fails, then call terminate()
-            try:
-                pool.terminate()
-            except Exception as e:
-                logger.debug("Terminating the thread pool failed", exc_info=True)
-                args = ("terminating", self.get_name(), e)
-                om.out.debug(msg_fmt % args)
-            else:
-                msg = "%s pool has been terminated after failed call to join"
-                om.out.debug(msg % self._thread_name)
-
-        msg = "%s pool has been joined"
-        om.out.debug(msg % self._thread_name)
+        pool.join()
+        om.out.debug(f"{self._thread_name} pool has been joined")
 
     def _call_teardown(self):
         # Finish this consumer and everyone consuming the output

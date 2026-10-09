@@ -140,15 +140,33 @@ class CannedRequestHandler(BaseHTTPRequestHandler):
         if isinstance(body, str):
             body = body.encode("utf-8")
 
-        self.send_response(reply.status, reply.reason)
-        for name, value in reply.headers.items():
-            if name.lower() not in FRAMING_HEADERS:
-                self.send_header(name, str(value))
+        self.send_response_only(reply.status, reply.reason)
+        for name, value in self._reply_headers(reply).items():
+            self.send_header(name, str(value))
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
 
         if self.command != "HEAD":
             self.wfile.write(body)
+
+    def _reply_headers(self, reply):
+        """
+        Merge the reply headers over the default Server and Date headers. A
+        reply sets either header to override its value, or to None to omit it.
+        """
+        defaults = {"Server": self.version_string(), "Date": self.date_time_string()}
+        overridden = {name.lower() for name in reply.headers}
+        headers = {
+            name: value
+            for name, value in defaults.items()
+            if name.lower() not in overridden
+        }
+
+        for name, value in reply.headers.items():
+            if value is not None and name.lower() not in FRAMING_HEADERS:
+                headers[name] = value
+
+        return headers
 
 
 class CannedHTTPServer(ThreadingHTTPServer):

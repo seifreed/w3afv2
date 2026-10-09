@@ -30,7 +30,9 @@ from w3af.core.data.options.option_types import URL as URL_OPT
 from w3af.core.data.parsers import parser_cache
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.url.exceptions import HTTPRequestException
+
+# Credentials are supplied by the user through the plugin options.
+UNCONFIGURED = ""
 
 
 class autocomplete(AuthSessionPlugin):
@@ -43,7 +45,7 @@ class autocomplete(AuthSessionPlugin):
 
         # User configured settings
         self.username = ""
-        self.password = ""
+        self.password = UNCONFIGURED
         self.login_form_url = URL("http://host.tld/login")
         self.check_url = URL("http://host.tld/check")
         self.check_string = ""
@@ -85,11 +87,7 @@ class autocomplete(AuthSessionPlugin):
         #
         # Complete the parameters and send the form to the server
         #
-        form_submitted = self._submit_form(form)
-
-        if not form_submitted:
-            self._handle_authentication_failure()
-            return False
+        self._submit_form(form)
 
         #
         # Check if we're logged in
@@ -124,7 +122,6 @@ class autocomplete(AuthSessionPlugin):
         to the server.
 
         :param form_params: The form parameters as returned by the HTML parser
-        :return: True if form was submitted to the server
         """
         #
         # Create a form instance, using the proper encoding (multipart
@@ -141,18 +138,15 @@ class autocomplete(AuthSessionPlugin):
         #
         fuzzable_request = FuzzableRequest.from_form(form)
 
-        try:
-            http_response = self._uri_opener.send_mutant(
-                fuzzable_request,
-                grep=False,
-                cache=False,
-                follow_redirects=True,
-                debugging_id=self._debugging_id,
-            )
-        except HTTPRequestException as e:
-            msg = "Failed to submit the login form: %s"
-            self._log_debug(msg % e)
-            return False
+        # Request errors are converted into a 204 response by the URL opener
+        # proxy (UrlOpenerProxy), so they surface as a failed session check.
+        http_response = self._uri_opener.send_mutant(
+            fuzzable_request,
+            grep=False,
+            cache=False,
+            follow_redirects=True,
+            debugging_id=self._debugging_id,
+        )
 
         msg = "Login form sent to %s in HTTP request ID %s"
         args = (
@@ -162,8 +156,6 @@ class autocomplete(AuthSessionPlugin):
         self._log_debug(msg % args)
 
         self._log_http_response(http_response)
-
-        return True
 
     def _get_login_form(self):
         """
@@ -175,18 +167,15 @@ class autocomplete(AuthSessionPlugin):
         #
         # Send the HTTP GET request to retrieve the HTML
         #
-        try:
-            http_response = self._uri_opener.GET(
-                self.login_form_url,
-                grep=False,
-                cache=False,
-                follow_redirects=True,
-                debugging_id=self._debugging_id,
-            )
-        except HTTPRequestException as e:
-            msg = "Failed to HTTP GET the login_form_url: %s"
-            self._log_debug(msg % e)
-            return
+        # Request errors are converted into a 204 response by the URL opener
+        # proxy (UrlOpenerProxy), so they surface as a failed login below.
+        http_response = self._uri_opener.GET(
+            self.login_form_url,
+            grep=False,
+            cache=False,
+            follow_redirects=True,
+            debugging_id=self._debugging_id,
+        )
 
         self._log_http_response(http_response)
 

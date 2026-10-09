@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import functools
 import string
-from collections.abc import Callable
+from collections.abc import Callable, Container
 
 from w3af.core.data.misc.constants.web_encodings import (
     DEC_FORMAT,
@@ -57,7 +57,7 @@ def _url_encoding_functions() -> list[Callable[[str], str]]:
         lambda c: URL_HEX_FORMAT % HEX_MAP.get(c, c) if c != " " else "+",
     )
 
-    replace_by_codes = (
+    replace_by_codes: tuple[Container[str], ...] = (
         # No character is replaced
         {},
         # RFC 2396 Uniform Resource Identifiers reserved
@@ -133,7 +133,7 @@ def _html_encoding_functions() -> list[Callable[[str], str]]:
         lambda c: HTML_ENCODE_NAMES.get(c, c),
     )
 
-    replace_by_codes = (
+    replace_by_codes: tuple[Container[str], ...] = (
         {},
         SPECIAL_CHARS,
         {"&", "<", ">"},
@@ -141,7 +141,7 @@ def _html_encoding_functions() -> list[Callable[[str], str]]:
         HEX_MAP,
     )
 
-    replace_by_names = (
+    replace_by_names: tuple[Container[str], ...] = (
         {},
         SPECIAL_CHARS,
         HTML_ENCODE_NAMES,

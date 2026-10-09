@@ -22,6 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
+import shutil
+import tempfile
 import unittest
 from configparser import ConfigParser
 
@@ -191,6 +193,84 @@ class TestCoreProfiles(unittest.TestCase):
 
         # cleanup
         self.core.profiles.remove_profile("unittest-OWASP_TOP10")
+
+    def test_save_current_profile_with_target(self):
+        target_options = self.core.target.get_options()
+        target_options["target"].set_value("http://127.0.0.1:8000/")
+        self.core.target.set_options(target_options)
+        self.addCleanup(self.core.target.clear)
+
+        saved_profile = self.core.profiles.save_current_to_new_profile(
+            "unittest-with-target"
+        )
+        self.addCleanup(self.core.profiles.remove_profile, "unittest-with-target")
+
+        saved = ConfigParser(interpolation=None, strict=False)
+        saved.read(saved_profile.profile_file_name)
+        self.assertEqual(saved.get("target", "target"), "http://127.0.0.1:8000/")
+
+    def test_use_outdated_profile_reports_every_issue(self):
+        workdir = self.make_temp_dir()
+        write_profile(workdir, "outdated", OUTDATED_PROFILE)
+
+        with self.assertRaises(BaseFrameworkException) as error:
+            self.core.profiles.use_profile("outdated", workdir=workdir)
+
+        message = str(error.exception)
+        self.assertIn("The profile you are trying to load (outdated)", message)
+        self.assertIn("framework misc-settings raised an exception", message)
+        self.assertIn("framework http-settings raised an exception", message)
+        self.assertIn('references the "audit.not_a_plugin" plugin', message)
+        self.assertIn('options for plugin "crawl.web_spider" raised', message)
+        self.assertEqual(self.core.plugins.get_enabled_plugins("crawl"), ["web_spider"])
+
+    def test_get_profile_list_reports_invalid_profiles(self):
+        workdir = self.make_temp_dir()
+        profiles_dir = os.path.join(workdir, "profiles")
+        os.mkdir(profiles_dir)
+        write_profile(profiles_dir, "valid", VALID_PROFILE)
+        invalid_file = write_profile(profiles_dir, "invalid", "[target]\n")
+
+        valid, invalid = self.core.profiles.get_profile_list(workdir)
+
+        self.assertEqual([p.get_name() for p in valid], ["valid_profile"])
+        self.assertEqual(invalid, [invalid_file])
+
+    def make_temp_dir(self):
+        temp_dir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, temp_dir)
+        return temp_dir
+
+
+VALID_PROFILE = """\
+[profile]
+name = valid_profile
+description = A valid profile
+"""
+
+OUTDATED_PROFILE = """\
+[profile]
+name = outdated
+description = A profile written for an older framework version
+
+[misc-settings]
+unknown_misc_option = 1
+
+[http-settings]
+unknown_http_option = 1
+
+[audit.not_a_plugin]
+
+[crawl.web_spider]
+unknown_spider_option = 1
+"""
+
+
+def write_profile(directory, name, content):
+    profile_file = os.path.join(directory, f"{name}{profile.EXTENSION}")
+    with open(profile_file, "w", encoding="utf-8") as profile_handler:
+        profile_handler.write(content)
+    return profile_file
 
 
 def assertProfileOptionsPreserved(

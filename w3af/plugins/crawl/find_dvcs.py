@@ -187,7 +187,7 @@ class find_dvcs(CrawlPlugin):
                 continue
 
             parsed_url_set.add(test_url)
-            self._analyzed_filenames.add(filename)
+            self._analyzed_filenames.add(test_url)
 
         if not parsed_url_set:
             return
@@ -228,7 +228,7 @@ class find_dvcs(CrawlPlugin):
         :return: A list of file names found.
         """
         filenames = set()
-        signature = "DIRC"
+        signature = b"DIRC"
         offset = 12
 
         if body[:4] != signature:
@@ -285,16 +285,16 @@ class find_dvcs(CrawlPlugin):
         :return: A list of filenames found.
         """
         filenames = set()
-        header = "#bazaar dirstate flat format "
+        header = b"#bazaar dirstate flat format "
 
         if body[0:29] != header:
             return set()
 
-        body = body.split("\x00")
+        body = body.split(b"\x00")
         found = True
         for offset in range(len(body)):
             filename = body[offset - 2]
-            if body[offset] == "d" or body[offset] == "f":
+            if body[offset] in (b"d", b"f"):
                 if found:
                     filenames.add(filename)
                 found = not found
@@ -325,22 +325,22 @@ class find_dvcs(CrawlPlugin):
         :return: A list of filenames found.
         """
         # See method documentation to understand why 12
-        if body.strip() == "12":
+        if body.strip() == b"12":
             return set()
 
         filenames = set()
-        lines = body.split("\n")
+        lines = body.split(b"\n")
         offset = 29
 
         while offset < len(lines):
             line = lines[offset].strip()
             filename = lines[offset - 1].strip()
 
-            if line == "file":
+            if line == b"file":
                 filenames.add(filename)
                 offset += 34
 
-            elif line == "dir":
+            elif line == b"dir":
                 filenames.add(filename)
                 offset += 3
 
@@ -364,10 +364,7 @@ class find_dvcs(CrawlPlugin):
         with tempfile.NamedTemporaryFile(
             prefix="w3af-find-dvcs-", suffix="-wc.db", delete=False, dir=get_temp_dir()
         ) as temp_db:
-            pass
-
-        with open(temp_db.name, "w") as temp_db_fh:
-            temp_db_fh.write(body)
+            temp_db.write(body)
 
         query = (
             "SELECT local_relpath, "
@@ -375,23 +372,20 @@ class find_dvcs(CrawlPlugin):
             ' FROM NODES WHERE kind="file"'
         )
 
+        conn = sqlite3.connect(temp_db.name)
+
         try:
-            conn = sqlite3.connect(temp_db.name)
-            cursor = conn.cursor()
-
-            cursor.execute(query)
-            query_result = cursor.fetchall()
-
+            query_result = conn.execute(query).fetchall()
+        except sqlite3.Error as e:
+            msg = 'Failed to extract filenames from wc.db file. The exception was: "%s"'
+            om.out.debug(msg % e)
+        else:
             for path, svn_path in query_result:
                 filenames.add(path)
                 filenames.add(svn_path)
-        except sqlite3.Error as e:
-            msg = 'Failed to extract filenames from wc.db file. The exception was: "%s"'
-            args = (e,)
-            om.out.debug(msg % args)
         finally:
-            if os.path.exists(temp_db.name):
-                os.remove(temp_db.name)
+            conn.close()
+            os.remove(temp_db.name)
 
         return filenames
 
@@ -404,21 +398,20 @@ class find_dvcs(CrawlPlugin):
         """
         filenames = set()
 
-        for line in body.split("\n"):
+        for line in body.split(b"\n"):
             # https://docstore.mik.ua/orelly/other/cvs/cvs-CHP-6-SECT-9.htm
             #
             # /name/revision/timestamp[+conflict]/options/tagdate
-            if not line.startswith("/"):
+            if not line.startswith(b"/"):
                 continue
 
-            # /name/revision/timestamp[+conflict]/options/tagdate
-            tokens = line.split("/")
+            tokens = line.split(b"/")
             if len(tokens) != 6:
                 continue
 
             # Example value: Sun Apr 7 01:29:26 1996
-            timestamp = tokens[2]
-            if timestamp.count(":") <= 1:
+            timestamp = tokens[3]
+            if timestamp.count(b":") <= 1:
                 continue
 
             filenames.add(tokens[1])
@@ -449,13 +442,10 @@ class find_dvcs(CrawlPlugin):
         and extract file names.
 
         :param body: The contents of the file to analyze.
-        :return: A list of file names found.
+        :return: A set of file names found.
         """
-        if body is None:
-            return []
-
         filenames = set()
-        for line in body.split("\n"):
+        for line in smart_unicode(body, errors="ignore").split("\n"):
 
             line = line.strip()
 
@@ -466,7 +456,7 @@ class find_dvcs(CrawlPlugin):
             # To prevent the is_404 false positive from propagating we detect
             # HTML tags, if those are found, return an empty list.
             if line.startswith("<") and line.endswith(">"):
-                return []
+                return set()
 
             if line.startswith("#"):
                 continue

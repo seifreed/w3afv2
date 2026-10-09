@@ -28,21 +28,22 @@ import urllib.request
 from w3af.core.data.dc.generic.nr_kv_container import NonRepeatKeyValueContainer
 from w3af.core.data.fuzzer.mutants.mutant import Mutant
 
-TOKEN = "token"
+URL_PART_KEY = "token"
+TOKEN = URL_PART_KEY
 
 
 class URLPartsContainer(NonRepeatKeyValueContainer):
     def __init__(self, url_start, url_token, url_end):
-        super().__init__(init_val=[(TOKEN, url_token)])
+        super().__init__(init_val=[(URL_PART_KEY, url_token)])
         self.url_start = url_start
         self.url_end = url_end
 
-        self.set_token((TOKEN,))
+        self.set_token((URL_PART_KEY,))
 
     def __reduce__(self):
         return (
             self.__class__,
-            (self.url_start, self[TOKEN], self.url_end),
+            (self.url_start, self[URL_PART_KEY], self.url_end),
             {"token": self.token},
         )
 
@@ -91,7 +92,7 @@ class URLPartsMutant(Mutant):
         # Please note that this double encoding is needed if we want to work
         # with mod_rewrite
         encoded = urllib.parse.quote_plus(
-            self._url_parts_dc[TOKEN].get_value(), self._safe_encode_chars
+            self._url_parts_dc[URL_PART_KEY].get_value(), self._safe_encode_chars
         )
         if self._double_encoding:
             encoded = urllib.parse.quote_plus(encoded, safe=self._safe_encode_chars)
@@ -108,7 +109,7 @@ class URLPartsMutant(Mutant):
         # Please note that this double encoding is needed if we want to work
         # with mod_rewrite
         encoded = urllib.parse.quote_plus(
-            self._url_parts_dc[TOKEN].get_value(), self._safe_encode_chars
+            self._url_parts_dc[URL_PART_KEY].get_value(), self._safe_encode_chars
         )
         if self._double_encoding:
             encoded = urllib.parse.quote_plus(encoded, safe=self._safe_encode_chars)

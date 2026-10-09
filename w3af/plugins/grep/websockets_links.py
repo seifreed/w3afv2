@@ -122,12 +122,8 @@ def find_websockets_links(text):
     if text is None:
         return ws_links
 
-    mobjects = WEBSOCKETS_URL_RE.finditer(text)
-    for ws_mo in mobjects:
-        try:
-            ws_links.add(ws_mo.group(1))
-        except ValueError:
-            pass
+    for ws_mo in WEBSOCKETS_URL_RE.finditer(text):
+        ws_links.add(ws_mo.group(1))
     return ws_links
 
 

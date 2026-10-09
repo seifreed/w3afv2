@@ -19,43 +19,49 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from typing import ClassVar
+import unittest
 
-from w3af.core.controllers.ci.moth import get_moth_http
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+import w3af.core.data.kb.knowledge_base as kb
+from w3af.core.data.dc.headers import Headers
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.data.url.http_response import HTTPResponse
+from w3af.core.filesystem import create_temp_dir
+from w3af.plugins.grep.csp import csp
+
+PERMISSIVE_CSP = (
+    "default-src *; script-src *; object-src *;" " def-src 'self'; sript-src 'self'"
+)
 
 
-class TestCSP(PluginTest):
+class TestCSP(unittest.TestCase):
 
-    target_url = get_moth_http("/grep/csp/")
+    def setUp(self):
+        create_temp_dir()
+        kb.kb.cleanup()
+        self.plugin = csp()
+        self.url = URL("http://www.w3af.com/")
+        self.request = FuzzableRequest(self.url)
 
-    _run_configs: ClassVar[dict] = {
-        "cfg_with_error": {
-            "target": target_url,
-            "plugins": {
-                "grep": (PluginConfig("csp"),),
-                "crawl": (
-                    PluginConfig(
-                        "web_spider", ("only_forward", True, PluginConfig.BOOL)
-                    ),
-                ),
-            },
-        },
-    }
+    def tearDown(self):
+        kb.kb.cleanup()
+
+    def _grep(self, csp_value, url=None):
+        url = url or self.url
+        headers = Headers(
+            [("content-type", "text/html"), ("Content-Security-Policy", csp_value)]
+        )
+        response = HTTPResponse(200, "", headers, url, url, _id=1)
+        self.plugin.grep(FuzzableRequest(url), response)
 
     def test_found_vuln(self):
-        """
-        Test to validate case in which error are found:
-        One vuln is common to several pages and others are isolated.
-        """
-        cfg = self._run_configs["cfg_with_error"]
-        self._scan(cfg["target"], cfg["plugins"])
+        self._grep(PERMISSIVE_CSP)
+        self.plugin.end()
 
-        vulns = self.kb.get("csp", "csp")
+        vulns = kb.kb.get("csp", "csp")
 
-        EXPECTED = [  # ---This vuln is shared by several pages
+        expected = {
             "Directive 'default-src' allows all sources.",
-            # ---These vulns are isolated
             "Directive 'script-src' allows all javascript sources.",
             (
                 "Directive 'script-src' is defined but no directive"
@@ -64,12 +70,24 @@ class TestCSP(PluginTest):
             ),
             "Directive 'object-src' allows all plugin sources.",
             "Some directives are misspelled: def-src, sript-src",
-        ]
+        }
 
         vuln_descs = {v.get_desc(with_id=False) for v in vulns}
-        self.assertEqual(set(EXPECTED), vuln_descs)
-        self.assertAllVulnNamesEqual("CSP vulnerability", vulns)
+        self.assertEqual(expected, vuln_descs)
+        for v in vulns:
+            self.assertEqual(v.get_name(), "CSP vulnerability")
 
-        NOT_IN_FILENAME = "csp_without_error.html"
-        vuln_fnames = {v.get_url().get_file_name() for v in vulns}
-        self.assertNotIn(NOT_IN_FILENAME, vuln_fnames)
+    def test_no_csp_header(self):
+        headers = Headers([("content-type", "text/html")])
+        response = HTTPResponse(200, "", headers, self.url, self.url, _id=1)
+        self.plugin.grep(self.request, response)
+        self.plugin.end()
+        self.assertEqual(len(kb.kb.get("csp", "csp")), 0)
+
+    def test_url_analyzed_once(self):
+        self._grep(PERMISSIVE_CSP)
+        self._grep(PERMISSIVE_CSP)
+        self.plugin.end()
+        vulns = kb.kb.get("csp", "csp")
+        vuln_urls = {v.get_url().url_string for v in vulns}
+        self.assertEqual(vuln_urls, {self.url.url_string})

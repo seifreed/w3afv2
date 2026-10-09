@@ -26,7 +26,9 @@ from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.auth_session_plugin import AuthSessionPlugin
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
-from w3af.core.data.url.exceptions import HTTPRequestException
+
+# Credentials are supplied by the user through the plugin options.
+UNCONFIGURED = ""
 
 
 class detailed(AuthSessionPlugin):
@@ -41,9 +43,9 @@ class detailed(AuthSessionPlugin):
 
         # User configuration
         self.username = ""
-        self.password = ""
+        self.password = UNCONFIGURED
         self.username_field = ""
-        self.password_field = ""
+        self.password_field = UNCONFIGURED
         self.method = "POST"
         self.data_format = "%u=%U&%p=%P"
         self.auth_url = "http://host.tld/"
@@ -80,21 +82,16 @@ class detailed(AuthSessionPlugin):
         data = self._get_data_from_format()
         functor = getattr(self._uri_opener, self.method)
 
-        try:
-            http_response = functor(
-                self.auth_url,
-                data,
-                grep=False,
-                cache=False,
-                follow_redirects=self.follow_redirects,
-                debugging_id=self._debugging_id,
-            )
-        except HTTPRequestException as e:
-            self._handle_authentication_failure()
-
-            msg = "Failed to login to the application because of exception: %s"
-            self._log_debug(msg % e)
-            return False
+        # Request errors are converted into a 204 response by the URL opener
+        # proxy (UrlOpenerProxy), so they surface as a failed login below.
+        http_response = functor(
+            self.auth_url,
+            data,
+            grep=False,
+            cache=False,
+            follow_redirects=self.follow_redirects,
+            debugging_id=self._debugging_id,
+        )
 
         self._log_http_response(http_response)
 

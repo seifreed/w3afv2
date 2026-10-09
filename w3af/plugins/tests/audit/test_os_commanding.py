@@ -19,14 +19,71 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import re
 from typing import ClassVar
 
-from w3af.core.controllers.ci.moth import get_moth_http
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+from w3af.plugins.tests.audit.vulnerable_responses import (
+    ETC_PASSWD,
+    html_page,
+    request_param,
+    sleep_for_payload,
+)
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
+
+OSC_URL = "http://mock/audit/os_commanding/"
+
+INDEX_BODY = """
+<a href="trivial_osc.py?cmd=ls">Trivial</a>
+<a href="param_osc.py?param=-la">Parameter</a>
+<a href="blind_osc.py?cmd=ls">Blind</a>
+<a href="safe_osc.py?cmd=ls">Safe</a>
+"""
+
+COMMAND_SEPARATOR = r"(;|\||&&|\n|`)"
+CAT_PASSWD = "/bin/cat /etc/passwd"
+PING_DELAY = r"^ping -c (\d+) localhost$"
+
+
+def run_command(command):
+    if command.startswith(CAT_PASSWD):
+        return ETC_PASSWD
+    return "index.html\nstyle.css"
+
+
+def trivial_osc(mock_response, request, uri, response_headers):
+    """Run the cmd parameter as a shell command and print the output."""
+    output = run_command(request_param(request, "cmd"))
+    return html_page(response_headers, f"<pre>{output}</pre>")
+
+
+def param_osc(mock_response, request, uri, response_headers):
+    """Append the param parameter to ls, a separator runs a second command."""
+    commands = re.split(COMMAND_SEPARATOR, request_param(request, "param"))
+    output = "".join(run_command(command.strip()) for command in commands[1:])
+    return html_page(response_headers, f"<pre>index.html {output}</pre>")
+
+
+def blind_osc(mock_response, request, uri, response_headers):
+    """Run the cmd parameter as a shell command without printing the output."""
+    sleep_for_payload(request_param(request, "cmd"), PING_DELAY)
+    return html_page(response_headers, "Command executed")
+
+
+def safe_osc(mock_response, request, uri, response_headers):
+    return html_page(response_headers, "Listing files is disabled")
 
 
 class TestOSCommanding(PluginTest):
-    target_url = get_moth_http("/audit/os_commanding/")
+
+    target_url = OSC_URL
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(OSC_URL, INDEX_BODY),
+        MockResponse(re.compile(f"{OSC_URL}trivial_osc.py.*"), trivial_osc),
+        MockResponse(re.compile(f"{OSC_URL}param_osc.py.*"), param_osc),
+        MockResponse(re.compile(f"{OSC_URL}blind_osc.py.*"), blind_osc),
+        MockResponse(re.compile(f"{OSC_URL}safe_osc.py.*"), safe_osc),
+    ]
 
     _run_configs: ClassVar[dict] = {
         "cfg": {
@@ -43,14 +100,11 @@ class TestOSCommanding(PluginTest):
     }
 
     def test_found_osc(self):
-        # Run the scan
         cfg = self._run_configs["cfg"]
         self._scan(cfg["target"], cfg["plugins"])
 
-        # Assert the general results
         vulns = self.kb.get("os_commanding", "os_commanding")
 
-        # Verify the specifics about the vulnerabilities
         EXPECTED = [
             ("trivial_osc.py", "cmd"),
             ("param_osc.py", "param"),
@@ -59,3 +113,9 @@ class TestOSCommanding(PluginTest):
 
         self.assertAllVulnNamesEqual("OS commanding vulnerability", vulns)
         self.assertExpectedVulnsFound(EXPECTED, vulns)
+
+        found = {v.get_url().get_file_name(): v for v in vulns}
+        self.assertEqual("unix", found["trivial_osc.py"]["os"])
+        self.assertEqual("", found["trivial_osc.py"]["separator"])
+        self.assertIn(found["param_osc.py"]["separator"], (";", "|", "&&", "\n", "`"))
+        self.assertEqual("unix", found["blind_osc.py"]["os"])

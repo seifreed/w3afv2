@@ -20,11 +20,27 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
+import tempfile
+import unittest
 from pathlib import Path
 from typing import ClassVar
 
+from ds_store import DSStore
+
 from w3af import ROOT_PATH
+from w3af.plugins.crawl.dot_ds_store import DsStore, dot_ds_store
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
+
+RUN_PLUGINS = {"crawl": (PluginConfig("dot_ds_store"),)}
+
+
+def build_ds_store(*filenames):
+    with tempfile.TemporaryDirectory() as temp_dir:
+        path = os.path.join(temp_dir, "DS_Store")
+        with DSStore.open(path, "w+") as store:
+            for filename in filenames:
+                store[filename]["Iloc"] = (10, 20)
+        return Path(path).read_bytes()
 
 
 class TestDSStore(PluginTest):
@@ -65,3 +81,31 @@ class TestDSStore(PluginTest):
             {str(u) for u in urls},
             {(self.target_url + end) for end in expected_urls},
         )
+
+
+class TestInvalidDSStore(PluginTest):
+
+    target_url = "http://mock/dir/"
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse("http://mock/dir/.DS_Store", b"This is not a DS_Store file"),
+        MockResponse("http://mock/dir/", "Directory index"),
+    ]
+
+    def test_invalid_ds_store_is_ignored(self):
+        self._scan(self.target_url, RUN_PLUGINS)
+
+        self.assertEqual(self.kb.get("dot_ds_store", "dot_ds_store"), [])
+
+        requested_paths = {request.path for request in self.received_requests}
+        self.assertIn("/.DS_Store", requested_paths)
+
+
+class TestDsStoreParser(unittest.TestCase):
+    def test_current_and_parent_directories_are_skipped(self):
+        store = DsStore(build_ds_store(".", "..", "secret.txt"))
+
+        self.assertEqual(store.get_file_entries(), {"secret.txt"})
+
+    def test_long_description(self):
+        self.assertIn(".DS_Store", dot_ds_store().get_long_desc())

@@ -14,10 +14,15 @@ class TestMaybeDecodeBase64(unittest.TestCase):
             maybe_decode_base64(encoded), (True, "java.util.HashMap\xac\xed")
         )
 
-    def test_decodes_bytes(self):
-        encoded = base64.b64encode(b"a serialized object")
+    def test_decodes_bytes_to_bytes(self):
+        encoded = base64.b64encode(b"java.util.HashMap\xac\xed")
 
-        self.assertEqual(maybe_decode_base64(encoded), (True, "a serialized object"))
+        self.assertEqual(
+            maybe_decode_base64(encoded), (True, b"java.util.HashMap\xac\xed")
+        )
+
+    def test_non_ascii_bytes_are_not_base64(self):
+        self.assertEqual(maybe_decode_base64(b"\xff" * 16), (False, None))
 
     def test_short_strings_are_ignored(self):
         self.assertEqual(maybe_decode_base64("YWJj"), (False, None))

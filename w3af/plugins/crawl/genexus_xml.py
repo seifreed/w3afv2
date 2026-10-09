@@ -20,8 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import xml.dom.minidom
 from xml.parsers.expat import ExpatError
+
+from defusedxml import DefusedXmlException, minidom
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
@@ -59,10 +60,10 @@ class genexus_xml(CrawlPlugin):
             http_response = self._uri_opener.GET(genexus_url, cache=True)
 
             if "</ObjLink>" not in http_response:
-                return
+                continue
 
             if is_404(http_response):
-                return
+                continue
 
             # Save it to the kb!
             desc = (
@@ -89,8 +90,8 @@ class genexus_xml(CrawlPlugin):
     def _parse_xml(self, http_response, file_name, base_url):
         om.out.debug("Parsing xml file with xml.dot.minidom.")
         try:
-            dom = xml.dom.minidom.parseString(http_response.get_body())
-        except ExpatError as e:
+            dom = minidom.parseString(http_response.get_body().strip())
+        except (ExpatError, DefusedXmlException) as e:
             msg = 'Error while parsing "%s": "%s"'
             args = (http_response.get_url(), e)
             om.out.debug(msg % args)

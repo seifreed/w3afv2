@@ -26,7 +26,6 @@ import zlib
 from collections import deque
 from typing import ClassVar
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.constants import severity
 from w3af.core.data.dc.cookie import Cookie
@@ -34,7 +33,7 @@ from w3af.core.data.dc.factory import dc_from_hdrs_post
 from w3af.core.data.kb.info_set import InfoSet
 from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.misc.base64_nopadding import maybe_decode_base64
-from w3af.core.data.misc.encoding import smart_str_ignore
+from w3af.core.data.misc.encoding import smart_str_ignore, smart_unicode
 
 
 class serialized_object(GrepPlugin):
@@ -48,7 +47,7 @@ class serialized_object(GrepPlugin):
 
     SERIALIZED_OBJECT_RE: ClassVar = {
         "PHP": [
-            re.compile(r'^(a|O):\d{1,3}:({[sai]|")'),
+            re.compile(rb'^(a|O):\d{1,3}:({[sai]|")'),
         ]
     }
 
@@ -138,16 +137,8 @@ class serialized_object(GrepPlugin):
         :param serialized_object_re: The regular expression to match
         :return: None. We just save the vulnerability to the KB
         """
-        try:
-            match_object = serialized_object_re.search(parameter_value)
-        except (TypeError, ValueError) as e:
-            args = (e, parameter_value)
-            om.out.debug(
-                "An exception was found while trying to find a"
-                " serialized object in a parameter value. The exception"
-                ' is: "{}", and the parameter value is: "{!r}"'.format(*args)
-            )
-            return
+        # Both the parameter value and the regular expressions are bytes
+        match_object = serialized_object_re.search(parameter_value)
 
         if not match_object:
             return
@@ -165,7 +156,7 @@ class serialized_object(GrepPlugin):
         v = Vuln("Serialized object", desc, severity.LOW, response.id, self.get_name())
 
         v.set_url(response.get_url())
-        v.add_to_highlight(parameter_value)
+        v.add_to_highlight(smart_unicode(parameter_value))
         v[SerializedObjectInfoSet.ITAG] = parameter_name
 
         self.kb_append_uniq_group(

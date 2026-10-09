@@ -26,15 +26,23 @@ from typing import ClassVar
 import pytest
 
 from w3af import ROOT_PATH
-from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.controllers.misc.file_lock import FileLock
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 
 @pytest.mark.smoke
 class TestCrawlExceptions(PluginTest):
 
-    target_url = get_moth_http("/grep/csp/")
+    target_url = "http://mock/grep/csp/"
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(
+            target_url,
+            '<a href="1.html">one</a><a href="2.html">two</a>',
+        ),
+        MockResponse(target_url + "1.html", "<html>One</html>"),
+        MockResponse(target_url + "2.html", "<html>Two</html>"),
+    ]
 
     _run_configs: ClassVar[dict] = {
         "cfg": {
@@ -93,7 +101,7 @@ class TestCrawlExceptions(PluginTest):
         self.assertEqual(len(caught_exceptions), 1)
 
         edata = caught_exceptions[0]
-        self.assertEqual(edata.get_where(), "crawl.failing_spider:45")
+        self.assertEqual(edata.get_where(), "crawl.failing_spider:46")
 
         # I tried to make some more advanced unittests here, but it was
         # very difficult to get a result that was NOT random from failing_spider

@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import hashlib
 from collections import namedtuple
+from functools import partial
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
@@ -30,7 +31,8 @@ from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.db.disk_set import DiskSet
 from w3af.core.data.kb.info import Info
-from w3af.core.data.url.exceptions import HTTPRequestException
+
+CaptchaInfo = namedtuple("CaptchaInfo", ["img_src", "http_responses"])
 
 
 class find_captchas(CrawlPlugin):
@@ -90,7 +92,7 @@ class find_captchas(CrawlPlugin):
         #
         # TODO: Add something more advanced.
         if len(images_1) != len(images_2):
-            return
+            return found_captcha, captchas
 
         not_in_2 = []
 
@@ -110,8 +112,6 @@ class find_captchas(CrawlPlugin):
         #       that make sense? When that's found, should I simply declare
         #       defeat and don't report anything?
         for img_src, _, http_responses in not_in_2:
-
-            CaptchaInfo = namedtuple("CaptchaInfo", ["img_src", "http_responses"])
             img_src = img_src.uri2url()
 
             if img_src not in self._captchas_found:
@@ -129,35 +129,27 @@ class find_captchas(CrawlPlugin):
         :param fuzzable_request: The request to modify
         :return: A list with tuples containing (img_src, image_hash, http_response)
         """
+        response = self._uri_opener.GET(fuzzable_request.get_uri(), cache=False)
+
+        # Do not use parser_cache here, it's not good since CAPTCHA
+        # implementations *might* change the image name for each request of
+        # the HTML
+        try:
+            document_parser = DocumentParser.DocumentParser(response)
+        except BaseFrameworkException:
+            return []
+
+        image_path_list = document_parser.get_references_of_tag("img")
+        get_image = partial(self._uri_opener.GET, binary_response=True)
+        result_iter = self.worker_pool.imap_unordered(get_image, image_path_list)
+
         res = []
 
-        try:
-            response = self._uri_opener.GET(fuzzable_request.get_uri(), cache=False)
-        except HTTPRequestException:
-            om.out.debug("Failed to retrieve the page for finding captchas.")
-        else:
-            # Do not use parser_cache here, it's not good since CAPTCHA implementations
-            # *might* change the image name for each request of the HTML
-            #
-            # dp = parser_cache.dpc.get_document_parser_for( response )
-            #
-            try:
-                document_parser = DocumentParser.DocumentParser(response)
-            except BaseFrameworkException:
-                return []
-
-            image_path_list = document_parser.get_references_of_tag("img")
-
-            GET = self._uri_opener.GET
-            sha1 = hashlib.sha1
-
-            result_iter = self.worker_pool.imap_unordered(GET, image_path_list)
-
-            for image_response in result_iter:
-                if image_response.is_image():
-                    img_src = image_response.get_uri()
-                    img_hash = sha1(image_response.get_body()).hexdigest()
-                    res.append((img_src, img_hash, response))
+        for image_response in result_iter:
+            if image_response.is_image():
+                img_src = image_response.get_uri()
+                img_hash = hashlib.sha1(image_response.get_raw_body()).hexdigest()
+                res.append((img_src, img_hash, response))
 
         return res
 

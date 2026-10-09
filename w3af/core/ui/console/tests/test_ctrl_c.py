@@ -1,8 +1,6 @@
 """
 test_ctrl_c.py
 
-Copyright 2012 Andres Riancho
-
 This file is part of w3af, http://w3af.org/ .
 
 w3af is free software; you can redistribute it and/or modify
@@ -17,105 +15,235 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
 """
 
-import os
-import signal
-import subprocess
-import tempfile
+import io
+import sys
+import threading
 import time
-import unittest
 
-import pytest
+import w3af.core.controllers.output_manager as om
+from w3af.core.ui.console.console_ui import ConsoleUI
+from w3af.core.ui.console.io import unixctrl
+from w3af.core.ui.console.root_menu import rootMenu, stdin_is_terminal
+from w3af.core.ui.console.tests.helper import ConsoleTestHelper
+from w3af.core.ui.console.tests.tty import RealTTY
+from w3af.tests.helpers.sqli_site import SQLInjectionSite
 
-from w3af import ROOT_PATH
-from w3af.core.controllers.ci.moth import get_moth_http
+ROOT_WAIT_SECONDS = rootMenu.MAX_WAIT_FOR_START
 
 
-@pytest.mark.moth
-@pytest.mark.fails
-class TestHandleCtrlC(unittest.TestCase):
+class TestScanControl(ConsoleTestHelper):
+    """
+    Exercise the console scan-control handlers (the keypress actions used
+    while a scan is running, including the Ctrl+C handler) directly against a
+    real w3afCore.
+    """
 
-    SCRIPT = f"{ROOT_PATH}/core/ui/console/tests/data/spider_long.w3af"
+    def setUp(self):
+        super().setUp()
+        self.console = ConsoleUI(do_upd=False)
+        self.menu = rootMenu("w3af", self.console, self.console._w3af)
 
-    def prepare_script(self):
-        with open(self.SCRIPT) as script_template:
-            script = script_template.read() % {"moth": get_moth_http()}
+    def tearDown(self):
+        self.console._w3af.quit()
+        super().tearDown()
 
-        with tempfile.NamedTemporaryFile(
-            mode="w",
-            prefix="spider_long-",
-            suffix=".w3af",
-            dir=tempfile.tempdir,
-            delete=False,
-        ) as fhandler:
-            fhandler.write(script)
-        return fhandler.name
+    def _output(self):
+        om.manager.process_all_messages()
+        return "".join(self._captured_stdout.messages)
 
-    def test_scan_ctrl_c(self):
-        script = self.prepare_script()
-        cmd = ["python", "w3af_console", "-s", script]
+    def test_handle_scan_stop_reports_and_stops(self):
+        self.menu.handle_scan_stop()
+        self.assertIn("User pressed Ctrl+C, stopping scan.", self._output())
 
-        process = subprocess.Popen(
-            args=cmd,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            shell=False,
-            universal_newlines=True,
+    def test_stop_scan_raises_keyboard_interrupt(self):
+        with self.assertRaises(KeyboardInterrupt):
+            self.menu._stop_scan()
+
+    def test_unknown_key_during_scan_prints_help(self):
+        self.menu._default_during_scan_handler()
+        output = self._output()
+        self.assertIn("pause the scan", output)
+        self.assertIn("stop scan", output)
+
+    def test_resume_when_not_paused(self):
+        self.menu._resume_scan()
+        self.assertIn("The scan is running. Can not resume.", self._output())
+
+    def test_pause_and_resume(self):
+        self.menu._pause_scan()
+        self.assertIn("The scan was paused.", self._output())
+
+        # Pausing again is a no-op with a message
+        self.clear_stdout_messages()
+        self.menu._pause_scan()
+        self.assertIn("The scan is already paused.", self._output())
+
+        # And now it can be resumed
+        self.clear_stdout_messages()
+        self.menu._resume_scan()
+        self.assertIn("The scan was resumed.", self._output())
+
+    def test_show_status(self):
+        self.menu._show_status()
+        # The idle core reports its status without raising
+        self.assertIn("Stopped", self._output())
+
+    def test_version_command(self):
+        self.menu._cmd_version([])
+        self.assertTrue(self._output().strip())
+
+    def test_wait_for_start_times_out(self):
+        # The scan thread is alive but the core never reaches "running"
+        release = threading.Event()
+        scan_thread = threading.Thread(target=release.wait)
+        scan_thread.start()
+        self.addCleanup(scan_thread.join)
+        self.addCleanup(release.set)
+
+        self.menu.MAX_WAIT_FOR_START = 0.2
+        self.assertFalse(self.menu.wait_for_start(scan_thread))
+
+    def test_wait_for_start_stops_when_the_scan_thread_ends(self):
+        scan_thread = threading.Thread(target=lambda: None)
+        scan_thread.start()
+        scan_thread.join()
+
+        started = time.monotonic()
+        self.assertFalse(self.menu.wait_for_start(scan_thread))
+        self.assertLess(time.monotonic() - started, 1)
+
+    def _run_console(self, commands):
+        console = ConsoleUI(commands=commands, do_upd=False)
+        started = time.monotonic()
+        console.sh()
+        return "".join(self._captured_stdout.messages), time.monotonic() - started
+
+    def test_start_without_target_fails_fast(self):
+        output, elapsed = self._run_console(["start", "exit"])
+        self.assertIn("The scan failed to start.", output)
+        self.assertLess(elapsed, ROOT_WAIT_SECONDS)
+
+    def test_start_without_output_plugins_warns(self):
+        output, _ = self._run_console(
+            ["plugins", "output !all", "back", "start", "exit"]
+        )
+        # Once from the plugins menu, once more when the scan is started
+        self.assertEqual(
+            output.count("Warning: You disabled the console output plugin."), 2
         )
 
-        # Let it run until the first new URL is found (and while the process
-        # is still running)
-        while process.poll() is None:
-            w3af_output = process.stdout.readline()
-            if "New URL found by web_spider plugin" in w3af_output:
-                time.sleep(1)
+    def test_stdin_is_terminal_under_pytest(self):
+        # pytest captures stdin, so it is not a terminal
+        self.assertFalse(stdin_is_terminal())
+
+    def test_stdin_without_file_descriptor_is_not_a_terminal(self):
+        self.addCleanup(setattr, sys, "stdin", sys.stdin)
+        sys.stdin = io.StringIO()
+        self.assertFalse(stdin_is_terminal())
+
+
+class TestScanKeypressLoop(ConsoleTestHelper):
+    """
+    Type keys on a real pseudo-terminal while a scan is paused: the root menu
+    keypress loop must dispatch them until the scan is resumed or stopped.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.tty = RealTTY.as_stdin(self)
+        self.console = ConsoleUI(do_upd=False)
+        self.menu = rootMenu("w3af", self.console, self.console._w3af)
+        self.addCleanup(self.console._w3af.quit)
+        self.menu._pause_scan()
+
+    def _type_slowly(self, *keys, then_finish_scan=False):
+        def typist():
+            # The first select() call times out before the first key arrives
+            time.sleep(0.7)
+            for key in keys:
+                self.tty.send(key)
+                time.sleep(0.2)
+            if then_finish_scan:
+                self.console._w3af.status.stop()
+
+        thread = threading.Thread(target=typist)
+        thread.start()
+        self.addCleanup(thread.join)
+
+    def _output(self):
+        om.manager.process_all_messages()
+        return "".join(self._captured_stdout.messages)
+
+    def test_keys_during_a_paused_scan(self):
+        self.assertTrue(stdin_is_terminal())
+        # Resuming marks the scan as running again, it ends when the scan does
+        self._type_slowly("\r", "x", "P", "R", then_finish_scan=True)
+
+        self.menu.handle_keypress_during_scan()
+
+        output = self._output()
+        self.assertIn("| Paused ", output)  # status for the enter key
+        self.assertIn("Unknown key.", output)
+        self.assertIn("The scan is already paused.", output)
+        self.assertIn("The scan was resumed.", output)
+
+    def test_ctrl_c_stops_the_scan(self):
+        self._type_slowly("\x03")
+
+        with self.assertRaises(KeyboardInterrupt):
+            self.menu.handle_keypress_during_scan()
+
+        # The terminal is back in its normal mode
+        self.assertIsNone(unixctrl.old_settings)
+
+
+class TestCtrlCDuringARealScan(ConsoleTestHelper):
+    """
+    Start a real scan from a terminal and press Ctrl+C while it runs. The local
+    site holds every request after the index, so the scan is still running
+    when the key is pressed.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.site = SQLInjectionSite.serve_for(self, hold_requests=True)
+        self.tty = RealTTY.as_stdin(self)
+
+    def _press_ctrl_c_once_running(self):
+        deadline = time.monotonic() + rootMenu.MAX_WAIT_FOR_START
+        while time.monotonic() < deadline:
+            if self.console._w3af.status.is_running():
                 break
+            time.sleep(0.1)
 
-        self.assertIs(process.poll(), None, "w3af died before we could send Ctrl+C")
+        time.sleep(0.5)
+        self.tty.send("\x03")
+        # Let the held requests finish so the core can stop
+        self.site.release()
 
-        # Send Ctrl+C
-        process.send_signal(signal.SIGINT)
-
-        EXPECTED = (
-            "User pressed Ctrl+C, stopping scan",
-            "The user stopped the scan.",
-            "w3af>>> exit",
+    def test_ctrl_c_stops_the_running_scan(self):
+        self.console = ConsoleUI(
+            commands=[
+                "plugins",
+                "crawl web_spider",
+                "back",
+                "target",
+                f"set target {self.site.url}",
+                "back",
+                "start",
+                "exit",
+            ],
+            do_upd=False,
         )
 
-        # set signal handler
-        signal.signal(signal.SIGALRM, alarm_handler)
-        # produce SIGALRM in X seconds
-        signal.alarm(30)
+        typist = threading.Thread(target=self._press_ctrl_c_once_running)
+        typist.start()
+        self.addCleanup(typist.join)
 
-        # In some cases process.stdout.read() simply hang for ever, so I want
-        # to wait for 30 seconds (see signal.alarm) and then terminate the
-        # process
-        try:
-            w3af_output = process.stdout.read()
-            # cancel alarm
-            signal.alarm(0)
-        except Alarm:
-            process.terminate()
-            msg = "w3af did not stop on Ctrl+C, read() timeout."
-            self.assertTrue(False, msg)
+        self.console.sh()
 
-        for estr in EXPECTED:
-            self.assertIn(estr, w3af_output)
-
-        NOT_EXPECTED = ("The list of fuzzable requests is:",)
-
-        for estr in NOT_EXPECTED:
-            self.assertNotIn(estr, w3af_output)
-
-        # We don't need this anymore...
-        os.remove(script)
-
-
-class Alarm(Exception):
-    pass
-
-
-def alarm_handler(signum, frame):
-    raise Alarm
+        output = "".join(self._captured_stdout.messages)
+        self.assertIn("User pressed Ctrl+C, stopping scan.", output)

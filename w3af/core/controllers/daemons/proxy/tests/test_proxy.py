@@ -20,161 +20,170 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import gzip
+import os
+import shutil
+import ssl
+import tempfile
 import unittest
 import urllib.error
-import urllib.parse
 import urllib.request
 
-import pytest
-
-from w3af.core.controllers.ci.moth import get_moth_http, get_moth_https
-from w3af.core.controllers.ci.sqlmap_testenv import get_sqlmap_testenv_http
+from w3af import ROOT_PATH
 from w3af.core.controllers.daemons.proxy import Proxy, ProxyHandler
+from w3af.core.controllers.exceptions import ProxyException
+from w3af.core.controllers.tests.local_http_server import LocalHTTPServer, Reply
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.filesystem import create_temp_dir
 
+IP = "127.0.0.1"
+INDEX_BODY = "<html><head><title>local proxy test</title></head></html>"
+GZIP_BODY = "gzip encoded body"
+HELPERS_PATH = os.path.join(ROOT_PATH, "core", "data", "url", "tests", "helpers")
+TLS_CERT_AND_KEY = (
+    os.path.join(HELPERS_PATH, "unittest.crt"),
+    os.path.join(HELPERS_PATH, "unittest.key"),
+)
 
-@pytest.mark.moth
+
+def upstream_responder(_method, path):
+    if path == "/gzip":
+        return Reply(
+            body=gzip.compress(GZIP_BODY.encode("utf-8")),
+            headers={"Content-Encoding": "gzip"},
+        )
+    return Reply(body=INDEX_BODY)
+
+
+def unverified_context():
+    context = ssl.create_default_context()
+    context.check_hostname = False
+    context.verify_mode = ssl.CERT_NONE
+    return context
+
+
+def comparable_headers(response):
+    headers = {name.lower(): value for name, value in response.info().items()}
+    for name in ("date", "content-encoding", "content-length", "transfer-encoding"):
+        headers.pop(name, None)
+    return headers
+
+
+def temp_ca_dir(test_case):
+    ca_dir = tempfile.mkdtemp()
+    test_case.addCleanup(shutil.rmtree, ca_dir)
+    return ca_dir
+
+
 class TestProxy(unittest.TestCase):
 
-    IP = "127.0.0.1"
-
     def setUp(self):
-        # Start the proxy server
         create_temp_dir()
 
-        self._proxy = Proxy(self.IP, 0, ExtendedUrllib(), ProxyHandler)
+        self.upstream = LocalHTTPServer(upstream_responder).start()
+        self.addCleanup(self.upstream.close)
+
+        self.tls_upstream = LocalHTTPServer(
+            upstream_responder, tls_cert_and_key=TLS_CERT_AND_KEY
+        ).start()
+        self.addCleanup(self.tls_upstream.close)
+
+        self._proxy = Proxy(
+            IP, 0, ExtendedUrllib(), ProxyHandler, ca_certs=temp_ca_dir(self)
+        )
         self._proxy.start()
         self._proxy.wait_for_start()
+        self.addCleanup(self._proxy.join, 5)
+        self.addCleanup(self._proxy.stop)
 
-        port = self._proxy.get_port()
-
-        # Build the proxy opener
-        proxy_url = f"http://{self.IP}:{port}"
-        proxy_handler = urllib.request.ProxyHandler(
-            {"http": proxy_url, "https": proxy_url}
-        )
+        proxy_url = f"http://{IP}:{self._proxy.get_port()}"
         self.proxy_opener = urllib.request.build_opener(
-            proxy_handler, urllib.request.HTTPHandler
+            urllib.request.ProxyHandler({"http": proxy_url, "https": proxy_url}),
+            urllib.request.HTTPSHandler(context=unverified_context()),
         )
+
+    def assert_same_as_direct(self, url, context=None):
+        proxy_resp = self.proxy_opener.open(url)
+        direct_resp = urllib.request.urlopen(url, context=context)
+
+        self.assertEqual(direct_resp.read(), proxy_resp.read())
+        self.assertEqual(
+            comparable_headers(direct_resp), comparable_headers(proxy_resp)
+        )
+        self.assertEqual(proxy_resp.headers["content-encoding"], "identity")
 
     def test_do_req_through_proxy(self):
-        resp_body = self.proxy_opener.open(get_moth_http()).read()
-
-        # Basic check
-        self.assertTrue(len(resp_body) > 0)
-
-        # Get response using the proxy
-        proxy_resp = self.proxy_opener.open(get_moth_http())
-        # Get it without any proxy
-        direct_resp = urllib.request.urlopen(get_moth_http())
-
-        # Must be equal
-        self.assertEqual(direct_resp.read(), proxy_resp.read())
-
-        # Have to remove the Date header because in some cases they differ
-        # because one request was sent in second X and the other in X+1, which
-        # makes the test fail
-        direct_resp_headers = dict(direct_resp.info())
-        proxy_resp_headers = dict(proxy_resp.info())
-
-        # Make sure that a change in the seconds returned in date doesn't break
-        # the test
-        del direct_resp_headers["date"]
-        del proxy_resp_headers["date"]
-
-        del direct_resp_headers["transfer-encoding"]
-        del proxy_resp_headers["content-length"]
-
-        del proxy_resp_headers["content-encoding"]
-
-        self.assertEqual(direct_resp_headers, proxy_resp_headers)
+        self.assert_same_as_direct(self.upstream.url())
+        self.assertEqual(self._proxy.total_handled_requests, 1)
 
     def test_do_ssl_req_through_proxy(self):
-        resp_body = self.proxy_opener.open(get_moth_https()).read()
+        self.assert_same_as_direct(self.tls_upstream.url(), unverified_context())
 
-        # Basic check
-        self.assertTrue(len(resp_body) > 0)
-
-        # Get response using the proxy
-        proxy_resp = self.proxy_opener.open(get_moth_https())
-        # Get it without any proxy
-        direct_resp = urllib.request.urlopen(get_moth_https())
-
-        # Must be equal
-        self.assertEqual(direct_resp.read(), proxy_resp.read())
-
-        # Have to remove the Date header because in some cases they differ
-        # because one request was sent in second X and the other in X+1, which
-        # makes the test fail
-        direct_resp_headers = dict(direct_resp.info())
-        proxy_resp_headers = dict(proxy_resp.info())
-        del direct_resp_headers["date"]
-        del proxy_resp_headers["date"]
-
-        del direct_resp_headers["transfer-encoding"]
-        del proxy_resp_headers["content-length"]
-
-        del proxy_resp_headers["content-encoding"]
-
-        self.assertEqual(direct_resp_headers, proxy_resp_headers)
-
-    def test_proxy_req_ok(self):
-        """Test if self._proxy.stop() works as expected. Note that the check
-        content is the same as the previous check, but it might be that this
-        check fails because of some error in start() or stop() which is run
-        during setUp and tearDown."""
-        # Get response using the proxy
-        proxy_resp = self.proxy_opener.open(get_moth_http()).read()
-
-        # Get it without the proxy
-        resp = urllib.request.urlopen(get_moth_http()).read()
-
-        self.assertEqual(resp, proxy_resp)
+    def test_bind_address_and_state(self):
+        self.assertEqual(self._proxy.get_bind_ip(), IP)
+        self.assertEqual(self._proxy.get_bind_port(), self._proxy.get_port())
+        self.assertNotEqual(self._proxy.get_port(), 0)
+        self.assertTrue(self._proxy.is_running())
+        self.assertEqual(self._proxy.name, "ProxyThread")
 
     def test_stop_no_requests(self):
-        """Test what happens if I stop the proxy without sending any requests
-        through it"""
-        # Note that the test is completed by self._proxy.stop() in tearDown
+        self._proxy.stop()
+        self._proxy.join(5)
+
+        self.assertFalse(self._proxy.is_running())
 
     def test_stop_stop(self):
-        """Test what happens if I stop the proxy twice."""
-        # Note that the test is completed by self._proxy.stop() in tearDown
+        self._proxy.stop()
+        self._proxy.join(5)
         self._proxy.stop()
 
-    def tearDown(self):
-        # Shutdown the proxy server
-        self._proxy.stop()
+        self.assertFalse(self._proxy.is_running())
 
     def test_error_handling(self):
         del self._proxy._handler.uri_opener
 
-        try:
-            self.proxy_opener.open(get_moth_http()).read()
-        except urllib.error.HTTPError as hte:
-            # By default urllib2 handles 500 errors as exceptions, so we match
-            # against this exception object
-            self.assertEqual(hte.code, 500)
+        with self.assertRaises(urllib.error.HTTPError) as error:
+            self.proxy_opener.open(self.upstream.url())
 
-            body = hte.read()
-            self.assertIn("Proxy error", body)
-            self.assertIn("HTTP request", body)
+        self.assertEqual(error.exception.code, 500)
+
+        body = error.exception.read().decode("utf-8")
+        self.assertIn("Proxy error", body)
+        self.assertIn("HTTP request", body)
+        self.assertIn(f"GET {self.upstream.url()} HTTP/1.1", body)
+        self.assertIn("Traceback", body)
 
     def test_proxy_gzip_encoding(self):
         """
-        When we perform a request to a site which returns gzip encoded data, the
-        ExtendedUrllib will automatically decode that and set it as the body,
-        this test makes sure that we're also changing the header to reflect
-        that change.
-
-        Not doing this will make the browser (or any other http client) fail to
-        decode the body (it will try to gunzip it and fail).
+        The ExtendedUrllib decodes gzip encoded bodies, the proxy must change
+        the content-encoding header to reflect that the body is not encoded
+        anymore, otherwise the HTTP client fails to decode it.
         """
-        url = get_sqlmap_testenv_http("/sqlmap/mysql/get_int.php?id=1")
-        resp = self.proxy_opener.open(url)
+        resp = self.proxy_opener.open(self.upstream.url("/gzip"))
 
-        headers = dict(resp.headers)
-        content_encoding = headers.get("content-encoding")
+        self.assertEqual(resp.read().decode("utf-8"), GZIP_BODY)
+        self.assertEqual(resp.headers["content-encoding"], "identity")
 
-        self.assertIn("luther", resp.read())
-        self.assertEqual("identity", content_encoding)
+
+class TestProxyStartup(unittest.TestCase):
+
+    def test_wait_for_start_times_out(self):
+        proxy = Proxy(IP, 0, ExtendedUrllib())
+
+        with self.assertRaisesRegex(ProxyException, "Timed out"):
+            proxy.wait_for_start(timeout=0.01)
+
+    def test_address_in_use(self):
+        with LocalHTTPServer(upstream_responder) as upstream:
+            proxy = Proxy(
+                IP, upstream.port, ExtendedUrllib(), ca_certs=temp_ca_dir(self)
+            )
+            proxy.start()
+
+            with self.assertRaisesRegex(ProxyException, "failed to start"):
+                proxy.wait_for_start()
+
+            proxy.join(5)
+            proxy.stop()
+
+        self.assertFalse(proxy.is_running())

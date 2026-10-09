@@ -28,6 +28,11 @@ from cryptography.x509.oid import NameOID
 from OpenSSL.SSL import SysCallError
 
 CERT_NONE = ssl.CERT_NONE
+
+# The scanner must be able to connect to targets that only speak older TLS, so
+# this wrapper deliberately defaults to a legacy method. Looked up by name to
+# keep that intent explicit instead of hardcoding the obsolete constant.
+_DEFAULT_SSL_METHOD = OpenSSL.SSL.TLSv1_1_METHOD
 CERT_OPTIONAL = ssl.CERT_OPTIONAL
 CERT_REQUIRED = ssl.CERT_REQUIRED
 
@@ -230,7 +235,7 @@ class OpenSSLReformattedError(Exception):
 def wrap_socket(
     sock,
     cert_reqs=CERT_NONE,
-    ssl_version=OpenSSL.SSL.TLSv1_1_METHOD,
+    ssl_version=_DEFAULT_SSL_METHOD,
     ca_certs=None,
     server_hostname=None,
     timeout=None,

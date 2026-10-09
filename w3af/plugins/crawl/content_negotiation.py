@@ -102,11 +102,15 @@ class content_negotiation(CrawlPlugin):
             self._bruteforce()
 
     def clear_queue(self):
-        while not self._to_bruteforce.empty():
+        for _ in self._drain_bruteforce_queue():
+            pass
+
+    def _drain_bruteforce_queue(self):
+        while True:
             try:
-                self._to_bruteforce.get_nowait()
+                yield self._to_bruteforce.get_nowait()
             except queue.Empty:
-                continue
+                return
 
     def _find_new_resources(self, fuzzable_request):
         """
@@ -171,22 +175,16 @@ class content_negotiation(CrawlPlugin):
             - URLs in self._bruteforce
             - Words in the bruteforce wordlist file
         """
-        while not self._to_bruteforce.empty():
-            try:
-                bf_url = self._to_bruteforce.get_nowait()
-            except queue.Empty:
-                break
-            else:
-                directories = bf_url.get_directories()
+        for bf_url in self._drain_bruteforce_queue():
+            for directory_url in bf_url.get_directories():
+                if directory_url in self._already_tested_dir:
+                    continue
 
-                for directory_url in directories:
-                    if directory_url not in self._already_tested_dir:
-                        self._already_tested_dir.add(directory_url)
+                self._already_tested_dir.add(directory_url)
 
-                        with open(self._wordlist) as wordlist_fh:
-                            for word in wordlist_fh:
-                                word = word.strip()
-                                yield directory_url.url_join(word)
+                with open(self._wordlist) as wordlist_fh:
+                    for word in wordlist_fh:
+                        yield directory_url.url_join(word.strip())
 
     def _request_and_get_alternates(self, alternate_resource, headers):
         """

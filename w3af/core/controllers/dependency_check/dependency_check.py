@@ -185,11 +185,12 @@ def write_instructions_to_console(
     print(msg % script_path)
 
 
-def dependency_check(dependency_set=CORE, exit_on_failure=True):
+def dependency_check(dependency_set=CORE, exit_on_failure=True, platform=None):
     """
     This function verifies that the dependencies that are needed by the
     framework core are met.
 
+    :param platform: The platform to check, defaults to the current one
     :return: True if the process should exit
     """
     if StartUpConfig().get_skip_dependencies_check():
@@ -197,7 +198,8 @@ def dependency_check(dependency_set=CORE, exit_on_failure=True):
 
     disable_warnings()
 
-    platform = get_current_platform()
+    if platform is None:
+        platform = get_current_platform()
 
     failed_deps = get_missing_pip_packages(platform, dependency_set)
     os_packages = get_missing_os_packages(platform, dependency_set)

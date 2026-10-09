@@ -27,6 +27,12 @@ from w3af import ROOT_PATH
 from w3af.plugins.crawl.dot_listing import dot_listing
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
+LEAKING_LISTING = """\
+drwxr-xr-x    2 andresr   w3af         4096 Apr 12 13:23 .
+drwxr-xr-x    5 andresr   w3af         4096 Apr 12 13:23 ..
+-rw-r--r--    1 andresr   w3af         8139 Apr 12 13:23 foo.zip
+"""
+
 
 class TestDotListing(PluginTest):
 
@@ -103,3 +109,34 @@ class TestDotListing(PluginTest):
         self.assertTrue("_vti_cnf.exe" in files)
         self.assertTrue("salvage_2.html" in files)
         self.assertTrue("GodRest.mid" in files)
+
+
+class TestDotListingUserLeak(PluginTest):
+
+    target_url = "http://mock/docs/index.html"
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse("http://mock/docs/index.html", "Documentation"),
+        MockResponse("http://mock/docs/.listing", LEAKING_LISTING),
+        MockResponse("http://mock/docs/foo.zip", "Zip file"),
+    ]
+
+    def test_users_and_groups_leak(self):
+        self._scan(self.target_url, {"crawl": (PluginConfig("dot_listing"),)})
+
+        infos = self.kb.get("dot_listing", "dot_listing")
+        self.assertEqual(
+            {info.get_name() for info in infos},
+            {".listing file found", "Operating system username and group leak"},
+        )
+
+        leak = next(i for i in infos if i.get_name().startswith("Operating"))
+        self.assertIn("andresr", leak.get_desc())
+        self.assertIn("w3af", leak.get_desc())
+
+        known_urls = {str(u) for u in self.kb.get_all_known_urls()}
+        self.assertIn("http://mock/docs/foo.zip", known_urls)
+        self.assertNotIn("http://mock/.listing", known_urls)
+
+    def test_long_description(self):
+        self.assertIn(".listing", dot_listing().get_long_desc())

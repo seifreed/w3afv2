@@ -336,7 +336,7 @@ class php_eggs(InfrastructurePlugin):
 def md5_hash(body):
     if isinstance(body, str):
         body = body.encode("utf-8")
-    return hashlib.md5(body).hexdigest()
+    return hashlib.md5(body, usedforsecurity=False).hexdigest()
 
 
 EggQueryResult = namedtuple("EggQueryResult", ["http_response", "egg_desc", "egg_URL"])

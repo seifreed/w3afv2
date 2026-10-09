@@ -21,30 +21,57 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import ClassVar
 
-import pytest
+from w3af.core.data.constants import severity
+from w3af.plugins.infrastructure.find_jboss import find_jboss
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
-from w3af.core.controllers.ci.moth import get_moth_http
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+TARGET = "http://jboss/"
+
+JMX_INVOKER_RESPONSE = (
+    b"\xac\xed\x00\x05sr\x00$org.jboss.invocation.MarshalledValue"
+    b"\xeb\xcc\xe0\xd1\xf4J\xd0\x99\x0c\x00\x00xpz\x00\x00\x04\x00"
+)
+
+STATUS_PAGE = (
+    "<html><head><title>Tomcat Status</title></head><body>"
+    "<h1>Server Status</h1><p>JVM free memory: 1024 MB</p></body></html>"
+)
 
 
 class TestFindJBoss(PluginTest):
 
-    target_url = get_moth_http()
+    target_url = TARGET
 
-    _run_configs: ClassVar[dict] = {
-        "cfg": {
-            "target": target_url,
-            "plugins": {"infrastructure": (PluginConfig("find_jboss"),)},
-        }
-    }
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(TARGET, "<html><body>Welcome to JBoss AS</body></html>"),
+        MockResponse(
+            TARGET + "invoker/JMXInvokerServlet",
+            JMX_INVOKER_RESPONSE,
+            content_type="application/x-java-serialized-object",
+        ),
+        MockResponse(TARGET + "status", STATUS_PAGE),
+    ]
 
-    @pytest.mark.ci_fails
+    plugins: ClassVar[dict] = {"infrastructure": (PluginConfig("find_jboss"),)}
+
     def test_find_jboss(self):
-        cfg = self._run_configs["cfg"]
-        self._scan(cfg["target"], cfg["plugins"])
+        self._scan(self.target_url, self.plugins)
 
-        infos = self.kb.get("find_jboss", "find_jboss")
-        self.assertEqual(len(infos), 1, infos)
+        findings = {i.get_name(): i for i in self.kb.get("find_jboss", "find_jboss")}
 
-        info = infos[0]
-        self.assertEqual("JMX Invoker enabled without Auth", info.get_name())
+        self.assertEqual(
+            set(findings),
+            {"JMX Invoker enabled without Auth", "JBoss Status Servlet found"},
+        )
+
+        invoker = findings["JMX Invoker enabled without Auth"]
+        self.assertEqual(invoker.get_severity(), severity.LOW)
+        self.assertEqual(
+            invoker.get_url().url_string, TARGET + "invoker/JMXInvokerServlet"
+        )
+
+        status = findings["JBoss Status Servlet found"]
+        self.assertEqual(status.get_severity(), severity.INFORMATION)
+
+    def test_long_description(self):
+        self.assertIn("JBoss", find_jboss().get_long_desc())

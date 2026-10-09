@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import inspect
+import os
 
 from w3af.core.controllers.plugins.plugin import Plugin
 from w3af.core.data.constants import severity
@@ -174,44 +175,19 @@ class OutputPlugin(Plugin):
 
     def get_caller(self, which_stack_item=4):
         """
-        What I'm going to do is:
-            - inspect the stack and try to find a reference to a plugin
-            - if a plugin is the caller, then i'll return something like audit.xss
-            - if no plugin is in the caller stack, i'll return the stack item
-              specified by which_stack_item
+        I know that get_caller method will be in the stack, the method that
+        calls get_caller will be in stack and the om.out.XYZ method will be in
+        the stack. That's 3... so... number 4 is the one that really called me.
 
-        Maybe you are asking yourself why which_stack_item == 4, well, this is
-        why:
-            I know that get_caller method will be in the stack
-            I also know that the method that calls get_caller will be in stack
-            I also know that the om.out.XYZ method will be in the stack
-            That's 3... so... number 4 is the one that really called me.
-
-        :return: The caller of the om.out.XYZ method; this is used to make
-                 output more readable.
-
-        >>> bop = OutputPlugin()
-        >>> bop.get_caller()
-        'doctest'
-
+        :return: The module name of the caller of the om.out.XYZ method; this
+                 is used to make output more readable.
         """
         try:
-            the_stack = inspect.stack()
-
-            for item in the_stack:
-                if item[1].startswith("plugins/"):
-                    # Now I have the caller item from the stack, I want to do
-                    # some things with it...
-                    res = item[1].replace("plugins/", "")
-                    res = res.replace("/", ".")
-                    return res.replace(".py", "")
-            # From the unknown caller, I just need the name of the function
-            item = the_stack[which_stack_item]
-            res = item[1].split("/")[-1:][0]
-            return res.replace(".py", "")
-
-        except (IndexError, OSError):
+            item = inspect.stack(context=0)[which_stack_item]
+        except IndexError:
             return "unknown-caller"
+
+        return os.path.splitext(os.path.basename(item.filename))[0]
 
     def _create_plugin_info(self, plugin_type, plugins_list, plugins_options):
         """

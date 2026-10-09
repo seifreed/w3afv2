@@ -33,7 +33,6 @@ from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.parsers import parser_cache
 from w3af.core.data.search_engines.bing import bing
-from w3af.core.exceptions import ScanMustStopOnUrlError
 
 
 class finger_bing(InfrastructurePlugin):
@@ -47,6 +46,8 @@ class finger_bing(InfrastructurePlugin):
 
         # Internal variables
         self._accounts = []
+        self._domain = None
+        self._domain_root = None
 
         # User configured
         self._result_limit = 300
@@ -58,15 +59,25 @@ class finger_bing(InfrastructurePlugin):
         :param fuzzable_request: A fuzzable_request instance that contains
         (among other things) the URL to test.
         """
-        if not is_private_site(fuzzable_request.get_url().get_domain()):
-            bingSE = bing(self._uri_opener)
-            self._domain = fuzzable_request.get_url().get_domain()
-            self._domain_root = fuzzable_request.get_url().get_root_domain()
+        url = fuzzable_request.get_url()
 
-            results = bingSE.get_n_results("@" + self._domain_root, self._result_limit)
+        if not is_private_site(url.get_domain()):
+            self.search_accounts(url)
 
-            #   Send the requests using threads:
-            self.worker_pool.map(self._find_accounts, results)
+    def search_accounts(self, url):
+        """
+        Search Bing for "@<root domain>" and find the email accounts of that
+        domain in all the search results.
+
+        :param url: The target URL
+        """
+        self._domain = url.get_domain()
+        self._domain_root = url.get_root_domain()
+
+        bing_se = bing(self._uri_opener)
+        results = bing_se.get_n_results("@" + self._domain_root, self._result_limit)
+
+        self.worker_pool.map(self._find_accounts, results)
 
     def _find_accounts(self, page):
         """
@@ -74,46 +85,35 @@ class finger_bing(InfrastructurePlugin):
 
         :return: A list of valid accounts
         """
+        om.out.debug(f"Searching for emails in: {page.URL}")
+
+        grep = self._domain == page.URL.get_domain()
+        response = self._uri_opener.GET(page.URL, cache=True, grep=grep)
+
+        get_document_parser_for = parser_cache.dpc.get_document_parser_for
+
         try:
-            url = page.URL
-            om.out.debug(f"Searching for emails in: {url}")
+            document_parser = get_document_parser_for(response, cache=False)
+        except BaseFrameworkException:
+            # Failed to find a suitable parser for the document
+            return
 
-            grep = self._domain == url.get_domain()
-            response = self._uri_opener.GET(page.URL, cache=True, grep=grep)
-        except ScanMustStopOnUrlError:
-            # Just ignore it
-            pass
-        except BaseFrameworkException as w3:
-            msg = (
-                "ExtendedUrllib exception raised while fetching page in"
-                ' finger_bing, error description: "%s"'
-            )
-            om.out.debug(msg % w3)
-        else:
-            # I have the response object!
-            get_document_parser_for = parser_cache.dpc.get_document_parser_for
+        for mail in document_parser.get_emails(self._domain_root):
+            if mail in self._accounts:
+                continue
 
-            try:
-                document_parser = get_document_parser_for(response, cache=False)
-            except BaseFrameworkException:
-                # Failed to find a suitable parser for the document
-                pass
-            else:
-                # Search for email addresses
-                for mail in document_parser.get_emails(self._domain_root):
-                    if mail not in self._accounts:
-                        self._accounts.append(mail)
+            self._accounts.append(mail)
 
-                        desc = 'The mail account: "%s" was found at: "%s".'
-                        desc = desc % (mail, page.URL)
+            desc = 'The mail account: "%s" was found at: "%s".'
+            desc %= (mail, page.URL)
 
-                        i = Info("Email account", desc, response.id, self.get_name())
-                        i.set_url(page.URL)
-                        i["mail"] = mail
-                        i["user"] = mail.split("@")[0]
-                        i["url_list"] = {page.URL}
+            i = Info("Email account", desc, response.id, self.get_name())
+            i.set_url(page.URL)
+            i["mail"] = mail
+            i["user"] = mail.split("@")[0]
+            i["url_list"] = {page.URL}
 
-                        self.kb_append("emails", "emails", i)
+            self.kb_append("emails", "emails", i)
 
     def get_options(self):
         """

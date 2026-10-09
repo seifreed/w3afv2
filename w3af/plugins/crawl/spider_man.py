@@ -213,10 +213,8 @@ class LoggingHandler(ProxyHandler):
             IndexError,
             RuntimeError,
         ) as e:
-            trace = str(traceback.format_exc())
-            http_response = self._create_error_response(
-                http_request, None, e, trace=trace
-            )
+            trace = traceback.format_exc()
+            http_response = self._create_error_response(http_request, e, trace)
 
         # Useful logging
         headers = http_response.get_headers()

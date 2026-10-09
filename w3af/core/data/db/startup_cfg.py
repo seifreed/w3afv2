@@ -34,8 +34,6 @@ class StartUpConfig:
     Holds the configuration for the VersionMgr update/commit process
     """
 
-    CFG_FILE = os.path.join(get_home_dir(), "startup.conf")
-
     ISO_DATE_FMT = "%Y-%m-%d"
     # Frequency constants
     FREQ_DAILY = "D"  # [D]aily
@@ -51,7 +49,13 @@ class StartUpConfig:
         "skip-dependencies-check": "false",
     }
 
-    def __init__(self, cfg_file=CFG_FILE):
+    def __init__(self, cfg_file=None):
+        """
+        :param cfg_file: The configuration file, by default startup.conf in
+                         the w3af home directory at the time of the call
+        """
+        if cfg_file is None:
+            cfg_file = os.path.join(get_home_dir(), "startup.conf")
 
         self._start_cfg_file = cfg_file
         self._start_section = "STARTUP_CONFIG"
@@ -85,6 +89,11 @@ class StartUpConfig:
 
     def get_skip_dependencies_check(self):
         return self._skip_dependencies_check
+
+    def set_skip_dependencies_check(self, skip):
+        self._skip_dependencies_check = skip
+        value = "true" if skip else "false"
+        self._config.set(self._start_section, "skip-dependencies-check", value)
 
     def get_accepted_disclaimer(self):
         return self._accepted_disclaimer
@@ -185,3 +194,6 @@ class StartUpConfig:
     last_commit_id = property(get_last_commit_id, set_last_commit_id)
     accepted_disclaimer = property(get_accepted_disclaimer, set_accepted_disclaimer)
     last_upd = property(get_last_upd, set_last_upd)
+    skip_dependencies_check = property(
+        get_skip_dependencies_check, set_skip_dependencies_check
+    )

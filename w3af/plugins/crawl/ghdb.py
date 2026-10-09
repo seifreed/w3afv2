@@ -22,8 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os.path
 import random
-import xml.dom.minidom
 from xml.parsers.expat import ExpatError
+
+from defusedxml import DefusedXmlException, minidom
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
@@ -145,8 +146,8 @@ class ghdb(CrawlPlugin):
             raise BaseFrameworkException(msg % (self._ghdb_file, e)) from e
 
         try:
-            dom = xml.dom.minidom.parseString(ghdb_content)
-        except ExpatError as e:
+            dom = minidom.parseString(ghdb_content)
+        except (ExpatError, DefusedXmlException) as e:
             msg = 'Failed to parse XML file: "%s", error: "%s".'
             raise BaseFrameworkException(msg % (self._ghdb_file, e)) from e
 

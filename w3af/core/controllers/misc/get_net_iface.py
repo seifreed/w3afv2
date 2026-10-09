@@ -20,63 +20,31 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import os
 import socket
 
+import psutil
+
 from w3af.core.controllers.misc.get_local_ip import get_local_ip
+
+DEFAULT_INTERFACE = "eth0"
 
 
 def get_net_iface():
     """
-    This function is very OS dependant.
-
     :return: The interface name that is being used to connect to the net.
     """
-    #   Get the IP address thats used to go to the Internet
-    internet_ip = get_local_ip()
+    return interface_for_ip(get_local_ip())
 
-    #
-    #   I need to have a default in case everything else fails!
-    #
-    ifname = "eth0"
 
-    if os.name == "nt":
-        #
-        #   TODO: Find out how to do this in Windows!
-        #
-        pass
-    else:
-        #
-        #   Linux
-        #
-        import fcntl
-        import struct
+def interface_for_ip(ip_address):
+    """
+    :param ip_address: An IPv4 address assigned to this host
+    :return: The name of the interface which holds ip_address, or
+             DEFAULT_INTERFACE when no interface has it.
+    """
+    for name, addresses in psutil.net_if_addrs().items():
+        for address in addresses:
+            if address.family == socket.AF_INET and address.address == ip_address:
+                return name
 
-        interfaces = [
-            "eth0",
-            "eth1",
-            "eth2",
-            "wlan0",
-            "wlan1",
-            "wifi0",
-            "ath0",
-            "ath1",
-            "ppp0",
-        ]
-        for ifname in interfaces:
-            try:
-                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                interface_ip = socket.inet_ntoa(
-                    fcntl.ioctl(
-                        s.fileno(),
-                        0x8915,  # SIOCGIFADDR
-                        struct.pack("256s", ifname[:15].encode()),
-                    )[20:24]
-                )
-            except OSError:
-                pass
-            else:
-                if internet_ip == interface_ip:
-                    break
-
-    return ifname
+    return DEFAULT_INTERFACE

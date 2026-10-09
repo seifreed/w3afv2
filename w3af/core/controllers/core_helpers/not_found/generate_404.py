@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import itertools
-import random
 import string
 
 import w3af.core.controllers.output_manager as om
@@ -30,28 +29,28 @@ from w3af.core.controllers.exceptions import (
 )
 from w3af.core.controllers.misc.decorators import retry
 from w3af.core.data.fuzzer.utils import rand_alnum
+from w3af.core.data.misc.deterministic_random import get_deterministic_random
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.not_found_response import FourOhFourResponse
 
 
 def should_flip(index, seed):
-    rnd = random.Random()
-    rnd.seed(index + seed)
+    rnd = get_deterministic_random(index + seed)
 
     # 3 out of 5 get flip
     return rnd.randint(1, 100) % 5 in (0, 1, 2)
 
 
-def generate_404_without_filename():
-    return rand_alnum(5)
+def generate_404_without_filename(seed=1):
+    return rand_alnum(5, seed=seed)
 
 
-def generate_404_without_name(extension):
-    return f"{rand_alnum(5)}.{extension}"
+def generate_404_without_name(extension, seed=1):
+    return f"{rand_alnum(5, seed=seed)}.{extension}"
 
 
-def generate_404_for_short_filename(filename, extension):
-    mod_filename = f"{rand_alnum(4)}{filename}"
+def generate_404_for_short_filename(filename, extension, seed=1):
+    mod_filename = f"{rand_alnum(4, seed=seed)}{filename}"
     return append_extension_if_exists(mod_filename, extension)
 
 
@@ -130,11 +129,11 @@ def generate_404_by_flipping_bytes(filename, extension, seed=1):
 
 
 def generate_404_by_shuffle(filename, extension, seed):
-    random.seed(seed)
+    rnd = get_deterministic_random(seed)
 
     filename = [c for c in filename]
 
-    random.shuffle(filename)
+    rnd.shuffle(filename)
     mod_filename = "".join(filename)
 
     return append_extension_if_exists(mod_filename, extension)
@@ -191,7 +190,7 @@ def generate_404_filename(filename, seed=1):
     :return: A mutated filename
     """
     if not filename:
-        return generate_404_without_filename()
+        return generate_404_without_filename(seed=seed)
 
     orig_filename, extension = split_filename(filename)
 
@@ -200,7 +199,7 @@ def generate_404_filename(filename, seed=1):
     # such as .env.
     #
     if not orig_filename:
-        return generate_404_without_name(extension)
+        return generate_404_without_name(extension, seed=seed)
 
     #
     # This handles the case of files which have really short names
@@ -209,7 +208,7 @@ def generate_404_filename(filename, seed=1):
     # or another one that also exists in the path
     #
     if len(orig_filename) in (1, 2):
-        return generate_404_for_short_filename(orig_filename, extension)
+        return generate_404_for_short_filename(orig_filename, extension, seed=seed)
 
     #
     # Flip some bytes to generate a new filename

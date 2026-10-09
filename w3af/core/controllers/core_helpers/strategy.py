@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import logging
 import queue
-import sys
 import time
+from contextlib import contextmanager
 from multiprocessing import TimeoutError
 
 import w3af.core.controllers.output_manager as om
@@ -40,7 +40,6 @@ from w3af.core.controllers.core_helpers.consumers.grep import grep
 from w3af.core.controllers.core_helpers.consumers.seed import seed
 from w3af.core.controllers.core_helpers.exception_handler import ExceptionData
 from w3af.core.data.kb.info import Info
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.extended_urllib import MAX_ERROR_COUNT
 from w3af.core.exceptions import (
     ScanMustStopByUserRequest,
@@ -140,24 +139,18 @@ class CoreStrategy:
 
         except Exception as e:
             logger.debug("Unhandled exception in start()", exc_info=True)
-
             om.out.debug(f'strategy.start() found exception "{e}"')
-            exc_info = sys.exc_info()
 
             try:
                 # Terminate the consumers, exceptions at this level stop the scan
                 self.terminate()
-            except Exception as e:
-                logger.debug("Unhandled exception in start()", exc_info=True)
-                msg = 'strategy.start() found exception while terminating workers "%s"'
-                om.out.debug(msg % e)
             finally:
                 # While the consumers might have finished, they certainly queue
                 # tasks in the core's worker_pool, which need to be processed
                 # too
                 self._w3af_core.worker_pool.finish()
 
-            raise exc_info[0](exc_info[1]).with_traceback(exc_info[2])
+            raise
 
         else:
             # Wait for all consumers to finish
@@ -207,20 +200,14 @@ class CoreStrategy:
             # you know what you're doing!
             setattr(self, f"_{consumer}_consumer", None)
 
-            try:
-                consumer_inst.terminate()
-            except Exception as e:
-                logger.debug("Unhandled exception in terminate()", exc_info=True)
-                msg = '%s consumer terminate() raised exception: "%s"'
-                args = (consumer_inst.get_name(), e)
-                om.out.debug(msg % args)
-            else:
-                spent = time.time() - start
-                args = (consumer, spent)
-                om.out.debug(
-                    "terminate() on {} consumer took {:.2f} seconds".format(*args)
-                )
+            consumer_inst.terminate()
 
+            spent = time.time() - start
+            om.out.debug(f"terminate() on {consumer} consumer took {spent:.2f} seconds")
+
+        # The observers run their own (non-daemon) threads, which need to be
+        # stopped before set_consumers_to_none() forgets about them
+        self._teardown_observers()
         self.set_consumers_to_none()
 
     def join_all_consumers(self):
@@ -416,16 +403,6 @@ class CoreStrategy:
                 else:
                     *_unused, fuzzable_request_inst = result_item
 
-                    # Safety check, I need these to be FuzzableRequest objects
-                    # if not, the url_producer is doing something wrong and I
-                    # don't want to do anything with this data
-                    fmt = (
-                        "%s is returning objects of class %s instead of"
-                        " FuzzableRequest."
-                    )
-                    msg = fmt % (url_producer, type(fuzzable_request_inst))
-                    assert isinstance(fuzzable_request_inst, FuzzableRequest), msg
-
                     for url_consumer in output:
                         url_consumer.in_queue_put(fuzzable_request_inst)
 
@@ -525,6 +502,35 @@ class CoreStrategy:
                 else:
                     sent_requests += 1
 
+    @staticmethod
+    @contextmanager
+    def _scan_must_stop_on_error(description):
+        """
+        Convert any error raised inside the block into a ScanMustStopException.
+        ScanMustStopByUserRequest is kept untouched since it is not a real
+        error: the user stopped the scan.
+
+        :param description: Describes what failed, used in the error message
+        """
+        try:
+            yield
+        except ScanMustStopByUserRequest:
+            raise
+        except Exception as e:
+            logger.debug(description, exc_info=True)
+            msg = f'{description}: "{e}" ({e.__class__.__name__})'
+            om.out.debug(msg)
+            raise ScanMustStopException(msg) from e
+
+    def _get_target(self, url, step, **kwargs):
+        """
+        Send a GET request to one of the configured targets.
+
+        :param step: The name of the scan step sending the request
+        """
+        with self._scan_must_stop_on_error(f"Exception found during {step}"):
+            return self._w3af_core.uri_opener.GET(url, **kwargs)
+
     def replace_targets_with_redir(self):
         """
         The user might have configured one or more target URLs which are
@@ -542,32 +548,17 @@ class CoreStrategy:
         new_targets = []
 
         for url in targets:
-            try:
-                http_response = self._w3af_core.uri_opener.GET(
-                    url, cache=False, follow_redirects=True
-                )
-            except ScanMustStopByUserRequest:
-                # Not a real error, the user stopped the scan
-                raise
-            except Exception as e:
-                msg = 'Exception found during replace_targets_with_redir(): "%s"'
-                om.out.debug(msg % e)
-                raise ScanMustStopException(msg % e) from e
-            else:
-                redir_uri = http_response.get_redirect_destination()
+            http_response = self._get_target(
+                url, "replace_targets_with_redir()", cache=False, follow_redirects=True
+            )
+            redir_uri = http_response.get_redirect_destination()
 
-                if not redir_uri:
-                    # Keep the ones that are not redirects without changes
-                    new_targets.append(url)
-                    continue
-
-                if http_response.does_redirect_outside_target():
-                    # Keep this one, it will be handled below by
-                    # alert_if_target_is_301_all
-                    new_targets.append(url)
-                    continue
-
+            if redir_uri and not http_response.does_redirect_outside_target():
+                # Targets redirecting outside the target domain are handled
+                # by alert_if_target_is_301_all
                 new_targets.append(redir_uri)
+            else:
+                new_targets.append(url)
 
         cf.cf.save("targets", new_targets)
 
@@ -603,19 +594,12 @@ class CoreStrategy:
         for url in targets:
             # We test if the target URLs are redirecting to a different protocol
             # or domain.
-            try:
-                http_response = self._w3af_core.uri_opener.GET(url, cache=False)
-            except ScanMustStopByUserRequest:
-                # Not a real error, the user stopped the scan
-                raise
-            except Exception as e:
-                msg = 'Exception found during alert_if_target_is_301_all(): "%s"'
-                om.out.debug(msg % e)
-                raise ScanMustStopException(msg % e) from e
-            else:
-                if http_response.does_redirect_outside_target():
-                    site_does_redirect = True
-                    break
+            http_response = self._get_target(
+                url, "alert_if_target_is_301_all()", cache=False
+            )
+            if http_response.does_redirect_outside_target():
+                site_does_redirect = True
+                break
 
         if site_does_redirect:
             name = "Target redirect"
@@ -640,39 +624,17 @@ class CoreStrategy:
         targets_with_404 = []
 
         for url in cf.cf.get("targets"):
-            try:
-                response = self._w3af_core.uri_opener.GET(url, cache=True)
-            except ScanMustStopByUserRequest:
-                raise
-            except Exception as e:
-                logger.debug(
-                    "Unhandled exception in _setup_404_detection()", exc_info=True
-                )
-                msg = (
-                    "Failed to send HTTP request to the configured target"
-                    ' URL "%s", the original exception was: "%s" (%s).'
-                )
-                args = (url, e, e.__class__.__name__)
-                raise ScanMustStopException(msg % args)
+            response = self._get_target(url, "_setup_404_detection()", cache=True)
 
-            try:
+            failure = (
+                "Failed to initialize the 404 detection using HTTP"
+                f' response from "{url}"'
+            )
+            with self._scan_must_stop_on_error(failure):
                 current_target_is_404 = is_404(response)
-            except ScanMustStopByUserRequest:
-                raise
-            except Exception as e:
-                logger.debug(
-                    "Unhandled exception in _setup_404_detection()", exc_info=True
-                )
-                msg = (
-                    "Failed to initialize the 404 detection using HTTP"
-                    ' response from "%s", the original exception was: "%s"'
-                    " (%s)."
-                )
-                args = (url, e, e.__class__.__name__)
-                raise ScanMustStopException(msg % args)
-            else:
-                if current_target_is_404:
-                    targets_with_404.append(url)
+
+            if current_target_is_404:
+                targets_with_404.append(url)
 
         if targets_with_404:
             urls = [f" - {u.url_string}\n" for u in targets_with_404]
@@ -799,22 +761,11 @@ class CoreStrategy:
             self._bruteforce_consumer = bruteforce(bruteforce_plugins, self._w3af_core)
             self._bruteforce_consumer.start()
 
-    def force_auth_login(self):
-        """Force a login in a sync way
-        :return: None.
-        """
-        if self._auth_consumer is not None:
-            self._auth_consumer.force_login()
-
     def _setup_auth(self, timeout=5):
         """
         Start the thread that will make sure the xurllib always has a "fresh"
         session. The thread will call has_active_session() and login() for each enabled
         auth plugin every "timeout" seconds.
-
-        If there is a specific need to make sure that the session is fresh before
-        performing any step, the developer needs to run the force_auth_login()
-        method.
         """
         auth_plugins = self._w3af_core.plugins.plugins["auth"]
 

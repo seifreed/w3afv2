@@ -53,7 +53,7 @@ class TestWorkerPool(unittest.TestCase):
             self.assertEqual(str(te), "1 Boom!")
             # pylint: disable=E1101
             self.assertIn(
-                "raise TypeError('%s Boom!' % foo)", te.original_traceback_string
+                'raise TypeError(f"{foo} Boom!")', te.original_traceback_string
             )
 
     def test_terminate_join_after_tasks(self):
@@ -86,17 +86,12 @@ class TestWorkerPool(unittest.TestCase):
             result = worker_pool.apply_async(func=delay)
             results.append(result)
 
+        for result in results:
+            self.assertEqual(result.get(), 0)
+
+        # The result handler consumed every result from the output queue
         pool_sizes = worker_pool.get_pool_queue_sizes()
-
-        while pool_sizes["inqueue_size"]:
-            pool_sizes = worker_pool.get_pool_queue_sizes()
-
-        # Give the result handler task inside the pool set the results on the
-        # result instances stored in the results lists
-        time.sleep(1)
-
-        # There should be no pending tasks in the output queue
-        self.assertEqual(pool_sizes["outqueue_size"], 0)
+        self.assertEqual(pool_sizes, {"inqueue_size": 0, "outqueue_size": 0})
 
         worker_pool.terminate_join()
 
@@ -161,7 +156,7 @@ class TestWorkerPool(unittest.TestCase):
 
     def test_change_number_of_workers_requirement(self):
         worker_pool = Pool(processes=2, worker_names="WorkerThread")
-        self.assertRaises(AssertionError, worker_pool.set_worker_count, 3)
+        self.assertRaises(RuntimeError, worker_pool.set_worker_count, 3)
 
     def test_worker_stats_idle(self):
         worker_pool = Pool(processes=1, worker_names="WorkerThread")

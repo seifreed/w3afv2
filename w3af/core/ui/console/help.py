@@ -21,9 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os.path
-import xml.etree.ElementTree as ET
 from string import Template
-from xml.dom.minidom import *
+
+from defusedxml import ElementTree as ET
 
 from w3af import ROOT_PATH
 
@@ -44,12 +44,11 @@ class helpRepository:
         for t in topics:
             self.__map[str(t.attrib["name"])] = t
 
-    def load_help(self, topic, obj=None, vars=None):
+    def load_help(self, topic, obj, vars=None):
         """
-        Loads an object from the repository.
+        Loads a topic from the repository into a help container.
         :param topic: the name of a context (for example, menu)
-        :param obj: the help object where to load the help data
-        (if None, a new one is created)
+        :param obj: the help container where to load the help data
         :param vars: a dict of variables to replace in the help text
         """
 
@@ -59,8 +58,6 @@ class helpRepository:
                 return templ
             return Template(templ).safe_substitute(vars)
 
-        if not obj:
-            obj = HelpContainer()
         elt = self.__map[topic]
         for catElt in elt.findall("category"):
             catName = "name" in catElt.attrib and catElt.attrib["name"] or "default"
@@ -90,8 +87,6 @@ class helpRepository:
 
                 obj.add_help_entry(itemName, (short, full), catName)
 
-        return obj
-
 
 # main repository
 helpMainRepository = helpRepository()
@@ -107,17 +102,13 @@ class HelpContainer:
         self._subj2Gat = {}
         self._cat2Subj = {}
 
-    def add_help_entry(self, subj, content, cat=""):
+    def add_help_entry(self, subj, content, cat):
         """
         Adds the help entry.
-        :param content: usually a tuple like (head, body)
+        :param content: a (head, body) tuple
         :param cat: a name of the category.
         If the item exists in an other category, it will be replaced.
         """
-
-        if type(content) not in (tuple, list):
-            content = (content, None)
-
         self._table[subj] = content
         self._subj2Gat[subj] = cat
         if cat in self._cat2Subj:
@@ -128,13 +119,6 @@ class HelpContainer:
 
         d.append(subj)
 
-    def get_categories(self):
-        return list(self._subj2Gat.keys())
-
-    def add_help(self, table, cat=""):
-        for subj in table:
-            self.add_help_entry(subj, table[subj], cat)
-
     def get_help(self, subj):
         if subj not in self._table:
             return (None, None)
@@ -144,32 +128,19 @@ class HelpContainer:
     def get_items(self):
         return list(self._table.keys())
 
-    def get_plain_help_table(self, separators=True, cat=None):
+    def get_plain_help_table(self):
         """
-        Returns a table of format 'subject -> head'
-        to display with the table.py module
-        :param separators: if True, the categories are separated
-        by extra line.
-        :param cat: category to include into the page.
-        If None, all are included.
+        Returns a table of format 'subject -> head' to display with the
+        table.py module, with the categories separated by an empty row.
         """
         result = []
 
-        if cat is not None:
-            self._appendHelpTable(result, cat)
-        else:
-            for g in self._cat2Subj:
-                self._appendHelpTable(result, g)
-                if separators:
-                    result.append([])
+        for cat in self._cat2Subj:
+            for subj in self._cat2Subj[cat]:
+                result.append([subj, self.get_help(subj)[0]])
+            result.append([])
 
-            if len(result) and separators:
-                result.pop()
+        if result:
+            result.pop()
 
         return result
-
-    def _appendHelpTable(self, result, cat):
-        items = cat in self._cat2Subj and self._cat2Subj[cat] or self._table
-
-        for subj in items:
-            result.append([subj, self.get_help(subj)[0]])

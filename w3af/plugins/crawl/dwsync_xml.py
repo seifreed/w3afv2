@@ -20,8 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import xml.dom.minidom
 from xml.parsers.expat import ExpatError
+
+from defusedxml import DefusedXmlException, minidom
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
@@ -80,8 +81,8 @@ class dwsync_xml(CrawlPlugin):
         om.out.debug(f"Parsing dwsync.xml file at {dwsync_url}")
 
         try:
-            dom = xml.dom.minidom.parseString(response.get_body())
-        except ExpatError as e:
+            dom = minidom.parseString(response.get_body())
+        except (ExpatError, DefusedXmlException) as e:
             msg = 'Exception while parsing dwsync.xml file at %s : "%s"'
             om.out.debug(msg % (dwsync_url, e))
             return
@@ -90,15 +91,12 @@ class dwsync_xml(CrawlPlugin):
 
         for file_entry in dom.getElementsByTagName("file"):
             try:
-                _file = file_entry.getAttribute("name")
-                url = domain_path.url_join(_file)
-                parsed_url_list.add(url)
+                url = domain_path.url_join(file_entry.getAttribute("name"))
             except ValueError as ve:
                 msg = 'dwsync file had an invalid URL: "%s"'
                 om.out.debug(msg % ve)
-            except (IndexError, AttributeError) as e:
-                msg = 'Sitemap file had an invalid format: "%s"'
-                om.out.debug(msg % e)
+            else:
+                parsed_url_list.add(url)
 
         if parsed_url_list:
             desc = (

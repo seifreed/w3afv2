@@ -20,8 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import threading
 import unittest
-from unittest.mock import MagicMock, Mock
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from w3af.core.controllers.cors.utils import (
     build_cors_request,
@@ -31,46 +32,68 @@ from w3af.core.controllers.cors.utils import (
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.data.url.http_response import HTTPResponse
 
 
+def cors_server(allow_origin):
+    """
+    Start a local HTTP server which records the Origin header of every
+    request and, when allow_origin is set, answers with that value in the
+    Access-Control-Allow-Origin header.
+    """
+    received_origins = []
+
+    class CORSHandler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            received_origins.append(self.headers.get("Origin"))
+            self.send_response(200)
+            if allow_origin is not None:
+                self.send_header("Access-Control-Allow-Origin", allow_origin)
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+
+        def log_message(self, *args):
+            return
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), CORSHandler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    return server, received_origins
+
+
 class TestUtils(unittest.TestCase):
+
+    def setUp(self):
+        self.uri_opener = ExtendedUrllib()
+
+    def tearDown(self):
+        self.uri_opener.end()
+
+    def start_server(self, allow_origin):
+        server, received_origins = cors_server(allow_origin)
+        self.addCleanup(server.server_close)
+        self.addCleanup(server.shutdown)
+        url = URL(f"http://127.0.0.1:{server.server_port}/")
+        return FuzzableRequest(url), received_origins
 
     def test_provides_cors_features_fails(self):
         self.assertRaises(AttributeError, provides_cors_features, None, None, None)
 
     def test_provides_cors_features_false(self):
-        url = URL("http://moth/")
-        fr = FuzzableRequest(url)
+        fr, received_origins = self.start_server(allow_origin=None)
 
-        http_response = HTTPResponse(200, "", Headers(), url, url)
-
-        url_opener_mock = Mock()
-        url_opener_mock.GET = MagicMock(return_value=http_response)
-
-        cors = provides_cors_features(fr, url_opener_mock, None)
-
-        call_header = Headers(list({"Origin": "www.w3af.org"}.items()))
-        url_opener_mock.GET.assert_called_with(url, headers=call_header)
+        cors = provides_cors_features(fr, self.uri_opener, None)
 
         self.assertFalse(cors)
+        self.assertEqual(received_origins, [None, "www.w3af.org"])
 
     def test_provides_cors_features_true(self):
-        url = URL("http://moth/")
-        fr = FuzzableRequest(url)
+        fr, received_origins = self.start_server(allow_origin="http://www.w3af.org/")
 
-        hdrs = list({"Access-Control-Allow-Origin": "http://www.w3af.org/"}.items())
-        cors_headers = Headers(hdrs)
-        http_response = HTTPResponse(200, "", cors_headers, url, url)
-
-        url_opener_mock = Mock()
-        url_opener_mock.GET = MagicMock(return_value=http_response)
-
-        cors = provides_cors_features(fr, url_opener_mock, None)
-
-        url_opener_mock.GET.assert_called_with(url, debugging_id=None)
+        cors = provides_cors_features(fr, self.uri_opener, None)
 
         self.assertTrue(cors)
+        self.assertEqual(received_origins, [None])
 
     def test_retrieve_cors_header_true(self):
         url = URL("http://moth/")

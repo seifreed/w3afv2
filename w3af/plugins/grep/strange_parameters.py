@@ -97,10 +97,8 @@ class strange_parameters(GrepPlugin):
                         self._already_reported.add((ref.uri2url(), token_name))
 
     def _analyze_strange(self, request, response, ref, token_name, token_value):
+        # _is_strange() already ignores values that were sent in the request
         if not self._is_strange(request, token_name, token_value):
-            return False
-
-        if request.sent(token_value):
             return False
 
         desc = (

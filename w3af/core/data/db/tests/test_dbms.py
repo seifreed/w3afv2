@@ -156,7 +156,7 @@ class TestDBMS(unittest.TestCase):
         db = self.new_db()
         db.close()
 
-        self.assertRaises(AssertionError, db.close)
+        self.assertRaises(RuntimeError, db.close)
 
     def test_clear_table_and_select_one_without_rows(self):
         db = self.new_db()

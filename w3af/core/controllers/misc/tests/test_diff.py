@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import re
 import unittest
 
-from w3af.core.controllers.misc.diff import chunked_diff, diff_dmp, split_by_sep
+from w3af.core.controllers.misc.diff import chunked_diff, diff_difflib, split_by_sep
 
 
 class TestChunkedDiff(unittest.TestCase):
@@ -74,50 +74,12 @@ class TestChunkedDiff(unittest.TestCase):
         self.assertEqual(chunked_diff(a, b), ("X", "A"))
 
 
-class TestDiffDMP(unittest.TestCase):
+class TestDiffDifflib(unittest.TestCase):
+    def test_equal_strings_have_no_differences(self):
+        self.assertEqual(diff_difflib("same", "same"), ("", ""))
 
-    def test_equal(self):
-        self.assertEqual(diff_dmp("123456", "123456"), ("", ""))
-
-    def test_middle_0(self):
-        self.assertEqual(diff_dmp("123456", "123a56"), ("4", "a"))
-
-    def test_middle_1(self):
-        a = "A\nB\nC"
-        b = "A\nX\nC"
-        self.assertEqual(diff_dmp(a, b), ("B", "X"))
-
-    def test_start_0(self):
-        self.assertEqual(diff_dmp("yes 123abc", "no 123abc"), ("yes", "no"))
-
-    def test_start_1(self):
-        a = "X\nB\nC"
-        b = "A\nB\nC"
-        self.assertEqual(diff_dmp(a, b), ("X", "A"))
-
-    def test_end(self):
-        self.assertEqual(diff_dmp("123abc yes", "123abc no"), ("yes", "no"))
-
-    def test_nono(self):
-        self.assertEqual(diff_dmp("123abc yes", "no 123abc no"), ("yes", "no \nno"))
-
-    def test_all_no_sep(self):
-        a = "ABC"
-        b = "AXC"
-        self.assertEqual(diff_dmp(a, b), ("B", "X"))
-
-    def test_middle_not_aligned(self):
-        a = "A\nB\nC"
-        b = "A\nXY\nC"
-        self.assertEqual(diff_dmp(a, b), ("B", "XY"))
-
-    def test_empty(self):
-        self.assertEqual(diff_dmp("", ""), ("", ""))
-
-    def test_special_chars(self):
-        a = "X\tB\nC"
-        b = "A<B\nC"
-        self.assertEqual(diff_dmp(a, b), ("X\t", "A<"))
+    def test_keeps_only_the_unique_parts(self):
+        self.assertEqual(diff_difflib("abcXdef", "abcYdef"), ("X", "Y"))
 
 
 class TestSplitBySep(unittest.TestCase):
@@ -133,6 +95,9 @@ class TestSplitBySep(unittest.TestCase):
         sequence = "ąęż"
         # this shouldn't rise UnicodeDecodeError
         split_by_sep(sequence)
+
+    def test_split_by_sep_bytes_are_decoded(self):
+        self.assertEqual(split_by_sep("a<b\xff".encode("latin-1")), ["a", "b\ufffd"])
 
     def test_split_by_sep_perf(self):
         loops = 1000

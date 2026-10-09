@@ -34,21 +34,23 @@ def maybe_decode_base64(data):
     with base64.b64decode will yield a lot of false positives (it successfully
     decodes strings with characters outside of the base64 RFC).
 
-    :param data: A string (or byte string) we saw in the web application
+    :param data: A string or byte string we saw in the web application
     :return: A tuple containing True and the decoded data if the data was a
-             base64 encoded string. A tuple containing False and None if the
-             data wasn't a base64 encoded string. The decoded data is text
-             with one character per byte (latin-1), the representation the
-             serialization detectors work with.
+             base64 encoded string, False and None otherwise. Byte strings
+             decode to bytes; text decodes to text with one character per
+             byte (latin-1).
     """
-    if isinstance(data, bytes):
-        data = data.decode("latin-1")
-
     # At least for this plugin we want long base64 strings
     if len(data) < 16:
         return False, None
 
-    if not BASE64_RE.match(data):
+    text = data.decode("latin-1") if isinstance(data, bytes) else data
+    if not BASE64_RE.match(text):
         return False, None
 
-    return True, base64.b64decode(data).decode("latin-1")
+    decoded_data = base64.b64decode(text)
+
+    if isinstance(data, str):
+        return True, decoded_data.decode("latin-1")
+
+    return True, decoded_data

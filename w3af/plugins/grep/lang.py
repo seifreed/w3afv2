@@ -61,17 +61,12 @@ class lang(GrepPlugin):
         if is_404(response):
             return
 
-        body = response.get_clear_text_body()
-        if body is None:
-            return
+        body = response.get_clear_text_body().lower()
 
-        body = body.lower()
-
-        try:
-            guessed_lang = guess_language(body)
-        except IndexError:
-            # I don't care about exception handling of the external lib
-            guessed_lang = UNKNOWN
+        # guess_language returns its own falsy (and non-picklable) UNKNOWN
+        # sentinel when it can not identify the language. Normalize it to our
+        # own string so it can be stored in the knowledge base.
+        guessed_lang = guess_language(body) or UNKNOWN
 
         with self._plugin_lock:
             if guessed_lang == UNKNOWN:

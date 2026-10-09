@@ -20,8 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import xml.dom.minidom
 from xml.parsers.expat import ExpatError
+
+from defusedxml import DefusedXmlException, minidom
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
@@ -64,8 +65,8 @@ class sitemap_xml(CrawlPlugin):
 
         om.out.debug("Parsing xml file with xml.dom.minidom.")
         try:
-            dom = xml.dom.minidom.parseString(response.get_body())
-        except ExpatError as e:
+            dom = minidom.parseString(response.get_body())
+        except (ExpatError, DefusedXmlException) as e:
             msg = 'Exception while parsing sitemap.xml from %s: "%s"'
             args = (response.get_url(), e)
             om.out.debug(msg % args)

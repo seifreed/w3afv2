@@ -31,6 +31,7 @@ from w3af.core.data.constants.cookies import COOKIE_FINGERPRINT
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
 from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.misc.encoding import smart_unicode
 from w3af.core.data.parsers.doc.cookie_parser import COOKIE_HEADERS, parse_cookie
 
 COOKIE_KEYS = "cookie_keys"
@@ -232,7 +233,7 @@ class analyze_cookies(GrepPlugin):
             return
 
         # Pre-calculate to avoid CPU usage
-        request_dump = request.dump()
+        request_dump = smart_unicode(request.dump())
 
         for info_set in kb.kb.get(self, "cookies"):
             for info in info_set.infos:
@@ -277,21 +278,16 @@ class analyze_cookies(GrepPlugin):
 
         :return: True if the cookie was fingerprinted
         """
-        cookie_keys = list(cookie_obj.keys())
-        for cookie_key in cookie_keys:
-            if cookie_key in self._cookie_key_failed_fingerprint:
-                cookie_keys.remove(cookie_key)
-                continue
-
-            if cookie_key in self._already_reported_fingerprint:
-                cookie_keys.remove(cookie_key)
+        cookie_keys = [
+            cookie_key
+            for cookie_key in cookie_obj
+            if cookie_key not in self._cookie_key_failed_fingerprint
+            and cookie_key not in self._already_reported_fingerprint
+        ]
 
         for cookie_key in cookie_keys:
             for cookie_str_db, system_name in COOKIE_FINGERPRINT:
                 if cookie_str_db not in cookie_key:
-                    continue
-
-                if cookie_key in self._already_reported_fingerprint:
                     continue
 
                 # Unreported match!

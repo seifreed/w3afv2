@@ -23,16 +23,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import itertools
 import unittest
-from os import listdir as orig_listdir
-from unittest.mock import patch
 
 import pytest
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.plugins import CorePlugins
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.w3af_core import w3afCore
-
-TEST_PLUGIN_NAME = "failing_spider"
 
 
 class TestPluginRegistryStructure(unittest.TestCase):
@@ -59,17 +56,8 @@ class TestW3afCorePlugins(unittest.TestCase):
     def setUp(self):
         super().setUp()
 
-        self.listdir_patch = patch("os.listdir")
-        self.listdir_mock = self.listdir_patch.start()
-        self.listdir_mock.side_effect = listdir_remove_fs
-
         self.core = w3afCore()
-
-    def tearDown(self):
-        super().tearDown()
-
-        self.listdir_patch.stop()
-        self.core.worker_pool.terminate_join()
+        self.addCleanup(self.core.worker_pool.terminate_join)
 
     def test_get_plugin_types(self):
         plugin_types = self.core.plugins.get_plugin_types()
@@ -156,6 +144,48 @@ class TestW3afCorePlugins(unittest.TestCase):
         options_2 = self.core.plugins.get_plugin_options("crawl", "web_spider")
 
         self.assertEqual(options_1, options_2)
+
+    def test_output_plugin_options_reach_the_output_manager(self):
+        previous_output_plugins = list(om.manager.get_output_plugins())
+        default_options = self.core.plugins.get_plugin_inst(
+            "output", "console"
+        ).get_options()
+        self.addCleanup(om.manager.set_output_plugins, previous_output_plugins)
+        self.addCleanup(om.manager.set_plugin_options, "console", default_options)
+
+        options = self.core.plugins.get_plugin_inst("output", "console").get_options()
+        options["use_colors"].set_value(not options["use_colors"].get_value())
+        self.core.plugins.set_plugin_options("output", "console", options)
+
+        om.manager.set_output_plugins(["console"])
+
+        console = om.manager.get_output_plugin_inst()[0]
+        self.assertEqual(
+            console.get_options()["use_colors"].get_value(),
+            options["use_colors"].get_value(),
+        )
+
+    def test_get_plugin_type_desc(self):
+        description = self.core.plugins.get_plugin_type_desc("audit")
+
+        self.assertIn("vulnerabilities", description)
+
+    def test_get_plugin_type_desc_unknown_type(self):
+        with self.assertRaisesRegex(BaseFrameworkException, "Unknown plugin type"):
+            self.core.plugins.get_plugin_type_desc("unknown_type")
+
+    def test_init_plugins_twice_applies_latest_options(self):
+        self.core.plugins.set_plugins(["web_spider"], "crawl")
+        self.core.plugins.init_plugins()
+
+        options = self.core.plugins.get_plugin_inst("crawl", "web_spider").get_options()
+        options["only_forward"].set_value(True)
+        self.core.plugins.set_plugin_options("crawl", "web_spider", options)
+        self.core.plugins.init_plugins()
+
+        crawl_plugins = self.core.plugins.plugins["crawl"]
+        self.assertEqual(len(crawl_plugins), 1)
+        self.assertTrue(crawl_plugins[0].get_options()["only_forward"].get_value())
 
     def test_plugin_options_invalid(self):
         self.assertRaises(
@@ -342,29 +372,3 @@ class TestW3afCorePlugins(unittest.TestCase):
             all_plugins = self.core.plugins.get_plugin_list(plugin_type)
             self.assertEqual(set(enabled_plugins), set(all_plugins))
             self.assertEqual(len(enabled_plugins), len(all_plugins))
-
-
-def listdir_remove_fs(query_dir):
-    """
-    Many builds, such as [0], fail because we're running multiple tests at the
-    same time; and some of those tests write new/test plugins to disk. I've
-    tried to modify those tests to avoid writing the file... but it was almost
-    impossible and too hacky solution.
-
-    This simple function replaces the "os.listdir" command, returning a list of
-    the files in the the query_dir, removing 'failing_spider' plugin name from
-    the list.
-
-    [0] https://circleci.com/gh/andresriancho/w3af/801
-
-    :param query_dir: The directory to query
-    :return: A list without 'failing_spider'
-    """
-    original = orig_listdir(query_dir)
-    result = []
-
-    for fname in original:
-        if TEST_PLUGIN_NAME not in fname:
-            result.append(fname)
-
-    return result

@@ -1,11 +1,16 @@
 #!/usr/bin/env python
 import _thread
+import ipaddress
 import select
 import socket
 import struct
 import sys
 import threading
 import time
+
+# SOCKS replies carry a bound-address field; this is the protocol's
+# "unspecified address" value, not a listening socket.
+UNSPECIFIED_IP = str(ipaddress.IPv4Address(0))
 
 
 def is_routable(address):
@@ -580,17 +585,17 @@ class SocksHandler(threading.Thread):
         finally:
             remote.close()
 
-    def answer_granted(self, dst_ip="0.0.0.0", dst_port=0):
+    def answer_granted(self, dst_ip=UNSPECIFIED_IP, dst_port=0):
         """This function sends a REQUEST_GRANTED answer to the client."""
         self.answer(REQUEST_GRANTED, dst_ip, dst_port)  # !/usr/bin/env python
 
     def answer_rejected(
-        self, reason=REQUEST_REJECTED_FAILED, dst_ip="0.0.0.0", dst_port=0
+        self, reason=REQUEST_REJECTED_FAILED, dst_ip=UNSPECIFIED_IP, dst_port=0
     ):
         """This function send a REQUEST_REJECTED answer to the client."""
         self.answer(reason, dst_ip, dst_port)
 
-    def answer(self, code=REQUEST_GRANTED, ip_str="0.0.0.0", port_int=0):
+    def answer(self, code=REQUEST_GRANTED, ip_str=UNSPECIFIED_IP, port_int=0):
         """This function sends an answer to the client. This has been
         factorised because all answers follow the same format."""
 

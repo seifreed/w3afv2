@@ -84,7 +84,7 @@ class TestECTSecurity(unittest.TestCase):
         info_set = findings[0]
         expected_desc = (
             "The remote web server sent 1 HTTPS responses which"
-            " do not contain the Strict-Transport-Security"
+            " do not contain the Expect-CT"
             " header. The first ten URLs which did not send the"
             " header are:\n - https://www.w3af.com/\n"
         )

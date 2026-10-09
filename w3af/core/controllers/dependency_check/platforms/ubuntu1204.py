@@ -20,8 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import subprocess
 from typing import ClassVar
+
+from w3af.core.controllers.misc.external_process import run_process
 
 from ..requirements import CORE
 from .base_platform import Platform
@@ -59,16 +60,12 @@ class Ubuntu1204(Platform):
         hold = "Status: hold ok installed"
 
         try:
-            p = subprocess.Popen(
-                ["dpkg", "-s", package_name],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
+            result = run_process(["dpkg", "-s", package_name])
         except OSError:
             # We're not on a debian based system
             return None
         else:
-            dpkg_output, _ = p.communicate()
+            dpkg_output = result.stdout
 
             if not_installed in dpkg_output:
                 return False

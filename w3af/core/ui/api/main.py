@@ -20,48 +20,37 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import argparse
+import logging
+from argparse import ArgumentTypeError
+from collections.abc import Sequence
 
 from w3af.core.ui.api import app
-from w3af.core.ui.api.utils.cli import process_cmd_args_config
-from w3af.core.ui.api.utils.digital_certificate import SSLCertificate
+from w3af.core.ui.api.utils import cli
+from w3af.core.ui.api.utils.mp_flask import create_server, server_url
 
 
-def main():
+def main(argv: Sequence[str] | None = None) -> int:
     """
-    Entry point for the REST API
+    Entry point for the REST API. Werkzeug exits with status 1 when the
+    address can not be bound.
+
     :return: Zero if everything went well
     """
     try:
-        args = process_cmd_args_config(app)
-    except argparse.ArgumentTypeError as ate:
-        print(f"{ate}")
+        args = cli.process_cmd_args_config(app, argv)
+    except ArgumentTypeError as argument_error:
+        print(argument_error)
         return 1
 
-    # And finally start the app:
-    try:
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG)
 
-        if args.disable_ssl:
-            app.run(
-                host=app.config["HOST"],
-                port=app.config["PORT"],
-                debug=args.verbose,
-                use_reloader=False,
-                threaded=True,
-            )
-        else:
-            cert_key = SSLCertificate().get_cert_key(app.config["HOST"])
+    server = create_server(app)
+    use_ssl = server.ssl_context is not None
+    url = server_url(app.config["HOST"], server.server_port, use_ssl)
+    print(f"w3af REST API available at {url}/")
 
-            app.run(
-                host=app.config["HOST"],
-                port=app.config["PORT"],
-                debug=args.verbose,
-                use_reloader=False,
-                threaded=True,
-                ssl_context=cert_key,
-            )
-    except OSError as se:
-        print(f"Failed to start REST API server: {se.strerror}")
-        return 1
-
+    # Werkzeug stops serving on CTRL+C and closes the socket
+    server.serve_forever()
+    print("The w3af REST API was stopped.")
     return 0

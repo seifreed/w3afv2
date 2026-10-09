@@ -144,10 +144,6 @@ class csp(GrepPlugin):
         """
         list_resp_id = []
 
-        # Check input for quick exit
-        if vuln_desc is None or vuln_desc.strip() == "":
-            return list_resp_id
-
         # Parse vulns collection
         ref = vuln_desc.lower().strip()
         for vuln_store_item in self._vulns:

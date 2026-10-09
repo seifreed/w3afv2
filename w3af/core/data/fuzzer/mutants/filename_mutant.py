@@ -27,7 +27,7 @@ import urllib.parse
 import urllib.request
 
 from w3af.core.data.fuzzer.mutants.urlparts_mutant import (
-    TOKEN,
+    URL_PART_KEY,
     URLPartsContainer,
     URLPartsMutant,
 )
@@ -52,7 +52,7 @@ class FileNameMutant(URLPartsMutant):
         domain_path = self._freq.get_url().get_domain_path()
 
         encoded = urllib.parse.quote_plus(
-            self._url_parts_dc[TOKEN].get_value(), self._safe_encode_chars
+            self._url_parts_dc[URL_PART_KEY].get_value(), self._safe_encode_chars
         )
 
         domain_path.set_file_name(

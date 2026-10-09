@@ -28,7 +28,7 @@ from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
 from w3af.core.data.kb.vuln import Vuln
 
 PATH_PARAM = "%3B/w3af.cmd%3B/w3af.cmd"
-EXEC_TOKEN = "w3afExecToken"
+EXEC_MARKER = "w3afExecToken"
 ESCAPE_CHARS = ('"', "&", "|", "\n")
 SHELL_CHARS = ("&", "|")
 NOT_VULNERABLE_TYPES = ("application/xml", "text/xml", "text/html")
@@ -104,8 +104,8 @@ class rfd(AuditPlugin):
         freq.set_uri(uri)
         freq.set_querystring(uri.get_querystring())
 
-        payload1 = EXEC_TOKEN
-        payload2 = EXEC_TOKEN + "".join(ESCAPE_CHARS)
+        payload1 = EXEC_MARKER
+        payload2 = EXEC_MARKER + "".join(ESCAPE_CHARS)
         payloads = payload1, payload2
 
         mutants = create_mutants(freq, payloads, mutant_tuple=(QSMutant,))
@@ -123,7 +123,7 @@ class rfd(AuditPlugin):
                 continue
 
             # is it JSONP?
-            if body[rpos + len(EXEC_TOKEN)] == "(" and not '"' in body[:rpos]:
+            if body[rpos + len(EXEC_MARKER)] == "(" and not '"' in body[:rpos]:
                 # we've reflected as JSONP callback
                 self._report_vuln(
                     "%s is vulnerable, to RFD because even if"
@@ -146,7 +146,7 @@ class rfd(AuditPlugin):
                 return
 
             filtered, escaped = self._find_escaped_or_filtered(
-                body, rpos + len(EXEC_TOKEN), ESCAPE_CHARS
+                body, rpos + len(EXEC_MARKER), ESCAPE_CHARS
             )
 
             if "\n" not in filtered:

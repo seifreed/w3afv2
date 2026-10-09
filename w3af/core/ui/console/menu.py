@@ -28,7 +28,11 @@ import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.ui.console.help import HelpContainer, helpMainRepository
 from w3af.core.ui.console.history import history
-from w3af.core.ui.console.util import splitPath, suggest
+from w3af.core.ui.console.util import (
+    evaluate_console_expression,
+    splitPath,
+    suggest,
+)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -95,8 +99,6 @@ class menu:
 
     def _load_help(self, name, vars=None):
         helpMainRepository.load_help(name, self._help, vars)
-
-    #        self._help = load_help(name, self._help, vars)
 
     def addChild(self, name, constructor):
         if type(constructor) in (tuple, list):
@@ -192,7 +194,7 @@ class menu:
 
     def _cmd_help(self, params, brief=False):
         if len(params) == 0:
-            table = self._help.get_plain_help_table(True)
+            table = self._help.get_plain_help_table()
             self._console.draw_table(table)
         else:
             subj = params[0]
@@ -205,7 +207,7 @@ class menu:
                 om.out.console(full)
 
     def _cmd_keys(self, params=None):
-        table = self._keysHelp.get_plain_help_table(True)
+        table = self._keysHelp.get_plain_help_table()
         self._console.draw_table(table)
 
     def _cmd_print(self, params):
@@ -217,7 +219,9 @@ class menu:
 
         eval_variable = " ".join(params)
         try:
-            res = eval(eval_variable, small_globals, small_locals)
+            res = evaluate_console_expression(
+                eval_variable, small_globals, small_locals
+            )
         except Exception:
             LOGGER.debug("Failed to evaluate %r", eval_variable, exc_info=True)
             om.out.console("Unknown variable.")

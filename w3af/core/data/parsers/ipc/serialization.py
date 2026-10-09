@@ -22,11 +22,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import contextlib
 import os
-import pickle
 import tempfile
 
 import msgpack
 
+from w3af.core.data.misc import serialize
 from w3af.core.data.parsers.doc.sgml import Tag
 from w3af.core.filesystem import create_temp_dir, get_temp_dir
 
@@ -36,7 +36,7 @@ DESERIALIZATION_ERRORS = (
     ValueError,
     KeyError,
     TypeError,
-    pickle.UnpicklingError,
+    serialize.UnpicklingError,
 )
 
 
@@ -118,7 +118,7 @@ def write_object_to_temp_file(obj):
     :return: The name of the file
     """
     with get_temp_file("parser") as temp:
-        pickle.dump(obj, temp, pickle.HIGHEST_PROTOCOL)
+        serialize.dump(obj, temp, serialize.HIGHEST_PROTOCOL)
     return temp.name
 
 
@@ -130,7 +130,7 @@ def load_object_from_temp_file(filename, remove=True):
     :param remove: Remove the file after reading
     :return: The object instance
     """
-    return _load_from_temp_file(filename, remove, pickle.load)
+    return _load_from_temp_file(filename, remove, serialize.load)
 
 
 def _load_from_temp_file(filename, remove, loader):

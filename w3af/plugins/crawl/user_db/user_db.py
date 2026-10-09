@@ -34,7 +34,8 @@ def get_users_from_csv(ident):
     """
     :return: A list of users from the user dir database.
     """
-    assert ident in (APPLICATION, OS), "Invalid identification"
+    if ident not in (APPLICATION, OS):
+        raise ValueError("Invalid identification")
 
     csv_db = os.path.join(DB_PATH, f"{ident}.csv")
     with open(csv_db, newline="", encoding="utf-8") as file_handler:

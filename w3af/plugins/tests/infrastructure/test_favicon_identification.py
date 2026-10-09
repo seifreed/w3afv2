@@ -19,41 +19,99 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import hashlib
+import os
+import unittest
 from typing import ClassVar
 
-import pytest
+from w3af.plugins.infrastructure.favicon_identification import (
+    favicon_identification,
+)
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+TARGET = "http://favicon/"
+UNKNOWN_FAVICON = b"\x00\x00\x01\x00\x01\x00\x10\x10\xff\xfe w3af"
 
 
-class TestFaviconIdentification(PluginTest):
+class FaviconTest(PluginTest):
 
-    favicon_url = "http://moth/"
-    no_favicon_url = "http://wordpress/"
+    target_url = TARGET
 
-    _run_configs: ClassVar[dict] = {
-        "cfg": {
-            "target": None,
-            "plugins": {"infrastructure": (PluginConfig("favicon_identification"),)},
-        }
+    plugins: ClassVar[dict] = {
+        "infrastructure": (PluginConfig("favicon_identification"),)
     }
 
-    @pytest.mark.ci_fails
-    def test_no_favicon_identification_http(self):
-        cfg = self._run_configs["cfg"]
-        self._scan(self.no_favicon_url, cfg["plugins"])
+    def scan_infos(self):
+        self._scan(self.target_url, self.plugins)
+        return self.kb.get("favicon_identification", "info")
 
-        infos = self.kb.get("favicon_identification", "info")
-        self.assertEqual(len(infos), 0, infos)
 
-    @pytest.mark.ci_fails
-    def test_favicon_identification_http(self):
-        cfg = self._run_configs["cfg"]
-        self._scan(self.favicon_url, cfg["plugins"])
+class TestKnownFavicon(FaviconTest):
 
-        infos = self.kb.get("favicon_identification", "info")
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(TARGET, "<html><body>Home</body></html>"),
+        MockResponse(TARGET + "favicon.ico", b"", content_type="image/x-icon"),
+    ]
+
+    def test_favicon_identification(self):
+        infos = self.scan_infos()
+
         self.assertEqual(len(infos), 1, infos)
+        self.assertEqual(infos[0].get_name(), "Favicon identification")
+        self.assertIn("Zero byte favicon", infos[0].get_desc())
+        self.assertEqual(infos[0].get_url().url_string, TARGET + "favicon.ico")
 
-        info = infos[0]
-        self.assertEqual(info.get_name(), "Favicon identification")
-        self.assertTrue("tomcat" in info.get_desc().lower(), info.get_desc())
+
+class TestUnknownFavicon(FaviconTest):
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(TARGET, "<html><body>Home</body></html>"),
+        MockResponse(
+            TARGET + "favicon.ico", UNKNOWN_FAVICON, content_type="image/x-icon"
+        ),
+    ]
+
+    def test_favicon_identification_failed(self):
+        infos = self.scan_infos()
+
+        self.assertEqual(len(infos), 1, infos)
+        self.assertEqual(infos[0].get_name(), "Favicon identification failed")
+
+        md5 = hashlib.md5(UNKNOWN_FAVICON, usedforsecurity=False).hexdigest()
+        self.assertIn(md5, infos[0].get_desc())
+
+
+class TestTextFavicon(FaviconTest):
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(TARGET, "<html><body>Home</body></html>"),
+        MockResponse(TARGET + "favicon.ico", "not an icon", content_type="text/plain"),
+    ]
+
+    def test_text_body_is_hashed(self):
+        infos = self.scan_infos()
+
+        md5 = hashlib.md5(b"not an icon", usedforsecurity=False).hexdigest()
+        self.assertEqual(len(infos), 1, infos)
+        self.assertIn(md5, infos[0].get_desc())
+
+
+class TestNoFavicon(FaviconTest):
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(TARGET, "<html><body>Home</body></html>"),
+    ]
+
+    def test_no_favicon_identification(self):
+        self.assertEqual(self.scan_infos(), [])
+
+
+class TestFaviconDatabase(unittest.TestCase):
+    def test_missing_database(self):
+        plugin = favicon_identification()
+        plugin._db_file = os.path.join(os.path.dirname(__file__), "missing-md5-db")
+
+        self.assertEqual(list(plugin._read_favicon_db()), [])
+
+    def test_long_description(self):
+        self.assertIn("favicon", favicon_identification().get_long_desc())

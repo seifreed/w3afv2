@@ -23,7 +23,6 @@ import unittest
 from typing import ClassVar
 
 import w3af.core.data.kb.knowledge_base as kb
-from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.constants import severity
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.url import URL
@@ -31,16 +30,32 @@ from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.filesystem import create_temp_dir
 from w3af.plugins.grep.meta_tags import meta_tags
-from w3af.plugins.tests.helper import PluginConfig, PluginTest, configure_never_404
+from w3af.plugins.tests.helper import (
+    MockResponse,
+    PluginConfig,
+    PluginTest,
+    configure_never_404,
+)
+
+META_BODY = (
+    "<html><head>"
+    '<meta name="distribution" content="linux">'
+    '<meta name="verify-v1" content="abcdef1234567890key">'
+    "</head><body>hello</body></html>"
+)
 
 
 class TestMetaTags(PluginTest):
 
-    meta_tags_url = get_moth_http("/grep/meta_tags/")
+    target_url = "http://mock/"
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse("http://mock/", body=META_BODY, method="GET", status=200),
+    ]
 
     _run_configs: ClassVar[dict] = {
         "cfg1": {
-            "target": meta_tags_url,
+            "target": target_url,
             "plugins": {
                 "grep": (PluginConfig("meta_tags"),),
                 "crawl": (
@@ -118,8 +133,8 @@ class TestMetaTagsRaw(unittest.TestCase):
             ' attribute value set to "user/pass" which looks'
             " interesting and should be manually reviewed. The"
             " first ten URLs which sent the tag are:\n"
-            " - http://www.w3af.com/2\n"
             " - http://www.w3af.com/1\n"
+            " - http://www.w3af.com/2\n"
         )
 
         # pylint: disable=E1103

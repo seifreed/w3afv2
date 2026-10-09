@@ -21,18 +21,41 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import ClassVar
 
-import pytest
+from w3af.plugins.crawl.wsdl_finder import wsdl_finder
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+BASE_URL = "http://mock/w3af/crawl/wsdl_finder/"
+
+INDEX = (
+    "<html><body>"
+    '<a href="web_service_server.php">service</a>'
+    '<a href="web_service_server.php?action=list">list</a>'
+    "</body></html>"
+)
+
+WSDL = """<?xml version="1.0"?>
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:operation name="hello">
+    <soap:body use="literal"/>
+  </wsdl:operation>
+</wsdl:definitions>
+"""
 
 
 class TestWSDLFinder(PluginTest):
 
-    base_url = "http://moth/w3af/crawl/wsdl_finder/"
+    target_url = BASE_URL
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(BASE_URL, INDEX),
+        MockResponse(BASE_URL + "web_service_server.php", "Use ?wsdl"),
+        MockResponse(BASE_URL + "web_service_server.php?action=list", "Nothing"),
+        MockResponse(BASE_URL + "web_service_server.php?wsdl", WSDL, "text/xml"),
+    ]
 
     _run_configs: ClassVar[dict] = {
         "cfg": {
-            "target": base_url,
+            "target": target_url,
             "plugins": {
                 "crawl": (
                     PluginConfig("wsdl_finder"),
@@ -44,7 +67,6 @@ class TestWSDLFinder(PluginTest):
         }
     }
 
-    @pytest.mark.ci_fails
     def test_wsdl_found(self):
         cfg = self._run_configs["cfg"]
         self._scan(cfg["target"], cfg["plugins"])
@@ -56,6 +78,16 @@ class TestWSDLFinder(PluginTest):
         info = infos[0]
 
         self.assertIn("WSDL resource", info.get_name())
-        self.assertEqual(
-            info.get_url().url_string, self.base_url + "web_service_server.php"
-        )
+        self.assertEqual(info.get_url().url_string, BASE_URL + "web_service_server.php")
+
+        wsdl_requests = [
+            r.uri for r in self.received_requests if r.uri.lower().endswith("?wsdl")
+        ]
+        self.assertEqual(len(wsdl_requests), len(set(wsdl_requests)))
+
+
+def test_wsdl_finder_metadata():
+    plugin = wsdl_finder()
+
+    assert plugin.get_plugin_deps() == ["grep.wsdl_greper"]
+    assert "?WSDL" in plugin.get_long_desc()

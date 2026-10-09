@@ -20,54 +20,80 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
-from typing import ClassVar
 
 import w3af.core.data.kb.knowledge_base as kb
-from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.filesystem import create_temp_dir
 from w3af.plugins.grep.form_autocomplete import form_autocomplete
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+
+FORM_DEFAULT = '<form action="/login"><input type="password" name="p"></form>'
+FORM_ON = (
+    '<form action="/login" autocomplete="on">' '<input type="password" name="p"></form>'
+)
+FORM_OFF = (
+    '<form action="/login" autocomplete="off">'
+    '<input type="password" name="p"></form>'
+)
+FORM_FIELD_OFF = (
+    '<form action="/login">'
+    '<input type="password" name="p" autocomplete="off"></form>'
+)
+FORM_NO_PASSWORD = '<form action="/login"><input type="text" name="u"></form>'
 
 
-class TestFormAutocomplete(PluginTest):
+class TestFormAutocomplete(unittest.TestCase):
 
-    target_url = get_moth_http("/grep/form_autocomplete/")
+    def setUp(self):
+        create_temp_dir()
+        kb.kb.cleanup()
+        self.plugin = form_autocomplete()
 
-    _run_configs: ClassVar[dict] = {
-        "cfg1": {
-            "target": target_url,
-            "plugins": {
-                "grep": (PluginConfig("form_autocomplete"),),
-                "crawl": (
-                    PluginConfig(
-                        "web_spider", ("only_forward", True, PluginConfig.BOOL)
-                    ),
-                ),
-            },
-        }
-    }
+    def tearDown(self):
+        kb.kb.cleanup()
+
+    def _grep(self, body, url, content_type="text/html"):
+        headers = Headers([("content-type", content_type)])
+        response = HTTPResponse(200, body, headers, url, url, _id=1)
+        self.plugin.grep(FuzzableRequest(url, method="GET"), response)
 
     def test_found_vuln(self):
-        cfg = self._run_configs["cfg1"]
-        self._scan(cfg["target"], cfg["plugins"])
-        vulns = self.kb.get("form_autocomplete", "form_autocomplete")
-
-        expected_results = [
+        base = "http://www.w3af.com/"
+        # Each form targets a distinct action so the plugin reports one
+        # grouped finding per vulnerable URL (grouping key is the form action).
+        filenames = [
             "form-default.html",
             "form-on.html",
             "form-on-field-on.html",
             "form-two-fields.html",
         ]
+        for filename in filenames:
+            body = (
+                f'<form action="/{filename}">' '<input type="password" name="p"></form>'
+            )
+            self._grep(body, URL(base + filename))
 
-        filenames = [vuln.get_url().get_file_name() for vuln in vulns]
-        filenames.sort()
-        expected_results.sort()
+        vulns = kb.kb.get("form_autocomplete", "form_autocomplete")
+        found = sorted(v.get_url().get_file_name() for v in vulns)
+        self.assertEqual(sorted(filenames), found)
 
-        self.assertEqual(expected_results, filenames)
+    def test_autocomplete_off_form(self):
+        self._grep(FORM_OFF, URL("http://www.w3af.com/off.html"))
+        self.assertEqual(0, len(kb.kb.get("form_autocomplete", "form_autocomplete")))
+
+    def test_autocomplete_off_field(self):
+        self._grep(FORM_FIELD_OFF, URL("http://www.w3af.com/field-off.html"))
+        self.assertEqual(0, len(kb.kb.get("form_autocomplete", "form_autocomplete")))
+
+    def test_no_password_field(self):
+        self._grep(FORM_NO_PASSWORD, URL("http://www.w3af.com/no-pass.html"))
+        self.assertEqual(0, len(kb.kb.get("form_autocomplete", "form_autocomplete")))
+
+    def test_not_text(self):
+        self._grep(FORM_DEFAULT, URL("http://www.w3af.com/x.png"), "image/png")
+        self.assertEqual(0, len(kb.kb.get("form_autocomplete", "form_autocomplete")))
 
 
 class TestFormAutocompleteRaw(unittest.TestCase):
@@ -97,8 +123,8 @@ class TestFormAutocompleteRaw(unittest.TestCase):
             " <form> element which has auto-complete enabled"
             " for password fields. The first two vulnerable"
             " URLs are:\n"
-            " - http://www.w3af.com/2\n"
             " - http://www.w3af.com/1\n"
+            " - http://www.w3af.com/2\n"
         )
 
         # pylint: disable=E1103

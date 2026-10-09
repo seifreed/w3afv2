@@ -22,33 +22,29 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import logging
 import os
-import random
+import secrets
 import shlex
-import sys
 import traceback
 
 from termcolor import colored
 
 LOGGER = logging.getLogger(__name__)
 
-try:
-    import w3af.core.controllers.output_manager as om
-    import w3af.core.ui.console.io.console as term
-    from w3af.core.controllers import console_tables as tables
-    from w3af.core.controllers.w3af_core import w3afCore
-    from w3af.core.data.constants.disclaimer import DISCLAIMER
-    from w3af.core.data.db.startup_cfg import StartUpConfig
-    from w3af.core.exceptions import (
-        BaseFrameworkException,
-        ScanMustStopException,
-    )
-    from w3af.core.ui.console.auto_update.auto_update import ConsoleUIUpdater
-    from w3af.core.ui.console.callback_menu import callbackMenu
-    from w3af.core.ui.console.history import historyTable
-    from w3af.core.ui.console.root_menu import rootMenu
-    from w3af.core.ui.console.util import commonPrefix
-except KeyboardInterrupt:
-    sys.exit(0)
+import w3af.core.controllers.output_manager as om
+import w3af.core.ui.console.io.console as term
+from w3af.core.controllers import console_tables as tables
+from w3af.core.controllers.w3af_core import w3afCore
+from w3af.core.data.constants.disclaimer import DISCLAIMER
+from w3af.core.data.db.startup_cfg import StartUpConfig
+from w3af.core.exceptions import (
+    BaseFrameworkException,
+    ScanMustStopException,
+)
+from w3af.core.ui.console.auto_update.auto_update import ConsoleUIUpdater
+from w3af.core.ui.console.bug_report import create_github_reporter
+from w3af.core.ui.console.history import historyTable
+from w3af.core.ui.console.root_menu import rootMenu
+from w3af.core.ui.console.util import commonPrefix
 
 
 class ConsoleUI:
@@ -59,7 +55,16 @@ class ConsoleUI:
     :author: Alexander Berezhnoy (alexander.berezhnoy |at| gmail.com)
     """
 
-    def __init__(self, commands=None, parent=None, do_upd=None):
+    def __init__(
+        self, commands=None, do_upd=None, create_reporter=create_github_reporter
+    ):
+        """
+        :param commands: Commands to run before reading the user's input
+        :param do_upd: Force (True) or skip (False) the update check
+        :param create_reporter: Creates the bug reporter used by the
+                                bug-report menu
+        """
+        self._create_reporter = create_reporter
         if commands is None:
             commands = []
         self._commands = commands
@@ -70,7 +75,6 @@ class ConsoleUI:
         # each menu has array of (array, positionInArray)
         self._history = historyTable()
         self._trace = []
-        self._upd_avail = False
 
         self._handlers = {
             "\t": self._onTab,
@@ -89,10 +93,7 @@ class ConsoleUI:
             "^E": self._toLineEnd,
         }
 
-        if parent:
-            self.__initFromParent(parent)
-        else:
-            self.__initRoot(do_upd)
+        self.__initRoot(do_upd)
 
     def __initRoot(self, do_upd):
         """
@@ -104,21 +105,18 @@ class ConsoleUI:
         self._w3af = w3afCore()
         self._w3af.plugins.set_plugins(["console"], "output")
 
-    def __initFromParent(self, parent):
-        self._context = parent._context
-        self._w3af = parent._w3af
-
-    def skip_dependencies_check(self):
-        startup_cfg = StartUpConfig()
-        return startup_cfg.get_skip_dependencies_check()
-
-    def accept_disclaimer(self):
+    def accept_disclaimer(self, startup_cfg=None, ask_user=input):
         """
+        :param startup_cfg: Where the user's decision is persisted, defaults to
+                            the user's StartUpConfig
+        :param ask_user: Callable that shows the question and returns the
+                         user's answer
         :return: True/False depending on the user's answer to our disclaimer.
                  Please note that in w3af_console we'll stop if the user does
                  not accept the disclaimer.
         """
-        startup_cfg = StartUpConfig()
+        if startup_cfg is None:
+            startup_cfg = StartUpConfig()
 
         if startup_cfg.accepted_disclaimer:
             return True
@@ -126,35 +124,27 @@ class ConsoleUI:
         QUESTION = "Do you accept the terms and conditions? [N|y] "
         msg = DISCLAIMER + "\n\n" + QUESTION
         try:
-            user_response = eval(input(msg))
+            user_response = ask_user(msg)
         except (KeyboardInterrupt, EOFError):
             print()
             user_response = ""
 
         user_response = user_response.lower()
 
-        if user_response == "y" or user_response == "yes":
+        if user_response in ("y", "yes"):
             startup_cfg.accepted_disclaimer = True
             startup_cfg.save()
             return True
 
         return False
 
-    def sh(self, name="w3af", callback=None):
+    def sh(self, name="w3af"):
         """
         Main cycle
         """
         try:
-            if callback:
-                if hasattr(self, "_context"):
-                    ctx = self._context
-                else:
-                    ctx = None
-                self._context = callbackMenu(name, self, self._w3af, ctx, callback)
-            else:
-                self._context = rootMenu(name, self, self._w3af)
+            self._context = rootMenu(name, self, self._w3af, self._create_reporter)
 
-            self._lastWasArrow = False
             self._showPrompt()
             self._active = True
             term.set_raw_input_mode(True)
@@ -162,45 +152,33 @@ class ConsoleUI:
             self._executePending()
 
             while self._active:
-                try:
-                    c = term.getch()
-                    self._handleKey(c)
-                except Exception as e:
-                    LOGGER.debug("Unhandled console input error", exc_info=True)
-                    om.out.console(str(e))
+                self._handleKey(term.getch())
 
             term.set_raw_input_mode(False)
         except KeyboardInterrupt:
             pass
 
-        if not hasattr(self, "_parent"):
-            try:
-                self._w3af.quit()
-                self._context.join()
-                om.out.console(self._random_message())
-                om.manager.process_all_messages()
-            except KeyboardInterrupt:
-                # The user might be in a hurry, and after "w3af>>> exit" he
-                # might also press Ctrl+C like seen here:
-                #     https://github.com/andresriancho/w3af/issues/148
-                #
-                # Since we don't want to show any tracebacks on this situation
-                # just "pass".
-                pass
+        try:
+            self._w3af.quit()
+            self._context.join()
+            om.out.console(self._random_message())
+            om.manager.process_all_messages()
+        except KeyboardInterrupt:
+            # The user might be in a hurry, and after "w3af>>> exit" he
+            # might also press Ctrl+C like seen here:
+            #     https://github.com/andresriancho/w3af/issues/148
+            #
+            # Since we don't want to show any tracebacks on this situation
+            # just "pass".
+            pass
 
-            return 0
+        return 0
 
     def _executePending(self):
         while self._commands:
             curent_cmd, self._commands = self._commands[0], self._commands[1:]
             self._paste(curent_cmd)
             self._onEnter()
-
-    def write(self, s):
-        om.out.console(s)
-
-    def writeln(self, s=""):
-        om.out.console(s + "\n")
 
     def term_width(self):
         return term.terminal_size()[0]
@@ -218,8 +196,6 @@ class ConsoleUI:
     def _initPrompt(self):
         self._position = 0
         self._line = []
-
-    #        self._showPrompt()
 
     def in_raw_line_mode(self):
         return hasattr(self._context, "is_raw") and self._context.is_raw()
@@ -278,8 +254,6 @@ class ConsoleUI:
         self._showPrompt()
 
     def _execute(self):
-        # term.writeln()
-
         line = self._getLineStr()
         term.set_raw_input_mode(False)
         om.out.console("")
@@ -343,7 +317,6 @@ class ConsoleUI:
 
     def _toLineEnd(self):
         self._moveDelta(len(self._line) - self._position)
-        self._position = len(self._line)
 
     def _toLineStart(self):
         term.moveBack(self._position)
@@ -393,10 +366,7 @@ class ConsoleUI:
             term.bell()
 
     def _onRight(self):
-        if self._position < len(self._line):
-            self._moveForward()
-        else:
-            term.bell()
+        self._moveForward()
 
     def _onUp(self):
         history = self._get_history()
@@ -419,7 +389,6 @@ class ConsoleUI:
         term.moveBack(self._position)
         term.write(" " * len(self._line))
         term.moveBack(len(self._line))
-        #        term.eraseLine()
         term.write("".join(line))
         self._line = line
         self._position = len(line)
@@ -427,7 +396,7 @@ class ConsoleUI:
     def _getLineStr(self):
         return "".join(self._line)
 
-    def _parseLine(self, line=None):
+    def _parseLine(self, line):
         """
         >>> console = ConsoleUI(do_upd=False)
         >>> console._parseLine('abc')
@@ -443,9 +412,6 @@ class ConsoleUI:
         No closing quotation
 
         """
-        if line is None:
-            line = self._getLineStr()
-
         try:
             result = shlex.split(line)
         except ValueError as ve:
@@ -474,11 +440,12 @@ class ConsoleUI:
         self._moveDelta(self._position - len(strLine))
 
     def _moveForward(self, steps=1):
-        for i in range(steps):
+        for _ in range(steps):
             if self._position == len(self._line):
                 term.bell()
-        term.write(self._line[self._position])
-        self._position += 1
+                return
+            term.write(self._line[self._position])
+            self._position += 1
 
     def _moveDelta(self, steps):
         if steps:
@@ -504,6 +471,6 @@ class ConsoleUI:
         )
         with open(messages_file) as messages:
             lines = messages.readlines()
-        idx = random.randrange(len(lines))
+        idx = secrets.randbelow(len(lines))
         line = lines[idx]
         return "\n" + line

@@ -20,8 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import subprocess
 from typing import ClassVar
+
+from w3af.core.controllers.misc.external_process import run_process
 
 from ..requirements import CORE
 from .base_platform import Platform
@@ -51,17 +52,12 @@ class SuSE(Platform):
         not_installed = "is not installed"
 
         try:
-            p = subprocess.Popen(
-                ["rpm", "-q", package_name],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-            )
+            result = run_process(["rpm", "-q", package_name])
         except OSError:
             # We're not on a suse based system
             return None
         else:
-            rpm_output, _ = p.communicate()
+            rpm_output = result.stdout
 
             if not_installed in rpm_output:
                 return False

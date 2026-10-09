@@ -21,8 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import copy
-import logging
-import sys
 import textwrap
 
 import w3af.core.controllers.output_manager as om
@@ -31,7 +29,13 @@ from w3af.core.ui.console.config import ConfigMenu
 from w3af.core.ui.console.menu import menu
 from w3af.core.ui.console.util import suggest
 
-LOGGER = logging.getLogger(__name__)
+DISABLED_OUTPUT_WARNING = (
+    "\nWarning: You disabled the console output plugin. If you"
+    " start a new scan, the discovered vulnerabilities won't be"
+    " printed to the console, we advise you to enable at least"
+    " one output plugin in order to be able to actually see the"
+    " the scan output."
+)
 
 
 class pluginsMenu(menu):
@@ -50,11 +54,7 @@ class pluginsMenu(menu):
 
         for t in types:
             self.addChild(t, pluginsTypeMenu)
-        #            self._help.add_help_entry(t, "List %s plugins" % t, 'plugins')
         self.__loadPluginTypesHelp(types)
-
-    #        self._help.add_help_entry('list', "List plugins by their type", 'commands')
-    #        self._help.add_help_entry('config', "Config plugins (same as <type> config>)", 'commands')
 
     def __loadPluginTypesHelp(self, types):
         vars = {}
@@ -110,16 +110,8 @@ class pluginsTypeMenu(menu):
         plugins = w3af.plugins.get_plugin_list(name)
         self._plugins = {}  # name to number of options
         for p in plugins:
-            try:
-                options = self._w3af.plugins.get_plugin_inst(
-                    self._name, p
-                ).get_options()
-            except Exception as e:
-                LOGGER.debug("Failed to read plugin options", exc_info=True)
-                om.out.error(f'Error while reading plugin options: "{e}"')
-                sys.exit(-8)
-            else:
-                self._plugins[p] = len(options)
+            plugin = self._w3af.plugins.get_plugin_inst(self._name, p)
+            self._plugins[p] = len(plugin.get_options())
         self._configs = {}
 
     def suggest_commands(self, part, *skip):
@@ -140,20 +132,15 @@ class pluginsTypeMenu(menu):
         return ["config", "desc"]
 
     def execute(self, tokens):
-        if len(tokens) > 0:
-            command, _params = tokens[0], tokens[1:]
-            # print "command: " + command + "; " + str(self.get_commands())
-            if command in self.get_commands():
-                return menu.execute(self, tokens)
-            else:
-                self._enablePlugins(",".join(tokens).split(","))
-        else:
-            return self
+        if tokens[0] in self.get_commands():
+            return menu.execute(self, tokens)
 
-    def _enablePlugins(self, list):
+        self._enablePlugins(",".join(tokens).split(","))
+
+    def _enablePlugins(self, plugin_names):
         enabled = copy.copy(self._w3af.plugins.get_enabled_plugins(self._name))
 
-        for plugin in list:
+        for plugin in plugin_names:
             if plugin == "":
                 continue
             if plugin.startswith("!"):
@@ -175,26 +162,10 @@ class pluginsTypeMenu(menu):
             elif plugin not in enabled:
                 enabled.append(plugin)
 
-        # Note: Disabling this check after talking with olle. Only advanced users
-        #       are going to remove the console output plugin, and if someone
-        #       else does, he will realize that he fucked up ;)
-        #
-        # if self._name == 'output' and 'console' not in enabled:
-        #    om.out.console("You can't disable the console output plugin")
-        #    enabled.append('console')
-        #
-        # What I'm going to do, is to let the user know that he's going into
-        # blind mode:
-        #
-        if self._name == "output" and "console" not in enabled and len(enabled) == 0:
-            msg = (
-                "\nWarning: You disabled the console output plugin. If you"
-                " start a new scan, the discovered vulnerabilities won't be"
-                " printed to the console, we advise you to enable at least"
-                " one output plugin in order to be able to actually see the"
-                " the scan output."
-            )
-            om.out.console(msg)
+        # Disabling every output plugin is allowed, but the user is warned that
+        # the scan will run in blind mode
+        if self._name == "output" and not enabled:
+            om.out.console(DISABLED_OUTPUT_WARNING)
 
         self._w3af.plugins.set_plugins(enabled, self._name)
 
@@ -219,29 +190,28 @@ class pluginsTypeMenu(menu):
         return suggest(list(self._plugins.keys()), part)
 
     def _list(self, params):
-        # print 'list : ' + str(params)
-        filter = len(params) > 0 and params[0] or "all"
+        status_filter = len(params) > 0 and params[0] or "all"
 
-        all = list(self._plugins.keys())
+        all_plugins = list(self._plugins.keys())
         enabled = self._w3af.plugins.get_enabled_plugins(self._name)
 
-        if filter == "all":
-            list = all
-        elif filter == "enabled":
-            list = enabled
-        elif filter == "disabled":
-            list = [p for p in all if p not in enabled]
+        if status_filter == "all":
+            plugin_names = all_plugins
+        elif status_filter == "enabled":
+            plugin_names = enabled
+        elif status_filter == "disabled":
+            plugin_names = [p for p in all_plugins if p not in enabled]
         else:
-            list = []
+            plugin_names = []
 
-        if len(list) == 0:
-            om.out.console("No plugins have status " + filter)
+        if len(plugin_names) == 0:
+            om.out.console("No plugins have status " + status_filter)
             return
 
-        list.sort()
+        plugin_names.sort()
         table = [["Plugin name", "Status", "Conf", "Description"]]
 
-        for plugin_name in list:
+        for plugin_name in plugin_names:
             row = []
             plugin = self._w3af.plugins.get_plugin_inst(self._name, plugin_name)
 
@@ -287,8 +257,3 @@ class pluginsTypeMenu(menu):
         return suggest(
             [p for p in list(self._plugins.keys()) if self._plugins[p] > 0], part
         )
-
-    def _para_list(self, params, part=""):
-        if len(params) == 0:
-            return suggest(["enabled", "all", "disabled"], part)
-        return []

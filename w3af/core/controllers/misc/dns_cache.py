@@ -22,11 +22,23 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import socket
 
-# pylint: enable=E0401
 import w3af.core.controllers.output_manager as om
-
-# pylint: disable=E0401
 from w3af.core.data.misc.lru import SynchronizedLRUDict
+
+_resolve = socket.getaddrinfo
+_dns_cache = SynchronizedLRUDict(200)
+
+
+def _caching_getaddrinfo(*args, **kwargs):
+    query = (args, frozenset(kwargs.items()))
+
+    try:
+        return _dns_cache[query]
+    except KeyError:
+        res = _resolve(*args, **kwargs)
+        _dns_cache[query] = res
+        om.out.debug(f"DNS response from DNS server for domain: {args[0]}")
+        return res
 
 
 def enable_dns_cache():
@@ -48,27 +60,4 @@ def enable_dns_cache():
     #  Copyright 2004 Omar Kilani for tinysofa - <http://www.tinysofa.org>
     """
     om.out.debug("Enabling _dns_cache()")
-
-    if not hasattr(socket, "already_configured"):
-        socket._getaddrinfo = socket.getaddrinfo
-
-    _dns_cache = SynchronizedLRUDict(200)
-
-    def _caching_getaddrinfo(*args, **kwargs):
-        query = args
-
-        try:
-            res = _dns_cache[query]
-            # This was too noisy and not so useful
-            # om.out.debug('Cached DNS response for domain: ' + query[0] )
-            return res
-        except KeyError:
-            res = socket._getaddrinfo(*args, **kwargs)
-            _dns_cache[args] = res
-            msg = "DNS response from DNS server for domain: %s"
-            om.out.debug(msg % query[0])
-            return res
-
-    if not hasattr(socket, "already_configured"):
-        socket.getaddrinfo = _caching_getaddrinfo
-        socket.already_configured = True
+    socket.getaddrinfo = _caching_getaddrinfo

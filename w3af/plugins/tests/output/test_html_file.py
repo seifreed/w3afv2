@@ -20,26 +20,58 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
+import urllib.parse
 from io import StringIO
 from pathlib import Path
 from typing import ClassVar
 
 from lxml import etree
 
-from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.db.history import HistoryItem
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.tests.test_vuln import MockVuln
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.http_request import HTTPRequest
 from w3af.core.data.url.http_response import HTTPResponse
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
+
+
+def reflect_xss(mock_response, request, uri, response_headers):
+    """Reflect the `text` parameter unescaped, emulating a reflected XSS."""
+    response_headers["content-type"] = "text/html"
+    query = urllib.parse.urlsplit(request.uri).query
+    text = urllib.parse.parse_qs(query).get("text", [""])[0]
+    body = f"<html><body>You searched for: {text}</body></html>"
+    return 200, response_headers, body
 
 
 class TestHTMLOutput(PluginTest):
 
-    target_url = get_moth_http("/audit/xss/")
+    target_url = "http://mock/audit/xss/"
     OUTPUT_FILE = "output-unittest.html"
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(
+            target_url,
+            body=(
+                "<html><body>"
+                '<a href="xss_1.py?text=1">one</a>'
+                '<a href="xss_2.py?text=1">two</a>'
+                "</body></html>"
+            ),
+            method="GET",
+        ),
+        MockResponse(
+            re.compile(r"http://mock/audit/xss/xss_1\.py.*"),
+            body=reflect_xss,
+            method="GET",
+        ),
+        MockResponse(
+            re.compile(r"http://mock/audit/xss/xss_2\.py.*"),
+            body=reflect_xss,
+            method="GET",
+        ),
+    ]
 
     _run_configs: ClassVar[dict[str, object]] = {
         "cfg": {

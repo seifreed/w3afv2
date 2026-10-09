@@ -20,14 +20,22 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
+import shutil
 import unittest
 from pathlib import Path
 from typing import ClassVar
+
+import pytest
 
 from w3af import ROOT_PATH
 from w3af.core.filesystem import create_temp_dir
 from w3af.plugins.grep.retirejs import retirejs
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
+
+RETIRE_AVAILABLE = shutil.which("retire") is not None
+RETIRE_REASON = "The retire.js command line tool is not installed"
+
+pytestmark = pytest.mark.skipif(not RETIRE_AVAILABLE, reason=RETIRE_REASON)
 
 
 class TestRetireJSNotAnalyzeHTMLContentType(PluginTest):

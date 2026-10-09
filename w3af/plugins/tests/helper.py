@@ -34,6 +34,9 @@ import requests
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
+from w3af.core.controllers.core_helpers.fingerprint_404 import (
+    fingerprint_404_singleton,
+)
 from w3af.core.controllers.misc.decorators import retry
 from w3af.core.controllers.misc.home_dir import W3AF_LOCAL_PATH
 from w3af.core.controllers.misc_settings import MiscSettings
@@ -125,6 +128,12 @@ class PluginTest(unittest.TestCase):
         self.w3afcore.quit()
         self.kb.cleanup()
         self.assert_all_get_desc_work()
+
+        # The 404 fingerprint database is a process-wide singleton which keeps
+        # a reference to the scan's HTTP opener. Reset it so it does not leak
+        # into later (unit) tests, where is_404() would otherwise try to use a
+        # dead opener and send real HTTP requests.
+        fingerprint_404_singleton(cleanup=True)
 
         if self.canned_server is not None:
             self.canned_server.stop()
@@ -608,6 +617,7 @@ class MockResponse:
         "PATCH",
         "OPTIONS",
         "CONNECT",
+        "TRACE",
     )
 
     def __init__(

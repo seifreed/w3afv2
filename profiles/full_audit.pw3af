@@ -76,6 +76,7 @@ use_w3af_site = True
 only_forward = False
 follow_regex = .*
 ignore_regex = 
+ignore_extensions = 
 
 [bruteforce.basic_auth]
 users_file = %ROOT_PATH%/core/controllers/bruteforce/users.txt
@@ -87,8 +88,9 @@ use_leet_password = True
 use_emails = True
 use_profiling = True
 profiling_number = 50
-combo_file =
+combo_file = 
 combo_separator = :
+mask_password_report = False
 
 [bruteforce.form_auth]
 users_file = %ROOT_PATH%/core/controllers/bruteforce/users.txt
@@ -100,8 +102,9 @@ use_leet_password = True
 use_emails = True
 use_profiling = True
 profiling_number = 50
-combo_file =
+combo_file = 
 combo_separator = :
+mask_password_report = False
 
 [grep.symfony]
 override = False
@@ -211,6 +214,7 @@ dav_only = True
 
 [infrastructure.hmap]
 gen_fingerprint = False
+threads = 4
 
 [misc-settings]
 fuzz_form_files = True
@@ -224,9 +228,16 @@ max_discovery_time = 120
 interface = ppp0
 local_ip_address = 10.5.6.13
 blacklist_http_request = 
-blacklist_audit =
+blacklist_audit = 
 msf_location = /opt/metasploit3/bin/
 fuzz_cookies = False
+max_scan_time = 240
+path_max_variants = 50
+params_max_variants = 15
+max_equal_form_variants = 5
+form_id_list = []
+form_id_action = exclude
+vulndb_language = en
 
 [http-settings]
 timeout = 0
@@ -249,20 +260,28 @@ never_404 =
 string_match_404 = 
 url_parameter = 
 max_file_size = 400000
+rand_user_agent = False
+max_requests_per_second = 0
 
 [output.text_file]
+verbose = True
+output_file = ~/output.txt
+http_output_file = ~/output-http.txt
 
 [audit.cors_origin]
+origin_header_value = http://w3af.org/
 
 [grep.xss_protection_header]
 
 [grep.cache_control]
 
 [grep.cross_domain_js]
+secure_js_file = %ROOT_PATH%/plugins/grep/cross_domain_js/secure-js-sources.txt
 
 [grep.url_session]
 
 [infrastructure.php_eggs]
+eggs_db = %ROOT_PATH%/plugins/infrastructure/php_eggs/eggs.json
 
 [infrastructure.frontpage_version]
 

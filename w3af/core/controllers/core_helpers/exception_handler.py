@@ -41,7 +41,13 @@ from w3af.core.exceptions import (
 )
 from w3af.core.traceback_utils import get_exception_location
 
-DEBUG = os.environ.get("DEBUG", "0") == "1"
+
+def debug_enabled():
+    """
+    :return: True when the DEBUG environment variable asks for every plugin
+             exception to propagate instead of being stored
+    """
+    return os.environ.get("DEBUG", "0") == "1"
 
 
 class ExceptionHandler:
@@ -62,9 +68,6 @@ class ExceptionHandler:
         HTTPRequestException,
     )
 
-    if DEBUG:
-        NO_HANDLING = (*NO_HANDLING, Exception)
-
     def __init__(self):
         self._exception_data = []
         self._lock = threading.RLock()
@@ -75,7 +78,7 @@ class ExceptionHandler:
         self.handle(
             exception_data.status,
             exception_data.exception,
-            (None, None, exception_data.traceback),
+            (None, None, exception_data.exception.__traceback__),
             exception_data.enabled_plugins,
         )
 
@@ -107,7 +110,7 @@ class ExceptionHandler:
         # handled here. Raise them so that w3afCore.py, most likely to the
         # except lines around self.strategy.start(), can decide what to do
         #
-        if isinstance(exception, self.NO_HANDLING):
+        if isinstance(exception, self._unhandled_exception_types()):
             raise exception.with_traceback(tb)
 
         stop_on_first_exception = cf.cf.get("stop_on_first_exception")
@@ -144,6 +147,12 @@ class ExceptionHandler:
 
         # Also send to the output plugins so they can store it the right way
         om.out.log_crash(edata.get_details())
+
+    def _unhandled_exception_types(self):
+        if debug_enabled():
+            return (*self.NO_HANDLING, Exception)
+
+        return self.NO_HANDLING
 
     def write_crash_file(self, edata):
         """
@@ -356,9 +365,6 @@ class ExceptionData:
             self.exception.original_traceback_string = traceback_string
 
         self.traceback_str = cleanup_bug_report(traceback_string)
-
-    def get_traceback_str(self):
-        return self.traceback_str
 
     def get_summary(self):
         res = (

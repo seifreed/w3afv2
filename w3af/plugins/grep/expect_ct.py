@@ -60,7 +60,7 @@ class expect_ct(GrepPlugin):
         self._reports += 1
 
         desc = "The web server uses HTTPS but does not set the " " Expect-CT header."
-        i = Info("Missing Expect CT header", desc, response.id, self.get_name())
+        i = Info("Missing Expect-CT header", desc, response.id, self.get_name())
         i.set_url(response.get_url())
         i[ECTInfoSet.ITAG] = response.get_url().get_domain()
 

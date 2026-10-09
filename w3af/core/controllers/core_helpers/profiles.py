@@ -202,19 +202,9 @@ class CoreProfiles:
         for plugin_type in self._w3af_core.plugins.get_plugin_types():
             plugin_names = profile_inst.get_enabled_plugins(plugin_type)
 
-            # Handle errors that might have been triggered from a possibly
-            # invalid profile
-            try:
-                unknown_plugins = core_set_plugins(
-                    plugin_names, plugin_type, raise_on_error=False
-                )
-            except KeyError:
-                msg = (
-                    'The profile references the "%s" plugin type which is'
-                    " unknown to the w3af framework."
-                )
-                error_messages.append(msg % plugin_type)
-                continue
+            unknown_plugins = core_set_plugins(
+                plugin_names, plugin_type, raise_on_error=False
+            )
 
             for unknown_plugin in unknown_plugins:
                 msg = (

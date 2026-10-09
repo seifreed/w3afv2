@@ -33,6 +33,7 @@ import msgpack
 
 from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.db.exceptions import DBException
+from w3af.core.data.db.sql_identifier import require_safe_identifier
 from w3af.core.data.url.http_request import HTTPRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.filesystem import get_temp_dir
@@ -177,9 +178,13 @@ class HistoryItem:
                             example [("alias", "abc", "=")]
         :return: A list with the HistoryItem instances that match
         """
-        sql = "SELECT * FROM " + self._DATA_TABLE
+        select_all = "SELECT * FROM %s"
+        sql = select_all % self._DATA_TABLE
 
-        conditions = [f"{column} {operator} ?" for column, _, operator in search_data]
+        conditions = [
+            f"{require_safe_identifier(column)} {operator} ?"
+            for column, _, operator in search_data
+        ]
         if conditions:
             sql += " WHERE " + " AND ".join(conditions)
 
@@ -361,9 +366,9 @@ class HistoryItem:
         """
         Load data from DB by ID
         """
-        sql = "SELECT * FROM " + self._DATA_TABLE + " WHERE id = ? "
+        sql = "SELECT * FROM %s WHERE id = ? "
         try:
-            row = self._db.select_one(sql, (_id,))
+            row = self._db.select_one(sql % self._DATA_TABLE, (_id,))
         except DBException as dbe:
             msg = (
                 'An unexpected error occurred while searching for id "%s"'
@@ -434,12 +439,12 @@ class HistoryItem:
         ]
 
         sql = (
-            f"INSERT INTO {self._DATA_TABLE} "
+            "INSERT INTO %s "
             "(id, url, code, tag, mark, info, time, msg, content_type, "
             "charset, method, response_size, codef, alias, has_qs) "
             "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
         )
-        self._db.execute(sql, values)
+        self._db.execute(sql % self._DATA_TABLE, values)
         self.id = self.response.get_id()
 
         #

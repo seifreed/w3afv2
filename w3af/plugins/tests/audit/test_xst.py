@@ -19,35 +19,48 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import re
 from typing import ClassVar
 
-import pytest
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+XST_URL = "http://mock/w3af/"
+SAFE_URL = "http://safe/w3af/"
+
+
+def echo_trace(mock_response, request, uri, response_headers):
+    """Answer TRACE echoing the received request, as RFC 9110 describes."""
+    response_headers["Content-Type"] = "text/plain"
+    headers = "".join(f"{name}: {value}\r\n" for name, value in request.headers.items())
+    return 200, response_headers, f"TRACE {request.path} HTTP/1.1\r\n{headers}"
+
+
+def trace_not_allowed(mock_response, request, uri, response_headers):
+    response_headers["Content-Type"] = "text/html"
+    return 405, response_headers, "Method Not Allowed"
 
 
 class TestXST(PluginTest):
 
-    target_url = "http://moth/w3af/"
+    target_url = XST_URL
 
-    _run_config: ClassVar[dict] = {
-        "target": target_url,
-        "plugins": {
-            "audit": (PluginConfig("xst"),),
-        },
-    }
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(re.compile(f"{XST_URL}.*"), "<html>Home</html>"),
+        MockResponse(SAFE_URL, "<html>Home</html>"),
+        MockResponse(re.compile(f"{XST_URL}.*"), echo_trace, method="TRACE"),
+        MockResponse(re.compile(f"{SAFE_URL}.*"), trace_not_allowed, method="TRACE"),
+    ]
 
-    @pytest.mark.ci_fails
-    def test_found_xst(self):
+    config: ClassVar[dict] = {"audit": (PluginConfig("xst"),)}
 
-        self._scan(self._run_config["target"], self._run_config["plugins"])
+    def test_found_xst_once_per_scan(self):
+        self._scan((XST_URL, f"{XST_URL}about.html"), self.config)
 
         vulns = self.kb.get("xst", "xst")
-        self.assertEqual(len(vulns), 1)
+        self.assertEqual(1, len(vulns))
+        self.assertEqual("Cross site tracing vulnerability", vulns[0].get_name())
 
-        self.assertEqual(
-            all(
-                "Cross site tracing vulnerability" == vuln.get_name() for vuln in vulns
-            ),
-            True,
-        )
+    def test_trace_disabled(self):
+        self._scan(SAFE_URL, self.config)
+
+        self.assertEqual([], self.kb.get("xst", "xst"))

@@ -53,9 +53,7 @@ def get_traffic_details(scan_id, traffic_id):
     try:
         details = history_db.read(traffic_id)
     except DBException:
-        msg = "Failed to retrieve request with id %s from DB."
-        abort(404, msg)
-        return
+        abort(404, f"Failed to retrieve request with id {traffic_id} from DB.")
 
     data = {
         "request": encode_message(details.request.dump()),

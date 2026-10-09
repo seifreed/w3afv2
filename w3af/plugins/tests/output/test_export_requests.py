@@ -23,14 +23,28 @@ import contextlib
 import os
 from typing import ClassVar
 
-from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 
 class TestExportRequests(PluginTest):
 
-    target_url = get_moth_http("/grep/form_autocomplete/")
+    target_url = "http://mock/grep/form_autocomplete/"
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(
+            target_url,
+            body=(
+                "<html><body>"
+                '<form action="/login" method="POST">'
+                '<input name="username" type="text" />'
+                '<input name="password" type="password" />'
+                "</form>"
+                "</body></html>"
+            ),
+            method="GET",
+        ),
+    ]
 
     _run_configs: ClassVar[dict] = {
         "cfg": {

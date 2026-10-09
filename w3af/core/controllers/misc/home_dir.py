@@ -32,70 +32,74 @@ from w3af.core.paths import get_home_dir as _get_home_dir
 W3AF_LOCAL_PATH = os.sep.join(__file__.split(os.sep)[:-5]) + os.path.sep
 
 
+# I need to check in different paths to support installing w3af as a module.
+# Note the gen_data_files.py code in the w3af-module.
+DEFAULT_PROFILES_PATHS = (
+    os.path.join(W3AF_LOCAL_PATH, "profiles"),
+    os.path.join(ROOT_PATH, "profiles"),
+    os.path.join(ROOT_PATH, "../profiles"),
+    os.path.join(sys.prefix, "profiles"),
+    os.path.join(sys.exec_prefix, "profiles"),
+    # https://github.com/andresriancho/w3af-module/issues/4
+    os.path.join(sys.prefix, "local", "profiles"),
+    os.path.join(sys.exec_prefix, "local", "profiles"),
+)
+
+
 def create_home_dir():
     """
     Creates the w3af home directory, on linux: /home/user/.w3af/
     :return: True if success.
     """
-    # Create .w3af inside home directory
     home_path = _get_home_dir()
-    if not os.path.exists(home_path):
-        try:
-            os.makedirs(home_path)
-        except OSError:
-            # Handle some really strange cases where there is a race-condition
-            # where multiple w3af processes are starting and creating the same
-            # directory
-            #
-            # https://circleci.com/gh/andresriancho/w3af/1347
-            if not os.path.exists(home_path):
-                return False
 
-    # webroot for some plugins
-    webroot = os.path.join(home_path, "webroot")
-    if not os.path.exists(webroot):
-        try:
-            os.makedirs(webroot)
-        except OSError:
-            # Handle some really strange cases where there is a race-condition
-            # where multiple w3af processes are starting and creating the same
-            # directory
-            #
-            # https://circleci.com/gh/andresriancho/w3af/1347
-            if not os.path.exists(webroot):
-                return False
+    # The home directory, the webroot for some plugins and the profiles
+    return (
+        ensure_dir(home_path)
+        and ensure_dir(os.path.join(home_path, "webroot"))
+        and copy_default_profiles(os.path.join(home_path, "profiles"))
+    )
 
-    # and the profile directory
-    home_profiles = os.path.join(home_path, "profiles")
 
-    # I need to check in two different paths to support installing w3af as
-    # a module. Note the gen_data_files.py code in the w3af-module.
-    default_profiles_paths = [
-        os.path.join(W3AF_LOCAL_PATH, "profiles"),
-        os.path.join(ROOT_PATH, "profiles"),
-        os.path.join(ROOT_PATH, "../profiles"),
-        os.path.join(sys.prefix, "profiles"),
-        os.path.join(sys.exec_prefix, "profiles"),
-        # https://github.com/andresriancho/w3af-module/issues/4
-        os.path.join(sys.prefix, "local", "profiles"),
-        os.path.join(sys.exec_prefix, "local", "profiles"),
-    ]
-
-    if not os.path.exists(home_profiles):
-        for default_profile_path in default_profiles_paths:
-            if not os.path.exists(default_profile_path):
-                continue
-
-            try:
-                shutil.copytree(default_profile_path, home_profiles)
-            except OSError:
-                return False
-            else:
-                break
-        else:
-            return False
+def ensure_dir(path):
+    """
+    :return: True if the directory exists or was created
+    """
+    try:
+        os.makedirs(path, exist_ok=True)
+    except OSError:
+        # Handle some really strange cases where there is a race-condition
+        # where multiple w3af processes are starting and creating the same
+        # directory
+        #
+        # https://circleci.com/gh/andresriancho/w3af/1347
+        return os.path.isdir(path)
 
     return True
+
+
+def copy_default_profiles(home_profiles, candidates=DEFAULT_PROFILES_PATHS):
+    """
+    Copy the first existing directory in candidates to home_profiles, unless
+    home_profiles already exists.
+
+    :return: True if home_profiles exists after the call
+    """
+    if os.path.exists(home_profiles):
+        return True
+
+    for default_profile_path in candidates:
+        if not os.path.exists(default_profile_path):
+            continue
+
+        try:
+            shutil.copytree(default_profile_path, home_profiles)
+        except OSError:
+            return False
+
+        return True
+
+    return False
 
 
 def verify_dir_has_perm(path, perm, levels=0):

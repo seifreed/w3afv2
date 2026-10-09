@@ -25,7 +25,6 @@ import os
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
 from w3af import CRAWL_PATH
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.constants import severity
@@ -99,18 +98,18 @@ class find_backdoors(CrawlPlugin):
 
     def _iter_web_shells(self):
         """
-        :yield: lines from the web shell DB
+        :yield: unique lines from the web shell DB
         """
+        seen = set()
+
         with open(self.WEBSHELL_DB) as webshell_fh:
             for line in webshell_fh:
                 line = line.strip()
 
-                if line.startswith("#"):
+                if not line or line.startswith("#") or line in seen:
                     continue
 
-                if not line:
-                    continue
-
+                seen.add(line)
                 yield line
 
     def _check_if_exists(self, web_shell_url):
@@ -119,12 +118,7 @@ class find_backdoors(CrawlPlugin):
 
         :param web_shell_url: The URL to check
         """
-        try:
-            response = self._uri_opener.GET(web_shell_url, cache=True)
-        except BaseFrameworkException:
-            om.out.debug(f"Failed to GET webshell: {web_shell_url}")
-            return
-
+        response = self._uri_opener.GET(web_shell_url, cache=True)
         signature = self._match_signature(response)
         if signature is None:
             return

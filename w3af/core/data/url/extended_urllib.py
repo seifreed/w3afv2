@@ -90,8 +90,9 @@ class ExtendedUrllib:
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self, http_log_callback=None):
+    def __init__(self, http_log_callback=None, sleep=time.sleep):
         self.settings = opener_settings.OpenerSettings(http_log_callback)
+        self._sleep = sleep
         self._opener = None
         self._w3af_core = None
         self._average_rtt_mutant = GetAverageRTTForMutant(self)
@@ -415,7 +416,7 @@ class ExtendedUrllib:
             LOGGER.debug(msg % args)
 
             # The actual delay
-            time.sleep(error_sleep)
+            self._sleep(error_sleep)
 
             # Record this delay
             self._sleep_log[lower_error_rate] = True
@@ -474,7 +475,7 @@ class ExtendedUrllib:
                 #
                 # om.out.debug('ExtendedUrllib rate limit in place. Blocking all HTTP'
                 #             ' requests for %s seconds.' % left_to_wait)
-                time.sleep(left_to_wait)
+                self._sleep(left_to_wait)
 
         self._rate_limit_last_time_called = time.monotonic()
 

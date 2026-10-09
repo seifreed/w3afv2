@@ -30,6 +30,7 @@ from w3af.core.controllers.misc.contains_source_code import (
     PHP,
     PYTHON,
     RUBY,
+    _multi_re,
     contains_source_code,
 )
 from w3af.core.data.dc.headers import Headers
@@ -204,7 +205,13 @@ class TestContainsSourceCode(unittest.TestCase):
 
     def test_code_false_positive_image(self):
         no_source = self.create_response(
-            Path(self.TEST_FILE).read_text(), content_type="image/jpeg"
+            Path(self.TEST_FILE).read_bytes().decode("latin-1"),
+            content_type="image/jpeg",
         )
         match, _lang = contains_source_code(no_source)
         self.assertEqual(match, None)
+
+    def test_every_regex_has_a_keyword_hint(self):
+        # A regex without keywords is evaluated against every response body,
+        # which defeats the MultiRE pre-filter
+        self.assertEqual(_multi_re._regexes_with_no_keywords, [])

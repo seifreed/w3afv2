@@ -19,38 +19,112 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import re
+import os
 import threading
 import unittest
-from unittest.mock import Mock
+from urllib.parse import unquote_plus
 
-import httpretty
-import pytest
-
-from w3af.core.controllers.ci.moth import get_moth_http
+from w3af import ROOT_PATH
+from w3af.core.controllers.core_helpers.fingerprint_404 import (
+    fingerprint_404_singleton,
+)
 from w3af.core.controllers.core_helpers.strategy import CoreStrategy
+from w3af.core.controllers.tests.local_http_server import (
+    LocalHTTPServer,
+    Reply,
+    closed_local_port,
+)
 from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.kb.knowledge_base import kb
-from w3af.core.exceptions import ScanMustStopException
+from w3af.core.exceptions import ScanMustStopByUserRequest, ScanMustStopException
+
+TLS_HELPERS = os.path.join(ROOT_PATH, "core", "data", "url", "tests", "helpers")
+TLS_CERT = os.path.join(TLS_HELPERS, "unittest.crt")
+TLS_KEY = os.path.join(TLS_HELPERS, "unittest.key")
+
+SQL_ERROR = (
+    "You have an error in your SQL syntax; check the manual that corresponds"
+    " to your MySQL server version for the right syntax to use"
+)
+
+
+def static_page(method, path):
+    return Reply(body="<html><body>Hello world</body></html>")
+
+
+def sql_injection_site(method, path):
+    """
+    Behaves like a page which concatenates the id query string parameter
+    into a SQL query without escaping it.
+    """
+    query = unquote_plus(path.partition("?")[2])
+
+    if "'" in query or '"' in query:
+        return Reply(body=f"<html><body>{SQL_ERROR}</body></html>")
+
+    return Reply(body="<html><body>Product details</body></html>")
 
 
 class RouterFailureError(Exception):
     pass
 
 
-@pytest.mark.moth
-class TestStrategy(unittest.TestCase):
+class TeardownAuditThreadsStrategy(CoreStrategy):
+    """
+    Records the threads which are alive when the audit consumer teardown is
+    started.
+    """
 
-    TARGET_URL = get_moth_http("/audit/sql_injection/" "where_integer_qs.py?id=1")
+    def __init__(self, w3af_core):
+        super().__init__(w3af_core)
+        self.threads_at_teardown_audit = None
+
+    def _teardown_audit(self, *args, **kwargs):
+        self.threads_at_teardown_audit = [t.name for t in threading.enumerate()]
+        return super()._teardown_audit(*args, **kwargs)
+
+
+class FailingRouterStrategy(CoreStrategy):
+    """
+    The fuzzable request router fails, the strategy must terminate all its
+    consumers before raising the exception.
+    """
+
+    def __init__(self, w3af_core):
+        super().__init__(w3af_core)
+        self.terminate_calls = 0
+
+    def _fuzzable_request_router(self, *args, **kwargs):
+        raise RouterFailureError()
+
+    def terminate(self):
+        self.terminate_calls += 1
+        return super().terminate()
+
+
+class TestStrategy(unittest.TestCase):
 
     def setUp(self):
         kb.cleanup()
+        self.server = None
 
-    def test_strategy_run(self):
+    def tearDown(self):
+        self.close_server()
+
+    def close_server(self):
+        if self.server is not None:
+            self.server.close()
+            self.server = None
+
+    def start_server(self, responder):
+        self.server = LocalHTTPServer(responder).start()
+
+    def get_core(self, target_url):
         core = w3afCore()
+        self.addCleanup(core.quit)
 
         target = core.target.get_options()
-        target["target"].set_value(self.TARGET_URL)
+        target["target"].set_value(target_url)
         core.target.set_options(target)
 
         core.plugins.set_plugins(["sqli"], "audit")
@@ -59,28 +133,25 @@ class TestStrategy(unittest.TestCase):
         core.verify_environment()
         core.scan_start_hook()
 
-        def verify_threads_running(functor):
-            thread_names = [t.name for t in threading.enumerate()]
-            self.assertIn("WorkerThread", thread_names)
-            self.called_teardown_audit = True
-            return functor
+        return core
 
-        self.called_teardown_audit = False
+    def test_strategy_run(self):
+        self.start_server(sql_injection_site)
+        core = self.get_core(self.server.url("/where_integer_qs.py?id=1"))
 
-        strategy = CoreStrategy(core)
-        strategy._teardown_audit = verify_threads_running(strategy._teardown_audit)
-
+        strategy = TeardownAuditThreadsStrategy(core)
         strategy.start()
 
         # Now test that those threads are being terminated
-        self.assertTrue(self.called_teardown_audit)
+        self.assertIsNotNone(strategy.threads_at_teardown_audit)
+        self.assertIn("WorkerThread", strategy.threads_at_teardown_audit)
 
         vulns = kb.get("sqli", "sqli")
         self.assertEqual(len(vulns), 1, vulns)
 
         # Tell the core that we've finished, this should kill the WorkerThreads
-        core.exploit_phase_prerequisites = lambda: 42
         core.scan_end_hook()
+        self.close_server()
 
         self._assert_thread_names()
 
@@ -89,66 +160,40 @@ class TestStrategy(unittest.TestCase):
         Makes sure that the threads which are living in my process are the
         ones that I want.
         """
-        threads = [t for t in threading.enumerate()]
-        thread_names = [t.name for t in threads]
+        thread_names = {t.name for t in threading.enumerate()}
 
-        thread_names_set = set(thread_names)
         expected_names = {
             "PoolTaskHandler",
             "PoolResultHandler",
-            "WorkerThread",
             "PoolWorkerHandler",
             "MainThread",
             "SQLiteExecutor",
             "OutputManager",
+            "OutputManagerWorkerThread",
             "QueueFeederThread",
         }
 
-        self.assertEqual(thread_names_set, expected_names)
+        self.assertNotIn("WorkerThread", thread_names)
+        self.assertLessEqual(thread_names, expected_names)
 
     def test_strategy_exception(self):
-        core = w3afCore()
+        self.start_server(sql_injection_site)
+        core = self.get_core(self.server.url("/where_integer_qs.py?id=1"))
 
-        target = core.target.get_options()
-        target["target"].set_value(self.TARGET_URL)
-        core.target.set_options(target)
-
-        core.plugins.set_plugins(["sqli"], "audit")
-        core.plugins.init_plugins()
-
-        core.verify_environment()
-        core.scan_start_hook()
-
-        strategy = CoreStrategy(core)
-        strategy._fuzzable_request_router = Mock(side_effect=RouterFailureError)
-
-        strategy.terminate = Mock(wraps=strategy.terminate)
+        strategy = FailingRouterStrategy(core)
 
         self.assertRaises(RouterFailureError, strategy.start)
 
         # Now test that those threads are being terminated
-        self.assertEqual(strategy.terminate.called, True)
+        self.assertGreater(strategy.terminate_calls, 0)
 
-        core.exploit_phase_prerequisites = lambda: 42
         core.scan_end_hook()
+        self.close_server()
 
         self._assert_thread_names()
 
     def test_strategy_verify_target_server_up(self):
-        core = w3afCore()
-
-        # TODO: Change 2312 by an always closed/non-http port
-        INVALID_TARGET = "http://localhost:2312/"
-
-        target = core.target.get_options()
-        target["target"].set_value(INVALID_TARGET)
-        core.target.set_options(target)
-
-        core.plugins.set_plugins(["sqli"], "audit")
-        core.plugins.init_plugins()
-
-        core.verify_environment()
-        core.scan_start_hook()
+        core = self.get_core(f"http://127.0.0.1:{closed_local_port()}/")
 
         strategy = CoreStrategy(core)
 
@@ -160,97 +205,93 @@ class TestStrategy(unittest.TestCase):
         else:
             self.assertTrue(False)
 
-    @httpretty.activate
+    def assert_target_redirect_infos(self, build_location, expected_infos):
+        """
+        :param build_location: Receives the target port and returns the URL
+                               which all the target resources redirect to
+        """
+        self.start_server(self.redirect_all)
+        self.redirect_location = build_location(self.server.port)
+        core = self.get_core(self.server.url("/"))
+
+        strategy = CoreStrategy(core)
+        strategy.start()
+
+        infos = kb.get("core", "core")
+        self.assertEqual(len(infos), expected_infos, infos)
+
+    def redirect_all(self, method, path):
+        return Reply(
+            status=301, body="301", headers={"Location": self.redirect_location}
+        )
+
     def test_alert_if_target_is_301_all_proto_redir(self):
         """
         Tests that the protocol redirection is detected and reported in
         the kb
         """
-        core = w3afCore()
+        https_server = LocalHTTPServer(
+            sql_injection_site, tls_cert_and_key=(TLS_CERT, TLS_KEY)
+        ).start()
+        self.addCleanup(https_server.close)
 
-        httpretty.register_uri(
-            httpretty.GET,
-            re.compile("w3af.com/(.*)"),
-            body="301",
-            status=301,
-            adding_headers={"Location": "https://w3af.com/"},
-        )
+        self.assert_target_redirect_infos(lambda port: https_server.url("/"), 1)
 
-        target = core.target.get_options()
-        target["target"].set_value("http://w3af.com/")
-        core.target.set_options(target)
-
-        core.plugins.set_plugins(["sqli"], "audit")
-        core.plugins.init_plugins()
-
-        core.verify_environment()
-        core.scan_start_hook()
-
-        strategy = CoreStrategy(core)
-        strategy.start()
-
-        infos = kb.get("core", "core")
-        self.assertEqual(len(infos), 1, infos)
-
-    @httpretty.activate
     def test_alert_if_target_is_301_all_domain_redir(self):
         """
         Tests that the domain redirection is detected and reported in
         the kb
         """
-        core = w3afCore()
+        self.assert_target_redirect_infos(lambda port: f"http://localhost:{port}/", 1)
 
-        httpretty.register_uri(
-            httpretty.GET,
-            re.compile("w3af.com/(.*)"),
-            body="301",
-            status=301,
-            adding_headers={"Location": "http://www.w3af.com/"},
-        )
-
-        target = core.target.get_options()
-        target["target"].set_value("http://w3af.com/")
-        core.target.set_options(target)
-
-        core.plugins.set_plugins(["sqli"], "audit")
-        core.plugins.init_plugins()
-
-        core.verify_environment()
-        core.scan_start_hook()
-
-        strategy = CoreStrategy(core)
-        strategy.start()
-
-        infos = kb.get("core", "core")
-        self.assertEqual(len(infos), 1, infos)
-
-    @httpretty.activate
     def test_alert_if_target_is_301_all_internal_redir(self):
         """
         Tests that no info is created if the site redirects internally
         """
-        core = w3afCore()
-
-        httpretty.register_uri(
-            httpretty.GET,
-            re.compile("w3af.com/(.*)"),
-            body="301",
-            status=301,
-            adding_headers={"Location": "http://w3af.com/xyz"},
+        self.assert_target_redirect_infos(
+            lambda port: f"http://127.0.0.1:{port}/xyz", 0
         )
 
-        target = core.target.get_options()
-        target["target"].set_value("http://w3af.com/")
-        core.target.set_options(target)
+    def target_request_steps(self, strategy):
+        return {
+            "replace_targets_with_redir()": strategy.replace_targets_with_redir,
+            "alert_if_target_is_301_all()": strategy.alert_if_target_is_301_all,
+            "_setup_404_detection()": strategy._setup_404_detection,
+        }
 
-        core.plugins.set_plugins(["sqli"], "audit")
-        core.plugins.init_plugins()
-
-        core.verify_environment()
-        core.scan_start_hook()
-
+    def test_target_request_failure_stops_the_scan(self):
+        core = self.get_core(f"http://127.0.0.1:{closed_local_port()}/")
         strategy = CoreStrategy(core)
-        strategy.start()
 
-        infos = kb.get("core", "core")
-        self.assertEqual(len(infos), 0, infos)
+        for step, step_method in self.target_request_steps(strategy).items():
+            with self.subTest(step=step):
+                with self.assertRaises(ScanMustStopException) as context:
+                    step_method()
+
+                self.assertIn(f"Exception found during {step}", str(context.exception))
+
+    def test_user_stop_while_requesting_targets(self):
+        self.start_server(static_page)
+        core = self.get_core(self.server.url("/"))
+        strategy = CoreStrategy(core)
+
+        core.uri_opener.stop()
+
+        steps = self.target_request_steps(strategy)
+        steps["verify_target_server_up()"] = strategy.verify_target_server_up
+
+        for step, step_method in steps.items():
+            with self.subTest(step=step):
+                self.assertRaises(ScanMustStopByUserRequest, step_method)
+
+    def test_404_detection_without_url_opener_stops_the_scan(self):
+        self.start_server(static_page)
+        core = self.get_core(self.server.url("/"))
+        strategy = CoreStrategy(core)
+
+        fingerprint_404_singleton(cleanup=True)
+
+        with self.assertRaises(ScanMustStopException) as context:
+            strategy._setup_404_detection()
+
+        self.assertIn("Failed to initialize the 404 detection", str(context.exception))

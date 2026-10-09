@@ -19,49 +19,31 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import os
 import unittest
 
-import pytest
-from github import Github
-
 from w3af.core.controllers.easy_contribution.github_issues import (
-    OAUTH_TOKEN,
-    GithubIssues,
-    OAuthTokenInvalid,
-    UserCredentialsInvalid,
+    GITHUB_CREDENTIAL_ENV_VAR,
+    get_oauth_token,
 )
 
 
-@pytest.mark.internet
-class TestGithubIssues(unittest.TestCase):
+class TestGetOAuthToken(unittest.TestCase):
+    def setUp(self):
+        self._saved = os.environ.pop(GITHUB_CREDENTIAL_ENV_VAR, None)
 
-    def test_report(self):
-        gh = GithubIssues(OAUTH_TOKEN)
-        gh.login()
+    def tearDown(self):
+        os.environ.pop(GITHUB_CREDENTIAL_ENV_VAR, None)
+        if self._saved is not None:
+            os.environ[GITHUB_CREDENTIAL_ENV_VAR] = self._saved
 
-        summary = "Unittest bug report"
-        userdesc = "Please remove this ticket"
+    def test_no_token_configured(self):
+        self.assertIsNone(get_oauth_token())
 
-        ticket_id, ticket_url = gh.report_bug(summary, userdesc)
-        self.assertIsInstance(ticket_id, int)
-        self.assertTrue(
-            ticket_url.startswith("https://github.com/andresriancho/w3af/issues/")
-        )
+    def test_empty_token_is_not_configured(self):
+        os.environ[GITHUB_CREDENTIAL_ENV_VAR] = ""
+        self.assertIsNone(get_oauth_token())
 
-        # Remove the ticket I've just created
-        gh = Github(OAUTH_TOKEN)
-        repo = gh.get_user("andresriancho").get_repo("w3af")
-        issue = repo.get_issue(ticket_id)
-        issue.edit(state="closed")
-
-    def test_login_failed_token(self):
-        gh = GithubIssues(OAUTH_TOKEN + "foobar")
-        self.assertRaises(OAuthTokenInvalid, gh.login)
-
-    def test_login_success_token(self):
-        gh = GithubIssues(OAUTH_TOKEN)
-        self.assertTrue(gh.login())
-
-    def test_login_failed_user_pass(self):
-        gh = GithubIssues("foobar", "testbar")
-        self.assertRaises(UserCredentialsInvalid, gh.login)
+    def test_token_from_environment(self):
+        os.environ[GITHUB_CREDENTIAL_ENV_VAR] = "configured-token"
+        self.assertEqual(get_oauth_token(), "configured-token")

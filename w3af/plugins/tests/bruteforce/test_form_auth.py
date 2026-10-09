@@ -21,13 +21,54 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 import random
+import re
+import urllib.parse
 from typing import ClassVar
 
 import pytest
 
 from w3af import ROOT_PATH
-from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
+
+SUCCESS_BODY = "Welcome Mr. Admin, how can I help you today?"
+FAILED_BODY = "ACCESS DENIED"
+
+
+def _submitted_params(request):
+    """Return the login parameters, from the POST body or the GET query."""
+    params = request.parsed_body
+    if params:
+        return params
+    query = urllib.parse.urlsplit(request.uri).query
+    return urllib.parse.parse_qs(query)
+
+
+def _login_responder(form_html, valid_pass, valid_user=None):
+    """
+    Build a MockResponse body callable for a self-submitting login form: it
+    serves the form when there are no credentials and emulates the login
+    result (success/failure) when credentials are submitted.
+    """
+
+    def respond(mock_response, request, uri, response_headers):
+        response_headers["content-type"] = "text/html"
+        params = _submitted_params(request)
+
+        if "password" not in params:
+            return 200, response_headers, form_html
+
+        password = params.get("password", [""])[0]
+        user = params.get("username", [""])[0]
+
+        password_ok = password == valid_pass
+        user_ok = valid_user is None or user == valid_user
+
+        if valid_pass is not None and password_ok and user_ok:
+            return 200, response_headers, SUCCESS_BODY
+
+        return 200, response_headers, FAILED_BODY
+
+    return respond
 
 
 class GenericFormAuthTest(PluginTest):
@@ -55,16 +96,63 @@ class GenericFormAuthTest(PluginTest):
     }
 
 
+def _form_html(action, method, with_username=True):
+    username_input = '<input name="username" type="text" />' if with_username else ""
+    return (
+        f'<form method="{method}" action="{action}">'
+        f"{username_input}"
+        '<input name="password" type="password" />'
+        '<input name="submit" type="submit" />'
+        "</form>"
+    )
+
+
 class FormAuthTest(GenericFormAuthTest):
 
     BASE_PATH = os.path.join(ROOT_PATH, "plugins", "tests", "bruteforce")
 
-    target_post_url = get_moth_http("/bruteforce/form/guessable_login_form.py")
-    target_get_url = get_moth_http("/bruteforce/form/guessable_login_form_get.py")
-    target_password_only_url = get_moth_http("/bruteforce/form/guessable_pass_only.py")
-    target_negative_url = get_moth_http("/bruteforce/form/impossible.py")
+    target_post_url = "http://mock/bruteforce/form/guessable_login_form.py"
+    target_get_url = "http://mock/bruteforce/form/guessable_login_form_get.py"
+    target_password_only_url = "http://mock/bruteforce/form/guessable_pass_only.py"
+    target_negative_url = "http://mock/bruteforce/form/impossible.py"
 
-    target_web_spider_url = get_moth_http("/bruteforce/form/")
+    target_url = target_post_url
+
+    _POST_FORM = _form_html("guessable_login_form.py", "POST")
+    _GET_FORM = _form_html("guessable_login_form_get.py", "GET")
+    _PASS_ONLY_FORM = _form_html("guessable_pass_only.py", "POST", with_username=False)
+    _NEG_FORM = _form_html("impossible.py", "POST")
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        # POST login form, valid credentials admin/1234
+        MockResponse(target_post_url, body=_POST_FORM, method="GET"),
+        MockResponse(
+            target_post_url,
+            body=_login_responder(_POST_FORM, "1234", valid_user="admin"),
+            method="POST",
+        ),
+        # GET login form, valid credentials admin/admin. A regex is used
+        # because the credentials are submitted in the query string.
+        MockResponse(
+            re.compile(r"http://mock/bruteforce/form/guessable_login_form_get\.py.*"),
+            body=_login_responder(_GET_FORM, "admin", valid_user="admin"),
+            method="GET",
+        ),
+        # Password-only form, valid password 1234
+        MockResponse(target_password_only_url, body=_PASS_ONLY_FORM, method="GET"),
+        MockResponse(
+            target_password_only_url,
+            body=_login_responder(_PASS_ONLY_FORM, "1234"),
+            method="POST",
+        ),
+        # Impossible form, no valid credentials
+        MockResponse(target_negative_url, body=_NEG_FORM, method="GET"),
+        MockResponse(
+            target_negative_url,
+            body=_login_responder(_NEG_FORM, None),
+            method="POST",
+        ),
+    ]
 
     negative_test: ClassVar[dict] = {
         "crawl": (

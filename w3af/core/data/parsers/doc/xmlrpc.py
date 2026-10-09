@@ -22,11 +22,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import base64
 import html
-import xml.sax
 from collections import OrderedDict
-from xml.sax.handler import ContentHandler
 
 from w3af.core.data.dc.utils.token import DataToken
+from w3af.core.data.parsers.utils.safe_sax import ContentHandler, parse_string
 
 BASE_64 = "base64"
 FUZZABLE_TYPES = (BASE_64, "string", "name")
@@ -185,7 +184,7 @@ def parse_xmlrpc(xml_string):
                     - handler.get_data_container
     """
     handler = XmlRpcReadHandler()
-    xml.sax.parseString(xml_string, handler)
+    parse_string(xml_string, handler)
     return handler
 
 
@@ -201,5 +200,5 @@ def build_xmlrpc(xml_string, fuzzed_parameters):
     :return: The string with the new XMLRPC call to be sent to the server.
     """
     handler = XmlRpcWriteHandler(fuzzed_parameters)
-    xml.sax.parseString(xml_string, handler)
+    parse_string(xml_string, handler)
     return handler.fuzzed_xml_string
