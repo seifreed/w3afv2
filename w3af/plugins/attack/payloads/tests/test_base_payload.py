@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
-from unittest.mock import MagicMock
 
 from w3af.plugins.attack.payloads.base_payload import Payload
 from w3af.plugins.attack.payloads.payloads.tests.test_payload_handler import (
@@ -48,21 +47,17 @@ class TestBasePayload(unittest.TestCase):
 
             def run_execute(self, cmd):
                 self.called_run_execute = True
-                self.shell.execute(cmd)
+                return self.shell.execute(cmd)
 
             def api_execute(self, cmd):
                 self.called_api_execute = True
 
-        shell = FakeExecShell()
-        shell.execute = MagicMock(return_value="")
-
-        executable = Executable(shell)
+        executable = Executable(FakeExecShell())
 
         self.assertEqual(self.bp.can_run(), set())
 
-        executable.run("command")
+        self.assertEqual(executable.run("echo w3af"), "w3af")
         self.assertTrue(executable.called_run_execute)
-        self.assertEqual(executable.shell.execute.call_count, 1)
 
         executable.run_api("command")
         self.assertTrue(executable.called_api_execute)
