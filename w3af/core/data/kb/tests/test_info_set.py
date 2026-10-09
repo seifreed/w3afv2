@@ -28,7 +28,7 @@ from pickle import loads
 import pytest
 
 from w3af.core.data.kb.info import Info
-from w3af.core.data.kb.info_set import InfoSet
+from w3af.core.data.kb.info_set import InfoSet, sample_count
 from w3af.core.data.kb.tests.test_info import (
     BLIND_SQLI_REFS,
     BLIND_SQLI_TOP10_REFS,
@@ -42,6 +42,18 @@ from w3af.core.data.parsers.doc.url import URL
 class TestInfoSet(unittest.TestCase):
     def test_not_empty(self):
         self.assertRaises(ValueError, InfoSet, [])
+
+    def test_info_instances_must_be_a_list_of_info_objects(self):
+        with self.assertRaisesRegex(TypeError, "info_instances must be a list"):
+            InfoSet((MockInfo(),))
+
+        with self.assertRaisesRegex(TypeError, "Info sub-classes"):
+            InfoSet([object()])
+
+    def test_sample_count(self):
+        self.assertEqual(sample_count([1]), "ten")
+        self.assertEqual(sample_count(list(range(11))), "ten")
+        self.assertEqual(sample_count([1, 2]), "two")
 
     def test_match_requires_unique_id_tag(self):
         info = Info("TestCase", "A valid information description.", [1], "plugin")
@@ -94,6 +106,18 @@ class TestInfoSet(unittest.TestCase):
         iset = InfoSet([i])
         self.assertEqual(iset.get_plugin_name(), "plugin_name")
 
+    def test_delegated_info_accessors(self):
+        info = MockInfo()
+        info.set_url(URL("http://w3af.org/path"))
+        info["tag"] = "value"
+        iset = InfoSet([info])
+
+        self.assertEqual(iset.get_uri(), info.get_uri())
+        self.assertIsNone(iset.get_token())
+        self.assertEqual(iset["tag"], "value")
+        self.assertIsNone(iset.get_vuln_info_from_db())
+        self.assertIsNotNone(iset.get_mutant())
+
     def test_add(self):
         i1 = MockInfo(ids=1)
         i2 = MockInfo(ids=2)
@@ -116,6 +140,20 @@ class TestInfoSet(unittest.TestCase):
         added = iset.add(i2)
         self.assertFalse(added)
 
+    def test_has_reached_max_info_instances(self):
+        iset = InfoSet([MockInfo()])
+        iset.MAX_INFO_INSTANCES = 1
+
+        self.assertTrue(iset.has_reached_max_info_instances())
+
+    def test_extend_stops_at_max_info_instances(self):
+        iset = InfoSet([MockInfo()])
+        iset.MAX_INFO_INSTANCES = 2
+
+        self.assertTrue(iset.extend([MockInfo()]))
+        self.assertFalse(iset.extend([MockInfo(), MockInfo()]))
+        self.assertEqual(len(iset.infos), 2)
+
     def test_get_uniq_id(self):
         i = MockInfo()
         iset = InfoSet([i])
@@ -129,6 +167,8 @@ class TestInfoSet(unittest.TestCase):
         iset2 = InfoSet([i])
 
         self.assertEqual(iset1, iset2)
+        self.assertFalse(iset1 != iset2)
+        self.assertIn("TestCase", repr(iset1))
 
     def test_pickle(self):
         i = MockInfo()
@@ -234,6 +274,14 @@ class TestInfoSet(unittest.TestCase):
         expected = " - http://w3af.org/1\n - http://w3af.org/2\u00f6\n"
         self.assertEqual(tiset.get_desc(), expected)
 
+    def test_get_desc_reraises_unicode_decode_errors(self):
+        info = MockInfo()
+        info["value"] = b"\xff"
+        info_set = UnicodeDecodeInfoSet([info])
+
+        with self.assertRaises(UnicodeDecodeError):
+            info_set.get_desc()
+
 
 class TemplatedInfoSet(InfoSet):
     TEMPLATE = """\
@@ -243,3 +291,7 @@ class TemplatedInfoSet(InfoSet):
 
 class TemplatedInfoSetPrintUri(InfoSet):
     TEMPLATE = "{% for url in uris[:10] %}" " - {{ url }}\n" "{% endfor %}"
+
+
+class UnicodeDecodeInfoSet(InfoSet):
+    TEMPLATE = "{{ value.decode('utf-8') }}"

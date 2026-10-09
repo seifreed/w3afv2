@@ -85,8 +85,8 @@ class InfoSet:
     :see: https://github.com/andresriancho/w3af/issues/3955
     """
 
-    TEMPLATE = None
-    ITAG = None
+    TEMPLATE: str | None = None
+    ITAG: str | None = None
 
     MAX_INFO_INSTANCES = 30
 

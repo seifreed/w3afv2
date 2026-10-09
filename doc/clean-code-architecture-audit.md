@@ -940,3 +940,15 @@ los errores restantes ahora apuntan a problemas concretos del código, tipos y
 dependencias del repositorio, incluidos componentes de GUI ausentes. Las gates
 globales siguen fallando, así que el avance mejora el diagnóstico, no acredita
 la calidad completa. Score global: **4.9/10**.
+
+## Avance: contrato de atributos de InfoSet
+
+`InfoSet.TEMPLATE` e `InfoSet.ITAG` son opcionales en la clase base, y las
+subclases asignan valores `str`. Sus anotaciones reflejan ambos estados, lo que
+elimina 68 errores repetidos de asignación heredada sin cambiar el
+comportamiento. `test_info_set.py` ahora pasa sus 27 pruebas con 100% de
+cobertura de `info_set.py`; Black y Ruff pasan para ambos archivos, y Bandit
+pasa en el módulo productivo. Bandit sigue señalando la deserialización pickle
+existente en el test (B403/B301); no se silenció. Con la configuración de Mypy
+ya establecida, el total baja de 1010 errores en 353 archivos a 942 en 329. El
+resto de errores y gates globales continúan pendientes. Score global: **4.9/10**.
