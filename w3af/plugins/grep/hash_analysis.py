@@ -62,11 +62,11 @@ class hash_analysis(GrepPlugin):
             #    This is a performance enhancement that cuts the execution
             #    time of this plugin in half.
             if len(possible_hash) < 31 or len(possible_hash) > 129:
-                return
+                continue
 
             hash_type = self._get_hash_type(possible_hash)
             if not hash_type:
-                return
+                continue
 
             possible_hash = possible_hash.lower()
             if (

@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from pdfminer.psexceptions import PSException
+
 from w3af.core.data.parsers.doc.pdf import pdf_to_text
 from w3af.plugins.grep.password_profiling_plugins.base_plugin import (
     BasePwdProfilingPlugin,
@@ -66,6 +68,7 @@ class pdf(BasePwdProfilingPlugin):
                 KeyError,
                 IndexError,
                 RuntimeError,
+                PSException,
             ):
                 return None
             else:

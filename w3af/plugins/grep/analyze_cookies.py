@@ -278,21 +278,16 @@ class analyze_cookies(GrepPlugin):
 
         :return: True if the cookie was fingerprinted
         """
-        cookie_keys = list(cookie_obj.keys())
-        for cookie_key in cookie_keys:
-            if cookie_key in self._cookie_key_failed_fingerprint:
-                cookie_keys.remove(cookie_key)
-                continue
-
-            if cookie_key in self._already_reported_fingerprint:
-                cookie_keys.remove(cookie_key)
+        cookie_keys = [
+            cookie_key
+            for cookie_key in cookie_obj
+            if cookie_key not in self._cookie_key_failed_fingerprint
+            and cookie_key not in self._already_reported_fingerprint
+        ]
 
         for cookie_key in cookie_keys:
             for cookie_str_db, system_name in COOKIE_FINGERPRINT:
                 if cookie_str_db not in cookie_key:
-                    continue
-
-                if cookie_key in self._already_reported_fingerprint:
                     continue
 
                 # Unreported match!

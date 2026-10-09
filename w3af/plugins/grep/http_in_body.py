@@ -60,8 +60,6 @@ class http_in_body(GrepPlugin):
             return
 
         body_without_tags = response.get_clear_text_body()
-        if body_without_tags is None:
-            return
 
         uri = response.get_uri()
 

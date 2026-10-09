@@ -93,9 +93,6 @@ class credit_cards(GrepPlugin):
 
         clear_text_body = response.get_clear_text_body()
 
-        if clear_text_body is None:
-            return
-
         found_cards = self._find_card(clear_text_body)
 
         for card in found_cards:
