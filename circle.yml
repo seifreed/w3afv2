@@ -39,9 +39,6 @@ dependencies:
     - pip install --upgrade pip
     - w3af/core/controllers/ci/install_scripts/install_core_dependencies.sh
 
-    # Install GUI dependencies
-    - w3af/core/controllers/ci/install_scripts/install_gui_dependencies.sh
-
     # Install the test dependencies
     - w3af/core/controllers/ci/install_scripts/install_test_dependencies.sh
 

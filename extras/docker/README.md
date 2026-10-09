@@ -30,7 +30,7 @@ sudo ./w3af_console_docker -t unstable
 
 ## Sharing data with the container
 
-When starting w3af using the `w3af_console_docker` or `w3af_gui_docker` commands
+When starting w3af using the `w3af_console_docker` or `w3af_api_docker` commands
 the docker containers are started with two volumes which are mapped to your
 home directory:
 
@@ -52,8 +52,8 @@ sudo docker pull andresriancho/w3af
 
 ## Debugging the container
 
-The container runs a SSH daemon, which can be used to both run the `w3af_console`
-and `w3af_gui`. To connect to a running container use `root` as username and
+The container runs a SSH daemon, which can be used to run `w3af_console`.
+To connect to a running container use `root` as username and
 `w3af` as password. Usually you don't need to worry about this, since the helper
 scripts will connect to the container for you.
 
@@ -101,7 +101,6 @@ users to be able to perform these tasks:
    (how do I run ./w3af_console -s foo.w3af ?). I believe that the helper script
    would have to "forward" the parameters to the docker run command.
    [#8461](https://github.com/andresriancho/w3af/issues/8461)
- * Run the GUI environment [#8460](https://github.com/andresriancho/w3af/issues/8460)
  * Remove root requirement for helper script [#8493](https://github.com/andresriancho/w3af/issues/8493)
 
 Want to help? Just follow the link to the task and add a comment saying you'll

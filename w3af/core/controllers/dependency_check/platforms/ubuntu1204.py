@@ -21,8 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import subprocess
+from typing import ClassVar
 
-from ..requirements import CORE, GUI
+from ..requirements import CORE
 from .base_platform import Platform
 from .system_info import distribution_matches
 
@@ -32,7 +33,7 @@ class Ubuntu1204(Platform):
     PKG_MANAGER_CMD = "sudo apt-get -y install"
     PIP_CMD = "pip"
 
-    CORE_SYSTEM_PACKAGES = [
+    CORE_SYSTEM_PACKAGES: ClassVar[list[str]] = [
         "python-pip",
         "npm",
         "python2.7-dev",
@@ -47,12 +48,7 @@ class Ubuntu1204(Platform):
         "libffi-dev",
     ]
 
-    GUI_SYSTEM_PACKAGES = CORE_SYSTEM_PACKAGES[:]
-    GUI_SYSTEM_PACKAGES.extend(
-        ["graphviz", "python-gtksourceview2", "python-gtk2", "python-webkit"]
-    )
-
-    SYSTEM_PACKAGES = {CORE: CORE_SYSTEM_PACKAGES, GUI: GUI_SYSTEM_PACKAGES}
+    SYSTEM_PACKAGES: ClassVar[dict[int, list[str]]] = {CORE: CORE_SYSTEM_PACKAGES}
 
     @staticmethod
     def os_package_is_installed(package_name):

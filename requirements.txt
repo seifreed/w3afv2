@@ -41,7 +41,6 @@ tornado==6.5.10
 urwid==4.0.13  # Highest version accepted by the pinned mitmproxy commit.
 vulndb==0.1.3
 vulners==4.3.0
-xdot==1.6; sys_platform != "win32"
 
 # Test and quality dependencies
 bandit==1.9.4
@@ -52,7 +51,6 @@ httpretty==1.1.4
 memory-profiler==0.61.0
 mypy==2.4.0
 pip-audit==2.10.1
-Pillow==12.3.0
 pylint==4.1.2
 pytest==9.1.1
 pytest-cov==7.1.0

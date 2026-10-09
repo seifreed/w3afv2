@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import sys
 from pathlib import Path
 
 from packaging.requirements import Requirement
@@ -28,7 +27,6 @@ from packaging.requirements import Requirement
 from w3af.core.controllers.dependency_check.pip_dependency import PIPDependency
 
 CORE = 1
-GUI = 2
 
 PROJECT_ROOT = Path(__file__).resolve().parents[4]
 REQUIREMENTS_FILE = PROJECT_ROOT / "requirements.txt"
@@ -118,10 +116,3 @@ CORE_PIP_PACKAGES = [
     PIPDependency("lz4", "lz4", _version("lz4")),
     PIPDependency("vulners", "vulners", _version("vulners")),
 ]
-
-GUI_PIP_EXTRAS = []
-if sys.platform != "win32":
-    GUI_PIP_EXTRAS.append(PIPDependency("xdot", "xdot", _version("xdot")))
-
-GUI_PIP_PACKAGES = CORE_PIP_PACKAGES[:]
-GUI_PIP_PACKAGES.extend(GUI_PIP_EXTRAS)

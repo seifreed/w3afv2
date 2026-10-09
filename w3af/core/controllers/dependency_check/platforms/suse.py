@@ -21,8 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import subprocess
+from typing import ClassVar
 
-from ..requirements import CORE, GUI
+from ..requirements import CORE
 from .base_platform import Platform
 from .system_info import distribution_matches
 
@@ -32,7 +33,7 @@ class SuSE(Platform):
     PKG_MANAGER_CMD = "sudo zypper install"
     PIP_CMD = "pip-2.7"
 
-    CORE_SYSTEM_PACKAGES = [
+    CORE_SYSTEM_PACKAGES: ClassVar[list[str]] = [
         "python-pip",
         "npm",
         "python-devel",
@@ -40,21 +41,14 @@ class SuSE(Platform):
         "git",
         "libxml2-devel",
         "libxslt-devel",
-        "python-webkitgtk",
         "libffi-devel",
     ]
 
-    GUI_SYSTEM_PACKAGES = CORE_SYSTEM_PACKAGES[:]
-    GUI_SYSTEM_PACKAGES.extend(
-        ["graphviz", "python-gtksourceview", "python-gtk", "python-webkitgtk"]
-    )
-
-    SYSTEM_PACKAGES = {CORE: CORE_SYSTEM_PACKAGES, GUI: GUI_SYSTEM_PACKAGES}
+    SYSTEM_PACKAGES: ClassVar[dict[int, list[str]]] = {CORE: CORE_SYSTEM_PACKAGES}
 
     @staticmethod
     def os_package_is_installed(package_name):
         not_installed = "is not installed"
-        installed = "Status: install ok installed"
 
         try:
             p = subprocess.Popen(

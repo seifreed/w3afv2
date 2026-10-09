@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-from ..base_platform import CORE, GUI
+from ..base_platform import CORE
 from ..current_platform import KNOWN_PLATFORMS
 
 
@@ -45,31 +45,14 @@ class TestAllPlatforms(unittest.TestCase):
             for platform in KNOWN_PLATFORMS:
                 self.assertTrue(hasattr(platform, required_attr))
 
-    def test_core_and_gui_deps(self):
+    def test_core_deps(self):
         for platform in KNOWN_PLATFORMS:
-            for dependency_set in {CORE, GUI}:
-                self.assertIn(dependency_set, platform.PIP_PACKAGES)
-                self.assertIn(dependency_set, platform.SYSTEM_PACKAGES)
-
-    def test_gui_includes_core(self):
-        for platform in KNOWN_PLATFORMS:
-            self.assertTrue(
-                all(
-                    dependency in platform.PIP_PACKAGES[GUI]
-                    for dependency in platform.PIP_PACKAGES[CORE]
-                )
-            )
-            self.assertTrue(
-                all(
-                    package in platform.SYSTEM_PACKAGES[GUI]
-                    for package in platform.SYSTEM_PACKAGES[CORE]
-                )
-            )
+            self.assertEqual(list(platform.PIP_PACKAGES), [CORE])
+            self.assertEqual(list(platform.SYSTEM_PACKAGES), [CORE])
 
     def test_more_than_three_dependencies(self):
         for platform in KNOWN_PLATFORMS:
-            for dependency_set in {CORE, GUI}:
-                self.assertGreater(len(platform.PIP_PACKAGES[dependency_set]), 3)
+            self.assertGreater(len(platform.PIP_PACKAGES[CORE]), 3)
 
     def test_os_package_is_installed(self):
         # Just looking for exceptions

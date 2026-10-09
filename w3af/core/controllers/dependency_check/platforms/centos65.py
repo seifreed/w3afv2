@@ -20,7 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from ..requirements import CORE, GUI
+from typing import ClassVar
+
+from ..requirements import CORE
 from .centos import CentOS
 from .system_info import distribution_matches
 
@@ -28,7 +30,7 @@ from .system_info import distribution_matches
 class CentOS65(CentOS):
     SYSTEM_NAME = "CentOS 6.5"
 
-    CORE_SYSTEM_PACKAGES = [
+    CORE_SYSTEM_PACKAGES: ClassVar[list[str]] = [
         "python-pip",
         "npm",
         "python-devel",
@@ -46,12 +48,7 @@ class CentOS65(CentOS):
         "libcom_err",
     ]
 
-    GUI_SYSTEM_PACKAGES = CORE_SYSTEM_PACKAGES[:]
-    GUI_SYSTEM_PACKAGES.extend(
-        ["graphviz", "gtksourceview2", "pygtksourceview", "pywebkitgtk"]
-    )
-
-    SYSTEM_PACKAGES = {CORE: CORE_SYSTEM_PACKAGES, GUI: GUI_SYSTEM_PACKAGES}
+    SYSTEM_PACKAGES: ClassVar[dict[int, list[str]]] = {CORE: CORE_SYSTEM_PACKAGES}
 
     @staticmethod
     def is_current_platform():

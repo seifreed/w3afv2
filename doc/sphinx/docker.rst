@@ -20,7 +20,7 @@ for more information about exposing ports.
 Sharing data with the container
 -------------------------------
 
-When starting w3af using the ``w3af_console_docker`` or ``w3af_gui_docker``
+When starting w3af using the ``w3af_console_docker`` or ``w3af_api_docker``
 commands the docker containers are started with two volumes which are mapped to
 your home directory:
 
@@ -35,8 +35,8 @@ your home directory:
 Debugging the container
 -----------------------
 
-The container runs a SSH daemon, which can be used to both run the ``w3af_console``
-and ``w3af_gui``. To connect to a running container use ``root`` as username and
+The container runs a SSH daemon, which can be used to run ``w3af_console``.
+To connect to a running container use ``root`` as username and
 ``w3af`` as password. Usually you don't need to worry about this, since the helper
 scripts will connect to the container for you.
 

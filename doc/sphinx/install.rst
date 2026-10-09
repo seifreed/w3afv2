@@ -126,13 +126,9 @@ In order to start the process, you need XCode and MacPorts installed.
     python3.14 -m pip install --upgrade -r requirements.txt
     ./w3af_console
 
-Those commands should allow you to run ``./w3af_console`` again without any issues,
-in order to run the GUI a new dependency set is required:
-
-.. code-block:: console
-
-    sudo port install graphviz
-    ./w3af_gui
+Those commands should allow you to run ``./w3af_console`` again without any
+issues. The web user interface, started with ``./w3af_gui``, has no extra
+dependencies.
 
 Troubleshooting
 ---------------

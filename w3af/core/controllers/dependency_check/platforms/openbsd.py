@@ -22,8 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import platform
 import subprocess
+from typing import ClassVar
 
-from ..requirements import CORE, GUI
+from ..requirements import CORE
 from .base_platform import Platform
 
 
@@ -35,7 +36,7 @@ class OpenBSD5(Platform):
     #
     #    Package list here http://ftp.openbsd.org/pub/OpenBSD/5.2/packages/i386/
     #
-    CORE_SYSTEM_PACKAGES = [
+    CORE_SYSTEM_PACKAGES: ClassVar[list[str]] = [
         "py-pip",
         "python-2.7.3p0",
         "py-setuptools",
@@ -48,22 +49,19 @@ class OpenBSD5(Platform):
         "libffi",
     ]
 
-    GUI_SYSTEM_PACKAGES = CORE_SYSTEM_PACKAGES[:]
-    GUI_SYSTEM_PACKAGES.extend(["graphviz", "gtksourceview"])
-
-    SYSTEM_PACKAGES = {CORE: CORE_SYSTEM_PACKAGES, GUI: GUI_SYSTEM_PACKAGES}
+    SYSTEM_PACKAGES: ClassVar[dict[int, list[str]]] = {CORE: CORE_SYSTEM_PACKAGES}
 
     @staticmethod
     def os_package_is_installed(package_name):
-        command = 'pkg_info | grep "^%s"' % package_name
-
         try:
-            pkg_info_output = subprocess.check_output(command, shell=True)
-        except:
+            pkg_info_output = subprocess.check_output(["pkg_info"], text=True)
+        except (OSError, subprocess.CalledProcessError):
             # We're not on an openbsd based system
             return None
-        else:
-            return pkg_info_output.startswith(package_name)
+
+        return any(
+            line.startswith(package_name) for line in pkg_info_output.splitlines()
+        )
 
     @staticmethod
     def after_hook():

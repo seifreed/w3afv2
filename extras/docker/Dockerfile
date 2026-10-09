@@ -22,7 +22,7 @@ RUN apt-get dist-upgrade -y
 
 # Install basic system requirements.
 RUN apt-get install -y --no-install-recommends build-essential libxslt1-dev libxml2-dev \
-                       libsqlite3-dev libyaml-dev openssh-server git wget xdot \
+                       libsqlite3-dev libyaml-dev openssh-server git wget \
                        ca-certificates libffi-dev zlib1g-dev nodejs npm && \
     rm -rf /var/lib/apt/lists/*
 
@@ -53,13 +53,6 @@ RUN sed 's/apt-get/apt-get -y/g' -i /tmp/w3af_dependency_install.sh
 RUN sed 's/pip install/pip install --upgrade/g' -i /tmp/w3af_dependency_install.sh
 
 # Run the dependency installer
-RUN /tmp/w3af_dependency_install.sh
-
-# Run the dependency installer
-RUN ./w3af_gui ; true
-RUN sed 's/sudo //g' -i /tmp/w3af_dependency_install.sh
-RUN sed 's/apt-get/apt-get -y/g' -i /tmp/w3af_dependency_install.sh
-RUN sed 's/pip install/pip install --upgrade/g' -i /tmp/w3af_dependency_install.sh
 RUN /tmp/w3af_dependency_install.sh
 
 # Compile the py files into pyc in order to speed-up w3af's start
