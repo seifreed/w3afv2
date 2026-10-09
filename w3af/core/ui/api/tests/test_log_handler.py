@@ -71,3 +71,11 @@ class RESTAPIOutputTest(unittest.TestCase):
 
         for suffix in (".dat", ".dir", ".bak"):
             self.assertFalse(os.path.exists(backend + suffix))
+
+    def test_messages_after_cleanup_are_discarded(self):
+        self.output.cleanup()
+
+        self.output.information("late message")
+
+        self.assertEqual(len(self.output), 0)
+        self.assertEqual(list(self.output.get_entries(0, 1)), [])
