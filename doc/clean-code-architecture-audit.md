@@ -1344,3 +1344,50 @@ construyen los shells; se deja para iteraciones posteriores. Verificación: la
 fitness test pasa (2 pruebas) y las suites de parsers, `kb` y payloads siguen
 en verde. Black y ruff focalizados pasan; mypy no añade errores propios en los
 módulos tocados.
+
+## Avance: bootstrap multiproceso del parser invertido
+
+`mp_document_parser` ya no importa `output_manager`, `profiling` ni
+`threads.decorators`. Expone `configure_multiprocessing()` para que la capa de
+controllers inyecte el proveedor de la cola de logs y el inicializador que se
+ejecuta en cada worker; ambos colaboradores quedan como no-ops por defecto, de
+modo que el parser sigue funcionando de forma autónoma. El envoltorio
+`return_error` de tblib se incorpora en el propio módulo (solo depende de
+tblib) y los diagnósticos del padre y de los workers usan un logger de módulo
+encaminado por el puente de logging. Un nuevo módulo de controllers,
+`parser_worker`, aporta los colaboradores reales (cola del output manager,
+reconfiguración del logging en el worker y arranque de profiling) y
+`w3af_core` los registra junto a la configuración de logging. Las pruebas del
+parser dejan de parchear `output_manager`.
+
+## Avance: inversión de dependencias de Shell y ExecShell
+
+Las clases de la KB vuelven a ser datos + comportamiento abstracto. `Shell`
+declara un colaborador `_payload_handler` (por defecto `None`) y delega en él
+los comandos `payload`/`lsp`; cuando no hay manejador inyectado devuelve un
+mensaje claro en vez de importar la capa de plugins. `ExecShell` declara de la
+misma forma `_os_detector` y `_payload_transfer_factory`, usados por
+`identify_os()` y `write()`, y degrada con elegancia cuando no están
+inyectados. Se eliminan los imports de `payload_handler`,
+`exec_method_helpers` y `payload_transfer_factory` de la capa de datos.
+
+La capa de plugins aporta el cableado en un único sitio, el nuevo módulo
+`w3af/plugins/attack/shells.py`, que extiende las clases de datos e inyecta los
+colaboradores concretos (`payload_handler`, `os_detection_exec` y
+`payload_transfer_factory`). Los ocho plugins de ataque importan los shells
+cableados desde ese módulo; la consola sigue importando la `Shell` de datos
+para sus comprobaciones `isinstance`, que siguen siendo válidas porque los
+shells cableados son subclases de la de datos.
+
+## Estado: 10/10, sin deuda de capas
+
+La fitness test `w3af/tests/test_architecture_layers.py` afirma ahora cero
+infracciones (ya no hay lista `KNOWN_DEBT` ni mecanismo de ratchet, al no
+quedar deuda). El orden `core.data -> controllers -> plugins -> core.ui` se
+respeta en todos los módulos de producción. Verificación: la fitness test, las
+suites de shells (`test_exec_shell`, `test_read_shell`, `test_shells`) y las de
+payloads y parsers pasan; black y ruff focalizados pasan y mypy no añade
+errores propios en los módulos tocados. En esta máquina persisten tres fallos
+previos en `test_mp_document_parser` (los tests multiproceso que dependen de
+parches que no se propagan con el método de arranque `spawn` de macOS),
+idénticos antes y después del cambio.

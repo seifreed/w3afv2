@@ -22,16 +22,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import logging
 import textwrap
+from typing import Any
 
-from w3af.core.controllers.intrusion_tools.exec_method_helpers import os_detection_exec
-from w3af.core.controllers.payload_transfer.payload_transfer_factory import (
-    payload_transfer_factory,
-)
 from w3af.core.data.kb.decorators import download_debug, read_debug
 from w3af.core.data.kb.shell import Shell
 from w3af.core.exceptions import BaseFrameworkException
 
 LOGGER = logging.getLogger(__name__)
+
+NO_TRANSFER_HANDLER_MSG = "This shell can not transfer files to the remote host."
 
 
 class ExecShell(Shell):
@@ -41,6 +40,15 @@ class ExecShell(Shell):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
+    # Collaborators injected by the plugins layer. They stay None in the data
+    # layer so the KB objects do not depend on the controllers remote-execution
+    # infrastructure.
+    #
+    # _os_detector(exec_method) -> "linux" / "windows" / raises
+    # _payload_transfer_factory(exec_method) -> transfer handler factory
+    _os_detector: Any = None
+    _payload_transfer_factory: Any = None
 
     def __init__(self, vuln, uri_opener, worker_pool):
         Shell.__init__(self, vuln, uri_opener, worker_pool)
@@ -144,9 +152,12 @@ class ExecShell(Shell):
         :return: The message to show to the user.
         """
         if not self._transfer_handler:
+            if self._payload_transfer_factory is None:
+                return NO_TRANSFER_HANDLER_MSG
+
             # Get the fastest transfer method
             try:
-                ptf = payload_transfer_factory(self.execute)
+                ptf = self._payload_transfer_factory(self.execute)
                 self._transfer_handler = ptf.get_transfer_handler()
             except BaseFrameworkException as e:
                 return f"{e}"
@@ -303,7 +314,7 @@ class ExecShell(Shell):
         Identify the remote operating system and get some remote variables to
         show to the user.
         """
-        self._rOS = os_detection_exec(self.execute)
+        self._rOS = self._os_detector(self.execute) if self._os_detector else None
 
         if self._rOS == "linux":
             self._rUser = self.execute("whoami").strip()

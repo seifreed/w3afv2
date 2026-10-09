@@ -21,12 +21,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import logging
+from typing import Any
 
 from w3af.core.data.kb.exploit_result import ExploitResult
 from w3af.core.data.kb.vuln import Vuln
-from w3af.plugins.attack.payloads import payload_handler
 
 LOGGER = logging.getLogger(__name__)
+
+NO_PAYLOAD_HANDLER_MSG = "This shell can not run payloads."
 
 
 class Shell(ExploitResult):
@@ -36,6 +38,11 @@ class Shell(ExploitResult):
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
+    # Collaborator injected by the plugins layer that knows how to list and run
+    # attack payloads. It stays None in the data layer so the KB objects do not
+    # depend on the payloads subsystem.
+    _payload_handler: Any = None
 
     def __init__(self, vuln, uri_opener, worker_pool):
         ExploitResult.__init__(self)
@@ -172,16 +179,19 @@ class Shell(ExploitResult):
         :param payload_name: The name of the payload I want to run.
         :param parameters: The parameters as sent by the user.
         """
+        if self._payload_handler is None:
+            return NO_PAYLOAD_HANDLER_MSG
+
         #
         #    Handle payload desc xyz
         #
         if len(parameters) == 2 and parameters[0] == "desc":
             payload_name = parameters[1]
 
-            if payload_name not in payload_handler.get_payload_list():
+            if payload_name not in self._payload_handler.get_payload_list():
                 return f'Unknown payload name: "{payload_name}"'
 
-            return payload_handler.get_payload_desc(payload_name)
+            return self._payload_handler.get_payload_desc(payload_name)
 
         #
         #    Handle payload xyz
@@ -189,10 +199,10 @@ class Shell(ExploitResult):
         payload_name = parameters[0]
         parameters = parameters[1:]
 
-        if payload_name not in payload_handler.get_payload_list():
+        if payload_name not in self._payload_handler.get_payload_list():
             return f'Unknown payload name: "{payload_name}"'
 
-        if payload_name in payload_handler.runnable_payloads(self):
+        if payload_name in self._payload_handler.runnable_payloads(self):
             LOGGER.debug(f"Payload {payload_name} can be run. Starting execution.")
 
             # Note: The payloads are actually writing to om.out.console
@@ -200,12 +210,12 @@ class Shell(ExploitResult):
             # get the results in a programatic way they should execute the
             # payload with use_api=True.
             try:
-                payload_handler.exec_payload(self, payload_name, parameters)
+                self._payload_handler.exec_payload(self, payload_name, parameters)
                 result = None
             except TypeError:
                 # We get here when the user calls the payload with an incorrect
                 # number of parameters:
-                payload = payload_handler.get_payload_instance(payload_name, self)
+                payload = self._payload_handler.get_payload_instance(payload_name, self)
                 result = payload.get_desc()
             except ValueError as ve:
                 # We get here when one of the parameters provided by the user is
@@ -225,7 +235,10 @@ class Shell(ExploitResult):
 
         :return: A list with all runnable payloads.
         """
-        payloads = payload_handler.runnable_payloads(self)
+        if self._payload_handler is None:
+            return NO_PAYLOAD_HANDLER_MSG
+
+        payloads = self._payload_handler.runnable_payloads(self)
         payloads.sort()
         return "\n".join(payloads)
 
