@@ -20,19 +20,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import random
+import secrets
 from string import ascii_letters, digits
+
+from w3af.core.data.misc.deterministic_random import get_deterministic_random
 
 LETTERS_DIGITS = ascii_letters + digits
 
 
 def get_random_instance(seed):
     if seed is None:
-        return random.Random()
+        return secrets.SystemRandom()
 
-    rnd = random.Random()
-    rnd.seed(seed)
-    return rnd
+    return get_deterministic_random(seed)
 
 
 def rand_alpha(length=0, seed=None):

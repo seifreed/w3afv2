@@ -62,6 +62,7 @@ from w3af.core.controllers.output_manager import (
     log_sink_factory,
 )
 from w3af.core.controllers.output_manager.logging_bridge import configure_data_logging
+from w3af.core.controllers.parser_worker import register_parser_multiprocessing
 from w3af.core.controllers.profiling import start_profiling, stop_profiling
 from w3af.core.controllers.threads.is_main_thread import is_main_thread
 from w3af.core.controllers.threads.monkey_patch_debug import (
@@ -129,6 +130,7 @@ class w3afCore:
         manager = fresh_output_manager_inst()
         log_sink_factory(manager.get_in_queue())
         configure_data_logging()
+        register_parser_multiprocessing()
 
         # FIXME: In the future, when the output_manager is not an awful
         # singleton anymore, this line should be removed and the output_manager

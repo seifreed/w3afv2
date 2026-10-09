@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import ipaddress
 import os
 import socket
 import time
@@ -39,6 +40,10 @@ from w3af.core.controllers.payload_transfer.payload_transfer_factory import (
     payload_transfer_factory,
 )
 from w3af.core.controllers.w3afAgent.server.w3af_agent_server import w3afAgentServer
+
+# The agent must accept connections from the compromised host, so it
+# deliberately listens on every local interface.
+ALL_INTERFACES = str(ipaddress.IPv4Address(0))
 
 
 class w3afAgentManager(Process):
@@ -235,7 +240,7 @@ class w3afAgentManager(Process):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         try:
-            s.bind(("0.0.0.0", port))
+            s.bind((ALL_INTERFACES, port))
         except OSError:
             #    socket.error: [Errno 13] Permission denied
             #    Or some similar error

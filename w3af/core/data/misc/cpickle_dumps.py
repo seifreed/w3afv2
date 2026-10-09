@@ -1,4 +1,4 @@
-import pickle
+from w3af.core.data.misc.serialize import HIGHEST_PROTOCOL, dumps
 
 
 def cpickle_dumps(obj):
@@ -14,6 +14,6 @@ def cpickle_dumps(obj):
     :return: The pickled version of obj
     """
     if isinstance(obj, dict):
-        return pickle.dumps(obj, 1)
+        return dumps(obj, 1)
 
-    return pickle.dumps(obj, pickle.HIGHEST_PROTOCOL)
+    return dumps(obj, HIGHEST_PROTOCOL)

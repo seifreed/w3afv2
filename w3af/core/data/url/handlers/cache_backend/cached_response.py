@@ -22,8 +22,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import http.client
 import io
+from email.parser import Parser
 
 from w3af.core.data.url.handlers.cache_backend.utils import gen_hash
+
+HEADER_PARSER = Parser(_class=http.client.HTTPMessage)
 
 
 class CachedResponse(io.StringIO):
@@ -89,9 +92,7 @@ class CachedResponse(io.StringIO):
     def headers(self):
         if not self._headers:
             headerbuf = self._get_from_response(CachedResponse.PART_HEADER)
-            self._headers = http.client.parse_headers(
-                io.BytesIO(headerbuf.encode("utf-8"))
-            )
+            self._headers = HEADER_PARSER.parsestr(headerbuf)
         return self._headers
 
     def geturl(self):

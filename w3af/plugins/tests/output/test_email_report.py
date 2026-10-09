@@ -19,13 +19,11 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from typing import ClassVar
-from unittest.mock import patch
-
 import pytest
 
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.plugins.tests.helper import PluginConfig, PluginTest
+from w3af.plugins.tests.output.smtp_server import LocalSMTPServer
 
 
 @pytest.mark.moth
@@ -35,88 +33,54 @@ class TestEmailReport(PluginTest):
     to_addrs = "w3af@mailinator.com"
     from_addr = "w3af@gmail.com"
 
-    _run_configs: ClassVar[dict] = {
-        "cfg": {
-            "target": target_url,
-            "plugins": {
-                "audit": (
-                    PluginConfig(
-                        "xss",
-                        ("checkStored", True, PluginConfig.BOOL),
-                        ("numberOfChecks", 3, PluginConfig.INT),
-                    ),
+    def setUp(self):
+        super().setUp()
+        self.smtp_server = LocalSMTPServer()
+        self.smtp_server.start()
+        self.addCleanup(self.smtp_server.stop)
+
+    def _plugins_config(self):
+        return {
+            "audit": (
+                PluginConfig(
+                    "xss",
+                    ("checkStored", True, PluginConfig.BOOL),
+                    ("numberOfChecks", 3, PluginConfig.INT),
                 ),
-                "crawl": (
-                    PluginConfig(
-                        "web_spider", ("only_forward", True, PluginConfig.BOOL)
-                    ),
+            ),
+            "crawl": (
+                PluginConfig("web_spider", ("only_forward", True, PluginConfig.BOOL)),
+            ),
+            "output": (
+                PluginConfig(
+                    "email_report",
+                    ("smtpServer", "127.0.0.1", PluginConfig.STR),
+                    ("smtpPort", self.smtp_server.port, PluginConfig.INT),
+                    ("toAddrs", self.to_addrs, PluginConfig.LIST),
+                    ("fromAddr", self.from_addr, PluginConfig.STR),
                 ),
-                "output": (
-                    PluginConfig(
-                        "email_report",
-                        ("smtpServer", "smtp.mailinator.com", PluginConfig.STR),
-                        ("smtpPort", 25, PluginConfig.INT),
-                        ("toAddrs", to_addrs, PluginConfig.LIST),
-                        ("fromAddr", from_addr, PluginConfig.STR),
-                    ),
-                ),
-            },
+            ),
         }
-    }
 
     def test_found_xss(self):
-        # monkey-patch smtplib so we don't send actual emails
-        inbox = []
+        self._scan(self.target_url, self._plugins_config())
 
-        class Message:
-            def __init__(self, from_address, to_address, fullmessage):
-                self.from_address = from_address
-                self.to_address = to_address
-                self.fullmessage = fullmessage
+        xss_vulns = self.kb.get("xss", "xss")
+        inbox = self.smtp_server.inbox
 
-        class DummySMTP:
-            def __init__(self):
-                pass
+        self.assertEqual(len(inbox), 1)
+        email_msg = inbox[0]
 
-            def login(self, username, password):
-                self.username = username
-                self.password = password
+        self.assertEqual(email_msg.from_address, self.from_addr)
+        self.assertEqual(email_msg.to_addresses, [self.to_addrs])
 
-            def sendmail(self, from_address, to_address, fullmessage):
-                inbox.append(Message(from_address, to_address, fullmessage))
-                return []
+        xss_count = 0
+        pxss_count = 0
 
-            def quit(self):
-                self.has_quit = True
+        for line in email_msg.message.split("\n"):
+            if "A Cross Site Scripting vulnerability was found at:" in line:
+                xss_count += 1
+            elif "A persistent Cross Site Scripting vulnerability" in line:
+                pxss_count += 1
 
-        cfg = self._run_configs["cfg"]
-
-        with patch("w3af.plugins.output.email_report.smtplib.SMTP") as mock_smtp:
-            mock_smtp.return_value = DummySMTP()
-
-            self._scan(cfg["target"], cfg["plugins"])
-
-            xss_vulns = self.kb.get("xss", "xss")
-
-            self.assertEqual(len(inbox), 1)
-            email_msg = inbox[0]
-
-            self.assertEqual(email_msg.from_address, self.from_addr)
-            self.assertEqual(
-                email_msg.to_address,
-                [
-                    self.to_addrs,
-                ],
-            )
-
-            content = email_msg.fullmessage
-            xss_count = 0
-            pxss_count = 0
-
-            for line in content.split("\n"):
-                if "A Cross Site Scripting vulnerability was found at:" in line:
-                    xss_count += 1
-                elif "A persistent Cross Site Scripting vulnerability" in line:
-                    pxss_count += 1
-
-            self.assertEqual(len(xss_vulns), xss_count + pxss_count)
+        self.assertEqual(len(xss_vulns), xss_count + pxss_count)

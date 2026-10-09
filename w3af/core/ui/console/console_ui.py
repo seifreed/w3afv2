@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import logging
 import os
-import random
+import secrets
 import shlex
 import sys
 import traceback
@@ -34,6 +34,7 @@ LOGGER = logging.getLogger(__name__)
 try:
     import w3af.core.controllers.output_manager as om
     import w3af.core.ui.console.io.console as term
+    from w3af.core.controllers import console_tables as tables
     from w3af.core.controllers.w3af_core import w3afCore
     from w3af.core.data.constants.disclaimer import DISCLAIMER
     from w3af.core.data.db.startup_cfg import StartUpConfig
@@ -41,7 +42,6 @@ try:
         BaseFrameworkException,
         ScanMustStopException,
     )
-    from w3af.core.ui.console import tables
     from w3af.core.ui.console.auto_update.auto_update import ConsoleUIUpdater
     from w3af.core.ui.console.callback_menu import callbackMenu
     from w3af.core.ui.console.history import historyTable
@@ -509,6 +509,6 @@ class ConsoleUI:
         )
         with open(messages_file) as messages:
             lines = messages.readlines()
-        idx = random.randrange(len(lines))
+        idx = secrets.randbelow(len(lines))
         line = lines[idx]
         return "\n" + line

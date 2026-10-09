@@ -24,7 +24,7 @@ import difflib
 
 import diff_match_patch as dmp_module
 
-from w3af.core.data.misc.encoding import smart_str_ignore
+from w3af.core.data.misc.encoding import smart_unicode
 
 # 20 seconds it the max time we'll wait for a diff, the good thing
 # about the `diff_match_patch` library is that even when the timeout
@@ -53,8 +53,8 @@ def diff_dmp(a, b):
              Or if you want to see it in another way, the results are the
              parts of the string that make it unique between each other.
     """
-    a = smart_str_ignore(a)
-    b = smart_str_ignore(b)
+    a = smart_unicode(a, errors="ignore")
+    b = smart_unicode(b, errors="ignore")
 
     dmp = dmp_module.diff_match_patch()
     dmp.Diff_Timeout = MAX_DIFF_TIME
@@ -195,6 +195,5 @@ def split_by_sep(sequence):
     # [0] https://github.com/andresriancho/w3af/blob/2ded693c959c91dc3e4daca276460d6c64ada479/w3af/core/controllers/misc/diff.py#L173
     #
     if isinstance(sequence, bytes):
-        sequence = sequence.decode("utf-8", errors="ignore")
-
+        sequence = sequence.decode("utf-8", errors="replace")
     return sequence.translate(TRANSLATION_TABLE).split("\0")

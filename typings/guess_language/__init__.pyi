@@ -1,0 +1,3 @@
+from collections.abc import Iterable
+
+def guess_language(text: str, hints: Iterable[str] | None = None) -> str: ...

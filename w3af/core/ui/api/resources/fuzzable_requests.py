@@ -20,12 +20,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from base64 import b64encode
-
 from flask import jsonify
 
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.ui.api import app
+from w3af.core.ui.api.resources.traffic import encode_message
 from w3af.core.ui.api.utils.auth import requires_auth
 from w3af.core.ui.api.utils.error import abort
 from w3af.core.ui.api.utils.scans import get_scan_info_from_id
@@ -47,6 +46,6 @@ def get_fuzzable_request_list(scan_id):
     data = []
 
     for fuzzable_request in kb.kb.get_all_known_fuzzable_requests():
-        data.append(b64encode(fuzzable_request.dump()))
+        data.append(encode_message(fuzzable_request.dump()))
 
     return jsonify({"items": data})

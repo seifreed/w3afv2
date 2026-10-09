@@ -1,4 +1,4 @@
-from w3af.core.ui.console.tables import table
+from w3af.core.controllers.console_tables import table
 from w3af.plugins.attack.payloads.base_payload import Payload
 
 

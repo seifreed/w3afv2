@@ -20,11 +20,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import pickle
-
 from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.fuzzer.utils import rand_alpha
 from w3af.core.data.misc.cpickle_dumps import cpickle_dumps
+from w3af.core.data.misc.serialize import loads
 
 
 class DiskDict:
@@ -59,25 +58,28 @@ class DiskDict:
         self.db.drop_table(self.table_name)
 
     def keys(self):
-        pickled_keys = self.db.select(f"SELECT key FROM {self.table_name}")
+        query = "SELECT key FROM %s"
+        pickled_keys = self.db.select(query % self.table_name)
         result_list = []
 
         for r in pickled_keys:
-            result_list.append(pickle.loads(r[0]))
+            result_list.append(loads(r[0]))
 
         return result_list
 
     def iterkeys(self):
-        pickled_keys = self.db.select(f"SELECT key FROM {self.table_name}")
+        query = "SELECT key FROM %s"
+        pickled_keys = self.db.select(query % self.table_name)
 
         for r in pickled_keys:
-            yield pickle.loads(r[0])
+            yield loads(r[0])
 
     def iteritems(self):
-        pickled_keys = self.db.select(f"SELECT key, value FROM {self.table_name}")
+        query = "SELECT key, value FROM %s"
+        pickled_keys = self.db.select(query % self.table_name)
 
         for r in pickled_keys:
-            yield pickle.loads(r[0]), pickle.loads(r[1])
+            yield loads(r[0]), loads(r[1])
 
     def __contains__(self, key):
         """
@@ -86,8 +88,8 @@ class DiskDict:
         # Adding the "limit 1" to the query makes it faster, as it won't
         # have to scan through all the table/index, it just stops on the
         # first match.
-        query = f"SELECT count(*) FROM {self.table_name} WHERE key=? limit 1"
-        r = self.db.select_one(query, (cpickle_dumps(key),))
+        query = "SELECT count(*) FROM %s WHERE key=? limit 1"
+        r = self.db.select_one(query % self.table_name, (cpickle_dumps(key),))
         return bool(r[0])
 
     def __delitem__(self, key):
@@ -97,31 +99,35 @@ class DiskDict:
         :param key: The key to delete
         :return: None
         """
-        query = f"DELETE FROM {self.table_name} WHERE key = ?"
-        self.db.execute(query, (cpickle_dumps(key),))
+        query = "DELETE FROM %s WHERE key = ?"
+        self.db.execute(query % self.table_name, (cpickle_dumps(key),))
 
     def __setitem__(self, key, value):
         # Test if it is already in the DB:
         if key in self:
-            query = f"UPDATE {self.table_name} SET value = ? WHERE key=?"
-            self.db.execute(query, (cpickle_dumps(value), cpickle_dumps(key)))
+            query = "UPDATE %s SET value = ? WHERE key=?"
+            self.db.execute(
+                query % self.table_name, (cpickle_dumps(value), cpickle_dumps(key))
+            )
         else:
-            query = f"INSERT INTO {self.table_name} VALUES (NULL, ?, ?)"
-            self.db.execute(query, (cpickle_dumps(key), cpickle_dumps(value)))
+            query = "INSERT INTO %s VALUES (NULL, ?, ?)"
+            self.db.execute(
+                query % self.table_name, (cpickle_dumps(key), cpickle_dumps(value))
+            )
 
     def __getitem__(self, key):
-        query = f"SELECT value FROM {self.table_name} WHERE key=? limit 1"
-        r = self.db.select(query, (cpickle_dumps(key),))
+        query = "SELECT value FROM %s WHERE key=? limit 1"
+        r = self.db.select(query % self.table_name, (cpickle_dumps(key),))
 
         if not r:
             args = (key, self.table_name)
             raise KeyError("{} not in {}.".format(*args))
 
-        return pickle.loads(r[0][0])
+        return loads(r[0][0])
 
     def __len__(self):
-        query = f"SELECT count(*) FROM {self.table_name}"
-        r = self.db.select_one(query)
+        query = "SELECT count(*) FROM %s"
+        r = self.db.select_one(query % self.table_name)
         return r[0]
 
     def get(self, key, default=-456):

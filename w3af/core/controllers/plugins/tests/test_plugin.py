@@ -24,6 +24,7 @@ import unittest
 
 from w3af.core.controllers.plugins.plugin import Plugin
 from w3af.plugins.crawl.find_dvcs import find_dvcs
+from w3af.plugins.crawl.web_spider import web_spider
 
 
 class TestPlugin(unittest.TestCase):
@@ -38,3 +39,9 @@ class TestPlugin(unittest.TestCase):
         desc = p.get_desc()
 
         self.assertNotIn("author", desc)
+
+    def test_equal_plugins_share_set_membership(self):
+        disabled = {web_spider()}
+
+        self.assertIn(web_spider(), disabled)
+        self.assertNotIn(find_dvcs(), disabled)

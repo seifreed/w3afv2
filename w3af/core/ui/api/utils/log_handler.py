@@ -60,6 +60,7 @@ class RESTAPIOutput(OutputPlugin):
         self._db_backend: str | None = None
         self._log_id = -1
         self._lock = threading.RLock()
+        self._closed = False
 
         # Using a dbm database instead of a DiskList to make sure we don't
         # depend on anything related with w3af, DiskList uses DBMS which is
@@ -82,6 +83,7 @@ class RESTAPIOutput(OutputPlugin):
 
     def cleanup(self) -> None:
         with self._lock:
+            self._closed = True
             self._resources.close()
 
         for suffix in DATABASE_FILE_SUFFIXES:
@@ -94,10 +96,13 @@ class RESTAPIOutput(OutputPlugin):
 
     def __len__(self) -> int:
         with self._lock:
-            return len(self.log)
+            return 0 if self._closed else len(self.log)
 
     def get_entries(self, start: int, end: int) -> Iterator["Message"]:
         with self._lock:
+            if self._closed:
+                return
+
             entries = []
             for log_id in range(start, end):
                 record = self.log.get(str(log_id))
@@ -108,7 +113,14 @@ class RESTAPIOutput(OutputPlugin):
         yield from entries
 
     def _store(self, msg_type: str, msg_string: Any, severity: Any = None) -> None:
+        """
+        Messages which arrive after cleanup() belong to a finished scan whose
+        log was already removed, they are discarded
+        """
         with self._lock:
+            if self._closed:
+                return
+
             _id = self.get_log_id()
             message = Message(msg_type, self._clean_string(msg_string), _id)
             message.set_severity(severity)

@@ -1019,6 +1019,13 @@ class TestURLParser(unittest.TestCase):
         test = [u1, u2]
         self.assertEqual(len(list(set(test))), 1)
 
+    def test_sort_by_url_string(self):
+        urls = [URL("http://w3af.com/b"), URL("http://w3af.com/a")]
+        self.assertEqual(
+            [u.url_string for u in sorted(urls)],
+            ["http://w3af.com/a", "http://w3af.com/b"],
+        )
+
     def test_contains_true(self):
         u = URL("http://w3af.com/xyz.txt;id=1?file=2")
         self.assertIn("1", u)

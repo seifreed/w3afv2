@@ -64,27 +64,9 @@ class http_vs_https_dist(InfrastructurePlugin):
             om.out.error(PERM_ERROR_MSG)
             return
 
-        def set_info(name, desc):
-            i = Info(name, desc, 1, self.get_name())
-            kb.kb.append(self, "http_vs_https_dist", i)
-
         target_url = fuzzable_request.get_url()
         domain = target_url.get_domain()
-        http_port = self._http_port
-        https_port = self._https_port
-
-        # Use target port if specified
-        netloc = target_url.get_net_location()
-        try:
-            port = int(netloc.split(":")[-1])
-        except ValueError:
-            pass  # Nothing to do.
-        else:
-            protocol = target_url.get_protocol()
-            if protocol == "https":
-                https_port = port
-            else:  # it has to be 'http'
-                http_port = port
+        http_port, https_port = self.get_target_ports(target_url)
 
         # Import things from scapy when I need them in order to reduce memory
         # usage (which is specially big in scapy module, just when importing)
@@ -113,14 +95,44 @@ class http_vs_https_dist(InfrastructurePlugin):
             om.out.debug(f'There was an error running scapy\'s traceroute: "{e}"')
             return
 
+        self.report_routes(domain, http_port, https_port, http_troute, https_troute)
+
+    def get_target_ports(self, target_url):
+        """
+        :return: The (http_port, https_port) tuple to trace, using the port
+                 from the target URL for its own protocol when present
+        """
+        http_port = self._http_port
+        https_port = self._https_port
+
+        netloc = target_url.get_net_location()
+        try:
+            port = int(netloc.split(":")[-1])
+        except ValueError:
+            return http_port, https_port
+
+        if target_url.get_protocol() == "https":
+            return http_port, port
+
+        return port, https_port
+
+    def report_routes(self, domain, http_port, https_port, http_troute, https_troute):
+        """
+        Compare the traceroute results for the HTTP and HTTPS ports and report
+        the differences.
+
+        :param http_troute: The scapy trace dict for the HTTP port, which looks
+                            like {destination: {ttl: (ip_address, reached)}}
+        :param https_troute: The scapy trace dict for the HTTPS port
+        """
         # This destination was probably 'localhost' or a host reached
         # through a vpn?
         if not (https_troute and http_troute):
             return
 
-        https_ip_tuples = next(iter(https_troute.values())).values()
+        https_ip_tuples = list(next(iter(https_troute.values())).values())
         last_https_ip = https_ip_tuples[-1]
-        http_ip_tuples = next(iter(http_troute.values())).values()
+        http_ip_tuples = list(next(iter(http_troute.values())).values())
         last_http_ip = http_ip_tuples[-1]
 
         # Last IP should be True; otherwise the dest wasn't reached
@@ -131,34 +143,31 @@ class http_vs_https_dist(InfrastructurePlugin):
                 om.out.error(desc % (https_port, domain))
             if not last_http_ip[1]:
                 om.out.error(desc % (http_port, domain))
-        else:
-            trace_str = lambda iptuples: "\n".join(
-                f"    {t[0]} {t[1][0]}" for t in enumerate(iptuples)
+            return
+
+        if http_ip_tuples != https_ip_tuples:
+            header = "  TCP trace to %s:%s\n%s"
+
+            trc1 = header % (domain, http_port, _trace_str(http_ip_tuples))
+            trc2 = header % (domain, https_port, _trace_str(https_ip_tuples))
+
+            desc = (
+                'Routes to target "%s" using ports %s and ' "%s are different:\n%s\n%s"
             )
+            desc %= (domain, http_port, https_port, trc1, trc2)
+            self._report_info("HTTP and HTTPs hop distance", desc)
+            om.out.information(desc)
+        else:
+            desc = (
+                "The routes to the target's HTTP and HTTPS ports are"
+                f" the same:\n{_trace_str(http_ip_tuples)}"
+            )
+            self._report_info("HTTP traceroute", desc)
 
-            if http_ip_tuples != https_ip_tuples:
-                header = "  TCP trace to %s:%s\n%s"
+    def _report_info(self, name, desc):
+        i = Info(name, desc, 1, self.get_name())
+        kb.kb.append(self, "http_vs_https_dist", i)
 
-                trc1 = header % (domain, http_port, trace_str(http_ip_tuples))
-                trc2 = header % (domain, https_port, trace_str(https_ip_tuples))
-
-                desc = (
-                    'Routes to target "%s" using ports %s and '
-                    "%s are different:\n%s\n%s"
-                )
-                desc %= (domain, http_port, https_port, trc1, trc2)
-                set_info("HTTP and HTTPs hop distance", desc)
-                om.out.information(desc)
-            else:
-                desc = (
-                    "The routes to the target's HTTP and HTTPS ports are"
-                    f" the same:\n{trace_str(http_ip_tuples)}"
-                )
-                set_info("HTTP traceroute", desc)
-
-    # pylint: disable=E0202
-    # An attribute affected in plugins.tests.infrastructure.
-    # test_http_vs_https_dist line 53 hide this method
     def _has_permission(self):
         """
         Return boolean value that indicates if the user running w3af has
@@ -180,8 +189,6 @@ class http_vs_https_dist(InfrastructurePlugin):
             return False
 
         return True
-
-    # pylint: enable=E0202
 
     def get_options(self):
         """
@@ -224,3 +231,9 @@ class http_vs_https_dist(InfrastructurePlugin):
 
         HTTP and HTTPS ports default to 80 and 443.
         """
+
+
+def _trace_str(ip_tuples):
+    return "\n".join(
+        f"    {hop} {ip_tuple[0]}" for hop, ip_tuple in enumerate(ip_tuples)
+    )

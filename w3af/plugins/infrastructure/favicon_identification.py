@@ -69,7 +69,9 @@ class favicon_identification(InfrastructurePlugin):
         # TODO: Maybe I should also parse the html to extract the favicon location?
         favicon_url = domain_path.url_join("favicon.ico")
         response = self._uri_opener.GET(favicon_url, cache=True)
-        remote_fav_md5 = hashlib.md5(response.get_body()).hexdigest()
+        remote_fav_md5 = hashlib.md5(
+            response.get_body(), usedforsecurity=False
+        ).hexdigest()
 
         if not is_404(response):
 

@@ -31,6 +31,10 @@ import requests
 from w3af import ROOT_PATH
 from w3af.core.controllers.misc.get_unused_port import get_unused_port
 
+# Run the REST API entry point without the w3af_api launcher, whose
+# dependency check verifies the host installation instead of the API
+API_LAUNCHER = "import sys; from w3af.core.ui.api.main import main; sys.exit(main())"
+
 
 def start_api():
     """
@@ -48,7 +52,8 @@ def start_api():
 
     cmd = [
         python_executable,
-        "w3af_api",
+        "-c",
+        API_LAUNCHER,
         "-p",
         sha512(api_auth[1].encode()).hexdigest(),
         f"127.0.0.1:{port}",

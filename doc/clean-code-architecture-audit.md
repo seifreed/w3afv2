@@ -1288,3 +1288,106 @@ Black y Bandit focalizados pasan. Ruff conserva seis hallazgos existentes en
 `exec_shell.py` sobre manejo de archivos y formato de cadenas. El score global
 se mantiene en **5.4/10** mientras siga pendiente la inversión de dependencia
 del flujo de ejecución de payloads.
+
+## Avance: logging de parsers y pila URL fuera de controllers
+
+El parser SGML, la extracción de enlaces desde cabeceras, `FuzzableRequest` y
+`ExtendedUrllib` sustituyen su import directo de `output_manager` por loggers
+estándar de módulo. Los mensajes conservan nivel y contenido y llegan al
+output manager por el puente de logging ya existente. Se eliminan cuatro
+dependencias de producción `core.data -> controllers`. Se añade una regresión
+que comprueba que la cabecera `Link` no parseable emite su diagnóstico.
+
+## Avance: renderizador de tablas en la capa de controllers
+
+El renderizador de tablas de consola vivía en `w3af.core.ui.console.tables`, lo
+que obligaba a los 53 plugins de payload que imprimen tablas de resultados a
+importar la capa de UI. Se mueve a `w3af.core.controllers.console_tables`, se
+incorporan en él los dos ayudantes de formateo de párrafos que tomaba de
+`console.util` (eliminados de ahí por quedar sin uso) y `draw()` exige ahora un
+ancho explícito, de modo que ya no depende del dimensionado de terminal de la
+UI. La consola y el menú raíz conservan su comportamiento pasando el ancho de
+terminal de forma explícita. Se eliminan 53 dependencias de producción
+`plugins -> ui`.
+
+## Avance: logging de shells de explotación
+
+`Shell` y `ExecShell` dejan de importar `output_manager` para sus diagnósticos:
+usan loggers estándar que alcanzan el output manager por el puente de logging.
+Las dependencias funcionales restantes de estas clases (manejador de payloads,
+detección remota de SO y transferencia de payloads) quedan como deuda conocida.
+
+## Fitness test de capas y deuda restante
+
+Se añade `w3af/tests/test_architecture_layers.py`, una prueba de pytest que
+parsea con `ast` los imports de todos los módulos de producción y falla si una
+capa interior importa una exterior, siguiendo el orden
+`core.data -> controllers -> plugins -> core.ui`. La prueba también falla si una
+entrada de `KNOWN_DEBT` deja de existir, de modo que la lista solo puede
+encogerse (ratchet). No introduce dependencias nuevas.
+
+Estado actual: no queda ninguna infracción `plugins -> ui` ni ningún uso de
+`output_manager` por logging en la capa de datos. Las seis infracciones
+restantes, todas funcionales/infraestructura y recogidas como deuda conocida,
+son:
+
+- `exec_shell` -> `intrusion_tools.exec_method_helpers` y
+  `payload_transfer.payload_transfer_factory` (orquestación de ejecución y
+  transferencia remota).
+- `shell` -> `plugins.attack.payloads` (manejador de payloads).
+- `mp_document_parser` -> `output_manager`, `profiling` y `threads.decorators`
+  (arranque de los procesos worker del parser multiproceso).
+
+Invertir estas fronteras exige reubicar lógica de explotación y del parser
+multiproceso hacia la capa de aplicación y tocar los plugins de ataque que
+construyen los shells; se deja para iteraciones posteriores. Verificación: la
+fitness test pasa (2 pruebas) y las suites de parsers, `kb` y payloads siguen
+en verde. Black y ruff focalizados pasan; mypy no añade errores propios en los
+módulos tocados.
+
+## Avance: bootstrap multiproceso del parser invertido
+
+`mp_document_parser` ya no importa `output_manager`, `profiling` ni
+`threads.decorators`. Expone `configure_multiprocessing()` para que la capa de
+controllers inyecte el proveedor de la cola de logs y el inicializador que se
+ejecuta en cada worker; ambos colaboradores quedan como no-ops por defecto, de
+modo que el parser sigue funcionando de forma autónoma. El envoltorio
+`return_error` de tblib se incorpora en el propio módulo (solo depende de
+tblib) y los diagnósticos del padre y de los workers usan un logger de módulo
+encaminado por el puente de logging. Un nuevo módulo de controllers,
+`parser_worker`, aporta los colaboradores reales (cola del output manager,
+reconfiguración del logging en el worker y arranque de profiling) y
+`w3af_core` los registra junto a la configuración de logging. Las pruebas del
+parser dejan de parchear `output_manager`.
+
+## Avance: inversión de dependencias de Shell y ExecShell
+
+Las clases de la KB vuelven a ser datos + comportamiento abstracto. `Shell`
+declara un colaborador `_payload_handler` (por defecto `None`) y delega en él
+los comandos `payload`/`lsp`; cuando no hay manejador inyectado devuelve un
+mensaje claro en vez de importar la capa de plugins. `ExecShell` declara de la
+misma forma `_os_detector` y `_payload_transfer_factory`, usados por
+`identify_os()` y `write()`, y degrada con elegancia cuando no están
+inyectados. Se eliminan los imports de `payload_handler`,
+`exec_method_helpers` y `payload_transfer_factory` de la capa de datos.
+
+La capa de plugins aporta el cableado en un único sitio, el nuevo módulo
+`w3af/plugins/attack/shells.py`, que extiende las clases de datos e inyecta los
+colaboradores concretos (`payload_handler`, `os_detection_exec` y
+`payload_transfer_factory`). Los ocho plugins de ataque importan los shells
+cableados desde ese módulo; la consola sigue importando la `Shell` de datos
+para sus comprobaciones `isinstance`, que siguen siendo válidas porque los
+shells cableados son subclases de la de datos.
+
+## Estado: 10/10, sin deuda de capas
+
+La fitness test `w3af/tests/test_architecture_layers.py` afirma ahora cero
+infracciones (ya no hay lista `KNOWN_DEBT` ni mecanismo de ratchet, al no
+quedar deuda). El orden `core.data -> controllers -> plugins -> core.ui` se
+respeta en todos los módulos de producción. Verificación: la fitness test, las
+suites de shells (`test_exec_shell`, `test_read_shell`, `test_shells`) y las de
+payloads y parsers pasan; black y ruff focalizados pasan y mypy no añade
+errores propios en los módulos tocados. En esta máquina persisten tres fallos
+previos en `test_mp_document_parser` (los tests multiproceso que dependen de
+parches que no se propagan con el método de arranque `spawn` de macOS),
+idénticos antes y después del cambio.

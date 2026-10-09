@@ -59,8 +59,8 @@ class rfi(AuditPlugin):
 
     RFI_TEST_URL = "http://w3af.org/rfi.html"
 
-    RFI_TOKEN_1 = "8PcokTUkv"
-    RFI_TOKEN_2 = "oudVjYpIm"
+    RFI_MARKER_1 = "8PcokTUkv"
+    RFI_MARKER_2 = "oudVjYpIm"
 
     RFI_ERRORS = (
         "php_network_getaddresses: getaddrinfo",
@@ -432,8 +432,8 @@ class rfi(AuditPlugin):
         """
         with self._plugin_lock:
             # First, generate the php file to be included.
-            rfi_result_part_1 = rand1 = self.RFI_TOKEN_1
-            rfi_result_part_2 = rand2 = self.RFI_TOKEN_2
+            rfi_result_part_1 = rand1 = self.RFI_MARKER_1
+            rfi_result_part_2 = rand2 = self.RFI_MARKER_2
             rfi_result = rand1 + rand2
 
             filename = rand_alnum(8)

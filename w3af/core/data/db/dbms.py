@@ -32,6 +32,7 @@ from w3af.core.data.db.exceptions import (
     MalformedDBException,
     NoSuchTableException,
 )
+from w3af.core.data.db.sql_identifier import require_safe_identifier
 from w3af.core.data.misc.file_utils import replace_file_special_chars
 from w3af.core.filesystem import create_temp_dir, get_temp_dir
 
@@ -68,8 +69,11 @@ def verify_started(meth):
     def inner_verify_started(self, *args, **kwds):
         msg = "No calls to SQLiteDBMS can be made after stop()."
 
-        assert not self.sql_executor.get_received_poison_pill(), msg
-        assert self.sql_executor.is_alive(), msg
+        if self.sql_executor.get_received_poison_pill():
+            raise RuntimeError(msg)
+
+        if not self.sql_executor.is_alive():
+            raise RuntimeError(msg)
 
         return meth(self, *args, **kwds)
 
@@ -191,15 +195,15 @@ class SQLiteDBMS:
         return self.filename
 
     def drop_table(self, name):
-        query = f"DROP TABLE {name}"
+        query = f"DROP TABLE {require_safe_identifier(name)}"
         return self.execute(query, commit=True)
 
     def clear_table(self, name):
         """
         Remove all rows from a table.
         """
-        query = f"DELETE FROM {name} WHERE 1=1"
-        return self.execute(query, commit=True)
+        query = "DELETE FROM %s WHERE 1=1"
+        return self.execute(query % require_safe_identifier(name), commit=True)
 
     def create_table(self, name, columns, pk_columns=(), constraints=()):
         """
@@ -218,7 +222,7 @@ class SQLiteDBMS:
             raise TypeError("constraints requires constraints in a tuple")
 
         # Create the table
-        query = f"CREATE TABLE {name} ("
+        query = f"CREATE TABLE {require_safe_identifier(name)} ("
 
         all_columns = []
         for column_data in columns:
@@ -253,9 +257,9 @@ class SQLiteDBMS:
         :param table: The table from which you want to create an index from
         :param columns: A list of column names.
         """
-        query = "CREATE INDEX {}_index ON {}( {} )".format(
-            table, table, ",".join(columns)
-        )
+        table = require_safe_identifier(table)
+        safe_columns = ",".join(require_safe_identifier(c) for c in columns)
+        query = f"CREATE INDEX {table}_index ON {table}( {safe_columns} )"
 
         return self.execute(query, commit=True)
 

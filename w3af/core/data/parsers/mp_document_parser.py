@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import atexit
+import logging
 import multiprocessing
 import os
 import resource
@@ -31,12 +32,8 @@ from concurrent.futures import TimeoutError
 import psutil
 from pebble import ProcessPool
 from pebble.common import ProcessExpired
-from tblib.decorators import Error
+from tblib.decorators import Error, return_error
 
-import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.output_manager import log_sink_factory
-from w3af.core.controllers.profiling import start_profiling_no_core
-from w3af.core.controllers.threads.decorators import apply_with_return_error
 from w3af.core.data.parsers.document_parser import DocumentParser
 from w3af.core.data.parsers.ipc.serialization import (
     load_http_response_from_temp_file,
@@ -56,6 +53,39 @@ from w3af.core.profiling import (
     is_memory_profiling_enabled,
     is_tracemalloc_enabled,
 )
+
+LOGGER = logging.getLogger(__name__)
+
+# Collaborators injected by the controllers layer so that this data-layer module
+# does not depend on the output manager or profiling infrastructure. They stay
+# as no-ops until w3af wires the multiprocessing bootstrap at startup.
+_LOG_QUEUE_PROVIDER = None
+_WORKER_INITIALIZER = None
+
+
+def configure_multiprocessing(log_queue_provider, worker_initializer):
+    """
+    Register the collaborators used to bootstrap parser worker processes.
+
+    :param log_queue_provider: Callable returning the queue that worker logs are
+                               written to, or None to run workers without a log
+                               sink.
+    :param worker_initializer: Callable executed inside each worker process,
+                               receiving the log queue as its only argument.
+    :return: None
+    """
+    global _LOG_QUEUE_PROVIDER, _WORKER_INITIALIZER
+    _LOG_QUEUE_PROVIDER = log_queue_provider
+    _WORKER_INITIALIZER = worker_initializer
+
+
+@return_error
+def apply_with_return_error(args):
+    """
+    :see: https://github.com/ionelmc/python-tblib/issues/4
+    """
+    return args[0](*args[1:])
+
 
 # 128 MB
 DEFAULT_MEMORY_LIMIT = 128 * 1024 * 1024
@@ -140,12 +170,14 @@ class MultiProcessingDocumentParser:
             if self._pool is None:
 
                 # Start the process pool
-                log_queue = om.manager.get_in_queue()
+                log_queue = (
+                    _LOG_QUEUE_PROVIDER() if _LOG_QUEUE_PROVIDER is not None else None
+                )
                 self._pool = ProcessPool(
                     self.max_workers,
                     max_tasks=20,
                     initializer=init_worker,
-                    initargs=(log_queue, self.memory_limit),
+                    initargs=(_WORKER_INITIALIZER, log_queue, self.memory_limit),
                 )
 
         return self._pool
@@ -232,7 +264,7 @@ class MultiProcessingDocumentParser:
                     " order to prevent OOM issues."
                 )
                 args = (self.memory_limit, http_response.get_url())
-                om.out.debug(msg % args)
+                LOGGER.debug(msg % args)
                 raise ParserMemoryLimitError(msg % args)
 
             raise_parsing_error(process_result)
@@ -322,7 +354,7 @@ class MultiProcessingDocumentParser:
                     " order to prevent OOM issues."
                 )
                 args = (self.memory_limit, http_response.get_url())
-                om.out.debug(msg % args)
+                LOGGER.debug(msg % args)
 
             return []
 
@@ -359,7 +391,7 @@ def process_get_tags_by_filter(filename, parsers, tags, yield_text, debug):
         " and tags filter %r"
     )
     args = (len(filtered_tags), http_resp.get_uri(), tags)
-    om.out.debug(msg % args)
+    LOGGER.debug(msg % args)
 
     result_filename = write_tags_to_temp_file(filtered_tags)
 
@@ -377,7 +409,7 @@ def process_document_parser(filename, parsers, debug):
     if debug:
         msg = "[mp_document_parser] PID %s is starting to parse %s"
         args = (pid, http_resp.get_url())
-        om.out.debug(msg % args)
+        LOGGER.debug(msg % args)
 
     try:
         # Parse
@@ -389,7 +421,7 @@ def process_document_parser(filename, parsers, debug):
                 ' exception: "%s"'
             )
             args = (pid, http_resp.get_url(), e)
-            om.out.debug(msg % args)
+            LOGGER.debug(msg % args)
         raise
     else:
         if debug:
@@ -398,7 +430,7 @@ def process_document_parser(filename, parsers, debug):
                 " exception"
             )
             args = (pid, http_resp.get_url())
-            om.out.debug(msg % args)
+            LOGGER.debug(msg % args)
 
     result_filename = write_object_to_temp_file(document_parser)
 
@@ -411,7 +443,7 @@ def cleanup_pool():
         mp_doc_parser.stop_workers()
 
 
-def init_worker(log_queue, mem_limit):
+def init_worker(worker_initializer, log_queue, mem_limit):
     """
     This function is called right after each Process in the ProcessPool is
     created, and it will initialized some variables/handlers which are required
@@ -420,8 +452,8 @@ def init_worker(log_queue, mem_limit):
     :return: None
     """
     signal.signal(signal.SIGINT, signal.SIG_IGN)
-    log_sink_factory(log_queue)
-    start_profiling_no_core()
+    if worker_initializer is not None:
+        worker_initializer(log_queue)
     limit_memory_usage(mem_limit)
 
 
@@ -478,7 +510,7 @@ def limit_memory_usage(mem_limit):
             " will continue but in some scenarios the HTTP response"
             " parsers might use a large amount of memory."
         )
-        om.out.error(error % e)
+        LOGGER.error(error % e)
         return
 
     real_memory_limit = p.memory_info().vms + mem_limit
@@ -488,7 +520,7 @@ def limit_memory_usage(mem_limit):
 
     limit_mb = real_memory_limit / 1024 / 1024
     msg = "Using RLIMIT_AS memory usage limit %s MB for new pool process"
-    om.out.debug(msg % limit_mb)
+    LOGGER.debug(msg % limit_mb)
 
 
 mp_doc_parser = MultiProcessingDocumentParser() if is_main_process() else None

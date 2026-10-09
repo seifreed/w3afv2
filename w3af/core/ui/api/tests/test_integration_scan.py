@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import base64
 import json
+from urllib.parse import urlsplit
 
 import requests
 import urllib3
@@ -29,17 +30,16 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 from w3af.core.ui.api.tests.utils.integration_test import IntegrationTest
-from w3af.core.ui.api.tests.utils.test_profile import (
-    get_expected_vuln_names,
-    get_expected_vuln_urls,
-    get_test_profile,
-)
+from w3af.core.ui.api.tests.utils.test_profile import get_test_profile
+from w3af.tests.helpers.sqli_site import SQLInjectionSite
 
 
 class APIScanTest(IntegrationTest):
 
     def test_start_simple_scan(self):
-        profile, target_url = get_test_profile()
+        site = SQLInjectionSite.serve_for(self)
+        target_url = site.url
+        profile = get_test_profile(target_url)
         data = {"scan_profile": profile, "target_urls": [target_url]}
         response = requests.post(
             f"{self.api_url}/scans/",
@@ -106,9 +106,9 @@ class APIScanTest(IntegrationTest):
         names = {v["name"] for v in vuln_summaries}
         urls = {v["url"] for v in vuln_summaries}
 
-        self.assertEqual(4, len(vuln_summaries))
-        self.assertEqual(names, set(get_expected_vuln_names()))
-        self.assertEqual(urls, set(get_expected_vuln_urls(target_url)))
+        self.assertEqual(len(site.vulnerable_urls()), len(vuln_summaries))
+        self.assertEqual(names, {"SQL injection"})
+        self.assertEqual(urls, set(site.vulnerable_urls()))
 
         #
         # Make sure I can access the vulnerability details
@@ -143,7 +143,8 @@ class APIScanTest(IntegrationTest):
         self.assertIn("request", traffic_data)
         self.assertIn("response", traffic_data)
 
-        self.assertIn("GET ", base64.b64decode(traffic_data["request"]))
+        request = base64.b64decode(traffic_data["request"]).decode("utf-8")
+        self.assertIn(urlsplit(vuln_info["url"]).path, request)
 
         #
         # Get the scan log
@@ -156,9 +157,9 @@ class APIScanTest(IntegrationTest):
         self.assertEqual(response.status_code, 200, response.text)
 
         log_data = response.json()
-        self.assertGreater(len(log_data["entries"]), 100)
-        self.assertEqual(log_data["next"], None)
-        self.assertEqual(log_data["next_url"], None)
+        self.assertEqual(len(log_data["entries"]), 200)
+        self.assertEqual(log_data["next"], 1)
+        self.assertEqual(log_data["next_url"], f"/scans/{scan_id}/log?page=1")
 
         zero_entry = log_data["entries"][0]
         self.assertEqual(zero_entry["message"], "Called w3afCore.start()")
@@ -178,7 +179,9 @@ class APIScanTest(IntegrationTest):
         return scan_id
 
     def test_stop(self):
-        profile, target_url = get_test_profile()
+        site = SQLInjectionSite.serve_for(self, hold_requests=True)
+        target_url = site.url
+        profile = get_test_profile(target_url)
         data = {"scan_profile": profile, "target_urls": [target_url]}
         response = requests.post(
             f"{self.api_url}/scans/",
@@ -205,6 +208,7 @@ class APIScanTest(IntegrationTest):
             f"{self.api_url}/scans/0/stop", auth=self.api_auth, verify=False
         )
         self.assertEqual(response.json(), {"message": "Stopping scan"})
+        site.release()
 
         # Wait for it...
         self.wait_until_finish()

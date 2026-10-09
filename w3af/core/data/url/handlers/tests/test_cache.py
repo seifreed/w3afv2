@@ -23,12 +23,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import unittest
 import urllib.request
 
+from w3af.core.data.db.history import HistoryItem
+from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url import opener_settings
 from w3af.core.data.url.handlers.cache import CacheHandler
 from w3af.core.data.url.handlers.cache_backend.db import SQLCachedResponse
+from w3af.core.data.url.handlers.cache_backend.utils import gen_hash
 from w3af.core.data.url.handlers.keepalive import HTTPHandler
 from w3af.core.data.url.http_request import HTTPRequest
+from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.data.url.tests.helpers.route_server import Response, RouteServer
 
 BODY = "spameggs"
@@ -75,6 +79,24 @@ class TestCacheHandler(CacheServerTestCase):
         self.assertEqual(cached_response.info().get("content-type"), CONTENT_TYPE)
         self.assertEqual(cached_response.geturl(), url.url_string)
         self.assertEqual(len(self.server.requests), 1)
+
+    def test_cached_response_keeps_headers(self):
+        url = URL("http://www.w3af.org/")
+        request = HTTPRequest(url, cache=True)
+        CacheHandler()
+
+        headers = Headers([("Content-Type", "text/html")])
+        response = HTTPResponse(200, "<html/>", headers, url, url, msg="OK")
+        response.set_id(1)
+        response.set_alias(gen_hash(request))
+
+        history = HistoryItem()
+        history.request = request
+        history.response = response
+        history.save()
+
+        cached_response = SQLCachedResponse(request)
+        self.assertEqual(cached_response.info()["Content-Type"], "text/html")
 
     def test_no_cache(self):
         url = URL(self.server.url("/"))

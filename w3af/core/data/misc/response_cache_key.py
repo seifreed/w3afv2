@@ -45,7 +45,7 @@ def get_response_cache_key(http_response, clean_response=None, headers=None):
 
     :return: Hash of the HTTP response body
     """
-    headers = "" or headers
+    headers = headers or ""
 
     #
     # Only some HTTP responses benefit from the XML-bones signature
@@ -66,16 +66,13 @@ def get_response_cache_key(http_response, clean_response=None, headers=None):
     #
     # Calculate the hash using all the captured information
     #
-    key = b"".join(
-        [
-            smart_str_ignore(str(http_response.get_code())),
-            smart_str_ignore(normalized_path),
-            smart_str_ignore(str(headers)),
-            smart_str_ignore(body),
-        ]
-    )
+    key = _join_as_bytes(str(http_response.get_code()), normalized_path, headers, body)
 
     return quick_hash(key)
+
+
+def _join_as_bytes(*parts):
+    return b"".join(smart_str_ignore(part) for part in parts)
 
 
 def _should_use_xml_bones(http_response):
@@ -129,8 +126,7 @@ class ResponseCacheKeyCache:
         else:
             body = http_response.body
 
-        cache_key = f"{smart_str_ignore(body)}{headers}"
-        cache_key = quick_hash(cache_key)
+        cache_key = quick_hash(_join_as_bytes(body, headers or ""))
 
         result = self._cache.get(cache_key, None)
 

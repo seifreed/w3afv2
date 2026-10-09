@@ -53,7 +53,7 @@ from .connections import (
     ProxyHTTPConnection,
     ProxyHTTPSConnection,
 )
-from .utils import debug, error, to_utf8_raw
+from .utils import debug, error, request_body_bytes, to_utf8_raw
 
 DEFAULT_CONTENT_TYPE = "application/x-www-form-urlencoded"
 
@@ -128,7 +128,7 @@ class KeepAliveHandler:
     def _remove_connection(self, conn):
         self._cm.remove_connection(conn, reason="remove connection")
 
-    def do_open(self, req):
+    def do_open_keepalive(self, req):
         """
         Called by handler's url_open method.
         """
@@ -354,10 +354,9 @@ class KeepAliveHandler:
             conn.putheader("Connection", "keep-alive")
 
         data = req.get_data()
-        if data is not None and not isinstance(data, bytes):
-            data = str(data).encode("utf-8")
-
         if data is not None:
+            data = request_body_bytes(data)
+
             if not req.has_header("Content-type"):
                 conn.putheader("Content-type", DEFAULT_CONTENT_TYPE)
 
@@ -433,7 +432,7 @@ class HTTPHandler(KeepAliveHandler, urllib.request.HTTPHandler):
         urllib.request.HTTPHandler.__init__(self, debuglevel=0)
 
     def http_open(self, req):
-        return self.do_open(req)
+        return self.do_open_keepalive(req)
 
     def get_connection(self, request):
         return HTTPConnection(request.host, timeout=request.get_timeout())
@@ -458,7 +457,7 @@ class HTTPSHandler(KeepAliveHandler, urllib.request.HTTPSHandler):
                 self._proxy = None
 
     def https_open(self, req):
-        return self.do_open(req)
+        return self.do_open_keepalive(req)
 
     def get_connection(self, request):
         use_proxy = getattr(request, "use_proxy", False)

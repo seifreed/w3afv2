@@ -19,12 +19,22 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import json
+import os
+import tempfile
 from typing import ClassVar
-from unittest.mock import patch
 
 import pytest
 
+from w3af.plugins.infrastructure.php_eggs import md5_hash
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
+
+EGG_HASHES = {
+    "credits": md5_hash("1"),
+    "php_1": md5_hash("2"),
+    "php_2": md5_hash("3"),
+    "zend": md5_hash("4"),
+}
 
 
 @pytest.mark.smoke
@@ -50,28 +60,35 @@ class TestPHPEggs(PluginTest):
         ),
     ]
 
-    _run_configs: ClassVar[dict] = {
-        "cfg": {
-            "target": None,
-            "plugins": {"infrastructure": (PluginConfig("php_eggs"),)},
+    def _write_eggs_db(self):
+        """
+        :return: The path to an eggs database where the bodies served by the
+                 canned server identify PHP 5.3.2 and 5.3.1
+        """
+        eggs_db = {
+            "db": [
+                {"version": "5.3.2", **EGG_HASHES},
+                {"version": "5.3.1", **EGG_HASHES},
+                {"version": "5.2.0", **EGG_HASHES, "credits": md5_hash("other")},
+            ]
         }
-    }
+        file_descriptor, path = tempfile.mkstemp(suffix=".json")
+        with os.fdopen(file_descriptor, "w") as eggs_db_file:
+            json.dump(eggs_db, eggs_db_file)
+        self.addCleanup(os.unlink, path)
+        return path
 
     def test_php_eggs_fingerprinted(self):
-        cfg = self._run_configs["cfg"]
+        eggs_db_path = self._write_eggs_db()
+        plugins = {
+            "infrastructure": (
+                PluginConfig(
+                    "php_eggs", ("eggs_db", eggs_db_path, PluginConfig.INPUT_FILE)
+                ),
+            )
+        }
 
-        with patch("w3af.plugins.infrastructure.php_eggs.md5_hash") as md5mock:
-
-            def side_effect(body):
-                return {
-                    "1": "a4c057b11fa0fba98c8e26cd7bb762a8",
-                    "2": "c48b07899917dfb5d591032007041ae3",
-                    "3": "fb3bbd9ccc4b3d9e0b3be89c5ff98a14",
-                    "4": "7675f1d01c927f9e6a4752cf182345a2",
-                }.get(body)
-
-            md5mock.side_effect = side_effect
-            self._scan(self.target_url, cfg["plugins"])
+        self._scan(self.target_url, plugins)
 
         eggs = self.kb.get("php_eggs", "eggs")
         self.assertEqual(len(eggs), 4, eggs)

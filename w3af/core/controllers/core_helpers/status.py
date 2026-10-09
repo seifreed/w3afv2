@@ -258,6 +258,9 @@ class CoreStatus:
         return self.get_current_fuzzable_request("crawl")
 
     def get_crawl_eta(self):
+        if not self.has_started():
+            return None
+
         adjustment = self.get_crawl_adjustment_ratio()
 
         return self.calculate_eta(
@@ -300,6 +303,9 @@ class CoreStatus:
         return 0 if gc is None else gc.in_queue.get_output_rpm()
 
     def get_grep_eta(self):
+        if not self.has_started():
+            return None
+
         adjustment = self.get_grep_adjustment_ratio()
 
         return self.calculate_eta(
@@ -345,6 +351,9 @@ class CoreStatus:
         return ac.has_finished()
 
     def get_audit_eta(self):
+        if not self.has_started():
+            return None
+
         adjustment = self.get_audit_adjustment_ratio()
 
         return self.calculate_eta(

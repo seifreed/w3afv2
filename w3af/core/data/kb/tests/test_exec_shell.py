@@ -22,7 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-from w3af.core.data.kb.exec_shell import ExecShell
+from w3af.core.data.kb.exec_shell import NO_TRANSFER_HANDLER_MSG, ExecShell
+from w3af.core.data.kb.shell import NO_PAYLOAD_HANDLER_MSG
 from w3af.core.data.kb.tests.test_vuln import MockVuln
 
 
@@ -37,6 +38,19 @@ class TestExecShell(unittest.TestCase):
         self.assertIn("    help", _help)
         # Note that I add an extra space
         self.assertNotIn("     help", _help)
+
+    def test_without_injected_collaborators(self):
+        shell = ExecShell(MockVuln(), None, None)
+
+        # No payload handler and no payload transfer factory are injected in the
+        # data layer, so the shell degrades gracefully instead of importing the
+        # outer layers.
+        self.assertEqual(shell._print_runnable_payloads(), NO_PAYLOAD_HANDLER_MSG)
+        self.assertEqual(shell.write("/tmp/x", "data"), NO_TRANSFER_HANDLER_MSG)
+
+        shell.identify_os()
+        self.assertIsNone(shell.get_remote_os())
+        self.assertEqual(shell.get_remote_user(), "unknown")
 
     def test_help_contents(self):
         shell = ExecShell(MockVuln(), None, None)

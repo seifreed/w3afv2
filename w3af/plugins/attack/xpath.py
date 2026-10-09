@@ -23,13 +23,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import difflib
 import re
 import textwrap
-from random import randint
+from secrets import randbelow
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
 from w3af.core.controllers.threads.threadpool import return_args
-from w3af.core.data.kb.shell import Shell
+from w3af.plugins.attack.payloads.shells import Shell
 
 ERROR_MSG = "Empty search result"
 XML_FILTER = "//*"
@@ -48,7 +48,7 @@ class xpath(AttackPlugin):
         AttackPlugin.__init__(self)
 
         # Internal variables
-        self.rnum = randint(1, 100)
+        self.rnum = randbelow(100) + 1
 
     def get_attack_type(self):
         """

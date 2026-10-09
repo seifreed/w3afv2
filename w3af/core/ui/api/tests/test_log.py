@@ -27,12 +27,14 @@ from w3af.core.ui.api.tests.utils.test_profile import (
     SLOW_TEST_PROFILE,
     get_test_profile,
 )
+from w3af.tests.helpers.sqli_site import SQLInjectionSite
 
 
 class ApiScanLogTest(APIUnitTest):
 
     def test_scan_log(self):
-        profile, target_url = get_test_profile(SLOW_TEST_PROFILE)
+        target_url = SQLInjectionSite.serve_for(self).url
+        profile = get_test_profile(target_url, SLOW_TEST_PROFILE)
         data = {"scan_profile": profile, "target_urls": [target_url]}
         response = self.app.post("/scans/", data=json.dumps(data), headers=self.HEADERS)
 

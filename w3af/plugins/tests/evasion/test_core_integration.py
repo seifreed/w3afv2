@@ -20,45 +20,36 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
-from unittest.mock import MagicMock
+import re
+from typing import ClassVar
 
-import pytest
-
-from w3af.core.controllers.ci.moth import get_moth_http
-from w3af.core.controllers.w3af_core import w3afCore
-from w3af.core.data.parsers.doc.url import URL
-from w3af.plugins.tests.helper import create_target_option_list
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 
-@pytest.mark.moth
-class TestCoreIntegration(unittest.TestCase):
+class TestCoreIntegration(PluginTest):
 
-    def setUp(self):
-        self.w3afcore = w3afCore()
+    target_url = "http://mock/products?id=1"
 
-    def tearDown(self):
-        self.w3afcore.quit()
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(re.compile(r"http://mock/.*"), "Product details")
+    ]
+
+    _run_configs: ClassVar[dict] = {
+        "cfg": {
+            "target": target_url,
+            "plugins": {
+                "evasion": (PluginConfig("self_reference"),),
+                "audit": (PluginConfig("sqli"),),
+            },
+        }
+    }
 
     def test_send_mangled(self):
+        cfg = self._run_configs["cfg"]
+        self._scan(cfg["target"], cfg["plugins"])
 
-        self.w3afcore.plugins.set_plugins(["self_reference"], "evasion")
-        self.w3afcore.plugins.set_plugins(["sqli"], "audit")
+        mangled_requests = [
+            request for request in self.received_requests if "/./" in request.path
+        ]
 
-        target_opts = create_target_option_list(URL(get_moth_http()))
-        self.w3afcore.target.set_options(target_opts)
-
-        # Verify env and start the scan
-        self.w3afcore.plugins.init_plugins()
-        self.w3afcore.verify_environment()
-
-        sref = self.w3afcore.plugins.plugins["evasion"][0]
-
-        def return_arg(request):
-            return request
-
-        sref.modify_request = MagicMock(side_effect=return_arg)
-
-        self.w3afcore.start()
-
-        self.assertGreater(sref.modify_request.call_count, 15)
+        self.assertGreater(len(mangled_requests), 15)

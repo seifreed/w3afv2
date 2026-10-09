@@ -203,7 +203,8 @@ class Form(KeyValueContainer):
         """
         :return: Tokens associated with the login (username and password)
         """
-        assert self.is_login_form(), "Login form is required"
+        if not self.is_login_form():
+            raise ValueError("Login form is required")
 
         user_token = None
         pass_token = None
@@ -226,10 +227,12 @@ class Form(KeyValueContainer):
         """
         Sets the username field to the desired value. This requires a login form
         """
-        assert self.is_login_form(), "Login form is required"
+        if not self.is_login_form():
+            raise ValueError("Login form is required")
 
         text, _passwd, _other = self.get_parameter_type_count()
-        assert text == 1, "Login form with username is required"
+        if text != 1:
+            raise ValueError("Login form with username is required")
 
         for k, v, path, setter in self.iter_setters():
             if self.get_parameter_type(k).lower() == INPUT_TYPE_TEXT:
@@ -239,7 +242,8 @@ class Form(KeyValueContainer):
         """
         Sets the password field to the desired value. This requires a login form
         """
-        assert self.is_login_form(), "Login form is required"
+        if not self.is_login_form():
+            raise ValueError("Login form is required")
 
         for k, v, path, setter in self.iter_setters():
             if self.get_parameter_type(k).lower() == INPUT_TYPE_PASSWD:

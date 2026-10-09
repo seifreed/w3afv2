@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 from typing import ClassVar
-from unittest.mock import Mock
 
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
@@ -48,9 +47,9 @@ class TestUserDir(PluginTest):
     }
 
     def test_fuzzer_user(self):
-        # Don't enable dependencies
-        self.w3afcore.plugins.resolve_dependencies = Mock()
-
+        # The finger_* dependencies query search engines through the canned
+        # HTTP server, which knows no users, so only the internal user list
+        # is used by user_dir
         cfg = self._run_configs["cfg"]
         self._scan(cfg["target"], cfg["plugins"])
 

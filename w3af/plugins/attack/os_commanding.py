@@ -27,11 +27,11 @@ from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
 from w3af.core.data.fuzzer.mutants.headers_mutant import HeadersMutant
 from w3af.core.data.fuzzer.utils import rand_alpha
-from w3af.core.data.kb.exec_shell import ExecShell
 from w3af.core.data.misc.response_cut import ResponseCutMixin
 from w3af.core.exceptions import BodyCutException
 from w3af.plugins.attack.payloads import shell_handler
 from w3af.plugins.attack.payloads.decorators.exec_decorator import exec_debug
+from w3af.plugins.attack.payloads.shells import ExecShell
 
 
 class ExploitStrategy:

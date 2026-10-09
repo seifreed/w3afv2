@@ -21,8 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
-import random
-import subprocess
 import tempfile
 import time
 
@@ -32,6 +30,7 @@ from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.intrusion_tools.exec_method_helpers import (
     get_remote_temp_file,
 )
+from w3af.core.controllers.misc.external_process import run_process, start_process
 from w3af.core.controllers.payload_transfer.payload_transfer_factory import (
     payload_transfer_factory,
 )
@@ -156,7 +155,7 @@ class vdaemon:
         )
 
         # TODO: Add support for KDE, Windows, etc.
-        subprocess.Popen(["gnome-terminal", "-e", msfcli_command])
+        start_process(["gnome-terminal", "-e", msfcli_command])
 
         # Some slow systems require time to load msfcli
         time.sleep(10)
@@ -178,17 +177,11 @@ class vdaemon:
 
         :return: The name of the generated file, in the example above: "/tmp/output2.exe"
         """
-        temp_dir = tempfile.gettempdir()
-        randomness = str(random.randint(0, 293829839))
-        output_filename = os.path.join(temp_dir, "msf-" + randomness + ".exe")
+        output_fd, output_filename = tempfile.mkstemp(prefix="msf-", suffix=".exe")
+        command = [self._msfpayload_path, payload, *parameters, "X"]
 
-        command = "{} {} {} X > {}".format(
-            self._msfpayload_path,
-            payload,
-            " ".join(parameters),
-            output_filename,
-        )
-        os.system(command)
+        with os.fdopen(output_fd, "wb") as output_file:
+            run_process(command, text=False, stdout=output_file, stderr=None)
 
         if "reverse" in payload:
             om.out.console(

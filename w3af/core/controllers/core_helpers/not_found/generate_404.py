@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import itertools
-import random
 import string
 
 import w3af.core.controllers.output_manager as om
@@ -30,13 +29,13 @@ from w3af.core.controllers.exceptions import (
 )
 from w3af.core.controllers.misc.decorators import retry
 from w3af.core.data.fuzzer.utils import rand_alnum
+from w3af.core.data.misc.deterministic_random import get_deterministic_random
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.not_found_response import FourOhFourResponse
 
 
 def should_flip(index, seed):
-    rnd = random.Random()
-    rnd.seed(index + seed)
+    rnd = get_deterministic_random(index + seed)
 
     # 3 out of 5 get flip
     return rnd.randint(1, 100) % 5 in (0, 1, 2)
@@ -130,11 +129,11 @@ def generate_404_by_flipping_bytes(filename, extension, seed=1):
 
 
 def generate_404_by_shuffle(filename, extension, seed):
-    random.seed(seed)
+    rnd = get_deterministic_random(seed)
 
     filename = [c for c in filename]
 
-    random.shuffle(filename)
+    rnd.shuffle(filename)
     mod_filename = "".join(filename)
 
     return append_extension_if_exists(mod_filename, extension)

@@ -198,7 +198,7 @@ class BurpParser:
           works with http and 80.
     """
 
-    requests: ClassVar = []
+    requests: ClassVar[list] = []
     parsing_request = False
     current_is_base64 = False
 

@@ -27,10 +27,10 @@ from typing import ClassVar
 
 import pytest
 
-from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.kb.tests.test_vuln import MockVuln
 from w3af.core.data.parsers.doc.url import URL
 from w3af.plugins.tests.helper import PluginConfig, PluginTest
+from w3af.tests.helpers.sqli_site import INTEGER_QS, SQLInjectionSite
 
 
 @pytest.mark.smoke
@@ -39,11 +39,8 @@ class TestTextFile(PluginTest):
     OUTPUT_FILE = "output-unittest.txt"
     OUTPUT_HTTP_FILE = "output-http-unittest.txt"
 
-    target_url = get_moth_http("/audit/sql_injection/where_integer_qs.py")
-
     _run_configs: ClassVar[dict] = {
         "cfg": {
-            "target": target_url + "?id=3",
             "plugins": {
                 "audit": (PluginConfig("sqli"),),
                 "output": (
@@ -58,8 +55,9 @@ class TestTextFile(PluginTest):
     }
 
     def test_found_vulns(self):
+        site = SQLInjectionSite.serve_for(self)
         cfg = self._run_configs["cfg"]
-        self._scan(cfg["target"], cfg["plugins"])
+        self._scan(f"{site.url}{INTEGER_QS}?id=3", cfg["plugins"])
 
         kb_vulns = self.kb.get("sqli", "sqli")
         file_vulns = self._from_txt_get_vulns()

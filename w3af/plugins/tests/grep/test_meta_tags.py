@@ -20,9 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
-from itertools import repeat
 from typing import ClassVar
-from unittest.mock import patch
 
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.ci.moth import get_moth_http
@@ -33,7 +31,7 @@ from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.filesystem import create_temp_dir
 from w3af.plugins.grep.meta_tags import meta_tags
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+from w3af.plugins.tests.helper import PluginConfig, PluginTest, configure_never_404
 
 
 class TestMetaTags(PluginTest):
@@ -80,12 +78,12 @@ class TestMetaTagsRaw(unittest.TestCase):
         create_temp_dir()
         kb.kb.cleanup()
         self.plugin = meta_tags()
+        configure_never_404(self, URL("http://www.w3af.com/"))
 
     def tearDown(self):
         kb.kb.cleanup()
 
-    @patch("w3af.plugins.grep.meta_tags.is_404", side_effect=repeat(False))
-    def test_meta_user(self, *args):
+    def test_meta_user(self):
         body = '<meta test="user/pass"></script>'
         url = URL("http://www.w3af.com/")
         headers = Headers([("content-type", "text/html")])
@@ -102,8 +100,7 @@ class TestMetaTagsRaw(unittest.TestCase):
         self.assertEqual(info.get_name(), "Interesting META tag")
         self.assertIn("pass", info.get_desc())
 
-    @patch("w3af.plugins.grep.meta_tags.is_404", side_effect=repeat(False))
-    def test_group_info_set(self, *args):
+    def test_group_info_set(self):
         body = '<meta test="user/pass"></script>'
         url_1 = URL("http://www.w3af.com/1")
         url_2 = URL("http://www.w3af.com/2")

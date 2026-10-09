@@ -40,7 +40,8 @@ class CachedDiskDict:
         """
         :param max_in_memory: The max number of items to keep in memory
         """
-        assert max_in_memory > 0, "In-memory items must be > 0"
+        if max_in_memory <= 0:
+            raise ValueError("In-memory items must be > 0")
 
         table_prefix = self._get_table_prefix(table_prefix)
 

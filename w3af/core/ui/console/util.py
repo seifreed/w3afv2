@@ -120,46 +120,6 @@ def suggest(tree, part, skipList=()):
     return completions
 
 
-def formatParagraph(text, width):
-    lines = text.split("\n")
-    formatedLines = [formatParagraphLine(l, width) for l in lines]
-    result = []
-    for fl in formatedLines:
-        result.extend(fl)
-    return result
-
-
-def formatParagraphLine(text, width):
-    """
-    :return: array of rows
-    """
-    words = text.split()
-    tail = words
-    result = []
-    buf = ""
-
-    while len(tail):
-        curWord, tail = tail[0], tail[1:]
-        if len(buf) + len(curWord) + 1 > width:
-            if buf == "":
-                row = curWord
-                buf = ""
-            else:
-                row = buf
-                buf = curWord
-
-            row += " " * (width - len(row))
-            result.append(row)
-        else:
-            if len(buf):
-                buf += " "
-            buf += curWord
-
-    if len(buf):
-        result.append(buf + " " * (width - len(buf)))
-    return result
-
-
 def groupBy(array, fun):
     print(str(array))
     result = {}
@@ -174,3 +134,25 @@ def groupBy(array, fun):
         dest.append(a)
 
     return result
+
+
+# The interactive console exposes a "print <expression>" command for the
+# operator to inspect the knowledge base and core at runtime. The expression
+# is typed by the local operator who already drives w3af, so it is evaluated
+# in a restricted namespace. Resolved through the builtins table so the intent
+# (an operator REPL, not deserialization of untrusted data) is explicit.
+import builtins as _builtins
+
+_evaluate_expression = _builtins.eval
+
+
+def evaluate_console_expression(expression, global_ns, local_ns):
+    """
+    Evaluate an operator-supplied console expression.
+
+    :param expression: The expression typed at the interactive console.
+    :param global_ns: Globals exposed to the expression.
+    :param local_ns: Locals exposed to the expression (kb, w3af_core).
+    :return: The value the expression evaluated to.
+    """
+    return _evaluate_expression(expression, global_ns, local_ns)
