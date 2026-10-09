@@ -24,6 +24,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+from w3af.core.data.db.exceptions import DBException
 from w3af.core.data.misc.number_generator import (
     consecutive_number_generator as core_num_gen,
 )
@@ -74,9 +75,9 @@ class CacheHandler(urllib.request.BaseHandler):
 
         try:
             cache_response_obj = CacheClass(request)
-        except Exception:
-            # Sometimes the cache gets corrupted, or the initial HTTP
-            # request that's saved to disk doesn't completely respect the
+        except (AttributeError, TypeError, ValueError, DBException):
+            # The request might not be in the cache, the cache gets corrupted,
+            # or the initial HTTP request that's saved to disk doesn't completely respect the
             # RFC and when we try to read it, it crashes.
 
             # Send None to the urllib2 framework, which means that we don't

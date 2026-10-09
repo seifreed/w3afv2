@@ -104,8 +104,8 @@ def multipart_encode(_vars, files, boundary=None, _buffer=None):
     for key, value in _vars:
         key = smart_unicode(key, encoding=DEFAULT_ENCODING, errors="ignore")
         value = smart_unicode(value, encoding=DEFAULT_ENCODING, errors="ignore")
-        _buffer += "--%s\r\n" % boundary
-        _buffer += 'Content-Disposition: form-data; name="%s"' % key
+        _buffer += f"--{boundary}\r\n"
+        _buffer += f'Content-Disposition: form-data; name="{key}"'
         _buffer += "\r\n\r\n" + value + "\r\n"
 
     for key, fd in files:
@@ -119,12 +119,14 @@ def multipart_encode(_vars, files, boundary=None, _buffer=None):
             smart_unicode(filename, encoding=DEFAULT_ENCODING, errors="ignore"),
         )
 
-        _buffer += "--%s\r\n" % boundary
-        _buffer += 'Content-Disposition: form-data; name="%s"; filename="%s"\r\n' % args
-        _buffer += "Content-Type: %s\r\n" % content_type
+        _buffer += f"--{boundary}\r\n"
+        _buffer += (
+            'Content-Disposition: form-data; name="{}"; filename="{}"\r\n'.format(*args)
+        )
+        _buffer += f"Content-Type: {content_type}\r\n"
         content = smart_unicode(fd.read(), encoding=DEFAULT_ENCODING, errors="ignore")
-        _buffer += "\r\n%s\r\n" % content
+        _buffer += f"\r\n{content}\r\n"
 
-    _buffer += "--%s--\r\n\r\n" % boundary
+    _buffer += f"--{boundary}--\r\n\r\n"
 
     return boundary, _buffer

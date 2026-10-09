@@ -31,7 +31,7 @@ from w3af.core.data.dc.headers import Headers
 from w3af.core.data.dc.json_container import JSONContainer
 from w3af.core.data.parsers.doc.open_api import OpenAPI
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.url.http_response import HTTPResponse
 
 
 def by_path(api_call):

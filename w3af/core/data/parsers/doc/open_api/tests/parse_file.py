@@ -1,26 +1,27 @@
 import os
 import pprint
 import sys
+from pathlib import Path
 
 sys.path.append(os.getcwd())
 
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.open_api import OpenAPI
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.url.http_response import HTTPResponse
 
 spec_filename = sys.argv[1]
 
 _, extension = os.path.splitext(spec_filename)
 
-body = open(spec_filename).read()
-headers = Headers(list({"Content-Type": "application/%s" % extension}.items()))
+body = Path(spec_filename).read_text()
+headers = Headers(list({"Content-Type": f"application/{extension}"}.items()))
 response = HTTPResponse(
     200,
     body,
     headers,
-    URL("http://moth/swagger.%s" % extension),
-    URL("http://moth/swagger.%s" % extension),
+    URL(f"http://moth/swagger.{extension}"),
+    URL(f"http://moth/swagger.{extension}"),
     _id=1,
 )
 

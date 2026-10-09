@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.url.HTTPRequest import HTTPRequest
+from w3af.core.data.url.http_request import HTTPRequest
 
 
 def create_fuzzable_request_from_request(request, add_headers=None):

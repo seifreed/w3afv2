@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 from w3af.core.data.url.helpers import get_clean_body_impl
-from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.url.http_response import HTTPResponse
 
 
 def get_clean_body(response):
@@ -62,7 +62,7 @@ def get_clean_body_from_parts(body, uri, doc_type):
     :return: A string that represents the "cleaned" response body of the
              response.
     """
-    if not doc_type == HTTPResponse.DOC_TYPE_TEXT_OR_HTML:
+    if doc_type != HTTPResponse.DOC_TYPE_TEXT_OR_HTML:
         return body
 
     url = uri.uri2url()

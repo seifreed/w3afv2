@@ -70,7 +70,7 @@ class Cookie(KeyValueContainer):
         for token in self.iter_tokens():
             ks = self._sanitize(str(token.get_name()))
             vs = self._sanitize(str(token.get_value()))
-            cookie_pairs.append("%s=%s" % (ks, vs))
+            cookie_pairs.append(f"{ks}={vs}")
 
         return "; ".join(cookie_pairs)
 
@@ -99,10 +99,7 @@ class Cookie(KeyValueContainer):
         # delete everything that the browsers usually keep to themselves, since
         # this cookie object is the one we're going to send to the wire
         #
-        for key in ["path", "expires", "domain", "max-age"]:
-            try:
-                del cookie_inst[key]
-            except:
-                pass
+        for key in ("path", "expires", "domain", "max-age"):
+            cookie_inst.pop(key, None)
 
         return cookie_inst

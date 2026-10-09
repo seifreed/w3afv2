@@ -29,8 +29,8 @@ from w3af.core.controllers.daemons.proxy.templates.utils import render
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.misc.encoding import smart_str
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.url.HTTPRequest import HTTPRequest
-from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.url.http_request import HTTPRequest
+from w3af.core.data.url.http_response import HTTPResponse
 
 
 class ProxyHandler:
@@ -52,7 +52,7 @@ class ProxyHandler:
     def _to_w3af_request(self, request):
         """
         Convert libmproxy.http.HTTPRequest to
-        w3af.core.data.url.HTTPRequest.HTTPRequest
+        w3af.core.data.url.http_request.HTTPRequest
         """
         url = f"{request.scheme}://{request.host}:{request.port}{request.path}"
 

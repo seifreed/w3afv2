@@ -35,7 +35,7 @@ from w3af.core.data.url.helpers import (
     get_clean_body,
     get_clean_body_impl,
 )
-from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.url.http_response import HTTPResponse
 
 
 class TestGetCleanBody(unittest.TestCase):
@@ -49,7 +49,7 @@ class TestGetCleanBody(unittest.TestCase):
     def test_get_clean_body_simple(self):
         payload = "payload"
 
-        body = "abc %s def" % payload
+        body = f"abc {payload} def"
         url = URL("http://w3af.com")
         headers = Headers([("Content-Type", "text/html")])
         response = HTTPResponse(200, body, headers, url, url)
@@ -67,7 +67,7 @@ class TestGetCleanBody(unittest.TestCase):
     def test_get_clean_body_upper_lower(self):
         payload = "PayLoaD"
 
-        body = "abc %s def" % payload
+        body = f"abc {payload} def"
         url = URL("http://w3af.com")
         headers = Headers([("Content-Type", "text/html")])
         response = HTTPResponse(200, body, headers, url, url)
@@ -85,7 +85,7 @@ class TestGetCleanBody(unittest.TestCase):
     def test_get_clean_body_encoded(self):
         payload = "hello/world"
 
-        body = "abc %s def" % urllib.parse.urlencode({"a": payload})
+        body = "abc {} def".format(urllib.parse.urlencode({"a": payload}))
         url = URL("http://w3af.com")
         headers = Headers([("Content-Type", "text/html")])
         response = HTTPResponse(200, body, headers, url, url)
@@ -104,7 +104,7 @@ class TestGetCleanBody(unittest.TestCase):
         payload = "hello/world"
 
         # uppercase here!
-        body = "abc %s def" % urllib.parse.urlencode({"a": payload})
+        body = "abc {} def".format(urllib.parse.urlencode({"a": payload}))
         body = body.replace("%2f", "%2F")
 
         url = URL("http://w3af.com")
@@ -124,7 +124,7 @@ class TestGetCleanBody(unittest.TestCase):
     def test_get_clean_body_double_encoded(self):
         payload = "hello/world"
 
-        body = "abc %s def" % urllib.parse.quote_plus(urllib.parse.quote_plus(payload))
+        body = f"abc {urllib.parse.quote_plus(urllib.parse.quote_plus(payload))} def"
         url = URL("http://w3af.com")
         headers = Headers([("Content-Type", "text/html")])
         response = HTTPResponse(200, body, headers, url, url)
@@ -141,9 +141,9 @@ class TestGetCleanBody(unittest.TestCase):
 
     def test_get_clean_body_encoded_find_special_char_fail(self):
         for char in SPECIAL_CHARS:
-            payload = "x%sy" % char
+            payload = f"x{char}y"
 
-            body = "abc %s def" % urllib.parse.quote_plus(payload)
+            body = f"abc {urllib.parse.quote_plus(payload)} def"
             url = URL("http://w3af.com")
             headers = Headers([("Content-Type", "text/html")])
             response = HTTPResponse(200, body, headers, url, url, charset="utf-8")
@@ -164,7 +164,7 @@ class TestGetCleanBody(unittest.TestCase):
         # This payload has one of each special char that will be encoded
         payload = " ".join(SPECIAL_CHARS)
 
-        body = "abc %s def" % urllib.parse.quote_plus(payload)
+        body = f"abc {urllib.parse.quote_plus(payload)} def"
         url = URL("http://w3af.com")
         headers = Headers([("Content-Type", "text/html")])
         response = HTTPResponse(200, body, headers, url, url)

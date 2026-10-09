@@ -88,12 +88,11 @@ class HTTPResponse(http.client.HTTPResponse):
             return b""
 
         max_file_size = cf.get("max_file_size") or None
-        if max_file_size and self.length is not None:
-            if self.length > max_file_size:
-                self.status = NO_CONTENT
-                self.reason = "No Content"  # Reason-Phrase
-                self.close()
-                return b""
+        if max_file_size and self.length is not None and self.length > max_file_size:
+            self.status = NO_CONTENT
+            self.reason = "No Content"  # Reason-Phrase
+            self.close()
+            return b""
 
         if self.chunked:
             return self._read_chunked(amt)
@@ -109,9 +108,7 @@ class HTTPResponse(http.client.HTTPResponse):
             return s
 
         if self.length is not None:
-            if amt > self.length:
-                # clip the read to the "end of response"
-                amt = self.length
+            amt = min(amt, self.length)
 
         # we do not use _safe_read() here because this may be a .will_close
         # connection, and the user is reading more bytes than will be provided
@@ -354,9 +351,6 @@ class HTTPResponse(http.client.HTTPResponse):
             return False
 
         # Proxy-Connection is a netscape hack.
-        pconn = self.msg.get("proxy-connection")
-        if pconn and "keep-alive" in pconn.lower():
-            return False
-
         # otherwise, assume it will close
-        return True
+        pconn = self.msg.get("proxy-connection")
+        return not (pconn and "keep-alive" in pconn.lower())

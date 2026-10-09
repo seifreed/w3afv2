@@ -72,6 +72,14 @@ def get_memory_limit():
     return DEFAULT_MEMORY_LIMIT
 
 
+class DocumentParsingError(Exception):
+    """Raised when the parser sub-process fails to handle a document."""
+
+
+class ParserMemoryLimitError(MemoryError):
+    """Raised when a parser sub-process exceeds its memory usage limit."""
+
+
 class MultiProcessingDocumentParser:
     """
     A document parser that performs all it's tasks in different processes and
@@ -215,21 +223,11 @@ class MultiProcessingDocumentParser:
                 )
                 args = (self.MEMORY_LIMIT, http_response.get_url())
                 om.out.debug(msg % args)
-                raise MemoryError(msg % args)
+                raise ParserMemoryLimitError(msg % args)
 
-            process_result.reraise()
+            raise_parsing_error(process_result)
 
-        try:
-            parser_output = load_object_from_temp_file(process_result)
-        except Exception as e:
-            msg = 'Failed to deserialize sub-process result. Exception: "%s"'
-            args = (e,)
-            raise Exception(msg % args)
-        finally:
-            remove_file_if_exists(process_result)
-
-        # Success!
-        return parser_output
+        return load_object_from_temp_file(process_result)
 
     def get_tags_by_filter(self, http_response, tags, yield_text=False):
         """
@@ -317,16 +315,16 @@ class MultiProcessingDocumentParser:
 
             return []
 
-        try:
-            filtered_tags = load_tags_from_temp_file(process_result)
-        except Exception as e:
-            msg = 'Failed to deserialize sub-process result. Exception: "%s"'
-            args = (e,)
-            raise Exception(msg % args)
-        finally:
-            remove_file_if_exists(process_result)
+        return load_tags_from_temp_file(process_result)
 
-        return filtered_tags
+
+def raise_parsing_error(process_result):
+    """
+    Re-raise the exception captured in the parser sub-process wrapped in a
+    DocumentParsingError, keeping the original exception and traceback chained.
+    """
+    error = process_result.exc_value.with_traceback(process_result.traceback)
+    raise DocumentParsingError(str(error)) from error
 
 
 def process_get_tags_by_filter(filename, tags, yield_text, debug):
@@ -343,9 +341,7 @@ def process_get_tags_by_filter(filename, tags, yield_text, debug):
     if not hasattr(parser, "get_tags_by_filter"):
         return write_tags_to_temp_file([])
 
-    filtered_tags = []
-    for tag in parser.get_tags_by_filter(tags, yield_text=yield_text):
-        filtered_tags.append(tag)
+    filtered_tags = list(parser.get_tags_by_filter(tags, yield_text=yield_text))
 
     msg = (
         "Returned %s Tag instances at get_tags_by_filter() for URL %s"
@@ -476,7 +472,7 @@ def limit_memory_usage(mem_limit):
 
     real_memory_limit = p.memory_info().vms + mem_limit
 
-    soft, hard = resource.getrlimit(resource.RLIMIT_AS)
+    _soft, hard = resource.getrlimit(resource.RLIMIT_AS)
     resource.setrlimit(resource.RLIMIT_AS, (real_memory_limit, hard))
 
     limit_mb = real_memory_limit / 1024 / 1024

@@ -61,7 +61,7 @@ class TestXUrllibTimeout(unittest.TestCase):
 
         port = upper_daemon.get_port()
 
-        url = URL("http://127.0.0.1:%s/" % port)
+        url = URL(f"http://127.0.0.1:{port}/")
 
         self.uri_opener.settings.set_configured_timeout(0.5)
         self.uri_opener.clear_timeout()
@@ -73,9 +73,6 @@ class TestXUrllibTimeout(unittest.TestCase):
             self.uri_opener.GET(url)
         except HTTPRequestException as hre:
             self.assertEqual(str(hre), "HTTP timeout error")
-        except Exception as e:
-            msg = 'Not expecting: "%s"'
-            self.assertTrue(False, msg % e.__class__.__name__)
         else:
             self.assertTrue(False, "Expected HTTPRequestException.")
 
@@ -90,7 +87,7 @@ class TestXUrllibTimeout(unittest.TestCase):
 
         port = ssl_daemon.get_port()
 
-        url = URL("https://127.0.0.1:%s/" % port)
+        url = URL(f"https://127.0.0.1:{port}/")
 
         self.uri_opener.settings.set_max_http_retries(0)
         self.uri_opener.settings.set_configured_timeout(1)
@@ -121,7 +118,7 @@ class TestXUrllibTimeout(unittest.TestCase):
         # We can mock this because it's being tested at TestXUrllibDelayOnError
         self.uri_opener._pause_on_http_error = Mock()
 
-        url = URL("http://127.0.0.1:%s/" % port)
+        url = URL(f"http://127.0.0.1:{port}/")
         http_request_e = 0
         scan_stop_e = 0
 
@@ -135,9 +132,6 @@ class TestXUrllibTimeout(unittest.TestCase):
                 scan_stop_e += 1
                 self.assertTrue(True)
                 break
-            except Exception as e:
-                msg = 'Not expecting: "%s"'
-                self.assertTrue(False, msg % e.__class__.__name__)
             else:
                 self.assertTrue(False, "Expecting timeout")
         else:
@@ -167,21 +161,17 @@ class TestXUrllibTimeout(unittest.TestCase):
         # Make sure we start from the desired timeout value
         self.assertEqual(self.uri_opener.get_timeout("127.0.0.1"), DEFAULT_TIMEOUT)
 
-        url = URL("http://127.0.0.1:%s/" % port)
+        url = URL(f"http://127.0.0.1:{port}/")
         sent_requests = 0
 
         self.uri_opener.GET(url)
         time.sleep(TIMEOUT_UPDATE_ELAPSED_MIN + 1)
 
         for _ in range(TIMEOUT_ADJUST_LIMIT * 3):
-            try:
-                self.uri_opener.GET(url)
-            except Exception:
-                raise
-            else:
-                sent_requests += 1
-                if self.uri_opener.set_timeout.call_count:
-                    break
+            self.uri_opener.GET(url)
+            sent_requests += 1
+            if self.uri_opener.set_timeout.call_count:
+                break
 
         self.assertEqual(self.uri_opener.set_timeout.call_count, 1)
 
@@ -211,7 +201,7 @@ class TestXUrllibTimeout(unittest.TestCase):
         # Make sure we start from the desired timeout value
         self.assertEqual(self.uri_opener.get_timeout("127.0.0.1"), DEFAULT_TIMEOUT)
 
-        url = URL("http://127.0.0.1:%s/" % port)
+        url = URL(f"http://127.0.0.1:{port}/")
 
         self.uri_opener.GET(url)
         time.sleep(TIMEOUT_UPDATE_ELAPSED_MIN + 1)
@@ -229,7 +219,7 @@ class TestXUrllibTimeout(unittest.TestCase):
         # requests to the test server
         self.assertEqual(self.uri_opener.get_timeout("127.0.0.1"), MIN_TIMEOUT)
 
-        timeout_url = URL("http://127.0.0.1:%s/timeout" % port)
+        timeout_url = URL(f"http://127.0.0.1:{port}/timeout")
 
         # And now the real test, this one makes sure that the timeout
         # parameter sent to GET overrides the configured value
@@ -240,7 +230,7 @@ class TestXUrllibTimeout(unittest.TestCase):
 
         # When timeout is not specified and the server returns in more
         # than the expected time, an exception is raised
-        self.assertRaises(Exception, self.uri_opener.GET, timeout_url)
+        self.assertRaises(HTTPRequestException, self.uri_opener.GET, timeout_url)
 
 
 class Ok200SmallDelayHandler(socketserver.BaseRequestHandler):

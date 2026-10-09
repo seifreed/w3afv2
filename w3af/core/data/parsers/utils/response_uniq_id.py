@@ -51,7 +51,7 @@ def get_response_unique_id(http_response, prepend=None):
     hash_string += str(zlib.adler32(_to_hash))
 
     if prepend:
-        hash_string = "%s-%s" % (prepend, hash_string)
+        hash_string = f"{prepend}-{hash_string}"
 
     return hash_string
 
@@ -80,6 +80,6 @@ def get_body_unique_id(http_response, prepend=None):
     hash_string += str(zlib.adler32(_to_hash))
 
     if prepend:
-        hash_string = "%s-%s" % (prepend, hash_string)
+        hash_string = f"{prepend}-{hash_string}"
 
     return hash_string

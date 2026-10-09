@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
+from http.cookies import CookieError
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.data.misc.encoding import smart_unicode
@@ -45,7 +46,7 @@ def extract_link_from_header_simple(http_response, header_name, header_value):
     :see: https://github.com/andresriancho/w3af/issues/9493
     """
     if not header_value:
-        raise StopIteration
+        return
 
     try:
         yield http_response.get_url().url_join(header_value)
@@ -77,10 +78,10 @@ def extract_link_from_link_header(http_response, header_name, header_value):
         try:
             url_str = re_match.group(1)
         except IndexError:
-            raise StopIteration
+            return
 
         if not url_str:
-            raise StopIteration
+            return
 
         try:
             yield http_response.get_url().url_join(url_str)
@@ -108,8 +109,8 @@ def extract_link_from_set_cookie_header(http_response, header_name, header_value
     """
     try:
         cookie = parse_cookie(header_value)
-    except:
-        raise StopIteration
+    except CookieError:
+        return
 
     for key in list(cookie.keys()):
         try:

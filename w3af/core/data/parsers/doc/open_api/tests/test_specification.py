@@ -46,7 +46,7 @@ from w3af.core.data.parsers.doc.open_api.tests.example_specifications import (
     StringParamQueryString,
 )
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.url.http_response import HTTPResponse
 
 
 class TestSpecification(unittest.TestCase):

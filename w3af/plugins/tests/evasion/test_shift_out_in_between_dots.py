@@ -24,7 +24,7 @@ import unittest
 from unittest.case import skip
 
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.url.HTTPRequest import HTTPRequest
+from w3af.core.data.url.http_request import HTTPRequest
 from w3af.plugins.evasion.shift_out_in_between_dots import shift_out_in_between_dots
 
 

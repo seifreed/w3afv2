@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from typing import ClassVar
+
 from w3af.core.data.dc.generic.form import Form
 from w3af.core.data.parsers.doc.url import parse_qs
 from w3af.core.data.parsers.utils.encode_decode import urlencode
@@ -42,19 +44,23 @@ class URLEncodedForm(Form):
 
     ENCODING = "application/x-www-form-urlencoded"
 
-    AVOID_FILLING_FORM_TYPES = {"checkbox", "radio", "select"}
-    AVOID_STR_DUPLICATES = {INPUT_TYPE_CHECKBOX, INPUT_TYPE_RADIO, INPUT_TYPE_SELECT}
+    AVOID_FILLING_FORM_TYPES: ClassVar[frozenset[str]] = frozenset(
+        {"checkbox", "radio", "select"}
+    )
+    AVOID_STR_DUPLICATES: ClassVar[frozenset[str]] = frozenset(
+        {INPUT_TYPE_CHECKBOX, INPUT_TYPE_RADIO, INPUT_TYPE_SELECT}
+    )
 
     @staticmethod
     def content_type_matches(headers):
-        conttype, header_name = headers.iget("content-type", "")
+        conttype, _header_name = headers.iget("content-type", "")
         return URLEncodedForm.ENCODING in conttype.lower()
 
     @staticmethod
     def can_parse(post_data):
         try:
             parse_qs(post_data)
-        except:
+        except TypeError:
             return False
         else:
             return True
@@ -62,7 +68,7 @@ class URLEncodedForm(Form):
     @classmethod
     def from_postdata(cls, headers, post_data):
         if not URLEncodedForm.content_type_matches(headers):
-            raise ValueError("Request is not %s." % URLEncodedForm.ENCODING)
+            raise ValueError(f"Request is not {URLEncodedForm.ENCODING}.")
 
         if not URLEncodedForm.can_parse(post_data):
             raise ValueError("Failed to parse post_data as Form.")
@@ -88,7 +94,7 @@ class URLEncodedForm(Form):
         :see: Unittest in test_form.py
         :return: string representation of the Form object.
         """
-        d = dict()
+        d = {}
         d.update(list(self.items()))
 
         for key in d:

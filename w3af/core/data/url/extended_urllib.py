@@ -65,8 +65,8 @@ from w3af.core.data.url.exceptions import ConnectionPoolException, HTTPRequestEx
 from w3af.core.data.url.get_average_rtt import GetAverageRTTForMutant
 from w3af.core.data.url.handlers.keepalive import URLTimeoutError
 from w3af.core.data.url.helpers import get_clean_body, get_exception_reason
-from w3af.core.data.url.HTTPRequest import HTTPRequest
-from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.url.http_request import HTTPRequest
+from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.data.url.response_meta import SUCCESS, ResponseMeta
 from w3af.core.data.user_agent.random_user_agent import get_random_user_agent
 from w3af.core.exceptions import (
@@ -74,6 +74,7 @@ from w3af.core.exceptions import (
     ScanMustStopByKnownReasonExc,
     ScanMustStopByUnknownReasonExc,
     ScanMustStopByUserRequest,
+    ScanMustStopException,
 )
 
 from . import opener_settings
@@ -323,9 +324,8 @@ class ExtendedUrllib:
         last_n_responses = list(self._last_responses)[-count:]
 
         for response_meta in last_n_responses:
-            if host is not None:
-                if response_meta.host != host:
-                    continue
+            if host is not None and response_meta.host != host:
+                continue
 
             if response_meta.rtt is not None:
                 rtt_sum += response_meta.rtt
@@ -447,10 +447,7 @@ class ExtendedUrllib:
         if error_rate <= ACCEPTABLE_ERROR_RATE:
             return False
 
-        if self.get_total_requests() % ERROR_DELAY_LIMIT == 0:
-            return True
-
-        return False
+        return self.get_total_requests() % ERROR_DELAY_LIMIT == 0
 
     def _rate_limit(self):
         """
@@ -813,7 +810,7 @@ class ExtendedUrllib:
         if not isinstance(uri, URL):
             raise TypeError(
                 "The uri parameter of ExtendedUrllib.POST() must"
-                " be of url.URL type. Got %s instead." % type(uri)
+                f" be of url.URL type. Got {type(uri)} instead."
             )
 
         if not isinstance(headers, Headers):
@@ -973,7 +970,7 @@ class ExtendedUrllib:
             return uri_opener.send(req, grep=grep)
 
         method_partial = functools.partial(any_method, self, method_name)
-        method_partial.__doc__ = "Send %s HTTP request" % method_name
+        method_partial.__doc__ = f"Send {method_name} HTTP request"
         return method_partial
 
     def _track_rtt(self, http_response, debugging_id):
@@ -1134,17 +1131,11 @@ class ExtendedUrllib:
         "almost no errors"
         """
         error_rate = self.get_error_rate()
-        if error_rate >= (ACCEPTABLE_ERROR_RATE / 4.0):
-            return False
-
-        return True
+        return error_rate < ACCEPTABLE_ERROR_RATE / 4.0
 
     def _should_decrease_worker_pool_size(self):
         error_rate = self.get_error_rate()
-        if error_rate >= (ACCEPTABLE_ERROR_RATE / 2.0):
-            return True
-
-        return False
+        return error_rate >= ACCEPTABLE_ERROR_RATE / 2.0
 
     def _handle_worker_pool_size(self):
         """
@@ -1251,7 +1242,7 @@ class ExtendedUrllib:
         else:
             printable_data = urllib.parse.unquote_plus(rdata)
             if len(rdata) > 75:
-                printable_data = "%s..." % printable_data[:75]
+                printable_data = f"{printable_data[:75]}..."
                 printable_data = printable_data.replace("\n", " ")
                 printable_data = printable_data.replace("\r", " ")
 
@@ -1443,17 +1434,11 @@ class ExtendedUrllib:
                 break
 
         if first_result.successful and all_following_failed:
-            # Found the pattern we were looking for, we want to test if the
-            # remote server is reachable
-            if self._server_root_path_is_reachable(request):
-                # We don't need to add (True, SUCCESS) to the last_responses
-                # manually since in _server_root_path_is_reachable we use _send
-                # which (on success) calls _log_successful_response and does
-                # that for us
-                return False
-
-            # Stop the scan!
-            return True
+            # Found the pattern we were looking for, stop the scan unless the
+            # remote server is reachable. We don't need to add (True, SUCCESS)
+            # to the last_responses manually since _server_root_path_is_reachable
+            # uses _send which (on success) calls _log_successful_response
+            return not self._server_root_path_is_reachable(request)
 
         # If we don't find the pattern we look for, then we just continue with
         # the scan as usual
@@ -1503,7 +1488,7 @@ class ExtendedUrllib:
             msg = 'Remote URL %s is UNREACHABLE due to: "%s"'
             om.out.debug(msg % (root_url, e))
             return False
-        except Exception as e:
+        except (BaseFrameworkException, ScanMustStopException, OSError) as e:
             msg = 'Internal error makes URL %s UNREACHABLE due to: "%s"'
             om.out.debug(msg % (root_url, e))
             return False
@@ -1537,7 +1522,7 @@ class ExtendedUrllib:
         :see: https://github.com/andresriancho/w3af/issues/8698
         """
         error_rate = self.get_error_rate()
-        om.out.debug("ExtendedUrllib error rate is at %i%%" % error_rate)
+        om.out.debug(f"ExtendedUrllib error rate is at {int(error_rate)}%")
 
     def _handle_error_count_exceeded(self, error):
         """

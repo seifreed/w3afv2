@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import contextlib
 import os
 import pickle
 import tempfile
@@ -29,6 +30,19 @@ import msgpack
 from w3af.core.data.parsers.doc.sgml import Tag
 from w3af.core.filesystem import create_temp_dir, get_temp_dir
 
+DESERIALIZATION_ERRORS = (
+    OSError,
+    EOFError,
+    ValueError,
+    KeyError,
+    TypeError,
+    pickle.UnpicklingError,
+)
+
+
+class DeserializationError(Exception):
+    """Raised when a temp file written by another process can not be loaded."""
+
 
 def write_http_response_to_temp_file(http_response):
     """
@@ -37,10 +51,8 @@ def write_http_response_to_temp_file(http_response):
     :param http_response: The HTTP response
     :return: The name of the file
     """
-    temp = get_temp_file("http")
-    data = http_response.to_dict()
-    msgpack.dump(data, temp, use_bin_type=True)
-    temp.close()
+    with get_temp_file("http") as temp:
+        msgpack.dump(http_response.to_dict(), temp, use_bin_type=True)
     return temp.name
 
 
@@ -51,19 +63,13 @@ def load_http_response_from_temp_file(filename, remove=True):
     :return: An HTTP response instance
     """
     # Importing here to prevent import cycle
-    from w3af.core.data.url.HTTPResponse import HTTPResponse
+    from w3af.core.data.url.http_response import HTTPResponse
 
-    try:
-        data = msgpack.load(open(filename, "rb"), raw=False)
-        result = HTTPResponse.from_dict(data)
-    except:
-        if remove:
-            remove_file_if_exists(filename)
-        raise
-    else:
-        if remove:
-            remove_file_if_exists(filename)
-        return result
+    return _load_from_temp_file(
+        filename,
+        remove,
+        lambda f: HTTPResponse.from_dict(msgpack.load(f, raw=False)),
+    )
 
 
 def write_tags_to_temp_file(tag_list):
@@ -73,10 +79,8 @@ def write_tags_to_temp_file(tag_list):
     :param tag_list: The Tag list
     :return: The name of the file
     """
-    temp = get_temp_file("tags")
-    data = [t.to_dict() for t in tag_list]
-    msgpack.dump(data, temp, use_bin_type=True)
-    temp.close()
+    with get_temp_file("tags") as temp:
+        msgpack.dump([t.to_dict() for t in tag_list], temp, use_bin_type=True)
     return temp.name
 
 
@@ -86,17 +90,11 @@ def load_tags_from_temp_file(filename, remove=True):
     :param remove: Remove the file after reading
     :return: A list containing tags
     """
-    try:
-        data = msgpack.load(open(filename, "rb"), raw=False)
-        result = [Tag.from_dict(t) for t in data]
-    except:
-        if remove:
-            remove_file_if_exists(filename)
-        raise
-    else:
-        if remove:
-            remove_file_if_exists(filename)
-        return result
+    return _load_from_temp_file(
+        filename,
+        remove,
+        lambda f: [Tag.from_dict(t) for t in msgpack.load(f, raw=False)],
+    )
 
 
 def get_temp_file(_type):
@@ -104,10 +102,12 @@ def get_temp_file(_type):
     :return: A named temporary file which will not be removed on close
     """
     create_temp_dir()
-    temp = tempfile.NamedTemporaryFile(
-        prefix="w3af-%s-" % _type, suffix=".pebble", delete=False, dir=get_temp_dir()
+    return tempfile.NamedTemporaryFile(
+        prefix=f"w3af-{_type}-",
+        suffix=".pebble",
+        delete=False,
+        dir=get_temp_dir(),
     )
-    return temp
 
 
 def write_object_to_temp_file(obj):
@@ -117,9 +117,8 @@ def write_object_to_temp_file(obj):
     :param obj: The object
     :return: The name of the file
     """
-    temp = get_temp_file("parser")
-    pickle.dump(obj, temp, pickle.HIGHEST_PROTOCOL)
-    temp.close()
+    with get_temp_file("parser") as temp:
+        pickle.dump(obj, temp, pickle.HIGHEST_PROTOCOL)
     return temp.name
 
 
@@ -131,16 +130,23 @@ def load_object_from_temp_file(filename, remove=True):
     :param remove: Remove the file after reading
     :return: The object instance
     """
+    return _load_from_temp_file(filename, remove, pickle.load)
+
+
+def _load_from_temp_file(filename, remove, loader):
+    """
+    Deserialize the content of `filename` with `loader`, optionally removing
+    the file afterwards even when deserialization fails.
+    """
     try:
-        result = pickle.load(open(filename, "rb"))
-    except:
+        with open(filename, "rb") as serialized:
+            return loader(serialized)
+    except DESERIALIZATION_ERRORS as error:
+        msg = f'Failed to deserialize sub-process result. Exception: "{error}"'
+        raise DeserializationError(msg) from error
+    finally:
         if remove:
             remove_file_if_exists(filename)
-        raise
-    else:
-        if remove:
-            remove_file_if_exists(filename)
-        return result
 
 
 def remove_file_if_exists(filename):
@@ -150,7 +156,5 @@ def remove_file_if_exists(filename):
     :param filename: The file to remove
     :return: None
     """
-    try:
+    with contextlib.suppress(OSError):
         os.remove(filename)
-    except:
-        pass

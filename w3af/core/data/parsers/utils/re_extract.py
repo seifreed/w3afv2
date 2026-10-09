@@ -48,7 +48,7 @@ class ReExtract(BaseParser):
     # used in _find_relative() method
     PHP_VERSION_RE = re.compile(r".*?/\d\.\d\.\d")
 
-    QUOTES = {"'", '"'}
+    QUOTES = frozenset(("'", '"'))
 
     def __init__(
         self, doc_string, base_url, encoding, relative=True, require_quotes=False
@@ -84,19 +84,15 @@ class ReExtract(BaseParser):
         if doc_string[start - 1] not in self.QUOTES:
             return False
 
-        if doc_string[end] not in self.QUOTES:
-            return False
-
-        return True
+        return doc_string[end] in self.QUOTES
 
     def _extract_full_urls(self, doc_string):
         """
         Detect full URLs, which look like http://foo/bar?id=1
         """
         for url_mo in URL_RE.finditer(doc_string):
-            if self._require_quotes:
-                if not self._is_quoted(url_mo, doc_string):
-                    continue
+            if self._require_quotes and not self._is_quoted(url_mo, doc_string):
+                continue
 
             try:
                 url = URL(url_mo.group(0), encoding=self._encoding)
@@ -121,9 +117,8 @@ class ReExtract(BaseParser):
         relative_urls = RELATIVE_URL_RE.finditer(doc_string)
 
         for url_mo in filter(self._filter_false_urls, relative_urls):
-            if self._require_quotes:
-                if not self._is_quoted(url_mo, doc_string):
-                    continue
+            if self._require_quotes and not self._is_quoted(url_mo, doc_string):
+                continue
 
             try:
                 url = self._base_url.url_join(url_mo.group(0)).url_string
@@ -138,7 +133,7 @@ class ReExtract(BaseParser):
             else:
                 url_lower = url.url_string.lower()
 
-                if url_lower.startswith("http://") or url_lower.startswith("https://"):
+                if url_lower.startswith(("http://", "https://")):
                     self._re_urls.add(url)
 
     def _filter_false_urls(self, potential_url_mo):
@@ -153,10 +148,7 @@ class ReExtract(BaseParser):
         if potential_url.startswith("HTTP/"):
             return False
 
-        if self.PHP_VERSION_RE.match(potential_url):
-            return False
-
-        return True
+        return not self.PHP_VERSION_RE.match(potential_url)
 
     def get_references(self):
         """

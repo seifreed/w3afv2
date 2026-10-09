@@ -35,7 +35,7 @@ from w3af.core.data.search_engines.google import (
     google,
 )
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
-from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.url.http_response import HTTPResponse
 
 GOOGLE_MSG = (
     "This test fails randomly based on Google's anti automation"

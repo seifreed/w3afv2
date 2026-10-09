@@ -38,7 +38,7 @@ from w3af.core.data.options.option_types import BOOL, HEADER, INPUT_FILE, QUERY_
 from w3af.core.data.parsers.doc.open_api import OpenAPI
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.url.http_response import HTTPResponse
 
 
 class open_api(CrawlPlugin):

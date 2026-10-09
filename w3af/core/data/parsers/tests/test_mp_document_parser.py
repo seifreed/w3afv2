@@ -26,18 +26,20 @@ import random
 import time
 import unittest
 from concurrent.futures import TimeoutError
-from unittest.mock import PropertyMock, patch
-
 from unittest import SkipTest
+from unittest.mock import PropertyMock, patch
 
 from w3af import ROOT_PATH
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.html import HTMLParser
 from w3af.core.data.parsers.doc.sgml import Tag
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.parsers.mp_document_parser import MultiProcessingDocumentParser
+from w3af.core.data.parsers.mp_document_parser import (
+    DocumentParsingError,
+    MultiProcessingDocumentParser,
+)
 from w3af.core.data.parsers.tests.test_document_parser import _build_http_response
-from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.url.http_response import HTTPResponse
 
 
 class TestMPDocumentParser(unittest.TestCase):
@@ -70,12 +72,10 @@ class TestMPDocumentParser(unittest.TestCase):
         headers = Headers([("content-type", "image/jpeg")])
         resp = HTTPResponse(200, body, headers, url, url)
 
-        try:
+        with self.assertRaises(DocumentParsingError) as context:
             self.mpdoc.get_document_parser_for(resp)
-        except Exception as e:
-            self.assertEqual(str(e), "There is no parser for images.")
-        else:
-            self.assertTrue(False, "Expected exception!")
+
+        self.assertEqual(str(context.exception), "There is no parser for images.")
 
     def test_parser_timeout(self):
         """
@@ -277,7 +277,7 @@ class TestMPDocumentParser(unittest.TestCase):
         kmpdp = mmpdp % "MultiProcessingDocumentParser.%s"
         modp = "w3af.core.data.parsers.document_parser.%s"
 
-        with patch(mmpdp % "om.out") as om_mock, patch(
+        with patch(mmpdp % "om.out"), patch(
             kmpdp % "MEMORY_LIMIT", new_callable=PropertyMock
         ) as memory_mock, patch(
             kmpdp % "MAX_WORKERS", new_callable=PropertyMock

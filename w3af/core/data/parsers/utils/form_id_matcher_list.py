@@ -22,7 +22,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import json
 
-from w3af.core.data.parsers.utils.form_id_matcher import FormIDMatcher
+from w3af.core.data.parsers.utils.form_id_matcher import (
+    FormIDMatcher,
+    InvalidFormIDError,
+)
 
 
 class FormIDMatcherList:
@@ -54,11 +57,13 @@ class FormIDMatcherList:
 
         try:
             form_id_list = json.loads(form_id_list_as_str)
-        except ValueError:
-            raise ValueError("The form ID list must be a valid JSON.")
+        except ValueError as error:
+            raise InvalidFormIDError(
+                "The form ID list must be a valid JSON."
+            ) from error
 
         if not isinstance(form_id_list, list):
-            raise ValueError("The form ID list must be a JSON list.")
+            raise InvalidFormIDError("The form ID list must be a JSON list.")
 
         # Now we have a list containing _something_ that should be form-ids
         # we translate those into real objects and set them in the internal

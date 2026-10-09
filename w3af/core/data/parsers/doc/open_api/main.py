@@ -39,7 +39,10 @@ from w3af.core.data.parsers.doc.baseparser import BaseParser
 #
 from w3af.core.data.parsers.doc.open_api.operation_mp import build_params_monkey_patch
 from w3af.core.data.parsers.doc.open_api.requests import RequestFactory
-from w3af.core.data.parsers.doc.open_api.specification import SpecificationHandler
+from w3af.core.data.parsers.doc.open_api.specification import (
+    SPEC_PROCESSING_ERRORS,
+    SpecificationHandler,
+)
 from w3af.core.traceback_utils import get_exception_location, get_traceback
 
 LOGGER = logging.getLogger(__name__)
@@ -199,7 +202,7 @@ class OpenAPI(BaseParser):
                 fuzzable_request = request_factory.get_fuzzable_request(
                     self.discover_fuzzable_headers, self.discover_fuzzable_url_parts
                 )
-            except Exception as e:
+            except SPEC_PROCESSING_ERRORS as e:
                 #
                 # This is a strange situation because parsing of the OpenAPI
                 # spec can fail awfully for one of the operations but succeed

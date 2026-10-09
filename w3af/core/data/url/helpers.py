@@ -53,7 +53,7 @@ from w3af.core.data.misc.web_encodings import (
 )
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.handlers.keepalive import URLTimeoutError
-from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.url.http_response import HTTPResponse
 
 # Known reason errors. See errno module for more info on these errors
 EUNKNSERV = -2  # Name or service not known error
@@ -111,10 +111,7 @@ def is_no_content_response(http_response):
     if http_response.get_msg() != NO_CONTENT_MSG:
         return False
 
-    if http_response.get_headers() != Headers():
-        return False
-
-    return True
+    return http_response.get_headers() == Headers()
 
 
 def apply_multi_escape_table(_input, max_len=None, max_count=None):
@@ -146,13 +143,11 @@ def apply_multi_escape_table(_input, max_len=None, max_count=None):
     for escaped_input in unique_everseen_hash(inner_iter):
 
         # Filter output by max_len
-        if max_len is not None:
-            if len(escaped_input) > max_len:
-                continue
+        if max_len is not None and len(escaped_input) > max_len:
+            continue
 
-        if max_count is not None:
-            if max_count <= returned:
-                break
+        if max_count is not None and max_count <= returned:
+            break
 
         returned += 1
         yield escaped_input
@@ -421,15 +416,17 @@ def get_exception_reason(error):
 
     # Exceptions may be of type httplib.HTTPException or socket.error
     # We're interested on handling them in different ways
-    if isinstance(error, urllib.error.URLError):
-        reason_err = error.reason
+    if isinstance(error, urllib.error.URLError) and isinstance(
+        error.reason, socket.error
+    ):
+        return get_socket_exception_reason(error)
 
-        if isinstance(reason_err, socket.error):
-            return get_socket_exception_reason(error)
-
-    if isinstance(error, OpenSSL.SSL.SysCallError):
-        if len(error.args) > 1 and error.args[0] in KNOWN_SOCKET_ERRORS:
-            return str(error.args[1])
+    if (
+        isinstance(error, OpenSSL.SSL.SysCallError)
+        and len(error.args) > 1
+        and error.args[0] in KNOWN_SOCKET_ERRORS
+    ):
+        return str(error.args[1])
 
     if isinstance(error, OpenSSL.SSL.ZeroReturnError):
         return "OpenSSL Error: OpenSSL.SSL.ZeroReturnError"
@@ -437,7 +434,7 @@ def get_exception_reason(error):
     if isinstance(error, ssl.SSLError):
         socket_reason = get_socket_exception_reason(error)
         if socket_reason:
-            return "SSL Error: %s" % socket_reason
+            return f"SSL Error: {socket_reason}"
 
     if isinstance(error, socket.error):
         return get_socket_exception_reason(error)
@@ -446,7 +443,7 @@ def get_exception_reason(error):
         return error.value
 
     if isinstance(error, http.client.BadStatusLine):
-        return "Bad HTTP response status line: %s" % error.line
+        return f"Bad HTTP response status line: {error.line}"
 
     if isinstance(error, http.client.HTTPException):
         #
@@ -459,7 +456,7 @@ def get_exception_reason(error):
         #
         #    TODO: Maybe we're being TOO generic in this isinstance?
         #
-        return "%s: %s" % (error.__class__.__name__, error.args)
+        return f"{error.__class__.__name__}: {error.args}"
 
     # Unknown reason
     return None

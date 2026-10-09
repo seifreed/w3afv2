@@ -46,7 +46,7 @@ class TestHTTPDaemon(unittest.TestCase):
         self.http_daemon.shutdown()
 
     def test_simple_GET(self):
-        url = "http://%s:%s/hello" % ("127.0.0.1", self.http_daemon.get_port())
+        url = "http://{}:{}/hello".format("127.0.0.1", self.http_daemon.get_port())
         response_body = urllib.request.urlopen(url).read()
 
         self.assertEqual(response_body, "ABCDEF\n")

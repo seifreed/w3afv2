@@ -17,3 +17,7 @@ class HTTPRequestException(BaseFrameworkException):
 
 class ConnectionPoolException(HTTPRequestException):
     """Raised when a connection cannot be obtained from the pool."""
+
+
+class CacheStoreException(BaseFrameworkException):
+    """Raised when an HTTP request/response pair cannot be cached."""

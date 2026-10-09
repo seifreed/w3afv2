@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 import unittest
+from pathlib import Path
 
 from w3af import ROOT_PATH
 from w3af.core.data.dc.headers import Headers
@@ -33,7 +34,7 @@ from w3af.core.data.parsers.document_parser import (
     DocumentParser,
     document_parser_factory,
 )
-from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.exceptions import BaseFrameworkException
 
 
@@ -81,7 +82,7 @@ class TestDocumentParserFactory(unittest.TestCase):
 
     def test_pdf_case01(self):
         parser = document_parser_factory(
-            _build_http_response(open(self.PDF_FILE).read(), "application/pdf")
+            _build_http_response(Path(self.PDF_FILE).read_bytes(), "application/pdf")
         )
 
         self.assertIsInstance(parser, DocumentParser)
@@ -103,7 +104,7 @@ class TestDocumentParserFactory(unittest.TestCase):
         """
         Issue to verify https://github.com/andresriancho/w3af/issues/106
         """
-        sharepoint_pl = open(self.HTML_FILE).read()
+        sharepoint_pl = Path(self.HTML_FILE).read_bytes()
         parser = document_parser_factory(
             _build_http_response(sharepoint_pl, "text/html")
         )

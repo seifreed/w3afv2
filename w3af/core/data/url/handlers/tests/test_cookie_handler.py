@@ -33,7 +33,7 @@ import httpretty
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.data.url.handlers.cookie_handler import CookieHandler
-from w3af.core.data.url.HTTPRequest import HTTPRequest
+from w3af.core.data.url.http_request import HTTPRequest
 
 
 class TestCookieHandler(unittest.TestCase):
@@ -106,9 +106,8 @@ class TestCookieHandler(unittest.TestCase):
 
         # Remove all the indent and save the cookiejar
         cj_contents = self.COOKIEJAR.replace(" " * 8, "")
-        tmp_file = tempfile.NamedTemporaryFile(delete=False)
-        tmp_file.write(cj_contents)
-        tmp_file.close()
+        with tempfile.NamedTemporaryFile("w", delete=False) as tmp_file:
+            tmp_file.write(cj_contents)
 
         cj = http.cookiejar.MozillaCookieJar()
         cj.load(tmp_file.name, ignore_discard=True, ignore_expires=True)
@@ -187,7 +186,7 @@ class TestCookieHandler(unittest.TestCase):
             received_cookie_value = request.headers.get("cookie", None)
 
             if received_cookie_value is not None:
-                return 200, headers, "Cookie %s received" % received_cookie_value
+                return 200, headers, f"Cookie {received_cookie_value} received"
             else:
                 return 200, headers, "Cookie not sent"
 

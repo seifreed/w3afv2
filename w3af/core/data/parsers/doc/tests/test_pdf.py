@@ -23,12 +23,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 import unittest
+from pathlib import Path
 
 from w3af import ROOT_PATH
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.pdf import PDFParser, pdf_to_text
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.url.http_response import HTTPResponse
 
 
 class TestPDF(unittest.TestCase):
@@ -41,7 +42,7 @@ class TestPDF(unittest.TestCase):
     )
 
     def test_pdf_to_text(self):
-        text = pdf_to_text(open(self.SIMPLE_SAMPLE).read())
+        text = pdf_to_text(Path(self.SIMPLE_SAMPLE).read_bytes())
         self.assertIn("Hello", text)
         self.assertIn("World", text)
 
@@ -50,7 +51,7 @@ class TestPDF(unittest.TestCase):
         self.assertEqual("", text)
 
     def test_pdf_parser(self):
-        body = open(self.LINKS_SAMPLE).read()
+        body = Path(self.LINKS_SAMPLE).read_bytes()
         hdrs = Headers(list({"Content-Type": "application/pdf"}.items()))
         response = HTTPResponse(
             200, body, hdrs, URL("http://moth/"), URL("http://moth/"), _id=1

@@ -25,6 +25,29 @@ import zlib
 from w3af.core.data.parsers.doc.baseparser import BaseParser
 from w3af.core.data.parsers.utils.re_extract import ReExtract
 
+# SWF files are binary, we map each byte to one character so the bytecode
+# can be inspected and searched with regular expressions
+SWF_CHARSET = "latin-1"
+
+
+def as_swf_text(swf_document):
+    """
+    :param swf_document: The SWF file contents as bytes or text
+    :return: The SWF file contents with one character per byte
+    """
+    if isinstance(swf_document, bytes):
+        return swf_document.decode(SWF_CHARSET)
+    return swf_document
+
+
+def ascii_view(swf_text):
+    """
+    :param swf_text: The SWF file contents with one character per byte
+    :return: The same contents where every non-ASCII byte is replaced, so
+             binary data is never mistaken for URL characters
+    """
+    return swf_text.encode(SWF_CHARSET).decode("ascii", errors="replace")
+
 
 class SWFParser(BaseParser):
     """
@@ -49,7 +72,7 @@ class SWFParser(BaseParser):
         if http_resp.content_type != "application/x-shockwave-flash":
             return False
 
-        body = http_resp.get_body()
+        body = as_swf_text(http_resp.get_body())
 
         if len(body) > 5:
             magic = body[:3]
@@ -77,14 +100,14 @@ class SWFParser(BaseParser):
         """
         compressed_data = swf_document[8:]
         try:
-            uncompressed_data = zlib.decompress(compressed_data)
+            uncompressed_data = zlib.decompress(compressed_data.encode(SWF_CHARSET))
         except zlib.error as e:
-            raise ValueError("Failed to inflate: " + str(e))
+            raise ValueError("Failed to inflate: " + str(e)) from e
         else:
             # TODO: Strings in SWF are NULL-Byte delimited. Maybe we can
             # use that to extract strings and apply regular expressions
             # more carefully?
-            return uncompressed_data
+            return uncompressed_data.decode(SWF_CHARSET)
 
     def parse(self):
         """
@@ -92,17 +115,17 @@ class SWFParser(BaseParser):
         For now... don't decompile anything, just apply regular
         expressions to it.
         """
-        swf_body = self.get_http_response().get_body()
+        swf_body = as_swf_text(self.get_http_response().get_body())
 
         if self._is_compressed(swf_body):
             try:
                 swf_body = self._inflate(swf_body)
-            except Exception:
+            except ValueError:
                 # If the inflate fails... there is nothing else to do.
                 return
 
         self._0x83_getURL_parse(swf_body)
-        self._re_extract(swf_body)
+        self._re_extract(ascii_view(swf_body))
 
     def _re_extract(self, swf_body):
         """

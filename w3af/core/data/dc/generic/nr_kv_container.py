@@ -95,7 +95,7 @@ class NonRepeatKeyValueContainer(DataContainer, OrderedDict):
 
         # pylint: disable=E1133
         for k, v in list(self.items()):
-            to_app = "%s%s%s" % (k, key_val_sep, smart_unicode(v, encoding=UTF8))
+            to_app = f"{k}{key_val_sep}{smart_unicode(v, encoding=UTF8)}"
             lst.append(to_app)
         # pylint: enable=E1133
 
@@ -141,11 +141,8 @@ class NonRepeatKeyValueContainer(DataContainer, OrderedDict):
             # pylint: disable=E1133
             for k, v in list(self.items()):
                 if isinstance(v, DataToken):
-                    dt_str = "%s=%s" % (
-                        filter_non_printable(v.get_name()),
-                        filter_non_printable(v.get_value()),
-                    )
-                    return "...%s..." % dt_str[: self.MAX_PRINTABLE]
+                    dt_str = f"{filter_non_printable(v.get_name())}={filter_non_printable(v.get_value())}"
+                    return f"...{dt_str[: self.MAX_PRINTABLE]}..."
             # pylint: enable=E1133
         else:
             # I'll simply show the first N parameter and values until the

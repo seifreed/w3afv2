@@ -46,8 +46,8 @@ class FastHTTPBasicAuthHandler(
         # Add the headers for the authorization...
         user, pw = self.passwd.find_user_password(None, request.get_full_url())
         if pw is not None:
-            raw = "%s:%s" % (user, pw)
-            auth = "Basic %s" % base64.b64encode(raw).strip()
+            raw = f"{user}:{pw}"
+            auth = f"Basic {base64.b64encode(raw).strip()}"
             request.add_header("Authorization", auth)
 
         return request

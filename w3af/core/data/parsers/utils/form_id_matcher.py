@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import json
 import re
+from typing import ClassVar
 
 FORM_ID_FORMAT_ERROR = """\
 The provided form-id JSON is incorrect. Form ids must be JSON objects with the
@@ -44,6 +45,40 @@ the form-id setting.
 """
 
 
+class InvalidFormIDError(ValueError):
+    """Raised when a user supplied form-id does not have the expected format."""
+
+    def __init__(self, message=FORM_ID_FORMAT_ERROR):
+        super().__init__(message)
+
+
+def _is_optional_pattern(value):
+    return value is None or isinstance(value, re.Pattern)
+
+
+def _is_optional_str_list(value):
+    if value is None:
+        return True
+    return isinstance(value, list) and all(isinstance(item, str) for item in value)
+
+
+def _is_optional_str_dict(value):
+    if value is None:
+        return True
+    return isinstance(value, dict) and all(
+        isinstance(k, str) and isinstance(v, str) for k, v in value.items()
+    )
+
+
+def _compile_optional_pattern(pattern):
+    if pattern is None:
+        return None
+    try:
+        return re.compile(pattern)
+    except (re.error, TypeError) as error:
+        raise InvalidFormIDError from error
+
+
 class FormIDMatcher:
     """
     This class describes the form attributes that the user wants to match.
@@ -62,7 +97,9 @@ class FormIDMatcher:
     :see: https://github.com/andresriancho/w3af/issues/15161
     """
 
-    ALLOWED_ATTRS = ["action", "inputs", "attributes", "hosted_at_url", "method"]
+    ALLOWED_ATTRS: ClassVar[frozenset[str]] = frozenset(
+        ("action", "inputs", "attributes", "hosted_at_url", "method")
+    )
 
     def __init__(
         self, action=None, inputs=None, attributes=None, hosted_at_url=None, method=None
@@ -96,36 +133,15 @@ class FormIDMatcher:
         :return: True if all attributes match our requirements, otherwise an
                  exception is raised
         """
-        if action is not None:
-            if not isinstance(action, re.Pattern):
-                raise ValueError(FORM_ID_FORMAT_ERROR)
-
-        if inputs is not None:
-            if not isinstance(inputs, list):
-                raise ValueError(FORM_ID_FORMAT_ERROR)
-
-            for input_name in inputs:
-                if not isinstance(input_name, str):
-                    raise ValueError(FORM_ID_FORMAT_ERROR)
-
-        if attributes is not None:
-            if not isinstance(attributes, dict):
-                raise ValueError(FORM_ID_FORMAT_ERROR)
-
-            for k, v in attributes.items():
-                if not isinstance(k, str):
-                    raise ValueError(FORM_ID_FORMAT_ERROR)
-
-                if not isinstance(v, str):
-                    raise ValueError(FORM_ID_FORMAT_ERROR)
-
-        if hosted_at_url is not None:
-            if not isinstance(hosted_at_url, re.Pattern):
-                raise ValueError(FORM_ID_FORMAT_ERROR)
-
-        if method is not None:
-            if not isinstance(method, str):
-                raise ValueError(FORM_ID_FORMAT_ERROR)
+        valid = (
+            _is_optional_pattern(action)
+            and _is_optional_str_list(inputs)
+            and _is_optional_str_dict(attributes)
+            and _is_optional_pattern(hosted_at_url)
+            and (method is None or isinstance(method, str))
+        )
+        if not valid:
+            raise InvalidFormIDError
 
         return True
 
@@ -179,7 +195,7 @@ class FormIDMatcher:
         """
         # Check the root JSON object format
         if not isinstance(json_list_item, dict):
-            raise ValueError(FORM_ID_FORMAT_ERROR)
+            raise InvalidFormIDError
 
         action = json_list_item.get("action", None)
         inputs = json_list_item.get("inputs", None)
@@ -187,25 +203,15 @@ class FormIDMatcher:
         hosted_at_url = json_list_item.get("hosted_at_url", None)
         method = json_list_item.get("method", None)
 
-        for json_attr in json_list_item:
-            if json_attr not in cls.ALLOWED_ATTRS:
-                raise ValueError(FORM_ID_FORMAT_ERROR)
+        if not cls.ALLOWED_ATTRS.issuperset(json_list_item):
+            raise InvalidFormIDError
 
         # User configured action and hosted_at_url must be valid regular expressions
-        if action is not None:
-            try:
-                action = re.compile(action)
-            except:
-                raise ValueError(FORM_ID_FORMAT_ERROR)
-
-        if hosted_at_url is not None:
-            try:
-                hosted_at_url = re.compile(hosted_at_url)
-            except:
-                raise ValueError(FORM_ID_FORMAT_ERROR)
+        action = _compile_optional_pattern(action)
+        hosted_at_url = _compile_optional_pattern(hosted_at_url)
 
         # Strict input checks are done in __init__ -> verify_data_types
         return cls(action, inputs, attributes, hosted_at_url, method)
 
     def __str__(self):
-        return "<FormIDMatcher: %s>" % self.__dict__
+        return f"<FormIDMatcher: {self.__dict__}>"

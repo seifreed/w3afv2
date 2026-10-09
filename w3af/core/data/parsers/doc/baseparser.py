@@ -46,7 +46,7 @@ class BaseParser:
 
         encoding = http_response.get_charset()
         if not is_known_encoding(encoding):
-            raise ValueError("Unknown encoding: %s" % encoding)
+            raise ValueError(f"Unknown encoding: {encoding}")
 
         # "set_base_url"
         url = http_response.get_url()

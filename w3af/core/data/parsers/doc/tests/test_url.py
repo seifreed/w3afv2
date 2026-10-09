@@ -29,12 +29,11 @@ import urllib.request
 import warnings
 from multiprocessing import get_context
 from pathlib import Path
-
 from unittest import SkipTest
 
 from w3af.core.data.dc.query_string import QueryString
 from w3af.core.data.dc.urlencoded_form import URLEncodedForm
-from w3af.core.data.parsers.doc.url import URL, parse_qs
+from w3af.core.data.parsers.doc.url import URL, InvalidURLError, parse_qs
 
 # Be strict on unicode warnings
 warnings.filterwarnings("error", category=UnicodeWarning)
@@ -896,7 +895,7 @@ class TestURLParser(unittest.TestCase):
 
     def test_set_extension(self):
         u = URL("https://www.w3af.com/xyz/foo")
-        self.assertRaises(Exception, u.set_extension, "xml")
+        self.assertRaises(InvalidURLError, u.set_extension, "xml")
 
         u = URL("https://w3af.com/xyz/d.html")
         u.set_extension("xml")
@@ -1072,10 +1071,10 @@ class TestURLParser(unittest.TestCase):
     #
     def test_memoized(self):
         u = URL("http://www.w3af.com/")
-        self.assertEqual(u._cache, dict())
+        self.assertEqual(u._cache, {})
 
         url = u.uri2url()
-        self.assertNotEqual(u._cache, dict())
+        self.assertNotEqual(u._cache, {})
         self.assertIn(url, list(u._cache.values()))
 
         second_url = u.uri2url()

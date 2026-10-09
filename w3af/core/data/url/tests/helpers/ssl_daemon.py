@@ -98,7 +98,7 @@ class SSLServer(threading.Thread):
         # print 'Connection from %s port %s, sending HTTP response' % fromaddr
         try:
             newsocket.sendall(self.http_response.encode())
-        except Exception as e:
+        except OSError as e:
             self.errors.append(e)
             # print 'Failed to send HTTP response to client: "%s"' % e
         finally:
@@ -142,5 +142,5 @@ class SSLServer(threading.Thread):
     def get_port(self):
         try:
             return self.sock.getsockname()[1]
-        except:
+        except OSError:
             return None

@@ -67,12 +67,10 @@ class Headers(NonRepeatKeyValueContainer):
         """
         :return: A dictionary with lower-case key-headers and un-modified values
         """
-        return dict([(k.lower(), v) for k, v in self.items()])
+        return {k.lower(): v for k, v in self.items()}
 
     def clean_values(self, init_val):
-        if isinstance(init_val, NonRepeatKeyValueContainer) or isinstance(
-            init_val, dict
-        ):
+        if isinstance(init_val, (NonRepeatKeyValueContainer, dict)):
             return init_val
 
         cleaned_vals = []
@@ -120,8 +118,8 @@ class Headers(NonRepeatKeyValueContainer):
         :param header_name: The header name to check (case insensitive)
         :return: True if the header name exists in this headers set
         """
-        value, stored_header_name = self.iget(header_name)
-        return True if value is not None else False
+        value, _stored_header_name = self.iget(header_name)
+        return value is not None
 
     def getheaders(self, header_name):
         """
@@ -133,7 +131,7 @@ class Headers(NonRepeatKeyValueContainer):
         :param header_name: The header name to query
         :return: A list with the header values
         """
-        header_value, stored_header_name = self.iget(header_name)
+        header_value, _stored_header_name = self.iget(header_name)
         if header_value is None:
             return []
 
@@ -151,7 +149,7 @@ class Headers(NonRepeatKeyValueContainer):
         if isinstance(k, str):
             k = smart_unicode(k, encoding=self.encoding)
         else:
-            raise ValueError("Header name must be a string.")
+            raise TypeError("Header name must be a string.")
 
         if isinstance(v, str):
             v = smart_unicode(v, encoding=self.encoding)
@@ -159,7 +157,7 @@ class Headers(NonRepeatKeyValueContainer):
             encoded_str = smart_unicode(v.get_value(), encoding=self.encoding)
             v.set_value(encoded_str)
         else:
-            raise ValueError("Header value must be a string.")
+            raise TypeError("Header value must be a string.")
 
         super().__setitem__(k, v)
 

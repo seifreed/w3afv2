@@ -26,6 +26,7 @@ import traceback
 import urllib.error
 import urllib.parse
 import urllib.request
+from typing import ClassVar
 
 from lxml import etree
 
@@ -37,6 +38,10 @@ from w3af.core.data.parsers.doc.baseparser import BaseParser
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.exceptions import ParserException
 from w3af.core.data.parsers.utils.form_constants import EXCLUDE, INCLUDE
+
+# Errors that handling a single (potentially broken) tag might raise, they are
+# logged and the parser continues with the next tag
+TAG_HANDLING_ERRORS = (ValueError, TypeError, AttributeError, LookupError)
 
 
 class Tag:
@@ -62,11 +67,7 @@ class Tag:
         )
 
     def __str__(self):
-        return "<Tag (name:%s, attrib:%s, text:%s)" % (
-            self.name,
-            self.attrib,
-            self.text,
-        )
+        return f"<Tag (name:{self.name}, attrib:{self.attrib}, text:{self.text})"
 
     __repr__ = __str__
 
@@ -91,52 +92,58 @@ class SGMLParser(BaseParser):
         r".*?URL.*?='?\"?([^'\"]*)'?\"?", re.IGNORECASE | re.UNICODE
     )
 
-    TAGS_WITH_URLS = {
-        "go",
-        "a",
-        "anchor",
-        "img",
-        "link",
-        "script",
-        "iframe",
-        "object",
-        "embed",
-        "area",
-        "frame",
-        "applet",
-        "input",
-        "base",
-        "div",
-        "layer",
-        "form",
-        "ilayer",
-        "bgsound",
-        "html",
-        "audio",
-        "video",
-    }
+    TAGS_WITH_URLS: ClassVar[frozenset[str]] = frozenset(
+        {
+            "go",
+            "a",
+            "anchor",
+            "img",
+            "link",
+            "script",
+            "iframe",
+            "object",
+            "embed",
+            "area",
+            "frame",
+            "applet",
+            "input",
+            "base",
+            "div",
+            "layer",
+            "form",
+            "ilayer",
+            "bgsound",
+            "html",
+            "audio",
+            "video",
+        }
+    )
 
-    URL_ATTRS = {"href", "src", "data", "action", "manifest", "link", "uri"}
+    URL_ATTRS: ClassVar[frozenset[str]] = frozenset(
+        {"href", "src", "data", "action", "manifest", "link", "uri"}
+    )
 
     # Configure which tags will be analyzed by the parser
     PARSE_TAGS = TAGS_WITH_URLS.union({"meta"})
 
     # I don't want to inject into Apache's directory indexing parameters
-    APACHE_INDEXING = {
-        "?C=N;O=A",
-        "?C=M;O=A",
-        "?C=S;O=A",
-        "?C=D;O=D",
-        "?C=N;O=D",
-        "?C=D;O=A",
-        "?N=D",
-        "?M=A",
-        "?S=A",
-        "?D=A",
-        "?D=D",
-        "?S=D",
-        "?M=D",
-    }
+    APACHE_INDEXING: ClassVar[frozenset[str]] = frozenset(
+        {
+            "?C=N;O=A",
+            "?C=M;O=A",
+            "?C=S;O=A",
+            "?C=D;O=D",
+            "?C=N;O=D",
+            "?C=D;O=A",
+            "?N=D",
+            "?M=A",
+            "?S=A",
+            "?D=A",
+            "?D=D",
+            "?S=D",
+            "?M=D",
+        }
+    )
 
     def __init__(self, http_resp):
         BaseParser.__init__(self, http_resp)
@@ -168,7 +175,7 @@ class SGMLParser(BaseParser):
     def _handle_exception(self, where, ex):
         msg = 'An exception occurred while %s: "%s"'
         om.out.error(msg % (where, ex))
-        om.out.error("Error traceback: %s" % traceback.format_exc())
+        om.out.error(f"Error traceback: {traceback.format_exc()}")
 
     def start(self, tag):
         """
@@ -179,7 +186,7 @@ class SGMLParser(BaseParser):
         tag_name = tag.tag
 
         # Call start_tag handler method
-        handler = "_handle_%s_tag_start" % tag_name
+        handler = f"_handle_{tag_name}_tag_start"
 
         try:
             method = getattr(self, handler)
@@ -188,13 +195,13 @@ class SGMLParser(BaseParser):
         else:
             try:
                 method(tag, tag_name, attrs)
-            except Exception as ex:
-                self._handle_exception("parsing %s tag" % tag_name, ex)
+            except TAG_HANDLING_ERRORS as ex:
+                self._handle_exception(f"parsing {tag_name} tag", ex)
 
         try:
             if tag_name in self.TAGS_WITH_URLS:
                 self._find_references(tag, tag_name, attrs)
-        except Exception as ex:
+        except TAG_HANDLING_ERRORS as ex:
             self._handle_exception("extracting references", ex)
 
         try:
@@ -203,7 +210,7 @@ class SGMLParser(BaseParser):
             # changed it to this for performance
             if tag_name == "a":
                 self._find_emails(tag, tag_name, attrs)
-        except Exception as ex:
+        except TAG_HANDLING_ERRORS as ex:
             self._handle_exception("finding emails", ex)
 
     def end(self, tag):
@@ -212,7 +219,7 @@ class SGMLParser(BaseParser):
         """
         # Call handler method if exists
         try:
-            method = getattr(self, "_handle_%s_tag_end" % tag.tag)
+            method = getattr(self, f"_handle_{tag.tag}_tag_end")
         except AttributeError:
             return
         else:
@@ -287,13 +294,13 @@ class SGMLParser(BaseParser):
         for event, elem in context:
             try:
                 event_map[event](elem)
-            except Exception as e:
+            except TAG_HANDLING_ERRORS as e:
                 msg = (
                     'Found a parser exception while handling tag "%s" with'
                     ' event "%s". The exception was: "%s"'
                 )
                 args = (elem.tag, event, e)
-                raise ParserException(msg % args)
+                raise ParserException(msg % args) from e
 
             # Memory usage improvements notes:
             #
@@ -425,7 +432,7 @@ class SGMLParser(BaseParser):
         if self.EMAIL_RE.match(email):
             return email
         else:
-            raise ValueError('Invalid email address "%s"' % email)
+            raise ValueError(f'Invalid email address "{email}"')
 
     def _filter_ref(self, attr):
         """

@@ -23,10 +23,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import logging
 import sqlite3
 
+from w3af.core.data.db.exceptions import DBException
 from w3af.core.data.db.history import HistoryItem
+from w3af.core.data.url.exceptions import CacheStoreException
 from w3af.core.data.url.handlers.cache_backend.cached_response import CachedResponse
 from w3af.core.data.url.handlers.cache_backend.utils import gen_hash
-from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.exceptions import ScanMustStopException
 from w3af.core.filesystem import create_temp_dir
 
@@ -56,7 +58,7 @@ class SQLCachedResponse(CachedResponse):
         elif part == CachedResponse.PART_TIME:
             res = hist.time
         else:
-            raise ValueError("Unexpected value for param 'part': %s" % part)
+            raise ValueError(f"Unexpected value for param 'part': {part}")
 
         return res
 
@@ -82,18 +84,14 @@ class SQLCachedResponse(CachedResponse):
         try:
             hi.save()
         except sqlite3.Error as e:
-            msg = 'A sqlite3 error was raised: "%s".' % e
+            msg = f'A sqlite3 error was raised: "{e}".'
 
             if "disk" in str(e).lower():
                 msg += " Please check if your disk is full."
 
             raise ScanMustStopException(msg)
 
-        except OverflowError:
-            # Got this one during a moth scan, need to debug further
-            raise
-
-        except Exception as ex:
+        except (DBException, OSError, TypeError, ValueError, AttributeError) as ex:
             args = (ex, resp.get_id(), request.get_uri(), resp.get_code())
             msg = (
                 "Exception while inserting request/response to the"
@@ -101,7 +99,7 @@ class SQLCachedResponse(CachedResponse):
                 " the error is: %s %s %s"
             )
             LOGGER.error(msg, *args)
-            raise Exception(msg % args)
+            raise CacheStoreException(msg % args) from ex
 
     @staticmethod
     def exists_in_cache(req):

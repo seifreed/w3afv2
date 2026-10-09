@@ -178,7 +178,7 @@ class SSLSocket:
             # should be done on this socket
             return ""
         except OpenSSL.SSL.WantReadError:
-            rd, wd, ed = select.select([self.sock], [], [], self.sock.gettimeout())
+            rd, _wd, _ed = select.select([self.sock], [], [], self.sock.gettimeout())
             if not rd:
                 # empty string signalling that the other side has closed the
                 # connection or that some kind of error happen and no more reads
@@ -253,9 +253,9 @@ class OpenSSLReformattedError(Exception):
 
     def __str__(self):
         try:
-            return "*:%s:%s (glob)" % (self.e.args[0][0][1], self.e.args[0][0][2])
-        except Exception:
-            return "%s" % self.e
+            return f"*:{self.e.args[0][0][1]}:{self.e.args[0][0][2]} (glob)"
+        except (IndexError, KeyError, TypeError):
+            return str(self.e)
 
 
 def wrap_socket(
@@ -294,7 +294,7 @@ def wrap_socket(
         try:
             ctx.load_verify_locations(ca_certs, None)
         except OpenSSL.SSL.Error as e:
-            raise ssl.SSLError("Bad ca_certs: %r" % ca_certs, e)
+            raise ssl.SSLError(f"Bad ca_certs: {ca_certs!r}", e)
 
     cnx = OpenSSL.SSL.Connection(ctx, sock)
 
@@ -325,7 +325,7 @@ def wrap_socket(
             cnx.do_handshake()
             break
         except OpenSSL.SSL.WantReadError:
-            in_fds, out_fds, err_fds = select.select(
+            in_fds, _out_fds, _err_fds = select.select(
                 [
                     sock,
                 ],

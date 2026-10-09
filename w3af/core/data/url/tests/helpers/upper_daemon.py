@@ -70,7 +70,7 @@ class UpperDaemon(threading.Thread):
             pass
 
     def get_host_port(self):
-        return "127.0.0.1:%s" % self.get_port()
+        return f"127.0.0.1:{self.get_port()}"
 
     def get_port(self):
         if self.server is not None:

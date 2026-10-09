@@ -57,7 +57,7 @@ class PDFParser(BaseParser):
         if http_resp.content_type not in ("application/x-pdf", "application/pdf"):
             return False
 
-        document = http_resp.body
+        document = as_pdf_bytes(http_resp.body)
 
         # Safety check:
         if not document:
@@ -67,10 +67,7 @@ class PDFParser(BaseParser):
         # things like %%EOF\n , or %%EOF\r, or %%EOF\r\n.
         #
         # So... just to be sure I search in the last 12 characters.
-        if document.startswith("%PDF-") and "%%EOF" in document[-12:]:
-            return True
-
-        return False
+        return document.startswith(b"%PDF-") and b"%%EOF" in document[-12:]
 
     def parse(self):
         """
@@ -105,6 +102,16 @@ class PDFParser(BaseParser):
     get_meta_redir = get_meta_tags = get_emails = BaseParser._return_empty_list
 
 
+def as_pdf_bytes(document):
+    """
+    :param document: The PDF file contents as bytes or text
+    :return: The PDF file contents as bytes
+    """
+    if isinstance(document, str):
+        return document.encode("latin-1", errors="replace")
+    return document
+
+
 def pdf_to_text(pdf_string):
     """
     :param pdf_string: The PDF file contents.
@@ -118,14 +125,14 @@ def pdf_to_text(pdf_string):
     device = NoPageHTMLConverter(
         rsrcmgr,
         output,
-        codec="utf-8",
+        codec=None,
         layoutmode="normal",
         laparams=None,
         imagewriter=None,
         showpageno=False,
     )
 
-    document_io = io.StringIO(pdf_string)
+    document_io = io.BytesIO(as_pdf_bytes(pdf_string))
     pagenos = set()
     try:
         interpreter = PDFPageInterpreter(rsrcmgr, device)
@@ -139,8 +146,7 @@ def pdf_to_text(pdf_string):
 
     device.close()
     output.seek(0)
-    output_str = output.read().decode("utf-8")
-    return SGMLParser.ANY_TAG_MATCH.sub("", output_str)
+    return SGMLParser.ANY_TAG_MATCH.sub("", output.read())
 
 
 class NoPageHTMLConverter(HTMLConverter):

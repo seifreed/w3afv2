@@ -128,7 +128,7 @@ class KeyValueContainer(DataContainer, OrderedDict):
         for key, value_list in list(self.items()):
             for value in value_list:
                 value = smart_unicode(value, encoding=UTF8, errors=errors)
-                to_app = "%s%s%s" % (key, key_val_sep, value)
+                to_app = f"{key}{key_val_sep}{value}"
                 lst.append(to_app)
         # pylint: enable=E1133
 
@@ -149,11 +149,8 @@ class KeyValueContainer(DataContainer, OrderedDict):
             for k, v in list(self.items()):
                 for ele in v:
                     if isinstance(ele, DataToken):
-                        dt_str = "%s=%s" % (
-                            filter_non_printable(ele.get_name()),
-                            filter_non_printable(ele.get_value()),
-                        )
-                        return "...%s..." % dt_str[: self.MAX_PRINTABLE]
+                        dt_str = f"{filter_non_printable(ele.get_name())}={filter_non_printable(ele.get_value())}"
+                        return f"...{dt_str[: self.MAX_PRINTABLE]}..."
             # pylint: enable=E1133
         else:
             # I'll simply show the first N parameter and values until the

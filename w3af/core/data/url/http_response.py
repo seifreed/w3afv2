@@ -1,5 +1,5 @@
 """
-HTTPResponse.py
+http_response.py
 
 Copyright 2006 Andres Riancho
 

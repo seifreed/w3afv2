@@ -67,7 +67,7 @@ class DataToken:
         self._value = new_value
 
     def __repr__(self):
-        return '<DataToken for %s: "%s">' % (self.get_path(), self.get_value())
+        return f'<DataToken for {self.get_path()}: "{self.get_value()}">'
 
     def __str__(self):
         return smart_unicode(self._value, errors="ignore")
@@ -89,7 +89,7 @@ class DataToken:
         elif other is None:
             return False
         else:
-            raise RuntimeError("Can not compare %s with DataToken." % other)
+            raise RuntimeError(f"Can not compare {other} with DataToken.")
 
     def __reduce__(self):
         return (

@@ -28,6 +28,7 @@ import threading
 import urllib.error
 import urllib.parse
 import urllib.request
+from typing import ClassVar
 
 import OpenSSL
 
@@ -49,7 +50,7 @@ class UniqueID:
 
     def __repr__(self):
         # Only makes sense when DEBUG is True
-        return "<KeepAliveHTTPConnection %s - Request #%s>" % (self.id, self.req_count)
+        return f"<KeepAliveHTTPConnection {self.id} - Request #{self.req_count}>"
 
     def __str__(self):
         # Only makes sense when DEBUG is True
@@ -57,7 +58,7 @@ class UniqueID:
             None if self.timeout is socket._GLOBAL_DEFAULT_TIMEOUT else self.timeout
         )
         args = (self.__class__.__name__, self.id, self.req_count, timeout)
-        return "<%s(id:%s, req_count:%s, timeout:%s)>" % args
+        return "<{}(id:{}, req_count:{}, timeout:{})>".format(*args)
 
 
 class _HTTPConnection(http.client.HTTPConnection, UniqueID):
@@ -66,7 +67,7 @@ class _HTTPConnection(http.client.HTTPConnection, UniqueID):
         UniqueID.__init__(self)
         http.client.HTTPConnection.__init__(self, host, port, timeout=timeout)
         self.is_fresh = True
-        self.host_port = "%s:%s" % (self.host, self.port)
+        self.host_port = f"{self.host}:{self.port}"
 
     def connect(self):
         """
@@ -97,7 +98,7 @@ def create_connection(
     host, port = address
     err = None
     for res in socket.getaddrinfo(host, port, 0, socket.SOCK_STREAM):
-        af, socktype, proto, canonname, sa = res
+        af, socktype, proto, _canonname, sa = res
         sock = None
         try:
             sock = socket.socket(af, socktype, proto)
@@ -131,7 +132,7 @@ class ProxyHTTPConnection(_HTTPConnection):
     This class is used to provide HTTPS CONNECT support.
     """
 
-    _ports = {"http": 80, "https": 443}
+    _ports: ClassVar[dict[str, int]] = {"http": 80, "https": 443}
 
     def __init__(self, host, port=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
         _HTTPConnection.__init__(self, host, port, timeout=timeout)
@@ -143,7 +144,7 @@ class ProxyHTTPConnection(_HTTPConnection):
         # real host/port to be used to make CONNECT request to proxy
         proto, rest = urllib.parse.splittype(url)
         if proto is None:
-            raise ValueError("Unknown URL type: %s" % url)
+            raise ValueError(f"Unknown URL type: {url}")
 
         # get host and port
         host_port, rest = urllib.parse.splithost(rest)
@@ -155,7 +156,7 @@ class ProxyHTTPConnection(_HTTPConnection):
             try:
                 self._real_port = self._ports[proto]
             except KeyError:
-                raise ValueError("Unknown protocol for: %s" % url)
+                raise ValueError(f"Unknown protocol for: {url}")
         else:
             self._real_port = int(port)
 
@@ -164,8 +165,8 @@ class ProxyHTTPConnection(_HTTPConnection):
 
         # send proxy CONNECT request
         new_line = "\r\n"
-        host_port = "%s:%d" % (self._real_host, self._real_port)
-        self.send("CONNECT %s HTTP/1.1%s" % (host_port, new_line))
+        host_port = f"{self._real_host}:{self._real_port:d}"
+        self.send(f"CONNECT {host_port} HTTP/1.1{new_line}")
 
         connect_headers = {
             "Proxy-Connection": "keep-alive",
@@ -174,19 +175,19 @@ class ProxyHTTPConnection(_HTTPConnection):
         }
 
         for header_name, header_value in list(connect_headers.items()):
-            self.send("%s: %s%s" % (header_name, header_value, new_line))
+            self.send(f"{header_name}: {header_value}{new_line}")
 
         self.send(new_line)
 
         # expect a HTTP/1.0 200 Connection established
         response = self.response_class(self.sock, method=self._method)
-        version, code, message = response._read_status()
+        _version, code, message = response._read_status()
 
         # probably here we can handle auth requests...
         if code != 200:
             # proxy returned and error, abort connection, and raise exception
             self.close()
-            raise OSError("Proxy connection failed: %d %s" % (code, message.strip()))
+            raise OSError(f"Proxy connection failed: {code:d} {message.strip()}")
 
         # eat up header block from proxy....
         while True:
@@ -220,7 +221,7 @@ class SSLNegotiatorConnection(http.client.HTTPSConnection, UniqueID):
     def __init__(self, *args, **kwargs):
         UniqueID.__init__(self)
         http.client.HTTPSConnection.__init__(self, *args, **kwargs)
-        self.host_port = "%s:%s" % (self.host, self.port)
+        self.host_port = f"{self.host}:{self.port}"
 
     def connect(self):
         """
@@ -266,7 +267,7 @@ class SSLNegotiatorConnection(http.client.HTTPSConnection, UniqueID):
             # Always close the tcp/ip connection on error
             sock.close()
 
-        except Exception as e:
+        except (OSError, ValueError, OpenSSL.SSL.Error) as e:
             msg = "Unexpected exception occurred with protocol %s: '%s'"
             debug(msg % (protocol, e))
 
@@ -274,7 +275,7 @@ class SSLNegotiatorConnection(http.client.HTTPSConnection, UniqueID):
             sock.close()
 
         else:
-            debug("Successful connection using protocol %s" % protocol)
+            debug(f"Successful connection using protocol {protocol}")
             self.sock = ssl_sock
 
             with _protocols_lock:

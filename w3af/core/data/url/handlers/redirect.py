@@ -25,7 +25,7 @@ import urllib.parse
 import urllib.request
 
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.url.HTTPRequest import HTTPRequest
+from w3af.core.data.url.http_request import HTTPRequest
 
 GET_HEAD_CODES = {301, 302, 303, 307}
 GET_HEAD = {"GET", "HEAD"}
@@ -58,11 +58,11 @@ class HTTP30XHandler(urllib.request.HTTPRedirectHandler):
         original object and setting the target URL to the one received in the
         30x response.
         """
-        new_headers = dict(
-            (k, v)
+        new_headers = {
+            k: v
             for k, v in list(request.headers.items())
             if k.lower() not in REMOVE_ON_REDIRECT
-        )
+        }
 
         orig_method = request.get_method()
         method = orig_method if orig_method in GET_HEAD else "GET"
@@ -124,9 +124,7 @@ class HTTP30XHandler(urllib.request.HTTPRedirectHandler):
         # other than HTTP or HTTPS
         #
         new_url_lower = new_url_str.lower()
-        if not (
-            new_url_lower.startswith("http://") or new_url_lower.startswith("https://")
-        ):
+        if not (new_url_lower.startswith(("http://", "https://"))):
             # The target URI seems to be pointing to file:// or ftp://
             # Return the original response and continue
             return response
@@ -178,10 +176,7 @@ class HTTP30XHandler(urllib.request.HTTPRedirectHandler):
         if code in GET_HEAD_CODES and method in GET_HEAD:
             return True
 
-        if code in POST_CODES and method == POST:
-            return True
-
-        return False
+        return code in POST_CODES and method == POST
 
     def http_response(self, request, response):
         """

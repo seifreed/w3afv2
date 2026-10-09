@@ -22,9 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import http.client
 import io
-import os
 
-from w3af.core.data.url.handlers.cache_backend.settings import CACHE_LOCATION
 from w3af.core.data.url.handlers.cache_backend.utils import gen_hash
 
 
@@ -113,17 +111,6 @@ class CachedResponse(io.StringIO):
             is raised.
         """
         raise NotImplementedError
-
-    @staticmethod
-    def _get_cache_location():
-        """
-        Return path for cache location. Also create directory if it doesn't
-        exist. For class internal use intended.
-        """
-        cacheloc = os.path.join(CACHE_LOCATION, str(os.getpid()))
-        if not os.path.exists(cacheloc):
-            os.mkdir(cacheloc)
-        return cacheloc
 
     @staticmethod
     def exists_in_cache(request):

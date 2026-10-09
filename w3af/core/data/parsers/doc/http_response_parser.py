@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.http_request_parser import check_version_syntax
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.exceptions import BaseFrameworkException
 
 SUPPORTED_VERSIONS = {"1.0", "1.1"}
@@ -60,23 +60,17 @@ def http_response_parser(head, postdata):
     version_code_message = split_head[0]
     first_line = version_code_message.split(" ", 2)
 
-    if len(first_line) == 3:
-        # We have something like "HTTP/1.1 200 OK"
-        version, code, message = first_line
-
-    elif len(first_line) == 2:
-        # We have something like "HTTP/1.1 503"
-        version, code = first_line
-        message = ""
-
-    else:
+    # We accept "HTTP/1.1 200 OK" and "HTTP/1.1 503", the message is ignored
+    if len(first_line) not in (2, 3):
         msg = 'The HTTP request has an invalid <version> <code> <message>: "%s"'
         raise BaseFrameworkException(msg % version_code_message)
+
+    version, code = first_line[:2]
 
     try:
         code = int(code)
     except ValueError:
-        raise BaseFrameworkException("Invalid HTTP response code %s" % code)
+        raise BaseFrameworkException(f"Invalid HTTP response code {code}")
 
     check_version_syntax(version)
 
@@ -102,8 +96,6 @@ def http_response_parser(head, postdata):
             headers_inst[header_name] += ", " + header_value
         else:
             headers_inst[header_name] = header_value
-
-    host, _ = headers_inst.iget("host", None)
 
     dummy_url = URL("http://w3af.com")
 

@@ -1,5 +1,5 @@
 """
-test_HTTPResponse.py
+test_http_response.py
 
 Copyright 2011 Andres Riancho
 
@@ -30,7 +30,7 @@ import pytest
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.misc.encoding import ESCAPED_CHAR, smart_unicode
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.url.HTTPResponse import DEFAULT_CHARSET, HTTPResponse
+from w3af.core.data.url.http_response import DEFAULT_CHARSET, HTTPResponse
 
 TEST_RESPONSES = {
     "hebrew": ("ולהכיר טוב יותר את המוסכמות, האופי", "Windows-1255"),
@@ -64,7 +64,7 @@ class TestHTTPResponse(unittest.TestCase):
     def test_missing_content_type_is_logged(self):
         response = self.create_resp(Headers(), b"body")
 
-        with self.assertLogs("w3af.core.data.url.HTTPResponse", level="DEBUG") as logs:
+        with self.assertLogs("w3af.core.data.url.http_response", level="DEBUG") as logs:
             self.assertEqual(response.get_body(), b"body")
 
         self.assertIn("failed to send the CONTENT_TYPE", logs.output[0])
