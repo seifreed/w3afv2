@@ -90,7 +90,7 @@ SPECIAL_CHARS = {
 
 HTML_ENCODE_NAMES = {
     "&": "&amp;",
-    '"': "&quot",
+    '"': "&quot;",
     "'": "&apos;",
     ">": "&gt;",
     "=": "&eq;",

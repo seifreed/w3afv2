@@ -81,7 +81,7 @@ def rand_number(length=0, exclude_numbers=(), seed=None):
 
 def create_format_string(length):
     """
-    :return: A string with $length %s and a final %n
+    :return: A string with $length %n format specifiers
     """
     result = "%n" * length
     return result

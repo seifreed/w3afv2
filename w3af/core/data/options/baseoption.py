@@ -20,11 +20,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import copy
-import html
+from abc import ABC, abstractmethod
 
 
-class BaseOption:
+class BaseOption(ABC):
     """
     This class represents an option.
 
@@ -70,9 +69,6 @@ class BaseOption:
     def _get_str(self, value):
         return str(value)
 
-    def get_default_value_str(self):
-        return self._get_str(self.get_default_value())
-
     def get_value_str(self):
         return self._get_str(self.get_value())
 
@@ -101,15 +97,7 @@ class BaseOption:
     def get_tabid(self):
         return self._tabid
 
-    def set_name(self, v):
-        self._name = v
-
-    def set_desc(self, v):
-        self._desc = v
-
-    def set_default_value(self, v):
-        self._default_value = v
-
+    @abstractmethod
     def set_value(self, value):
         """
         :param value: The value parameter is set by the user interface, which
@@ -119,8 +107,8 @@ class BaseOption:
         looking object like True or ['a','b','c']. This replaces the *old*
         parseOptions.
         """
-        raise NotImplementedError
 
+    @abstractmethod
     def validate(self, value):
         """
         Convenient method for GUI to call for each change in the input text to
@@ -134,27 +122,6 @@ class BaseOption:
         :return: The validated value (which in the GUI can be ignored) or a
                  BaseFrameworkException when the value is invalid.
         """
-        raise NotImplementedError
-
-    def set_type(self, v):
-        self._type = v
-
-    def set_help(self, v):
-        self._help = v
-
-    def set_tabid(self, v):
-        self._tabid = v
-
-    def _sanitize(self, value):
-        """
-        Encode some values that can't be used in XML
-        """
-        # FIXME: Not 100% sure about this...
-        # I should also kill the \a and other strange escapes...
-        # Maybe there is already a function that does this!
-        value = html.escape(value, quote=False)
-        value = value.replace('"', "&quot;")
-        return value
 
     def __repr__(self):
         """
@@ -171,11 +138,3 @@ class BaseOption:
         _type = self._type == other._type
         value = self._value == other._value
         return name and _type and value
-
-    def copy(self):
-        """
-        This method returns a copy of the option Object.
-
-        :return: A copy of myself.
-        """
-        return copy.deepcopy(self)

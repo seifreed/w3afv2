@@ -32,9 +32,6 @@ class DataToken:
     def get_path(self):
         return self._path
 
-    def set_path(self, new_path):
-        self._path = new_path
-
     def get_name(self):
         return self._name
 
@@ -58,9 +55,6 @@ class DataToken:
 
     def get_original_value(self):
         return self._original_value
-
-    def set_original_value(self, new_orig_val):
-        self._original_value = new_orig_val
 
     def set_value(self, new_value):
         self.set_payload(new_value)
@@ -96,13 +90,8 @@ class DataToken:
         )
 
     def __getattr__(self, attr):
-        # see if this object has attr
-        # NOTE do not use hasattr, it goes into infinite recursion
-        if attr in self.__dict__:
-            # this object has it
-            return getattr(self, attr)
-
-        # proxy to the wrapped object
+        # Only called when normal attribute lookup fails: proxy to the wrapped
+        # value so tokens can be used like the strings they hold
         return getattr(self._value, attr)
 
     def __len__(self):

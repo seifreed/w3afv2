@@ -30,13 +30,13 @@ def cvss_to_severity(cvss_score):
     :param cvss_score: CVSS score (1 to 10)
     :return: A severity
     """
-    cvss_score = cvss_score * 10
-
-    if cvss_score in range(20, 30):
-        return severity.LOW
-    elif cvss_score in range(30, 70):
-        return severity.MEDIUM
-    elif cvss_score in range(70, 100):
+    if cvss_score >= 7:
         return severity.HIGH
+
+    if cvss_score >= 3:
+        return severity.MEDIUM
+
+    if cvss_score >= 2:
+        return severity.LOW
 
     return severity.INFORMATION

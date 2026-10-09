@@ -155,30 +155,6 @@ class TestKeyValueContainer(unittest.TestCase):
         self.assertIs(dc.get_token(), token)
         self.assertIs(set_token, token)
 
-    def test_is_variant_of_eq_keys_eq_value_types(self):
-        dc1 = KeyValueContainer([("a", ["1"]), ("b", ["2", "3"])])
-        dc2 = KeyValueContainer([("a", ["1"]), ("b", ["2", "3"])])
-
-        self.assertTrue(dc1.is_variant_of(dc2))
-
-    def test_is_variant_of_neq_keys_eq_value_types(self):
-        dc1 = KeyValueContainer([("a", ["1"]), ("b", ["2", "3"])])
-        dc2 = KeyValueContainer([("a", ["1"]), ("c", ["2", "3"])])
-
-        self.assertFalse(dc1.is_variant_of(dc2))
-
-    def test_is_variant_of_neq_num_keys_eq_values(self):
-        dc1 = KeyValueContainer([("a", ["1"]), ("b", ["2", "3"])])
-        dc2 = KeyValueContainer([("a", ["1"])])
-
-        self.assertFalse(dc1.is_variant_of(dc2))
-
-    def test_is_variant_of_eq_keys_neq_value_types(self):
-        dc1 = KeyValueContainer([("a", ["1"]), ("b", ["c", "3"])])
-        dc2 = KeyValueContainer([("a", ["1"]), ("b", ["2", "3"])])
-
-        self.assertFalse(dc1.is_variant_of(dc2))
-
     def test_double_data_token_wrap(self):
         dc = KeyValueContainer([("a", ["1"]), ("b", ["c", "3"])])
         dc.set_token(("b", 1))

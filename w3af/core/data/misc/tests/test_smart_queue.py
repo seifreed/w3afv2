@@ -1,7 +1,7 @@
 """
 test_smart_queue.py
 
-Copyright 2013 Andres Riancho
+Copyright 2015 Andres Riancho
 
 This file is part of w3af, http://w3af.org/ .
 
@@ -20,56 +20,51 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import queue
-import threading
 import time
 import unittest
 
-from w3af.core.data.misc.smart_queue import QueueSpeedMeasurement, SmartQueue
+from w3af.core.data.misc.smart_queue import QueueSpeedMeasurement
 
 
-class TestSmarterQueue(unittest.TestCase):
+def spaced_timestamps(count, seconds_between):
+    """
+    :return: `count` timestamps ending now, `seconds_between` seconds apart
+    """
+    now = time.time()
+    return [now - seconds_between * (count - 1 - i) for i in range(count)]
 
-    def test_simple(self):
-        q = SmartQueue()
 
-        self.assertEqual(0.0, q.get_input_rpm())
-        self.assertEqual(0.0, q.get_output_rpm())
-
-        for i in range(4):
-            q.put(i)
-            # 20 RPM
-            time.sleep(3)
-
-        self.assertEqual(q.qsize(), 4)
-
-        self.assertGreater(q.get_input_rpm(), 19)
-        self.assertLess(q.get_input_rpm(), 28)
-
-        for i in range(4):
-            q.get()
-            # 60 RPM
-            time.sleep(1)
-
-        self.assertAlmostEqual(q.get_output_rpm(), 60, delta=10)
-        self.assertEqual(q.qsize(), 0)
-
+class TestQueueSpeedMeasurement(unittest.TestCase):
     def test_no_data(self):
-        q = SmartQueue()
+        measurement = QueueSpeedMeasurement()
 
-        for _ in range(10):
-            self.assertEqual(0.0, q.get_input_rpm())
-            self.assertEqual(0.0, q.get_output_rpm())
+        self.assertEqual(measurement.get_input_rpm(), 0.0)
+        self.assertEqual(measurement.get_output_rpm(), 0.0)
 
-    def test_clear(self):
-        q = SmartQueue()
-        q.put("item")
-        q.get()
+    def test_items_are_recorded(self):
+        measurement = QueueSpeedMeasurement()
 
-        q.clear()
+        measurement._item_added_to_queue()
+        measurement._item_added_to_queue()
+        measurement._item_left_queue()
 
-        self.assertEqual(q.get_input_rpm(), 0.0)
-        self.assertEqual(q.get_output_rpm(), 0.0)
+        self.assertEqual(len(measurement._input_timestamps), 2)
+        self.assertEqual(len(measurement._output_timestamps), 1)
+
+    def test_input_and_output_rpm(self):
+        measurement = QueueSpeedMeasurement()
+        measurement._input_timestamps = spaced_timestamps(4, 3)
+        measurement._output_timestamps = spaced_timestamps(4, 1)
+
+        self.assertAlmostEqual(measurement.get_input_rpm(), 20, places=3)
+        self.assertAlmostEqual(measurement.get_output_rpm(), 60, places=3)
+
+    def test_old_samples_are_ignored(self):
+        measurement = QueueSpeedMeasurement()
+        too_old = time.time() - measurement.MAX_SECONDS_IN_THE_PAST - 1
+        measurement._input_timestamps = [too_old, too_old]
+
+        self.assertEqual(measurement.get_input_rpm(), 0.0)
 
     def test_calculate_rpm_for_single_and_same_time_samples(self):
         measurement = QueueSpeedMeasurement()
@@ -78,86 +73,21 @@ class TestSmarterQueue(unittest.TestCase):
         self.assertEqual(measurement._calculate_rpm([timestamp]), 0.1)
         self.assertEqual(measurement._calculate_rpm([timestamp, timestamp]), 6000)
 
-    def test_get_preserves_raw_none_entries(self):
-        q = SmartQueue()
-        q.q.put(None)
+    def test_clear(self):
+        measurement = QueueSpeedMeasurement()
+        measurement._item_added_to_queue()
+        measurement._item_left_queue()
 
-        self.assertIsNone(q.get())
+        measurement.clear()
+
+        self.assertEqual(measurement.get_input_rpm(), 0.0)
+        self.assertEqual(measurement.get_output_rpm(), 0.0)
 
     def test_many_items(self):
-        q = SmartQueue()
+        measurement = QueueSpeedMeasurement()
 
-        self.assertEqual(len(q._input_timestamps), 0)
+        for _ in range(measurement.MAX_SIZE * 2):
+            measurement._item_added_to_queue()
 
-        for _ in range(q.MAX_SIZE * 2):
-            q.put(None)
-
-        self.assertEqual(len(q._input_timestamps), q.MAX_SIZE - 1)
-        self.assertEqual(len(q._output_timestamps), 0)
-
-        for _ in range(q.MAX_SIZE * 2):
-            q.get()
-
-        self.assertEqual(len(q._output_timestamps), q.MAX_SIZE - 1)
-
-    def test_exceptions(self):
-        q = SmartQueue(4)
-
-        self.assertEqual(0.0, q.get_input_rpm())
-        self.assertEqual(0.0, q.get_output_rpm())
-
-        for i in range(4):
-            q.put(i)
-            # 20 RPM
-            time.sleep(3)
-
-        for _ in range(10):
-            self.assertRaises(queue.Full, q.put_nowait, None)
-
-        self.assertEqual(q.qsize(), 4)
-
-        self.assertGreater(q.get_input_rpm(), 19)
-        self.assertLess(q.get_input_rpm(), 28)
-
-        for i in range(4):
-            q.get()
-            # 60 RPM
-            time.sleep(1)
-
-        for _ in range(10):
-            self.assertRaises(queue.Empty, q.get_nowait)
-
-        self.assertAlmostEqual(q.get_output_rpm(), 60, delta=10)
-        self.assertEqual(q.qsize(), 0)
-
-    def test_wrapper(self):
-        q = SmartQueue(4)
-        self.assertEqual(q.qsize(), 0)
-
-        q.put(None)
-
-        self.assertEqual(q.qsize(), 1)
-
-        q.get()
-
-        self.assertEqual(q.qsize(), 0)
-
-    def test_blocking_put_resumes_after_consumer_frees_space(self):
-        q = SmartQueue(maxsize=1)
-        q.put("first")
-        consumer_started = threading.Event()
-
-        def consume_item():
-            consumer_started.set()
-            time.sleep(0.05)
-            q.get()
-
-        consumer = threading.Thread(target=consume_item)
-        consumer.start()
-        self.assertTrue(consumer_started.wait(timeout=1))
-
-        q.put("second", timeout=2)
-
-        consumer.join(timeout=2)
-        self.assertFalse(consumer.is_alive())
-        self.assertEqual(q.get(), "second")
+        self.assertEqual(len(measurement._input_timestamps), measurement.MAX_SIZE - 1)
+        self.assertEqual(len(measurement._output_timestamps), 0)

@@ -269,25 +269,6 @@ class HTMLAttrQuoteGeneric(BaseContext):
 
         return False
 
-    def is_executable_style(self):
-        """
-        Handle cases like this:
-          <h1 style="color:blue;text-align:PAYLOAD">This is a header</h1>
-        """
-        if self.name != "style":
-            return False
-
-        # Delegate the is_executable to the CSS parser
-        css_text = self.get_context_content()
-
-        for css_context in get_css_context_iter(css_text, self.payload):
-            # At least one of the contexts where the payload is echoed in the
-            # CSS text needs to be escaped from
-            if css_context.is_executable():
-                return True
-
-        return False
-
     def is_executable_js_event(self):
         """
         Handle cases like this:
@@ -335,10 +316,10 @@ class HTMLAttrQuoteGeneric(BaseContext):
     def is_executable(self):
         """
         :return: True if we're in a context that we can execute without breaking
-                 out.
+                 out. CSS contexts are never executable, the payload always
+                 needs to break out of them (see can_break_style).
         """
         executable_handlers = [
-            self.is_executable_style,
             self.is_executable_js_event,
             self.is_executable_html_attr_with_js_protocol,
         ]

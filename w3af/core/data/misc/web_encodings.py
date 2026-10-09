@@ -38,7 +38,7 @@ HTML_ENCODING_FUNCTIONS: list[Callable[[str], str]] = []
 URL_ENCODING_FUNCTIONS: list[Callable[[str], str]] = []
 
 
-def url_encode(data, by_code_replacer=None, replace_by_code=None, should_upper=False):
+def url_encode(data, by_code_replacer=None, replace_by_code=None):
     """
     This is a generic function which can be used to generate all the functions
     we need for URL encoding.
@@ -46,22 +46,11 @@ def url_encode(data, by_code_replacer=None, replace_by_code=None, should_upper=F
     :param data: The data to encode
     :param by_code_replacer: The function to use to replace by code: &#xXX;
     :param replace_by_code: The character list that determines if a char should be replaced by a code
-    :param should_upper: Should we upper-case the replacement? Use: &amp; or &AMP;?
     :return: The URL encoded string
     """
-    result = []
-
-    for char in data:
-        if char in replace_by_code:
-            replaced_char = by_code_replacer(char)
-            if should_upper and replaced_char != char:
-                char = replaced_char.upper()
-            else:
-                char = replaced_char
-
-        result.append(char)
-
-    return "".join(result)
+    return "".join(
+        by_code_replacer(char) if char in replace_by_code else char for char in data
+    )
 
 
 def generate_url_encoding_functions():
@@ -90,23 +79,17 @@ def generate_url_encoding_functions():
         HEX_MAP,
     )
 
-    # Add true here if you want the upper case and lower case versions of
-    # the encoded character. With the current version of the code we don't
-    # need to use True here because we do a case insensitive replace at
-    # remove_using_lower_case
-    should_uppers = {False}
-
+    # Only lower case versions of the encoded characters are generated, the
+    # case insensitive replace at remove_using_lower_case handles the rest
     for by_code_replacer in by_code_replacers:
         for replace_by_code in replace_by_codes:
-            for should_upper in should_uppers:
-                functor = functools.partial(
-                    url_encode,
-                    by_code_replacer=by_code_replacer,
-                    replace_by_code=replace_by_code,
-                    should_upper=should_upper,
-                )
+            functor = functools.partial(
+                url_encode,
+                by_code_replacer=by_code_replacer,
+                replace_by_code=replace_by_code,
+            )
 
-                URL_ENCODING_FUNCTIONS.append(functor)
+            URL_ENCODING_FUNCTIONS.append(functor)
 
 
 def html_encode(
@@ -115,7 +98,6 @@ def html_encode(
     by_name_replacer=None,
     replace_by_code=None,
     replace_by_name=None,
-    should_upper=False,
 ):
     """
     This is a generic function which can be used to generate all the functions
@@ -126,25 +108,15 @@ def html_encode(
     :param by_name_replacer: The function to use to replace by name: &amp;
     :param replace_by_code: The character list that determines if a char should be replaced by a code
     :param replace_by_name: The character list that determines if a char should be replaced by a name
-    :param should_upper: Should we upper-case the replacement? Use: &amp; or &AMP;?
     :return: The HTML encoded string
     """
     result = []
 
     for char in data:
         if char in replace_by_name:
-            replaced_char = by_name_replacer(char)
-            if should_upper and replaced_char != char:
-                char = replaced_char.upper()
-            else:
-                char = replaced_char
-
+            char = by_name_replacer(char)
         elif char in replace_by_code:
-            replaced_char = by_code_replacer(char)
-            if should_upper and replaced_char != char:
-                char = replaced_char.upper()
-            else:
-                char = replaced_char
+            char = by_code_replacer(char)
 
         result.append(char)
 
@@ -181,27 +153,21 @@ def generate_html_encoding_functions():
         HEX_MAP,
     )
 
-    # Add true here if you want the upper case and lower case versions of
-    # the encoded character. With the current version of the code we don't
-    # need to use True here because we do a case insensitive replace at
-    # remove_using_lower_case
-    should_uppers = {False}
-
+    # Only lower case versions of the encoded characters are generated, the
+    # case insensitive replace at remove_using_lower_case handles the rest
     for by_code_replacer in by_code_replacers:
         for by_name_replacer in by_name_replacers:
             for replace_by_code in replace_by_codes:
                 for replace_by_name in replace_by_names:
-                    for should_upper in should_uppers:
-                        functor = functools.partial(
-                            html_encode,
-                            by_code_replacer=by_code_replacer,
-                            by_name_replacer=by_name_replacer,
-                            replace_by_code=replace_by_code,
-                            replace_by_name=replace_by_name,
-                            should_upper=should_upper,
-                        )
+                    functor = functools.partial(
+                        html_encode,
+                        by_code_replacer=by_code_replacer,
+                        by_name_replacer=by_name_replacer,
+                        replace_by_code=replace_by_code,
+                        replace_by_name=replace_by_name,
+                    )
 
-                        HTML_ENCODING_FUNCTIONS.append(functor)
+                    HTML_ENCODING_FUNCTIONS.append(functor)
 
 
 def unicode_escape(data):

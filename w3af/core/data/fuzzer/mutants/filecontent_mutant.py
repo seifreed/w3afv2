@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from w3af.core.data.dc.generic.form import Form
 from w3af.core.data.dc.multipart_container import MultipartContainer
 from w3af.core.data.dc.utils.file_token import FileDataToken
 from w3af.core.data.dc.utils.token import DataToken
@@ -65,9 +64,7 @@ class FileContentMutant(PostDataMutant):
         if not freq.get_file_vars():
             return []
 
-        if not isinstance(freq.get_raw_data(), Form):
-            return []
-
+        # Only forms have file variables
         form = freq.get_raw_data()
         multipart_container = OnlyTokenFilesMultipartContainer(form)
         freq.set_data(multipart_container)
@@ -94,12 +91,12 @@ class OnlyTokenFilesMultipartContainer(MultipartContainer):
         for key, val, ipath, setter in self.iter_setters():
 
             if ipath == token_path:
-                if isinstance(val, (DataToken, FileDataToken)):
+                if isinstance(val, DataToken):
                     # Avoid double-wrapping
                     token = val
                 else:
                     if key in self.get_file_vars():
-                        fname = val.filename if hasattr(val, "filename") else None
+                        fname = self.get_file_name(key)
                         token = FileDataToken(key, val, fname, ipath)
                     else:
                         token = DataToken(key, val, ipath)

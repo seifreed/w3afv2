@@ -29,9 +29,6 @@ import logging
 class FilterScapy(logging.Filter):
     """A simple way to prevent messages from getting through."""
 
-    def __init__(self, name=None):
-        pass
-
     def filter(self, rec):
         return "No route found for IPv6" not in rec.msg
 

@@ -82,9 +82,6 @@ class OrderedCachedQueue(queue.Queue, QueueSpeedMeasurement):
     def get_processed_tasks(self):
         return self.processed_tasks
 
-    def next_item_saved_to_memory(self):
-        return len(self.memory) < self.max_in_memory
-
     def _init(self, maxsize):
         """
         Initialize the dicts and pointer

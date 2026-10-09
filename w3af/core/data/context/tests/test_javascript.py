@@ -25,15 +25,19 @@ from w3af.core.data.context.context.javascript import (
     ScriptMultiLineComment,
     ScriptSingleLineComment,
     ScriptSingleQuoteString,
-    get_js_context,
+    get_js_context_iter,
 )
 from w3af.core.data.context.tests.context_test import ContextTest
+
+
+def get_js_context_list(data, payload):
+    return list(get_js_context_iter(data, payload))
 
 
 class TestJavaScript(ContextTest):
     def test_payload_is_all_content(self):
         js_code = "PAYLOAD"
-        contexts = get_js_context(js_code, "PAYLOAD")
+        contexts = get_js_context_list(js_code, "PAYLOAD")
 
         self.assertEqual(len(contexts), 1, contexts)
         context = contexts[0]
@@ -43,7 +47,7 @@ class TestJavaScript(ContextTest):
 
     def test_payload_is_executable_1(self):
         js_code = 'alert("Hello " + PAYLOAD);'
-        contexts = get_js_context(js_code, "PAYLOAD")
+        contexts = get_js_context_list(js_code, "PAYLOAD")
 
         self.assertEqual(len(contexts), 1, contexts)
         context = contexts[0]
@@ -53,7 +57,7 @@ class TestJavaScript(ContextTest):
 
     def test_payload_is_executable_2(self):
         js_code = "init({login:'',foo: PAYLOAD})"
-        contexts = get_js_context(js_code, "PAYLOAD")
+        contexts = get_js_context_list(js_code, "PAYLOAD")
 
         self.assertEqual(len(contexts), 1, contexts)
         context = contexts[0]
@@ -63,7 +67,7 @@ class TestJavaScript(ContextTest):
 
     def test_payload_is_executable_3(self):
         js_code = "alert('Hello'); PAYLOAD;"
-        contexts = get_js_context(js_code, "PAYLOAD")
+        contexts = get_js_context_list(js_code, "PAYLOAD")
 
         self.assertEqual(len(contexts), 1, contexts)
         context = contexts[0]
@@ -73,7 +77,7 @@ class TestJavaScript(ContextTest):
 
     def test_payload_is_executable_4(self):
         js_code = "PAYLOAD; alert('Hello');"
-        contexts = get_js_context(js_code, "PAYLOAD")
+        contexts = get_js_context_list(js_code, "PAYLOAD")
 
         self.assertEqual(len(contexts), 1, contexts)
         context = contexts[0]
@@ -83,7 +87,7 @@ class TestJavaScript(ContextTest):
 
     def test_payload_break_single_quote_1(self):
         js_code = "init({login:'',foo: 'PAYLOAD'})"
-        contexts = get_js_context(js_code, "PAYLOAD")
+        contexts = get_js_context_list(js_code, "PAYLOAD")
 
         self.assertEqual(len(contexts), 1, contexts)
         context = contexts[0]
@@ -93,7 +97,7 @@ class TestJavaScript(ContextTest):
 
     def test_payload_break_single_quote_2(self):
         js_code = "alert('PAYLOAD');"
-        contexts = get_js_context(js_code, "PAYLOAD")
+        contexts = get_js_context_list(js_code, "PAYLOAD")
 
         self.assertEqual(len(contexts), 1, contexts)
         context = contexts[0]
@@ -103,7 +107,7 @@ class TestJavaScript(ContextTest):
 
     def test_payload_break_single_quote_3(self):
         js_code = "alert('Hello ' + 'PAYLOAD');"
-        contexts = get_js_context(js_code, "PAYLOAD")
+        contexts = get_js_context_list(js_code, "PAYLOAD")
 
         self.assertEqual(len(contexts), 1, contexts)
         context = contexts[0]
@@ -113,7 +117,7 @@ class TestJavaScript(ContextTest):
 
     def test_single_quote_escape(self):
         js_code = "alert('Hello \\' world' + PAYLOAD);"
-        contexts = get_js_context(js_code, "PAYLOAD")
+        contexts = get_js_context_list(js_code, "PAYLOAD")
 
         self.assertEqual(len(contexts), 1, contexts)
         context = contexts[0]
@@ -123,7 +127,7 @@ class TestJavaScript(ContextTest):
 
     def test_single_quote_mix_double(self):
         js_code = "alert('Hello' + \"PAYLOAD\");"
-        contexts = get_js_context(js_code, "PAYLOAD")
+        contexts = get_js_context_list(js_code, "PAYLOAD")
 
         self.assertEqual(len(contexts), 1, contexts)
         context = contexts[0]
@@ -133,7 +137,7 @@ class TestJavaScript(ContextTest):
 
     def test_payload_break_double_quote_1(self):
         js_code = "init({login:" ',foo: "PAYLOAD"})'
-        contexts = get_js_context(js_code, "PAYLOAD")
+        contexts = get_js_context_list(js_code, "PAYLOAD")
 
         self.assertEqual(len(contexts), 1, contexts)
         context = contexts[0]
@@ -143,7 +147,7 @@ class TestJavaScript(ContextTest):
 
     def test_payload_break_double_quote_2(self):
         js_code = 'alert("PAYLOAD");'
-        contexts = get_js_context(js_code, "PAYLOAD")
+        contexts = get_js_context_list(js_code, "PAYLOAD")
 
         self.assertEqual(len(contexts), 1, contexts)
         context = contexts[0]
@@ -153,7 +157,7 @@ class TestJavaScript(ContextTest):
 
     def test_payload_break_double_quote_3(self):
         js_code = 'alert("Hello " + "PAYLOAD");'
-        contexts = get_js_context(js_code, "PAYLOAD")
+        contexts = get_js_context_list(js_code, "PAYLOAD")
 
         self.assertEqual(len(contexts), 1, contexts)
         context = contexts[0]
@@ -167,7 +171,7 @@ class TestJavaScript(ContextTest):
         // PAYLOAD
         bar();
         """
-        contexts = get_js_context(js_code, "PAYLOAD")
+        contexts = get_js_context_list(js_code, "PAYLOAD")
 
         self.assertEqual(len(contexts), 1, contexts)
         context = contexts[0]
@@ -179,7 +183,7 @@ class TestJavaScript(ContextTest):
         js_code = """
         foo('// PAYLOAD');
         """
-        contexts = get_js_context(js_code, "PAYLOAD")
+        contexts = get_js_context_list(js_code, "PAYLOAD")
 
         self.assertEqual(len(contexts), 1, contexts)
         context = contexts[0]
@@ -193,7 +197,7 @@ class TestJavaScript(ContextTest):
         // I\'m a single quote and I break stuff PAYLOAD
         bar();
         """
-        contexts = get_js_context(js_code, "PAYLOAD")
+        contexts = get_js_context_list(js_code, "PAYLOAD")
 
         self.assertEqual(len(contexts), 1, contexts)
         context = contexts[0]
@@ -212,7 +216,7 @@ class TestJavaScript(ContextTest):
         */
         bar();
         """
-        contexts = get_js_context(js_code, "PAYLOAD")
+        contexts = get_js_context_list(js_code, "PAYLOAD")
 
         self.assertEqual(len(contexts), 1, contexts)
         context = contexts[0]
@@ -224,7 +228,7 @@ class TestJavaScript(ContextTest):
         js_code = """
         foo('/* PAYLOAD');
         """
-        contexts = get_js_context(js_code, "PAYLOAD")
+        contexts = get_js_context_list(js_code, "PAYLOAD")
 
         self.assertEqual(len(contexts), 1, contexts)
         context = contexts[0]

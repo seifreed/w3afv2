@@ -62,8 +62,6 @@ def _split_vars_files(data):
                 v_files.append((pname, value))
             else:
                 v_vars.append((pname, ""))
-        elif hasattr(value, "isFile"):
-            v_files.append((pname, value))
         else:
             v_vars.append((pname, value))
 

@@ -66,7 +66,7 @@ def _return_escaped_char(encodingexc):
     if isinstance(invalid_data, bytes):
         slash_x_XX = "".join(f"\\x{byte:02x}" for byte in invalid_data)
     else:
-        slash_x_XX = repr(invalid_data)[1:-1]
+        slash_x_XX = invalid_data.encode("unicode_escape").decode("ascii")
     return str(slash_x_XX), en
 
 
@@ -85,84 +85,53 @@ codecs.register_error(PERCENT_ENCODE, _percent_encode)
 codecs.register_error(HTML_ENCODE, _return_html_encoded)
 
 
-def smart_unicode(
-    s,
-    encoding=DEFAULT_ENCODING,
-    errors="strict",
-    on_error_guess=True,
-    # http://jamesls.com/micro-optimizations-in-python-code-speeding-up-lookups.html
-    _isinstance=isinstance,
-    _unicode=str,
-    _str=str,
-):
+def smart_unicode(s, encoding=DEFAULT_ENCODING, errors="strict", on_error_guess=True):
     """
     Return the unicode representation of 's'. Decodes byte-strings using
-    the 'encoding' codec.
+    the 'encoding' codec, falling back to the encoding chardet guesses when
+    on_error_guess is set.
     """
-    if _isinstance(s, _unicode):
+    if isinstance(s, str):
         return s
 
-    if _isinstance(s, bytes):
-        try:
-            s = s.decode(encoding, errors)
-        except UnicodeDecodeError:
-            if not on_error_guess:
-                raise
+    if not isinstance(s, bytes):
+        return str(s)
 
-            try:
-                guessed_encoding = chardet.detect(s)["encoding"]
-            except TypeError:
-                # https://github.com/andresriancho/w3af/issues/13819
-                guessed_encoding = None
+    try:
+        return s.decode(encoding, errors)
+    except UnicodeDecodeError:
+        if not on_error_guess:
+            raise
 
-            if guessed_encoding is None:
-                # Chardet failed to guess the encoding! This is really broken
-                s = s.decode(encoding, "ignore")
-            else:
-                try:
-                    s = s.decode(guessed_encoding, errors)
-                except UnicodeDecodeError:
-                    s = s.decode(encoding, "ignore")
-    else:
-        s = _str(s)
+    guessed_encoding = chardet.detect(s)["encoding"]
+    if guessed_encoding is None:
+        # Chardet failed to guess the encoding! This is really broken
+        return s.decode(encoding, "ignore")
 
-    return s
+    try:
+        return s.decode(guessed_encoding, errors)
+    except UnicodeDecodeError:
+        return s.decode(encoding, "ignore")
 
 
-def smart_str(
-    s,
-    encoding=DEFAULT_ENCODING,
-    errors="strict",
-    # http://jamesls.com/micro-optimizations-in-python-code-speeding-up-lookups.html
-    _isinstance=isinstance,
-    _unicode=str,
-    _str=str,
-):
+def smart_str(s, encoding=DEFAULT_ENCODING, errors="strict"):
     """
     Return a byte-string version of 's', encoded as specified in 'encoding'.
+    Objects are converted with str() first; when that fails and errors is not
+    'strict' an empty byte-string is returned.
     """
-    if _isinstance(s, _unicode):
-        return s.encode(encoding, errors)
-
-    if _isinstance(s, bytes):
+    if isinstance(s, bytes):
         return s
 
-    # Handling objects is hard! Each implements __str__ in a different way
-    # which might trigger issues
-    try:
-        return _str(s)
-    except UnicodeEncodeError:
-        # This will raise an exception if errors is strict, or return a
-        # string representation of the object
+    if not isinstance(s, str):
         try:
-            unicode_s = _unicode(s)
+            s = str(s)
         except UnicodeEncodeError:
             if errors == "strict":
                 raise
+            return b""
 
-            return ""
-        else:
-            return smart_str(unicode_s, encoding=encoding, errors=errors)
+    return s.encode(encoding, errors)
 
 
 def smart_str_ignore(s, encoding=DEFAULT_ENCODING):

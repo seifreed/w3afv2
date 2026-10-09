@@ -67,3 +67,9 @@ class TestXMLBones(unittest.TestCase):
 
     def test_just_text(self):
         self.assertEqual(get_xml_bones("hello world (); foobar"), "htmlbody20bodyhtml")
+
+    def test_comments_are_ignored(self):
+        self.assertEqual(
+            get_xml_bones("<xml><!-- a comment -->hello</xml>"),
+            get_xml_bones("<xml>hello</xml>"),
+        )

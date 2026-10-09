@@ -82,13 +82,6 @@ ALL_CONTEXTS = [
 ]
 
 
-def get_js_context(data, payload):
-    """
-    :return: A list which contains lists of all contexts where the payload lives
-    """
-    return [c for c in get_js_context_iter(data, payload)]
-
-
 def get_js_context_iter(data, payload):
     """
     We parse the JavaScript code and find the payload context name.

@@ -95,9 +95,7 @@ class TestMutant(unittest.TestCase):
         self.assertEqual(token_2.get_value(), "abc")
 
         self.assertTrue(all(isinstance(m, Mutant) for m in created_mutants))
-        self.assertTrue(
-            all(m.get_mutant_class() == "FakeMutant" for m in created_mutants)
-        )
+        self.assertTrue(all(isinstance(m, FakeMutant) for m in created_mutants))
 
     def test_alternative_mutant_creation(self):
         freq = FuzzableRequest(URL("http://moth/?a=1&b=2"))
@@ -111,10 +109,6 @@ class TestMutant(unittest.TestCase):
         created_dcs = [str(i.get_dc()) for i in created_mutants]
 
         self.assertEqual(expected_dcs, created_dcs)
-
-    def test_get_mutant_class(self):
-        m = Mutant(None)
-        self.assertEqual(m.get_mutant_class(), "Mutant")
 
     def test_mutant_generic_methods(self):
         qs = QueryString(self.SIMPLE_KV)

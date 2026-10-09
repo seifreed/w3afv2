@@ -24,7 +24,7 @@ import os
 import string
 from random import choice
 
-from w3af.core.filesystem import get_temp_dir
+from w3af.core.filesystem import create_temp_dir
 
 
 class GenericBloomFilter:
@@ -50,10 +50,8 @@ class GenericBloomFilter:
         return len(self.bf)
 
     def __repr__(self):
-        return repr(self.bf)
-
-    def __str__(self):
-        return str(self.bf)
+        args = (type(self).__name__, len(self), self.capacity, self.error_rate)
+        return "<{} items={} capacity={} error_rate={}>".format(*args)
 
     def add(self, key):
         return self.bf.add(key)
@@ -63,11 +61,7 @@ class GenericBloomFilter:
         """
         Create the temp file
         """
-        tempdir = get_temp_dir()
-
-        if not os.path.exists(tempdir):
-            os.makedirs(tempdir)
-
+        tempdir = create_temp_dir()
         filename = "".join([choice(string.ascii_letters) for _ in range(12)])
         temp_file = os.path.join(tempdir, filename + "-w3af.bloom")
         return temp_file

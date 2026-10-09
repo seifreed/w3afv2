@@ -87,8 +87,5 @@ class BoneCollector:
     def data(self, data):
         self.bones.append(f"{round_N(len(data))}")
 
-    def comment(self, text):
-        pass
-
     def close(self):
         return None

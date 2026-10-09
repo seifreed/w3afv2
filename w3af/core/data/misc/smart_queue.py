@@ -20,11 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import logging
-import queue
 import time
-
-LOGGER = logging.getLogger(__name__)
 
 
 class QueueSpeedMeasurement:
@@ -94,86 +90,3 @@ class QueueSpeedMeasurement:
 
         # Calculate RPM and return it
         return 60.0 * all_intervals / time_delta
-
-
-class SmartQueue(QueueSpeedMeasurement):
-    """
-    This queue is mostly used for debugging producer / consumer implementations,
-    you shouldn't use this queue in production.
-
-    The queue has the following features:
-        * Log how much time a thread waited to put() and item
-        * Log how much time an item waited in the queue to get out
-    """
-
-    def __init__(self, maxsize=0, name="Unknown"):
-        super().__init__()
-        self.q = queue.Queue(maxsize=maxsize)
-
-        self._name = name
-
-    def get_name(self):
-        return self._name
-
-    def get(self, block=True, timeout=None):
-        data = self.q.get(block=block, timeout=timeout)
-        if data is None:
-            return data
-
-        timestamp, item = data
-        block_time = time.time() - timestamp
-        LOGGER.debug(
-            "Item waited %.2f seconds to get out of the %s queue. "
-            "Items in queue: %s / %s",
-            round(block_time, 2),
-            self.get_name(),
-            self.q.qsize(),
-            self.q.maxsize,
-        )
-
-        self._item_left_queue()
-        return item
-
-    def put(self, item, block=True, timeout=None):
-        #
-        #   This is very useful information for finding bottlenecks in the
-        #   framework / strategy
-        #
-        #   The call to .full() is not 100% accurate since another thread might
-        #   read from the queue and the put() might not lock, but it is good
-        #   enough for debugging.
-        #
-        block_start_time = None
-
-        if self.q.full() and block:
-            #
-            #   If you see maxsize messages like this at the end of your scan
-            #   log and the scan has freezed, then you need to report a bug!
-            #
-            LOGGER.debug(
-                "Thread will block waiting for Queue.put() to have space in"
-                " the %s queue. (maxsize=%s, timeout=%s)",
-                self.get_name(),
-                self.q.maxsize,
-                timeout,
-            )
-            block_start_time = time.time()
-
-        timestamp = time.time()
-
-        put_res = self.q.put((timestamp, item), block=block, timeout=timeout)
-        if block_start_time is not None:
-            LOGGER.debug(
-                "Thread blocked %.2f seconds waiting for Queue.put() to"
-                " have space in the %s queue. The queue's maxsize is"
-                " %s.",
-                round(time.time() - block_start_time, 2),
-                self.get_name(),
-                self.q.maxsize,
-            )
-
-        self._item_added_to_queue()
-        return put_res
-
-    def __getattr__(self, attr):
-        return getattr(self.q, attr)

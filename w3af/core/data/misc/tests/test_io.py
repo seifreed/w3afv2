@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import copy
 import unittest
 
 from w3af.core.data.misc.io import NamedStringIO, is_file_like
@@ -48,3 +49,13 @@ class TestIO(unittest.TestCase):
 
     def test_string_is_not_file_like(self):
         self.assertFalse(is_file_like("content"))
+
+    def test_named_string_io_deepcopy_keeps_name(self):
+        original = NamedStringIO("content", "upload.gif")
+
+        clone = copy.deepcopy(original)
+
+        self.assertIsInstance(clone, NamedStringIO)
+        self.assertEqual(clone, "content")
+        self.assertEqual(clone.name, "upload.gif")
+        self.assertEqual(clone.read(), "content")

@@ -49,12 +49,6 @@ class PlainContainer(DataContainer):
     def __contains__(self, item):
         return False
 
-    def get_plain_data(self):
-        return self.plain_data
-
-    def set_plain_data(self, plain_data):
-        self.plain_data = plain_data
-
     @classmethod
     def from_postdata(cls, headers, post_data):
         content_type, _ = headers.iget("content-type", None)
@@ -80,16 +74,6 @@ class PlainContainer(DataContainer):
                  shorter in length than MAX_PRINTABLE
         """
         return self.plain_data[: self.MAX_PRINTABLE]
-
-    def is_variant_of(self, other):
-        """
-        :return: True if self and other are both of the same DataContainer type,
-                 have the same token names, and for each token the type (int or
-                 string) is the same.
-        """
-        hm = self.content_type_header_value == other.content_type_header_value
-        dm = self.plain_data == other.plain_data
-        return hm and dm
 
     def get_headers(self):
         """

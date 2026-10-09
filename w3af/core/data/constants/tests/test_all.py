@@ -22,30 +22,67 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
+from w3af.core.data.constants.common_words import common_words
+from w3af.core.data.constants.cookies import (
+    ALL_COOKIES,
+    COOKIE_FINGERPRINT,
+    GENERIC_COOKIES,
+)
 from w3af.core.data.constants.dbms import MYSQL
 from w3af.core.data.constants.disclaimer import DISCLAIMER
+from w3af.core.data.constants.file_extensions import CSS, FLASH, IMAGES, JAVASCRIPT
 from w3af.core.data.constants.file_patterns import FILE_PATTERNS
-from w3af.core.data.constants.ignored_params import IGNORED_PARAMETERS
+from w3af.core.data.constants.http_messages import W3C_REASONS
+from w3af.core.data.constants.ignored_params import (
+    IGNORED_PARAMETERS,
+    is_in_ignored_parameters,
+)
 from w3af.core.data.constants.ports import MAILER
 from w3af.core.data.constants.response_codes import OK
 from w3af.core.data.constants.severity import HIGH
 from w3af.core.data.constants.vulns import VULNS
+from w3af.core.data.constants.websockets import (
+    DEFAULT_PROTOCOL_VERSION,
+    WEBSOCKET_UPGRADE_HEADERS,
+)
 
 
 class TestAll(unittest.TestCase):
-    """
-    Simple test case that imports all constant modules in order to verify that
-    they do NOT have any syntax errors. Importing one of the constants will
-    simply trigger the whole file to be run.
-    """
-
-    def test_all(self):
-        self.assertEqual(MYSQL, MYSQL)
-        self.assertEqual(DISCLAIMER, DISCLAIMER)
-        self.assertEqual(MAILER, MAILER)
-        self.assertEqual(OK, OK)
-        self.assertEqual(HIGH, HIGH)
-        self.assertEqual(IGNORED_PARAMETERS, IGNORED_PARAMETERS)
-        self.assertEqual(VULNS, VULNS)
-
+    def test_simple_constants(self):
+        self.assertEqual(MYSQL, "MySQL database")
+        self.assertIn("w3af", DISCLAIMER)
+        self.assertEqual(MAILER, 25)
+        self.assertEqual(OK, 200)
+        self.assertEqual(HIGH, "High")
+        self.assertIn("PHPSESSID", IGNORED_PARAMETERS)
+        self.assertIsNone(VULNS["Manually added vulnerability"])
         self.assertIn("root:x:0:0:", FILE_PATTERNS)
+
+    def test_all_cookies_merges_fingerprints_and_generic_names(self):
+        fingerprinted = {name for name, _ in COOKIE_FINGERPRINT}
+
+        self.assertEqual(ALL_COOKIES, fingerprinted | GENERIC_COOKIES)
+        self.assertIn("PHPSESSID", ALL_COOKIES)
+        self.assertIn("session_id", ALL_COOKIES)
+
+    def test_file_extensions(self):
+        self.assertEqual(JAVASCRIPT, {"js"})
+        self.assertEqual(CSS, {"css"})
+        self.assertEqual(FLASH, {"swf"})
+        self.assertIn("png", IMAGES)
+
+    def test_http_messages(self):
+        self.assertEqual(W3C_REASONS[404], ["not found"])
+
+    def test_common_words(self):
+        self.assertIn("the", common_words["en"])
+
+    def test_websocket_upgrade_headers(self):
+        self.assertEqual(
+            WEBSOCKET_UPGRADE_HEADERS["Sec-WebSocket-Version"],
+            str(DEFAULT_PROTOCOL_VERSION),
+        )
+
+    def test_is_in_ignored_parameters_ignores_case(self):
+        self.assertTrue(is_in_ignored_parameters("phpsessid"))
+        self.assertFalse(is_in_ignored_parameters("username"))

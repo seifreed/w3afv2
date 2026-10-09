@@ -44,9 +44,6 @@ class Mutant(DiskItem):
     def get_fuzzable_request(self):
         return self._freq
 
-    def set_fuzzable_request(self, freq):
-        self._freq = freq
-
     def set_dc(self, data_container):
         msg = 'Mutant sub-class "%s" needs to implement set_dc'
         raise NotImplementedError(msg % self.__class__.__name__)
@@ -86,13 +83,6 @@ class Mutant(DiskItem):
         :return: The current token original value
         """
         return self.get_token().get_original_value()
-
-    def set_token_original_value(self, new_value):
-        """
-        Shortcut!
-        :return: The current token original value
-        """
-        return self.get_token().set_original_value(new_value)
 
     def get_token_name(self):
         """
@@ -183,10 +173,6 @@ class Mutant(DiskItem):
         return "generic"
 
     @classmethod
-    def get_mutant_class(cls):
-        return cls.__name__
-
-    @classmethod
     def create_mutants(
         cls, freq, payload_list, fuzzable_param_list, append, fuzzer_config
     ):
@@ -207,13 +193,6 @@ class Mutant(DiskItem):
 
         :return: A list of mutants.
         """
-        if not issubclass(mutant_cls, Mutant):
-            msg = (
-                "mutant_cls parameter needs to be one of the known mutant"
-                " classes, not %s."
-            )
-            raise TypeError(msg % mutant_cls)
-
         result = []
 
         # This line has a lot of magic in it!

@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import copy
 import unittest
-from unittest.mock import patch
 
 from w3af.core.data.constants.file_templates.file_templates import (
     get_template_with_payload,
@@ -131,21 +130,24 @@ class TestFileContentMutant(unittest.TestCase):
         form = MultipartContainer(form_params)
         freq = FuzzableRequest.from_form(form)
 
-        ph = "w3af.core.data.constants.file_templates.file_templates.rand_alpha"
-
-        with patch(ph) as mock_rand_alpha:
-            mock_rand_alpha.return_value = "upload"
-            generated_mutants = FileContentMutant.create_mutants(
-                freq, self.payloads, [], False, fuzzer_config
-            )
+        generated_mutants = FileContentMutant.create_mutants(
+            freq, self.payloads, [], False, fuzzer_config
+        )
 
         self.assertEqual(len(generated_mutants), 2, generated_mutants)
+
+        # Each payload is uploaded with a random file name
+        name_abc, name_def = (
+            m.get_dc()["image"][0].get_value().name for m in generated_mutants
+        )
+        self.assertRegex(name_abc, r"^[a-zA-Z]{7}\.gif$")
+        self.assertRegex(name_def, r"^[a-zA-Z]{7}\.gif$")
 
         _, file_payload_abc, _ = get_template_with_payload("gif", "abc")
         _, file_payload_def, _ = get_template_with_payload("gif", "def")
 
-        file_abc = NamedStringIO(file_payload_abc, "upload.gif")
-        file_def = NamedStringIO(file_payload_def, "upload.gif")
+        file_abc = NamedStringIO(file_payload_abc, name_abc)
+        file_def = NamedStringIO(file_payload_def, name_def)
 
         form_1 = MultipartContainer(copy.deepcopy(form_params))
         form_2 = MultipartContainer(copy.deepcopy(form_params))
@@ -181,4 +183,4 @@ class TestFileContentMutant(unittest.TestCase):
         self.assertEqual(str_file.name[-4:], ".gif")
         self.assertEqual(file_payload_def, str_file)
 
-        self.assertIn('name="image"; filename="upload.gif"', generated_data[0])
+        self.assertIn(f'name="image"; filename="{name_abc}"', generated_data[0])
