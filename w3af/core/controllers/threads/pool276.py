@@ -157,8 +157,8 @@ def create_detailed_pickling_error(exception, instance):
 
     def can_pickle(data):
         try:
-            pickle.dumps(v)
-        except:
+            pickle.dumps(data)
+        except (pickle.PicklingError, TypeError, AttributeError, RecursionError):
             return False
         else:
             return True
