@@ -21,9 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import copy
+import re
 import unittest
 from typing import ClassVar
-from unittest.mock import patch
 
 from w3af.core.data.constants.file_templates.file_templates import (
     get_file_from_template,
@@ -39,6 +39,12 @@ from w3af.core.data.misc.io import NamedStringIO
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.utils.form_params import FormParameters
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
+
+RANDOM_GIF_FILENAME = re.compile(r'filename="[A-Za-z]{7}\.gif"')
+
+
+def with_fixed_upload_filename(multipart_data):
+    return RANDOM_GIF_FILENAME.sub('filename="upload.gif"', multipart_data)
 
 
 class FakeMutant(Mutant):
@@ -176,13 +182,9 @@ class TestMutant(unittest.TestCase):
         form = MultipartContainer(form_params)
         freq = FuzzableRequest(self.url, post_data=form)
 
-        ph = "w3af.core.data.constants.file_templates.file_templates.rand_alpha"
-
-        with patch(ph) as mock_rand_alpha:
-            mock_rand_alpha.return_value = "upload"
-            generated_mutants = PostDataMutant.create_mutants(
-                freq, self.payloads, [], False, self.fuzzer_config
-            )
+        generated_mutants = PostDataMutant.create_mutants(
+            freq, self.payloads, [], False, self.fuzzer_config
+        )
 
         self.assertEqual(len(generated_mutants), 6, generated_mutants)
 
@@ -240,7 +242,10 @@ class TestMutant(unittest.TestCase):
         expected_data = {s.replace(boundary, noop) for s in expected_data}
 
         generated_forms = [m.get_dc() for m in generated_mutants]
-        generated_data = [str(f).replace(f.boundary, noop) for f in generated_forms]
+        generated_data = [
+            with_fixed_upload_filename(str(f).replace(f.boundary, noop))
+            for f in generated_forms
+        ]
 
         self.assertEqual(expected_data, set(generated_data))
 

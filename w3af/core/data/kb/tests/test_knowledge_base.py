@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import copy
 import unittest
 import uuid
-from unittest.mock import Mock
 
 from w3af.core.controllers.threads.threadpool import Pool
 from w3af.core.controllers.w3af_core import w3afCore
@@ -32,6 +31,7 @@ from w3af.core.data.db.exceptions import DBException
 from w3af.core.data.dc.query_string import QueryString
 from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
 from w3af.core.data.kb.info_set import InfoSet
+from w3af.core.data.kb.kb_observer import KBObserver
 from w3af.core.data.kb.knowledge_base import DBKnowledgeBase, kb
 from w3af.core.data.kb.shell import Shell
 from w3af.core.data.kb.tests.test_info import MockInfo
@@ -49,6 +49,22 @@ from w3af.plugins.attack.payloads.shell_handler import get_shell_code
 from w3af.plugins.attack.rfi import PortScanShell, RFIShell
 from w3af.plugins.attack.sqlmap import SQLMapShell
 from w3af.plugins.attack.xpath import IsErrorResponse, XPathReader
+
+
+class RecordingKBObserver(KBObserver):
+    def __init__(self):
+        self.appended = []
+        self.added_urls = []
+        self.updated = []
+
+    def append(self, location_a, location_b, value, ignore_type=False):
+        self.appended.append((location_a, location_b, value, ignore_type))
+
+    def add_url(self, url):
+        self.added_urls.append(url)
+
+    def update(self, old_info, new_info):
+        self.updated.append((old_info, new_info))
 
 
 class TestKnowledgeBase(unittest.TestCase):
@@ -397,16 +413,16 @@ class TestKnowledgeBase(unittest.TestCase):
         self.assertFalse(db.table_exists(table_name))
 
     def test_observer_append(self):
-        observer1 = Mock()
+        observer1 = RecordingKBObserver()
         info = MockInfo()
 
         kb.add_observer(observer1)
         kb.append("a", "b", info)
 
-        observer1.append.assert_called_once_with("a", "b", info, ignore_type=False)
+        self.assertEqual(observer1.appended, [("a", "b", info, False)])
 
     def test_observer_update(self):
-        observer1 = Mock()
+        observer1 = RecordingKBObserver()
         info = MockInfo()
 
         kb.add_observer(observer1)
@@ -415,27 +431,27 @@ class TestKnowledgeBase(unittest.TestCase):
         info.set_name("new name")
         kb.update(old_info, info)
 
-        observer1.update.assert_called_once_with(old_info, info)
+        self.assertEqual(observer1.updated, [(old_info, info)])
 
     def test_observer_add_url(self):
-        observer1 = Mock()
+        observer1 = RecordingKBObserver()
         url = URL("http://www.w3af.org/")
 
         kb.add_observer(observer1)
         kb.add_url(url)
 
-        observer1.add_url.assert_called_once_with(url)
+        self.assertEqual(observer1.added_urls, [url])
 
     def test_observer_multiple_observers(self):
-        observer1 = Mock()
-        observer2 = Mock()
+        observer1 = RecordingKBObserver()
+        observer2 = RecordingKBObserver()
 
         kb.add_observer(observer1)
         kb.add_observer(observer2)
         kb.raw_write("a", "b", 1)
 
-        observer1.append.assert_called_once_with("a", "b", 1, ignore_type=True)
-        observer2.append.assert_called_once_with("a", "b", 1, ignore_type=True)
+        self.assertEqual(observer1.appended, [("a", "b", 1, True)])
+        self.assertEqual(observer2.appended, [("a", "b", 1, True)])
 
     def test_pickleable_info(self):
         original_info = MockInfo()
