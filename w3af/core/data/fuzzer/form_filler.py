@@ -26,10 +26,10 @@ from functools import cmp_to_key
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.misc.decorators import memoized
-from w3af.core.controllers.misc.io import NamedStringIO
 from w3af.core.data.constants.file_templates.file_templates import (
     get_file_from_template,
 )
+from w3af.core.data.misc.io import NamedStringIO
 
 PARAM_NAME_KNOWLEDGE = {
     "John8212": [

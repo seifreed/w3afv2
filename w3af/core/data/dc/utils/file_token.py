@@ -21,11 +21,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import w3af.core.data.kb.config as cf
-from w3af.core.controllers.misc.io import NamedStringIO
 from w3af.core.data.constants.file_templates.file_templates import (
     get_template_with_payload,
 )
 from w3af.core.data.dc.utils.token import DataToken
+from w3af.core.data.misc.io import NamedStringIO
 
 
 class FileDataToken(DataToken):
@@ -58,8 +58,7 @@ class FileDataToken(DataToken):
         # but if it is a string, we should create a new NamedStringIO instance
         # and return it
         #
-        # The last "not isinstance" is important due to the fact that
-        # NamedStringIO is a basestring subclass
+        # NamedStringIO subclasses str, so it already carries its upload name.
         #
         if isinstance(value, str) and not isinstance(value, NamedStringIO):
             _, file_content, fname = get_template_with_payload(self._extension, value)

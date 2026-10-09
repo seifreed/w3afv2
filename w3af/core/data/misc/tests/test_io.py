@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-from w3af.core.controllers.misc.io import NamedStringIO
+from w3af.core.data.misc.io import NamedStringIO, is_file_like
 
 
 class TestIO(unittest.TestCase):
@@ -34,3 +34,17 @@ class TestIO(unittest.TestCase):
         self.assertEqual(str(ns_io), content)
         self.assertEqual(ns_io.read(), content)
         self.assertEqual(ns_io.name, name)
+        self.assertFalse(ns_io.closed)
+
+    def test_named_string_io_supports_seek_and_write(self):
+        stream = NamedStringIO("content", "name")
+        stream.seek(0)
+        stream.write("new")
+        stream.seek(0)
+        self.assertEqual(stream.read(), "newtent")
+
+    def test_named_string_io_is_file_like(self):
+        self.assertTrue(is_file_like(NamedStringIO("content", "name")))
+
+    def test_string_is_not_file_like(self):
+        self.assertFalse(is_file_like("content"))

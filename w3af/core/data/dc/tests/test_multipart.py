@@ -26,11 +26,11 @@ import unittest
 
 import pytest
 
-from w3af.core.controllers.misc.io import NamedStringIO
 from w3af.core.data.db.disk_set import DiskSet
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.dc.multipart_container import MultipartContainer
 from w3af.core.data.dc.utils.multipart import multipart_encode
+from w3af.core.data.misc.io import NamedStringIO
 from w3af.core.data.parsers.utils.form_params import FormParameters
 
 MULTIPART_TEST = """\

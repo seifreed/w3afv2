@@ -56,7 +56,4 @@ FILE_ATTRS = ("read", "write", "name", "seek", "closed")
 
 
 def is_file_like(f):
-    # TODO: When w3af migrates to Python 3k this function will likely
-    # disappear as it'll be possible to do this check:
-    # >>> isinstance(f, io.IOBase)
     return all(hasattr(f, at) for at in FILE_ATTRS)

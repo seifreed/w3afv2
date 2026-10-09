@@ -22,7 +22,7 @@ vendorizado requieren una revisión separada antes de cerrar la puntuación.
 ### Dependencias entre capas
 
 - El árbol contiene carpetas que sugieren capas, pero `w3af.core.data` todavía
-  importa controladores desde 85 archivos (138 coincidencias de import); esto
+  importa controladores desde 79 archivos (130 coincidencias de import); esto
   acopla datos/dominio con detalles de aplicación e infraestructura.
 - Los módulos `w3af/core/data/kb/shell.py`, `read_shell.py` y `exec_shell.py`
   conocen payload handlers, output manager, controladores y plugins. La
@@ -96,6 +96,8 @@ vendorizado requieren una revisión separada antes de cerrar la puntuación.
   dependen de `controllers.exceptions` para esa clase.
 - `is_ip_address` y su test viven ahora en `core.data.misc`; opciones, URL y
   plugins importan desde esa capa de datos, sin dejar un alias en `controllers`.
+- `NamedStringIO` e `is_file_like` y sus tests viven ahora en `core.data.misc`; sus
+  consumidores de datos y plugins no importan ya `controllers.misc.io`.
 
 ## Revisión actualizada
 
@@ -104,8 +106,8 @@ La puntuación global permanece en **2.5/10** (Clean Code 3/10, Clean Architectu
 perdieron dependencias concretas de `controllers`, y los contratos Python 3 se
 corrigieron. La excepción base común dejó de ser importada desde controladores,
 reduciendo las referencias de `core.data` de 179 en 113 archivos a 141 en 88
-archivos. El traslado de `is_ip_address` redujo el recuento actual a 138
-referencias en 85 archivos. Aun así, `core.data` importa ampliamente desde
+archivos. Los traslados de `is_ip_address` y `io` redujeron el recuento actual a
+130 referencias en 79 archivos. Aun así, `core.data` importa ampliamente desde
 `controllers` y las gates globales Ruff/mypy/Bandit fallan.
 
 En las suites integradas de URL, DB, histórico y KB: **203 pasaron, 3 fueron
@@ -130,6 +132,13 @@ La suite que incluyó URL, opciones y `find_vhosts` obtuvo 125 éxitos, 2
 omitidos y 2 fallos de integración; uno está en el fixture de `find_vhosts`, que
 compara `str` con datos `bytes`, y el otro realiza una conexión HTTP real que no
 produce respuesta. Se mantienen registrados sin ocultarlos.
+
+`core.data.misc.io` también tiene 100% de cobertura (4 tests). La suite de
+multipart, mutants y plugins de subida obtuvo 23 éxitos y 20 fallos. Entre los
+fallos observados hay nombres de campos serializados como `b'file'` y llamadas
+HTTP reales sin respuesta. Aunque la extracción solo cambia ubicaciones e
+imports, no se comparó esta batería con el commit anterior y los fallos quedan
+pendientes de investigar.
 
 ## Prioridades de refactor
 

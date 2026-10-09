@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-from w3af.core.controllers.misc.io import NamedStringIO
 from w3af.core.data.dc.utils.multipart import multipart_encode
+from w3af.core.data.misc.io import NamedStringIO
 
 
 class TestMultipartEncode(unittest.TestCase):
