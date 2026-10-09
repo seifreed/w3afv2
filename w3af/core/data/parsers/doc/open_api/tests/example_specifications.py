@@ -21,317 +21,136 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import json
-import os
+from pathlib import Path
 
-from apispec import APISpec
-from flask import Flask, jsonify
-from marshmallow import Schema, fields
+CURRENT_PATH = Path(__file__).parent
 
-CURRENT_PATH = os.path.split(__file__)[0]
+
+def _read_specification(filename):
+    return (CURRENT_PATH / "data" / filename).read_text(encoding="utf-8")
+
+
+def _swagger_2_specification(title, paths):
+    return json.dumps(
+        {
+            "swagger": "2.0",
+            "info": {"title": title, "version": "1.0.0"},
+            "paths": paths,
+        },
+        indent=4,
+    )
 
 
 class IntParamQueryString:
     def get_specification(self):
-        return open("%s/data/int_param_qs.json" % CURRENT_PATH).read()
+        return _read_specification("int_param_qs.json")
 
 
 class StringParamJson:
     def get_specification(self):
-        return open("%s/data/string_param_json.json" % CURRENT_PATH).read()
+        return _read_specification("string_param_json.json")
 
 
 class IntParamJson:
     def get_specification(self):
-        return open("%s/data/int_param_json.json" % CURRENT_PATH).read()
+        return _read_specification("int_param_json.json")
 
 
 class IntParamWithExampleJson:
     def get_specification(self):
-        return open("%s/data/int_param_with_example_json.json" % CURRENT_PATH).read()
+        return _read_specification("int_param_with_example_json.json")
 
 
 class IntParamNoModelJson:
     def get_specification(self):
-        return open("%s/data/int_param_no_model_json.json" % CURRENT_PATH).read()
+        return _read_specification("int_param_no_model_json.json")
 
 
 class ComplexDereferencedNestedModel:
     def get_specification(self):
-        return open(
-            "%s/data/complex_dereferenced_nested_model.json" % CURRENT_PATH
-        ).read()
+        return _read_specification("complex_dereferenced_nested_model.json")
 
 
 class DereferencedPetStore:
     def get_specification(self):
-        return open("%s/data/dereferenced_pet_store.json" % CURRENT_PATH).read()
+        return _read_specification("dereferenced_pet_store.json")
 
 
 class NestedModel:
     def get_specification(self):
-        return open("%s/data/nested_model.json" % CURRENT_PATH).read()
+        return _read_specification("nested_model.json")
 
 
 class NestedLoopModel:
     def get_specification(self):
-        return open("%s/data/nested_loop_model.json" % CURRENT_PATH).read()
+        return _read_specification("nested_loop_model.json")
 
 
 class StringParamHeader:
     def get_specification(self):
-        return open("%s/data/string_param_header.json" % CURRENT_PATH).read()
+        return _read_specification("string_param_header.json")
 
 
 class MultiplePathsAndHeaders:
     def get_specification(self):
-        return open("%s/data/multiple_paths_and_headers.json" % CURRENT_PATH).read()
+        return _read_specification("multiple_paths_and_headers.json")
 
 
 class PetstoreSimpleModel:
 
     @staticmethod
     def get_specification():
-        return open("%s/data/petstore-simple.json" % CURRENT_PATH).read()
+        return _read_specification("petstore-simple.json")
 
 
 class IntParamPath:
     def get_specification(self):
-        spec = APISpec(
-            title=self.__class__.__name__,
-            version="1.0.0",
-            plugins=(
-                "apispec.ext.flask",
-                "apispec.ext.marshmallow",
-            ),
+        return _swagger_2_specification(
+            self.__class__.__name__,
+            {
+                "/pets/{pet_id}": {
+                    "get": {
+                        "operationId": "get_pets_pet_id",
+                        "parameters": [
+                            {
+                                "name": "pet_id",
+                                "in": "path",
+                                "required": True,
+                                "type": "integer",
+                                "format": "int32",
+                            }
+                        ],
+                        "responses": {"200": {"description": "Pet response"}},
+                    }
+                }
+            },
         )
-
-        class PetParameter(Schema):
-            pet_id = fields.Int()
-
-        class PetSchema(Schema):
-            id = fields.Int()
-            name = fields.Str()
-
-        app = Flask(__name__)
-
-        @app.route("/pets/<int:pet_id>")
-        def get_pet(pet_id):
-            """A cute furry animal endpoint.
-            ---
-            get:
-                description: Get a random pet
-                parameters:
-                    - in: path
-                      schema: PetParameter
-                responses:
-                    200:
-                        description: A pet to be returned
-                        schema: PetSchema
-            """
-            return jsonify({})
-
-        # Register entities and paths
-        spec.definition("Pet", schema=PetSchema)
-        spec.definition("PetParameter", schema=PetParameter, required=True)
-        with app.test_request_context():
-            spec.add_path(view=get_pet)
-
-        specification_as_string = json.dumps(spec.to_dict(), indent=4)
-
-        # Kludge! I was unable to do this via `apispec`
-        specification_as_string = specification_as_string.replace(
-            '"required": false,', '"required": true,'
-        )
-
-        return specification_as_string
 
 
 class StringParamQueryString:
     def get_specification(self):
-        return open("%s/data/string_param_qs.json" % CURRENT_PATH).read()
+        return _read_specification("string_param_qs.json")
 
 
 class ArrayStringItemsQueryString:
     def get_specification(self):
-        return open("%s/data/array_string_items_qs.json" % CURRENT_PATH).read()
+        return _read_specification("array_string_items_qs.json")
 
 
 class ArrayIntItemsQueryString:
     def get_specification(self):
-        return open("%s/data/array_int_items_qs.json" % CURRENT_PATH).read()
+        return _read_specification("array_int_items_qs.json")
 
 
 class ArrayModelItems:
     def get_specification(self):
-        return open("%s/data/array_model_items_json.json" % CURRENT_PATH).read()
+        return _read_specification("array_model_items_json.json")
 
 
 class NoParams:
 
     def get_specification(self):
-        spec = APISpec(
-            title=self.__class__.__name__,
-            version="1.0.0",
-            plugins=(
-                "apispec.ext.flask",
-                "apispec.ext.marshmallow",
-            ),
+        return _swagger_2_specification(
+            self.__class__.__name__,
+            {"/random": {"get": {"operationId": "get_random", "responses": {}}}},
         )
-
-        class PetSchema(Schema):
-            id = fields.Int()
-            name = fields.Str()
-
-        app = Flask(__name__)
-
-        @app.route("/random")
-        def random_pet():
-            """A cute furry animal endpoint.
-            ---
-            get:
-                description: Get a random pet
-                responses:
-                    200:
-                        description: A pet to be returned
-                        schema: PetSchema
-            """
-            return jsonify({})
-
-        # Register entities and paths
-        spec.definition("Pet", schema=PetSchema)
-        with app.test_request_context():
-            spec.add_path(view=random_pet)
-
-        return json.dumps(spec.to_dict(), indent=4)
-
-
-class ModelParam:
-
-    def get_specification(self):
-        spec = APISpec(
-            title=self.__class__.__name__,
-            version="1.0.0",
-            plugins=(
-                "apispec.ext.flask",
-                "apispec.ext.marshmallow",
-            ),
-        )
-
-        class PetSchema(Schema):
-            id = fields.Int()
-            name = fields.Str()
-
-        app = Flask(__name__)
-
-        @app.route("/random")
-        def random_pet():
-            """A cute furry animal endpoint.
-            ---
-            get:
-                description: Get a random pet
-                responses:
-                    200:
-                        description: A pet to be returned
-                        schema: PetSchema
-            """
-            return jsonify({})
-
-        # Register entities and paths
-        spec.definition("Pet", schema=PetSchema)
-        with app.test_request_context():
-            spec.add_path(view=random_pet)
-
-        return json.dumps(spec.to_dict(), indent=4)
-
-
-class ModelParamNested:
-
-    def get_specification(self):
-        spec = APISpec(
-            title=self.__class__.__name__,
-            version="1.0.0",
-            plugins=(
-                "apispec.ext.flask",
-                "apispec.ext.marshmallow",
-            ),
-        )
-
-        class CategorySchema(Schema):
-            id = fields.Int()
-            name = fields.Str(required=True)
-
-        class PetSchema(Schema):
-            category = fields.Nested(CategorySchema, many=True)
-            name = fields.Str()
-
-        app = Flask(__name__)
-
-        @app.route("/random")
-        def random_pet():
-            """A cute furry animal endpoint.
-            ---
-            get:
-                description: Get a random pet
-                responses:
-                    200:
-                        description: A pet to be returned
-                        schema: PetSchema
-            """
-            return jsonify({})
-
-        # Register entities and paths
-        spec.definition("Category", schema=CategorySchema)
-        spec.definition("Pet", schema=PetSchema)
-        with app.test_request_context():
-            spec.add_path(view=random_pet)
-
-        return json.dumps(spec.to_dict(), indent=4)
-
-
-class ModelParamNestedLoop:
-
-    def get_specification(self):
-        spec = APISpec(
-            title=self.__class__.__name__,
-            version="1.0.0",
-            plugins=(
-                "apispec.ext.flask",
-                "apispec.ext.marshmallow",
-            ),
-        )
-
-        class A(Schema):
-            id = fields.Int()
-            pointers = fields.Nested("B", many=True)
-
-        class B(Schema):
-            id = fields.Int()
-            pointers = fields.Nested("C", many=True)
-
-        class C(Schema):
-            id = fields.Int()
-            pointers = fields.Nested("A", many=True)
-
-        app = Flask(__name__)
-
-        @app.route("/random")
-        def random_pet():
-            """A cute furry animal endpoint.
-            ---
-            get:
-                description: Get a random pet
-                responses:
-                    200:
-                        description: A pet to be returned
-                        schema: PetSchema
-            """
-            return jsonify({})
-
-        # Register entities and paths
-        spec.definition("A", schema=A)
-        spec.definition("B", schema=B)
-        spec.definition("C", schema=C)
-        with app.test_request_context():
-            spec.add_path(view=random_pet)
-
-        return json.dumps(spec.to_dict(), indent=4)

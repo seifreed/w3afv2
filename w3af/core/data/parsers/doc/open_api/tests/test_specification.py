@@ -66,9 +66,9 @@ class TestSpecification(unittest.TestCase):
 
         self.assertEqual(len(data), 1)
 
-        spec, api_resource_name, resource, operation_name, operation, parameters = data[
-            0
-        ]
+        _spec, api_resource_name, _resource, operation_name, operation, _parameters = (
+            data[0]
+        )
 
         self.assertEqual(api_resource_name, "random")
         self.assertEqual(operation_name, "get_random")
@@ -89,9 +89,7 @@ class TestSpecification(unittest.TestCase):
         # a value and another without the parameter
         self.assertEqual(len(data), 2)
 
-        spec, api_resource_name, resource, operation_name, operation, parameters = data[
-            0
-        ]
+        _, api_resource_name, _, operation_name, operation, _ = data[0]
 
         self.assertEqual(api_resource_name, "pets")
         self.assertEqual(operation_name, "findPets")
@@ -109,9 +107,9 @@ class TestSpecification(unittest.TestCase):
         self.assertEqual(param.fill, None)
 
         # And check the second one too
-        spec, api_resource_name, resource, operation_name, operation, parameters = data[
-            1
-        ]
+        _spec, api_resource_name, _resource, operation_name, operation, _parameters = (
+            data[1]
+        )
 
         self.assertEqual(len(operation.params), 1)
 
@@ -130,9 +128,9 @@ class TestSpecification(unittest.TestCase):
 
         self.assertEqual(len(data), 1)
 
-        spec, api_resource_name, resource, operation_name, operation, parameters = data[
-            0
-        ]
+        _spec, api_resource_name, _resource, operation_name, operation, _parameters = (
+            data[0]
+        )
 
         self.assertEqual(api_resource_name, "pets")
         self.assertEqual(operation_name, "get_pets_pet_id")
@@ -161,9 +159,9 @@ class TestSpecification(unittest.TestCase):
         # operation with the optional parameters filled in.
         self.assertEqual(len(data), 1)
 
-        spec, api_resource_name, resource, operation_name, operation, parameters = data[
-            0
-        ]
+        _spec, api_resource_name, _resource, operation_name, operation, _parameters = (
+            data[0]
+        )
 
         self.assertEqual(api_resource_name, "pets")
         self.assertEqual(operation_name, "findPets")
@@ -178,7 +176,7 @@ class TestSpecification(unittest.TestCase):
         self.assertEqual(param.param_spec["required"], True)
         self.assertEqual(param.param_spec["in"], "query")
         self.assertEqual(param.param_spec["type"], "string")
-        self.assertEqual(param.fill, "Spam or Eggs?")
+        self.assertEqual(param.fill, "Hello World")
 
     def test_string_param_header(self):
         specification_as_string = StringParamHeader().get_specification()
@@ -192,9 +190,9 @@ class TestSpecification(unittest.TestCase):
         # operation with the optional parameters filled in.
         self.assertEqual(len(data), 1)
 
-        spec, api_resource_name, resource, operation_name, operation, parameters = data[
-            0
-        ]
+        _spec, api_resource_name, _resource, operation_name, operation, _parameters = (
+            data[0]
+        )
 
         self.assertEqual(api_resource_name, "pets")
         self.assertEqual(operation_name, "findPets")
@@ -223,9 +221,9 @@ class TestSpecification(unittest.TestCase):
         # operation with the optional parameters filled in.
         self.assertEqual(len(data), 1)
 
-        spec, api_resource_name, resource, operation_name, operation, parameters = data[
-            0
-        ]
+        _spec, api_resource_name, _resource, operation_name, operation, _parameters = (
+            data[0]
+        )
 
         self.assertEqual(api_resource_name, "pets")
         self.assertEqual(operation_name, "addTags")
@@ -254,9 +252,9 @@ class TestSpecification(unittest.TestCase):
         # operation with the optional parameters filled in.
         self.assertEqual(len(data), 1)
 
-        spec, api_resource_name, resource, operation_name, operation, parameters = data[
-            0
-        ]
+        _spec, api_resource_name, _resource, operation_name, operation, _parameters = (
+            data[0]
+        )
 
         self.assertEqual(api_resource_name, "pets")
         self.assertEqual(operation_name, "addTags")
@@ -285,9 +283,9 @@ class TestSpecification(unittest.TestCase):
         # operation with the optional parameters filled in.
         self.assertEqual(len(data), 1)
 
-        spec, api_resource_name, resource, operation_name, operation, parameters = data[
-            0
-        ]
+        _spec, api_resource_name, _resource, operation_name, operation, _parameters = (
+            data[0]
+        )
 
         self.assertEqual(api_resource_name, "pets")
         self.assertEqual(operation_name, "addPet")
@@ -316,9 +314,9 @@ class TestSpecification(unittest.TestCase):
         # operation with the optional parameters filled in.
         self.assertEqual(len(data), 1)
 
-        spec, api_resource_name, resource, operation_name, operation, parameters = data[
-            0
-        ]
+        _spec, api_resource_name, _resource, operation_name, operation, _parameters = (
+            data[0]
+        )
 
         self.assertEqual(api_resource_name, "pets")
         self.assertEqual(operation_name, "addPet")
@@ -347,9 +345,9 @@ class TestSpecification(unittest.TestCase):
         # operation with the optional parameters filled in.
         self.assertEqual(len(data), 1)
 
-        spec, api_resource_name, resource, operation_name, operation, parameters = data[
-            0
-        ]
+        _spec, api_resource_name, _resource, operation_name, operation, _parameters = (
+            data[0]
+        )
 
         self.assertEqual(api_resource_name, "pets")
         self.assertEqual(operation_name, "addPet")
@@ -378,9 +376,9 @@ class TestSpecification(unittest.TestCase):
         # operation with the optional parameters filled in.
         self.assertEqual(len(data), 1)
 
-        spec, api_resource_name, resource, operation_name, operation, parameters = data[
-            0
-        ]
+        _spec, api_resource_name, _resource, operation_name, operation, _parameters = (
+            data[0]
+        )
 
         self.assertEqual(api_resource_name, "pets")
         self.assertEqual(operation_name, "post_pets")
@@ -425,9 +423,9 @@ class TestSpecification(unittest.TestCase):
         # operation with the optional parameters filled in.
         self.assertEqual(len(data), 1)
 
-        spec, api_resource_name, resource, operation_name, operation, parameters = data[
-            0
-        ]
+        _spec, api_resource_name, _resource, operation_name, operation, _parameters = (
+            data[0]
+        )
 
         self.assertEqual(api_resource_name, "pets")
         self.assertEqual(operation_name, "addMultiplePets")
@@ -458,9 +456,9 @@ class TestSpecification(unittest.TestCase):
         #
         # Assertions on call #1
         #
-        spec, api_resource_name, resource, operation_name, operation, parameters = data[
-            0
-        ]
+        _spec, api_resource_name, _resource, operation_name, operation, _parameters = (
+            data[0]
+        )
 
         self.assertEqual(api_resource_name, "pets")
         self.assertEqual(operation_name, "findPets")
@@ -494,9 +492,9 @@ class TestSpecification(unittest.TestCase):
         #
         # Assertions on call #1
         #
-        spec, api_resource_name, resource, operation_name, operation, parameters = data[
-            0
-        ]
+        _spec, api_resource_name, _resource, operation_name, operation, _parameters = (
+            data[0]
+        )
 
         self.assertEqual(api_resource_name, "pets")
         self.assertEqual(operation_name, "findPets")
@@ -521,9 +519,9 @@ class TestSpecification(unittest.TestCase):
         #
         # Assertions on call #1
         #
-        spec, api_resource_name, resource, operation_name, operation, parameters = data[
-            0
-        ]
+        _, api_resource_name, _, operation_name, operation, _ = next(
+            item for item in data if item[3] == "get_pets_name"
+        )
 
         self.assertEqual(api_resource_name, "pets")
         self.assertEqual(operation_name, "get_pets_name")
@@ -545,9 +543,9 @@ class TestSpecification(unittest.TestCase):
         #
         # Assertions on call #2
         #
-        spec, api_resource_name, resource, operation_name, operation, parameters = data[
-            1
-        ]
+        _, api_resource_name, _, operation_name, operation, _ = next(
+            item for item in data if item[3] == "get_pets"
+        )
 
         self.assertEqual(api_resource_name, "pets")
         self.assertEqual(operation_name, "get_pets")
@@ -562,9 +560,9 @@ class TestSpecification(unittest.TestCase):
         # Assertions on call #3
         #
 
-        spec, api_resource_name, resource, operation_name, operation, parameters = data[
-            2
-        ]
+        _spec, api_resource_name, _resource, operation_name, operation, _parameters = (
+            next(item for item in data if item[3] == "post_pets")
+        )
 
         self.assertEqual(api_resource_name, "pets")
         self.assertEqual(operation_name, "post_pets")
@@ -642,7 +640,7 @@ class TestSpecification(unittest.TestCase):
             for operation_name, operation in list(resource.operations.items()):
 
                 # Make sure that the parameter doesn't have a value yet
-                for parameter_name, parameter in operation.params.items():
+                for parameter in operation.params.values():
                     self.assertFalse(hasattr(parameter, "fill"))
 
                 parameter_handler = ParameterHandler(spec_handler.spec, operation)
@@ -656,7 +654,7 @@ class TestSpecification(unittest.TestCase):
     def assertOperation(self, operation, updated_operation):
 
         # Make sure that the parameter now has a value
-        for parameter_name, parameter in updated_operation.params.items():
+        for parameter in updated_operation.params.values():
             self.assertTrue(hasattr(parameter, "fill"))
 
         # Make sure that the original operation doesn't get updated

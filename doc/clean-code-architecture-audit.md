@@ -892,3 +892,23 @@ Bravado/jsonschema. Mypy dirigido sigue heredando dos errores de
 `w3af.core` (`_` no definido y `_DummyThread.__stop`). Score global: **4.8/10**;
 se corrige un bloqueo real del fuzzing y se completa esta unidad, pero siguen
 pendientes la integración OpenAPI, las gates globales y la deuda arquitectónica.
+
+## Avance: fixtures OpenAPI actuales y contratos estables
+
+Las suites de requests/specification fallaban por fixtures construidos con las
+APIs de Flask/APISpec retiradas, orden de operaciones asumido, y comparaciones
+de cuerpos JSON como texto. Se reemplazaron los builders afectados por
+especificaciones Swagger 2 explícitas; las pruebas ahora seleccionan la
+operación por su identidad, comparan JSON semánticamente y esperan el valor
+`Hello World` que realmente produce `smart_fill` para `q` (codificado en la
+URL). Se eliminaron tres builders sin callers y las dependencias directas
+`apispec`/`marshmallow`, que ya no tenían ningún uso en el repositorio.
+
+Las 55 pruebas OpenAPI pasan. Black, Ruff, Bandit en los archivos modificados
+y `pip check` pasan. `pip-audit -r requirements.txt` no encontró vulnerabilidades
+conocidas; no puede auditar el pin Git de mitmproxy porque no está publicado en
+PyPI. Pytest aún muestra 747 warnings deprecados provenientes de
+Bravado/jsonschema. Mypy dirigido reporta 26 errores heredados en 19 archivos
+importados. Score global: **4.9/10**; esta área vuelve a estar verificada, pero
+persisten los warnings y la deuda de calidad, arquitectura y gates globales del
+resto del proyecto.
