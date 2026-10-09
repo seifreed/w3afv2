@@ -45,6 +45,17 @@ from w3af.core.ui.console.tables import table
 from w3af.core.ui.console.util import mapDict
 
 
+def stdin_is_terminal():
+    """
+    :return: True when the console reads its input from a terminal, False when
+             stdin was redirected (cron, pipes, test runners, etc.)
+    """
+    try:
+        return os.isatty(sys.stdin.fileno())
+    except OSError:
+        return False
+
+
 class rootMenu(menu):
     """
     Main menu
@@ -172,7 +183,7 @@ class rootMenu(menu):
         # if run with detached terminal mode (like cron)
         # https://github.com/andresriancho/w3af/pull/17235
         #
-        if not os.isatty(sys.stdin.fileno()):
+        if not stdin_is_terminal():
             while self._w3af.status.is_running() or self._w3af.status.is_paused():
                 time.sleep(0.1)
             return

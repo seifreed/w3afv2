@@ -28,7 +28,6 @@ import subprocess
 import tempfile
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.misc.which import which
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.constants import severity
@@ -70,7 +69,6 @@ class retirejs(GrepPlugin):
         GrepPlugin.__init__(self)
 
         self._analyzed_hashes = ScalableBloomFilter()
-        self._retirejs_path = self._get_retirejs_path()
 
         self._is_valid_retire_version = None
         self._is_valid_retirejs_exit_code = None
@@ -497,16 +495,6 @@ class retirejs(GrepPlugin):
         v.set_uri(url)
 
         self.kb_append_uniq(self, "js", v, filter_by="URL")
-
-    def _get_retirejs_path(self):
-        """
-        :return: Path to the retirejs binary
-        """
-        paths_to_retire = which("retire")
-
-        # The dependency check script guarantees that there will always be
-        # at least one installation of the retirejs command.
-        return paths_to_retire[0]
 
     def get_options(self):
         """
