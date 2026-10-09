@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>w3af</title>
+  <link rel="stylesheet" href="static/app.css">
+  <script src="static/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <h1 class="brand">w3af <span class="brand-sub">Web Application Attack and Audit Framework</span></h1>
+    <p class="version" id="version" aria-live="polite"></p>
+  </header>
+
+  <section class="scan-bar" id="scan-bar" aria-label="Current scan" hidden>
+    <div class="scan-summary">
+      <span class="badge" id="scan-status" role="status">Stopped</span>
+      <span id="scan-target" class="scan-target"></span>
+      <progress id="scan-progress" max="100" value="0" aria-label="Scan progress"></progress>
+      <span id="scan-progress-text" class="muted"></span>
+    </div>
+    <div class="scan-actions">
+      <button type="button" id="pause-button">Pause</button>
+      <button type="button" id="resume-button">Resume</button>
+      <button type="button" id="stop-button" class="danger">Stop</button>
+      <button type="button" id="delete-button">Clear scan</button>
+    </div>
+  </section>
+
+  <p class="notice" id="notice" role="alert" hidden></p>
+
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button type="button" role="tab" id="tab-scan" aria-controls="panel-scan" aria-selected="true">Scan</button>
+    <button type="button" role="tab" id="tab-status" aria-controls="panel-status" aria-selected="false" tabindex="-1">Status</button>
+    <button type="button" role="tab" id="tab-log" aria-controls="panel-log" aria-selected="false" tabindex="-1">Log</button>
+    <button type="button" role="tab" id="tab-findings" aria-controls="panel-findings" aria-selected="false" tabindex="-1">Findings <span class="count" id="findings-count"></span></button>
+    <button type="button" role="tab" id="tab-urls" aria-controls="panel-urls" aria-selected="false" tabindex="-1">URLs <span class="count" id="urls-count"></span></button>
+    <button type="button" role="tab" id="tab-traffic" aria-controls="panel-traffic" aria-selected="false" tabindex="-1">Traffic</button>
+    <button type="button" role="tab" id="tab-exceptions" aria-controls="panel-exceptions" aria-selected="false" tabindex="-1">Exceptions <span class="count" id="exceptions-count"></span></button>
+  </nav>
+
+  <main id="main">
+    <section class="panel" role="tabpanel" id="panel-scan" aria-labelledby="tab-scan" tabindex="0">
+      <form id="scan-form" novalidate>
+        <div class="field">
+          <label for="target-urls">Target URLs <span class="muted">(one per line)</span></label>
+          <textarea id="target-urls" name="target_urls" rows="3" required
+                    placeholder="https://example.com/" spellcheck="false" autocomplete="url"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="profile-select">Profile</label>
+          <select id="profile-select" name="profile">
+            <option value="">No profile (choose plugins below)</option>
+          </select>
+          <p class="muted" id="profile-description"></p>
+        </div>
+
+        <fieldset class="plugins">
+          <legend>Plugins</legend>
+          <div class="field inline">
+            <label for="plugin-filter">Filter plugins</label>
+            <input type="search" id="plugin-filter" placeholder="e.g. sqli">
+          </div>
+          <div id="plugin-groups" class="plugin-groups" aria-live="polite"></div>
+        </fieldset>
+
+        <details class="advanced">
+          <summary>Advanced: profile contents</summary>
+          <p class="muted">Plugin options and settings in this profile are kept; the
+            plugin selection above decides which plugins are enabled.</p>
+          <label for="profile-content" class="visually-hidden">Profile contents</label>
+          <textarea id="profile-content" rows="14" spellcheck="false"></textarea>
+        </details>
+
+        <div class="form-actions">
+          <button type="submit" class="primary" id="start-button">Start scan</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel" role="tabpanel" id="panel-status" aria-labelledby="tab-status" tabindex="0" hidden>
+      <p class="empty" data-empty-for="status">No scan has been started.</p>
+      <dl class="status-grid" id="status-grid"></dl>
+    </section>
+
+    <section class="panel" role="tabpanel" id="panel-log" aria-labelledby="tab-log" tabindex="0" hidden>
+      <div class="toolbar">
+        <label for="log-filter">Show</label>
+        <select id="log-filter">
+          <option value="">All messages</option>
+          <option value="information">Information</option>
+          <option value="vulnerability">Vulnerabilities</option>
+          <option value="error">Errors</option>
+          <option value="debug">Debug</option>
+        </select>
+        <label class="checkbox"><input type="checkbox" id="log-follow" checked> Follow</label>
+      </div>
+      <ol class="log" id="log" aria-live="off"></ol>
+    </section>
+
+    <section class="panel" role="tabpanel" id="panel-findings" aria-labelledby="tab-findings" tabindex="0" hidden>
+      <div class="toolbar">
+        <label for="findings-filter">Filter</label>
+        <input type="search" id="findings-filter" placeholder="Name or URL">
+      </div>
+      <div class="split">
+        <ul class="item-list" id="findings-list" aria-label="Findings"></ul>
+        <article class="details" id="finding-details" aria-live="polite">
+          <p class="muted">Select a finding to see its details.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel" role="tabpanel" id="panel-urls" aria-labelledby="tab-urls" tabindex="0" hidden>
+      <div class="toolbar">
+        <label for="urls-filter">Filter</label>
+        <input type="search" id="urls-filter" placeholder="Part of the URL">
+      </div>
+      <ul class="url-list" id="urls-list" aria-label="Discovered URLs"></ul>
+    </section>
+
+    <section class="panel" role="tabpanel" id="panel-traffic" aria-labelledby="tab-traffic" tabindex="0" hidden>
+      <form class="toolbar" id="traffic-form">
+        <label for="traffic-id">Request ID</label>
+        <input type="number" id="traffic-id" min="1" step="1" inputmode="numeric" required>
+        <button type="submit">Show</button>
+      </form>
+      <div class="traffic">
+        <section aria-labelledby="request-heading">
+          <h2 id="request-heading">Request</h2>
+          <pre id="traffic-request" class="http" tabindex="0"></pre>
+        </section>
+        <section aria-labelledby="response-heading">
+          <h2 id="response-heading">Response</h2>
+          <pre id="traffic-response" class="http" tabindex="0"></pre>
+        </section>
+      </div>
+    </section>
+
+    <section class="panel" role="tabpanel" id="panel-exceptions" aria-labelledby="tab-exceptions" tabindex="0" hidden>
+      <div class="split">
+        <ul class="item-list" id="exceptions-list" aria-label="Exceptions"></ul>
+        <article class="details" id="exception-details" aria-live="polite">
+          <p class="muted">Select an exception to see its traceback.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="plugin-dialog" aria-labelledby="plugin-dialog-title">
+    <form method="dialog">
+      <h2 id="plugin-dialog-title"></h2>
+      <div id="plugin-dialog-body"></div>
+      <div class="form-actions"><button type="submit" class="primary">Close</button></div>
+    </form>
+  </dialog>
+</body>
+</html>
