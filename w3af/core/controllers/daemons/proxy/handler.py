@@ -28,7 +28,7 @@ from mitmproxy import http
 
 from w3af.core.controllers.daemons.proxy.templates.utils import render
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.misc.encoding import smart_str
+from w3af.core.data.misc.encoding import smart_str, smart_unicode
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.http_request import HTTPRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -115,23 +115,20 @@ class ProxyHandler:
             use_proxy=False,
         )
 
-    def _create_error_response(self, request, response, exception, trace=None):
+    def _create_error_response(self, request, exception, trace=None):
         """
-
         :param request: The HTTP request which triggered the exception
-        :param response: The response (if any) we were processing and triggered
-                         the exception
         :param exception: The exception instance
-        :return: A mitmproxy response object ready to send to the flow
+        :param trace: The formatted traceback (if any)
+        :return: A w3af HTTP response which describes the error
         """
-
-        def replace_new_lines(in_str):
-            return in_str.replace("\n", "<br/>")
-
-        context = {"exception_message": str(exception), "http_request": request.dump()}
+        context = {
+            "exception_message": str(exception),
+            "http_request": smart_unicode(request.dump(), errors="ignore"),
+        }
 
         if trace is not None:
-            context["traceback"] = replace_new_lines(trace)
+            context["traceback"] = trace
 
         content = render("error.html", context)
 
@@ -181,10 +178,8 @@ class ProxyHandler:
             http_response = self._send_http_request(http_request)
         except Exception as e:
             LOGGER.debug("Proxied request failed", exc_info=True)
-            trace = str(traceback.format_exc())
-            http_response = self._create_error_response(
-                http_request, None, e, trace=trace
-            )
+            trace = traceback.format_exc()
+            http_response = self._create_error_response(http_request, e, trace)
 
         # Send the response (success|error) to the browser
         flow.response = self._to_mitmproxy_response(http_response)
