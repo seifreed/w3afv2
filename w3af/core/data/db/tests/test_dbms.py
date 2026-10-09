@@ -172,7 +172,7 @@ class TestDBMS(unittest.TestCase):
         db = SQLiteDBMS(get_temp_filename())
         db.close()
 
-        self.assertRaises(AssertionError, db.close)
+        self.assertRaises(RuntimeError, db.close)
 
 
 class TestDefaultDB(unittest.TestCase):
