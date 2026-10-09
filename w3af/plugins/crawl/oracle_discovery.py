@@ -40,7 +40,7 @@ class oracle_discovery(CrawlPlugin):
 
     ORACLE_URL = ("/portal/page", "/reports/rwservlet/showenv")
 
-    ORACLE_RE = (
+    ORACLE_RE_PATTERNS = (
         # Example string:
         # <html><head><title>PPE is working</title></head><body>
         # PPE version 1.3.4 is working.</body></html>
@@ -54,7 +54,7 @@ class oracle_discovery(CrawlPlugin):
         r"(Reports Servlet) [\w ]* ([\d\.]*?)",
     )
 
-    ORACLE_RE: ClassVar = [re.compile(regex) for regex in ORACLE_RE]
+    ORACLE_RE: ClassVar = [re.compile(regex) for regex in ORACLE_RE_PATTERNS]
 
     @runonce(exc_class=RunOnce)
     def crawl(self, fuzzable_request, debugging_id):
