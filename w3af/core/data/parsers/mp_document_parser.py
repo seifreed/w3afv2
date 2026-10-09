@@ -82,7 +82,9 @@ class MultiProcessingDocumentParser:
     """
 
     DEBUG = core_profiling_is_enabled()
-    MAX_WORKERS = 2 if is_running_on_ci() else (multiprocessing.cpu_count() / 2) or 1
+    MAX_WORKERS = (
+        2 if is_running_on_ci() else min(max(multiprocessing.cpu_count() // 2, 1), 2)
+    )
 
     # Increasing the timeout when profiling is enabled seems to fix issue #9713
     #
@@ -396,7 +398,7 @@ def process_document_parser(filename, debug):
 
 @atexit.register
 def cleanup_pool():
-    if "mp_doc_parser" in globals():
+    if mp_doc_parser is not None:
         mp_doc_parser.stop_workers()
 
 
@@ -480,5 +482,4 @@ def limit_memory_usage(mem_limit):
     om.out.debug(msg % limit_mb)
 
 
-if is_main_process():
-    mp_doc_parser = MultiProcessingDocumentParser()
+mp_doc_parser = MultiProcessingDocumentParser() if is_main_process() else None

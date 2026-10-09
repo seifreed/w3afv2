@@ -26,7 +26,9 @@ import tempfile
 
 import pytest
 
-from w3af.core.controllers.core_helpers.tests.test_profiles import assertProfilesEqual
+from w3af.core.controllers.core_helpers.tests.test_profiles import (
+    assertProfileOptionsPreserved,
+)
 from w3af.core.data.db.startup_cfg import StartUpConfig
 from w3af.core.data.profile.profile import profile
 from w3af.core.ui.console.console_ui import ConsoleUI
@@ -71,7 +73,7 @@ class TestProfilesConsoleUI(ConsoleTestHelper):
         p1 = profile(profile_name_a, workdir=".")
         p2 = profile(profile_name_b, workdir=".")
 
-        assertProfilesEqual(p1.profile_file_name, p2.profile_file_name)
+        assertProfileOptionsPreserved(p1.profile_file_name, p2.profile_file_name)
 
     def test_load_profile_exists(self):
         commands_to_run = ["profiles", "help", "use OWASP_TOP10", "exit"]

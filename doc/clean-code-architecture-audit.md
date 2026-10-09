@@ -266,3 +266,32 @@ ni los gates globales.
 La auditoría es deliberadamente iterativa: se actualizarán notas y hallazgos
 con cada avance verificado. No se afirmará una nota 10 mientras queden
 dependencias de capa, gates fallidas o flujos críticos sin pruebas.
+
+## Avance: perfiles y parser en Python 3.14
+
+Se sustituyeron APIs retiradas de `configparser`, se desactivó la interpolación
+para preservar los placeholders `%ROOT_PATH%` y se mantuvo la lectura/escritura
+de perfiles con encoding explícito. Los tests de perfiles usan directorios
+temporales portables y comparan opciones conservadas sin exigir defaults nuevos
+del plugin. El parser HTML deja de importar `HTMLParseError` y usa
+`html.unescape`; el matcher usa `re.Pattern`, disponible públicamente, en lugar
+de `re._pattern_type`. Las opciones de `<select>` ahora conservan el orden del
+documento. También se corrigió el arranque de workers en macOS con `spawn`, la
+serialización IPC bajo directorios de proceso, el uso de `BytesIO` para cuerpos
+bytes y el decode de URLs según su encoding. Se corrigieron fallos de import y
+uso de `cmp` en consola y un error de definición de clase en `global_redirect`.
+
+Validación: **122 pruebas pasan**, una se omite y cuatro pruebas de
+`global_redirect` dependientes de integración se excluyeron. Tres casos antiguos
+de timeout/memoria del pool usan parches que no se propagan a procesos `spawn` y
+quedan pendientes de una reescritura con procesos reales. La suite de consola
+aún tiene siete fallos por la discrepancia preexistente entre salida `bytes` y
+`str`. Black global pasa (1967 archivos). Ruff focal informa 95 hallazgos en los
+módulos heredados revisados; Bandit focal señala uso local de pickle para IPC y
+manejo amplio de excepciones en serialización. Mypy, pip-audit y las gates
+globales Ruff/Bandit no se verificaron en este avance.
+
+Se acordó conservar los pins de mitmproxy, `aioquic==1.2.0` y
+`urwid==4.0.13`; no se modificó el fichero de dependencias. La puntuación
+global permanece en **2.5/10**: estos arreglos mejoran compatibilidad y
+comportamiento, pero no reducen aún los acoplamientos principales de capas.

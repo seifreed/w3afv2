@@ -30,6 +30,8 @@ from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.parsers import parser_cache
 from w3af.core.data.parsers.doc.url import URL
 
+_TEST_DOMAIN = "w3af.org"
+
 
 class global_redirect(AuditPlugin):
     """
@@ -37,7 +39,7 @@ class global_redirect(AuditPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    TEST_DOMAIN = "w3af.org"
+    TEST_DOMAIN = _TEST_DOMAIN
 
     EXTENDED_PAYLOADS = None
     BASIC_PAYLOADS = {"http://www.%s/" % TEST_DOMAIN, "//%s" % TEST_DOMAIN}
@@ -51,7 +53,7 @@ class global_redirect(AuditPlugin):
         "window\\.location\\.(replace|assign)\\([\"'].*?%s.*?[\"']\\)",
     ]
     REDIR_TO_TEST_DOMAIN_JS_RE = [
-        re.compile(r % TEST_DOMAIN) for r in JS_REDIR_GENERIC_FMT
+        re.compile(r % _TEST_DOMAIN) for r in JS_REDIR_GENERIC_FMT
     ]
     JS_REDIR_RE = [re.compile(r % "") for r in JS_REDIR_GENERIC_FMT]
 

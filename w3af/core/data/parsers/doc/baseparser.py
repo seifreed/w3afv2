@@ -98,9 +98,9 @@ class BaseParser:
         if isinstance(url_string, str):
             url_string = url_string.encode(enc)
 
-        dec_url = urllib.parse.unquote(url_string)
+        dec_url = urllib.parse.unquote_to_bytes(url_string)
         for sch, repl in self.SAFE_CHARS:
-            dec_url = dec_url.replace(sch, repl)
+            dec_url = dec_url.replace(sch.encode(enc), repl.encode(enc))
 
         # Always return unicode
         # TODO: Any improvement for this? We're certainly losing

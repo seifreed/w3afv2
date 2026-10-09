@@ -64,6 +64,12 @@ class TestHTMLContext(ContextTest):
         self.assertEqual(len(contexts), 1)
         self.assertIsInstance(contexts[0], HtmlText)
 
+    def test_payload_in_malformed_html_text(self):
+        contexts = get_context("<div>PAYLOAD", "PAYLOAD")
+
+        self.assertEqual(len(contexts), 1)
+        self.assertIsInstance(contexts[0], HtmlText)
+
     def test_payload_in_html_text_with_lower(self):
         html = """
         <html>

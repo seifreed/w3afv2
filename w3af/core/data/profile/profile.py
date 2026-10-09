@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import codecs
 import configparser
 import os
 import shutil
@@ -55,16 +54,16 @@ class profile:
         # w3af needs the value as it is
         optionxform = lambda opt: opt
 
-        self._config = configparser.ConfigParser()
+        self._config = configparser.ConfigParser(interpolation=None, strict=False)
         # Set the new optionxform function
         self._config.optionxform = optionxform
 
         if profname:
             # Get profile name's complete path
             profname = self.get_real_profile_path(profname, workdir)
-            with codecs.open(profname, "rb", UTF8) as fp:
+            with open(profname, encoding=UTF8) as fp:
                 try:
-                    self._config.readfp(fp)
+                    self._config.read_file(fp)
                 except configparser.Error as cpe:
                     msg = 'ConfigParser error in profile: "%s". Exception: "%s"'
                     raise BaseFrameworkException(msg % (profname, cpe))
@@ -120,17 +119,17 @@ class profile:
 
                 profile_path_file = os.path.join(profile_path, profile_file)
 
-                with codecs.open(profile_path_file, "rb", UTF8) as fp:
-                    config = configparser.ConfigParser()
+                with open(profile_path_file, encoding=UTF8) as fp:
+                    config = configparser.ConfigParser(interpolation=None, strict=False)
                     try:
-                        config.readfp(fp)
-                    except:
+                        config.read_file(fp)
+                    except (configparser.Error, OSError, UnicodeError):
                         # Any errors simply break name detection
                         continue
 
                     try:
                         name = config.get(self.PROFILE_SECTION, "name")
-                    except:
+                    except configparser.Error:
                         # Any errors simply break name detection
                         continue
                     else:
@@ -254,13 +253,12 @@ class profile:
         res = []
         for section in self._config.sections():
             # Section is something like audit.xss or crawl.web_spider
-            try:
-                _type, name = section.split(".")
-            except:
-                pass
-            else:
-                if _type == plugin_type:
-                    res.append(name)
+            section_parts = section.split(".", maxsplit=1)
+            if len(section_parts) != 2:
+                continue
+            _type, name = section_parts
+            if _type == plugin_type:
+                res.append(name)
         return res
 
     def set_plugin_options(
@@ -294,22 +292,19 @@ class profile:
 
         for section in self._config.sections():
             # Section is something like audit.xss or crawl.web_spider
-            try:
-                _type, name = section.split(".")
-            except:
-                pass
-            else:
-                if _type == plugin_type and name == plugin_name:
-                    for option in self._config.options(section):
-                        try:
-                            value = self._config.get(section, option)
-                        except KeyError:
-                            # We should never get here...
-                            msg = 'The option "%s" is unknown for the' ' "%s" plugin.'
-                            args = (option, plugin_name)
-                            raise BaseFrameworkException(msg % args)
-                        else:
-                            options_list[option].set_value(value)
+            section_parts = section.split(".", maxsplit=1)
+            if len(section_parts) != 2:
+                continue
+            _type, name = section_parts
+            if _type != plugin_type or name != plugin_name:
+                continue
+            for option in self._config.options(section):
+                try:
+                    value = self._config.get(section, option)
+                except configparser.Error as error:
+                    msg = 'The option "%s" is unknown for the "%s" plugin.'
+                    raise BaseFrameworkException(msg % (option, plugin_name)) from error
+                options_list[option].set_value(value)
 
         return options_list
 
@@ -492,9 +487,10 @@ class profile:
             self.profile_file_name = file_name
 
         try:
-            file_handler = open(self.profile_file_name, "w")
-        except:
+            file_handler = open(self.profile_file_name, "w", encoding=UTF8)
+        except OSError:
             msg = 'Failed to open profile file: "%s"'
             raise BaseFrameworkException(msg % self.profile_file_name)
         else:
-            self._config.write(file_handler)
+            with file_handler:
+                self._config.write(file_handler)

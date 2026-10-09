@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.ui.console.io.common import KEY_BACKSPACE
 
 CTRL_CODES = list(range(1, 27))
 CTRL_CODES.remove(9)
@@ -99,7 +100,7 @@ def ioctl_GWINSZ(fd):  # TABULATION FUNCTIONS
         import termios
 
         cr = struct.unpack("hh", fcntl.ioctl(fd, termios.TIOCGWINSZ, "1234"))
-    except:
+    except (AttributeError, ImportError, OSError):
         return None
     return cr
 
@@ -114,7 +115,7 @@ def terminal_size():
             fd = os.open(os.ctermid(), os.O_RDONLY)
             cr = ioctl_GWINSZ(fd)
             os.close(fd)
-        except:
+        except OSError:
             pass
 
     if not cr:

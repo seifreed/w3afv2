@@ -42,6 +42,10 @@ from w3af.core.data.url.HTTPResponse import HTTPResponse
 
 class TestMPDocumentParser(unittest.TestCase):
 
+    def test_max_workers_is_a_positive_integer(self):
+        self.assertIsInstance(MultiProcessingDocumentParser.MAX_WORKERS, int)
+        self.assertGreaterEqual(MultiProcessingDocumentParser.MAX_WORKERS, 1)
+
     def setUp(self):
         self.url = URL("http://w3af.com")
         self.headers = Headers([("content-type", "text/html")])

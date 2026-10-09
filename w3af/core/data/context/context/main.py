@@ -20,7 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from html.parser import HTMLParseError, HTMLParser
+from html import unescape
+from html.parser import HTMLParser
 
 from w3af.core.data.context.constants import CONTEXT_DETECTOR
 
@@ -74,12 +75,7 @@ def get_context_iter(data, payload):
 
     # Parse!
     context_detector = ContextDetectorHTMLParser(payload)
-    try:
-        context_detector.feed(data)
-    except HTMLParseError:
-        # HTMLParser is able to handle broken markup, but in some cases it might
-        # raise this exception when it encounters an error while parsing.
-        return
+    context_detector.feed(data)
 
     for context in context_detector.contexts:
         yield context
@@ -153,7 +149,7 @@ class ContextDetectorHTMLParser(HTMLParser):
 
         # Since it's the raw text value and the attr_value was unescaped, we
         # need to unescape it too to be able to compare them
-        full_tag_text = self.unescape(full_tag_text)
+        full_tag_text = unescape(full_tag_text)
 
         # Analyze the generic cases
         all_contexts = [HtmlAttrDoubleQuote, HtmlAttrSingleQuote]

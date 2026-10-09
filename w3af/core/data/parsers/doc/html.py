@@ -76,7 +76,7 @@ class HTMLParser(SGMLParser):
         self._re_urls = set()
 
         # For <select> and <option> parsing
-        self._select_option_values = set()
+        self._select_option_values = []
         self._select_input_name = None
 
         # Call parent's __init__
@@ -230,7 +230,7 @@ class HTMLParser(SGMLParser):
 
     def _html_internals_clear(self):
         self._saved_inputs = []
-        self._select_option_values = set()
+        self._select_option_values = []
         self._select_input_name = None
         self._text_area_tag_name = None
         self._text_area_data = None
@@ -328,7 +328,7 @@ class HTMLParser(SGMLParser):
         form_params.add_field_by_attrs(attrs)
 
         # Reset selects container
-        self._select_option_values = set()
+        self._select_option_values = []
         self._select_input_name = None
 
     def _handle_option_tag_inside_form(self, tag, tag_name, attrs):
@@ -338,7 +338,7 @@ class HTMLParser(SGMLParser):
         option_value = get_value_by_key(attrs, "value")
 
         if option_value:
-            self._select_option_values.add(option_value)
+            self._select_option_values.append(option_value)
 
     _handle_input_tag_start = _form_elems_generic_handler
     _handle_textarea_tag_start = _form_elems_generic_handler
