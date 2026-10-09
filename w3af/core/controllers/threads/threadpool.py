@@ -21,20 +21,20 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import logging
+import os
 import queue
 import sys
 import threading
 import time
 import traceback
 from functools import partial
-from multiprocessing import cpu_count
-from multiprocessing.dummy import Process, current_process
+from multiprocessing.dummy import Process
 from multiprocessing.util import Finalize, debug
 
 from w3af.core.controllers.threads.decorators import apply_with_return_error
 from w3af.core.data.fuzzer.utils import rand_alnum
 
-from .pool276 import RUN, ThreadPool, create_detailed_pickling_error, mapstar
+from .pool276 import RUN, ThreadPool, mapstar
 
 __all__ = ["Pool", "one_to_many", "return_args"]
 
@@ -91,30 +91,6 @@ class DaemonProcess(Process):
 
     def is_idle(self):
         return self.worker.is_idle()
-
-    def start(self):
-        """
-        This is a race condition in DaemonProcess.start() which was found
-        during some of the test scans I run. The race condition exists
-        because we're using Threads for a Pool that was designed to be
-        used with real processes: thus there is no worker.exitcode,
-        thus it has to be simulated in a race condition-prone way.
-
-        I'm overriding this method in order to move this line:
-
-            self._start_called = True
-
-        Closer to the call to .start(), which should reduce the chances
-        of triggering the race conditions by 1% ;-)
-        """
-        if self._parent is not current_process():
-            raise RuntimeError("Worker must be created by its parent process")
-
-        if hasattr(self._parent, "_children"):
-            self._parent._children[self] = None
-
-        self._start_called = True
-        threading.Thread.start(self)
 
 
 def add_traceback_string(_exception):
@@ -255,25 +231,15 @@ class Worker:
         }
 
     def __call__(self, inqueue, outqueue, initializer=None, initargs=(), maxtasks=None):
-        if maxtasks is not None and not (isinstance(maxtasks, int) and maxtasks > 0):
-            raise ValueError("maxtasks must be None or a positive integer")
-
         put = outqueue.put
         get = inqueue.get
-        if hasattr(inqueue, "_writer"):
-            inqueue._writer.close()
-            outqueue._reader.close()
 
         if initializer is not None:
             initializer(*initargs)
 
         completed = 0
-        while maxtasks is None or (maxtasks and completed < maxtasks):
-            try:
-                task = get()
-            except (OSError, EOFError):
-                debug("worker got EOFError or IOError -- exiting")
-                break
+        while maxtasks is None or completed < maxtasks:
+            task = get()
 
             if task is None:
                 debug("worker got sentinel -- exiting")
@@ -302,22 +268,17 @@ class Worker:
             self.start_time = None
             self.job = None
 
-            try:
-                put((job, i, result))
-            except Exception as e:
-                LOGGER.debug("Failed to send worker task result", exc_info=True)
-                wrapped = create_detailed_pickling_error(e, result[1])
-                put((job, i, (False, wrapped)))
-            finally:
-                # https://bugs.python.org/issue29861
-                task = None
-                job = None
-                result = None
-                func = None
-                args = None
-                kwds = None
+            put((job, i, result))
 
-                completed += 1
+            # https://bugs.python.org/issue29861
+            task = None
+            job = None
+            result = None
+            func = None
+            args = None
+            kwds = None
+
+            completed += 1
 
         debug(f"worker exiting after {completed:d} tasks")
 
@@ -380,15 +341,17 @@ class Pool(ThreadPool):
         self._initargs = initargs
 
         if processes is None:
-            try:
-                processes = cpu_count()
-            except NotImplementedError:
-                processes = 1
+            processes = os.cpu_count() or 1
         if processes < 1:
             raise ValueError("Number of processes must be at least 1")
 
         if initializer is not None and not callable(initializer):
             raise TypeError("initializer must be a callable")
+
+        if maxtasksperchild is not None and not (
+            isinstance(maxtasksperchild, int) and maxtasksperchild > 0
+        ):
+            raise ValueError("maxtasksperchild must be None or a positive integer")
 
         self._processes = processes
         self._pool = []
@@ -408,7 +371,6 @@ class Pool(ThreadPool):
                 self._quick_put,
                 self._outqueue,
                 self._pool,
-                self._cache,
             ),
             name="PoolTaskHandler",
         )
@@ -418,7 +380,7 @@ class Pool(ThreadPool):
 
         self._result_handler = threading.Thread(
             target=Pool._handle_results,
-            args=(self._outqueue, self._quick_get, self._cache),
+            args=(self._quick_get, self._cache),
             name="PoolResultHandler",
         )
         self._result_handler.daemon = True
@@ -429,14 +391,12 @@ class Pool(ThreadPool):
             self,
             self._terminate_pool,
             args=(
-                self._taskqueue,
                 self._inqueue,
                 self._outqueue,
                 self._pool,
                 self._worker_handler,
                 self._task_handler,
                 self._result_handler,
-                self._cache,
             ),
             exitpriority=15,
         )
@@ -478,10 +438,11 @@ class Pool(ThreadPool):
                     self._maxtasksperchild,
                 ),
             )
-            self._pool.append(w)
             w.name = w.name.replace("Process", "PoolWorker")
-            w.daemon = True
+            # Only started workers are added to the pool, otherwise the worker
+            # handler could see an exitcode and join a thread before it starts
             w.start()
+            self._pool.append(w)
             debug("added worker")
 
     def get_worker_count(self):
@@ -529,9 +490,6 @@ class Pool(ThreadPool):
             raise RuntimeError("Pool is not running")
         return self.map_async(one_to_many(func), iterable, chunksize).get()
 
-    def in_qsize(self):
-        return self._taskqueue.qsize()
-
     def is_running(self):
         return self._state == RUN
 
@@ -548,21 +506,8 @@ class Pool(ThreadPool):
             worker = self._pool[i]
             if worker.exitcode is not None:
                 # worker exited
-                try:
-                    worker.join()
-                except RuntimeError:
-                    #
-                    # RuntimeError: cannot join thread before it is started
-                    #
-                    # This is a race condition in DaemonProcess.start() which was found
-                    # during some of the test scans I run. The race condition exists
-                    # because we're using Threads for a Pool that was designed to be
-                    # used with real processes: thus there is no worker.exitcode,
-                    # thus it has to be simulated in a race condition-prone way.
-                    #
-                    continue
-                else:
-                    debug(f"cleaning up worker {i:d}")
+                worker.join()
+                debug(f"cleaning up worker {i:d}")
                 cleaned = True
                 del self._pool[i]
         return cleaned

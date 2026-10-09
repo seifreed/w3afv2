@@ -26,6 +26,7 @@ import unittest
 
 import pytest
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.plugins import CorePlugins
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.w3af_core import w3afCore
@@ -56,11 +57,7 @@ class TestW3afCorePlugins(unittest.TestCase):
         super().setUp()
 
         self.core = w3afCore()
-
-    def tearDown(self):
-        super().tearDown()
-
-        self.core.worker_pool.terminate_join()
+        self.addCleanup(self.core.worker_pool.terminate_join)
 
     def test_get_plugin_types(self):
         plugin_types = self.core.plugins.get_plugin_types()
@@ -147,6 +144,48 @@ class TestW3afCorePlugins(unittest.TestCase):
         options_2 = self.core.plugins.get_plugin_options("crawl", "web_spider")
 
         self.assertEqual(options_1, options_2)
+
+    def test_output_plugin_options_reach_the_output_manager(self):
+        previous_output_plugins = list(om.manager.get_output_plugins())
+        default_options = self.core.plugins.get_plugin_inst(
+            "output", "console"
+        ).get_options()
+        self.addCleanup(om.manager.set_output_plugins, previous_output_plugins)
+        self.addCleanup(om.manager.set_plugin_options, "console", default_options)
+
+        options = self.core.plugins.get_plugin_inst("output", "console").get_options()
+        options["use_colors"].set_value(not options["use_colors"].get_value())
+        self.core.plugins.set_plugin_options("output", "console", options)
+
+        om.manager.set_output_plugins(["console"])
+
+        console = om.manager.get_output_plugin_inst()[0]
+        self.assertEqual(
+            console.get_options()["use_colors"].get_value(),
+            options["use_colors"].get_value(),
+        )
+
+    def test_get_plugin_type_desc(self):
+        description = self.core.plugins.get_plugin_type_desc("audit")
+
+        self.assertIn("vulnerabilities", description)
+
+    def test_get_plugin_type_desc_unknown_type(self):
+        with self.assertRaisesRegex(BaseFrameworkException, "Unknown plugin type"):
+            self.core.plugins.get_plugin_type_desc("unknown_type")
+
+    def test_init_plugins_twice_applies_latest_options(self):
+        self.core.plugins.set_plugins(["web_spider"], "crawl")
+        self.core.plugins.init_plugins()
+
+        options = self.core.plugins.get_plugin_inst("crawl", "web_spider").get_options()
+        options["only_forward"].set_value(True)
+        self.core.plugins.set_plugin_options("crawl", "web_spider", options)
+        self.core.plugins.init_plugins()
+
+        crawl_plugins = self.core.plugins.plugins["crawl"]
+        self.assertEqual(len(crawl_plugins), 1)
+        self.assertTrue(crawl_plugins[0].get_options()["only_forward"].get_value())
 
     def test_plugin_options_invalid(self):
         self.assertRaises(

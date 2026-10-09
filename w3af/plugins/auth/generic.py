@@ -117,6 +117,9 @@ class generic(AuthSessionPlugin):
         super()._handle_authentication_success()
         self._log_debug(f"Login success for {self.username}")
 
+    def _get_main_authentication_url(self):
+        return self.auth_url
+
     def get_options(self):
         """
         :return: A list of option objects for this plugin.

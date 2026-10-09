@@ -1,7 +1,7 @@
 """
-monkey_patch_debug.py
+grep_exception_raise.py
 
-Copyright 2019 Andres Riancho
+Copyright 2026 w3af contributors
 
 This file is part of w3af, http://w3af.org/ .
 
@@ -20,26 +20,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import multiprocessing.util
-
-import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.threads import pool276, threadpool
-
-PATCHED_MODULES = (multiprocessing.util, threadpool, pool276)
-ORIGINAL_DEBUG = multiprocessing.util.debug
+from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 
 
-def new_debug(msg, *args):
-    om_msg = msg % args
-    om_msg = f"[threadpool] {om_msg}"
-    om.out.debug(om_msg)
+class GrepFailureError(Exception):
+    pass
 
 
-def monkey_patch_debug():
-    for module in PATCHED_MODULES:
-        module.debug = new_debug
+class grep_exception_raise(GrepPlugin):
+    """
+    Test plugin which fails while analyzing every HTTP response.
+    """
 
-
-def remove_monkey_patch_debug():
-    for module in PATCHED_MODULES:
-        module.debug = ORIGINAL_DEBUG
+    def grep(self, fuzzable_request, response):
+        raise GrepFailureError("Test grep exception.")

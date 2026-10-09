@@ -20,67 +20,124 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import contextlib
+import http.client
 import os
+import shutil
 import tempfile
+import threading
 import unittest
 import urllib.error
-import urllib.parse
 import urllib.request
 
 from w3af.core.controllers.daemons.webserver import (
+    HTTPServer,
+    WebHandler,
+    is_running,
     start_webserver,
-    start_webserver_any_free_port,
 )
-from w3af.core.data.constants.ports import REMOTEFILEINCLUDE
+from w3af.core.controllers.misc.get_unused_port import get_unused_port
+
+IP = "127.0.0.1"
+TEST_STRING = "abc<>def"
+SHUTDOWN_TIMEOUT = 10
+
+
+class FailingHandler(WebHandler):
+    def do_GET(self):
+        raise RuntimeError("handler failure")
+
+
+def wait_until_down(server):
+    for _ in range(SHUTDOWN_TIMEOUT * 10):
+        if server.is_down():
+            return True
+        threading.Event().wait(0.1)
+    return False
 
 
 class TestWebserver(unittest.TestCase):
 
-    IP = "127.0.0.1"
-    PORT = REMOTEFILEINCLUDE
-    TESTSTRING = "abc<>def"
-
     def setUp(self):
-        self.tempdir = tempfile.gettempdir()
+        self.webroot = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.webroot)
 
-        for port in range(self.PORT, self.PORT + 15):
-            with contextlib.suppress(OSError):
-                self.server = start_webserver(self.IP, port, self.tempdir)
-                self.PORT = port
-                break
+        self.port = get_unused_port()
+        self.server = start_webserver(IP, self.port, self.webroot)
 
-    def test_GET_404(self):
-        # Raises a 404
-        self.assertRaises(
-            urllib.error.HTTPError,
-            urllib.request.urlopen,
-            f"http://{self.IP}:{self.PORT}",
-        )
+    def url(self, path):
+        return f"http://{IP}:{self.port}/{path}"
 
-    def _create_file(self):
-        # Create a file and request it
-        with open(os.path.join(self.tempdir, "foofile.txt"), "w") as test_fh:
-            test_fh.write(self.TESTSTRING)
+    def create_file(self, name):
+        with open(os.path.join(self.webroot, name), "w") as test_fh:
+            test_fh.write(TEST_STRING)
 
-    def test_is_down(self):
-        # pylint: disable=E1103
+    def test_get_404(self):
+        with self.assertRaises(urllib.error.HTTPError) as error:
+            urllib.request.urlopen(self.url("missing.txt"))
+
+        self.assertEqual(error.exception.code, 404)
+
+    def test_get_path_traversal_403(self):
+        connection = http.client.HTTPConnection(IP, self.port)
+        connection.request("GET", "/../etc/passwd")
+
+        self.assertEqual(connection.getresponse().status, 403)
+        connection.close()
+
+    def test_get_exists_with_known_content_type(self):
+        self.create_file("foofile.txt")
+
+        response = urllib.request.urlopen(self.url("foofile.txt"))
+
+        self.assertEqual(response.read().decode("utf-8"), TEST_STRING)
+        self.assertEqual(response.headers["Content-type"], "text/plain")
+
+    def test_get_exists_with_unknown_content_type(self):
+        self.create_file("foofile.w3afunknown")
+
+        response = urllib.request.urlopen(self.url("foofile.w3afunknown"))
+
+        self.assertEqual(response.read().decode("utf-8"), TEST_STRING)
+        self.assertEqual(response.headers["Content-type"], "text/html")
+
+    def test_is_running(self):
         self.assertFalse(self.server.is_down())
-        # pylint: enable=E1103
+        self.assertTrue(is_running(IP, self.port))
 
-    def test_GET_exists(self):
-        self._create_file()
+    def test_is_running_unknown_address(self):
+        self.assertFalse(is_running(IP, get_unused_port()))
 
-        url = f"http://{self.IP}:{self.PORT}/foofile.txt"
-        response_body = urllib.request.urlopen(url).read().decode("utf-8")
+    def test_start_webserver_returns_running_instance(self):
+        self.assertIs(start_webserver(IP, self.port, self.webroot), self.server)
 
-        self.assertEqual(response_body, self.TESTSTRING)
+    def test_idle_server_shuts_down_and_restarts(self):
+        self.assertTrue(wait_until_down(self.server))
+        self.assertFalse(is_running(IP, self.port))
 
-    def test_any_free_port(self):
-        self._create_file()
-        _, port = start_webserver_any_free_port(self.IP, self.tempdir)
+        restarted = start_webserver(IP, self.port, self.webroot)
 
-        url = f"http://{self.IP}:{port}/foofile.txt"
-        response_body = urllib.request.urlopen(url).read().decode("utf-8")
+        self.assertIsNot(restarted, self.server)
+        self.assertTrue(is_running(IP, self.port))
 
-        self.assertEqual(response_body, self.TESTSTRING)
+    def test_get_port(self):
+        self.assertEqual(self.server.get_port(), self.port)
+
+
+class TestWebserverHandlerError(unittest.TestCase):
+
+    def test_handler_exception_is_logged(self):
+        server = HTTPServer((IP, 0), tempfile.gettempdir(), FailingHandler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        logger_name = "w3af.core.controllers.daemons.webserver"
+
+        with self.assertLogs(logger_name, level="ERROR") as logs:
+            thread.start()
+            connection = http.client.HTTPConnection(IP, server.get_port())
+            connection.request("GET", "/")
+            with self.assertRaises(ConnectionResetError):
+                connection.getresponse()
+            connection.close()
+            thread.join(SHUTDOWN_TIMEOUT)
+
+        self.assertIn("Error processing request", logs.output[0])
+        self.assertTrue(server.is_down())

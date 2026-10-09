@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import os
 import pickle
 import sys
 import threading
@@ -28,6 +29,7 @@ import unittest
 
 import pytest
 
+import w3af.core.data.kb.config as cf
 from w3af.core.controllers.core_helpers.exception_handler import (
     ExceptionData,
     ExceptionHandler,
@@ -38,6 +40,7 @@ from w3af.core.data.dc.generic.kv_container import KeyValueContainer
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.exceptions import ScanMustStopException
 
 
 class TestExceptionHandler(unittest.TestCase):
@@ -48,7 +51,7 @@ class TestExceptionHandler(unittest.TestCase):
         self.exception_handler = ExceptionHandler()
         self.exception_handler.clear()
 
-        self.status = FakeStatus(None)
+        self.status = CoreStatus(None)
         self.status.set_running_plugin("phase", "plugin")
         self.status.set_current_fuzzable_request("phase", "http://www.w3af.org/")
 
@@ -238,9 +241,87 @@ class TestExceptionHandler(unittest.TestCase):
 
         self.assertGreater(edata.lineno, 0)
 
+    def handle_runtime_error(self, message="unittest"):
+        try:
+            raise RuntimeError(message)
+        except RuntimeError as error:
+            self.exception_handler.handle(self.status, error, sys.exc_info(), "")
 
-class FakeStatus(CoreStatus):
-    pass
+    def test_scan_must_stop_exceptions_are_not_handled(self):
+        with self.assertRaises(ScanMustStopException):
+            try:
+                raise ScanMustStopException("stop")
+            except ScanMustStopException as error:
+                self.exception_handler.handle(self.status, error, sys.exc_info(), "")
+
+        self.assertEqual(self.exception_handler.get_all_exceptions(), [])
+
+    def test_stop_on_first_exception_raises(self):
+        cf.cf.save("stop_on_first_exception", True)
+        self.addCleanup(cf.cf.save, "stop_on_first_exception", False)
+
+        with self.assertRaisesRegex(RuntimeError, "first"):
+            self.handle_runtime_error("first")
+
+    def test_debug_environment_raises_every_exception(self):
+        previous_debug = os.environ.get("DEBUG")
+        os.environ["DEBUG"] = "1"
+        self.addCleanup(self.restore_debug_environment, previous_debug)
+
+        with self.assertRaisesRegex(RuntimeError, "debugging"):
+            self.handle_runtime_error("debugging")
+
+    def restore_debug_environment(self, previous_debug):
+        if previous_debug is None:
+            os.environ.pop("DEBUG")
+        else:
+            os.environ["DEBUG"] = previous_debug
+
+    def test_summary_without_exceptions(self):
+        summary = self.exception_handler.generate_summary_str()
+
+        self.assertEqual(
+            summary,
+            "No exceptions were raised during scan with id:"
+            f" {self.exception_handler.get_scan_id()}.",
+        )
+
+    def test_summary_with_exceptions(self):
+        self.handle_runtime_error()
+        self.status.set_running_plugin("other_phase", "other_plugin")
+        self.handle_runtime_error()
+        self.handle_runtime_error()
+
+        summary = self.exception_handler.generate_summary()
+
+        self.assertEqual(summary["total_exceptions"], 3)
+        self.assertEqual(sorted(summary["exceptions"]), ["other_phase", "phase"])
+        self.assertEqual(len(summary["exceptions"]["other_phase"]), 2)
+        plugin, fuzzable_request, exception, traceback_str = summary["exceptions"][
+            "phase"
+        ][0]
+        self.assertEqual(plugin, "plugin")
+        self.assertEqual(fuzzable_request, "http://www.w3af.org/")
+        self.assertIsInstance(exception, RuntimeError)
+        self.assertIn("handle_runtime_error", traceback_str)
+
+        summary_str = self.exception_handler.generate_summary_str()
+
+        self.assertIn("caught 3 exceptions", summary_str)
+        self.assertIn("- phase.plugin\n", summary_str)
+        self.assertIn("- other_phase.other_plugin\n", summary_str)
+
+    def test_exception_data_string_representations(self):
+        self.handle_runtime_error("represent me")
+
+        edata = self.exception_handler.get_all_exceptions()[0]
+
+        self.assertEqual(str(edata), edata.get_details())
+        self.assertEqual(edata.get_where(), f"phase.plugin:{edata.lineno}")
+        self.assertEqual(
+            repr(edata),
+            f'<ExceptionData - test_exception_handler.py:{edata.lineno} - "represent me">',
+        )
 
 
 class TestExceptionData(unittest.TestCase):
@@ -269,6 +350,7 @@ class TestExceptionData(unittest.TestCase):
         fr = self.get_fuzzable_request()
 
         core = w3afCore()
+        self.addCleanup(core.worker_pool.terminate_join)
         status = CoreStatus(core)
         status.set_running_plugin("audit", "sqli", log=False)
         status.set_current_fuzzable_request("audit", fr)
@@ -292,6 +374,7 @@ class TestExceptionData(unittest.TestCase):
             fr = self.get_fuzzable_request()
 
             core = w3afCore()
+            self.addCleanup(core.worker_pool.terminate_join)
             status = CoreStatus(core)
             status.set_running_plugin("audit", "sqli", log=False)
             status.set_current_fuzzable_request("audit", fr)
@@ -315,6 +398,7 @@ class TestExceptionData(unittest.TestCase):
             fr = self.get_fuzzable_request()
 
             core = w3afCore()
+            self.addCleanup(core.worker_pool.terminate_join)
             status = CoreStatus(core)
             status.set_running_plugin("audit", "sqli", log=False)
             status.set_current_fuzzable_request("audit", fr)

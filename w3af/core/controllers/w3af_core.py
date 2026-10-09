@@ -73,7 +73,6 @@ from w3af.core.controllers.threads.threadpool import Pool
 from w3af.core.data.kb.knowledge_base import kb
 from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.data.parsers import parser_cache
-from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.exceptions import (
     BaseFrameworkException,
@@ -120,6 +119,10 @@ class w3afCore:
 
     WORKER_INQUEUE_MAX_SIZE = WORKER_THREADS * 20
     WORKER_MAX_TASKS = 20
+
+    # Seconds to wait for the scan to stop after the user requested it
+    STOP_TIMEOUT = 10
+    STOP_LOOP_DELAY = 0.5
 
     def __init__(self):
         """
@@ -285,12 +288,6 @@ class w3afCore:
         except threading.ThreadError as te:
             handle_threading_error(self.status.scans_completed, te)
 
-        except HTTPRequestException:
-            # TODO: These exceptions should never reach this level
-            #       adding the exception handler to raise them and fix any
-            #       instances where it happens.
-            raise
-
         except ScanMustStopByUserRequest as sbur:
             # I don't have to do anything here, since the user is the one that
             # requested the scanner to stop. From here the code continues at the
@@ -316,12 +313,11 @@ class w3afCore:
         except Exception as e:
             msg = 'Unhandled exception "%s", traceback:\n%s'
 
-            if hasattr(e, "original_traceback_string"):
-                # pylint: disable=E1101
-                traceback_string = e.original_traceback_string
-                # pylint: enable=E1101
-            else:
-                traceback_string = traceback.format_exc()
+            # Exceptions raised in the consumers carry the traceback of the
+            # thread where they were originally raised
+            traceback_string = getattr(
+                e, "original_traceback_string", traceback.format_exc()
+            )
 
             om.out.error(msg % (e, traceback_string))
             raise
@@ -475,25 +471,22 @@ class w3afCore:
 
         stop_start_time = time.time()
 
-        # seconds
-        wait_max = 10
-        loop_delay = 0.5
-
-        for _ in range(int(wait_max / loop_delay)):
+        for _ in range(int(self.STOP_TIMEOUT / self.STOP_LOOP_DELAY)):
             if not self.status.is_running():
                 core_stop_time = epoch_to_string(stop_start_time)
                 msg = f"{core_stop_time} were needed to stop the core."
                 break
 
             try:
-                time.sleep(loop_delay)
+                time.sleep(self.STOP_LOOP_DELAY)
             except KeyboardInterrupt:
                 msg = "The user cancelled the cleanup process, forcing exit."
                 break
 
         else:
-            msg = "The core failed to stop in %s seconds, forcing exit."
-            msg %= wait_max
+            msg = (
+                f"The core failed to stop in {self.STOP_TIMEOUT} seconds, forcing exit."
+            )
 
         om.out.debug(msg)
 

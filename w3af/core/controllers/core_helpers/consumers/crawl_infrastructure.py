@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import logging
 import queue
+import threading
 import time
 
 import w3af.core.controllers.output_manager as om
@@ -61,7 +62,7 @@ class CrawlInfrastructure(BaseConsumer):
         :param crawl_infrastructure_plugins: Instances of CrawlInfrastructure
                                              plugins in a list
         :param w3af_core: The w3af core that we'll use for status reporting
-        :param max_discovery_time: The max time (in seconds) to use for the
+        :param max_discovery_time: The max time (in minutes) to use for the
                                    discovery phase
         """
         super().__init__(
@@ -77,6 +78,7 @@ class CrawlInfrastructure(BaseConsumer):
 
         self._disabled_plugins = set()
         self._running = True
+        self._stop_lock = threading.Lock()
         self._report_max_time = True
         self._reported_found_urls = ScalableBloomFilter()
 
@@ -103,37 +105,15 @@ class CrawlInfrastructure(BaseConsumer):
 
             try:
                 work_unit = self.in_queue.get(timeout=0.1)
-            except KeyboardInterrupt:
-                # https://github.com/andresriancho/w3af/issues/9587
-                #
-                # If we don't do this, the thread will die and will never
-                # process the POISON_PILL, which will end up in an endless
-                # wait for .join()
-                continue
-
             except queue.Empty:
                 # pylint: disable=E1120
-                try:
-                    self._route_all_plugin_results()
-                except KeyboardInterrupt:
-                    continue
+                self._route_all_plugin_results()
                 # pylint: enable=E1120
             else:
                 if work_unit == POISON_PILL:
 
                     self._log_queue_sizes()
-
-                    try:
-                        self._process_poison_pill()
-                    except Exception as e:
-                        logger.debug("Unhandled exception in run()", exc_info=True)
-                        msg = (
-                            'An exception was found while processing poison pill: "%s"'
-                        )
-                        om.out.debug(msg % e)
-                    finally:
-                        self._running = False
-                        self.in_queue.task_done()
+                    self._consume_poison_pill()
                     break
 
                 else:
@@ -145,6 +125,12 @@ class CrawlInfrastructure(BaseConsumer):
 
                     # Free memory
                     work_unit = None
+
+    def _process_poison_pill(self):
+        try:
+            super()._process_poison_pill()
+        finally:
+            self._running = False
 
     def _teardown(self, plugin=None):
         """
@@ -309,11 +295,24 @@ class CrawlInfrastructure(BaseConsumer):
                 # in the output queue
                 should_stop = self._should_stop_discovery()
                 if should_stop:
-                    self._running = False
-                    self._force_consumer_to_finish()
+                    self._stop_discovery()
 
             if should_stop:
                 break
+
+    def _stop_discovery(self):
+        """
+        Stop the crawl phase only once: results are routed by the consumer
+        thread and by the pool callbacks, and a second call to
+        _force_consumer_to_finish() would remove the POISON_PILL sent by
+        the first one from the input queue, leaving run() waiting forever.
+        """
+        with self._stop_lock:
+            if not self._running:
+                return
+            self._running = False
+
+        self._force_consumer_to_finish()
 
     def _force_consumer_to_finish(self):
         """
@@ -569,8 +568,8 @@ class CrawlInfrastructure(BaseConsumer):
             result = plugin.discover_wrapper(fuzzable_request, debugging_id)
         except BaseFrameworkException as e:
             msg = 'An exception was found while running "%s" with "%s": "%s" (did: %s)'
-            args = (plugin.get_name(), fuzzable_request, debugging_id)
-            om.out.error(msg % args, e)
+            args = (plugin.get_name(), fuzzable_request, e, debugging_id)
+            om.out.error(msg % args)
         except RunOnce:
             # Some plugins are meant to be run only once
             # that is implemented by raising a RunOnce

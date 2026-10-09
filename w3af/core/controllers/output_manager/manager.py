@@ -104,7 +104,11 @@ class OutputManager(Process):
     # Thread locking to avoid starting the om many times from different threads
     start_lock = threading.RLock()
 
-    def __init__(self):
+    def __init__(self, flush_timeout=FLUSH_TIMEOUT):
+        """
+        :param flush_timeout: Seconds between calls to the output plugins'
+                              flush() method
+        """
         super().__init__(name="OutputManager")
         self.daemon = True
         self.name = "OutputManager"
@@ -117,6 +121,7 @@ class OutputManager(Process):
         # Internal variables
         self.in_queue = SilentJoinableQueue(ctx=multiprocessing.get_context())
         self._w3af_core = None
+        self._flush_timeout = flush_timeout
         self._last_output_flush = None
         self._is_shutting_down = False
         self._worker_pool = self.get_worker_pool()
@@ -153,7 +158,7 @@ class OutputManager(Process):
         """
         while True:
             try:
-                work_unit = self.in_queue.get(timeout=self.FLUSH_TIMEOUT)
+                work_unit = self.in_queue.get(timeout=self._flush_timeout)
             except queue.Empty:
                 self.flush_plugin_output()
                 continue
@@ -161,8 +166,8 @@ class OutputManager(Process):
             except EOFError:
                 # The queue which we're consuming ended abruptly, this is
                 # usually a side effect of the process ending and
-                # multiprocessing not handling things cleanly
-                self.in_queue.task_done()
+                # multiprocessing not handling things cleanly. No work unit
+                # was received, so there is no task to mark as done
                 break
 
             if work_unit == POISON_PILL:
@@ -304,7 +309,7 @@ class OutputManager(Process):
             return True
 
         time_diff = time.time() - self._last_output_flush
-        return time_diff >= self.FLUSH_TIMEOUT
+        return time_diff >= self._flush_timeout
 
     def update_last_output_flush(self):
         self._last_output_flush = time.time()

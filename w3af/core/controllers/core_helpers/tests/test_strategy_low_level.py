@@ -25,6 +25,9 @@ import unittest
 from urllib.parse import unquote_plus
 
 from w3af import ROOT_PATH
+from w3af.core.controllers.core_helpers.fingerprint_404 import (
+    fingerprint_404_singleton,
+)
 from w3af.core.controllers.core_helpers.strategy import CoreStrategy
 from w3af.core.controllers.tests.local_http_server import (
     LocalHTTPServer,
@@ -33,7 +36,7 @@ from w3af.core.controllers.tests.local_http_server import (
 )
 from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.kb.knowledge_base import kb
-from w3af.core.exceptions import ScanMustStopException
+from w3af.core.exceptions import ScanMustStopByUserRequest, ScanMustStopException
 
 TLS_HELPERS = os.path.join(ROOT_PATH, "core", "data", "url", "tests", "helpers")
 TLS_CERT = os.path.join(TLS_HELPERS, "unittest.crt")
@@ -43,6 +46,10 @@ SQL_ERROR = (
     "You have an error in your SQL syntax; check the manual that corresponds"
     " to your MySQL server version for the right syntax to use"
 )
+
+
+def static_page(method, path):
+    return Reply(body="<html><body>Hello world</body></html>")
 
 
 def sql_injection_site(method, path):
@@ -114,6 +121,7 @@ class TestStrategy(unittest.TestCase):
 
     def get_core(self, target_url):
         core = w3afCore()
+        self.addCleanup(core.quit)
 
         target = core.target.get_options()
         target["target"].set_value(target_url)
@@ -243,3 +251,47 @@ class TestStrategy(unittest.TestCase):
         self.assert_target_redirect_infos(
             lambda port: f"http://127.0.0.1:{port}/xyz", 0
         )
+
+    def target_request_steps(self, strategy):
+        return {
+            "replace_targets_with_redir()": strategy.replace_targets_with_redir,
+            "alert_if_target_is_301_all()": strategy.alert_if_target_is_301_all,
+            "_setup_404_detection()": strategy._setup_404_detection,
+        }
+
+    def test_target_request_failure_stops_the_scan(self):
+        core = self.get_core(f"http://127.0.0.1:{closed_local_port()}/")
+        strategy = CoreStrategy(core)
+
+        for step, step_method in self.target_request_steps(strategy).items():
+            with self.subTest(step=step):
+                with self.assertRaises(ScanMustStopException) as context:
+                    step_method()
+
+                self.assertIn(f"Exception found during {step}", str(context.exception))
+
+    def test_user_stop_while_requesting_targets(self):
+        self.start_server(static_page)
+        core = self.get_core(self.server.url("/"))
+        strategy = CoreStrategy(core)
+
+        core.uri_opener.stop()
+
+        steps = self.target_request_steps(strategy)
+        steps["verify_target_server_up()"] = strategy.verify_target_server_up
+
+        for step, step_method in steps.items():
+            with self.subTest(step=step):
+                self.assertRaises(ScanMustStopByUserRequest, step_method)
+
+    def test_404_detection_without_url_opener_stops_the_scan(self):
+        self.start_server(static_page)
+        core = self.get_core(self.server.url("/"))
+        strategy = CoreStrategy(core)
+
+        fingerprint_404_singleton(cleanup=True)
+
+        with self.assertRaises(ScanMustStopException) as context:
+            strategy._setup_404_detection()
+
+        self.assertIn("Failed to initialize the 404 detection", str(context.exception))
