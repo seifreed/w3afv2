@@ -36,8 +36,8 @@ from w3af.core.data.url.constants import (
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.data.url.handlers.keepalive.connection_manager import ConnectionManager
-from w3af.core.data.url.tests.helpers.local_server import LocalServer, Reply
 from w3af.core.data.url.tests.helpers.raw_handlers import TimeoutTCPHandler
+from w3af.core.data.url.tests.helpers.route_server import Response, RouteServer
 from w3af.core.data.url.tests.helpers.ssl_daemon import RawSSLDaemon
 from w3af.core.data.url.tests.helpers.upper_daemon import (
     ThreadingUpperDaemon,
@@ -60,7 +60,7 @@ class DelayedReply:
         if request.route == "/timeout":
             time.sleep(self.long_sleep)
 
-        return Reply(200, "abc")
+        return Response(200, "abc")
 
 
 @pytest.mark.smoke
@@ -127,7 +127,7 @@ class TestXUrllibTimeout(unittest.TestCase):
         self.assertEqual(scan_stop_e, 1)
 
     def test_timeout_auto_adjust(self):
-        server = LocalServer.serve_for(self, {"/": DelayedReply()})
+        server = RouteServer.serve_for(self, {"/": DelayedReply()})
 
         # Enable timeout auto-adjust
         self.uri_opener.settings.set_configured_timeout(0)
@@ -156,7 +156,7 @@ class TestXUrllibTimeout(unittest.TestCase):
         self.assertLess(self.uri_opener.get_timeout("127.0.0.1"), DEFAULT_TIMEOUT)
 
     def test_auto_adjust_needs_samples_for_the_host(self):
-        server = LocalServer.serve_for(self, {"/": Reply(200, "abc")})
+        server = RouteServer.serve_for(self, {"/": Response(200, "abc")})
 
         self.uri_opener.settings.set_configured_timeout(0)
         self.uri_opener.clear_timeout()
@@ -178,7 +178,7 @@ class TestXUrllibTimeout(unittest.TestCase):
 
     def test_timeout_parameter_overrides_global_timeout(self):
         delayed = DelayedReply()
-        server = LocalServer.serve_for(self, {"/": delayed, "/timeout": delayed})
+        server = RouteServer.serve_for(self, {"/": delayed, "/timeout": delayed})
 
         # Enable timeout auto-adjust
         self.uri_opener.settings.set_configured_timeout(0)

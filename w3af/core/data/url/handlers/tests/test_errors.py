@@ -30,14 +30,14 @@ from w3af.core.data.url import opener_settings
 from w3af.core.data.url.director import CustomOpenerDirector, build_opener
 from w3af.core.data.url.handlers.errors import ErrorHandler
 from w3af.core.data.url.handlers.keepalive import HTTPHandler
-from w3af.core.data.url.handlers.tests.local_server import LocalServer
 from w3af.core.data.url.http_request import HTTPRequest
+from w3af.core.data.url.tests.helpers.route_server import RouteServer
 
 
 class TestErrorHandler(unittest.TestCase):
     def setUp(self):
         consecutive_number_generator.reset()
-        self.server = LocalServer().start()
+        self.server = RouteServer().start()
         self.addCleanup(self.server.stop)
         self.fail_url = URL(self.server.url("/abc/def/do-not-exist.foo"))
 

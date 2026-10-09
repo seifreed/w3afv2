@@ -37,12 +37,12 @@ from w3af.core.data.url.constants import MAX_ERROR_COUNT
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.data.url.http_response import DEFAULT_WAIT_TIME
-from w3af.core.data.url.tests.helpers.local_server import LocalServer, Reply, echo
 from w3af.core.data.url.tests.helpers.raw_handlers import (
     EmptyTCPHandler,
     Ok200Handler,
     closed_port,
 )
+from w3af.core.data.url.tests.helpers.route_server import Response, RouteServer, echo
 from w3af.core.data.url.tests.helpers.ssl_daemon import RawSSLDaemon, SSLServer
 from w3af.core.data.url.tests.helpers.upper_daemon import UpperDaemon
 from w3af.core.exceptions import (
@@ -67,12 +67,12 @@ class TestXUrllib(unittest.TestCase):
         self.addCleanup(self.uri_opener.settings.set_default_values)
 
         routes = {
-            "/": Reply(200, INDEX),
+            "/": Response(200, INDEX),
             "/echo": echo,
-            "/big.json": Reply(200, BIG_BODY, content_type="application/json"),
+            "/big.json": Response(200, BIG_BODY, content_type="application/json"),
         }
-        self.server = LocalServer.serve_for(self, routes)
-        self.ssl_server = LocalServer.serve_for(self, routes, tls=True)
+        self.server = RouteServer.serve_for(self, routes)
+        self.ssl_server = RouteServer.serve_for(self, routes, use_tls=True)
 
     def test_evasion_plugins_are_sorted_by_priority(self):
         evasion_plugins = [rnd_case(), rnd_path()]

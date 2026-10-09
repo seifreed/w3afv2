@@ -31,20 +31,22 @@ from datetime import UTC, datetime
 import OpenSSL
 from cryptography.hazmat.primitives.serialization import Encoding
 
-from w3af.core.data.url.handlers.tests.local_server import (
-    LOCALHOST,
-    LocalServer,
-    RawServer,
-    Reply,
-    certificate,
-    server_tls_context,
-)
 from w3af.core.data.url.openssl_wrapper.ssl_wrapper import (
     CERT_REQUIRED,
     NOT_AFTER_FORMAT,
     OpenSSLReformattedError,
     SSLSocket,
     wrap_socket,
+)
+from w3af.core.data.url.tests.helpers.certificates import (
+    certificate,
+    server_tls_context,
+)
+from w3af.core.data.url.tests.helpers.raw_server import RawServer
+from w3af.core.data.url.tests.helpers.route_server import (
+    LOCALHOST,
+    Response,
+    RouteServer,
 )
 
 TLS = OpenSSL.SSL.TLS_METHOD
@@ -115,7 +117,9 @@ def read_https(server, cert_reqs=ssl.CERT_NONE, ca_certs=None, **kwargs):
 class TestWrapSocket(unittest.TestCase):
     def test_https_request_and_peer_certificate(self):
         cert = certificate()
-        with LocalServer({"/": Reply(body="secure")}, tls=True) as server:
+        with RouteServer(
+            {"/": Response(body="secure")}, tls_context=server_tls_context()
+        ) as server:
             ssl_sock, response, body = read_https(server, timeout=5)
 
         self.assertEqual(response.status, 200)
@@ -138,7 +142,9 @@ class TestWrapSocket(unittest.TestCase):
 
     def test_verified_handshake_with_trusted_ca(self):
         cert = certificate()
-        with LocalServer({"/": Reply(body="trusted")}, tls=True) as server:
+        with RouteServer(
+            {"/": Response(body="trusted")}, tls_context=server_tls_context()
+        ) as server:
             ssl_sock, _, body = read_https(
                 server,
                 cert_reqs=CERT_REQUIRED,
@@ -157,7 +163,7 @@ class TestWrapSocket(unittest.TestCase):
     def test_certificate_without_san_and_common_name(self):
         cert = certificate(common_name=None, with_san=False)
         context = server_tls_context(cert)
-        with LocalServer({"/": Reply()}, tls_context=context) as server:
+        with RouteServer({"/": Response()}, tls_context=context) as server:
             ssl_sock, _, _ = read_https(server)
         peer_cert = ssl_sock.getpeercert()
         ssl_sock.close()

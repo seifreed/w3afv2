@@ -29,8 +29,8 @@ from pathlib import Path
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.data.url.handlers.cookie_handler import CookieHandler
-from w3af.core.data.url.handlers.tests.local_server import LocalServer, Reply
 from w3af.core.data.url.http_request import HTTPRequest
+from w3af.core.data.url.tests.helpers.route_server import Response, RouteServer
 
 COOKIE_VALUE = "session=123456789"
 
@@ -46,19 +46,19 @@ def check_cookie(request):
     received_cookie_value = request.headers.get("cookie")
 
     if received_cookie_value is None:
-        return Reply(body="Cookie not sent")
+        return Response(body="Cookie not sent")
     if received_cookie_value == COOKIE_VALUE:
-        return Reply(body="Cookie received")
-    return Reply(body=f"Cookie {received_cookie_value} received")
+        return Response(body="Cookie received")
+    return Response(body=f"Cookie {received_cookie_value} received")
 
 
 class TestCookieHandler(unittest.TestCase):
     def setUp(self):
-        self.server = LocalServer(
+        self.server = RouteServer(
             {
-                "/send-cookie": Reply(headers=[("Set-Cookie", COOKIE_VALUE)]),
-                "/send-cookie1": Reply(headers=[("Set-Cookie", "11111111")]),
-                "/send-cookie2": Reply(headers=[("Set-Cookie", "222222222")]),
+                "/send-cookie": Response(headers=[("Set-Cookie", COOKIE_VALUE)]),
+                "/send-cookie1": Response(headers=[("Set-Cookie", "11111111")]),
+                "/send-cookie2": Response(headers=[("Set-Cookie", "222222222")]),
                 "/check-cookie": check_cookie,
             }
         ).start()

@@ -36,8 +36,8 @@ from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.constants import MAX_ERROR_COUNT
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.data.url.response_meta import SUCCESS
-from w3af.core.data.url.tests.helpers.local_server import LocalServer, Reply, echo
 from w3af.core.data.url.tests.helpers.raw_handlers import EmptyTCPHandler
+from w3af.core.data.url.tests.helpers.route_server import Response, RouteServer, echo
 from w3af.core.data.url.tests.helpers.upper_daemon import UpperDaemon
 from w3af.core.data.user_agent.random_user_agent import UA_CACHE
 from w3af.core.exceptions import (
@@ -67,8 +67,8 @@ class TestExtendedUrllibAPI(unittest.TestCase):
         self.addCleanup(self.uri_opener.end)
         self.addCleanup(self.uri_opener.settings.set_default_values)
 
-        self.server = LocalServer.serve_for(
-            self, {"/": Reply(200, "index"), "/echo": echo}
+        self.server = RouteServer.serve_for(
+            self, {"/": Response(200, "index"), "/echo": echo}
         )
 
     def url(self, path="/"):
@@ -223,8 +223,8 @@ class TestWorkerPoolSize(unittest.TestCase):
         self.addCleanup(self.uri_opener.settings.set_default_values)
         self.uri_opener.settings.set_max_http_retries(0)
 
-        self.server = LocalServer.serve_for(
-            self, {"/": Reply(200, "ok"), "/fail": Reply(drop=True)}
+        self.server = RouteServer.serve_for(
+            self, {"/": Response(200, "ok"), "/fail": Response(drop=True)}
         )
 
         self.w3af_core = w3afCore()
@@ -316,9 +316,9 @@ class TestHandlerErrors(unittest.TestCase):
         def always_challenge(request):
             challenge = spnego.server(protocol="ntlm").step(negotiate)
             token = base64.b64encode(challenge).decode("ascii")
-            return Reply(401, "", headers=[("WWW-Authenticate", f"NTLM {token}")])
+            return Response(401, "", headers=[("WWW-Authenticate", f"NTLM {token}")])
 
-        server = LocalServer.serve_for(self, {"/": always_challenge})
+        server = RouteServer.serve_for(self, {"/": always_challenge})
         self.uri_opener.settings.set_ntlm_auth(server.url(), "DOMAIN", "user", "pass")
 
         response = self.uri_opener.GET(URL(server.url()))

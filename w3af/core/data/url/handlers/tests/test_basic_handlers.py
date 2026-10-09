@@ -32,14 +32,14 @@ from w3af.core.data.url.handlers.fast_basic_auth import FastHTTPBasicAuthHandler
 from w3af.core.data.url.handlers.gzip_handler import HTTPGzipProcessor
 from w3af.core.data.url.handlers.keepalive import HTTPHandler
 from w3af.core.data.url.handlers.normalize import NormalizeHandler
-from w3af.core.data.url.handlers.tests.local_server import LocalServer, Reply
 from w3af.core.data.url.http_request import HTTPRequest
+from w3af.core.data.url.tests.helpers.route_server import Response, RouteServer
 
 BODY = b"decompressed body"
 
 
 def compressed(body, encoding):
-    return Reply(body=body, headers=[("Content-Encoding", encoding)])
+    return Response(body=body, headers=[("Content-Encoding", encoding)])
 
 
 def raw_deflate(body):
@@ -49,14 +49,14 @@ def raw_deflate(body):
 
 class TestGzipProcessor(unittest.TestCase):
     def setUp(self):
-        self.server = LocalServer(
+        self.server = RouteServer(
             {
                 "/gzip": compressed(gzip.compress(BODY), "gzip"),
                 "/zlib": compressed(zlib.compress(BODY), "deflate"),
                 "/raw": compressed(raw_deflate(BODY), "deflate"),
                 "/compress": compressed(gzip.compress(BODY), "compress"),
                 "/broken": compressed(b"not compressed", "gzip"),
-                "/plain": Reply(body=BODY),
+                "/plain": Response(body=BODY),
             }
         ).start()
         self.addCleanup(self.server.stop)
@@ -97,7 +97,7 @@ class TestGzipProcessor(unittest.TestCase):
 
 class TestFastBasicAuth(unittest.TestCase):
     def setUp(self):
-        self.server = LocalServer({"/": Reply(body="ok")}).start()
+        self.server = RouteServer({"/": Response(body="ok")}).start()
         self.addCleanup(self.server.stop)
         password_manager = urllib.request.HTTPPasswordMgrWithDefaultRealm()
         password_manager.add_password(None, self.server.url(), "user", "pass")

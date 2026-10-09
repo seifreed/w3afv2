@@ -26,13 +26,13 @@ from w3af.core.data.url.director import CustomOpenerDirector, build_opener
 from w3af.core.data.url.handlers.keepalive import HTTPHandler
 from w3af.core.data.url.http_request import HTTPRequest
 from w3af.core.data.url.response_meta import SUCCESS, ResponseMeta
-from w3af.core.data.url.tests.helpers.local_server import LocalServer, echo
+from w3af.core.data.url.tests.helpers.route_server import RouteServer, echo
 
 
 class TestCustomOpenerDirector(unittest.TestCase):
 
     def setUp(self):
-        self.server = LocalServer.serve_for(self, {"/echo": echo})
+        self.server = RouteServer.serve_for(self, {"/echo": echo})
 
     def test_build_opener_skips_replaced_default_handlers(self):
         keepalive = HTTPHandler()

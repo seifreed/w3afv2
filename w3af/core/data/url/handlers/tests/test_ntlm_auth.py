@@ -35,8 +35,8 @@ from w3af.core.data.url import opener_settings
 from w3af.core.data.url.director import CustomOpenerDirector, build_opener
 from w3af.core.data.url.handlers.keepalive import HTTPHandler
 from w3af.core.data.url.handlers.ntlm_auth import HTTPNtlmAuthHandler
-from w3af.core.data.url.handlers.tests.local_server import LocalServer, Reply
 from w3af.core.data.url.http_request import HTTPRequest
+from w3af.core.data.url.tests.helpers.route_server import Response, RouteServer
 
 NEGOTIATE_MESSAGE = b"\x01\x00\x00\x00"
 
@@ -46,7 +46,7 @@ def b64(token):
 
 
 def ntlm_required(header="NTLM"):
-    return Reply(401, "Must authenticate.", headers=[("WWW-Authenticate", header)])
+    return Response(401, "Must authenticate.", headers=[("WWW-Authenticate", header)])
 
 
 class NTLMServer:
@@ -81,7 +81,7 @@ class NTLMServer:
             self.context.step(token)
         except SpnegoError:
             return ntlm_required()
-        return Reply(body=f"You are {self.context.client_principal}")
+        return Response(body=f"You are {self.context.client_principal}")
 
 
 class TestNTLMHandler(unittest.TestCase):
@@ -95,11 +95,11 @@ class TestNTLMHandler(unittest.TestCase):
         os.environ["NTLM_USER_FILE"] = str(users)
         self.addCleanup(self.restore_user_file, previous)
 
-        self.server = LocalServer(
+        self.server = RouteServer(
             {
                 "/ntlm": NTLMServer(),
                 "/restart": NTLMServer(restart=True),
-                "/no-header": Reply(401, "Who are you?"),
+                "/no-header": Response(401, "Who are you?"),
                 "/bad-challenge": ntlm_required("NTLM !!!"),
             }
         ).start()

@@ -38,9 +38,9 @@ from w3af.core.data.url.handlers.cache_backend.cached_response import CachedResp
 from w3af.core.data.url.handlers.cache_backend.db import SQLCachedResponse, store_error
 from w3af.core.data.url.handlers.cache_backend.utils import gen_hash
 from w3af.core.data.url.handlers.keepalive import HTTPHandler
-from w3af.core.data.url.handlers.tests.local_server import LocalServer, Reply
 from w3af.core.data.url.http_request import HTTPRequest
 from w3af.core.data.url.http_response import HTTPResponse
+from w3af.core.data.url.tests.helpers.route_server import Response, RouteServer
 from w3af.core.exceptions import ScanMustStopException
 
 
@@ -48,8 +48,8 @@ class TestCacheHandler(unittest.TestCase):
     def setUp(self):
         self.cache = CacheHandler()
         self.addCleanup(self.cache.clear)
-        self.server = LocalServer(
-            {"/": Reply(body="spameggs", headers=[("X-Test", "cached")])}
+        self.server = RouteServer(
+            {"/": Response(body="spameggs", headers=[("X-Test", "cached")])}
         ).start()
         self.addCleanup(self.server.stop)
         self.url = URL(self.server.url())
@@ -142,7 +142,7 @@ class CacheIntegrationTest(unittest.TestCase):
         settings.build_openers()
         opener = settings.get_custom_opener()
 
-        with LocalServer() as server:
+        with RouteServer() as server:
             url = URL(server.url("/foo-bar-not-exists.htm"))
             response = opener.open(HTTPRequest(url, cache=False))
 

@@ -27,8 +27,8 @@ from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url import opener_settings
 from w3af.core.data.url.handlers.mangle import MangledKeepAliveHTTPResponse
-from w3af.core.data.url.handlers.tests.local_server import LocalServer, Reply
 from w3af.core.data.url.http_request import HTTPRequest
+from w3af.core.data.url.tests.helpers.route_server import Response, RouteServer
 
 
 class SwapWords(ManglePlugin):
@@ -47,7 +47,7 @@ class SwapWords(ManglePlugin):
 
 class TestMangleHandler(unittest.TestCase):
     def setUp(self):
-        self.server = LocalServer({"/": Reply(body="original body")}).start()
+        self.server = RouteServer({"/": Response(body="original body")}).start()
         self.addCleanup(self.server.stop)
 
     def open(self, plugins):

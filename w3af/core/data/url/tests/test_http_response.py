@@ -36,7 +36,7 @@ from w3af.core.data.url.http_response import (
     DEFAULT_WAIT_TIME,
     HTTPResponse,
 )
-from w3af.core.data.url.tests.helpers.local_server import LocalServer, Reply
+from w3af.core.data.url.tests.helpers.route_server import Response, RouteServer
 
 TEST_RESPONSES = {
     "hebrew": ("ולהכיר טוב יותר את המוסכמות, האופי", "Windows-1255"),
@@ -349,7 +349,7 @@ class TestHTTPResponseAPI(unittest.TestCase):
         self.assertRaises(TypeError, HTTPResponse, 200, 1, headers, url, url)
 
     def test_from_httplib_resp_without_original_url(self):
-        server = LocalServer.serve_for(self, {"/": Reply(200, "hello")})
+        server = RouteServer.serve_for(self, {"/": Response(200, "hello")})
 
         with urllib.request.urlopen(server.url()) as httplib_resp:
             resp = HTTPResponse.from_httplib_resp(httplib_resp)
@@ -360,7 +360,7 @@ class TestHTTPResponseAPI(unittest.TestCase):
         self.assertEqual(resp.get_wait_time(), DEFAULT_WAIT_TIME)
 
     def test_from_httplib_resp_http_error(self):
-        server = LocalServer.serve_for(self, {})
+        server = RouteServer.serve_for(self, {})
 
         with self.assertRaises(urllib.error.HTTPError) as raised:
             urllib.request.urlopen(server.url("/missing"))
@@ -370,7 +370,7 @@ class TestHTTPResponseAPI(unittest.TestCase):
         resp = HTTPResponse.from_httplib_resp(error, original_url=URL(server.url()))
 
         self.assertEqual(resp.get_code(), 404)
-        self.assertEqual(resp.get_body(), "Not found")
+        self.assertEqual(resp.get_body(), "Not Found")
         self.assertEqual(resp.get_charset(), "utf-8")
 
     def test_eq_attrs_and_equality(self):

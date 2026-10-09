@@ -33,7 +33,7 @@ from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.utils.form_params import FormParameters
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
-from w3af.core.data.url.handlers.tests.local_server import LocalServer, Reply
+from w3af.core.data.url.tests.helpers.route_server import Response, RouteServer
 
 
 def upload(request):
@@ -49,8 +49,8 @@ def upload(request):
         if part.get_param("name", header="content-disposition") != "uploadedfile":
             continue
         if part.get_filename() and part.get_payload(decode=True) == b"file content":
-            return Reply(body=f"{part.get_filename()} was successfully uploaded")
-    return Reply(body="upload failed")
+            return Response(body=f"{part.get_filename()} was successfully uploaded")
+    return Response(body="upload failed")
 
 
 class TestMultipartPostUpload(unittest.TestCase):
@@ -69,7 +69,7 @@ class TestMultipartPostUpload(unittest.TestCase):
     """
 
     def setUp(self):
-        self.server = LocalServer({"/upload.py": upload}).start()
+        self.server = RouteServer({"/upload.py": upload}).start()
         self.addCleanup(self.server.stop)
         self.file_upload_url = URL(self.server.url("/upload.py"))
         self.opener = ExtendedUrllib()

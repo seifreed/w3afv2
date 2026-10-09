@@ -27,8 +27,8 @@ from w3af.core.controllers.daemons.proxy import Proxy, ProxyHandler
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.data.url.opener_settings import OpenerSettings
-from w3af.core.data.url.tests.helpers.local_server import LocalServer, Reply, echo
 from w3af.core.data.url.tests.helpers.raw_handlers import closed_port
+from w3af.core.data.url.tests.helpers.route_server import Response, RouteServer, echo
 
 INDEX = "<title>local test application</title>"
 
@@ -40,9 +40,9 @@ class TestExtendedUrllibProxy(unittest.TestCase):
         self.uri_opener = ExtendedUrllib()
         self.addCleanup(self.uri_opener.end)
 
-        routes = {"/": Reply(200, INDEX), "/echo": echo}
-        self.server = LocalServer.serve_for(self, routes)
-        self.ssl_server = LocalServer.serve_for(self, routes, tls=True)
+        routes = {"/": Response(200, INDEX), "/echo": echo}
+        self.server = RouteServer.serve_for(self, routes)
+        self.ssl_server = RouteServer.serve_for(self, routes, use_tls=True)
 
         # Start the proxy daemon
         proxy_opener = ExtendedUrllib()

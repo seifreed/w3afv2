@@ -49,17 +49,19 @@ from w3af.core.data.url.handlers.keepalive.connections import (
     ProxyHTTPConnection,
     create_connection,
 )
-from w3af.core.data.url.handlers.tests.local_server import (
-    LOCALHOST,
-    ConnectProxy,
-    LocalServer,
-    RawServer,
-    Reply,
-    read_http_head,
-    server_tls_context,
-)
 from w3af.core.data.url.http_request import HTTPRequest
 from w3af.core.data.url.openssl_wrapper.ssl_wrapper import SSLSocket
+from w3af.core.data.url.tests.helpers.certificates import server_tls_context
+from w3af.core.data.url.tests.helpers.raw_server import (
+    ConnectProxy,
+    RawServer,
+    read_http_head,
+)
+from w3af.core.data.url.tests.helpers.route_server import (
+    LOCALHOST,
+    Response,
+    RouteServer,
+)
 from w3af.core.exceptions import BaseFrameworkException
 
 
@@ -74,7 +76,7 @@ def request(url, timeout=5, **kwargs):
 
 
 def raw(response_bytes):
-    return Reply(raw=response_bytes)
+    return Response(raw=response_bytes)
 
 
 def sequence(*replies):
@@ -97,7 +99,7 @@ class OpenerTestCase(unittest.TestCase):
         self.opener = build_opener(CustomOpenerDirector, [self.handler])
 
     def serve(self, routes, **kwargs):
-        server = LocalServer(routes, **kwargs).start()
+        server = RouteServer(routes, **kwargs).start()
         self.addCleanup(server.stop)
         return server
 
@@ -107,7 +109,7 @@ class OpenerTestCase(unittest.TestCase):
 
 class TestHTTPKeepAlive(OpenerTestCase):
     def test_persistent_connection_is_reused(self):
-        server = self.serve({"/": Reply(body="hello")})
+        server = self.serve({"/": Response(body="hello")})
 
         first = self.opener.open(request(server.url()))
         second = self.opener.open(request(server.url()))
@@ -131,7 +133,9 @@ class TestHTTPKeepAlive(OpenerTestCase):
         self.assertEqual(self.total_connections(), 0)
 
     def test_connection_close_removes_the_connection(self):
-        server = self.serve({"/": Reply(body="bye", headers=[("Connection", "close")])})
+        server = self.serve(
+            {"/": Response(body="bye", headers=[("Connection", "close")])}
+        )
 
         response = self.opener.open(request(server.url()))
 
@@ -139,7 +143,7 @@ class TestHTTPKeepAlive(OpenerTestCase):
         self.assertEqual(self.total_connections(), 0)
 
     def test_new_connection_requests_are_not_pooled(self):
-        server = self.serve({"/": Reply(body="fresh")})
+        server = self.serve({"/": Response(body="fresh")})
 
         self.opener.open(request(server.url(), new_connection=True))
 
@@ -147,7 +151,7 @@ class TestHTTPKeepAlive(OpenerTestCase):
 
     def test_connection_closed_by_the_server_is_replaced(self):
         server = self.serve(
-            {"/": sequence(Reply(body="first", close=True), Reply(body="second"))}
+            {"/": sequence(Response(body="first", close=True), Response(body="second"))}
         )
 
         first = self.opener.open(request(server.url()))
@@ -162,9 +166,9 @@ class TestHTTPKeepAlive(OpenerTestCase):
         server = self.serve(
             {
                 "/": sequence(
-                    Reply(body="first"),
+                    Response(body="first"),
                     raw(b"HTTP/0.9 200 OK\r\n\r\nancient"),
-                    Reply(body="third"),
+                    Response(body="third"),
                 )
             }
         )
@@ -246,7 +250,7 @@ class TestHTTPKeepAlive(OpenerTestCase):
             self.handler.do_open_keepalive(req)
 
     def test_post_data_headers(self):
-        server = self.serve({"/": Reply(body="ok")})
+        server = self.serve({"/": Response(body="ok")})
 
         self.opener.open(request(server.url(), data="a=1"))
         self.opener.open(
@@ -267,7 +271,7 @@ class TestHTTPKeepAlive(OpenerTestCase):
         self.assertEqual(explicit.headers["Content-Type"], "application/json")
 
     def test_headers_which_http_client_rejects_are_rfc2047_encoded(self):
-        server = self.serve({"/": Reply(body="ok")})
+        server = self.serve({"/": Response(body="ok")})
         req = request(server.url())
         req.add_unredirected_header("Bad:name", "value")
         req.add_unredirected_header("X-multi-line", "one\ntwo")
@@ -282,7 +286,7 @@ class TestHTTPKeepAlive(OpenerTestCase):
         self.assertEqual(received["X-empty"], "")
 
     def test_head_responses_have_no_body(self):
-        server = self.serve({"/": Reply(body="not sent")})
+        server = self.serve({"/": Response(body="not sent")})
 
         response = self.opener.open(request(server.url(), method="HEAD"))
 
@@ -293,7 +297,7 @@ class TestHTTPKeepAlive(OpenerTestCase):
         previous = cf.get("max_file_size")
         self.addCleanup(cf.save, "max_file_size", previous)
         cf.save("max_file_size", 5)
-        server = self.serve({"/": Reply(body="x" * 100)})
+        server = self.serve({"/": Response(body="x" * 100)})
 
         response = self.opener.open(request(server.url()))
 
@@ -302,7 +306,7 @@ class TestHTTPKeepAlive(OpenerTestCase):
         self.assertEqual(response.status, 204)
 
     def test_reused_connection_gets_the_request_timeout(self):
-        server = self.serve({"/": Reply(body="ok")})
+        server = self.serve({"/": Response(body="ok")})
 
         first = self.opener.open(request(server.url()))
         self.opener.open(request(server.url(), timeout=socket._GLOBAL_DEFAULT_TIMEOUT))
@@ -332,7 +336,9 @@ class TestHTTPSKeepAlive(OpenerTestCase):
         self.use_handler(HTTPSHandler(":"))
 
     def test_persistent_https_connection(self):
-        server = self.serve({"/": Reply(body="secure")}, tls=True)
+        server = self.serve(
+            {"/": Response(body="secure")}, tls_context=server_tls_context()
+        )
 
         first = self.opener.open(request(server.url()))
         second = self.opener.open(request(server.url()))
@@ -364,7 +370,7 @@ class TestHTTPSKeepAlive(OpenerTestCase):
         self.assertEqual(self.total_connections(), 0)
 
     def test_https_to_a_plain_http_server(self):
-        server = self.serve({"/": Reply(body="plain")})
+        server = self.serve({"/": Response(body="plain")})
         url = f"https://{server.netloc}/"
 
         with self.assertRaises(HTTPRequestException):
@@ -387,7 +393,9 @@ class TestHTTPSProxy(OpenerTestCase):
         self.use_handler(HTTPSHandler(f"{LOCALHOST}:{self.proxy.port}"))
 
     def test_https_through_connect_proxy(self):
-        server = self.serve({"/": Reply(body="tunneled")}, tls=True)
+        server = self.serve(
+            {"/": Response(body="tunneled")}, tls_context=server_tls_context()
+        )
 
         response = self.opener.open(request(server.url()))
 
@@ -395,7 +403,9 @@ class TestHTTPSProxy(OpenerTestCase):
         self.assertEqual(self.proxy.targets, [server.netloc])
 
     def test_requests_can_skip_the_proxy(self):
-        server = self.serve({"/": Reply(body="direct")}, tls=True)
+        server = self.serve(
+            {"/": Response(body="direct")}, tls_context=server_tls_context()
+        )
 
         response = self.opener.open(request(server.url(), use_proxy=False))
 
@@ -407,7 +417,7 @@ class TestHTTPSProxy(OpenerTestCase):
             self.opener.open(request("https://127.0.0.1:1/"))
 
     def test_tunnel_to_a_server_without_tls(self):
-        server = self.serve({"/": Reply(body="plain")})
+        server = self.serve({"/": Response(body="plain")})
 
         with self.assertRaises(HTTPRequestException):
             self.opener.open(request(f"https://{server.netloc}/"))
@@ -445,7 +455,7 @@ class TestConnections(unittest.TestCase):
         self.assertIn("timeout:3", str(HTTPConnection(LOCALHOST, 80, timeout=3)))
 
     def test_create_connection_from_a_source_address(self):
-        with LocalServer({"/": Reply()}) as server:
+        with RouteServer({"/": Response()}) as server:
             sock = create_connection(
                 (LOCALHOST, server.port), timeout=5, source_address=(LOCALHOST, 0)
             )

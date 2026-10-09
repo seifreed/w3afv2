@@ -31,7 +31,7 @@ from spnego.exceptions import SpnegoError
 
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
-from w3af.core.data.url.tests.helpers.local_server import LocalServer, Reply
+from w3af.core.data.url.tests.helpers.route_server import Response, RouteServer
 
 PAGE = "<html><body>View HTTP response headers.</body></html>"
 NTLM_PATH = "/w3af/core/ntlm_auth/ntlm_v1/"
@@ -39,7 +39,7 @@ NTLM_PATH = "/w3af/core/ntlm_auth/ntlm_v1/"
 
 def compressed(encoding, compress):
     def responder(request):
-        return Reply(
+        return Response(
             200,
             compress(PAGE.encode()),
             headers=[("Content-Encoding", encoding)],
@@ -49,7 +49,7 @@ def compressed(encoding, compress):
 
 
 def set_cookie(request):
-    return Reply(200, "cookie set", headers=[("Set-Cookie", "session=abc123")])
+    return Response(200, "cookie set", headers=[("Set-Cookie", "session=abc123")])
 
 
 def ntlm_protected(request):
@@ -61,7 +61,7 @@ def ntlm_protected(request):
     challenge_header = [("WWW-Authenticate", "NTLM")]
 
     if not authorization.startswith("NTLM "):
-        return Reply(401, "Must authenticate.", headers=challenge_header)
+        return Response(401, "Must authenticate.", headers=challenge_header)
 
     token = base64.b64decode(authorization[5:])
     context = request.connection.get("ntlm")
@@ -70,7 +70,7 @@ def ntlm_protected(request):
         context = spnego.server(protocol="ntlm")
         request.connection["ntlm"] = context
         challenge = base64.b64encode(context.step(token)).decode("ascii")
-        return Reply(
+        return Response(
             401, "Challenge", headers=[("WWW-Authenticate", f"NTLM {challenge}")]
         )
 
@@ -78,9 +78,9 @@ def ntlm_protected(request):
         context.step(token)
     except SpnegoError:
         request.connection.pop("ntlm")
-        return Reply(401, "Must authenticate.", headers=challenge_header)
+        return Response(401, "Must authenticate.", headers=challenge_header)
 
-    return Reply(200, f"You are {context.client_principal}")
+    return Response(200, f"You are {context.client_principal}")
 
 
 class TestXUrllibIntegration(unittest.TestCase):
@@ -90,7 +90,7 @@ class TestXUrllibIntegration(unittest.TestCase):
         self.addCleanup(self.uri_opener.end)
         self.addCleanup(self.uri_opener.settings.set_default_values)
 
-        self.server = LocalServer.serve_for(
+        self.server = RouteServer.serve_for(
             self,
             {
                 "/gzip.html": compressed("gzip", gzip.compress),

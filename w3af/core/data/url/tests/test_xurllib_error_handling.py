@@ -32,8 +32,8 @@ from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.constants import SOCKET_ERROR_DELAY
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
-from w3af.core.data.url.tests.helpers.local_server import LocalServer, Reply
 from w3af.core.data.url.tests.helpers.raw_handlers import EmptyTCPHandler
+from w3af.core.data.url.tests.helpers.route_server import Response, RouteServer
 from w3af.core.data.url.tests.helpers.upper_daemon import (
     ThreadingUpperDaemon,
     UpperDaemon,
@@ -54,7 +54,7 @@ class SlowResponder:
 
     def __call__(self, request):
         time.sleep(self.delay)
-        return Reply(200, "slow")
+        return Response(200, "slow")
 
 
 class GatedFailure:
@@ -76,7 +76,7 @@ class GatedFailure:
             self.received.set()
             self.release.wait(60)
 
-        return Reply(drop=True)
+        return Response(drop=True)
 
 
 @pytest.mark.smoke
@@ -103,10 +103,10 @@ class TestXUrllibDelayOnError(unittest.TestCase):
             self.uri_opener._sleep_log, {bucket: False for bucket in ALL_BUCKETS}
         )
 
-        server = LocalServer.serve_for(self, {"/": Reply(200, "ok")})
+        server = RouteServer.serve_for(self, {"/": Response(200, "ok")})
         ok_url = URL(server.url("/"))
         fail_url = URL(server.url("/fail-but-the-root-path-works"))
-        server.routes[fail_url.get_path()] = Reply(drop=True)
+        server.routes[fail_url.get_path()] = Response(drop=True)
 
         # Requests 1-6 fail: the error rate is above the acceptable 5%
         for _ in range(6):
@@ -139,7 +139,7 @@ class TestXUrllibDelayOnError(unittest.TestCase):
         )
 
     def test_error_handling_disable_per_request(self):
-        server = LocalServer.serve_for(self, {"/": SlowResponder(3)})
+        server = RouteServer.serve_for(self, {"/": SlowResponder(3)})
         url = URL(server.url())
 
         self.assertRaises(
@@ -185,8 +185,8 @@ class TestXUrllibDelayOnError(unittest.TestCase):
         self.assertRaises(HTTPRequestException, self.uri_opener.GET, url, cache=False)
 
     def test_reachable_root_path_keeps_the_scan_running(self):
-        server = LocalServer.serve_for(
-            self, {"/": Reply(200, "ok"), "/fail": Reply(drop=True)}
+        server = RouteServer.serve_for(
+            self, {"/": Response(200, "ok"), "/fail": Response(drop=True)}
         )
         url = URL(server.url("/fail"))
 
@@ -201,7 +201,7 @@ class TestXUrllibDelayOnError(unittest.TestCase):
 
     def test_root_path_check_interrupted_by_user_stop(self):
         failure = GatedFailure(gated_call=10)
-        server = LocalServer.serve_for(self, {"/fail": failure})
+        server = RouteServer.serve_for(self, {"/fail": failure})
         url = URL(server.url("/fail"))
 
         for _ in range(9):

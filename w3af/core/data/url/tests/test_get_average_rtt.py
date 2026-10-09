@@ -33,7 +33,7 @@ from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.data.url.get_average_rtt import GetAverageRTTForMutant
-from w3af.core.data.url.tests.helpers.local_server import LocalServer, Reply
+from w3af.core.data.url.tests.helpers.route_server import Response, RouteServer
 
 # Generous upper bound: the machine running the tests might be under load
 SLOW_MACHINE_MARGIN = 3.0
@@ -54,7 +54,7 @@ class DelayedResponder:
             delay = self.delays.pop(0) if len(self.delays) > 1 else self.delays[0]
 
         time.sleep(delay)
-        return Reply(200, "Yup")
+        return Response(200, "Yup")
 
 
 class GatedResponder:
@@ -78,9 +78,9 @@ class GatedResponder:
         if is_first:
             self.first_received.set()
             self.release.wait(60)
-            return Reply(drop=True)
+            return Response(drop=True)
 
-        return Reply(200, "Yup")
+        return Response(200, "Yup")
 
 
 @pytest.mark.smoke
@@ -92,7 +92,7 @@ class TestGetAverageRTT(unittest.TestCase):
         self.addCleanup(self.uri_opener.settings.set_default_values)
 
     def serve(self, responder):
-        server = LocalServer.serve_for(self, {"/": responder})
+        server = RouteServer.serve_for(self, {"/": responder})
         return FuzzableRequest(URL(server.url())), server
 
     def test_get_average_rtt_for_mutant_all_equal(self):

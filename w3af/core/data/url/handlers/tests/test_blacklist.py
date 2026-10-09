@@ -30,8 +30,8 @@ from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url import opener_settings
 from w3af.core.data.url.handlers.blacklist import BlacklistHandler
-from w3af.core.data.url.handlers.tests.local_server import LocalServer, Reply
 from w3af.core.data.url.http_request import HTTPRequest
+from w3af.core.data.url.tests.helpers.route_server import Response, RouteServer
 
 
 class TestBlacklistHandler(unittest.TestCase):
@@ -44,9 +44,10 @@ class TestBlacklistHandler(unittest.TestCase):
         cf.cf.save("ignore_regex", None)
 
         routes = {
-            path: Reply(body=self.BODY) for path in ("/scanner/", "/block/", "/pass/")
+            path: Response(body=self.BODY)
+            for path in ("/scanner/", "/block/", "/pass/")
         }
-        self.server = LocalServer(routes).start()
+        self.server = RouteServer(routes).start()
         self.addCleanup(self.server.stop)
 
         self.scanner_url = URL(self.server.url("/scanner/"))

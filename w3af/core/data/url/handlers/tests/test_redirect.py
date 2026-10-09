@@ -30,20 +30,20 @@ from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url import opener_settings
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.data.url.handlers.redirect import HTTP30XHandler
-from w3af.core.data.url.handlers.tests.local_server import LocalServer, Reply
 from w3af.core.data.url.http_request import HTTPRequest
+from w3af.core.data.url.tests.helpers.route_server import Response, RouteServer
 
 OK_BODY = "Body!"
 
 
 def redirect(code, location, header="Location"):
-    return Reply(code, headers=[(header, location)])
+    return Response(code, headers=[(header, location)])
 
 
 class RedirectServerTestCase(unittest.TestCase):
     def setUp(self):
         consecutive_number_generator.reset()
-        self.server = LocalServer().start()
+        self.server = RouteServer().start()
         self.addCleanup(self.server.stop)
         self.src = self.server.url("/src")
         self.dest = self.server.url("/dest")
@@ -58,7 +58,7 @@ class TestRedirectHandlerLowLevel(RedirectServerTestCase):
         Test the redirect handler using urllib2
         """
         self.route("/src", redirect(FOUND, self.dest))
-        self.route("/dest", Reply(FOUND, OK_BODY))
+        self.route("/dest", Response(FOUND, OK_BODY))
 
         opener = urllib.request.build_opener(HTTP30XHandler)
         request = urllib.request.Request(self.src)
@@ -74,7 +74,7 @@ class TestRedirectHandlerLowLevel(RedirectServerTestCase):
         handler still works, even when mixed with all the other handlers.
         """
         self.route("/src", redirect(FOUND, self.dest))
-        self.route("/dest", Reply(FOUND, OK_BODY))
+        self.route("/dest", Response(FOUND, OK_BODY))
 
         settings = opener_settings.OpenerSettings()
         settings.build_openers()
@@ -93,7 +93,7 @@ class TestRedirectHandlerLowLevel(RedirectServerTestCase):
 
     def test_redirect_after_post_uses_get(self):
         self.route("/src", redirect(FOUND, "/dest"))
-        self.route("/dest", Reply(OK, OK_BODY))
+        self.route("/dest", Response(OK, OK_BODY))
 
         response = self.post()
 
@@ -136,7 +136,7 @@ class TestRedirectHandlerExtendedUrllib(RedirectServerTestCase):
 
     def test_redirect_302_simple_follow(self):
         self.route("/src", redirect(FOUND, self.dest))
-        self.route("/dest", Reply(OK, OK_BODY))
+        self.route("/dest", Response(OK, OK_BODY))
 
         response = self.uri_opener.GET(URL(self.src), follow_redirects=True)
 
@@ -171,7 +171,7 @@ class TestRedirectHandlerExtendedUrllib(RedirectServerTestCase):
 
     def test_redirect_302_without_location_returns_302_response(self):
         # Breaks the RFC
-        self.route("/src", Reply(FOUND))
+        self.route("/src", Response(FOUND))
 
         response = self.uri_opener.GET(URL(self.src), follow_redirects=True)
 
