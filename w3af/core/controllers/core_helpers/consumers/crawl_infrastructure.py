@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import queue
 import time
 
@@ -43,6 +44,8 @@ from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.misc.ordered_cached_queue import OrderedCachedQueue
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.exceptions import ScanMustStopException
+
+logger = logging.getLogger(__name__)
 
 
 class CrawlInfrastructure(BaseConsumer):
@@ -123,6 +126,7 @@ class CrawlInfrastructure(BaseConsumer):
                     try:
                         self._process_poison_pill()
                     except Exception as e:
+                        logger.debug("Unhandled exception in run()", exc_info=True)
                         msg = (
                             'An exception was found while processing poison pill: "%s"'
                         )
@@ -158,12 +162,12 @@ class CrawlInfrastructure(BaseConsumer):
         msg = "Starting CrawlInfra consumer _teardown() with %s plugins"
         om.out.debug(msg % len(to_teardown))
 
-        for plugin in to_teardown:
-            om.out.debug(f"Calling {plugin.get_name()}.end()")
+        for teardown_plugin in to_teardown:
+            om.out.debug(f"Calling {teardown_plugin.get_name()}.end()")
             start_time = time.time()
 
             try:
-                plugin.end()
+                teardown_plugin.end()
             except ScanMustStopException:
                 # If we reach this exception here we don't care much
                 # since the scan is ending already. The log message stating
@@ -177,23 +181,26 @@ class CrawlInfrastructure(BaseConsumer):
                     "Spent %.2f seconds running %s.end() until a"
                     " scan must stop exception was raised"
                 )
-                self._log_end_took(msg_fmt, start_time, plugin)
+                self._log_end_took(msg_fmt, start_time, teardown_plugin)
 
             except Exception as e:
+                logger.debug("Unhandled exception in _teardown()", exc_info=True)
                 msg_fmt = (
                     "Spent %.2f seconds running %s.end() until an"
                     " unhandled exception was found"
                 )
-                self._log_end_took(msg_fmt, start_time, plugin)
+                self._log_end_took(msg_fmt, start_time, teardown_plugin)
 
-                self.handle_exception("crawl", plugin.get_name(), "plugin.end()", e)
+                self.handle_exception(
+                    "crawl", teardown_plugin.get_name(), "plugin.end()", e
+                )
 
             else:
                 msg_fmt = "Spent %.2f seconds running %s.end()"
-                self._log_end_took(msg_fmt, start_time, plugin)
+                self._log_end_took(msg_fmt, start_time, teardown_plugin)
 
             finally:
-                self._disabled_plugins.add(plugin)
+                self._disabled_plugins.add(teardown_plugin)
 
         om.out.debug("Finished CrawlInfra consumer _teardown()")
 
@@ -233,6 +240,7 @@ class CrawlInfrastructure(BaseConsumer):
             for observer in self._observers:
                 observer.crawl(self, fuzzable_request)
         except Exception as e:
+            logger.debug("Unhandled exception in _run_observers()", exc_info=True)
             self.handle_exception(
                 "CrawlInfrastructure",
                 "CrawlInfrastructure._run_observers()",
@@ -569,6 +577,7 @@ class CrawlInfrastructure(BaseConsumer):
             # exception
             self._remove_discovery_plugin(plugin)
         except Exception as e:
+            logger.debug("Unhandled exception in _discover_worker()", exc_info=True)
             self.handle_exception(
                 plugin.get_type(), plugin.get_name(), fuzzable_request, e
             )

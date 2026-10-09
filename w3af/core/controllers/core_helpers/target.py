@@ -145,9 +145,9 @@ class CoreTarget(Configurable):
             else:
                 try:
                     f = urllib.request.urlopen(target_url.url_string)
-                except:
+                except (OSError, ValueError) as e:
                     msg = 'Cannot open target file: "%s"'
-                    raise BaseFrameworkException(msg % target_url)
+                    raise BaseFrameworkException(msg % target_url) from e
                 else:
                     for line in f:
                         target_in_file = line.strip()

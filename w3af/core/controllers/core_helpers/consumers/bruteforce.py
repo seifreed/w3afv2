@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import time
 
 import w3af.core.controllers.output_manager as om
@@ -30,6 +31,8 @@ from w3af.core.controllers.core_helpers.consumers.base_consumer import (
 from w3af.core.controllers.profiling.took_helper import TookLine
 from w3af.core.controllers.threads.threadpool import return_args
 from w3af.core.exceptions import ScanMustStopException
+
+logger = logging.getLogger(__name__)
 
 
 class bruteforce(BaseConsumer):
@@ -74,6 +77,7 @@ class bruteforce(BaseConsumer):
                 self._log_end_took(msg_fmt, start_time, plugin)
 
             except Exception as e:
+                logger.debug("Unhandled exception in _teardown()", exc_info=True)
                 msg_fmt = (
                     "Spent %.2f seconds running %s.end() until an"
                     " unhandled exception was found"
@@ -99,6 +103,7 @@ class bruteforce(BaseConsumer):
             for observer in self._observers:
                 observer.bruteforce(self, fuzzable_request)
         except Exception as e:
+            logger.debug("Unhandled exception in _run_observers()", exc_info=True)
             self.handle_exception(
                 "bruteforce",
                 "bruteforce._run_observers()",
@@ -165,6 +170,7 @@ class bruteforce(BaseConsumer):
         try:
             new_frs = plugin.bruteforce_wrapper(fuzzable_request)
         except Exception as e:
+            logger.debug("Unhandled exception in _bruteforce()", exc_info=True)
             self.handle_exception("bruteforce", plugin.get_name(), fuzzable_request, e)
         else:
             res.update(new_frs)

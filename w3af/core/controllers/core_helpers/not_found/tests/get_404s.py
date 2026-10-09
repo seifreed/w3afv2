@@ -1,3 +1,4 @@
+import http.client
 import os
 import shelve
 import sys
@@ -13,43 +14,44 @@ ALEXA_FILE_COMPRESSED = "top-1m.csv.zip"
 if __name__ == "__main__":
     if not os.path.exists(ALEXA_FILE_COMPRESSED):
         resp = urllib.request.urlopen(ALEXA_TOP1M)
-        open(ALEXA_FILE, "w").write(resp.read())
+        with open(ALEXA_FILE_COMPRESSED, "wb") as compressed_file:
+            compressed_file.write(resp.read())
 
     if not os.path.exists(ALEXA_FILE):
-        zfile = zipfile.ZipFile(ALEXA_FILE_COMPRESSED)
-        zfile.extract(ALEXA_FILE, ".")
+        with zipfile.ZipFile(ALEXA_FILE_COMPRESSED) as zfile:
+            zfile.extract(ALEXA_FILE, ".")
 
-    s = shelve.open("data.shelve")
+    with shelve.open("data.shelve") as s, open(ALEXA_FILE) as alexa_file:
+        # This is a "resume" feature
+        last = len(s)
+        print(f"c({last})", end=" ")
 
-    # This is a "resume" feature
-    last = len(s)
-    print(f"c({last})", end=" ")
+        for i, line in enumerate(alexa_file):
+            if i <= last:
+                continue
 
-    for i, line in enumerate(open(ALEXA_FILE)):
-        if i <= last:
-            continue
+            line = line.strip()
+            _, domain = line.split(",")
 
-        line = line.strip()
-        _, domain = line.split(",")
-
-        try:
-            ok = urllib.request.urlopen(f"http://{domain}/").read()
             try:
-                bad = urllib.request.urlopen(f"http://{domain}/not-ex1st.html").read()
-            except urllib.error.HTTPError as error:
-                bad = error.read()
-        except KeyboardInterrupt:
-            break
-        except urllib.error.HTTPError:
-            sys.stdout.write("4")
-            sys.stdout.flush()
-        except Exception:
-            sys.stdout.write("E")
-            sys.stdout.flush()
-        else:
-            s[domain] = (ok, bad)
-            sys.stdout.write(".")
-            sys.stdout.flush()
+                ok = urllib.request.urlopen(f"http://{domain}/").read()
+                try:
+                    bad = urllib.request.urlopen(
+                        f"http://{domain}/not-ex1st.html"
+                    ).read()
+                except urllib.error.HTTPError as error:
+                    bad = error.read()
+            except KeyboardInterrupt:
+                break
+            except urllib.error.HTTPError:
+                sys.stdout.write("4")
+                sys.stdout.flush()
+            except (OSError, http.client.HTTPException):
+                sys.stdout.write("E")
+                sys.stdout.flush()
+            else:
+                s[domain] = (ok, bad)
+                sys.stdout.write(".")
+                sys.stdout.flush()
 
     sys.stdout.write("\n")
-    s.close()

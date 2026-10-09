@@ -65,11 +65,7 @@ class Test404FuzzyStringMatch(unittest.TestCase):
         if not os.path.exists(shelve_file):
             raise SkipTest("No shelve, get it from w3af-misc repository.")
 
-        self.not_exists_data = shelve.open(shelve_file)
-
-    def tearDown(self):
-        if self.not_exists_data is not None:
-            self.not_exists_data.close()
+        self.not_exists_data = self.enterContext(shelve.open(shelve_file))
 
     def _create_http_response(self, domain, body, is_404):
         url = URL("http://{}/{}".format(domain, FAILED_FILENAME if is_404 else ""))
@@ -79,7 +75,7 @@ class Test404FuzzyStringMatch(unittest.TestCase):
     def _gunzip(self, http_body):
         try:
             data = gzip.GzipFile(fileobj=StringIO(http_body)).read()
-        except:
+        except (OSError, EOFError, TypeError):
             return http_body
         else:
             return data
@@ -130,11 +126,11 @@ class Test404FuzzyStringMatch(unittest.TestCase):
         print(f"Analyzed samples: {total}")
 
         output = f"/tmp/{func_name}.txt"
-        output_fh = open(output, "w")
-        output_fh.writelines(
-            f"{domain_a} - {domain_b}\n"
-            for domain_a, domain_b in sorted(failed_domains)
-        )
+        with open(output, "w") as output_fh:
+            output_fh.writelines(
+                f"{domain_a} - {domain_b}\n"
+                for domain_a, domain_b in sorted(failed_domains)
+            )
 
         print(f"Failed domains stored at {output}")
 
@@ -170,9 +166,8 @@ class Test404FuzzyStringMatch(unittest.TestCase):
         print(f"Analyzed samples: {total}")
 
         output = f"/tmp/{func_name}.txt"
-        output_fh = open(output, "w")
-        for domain in sorted(failed_domains):
-            output_fh.write(f"{domain}\n")
+        with open(output, "w") as output_fh:
+            output_fh.writelines(f"{domain}\n" for domain in sorted(failed_domains))
 
         print(f"Failed domains stored at {output}")
         #
@@ -232,9 +227,8 @@ class Test404FuzzyStringMatch(unittest.TestCase):
         print(f"Analyzed samples: {total}")
 
         output = f"/tmp/{func_name}.txt"
-        output_fh = open(output, "w")
-        for domain in sorted(failed_domains):
-            output_fh.write(f"{domain}\n")
+        with open(output, "w") as output_fh:
+            output_fh.writelines(f"{domain}\n" for domain in sorted(failed_domains))
 
         print(f"Failed domains stored at {output}")
 

@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import traceback
 from multiprocessing.dummy import Process, Queue
 from queue import Empty
@@ -30,6 +31,8 @@ from w3af.core.constants import POISON_PILL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.exceptions import ScanMustStopException
+
+logger = logging.getLogger(__name__)
 
 
 class seed(Process):
@@ -100,13 +103,16 @@ class seed(Process):
                 #    in a list and use them as our bootstrap URLs
                 #
                 response = self._w3af_core.uri_opener.GET(url, cache=True)
-            except ScanMustStopException as w3:
+            except ScanMustStopException:
                 om.out.error("The target server is unreachable. Stopping.")
                 raise
             except HTTPRequestException as hre:
                 msg = 'The target URL: "%s" is unreachable. Exception: "%s".'
                 om.out.error(msg % (url, hre))
             except Exception as e:
+                logger.debug(
+                    "Unhandled exception in seed_output_queue()", exc_info=True
+                )
                 msg = (
                     'The target URL: "%s" is unreachable because of an'
                     ' unhandled exception. Error description: "%s". See'

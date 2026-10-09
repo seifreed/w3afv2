@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import queue
 import sys
 import time
@@ -45,6 +46,8 @@ from w3af.core.exceptions import (
     ScanMustStopByUserRequest,
     ScanMustStopException,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class CoreStrategy:
@@ -136,6 +139,7 @@ class CoreStrategy:
             self._fuzzable_request_router()
 
         except Exception as e:
+            logger.debug("Unhandled exception in start()", exc_info=True)
 
             om.out.debug(f'strategy.start() found exception "{e}"')
             exc_info = sys.exc_info()
@@ -144,6 +148,7 @@ class CoreStrategy:
                 # Terminate the consumers, exceptions at this level stop the scan
                 self.terminate()
             except Exception as e:
+                logger.debug("Unhandled exception in start()", exc_info=True)
                 msg = 'strategy.start() found exception while terminating workers "%s"'
                 om.out.debug(msg % e)
             finally:
@@ -205,6 +210,7 @@ class CoreStrategy:
             try:
                 consumer_inst.terminate()
             except Exception as e:
+                logger.debug("Unhandled exception in terminate()", exc_info=True)
                 msg = '%s consumer terminate() raised exception: "%s"'
                 args = (consumer_inst.get_name(), e)
                 om.out.debug(msg % args)
@@ -506,6 +512,10 @@ class CoreStrategy:
                     # Not a real error, the user stopped the scan
                     raise
                 except Exception as e:
+                    logger.debug(
+                        "Unhandled exception in verify_target_server_up()",
+                        exc_info=True,
+                    )
                     dbg = 'Exception found during verify_target_server_up: "%s"'
                     om.out.debug(dbg % e)
 
@@ -542,7 +552,7 @@ class CoreStrategy:
             except Exception as e:
                 msg = 'Exception found during replace_targets_with_redir(): "%s"'
                 om.out.debug(msg % e)
-                raise ScanMustStopException(msg % e)
+                raise ScanMustStopException(msg % e) from e
             else:
                 redir_uri = http_response.get_redirect_destination()
 
@@ -601,7 +611,7 @@ class CoreStrategy:
             except Exception as e:
                 msg = 'Exception found during alert_if_target_is_301_all(): "%s"'
                 om.out.debug(msg % e)
-                raise ScanMustStopException(msg % e)
+                raise ScanMustStopException(msg % e) from e
             else:
                 if http_response.does_redirect_outside_target():
                     site_does_redirect = True
@@ -635,6 +645,9 @@ class CoreStrategy:
             except ScanMustStopByUserRequest:
                 raise
             except Exception as e:
+                logger.debug(
+                    "Unhandled exception in _setup_404_detection()", exc_info=True
+                )
                 msg = (
                     "Failed to send HTTP request to the configured target"
                     ' URL "%s", the original exception was: "%s" (%s).'
@@ -647,6 +660,9 @@ class CoreStrategy:
             except ScanMustStopByUserRequest:
                 raise
             except Exception as e:
+                logger.debug(
+                    "Unhandled exception in _setup_404_detection()", exc_info=True
+                )
                 msg = (
                     "Failed to initialize the 404 detection using HTTP"
                     ' response from "%s", the original exception was: "%s"'

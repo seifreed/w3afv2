@@ -137,9 +137,8 @@ class Fingerprint404:
         #
         string_match_404 = cf.cf.get("string_match_404")
 
-        if string_match_404:
-            if string_match_404 in http_response:
-                return True
+        if string_match_404 and string_match_404 in http_response:
+            return True
 
         #
         # This is the most simple case, we don't even have to think about this

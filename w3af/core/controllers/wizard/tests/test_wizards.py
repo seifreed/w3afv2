@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
+from typing import ClassVar
 
 import pytest
 
@@ -33,7 +34,7 @@ from w3af.core.data.parsers.doc.url import URL
 
 class test_wizards:
 
-    unique_wizard_ids = []
+    unique_wizard_ids: ClassVar[list] = []
 
     @pytest.mark.smoke
     def test_all_wizards(self):
@@ -94,15 +95,10 @@ class test_wizards:
                     filled_opt = self._incorrectly_fill_options(opt)
                     wizard_inst.set_answer(filled_opt)
                 except BaseFrameworkException:
-                    # Now we correctly fill these values
+                    # Invalid answers must surface as BaseFrameworkException;
+                    # any other exception propagates and fails the test.
                     filled_opt = self._correctly_fill_options(opt)
                     wizard_inst.set_answer(filled_opt)
-                except Exception:
-                    # The idea is that even when the user puts invalid
-                    # values in the answer, we handle it with a BaseFrameworkException
-                    # and show something to him. If we get here then something
-                    # went wrong
-                    assert False
 
     def _correctly_fill_options(self, option_list):
         """

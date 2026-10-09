@@ -22,12 +22,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import compiler
-
 
 class TestW3afGUI(unittest.TestCase):
     def test_compiles(self):
+        with open("w3af_gui") as gui_script:
+            source = gui_script.read()
         try:
-            compiler.compile(open("w3af_gui").read(), "/tmp/foo.tmp", "exec")
+            compile(source, "w3af_gui", "exec")
         except SyntaxError as se:
-            self.assertTrue(False, f'Error in w3af_gui code "{se}"')
+            self.fail(f'Error in w3af_gui code "{se}"')

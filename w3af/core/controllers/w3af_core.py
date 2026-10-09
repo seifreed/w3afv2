@@ -588,9 +588,6 @@ class w3afCore:
             #
             om.out.debug("Calling end_output_plugins()")
             om.manager.end_output_plugins()
-        except Exception:
-            raise
-
         finally:
             self._terminate_worker_pool()
 
@@ -656,13 +653,19 @@ class w3afCore:
         """
         try:
             create_temp_dir()
-        except Exception:
+        except OSError:
             msg = (
                 f'The w3af tmp directory "{TEMP_DIR}" is not writable. Please set '
                 "the correct permissions and ownership."
             )
             print(msg)
             sys.exit(-3)
+
+
+class ThreadingResourceError(Exception):
+    """
+    Raised when the process is unable to create or manage more threads.
+    """
 
 
 def handle_threading_error(scans_completed, threading_error):
@@ -684,6 +687,6 @@ def handle_threading_error(scans_completed, threading_error):
         " The current process has a total of %s active threads and has"
         " completed %s scans. The complete list of threads follows:\n\n%s"
     )
-    raise Exception(
+    raise ThreadingResourceError(
         msg % (threading_error, active_threads, scans_completed, pprint_threads)
     )

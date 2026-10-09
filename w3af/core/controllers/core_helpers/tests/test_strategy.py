@@ -23,6 +23,7 @@ import os
 import re
 import subprocess
 import sys
+from typing import ClassVar
 
 import pytest
 
@@ -91,7 +92,8 @@ class TestStrategy(PluginTest):
         https://github.com/andresriancho/w3af/issues/1557
         """
         script = TEST_SCRIPT_1557 % (OUTPUT_PATH, get_wavsep_http())
-        open(SCRIPT_PATH, "w").write(script)
+        with open(SCRIPT_PATH, "w") as script_file:
+            script_file.write(script)
 
         python_executable = sys.executable
 
@@ -135,7 +137,7 @@ class TestSameFuzzableRequestSet(PluginTest):
         "/audit/sql_injection/" "where_string_single_qs.py?uname=pablo"
     )
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {

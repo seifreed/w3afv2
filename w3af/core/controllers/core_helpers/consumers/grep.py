@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import sys
 import threading
 import time
@@ -40,6 +41,8 @@ from w3af.core.data.misc.encoding import smart_str_ignore
 from w3af.core.data.misc.lru import SynchronizedLRUDict
 from w3af.core.data.misc.response_cache_key import ResponseCacheKeyCache
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
+
+logger = logging.getLogger(__name__)
 
 
 class grep(BaseConsumer):
@@ -104,7 +107,7 @@ class grep(BaseConsumer):
         self._consumer_plugin_dict = {
             plugin.get_name(): plugin for plugin in self._consumer_plugins
         }
-        self._first_plugin_name = list(self._consumer_plugin_dict.keys())[0]
+        self._first_plugin_name = next(iter(self._consumer_plugin_dict))
 
         self._request_response_lru = SynchronizedLRUDict(thread_pool_size * 3)
         self._request_response_processes = {}
@@ -134,6 +137,7 @@ class grep(BaseConsumer):
             try:
                 plugin.end()
             except Exception as exception:
+                logger.debug("Unhandled exception in _teardown()", exc_info=True)
                 msg = 'An exception was found while running %s.end(): "%s"'
                 args = (plugin.get_name(), exception)
                 om.out.debug(msg % args)
@@ -337,6 +341,7 @@ class grep(BaseConsumer):
         try:
             plugin.grep_wrapper(request, response)
         except Exception as e:
+            logger.debug("Unhandled exception in _run_one_plugin()", exc_info=True)
             self.handle_exception("grep", plugin_name, request, e)
         else:
             took_line.send()
@@ -360,6 +365,7 @@ class grep(BaseConsumer):
             try:
                 observer.grep(self, request, response)
             except Exception as e:
+                logger.debug("Unhandled exception in _run_observers()", exc_info=True)
                 self.handle_exception(
                     "grep", "grep._run_observers()", "grep._run_observers()", e
                 )

@@ -209,7 +209,7 @@ class TestW3afCorePlugins(unittest.TestCase):
             self.core.plugins.plugins["crawl"],
         )
 
-        plugin_inst = list(self.core.plugins.plugins["crawl"])[0]
+        plugin_inst = next(iter(self.core.plugins.plugins["crawl"]))
         self.assertEqual(plugin_inst.get_name(), "web_spider")
 
     def test_enable_all(self):

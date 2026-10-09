@@ -36,10 +36,10 @@ class TestBaseConsumer(unittest.TestCase):
     def test_handle_exception(self):
         url = URL("http://moth/")
         fr = FuzzableRequest(url)
-        raised = Exception()
+        raised = ValueError()
         try:
             raise raised
-        except Exception as e:
+        except ValueError as e:
             self.bc.handle_exception("audit", "sqli", fr, e)
 
         exception_data = self.bc.out_queue.get()

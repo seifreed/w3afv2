@@ -217,9 +217,9 @@ class CorePlugins:
         try:
             __import__(f"w3af.plugins.{plugin_type}")
             a_module = sys.modules[f"w3af.plugins.{plugin_type}"]
-        except Exception:
+        except Exception as e:
             msg = 'Unknown plugin type: "%s".'
-            raise BaseFrameworkException(msg % plugin_type)
+            raise BaseFrameworkException(msg % plugin_type) from e
         else:
             return a_module.get_long_description()
 
@@ -269,7 +269,7 @@ class CorePlugins:
         return plugin_inst
 
     def get_quick_instance(self, plugin_type, plugin_name):
-        plugin_module = ".".join(["w3af", "plugins", plugin_type, plugin_name])
+        plugin_module = f"w3af.plugins.{plugin_type}.{plugin_name}"
         return factory(plugin_module)
 
     def expand_all(self):
@@ -292,7 +292,7 @@ class CorePlugins:
                 self._plugins_names_dict[plugin_type] = enabled_plugins
 
     def remove_exclusions(self):
-        for plugin_type, enabled_plugins in self._plugins_names_dict.items():
+        for enabled_plugins in self._plugins_names_dict.values():
             for plugin_name in enabled_plugins[:]:
                 if plugin_name.startswith("!"):
                     enabled_plugins.remove(plugin_name)

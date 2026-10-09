@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
+from typing import ClassVar
 
 import pytest
 
@@ -31,7 +32,7 @@ from w3af.core.data.options.option_list import OptionList
 
 class test_questions:
 
-    unique_question_ids = []
+    unique_question_ids: ClassVar[list] = []
 
     @pytest.mark.smoke
     def test_all_questions(self):

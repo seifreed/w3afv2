@@ -77,9 +77,7 @@ class CoreProfiles:
 
         # Save the enabled plugins
         for plugin_type in w3af_plugins.get_plugin_types():
-            enabled_plugins = []
-            for plugin_name in w3af_plugins.get_enabled_plugins(plugin_type):
-                enabled_plugins.append(plugin_name)
+            enabled_plugins = list(w3af_plugins.get_enabled_plugins(plugin_type))
             new_profile.set_enabled_plugins(plugin_type, enabled_plugins)
 
         # Save the plugin options

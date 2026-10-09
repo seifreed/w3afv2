@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import time
 
 import w3af.core.controllers.output_manager as om
@@ -31,6 +32,8 @@ from w3af.core.controllers.core_helpers.consumers.base_consumer import (
 from w3af.core.controllers.profiling.took_helper import TookLine
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.exceptions import ScanMustStopException
+
+logger = logging.getLogger(__name__)
 
 
 class audit(BaseConsumer):
@@ -84,6 +87,7 @@ class audit(BaseConsumer):
                 self._log_end_took(msg_fmt, start_time, plugin)
 
             except Exception as e:
+                logger.debug("Audit plugin end() failed", exc_info=True)
                 msg_fmt = (
                     "Spent %.2f seconds running %s.end() until an"
                     " unhandled exception was found"
@@ -126,6 +130,7 @@ class audit(BaseConsumer):
         try:
             orig_resp = self.get_original_response(fuzzable_request)
         except Exception as e:
+            logger.debug("Fetching the original response failed", exc_info=True)
             self.handle_exception(
                 "audit",
                 "audit.get_original_response()",
@@ -195,6 +200,7 @@ class audit(BaseConsumer):
             for observer in self._observers:
                 observer.audit(self, fuzzable_request)
         except Exception as e:
+            logger.debug("Audit observer failed", exc_info=True)
             self.handle_exception(
                 "audit", "audit._run_observers()", "audit._run_observers()", e
             )
@@ -225,6 +231,7 @@ class audit(BaseConsumer):
         try:
             plugin.audit_with_copy(fuzzable_request, orig_resp, debugging_id)
         except Exception as e:
+            logger.debug("Audit plugin failed", exc_info=True)
             self.handle_exception("audit", plugin.get_name(), fuzzable_request, e)
 
         took_line.send()

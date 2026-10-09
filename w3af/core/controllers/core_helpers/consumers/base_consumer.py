@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import os
 import sys
 import time
@@ -35,6 +36,8 @@ from w3af.core.controllers.exception_handling.helpers import pprint_plugins
 from w3af.core.controllers.threads.threadpool import Pool
 from w3af.core.data.misc.cached_queue import CachedQueue
 
+logger = logging.getLogger(__name__)
+
 
 def task_decorator(method):
     """
@@ -44,7 +47,7 @@ def task_decorator(method):
 
     @wraps(method)
     def _wrapper(self, *args, **kwds):
-        rnd_id = os.urandom(32).encode("hex")
+        rnd_id = os.urandom(32).hex()
         function_id = f"{method.__name__}_{rnd_id}"
 
         self._add_task(function_id)
@@ -183,6 +186,7 @@ class BaseConsumer(Process):
                 try:
                     self._process_poison_pill()
                 except Exception as e:
+                    logger.debug("Processing the poison pill failed", exc_info=True)
                     msg = 'An exception was found while processing poison pill: "%s"'
                     om.out.debug(msg % e)
                 finally:
@@ -234,16 +238,12 @@ class BaseConsumer(Process):
         try:
             self._shutdown_threadpool()
         except Exception:
-            # All the logging is done inside the method, an empty
-            # except clause is acceptable in this case
-            pass
+            logger.debug("Shutting down the thread pool failed", exc_info=True)
 
         try:
             self._call_teardown()
         except Exception:
-            # All the logging is done inside the method, an empty
-            # except clause is acceptable in this case
-            pass
+            logger.debug("Calling the consumer teardown failed", exc_info=True)
         finally:
             self._out_queue.put(POISON_PILL)
             self.set_has_finished()
@@ -270,6 +270,7 @@ class BaseConsumer(Process):
         try:
             pool.close()
         except Exception as e:
+            logger.debug("Closing the thread pool failed", exc_info=True)
             args = ("closing", self.get_name(), e)
             om.out.debug(msg_fmt % args)
 
@@ -279,6 +280,7 @@ class BaseConsumer(Process):
         try:
             pool.join()
         except Exception as e:
+            logger.debug("Joining the thread pool failed", exc_info=True)
             args = ("joining", self.get_name(), e)
             om.out.debug(msg_fmt % args)
 
@@ -287,6 +289,7 @@ class BaseConsumer(Process):
             try:
                 pool.terminate()
             except Exception as e:
+                logger.debug("Terminating the thread pool failed", exc_info=True)
                 args = ("terminating", self.get_name(), e)
                 om.out.debug(msg_fmt % args)
             else:
@@ -301,6 +304,7 @@ class BaseConsumer(Process):
         try:
             self._teardown()
         except Exception as e:
+            logger.debug("Consumer teardown failed", exc_info=True)
             msg = 'Exception found while calling teardown() in %s consumer: "%s"'
             args = (self.get_name(), e)
             om.out.debug(msg % args)

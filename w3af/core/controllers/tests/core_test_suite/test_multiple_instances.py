@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import logging
 import threading
 import unittest
 from multiprocessing.dummy import DummyProcess
@@ -27,11 +28,14 @@ import pytest
 
 from w3af.core.controllers.w3af_core import w3afCore
 
+logger = logging.getLogger(__name__)
+
 
 def start_w3af_core(exception_handler):
     try:
         w3afCore()
     except Exception as e:
+        logger.debug("Creating w3afCore in a worker thread failed", exc_info=True)
         if exception_handler:
             exception_handler(e)
 

@@ -84,21 +84,19 @@ class TestFingerprint404Perf(unittest.TestCase):
             iter_http_request_responses(self.HTTP_FILE)
         ):
 
-            if response.get_code() == 404:
-                if len(recorded_404s) <= self.MAX_RECORDED_404:
-                    recorded_404s.append(response)
+            is_404 = response.get_code() == 404
+            if is_404 and len(recorded_404s) <= self.MAX_RECORDED_404:
+                recorded_404s.append(response)
 
-            if response.get_code() != 404:
-                if len(recorded_200s) <= self.MAX_RECORDED_200:
-                    recorded_200s.append(response)
+            if not is_404 and len(recorded_200s) <= self.MAX_RECORDED_200:
+                recorded_200s.append(response)
 
             if len(recorded_404s):
                 if count % self.RECORDED_404_EVERY == 0:
                     mock_404_response = rnd.choice(recorded_404s)
 
-            elif len(recorded_200s):
-                if count % self.RECORDED_200_EVERY == 0:
-                    mock_404_response = rnd.choice(recorded_200s)
+            elif len(recorded_200s) and count % self.RECORDED_200_EVERY == 0:
+                mock_404_response = rnd.choice(recorded_200s)
 
             if mock_404_response is None:
                 mock_404_response = response

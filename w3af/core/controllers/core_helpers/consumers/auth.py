@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import queue
 
 import w3af.core.controllers.output_manager as om
@@ -29,6 +30,8 @@ from w3af.core.data.fuzzer.utils import rand_alnum
 
 from .base_consumer import BaseConsumer, task_decorator
 from .constants import FORCE_LOGIN
+
+logger = logging.getLogger(__name__)
 
 
 class auth(BaseConsumer):
@@ -118,6 +121,7 @@ class auth(BaseConsumer):
                 if not plugin.has_active_session(debugging_id=debugging_id):
                     plugin.login(debugging_id=debugging_id)
             except Exception as e:
+                logger.debug("Unhandled exception in _login()", exc_info=True)
                 self.handle_exception("auth", plugin.get_name(), None, e)
 
             took_line.send()
