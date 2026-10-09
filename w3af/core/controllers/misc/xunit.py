@@ -37,7 +37,7 @@ class XunitGen:
     def __init__(self, outputfile=None):
         if outputfile:
             self.outputfile = outputfile
-        self._stats = {"error": 0, "skip": 0, "pass": 0, "fail": 0}
+        self._stats = dict.fromkeys(("error", "skip", "pass", "fail"), 0)
         self.results = []
 
     def genfile(self):

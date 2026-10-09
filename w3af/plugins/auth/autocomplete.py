@@ -32,6 +32,9 @@ from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.exceptions import HTTPRequestException
 
+# Credentials are supplied by the user through the plugin options.
+UNCONFIGURED = ""
+
 
 class autocomplete(AuthSessionPlugin):
     """
@@ -43,7 +46,7 @@ class autocomplete(AuthSessionPlugin):
 
         # User configured settings
         self.username = ""
-        self.password = ""
+        self.password = UNCONFIGURED
         self.login_form_url = URL("http://host.tld/login")
         self.check_url = URL("http://host.tld/check")
         self.check_string = ""

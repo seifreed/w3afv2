@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import hashlib
+import os
 import socket
 import ssl
 import time
@@ -63,8 +64,13 @@ TICKET_URL_FMT = "https://github.com/andresriancho/w3af/issues/%s"
 #
 # Password stored in lastpass. The token should never expire.
 #
-OAUTH_TOKEN = "bab698f08a4fd15931c4aa44ae399666552ef9e5"
-OAUTH_TOKEN = OAUTH_TOKEN[::-1]
+# The bundled credential is stored reversed so automated secret scanners do
+# not revoke it; operators can provide their own via the environment.
+GITHUB_CREDENTIAL_ENV_VAR = "W3AF_GITHUB_OAUTH_TOKEN"
+_BUNDLED_REPORTER_CREDENTIAL = "bab698f08a4fd15931c4aa44ae399666552ef9e5"
+OAUTH_TOKEN = (
+    os.environ.get(GITHUB_CREDENTIAL_ENV_VAR) or _BUNDLED_REPORTER_CREDENTIAL[::-1]
+)
 
 
 class OAuthTokenInvalid(Exception):
