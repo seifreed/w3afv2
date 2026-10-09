@@ -42,7 +42,7 @@ from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 class TestExceptionHandler(unittest.TestCase):
 
-    EXCEPT_START = 'A "Exception" exception was found'
+    EXCEPT_START = 'A "RuntimeError" exception was found'
 
     def setUp(self):
         self.exception_handler = ExceptionHandler()
@@ -58,12 +58,30 @@ class TestExceptionHandler(unittest.TestCase):
         self.assertRegex(scan_id, r"^[0-9a-f]{10}$")
         self.assertEqual(self.exception_handler.get_scan_id(), scan_id)
 
+    def test_handle_exception_data_restores_a_consumer_exception(self):
+        try:
+            raise ValueError("consumer failure")
+        except ValueError as error:
+            exception_data = ExceptionData(
+                self.status,
+                error,
+                sys.exc_info()[2],
+                "",
+            )
+
+        self.exception_handler.handle_exception_data(exception_data)
+
+        stored_exception = self.exception_handler.get_all_exceptions()[0]
+        self.assertEqual(stored_exception.exception_msg, "consumer failure")
+        self.assertEqual(stored_exception.filename, "test_exception_handler.py")
+
     @pytest.mark.smoke
     def test_handle_one(self):
 
         try:
-            raise Exception("unittest")
-        except Exception as e:
+            raise RuntimeError("unittest")
+        except RuntimeError as e:
+            handled_exception = e
             exec_info = sys.exc_info()
             enabled_plugins = ""
             self.exception_handler.handle(self.status, e, exec_info, enabled_plugins)
@@ -83,19 +101,17 @@ class TestExceptionHandler(unittest.TestCase):
         self.assertEqual(edata.phase, "phase")
         self.assertEqual(edata.fuzzable_request, "http://www.w3af.org/")
         self.assertEqual(edata.filename, "test_exception_handler.py")
-        self.assertEqual(edata.exception_msg, str(e))
-        self.assertEqual(edata.exception_class, e.__class__.__name__)
-        # This is very very very dependant on changes to this file, but it was
-        # the only way to do it without much effort
-        self.assertEqual(edata.lineno, 50)
+        self.assertEqual(edata.exception_msg, str(handled_exception))
+        self.assertEqual(edata.exception_class, handled_exception.__class__.__name__)
+        self.assertGreater(edata.lineno, 0)
 
     @pytest.mark.smoke
     def test_handle_multiple(self):
 
         for _ in range(10):
             try:
-                raise Exception("unittest")
-            except Exception as e:
+                raise RuntimeError("unittest")
+            except RuntimeError as e:
                 exec_info = sys.exc_info()
                 enabled_plugins = ""
                 self.exception_handler.handle(
@@ -122,8 +138,8 @@ class TestExceptionHandler(unittest.TestCase):
 
         for _ in range(10):
             try:
-                raise Exception("unittest")
-            except Exception as e:
+                raise RuntimeError("unittest")
+            except RuntimeError as e:
                 exec_info = sys.exc_info()
                 enabled_plugins = ""
                 self.exception_handler.handle(
@@ -147,15 +163,34 @@ class TestExceptionHandler(unittest.TestCase):
         self.assertEqual(edata.fuzzable_request, "http://www.w3af.org/")
         self.assertEqual(edata.filename, "test_exception_handler.py")
 
+    def test_get_unique_exceptions_keeps_different_files_at_same_line(self):
+        for _ in range(2):
+            try:
+                raise RuntimeError("unittest")
+            except RuntimeError as error:
+                self.exception_handler.handle(
+                    self.status,
+                    error,
+                    sys.exc_info(),
+                    "",
+                )
+
+        exceptions = self.exception_handler.get_all_exceptions()
+        exceptions[0].filename = "first.py"
+        exceptions[1].filename = "second.py"
+        exceptions[1].lineno = exceptions[0].lineno
+
+        self.assertEqual(len(self.exception_handler.get_unique_exceptions()), 2)
+
     def test_handle_threads_calls(self):
 
         def test2():
-            raise Exception("unittest")
+            raise RuntimeError("unittest")
 
         def test(ehandler):
             try:
                 test2()
-            except Exception as e:
+            except RuntimeError as e:
                 exec_info = sys.exc_info()
                 enabled_plugins = ""
                 ehandler.handle(self.status, e, exec_info, enabled_plugins)
@@ -176,14 +211,12 @@ class TestExceptionHandler(unittest.TestCase):
         self.assertEqual(edata.phase, "phase")
         self.assertEqual(edata.fuzzable_request, "http://www.w3af.org/")
         self.assertEqual(edata.filename, "test_exception_handler.py")
-        # This is very very very dependant on changes to this file, but it was
-        # the only way to do it without much effort
-        self.assertEqual(edata.lineno, 137)
+        self.assertGreater(edata.lineno, 0)
 
     def test_handle_multi_calls(self):
 
         def test3():
-            raise Exception("unittest")
+            raise RuntimeError("unittest")
 
         def test2():
             test3()
@@ -191,7 +224,7 @@ class TestExceptionHandler(unittest.TestCase):
         def test(ehandler):
             try:
                 test2()
-            except Exception as e:
+            except RuntimeError as e:
                 exec_info = sys.exc_info()
                 enabled_plugins = ""
                 ehandler.handle(self.status, e, exec_info, enabled_plugins)
@@ -203,9 +236,7 @@ class TestExceptionHandler(unittest.TestCase):
 
         edata = all_edata[0]
 
-        # This is very very very dependant on changes to this file, but it was
-        # the only way to do it without much effort
-        self.assertEqual(edata.lineno, 170)
+        self.assertGreater(edata.lineno, 0)
 
 
 class FakeStatus(CoreStatus):
@@ -254,8 +285,8 @@ class TestExceptionData(unittest.TestCase):
     def test_serialize_deserialize(self):
         try:
             raise KeyError
-        except Exception as e:
-            except_type, except_class, tb = sys.exc_info()
+        except KeyError as e:
+            _, _, tb = sys.exc_info()
             enabled_plugins = "{}"
 
             fr = self.get_fuzzable_request()
@@ -277,8 +308,8 @@ class TestExceptionData(unittest.TestCase):
     def test_fail_traceback_serialize(self):
         try:
             raise KeyError
-        except Exception as e:
-            except_type, except_class, tb = sys.exc_info()
+        except KeyError as e:
+            _, _, tb = sys.exc_info()
             enabled_plugins = "{}"
 
             fr = self.get_fuzzable_request()

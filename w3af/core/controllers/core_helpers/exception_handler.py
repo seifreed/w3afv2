@@ -78,7 +78,7 @@ class ExceptionHandler:
         self.handle(
             exception_data.status,
             exception_data.exception,
-            (_, _, exception_data.traceback),
+            (None, None, exception_data.traceback),
             exception_data.enabled_plugins,
         )
 
@@ -103,7 +103,7 @@ class ExceptionHandler:
 
         :return: None
         """
-        except_type, except_class, tb = exec_info
+        _, _, tb = exec_info
 
         #
         # There are some exceptions, that because of their nature, can't be
@@ -143,8 +143,7 @@ class ExceptionHandler:
 
         filename = self.write_crash_file(edata)
 
-        args = (edata.get_exception_class(), filename)
-        om.out.debug('Logged "%s" to "%s"' % args)
+        om.out.debug(f'Logged "{edata.get_exception_class()}" to "{filename}"')
 
         # Also send to the output plugins so they can store it the right way
         om.out.log_crash(edata.get_details())
@@ -158,11 +157,10 @@ class ExceptionHandler:
 
         :return: None
         """
-        filename = "w3af-crash-%s.txt" % rand_alnum(5)
+        filename = f"w3af-crash-{rand_alnum(5)}.txt"
         filename = os.path.join(tempfile.gettempdir(), filename)
-        crash_dump = open(filename, "w")
-        crash_dump.write(edata.get_details())
-        crash_dump.close()
+        with open(filename, "w", encoding="utf-8") as crash_dump:
+            crash_dump.write(edata.get_details())
         return filename
 
     def clear(self):
@@ -183,7 +181,7 @@ class ExceptionHandler:
 
         for edata in self.get_all_exceptions():
             for unique in filtered_exceptions:
-                if edata.lineno == unique.lineno and edata.filename == edata.filename:
+                if edata.lineno == unique.lineno and edata.filename == unique.filename:
                     break
             else:
                 filtered_exceptions.append(edata)
@@ -230,7 +228,7 @@ class ExceptionHandler:
 
         for phase in summary["exceptions"]:
             for plugin, fr, exception, _ in summary["exceptions"][phase]:
-                phase_plugin_str += "- %s.%s\n" % (phase, plugin)
+                phase_plugin_str += f"- {phase}.{plugin}\n"
 
         with_exceptions = fmt_with_exceptions % (
             self.get_scan_id(),
@@ -353,9 +351,7 @@ class ExceptionData:
             self.traceback = tb
 
         # Extract the filename and line number where the exception was raised
-        path, filename, self.function_name, self.lineno = get_exception_location(tb)
-        if path is not None:
-            self.filename = os.path.join(path, filename)
+        _, self.filename, self.function_name, self.lineno = get_exception_location(tb)
 
         # See add_traceback_string()
         if hasattr(self.exception, "original_traceback_string"):
@@ -391,11 +387,11 @@ class ExceptionData:
 
     def get_details(self):
         res = self.get_summary()
-        res += " The full traceback is:\n\n%s" % self.traceback_str
+        res += f" The full traceback is:\n\n{self.traceback_str}"
         return res
 
     def get_where(self):
-        return "%s.%s:%s" % (self.phase, self.plugin, self.lineno)
+        return f"{self.phase}.{self.plugin}:{self.lineno}"
 
     def to_json(self):
         return {
@@ -411,8 +407,7 @@ class ExceptionData:
         return self.get_details()
 
     def __repr__(self):
-        return '<ExceptionData - %s:%s - "%s">' % (
-            self.filename,
-            self.lineno,
-            self.exception_msg,
+        return (
+            f"<ExceptionData - {self.filename}:{self.lineno} - "
+            f'"{self.exception_msg}">'
         )

@@ -839,3 +839,19 @@ completa que se guarda en `filename` (esperan solo el basename); ese contrato
 queda pendiente de resolver por separado. Score global: **4.5/10**; mejora la
 compatibilidad Python 3.14 y elimina generación débil/validaciones removibles,
 pero las gates y la deuda global siguen abiertas.
+
+## Avance: contratos y deduplicación de excepciones
+
+Se completó el saneamiento de `ExceptionHandler`: `filename` conserva el
+basename esperado por sus consumidores, la deduplicación compara archivo y
+línea contra el registro previo, y el traspaso de `ExceptionData` ya no depende
+de `_` global. La escritura del crash dump cierra el fichero mediante un
+context manager con UTF-8. Las validaciones dejan de usar `assert`, el ID usa
+`secrets` y los tests ya no dependen de números de línea fijos ni de la
+variable de excepción que Python elimina al salir de `except`.
+
+La suite completa de `ExceptionHandler` pasa (13 tests). Black, Ruff completo
+para módulo y tests, Bandit sobre el módulo, compilación implícita por pytest y
+`git diff --check` pasan. La auditoría sube a **4.6/10**: este flujo queda más
+correcto y verificable, pero el resto del proyecto aún tiene muchos hallazgos
+de arquitectura y de calidad, y faltan las gates globales.
