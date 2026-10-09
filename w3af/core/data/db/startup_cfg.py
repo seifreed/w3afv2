@@ -23,7 +23,7 @@ import configparser
 import os
 from datetime import date, datetime, timedelta
 
-from w3af.core.controllers.misc.home_dir import get_home_dir
+from w3af.core.paths import get_home_dir
 
 
 class StartUpConfig:

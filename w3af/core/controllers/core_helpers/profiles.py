@@ -26,9 +26,9 @@ import w3af.core.data.kb.config as cf
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.misc.get_file_list import get_file_list
 from w3af.core.controllers.misc.get_local_ip import get_local_ip
-from w3af.core.controllers.misc.home_dir import get_home_dir
 from w3af.core.controllers.misc_settings import MiscSettings
 from w3af.core.data.profile.profile import profile as profile
+from w3af.core.paths import get_home_dir
 
 
 class CoreProfiles:

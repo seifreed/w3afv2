@@ -25,8 +25,7 @@ import shutil
 import sys
 
 from w3af import ROOT_PATH
-
-HOME_DIR = os.path.join(os.path.expanduser("~"), ".w3af")
+from w3af.core.paths import get_home_dir as _get_home_dir
 
 # Point to the directory where w3af_console , w3af_gui and profiles/ live
 # Also, the root of the git repository
@@ -39,7 +38,7 @@ def create_home_dir():
     :return: True if success.
     """
     # Create .w3af inside home directory
-    home_path = get_home_dir()
+    home_path = _get_home_dir()
     if not os.path.exists(home_path):
         try:
             os.makedirs(home_path)
@@ -97,14 +96,6 @@ def create_home_dir():
             return False
 
     return True
-
-
-def get_home_dir():
-    """
-    :return: The location of the w3af directory inside the home directory of
-        the current user.
-    """
-    return os.environ.get("W3AF_HOME_DIR", HOME_DIR)
 
 
 def verify_dir_has_perm(path, perm, levels=0):

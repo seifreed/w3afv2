@@ -61,7 +61,6 @@ from w3af.core.controllers.misc.epoch_to_string import epoch_to_string
 from w3af.core.controllers.misc.get_w3af_version import get_w3af_version_minimal
 from w3af.core.controllers.misc.home_dir import (
     create_home_dir,
-    get_home_dir,
     verify_dir_has_perm,
 )
 from w3af.core.controllers.misc.temp_dir import (
@@ -85,6 +84,7 @@ from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.data.parsers import parser_cache
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
+from w3af.core.paths import get_home_dir
 
 NO_MEMORY_MSG = (
     "The operating system was unable to allocate memory for"

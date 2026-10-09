@@ -25,7 +25,7 @@ import os
 import shutil
 import stat
 
-from w3af.core.controllers.misc.home_dir import get_home_dir
+from w3af.core.paths import get_home_dir
 
 TEMP_DIR = os.path.join(get_home_dir(), "tmp", str(os.getpid()))
 

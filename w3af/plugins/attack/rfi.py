@@ -28,7 +28,6 @@ import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.daemons import webserver
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.misc.get_local_ip import get_local_ip
-from w3af.core.controllers.misc.home_dir import get_home_dir
 from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
 from w3af.core.data.constants import ports
 from w3af.core.data.fuzzer.utils import rand_alnum
@@ -36,6 +35,7 @@ from w3af.core.data.kb.exec_shell import ExecShell
 from w3af.core.data.kb.shell import Shell
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
+from w3af.core.paths import get_home_dir
 from w3af.plugins.attack.payloads import shell_handler
 from w3af.plugins.attack.payloads.decorators.exec_decorator import exec_debug
 

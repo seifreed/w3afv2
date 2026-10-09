@@ -42,9 +42,9 @@ from w3af.core.controllers.exceptions import (
     ScanMustStopByUserRequest,
 )
 from w3af.core.controllers.misc.get_w3af_version import get_w3af_version
-from w3af.core.controllers.misc.home_dir import get_home_dir
 from w3af.core.controllers.misc_settings import MiscSettings
 from w3af.core.controllers.w3afCore import w3afCore
+from w3af.core.paths import get_home_dir
 from w3af.core.ui.gui import (
     GUI_DATA_PATH,
     compare,
@@ -712,7 +712,7 @@ class MainApp:
             time.sleep(0.5)
             self.w3af.quit()
 
-            return False
+        return False
 
     def _scan_director(self, widget):
         """Directs what to do with the Scan."""

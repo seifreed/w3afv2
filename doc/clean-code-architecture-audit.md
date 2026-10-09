@@ -531,3 +531,21 @@ omitido**; `form_constants` tiene 100% de cobertura. Ruff focal (`F401`,
 se elimina otra dependencia ascendente en la ruta de parsing, pero siguen
 pendientes los demás acoplamientos de `core.data`, el saneamiento global y sus
 gates.
+
+## Avance: configuración de home fuera de controllers
+
+`get_home_dir` y `HOME_DIR` son configuración de rutas de usuario, no
+responsabilidades de `controllers.misc.home_dir`. Se trasladaron a
+`core.paths`; los consumidores de datos, UI, plugins y controladores importan
+desde allí, mientras `home_dir` conserva únicamente la creación/verificación
+de directorios y la resolución de recursos de instalación. No se mantuvo una
+reexportación de compatibilidad.
+
+Los tests focales de rutas y perfiles pasan (**4 tests**, 100% de cobertura en
+`core.paths`). Ruff (`F401`, `I001`, `B012`), Black, compilación con
+`SyntaxWarning` tratado como error y `git diff --check` pasan en los archivos
+afectados. La suite de `startup_cfg` sigue teniendo fallos preexistentes de
+`ConfigParser` en modo binario, que se abordarán por separado. El score global
+pasa a **3.0/10**: se reduce un acoplamiento ascendente de `core.data` y se
+desacopla la configuración de rutas, pero quedan numerosas dependencias entre
+capas y gates globales sin resolver.

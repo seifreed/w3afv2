@@ -25,7 +25,7 @@ from time import time
 
 from psutil import disk_usage
 
-from w3af.core.controllers.misc.home_dir import get_home_dir
+from w3af.core.paths import get_home_dir
 
 from .strategy_observer import StrategyObserver
 
