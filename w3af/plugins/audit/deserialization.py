@@ -185,7 +185,8 @@ class deserialization(AuditPlugin):
                     continue
 
                 if file_name.endswith(self.PAYLOAD_EXTENSION):
-                    json_str = open(os.path.join(root, file_name)).read()
+                    with open(os.path.join(root, file_name)) as payload_fh:
+                        json_str = payload_fh.read()
                     yield language, json.loads(json_str)
 
     def _find_delay_in_mutant(self, delayed_mutant, debugging_id=None):

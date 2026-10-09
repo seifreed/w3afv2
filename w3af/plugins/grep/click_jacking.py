@@ -134,7 +134,7 @@ class click_jacking(GrepPlugin):
         :return: True if the response is protected
         """
         headers = response.get_headers()
-        x_frame_options, header_name = headers.iget("x-frame-options", "")
+        x_frame_options, _ = headers.iget("x-frame-options", "")
 
         return x_frame_options.lower() in ("deny", "sameorigin")
 

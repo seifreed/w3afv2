@@ -204,7 +204,7 @@ class private_ip(GrepPlugin):
 
             try:
                 ip_address = socket.gethostbyname(requested_domain)
-            except:
+            except OSError:
                 pass
             else:
                 self._ignore_if_match.add(ip_address)

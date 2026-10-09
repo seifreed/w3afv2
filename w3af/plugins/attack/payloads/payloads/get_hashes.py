@@ -19,7 +19,7 @@ class get_hashes(Payload):
                 try:
                     user = line.split(":")[0]
                     uhash = line.split(":")[1]
-                except:
+                except IndexError:
                     pass
                 else:
                     if len(uhash) != 1:

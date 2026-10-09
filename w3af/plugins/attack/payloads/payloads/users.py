@@ -20,7 +20,7 @@ class users(Payload):
                         desc = splitted_line[-3]
                         directory = splitted_line[-2]
                         shell = splitted_line[-1]
-                    except:
+                    except IndexError:
                         pass
                     else:
                         desc = desc.replace(",,,", "")

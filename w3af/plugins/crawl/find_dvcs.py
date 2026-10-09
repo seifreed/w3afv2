@@ -158,7 +158,15 @@ class find_dvcs(CrawlPlugin):
 
         try:
             filenames = repo_get_files(http_response.get_raw_body())
-        except Exception as e:
+        except (
+            OSError,
+            ValueError,
+            TypeError,
+            AttributeError,
+            KeyError,
+            IndexError,
+            struct.error,
+        ) as e:
             # We get here when the HTTP response is NOT a 404, but the response
             # body couldn't be properly parsed. This is usually because of a false
             # positive in the is_404 function, OR a new version-format of the file
@@ -353,13 +361,13 @@ class find_dvcs(CrawlPlugin):
         """
         filenames = set()
 
-        temp_db = tempfile.NamedTemporaryFile(
+        with tempfile.NamedTemporaryFile(
             prefix="w3af-find-dvcs-", suffix="-wc.db", delete=False, dir=get_temp_dir()
-        )
+        ) as temp_db:
+            pass
 
-        temp_db_fh = open(temp_db.name, "w")
-        temp_db_fh.write(body)
-        temp_db_fh.close()
+        with open(temp_db.name, "w") as temp_db_fh:
+            temp_db_fh.write(body)
 
         query = (
             "SELECT local_relpath, "
@@ -377,7 +385,7 @@ class find_dvcs(CrawlPlugin):
             for path, svn_path in query_result:
                 filenames.add(path)
                 filenames.add(svn_path)
-        except Exception as e:
+        except sqlite3.Error as e:
             msg = 'Failed to extract filenames from wc.db file. The exception was: "%s"'
             args = (e,)
             om.out.debug(msg % args)

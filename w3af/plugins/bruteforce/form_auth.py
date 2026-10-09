@@ -169,7 +169,7 @@ class form_auth(BruteforcePlugin):
             )
 
     def _password_only_login(self, form):
-        user_token, pass_token = form.get_login_tokens()
+        user_token, _ = form.get_login_tokens()
 
         return user_token is None
 
@@ -183,7 +183,7 @@ class form_auth(BruteforcePlugin):
         :param password: Password value
         :return: The form instance with the username (optional) and password
         """
-        user_token, pass_token = form.get_login_tokens()
+        user_token, _ = form.get_login_tokens()
 
         # Setup the data_container, remember that we can have password
         # only forms!
@@ -456,7 +456,7 @@ class form_auth(BruteforcePlugin):
         self._found.add(freq_url)
 
         password_for_report = self._get_password_for_report(password)
-        user_token, pass_token = form.get_login_tokens()
+        user_token, _ = form.get_login_tokens()
 
         if user_token is not None:
             desc = (

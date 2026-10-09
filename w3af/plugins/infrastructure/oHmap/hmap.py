@@ -75,10 +75,10 @@ class request:
             else:
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.connect((HOST, PORT))
-        except Exception as e:
+        except OSError as e:
             msg = 'hmap connection failed to %s:%s. Exception: "%s"'
             args = (HOST, PORT, e)
-            raise BaseFrameworkException(msg % args)
+            raise BaseFrameworkException(msg % args) from e
 
         # SSL handling
         if useSSL:
@@ -87,10 +87,10 @@ class request:
                 context.check_hostname = False
                 context.verify_mode = ssl.CERT_NONE
                 s = context.wrap_socket(s, server_hostname=HOST)
-            except Exception as e:
+            except (ssl.SSLError, OSError) as e:
                 msg = 'hmap SSL connection failed to %s:%s. Exception: "%s"'
                 args = (HOST, PORT, e)
-                raise BaseFrameworkException(msg % args)
+                raise BaseFrameworkException(msg % args) from e
 
         s.settimeout(10)
 
@@ -105,12 +105,12 @@ class request:
         while tries != 0:
             s = self.get_connection()
 
-            data = ""
+            data = b""
 
             # Send the "HTTP request" to the socket
             try:
-                s.send(str(self))
-            except Exception as e:
+                s.send(str(self).encode("utf-8"))
+            except OSError as e:
                 om.out.debug(f'hmap failed to send data to socket: "{e}"')
 
                 # Try again
@@ -124,7 +124,7 @@ class request:
             # Receive the HTTP response from the server
             try:
                 while True:
-                    readable, writable, exceptional = select.select([s], [], [], 10)
+                    readable, _, _ = select.select([s], [], [], 10)
                     if not readable:
                         break
 
@@ -137,15 +137,15 @@ class request:
 
                     # we were able to read from the socket, append and try again
                     data += temp
-            except KeyboardInterrupt as e:
-                raise e
+            except KeyboardInterrupt:
+                raise
 
             except ssl.SSLError as ssl_err:
                 # When the remote server has no more data to send
                 # It simply closes the remote connection, which raises:
                 # (6, 'TLS/SSL connection has been closed')
                 if isinstance(ssl_err, ssl.SSLZeroReturnError):
-                    return response(data)
+                    return response(data.decode("latin-1"))
 
                 msg = 'hmap found an SSL error while reading data from socket: "%s"'
                 om.out.debug(msg % ssl_err)
@@ -158,7 +158,7 @@ class request:
 
                 continue
 
-            except Exception as e:
+            except OSError as e:
                 msg = 'hmap found an exception while reading data from socket: "%s"'
                 om.out.debug(msg % e)
 
@@ -176,7 +176,7 @@ class request:
             # Success!
             msg = f'hmap received: "{repr(data)[1:-1][:40]}..."'
             om.out.debug(msg)
-            return response(data)
+            return response(data.decode("latin-1"))
 
         # Something happen... we just return an empty response
         return response("")
@@ -544,7 +544,9 @@ def malformed_method_line(url):
         get_characteristics("MALFORMED_" + ("000" + str(index))[-3:], res)
 
 
-def large_binary_searcher(url, large_helper, largest, guesses=[]):
+def large_binary_searcher(url, large_helper, largest, guesses=None):
+    if guesses is None:
+        guesses = []
     ranges = [(x, large_helper(url, x)) for x in [1] + guesses + [largest]]
 
     while True:
@@ -1060,33 +1062,30 @@ def testServer(ssl, server, port, matchCount, generateFP, threads):
     # Read the fingerprint db
     known_servers = []
     for f in glob.glob(fingerprintDir + "*"):
-        ksf = open(f)
+        with open(f) as ksf:
+            signature_source = ksf.read()
+        ### FIXME: This eval is awful, I should change it to pickle.
         try:
-            ### FIXME: This eval is awful, I should change it to pickle.
-            ks = eval(ksf.read())
-        except Exception:
+            ks = eval(signature_source)
+        except (SyntaxError, ValueError, TypeError, NameError) as exc:
             raise BaseFrameworkException(
                 'The signature file "' + f + '" has an invalid syntax.'
-            )
-        else:
-            known_servers.append(ks)
-            ksf.close()
+            ) from exc
+        known_servers.append(ks)
 
     # Generate the fingerprint file
     if generateFP:
         for i in range(10):
             try:
-                fd = open("hmap-fingerprint-" + server + "-" + str(i), "w")
-            except Exception as e:
+                with open("hmap-fingerprint-" + server + "-" + str(i), "w") as fd:
+                    import pprint
+
+                    pprint.PrettyPrinter(stream=fd).pprint(fp)
+            except OSError as e:
                 raise BaseFrameworkException(
                     "Cannot open fingerprint file. Error:" + str(e)
-                )
-            else:
-                import pprint
-
-                pprint.PrettyPrinter(stream=fd).pprint(fp)
-                fd.close()
-                break
+                ) from e
+            break
 
     # Compare
     scores = find_most_similar(known_servers, fp)
@@ -1094,7 +1093,7 @@ def testServer(ssl, server, port, matchCount, generateFP, threads):
     scores.sort(key=lambda score: (-score[1][0], score[0]["LEXICAL"]["SERVER_NAME"]))
 
     res = []
-    for server, (matches, mismatches, unknowns) in scores[:MATCH_COUNT]:
-        res.append(server["LEXICAL"]["SERVER_NAME"])
+    for server_entry, (matches, mismatches, unknowns) in scores[:MATCH_COUNT]:
+        res.append(server_entry["LEXICAL"]["SERVER_NAME"])
 
     return res

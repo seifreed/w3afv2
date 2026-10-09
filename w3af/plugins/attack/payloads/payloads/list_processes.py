@@ -29,8 +29,8 @@ class list_processes(Payload):
     def api_read(self, max_pid_user):
         try:
             max_pid_user = int(max_pid_user)
-        except:
-            raise ValueError("Invalid max_pid, expected an integer.")
+        except (ValueError, TypeError) as exc:
+            raise ValueError("Invalid max_pid, expected an integer.") from exc
 
         result = {}
         stat_count = 400

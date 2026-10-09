@@ -170,7 +170,7 @@ class clamav(GrepPlugin):
         try:
             cd = self._get_connection()
             result_dict = cd.instream(BytesIO(body))
-        except Exception as e:
+        except (ClamdError, OSError) as e:
             msg = (
                 "The ClamAV plugin failed to connect to clamd using"
                 ' the configured endpoint: "%s". Please verify your'

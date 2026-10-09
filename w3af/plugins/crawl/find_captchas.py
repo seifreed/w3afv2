@@ -30,6 +30,7 @@ from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.db.disk_set import DiskSet
 from w3af.core.data.kb.info import Info
+from w3af.core.data.url.exceptions import HTTPRequestException
 
 
 class find_captchas(CrawlPlugin):
@@ -132,7 +133,7 @@ class find_captchas(CrawlPlugin):
 
         try:
             response = self._uri_opener.GET(fuzzable_request.get_uri(), cache=False)
-        except:
+        except HTTPRequestException:
             om.out.debug("Failed to retrieve the page for finding captchas.")
         else:
             # Do not use parser_cache here, it's not good since CAPTCHA implementations

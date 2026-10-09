@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os.path
 import random
 import xml.dom.minidom
+from xml.parsers.expat import ExpatError
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
@@ -137,16 +138,17 @@ class ghdb(CrawlPlugin):
                  objects.
         """
         try:
-            ghdb_fd = open(self._ghdb_file)
-        except Exception as e:
+            with open(self._ghdb_file) as ghdb_fd:
+                ghdb_content = ghdb_fd.read()
+        except OSError as e:
             msg = 'Failed to open ghdb file: "%s", error: "%s".'
-            raise BaseFrameworkException(msg % (self._ghdb_file, e))
+            raise BaseFrameworkException(msg % (self._ghdb_file, e)) from e
 
         try:
-            dom = xml.dom.minidom.parseString(ghdb_fd.read())
-        except Exception as e:
+            dom = xml.dom.minidom.parseString(ghdb_content)
+        except ExpatError as e:
             msg = 'Failed to parse XML file: "%s", error: "%s".'
-            raise BaseFrameworkException(msg % (self._ghdb_file, e))
+            raise BaseFrameworkException(msg % (self._ghdb_file, e)) from e
 
         res = []
 
@@ -162,7 +164,7 @@ class ghdb(CrawlPlugin):
             try:
                 query_string = signature.childNodes[4].childNodes[0].data
 
-            except Exception:
+            except (IndexError, AttributeError):
                 msg = (
                     "There is a corrupt signature in the GHDB. No query "
                     ' string was found in the following XML code: "%s".'
@@ -172,7 +174,7 @@ class ghdb(CrawlPlugin):
 
             try:
                 desc = signature.childNodes[5].childNodes[0].data
-            except:
+            except (IndexError, AttributeError):
                 desc = "No description provided by GHDB."
 
             gh = GoogleHack(query_string, desc)

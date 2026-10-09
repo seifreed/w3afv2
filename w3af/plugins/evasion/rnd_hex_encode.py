@@ -55,7 +55,7 @@ class rnd_hex_encode(EvasionPlugin):
             try:
                 # Only mangle the postdata if it is a url encoded string
                 parse_qs(data)
-            except:
+            except (ValueError, TypeError, AttributeError):
                 pass
             else:
                 data = self._mutate(data)
@@ -75,9 +75,8 @@ class rnd_hex_encode(EvasionPlugin):
         new_data = ""
 
         for char in data:
-            if char not in ["?", "/", "&", "\\", "=", "%", "+"]:
-                if randint(1, 2) == 2:
-                    char = f"%{ord(char):02x}"
+            if char not in ["?", "/", "&", "\\", "=", "%", "+"] and randint(1, 2) == 2:
+                char = f"%{ord(char):02x}"
             new_data += char
 
         return new_data

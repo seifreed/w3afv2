@@ -27,6 +27,7 @@ from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.auth_session_plugin import AuthSessionPlugin
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
+from w3af.core.data.url.exceptions import HTTPRequestException
 
 
 class generic(AuthSessionPlugin):
@@ -84,7 +85,7 @@ class generic(AuthSessionPlugin):
                 follow_redirects=True,
                 debugging_id=self._debugging_id,
             )
-        except Exception as e:
+        except HTTPRequestException as e:
             self._handle_authentication_failure()
 
             msg = "Failed to login to the application because of exception: %s"

@@ -112,15 +112,14 @@ class favicon_identification(InfrastructurePlugin):
     def _read_favicon_db(self):
         try:
             # read MD5 database.
-            db_file = open(self._db_file, "r")
-        except Exception as e:
+            with open(self._db_file, "r") as db_file:
+                for line in db_file:
+                    line = line.strip()
+                    md5part, favicon_desc = line.split(":", 1)
+                    yield md5part, favicon_desc
+        except OSError as e:
             msg = 'Failed to open the MD5 database at %s. Exception: "%s".'
             om.out.error(msg % (self._db_file, e))
-        else:
-            for line in db_file:
-                line = line.strip()
-                md5part, favicon_desc = line.split(":", 1)
-                yield md5part, favicon_desc
 
     def get_long_desc(self):
         """

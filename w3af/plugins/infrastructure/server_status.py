@@ -61,16 +61,18 @@ class server_status(InfrastructurePlugin):
         server_status_url = base_url.url_join("server-status")
         response = self._uri_opener.GET(server_status_url, cache=True)
 
-        if not is_404(response) and response.get_code() not in list(range(400, 404)):
+        if (
+            not is_404(response)
+            and response.get_code() not in list(range(400, 404))
+            and "apache" in response.get_body().lower()
+        ):
+            msg = "Apache server-status module is enabled and accessible."
+            msg += f' The URL is: "{response.get_url()}"'
+            om.out.information(msg)
 
-            if "apache" in response.get_body().lower():
-                msg = "Apache server-status module is enabled and accessible."
-                msg += f' The URL is: "{response.get_url()}"'
-                om.out.information(msg)
-
-                self._extract_server_version(fuzzable_request, response)
-                self._extract_urls(fuzzable_request, response)
-                self._report_shared_hosting(fuzzable_request, response)
+            self._extract_server_version(fuzzable_request, response)
+            self._extract_urls(fuzzable_request, response)
+            self._report_shared_hosting(fuzzable_request, response)
 
     def _extract_server_version(self, fuzzable_request, response):
         """

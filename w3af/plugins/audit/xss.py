@@ -180,11 +180,8 @@ class xss(AuditPlugin):
         ct_options, _ = response.get_headers().iget("X-Content-Type-Options", "")
         content_type, _ = response.get_headers().iget("Content-Type", "")
 
-        if "application/json" in content_type and "nosniff" in ct_options:
-            # No luck exploiting this JSON XSS
-            return True
-
-        return False
+        # No luck exploiting this JSON XSS
+        return "application/json" in content_type and "nosniff" in ct_options
 
     def _search_xss(self, mutant, debugging_id):
         """

@@ -27,6 +27,7 @@ from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.constants import severity
 from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.url.exceptions import HTTPRequestException
 
 
 class htaccess_methods(AuditPlugin):
@@ -77,7 +78,7 @@ class htaccess_methods(AuditPlugin):
             try:
                 response = method_functor(*(url,), debugging_id=debugging_id)
                 code = response.get_code()
-            except:
+            except HTTPRequestException:
                 pass
             else:
                 if code in self.SUCCESS_CODES:

@@ -144,7 +144,7 @@ class strange_headers(GrepPlugin):
             return
 
         headers = response.get_headers()
-        header_value, header_name = headers.iget("content-location")
+        header_value, _ = headers.iget("content-location")
 
         if header_value is None:
             return

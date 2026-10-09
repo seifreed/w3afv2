@@ -153,9 +153,11 @@ class csp(GrepPlugin):
         for vuln_store_item in self._vulns:
             for csp_vulns_list in vuln_store_item.csp_vulns.values():
                 for csp_vuln in csp_vulns_list:
-                    if csp_vuln.desc.strip().lower() == ref:
-                        if vuln_store_item.resp_id not in list_resp_id:
-                            list_resp_id.append(vuln_store_item.resp_id)
+                    if (
+                        csp_vuln.desc.strip().lower() == ref
+                        and vuln_store_item.resp_id not in list_resp_id
+                    ):
+                        list_resp_id.append(vuln_store_item.resp_id)
 
         return list_resp_id
 

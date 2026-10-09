@@ -77,13 +77,14 @@ class import_results(CrawlPlugin):
             return
 
         try:
-            file_handler = open(self._input_base64, "rb")
-        except BaseFrameworkException as e:
+            with open(self._input_base64, "rb") as file_handler:
+                lines = file_handler.readlines()
+        except OSError as e:
             msg = 'An error was found while trying to read "%s": "%s".'
             om.out.error(msg % (self._input_base64, e))
             return
 
-        for line in file_handler:
+        for line in lines:
             line = line.strip()
 
             # Support empty lines
@@ -131,7 +132,8 @@ class import_results(CrawlPlugin):
         parser = etree.XMLParser(target=xp, resolve_entities=False)
 
         try:
-            requests = etree.fromstring(open(burp_file).read(), parser)
+            with open(burp_file) as burp_fh:
+                requests = etree.fromstring(burp_fh.read(), parser)
         except XMLSyntaxError as xse:
             msg = (
                 "The Burp input file is not a valid XML document. The"

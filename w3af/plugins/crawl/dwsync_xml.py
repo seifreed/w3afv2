@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import xml.dom.minidom
+from xml.parsers.expat import ExpatError
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
@@ -80,7 +81,7 @@ class dwsync_xml(CrawlPlugin):
 
         try:
             dom = xml.dom.minidom.parseString(response.get_body())
-        except Exception as e:
+        except ExpatError as e:
             msg = 'Exception while parsing dwsync.xml file at %s : "%s"'
             om.out.debug(msg % (dwsync_url, e))
             return
@@ -95,7 +96,7 @@ class dwsync_xml(CrawlPlugin):
             except ValueError as ve:
                 msg = 'dwsync file had an invalid URL: "%s"'
                 om.out.debug(msg % ve)
-            except Exception as e:
+            except (IndexError, AttributeError) as e:
                 msg = 'Sitemap file had an invalid format: "%s"'
                 om.out.debug(msg % e)
 

@@ -38,6 +38,7 @@ from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.options.option_types import URL as URL_OPTION
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.filesystem import get_temp_dir
 
 
@@ -183,7 +184,7 @@ class retirejs(GrepPlugin):
                 http_response = self._uri_opener.GET(
                     self._retire_db_url, binary_response=True, respect_size_limit=False
                 )
-            except Exception as e:
+            except HTTPRequestException as e:
                 msg = 'Failed to download the retirejs database: "%s"'
                 om.out.error(msg % e)
                 return
@@ -198,17 +199,15 @@ class retirejs(GrepPlugin):
 
             om.out.debug("Successfully downloaded the latest retirejs DB")
 
-            db = tempfile.NamedTemporaryFile(
+            with tempfile.NamedTemporaryFile(
                 dir=get_temp_dir(),
                 prefix="retirejs-db-",
                 suffix=".json",
                 delete=False,
                 mode="wb",
-            )
-
-            json_db = http_response.get_raw_body()
-            db.write(json_db)
-            db.close()
+            ) as db:
+                json_db = http_response.get_raw_body()
+                db.write(json_db)
 
             self._retire_db_filename = db.name
 
@@ -233,21 +232,20 @@ class retirejs(GrepPlugin):
     def _get_is_valid_retire_version(self):
         cmd = shlex.split(self.RETIRE_CMD_VERSION)
 
-        retire_version_fd = tempfile.NamedTemporaryFile(
+        with tempfile.NamedTemporaryFile(
             prefix="retirejs-version-", suffix=".out", delete=False, mode="w"
-        )
+        ) as retire_version_fd:
+            try:
+                subprocess.check_call(
+                    cmd, stderr=subprocess.DEVNULL, stdout=retire_version_fd
+                )
+            except subprocess.CalledProcessError:
+                msg = "Unexpected retire.js exit code. Disabling grep.retirejs plugin."
+                om.out.error(msg)
+                return False
 
-        try:
-            subprocess.check_call(
-                cmd, stderr=subprocess.DEVNULL, stdout=retire_version_fd
-            )
-        except subprocess.CalledProcessError:
-            msg = "Unexpected retire.js exit code. Disabling grep.retirejs plugin."
-            om.out.error(msg)
-            return False
-
-        retire_version_fd.close()
-        current_retire_version = open(retire_version_fd.name).read()
+        with open(retire_version_fd.name) as version_out:
+            current_retire_version = version_out.read()
         self._remove_file(retire_version_fd.name)
 
         if current_retire_version.startswith(self.RETIRE_VERSION):
@@ -258,16 +256,15 @@ class retirejs(GrepPlugin):
         return False
 
     def _retire_smoke_test(self):
-        check_file = tempfile.NamedTemporaryFile(
+        with tempfile.NamedTemporaryFile(
             prefix="retirejs-check-", suffix=".js", delete=False, dir=get_temp_dir()
-        )
-        check_file.write("")
-        check_file.close()
+        ) as check_file:
+            check_file.write("")
 
-        output_file = tempfile.NamedTemporaryFile(
+        with tempfile.NamedTemporaryFile(
             prefix="retirejs-output-", suffix=".json", delete=False, dir=get_temp_dir()
-        )
-        output_file.close()
+        ) as output_file:
+            pass
 
         args = (output_file.name, check_file.name)
         cmd = self.RETIRE_CMD % args
@@ -325,16 +322,14 @@ class retirejs(GrepPlugin):
     def _save_response_to_file(self, response):
         # Note: The file needs to have .js extension to force retirejs to
         #       scan it. Any other extension will be ignored.
-        response_file = tempfile.NamedTemporaryFile(
+        with tempfile.NamedTemporaryFile(
             prefix="retirejs-response-",
             suffix=".w3af.js",
             delete=False,
             dir=self._get_js_temp_directory(),
-        )
-
-        body = smart_str_ignore(response.get_body())
-        response_file.write(body)
-        response_file.close()
+        ) as response_file:
+            body = smart_str_ignore(response.get_body())
+            response_file.write(body)
 
         return response_file.name
 
@@ -345,10 +340,10 @@ class retirejs(GrepPlugin):
         :param batch: The batch of file to analyze (url, filename)
         :return: JSON document
         """
-        json_file = tempfile.NamedTemporaryFile(
+        with tempfile.NamedTemporaryFile(
             prefix="retirejs-output-", suffix=".json", delete=False, dir=get_temp_dir()
-        )
-        json_file.close()
+        ) as json_file:
+            pass
 
         args = (json_file.name, self._retire_db_filename, self._get_js_temp_directory())
         cmd = self.RETIRE_CMD_JSREPO % args
@@ -372,8 +367,9 @@ class retirejs(GrepPlugin):
             return {}
 
         try:
-            file_contents = open(json_file.name).read()
-        except Exception:
+            with open(json_file.name) as output_fh:
+                file_contents = output_fh.read()
+        except OSError:
             msg = "Failed to read retirejs output file at %s"
             om.out.debug(msg % json_file.name)
 
@@ -382,7 +378,7 @@ class retirejs(GrepPlugin):
 
         try:
             json_doc = json.loads(file_contents)
-        except Exception as e:
+        except (ValueError, TypeError) as e:
             msg = (
                 "Failed to parse retirejs output as JSON."
                 ' Exception is "%s" and file content: "%s..."'

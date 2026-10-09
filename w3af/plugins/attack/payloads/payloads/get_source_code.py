@@ -16,12 +16,12 @@ class get_source_code(Payload):
         if not os.path.isdir(output_directory):
             try:
                 os.makedirs(output_directory)
-            except:
+            except OSError as exc:
                 msg = (
                     'The output directory "%s" does not exist and was'
                     " unable to create it."
                 )
-                raise ValueError(msg % output_directory)
+                raise ValueError(msg % output_directory) from exc
 
         elif not os.access(output_directory, os.W_OK):
             msg = 'Failed to open "%s" for writing.'
@@ -60,9 +60,8 @@ class get_source_code(Payload):
                         os.makedirs(local_directory)
 
                     #    Write the file!
-                    fh = open(local_full_path, "w")
-                    fh.write(file_content)
-                    fh.close()
+                    with open(local_full_path, "w") as fh:
+                        fh.write(file_content)
 
                     result[url] = (remote_full_path, local_full_path)
 

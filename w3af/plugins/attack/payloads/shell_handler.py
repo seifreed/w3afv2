@@ -163,13 +163,12 @@ def _get_file_list(type_of_list, extension, force_extension=False):
     res = []
     for filename, real_extension in known_framework:
         try:
-            cmd_file = open(filename)
-        except:
+            with open(filename) as cmd_file:
+                file_content = cmd_file.read()
+        except OSError as exc:
             msg = 'Failed to open filename: "%s"'
-            raise BaseFrameworkException(msg % filename)
+            raise BaseFrameworkException(msg % filename) from exc
         else:
-            file_content = cmd_file.read()
-            cmd_file.close()
             res.append((file_content, real_extension))
 
     return res

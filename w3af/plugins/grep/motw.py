@@ -101,13 +101,11 @@ class motw(GrepPlugin):
         """
         pretty_msg = {"motw": "The following URLs contain a MOTW:"}
 
-        for motw_type in pretty_msg:
-            inform = []
-            for i in kb.kb.get("motw", motw_type):
-                inform.append(i)
+        for motw_type, pretty in pretty_msg.items():
+            inform = list(kb.kb.get("motw", motw_type))
 
             if inform:
-                om.out.information(pretty_msg[motw_type])
+                om.out.information(pretty)
                 for i in inform:
                     if "local_machine" not in i:
                         om.out.information(f"- {i.get_url()}")

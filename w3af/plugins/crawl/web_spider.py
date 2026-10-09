@@ -202,9 +202,9 @@ class web_spider(CrawlPlugin):
             headers_url_generator(resp, fuzzable_req),
         )
 
-        for ref, fuzzable_req, original_resp, possibly_broken in gen:
+        for ref, extracted_req, original_resp, possibly_broken in gen:
             if self._should_verify_extracted_url(ref, original_resp):
-                yield ref, fuzzable_req, original_resp, possibly_broken
+                yield ref, extracted_req, original_resp, possibly_broken
 
     def _url_path_url_generator(self, resp, fuzzable_req):
         """
@@ -296,12 +296,13 @@ class web_spider(CrawlPlugin):
             om.out.debug(msg % args)
             return False
 
-        if self._compiled_ignore_re is not None:
-            if self._compiled_ignore_re.match(ref.url_string):
-                msg = "web_spider will ignore %s (match ignore regex)"
-                args = (ref.url_string,)
-                om.out.debug(msg % args)
-                return False
+        if self._compiled_ignore_re is not None and self._compiled_ignore_re.match(
+            ref.url_string
+        ):
+            msg = "web_spider will ignore %s (match ignore regex)"
+            args = (ref.url_string,)
+            om.out.debug(msg % args)
+            return False
 
         if self._has_ignored_extension(ref):
             msg = "web_spider will ignore %s (match ignore extensions)"

@@ -24,10 +24,26 @@ import textwrap
 from functools import wraps
 
 import w3af.core.controllers.output_manager as om
+from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.threads.threadpool import return_args
 from w3af.plugins.attack.payloads import payload_handler
 
 SYSCALL_LIST = ["read", "write", "execute", "unlink", "is_open_port"]
+
+# Errors raised by a payload while it runs against the exploited target: the
+# remote shell, parsing of its output and the framework itself. Keyboard
+# interrupts and scan-stop requests are intentionally excluded so they keep
+# propagating.
+PAYLOAD_EXECUTION_ERRORS = (
+    BaseFrameworkException,
+    OSError,
+    ValueError,
+    TypeError,
+    AttributeError,
+    KeyError,
+    IndexError,
+    RuntimeError,
+)
 
 
 class Payload:
@@ -58,7 +74,7 @@ class Payload:
             return payload_handler.exec_payload(
                 self.shell, payload_name, args, use_api=True
             )
-        except:
+        except PAYLOAD_EXECUTION_ERRORS:
             #
             #    Run the payload name with any shell that has the capabilities
             #    we need, not the one we're already using (that failed because
@@ -68,7 +84,7 @@ class Payload:
                 return payload_handler.exec_payload(
                     None, payload_name, args, use_api=True
                 )
-            except:
+            except PAYLOAD_EXECUTION_ERRORS:
                 msg = (
                     'The payload you are trying to run ("%s") can not be'
                     " run because it is trying to call another payload"
@@ -201,7 +217,7 @@ def read_error_handler(func):
     def error_handler_wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except Exception:
+        except PAYLOAD_EXECUTION_ERRORS:
             return args[0], ""
 
     return error_handler_wrapper

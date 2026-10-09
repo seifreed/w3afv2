@@ -181,27 +181,26 @@ class sqli(AuditPlugin):
         orig_resp_body = mutant.get_original_response_body()
 
         for sql_error_string, dbms_type in sql_error_list:
-            if sql_error_string not in orig_resp_body:
-                if self._has_no_bug(mutant):
-                    # Create the vuln,
-                    desc = "SQL injection in a %s was found at: %s"
-                    desc %= dbms_type, mutant.found_at()
+            if sql_error_string not in orig_resp_body and self._has_no_bug(mutant):
+                # Create the vuln,
+                desc = "SQL injection in a %s was found at: %s"
+                desc %= dbms_type, mutant.found_at()
 
-                    v = Vuln.from_mutant(
-                        "SQL injection",
-                        desc,
-                        severity.HIGH,
-                        response.id,
-                        self.get_name(),
-                        mutant,
-                    )
+                v = Vuln.from_mutant(
+                    "SQL injection",
+                    desc,
+                    severity.HIGH,
+                    response.id,
+                    self.get_name(),
+                    mutant,
+                )
 
-                    v.add_to_highlight(sql_error_string)
-                    v["error"] = sql_error_string
-                    v["db"] = dbms_type
+                v.add_to_highlight(sql_error_string)
+                v["error"] = sql_error_string
+                v["db"] = dbms_type
 
-                    self.kb_append_uniq(self, "sqli", v)
-                    break
+                self.kb_append_uniq(self, "sqli", v)
+                break
 
     def _findsql_error(self, response):
         """

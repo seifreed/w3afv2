@@ -52,9 +52,8 @@ class content_sniffing(GrepPlugin):
             return
 
         ct_options_value, _ = response.get_headers().iget(CT_OPTIONS_HEADER, None)
-        if ct_options_value is not None:
-            if ct_options_value.strip().lower() == NOSNIFF:
-                return
+        if ct_options_value is not None and ct_options_value.strip().lower() == NOSNIFF:
+            return
 
         self._reports += 1
 

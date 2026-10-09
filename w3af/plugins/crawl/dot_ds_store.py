@@ -95,7 +95,14 @@ class dot_ds_store(CrawlPlugin):
         try:
             store = DsStore(response.get_raw_body())
             entries = store.get_file_entries()
-        except Exception as e:
+        except (
+            OSError,
+            ValueError,
+            TypeError,
+            AttributeError,
+            KeyError,
+            IndexError,
+        ) as e:
             om.out.debug(f'Unexpected error while parsing DS_Store file: "{e}"')
             return
 

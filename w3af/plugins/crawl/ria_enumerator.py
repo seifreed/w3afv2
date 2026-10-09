@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 import xml.dom.minidom
 from typing import ClassVar
+from xml.parsers.expat import ExpatError
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
@@ -84,9 +85,11 @@ class ria_enumerator(CrawlPlugin):
         :return: URLs
         """
         # Google Gears
-        for ext in extensions:
-            for word in open(wordlist):
+        with open(wordlist) as wordlist_fh:
+            words = wordlist_fh.readlines()
 
+        for ext in extensions:
+            for word in words:
                 manifest_url = base_url.url_join(word.strip() + ext)
                 yield manifest_url
 
@@ -143,7 +146,7 @@ class ria_enumerator(CrawlPlugin):
 
         try:
             dom = xml.dom.minidom.parseString(response.get_body())
-        except Exception:
+        except ExpatError:
             # Report this, it may be interesting for the final user
             # not a vulnerability per-se... but... it's information after all
             if (
@@ -168,10 +171,10 @@ class ria_enumerator(CrawlPlugin):
         tag, attribute = self.FILE_TAG_ATTR.get(file_name)
         url_list = dom.getElementsByTagName(tag)
 
-        for url in url_list:
-            url = url.getAttribute(attribute)
+        for policy_url in url_list:
+            policy_url = policy_url.getAttribute(attribute)
 
-            if url == "*":
+            if policy_url == "*":
                 desc = (
                     'The "%s" file at "%s" allows flash / silverlight'
                     " access from any site."
@@ -199,7 +202,7 @@ class ria_enumerator(CrawlPlugin):
                     'The "%s" file at "%s" allows flash / silverlight'
                     ' access from "%s".'
                 )
-                desc %= (file_name, response.get_url(), url)
+                desc %= (file_name, response.get_url(), policy_url)
 
                 i = Info("Cross-domain allow ACL", desc, response.id, self.get_name())
                 i.set_url(response.get_url())

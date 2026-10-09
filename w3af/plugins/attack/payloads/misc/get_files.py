@@ -13,8 +13,9 @@ def check_files(file_list):
     checked = []
     for file in file_list:
         try:
-            if open(file).read() != "":
-                checked.append(file)
+            with open(file) as file_handler:
+                if file_handler.read() != "":
+                    checked.append(file)
         except OSError:
             pass
     return checked

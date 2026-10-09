@@ -33,6 +33,7 @@ from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.data.url.exceptions import HTTPRequestException
 
 
 class archive_dot_org(CrawlPlugin):
@@ -144,7 +145,7 @@ class archive_dot_org(CrawlPlugin):
 
             try:
                 http_response = self._uri_opener.GET(url, cache=True)
-            except:
+            except HTTPRequestException:
                 return []
 
             # Filter the ones we need

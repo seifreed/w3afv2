@@ -37,6 +37,7 @@ from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.options.option_types import STRING
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.quick_match.multi_re import MultiRE
+from w3af.core.data.url.exceptions import HTTPRequestException
 
 
 class vulners_db(GrepPlugin):
@@ -182,7 +183,7 @@ class vulners_db(GrepPlugin):
             http_response = self._uri_opener.GET(
                 self._vulners_rules_url, binary_response=True, respect_size_limit=False
             )
-        except Exception as e:
+        except HTTPRequestException as e:
             msg = 'Failed to download Vulners regex rules table: "%s"'
             om.out.error(msg % e)
             return
@@ -216,7 +217,12 @@ class vulners_db(GrepPlugin):
     def setup_vulners_api(self):
         try:
             self._vulners_api = vulners.Vulners(api_key=self._vulners_api_key or None)
-        except Exception as e:
+        except (
+            vulners.VulnersError,
+            vulners.VulnersApiError,
+            ValueError,
+            TypeError,
+        ) as e:
             # If API key is wrong or API key is not a string it will raise exception
             msg = 'Failed to initialize Vulners API: "%s"'
             om.out.error(msg % e)
@@ -254,7 +260,7 @@ class vulners_db(GrepPlugin):
                 vulnerabilities = self._vulners_api.cpeVulnerabilities(
                     cpe_string.encode()
                 )
-        except Exception as e:
+        except (vulners.VulnersError, vulners.VulnersApiError) as e:
             msg = 'Failed to make Vulners API request: "%s"'
             om.out.error(msg % e)
             # Return empty dict not to stop here.

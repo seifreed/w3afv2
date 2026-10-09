@@ -30,6 +30,7 @@ from w3af.core.data.options.option_types import URL as URL_OPT
 from w3af.core.data.parsers import parser_cache
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.data.url.exceptions import HTTPRequestException
 
 
 class autocomplete(AuthSessionPlugin):
@@ -148,7 +149,7 @@ class autocomplete(AuthSessionPlugin):
                 follow_redirects=True,
                 debugging_id=self._debugging_id,
             )
-        except Exception as e:
+        except HTTPRequestException as e:
             msg = "Failed to submit the login form: %s"
             self._log_debug(msg % e)
             return False
@@ -182,7 +183,7 @@ class autocomplete(AuthSessionPlugin):
                 follow_redirects=True,
                 debugging_id=self._debugging_id,
             )
-        except Exception as e:
+        except HTTPRequestException as e:
             msg = "Failed to HTTP GET the login_form_url: %s"
             self._log_debug(msg % e)
             return
