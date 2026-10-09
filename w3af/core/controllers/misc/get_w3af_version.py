@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
+from pathlib import Path
 
 from w3af import ROOT_PATH
 from w3af.core.controllers.auto_update.utils import (
@@ -37,7 +38,7 @@ VERSION_FILE = os.path.join(ROOT_PATH, "core", "data", "constants", "version.txt
 
 
 def get_minimalistic_version():
-    return open(VERSION_FILE).read().strip()
+    return Path(VERSION_FILE).read_text().strip()
 
 
 @Memoized

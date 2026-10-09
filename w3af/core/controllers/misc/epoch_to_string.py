@@ -42,28 +42,23 @@ def epoch_to_string(start_time):
     '1 minute 1 second'
 
     """
-    time_diff = time.time() - start_time
-    time_delta = datetime.timedelta(seconds=time_diff)
+    time_delta = datetime.timedelta(seconds=time.time() - start_time)
 
     weeks, days = divmod(time_delta.days, 7)
-
     minutes, seconds = divmod(time_delta.seconds, 60)
     hours, minutes = divmod(minutes, 60)
 
-    msg = ""
+    units = (
+        (weeks, "week"),
+        (days, "day"),
+        (hours, "hour"),
+        (minutes, "minute"),
+        (seconds, "second"),
+    )
+    parts = [
+        f"{amount} {unit}{'s' if amount > 1 else ''}"
+        for amount, unit in units
+        if amount
+    ]
 
-    if weeks == days == hours == minutes == seconds == 0:
-        msg += "0 seconds"
-    else:
-        if weeks:
-            msg += str(weeks) + " week%s " % ("s" if weeks > 1 else "")
-        if days:
-            msg += str(days) + " day%s " % ("s" if days > 1 else "")
-        if hours:
-            msg += str(hours) + " hour%s " % ("s" if hours > 1 else "")
-        if minutes:
-            msg += str(minutes) + " minute%s " % ("s" if minutes > 1 else "")
-        if seconds:
-            msg += str(seconds) + " second%s" % ("s" if seconds > 1 else "")
-
-    return msg
+    return " ".join(parts) or "0 seconds"

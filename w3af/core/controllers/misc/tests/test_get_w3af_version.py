@@ -26,6 +26,7 @@ from w3af.core.controllers.misc.get_w3af_version import (
     get_minimalistic_version,
     get_w3af_version,
     get_w3af_version_as_dict,
+    get_w3af_version_minimal,
 )
 
 
@@ -42,3 +43,12 @@ class TestGetVersion(unittest.TestCase):
         self.assertIn("revision", version_dict)
         self.assertIn("branch", version_dict)
         self.assertIn("dirty", version_dict)
+
+    def test_minimal_version_line(self):
+        version_dict = get_w3af_version_as_dict()
+
+        self.assertEqual(
+            get_w3af_version_minimal(),
+            f"{version_dict['version']} / {version_dict['revision']}"
+            f" / {version_dict['branch']}",
+        )

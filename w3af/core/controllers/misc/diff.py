@@ -22,15 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import difflib
 
-import diff_match_patch as dmp_module
-
-from w3af.core.data.misc.encoding import smart_unicode
-
-# 20 seconds it the max time we'll wait for a diff, the good thing
-# about the `diff_match_patch` library is that even when the timeout
-# is reached, a (partial) result is returned
-MAX_DIFF_TIME = 20
-
 #
 # Translation table to split strings by multiple chars
 #
@@ -39,44 +30,6 @@ MAX_DIFF_TIME = 20
 # improvement gains
 #
 TRANSLATION_TABLE = str.maketrans("\n\t\r\"'<", "\0\0\0\0\0\0")
-
-
-def diff_dmp(a, b):
-    """
-    :param a: A string
-    :param b: A string (similar to a)
-    :return: Two strings (a_mod, b_mod) which are basically:
-
-                a_mod = a - (a intersection b)
-                b_mod = b - (a intersection b)
-
-             Or if you want to see it in another way, the results are the
-             parts of the string that make it unique between each other.
-    """
-    a = smart_unicode(a, errors="ignore")
-    b = smart_unicode(b, errors="ignore")
-
-    dmp = dmp_module.diff_match_patch()
-    dmp.Diff_Timeout = MAX_DIFF_TIME
-
-    changes = dmp.diff_main(a, b, checklines=True)
-
-    dmp.diff_cleanupSemantic(changes)
-
-    a_changes = []
-    b_changes = []
-
-    for op, change in changes:
-        if op == -1:
-            a_changes.append(change)
-
-        if op == 1:
-            b_changes.append(change)
-
-    a_changes = "\n".join(a_changes)
-    b_changes = "\n".join(b_changes)
-
-    return a_changes, b_changes
 
 
 def diff_difflib(a, b):
