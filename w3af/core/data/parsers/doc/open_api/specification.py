@@ -23,16 +23,20 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import json
 import logging
+from typing import TYPE_CHECKING
 
 from bravado_core.exception import SwaggerError
 from jsonschema.exceptions import SchemaError, ValidationError
 from swagger_spec_validator.common import SwaggerValidationError
 from yaml import YAMLError, load
 
-try:
+if TYPE_CHECKING:
     from yaml import CLoader as Loader
-except ImportError:
-    from yaml import Loader
+else:
+    try:
+        from yaml import CLoader as Loader
+    except ImportError:
+        from yaml import Loader
 
 from w3af.core.data.parsers.doc.open_api.parameters import ParameterHandler
 from w3af.core.data.parsers.doc.open_api.relaxed_spec import RelaxedSpec

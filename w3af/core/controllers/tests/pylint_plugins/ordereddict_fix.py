@@ -21,7 +21,7 @@ def register(linter):
     pass
 
 
-def transform(cls):
+def transform(cls: scoped_nodes.ClassDef) -> None:
     """
     pylint fails to "inherit" the attributes from the OrderedDict class when
     using multiple inheritance. So we need this fix for some special cases
@@ -31,7 +31,16 @@ def transform(cls):
     """
     if cls.name in NEED_FIX:
         for f in FIX_MEMBERS:
-            cls.locals[f] = [scoped_nodes.Class(f, None)]
+            cls.locals[f] = [
+                scoped_nodes.ClassDef(
+                    f,
+                    cls.lineno,
+                    cls.col_offset,
+                    cls,
+                    end_lineno=cls.end_lineno,
+                    end_col_offset=cls.end_col_offset,
+                )
+            ]
 
 
-MANAGER.register_transform(scoped_nodes.Class, transform)
+MANAGER.register_transform(scoped_nodes.ClassDef, transform)

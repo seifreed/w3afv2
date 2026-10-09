@@ -14,12 +14,12 @@ class DelayUsingSleep22:
 
 
 dump = pickle.dumps(DelayUsingSleep1())
-payload = base64.b64encode(dump)
+payload = base64.b64encode(dump).decode("ascii")
 
 print(f'Save this to pickle.json "1": {payload}')
 
 dump = pickle.dumps(DelayUsingSleep22())
-payload = base64.b64encode(dump)
+payload = base64.b64encode(dump).decode("ascii")
 
 print(f'Save this to pickle.json "2": {payload}')
 
