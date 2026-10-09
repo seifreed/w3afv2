@@ -126,7 +126,7 @@ class ConsoleUI:
         QUESTION = "Do you accept the terms and conditions? [N|y] "
         msg = DISCLAIMER + "\n\n" + QUESTION
         try:
-            user_response = eval(input(msg))
+            user_response = input(msg)
         except (KeyboardInterrupt, EOFError):
             print()
             user_response = ""

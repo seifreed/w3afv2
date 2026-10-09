@@ -20,6 +20,7 @@
 #  You can reach me at <leed@cs.ucdavis.edu>
 ######################################################################
 
+import ast
 import glob
 import os
 import re
@@ -1065,9 +1066,9 @@ def testServer(ssl, server, port, matchCount, generateFP, threads):
     for f in glob.glob(fingerprintDir + "*"):
         with open(f) as ksf:
             signature_source = ksf.read()
-        ### FIXME: This eval is awful, I should change it to pickle.
+        # Fingerprint files ship with w3af and contain Python literal data.
         try:
-            ks = eval(signature_source)
+            ks = ast.literal_eval(signature_source)
         except (SyntaxError, ValueError, TypeError, NameError) as exc:
             raise BaseFrameworkException(
                 'The signature file "' + f + '" has an invalid syntax.'
