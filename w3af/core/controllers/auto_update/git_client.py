@@ -81,10 +81,10 @@ class GitClient:
             # or which exception would be raised. So I'm catching all and
             # verifying if there are conflicts in an exception and in the
             # case were no exceptions were raised
-            except Exception as e:
+            except (git.exc.GitError, OSError) as e:
                 self.handle_conflicts(latest_before_pull)
-                msg = self.UPD_ERROR_MSG + ' The original exception was: "%s"'
-                raise GitClientError(msg % e)
+                msg = f'{self.UPD_ERROR_MSG} The original exception was: "{e}"'
+                raise GitClientError(msg) from e
             else:
                 self.handle_conflicts(latest_before_pull)
                 changelog = ChangeLog(latest_before_pull, after_pull, self._path)
@@ -95,8 +95,8 @@ class GitClient:
         with self._actionlock:
             try:
                 self._repo.remotes.origin.fetch(progress=self._progress)
-            except Exception:
-                raise GitClientError(self.UPD_ERROR_MSG)
+            except (git.exc.GitError, OSError) as e:
+                raise GitClientError(self.UPD_ERROR_MSG) from e
 
         return True
 
@@ -132,20 +132,26 @@ class GitClient:
         self.fetch()
 
         branch_origin = f"origin/{get_current_branch(self._path)}"
-        all_refs = self._repo.remotes.origin.refs
-        origin_master = [ref for ref in all_refs if ref.name == branch_origin][0]
-
-        return origin_master.commit.hexsha
+        return self._find_ref_commit_id(self._repo.remotes.origin.refs, branch_origin)
 
     def get_local_head_id(self):
         """
         :return: The ID for the latest commit in the LOCAL repo.
         """
         branch_name = get_current_branch(self._path)
-        repo_refs = self._repo.refs
-        origin_master = [ref for ref in repo_refs if ref.name == branch_name][0]
+        return self._find_ref_commit_id(self._repo.refs, branch_name)
 
-        return origin_master.commit.hexsha
+    @staticmethod
+    def _find_ref_commit_id(refs, ref_name):
+        """
+        :return: The commit ID the reference named ref_name points to.
+        @raise GitClientError: When no reference has that name.
+        """
+        for ref in refs:
+            if ref.name == ref_name:
+                return ref.commit.hexsha
+
+        raise GitClientError(f'Git reference "{ref_name}" was not found.')
 
     def get_parent_for_revision(self, child_hexsha):
         """

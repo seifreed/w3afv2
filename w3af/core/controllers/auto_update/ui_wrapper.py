@@ -21,6 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 
+import git
+
+from w3af.core.controllers.auto_update.git_client import GitClientError
 from w3af.core.controllers.auto_update.utils import is_git_repo
 from w3af.core.controllers.auto_update.version_manager import VersionMgr
 from w3af.core.controllers.misc.home_dir import W3AF_LOCAL_PATH, verify_dir_has_perm
@@ -68,19 +71,8 @@ class UIUpdater:
                 self._handle_update_output(resp)
             except KeyboardInterrupt:
                 pass
-            except Exception as ex:
+            except (GitClientError, git.exc.GitError, OSError) as ex:
                 self._logger(f'An error occurred while updating: "{ex}"')
-
-            # TODO: Please read https://github.com/andresriancho/w3af/issues/6
-            # for more information on what's missing here
-            """
-            if repo_has_conflicts():
-                self._log("Oops!... w3af can't be started. It seems that the "
-                          "last auto update process was unsuccessful.\n\n"
-                          "Please update manually by executing a regular 'git pull' "
-                          "in the w3af installation directory.\n")
-                sys.exit(1)
-            """
 
     def _call_update(self):
         return self._vmngr.update(self._force_upd)

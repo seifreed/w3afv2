@@ -19,7 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from datetime import date
+from datetime import datetime
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.auto_update.git_client import GitClient, GitClientError
@@ -30,6 +30,10 @@ from w3af.core.controllers.auto_update.utils import (
 )
 from w3af.core.controllers.misc.home_dir import W3AF_LOCAL_PATH
 from w3af.core.data.db.startup_cfg import StartUpConfig
+
+
+def local_today():
+    return datetime.now().astimezone().date()
 
 
 class VersionMgr:
@@ -156,7 +160,7 @@ class VersionMgr:
 
         # Save the latest update date, always, even when the update had errors
         # or there was no update available
-        self._start_cfg.last_upd = date.today()
+        self._start_cfg.last_upd = local_today()
         self._start_cfg.save()
 
         local_head_id = self._client.get_local_head_id()
@@ -228,7 +232,7 @@ class VersionMgr:
             # Update last-rev.
             # Save today as last-update date and persist it.
             self._start_cfg.last_commit_id = changelog.end
-            self._start_cfg.last_upd = date.today()
+            self._start_cfg.last_upd = local_today()
             self._start_cfg.save()
 
             # Reload all modules to make sure we have all the latest
@@ -314,7 +318,7 @@ class VersionMgr:
             return False
         else:
             freq = startcfg.freq
-            diff_days = max((date.today() - startcfg.last_upd).days, 0)
+            diff_days = max((local_today() - startcfg.last_upd).days, 0)
 
             return bool(
                 freq == StartUpConfig.FREQ_DAILY
