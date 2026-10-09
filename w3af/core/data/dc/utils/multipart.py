@@ -24,7 +24,7 @@ import mimetypes
 import os
 
 from w3af.core.data.constants.encodings import DEFAULT_ENCODING
-from w3af.core.data.misc.encoding import smart_str
+from w3af.core.data.misc.encoding import smart_unicode
 from w3af.core.data.misc.io import is_file_like
 
 
@@ -57,19 +57,15 @@ def _split_vars_files(data):
         pname = token.get_name()
         value = token.get_value()
 
-        enc_pname = smart_str(pname, encoding=DEFAULT_ENCODING, errors="ignore")
-
         if is_file_like(value):
             if not value.closed:
-                v_files.append((enc_pname, value))
+                v_files.append((pname, value))
             else:
-                v_vars.append((enc_pname, ""))
+                v_vars.append((pname, ""))
         elif hasattr(value, "isFile"):
-            v_files.append((enc_pname, value))
+            v_files.append((pname, value))
         else:
-            # Ensuring we actually send a string
-            value = smart_str(value, encoding=DEFAULT_ENCODING, errors="ignore")
-            v_vars.append((enc_pname, value))
+            v_vars.append((pname, value))
 
     return v_vars, v_files
 
@@ -106,6 +102,8 @@ def multipart_encode(_vars, files, boundary=None, _buffer=None):
         _buffer = ""
 
     for key, value in _vars:
+        key = smart_unicode(key, encoding=DEFAULT_ENCODING, errors="ignore")
+        value = smart_unicode(value, encoding=DEFAULT_ENCODING, errors="ignore")
         _buffer += "--%s\r\n" % boundary
         _buffer += 'Content-Disposition: form-data; name="%s"' % key
         _buffer += "\r\n\r\n" + value + "\r\n"
@@ -116,12 +114,16 @@ def multipart_encode(_vars, files, boundary=None, _buffer=None):
 
         guessed_mime = mimetypes.guess_type(filename)[0]
         content_type = guessed_mime or "application/octet-stream"
-        args = (smart_str(key, errors="ignore"), smart_str(filename, errors="ignore"))
+        args = (
+            smart_unicode(key, encoding=DEFAULT_ENCODING, errors="ignore"),
+            smart_unicode(filename, encoding=DEFAULT_ENCODING, errors="ignore"),
+        )
 
         _buffer += "--%s\r\n" % boundary
         _buffer += 'Content-Disposition: form-data; name="%s"; filename="%s"\r\n' % args
         _buffer += "Content-Type: %s\r\n" % content_type
-        _buffer += "\r\n%s\r\n" % fd.read()
+        content = smart_unicode(fd.read(), encoding=DEFAULT_ENCODING, errors="ignore")
+        _buffer += "\r\n%s\r\n" % content
 
     _buffer += "--%s--\r\n\r\n" % boundary
 

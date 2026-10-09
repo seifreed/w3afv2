@@ -36,6 +36,18 @@ class TestMultipartEncode(unittest.TestCase):
         )
         self.assertEqual(EXPECTED, encoded)
 
+    def test_encode_bytes_as_text(self):
+        _, encoded = multipart_encode(
+            [(b"name", "café".encode("utf-8"))],
+            {},
+            boundary="fakeboundary",
+        )
+        expected = (
+            '--fakeboundary\r\nContent-Disposition: form-data; name="name"'
+            "\r\n\r\ncafé\r\n--fakeboundary--\r\n\r\n"
+        )
+        self.assertEqual(expected, encoded)
+
     def test_encode_vars_files(self):
         _vars = [("a", "b")]
         _files = [("file", NamedStringIO("file content", name="test.txt"))]

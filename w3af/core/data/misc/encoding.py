@@ -46,7 +46,11 @@ def _return_html_encoded(encodingexc):
     """
     st = encodingexc.start
     en = encodingexc.end
-    hex_encoded = "".join(hex(ord(c))[2:] for c in encodingexc.object[st:en])
+    invalid_data = encodingexc.object[st:en]
+    if isinstance(invalid_data, bytes):
+        hex_encoded = "".join(f"{byte:02x}" for byte in invalid_data)
+    else:
+        hex_encoded = "".join(f"{ord(char):x}" for char in invalid_data)
 
     return str("&#x" + hex_encoded), en
 
@@ -58,7 +62,11 @@ def _return_escaped_char(encodingexc):
     st = encodingexc.start
     en = encodingexc.end
 
-    slash_x_XX = repr(encodingexc.object[st:en])[1:-1]
+    invalid_data = encodingexc.object[st:en]
+    if isinstance(invalid_data, bytes):
+        slash_x_XX = "".join(f"\\x{byte:02x}" for byte in invalid_data)
+    else:
+        slash_x_XX = repr(invalid_data)[1:-1]
     return str(slash_x_XX), en
 
 
@@ -94,7 +102,7 @@ def smart_unicode(
     if _isinstance(s, _unicode):
         return s
 
-    if _isinstance(s, _str):
+    if _isinstance(s, bytes):
         try:
             s = s.decode(encoding, errors)
         except UnicodeDecodeError:

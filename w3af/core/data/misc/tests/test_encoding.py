@@ -39,20 +39,23 @@ class TestEncoding(unittest.TestCase):
         self.assertFalse(is_known_encoding("andres-16"))
 
     def test_escaped_char_empty(self):
-        decoded = "".decode("utf-8", errors=ESCAPED_CHAR)
+        decoded = b"".decode("utf-8", errors=ESCAPED_CHAR)
         self.assertEqual(decoded, "")
 
     def test_escaped_char_no_error(self):
-        decoded = "ábc".decode("utf-8", errors=ESCAPED_CHAR)
+        decoded = "ábc".encode("utf-8").decode("utf-8", errors=ESCAPED_CHAR)
         self.assertEqual(decoded, "ábc")
 
     def test_escaped_char_error_escape_char(self):
-        decoded = "\xff".decode("utf-8", errors=ESCAPED_CHAR)
+        decoded = b"\xff".decode("utf-8", errors=ESCAPED_CHAR)
         self.assertEqual(decoded, "\\xff")
 
     def test_escaped_char_error_html_encode(self):
-        decoded = "\xff".decode("utf-8", errors=HTML_ENCODE)
+        decoded = b"\xff".decode("utf-8", errors=HTML_ENCODE)
         self.assertEqual(decoded, "&#xff")
 
     def test_atilde(self):
         self.assertEqual(smart_unicode("á"), "á")
+
+    def test_smart_unicode_decodes_bytes(self):
+        self.assertEqual(smart_unicode("á".encode("utf-8")), "á")

@@ -98,6 +98,10 @@ vendorizado requieren una revisión separada antes de cerrar la puntuación.
   plugins importan desde esa capa de datos, sin dejar un alias en `controllers`.
 - `NamedStringIO` e `is_file_like` y sus tests viven ahora en `core.data.misc`; sus
   consumidores de datos y plugins no importan ya `controllers.misc.io`.
+- `smart_unicode` decodifica ahora `bytes` conforme a su contrato, y los handlers
+  de error para escapes/HTML manejan bytes de Python 3 sin tratar enteros como
+  caracteres. El encoder multipart conserva texto al serializar nombres y
+  valores, en lugar de interpolar la representación `b'...'`.
 
 ## Revisión actualizada
 
@@ -139,6 +143,15 @@ fallos observados hay nombres de campos serializados como `b'file'` y llamadas
 HTTP reales sin respuesta. Aunque la extracción solo cambia ubicaciones e
 imports, no se comparó esta batería con el commit anterior y los fallos quedan
 pendientes de investigar.
+
+La causa de los nombres `b'file'` quedó reproducida: `smart_str` genera bytes,
+pero el encoder multipart construye un cuerpo `str`. El encoder ahora normaliza
+bytes a texto en su frontera y las pruebas nuevas cubren valores y nombres byte;
+la suite focalizada de encoding/multipart pasa (20 tests, una fixture binaria
+omitida porque se lee como UTF-8). Al repetir la batería amplia tras el arreglo,
+29 pasaron y 16 fallaron. Los fallos restantes incluyen fixtures binarias
+abiertas como texto, APIs privadas de urllib y llamadas HTTP que requieren
+servicios externos; no se ha comparado toda esa suite con un checkout anterior.
 
 ## Prioridades de refactor
 
