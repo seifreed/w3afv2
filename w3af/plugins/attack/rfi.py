@@ -37,7 +37,7 @@ from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.paths import get_home_dir
 from w3af.plugins.attack.payloads import shell_handler
 from w3af.plugins.attack.payloads.decorators.exec_decorator import exec_debug
-from w3af.plugins.attack.shells import ExecShell, Shell
+from w3af.plugins.attack.payloads.shells import ExecShell, Shell
 
 NO_SUCCESS = 0
 SUCCESS_COMPLETE = 1

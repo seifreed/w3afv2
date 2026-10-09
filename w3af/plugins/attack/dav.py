@@ -26,7 +26,7 @@ from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
 from w3af.core.data.fuzzer.utils import rand_alpha
 from w3af.core.data.parsers.doc.url import URL
 from w3af.plugins.attack.payloads import shell_handler
-from w3af.plugins.attack.shells import ExecShell
+from w3af.plugins.attack.payloads.shells import ExecShell
 
 
 class dav(AttackPlugin):

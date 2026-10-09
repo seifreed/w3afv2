@@ -29,7 +29,7 @@ import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
 from w3af.core.controllers.threads.threadpool import return_args
-from w3af.plugins.attack.shells import Shell
+from w3af.plugins.attack.payloads.shells import Shell
 
 ERROR_MSG = "Empty search result"
 XML_FILTER = "//*"

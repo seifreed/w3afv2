@@ -31,7 +31,7 @@ from w3af.core.data.misc.response_cut import ResponseCutMixin
 from w3af.core.exceptions import BodyCutException
 from w3af.plugins.attack.payloads import shell_handler
 from w3af.plugins.attack.payloads.decorators.exec_decorator import exec_debug
-from w3af.plugins.attack.shells import ExecShell
+from w3af.plugins.attack.payloads.shells import ExecShell
 
 
 class ExploitStrategy:

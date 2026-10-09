@@ -30,7 +30,7 @@ from w3af.core.data.kb.exec_shell import ExecShell as DataExecShell
 from w3af.core.data.kb.read_shell import ReadShell as DataReadShell
 from w3af.core.data.kb.shell import Shell as DataShell
 from w3af.plugins.attack.payloads import payload_handler
-from w3af.plugins.attack.shells import ExecShell, ReadShell, Shell
+from w3af.plugins.attack.payloads.shells import ExecShell, ReadShell, Shell
 
 
 class TestWiredShells(unittest.TestCase):

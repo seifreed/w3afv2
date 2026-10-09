@@ -27,7 +27,7 @@ from w3af.core.data.fuzzer.utils import rand_alpha
 from w3af.core.data.misc.io import NamedStringIO
 from w3af.plugins.attack.payloads import shell_handler
 from w3af.plugins.attack.payloads.decorators.exec_decorator import exec_debug
-from w3af.plugins.attack.shells import ExecShell
+from w3af.plugins.attack.payloads.shells import ExecShell
 
 
 class file_upload(AttackPlugin):
