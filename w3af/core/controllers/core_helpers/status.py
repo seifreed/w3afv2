@@ -359,7 +359,7 @@ class CoreStatus:
         )
 
     def get_core_worker_pool_queue_size(self):
-        return self._w3af_core.worker_pool.in_qsize()
+        return self._w3af_core.worker_pool.get_inqueue().qsize()
 
     def log_calculate_eta(
         self, eta, input_speed, output_speed, queue_size, _type, adjustment
