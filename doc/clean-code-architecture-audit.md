@@ -1136,3 +1136,19 @@ producción y las gates globales permanecen pendientes.
 La suite de integración ampliada aún no queda validada: cinco casos requieren
 el servicio externo `moth`, no resoluble en este entorno; el caso de mangle
 falla en código existente porque `HTTPRequest` no implementa `add_data`.
+
+## Avance: diagnósticos de colas y cachés desacoplados
+
+`CachedQueue`, `CacheStats` y `GetAverageRTTForMutant` ahora emiten sus
+diagnósticos con `logging` estándar y dejan de importar `output_manager`; los
+acoplamientos de producción `core.data -> controllers` bajan de 30 a 27. La
+regresión de `CachedQueue.join()` verifica el timeout real: `Condition.wait()`
+devuelve `False` al vencer, así que el aviso de tareas pendientes vuelve a
+emitirse. Se limpiaron además seis hallazgos Ruff locales y se estrechó una
+aserción genérica a `queue.Empty`.
+
+Verificación: 17 pruebas de CachedQueue, RTT y ParserCache pasan; la prueba de
+CacheStats pasa con 100% de cobertura. Black, Ruff y Bandit focalizados pasan.
+El conjunto RTT arrastra 12 warnings de `httpretty` por `datetime.utcnow()`.
+Score global: **4.9/10**; quedan 27 imports directos de producción y las gates
+globales pendientes.

@@ -20,7 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
+import logging
+
+LOGGER = logging.getLogger(__name__)
 
 
 class CacheStats:
@@ -71,14 +73,14 @@ class CacheStats:
 
     def _handle_cache_hit(self, hash_string):
         if self.DEBUG:
-            om.out.debug("[cache] Hit for %s" % hash_string)
+            LOGGER.debug("[cache] Hit for %s", hash_string)
             self._from_LRU += 1
 
     def _handle_cache_miss(self, hash_string):
         if self.DEBUG:
-            om.out.debug("[cache] Miss for %s" % hash_string)
+            LOGGER.debug("[cache] Miss for %s", hash_string)
 
     def _handle_no_cache(self, hash_string):
         if self.DEBUG:
-            om.out.debug("[cache] DO NOT CACHE %s" % hash_string)
+            LOGGER.debug("[cache] DO NOT CACHE %s", hash_string)
             self._do_not_cache += 1

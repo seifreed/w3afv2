@@ -20,11 +20,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import queue
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.data.db.disk_dict import DiskDict
 from w3af.core.data.misc.smart_queue import QueueSpeedMeasurement
+
+LOGGER = logging.getLogger(__name__)
 
 
 class CachedQueue(queue.Queue, QueueSpeedMeasurement):
@@ -83,8 +85,8 @@ class CachedQueue(queue.Queue, QueueSpeedMeasurement):
         Initialize the dicts and pointer
         :param maxsize: The max size for the queue
         """
-        self.memory = dict()
-        self.disk = DiskDict(table_prefix="%sCachedQueue" % self.name)
+        self.memory = {}
+        self.disk = DiskDict(table_prefix=f"{self.name}CachedQueue")
         self.get_pointer = 0
         self.put_pointer = 0
 
@@ -92,10 +94,7 @@ class CachedQueue(queue.Queue, QueueSpeedMeasurement):
         return _len(self.memory) + _len(self.disk)
 
     def _get_class_name(self, obj):
-        try:
-            return obj.__class__.__name__
-        except:
-            return type(obj)
+        return type(obj).__name__
 
     def _put(self, item):
         """
@@ -122,7 +121,7 @@ class CachedQueue(queue.Queue, QueueSpeedMeasurement):
                 self.get_name(),
                 len(self.disk),
             )
-            om.out.debug(msg % args)
+            LOGGER.debug(msg, *args)
 
         #
         #   And now we just save the item to memory (if there is space) or
@@ -158,7 +157,7 @@ class CachedQueue(queue.Queue, QueueSpeedMeasurement):
                     " item from disk. The current %s DiskDict size is %s."
                 )
                 args = (self.get_name(), self.get_name(), len(self.disk))
-                om.out.debug(msg % args)
+                LOGGER.debug(msg, *args)
 
         self._item_left_queue()
         self.processed_tasks += 1
@@ -176,16 +175,16 @@ class CachedQueue(queue.Queue, QueueSpeedMeasurement):
         """
         msg = "Called join on %s with %s unfinished tasks"
         args = (self.name, self.unfinished_tasks)
-        om.out.debug(msg % args)
+        LOGGER.debug(msg, *args)
 
         self.all_tasks_done.acquire()
         try:
             while self.unfinished_tasks:
                 result = self.all_tasks_done.wait(timeout=5)
 
-                if result is None:
+                if not result:
                     msg = "Still have %s unfinished tasks in %s join()"
                     args = (self.unfinished_tasks, self.name)
-                    om.out.debug(msg % args)
+                    LOGGER.debug(msg, *args)
         finally:
             self.all_tasks_done.release()

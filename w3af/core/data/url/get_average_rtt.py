@@ -21,16 +21,18 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import hashlib
+import logging
 import threading
 import time
 
 # pylint: enable=E0401
-import w3af.core.controllers.output_manager as om
 from w3af.core.data.constants.encodings import DEFAULT_ENCODING
 from w3af.core.data.misc.encoding import smart_unicode
 
 # pylint: disable=E0401
 from w3af.core.data.misc.lru import SynchronizedLRUDict
+
+LOGGER = logging.getLogger(__name__)
 
 
 class GetAverageRTTForMutant:
@@ -42,7 +44,7 @@ class GetAverageRTTForMutant:
 
         # Cache to measure RTT
         self._rtt_mutant_cache = SynchronizedLRUDict(capacity=128)
-        self._rtt_processing_events = dict()
+        self._rtt_processing_events = {}
 
     def _get_cache_key(self, mutant):
         #
@@ -110,7 +112,7 @@ class GetAverageRTTForMutant:
                     " and collect the data from the network (did:%s)"
                 )
                 args = (debugging_id,)
-                om.out.debug(msg % args)
+                LOGGER.debug(msg, *args)
             else:
                 # The event was set! The other thread finished and we can read
                 # the result from the cache.
@@ -132,7 +134,7 @@ class GetAverageRTTForMutant:
                     " and collect the data from the network (did:%s)"
                 )
                 args = (debugging_id,)
-                om.out.debug(msg % args)
+                LOGGER.debug(msg, *args)
 
         #
         # There is no other thread getting data for `cache_key`, we'll have to
@@ -152,7 +154,7 @@ class GetAverageRTTForMutant:
 
         msg = "Returning fresh average RTT of %.2f seconds for mutant %s (did:%s)"
         args = (average_rtt, cache_key, debugging_id)
-        om.out.debug(msg % args)
+        LOGGER.debug(msg, *args)
 
         return average_rtt
 
@@ -169,7 +171,7 @@ class GetAverageRTTForMutant:
         # The cache entry is still valid, return the cached value
         msg = "Returning cached average RTT of %.2f seconds for mutant %s (did:%s)"
         args = (value, cache_key, debugging_id)
-        om.out.debug(msg % args)
+        LOGGER.debug(msg, *args)
         return value
 
     def _get_average_rtt_for_mutant(self, mutant, count=3, debugging_id=None):
@@ -185,7 +187,7 @@ class GetAverageRTTForMutant:
             # potentially yield false positives
             #
             rtts_str = ", ".join(str(i) for i in rtts)
-            msg = "Found outliers while sampling average RTT: %s" % rtts_str
+            msg = f"Found outliers while sampling average RTT: {rtts_str}"
             raise OutlierException(msg)
 
         average_rtt = float(sum(rtts)) / len(rtts)

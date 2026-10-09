@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import queue
 import threading
 import time
 import unittest
@@ -89,7 +90,7 @@ class TestCachedQueue(unittest.TestCase):
         q.put(1)
         q.get()
 
-        self.assertRaises(Exception, q.get, block=False)
+        self.assertRaises(queue.Empty, q.get, block=False)
 
         q.put(1)
         self.assertEqual(q.get(), 1)
@@ -169,3 +170,23 @@ class TestCachedQueue(unittest.TestCase):
         spent = time.time() - start
 
         self.assertGreater(spent, 2)
+
+    def test_join_logs_when_a_wait_times_out(self):
+        q = CachedQueue(maxsize=2, name="timeout_test")
+        q.put(1)
+
+        def consume_after_timeout(queue):
+            time.sleep(5.1)
+            queue.get()
+            queue.task_done()
+
+        consumer = threading.Thread(target=consume_after_timeout, args=(q,))
+        consumer.start()
+
+        with self.assertLogs("w3af.core.data.misc.cached_queue", level="DEBUG") as logs:
+            q.join()
+
+        consumer.join()
+        self.assertTrue(
+            any("Still have 1 unfinished tasks" in record for record in logs.output)
+        )
