@@ -31,7 +31,7 @@ from w3af.core.controllers.auto_update.utils import (
     is_git_repo,
     to_short_id,
 )
-from w3af.core.controllers.misc.decorators import memoized
+from w3af.core.data.misc.decorators import Memoized
 
 VERSION_FILE = os.path.join(ROOT_PATH, "core", "data", "constants", "version.txt")
 
@@ -40,7 +40,7 @@ def get_minimalistic_version():
     return open(VERSION_FILE).read().strip()
 
 
-@memoized
+@Memoized
 def get_w3af_version_as_dict():
     """
     This method seems to take considerable time to run when w3af is run from
@@ -49,13 +49,13 @@ def get_w3af_version_as_dict():
     reads the Git meta-data.
 
     Some plugins, such as xml_file, call get_w3af_version every N seconds to
-    write that information to the output file. I added @memoized in order to
+    write that information to the output file. I added @Memoized in order to
     reduce the time it takes to run the output plugin.
 
     :return: All the version information in a dict
     """
     commit = to_short_id(get_latest_commit()) if is_git_repo() else "unknown"
-    cdate = " - %s" % get_latest_commit_date() if is_git_repo() else ""
+    cdate = f" - {get_latest_commit_date()}" if is_git_repo() else ""
     branch = get_current_branch() if is_git_repo() else "unknown"
     dirty = "Yes" if is_dirty_repo() else "No"
 
@@ -75,12 +75,12 @@ def get_w3af_version():
 
     return (
         "w3af - Web Application Attack and Audit Framework\n"
-        "Version: %(version)s\n"
-        "Revision: %(revision)s\n"
-        "Branch: %(branch)s\n"
-        "Local changes: %(dirty)s\n"
+        "Version: {version}\n"
+        "Revision: {revision}\n"
+        "Branch: {branch}\n"
+        "Local changes: {dirty}\n"
         "Author: Andres Riancho and the w3af team."
-    ) % version_dict
+    ).format(**version_dict)
 
 
 def get_w3af_version_minimal():
@@ -88,4 +88,4 @@ def get_w3af_version_minimal():
     :return: A string with the w3af version.
     """
     version_dict = get_w3af_version_as_dict()
-    return "%(version)s / %(revision)s / %(branch)s" % version_dict
+    return f"{version_dict['version']} / {version_dict['revision']} / {version_dict['branch']}"

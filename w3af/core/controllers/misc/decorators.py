@@ -19,18 +19,12 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import functools
 import math
 import threading
 import time
 from functools import wraps
 
 import w3af.core.controllers.output_manager as om
-
-# pylint: disable=E0401
-from w3af.core.data.misc.lru import SynchronizedLRUDict
-
-# pylint: enable=E0401
 
 
 def runonce(exc_class=Exception):
@@ -126,40 +120,6 @@ def cached_property(fun):
         return ret
 
     return property(get)
-
-
-class memoized:
-    """
-    Decorator. Caches a function's return value each time it is called.
-    If called later with the same arguments, the cached value is returned
-    (not reevaluated).
-    """
-
-    def __init__(self, func, lru_size=10):
-        self.func = func
-        self.cache = SynchronizedLRUDict(lru_size)
-
-    def __call__(self, *args, **kwargs):
-        try:
-            result = self.cache[(args, tuple(kwargs.items()))]
-        except KeyError:
-            value = self.func(*args, **kwargs)
-            self.cache[(args, tuple(kwargs.items()))] = value
-            return value
-        else:
-            return result
-
-    def __repr__(self):
-        """
-        Return the function's docstring.
-        """
-        return self.func.__doc__
-
-    def __get__(self, obj, objtype):
-        """
-        Support instance methods.
-        """
-        return functools.partial(self.__call__, obj)
 
 
 def rate_limited(max_per_second):

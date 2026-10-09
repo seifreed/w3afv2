@@ -614,3 +614,27 @@ La puntuación global pasa a **3.2/10**: se elimina otra dependencia ascendente
 de controllers desde datos e infraestructura compartida, pero siguen
 pendientes los numerosos acoplamientos restantes, cobertura completa y gates
 globales.
+
+## Avance: memoización dentro de la capa de datos
+
+El decorador `memoized` vivía en `controllers.misc.decorators`, pese a ser
+utilizado por `data.fuzzer.form_filler` y depender del LRU de `data.misc`. Se
+movió como `Memoized` a `data.misc.decorators` y los dos callers de producción
+ahora dependen de la ubicación inferior correcta. Se quitaron las supresiones
+Pylint que solo permitían el import ascendente anterior. Cuatro tests reales
+cubren funciones, binding de métodos, aislamiento por instancia y desalojo LRU;
+la cobertura del módulo es **100%**.
+
+Al ejecutar los callers apareció además `cmp`, eliminado de Python 3; se
+reemplazó por la diferencia numérica que conserva el orden descendente esperado
+por `smart_fill`. La expectativa del test de versión se actualizó: el archivo
+declara `2019.1.2`, no una versión que empiece por `1`. Las suites de
+`Memoized`, `form_filler` y versión pasan (**12 tests**). Black y Ruff pasan en
+los archivos afectados, y `git diff --check` está limpio. Mypy focal sigue
+detenido por dos errores preexistentes en `core/__init__.py` y
+`core/data/__init__.py`; las gates globales todavía no se han ejecutado.
+
+La puntuación global pasa a **3.3/10**: desaparece una dependencia directa de
+`data` hacia `controllers` y se corrige una API de Python retirada, pero aún
+quedan muchos imports ascendentes, errores de gates fuera de este ámbito y
+cobertura global incompleta.

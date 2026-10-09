@@ -25,10 +25,10 @@ from functools import cmp_to_key
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
-from w3af.core.controllers.misc.decorators import memoized
 from w3af.core.data.constants.file_templates.file_templates import (
     get_file_from_template,
 )
+from w3af.core.data.misc.decorators import Memoized
 from w3af.core.data.misc.io import NamedStringIO
 
 PARAM_NAME_KNOWLEDGE = {
@@ -237,7 +237,7 @@ def sortfunc(x_obj, y_obj):
 
     :return: The answer to: which one is greater?
     """
-    return cmp(y_obj[1], x_obj[1])
+    return y_obj[1] - x_obj[1]
 
 
 def get_match_rate(variable_name, variable_name_db):
@@ -297,7 +297,7 @@ def smart_fill(variable_name, db=PARAM_NAME_KNOWLEDGE, default="56"):
         return default
 
 
-@memoized
+@Memoized
 def smart_fill_file(var_name, file_name):
     """
     This function will return a NamedStringIO, ready to use in multipart forms.
