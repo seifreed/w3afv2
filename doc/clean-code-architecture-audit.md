@@ -1237,3 +1237,18 @@ focalizado solo señala los nombres de módulo heredados `HTTPResponse.py` y
 pero detecta errores transitivos en módulos importados. Score global
 provisional: **5.2/10**; quedan 13 dependencias directas y las gates globales
 sin resolver.
+
+## Avance: ReadShell sin output_manager
+
+`ReadShell` sustituye sus dos diagnósticos de `output_manager` por el logger
+estándar del módulo; la lógica de lectura y la interacción de consola del padre
+`Shell` no se modifican. Las dependencias directas de producción
+`core.data -> controllers` bajan de 13 a 12. Se añade una regresión del mensaje
+de cleanup construyendo una `Vuln` real, sin mocks.
+
+Verificación: **6 pruebas pasan** entre las suites `ReadShell` y `ExecShell`;
+Black y Bandit focalizados pasan. Ruff sigue reportando tres hallazgos previos
+en `ReadShell.download` y el formato de un mensaje de comando (apertura de
+archivo sin context manager, `except` desnudo y formato `%`). No se añadieron
+supresiones. Score global provisional: **5.3/10**; quedan 12 dependencias
+directas y las gates globales pendientes.

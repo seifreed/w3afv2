@@ -22,8 +22,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
+from w3af.core.data.constants.severity import INFORMATION
 from w3af.core.data.kb.read_shell import ReadShell
 from w3af.core.data.kb.tests.test_vuln import MockVuln
+from w3af.core.data.kb.vuln import Vuln
 
 
 class TestReadShell(unittest.TestCase):
@@ -52,3 +54,14 @@ class TestReadShell(unittest.TestCase):
 
         self.assertIn("read", _help)
         self.assertIn("/etc/passwd", _help)
+
+    def test_end_logs_cleanup(self):
+        vuln = Vuln("test", "valid description", INFORMATION, [], "test")
+        shell = ReadShell(vuln, None, None)
+
+        with self.assertLogs("w3af.core.data.kb.read_shell", level="DEBUG") as logs:
+            shell.end()
+
+        self.assertEqual(
+            logs.output, ["DEBUG:w3af.core.data.kb.read_shell:Shell cleanup complete."]
+        )

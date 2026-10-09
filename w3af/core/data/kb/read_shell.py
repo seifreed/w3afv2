@@ -20,13 +20,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import textwrap
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.data.kb.os_detection import detect_remote_os
 from w3af.core.data.kb.shell import Shell
 from w3af.core.exceptions import OSDetectionException
 from w3af.plugins.attack.payloads.decorators.download_decorator import download_debug
+
+LOGGER = logging.getLogger(__name__)
 
 
 class ReadShell(Shell):
@@ -147,7 +149,7 @@ class ReadShell(Shell):
         """
         try:
             self._rOS = detect_remote_os(self.read)
-            om.out.debug(
+            LOGGER.debug(
                 f"Identified remote OS as {self._rOS.title()}, "
                 f'returning "{self._rOS}".'
             )
@@ -163,7 +165,7 @@ class ReadShell(Shell):
         """
         Cleanup. In this case, do nothing.
         """
-        om.out.debug("Shell cleanup complete.")
+        LOGGER.debug("Shell cleanup complete.")
 
     def __repr__(self):
         """
