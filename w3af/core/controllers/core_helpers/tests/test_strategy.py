@@ -23,15 +23,14 @@ import os
 import re
 import subprocess
 import sys
-from typing import ClassVar
 
 import pytest
 
-from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.controllers.ci.wavsep import get_wavsep_http
 from w3af.core.data.db.startup_cfg import StartUpConfig
 from w3af.core.environment import is_running_on_ci
 from w3af.plugins.tests.helper import PluginConfig, PluginTest
+from w3af.tests.helpers.sqli_site import STRING_QS, SQLInjectionSite
 
 SCRIPT_PATH = "/tmp/script-1557.w3af"
 OUTPUT_PATH = "/tmp/1557-output-w3af.txt"
@@ -133,28 +132,16 @@ class TestStrategy(PluginTest):
 
 
 class TestSameFuzzableRequestSet(PluginTest):
-    target_url = get_moth_http(
-        "/audit/sql_injection/" "where_string_single_qs.py?uname=pablo"
-    )
-
-    _run_configs: ClassVar[dict] = {
-        "cfg": {
-            "target": target_url,
-            "plugins": {
-                "audit": (PluginConfig("sqli"),),
-            },
-        }
-    }
-
     @pytest.mark.smoke
-    @pytest.mark.moth
     def test_same_fr_set_object(self):
-        cfg = self._run_configs["cfg"]
+        site = SQLInjectionSite.serve_for(self)
+        target = f"{site.url}{STRING_QS}?uname=pablo"
+        plugins = {"audit": (PluginConfig("sqli"),)}
 
         id_before_fr = id(self.kb.get_all_known_fuzzable_requests())
         id_before_ur = id(self.kb.get_all_known_urls())
 
-        self._scan(cfg["target"], cfg["plugins"])
+        self._scan(target, plugins)
 
         id_after_fr = id(self.kb.get_all_known_fuzzable_requests())
         id_after_ur = id(self.kb.get_all_known_urls())
