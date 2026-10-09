@@ -20,9 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from w3af.core.controllers.ci.moth import get_moth_http
-
-PROFILE_URL = "http://127.0.0.1:8000/audit/sql_injection/"
+TARGET_PLACEHOLDER = "{target_url}"
 
 FAST_TEST_PROFILE = """[profile]
 description = sqli
@@ -39,7 +37,7 @@ ignore_regex =
 verbose = True
 
 [target]
-target = http://127.0.0.1:8000/audit/sql_injection/
+target = {target_url}
 
 [misc-settings]
 fuzz_cookies = False
@@ -103,7 +101,7 @@ ignore_regex =
 verbose = True
 
 [target]
-target = http://127.0.0.1:8000/audit/sql_injection/
+target = {target_url}
 
 [misc-settings]
 fuzz_cookies = False
@@ -148,22 +146,9 @@ url_parameter =
 """
 
 
-def get_test_profile(profile=FAST_TEST_PROFILE):
-    moth = get_moth_http("/")
-
-    target_url = PROFILE_URL.replace("http://127.0.0.1:8000/", moth)
-    profile = profile.replace("http://127.0.0.1:8000/", moth)
-
-    return profile, target_url
-
-
-def get_expected_vuln_names():
-    return ["SQL injection"] * 4
-
-
-def get_expected_vuln_urls(target_url):
-    return [
-        f"{target_url}where_integer_qs.py",
-        f"{target_url}where_string_single_qs.py",
-        f"{target_url}where_integer_form.py",
-    ]
+def get_test_profile(target_url, profile=FAST_TEST_PROFILE):
+    """
+    :param target_url: The URL to scan
+    :return: The scan profile configured to scan target_url
+    """
+    return profile.replace(TARGET_PLACEHOLDER, target_url)

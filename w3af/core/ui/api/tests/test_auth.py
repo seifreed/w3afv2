@@ -25,11 +25,14 @@ import json
 from w3af.core.ui.api.tests.utils.api_unittest import APIUnitTest
 from w3af.core.ui.api.tests.utils.test_profile import get_test_profile
 
+UNREACHED_TARGET = "http://127.0.0.1/"
+
 
 class AuthTest(APIUnitTest):
 
     def test_auth(self):
-        profile, target_url = get_test_profile()
+        target_url = UNREACHED_TARGET
+        profile = get_test_profile(target_url)
         data = {"scan_profile": profile, "target_urls": [target_url]}
 
         # I'm not sending any authentication in this request

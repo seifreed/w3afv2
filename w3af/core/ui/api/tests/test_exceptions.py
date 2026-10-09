@@ -24,12 +24,15 @@ import json
 
 from w3af.core.ui.api.tests.utils.api_unittest import APIUnitTest
 from w3af.core.ui.api.tests.utils.test_profile import get_test_profile
+from w3af.tests.helpers.sqli_site import SQLInjectionSite
 
 
 class ScanExceptionResourceTest(APIUnitTest):
 
     def test_query_exceptions(self):
-        profile, target_url = get_test_profile()
+        site = SQLInjectionSite.serve_for(self, hold_requests=True)
+        target_url = site.url
+        profile = get_test_profile(target_url)
         data = {"scan_profile": profile, "target_urls": [target_url]}
 
         response = self.app.post("/scans/", data=json.dumps(data), headers=self.HEADERS)
@@ -57,7 +60,7 @@ class ScanExceptionResourceTest(APIUnitTest):
         expected_summary = {
             "exception": "unittest",
             "function_name": "exception_creator()",
-            "href": "/scans/0/exceptions/0",
+            "href": f"/scans/{scan_id}/exceptions/0",
             "id": 0,
             # u'lineno': 123,
             "phase": "phase",
@@ -68,3 +71,5 @@ class ScanExceptionResourceTest(APIUnitTest):
         response = self.app.get(f"/scans/{scan_id}/exceptions/0", headers=self.HEADERS)
 
         self.assertIn("traceback", json.loads(response.data))
+
+        site.release()

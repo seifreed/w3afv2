@@ -24,12 +24,16 @@ import json
 
 from w3af.core.ui.api.tests.utils.api_unittest import APIUnitTest
 from w3af.core.ui.api.tests.utils.test_profile import get_test_profile
+from w3af.tests.helpers.sqli_site import SQLInjectionSite
 
 
 class KBApiTest(APIUnitTest):
 
     def test_kb_filters(self):
-        profile, target_url = get_test_profile()
+        site = SQLInjectionSite.serve_for(self)
+        target_url = site.url
+        profile = get_test_profile(target_url)
+        expected_vulns = len(site.vulnerable_urls())
         data = {"scan_profile": profile, "target_urls": [target_url]}
         response = self.app.post("/scans/", data=json.dumps(data), headers=self.HEADERS)
 
@@ -50,7 +54,7 @@ class KBApiTest(APIUnitTest):
         self.assertEqual(response.status_code, 200, response.data)
 
         vuln_items = json.loads(response.data)["items"]
-        self.assertEqual(4, len(vuln_items), vuln_items)
+        self.assertEqual(expected_vulns, len(vuln_items), vuln_items)
 
         response = self.app.get(f"/scans/{scan_id}/kb/?name=Foo", headers=self.HEADERS)
         self.assertEqual(response.status_code, 200, response.data)
@@ -68,7 +72,7 @@ class KBApiTest(APIUnitTest):
         self.assertEqual(response.status_code, 200, response.data)
 
         vuln_items = json.loads(response.data)["items"]
-        self.assertEqual(4, len(vuln_items))
+        self.assertEqual(expected_vulns, len(vuln_items))
 
         response = self.app.get(
             f"/scans/{scan_id}/kb/?url=http://google.com/", headers=self.HEADERS
@@ -86,4 +90,4 @@ class KBApiTest(APIUnitTest):
         self.assertEqual(response.status_code, 200, response.data)
 
         vuln_items = json.loads(response.data)["items"]
-        self.assertEqual(4, len(vuln_items))
+        self.assertEqual(expected_vulns, len(vuln_items))

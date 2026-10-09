@@ -25,21 +25,28 @@ import json
 
 from w3af.core.ui.api.tests.utils.api_unittest import APIUnitTest
 from w3af.core.ui.api.tests.utils.test_profile import get_test_profile
+from w3af.tests.helpers.sqli_site import SQLInjectionSite
 
-EXPECTED_FUZZABLE_REQUESTS = [
-    "GET http://127.0.0.1:8000/audit/sql_injection/ HTTP/1.1\r\nReferer: http://127.0.0.1:8000/\r\n\r\n",
-    "GET http://127.0.0.1:8000/audit/sql_injection/where_integer_form.py HTTP/1.1\r\nReferer: http://127.0.0.1:8000/\r\n\r\n",
-    "POST http://127.0.0.1:8000/audit/sql_injection/where_integer_form.py HTTP/1.1\r\nReferer: http://127.0.0.1:8000/\r\n\r\ntext=&Submit=Submit",
-    "GET http://127.0.0.1:8000/audit/sql_injection/where_string_single_qs.py?uname=pablo HTTP/1.1\r\nReferer: http://127.0.0.1:8000/\r\n\r\n",
-    "GET http://127.0.0.1:8000/audit/sql_injection/ HTTP/1.1\r\n\r\n",
-    "GET http://127.0.0.1:8000/audit/sql_injection/where_integer_qs.py?id=1 HTTP/1.1\r\nReferer: http://127.0.0.1:8000/\r\n\r\n",
-]
+
+def expected_fuzzable_requests(site):
+    referer = f"Referer: {site.root_url}\r\n"
+    form_url = f"{site.url}where_integer_form.py"
+    return {
+        f"GET {site.url} HTTP/1.1\r\n\r\n",
+        f"GET {site.url} HTTP/1.1\r\n{referer}\r\n",
+        f"GET {form_url} HTTP/1.1\r\n{referer}\r\n",
+        f"POST {form_url} HTTP/1.1\r\n{referer}\r\ntext=&Submit=Submit",
+        f"GET {site.url}where_integer_qs.py?id=1 HTTP/1.1\r\n{referer}\r\n",
+        f"GET {site.url}where_string_single_qs.py?uname=pablo HTTP/1.1\r\n{referer}\r\n",
+    }
 
 
 class FuzzableRequestsTest(APIUnitTest):
 
     def test_fuzzable_request_list(self):
-        profile, target_url = get_test_profile()
+        site = SQLInjectionSite.serve_for(self)
+        target_url = site.url
+        profile = get_test_profile(target_url)
         data = {"scan_profile": profile, "target_urls": [target_url]}
         response = self.app.post("/scans/", data=json.dumps(data), headers=self.HEADERS)
 
@@ -63,9 +70,9 @@ class FuzzableRequestsTest(APIUnitTest):
         decoded_fuzzable_requests = []
 
         for encoded_fr in encoded_fuzzable_requests_items:
-            decoded_fr = base64.b64decode(encoded_fr)
+            decoded_fr = base64.b64decode(encoded_fr).decode("utf-8")
             decoded_fuzzable_requests.append(decoded_fr)
 
         self.assertEqual(
-            set(decoded_fuzzable_requests), set(EXPECTED_FUZZABLE_REQUESTS)
+            set(decoded_fuzzable_requests), expected_fuzzable_requests(site)
         )

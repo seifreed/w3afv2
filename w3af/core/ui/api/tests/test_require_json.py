@@ -26,11 +26,14 @@ from w3af.core.ui.api.middlewares.require_json import INVALID_JSON, NO_HEADER
 from w3af.core.ui.api.tests.utils.api_unittest import APIUnitTest
 from w3af.core.ui.api.tests.utils.test_profile import get_test_profile
 
+UNREACHED_TARGET = "http://127.0.0.1/"
+
 
 class RequireJSONTest(APIUnitTest):
 
     def test_require_json_header(self):
-        profile, target_url = get_test_profile()
+        target_url = UNREACHED_TARGET
+        profile = get_test_profile(target_url)
         data = {"scan_profile": profile, "target_urls": [target_url]}
 
         # I'm not sending any content-type in this request

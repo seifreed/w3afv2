@@ -24,12 +24,15 @@ import json
 
 from w3af.core.ui.api.tests.utils.api_unittest import APIUnitTest
 from w3af.core.ui.api.tests.utils.test_profile import get_test_profile
+from w3af.tests.helpers.sqli_site import SQLInjectionSite
 
 
 class URLTest(APIUnitTest):
 
     def test_url_list(self):
-        profile, target_url = get_test_profile()
+        site = SQLInjectionSite.serve_for(self)
+        target_url = site.url
+        profile = get_test_profile(target_url)
         data = {"scan_profile": profile, "target_urls": [target_url]}
         response = self.app.post("/scans/", data=json.dumps(data), headers=self.HEADERS)
 
@@ -49,10 +52,5 @@ class URLTest(APIUnitTest):
 
         url_items = json.loads(response.data)["items"]
 
-        expected_urls = [
-            target_url,
-            f"{target_url[:-1]}/where_integer_qs.py",
-            f"{target_url[:-1]}/where_string_single_qs.py",
-            f"{target_url[:-1]}/where_integer_form.py",
-        ]
+        expected_urls = [target_url, *site.vulnerable_urls()]
         self.assertEqual(set(url_items), set(expected_urls))
