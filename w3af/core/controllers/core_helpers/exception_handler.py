@@ -151,9 +151,7 @@ class ExceptionHandler:
     def write_crash_file(self, edata):
         """
         Writes the exception data to a random file in /tmp/ right after the
-        exception is found.
-
-        Very similar to the create_crash_file but for internal/debugging usage
+        exception is found, for internal/debugging usage.
 
         :return: None
         """
