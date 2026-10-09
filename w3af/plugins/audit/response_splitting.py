@@ -95,6 +95,9 @@ class response_splitting(AuditPlugin):
     def _report_php_errors(self, mutant, response):
         # When trying to send a response splitting to PHP 5.1.2 I get:
         # Header may not contain more than a single header, new line detected
+        if not response.is_text_or_html():
+            return
+
         for error in self.HEADER_ERRORS:
             if error not in response:
                 continue
