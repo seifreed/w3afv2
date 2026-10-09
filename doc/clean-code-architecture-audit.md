@@ -395,13 +395,36 @@ tests de integración de los plugins fallaron al no resolver el host externo
 `fallback`; uno de esos caminos también expuso el uso legado de
 `socket.sslerror` al procesar ese error de conexión. Los módulos de producción
 tocados pasan Ruff, Black e inspección Bandit focal. Black global pasa (1968
-archivos); Ruff global reporta 1243 errores, mypy 2254 en 615 archivos y
+archivos); Ruff global reporta 1241 errores, mypy 2254 en 615 archivos y
 Bandit global 15343 Low, 960 Medium y 780 High al incluir `venv` y código
 vendorizado. `pip-audit` no halló vulnerabilidades conocidas, aunque avisó de
 entradas de caché ilegibles. Los pins de mitmproxy, `aioquic==1.2.0` y
 `urwid==4.0.13` permanecen intactos. El score global sigue en **2.5/10**:
 este movimiento retira una dependencia de controllers del flujo de KB, pero
 quedan muchos imports y los gates globales siguen fallando.
+
+## Avance: utilidades iterables fuera de controllers
+
+Las funciones puras `unique_everseen`, `unique_justseen` y
+`unique_everseen_hash` se movieron de `controllers.misc.itertools_toolset` a
+`data.misc.iterables`; el spider, brute force y URL las importan desde la capa
+de datos y el módulo antiguo se eliminó. La implementación hash usa SHA-256
+para evitar que una colisión MD5 descarte una respuesta diferente. También se
+retiró el acceso a `itertools.imap`, que ya no existe en Python 3.
+
+La regresión del `cmp` indefinido en `get_profiling_results` queda corregida
+con orden descendente por frecuencia; su firma ahora interpreta el argumento
+como `max_items`, como hacía su caller. Una prueba contra la KB real verifica
+el ranking y el límite. Los cinco tests del módulo iterable pasan con **100%
+de cobertura**; Ruff, Black y Bandit focal pasan. Mypy no encuentra errores en
+el módulo nuevo, pero su ejecución focal sigue revelando tres errores
+transitivos en `core.data.__init__`, `core.__init__` y falta de stub para
+`chardet`. La batería conjunta de brute force, limpieza de respuestas y spider
+obtuvo 23 éxitos, 6 fallos de integración y 2 omitidos; los fallos del spider
+incluyen hosts externos y llamadas HTTP que escapan a `httpretty`. Ruff global
+queda en **1241 errores**. El score global permanece en **2.5/10**: se ha
+retirado otro módulo ascendente, pero el resto del grafo y los gates globales
+requieren trabajo sustancial.
 
 ## Avance: generador de IDs en la capa de datos
 

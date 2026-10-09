@@ -40,8 +40,8 @@ from errno import (
 import OpenSSL
 
 from w3af.core.controllers.exceptions import HTTPRequestException
-from w3af.core.controllers.misc.itertools_toolset import unique_everseen_hash
 from w3af.core.data.misc.number_generator import consecutive_number_generator
+from w3af.core.data.misc.iterables import unique_everseen_hash
 from w3af.core.data.constants.response_codes import NO_CONTENT
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.misc.encoding import PERCENT_ENCODE, smart_unicode

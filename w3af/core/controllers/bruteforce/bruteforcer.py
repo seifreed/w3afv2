@@ -21,12 +21,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os.path
-from functools import cmp_to_key
 from itertools import chain
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
-from w3af.core.controllers.misc.itertools_toolset import unique_everseen
+from w3af.core.data.misc.iterables import unique_everseen
 from w3af.core.controllers.misc.make_leet import make_leet
 
 
@@ -186,10 +185,7 @@ class UserPasswordBruteforcer:
                 yield user, passwd
 
 
-def get_profiling_results(self, max_items=50):
-    def sortfunc(x, y):
-        return cmp(y[1], x[1])
-
+def get_profiling_results(max_items=50):
     # pylint: disable=E1103
     kb_data = kb.kb.raw_read("password_profiling", "password_profiling")
 
@@ -204,7 +200,7 @@ def get_profiling_results(self, max_items=50):
 
     else:
         items = list(kb_data.items())
-        items.sort(key=cmp_to_key(sortfunc))
+        items.sort(key=lambda item: item[1], reverse=True)
 
         xlen = min(max_items, len(items))
 

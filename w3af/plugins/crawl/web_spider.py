@@ -28,7 +28,7 @@ import w3af.core.data.constants.response_codes as http_constants
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.exceptions import BaseFrameworkException
-from w3af.core.controllers.misc.itertools_toolset import unique_justseen
+from w3af.core.data.misc.iterables import unique_justseen
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.db.disk_set import DiskSet

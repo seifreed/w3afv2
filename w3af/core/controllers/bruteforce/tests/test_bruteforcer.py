@@ -28,12 +28,29 @@ import pytest
 from w3af.core.controllers.bruteforce.bruteforcer import (
     PasswordBruteforcer,
     UserPasswordBruteforcer,
+    get_profiling_results,
 )
 from w3af.core.controllers.misc.temp_dir import create_temp_dir
+import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.parsers.doc.url import URL
 
 
 class TestPasswordBruteforcer(unittest.TestCase):
+
+    def test_profiling_results_are_sorted_by_frequency(self):
+        location = ("password_profiling", "password_profiling")
+        existing_data = kb.kb.raw_read(*location)
+        kb.kb.raw_write(*location, {"least_common": 1, "most_common": 3, "middle": 2})
+
+        try:
+            self.assertEqual(
+                get_profiling_results(max_items=2), ["most_common", "middle"]
+            )
+        finally:
+            if existing_data:
+                kb.kb.raw_write(*location, existing_data)
+            else:
+                kb.kb.clear(*location)
 
     @pytest.mark.smoke
     def test_contains(self):
