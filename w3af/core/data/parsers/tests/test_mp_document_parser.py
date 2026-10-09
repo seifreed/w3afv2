@@ -86,7 +86,7 @@ class TestMPDocumentParser(unittest.TestCase):
         kmpdp = mmpdp % "MultiProcessingDocumentParser.%s"
         modp = "w3af.core.data.parsers.document_parser.%s"
 
-        with patch(mmpdp % "om.out") as om_mock, patch(
+        with patch(
             kmpdp % "PARSER_TIMEOUT", new_callable=PropertyMock
         ) as timeout_mock, patch(
             kmpdp % "MAX_WORKERS", new_callable=PropertyMock
@@ -107,7 +107,7 @@ class TestMPDocumentParser(unittest.TestCase):
             try:
                 self.mpdoc.get_document_parser_for(http_resp)
             except TimeoutError as toe:
-                self._is_timeout_exception_message(toe, om_mock, http_resp)
+                self._is_timeout_exception_message(toe, http_resp)
             else:
                 self.assertTrue(False)
 
@@ -135,7 +135,7 @@ class TestMPDocumentParser(unittest.TestCase):
         kmpdp = mmpdp % "MultiProcessingDocumentParser.%s"
         modp = "w3af.core.data.parsers.document_parser.%s"
 
-        with patch(mmpdp % "om.out") as om_mock, patch(
+        with patch(
             kmpdp % "PARSER_TIMEOUT", new_callable=PropertyMock
         ) as timeout_mock, patch(
             kmpdp % "MAX_WORKERS", new_callable=PropertyMock
@@ -163,7 +163,7 @@ class TestMPDocumentParser(unittest.TestCase):
                 try:
                     self.mpdoc.get_document_parser_for(http_resp)
                 except TimeoutError as toe:
-                    self._is_timeout_exception_message(toe, om_mock, http_resp)
+                    self._is_timeout_exception_message(toe, http_resp)
                 else:
                     self.assertTrue(False)
 
@@ -177,7 +177,7 @@ class TestMPDocumentParser(unittest.TestCase):
                 try:
                     parser = self.mpdoc.get_document_parser_for(http_resp)
                 except TimeoutError as toe:
-                    self._is_timeout_exception_message(toe, om_mock, http_resp)
+                    self._is_timeout_exception_message(toe, http_resp)
                 else:
                     self.assertIsInstance(parser._parser, HTMLParser)
 
@@ -214,7 +214,7 @@ class TestMPDocumentParser(unittest.TestCase):
         kmpdp = mmpdp % "MultiProcessingDocumentParser.%s"
         modp = "w3af.core.data.parsers.document_parser.%s"
 
-        with patch(mmpdp % "om.out") as om_mock, patch(
+        with patch(
             kmpdp % "PARSER_TIMEOUT", new_callable=PropertyMock
         ) as timeout_mock, patch(
             kmpdp % "MAX_WORKERS", new_callable=PropertyMock
@@ -242,7 +242,7 @@ class TestMPDocumentParser(unittest.TestCase):
                 try:
                     self.mpdoc.get_document_parser_for(http_resp)
                 except TimeoutError as toe:
-                    self._is_timeout_exception_message(toe, om_mock, http_resp)
+                    self._is_timeout_exception_message(toe, http_resp)
                 else:
                     self.assertTrue(False)
 
@@ -256,7 +256,7 @@ class TestMPDocumentParser(unittest.TestCase):
                 try:
                     parser = self.mpdoc.get_document_parser_for(http_resp)
                 except TimeoutError as toe:
-                    self._is_timeout_exception_message(toe, om_mock, http_resp)
+                    self._is_timeout_exception_message(toe, http_resp)
                 else:
                     self.assertIsInstance(parser._parser, HTMLParser)
 
@@ -277,7 +277,7 @@ class TestMPDocumentParser(unittest.TestCase):
         kmpdp = mmpdp % "MultiProcessingDocumentParser.%s"
         modp = "w3af.core.data.parsers.document_parser.%s"
 
-        with patch(mmpdp % "om.out"), patch(
+        with patch(
             kmpdp % "MEMORY_LIMIT", new_callable=PropertyMock
         ) as memory_mock, patch(
             kmpdp % "MAX_WORKERS", new_callable=PropertyMock
@@ -312,7 +312,7 @@ class TestMPDocumentParser(unittest.TestCase):
             doc_parser = self.mpdoc.get_document_parser_for(http_resp)
             self.assertIsInstance(doc_parser._parser, HTMLParser)
 
-    def _is_timeout_exception_message(self, toe, om_mock, http_resp):
+    def _is_timeout_exception_message(self, toe, http_resp):
         msg = (
             "[timeout] The parser took more than %s seconds to "
             'complete parsing of "%s", killed it!'

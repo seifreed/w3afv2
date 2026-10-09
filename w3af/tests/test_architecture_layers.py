@@ -54,20 +54,6 @@ KNOWN_DEBT = frozenset(
         ),
         # Shell runs attack payloads through the plugins payload handler.
         ("w3af.core.data.kb.shell", "w3af.plugins.attack.payloads"),
-        # The multiprocessing document parser bootstraps its worker processes
-        # with the framework logging queue, profiling and thread helpers.
-        (
-            "w3af.core.data.parsers.mp_document_parser",
-            "w3af.core.controllers.output_manager",
-        ),
-        (
-            "w3af.core.data.parsers.mp_document_parser",
-            "w3af.core.controllers.profiling",
-        ),
-        (
-            "w3af.core.data.parsers.mp_document_parser",
-            "w3af.core.controllers.threads.decorators",
-        ),
     }
 )
 
