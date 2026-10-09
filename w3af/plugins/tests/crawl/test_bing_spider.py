@@ -23,12 +23,13 @@ import pytest
 
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
+BASE_URL = "http://www.bonsai-sec.com/"
+
 
 @pytest.mark.fails
 class TestBingSpider(PluginTest):
 
-    target_url = "http://www.bonsai-sec.com/"
-    target_url_fmt = "http://www.bonsai-sec.com/%s"
+    target_url = BASE_URL
 
     _run_configs = {
         "cfg": {
@@ -51,7 +52,7 @@ class TestBingSpider(PluginTest):
     )
 
     MOCK_RESPONSES = [
-        MockResponse(target_url_fmt % eu, "Response body.") for eu in EXPECTED_URLS
+        MockResponse(f"{BASE_URL}{eu}", "Response body.") for eu in EXPECTED_URLS
     ]
 
     def test_found_urls(self):

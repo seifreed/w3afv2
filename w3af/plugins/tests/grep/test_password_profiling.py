@@ -19,8 +19,6 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from functools import cmp_to_key
-
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
@@ -50,9 +48,6 @@ class TestPasswordProfiling(PluginTest):
         cfg = self._run_configs["cfg1"]
         self._scan(cfg["target"], cfg["plugins"])
 
-        def sortfunc(x_obj, y_obj):
-            return cmp(x_obj[1], y_obj[1])
-
         # pylint: disable=E1103
         # Pylint fails to detect the object types that come out of the KB
         collected_passwords = self.kb.raw_read(
@@ -61,7 +56,7 @@ class TestPasswordProfiling(PluginTest):
 
         collected_passwords = list(collected_passwords.keys())
         # pylint: enable=E1103
-        collected_passwords.sort(key=cmp_to_key(sortfunc))
+        collected_passwords.sort(key=lambda password: password[1])
 
         self.assertIn("Moth", collected_passwords)
         self.assertIn("application", collected_passwords)

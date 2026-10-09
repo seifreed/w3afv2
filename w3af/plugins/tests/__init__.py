@@ -1,12 +1,8 @@
-try:
-    _("blah")
-except:
-    import builtins
+import builtins
 
+if "_" not in builtins.__dict__:
     builtins.__dict__["_"] = lambda x: x
 
 
 def setUpPackage():
-    import builtins
-
     builtins.__dict__["_"] = lambda x: x

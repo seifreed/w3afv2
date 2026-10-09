@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import json
 import re
-from functools import cmp_to_key
 from unittest.mock import patch
 
 from w3af.core.data.dc.headers import Headers
@@ -95,10 +94,7 @@ class TestOpenAPIFindAllEndpointsWithAuth(PluginTest):
         ]
 
         # Order them to be able to easily assert things
-        def by_path(fra, frb):
-            return cmp(fra.get_url().url_string, frb.get_url().url_string)
-
-        fuzzable_requests.sort(key=cmp_to_key(by_path))
+        fuzzable_requests.sort(key=lambda fr: fr.get_url().url_string)
 
         #
         # Assertions on call #1
@@ -228,10 +224,7 @@ class TestOpenAPINestedModelSpec(PluginTest):
         ]
 
         # Order them to be able to easily assert things
-        def by_path(fra, frb):
-            return cmp(fra.get_url().url_string, frb.get_url().url_string)
-
-        fuzzable_requests.sort(key=cmp_to_key(by_path))
+        fuzzable_requests.sort(key=lambda fr: fr.get_url().url_string)
 
         self.assertEqual(len(fuzzable_requests), 1)
 

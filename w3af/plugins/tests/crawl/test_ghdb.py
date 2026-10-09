@@ -58,45 +58,34 @@ class TestGHDB(PluginTest):
 
     @pytest.mark.ci_fails
     def test_ghdb_match(self):
-
-        def generate_google_result(*args):
-            global call_count
-            call_count += 1
-            if call_count == 52:
-
-                return [
-                    google_result,
-                ]
-            else:
-                return []
-
         pmodule = "w3af.plugins.crawl.ghdb.%s"
-        with patch(pmodule % "is_private_site") as private_site_mock:
-            with patch.object(google, "get_n_results") as google_mock_method:
+        with (
+            patch(pmodule % "is_private_site") as private_site_mock,
+            patch.object(google, "get_n_results") as google_mock_method,
+        ):
+            # Mock
+            private_site_mock.return_value = False
 
-                # Mock
-                private_site_mock.return_value = False
-
-                google_result = GoogleResult(URL("http://moth/w3af/crawl/ghdb/"))
-                google_mock_method.side_effect = (
+            google_result = GoogleResult(URL("http://moth/w3af/crawl/ghdb/"))
+            google_mock_method.side_effect = (
+                [
+                    [],
+                ]
+                * 50
+                + [
                     [
-                        [],
+                        google_result,
                     ]
-                    * 50
-                    + [
-                        [
-                            google_result,
-                        ]
-                    ]
-                    + [
-                        [],
-                    ]
-                    * 50000
-                )
+                ]
+                + [
+                    [],
+                ]
+                * 50000
+            )
 
-                # Scan
-                cfg = self._run_configs["cfg"]
-                self._scan(self.private_url, cfg["plugins"])
+            # Scan
+            cfg = self._run_configs["cfg"]
+            self._scan(self.private_url, cfg["plugins"])
 
         # Assert
         vulns = self.kb.get("ghdb", "vuln")
