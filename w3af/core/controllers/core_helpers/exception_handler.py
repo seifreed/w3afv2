@@ -75,7 +75,7 @@ class ExceptionHandler:
         self.handle(
             exception_data.status,
             exception_data.exception,
-            (None, None, exception_data.traceback),
+            (None, None, exception_data.exception.__traceback__),
             exception_data.enabled_plugins,
         )
 

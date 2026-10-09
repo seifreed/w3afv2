@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import ClassVar
 
+from w3af.plugins.crawl.dwsync_xml import dwsync_xml
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 
@@ -65,3 +66,29 @@ class TestDWSyncXML(PluginTest):
             {str(u) for u in urls},
             {(self.target_url + end) for end in expected_urls},
         )
+
+
+class TestInvalidDWSyncXML(PluginTest):
+
+    target_url = "http://mock/a/b/c/index.html"
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(target_url, "Index"),
+        MockResponse("http://mock/a/b/_notes/dwsync.xml", "Not a sync file"),
+        MockResponse("http://mock/a/_notes/dwsync.xml", "<dwsync><file></dwsync>"),
+        MockResponse(
+            "http://mock/_notes/dwsync.xml", '<dwsync><file name="//[" /></dwsync>'
+        ),
+    ]
+
+    def test_invalid_dwsync_files_are_ignored(self):
+        self._scan(self.target_url, {"crawl": (PluginConfig("dwsync_xml"),)})
+
+        self.assertEqual(self.kb.get("dwsync_xml", "dwsync_xml"), [])
+
+        requested_paths = {request.path for request in self.received_requests}
+        self.assertIn("/a/b/c/_notes/dwsync.xml", requested_paths)
+        self.assertIn("/_notes/dwsync.xml", requested_paths)
+
+    def test_long_description(self):
+        self.assertIn("dwsync.xml", dwsync_xml().get_long_desc())
