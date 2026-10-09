@@ -143,11 +143,13 @@ class CoreProfiles:
         # It exists, work with it!
 
         # Set the target settings of the profile to the core
-        self._w3af_core.target.set_options(profile_inst.get_target())
+        self._w3af_core.target.clear()
+        target_options = profile_inst.get_target(self._w3af_core.target.get_options())
+        self._w3af_core.target.set_options(target_options)
 
         # Set the misc and http settings
         try:
-            profile_misc_settings = profile_inst.get_misc_settings()
+            profile_misc_settings = profile_inst.get_misc_settings(MiscSettings())
         except BaseFrameworkException as e:
             msg = (
                 "Setting the framework misc-settings raised an exception"
@@ -159,7 +161,7 @@ class CoreProfiles:
             # IGNORE the following parameters from the profile:
             #   - misc_settings.local_ip_address
             #
-            if "local_ip_address" in profile_inst.get_misc_settings():
+            if "local_ip_address" in profile_misc_settings:
                 local_ip = get_local_ip()
                 profile_misc_settings["local_ip_address"].set_value(local_ip)
 

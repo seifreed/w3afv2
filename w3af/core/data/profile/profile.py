@@ -25,7 +25,6 @@ import os
 import shutil
 import string
 
-from w3af.core.controllers.core_helpers.target import CoreTarget
 from w3af.core.controllers.misc.factory import factory
 from w3af.core.data.constants.encodings import UTF8
 from w3af.core.exceptions import BaseFrameworkException
@@ -52,11 +51,9 @@ class profile:
         """
         # The default optionxform transforms the option to lower case;
         # w3af needs the value as it is
-        optionxform = lambda opt: opt
-
         self._config = configparser.ConfigParser(interpolation=None, strict=False)
         # Set the new optionxform function
-        self._config.optionxform = optionxform
+        self._config.optionxform = str
 
         if profname:
             # Get profile name's complete path
@@ -338,15 +335,12 @@ class profile:
         for option in options:
             self._config.set(section, option.get_name(), option.get_value_for_profile())
 
-    def get_misc_settings(self):
+    def get_misc_settings(self, configurable_instance):
         """
         Get the misc settings options.
         :return: The misc settings in an OptionList
         """
-        from w3af.core.controllers.misc_settings import MiscSettings
-
-        misc_settings = MiscSettings()
-        return self._get_x_settings("misc-settings", misc_settings)
+        return self._get_x_settings("misc-settings", configurable_instance)
 
     def get_http_settings(self):
         """
@@ -421,15 +415,11 @@ class profile:
             self._config.add_section(section)
         self._config.set(section, "target", target)
 
-    def get_target(self):
+    def get_target(self, options):
         """
         :return: The profile target with the options (target_os,
                  target_framework, etc.)
         """
-        # Get the plugin defaults with their types
-        target_instance = CoreTarget()
-        options = target_instance.get_options()
-
         for section in self._config.sections():
             # Section is something like audit.xss or crawl.web_spider
             # or [profile] or [target]

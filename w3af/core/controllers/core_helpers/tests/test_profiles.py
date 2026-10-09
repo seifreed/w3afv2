@@ -59,6 +59,17 @@ class TestCoreProfiles(unittest.TestCase):
         self.assertIn("dns_wildcard", enabled_plugins["infrastructure"])
         self.assertIn("web_spider", enabled_plugins["crawl"])
 
+    def test_use_no_profile_preserves_target(self):
+        target_options = self.core.target.get_options()
+        target_options["target"].set_value("http://example.com")
+        self.core.target.set_options(target_options)
+        expected_target = self.core.target.get_options()["target"].get_value()
+
+        self.core.profiles.use_profile(None)
+
+        actual_target = self.core.target.get_options()["target"].get_value()
+        self.assertEqual(expected_target, actual_target)
+
     def test_save_current_to_new_profile(self):
         self.core.profiles.use_profile("OWASP_TOP10", workdir=".")
 

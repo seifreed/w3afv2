@@ -1034,3 +1034,19 @@ declaraciones de importación `core.data -> controllers` bajan de 56 a 55
 global se mantiene en **4.9/10**:
 este cambio elimina código muerto, pero no resuelve la deuda arquitectónica ni
 las gates globales pendientes.
+
+## Avance: defaults de perfil provistos por controllers
+
+`profile` ya no construye `CoreTarget` ni importa `MiscSettings`: ahora recibe
+las opciones por defecto desde `CoreProfiles`, la capa que coordina la carga.
+La limpieza de target que antes ocurría como efecto secundario del constructor
+se hace explícita en el controlador. También se reutiliza la lista de misc
+settings ya leída y se reemplaza un `lambda` identidad por `str`. Las 11 pruebas
+de carga y persistencia de perfiles pasan, incluida una regresión que verifica
+que `use_profile(None)` conserva el target; el módulo `profile.py` queda en 69%
+de cobertura (la cobertura total del proyecto sigue por debajo del 100%). Black,
+Ruff y Bandit pasan en los módulos de producción modificados; Mypy dirigido,
+incluyendo la prueba, sigue mostrando 59 errores en 37 archivos importados.
+Las declaraciones `core.data -> controllers` bajan de 55 a 54. Sigue pendiente
+el acoplamiento del perfil con `factory` al reconstruir opciones de plugins, así
+que la puntuación global permanece en **4.9/10**.
