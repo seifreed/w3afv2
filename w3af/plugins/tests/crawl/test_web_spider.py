@@ -24,16 +24,16 @@ import re
 import urllib.error
 import urllib.parse
 import urllib.request
+from unittest import SkipTest
 
 import pytest
-from unittest import SkipTest
 
 import w3af.core.data.kb.config as cf
 from w3af import ROOT_PATH
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.controllers.ci.wivet import get_wivet_http
-from w3af.core.controllers.misc_settings import EXCLUDE
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.parsers.utils.form_constants import EXCLUDE
 from w3af.core.data.parsers.utils.form_id_matcher_list import FormIDMatcherList
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 

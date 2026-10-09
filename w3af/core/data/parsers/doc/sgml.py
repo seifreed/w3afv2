@@ -31,12 +31,12 @@ from lxml import etree
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
-from w3af.core.controllers.misc_settings import EXCLUDE, INCLUDE
 from w3af.core.data.constants.encodings import DEFAULT_ENCODING
 from w3af.core.data.misc.encoding import smart_unicode
 from w3af.core.data.parsers.doc.baseparser import BaseParser
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.exceptions import ParserException
+from w3af.core.data.parsers.utils.form_constants import EXCLUDE, INCLUDE
 
 
 class Tag:

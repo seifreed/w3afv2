@@ -28,7 +28,6 @@ import pytest
 
 import w3af.core.data.kb.config as cf
 from w3af import ROOT_PATH
-from w3af.core.controllers.misc_settings import EXCLUDE, INCLUDE
 from w3af.core.data.dc.factory import dc_from_form_params
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.dc.urlencoded_form import URLEncodedForm
@@ -36,6 +35,7 @@ from w3af.core.data.parsers.doc.html import HTMLParser
 from w3af.core.data.parsers.doc.tests.data.constants import *
 from w3af.core.data.parsers.doc.tests.test_sgml import build_http_response
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.parsers.utils.form_constants import EXCLUDE, INCLUDE
 from w3af.core.data.parsers.utils.form_id_matcher_list import FormIDMatcherList
 from w3af.core.data.parsers.utils.form_params import (
     DEFAULT_FORM_ENCODING,

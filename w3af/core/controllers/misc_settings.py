@@ -42,10 +42,8 @@ from w3af.core.data.options.option_types import (
     STRING,
     URL_LIST,
 )
+from w3af.core.data.parsers.utils.form_constants import EXCLUDE, INCLUDE
 from w3af.core.data.parsers.utils.form_id_matcher_list import FormIDMatcherList
-
-EXCLUDE = "exclude"
-INCLUDE = "include"
 
 
 class MiscSettings(Configurable):

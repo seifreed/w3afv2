@@ -515,3 +515,19 @@ los archivos afectados, y `git diff --check` queda limpio. La puntuación global
 sube a **2.8/10**: se elimina otra dependencia ascendente demostrable, pero
 permanecen muchas referencias de `core.data` a `controllers`, además de las
 gates globales pendientes.
+
+## Avance: política de formularios fuera de MiscSettings
+
+El parser SGML importaba `EXCLUDE` e `INCLUDE` desde
+`controllers.misc_settings`, un módulo de configuración de aplicación que carga
+opciones y dependencias de red. Los dos valores de política ahora viven en
+`data.parsers.utils.form_constants`; tanto el parser como `MiscSettings` y sus
+consumidores de test importan desde allí. Así, el parser no depende del módulo
+de configuración para comparar dos valores constantes.
+
+Las suites de HTML, SGML y `MiscSettings` suman **46 tests correctos y uno
+omitido**; `form_constants` tiene 100% de cobertura. Ruff focal (`F401`,
+`I001`), Black y `git diff --check` pasan. El score global pasa a **2.9/10**:
+se elimina otra dependencia ascendente en la ruta de parsing, pero siguen
+pendientes los demás acoplamientos de `core.data`, el saneamiento global y sus
+gates.

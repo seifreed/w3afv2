@@ -21,6 +21,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 DEFAULT_FORM_ENCODING = "application/x-www-form-urlencoded"
+EXCLUDE = "exclude"
+INCLUDE = "include"
 
 INPUT_TYPE_FILE = "file"
 INPUT_TYPE_CHECKBOX = "checkbox"
