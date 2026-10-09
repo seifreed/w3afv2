@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import configparser
 import os
-import shutil
 import string
 
 from w3af.core.data.constants.encodings import UTF8
@@ -187,36 +186,6 @@ class profile:
         else:
             return True
 
-    def copy(self, copy_profile_name):
-        """
-        Create a copy of the profile file into copy_profile_name. The directory
-        of the profile is kept unless specified.
-        """
-        new_profile_path_name = copy_profile_name
-
-        # Check path
-        if os.path.sep not in copy_profile_name:
-            dir = os.path.dirname(self.profile_file_name)
-            new_profile_path_name = os.path.join(dir, copy_profile_name)
-
-        # Check extension
-        if not new_profile_path_name.endswith(self.EXTENSION):
-            new_profile_path_name += self.EXTENSION
-
-        try:
-            shutil.copyfile(self.profile_file_name, new_profile_path_name)
-        except OSError as e:
-            msg = f'An exception occurred while copying the profile. Exception: "{e}".'
-            raise BaseFrameworkException(msg) from e
-        else:
-            # Now I have to change the data inside the copied profile, to
-            # reflect the changes.
-            new_profile = profile(new_profile_path_name)
-            new_profile.set_name(copy_profile_name)
-            new_profile.save(new_profile_path_name)
-
-            return True
-
     def set_enabled_plugins(self, plugin_type, plugin_names):
         """
         Set the enabled plugins of type plugin_type.
@@ -290,12 +259,7 @@ class profile:
             if _type != plugin_type or name != plugin_name:
                 continue
             for option in self._config.options(section):
-                try:
-                    value = self._config.get(section, option)
-                except configparser.Error as error:
-                    msg = 'The option "%s" is unknown for the "%s" plugin.'
-                    raise BaseFrameworkException(msg % (option, plugin_name)) from error
-                options_list[option].set_value(value)
+                options_list[option].set_value(self._config.get(section, option))
 
         return options_list
 
@@ -361,14 +325,7 @@ class profile:
             return configurable_options
 
         for option in profile_options:
-            try:
-                value = self._config.get(section, option)
-            except KeyError:
-                # We should never get here...
-                msg = 'The option "%s" is unknown for the "%s" section.'
-                raise BaseFrameworkException(msg % (option, section))
-            else:
-                configurable_options[option].set_value(value)
+            configurable_options[option].set_value(self._config.get(section, option))
 
         return configurable_options
 

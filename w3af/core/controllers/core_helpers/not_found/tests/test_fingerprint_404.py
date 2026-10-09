@@ -30,7 +30,6 @@ import httpretty
 
 from w3af.core.controllers.core_helpers.fingerprint_404 import Fingerprint404
 from w3af.core.controllers.misc.fuzzy_string_cmp import MAX_FUZZY_LENGTH
-from w3af.core.data.db.dbms import clear_default_temp_db_instance
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
@@ -66,7 +65,6 @@ class Generic404Test(unittest.TestCase):
 
     def tearDown(self):
         self.urllib.end()
-        clear_default_temp_db_instance()
 
 
 class Test404Detection(Generic404Test):

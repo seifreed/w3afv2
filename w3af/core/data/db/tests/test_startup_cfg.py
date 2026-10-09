@@ -74,3 +74,32 @@ class TestStartUpConfig(unittest.TestCase):
             scfg.last_commit_id, "3f4808082c1943f964669af1a1c94245bab09c61"
         )
         self.assertEqual(scfg.freq, "D")
+
+    def test_load_custom_values(self):
+        with open(self.CFG_FILE, "w", encoding="utf-8") as cfg:
+            cfg.write(
+                "[STARTUP_CONFIG]\n"
+                "auto-update = off\n"
+                "frequency = yearly\n"
+                "skip-dependencies-check = yes\n"
+                "accepted-disclaimer = maybe\n"
+            )
+
+        scfg = StartUpConfig(self.CFG_FILE)
+
+        self.assertFalse(scfg.auto_upd)
+        self.assertEqual(scfg.freq, StartUpConfig.FREQ_DAILY)
+        self.assertTrue(scfg.get_skip_dependencies_check())
+        self.assertFalse(scfg.accepted_disclaimer)
+
+    def test_load_weekly_frequency(self):
+        with open(self.CFG_FILE, "w", encoding="utf-8") as cfg:
+            cfg.write("[STARTUP_CONFIG]\nfrequency = w\n")
+
+        self.assertEqual(StartUpConfig(self.CFG_FILE).freq, StartUpConfig.FREQ_WEEKLY)
+
+    def test_last_commit_id_must_be_a_string(self):
+        scfg = StartUpConfig(self.CFG_FILE)
+
+        with self.assertRaises(TypeError):
+            scfg.last_commit_id = 1234

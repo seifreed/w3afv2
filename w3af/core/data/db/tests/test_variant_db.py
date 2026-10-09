@@ -27,7 +27,9 @@ from w3af.core.data.db.clean_dc import (
     FILENAME_PLACEHOLDER,
     PATH_PLACEHOLDER,
     clean_fuzzable_request,
+    clean_fuzzable_request_form,
 )
+from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.db.variant_db import (
     MAX_EQUAL_FORM_VARIANTS,
     PARAMS_MAX_VARIANTS,
@@ -509,3 +511,30 @@ class TestVariantDB(unittest.TestCase):
         for i in range(MAX_EQUAL_FORM_VARIANTS * 2):
             fri = create_fuzzable_request(i)
             self.assertTrue(self.vdb.append(fri))
+
+    def test_clean_fuzzable_request_form_without_parameters(self):
+        fr = FuzzableRequest(URL("http://www.w3af.com/foo/bar.htm"))
+
+        self.assertEqual(
+            clean_fuzzable_request_form(fr), "GET|Generic key value container||"
+        )
+
+    def test_clean_fuzzable_request_form_with_query_string(self):
+        fr = FuzzableRequest(URL("http://www.w3af.com/foo/bar.htm?id=1&name=a"))
+
+        self.assertEqual(
+            clean_fuzzable_request_form(fr),
+            "GET|Generic key value container|id=number&name=string|",
+        )
+
+    def test_cleanup_drops_tables(self):
+        db = get_default_temp_db_instance()
+        table_names = [
+            self.vdb._variants._disk_dict.table_name,
+            self.vdb._variants_form._disk_dict.table_name,
+        ]
+
+        self.vdb.cleanup()
+
+        for table_name in table_names:
+            self.assertFalse(db.table_exists(table_name))

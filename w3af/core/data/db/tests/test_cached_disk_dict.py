@@ -124,3 +124,23 @@ class TestCachedDiskDict(unittest.TestCase):
         self.assertEqual(sorted(self.cdd._disk_dict.keys()), [4])
 
         self.assertEqual([self.cdd[k] for k in (1, 2, 3, 4)], [1, 2, 3, 4])
+
+    def test_get_default(self):
+        self.cdd[1] = "one"
+
+        self.assertEqual(self.cdd.get(1), "one")
+        self.assertEqual(self.cdd.get(2, None), None)
+        self.assertRaises(KeyError, self.cdd.get, 2)
+
+    def test_key_already_moved_to_memory(self):
+        self.cdd._access_count.update([5])
+
+        self.cdd._move_key_to_memory_if_needed(5, [5])
+
+        self.assertNotIn(5, self.cdd._in_memory)
+
+    def test_table_prefix(self):
+        cdd = CachedDiskDict(table_prefix="variants")
+        self.addCleanup(cdd.cleanup)
+
+        self.assertIn("cached_disk_dict_variants_", cdd._disk_dict.table_name)

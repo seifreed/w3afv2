@@ -48,6 +48,3 @@ class SQLiTemplate(BaseTemplate):
                  strict matching of vulns before exploiting.
         """
         return "(Blind) SQL injection"
-
-    def get_vulnerability_desc(self):
-        return "Blind and error based SQL injection vulnerability."

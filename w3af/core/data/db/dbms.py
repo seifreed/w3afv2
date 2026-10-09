@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import logging
-import os
 import sqlite3
 from concurrent.futures import Future
 from functools import wraps
@@ -43,6 +42,9 @@ QUERY = "QUERY"
 SELECT = "SELECT"
 COMMIT = "COMMIT"
 POISON = "POISON"
+
+JOURNAL_MODE = "OFF"
+CACHE_SIZE = 2000
 
 DB_MALFORMED_ERROR = (
     "SQLite raised a database disk image is malformed"
@@ -90,7 +92,7 @@ class SQLiteDBMS:
     [0] http://www.python.org/dev/peps/pep-3148/
     """
 
-    def __init__(self, filename, autocommit=False, journal_mode="OFF", cache_size=2000):
+    def __init__(self, filename):
 
         super().__init__()
 
@@ -126,12 +128,16 @@ class SQLiteDBMS:
         #    that .result() will block until the thread is started and
         #    processing tasks.
         #
-        future = self.sql_executor.setup(filename, autocommit, journal_mode, cache_size)
-        # Raises an exception if an error was found during setup
-        future.result()
+        future = self.sql_executor.setup(filename)
+
+        try:
+            future.result()
+        except DBException:
+            # Do not leave the executor thread behind when setup fails
+            self.sql_executor.stop().result()
+            raise
 
         self.filename = filename
-        self.autocommit = autocommit
 
     @verify_started
     def execute(self, query, parameters=(), commit=False):
@@ -141,7 +147,7 @@ class SQLiteDBMS:
         """
         fr = self.sql_executor.query(query, parameters)
 
-        if self.autocommit or commit:
+        if commit:
             self.commit()
 
         return fr
@@ -201,23 +207,10 @@ class SQLiteDBMS:
         query = f"DELETE FROM {name} WHERE 1=1"
         return self.execute(query, commit=True)
 
-    def create_table(self, name, columns, pk_columns=(), constraints=()):
+    def create_table(self, name, columns, pk_columns=()):
         """
         Create table in convenient way.
         """
-        if not name:
-            raise ValueError("create_table requires a table name")
-
-        if not columns:
-            raise ValueError("create_table requires column names and types")
-
-        if not isinstance(columns, list):
-            raise TypeError("create_table requires column names and types in a list")
-
-        if not isinstance(constraints, tuple):
-            raise TypeError("constraints requires constraints in a tuple")
-
-        # Create the table
         query = f"CREATE TABLE {name} ("
 
         all_columns = []
@@ -227,13 +220,8 @@ class SQLiteDBMS:
 
         query += ", ".join(all_columns)
 
-        # Finally the PK and constraints
         if pk_columns:
             query += ", PRIMARY KEY ({})".format(",".join(pk_columns))
-
-        if constraints:
-            for c in constraints:
-                query += f", CONSTRAINT {c}"
 
         query += ")"
 
@@ -266,9 +254,6 @@ class SQLiteExecutor(Process):
     different thread.
     """
 
-    DEBUG = False
-    REPORT_QSIZE_EVERY_N_CALLS = 250
-
     def __init__(self, in_queue):
         super().__init__(name="SQLiteExecutor")
 
@@ -278,8 +263,8 @@ class SQLiteExecutor(Process):
         self.name = "SQLiteExecutor"
 
         self._in_queue = in_queue
-        self._last_reported_qsize = None
         self._current_query_num = 0
+        self.conn = None
         self._poison_pill_received = False
 
     def get_received_poison_pill(self):
@@ -306,22 +291,6 @@ class SQLiteExecutor(Process):
             )
             args = (self._in_queue.maxsize, self._current_query_num)
             LOGGER.debug(msg % args)
-
-    def _report_qsize(self):
-        """
-        Reports the in queue size every N seconds according to REPORT_QSIZE_EVERY_N_CALLS
-        """
-        if self._last_reported_qsize is None:
-            self._last_reported_qsize = 0
-            return
-
-        diff = self._current_query_num - self._last_reported_qsize
-        if diff % self.REPORT_QSIZE_EVERY_N_CALLS == 0:
-            self._last_reported_qsize = self._current_query_num
-
-            msg = "The SQLiteExecutor.in_queue length is %s. Processed %s queries."
-            args = (self._in_queue.qsize(), self._current_query_num)
-            print(msg % args)
 
     def query(self, query, parameters):
         future = Future()
@@ -357,48 +326,30 @@ class SQLiteExecutor(Process):
         self._in_queue.put(request)
         return future
 
-    def setup(self, filename, autocommit=False, journal_mode="OFF", cache_size=2000):
+    def setup(self, filename):
         """
         Request the process to perform a setup.
         """
         future = Future()
-        request = (
-            SETUP,
-            (filename,),
-            {
-                "autocommit": autocommit,
-                "journal_mode": journal_mode,
-                "cache_size": autocommit,
-            },
-            future,
-        )
+        request = (SETUP, (filename,), {}, future)
         self._in_queue.put(request)
         return future
 
-    def _setup_handler(
-        self, filename, autocommit=False, journal_mode="OFF", cache_size=2000
-    ):
+    def _setup_handler(self, filename):
         # Convert the filename to UTF-8, this is needed for windows, and special
         # characters, see:
         # http://www.sqlite.org/c3ref/open.html
         self.filename = replace_file_special_chars(filename)
 
-        self.autocommit = autocommit
-        self.journal_mode = journal_mode
-        self.cache_size = cache_size
+        conn = sqlite3.connect(self.filename, check_same_thread=True)
 
-        #
-        #    Setup phase
-        #
-        if self.autocommit:
-            conn = sqlite3.connect(
-                self.filename, isolation_level=None, check_same_thread=True
-            )
-        else:
-            conn = sqlite3.connect(self.filename, check_same_thread=True)
+        try:
+            conn.execute(f"PRAGMA journal_mode = {JOURNAL_MODE}")
+            conn.execute(f"PRAGMA cache_size = {CACHE_SIZE}")
+        except sqlite3.DatabaseError:
+            conn.close()
+            raise
 
-        conn.execute(f"PRAGMA journal_mode = {self.journal_mode}")
-        conn.execute(f"PRAGMA cache_size = {self.cache_size}")
         conn.text_factory = str
         self.conn = conn
 
@@ -447,28 +398,22 @@ class SQLiteExecutor(Process):
 
             self._report_qsize_limit_reached()
 
-            if self.DEBUG:
-                self._report_qsize()
-                # print('%s %s %s' % (op_code, args, kwds))
-
-            handler = OP_CODES.get(op_code, None)
-
             if not future.set_running_or_notify_cancel():
-                return
-
-            if handler is None:
-                # Invalid OPCODE
-                future.set_result(False)
+                # The client cancelled this request, keep serving the others
                 continue
+
+            handler = OP_CODES[op_code]
 
             if handler == POISON:
                 self._poison_pill_received = True
+                if self.conn is not None:
+                    self.conn.close()
                 future.set_result(True)
                 break
 
             try:
                 result = handler(*args, **kwds)
-            except sqlite3.OperationalError as e:
+            except sqlite3.DatabaseError as e:
                 # I don't like this string match, but it seems that the
                 # exception doesn't have any error code to match
                 if "no such table" in str(e):
@@ -494,15 +439,6 @@ class SQLiteExecutor(Process):
 
 
 temp_default_db = None
-
-
-def clear_default_temp_db_instance():
-    global temp_default_db
-
-    if temp_default_db is not None:
-        temp_default_db.close()
-        temp_default_db = None
-        os.unlink(f"{get_temp_dir()}/main.db")
 
 
 def get_default_temp_db_instance():

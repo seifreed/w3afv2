@@ -101,7 +101,7 @@ class URLTree:
                 n.set_is_leaf(True)
 
     def iteritems(self):
-        yield from self.tree.items()
+        return self.tree.iteritems()
 
     def _url_to_tree_nodes(self, url):
         """

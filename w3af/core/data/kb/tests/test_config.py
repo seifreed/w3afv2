@@ -1,7 +1,7 @@
 """
-ExploitResult.py
+test_config.py
 
-Copyright 2007 Andres Riancho
+Copyright 2026 w3af contributors
 
 This file is part of w3af, http://w3af.org/ .
 
@@ -20,23 +20,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from w3af.core.data.misc.response_cut import ResponseCutMixin
+import unittest
+
+from w3af.core.data.kb.config import Config
 
 
-class ExploitResult(ResponseCutMixin):
-    """
-    This class represents the output of an attack plugin.
+class TestConfig(unittest.TestCase):
+    def test_save(self):
+        config = Config()
 
-    :author: Andres Riancho (andres.riancho@gmail.com)
-    """
+        config.save("fuzzable_headers", ["Referer"])
 
-    def __init__(self):
-        super().__init__()
-        self._id = None
-
-    def set_exploit_result_id(self, _id):
-        """
-        Each ExploitResult is identified by an unique number.
-        :param id: The integer that identifies the ExploitResult
-        """
-        self._id = _id
+        self.assertEqual(config.get("fuzzable_headers"), ["Referer"])

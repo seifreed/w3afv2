@@ -20,43 +20,62 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
+import shutil
+import sqlite3
 import string
-import time
+import tempfile
+import threading
 import unittest
+from concurrent.futures import Future
 from itertools import repeat, starmap
+from multiprocessing.dummy import Queue
 from random import choice
-from unittest import SkipTest
 
-from w3af.core.data.db.dbms import SQLiteDBMS, get_default_temp_db_instance
-from w3af.core.data.db.exceptions import DBException, NoSuchTableException
-from w3af.core.filesystem import (
-    create_temp_dir,
-    get_temp_dir,
-    remove_temp_dir,
+from w3af.core.data.db.dbms import (
+    DB_MALFORMED_ERROR,
+    SELECT,
+    SQLiteDBMS,
+    SQLiteExecutor,
+    get_default_persistent_db_instance,
+    get_default_temp_db_instance,
+)
+from w3af.core.data.db.exceptions import (
+    DBException,
+    MalformedDBException,
+    NoSuchTableException,
 )
 
 
-def get_temp_filename():
-    temp_dir = get_temp_dir()
-    fname = "".join(starmap(choice, repeat((string.ascii_letters,), 18)))
-    filename = os.path.join(temp_dir, fname + ".w3af.temp_db")
-    return filename
-
-
 class TestDBMS(unittest.TestCase):
+    """
+    Each test uses its own directory: removing the shared w3af temp directory
+    would also remove the default database other tests are using.
+    """
 
     def setUp(self):
-        create_temp_dir()
+        self.temp_dir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.temp_dir)
 
-    def tearDown(self):
-        remove_temp_dir()
+    def new_db(self):
+        db = SQLiteDBMS(self.get_temp_filename())
+        self.addCleanup(self.close_db, db)
+        return db
+
+    @staticmethod
+    def close_db(db):
+        if not db.sql_executor.get_received_poison_pill():
+            db.close()
+
+    def get_temp_filename(self):
+        fname = "".join(starmap(choice, repeat((string.ascii_letters,), 18)))
+        return os.path.join(self.temp_dir, fname + ".w3af.temp_db")
 
     def test_open_error(self):
         invalid_filename = "/"
         self.assertRaises(DBException, SQLiteDBMS, invalid_filename)
 
     def test_simple_db(self):
-        db = SQLiteDBMS(get_temp_filename())
+        db = self.new_db()
         db.create_table("TEST", [("id", "INT"), ("data", "TEXT")]).result()
 
         db.execute('INSERT INTO TEST VALUES (1,"a")').result()
@@ -65,7 +84,7 @@ class TestDBMS(unittest.TestCase):
         self.assertEqual((1, "a"), db.select_one("SELECT * from TEST"))
 
     def test_update_update_rowcount(self):
-        db = SQLiteDBMS(get_temp_filename())
+        db = self.new_db()
         db.create_table("TEST", [("id", "INT"), ("data", "TEXT")]).result()
 
         db.execute('INSERT INTO TEST VALUES (1, "a")').result()
@@ -87,43 +106,8 @@ class TestDBMS(unittest.TestCase):
         self.assertEqual(result1.rowcount, 1)
         self.assertEqual(result2.rowcount, 0)
 
-    def test_performance_with_multiple_cursors(self):
-        raise SkipTest(
-            "This test is very specific to my workstation and was written just"
-            " to make sure that my changes did not break the performance of a"
-            " critical part of the framework."
-            ""
-            "It is specific to my workstation because of the hard-coded"
-            " ONE_CURSOR_TIME value, which should be updated in each environment"
-            " by making the dbms._query_handler implementation look like:"
-            ""
-            "return self.cursor.execute(query, parameters)"
-        )
-
-        # I measured the performance of doing 10000 UPDATE calls with the same
-        # cursor in dbms._query_handler(). It took:
-        ONE_CURSOR_TIME = 0.710026979446
-
-        # Now I'm testing the same thing with multiple cursors (which is the way
-        # it should always have been).
-        db = SQLiteDBMS(get_temp_filename())
-        db.create_table("TEST", [("id", "INT"), ("data", "TEXT")]).result()
-
-        db.execute('INSERT INTO TEST VALUES (1, "a")').result()
-
-        start_time = time.time()
-
-        for i in range(10000):
-            result = db.execute(
-                "UPDATE TEST SET data = ? WHERE id = ?", (f"{i}", 1)
-            ).result()
-            self.assertEqual(result.rowcount, 1)
-
-        spent_time = time.time() - start_time
-        self.assertLessEqual(spent_time, ONE_CURSOR_TIME * 1.1)
-
     def test_select_non_exist_table(self):
-        db = SQLiteDBMS(get_temp_filename())
+        db = self.new_db()
 
         self.assertRaises(NoSuchTableException, db.select, "SELECT * from TEST")
 
@@ -137,14 +121,14 @@ class TestDBMS(unittest.TestCase):
         self.assertEqual((1, "a"), db.select_one("SELECT * from TEST"))
 
     def test_simple_db_with_pk(self):
-        db = SQLiteDBMS(get_temp_filename())
+        db = self.new_db()
         fr = db.create_table("TEST", [("id", "INT"), ("data", "TEXT")], ["id"])
         fr.result()
 
         self.assertEqual([], db.select("SELECT * from TEST"))
 
     def test_drop_table(self):
-        db = SQLiteDBMS(get_temp_filename())
+        db = self.new_db()
         fr = db.create_table("TEST", [("id", "INT"), ("data", "TEXT")], ["id"])
         fr.result()
 
@@ -152,7 +136,7 @@ class TestDBMS(unittest.TestCase):
         self.assertRaises(DBException, db.drop_table("TEST").result)
 
     def test_simple_db_with_index(self):
-        db = SQLiteDBMS(get_temp_filename())
+        db = self.new_db()
         fr = db.create_table("TEST", [("id", "INT"), ("data", "TEXT")], ["id"])
         fr.result()
 
@@ -160,23 +144,89 @@ class TestDBMS(unittest.TestCase):
         self.assertRaises(DBException, db.create_index("TEST", ["data"]).result)
 
     def test_table_exists(self):
-        db = SQLiteDBMS(get_temp_filename())
+        db = self.new_db()
         self.assertFalse(db.table_exists("TEST"))
 
-        db = SQLiteDBMS(get_temp_filename())
+        db = self.new_db()
         db.create_table("TEST", [("id", "INT"), ("data", "TEXT")], ["id"])
 
         self.assertTrue(db.table_exists("TEST"))
 
     def test_close_twice(self):
-        db = SQLiteDBMS(get_temp_filename())
+        db = self.new_db()
         db.close()
 
         self.assertRaises(AssertionError, db.close)
+
+    def test_clear_table_and_select_one_without_rows(self):
+        db = self.new_db()
+        db.create_table("TEST", [("id", "INT")]).result()
+        db.execute("INSERT INTO TEST VALUES (1)").result()
+
+        db.clear_table("TEST").result()
+
+        self.assertIsNone(db.select_one("SELECT * FROM TEST"))
+
+    def test_invalid_filename(self):
+        threads = threading.active_count()
+
+        self.assertRaises(DBException, SQLiteDBMS, "embedded\x00null")
+
+        self.assertEqual(threading.active_count(), threads)
+
+    def test_malformed_database(self):
+        filename = self.get_temp_filename()
+
+        conn = sqlite3.connect(filename)
+        conn.execute("CREATE TABLE TEST (data TEXT)")
+        conn.executemany("INSERT INTO TEST VALUES (?)", [("x" * 500,)] * 200)
+        conn.commit()
+        conn.close()
+
+        # Keep the header and the schema page, corrupt every data page
+        with open(filename, "r+b") as db_file:
+            data = bytearray(db_file.read())
+            data[2048:] = b"\xff" * (len(data) - 2048)
+            db_file.seek(0)
+            db_file.write(data)
+
+        with self.assertRaises(MalformedDBException) as context:
+            SQLiteDBMS(filename)
+
+        self.assertEqual(str(context.exception), DB_MALFORMED_ERROR)
+
+    def test_cancelled_request_is_skipped(self):
+        db = self.new_db()
+
+        cancelled = Future()
+        cancelled.cancel()
+        db.sql_executor._in_queue.put((SELECT, ("SELECT 1", ()), {}, cancelled))
+
+        self.assertEqual(db.select("SELECT 2"), [(2,)])
+        self.assertTrue(cancelled.cancelled())
+
+    def test_report_qsize_limit_reached(self):
+        in_queue = Queue(11)
+        in_queue.put(None)
+        executor = SQLiteExecutor(in_queue)
+
+        with self.assertLogs("w3af.core.data.db.dbms", level="DEBUG") as logs:
+            executor._report_qsize_limit_reached()
+
+        self.assertIn("has reached its max limit of 11", logs.output[0])
+
+        in_queue.get()
+        with self.assertNoLogs("w3af.core.data.db.dbms", level="DEBUG"):
+            executor._report_qsize_limit_reached()
 
 
 class TestDefaultDB(unittest.TestCase):
     def test_get_default_temp_db_instance(self):
         self.assertEqual(
             id(get_default_temp_db_instance()), id(get_default_temp_db_instance())
+        )
+
+    def test_get_default_persistent_db_instance(self):
+        self.assertIs(
+            get_default_persistent_db_instance(), get_default_temp_db_instance()
         )

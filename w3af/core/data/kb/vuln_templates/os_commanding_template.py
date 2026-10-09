@@ -80,9 +80,3 @@ class OSCommandingTemplate(BaseTemplate):
                  strict matching of vulns before exploiting.
         """
         return "OS Commanding code execution"
-
-    def get_vulnerability_desc(self):
-        return (
-            "Code execution vulnerability through injection of operating"
-            " system commands."
-        )

@@ -161,10 +161,7 @@ class StartUpConfig:
         except ValueError:
             # Provide default value that enforces the update to happen
             lastupd = local_today() - timedelta(days=31)
-        try:
-            lastrev = config.get(startsection, "last-commit")
-        except TypeError:
-            lastrev = 0
+        lastrev = config.get(startsection, "last-commit")
         return (
             auto_upd,
             freq,
