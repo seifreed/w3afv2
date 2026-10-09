@@ -20,9 +20,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from w3af.core.controllers import output_manager as om
+import logging
+
 from w3af.core.data.dc.headers import Headers
 from w3af.core.exceptions import BaseFrameworkException
+
+LOGGER = logging.getLogger(__name__)
 
 
 class SearchEngine:
@@ -56,14 +59,14 @@ class SearchEngine:
             try:
                 search_results = self.search(query, start, 10)
             except BaseFrameworkException as w3:
-                om.out.debug(str(w3))
+                LOGGER.debug("%s", w3)
                 raise
             except Exception as e:
                 msg = (
                     "An unhandled exception was found in "
                     'search_engines.SearchEngine.search(): "%s"' % str(e)
                 )
-                om.out.error(msg)
+                LOGGER.error(msg)
                 raise BaseFrameworkException(msg)
             else:
                 len_before = len(result)
@@ -81,11 +84,11 @@ class SearchEngine:
 
         # Do some debug..
         if result:
-            om.out.debug("Search engine result: ")
+            LOGGER.debug("Search engine result: ")
             for res in result:
-                om.out.debug("- " + res.URL)
+                LOGGER.debug("- %s", res.URL)
         else:
-            om.out.debug("Search engine returned no results.")
+            LOGGER.debug("Search engine returned no results.")
 
         return result
 
@@ -101,13 +104,13 @@ class SearchEngine:
             try:
                 res_page = self.page_search(query, start, 10)
             except BaseFrameworkException as w3:
-                om.out.debug(str(w3))
+                LOGGER.debug("%s", w3)
                 raise
             except Exception as e:
                 msg = (
                     "Unhandled exception in SearchEngine." 'get_n_result_pages(): "%s"'
                 )
-                om.out.debug(msg % e)
+                LOGGER.debug(msg, e)
                 raise
             else:
                 result.extend(res_page)

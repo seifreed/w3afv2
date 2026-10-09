@@ -21,17 +21,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import json
+import logging
 import re
 import urllib.error
 import urllib.parse
 import urllib.request
 
-from w3af.core.controllers import output_manager as om
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.search_engines.search_engine import SearchEngine
 from w3af.core.data.user_agent.random_user_agent import get_random_user_agent
 from w3af.core.exceptions import BaseFrameworkException
+
+LOGGER = logging.getLogger(__name__)
 
 GOOGLE_SORRY_PAGES = {
     "http://www.google.com/support/bin/answer.py?answer=86640",
@@ -108,7 +110,7 @@ class google(SearchEngine):
 
         msg = "Google search for: '%s' returned %s unique results"
         args = (query, len(set(res)))
-        om.out.debug(msg % args)
+        LOGGER.debug(msg, *args)
 
         return res
 
@@ -143,7 +145,7 @@ class GoogleAPISearch:
             try:
                 self._pages = self._do_google_search()
             except BaseFrameworkException as w3:
-                om.out.debug("%s" % w3)
+                LOGGER.debug("%s", w3)
                 self._status = FINISHED_BAD
             else:
                 self._status = FINISHED_OK
@@ -350,7 +352,7 @@ class GStandardSearch(GoogleAPISearch):
                         " URL from the page. Extracted (invalid) URL"
                         ' is: "%s"'
                     )
-                    om.out.error(msg % url[:15])
+                    LOGGER.error(msg, url[:15])
                 else:
                     links.append(GoogleResult(url_inst))
 

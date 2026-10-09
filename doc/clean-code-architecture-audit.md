@@ -1171,3 +1171,15 @@ deprecados de `httpretty`. Se mantienen los pins de mitmproxy,
 `aioquic==1.2.0` y `urwid==4.0.13` tal como los requiere el commit fijado. Score
 global: **4.9/10**; las gates globales y 21 dependencias directas siguen
 pendientes.
+
+## Avance: motores de búsqueda sin output_manager
+
+`SearchEngine`, Google y PKS ya emiten sus diagnósticos mediante `logging`
+estándar, manteniendo niveles, textos y manejo de excepciones. Se eliminan sus
+tres imports de `controllers`; las dependencias directas de producción
+`core.data -> controllers` bajan de 21 a 18. La prueba PKS pasa y verifica el
+mensaje de diagnóstico con `assertLogs`, usando la respuesta HTTP de su fixture
+existente. Black y Bandit focalizados pasan. Ruff focal informa nueve hallazgos
+heredados en estos módulos; no se añadieron supresiones. Las pruebas Google
+marcadas como dependientes de Internet no se ejecutaron. Score global:
+**4.9/10**; siguen pendientes 18 dependencias directas y las gates globales.

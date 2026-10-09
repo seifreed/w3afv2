@@ -66,8 +66,13 @@ class TestPKS(unittest.TestCase):
 
         httpretty.register_uri(httpretty.GET, url, body=BODY)
 
-        result = self.pks_se.search(domain)
+        with self.assertLogs(
+            "w3af.core.data.search_engines.pks", level="DEBUG"
+        ) as logs:
+            result = self.pks_se.search(domain)
+
         self.assertEqual(len(result), 2)
+        self.assertIn("returned 2 results", logs.output[0])
 
         expected = {"lucas"}
         self.assertTrue(set([r.username for r in result]).issuperset(expected), result)

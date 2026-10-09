@@ -20,14 +20,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import re
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.data.parsers.doc.sgml import SGMLParser
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.search_engines.search_engine import SearchEngine
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.exceptions import BaseFrameworkException
+
+LOGGER = logging.getLogger(__name__)
 
 
 class pks(SearchEngine):
@@ -56,7 +58,7 @@ class pks(SearchEngine):
 
         res = self.met_search(hostname)
         msg = 'PKS search for hostname: "%s" returned %s results.'
-        om.out.debug(msg % (hostname, len(res)))
+        LOGGER.debug(msg, hostname, len(res))
         return res
 
     def met_search(self, query):
