@@ -97,7 +97,7 @@ class html_comments(GrepPlugin):
         "dados pessoais",
     )
 
-    _multi_in = MultiIn([" %s " % w for w in INTERESTING_WORDS])
+    _multi_in = MultiIn([f" {w} " for w in INTERESTING_WORDS])
 
     def grep(self, request, response):
         """

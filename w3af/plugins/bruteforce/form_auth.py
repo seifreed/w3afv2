@@ -171,10 +171,7 @@ class form_auth(BruteforcePlugin):
     def _password_only_login(self, form):
         user_token, pass_token = form.get_login_tokens()
 
-        if user_token is None:
-            return True
-
-        return False
+        return user_token is None
 
     def _fill_form(self, form, username, password):
         """
@@ -340,9 +337,8 @@ class form_auth(BruteforcePlugin):
             user_pass_fields.add(user_token.get_name())
 
         for pname, value, path, value_setter in form.iter_setters():
-            if pname not in user_pass_fields:
-                if not value:
-                    value_setter("1")
+            if pname not in user_pass_fields and not value:
+                value_setter("1")
 
     def _clean_body(self, http_response, username, password):
         """
@@ -449,7 +445,7 @@ class form_auth(BruteforcePlugin):
                 "The form brute-force plugin detected a response"
                 " that might indicate that a user exists or CAPTCHA"
                 " protection is present. Please manually review HTTP"
-                " response with ID %s." % verify_resp_2.id
+                f" response with ID {verify_resp_2.id}."
             )
             return
 
@@ -543,7 +539,4 @@ class FailedLoginPage:
         if len(diff_query_a) < 64:
             return True
 
-        if fuzzy_equal(self.diff_a_b, diff_query_a, 0.9):
-            return True
-
-        return False
+        return bool(fuzzy_equal(self.diff_a_b, diff_query_a, 0.9))

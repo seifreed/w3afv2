@@ -7,11 +7,9 @@ class interesting_files(Payload):
     Search for interesting files in all known directories.
     """
 
-    KNOWN_FALSE_POSITIVES = set(
-        [
-            "/bin/pwd",
-        ]
-    )
+    KNOWN_FALSE_POSITIVES = {
+        "/bin/pwd",
+    }
 
     def _file_path_generator(self):
         interesting_extensions = []

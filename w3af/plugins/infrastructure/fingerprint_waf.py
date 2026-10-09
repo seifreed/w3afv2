@@ -403,7 +403,7 @@ class fingerprint_waf(InfrastructurePlugin):
         desc = desc % name
 
         if protected_by:
-            desc += ' The following is the WAF\'s version: "%s".' % protected_by
+            desc += f' The following is the WAF\'s version: "{protected_by}".'
 
         i = Info(
             "Web Application Firewall fingerprint", desc, response.id, self.get_name()

@@ -54,11 +54,11 @@ class request:
     def __str__(self):
         method_line = self.adhoc_method_line
         if not method_line:
-            method_line = "%s %s HTTP/%s" % (self.method, self.local_uri, self.version)
+            method_line = f"{self.method} {self.local_uri} HTTP/{self.version}"
 
         return (
             self.line_joiner.join(
-                [method_line] + ["%s: %s" % (x, y) for x, y in self.headers]
+                [method_line] + [f"{x}: {y}" for x, y in self.headers]
             )
             + (2 * self.line_joiner)
             + self.body
@@ -111,7 +111,7 @@ class request:
             try:
                 s.send(str(self))
             except Exception as e:
-                om.out.debug('hmap failed to send data to socket: "%s"' % e)
+                om.out.debug(f'hmap failed to send data to socket: "{e}"')
 
                 # Try again
                 tries -= 1
@@ -174,7 +174,7 @@ class request:
                 s.close()
 
             # Success!
-            msg = 'hmap received: "%s..."' % repr(data)[1:-1][:40]
+            msg = f'hmap received: "{repr(data)[1:-1][:40]}..."'
             om.out.debug(msg)
             return response(data)
 
@@ -284,16 +284,16 @@ def get_fingerprint(url, threads):
     )
 
     def logging_decorator(test, url):
-        om.out.debug("[hmap] Starting test %s" % test.__name__)
+        om.out.debug(f"[hmap] Starting test {test.__name__}")
 
         try:
             result = test(url)
         except Exception as e:
             args = (test.__name__, e)
-            om.out.debug('[hmap] Test %s raised an exception: "%s"' % args)
+            om.out.debug('[hmap] Test {} raised an exception: "{}"'.format(*args))
             raise
         else:
-            om.out.debug("[hmap] Test %s finished successfully" % test.__name__)
+            om.out.debug(f"[hmap] Test {test.__name__} finished successfully")
             return result
 
     tests = {
@@ -458,10 +458,10 @@ def malformed_method_line(url):
         #      'HEAD http://some.host.com/ HTTP/1.0',
         #      'HEAD hTTP://some.host.com/ HTTP/1.0',
         #      'HEAD http://some.host.com HTTP/1.0',
-        "HEAD %s HTTP/1.0" % url,
+        f"HEAD {url} HTTP/1.0",
         #'HEAD hTTP://$url/ HTTP/1.0',
         #'HEAD http://$url HTTP/1.0',
-        "HEAD %s" % url,
+        f"HEAD {url}",
         "HEAD http:// HTTP/1.0",
         "HEAD http:/ HTTP/1.0",
         "HEAD http: HTTP/1.0",

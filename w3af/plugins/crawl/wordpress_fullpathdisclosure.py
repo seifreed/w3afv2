@@ -88,13 +88,13 @@ class wordpress_fullpathdisclosure(CrawlPlugin):
         theme_paths = []
         response_body = wp_root_response.get_body()
 
-        theme_regexp = "%swp-content/themes/(.*)/style.css" % domain_path
+        theme_regexp = f"{domain_path}wp-content/themes/(.*)/style.css"
         theme = re.search(theme_regexp, response_body, re.IGNORECASE)
 
         if theme:
             theme_name = theme.group(1)
             for fname in ("header", "footer"):
-                path_fname = "wp-content/themes/%s/%s.php" % (theme_name, fname)
+                path_fname = f"wp-content/themes/{theme_name}/{fname}.php"
                 theme_paths.append(path_fname)
 
         return theme_paths

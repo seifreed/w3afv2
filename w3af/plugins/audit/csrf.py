@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import copy
 from itertools import chain
-from math import log
+from math import log2
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal
@@ -42,8 +42,10 @@ COMMON_CSRF_NAMES = (
     "token",
     "csrf",
     "YII_CSRF_TOKEN",  # http://www.yiiframework.com/
-    "yii_anticsrf"  # http://www.yiiframework.com/
-    "[_token]",  # Symfony 2.x
+    (
+        "yii_anticsrf"  # http://www.yiiframework.com/
+        "[_token]"
+    ),  # Symfony 2.x
     "_csrf_token",  # Symfony 1.4
     "csrfmiddlewaretoken",  # Django 1.5
 )
@@ -88,7 +90,7 @@ class csrf(AuditPlugin):
         #
         # TODO: This algorithm has lots of room for improvement
         if self._is_origin_checked(freq, orig_response, debugging_id):
-            om.out.debug("Origin for %s is checked" % freq.get_url())
+            om.out.debug(f"Origin for {freq.get_url()} is checked")
             return
 
         # Does the request have CSRF token in query string or POST payload?
@@ -96,7 +98,7 @@ class csrf(AuditPlugin):
             return
 
         # Ok, we have found vulnerable to CSRF attack request
-        msg = "Cross Site Request Forgery has been found at: %s" % freq.get_url()
+        msg = f"Cross Site Request Forgery has been found at: {freq.get_url()}"
 
         v = Vuln.from_fr(
             "CSRF vulnerability",
@@ -118,10 +120,7 @@ class csrf(AuditPlugin):
         if response_1.get_code() != response_2.get_code():
             return False
 
-        if not fuzzy_equal(response_1.body, response_2.body, self._equal_limit):
-            return False
-
-        return True
+        return fuzzy_equal(response_1.body, response_2.body, self._equal_limit)
 
     def _is_suitable(self, freq, orig_response):
         """
@@ -165,7 +164,7 @@ class csrf(AuditPlugin):
         if not freq.get_uri().has_query_string() and not freq.get_raw_data():
             return False
 
-        om.out.debug("%s is suitable for CSRF attack" % freq.get_url())
+        om.out.debug(f"{freq.get_url()} is suitable for CSRF attack")
         return True
 
     def _is_origin_checked(self, freq, orig_response, debugging_id):
@@ -184,10 +183,7 @@ class csrf(AuditPlugin):
             mutant, debugging_id=debugging_id
         )
 
-        if not self._is_resp_equal(orig_response, mutant_response):
-            return True
-
-        return False
+        return bool(not self._is_resp_equal(orig_response, mutant_response))
 
     def _find_csrf_token(self, freq):
         """
@@ -247,7 +243,7 @@ class csrf(AuditPlugin):
         for x in range(256):
             p_x = float(data.count(chr(x))) / len(data)
             if p_x > 0:
-                entropy += -p_x * log(p_x, 2)
+                entropy += -p_x * log2(p_x)
 
         return entropy
 
@@ -278,10 +274,7 @@ class csrf(AuditPlugin):
 
         # Calculate entropy
         entropy = self.shannon_entropy(smart_str_ignore(value))
-        if entropy >= min_entropy:
-            return True
-
-        return False
+        return entropy >= min_entropy
 
     def get_long_desc(self):
         """

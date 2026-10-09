@@ -158,7 +158,7 @@ class xpath(AttackPlugin):
             false_resp = self._uri_opener.send_mutant(mutant_false)
             true_resp = self._uri_opener.send_mutant(mutant_true)
         except BaseFrameworkException as e:
-            return 'Error "%s".' % e
+            return f'Error "{e}".'
         else:
             if is_error_resp(false_resp.get_body()) and not is_error_resp(
                 true_resp.get_body()
@@ -193,7 +193,7 @@ class xpath(AttackPlugin):
                 true_resp = self._uri_opener.send_mutant(mutant_true)
                 false_resp = self._uri_opener.send_mutant(mutant_false)
             except BaseFrameworkException as e:
-                om.out.debug('Error "%s"' % e)
+                om.out.debug(f'Error "{e}"')
             else:
                 if is_error_resp(false_resp.get_body()) and not is_error_resp(
                     true_resp.get_body()
@@ -227,7 +227,7 @@ class xpath(AttackPlugin):
                 ).ratio()
 
         except BaseFrameworkException as e:
-            om.out.debug('Error "%s"' % e)
+            om.out.debug(f'Error "{e}"')
         except RuntimeError as rte:
             issue = "https://github.com/andresriancho/w3af/issues/5278"
 
@@ -332,13 +332,13 @@ class XPathReader(Shell):
         try:
             data_len = self._get_data_len()
         except BaseFrameworkException as e:
-            return 'Error found during data length extraction: "%s"' % e
+            return f'Error found during data length extraction: "{e}"'
 
         if data_len is not None:
             try:
                 data = self.get_data(data_len)
             except BaseFrameworkException as e:
-                return 'Error found during data extraction: "%s"' % e
+                return f'Error found during data extraction: "{e}"'
             else:
                 return data
 
@@ -347,7 +347,7 @@ class XPathReader(Shell):
         :return: The length of the data to retrieve or self.max_data_len if the
         XML is too long. In the case of an error, None is returned.
         """
-        om.out.debug("Finding XML data length (max: %s)" % self.max_data_len)
+        om.out.debug(f"Finding XML data length (max: {self.max_data_len})")
 
         maxl = self.max_data_len
         minl = 1
@@ -394,10 +394,7 @@ class XPathReader(Shell):
         mutant.set_token_value(findlen)
         lresp = self._uri_opener.send_mutant(mutant)
 
-        if not self.is_error_resp(lresp.get_body()):
-            return True
-
-        return False
+        return bool(not self.is_error_resp(lresp.get_body()))
 
     def _verify_data_len_lt(self, str_len):
         """
@@ -468,7 +465,7 @@ class XPathReader(Shell):
             dresp = self._uri_opener.send_mutant(mutant)
 
             if not self.is_error_resp(dresp.get_body()):
-                om.out.console('Character found: "%s"' % hexcar)
+                om.out.console(f'Character found: "{hexcar}"')
                 return hexcar
         om.out.console("Character NOT found!")
         return None
@@ -530,19 +527,13 @@ class IsErrorResponse:
             if self.base_response is None:
                 self._configure()
 
-            if (
+            return (
                 difflib.SequenceMatcher(
                     None, self.base_response.get_body(), res_body
                 ).ratio()
                 > THRESHOLD
-            ):
-                return True
-            else:
-                return False
+            )
 
         else:
 
-            if re.search(ERROR_MSG, res_body, re.IGNORECASE):
-                return True
-            else:
-                return False
+            return bool(re.search(ERROR_MSG, res_body, re.IGNORECASE))

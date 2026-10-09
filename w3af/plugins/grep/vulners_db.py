@@ -236,7 +236,7 @@ class vulners_db(GrepPlugin):
             return cached_result
 
         args = (software_name, software_version, check_type)
-        om.out.debug("Detected %s version %s (check type: %s)" % args)
+        om.out.debug("Detected {} version {} (check type: {})".format(*args))
 
         vulnerabilities = {}
 
@@ -250,7 +250,7 @@ class vulners_db(GrepPlugin):
                     software_name, software_version
                 )
             elif check_type == "cpe":
-                cpe_string = "%s:%s" % (software_name, software_version)
+                cpe_string = f"{software_name}:{software_version}"
                 vulnerabilities = self._vulners_api.cpeVulnerabilities(
                     cpe_string.encode()
                 )

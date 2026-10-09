@@ -65,7 +65,7 @@ class server_status(InfrastructurePlugin):
 
             if "apache" in response.get_body().lower():
                 msg = "Apache server-status module is enabled and accessible."
-                msg += ' The URL is: "%s"' % response.get_url()
+                msg += f' The URL is: "{response.get_url()}"'
                 om.out.information(msg)
 
                 self._extract_server_version(fuzzable_request, response)

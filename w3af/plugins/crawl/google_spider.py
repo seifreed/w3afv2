@@ -26,7 +26,7 @@ from w3af.core.controllers.misc.is_private_site import is_private_site
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
-from w3af.core.data.search_engines.google import google as google
+from w3af.core.data.search_engines.google import google
 
 
 class google_spider(CrawlPlugin):

@@ -152,7 +152,7 @@ class private_ip(GrepPlugin):
                 # Some proxy servers will return errors that include headers
                 # in the body along with the client IP which we want to ignore
                 if re.search(
-                    "^.*X-Forwarded-For: .*%s" % ip_address,
+                    f"^.*X-Forwarded-For: .*{ip_address}",
                     response.get_body(),
                     re.MULTILINE,
                 ):

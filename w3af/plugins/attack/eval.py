@@ -107,7 +107,7 @@ class eval(AttackPlugin):
                 if shell_handler.SHELL_IDENTIFIER in http_res.get_body():
                     msg = (
                         "Successfully exploited eval() vulnerability using"
-                        ' the following code snippet: "%s...".' % code[:35]
+                        f' the following code snippet: "{code[:35]}...".'
                     )
                     om.out.debug(msg)
                     self._shellcode_generator = shellcode_generator

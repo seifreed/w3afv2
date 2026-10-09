@@ -37,11 +37,11 @@ def exec_debug(fn):
 
         #   Format the message
         if len(no_newline_result) > 25:
-            exec_result = '"%s..."' % no_newline_result[:25]
+            exec_result = f'"{no_newline_result[:25]}..."'
         else:
-            exec_result = '"%s"' % no_newline_result[:25]
+            exec_result = f'"{no_newline_result[:25]}"'
 
-        msg = 'exec("%s", %s) == %s bytes' % (command, exec_result, len(exec_result))
+        msg = f'exec("{command}", {exec_result}) == {len(exec_result)} bytes'
 
         #   Print the message to the debug output
         om.out.debug(msg)

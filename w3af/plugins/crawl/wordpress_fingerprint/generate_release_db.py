@@ -51,11 +51,11 @@ for i, version in enumerate(extracted_links):
     except:
         errors += 1
         if DEBUG:
-            print("%s is a 404" % version_md5_url)
+            print(f"{version_md5_url} is a 404")
     else:
         if i % 15 == 0:
-            print("[%s/%s] %s %s" % (i, len(extracted_links), version_md5, version))
-        release_db.write("%s,%s\n" % (version_md5, version))
+            print(f"[{i}/{len(extracted_links)}] {version_md5} {version}")
+        release_db.write(f"{version_md5},{version}\n")
 
     if errors > 10:
         print("Found too many errors. Potential scrapping error. Stopping.")

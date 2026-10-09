@@ -115,8 +115,8 @@ class dot_listing(CrawlPlugin):
             fr = FuzzableRequest(response.get_url())
             self.output_queue.put(fr)
 
-        real_users = set([u for u in users if not u.isdigit()])
-        real_groups = set([g for g in groups if not g.isdigit()])
+        real_users = {u for u in users if not u.isdigit()}
+        real_groups = {g for g in groups if not g.isdigit()}
 
         if real_users or real_groups:
             desc = (

@@ -87,7 +87,7 @@ class redos(AuditPlugin):
 
         # Now I can be sure that I found a vuln, we control the
         # response time with the delay
-        desc = "ReDoS was found at: %s" % mutant.found_at()
+        desc = f"ReDoS was found at: {mutant.found_at()}"
         response_ids = [r.id for r in responses]
 
         v = Vuln.from_mutant(

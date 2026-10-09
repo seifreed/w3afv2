@@ -92,7 +92,7 @@ class keys(GrepPlugin):
         if not response.is_text_or_html():
             return
 
-        if not response.get_code() == 200:
+        if response.get_code() != 200:
             return
 
         for _, (key, keypair_type) in self._multi_in.query(response.body):

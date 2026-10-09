@@ -117,12 +117,13 @@ class local_file_reader(AttackPlugin):
             om.out.error(str(e))
             return False
         else:
-            if self._guess_cut(
-                response_a.get_body(), response_b.get_body(), vuln_obj["file_pattern"]
-            ):
-                return True
-            else:
-                return False
+            return bool(
+                self._guess_cut(
+                    response_a.get_body(),
+                    response_b.get_body(),
+                    vuln_obj["file_pattern"],
+                )
+            )
 
     def _strict_with_etc_passwd(self, vuln_obj):
         """

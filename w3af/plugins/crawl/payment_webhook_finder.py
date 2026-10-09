@@ -207,10 +207,10 @@ class payment_webhook_finder(CrawlPlugin):
                 for ext_to_append in exts_to_append:
 
                     if ext_to_append:
-                        ext_to_append = ".%s" % ext_to_append
+                        ext_to_append = f".{ext_to_append}"
 
                     args = (url_string, dir_to_append, file_to_append, ext_to_append)
-                    url_str = "%s%s%s%s" % args
+                    url_str = "{}{}{}{}".format(*args)
 
                     new_url = URL(url_str)
 

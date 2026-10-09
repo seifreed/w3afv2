@@ -91,7 +91,7 @@ class http_vs_https_dist(InfrastructurePlugin):
         try:
             from scapy.all import traceroute
         except ImportError as ie:
-            om.out.debug('There was an error importing scapy.all: "%s"' % ie)
+            om.out.debug(f'There was an error importing scapy.all: "{ie}"')
             return
 
         try:
@@ -109,7 +109,7 @@ class http_vs_https_dist(InfrastructurePlugin):
             # that come from this part of the code. It seems that in some cases
             # the domain resolves to an IPv6 address and scapy does NOT
             # support that protocol.
-            om.out.debug('There was an error running scapy\'s traceroute: "%s"' % e)
+            om.out.debug(f'There was an error running scapy\'s traceroute: "{e}"')
             return
 
         # This destination was probably 'localhost' or a host reached
@@ -117,9 +117,9 @@ class http_vs_https_dist(InfrastructurePlugin):
         if not (https_troute and http_troute):
             return
 
-        https_ip_tuples = list(https_troute.values())[0].values()
+        https_ip_tuples = next(iter(https_troute.values())).values()
         last_https_ip = https_ip_tuples[-1]
-        http_ip_tuples = list(http_troute.values())[0].values()
+        http_ip_tuples = next(iter(http_troute.values())).values()
         last_http_ip = http_ip_tuples[-1]
 
         # Last IP should be True; otherwise the dest wasn't reached
@@ -132,7 +132,7 @@ class http_vs_https_dist(InfrastructurePlugin):
                 om.out.error(desc % (http_port, domain))
         else:
             trace_str = lambda iptuples: "\n".join(
-                "    %s %s" % (t[0], t[1][0]) for t in enumerate(iptuples)
+                f"    {t[0]} {t[1][0]}" for t in enumerate(iptuples)
             )
 
             if http_ip_tuples != https_ip_tuples:
@@ -151,7 +151,7 @@ class http_vs_https_dist(InfrastructurePlugin):
             else:
                 desc = (
                     "The routes to the target's HTTP and HTTPS ports are"
-                    " the same:\n%s" % trace_str(http_ip_tuples)
+                    f" the same:\n{trace_str(http_ip_tuples)}"
                 )
                 set_info("HTTP traceroute", desc)
 

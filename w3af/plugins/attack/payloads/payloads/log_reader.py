@@ -80,8 +80,7 @@ class log_reader(Payload):
             logs.append("/var/log/messages.log." + str(i) + ext)
             logs.append("/var/log/gdm/:0.log." + str(i))
 
-        for fname in logs:
-            yield fname
+        yield from logs
 
     def api_read(self):
         result = {}

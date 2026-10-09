@@ -44,7 +44,7 @@ class xpath(AuditPlugin):
         "Cannot convert expression to a number",
         "Document Axis does not allow any context Location Steps",
         "Empty Path Expression",
-        "DOMXPath::" "Empty Relative Location Path",
+        ("DOMXPath::" "Empty Relative Location Path"),
         "Empty Union Expression",
         "Expected ')' in",
         "Expected node test or name specification after axis operator",
@@ -108,7 +108,7 @@ class xpath(AuditPlugin):
         for xpath_error in xpath_error_list:
             if xpath_error not in mutant.get_original_response_body():
 
-                desc = "XPATH injection was found at: %s" % mutant.found_at()
+                desc = f"XPATH injection was found at: {mutant.found_at()}"
 
                 v = Vuln.from_mutant(
                     "XPATH injection vulnerability",

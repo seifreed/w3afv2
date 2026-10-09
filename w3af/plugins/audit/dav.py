@@ -103,7 +103,7 @@ class dav(AuditPlugin):
         if content_matches and res.get_code() in range(200, 300):
             msg = (
                 "Directory listing with HTTP SEARCH method was found at"
-                'directory: "%s".' % domain_path
+                f'directory: "{domain_path}".'
             )
 
             v = Vuln(
@@ -141,7 +141,7 @@ class dav(AuditPlugin):
         if "D:href" in res and res.get_code() in range(200, 300):
             msg = (
                 "Directory listing with HTTP PROPFIND method was found at"
-                ' directory: "%s".' % domain_path
+                f' directory: "{domain_path}".'
             )
 
             v = Vuln(
@@ -197,7 +197,7 @@ class dav(AuditPlugin):
                 "DAV seems to be incorrectly configured. The web server"
                 " answered with a 500 error code. In most cases, this means"
                 " that the DAV extension failed in some way. This error was"
-                ' found at: "%s".' % put_response.get_url()
+                f' found at: "{put_response.get_url()}".'
             )
 
             i = Info("DAV incorrect configuration", msg, res.id, self.get_name())

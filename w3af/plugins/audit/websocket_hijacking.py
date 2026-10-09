@@ -167,10 +167,10 @@ class websocket_hijacking(AuditPlugin):
         #
         # This is the trick:
         origin_domain = web_socket_url.get_domain()
-        origin_domain += ".%s" % self.W3AF_DOMAIN
+        origin_domain += f".{self.W3AF_DOMAIN}"
 
         for scheme in ("http", "https"):
-            origin = "%s://%s" % (scheme, origin_domain)
+            origin = f"{scheme}://{origin_domain}"
             upgrade_request = build_ws_upgrade_request(
                 web_socket_url, web_socket_version=web_socket_version, origin=origin
             )
@@ -225,7 +225,7 @@ class websocket_hijacking(AuditPlugin):
         origin_domain = web_socket_url.get_domain()
 
         for scheme in ("http", "https"):
-            origin = "%s://%s" % (scheme, origin_domain)
+            origin = f"{scheme}://{origin_domain}"
             upgrade_request = build_ws_upgrade_request(
                 web_socket_url, web_socket_version=web_socket_version, origin=origin
             )

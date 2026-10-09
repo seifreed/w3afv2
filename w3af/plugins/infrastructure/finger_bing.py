@@ -32,7 +32,7 @@ from w3af.core.data.kb.info import Info
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.parsers import parser_cache
-from w3af.core.data.search_engines.bing import bing as bing
+from w3af.core.data.search_engines.bing import bing
 from w3af.core.exceptions import ScanMustStopOnUrlError
 
 
@@ -76,9 +76,9 @@ class finger_bing(InfrastructurePlugin):
         """
         try:
             url = page.URL
-            om.out.debug("Searching for emails in: %s" % url)
+            om.out.debug(f"Searching for emails in: {url}")
 
-            grep = True if self._domain == url.get_domain() else False
+            grep = self._domain == url.get_domain()
             response = self._uri_opener.GET(page.URL, cache=True, grep=grep)
         except ScanMustStopOnUrlError:
             # Just ignore it

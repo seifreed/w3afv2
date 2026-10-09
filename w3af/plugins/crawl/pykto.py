@@ -428,10 +428,7 @@ class NiktoTestParser:
                 yield (nikto_test,)
 
     def _filter_special(self, nikto_test):
-        if not nikto_test.uri:
-            return False
-
-        return True
+        return nikto_test.uri
 
     def _is_comment(self, line):
         """
@@ -617,10 +614,9 @@ class NiktoTestParser:
         """
         match_obj = self._junk_re.search(query)
 
-        if match_obj is not None:
-            if match_obj.group(1).isdigit():
+        if match_obj is not None and match_obj.group(1).isdigit():
 
-                length = int(match_obj.group(1))
-                query = self._junk_re.sub(rand_alnum(length), query)
+            length = int(match_obj.group(1))
+            query = self._junk_re.sub(rand_alnum(length), query)
 
         return query

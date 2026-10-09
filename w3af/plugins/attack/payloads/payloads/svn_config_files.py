@@ -49,8 +49,7 @@ class svn_config_files(Payload):
             yield "/srv/svn/" + folder.lower() + "/conf/svnserve.conf"
             yield "/srv/svn/" + folder.lower() + "/conf/passwd"
 
-        for file_path in apache_config_files:
-            yield file_path
+        yield from apache_config_files
 
     def api_read(self):
         self.result = {}

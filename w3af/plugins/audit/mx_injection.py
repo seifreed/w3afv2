@@ -85,7 +85,7 @@ class mx_injection(AuditPlugin):
             if mx_error in mutant.get_original_response_body():
                 continue
 
-            desc = "MX injection was found at: %s" % mutant.found_at()
+            desc = f"MX injection was found at: {mutant.found_at()}"
 
             v = Vuln.from_mutant(
                 "MX injection vulnerability",

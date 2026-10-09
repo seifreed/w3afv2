@@ -197,11 +197,7 @@ class strange_parameters(GrepPlugin):
         # the length is greater than X then report it
         #
         split_value = [x for x in self.STRANGE_RE_CHARS.split(value) if x != ""]
-        if len(split_value) > 4:
-            if not request.sent(value):
-                return True
-
-        return False
+        return bool(len(split_value) > 4 and not request.sent(value))
 
     def get_long_desc(self):
         """

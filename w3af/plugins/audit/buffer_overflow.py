@@ -46,9 +46,11 @@ class buffer_overflow(AuditPlugin):
         "Backtrace:",
         "Memory map:",
         # Note that the lack of commas after the strings is intentional
-        "<html><head>\n<title>500 Internal Server Error</title>\n"
-        "</head><body>\n<h1>"
-        "Internal Server Error</h1>",
+        (
+            "<html><head>\n<title>500 Internal Server Error</title>\n"
+            "</head><body>\n<h1>"
+            "Internal Server Error</h1>"
+        ),
     )
 
     _multi_in = MultiIn(OVERFLOW_ERRORS)

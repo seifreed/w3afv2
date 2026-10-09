@@ -48,19 +48,19 @@ class eval(AuditPlugin):
 
     PRINT_STRINGS = (
         # PHP http://php.net/eval
-        "echo str_repeat('%%s',%s);" % PRINT_REPEATS,
+        f"echo str_repeat('%s',{PRINT_REPEATS});",
         # Perl http://perldoc.perl.org/functions/eval.html
-        "print '%%s'x%s" % PRINT_REPEATS,
+        f"print '%s'x{PRINT_REPEATS}",
         # Python
         # http://docs.python.org/reference/simple_stmts.html#the-exec-statement
-        "print('%%s'*%s)" % PRINT_REPEATS,
+        f"print('%s'*{PRINT_REPEATS})",
         # ASP
-        'Response.Write(new String("%%s",%s))' % PRINT_REPEATS,
+        f'Response.Write(new String("%s",{PRINT_REPEATS}))',
         # NodeJS
-        "response.end((new Array(%s+1)).join('%%s'))" % PRINT_REPEATS,
-        ";response.end((new Array(%s+1)).join('%%s'))" % PRINT_REPEATS,
-        "res.end((new Array(%s+1)).join('%%s'))" % PRINT_REPEATS,
-        ";res.end((new Array(%s+1)).join('%%s'))" % PRINT_REPEATS,
+        f"response.end((new Array({PRINT_REPEATS}+1)).join('%s'))",
+        f";response.end((new Array({PRINT_REPEATS}+1)).join('%s'))",
+        f"res.end((new Array({PRINT_REPEATS}+1)).join('%s'))",
+        f";res.end((new Array({PRINT_REPEATS}+1)).join('%s'))",
     )
 
     WAIT_OBJ = (

@@ -55,14 +55,14 @@ class zone_h(InfrastructurePlugin):
         # http://www.zone-h.org/archive/domain=cyprus-stones.com
 
         # TODO: Keep this URL updated!
-        zone_h_url_str = "http://www.zone-h.org/archive/domain=%s" % target_domain
+        zone_h_url_str = f"http://www.zone-h.org/archive/domain={target_domain}"
         zone_h_url = URL(zone_h_url_str)
 
         try:
             response = self._uri_opener.GET(zone_h_url)
         except BaseFrameworkException as e:
             msg = "An exception was raised while running zone-h plugin."
-            msg += ' Exception: "%s"' % e
+            msg += f' Exception: "{e}"'
             om.out.debug(msg)
         else:
             self._parse_zone_h_result(response)
@@ -99,7 +99,7 @@ class zone_h(InfrastructurePlugin):
                 desc = (
                     "The target site was defaced more than one time in the"
                     " past. For more information please visit the following"
-                    ' URL: "%s".' % response.get_url()
+                    f' URL: "{response.get_url()}".'
                 )
 
                 v = Vuln(

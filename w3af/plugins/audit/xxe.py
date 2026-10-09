@@ -62,11 +62,15 @@ class xxe(AuditPlugin):
         # This is the most effective payload I've found until now, tested using
         # libxml (python wrapper, but should apply to all libxml versions).
         '<!DOCTYPE xxe_test [ <!ENTITY xxe_test SYSTEM "%s"> ]><x>&xxe_test;</x>',
-        '<?xml version="1.0" encoding="ISO-8859-1"?>'
-        '<!DOCTYPE xxe_test [ <!ENTITY xxe_test SYSTEM "%s"> ]><x>&xxe_test;</x>',
-        '<?xml version="1.0" encoding="ISO-8859-1"?>'
-        '<!DOCTYPE xxe_test [<!ELEMENT foo ANY><!ENTITY xxe_test SYSTEM "%s">]>'
-        "<foo>&xxe_test;</foo>",
+        (
+            '<?xml version="1.0" encoding="ISO-8859-1"?>'
+            '<!DOCTYPE xxe_test [ <!ENTITY xxe_test SYSTEM "%s"> ]><x>&xxe_test;</x>'
+        ),
+        (
+            '<?xml version="1.0" encoding="ISO-8859-1"?>'
+            '<!DOCTYPE xxe_test [<!ELEMENT foo ANY><!ENTITY xxe_test SYSTEM "%s">]>'
+            "<foo>&xxe_test;</foo>"
+        ),
     ]
 
     LINUX_PAYLOADS = [
@@ -107,9 +111,11 @@ class xxe(AuditPlugin):
         "XML syntax error on line",
         "Error unmarshaling XML",
         "conflicts with field",
-        "illegal character code"
-        # .NET
-        "XML Parsing Error",
+        (
+            "illegal character code"
+            # .NET
+            "XML Parsing Error"
+        ),
         "SyntaxError",
         "no root element",
         "not well-formed",
@@ -138,10 +144,7 @@ class xxe(AuditPlugin):
         if "xml" in param_name.lower():
             return True
 
-        if "<" in param_value and ">" in param_value:
-            return True
-
-        return False
+        return bool("<" in param_value and ">" in param_value)
 
     def _create_payloads(self, param_name, original_value):
         """
@@ -377,8 +380,7 @@ class xxe(AuditPlugin):
         if self.REMOTE_SUCCESS in body:
             yield self.REMOTE_SUCCESS
 
-        for file_pattern_match in self.file_pattern_multi_in.query(body):
-            yield file_pattern_match
+        yield from self.file_pattern_multi_in.query(body)
 
     def get_long_desc(self):
         """

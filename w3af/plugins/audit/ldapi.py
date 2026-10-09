@@ -107,7 +107,7 @@ class ldapi(AuditPlugin):
             for ldap_error_string in ldap_error_list:
                 if ldap_error_string not in mutant.get_original_response_body():
 
-                    desc = "LDAP injection was found at: %s" % mutant.found_at()
+                    desc = f"LDAP injection was found at: {mutant.found_at()}"
 
                     v = Vuln.from_mutant(
                         "LDAP injection vulnerability",

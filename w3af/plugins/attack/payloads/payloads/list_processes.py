@@ -41,7 +41,7 @@ class list_processes(Payload):
 
         def fname_iter(pid_iter):
             for pid in pid_iter:
-                yield "/proc/%s/status" % pid
+                yield f"/proc/{pid}/status"
 
         for file_name, status_file in self.read_multi(fname_iter(pid_iter)):
             #   "progress bar"
@@ -58,7 +58,7 @@ class list_processes(Payload):
 
                 pid = file_name.split("/")[2]
 
-                cmd = self.shell.read("/proc/%s/cmdline" % pid)
+                cmd = self.shell.read(f"/proc/{pid}/cmdline")
                 cmd = cmd.replace("\x00", " ")
                 cmd = cmd.strip()
                 if not cmd:

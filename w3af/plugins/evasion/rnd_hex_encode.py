@@ -77,7 +77,7 @@ class rnd_hex_encode(EvasionPlugin):
         for char in data:
             if char not in ["?", "/", "&", "\\", "=", "%", "+"]:
                 if randint(1, 2) == 2:
-                    char = "%%%02x" % ord(char)
+                    char = f"%{ord(char):02x}"
             new_data += char
 
         return new_data

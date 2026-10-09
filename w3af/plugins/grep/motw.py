@@ -110,7 +110,7 @@ class motw(GrepPlugin):
                 om.out.information(pretty_msg[motw_type])
                 for i in inform:
                     if "local_machine" not in i:
-                        om.out.information("- %s" % i.get_url())
+                        om.out.information(f"- {i.get_url()}")
                     else:
                         msg = "- %s [Executed in Local machine context]"
                         om.out.information(msg % i.get_url())

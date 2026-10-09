@@ -117,7 +117,7 @@ class archive_dot_org(CrawlPlugin):
         if len(real_urls):
             om.out.debug("Archive.org cached the following pages:")
             for u in real_urls:
-                om.out.debug("- %s" % u)
+                om.out.debug(f"- {u}")
         else:
             om.out.debug("Archive.org did not find any pages.")
 

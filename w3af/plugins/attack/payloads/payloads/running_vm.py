@@ -38,8 +38,7 @@ class running_vm(Payload):
         files.append("/proc/iomem")
         files.append("/proc/meminfo")
 
-        for file_ in files:
-            yield file_
+        yield from files
 
     def api_read(self):
         result = {}

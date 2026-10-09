@@ -263,11 +263,11 @@ class find_vhosts(InfrastructurePlugin):
         base_url = fuzzable_request.get_url().base_url()
 
         # One for the TLD
-        non_existent_domain = "iDoNotExistPleaseGoAwayNowOrDie%s.com" % rand_alnum(4)
+        non_existent_domain = f"iDoNotExistPleaseGoAwayNowOrDie{rand_alnum(4)}.com"
 
         # One for subdomain
         args = (rand_alnum(4), base_url.get_domain())
-        non_existent_subdomain = "iDoNotExistPleaseGoAwayNowOrDie%s.%s" % args
+        non_existent_subdomain = "iDoNotExistPleaseGoAwayNowOrDie{}.{}".format(*args)
 
         result = []
 

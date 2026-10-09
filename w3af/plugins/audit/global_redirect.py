@@ -42,7 +42,7 @@ class global_redirect(AuditPlugin):
     TEST_DOMAIN = _TEST_DOMAIN
 
     EXTENDED_PAYLOADS = None
-    BASIC_PAYLOADS = {"http://www.%s/" % TEST_DOMAIN, "//%s" % TEST_DOMAIN}
+    BASIC_PAYLOADS = {f"http://www.{TEST_DOMAIN}/", f"//{TEST_DOMAIN}"}
 
     SCRIPT_RE = re.compile("<script.*?>(.*?)</script>", re.IGNORECASE | re.DOTALL)
     META_URL_RE = re.compile(".*?; *?URL *?= *?(.*)", re.IGNORECASE | re.DOTALL)
@@ -161,14 +161,14 @@ class global_redirect(AuditPlugin):
         extended_payloads = set()
         extended_payloads.update(
             [
-                "%s.%s" % args,
-                "//%s.%s/" % args,
-                "http://%s.%s/" % args,
-                "https://%s.%s/" % args,
-                "%s@%s" % args,
-                "//%s@%s" % args,
-                "http://%s@%s" % args,
-                "https://%s@%s" % args,
+                "{}.{}".format(*args),
+                "//{}.{}/".format(*args),
+                "http://{}.{}/".format(*args),
+                "https://{}.{}/".format(*args),
+                "{}@{}".format(*args),
+                "//{}@{}".format(*args),
+                "http://{}@{}".format(*args),
+                "https://{}@{}".format(*args),
             ]
         )
 
@@ -256,10 +256,7 @@ class global_redirect(AuditPlugin):
             return False
 
         _, url = split_refresh
-        if self._domain_equals_test_domain(url):
-            return True
-
-        return False
+        return bool(self._domain_equals_test_domain(url))
 
     def _meta_redirect(self, response):
         """

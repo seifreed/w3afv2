@@ -362,14 +362,14 @@ class retirejs(GrepPlugin):
             )
         except subprocess.TimeoutExpired:
             # The process timed out and the returncode was never set
-            om.out.debug("The retirejs process for batch %s timeout out" % batch)
-            return dict()
+            om.out.debug(f"The retirejs process for batch {batch} timeout out")
+            return {}
 
         # retirejs will return code != 0 when a vulnerability is found
         # we use this to decide when we need to parse the output
         if returncode == 0:
             self._remove_file(json_file.name)
-            return dict()
+            return {}
 
         try:
             file_contents = open(json_file.name).read()
@@ -378,7 +378,7 @@ class retirejs(GrepPlugin):
             om.out.debug(msg % json_file.name)
 
             self._remove_file(json_file.name)
-            return dict()
+            return {}
 
         try:
             json_doc = json.loads(file_contents)
@@ -391,7 +391,7 @@ class retirejs(GrepPlugin):
             om.out.debug(msg % args)
 
             self._remove_file(json_file.name)
-            return dict()
+            return {}
         else:
             self._remove_file(json_file.name)
             return json_doc
@@ -587,7 +587,7 @@ class VulnerabilityMessage:
             " affected library."
         )
 
-        summaries = "\n".join(" - %s" % vuln.summary for vuln in self.vulnerabilities)
+        summaries = "\n".join(f" - {vuln.summary}" for vuln in self.vulnerabilities)
 
         args = {
             "url": self.url,

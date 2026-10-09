@@ -165,7 +165,9 @@ class find_dvcs(CrawlPlugin):
             #
             # Log in order to be able to improve the framework.
             args = (e, repo_get_files.__name__, repo_url)
-            om.out.debug('Got a "%s" exception while running "%s" on "%s"' % args)
+            om.out.debug(
+                'Got a "{}" exception while running "{}" on "{}"'.format(*args)
+            )
             return
 
         parsed_url_set = set()
@@ -469,10 +471,10 @@ class find_dvcs(CrawlPlugin):
             if not line:
                 continue
 
-            if line.startswith("/") or line.startswith("^"):
+            if line.startswith(("/", "^")):
                 line = line[1:]
 
-            if line.endswith("/") or line.endswith("$"):
+            if line.endswith(("/", "$")):
                 line = line[:-1]
 
             filenames.add(line)

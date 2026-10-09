@@ -96,7 +96,7 @@ class import_results(CrawlPlugin):
             try:
                 fuzzable_request = FuzzableRequest.from_base64(line)
             except ValueError:
-                om.out.debug('Invalid import_results input: "%r"' % line)
+                om.out.debug(f'Invalid import_results input: "{line!r}"')
             else:
                 self.output_queue.put(fuzzable_request)
 

@@ -175,10 +175,7 @@ class password_profiling(GrepPlugin):
         if lower_word in self.COMMON_WORDS[lang]:
             return True
 
-        if request.sent(word):
-            return True
-
-        return False
+        return bool(request.sent(word))
 
     def _run_plugins(self, response):
         """

@@ -108,7 +108,7 @@ class ria_enumerator(CrawlPlugin):
 
         file_name = url.get_file_name()
 
-        om.out.debug("Checking response for %s in ria_enumerator." % response)
+        om.out.debug(f"Checking response for {response} in ria_enumerator.")
 
         self._analyze_gears_manifest(url, response, file_name)
         self._analyze_crossdomain_clientaccesspolicy(url, response, file_name)

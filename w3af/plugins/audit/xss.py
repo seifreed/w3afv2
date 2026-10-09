@@ -67,7 +67,7 @@ class xss(AuditPlugin):
         # Escape HTML attribute values without string delimiters
         " =",
     ]
-    PAYLOADS = ["%s%s%s" % (RANDOMIZE, p, RANDOMIZE) for p in PAYLOADS]
+    PAYLOADS = [f"{RANDOMIZE}{p}{RANDOMIZE}" for p in PAYLOADS]
 
     IGNORE_EXTENSIONS_FOR_PERSISTENT_XSS = set()
     IGNORE_EXTENSIONS_FOR_PERSISTENT_XSS.update(JAVASCRIPT)
@@ -257,7 +257,7 @@ class xss(AuditPlugin):
         fuzzable_requests = kb.kb.get_all_known_fuzzable_requests()
 
         debugging_id = rand_alnum(8)
-        om.out.debug("Starting stored XSS search (did=%s)" % debugging_id)
+        om.out.debug(f"Starting stored XSS search (did={debugging_id})")
 
         self._send_mutants_in_threads(
             self._uri_opener.send_mutant,

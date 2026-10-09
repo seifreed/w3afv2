@@ -117,7 +117,7 @@ class frontpage(AuditPlugin):
                 target_url, data=data, debugging_id=debugging_id
             )
         except BaseFrameworkException as e:
-            om.out.debug("Exception while uploading file using author.dll: %s" % e)
+            om.out.debug(f"Exception while uploading file using author.dll: {e}")
             return None
         else:
             if res.get_code() in [200]:
@@ -144,7 +144,7 @@ class frontpage(AuditPlugin):
         except BaseFrameworkException as e:
             om.out.debug(
                 "Exception while verifying if the file that was uploaded"
-                "using author.dll was there: %s" % e
+                f"using author.dll was there: {e}"
             )
         else:
             # The file we uploaded has the reversed filename as body

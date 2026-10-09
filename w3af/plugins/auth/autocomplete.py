@@ -67,7 +67,7 @@ class autocomplete(AuthSessionPlugin):
         self._set_debugging_id(debugging_id)
         self._clear_log()
 
-        msg = "Logging into the application with user: %s" % self.username
+        msg = f"Logging into the application with user: {self.username}"
         self._log_debug(msg)
 
         #
@@ -297,16 +297,20 @@ class autocomplete(AuthSessionPlugin):
                 "check_url",
                 self.check_url,
                 URL_OPT,
-                "URL used to verify if the session is active. The plugin sends"
-                " an HTTP GET request to this URL and asserts if `check_string`"
-                " is present.",
+                (
+                    "URL used to verify if the session is active. The plugin sends"
+                    " an HTTP GET request to this URL and asserts if `check_string`"
+                    " is present."
+                ),
             ),
             (
                 "check_string",
                 self.check_string,
                 STRING,
-                "String to search in the `check_url` page to determine if the"
-                " session is active.",
+                (
+                    "String to search in the `check_url` page to determine if the"
+                    " session is active."
+                ),
             ),
         ]
 

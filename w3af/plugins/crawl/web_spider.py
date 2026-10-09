@@ -28,7 +28,6 @@ import w3af.core.data.constants.response_codes as http_constants
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.exceptions import BaseFrameworkException
-from w3af.core.data.misc.iterables import unique_justseen
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.db.disk_set import DiskSet
@@ -37,6 +36,7 @@ from w3af.core.data.dc.cookie import Cookie
 from w3af.core.data.dc.factory import dc_from_form_params
 from w3af.core.data.dc.generic.form import Form
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.misc.iterables import unique_justseen
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.options.option_types import BOOL, LIST, REGEX
@@ -115,9 +115,8 @@ class web_spider(CrawlPlugin):
         # There are some rare cases where the application will answer with
         # the same HTTP response body for `/` and `/foobar`. This triggers an
         # issue in is_404() where `/` is marked as a 404...
-        if is_404(resp):
-            if not self._is_target(fuzzable_request):
-                return
+        if is_404(resp) and not self._is_target(fuzzable_request):
+            return
 
         self._extract_html_forms(resp, fuzzable_request)
         self._extract_links_and_verify(resp, fuzzable_request)
@@ -147,7 +146,7 @@ class web_spider(CrawlPlugin):
 
             # Form exclusion #15161
             form_id_json = form_params.get_form_id().to_json()
-            om.out.debug('A new form was found! Form-id is: "%s"' % form_id_json)
+            om.out.debug(f'A new form was found! Form-id is: "{form_id_json}"')
 
             if not self._should_analyze_url(form_params.get_action()):
                 continue
@@ -255,7 +254,7 @@ class web_spider(CrawlPlugin):
             doc_parser = parser_cache.dpc.get_document_parser_for(resp)
         except BaseFrameworkException as w3:
             om.out.debug(
-                "Failed to find a suitable document parser. " 'Exception "%s"' % w3
+                "Failed to find a suitable document parser. " f'Exception "{w3}"'
             )
         else:
             # Note:
@@ -354,10 +353,7 @@ class web_spider(CrawlPlugin):
         # core will dismiss anyway
         #
         fuzzable_request = FuzzableRequest(ref)
-        if self._variant_db.append(fuzzable_request):
-            return True
-
-        return False
+        return bool(self._variant_db.append(fuzzable_request))
 
     def _extract_links_and_verify(self, resp, fuzzable_req):
         """
@@ -475,7 +471,7 @@ class web_spider(CrawlPlugin):
                 " were found by the web_spider plugin:"
             )
             for broken, where in unique_justseen(self._broken_links.ordered_iter()):
-                om.out.information("- %s [ referenced from: %s ]" % (broken, where))
+                om.out.information(f"- {broken} [ referenced from: {where} ]")
 
         self._broken_links.cleanup()
 

@@ -106,7 +106,7 @@ class ssl_certificate(AuditPlugin):
         try:
             cert, cert_der, cipher = self._get_ssl_cert(domain, port)
         except Exception as e:
-            om.out.debug('Failed to retrieve SSL certificate: "%s"' % e)
+            om.out.debug(f'Failed to retrieve SSL certificate: "{e}"')
         else:
             self._cert_expiration_analysis(domain, port, cert, cert_der, cipher)
             self._ssl_info_to_kb(domain, port, cert, cert_der, cipher)
@@ -146,7 +146,7 @@ class ssl_certificate(AuditPlugin):
         )
 
     def _url_from_parts(self, domain, port):
-        return URL("https://%s:%s/" % (domain, port))
+        return URL(f"https://{domain}:{port}/")
 
     def _is_trusted_cert(self, domain, port):
         """
@@ -165,13 +165,11 @@ class ssl_certificate(AuditPlugin):
             try:
                 peer_cert = ssl_sock.getpeercert()
             except ssl.SSLError as ssl_error:
-                om.out.debug(
-                    'Failed to retrieve the peer certificate: "%s"' % ssl_error
-                )
+                om.out.debug(f'Failed to retrieve the peer certificate: "{ssl_error}"')
                 return
 
             if not peer_cert:
-                om.out.debug("The peer cert is empty: %r" % peer_cert)
+                om.out.debug(f"The peer cert is empty: {peer_cert!r}")
                 return
 
             try:
@@ -226,7 +224,7 @@ class ssl_certificate(AuditPlugin):
         ca_certs = self._ca_file if ca_certs is None else ca_certs
 
         for protocol in self._get_procotols():
-            om.out.debug("Trying to connect with SSL protocol %s" % protocol)
+            om.out.debug(f"Trying to connect with SSL protocol {protocol}")
 
             try:
                 result = connect(
@@ -316,7 +314,7 @@ class ssl_certificate(AuditPlugin):
             try:
                 ssl_sock.close()
             except Exception as e:
-                om.out.debug('Exception found while closing SSL socket: "%s"' % e)
+                om.out.debug(f'Exception found while closing SSL socket: "{e}"')
 
             return result
 
@@ -387,7 +385,7 @@ class ssl_certificate(AuditPlugin):
         try:
             exp_date = datetime.strptime(not_after, "%Y%m%d%H%M%SZ")
         except ValueError:
-            msg = "Invalid SSL certificate date format: %s" % not_after
+            msg = f"Invalid SSL certificate date format: {not_after}"
             om.out.debug(msg)
             return
         except KeyError:
@@ -399,10 +397,10 @@ class ssl_certificate(AuditPlugin):
         expire_days = (exp_date_parsed - date.today()).days
 
         if expire_days > self._min_expire_days:
-            om.out.debug("Certificate will expire in %s days" % expire_days)
+            om.out.debug(f"Certificate will expire in {expire_days} days")
             return
 
-        desc = 'The certificate for "%s" will expire soon.' % domain
+        desc = f'The certificate for "{domain}" will expire soon.'
 
         i = Info("Soon to expire SSL certificate", desc, 1, self.get_name())
         i.set_url(self._url_from_parts(domain, port))
@@ -554,12 +552,13 @@ def match_hostname(cert, hostname):
 
     if len(dnsnames) > 1:
         raise CertificateError(
-            "hostname %s doesn't match either of %s"
-            % (hostname, ", ".join(map(str, dnsnames)))
+            "hostname {} doesn't match either of {}".format(
+                hostname, ", ".join(map(str, dnsnames))
+            )
         )
 
     elif len(dnsnames) == 1:
-        raise CertificateError("hostname %s doesn't match %s" % (hostname, dnsnames[0]))
+        raise CertificateError(f"hostname {hostname} doesn't match {dnsnames[0]}")
     else:
         raise CertificateError(
             "no appropriate commonName or " "subjectAltName fields were found"

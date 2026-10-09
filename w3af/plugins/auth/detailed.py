@@ -70,7 +70,7 @@ class detailed(AuthSessionPlugin):
         self._clear_log()
         self._configure_audit_blacklist(self.auth_url)
 
-        msg = "Logging into the application with user: %s" % self.username
+        msg = f"Logging into the application with user: {self.username}"
         self._log_debug(msg)
 
         #
@@ -115,7 +115,7 @@ class detailed(AuthSessionPlugin):
 
     def _handle_authentication_success(self):
         super()._handle_authentication_success()
-        self._log_debug("Login success for %s" % self.username)
+        self._log_debug(f"Login success for {self.username}")
 
     def _get_data_from_format(self):
         """
@@ -158,47 +158,59 @@ class detailed(AuthSessionPlugin):
                 "username_field",
                 self.username_field,
                 "string",
-                'Username parameter name (ie. "uname" if the HTML looks'
-                ' like <input type="text" name="uname">...)',
+                (
+                    'Username parameter name (ie. "uname" if the HTML looks'
+                    ' like <input type="text" name="uname">...)'
+                ),
             ),
             (
                 "password_field",
                 self.password_field,
                 "string",
-                'Password parameter name (ie. "pwd" if the HTML looks'
-                ' like <input type="password" name="pwd">...)',
+                (
+                    'Password parameter name (ie. "pwd" if the HTML looks'
+                    ' like <input type="password" name="pwd">...)'
+                ),
             ),
             (
                 "auth_url",
                 self.auth_url,
                 "url",
-                "URL where the username and password will be sent using the"
-                " configured request method",
+                (
+                    "URL where the username and password will be sent using the"
+                    " configured request method"
+                ),
             ),
             (
                 "check_url",
                 self.check_url,
                 "url",
-                "URL used to verify if the session is still active by looking for"
-                " the check_string.",
+                (
+                    "URL used to verify if the session is still active by looking for"
+                    " the check_string."
+                ),
             ),
             (
                 "check_string",
                 self.check_string,
                 "string",
-                "String for searching on check_url page to determine if the"
-                "current session is active.",
+                (
+                    "String for searching on check_url page to determine if the"
+                    "current session is active."
+                ),
             ),
             (
                 "data_format",
                 self.data_format,
                 "string",
-                "The format for the POST-data or query string. The following are"
-                " valid formatting values:\n"
-                "    - %u for the username parameter name value\n"
-                "    - %U for the username value\n"
-                "    - %p for the password parameter name value\n"
-                "    - %P for the password value\n",
+                (
+                    "The format for the POST-data or query string. The following are"
+                    " valid formatting values:\n"
+                    "    - %u for the username parameter name value\n"
+                    "    - %U for the username value\n"
+                    "    - %p for the password parameter name value\n"
+                    "    - %P for the password value\n"
+                ),
             ),
             (
                 "follow_redirects",
@@ -211,8 +223,10 @@ class detailed(AuthSessionPlugin):
                 "url_encode_params",
                 self.url_encode_params,
                 "boolean",
-                "URL-encode configured parameters before applying them to the"
-                '"data_format".',
+                (
+                    "URL-encode configured parameters before applying them to the"
+                    '"data_format".'
+                ),
             ),
         ]
 

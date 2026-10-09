@@ -88,7 +88,7 @@ class lfi(AuditPlugin):
         #
         lfi_tests = [
             freq.get_url().get_file_name(),
-            "/%s" % freq.get_url().get_file_name(),
+            f"/{freq.get_url().get_file_name()}",
         ]
 
         #
@@ -274,7 +274,7 @@ class lfi(AuditPlugin):
                 " just an informational message, which might be related"
                 "  to a vulnerability and was found on response with id %s."
             )
-            om.out.debug(msg % (list(res)[0], response.id))
+            om.out.debug(msg % (next(iter(res)), response.id))
 
         if len(res) > 1:
             msg = (
@@ -284,12 +284,12 @@ class lfi(AuditPlugin):
             )
 
             for file_pattern_match in res:
-                msg += '- "%s" \n' % file_pattern_match
+                msg += f'- "{file_pattern_match}" \n'
 
             msg += (
                 "This is just an informational message, which might be"
                 " related to a vulnerability and was found in response"
-                " with id %s." % response.id
+                f" with id {response.id}."
             )
 
             om.out.debug(msg)

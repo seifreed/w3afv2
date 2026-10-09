@@ -144,7 +144,7 @@ class serialized_object(GrepPlugin):
             om.out.debug(
                 "An exception was found while trying to find a"
                 " serialized object in a parameter value. The exception"
-                ' is: "%s", and the parameter value is: "%r"' % args
+                ' is: "{}", and the parameter value is: "{!r}"'.format(*args)
             )
             return
 

@@ -157,10 +157,7 @@ class path_disclosure(GrepPlugin):
         # thus we run it last, hoping that at least one of the methods we
         # implemented above tags this match as a false positive and we don't
         # have to run the expensive method
-        if self._is_attr_value(match, response):
-            return True
-
-        return False
+        return bool(self._is_attr_value(match, response))
 
     def _is_attr_value(self, path_disclosure_string, response):
         r"""

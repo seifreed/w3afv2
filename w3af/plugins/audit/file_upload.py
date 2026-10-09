@@ -174,7 +174,7 @@ class file_upload(AuditPlugin):
             if ref.get_extension() == mutant.extension:
                 to_verify.add(ref)
 
-        to_verify_filtered = list()
+        to_verify_filtered = []
 
         # Run the read / writes to self._urls_recently_tested in a lock to
         # prevent RuntimeError generated when a thread is reading from it (in)
@@ -266,7 +266,7 @@ class file_upload(AuditPlugin):
         :return: None
         """
         # Gen expr for directories where I can search for the uploaded file
-        domain_path_set = set(u.get_domain_path() for u in kb.kb.get_all_known_urls())
+        domain_path_set = {u.get_domain_path() for u in kb.kb.get_all_known_urls()}
 
         msg = (
             "audit.file_upload will search for the uploaded file in %s"
@@ -441,7 +441,7 @@ class StopIterationLimitList:
         :param max_items: How many items to store before raising StopIteration
         """
         self.max_items = max_items
-        self.store = list()
+        self.store = []
 
     def append(self, item):
         if len(self.store) > self.max_items:

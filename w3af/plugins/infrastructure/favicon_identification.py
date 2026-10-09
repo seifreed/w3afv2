@@ -77,7 +77,7 @@ class favicon_identification(InfrastructurePlugin):
             for md5part, favicon_desc in self._read_favicon_db():
 
                 if md5part == remote_fav_md5:
-                    desc = 'Favicon.ico file was identified as "%s".' % favicon_desc
+                    desc = f'Favicon.ico file was identified as "{favicon_desc}".'
                     i = Info(
                         "Favicon identification", desc, response.id, self.get_name()
                     )

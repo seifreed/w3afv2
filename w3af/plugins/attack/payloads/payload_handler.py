@@ -88,7 +88,7 @@ def get_payload_instance(payload_name, shell_obj):
     """
     :return: A payload instance.
     """
-    name = ".".join(["w3af", "plugins", "attack", "payloads", "payloads", payload_name])
+    name = f"w3af.plugins.attack.payloads.payloads.{payload_name}"
     __import__(name)
     module = sys.modules[name]
     klass = getattr(module, payload_name)

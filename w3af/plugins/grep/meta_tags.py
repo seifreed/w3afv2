@@ -115,7 +115,7 @@ class meta_tags(GrepPlugin):
                     tag_name = self._find_tag_name(tag)
                     usage = self.INTERESTING_WORDS.get(tag_name, None)
                     if usage is not None:
-                        desc += " The tag is used for %s." % usage
+                        desc += f" The tag is used for {usage}."
 
                     i = Info("Interesting META tag", desc, response.id, self.get_name())
                     i.set_uri(response.get_uri())
