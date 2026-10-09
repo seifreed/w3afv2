@@ -24,6 +24,8 @@ import io
 import unittest
 from contextlib import redirect_stdout
 
+from w3af.core.data.db.startup_cfg import StartUpConfig
+
 from ..dependency_check import dependency_check
 from ..pip_dependency import PIPDependency
 from ..platforms.base_platform import CORE
@@ -39,6 +41,24 @@ class TestDependencyCheck(unittest.TestCase):
         self.fake_rumba_dependency = PIPDependency(
             "rumbamanager", "rumbamanager", "3.2.1"
         )
+
+    def _force_dependency_check(self):
+        """
+        dependency_check() returns early when the user disabled the check in
+        their startup config, so force it on for the duration of the test and
+        restore the previous value afterwards.
+        """
+        startup_cfg = StartUpConfig()
+        previous_skip = startup_cfg.get_skip_dependencies_check()
+        startup_cfg.set_skip_dependencies_check(False)
+        startup_cfg.save()
+
+        def restore():
+            restored = StartUpConfig()
+            restored.set_skip_dependencies_check(previous_skip)
+            restored.save()
+
+        self.addCleanup(restore)
 
     def test_works_at_this_workstation(self):
         """
@@ -62,6 +82,8 @@ class TestDependencyCheck(unittest.TestCase):
         Test that the dependency check works for core + default platform when
         there are missing PIP core dependencies.
         """
+        self._force_dependency_check()
+
         default = DefaultPlatform()
         default.PIP_PACKAGES = default.PIP_PACKAGES.copy()
         default.PIP_PACKAGES[CORE] = default.PIP_PACKAGES[CORE][:]

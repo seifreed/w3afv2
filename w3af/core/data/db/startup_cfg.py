@@ -86,6 +86,11 @@ class StartUpConfig:
     def get_skip_dependencies_check(self):
         return self._skip_dependencies_check
 
+    def set_skip_dependencies_check(self, skip):
+        self._skip_dependencies_check = skip
+        value = "true" if skip else "false"
+        self._config.set(self._start_section, "skip-dependencies-check", value)
+
     def get_accepted_disclaimer(self):
         return self._accepted_disclaimer
 
