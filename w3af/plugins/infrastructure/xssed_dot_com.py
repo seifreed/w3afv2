@@ -21,12 +21,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
-import urllib.error
 import urllib.parse
-import urllib.request
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
+from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.data.constants import severity
@@ -65,16 +63,8 @@ class xssed_dot_com(InfrastructurePlugin):
         target_path = f"/search?key=.{target_domain}"
         check_url = self.XSSED_URL.url_join(target_path)
 
-        try:
-            response = self._uri_opener.GET(check_url)
-        except BaseFrameworkException as e:
-            msg = (
-                "An exception was raised while running xssed_dot_com"
-                ' plugin. Exception: "%s".'
-            )
-            om.out.debug(msg % e)
-        else:
-            self._parse_xssed_search_result(response)
+        response = self._uri_opener.GET(check_url)
+        self._parse_xssed_search_result(response)
 
     def _parse_xssed_search_result(self, response):
         """
@@ -83,25 +73,16 @@ class xssed_dot_com(InfrastructurePlugin):
         """
         xssed_matches = self.XSSED_DOMAIN_RE.findall(response.get_body())
 
+        if not xssed_matches:
+            om.out.debug(
+                "xssed_dot_com did not find any previously reported XSS"
+                " vulnerabilities."
+            )
+
         for mirror_relative_link in xssed_matches:
-
             mirror_url = self.XSSED_URL.url_join(mirror_relative_link)
-
-            try:
-                xss_report_response = self._uri_opener.GET(mirror_url)
-            except BaseFrameworkException as e:
-                msg = (
-                    "An exception was raised while running xssed_dot_com"
-                    ' plugin. Exception: "%s".'
-                )
-                om.out.debug(msg % e)
-                continue
-            else:
-                self._parse_xssed_vuln_page(xss_report_response)
-        # Nothing to see here...
-        om.out.debug(
-            "xssed_dot_com did not find any previously reported" " XSS vulnerabilities."
-        )
+            xss_report_response = self._uri_opener.GET(mirror_url)
+            self._parse_xssed_vuln_page(xss_report_response)
 
     def _parse_xssed_vuln_page(self, xss_report_response):
         """

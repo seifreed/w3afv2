@@ -80,7 +80,7 @@ class shared_hosting(InfrastructurePlugin):
         """
         try:
             addrinfo = socket.getaddrinfo(domain, 0)
-        except OSError:
+        except (OSError, UnicodeError):
             om.out.error(f'Failed to resolve address: "{domain}"')
             return []
 
@@ -118,7 +118,7 @@ class shared_hosting(InfrastructurePlugin):
                     try:
                         res0 = socket.gethostbyname(results[0].get_domain())
                         res1 = socket.gethostbyname(results[1].get_domain())
-                    except OSError:
+                    except (OSError, UnicodeError):
                         pass
                     else:
                         if res0 == res1:

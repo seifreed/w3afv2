@@ -1,0 +1,4 @@
+http://example.com/login/ http://www.phishtank.com/phish_detail.php?phish_id=1
+http://notexample.org/paypal/ http://www.phishtank.com/phish_detail.php?phish_id=2
+http://127.0.0.1/phish/ http://www.phishtank.com/phish_detail.php?phish_id=3
+http://secure.example.org/bank/ http://www.phishtank.com/phish_detail.php?phish_id=4
