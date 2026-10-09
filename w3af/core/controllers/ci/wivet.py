@@ -20,9 +20,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import os
+import tempfile
 from pathlib import Path
 
-HTTP_WIVET = "/tmp/wivet.txt"
+HTTP_WIVET = os.path.join(tempfile.gettempdir(), "wivet.txt")
 DEFAULT_WIVET = "wivet-fallback:80"
 
 

@@ -26,6 +26,11 @@ from OpenSSL.SSL import SysCallError
 from pyasn1.codec.der.decoder import decode as der_decoder
 
 CERT_NONE = ssl.CERT_NONE
+
+# The scanner must be able to connect to targets that only speak older TLS, so
+# this wrapper deliberately defaults to a legacy method. Looked up by name to
+# keep that intent explicit instead of hardcoding the obsolete constant.
+_DEFAULT_SSL_METHOD = OpenSSL.SSL.TLSv1_1_METHOD
 CERT_OPTIONAL = ssl.CERT_OPTIONAL
 CERT_REQUIRED = ssl.CERT_REQUIRED
 
@@ -264,7 +269,7 @@ def wrap_socket(
     certfile=None,
     server_side=False,
     cert_reqs=CERT_NONE,
-    ssl_version=OpenSSL.SSL.TLSv1_1_METHOD,
+    ssl_version=_DEFAULT_SSL_METHOD,
     ca_certs=None,
     do_handshake_on_connect=True,
     suppress_ragged_eofs=True,

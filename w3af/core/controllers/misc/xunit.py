@@ -19,10 +19,35 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from xml.dom.minidom import parseString
-from xml.sax import saxutils
+from defusedxml.minidom import parseString
 
 import w3af.core.controllers.output_manager as om
+
+_ATTRIBUTE_ESCAPES = (
+    ("&", "&amp;"),
+    ("<", "&lt;"),
+    (">", "&gt;"),
+    ("\n", "&#10;"),
+    ("\r", "&#13;"),
+    ("\t", "&#9;"),
+)
+
+
+def quoteattr(data):
+    """
+    Escape ``data`` for use as an XML attribute value and wrap it in the
+    quote character that needs the least escaping.
+    """
+    for raw, escaped in _ATTRIBUTE_ESCAPES:
+        data = data.replace(raw, escaped)
+
+    if '"' not in data:
+        return f'"{data}"'
+
+    if "'" not in data:
+        return f"'{data}'"
+
+    return '"{}"'.format(data.replace('"', "&quot;"))
 
 
 class XunitGen:
@@ -37,7 +62,7 @@ class XunitGen:
     def __init__(self, outputfile=None):
         if outputfile:
             self.outputfile = outputfile
-        self._stats = {"error": 0, "skip": 0, "pass": 0, "fail": 0}
+        self._stats = dict.fromkeys(("error", "skip", "pass", "fail"), 0)
         self.results = []
 
     def genfile(self):
@@ -84,7 +109,6 @@ class XunitGen:
 
         self._stats["fail"] += 1
         faillines = fail.split("\n")
-        quoteattr = saxutils.quoteattr
         pkg, _, test_id = test.rpartition(".")
 
         failure_text = "\n".join(faillines[:-1])
@@ -111,7 +135,6 @@ class XunitGen:
             self._stats["skip"] += 1
         else:
             self._stats["error"] += 1
-        quoteattr = saxutils.quoteattr
         errlinedets = err.split("\n")[-1].split(":", 1)
         pkg, _, test_id = test.rpartition(".")
 
@@ -134,7 +157,6 @@ class XunitGen:
         :param took: Time that took the test to run.
         """
         self._stats["pass"] += 1
-        quoteattr = saxutils.quoteattr
         pkg, _, test_id = test.rpartition(".")
         self.results.append(
             f"<testcase classname={quoteattr(pkg)} name={quoteattr(test_id)} "

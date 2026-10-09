@@ -21,9 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os.path
-import xml.etree.ElementTree as ET
 from string import Template
-from xml.dom.minidom import *
+
+from defusedxml import ElementTree as ET
 
 from w3af import ROOT_PATH
 

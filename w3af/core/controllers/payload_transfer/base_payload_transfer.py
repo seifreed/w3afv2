@@ -72,7 +72,7 @@ class BasePayloadTransfer:
             md5sum_res = self._exec_method("md5sum " + remote_filename)
             hash_ = md5sum_res.split(" ")[0]
 
-            m = hashlib.md5()
+            m = hashlib.md5(usedforsecurity=False)
             m.update(file_content)
             return hash_ == m.hexdigest()
 

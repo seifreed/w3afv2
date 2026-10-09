@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
-import random
+import secrets
 
 from w3af import ROOT_PATH
 
@@ -38,5 +38,5 @@ def get_random_user_agent(agent_list=UA_CACHE):
                 if line:
                     agent_list.append(line)
 
-    ua = random.choice(UA_CACHE)
+    ua = secrets.choice(UA_CACHE)
     return ua

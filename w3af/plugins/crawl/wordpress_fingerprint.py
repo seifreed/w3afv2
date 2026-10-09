@@ -25,8 +25,6 @@ import hashlib
 import os
 import re
 from collections import namedtuple
-from xml.sax import SAXException, make_parser
-from xml.sax.handler import ContentHandler
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
@@ -35,6 +33,11 @@ from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.kb.info import Info
+from w3af.core.data.parsers.utils.safe_sax import (
+    ContentHandler,
+    XMLParseError,
+    parse_file,
+)
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
@@ -117,7 +120,7 @@ class wordpress_fingerprint(CrawlPlugin):
             )
 
             # md5sum the response body
-            m = hashlib.md5()
+            m = hashlib.md5(usedforsecurity=False)
             m.update(response.get_body())
             remote_release_hash = m.hexdigest()
 
@@ -238,7 +241,9 @@ class wordpress_fingerprint(CrawlPlugin):
 
             response = self._uri_opener.GET(test_url, cache=True)
 
-            response_hash = hashlib.md5(response.get_body()).hexdigest()
+            response_hash = hashlib.md5(
+                response.get_body(), usedforsecurity=False
+            ).hexdigest()
 
             if response_hash == wp_fingerprint.hash:
                 version = wp_fingerprint.version
@@ -271,21 +276,19 @@ class wordpress_fingerprint(CrawlPlugin):
         """
         :return: Parse the XML and return a list of fingerprints.
         """
-        parser = make_parser()
         wp_handler = WPVersionsHandler()
-        parser.setContentHandler(wp_handler)
         om.out.debug("Starting the wordpress fingerprint xml parsing. ")
 
         try:
             with codecs.open(
                 self.WP_VERSIONS_XML, "r", "utf-8", errors="ignore"
             ) as wordpress_fp_fd:
-                parser.parse(wordpress_fp_fd)
+                parse_file(wordpress_fp_fd, wp_handler)
         except OSError as e:
             msg = 'Failed to open wordpress fingerprint database "%s": "%s".'
             args = (self.WP_VERSIONS_XML, e)
             raise BaseFrameworkException(msg % args) from e
-        except SAXException as e:
+        except XMLParseError as e:
             msg = 'XML parsing error in wordpress version DB, exception: "%s".'
             raise BaseFrameworkException(msg % e) from e
 

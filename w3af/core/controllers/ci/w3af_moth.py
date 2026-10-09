@@ -20,7 +20,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-HTTP_PHP_MOTH = "/tmp/w3af-moth.txt"
+import os
+import tempfile
+
+HTTP_PHP_MOTH = os.path.join(tempfile.gettempdir(), "w3af-moth.txt")
 DEFAULT_PHP_MOTH = "w3af-moth-fallback:80"
 
 

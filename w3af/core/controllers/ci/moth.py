@@ -20,9 +20,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import os
+import tempfile
 from pathlib import Path
 
-FMT = "/tmp/moth-%s.txt"
+FMT = os.path.join(tempfile.gettempdir(), "moth-%s.txt")
 HTTP_ADDRESS_FILE = FMT % "http"
 HTTPS_ADDRESS_FILE = FMT % "https"
 

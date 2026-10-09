@@ -24,10 +24,10 @@ import hashlib
 import math
 import mmap
 import os
-import random
 import struct
 
 from w3af.core.data.bloomfilter.wrappers import GenericBloomFilter
+from w3af.core.data.misc.deterministic_random import get_deterministic_random
 
 
 class FileSeekBloomFilter(GenericBloomFilter):
@@ -60,7 +60,7 @@ class FileSeekBloomFilter(GenericBloomFilter):
             self._mmapped_file = mmap.mmap(file_handler.fileno(), 0)
         self._mmapped_file.seek(0)
 
-        seed_generator = random.Random(42)
+        seed_generator = get_deterministic_random(42)
         self.hash_seeds = [
             str(seed_generator.getrandbits(32)).encode("ascii")
             for _ in range(self.num_hashes)

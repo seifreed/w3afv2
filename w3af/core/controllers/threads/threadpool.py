@@ -107,7 +107,8 @@ class DaemonProcess(Process):
         Closer to the call to .start(), which should reduce the chances
         of triggering the race conditions by 1% ;-)
         """
-        assert self._parent is current_process()
+        if self._parent is not current_process():
+            raise RuntimeError("Worker must be created by its parent process")
 
         if hasattr(self._parent, "_children"):
             self._parent._children[self] = None
@@ -254,7 +255,8 @@ class Worker:
         }
 
     def __call__(self, inqueue, outqueue, initializer=None, initargs=(), maxtasks=None):
-        assert maxtasks is None or (type(maxtasks) in (int, int) and maxtasks > 0)
+        if maxtasks is not None and not (isinstance(maxtasks, int) and maxtasks > 0):
+            raise ValueError("maxtasks must be None or a positive integer")
 
         put = outqueue.put
         get = inqueue.get
@@ -365,8 +367,8 @@ class Pool(ThreadPool):
         # of those reads to self._taskqueue, the queue never reaches the
         # limit.
         #
-        if max_queued_tasks != 0:
-            assert max_queued_tasks - 1 > 0, "max_queued_tasks needs to be at least 2"
+        if max_queued_tasks != 0 and max_queued_tasks - 1 <= 0:
+            raise ValueError("max_queued_tasks needs to be at least 2")
 
         self._setup_queues(max_queued_tasks - 1)
         self._taskqueue = queue.Queue(maxsize=1)
@@ -506,8 +508,10 @@ class Pool(ThreadPool):
         :param count: The new process count
         :return: None
         """
-        assert self._maxtasksperchild, "Can only adjust size if maxtasksperchild is set"
-        assert count >= 1, "Number of processes must be at least 1"
+        if not self._maxtasksperchild:
+            raise RuntimeError("Can only adjust size if maxtasksperchild is set")
+        if count < 1:
+            raise ValueError("Number of processes must be at least 1")
         self._processes = count
         self._repopulate_pool()
 
@@ -521,7 +525,8 @@ class Pool(ThreadPool):
         """
         Blocks until all results are done (please note the .get())
         """
-        assert self._state == RUN
+        if self._state != RUN:
+            raise RuntimeError("Pool is not running")
         return self.map_async(one_to_many(func), iterable, chunksize).get()
 
     def in_qsize(self):

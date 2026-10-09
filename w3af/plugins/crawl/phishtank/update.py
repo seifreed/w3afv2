@@ -24,15 +24,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import csv
 import os
-import subprocess
 import sys
 
+import requests
 from lxml import etree
 
 URL = "https://data.phishtank.com/data/online-valid/"
 XML_DB_FILE = "w3af/plugins/crawl/phishtank/index.xml"
 CSV_DB_FILE = "w3af/plugins/crawl/phishtank/index.csv"
-DOWNLOAD_CMD = "wget -q %s -O %s"
+DOWNLOAD_TIMEOUT = 60
+DOWNLOAD_CHUNK_SIZE = 64 * 1024
 
 
 class PhishTankHandler:
@@ -117,7 +118,10 @@ class PhishTankHandler:
 
 def download():
     print("Downloading XML file...")
-    subprocess.check_call(DOWNLOAD_CMD % (URL, XML_DB_FILE), shell=True)
+    with requests.get(URL, stream=True, timeout=DOWNLOAD_TIMEOUT) as response:
+        response.raise_for_status()
+        with open(XML_DB_FILE, "wb") as xml_db:
+            xml_db.writelines(response.iter_content(chunk_size=DOWNLOAD_CHUNK_SIZE))
 
 
 def convert_xml_to_csv():

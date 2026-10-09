@@ -6,6 +6,8 @@ import time
 
 import requests
 
+REQUEST_TIMEOUT = 30
+
 
 def log(message):
     print(message)
@@ -26,7 +28,7 @@ def send_forever(target):
         iter_target += str(i)
         i += 1
 
-        response = requests.get(iter_target)
+        response = requests.get(iter_target, timeout=REQUEST_TIMEOUT)
 
         spent = time.time() - start
 

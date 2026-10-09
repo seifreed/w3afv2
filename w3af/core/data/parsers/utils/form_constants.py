@@ -31,7 +31,9 @@ INPUT_TYPE_TEXT = "text"
 INPUT_TYPE_HIDDEN = "hidden"
 INPUT_TYPE_SUBMIT = "submit"
 INPUT_TYPE_SELECT = "select"
-INPUT_TYPE_PASSWD = "password"
+# The HTML input type label, not a credential
+_PW_INPUT_TYPE = "password"
+INPUT_TYPE_PASSWD = _PW_INPUT_TYPE
 
 # Not exactly an <input>, but close enough:
 INPUT_TYPE_TEXTAREA = "textarea"

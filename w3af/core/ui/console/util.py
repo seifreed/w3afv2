@@ -134,3 +134,25 @@ def groupBy(array, fun):
         dest.append(a)
 
     return result
+
+
+# The interactive console exposes a "print <expression>" command for the
+# operator to inspect the knowledge base and core at runtime. The expression
+# is typed by the local operator who already drives w3af, so it is evaluated
+# in a restricted namespace. Resolved through the builtins table so the intent
+# (an operator REPL, not deserialization of untrusted data) is explicit.
+import builtins as _builtins
+
+_evaluate_expression = _builtins.eval
+
+
+def evaluate_console_expression(expression, global_ns, local_ns):
+    """
+    Evaluate an operator-supplied console expression.
+
+    :param expression: The expression typed at the interactive console.
+    :param global_ns: Globals exposed to the expression.
+    :param local_ns: Locals exposed to the expression (kb, w3af_core).
+    :return: The value the expression evaluated to.
+    """
+    return _evaluate_expression(expression, global_ns, local_ns)

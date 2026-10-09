@@ -23,13 +23,13 @@ import errno
 import os
 import re
 import shlex
-import subprocess
 import sys
 import tempfile
 from importlib.resources import files
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.daemons.proxy import Proxy
+from w3af.core.controllers.misc.external_process import PIPE, start_process
 from w3af.core.data.parsers.doc.url import URL
 
 SQLMAP_SCRIPT = str(files("sqlmap") / "sqlmap.py")
@@ -152,13 +152,8 @@ class SQLMapWrapper:
             all_params.extend(self.DEBUG_ARGS)
 
         try:
-            process = subprocess.Popen(
-                args=all_params,
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                shell=False,
-                universal_newlines=True,
+            process = start_process(
+                all_params, stdin=PIPE, stdout=PIPE, stderr=PIPE, text=True
             )
         except OSError as os_err:
             # https://github.com/andresriancho/w3af/issues/10186

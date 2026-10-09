@@ -88,7 +88,7 @@ class extrusionScanner:
         r += self._exec("env")
         r += self._exec("net user")
 
-        m = hashlib.md5()
+        m = hashlib.md5(usedforsecurity=False)
         m.update(r)
         return m.hexdigest()
 

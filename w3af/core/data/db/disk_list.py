@@ -23,12 +23,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 # magic
 import builtins
 import hashlib
-import pickle
 
 from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.db.disk_item import DiskItem
 from w3af.core.data.fuzzer.utils import rand_alpha
 from w3af.core.data.misc.cpickle_dumps import cpickle_dumps
+from w3af.core.data.misc.serialize import loads
 
 # Disk list states
 OPEN = 1
@@ -87,7 +87,7 @@ class DiskList:
         self._state = OPEN
 
     def cleanup(self):
-        assert self._state == OPEN
+        self._require_open()
 
         self.db.drop_table(self.table_name)
         self._state = CLOSED
@@ -115,7 +115,7 @@ class DiskList:
         if self.load is not None:
             return self.load(serialized_object)
 
-        return pickle.loads(serialized_object)
+        return loads(serialized_object)
 
     def _get_eq_attrs_values(self, obj):
         """
@@ -125,7 +125,7 @@ class DiskList:
         """
         attr_values = self._get_attr_values_as_builtin(obj)
         concatenated_eq_attrs = cpickle_dumps(attr_values)
-        return hashlib.md5(concatenated_eq_attrs).hexdigest()
+        return hashlib.md5(concatenated_eq_attrs, usedforsecurity=False).hexdigest()
 
     def _get_attr_values_as_builtin(self, obj):
         if self._is_builtin(obj):
@@ -156,18 +156,22 @@ class DiskList:
     def _can_handle_attr(self, value):
         return bool(self._is_builtin(value) or isinstance(value, DiskItem))
 
+    def _require_open(self):
+        if self._state != OPEN:
+            raise AssertionError("The DiskList is not open.")
+
     def __contains__(self, value):
         """
         :return: True if the value is in our list.
         """
-        assert self._state == OPEN
+        self._require_open()
 
         t = (self._get_eq_attrs_values(value),)
         # Adding the "limit 1" to the query makes it faster, as it won't
         # have to scan through all the table/index, it just stops on the
         # first match.
-        query = f"SELECT count(*) FROM {self.table_name} WHERE eq_attrs=? LIMIT 1"
-        r = self.db.select_one(query, t)
+        query = "SELECT count(*) FROM %s WHERE eq_attrs=? LIMIT 1"
+        r = self.db.select_one(query % self.table_name, t)
         return bool(r[0])
 
     def append(self, value):
@@ -176,17 +180,18 @@ class DiskList:
 
         :param value: The value to append.
         """
-        assert self._state == OPEN
+        self._require_open()
         pickled_obj = self._dump(value)
         eq_attrs = self._get_eq_attrs_values(value)
         t = (eq_attrs, pickled_obj)
 
-        query = f"INSERT INTO {self.table_name} VALUES (NULL, ?, ?)"
-        self.db.execute(query, t)
+        query = "INSERT INTO %s VALUES (NULL, ?, ?)"
+        self.db.execute(query % self.table_name, t)
 
     def clear(self):
-        assert self._state == OPEN
-        self.db.execute(f"DELETE FROM {self.table_name} WHERE 1=1")
+        self._require_open()
+        query = "DELETE FROM %s WHERE 1=1"
+        self.db.execute(query % self.table_name)
 
     def extend(self, value_list):
         """
@@ -195,17 +200,18 @@ class DiskList:
 
         :return: None
         """
-        assert self._state == OPEN
+        self._require_open()
         for value in value_list:
             self.append(value)
 
     def ordered_iter(self):
-        assert self._state == OPEN
+        self._require_open()
 
         # TODO: How do I make the __iter__ thread safe?
         # How do I avoid loading all items in memory?
         objects = []
-        results = self.db.select(f"SELECT pickle FROM {self.table_name}")
+        query = "SELECT pickle FROM %s"
+        results = self.db.select(query % self.table_name)
 
         for r in results:
             obj = self._load(r[0])
@@ -215,16 +221,17 @@ class DiskList:
             yield obj
 
     def __iter__(self):
-        assert self._state == OPEN
+        self._require_open()
 
         # TODO: How do I make the __iter__ thread safe?
-        results = self.db.select(f"SELECT pickle FROM {self.table_name}")
+        query = "SELECT pickle FROM %s"
+        results = self.db.select(query % self.table_name)
         for r in results:
             obj = self._load(r[0])
             yield obj
 
     def __reversed__(self):
-        assert self._state == OPEN
+        self._require_open()
 
         # TODO: How do I make the __iter__ thread safe?
         query = "SELECT pickle FROM %s ORDER BY index_ DESC"
@@ -234,7 +241,7 @@ class DiskList:
             yield obj
 
     def __getitem__(self, key):
-        assert self._state == OPEN
+        self._require_open()
 
         if isinstance(key, slice):
             return self._slice_list(key)
@@ -249,15 +256,15 @@ class DiskList:
             # statement and is not very nice in terms of performance
             index_ = len(self) + int(key) + 1
 
-        query = f"SELECT pickle FROM {self.table_name} WHERE index_ = ?"
-        r = self.db.select_one(query, (index_,))
+        query = "SELECT pickle FROM %s WHERE index_ = ?"
+        r = self.db.select_one(query % self.table_name, (index_,))
         if r is None:
             raise IndexError("list index out of range")
 
         return self._load(r[0])
 
     def _slice_list(self, slice_inst):
-        assert self._state == OPEN
+        self._require_open()
 
         start = slice_inst.start or 0
         stop = slice_inst.stop or len(self)
@@ -280,10 +287,10 @@ class DiskList:
         return copy
 
     def __len__(self):
-        assert self._state == OPEN
+        self._require_open()
 
-        query = f"SELECT count(*) FROM {self.table_name}"
-        r = self.db.select_one(query)
+        query = "SELECT count(*) FROM %s"
+        r = self.db.select_one(query % self.table_name)
         return r[0]
 
     def __unicode__(self):

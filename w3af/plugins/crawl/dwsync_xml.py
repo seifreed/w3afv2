@@ -20,8 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import xml.dom.minidom
 from xml.parsers.expat import ExpatError
+
+from defusedxml import DefusedXmlException, minidom
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
@@ -80,8 +81,8 @@ class dwsync_xml(CrawlPlugin):
         om.out.debug(f"Parsing dwsync.xml file at {dwsync_url}")
 
         try:
-            dom = xml.dom.minidom.parseString(response.get_body())
-        except ExpatError as e:
+            dom = minidom.parseString(response.get_body())
+        except (ExpatError, DefusedXmlException) as e:
             msg = 'Exception while parsing dwsync.xml file at %s : "%s"'
             om.out.debug(msg % (dwsync_url, e))
             return

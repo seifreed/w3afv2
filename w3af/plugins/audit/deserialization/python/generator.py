@@ -1,6 +1,7 @@
 import base64
-import pickle
 import time
+
+from w3af.core.data.misc import serialize
 
 
 class DelayUsingSleep1:
@@ -13,12 +14,12 @@ class DelayUsingSleep22:
         return time.sleep, (22,)
 
 
-dump = pickle.dumps(DelayUsingSleep1())
+dump = serialize.dumps(DelayUsingSleep1())
 payload = base64.b64encode(dump).decode("ascii")
 
 print(f'Save this to pickle.json "1": {payload}')
 
-dump = pickle.dumps(DelayUsingSleep22())
+dump = serialize.dumps(DelayUsingSleep22())
 payload = base64.b64encode(dump).decode("ascii")
 
 print(f'Save this to pickle.json "2": {payload}')

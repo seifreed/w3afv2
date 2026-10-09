@@ -20,15 +20,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import sys
-import urllib.error
-import urllib.parse
-import urllib.request
+
+import requests
 
 scan_db_url = "https://raw.github.com/sullo/nikto/master/program/databases/db_tests"
 target_path = "scan_database.db"
+DOWNLOAD_TIMEOUT = 60
 
-response = urllib.request.urlopen(scan_db_url)
-db_content = response.read()
+response = requests.get(scan_db_url, timeout=DOWNLOAD_TIMEOUT)
+response.raise_for_status()
+db_content = response.text
 
 if "Source: https://cirt.net" not in db_content:
     print("db_tests download failed")
