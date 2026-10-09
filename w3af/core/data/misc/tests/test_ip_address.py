@@ -1,5 +1,5 @@
 """
-test_is_ip_address.py
+test_ip_address.py
 
 Copyright 2010 Andres Riancho
 
@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-from w3af.core.controllers.misc.is_ip_address import is_ip_address
+from w3af.core.data.misc.ip_address import is_ip_address
 
 
 class TestIsIPAddress(unittest.TestCase):
@@ -35,3 +35,9 @@ class TestIsIPAddress(unittest.TestCase):
 
     def test_is_ip_address_false_case02(self):
         self.assertFalse(is_ip_address("127.0.0.256"))
+
+    def test_is_ip_address_false_for_non_numeric_octets(self):
+        self.assertFalse(is_ip_address("127.0.a.1"))
+
+    def test_is_ip_address_false_for_non_string(self):
+        self.assertFalse(is_ip_address(None))

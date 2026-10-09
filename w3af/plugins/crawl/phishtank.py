@@ -29,10 +29,10 @@ import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
 from w3af.core.controllers.misc.decorators import runonce
-from w3af.core.controllers.misc.is_ip_address import is_ip_address
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.constants import severity
 from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.misc.ip_address import is_ip_address
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.quick_match.multi_in import MultiIn
 from w3af.core.data.request.fuzzable_request import FuzzableRequest

@@ -26,7 +26,6 @@ import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal
-from w3af.core.controllers.misc.is_ip_address import is_ip_address
 from w3af.core.controllers.misc.is_private_site import is_private_site
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.controllers.threads.threadpool import one_to_many, return_args
@@ -36,6 +35,7 @@ from w3af.core.data.dc.headers import Headers
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.misc.ip_address import is_ip_address
 from w3af.core.data.parsers import parser_cache
 from w3af.core.data.url.helpers import is_no_content_response
 

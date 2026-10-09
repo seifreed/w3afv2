@@ -22,7 +22,7 @@ vendorizado requieren una revisión separada antes de cerrar la puntuación.
 ### Dependencias entre capas
 
 - El árbol contiene carpetas que sugieren capas, pero `w3af.core.data` todavía
-  importa controladores desde 88 archivos (141 coincidencias de import); esto
+  importa controladores desde 85 archivos (138 coincidencias de import); esto
   acopla datos/dominio con detalles de aplicación e infraestructura.
 - Los módulos `w3af/core/data/kb/shell.py`, `read_shell.py` y `exec_shell.py`
   conocen payload handlers, output manager, controladores y plugins. La
@@ -94,6 +94,8 @@ vendorizado requieren una revisión separada antes de cerrar la puntuación.
 - Las opciones, parsers, requests y buscadores de `core.data` importan
   `BaseFrameworkException` desde `core.exceptions`, su módulo común, y ya no
   dependen de `controllers.exceptions` para esa clase.
+- `is_ip_address` y su test viven ahora en `core.data.misc`; opciones, URL y
+  plugins importan desde esa capa de datos, sin dejar un alias en `controllers`.
 
 ## Revisión actualizada
 
@@ -102,8 +104,9 @@ La puntuación global permanece en **2.5/10** (Clean Code 3/10, Clean Architectu
 perdieron dependencias concretas de `controllers`, y los contratos Python 3 se
 corrigieron. La excepción base común dejó de ser importada desde controladores,
 reduciendo las referencias de `core.data` de 179 en 113 archivos a 141 en 88
-archivos. Aun así, `core.data` importa ampliamente desde `controllers` y las
-gates globales Ruff/mypy/Bandit fallan.
+archivos. El traslado de `is_ip_address` redujo el recuento actual a 138
+referencias en 85 archivos. Aun así, `core.data` importa ampliamente desde
+`controllers` y las gates globales Ruff/mypy/Bandit fallan.
 
 En las suites integradas de URL, DB, histórico y KB: **203 pasaron, 3 fueron
 omitidas y no hubo fallos**. El archivo URL pasa con 113 pruebas y 2 omitidas;
@@ -120,6 +123,13 @@ los módulos consumidores obtuvo 12 correctas y 13 fallidas. Los fallos incluyen
 uso de `re._pattern_type` y contratos antiguos de HTTP/base64. No se atribuyen
 al cambio de ruta de importación, pero tampoco se ha comparado la suite contra
 un checkout previo para demostrarlo.
+
+La prueba del helper `is_ip_address` cubre el 100% de sus líneas (5 tests).
+Black global pasa y Ruff pasa en orden de imports para los archivos modificados.
+La suite que incluyó URL, opciones y `find_vhosts` obtuvo 125 éxitos, 2
+omitidos y 2 fallos de integración; uno está en el fixture de `find_vhosts`, que
+compara `str` con datos `bytes`, y el otro realiza una conexión HTTP real que no
+produce respuesta. Se mantienen registrados sin ocultarlos.
 
 ## Prioridades de refactor
 

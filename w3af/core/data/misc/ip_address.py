@@ -1,5 +1,5 @@
 """
-is_ip_address.py
+ip_address.py
 
 Copyright 2010 Andres Riancho
 

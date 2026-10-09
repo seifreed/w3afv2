@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from w3af.core.controllers.misc.is_ip_address import is_ip_address
+from w3af.core.data.misc.ip_address import is_ip_address
 from w3af.core.data.options.baseoption import BaseOption
 from w3af.core.data.options.option_types import IP
 from w3af.core.exceptions import BaseFrameworkException
