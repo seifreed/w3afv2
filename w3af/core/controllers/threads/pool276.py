@@ -41,12 +41,13 @@ __all__ = ["Pool"]
 import collections
 import itertools
 import logging
-import pickle
 import queue
 import threading
 import time
 from multiprocessing import Process, TimeoutError, cpu_count
 from multiprocessing.util import Finalize, debug
+
+from w3af.core.data.misc import serialize
 
 LOGGER = logging.getLogger(__name__)
 
@@ -157,8 +158,8 @@ def create_detailed_pickling_error(exception, instance):
 
     def can_pickle(data):
         try:
-            pickle.dumps(data)
-        except (pickle.PicklingError, TypeError, AttributeError, RecursionError):
+            serialize.dumps(data)
+        except (serialize.PicklingError, TypeError, AttributeError, RecursionError):
             return False
         else:
             return True

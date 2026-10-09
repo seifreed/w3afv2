@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import copy
 import functools
 import logging
-import pickle
 import threading
 from collections.abc import Iterable
 from typing import ClassVar
@@ -41,6 +40,7 @@ from w3af.core.data.misc.cpickle_dumps import cpickle_dumps
 
 # pylint: disable=E0401
 from w3af.core.data.misc.lru import SynchronizedLRUDict
+from w3af.core.data.misc.serialize import loads
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
@@ -640,7 +640,7 @@ class DBKnowledgeBase(BasicKnowledgeBase):
             params = (location_a, location_b)
 
         for r in self.db.select(query % self.table_name, params):
-            obj = pickle.loads(r[0])
+            obj = loads(r[0])
 
             if check_types and not isinstance(obj, (Info, InfoSet, Shell)):
                 raise TypeError(
@@ -658,7 +658,7 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         result = self.db.select_one(query % self.table_name, params)
 
         if result is not None:
-            result = pickle.loads(result[0])
+            result = loads(result[0])
 
         return result
 
@@ -702,12 +702,12 @@ class DBKnowledgeBase(BasicKnowledgeBase):
 
         old_uniq_id = old_info.get_uniq_id()
         new_uniq_id = update_info.get_uniq_id()
-        pickle = cpickle_dumps(update_info)
+        pickled = cpickle_dumps(update_info)
 
         # Update the pickle and unique_id after finding by original uniq_id
         query = "UPDATE %s SET pickle = ?, uniq_id = ? WHERE uniq_id = ?"
 
-        params = (pickle, new_uniq_id, old_uniq_id)
+        params = (pickled, new_uniq_id, old_uniq_id)
         result = self.db.execute(query % self.table_name, params).result()
 
         if result.rowcount:
@@ -770,7 +770,7 @@ class DBKnowledgeBase(BasicKnowledgeBase):
             uniq_id,
             serialized_obj,
         ) in results:
-            obj = pickle.loads(serialized_obj)
+            obj = loads(serialized_obj)
             if isinstance(obj, klass):
                 yield obj
 
@@ -786,7 +786,7 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         result_lst = []
 
         for r in results:
-            obj = pickle.loads(r[0])
+            obj = loads(r[0])
             if hasattr(obj, "get_severity"):
                 severity = obj.get_severity()
                 if severity in (LOW, MEDIUM, HIGH):
@@ -805,7 +805,7 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         result_lst = []
 
         for r in results:
-            obj = pickle.loads(r[0])
+            obj = loads(r[0])
             if hasattr(obj, "get_severity"):
                 severity = obj.get_severity()
                 if severity in (INFORMATION,):
@@ -821,7 +821,7 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         results = self.db.select(query % self.table_name)
 
         for location_a, location_b, serialized_value in results:
-            obj = pickle.loads(serialized_value)
+            obj = loads(serialized_value)
 
             if location_a not in result_dict:
                 result_dict[location_a] = {

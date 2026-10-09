@@ -23,12 +23,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 # magic
 import builtins
 import hashlib
-import pickle
 
 from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.db.disk_item import DiskItem
 from w3af.core.data.fuzzer.utils import rand_alpha
 from w3af.core.data.misc.cpickle_dumps import cpickle_dumps
+from w3af.core.data.misc.serialize import loads
 
 # Disk list states
 OPEN = 1
@@ -115,7 +115,7 @@ class DiskList:
         if self.load is not None:
             return self.load(serialized_object)
 
-        return pickle.loads(serialized_object)
+        return loads(serialized_object)
 
     def _get_eq_attrs_values(self, obj):
         """
