@@ -24,13 +24,12 @@ from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
-from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
+from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_not_equal
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.info import Info
-from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.plugins.crawl.user_db.user_db import APPLICATION, OS, get_users_from_csv
 
 
@@ -82,11 +81,7 @@ class user_dir(CrawlPlugin):
         # Create a response body to compare with the others
         non_existent_user = "~_w_3_a_f_/"
         test_url = base_url.url_join(non_existent_user)
-        try:
-            response = self._uri_opener.GET(test_url, cache=True, headers=headers)
-        except HTTPRequestException as exc:
-            msg = "user_dir failed to create a non existent signature."
-            raise BaseFrameworkException(msg) from exc
+        response = self._uri_opener.GET(test_url, cache=True, headers=headers)
 
         response_body = response.get_body()
 

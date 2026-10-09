@@ -21,51 +21,46 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 import re
-import urllib.error
 import urllib.parse
-import urllib.request
 from pathlib import Path
 from typing import ClassVar
-from unittest import SkipTest
-
-import pytest
 
 import w3af.core.data.kb.config as cf
 from w3af import ROOT_PATH
-from w3af.core.controllers.ci.moth import get_moth_http
-from w3af.core.controllers.ci.wivet import get_wivet_http
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.utils.form_constants import EXCLUDE
 from w3af.core.data.parsers.utils.form_id_matcher_list import FormIDMatcherList
+from w3af.plugins.crawl.web_spider import web_spider
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
+SPIDER_URL = "http://mock/w3af/crawl/web_spider/"
+FOLLOW_LINKS_URL = SPIDER_URL + "test_case_01/"
+UTF8_URL = "http://mock/core/encoding_utf8/"
+EUC_JP_URL = "http://mock/core/encoding_euc-jp/"
 
-class TestWebSpider(PluginTest):
 
-    follow_links_url = get_moth_http("/crawl/web_spider/test_case_01/")
-    dir_get_url = "http://moth/w3af/crawl/web_spider/a/b/c/d/"
-    encoding_url = get_moth_http("/core/encoding")
-    relative_url = "http://moth/w3af/crawl/web_spider/relativeRegex.html"
+def _links(*hrefs):
+    anchors = "".join(f'<a href="{href}">{href}</a>' for href in hrefs)
+    return f"<html><body>{anchors}</body></html>"
 
-    wivet = get_wivet_http()
 
-    _run_configs: ClassVar[dict] = {
-        "basic": {
-            "target": None,
-            "plugins": {
-                "crawl": (
-                    PluginConfig(
-                        "web_spider",
-                        ("only_forward", True, PluginConfig.BOOL),
-                        ("ignore_regex", ".*logout.php*", PluginConfig.STR),
-                    ),
-                )
-            },
-        },
-    }
+def _page(text):
+    return f"<html><body><p>{text}</p></body></html>"
 
-    def generic_scan(self, config, base_directory, start_url, expected_files):
-        self._scan(start_url, config["plugins"])
+
+def _spider_config(*options):
+    return {"crawl": (PluginConfig("web_spider", *options),)}
+
+
+BASIC_CONFIG = _spider_config(
+    ("only_forward", True, PluginConfig.BOOL),
+    ("ignore_regex", ".*logout.php*", PluginConfig.STR),
+)
+
+
+class WebSpiderTest(PluginTest):
+    def generic_scan(self, plugins, base_directory, start_url, expected_files):
+        self._scan(start_url, plugins)
 
         # Add the webroot to the list of expected files
         expected_files.append("")
@@ -73,16 +68,38 @@ class TestWebSpider(PluginTest):
             URL(base_directory).url_join(end).url_string for end in expected_files
         }
 
-        # pylint: disable=E1101
-        # Pylint fails to detect the object types that come out of the KB
         urls = self.kb.get_all_known_urls()
-        found_urls = {str(u).decode("utf-8") for u in urls}
+        found_urls = {str(u) for u in urls}
 
         self.assertEqual(found_urls, expected_urls)
 
-    @pytest.mark.smoke
+
+class TestWebSpiderFollowLinks(WebSpiderTest):
+
+    target_url = FOLLOW_LINKS_URL
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(
+            FOLLOW_LINKS_URL,
+            _links(
+                "1.html",
+                "logout.php",
+                "../outside.html",
+                "http://external.example/page.html",
+            ),
+        ),
+        MockResponse(FOLLOW_LINKS_URL + "1.html", _links("2.html")),
+        MockResponse(FOLLOW_LINKS_URL + "2.html", _links("3.html")),
+        MockResponse(FOLLOW_LINKS_URL + "3.html", _links("4.html", "a b.html")),
+        MockResponse(FOLLOW_LINKS_URL + "4.html", _links("d f/index.html")),
+        MockResponse(FOLLOW_LINKS_URL + "a%20b.html", _page("a b")),
+        MockResponse(FOLLOW_LINKS_URL + "d%20f/", _page("d f directory")),
+        MockResponse(FOLLOW_LINKS_URL + "d%20f/index.html", _page("d f index")),
+        MockResponse(FOLLOW_LINKS_URL + "logout.php", _page("Bye")),
+        MockResponse(SPIDER_URL + "outside.html", _page("Outside")),
+    ]
+
     def test_spider_found_urls(self):
-        config = self._run_configs["basic"]
         expected_files = [
             "1.html",
             "2.html",
@@ -92,214 +109,185 @@ class TestWebSpider(PluginTest):
             "a%20b.html",
             "d%20f/",
         ]
-        start_url = self.follow_links_url
 
-        self.generic_scan(config, self.follow_links_url, start_url, expected_files)
+        self.generic_scan(
+            BASIC_CONFIG, FOLLOW_LINKS_URL, FOLLOW_LINKS_URL, expected_files
+        )
+
+        requested = {r.uri for r in self.received_requests}
+        self.assertNotIn(FOLLOW_LINKS_URL + "logout.php", requested)
+        self.assertNotIn(SPIDER_URL + "outside.html", requested)
+        self.assertNotIn("http://external.example/page.html", requested)
+
+
+UTF8_FILES = ["vúlnerable.py", "é.py", "改.py", "проверка.py"]
+
+
+def _utf8_file(mock_response, request, uri, response_headers):
+    file_name = urllib.parse.unquote(urllib.parse.urlsplit(uri).path).split("/")[-1]
+    response_headers["Content-Type"] = "text/html; charset=utf-8"
+
+    if file_name not in UTF8_FILES:
+        return 404, response_headers, "Not found"
+
+    return 200, response_headers, _page(f"The {file_name} file")
+
+
+class TestWebSpiderUTF8(WebSpiderTest):
+
+    target_url = UTF8_URL
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(
+            UTF8_URL, _links(*UTF8_FILES), content_type="text/html; charset=utf-8"
+        ),
+        MockResponse(re.compile(re.escape(UTF8_URL) + r".+\.py"), body=_utf8_file),
+    ]
 
     def test_utf8_urls(self):
-        config = self._run_configs["basic"]
-        expected_files = ["vúlnerable.py", "é.py", "改.py", "проверка.py"]
-        start_url = self.encoding_url + "_utf8/"
+        self.generic_scan(BASIC_CONFIG, UTF8_URL, UTF8_URL, list(UTF8_FILES))
 
-        self.generic_scan(config, start_url, start_url, expected_files)
+
+class TestWebSpiderEUCJP(WebSpiderTest):
+
+    target_url = EUC_JP_URL
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(
+            EUC_JP_URL,
+            _links("raw-qs-jp.py", "qs-jp.py?q=日本語").encode("euc-jp"),
+            content_type="text/html; charset=euc-jp",
+        ),
+        MockResponse(
+            re.compile(re.escape(EUC_JP_URL) + r"(raw-)?qs-jp\.py.*"),
+            _page("日本語").encode("euc-jp"),
+            content_type="text/html; charset=euc-jp",
+        ),
+    ]
 
     def test_euc_jp_urls(self):
-        config = self._run_configs["basic"]
         expected_files = ["raw-qs-jp.py", "qs-jp.py"]
-        start_url = self.encoding_url + "_euc-jp/"
 
-        self.generic_scan(config, start_url, start_url, expected_files)
+        self.generic_scan(BASIC_CONFIG, EUC_JP_URL, EUC_JP_URL, expected_files)
+
+
+class TestWebSpiderRelativeURLsWithRegex(WebSpiderTest):
+
+    target_url = SPIDER_URL + "relativeRegex.html"
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(
+            target_url,
+            "<html><body><script>"
+            'var hidden = "/w3af/crawl/web_spider/hidden/secret.html";'
+            'var missing = "/w3af/crawl/web_spider/hidden/missing.html";'
+            "</script></body></html>",
+        ),
+        MockResponse(SPIDER_URL + "hidden/secret.html", _page("Secret")),
+    ]
 
     def test_spider_relative_urls_found_with_regex(self):
-        raise SkipTest("FIXME: Need to test this feature!")
+        self._scan(self.target_url, _spider_config())
+
+        urls = {str(u) for u in self.kb.get_all_known_urls()}
+        self.assertIn(SPIDER_URL + "hidden/secret.html", urls)
+        self.assertNotIn(SPIDER_URL + "hidden/missing.html", urls)
+
+
+class TestWebSpiderTraverseDirectories(WebSpiderTest):
+
+    target_url = SPIDER_URL + "a/b/c/d/"
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(target_url, _page("Directory d")),
+        MockResponse(SPIDER_URL + "a/b/c/", _page("Directory c")),
+        MockResponse(SPIDER_URL + "a/", _page("Directory a")),
+    ]
 
     def test_spider_traverse_directories(self):
-        raise SkipTest("FIXME: Need to test this feature!")
+        self._scan(self.target_url, _spider_config())
 
-    def test_wivet(self):
-        clear_wivet()
-
-        cfg = self._run_configs["basic"]
-        self._scan(self.wivet, cfg["plugins"])
-
-        #
-        #    First, check that w3af identified all the URLs we want:
-        #
-        ALL_WIVET_URLS = {
-            "10_17d77.php",
-            "11_1f2e4.php",
-            "1_12c3b.php",
-            "11_2d3ff.php",
-            "12_2a2cf.php",
-            "12_3a2cf.php",
-            "1_25e2a.php",
-            "13_10ad3.php",
-            "13_25af3.php",
-            "14_1eeab.php",
-            "15_1c95a.php",
-            "16_1b14f.php",
-            "16_2f41a.php",
-            "17_143ef.php",
-            "17_2da76.php",
-            "18_1a2f3.php",
-            "19_1f52a.php",
-            "19_2e3a2.php",
-            "20_1e833.php",
-            "21_1f822.php",
-            "2_1f84b.php",
-            "2_2b7a3.php",
-            "3_16e1a.php",
-            "3_2cc42.php",
-            "3_3fadc.php",
-            "3_45589.php",
-            "3_5befd.php",
-            "3_6ff22.php",
-            "3_7e215.php",
-            "4_1c3f8.php",
-            "5_1e4d2.php",
-            "6_14b3c.php",
-            "7_16a9c.php",
-            "8_1b6e1.php",
-            "8_2b6f1.php",
-            "9_10ee31.php",
-            "9_11ee31.php",
-            "9_12ee31.php",
-            "9_13ee31.php",
-            "9_14ee31.php",
-            "9_15ee31.php",
-            "9_16ee31.php",
-            "9_17ee31.php",
-            "9_18ee31.php",
-            "9_19ee31.php",
-            "9_1a1b2.php",
-            "9_20ee31.php",
-            "9_21ee31.php",
-            "9_22ee31.php",
-            "9_23ee31.php",
-            "9_24ee31.php",
-            "9_25ee31.php",
-            "9_26dd2e.php",
-            "9_2ff21.php",
-            "9_3a2b7.php",
-            "9_4b82d.php",
-            "9_5ee31.php",
-            "9_6ee31.php",
-            "9_7ee31.php",
-            "9_8ee31.php",
-            "9_9ee31.php",
-            "12_1a2cf.php",
-        }
-
-        #
-        #    FIXME: At some point this should be reduced to an empty set()
-        #
-        W3AF_FAILS = {
-            "9_16ee31.php",
-            "9_9ee31.php",
-            "9_18ee31.php",
-            "9_11ee31.php",
-            "9_20ee31.php",
-            "9_25ee31.php",
-            "9_15ee31.php",
-            "9_8ee31.php",
-            "9_17ee31.php",
-            "9_13ee31.php",
-            "9_19ee31.php",
-            "9_14ee31.php",
-            "19_2e3a2.php",
-            "17_143ef.php",
-            "9_23ee31.php",
-            "9_12ee31.php",
-            "9_5ee31.php",
-            "9_6ee31.php",
-            "9_22ee31.php",
-            "11_2d3ff.php",
-            "17_2da76.php",
-            "18_1a2f3.php",
-            "9_24ee31.php",
-            "9_7ee31.php",
-            "9_10ee31.php",
-            "9_21ee31.php",
-            # These were added to the fails group after #2104
-            "15_1c95a.php",
-            "6_14b3c.php",
-            "8_1b6e1.php",
-            "14_1eeab.php",
-            "8_2b6f1.php",
-        }
-
-        EXPECTED_URLS = ALL_WIVET_URLS - W3AF_FAILS
-
-        inner_pages = "innerpages/"
-
-        urls = self.kb.get_all_known_urls()
-
-        found = {
-            str(u) for u in urls if inner_pages in str(u) and str(u).endswith(".php")
-        }
-        expected = {(self.wivet + inner_pages + end) for end in EXPECTED_URLS}
-
-        self.assertEqual(found, expected)
-
-        #
-        #    And now, verify that w3af used only one session to identify these
-        #    wivet links.
-        #
-        stats = extract_all_stats()
-        self.assertEqual(len(stats), 1)
-
-        coverage = get_coverage_for_scan_id(stats[0][0])
-        # TODO: Sometimes coverage is 44 and sometimes it is 42!
-        # https://github.com/andresriancho/w3af/issues/2309
-        self.assertEqual(coverage, 42)
+        urls = {str(u) for u in self.kb.get_all_known_urls()}
+        expected = {SPIDER_URL + path for path in ("a/b/c/d/", "a/b/c/", "a/")}
+        self.assertEqual(urls, expected)
 
 
-def clear_wivet():
-    """
-    Utility function that will clear all the previous stats from my wivet
-    instance, very helpful for performing analysis of the stats after the
-    scan ends.
-    """
-    clear_url = get_wivet_http("/offscanpages/remove-all-stats.php?sure=yes")
+class TestWebSpiderFilters(WebSpiderTest):
 
-    response = urllib.request.urlopen(clear_url)
-    html = response.read()
+    target_url = SPIDER_URL + "filters/"
 
-    assert "Done!" in html, html
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(
+            target_url,
+            _links(
+                "manual.PDF",
+                "private/index.html",
+                "public.html",
+                "login.html",
+                "logo.png",
+                "data.bin",
+                "missing/",
+                "broken.html",
+                "forbidden.html",
+            )
+            + '<form action="nowhere/" method="POST"><input name="a"/></form>'
+            + '<form action="nowhere/" method="POST"><input name="b"/></form>'
+            + '<form action="private/" method="POST"><input name="c"/></form>',
+        ),
+        MockResponse(target_url + "manual.PDF", "%PDF-1.4", "application/pdf"),
+        MockResponse(target_url + "private/index.html", _page("Private")),
+        MockResponse(target_url + "public.html", _page("Public")),
+        MockResponse(target_url + "login.html", "Login required", status=401),
+        MockResponse(target_url + "logo.png", b"\x89PNG\r\n", "image/png"),
+        MockResponse(
+            target_url + "data.bin", b"\x00\x01\x02binary", "application/octet-stream"
+        ),
+        MockResponse(
+            target_url + "missing/",
+            _links("../found-from-404.html", "again/"),
+            status=404,
+        ),
+        MockResponse(target_url + "found-from-404.html", _page("Found from 404")),
+        MockResponse(target_url + "forbidden.html", "Forbidden", status=403),
+    ]
+
+    def test_filters_and_special_responses(self):
+        plugins = _spider_config(
+            ("follow_regex", ".*/filters/(?!private).*", PluginConfig.STR),
+            ("ignore_extensions", "pdf", PluginConfig.LIST),
+        )
+        self._scan(self.target_url, plugins)
+
+        urls = {str(u) for u in self.kb.get_all_known_urls()}
+        self.assertIn(self.target_url + "public.html", urls)
+        self.assertIn(self.target_url + "found-from-404.html", urls)
+        self.assertIn(self.target_url + "login.html", urls)
+        self.assertIn(self.target_url + "logo.png", urls)
+        self.assertIn(self.target_url + "data.bin", urls)
+        self.assertNotIn(self.target_url + "manual.PDF", urls)
+        self.assertNotIn(self.target_url + "private/index.html", urls)
+        self.assertNotIn(self.target_url + "missing/", urls)
+        self.assertNotIn(self.target_url + "broken.html", urls)
+
+        posts = [r for r in self.received_requests if r.command == "POST"]
+        self.assertTrue(posts)
 
 
-def extract_all_stats():
-    """
-    :return: A list with all the stats generated during this scan
-    """
-    stats_url = get_wivet_http("/offscanpages/statistics.php")
-    response = urllib.request.urlopen(stats_url)
+class TestWebSpiderWithoutTargets:
+    def test_first_run_without_targets(self):
+        previous = cf.cf.get("targets")
+        cf.cf.save("targets", [])
+        try:
+            spider = web_spider()
+            spider._handle_first_run()
+        finally:
+            cf.cf.save("targets", previous)
 
-    index_page = response.read()
+        assert spider._target_urls == []
+        assert spider._target_domain is None
 
-    result = []
-    SCAN_ID_RE = r'<a href="statistics\.php\?id=(.*?)">'
-    SCAN_STATS = get_wivet_http("/offscanpages/statistics.php?id=")
-
-    for scan_id in re.findall(SCAN_ID_RE, index_page):
-        scan_stat_url = SCAN_STATS + scan_id
-        response = urllib.request.urlopen(scan_stat_url)
-        result.append((scan_id, response.read()))
-
-    return result
-
-
-def get_coverage_for_scan_id(scan_id):
-    specific_stats_url = get_wivet_http("/offscanpages/statistics.php?id=%s")
-
-    response = urllib.request.urlopen(specific_stats_url % scan_id)
-    html = response.read()
-
-    match_obj = re.search('<span id="coverage">%(.*?)</span>', html)
-    if match_obj is not None:
-        return int(match_obj.group(1))
-
-    return None
+    def test_long_desc(self):
+        assert "only_forward" in web_spider().get_long_desc()
 
 
 class TestRelativePathsIn404(PluginTest):
@@ -344,7 +332,7 @@ class TestRelativePathsIn404(PluginTest):
         # pylint: disable=E1101
         # Pylint fails to detect the object types that come out of the KB
         urls = self.kb.get_all_known_urls()
-        found_urls = {str(u).decode("utf-8") for u in urls}
+        found_urls = {str(u) for u in urls}
 
         self.assertEqual(found_urls, expected_urls)
 
@@ -431,7 +419,7 @@ class TestFormExclusions(PluginTest):
         # pylint: disable=E1101
         # Pylint fails to detect the object types that come out of the KB
         urls = self.kb.get_all_known_urls()
-        found_urls = {str(u).decode("utf-8") for u in urls}
+        found_urls = {str(u) for u in urls}
 
         self.assertEqual(found_urls, expected_urls)
 

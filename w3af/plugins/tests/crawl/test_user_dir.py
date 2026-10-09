@@ -21,6 +21,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import ClassVar
 
+from w3af.core.data.kb.info import Info
+from w3af.plugins.crawl.user_dir import user_dir
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 
@@ -34,6 +36,8 @@ class TestUserDir(PluginTest):
 
     MOCK_RESPONSES: ClassVar[list] = [
         MockResponse("http://httpretty/~www/", "www user home directory."),
+        MockResponse("http://httpretty/www/", "www user home directory.", delay=1),
+        MockResponse("http://httpretty/~jdoe/", "jdoe user home directory."),
         MockResponse("http://httpretty/~kmem/", "kmem user home directory."),
         MockResponse("http://httpretty//xfs/", "home sweet home"),
     ]
@@ -41,6 +45,7 @@ class TestUserDir(PluginTest):
     EXPECTED_RESULTS: ClassVar[set] = {
         ("Web user home directory", "http://httpretty/~www/"),
         ("Web user home directory", "http://httpretty/~kmem/"),
+        ("Web user home directory", "http://httpretty/~jdoe/"),
         ("Web user home directory", "http://httpretty/xfs/"),
         ("Identified installed application", "http://httpretty/xfs/"),
         ("Fingerprinted operating system", "http://httpretty/~kmem/"),
@@ -50,6 +55,12 @@ class TestUserDir(PluginTest):
         # The finger_* dependencies query search engines through the canned
         # HTTP server, which knows no users, so only the internal user list
         # is used by user_dir
+        email = Info(
+            "Email address", "The jdoe@httpretty email address was found.", 1, "emails"
+        )
+        email["user"] = "jdoe"
+        self.kb.append("emails", "emails", email)
+
         cfg = self._run_configs["cfg"]
         self._scan(cfg["target"], cfg["plugins"])
 
@@ -57,3 +68,7 @@ class TestUserDir(PluginTest):
         scan_results = {(i.get_name(), i.get_url().url_string) for i in users}
 
         self.assertEqual(self.EXPECTED_RESULTS, scan_results)
+
+
+def test_user_dir_long_desc():
+    assert "home directories" in user_dir().get_long_desc()

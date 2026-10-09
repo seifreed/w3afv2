@@ -164,9 +164,6 @@ class url_fuzzer(CrawlPlugin):
         if response.get_url() in self._seen:
             return
 
-        if not response.get_url().get_file_name():
-            return
-
         # Report only once
         self._seen.add(response.get_url())
 

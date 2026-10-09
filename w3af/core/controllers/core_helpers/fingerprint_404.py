@@ -38,6 +38,7 @@ from w3af.core.data.db.cached_disk_dict import CachedDiskDict
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.url.helpers import is_no_content_response
 from w3af.core.data.url.not_found_response import FourOhFourResponse
+from w3af.core.data.url.response_cleaner import get_clean_body_from_parts
 
 IS_EQUAL_RATIO = 0.90
 NOT_404_RESPONSE_CODES = (200, 500, 301, 302, 303, 307, 401)
@@ -381,8 +382,16 @@ class Fingerprint404:
             known_404_1.diff_with_id = known_404_2.id
             self._404_responses[query.normalized_path] = known_404_1.dumps()
 
+        # The query body was cleaned of the strings in its own URL. Clean the
+        # known 404 body of those same strings, otherwise a 404 page which
+        # echoes a fixed resource name (eg. a relative link to favicon.png)
+        # differs from the query only because of the cleaning
+        known_404_body = get_clean_body_from_parts(
+            known_404_1.body, http_response.get_uri(), http_response.doc_type
+        )
+
         diff_x = known_404_1.diff
-        _, diff_y = chunked_diff(known_404_1.body, query.body)
+        _, diff_y = chunked_diff(known_404_body, query.body)
 
         is_fuzzy_equal = fuzzy_equal_for_diff(diff_x, diff_y, IS_EQUAL_RATIO)
 
