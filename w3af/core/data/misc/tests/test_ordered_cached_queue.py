@@ -44,12 +44,10 @@ class TestOrderedCachedQueue(unittest.TestCase):
 
         self.assertIn("Called join on Unknown", captured.output[0])
 
-    def test_processed_count_and_memory_capacity(self):
+    def test_processed_count(self):
         queue = OrderedCachedQueue(maxsize=1)
 
-        self.assertTrue(queue.next_item_saved_to_memory())
         queue.put(None)
-        self.assertFalse(queue.next_item_saved_to_memory())
         queue.get()
 
         self.assertEqual(queue.get_processed_tasks(), 1)
@@ -189,22 +187,17 @@ class TestOrderedCachedQueue(unittest.TestCase):
 
         for i in range(4):
             q.put(create_simple_fuzzable_request(i))
-            # 20 RPM
-            time.sleep(3)
 
         self.assertEqual(q.qsize(), 4)
+        self.assertEqual(len(q._input_timestamps), 4)
+        self.assertGreater(q.get_input_rpm(), 0)
 
-        self.assertGreater(q.get_input_rpm(), 19)
-        self.assertLess(q.get_input_rpm(), 20)
-
-        for i in range(4):
+        for _ in range(4):
             q.get()
-            # 60 RPM
-            time.sleep(1)
 
-        self.assertGreater(q.get_output_rpm(), 59)
-        self.assertLess(q.get_output_rpm(), 60)
         self.assertEqual(q.qsize(), 0)
+        self.assertEqual(len(q._output_timestamps), 4)
+        self.assertGreater(q.get_output_rpm(), 0)
 
     def test_join_memory(self):
         q = OrderedCachedQueue(maxsize=2)

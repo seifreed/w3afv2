@@ -27,7 +27,7 @@ from w3af import ROOT_PATH
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
-from w3af.core.data.misc.encoding import smart_str_ignore
+from w3af.core.data.misc.encoding import smart_unicode
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.options.option_types import INPUT_FILE
@@ -114,7 +114,7 @@ class cross_domain_js(GrepPlugin):
             " recommended, the security of the current site is being"
             " delegated to the external entity."
         )
-        desc %= (smart_str_ignore(response_url), smart_str_ignore(script_domain))
+        desc %= (smart_unicode(response_url), smart_unicode(script_domain))
 
         i = Info("Cross-domain javascript source", desc, response.id, self.get_name())
         i.set_url(response_url)

@@ -89,3 +89,25 @@ class TestBaseParser(unittest.TestCase):
         decoded_url = bp_inst._decode_url(test_url)
 
         self.assertEqual(decoded_url, expected)
+
+    def test_abstract_methods(self):
+        response = HTTPResponse(200, "", Headers(), self.url, self.url)
+
+        self.assertRaises(NotImplementedError, BaseParser.can_parse, response)
+        self.assertRaises(NotImplementedError, self.bp_inst.get_emails)
+        self.assertEqual(self.bp_inst._return_empty_list("any", key="args"), [])
+
+    def test_unknown_encoding(self):
+        response = HTTPResponse(
+            200, "", Headers(), self.url, self.url, charset="not-an-encoding"
+        )
+
+        self.assertRaises(ValueError, BaseParser, response)
+
+    def test_clear(self):
+        self.assertIsNotNone(self.bp_inst.get_http_response())
+
+        self.bp_inst.clear()
+
+        self.assertIsNone(self.bp_inst.get_http_response())
+        self.assertIsNone(self.bp_inst._base_url)

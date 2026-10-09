@@ -103,14 +103,11 @@ class JSONContainer(DataContainer):
         Parses the json post data and stores all the information required to
         fuzz it as attributes.
 
-        :param json_post_data: The JSON as a string
-        :raises: ValueError if the json_post_data is not valid XML or XML-RPC
+        :param json_post_data: The JSON as a string, already validated by
+                               the constructor
         """
-        try:
-            self._json = JSONContainer.get_mutable_json(json_post_data)
-            self._raw_json = json_post_data
-        except (TypeError, ValueError) as error:
-            raise ValueError(ERR_MSG % json_post_data[:50]) from error
+        self._json = JSONContainer.get_mutable_json(json_post_data)
+        self._raw_json = json_post_data
 
     @classmethod
     def from_postdata(cls, headers, post_data):

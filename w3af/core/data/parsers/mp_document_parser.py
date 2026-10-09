@@ -154,6 +154,13 @@ class MultiProcessingDocumentParser:
         memory_limit=MEMORY_LIMIT,
         parsers=DocumentParser.PARSERS,
     ):
+        """
+        :param parser_timeout: Seconds a worker may spend on one document
+        :param max_workers: Number of worker processes in the pool
+        :param memory_limit: Bytes each worker may allocate on top of the
+                             memory it uses when it starts
+        :param parsers: Parser classes tried, in order, for each document
+        """
         self.parser_timeout = parser_timeout
         self.max_workers = max_workers
         self.memory_limit = memory_limit
@@ -209,7 +216,7 @@ class MultiProcessingDocumentParser:
 
         filename = write_http_response_to_temp_file(http_response)
 
-        apply_args = (process_document_parser, filename, self.parsers, self.DEBUG)
+        apply_args = (process_document_parser, filename, self.DEBUG, self.parsers)
 
         # Push the task to the workers
         try:
@@ -305,10 +312,10 @@ class MultiProcessingDocumentParser:
         apply_args = (
             process_get_tags_by_filter,
             filename,
-            self.parsers,
             tags,
             yield_text,
             self.DEBUG,
+            self.parsers,
         )
 
         #
@@ -370,10 +377,10 @@ def raise_parsing_error(process_result):
     raise DocumentParsingError(str(error)) from error
 
 
-def process_get_tags_by_filter(filename, parsers, tags, yield_text, debug):
+def process_get_tags_by_filter(filename, tags, yield_text, debug, parsers):
     """
-    Simple wrapper to get the current process id and store it in a shared object
-    so we can kill the process if needed.
+    Parse the HTTP response stored in filename and write the tags matching the
+    filter to a temp file.
     """
     http_resp = load_http_response_from_temp_file(filename)
 
@@ -398,10 +405,10 @@ def process_get_tags_by_filter(filename, parsers, tags, yield_text, debug):
     return result_filename
 
 
-def process_document_parser(filename, parsers, debug):
+def process_document_parser(filename, debug, parsers):
     """
-    Simple wrapper to get the current process id and store it in a shared object
-    so we can kill the process if needed.
+    Parse the HTTP response stored in filename and write the resulting
+    DocumentParser to a temp file.
     """
     http_resp = load_http_response_from_temp_file(filename)
     pid = multiprocessing.current_process().pid
@@ -457,7 +464,10 @@ def init_worker(worker_initializer, log_queue, mem_limit):
     limit_memory_usage(mem_limit)
 
 
-def limit_memory_usage(mem_limit):
+RLIMIT_AS = getattr(resource, "RLIMIT_AS", None)
+
+
+def limit_memory_usage(mem_limit, rlimit=RLIMIT_AS):
     """
     Set the soft memory limit for the worker process.
 
@@ -484,8 +494,7 @@ def limit_memory_usage(mem_limit):
         RLIMIT_MEMLOCK The maximum number of bytes of memory that may
         be locked into RAM
     """
-    # This works on Linux only (for now)
-    if not hasattr(resource, "RLIMIT_AS"):
+    if rlimit is None:
         print(
             "w3af was unable to limit the memory usage of parser processes."
             " This feature is only supported in Linux OS, create an issue"
@@ -502,21 +511,10 @@ def limit_memory_usage(mem_limit):
     # New processes are created in the pool after 20 jobs (max_tasks=20) so
     # that should take care of cycling processes with different real memory
     # limits
-    try:
-        p = psutil.Process()
-    except (psutil.NoSuchProcess, psutil.ZombieProcess) as e:
-        error = (
-            'Failed to limit parser process memory usage: "%s". The scan'
-            " will continue but in some scenarios the HTTP response"
-            " parsers might use a large amount of memory."
-        )
-        LOGGER.error(error % e)
-        return
+    real_memory_limit = psutil.Process().memory_info().vms + mem_limit
 
-    real_memory_limit = p.memory_info().vms + mem_limit
-
-    _soft, hard = resource.getrlimit(resource.RLIMIT_AS)
-    resource.setrlimit(resource.RLIMIT_AS, (real_memory_limit, hard))
+    _soft, hard = resource.getrlimit(rlimit)
+    resource.setrlimit(rlimit, (real_memory_limit, hard))
 
     limit_mb = real_memory_limit / 1024 / 1024
     msg = "Using RLIMIT_AS memory usage limit %s MB for new pool process"

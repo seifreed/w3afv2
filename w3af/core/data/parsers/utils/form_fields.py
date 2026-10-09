@@ -92,9 +92,6 @@ class ChooseFormField(FormFieldMixin):
         if values:
             self.value = values[0]
 
-    def set_value(self, value):
-        self.value = value
-
     def __eq__(self, other):
         if isinstance(other, str):
             return self.value == other

@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import copy
 import hashlib
-import http.client
 import logging
 import re
 import threading
@@ -384,13 +383,7 @@ class HTTPResponse(DiskItem):
     def _hash_bytes(text):
         return hashlib.sha256(text).hexdigest()
 
-    def get_body_hash(self):
-        body = smart_str_ignore(self.get_body())
-        return self._hash_bytes(body)
-
     def get_hash(self, exclude_headers=None):
-        exclude_headers = [] or exclude_headers
-
         headers = self.dump_response_head(exclude_headers=exclude_headers)
         body = smart_str_ignore(self.get_body())
 
@@ -453,9 +446,9 @@ class HTTPResponse(DiskItem):
         if self._raw_body is not None:
             return len(self._raw_body)
 
-        value, _ = self._headers.iget("content-length")
-        if value is not None:
-            return value
+        value, _ = self.get_headers().iget("content-length")
+        if value is not None and value.isdigit():
+            return int(value)
 
         return len(self.get_body())
 
@@ -496,19 +489,10 @@ class HTTPResponse(DiskItem):
 
         return self._charset
 
-    def set_charset(self, charset):
-        self._charset = charset
-
-    charset = property(get_charset, set_charset)
-
-    def set_redir_url(self, ru):
-        self._redirected_url = ru
+    charset = property(get_charset)
 
     def get_redir_url(self):
         return self._redirected_url
-
-    def set_redir_uri(self, ru):
-        self._redirected_uri = ru
 
     def get_redir_uri(self):
         return self._redirected_uri
@@ -523,45 +507,32 @@ class HTTPResponse(DiskItem):
         Sets the headers and also analyzes them in order to get the response
         mime type (text/html , application/pdf, etc).
 
-        :param headers: The headers dict.
+        :param headers: The Headers instance.
         """
-        # Fix lowercase in header names from HTTPMessage
-        if isinstance(headers, http.client.HTTPMessage):
-            self._headers = Headers()
-            for header in headers.headers:
-                key, value = header.split(":", 1)
-                self._headers[key.strip()] = value.strip()
-        else:
-            self._headers = headers
+        self._headers = headers
 
         find_word = lambda w: content_type.find(w) != -1
 
         content_type_hvalue, _ = self._headers.iget(CONTENT_TYPE, None)
 
-        # we need exactly content type but not charset
+        # we need exactly content type but not charset, Headers only hold
+        # string values
         if content_type_hvalue is not None:
-            try:
-                self._content_type = (
-                    content_type_hvalue.split(";", 1)[0].strip().lower()
-                )
-            except AttributeError:
-                msg = 'Invalid Content-Type value "%s" sent in HTTP response.'
-                LOGGER.debug(msg, content_type_hvalue)
-            else:
-                content_type = self._content_type
+            self._content_type = content_type_hvalue.split(";", 1)[0].strip().lower()
+            content_type = self._content_type
 
-                # Set the doc_type
-                if content_type.count("image"):
-                    self._doc_type = HTTPResponse.DOC_TYPE_IMAGE
+            # Set the doc_type
+            if content_type.count("image"):
+                self._doc_type = HTTPResponse.DOC_TYPE_IMAGE
 
-                elif content_type.count("pdf"):
-                    self._doc_type = HTTPResponse.DOC_TYPE_PDF
+            elif content_type.count("pdf"):
+                self._doc_type = HTTPResponse.DOC_TYPE_PDF
 
-                elif content_type.count("x-shockwave-flash"):
-                    self._doc_type = HTTPResponse.DOC_TYPE_SWF
+            elif content_type.count("x-shockwave-flash"):
+                self._doc_type = HTTPResponse.DOC_TYPE_SWF
 
-                elif any(map(find_word, ("text", "html", "xml", "txt", "javascript"))):
-                    self._doc_type = HTTPResponse.DOC_TYPE_TEXT_OR_HTML
+            elif any(map(find_word, ("text", "html", "xml", "txt", "javascript"))):
+                self._doc_type = HTTPResponse.DOC_TYPE_TEXT_OR_HTML
 
         # Check if the doc type is still None, that would mean that none of the
         # previous if statements matched.
@@ -607,9 +578,6 @@ class HTTPResponse(DiskItem):
 
     def get_url(self):
         return self._realurl
-
-    def get_host(self):
-        return self.get_url().get_domain()
 
     def set_uri(self, uri):
         """
@@ -799,12 +767,6 @@ class HTTPResponse(DiskItem):
         :return: True if this response is text or html
         """
         return self.doc_type == HTTPResponse.DOC_TYPE_TEXT_OR_HTML
-
-    def is_pdf(self):
-        """
-        :return: True if this response is a PDF file
-        """
-        return self.doc_type == HTTPResponse.DOC_TYPE_PDF
 
     def is_swf(self):
         """

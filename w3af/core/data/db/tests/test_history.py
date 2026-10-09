@@ -21,15 +21,21 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os.path
 import random
+import shutil
 import unittest
 import zipfile
 
+import msgpack
 import pytest
 
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.db.exceptions import DBException
-from w3af.core.data.db.history import HistoryItem
+from w3af.core.data.db.history import (
+    HistoryItem,
+    PendingCompressionJob,
+    TraceReadException,
+)
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.parsers.doc.url import URL
@@ -76,8 +82,8 @@ class TestHistoryItem(unittest.TestCase):
             h1.response = res
 
             if i == find_id:
-                h1.toggle_mark()
-                h1.update_tag(tag_value)
+                h1.mark = True
+                h1.tag = tag_value
             h1.save()
 
         h2 = HistoryItem()
@@ -85,11 +91,7 @@ class TestHistoryItem(unittest.TestCase):
         self.assertEqual(len(h2.find([("code", 302, "=")])), 1)
         self.assertEqual(len(h2.find([("mark", 1, "=")])), 1)
         self.assertEqual(len(h2.find([("has_qs", 1, "=")])), 500)
-        self.assertEqual(len(h2.find([("has_qs", 1, "=")], result_limit=10)), 10)
-        results = h2.find(
-            [("has_qs", 1, "=")], result_limit=1, order_data=[("id", "desc")]
-        )
-        self.assertEqual(results[0].id, 499)
+        self.assertEqual(len(h2.find([])), 500)
         search_data = [("id", find_id + 1, "<"), ("id", find_id - 1, ">")]
         self.assertEqual(len(h2.find(search_data)), 1)
 
@@ -105,8 +107,7 @@ class TestHistoryItem(unittest.TestCase):
             h1.request = request
             res.set_id(i)
             h1.response = res
-            if i == mark_id:
-                h1.toggle_mark()
+            h1.mark = i == mark_id
             h1.save()
 
         h2 = HistoryItem()
@@ -183,28 +184,6 @@ class TestHistoryItem(unittest.TestCase):
             self.assertEqual(h.response.get_headers(), headers)
             self.assertEqual(h.response.get_body(), body)
 
-    def test_delete(self):
-        i = random.randint(1, 499)
-
-        url = URL("http://w3af.com/a/b/c.php")
-        request = HTTPRequest(url, data="a=1")
-        hdr = Headers([("Content-Type", "text/html")])
-        res = HTTPResponse(200, "<html>", hdr, url, url, charset="UTF-8")
-        res.set_id(i)
-
-        h1 = HistoryItem()
-        h1.request = request
-        h1.response = res
-        h1.save()
-
-        fname = h1._get_trace_filename_for_id(i)
-        self.assertTrue(os.path.exists(fname))
-
-        h1.delete(i)
-
-        self.assertRaises(DBException, h1.read, i)
-        self.assertFalse(os.path.exists(fname))
-
     def test_clear(self):
         url = URL("http://w3af.com/a/b/c.php")
         request = HTTPRequest(url, data="a=1")
@@ -265,7 +244,7 @@ class TestHistoryItem(unittest.TestCase):
             res.set_id(i)
             h1.response = res
             if i == tag_id:
-                h1.update_tag(tag_value)
+                h1.tag = tag_value
             h1.save()
 
         h2 = HistoryItem()
@@ -291,3 +270,122 @@ class TestHistoryItem(unittest.TestCase):
         self.assertEqual(h1.request.to_dict(), h2.request.to_dict())
         self.assertEqual(h1.response.body, h2.response.body)
         self.assertEqual(h1.request.url_object, h2.request.url_object)
+
+    def save_item(self, _id, url="http://w3af.com/a/b/c.php"):
+        url = URL(url)
+        hdr = Headers([("Content-Type", "text/html")])
+        res = HTTPResponse(200, "<html>", hdr, url, url, charset="UTF-8")
+        res.set_id(_id)
+
+        item = HistoryItem()
+        item.request = HTTPRequest(url, data="a=1")
+        item.response = res
+        item.save()
+        return item
+
+    def test_read(self):
+        self.save_item(7)
+
+        item = HistoryItem().read(7)
+
+        self.assertEqual(item.id, 7)
+        self.assertEqual(item.url, "http://w3af.com/a/b/c.php")
+        self.assertEqual(repr(item), "<HistoryItem POST http://w3af.com/a/b/c.php>")
+
+    def test_found_items_load_traffic_lazily(self):
+        self.save_item(8, url="http://w3af.com/lazy.php")
+
+        (response_first,) = HistoryItem().find([("id", 8, "=")])
+        (request_first,) = HistoryItem().find([("id", 8, "=")])
+
+        self.assertEqual(response_first.response.get_body(), "<html>")
+        self.assertEqual(
+            response_first.request.get_uri().url_string, "http://w3af.com/lazy.php"
+        )
+        self.assertEqual(request_first.request.get_method(), "POST")
+        self.assertEqual(request_first.response.get_code(), 200)
+
+    def test_invalid_search(self):
+        self.assertRaises(DBException, HistoryItem().find, [("id", 1, "nonsense")])
+
+    def test_load_without_table(self):
+        h = HistoryItem()
+        h._db.drop_table(h.get_table_name()).result()
+
+        self.assertRaises(DBException, h.load, 1)
+
+    def test_methods_require_a_database(self):
+        h = HistoryItem()
+        h.clear()
+
+        self.assertRaises(RuntimeError, h.find, [])
+        self.assertRaises(RuntimeError, h.load, 1)
+        self.assertRaises(RuntimeError, h.read, 1)
+
+    def test_load_from_string_errors(self):
+        h = HistoryItem()
+
+        self.assertRaises(TraceReadException, h._load_from_string, b"\x01\x02")
+        self.assertRaises(TraceReadException, h._load_from_string, msgpack.dumps(None))
+        self.assertRaises(
+            TraceReadException,
+            h._load_from_string,
+            msgpack.dumps(({}, {}, "wrong-canary")),
+        )
+        self.assertRaises(TraceReadException, h._load_from_trace_file, 404)
+
+    def test_load_from_file_without_trace_nor_zip(self):
+        self.assertRaises(TraceReadException, HistoryItem().load_from_file, 404)
+
+    def test_load_from_corrupt_trace_file_times_out(self):
+        h = HistoryItem()
+        with open(h._get_trace_filename_for_id(9), "wb") as trace_file:
+            trace_file.write(msgpack.dumps(None))
+
+        self.assertRaises(DBException, h.load_from_file, 9)
+
+    def test_load_from_invalid_zip_file(self):
+        h = HistoryItem()
+        with open(os.path.join(h.get_session_dir(), "1-150.zip"), "wb") as zip_file:
+            zip_file.write(b"not a zip file")
+
+        self.assertRaises(TraceReadException, h._load_from_zip, 3)
+        self.assertRaises(TraceReadException, h.load_from_file, 3)
+
+    def test_load_from_zip_without_the_trace(self):
+        h = HistoryItem()
+        zip_path = os.path.join(h.get_session_dir(), "1-150.zip")
+        with zipfile.ZipFile(zip_path, mode="w") as zip_file:
+            zip_file.writestr("1.trace", b"")
+
+        self.assertRaises(TraceReadException, h._load_from_zip, 3)
+
+    def test_compress_missing_trace_files(self):
+        h = self.save_item(1)
+        session_dir = h.get_session_dir()
+
+        h._process_pending_compression(PendingCompressionJob(1, 3))
+
+        self.assertFalse(os.path.exists(os.path.join(session_dir, "1.trace")))
+        with zipfile.ZipFile(os.path.join(session_dir, "1-3.zip")) as zip_file:
+            self.assertEqual(zip_file.namelist(), ["1.trace"])
+
+        self.assertEqual(HistoryItem().read(1).response.get_body(), "<html>")
+
+    def test_save_without_traces_directory(self):
+        h = HistoryItem()
+        session_dir = h.get_session_dir()
+        shutil.rmtree(session_dir)
+
+        with self.assertRaises(OSError) as context:
+            self.save_item(10)
+
+        self.assertIn(
+            f'Directory does not exist: "{session_dir}"', str(context.exception)
+        )
+
+    def test_save_fails_with_existing_directories(self):
+        h = HistoryItem()
+        os.mkdir(h._get_trace_filename_for_id(11))
+
+        self.assertRaises(IsADirectoryError, self.save_item, 11)

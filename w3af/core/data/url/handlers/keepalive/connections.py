@@ -19,7 +19,6 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import binascii
 import http.client
 import os
 import socket
@@ -41,7 +40,7 @@ from .utils import debug
 
 class UniqueID:
     def __init__(self):
-        self.id = binascii.hexlify(os.urandom(8))
+        self.id = os.urandom(8).hex()
         self.req_count = 0
         self.timeout = None
 
@@ -83,9 +82,6 @@ class _HTTPConnection(http.client.HTTPConnection, UniqueID):
             (self.host, self.port), self.timeout, self.source_address
         )
 
-        if self._tunnel_host:
-            self._tunnel()
-
 
 def create_connection(
     address, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, source_address=None
@@ -96,7 +92,7 @@ def create_connection(
     """
 
     host, port = address
-    err = None
+    err = OSError("getaddrinfo returns an empty list")
     for res in socket.getaddrinfo(host, port, 0, socket.SOCK_STREAM):
         af, socktype, proto, _canonname, sa = res
         sock = None
@@ -114,17 +110,12 @@ def create_connection(
             sock.connect(sa)
             return sock
 
-        except OSError as _:
-            err = _
+        except OSError as connect_error:
+            err = connect_error
             if sock is not None:
                 sock.close()
 
-    # pylint: disable=E0702
-    if err is not None:
-        raise err
-    else:
-        raise OSError("getaddrinfo returns an empty list")
-    # pylint: enable=E0702
+    raise err
 
 
 class ProxyHTTPConnection(_HTTPConnection):
@@ -231,13 +222,7 @@ class SSLNegotiatorConnection(http.client.HTTPSConnection, UniqueID):
         """
         :return: fresh TCP/IP connection
         """
-        sock = create_connection((self.host, self.port))
-
-        if getattr(self, "_tunnel_host", None):
-            self.sock = sock
-            self._tunnel()
-
-        return sock
+        return create_connection((self.host, self.port), self.timeout)
 
     def make_ssl_aware(self, sock, protocol):
         """

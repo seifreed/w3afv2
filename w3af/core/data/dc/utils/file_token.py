@@ -45,13 +45,6 @@ class FileDataToken(DataToken):
         self._payload = ""
         self._original_value = self._value = self.build_file(value)
 
-    def get_payload(self):
-        """
-        :return: The payload which was used to create this object.
-        :see: DataToken.get_value to understand the difference.
-        """
-        return self._payload
-
     def build_file(self, value):
         #
         # We don't want to create a new file if value is already a NamedStringIO

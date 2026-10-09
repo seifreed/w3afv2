@@ -19,113 +19,155 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import base64
+import gzip
+import os
+import tempfile
 import unittest
+import zlib
 
-import pytest
+import spnego
+from spnego.exceptions import SpnegoError
 
-from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
-from w3af.core.data.url.opener_settings import OpenerSettings
 from w3af.core.data.url.tests.helpers.route_server import Response, RouteServer
 
+PAGE = "<html><body>View HTTP response headers.</body></html>"
+NTLM_PATH = "/w3af/core/ntlm_auth/ntlm_v1/"
 
-@pytest.mark.moth
+
+def compressed(encoding, compress):
+    def responder(request):
+        return Response(
+            200,
+            compress(PAGE.encode()),
+            headers=[("Content-Encoding", encoding)],
+        )
+
+    return responder
+
+
+def set_cookie(request):
+    return Response(200, "cookie set", headers=[("Set-Cookie", "session=abc123")])
+
+
+def ntlm_protected(request):
+    """
+    Authenticate the client using NTLM, the handshake state lives in the
+    TCP connection just like in IIS.
+    """
+    authorization = request.headers.get("Authorization", "")
+    challenge_header = [("WWW-Authenticate", "NTLM")]
+
+    if not authorization.startswith("NTLM "):
+        return Response(401, "Must authenticate.", headers=challenge_header)
+
+    token = base64.b64decode(authorization[5:])
+    context = request.connection.get("ntlm")
+
+    if context is None:
+        context = spnego.server(protocol="ntlm")
+        request.connection["ntlm"] = context
+        challenge = base64.b64encode(context.step(token)).decode("ascii")
+        return Response(
+            401, "Challenge", headers=[("WWW-Authenticate", f"NTLM {challenge}")]
+        )
+
+    try:
+        context.step(token)
+    except SpnegoError:
+        request.connection.pop("ntlm")
+        return Response(401, "Must authenticate.", headers=challenge_header)
+
+    return Response(200, f"You are {context.client_principal}")
+
+
 class TestXUrllibIntegration(unittest.TestCase):
-
-    MOTH_MESSAGE = "<title>moth: vulnerable web application</title>"
 
     def setUp(self):
         self.uri_opener = ExtendedUrllib()
+        self.addCleanup(self.uri_opener.end)
+        self.addCleanup(self.uri_opener.settings.set_default_values)
 
-    @pytest.mark.ci_fails
-    def test_ntlm_auth_not_configured(self):
-        self.uri_opener = ExtendedUrllib()
-        url = URL("http://moth/w3af/core/ntlm_auth/ntlm_v1/")
-        http_response = self.uri_opener.GET(url, cache=False)
-        self.assertIn("Must authenticate.", http_response.body)
+        self.server = RouteServer.serve_for(
+            self,
+            {
+                "/gzip.html": compressed("gzip", gzip.compress),
+                "/deflate.html": compressed("deflate", zlib.compress),
+                "/set-cookie": set_cookie,
+                NTLM_PATH: ntlm_protected,
+            },
+        )
 
-    @pytest.mark.ci_fails
-    def test_ntlm_auth_valid_creds(self):
+    def use_ntlm_user_file(self, contents):
+        with tempfile.NamedTemporaryFile("w", delete=False) as user_file:
+            user_file.write(contents)
 
-        self.uri_opener = ExtendedUrllib()
+        self.addCleanup(os.unlink, user_file.name)
 
-        settings = OpenerSettings()
+        previous = os.environ.get("NTLM_USER_FILE")
+        os.environ["NTLM_USER_FILE"] = user_file.name
+
+        if previous is None:
+            self.addCleanup(os.environ.pop, "NTLM_USER_FILE")
+        else:
+            self.addCleanup(os.environ.__setitem__, "NTLM_USER_FILE", previous)
+
+    def configure_ntlm(self, domain, user, password, url):
+        settings = self.uri_opener.settings
         options = settings.get_options()
-        ntlm_domain = options["ntlm_auth_domain"]
-        ntlm_user = options["ntlm_auth_user"]
-        ntlm_pass = options["ntlm_auth_passwd"]
-        ntlm_url = options["ntlm_auth_url"]
 
-        ntlm_domain.set_value("moth")
-        ntlm_user.set_value("admin")
-        ntlm_pass.set_value("admin")
-        ntlm_url.set_value("http://moth/w3af/core/ntlm_auth/ntlm_v1/")
+        options["ntlm_auth_domain"].set_value(domain)
+        options["ntlm_auth_user"].set_value(user)
+        options["ntlm_auth_passwd"].set_value(password)
+        options["ntlm_auth_url"].set_value(url)
 
         settings.set_options(options)
-        self.uri_opener.settings = settings
 
-        url = URL("http://moth/w3af/core/ntlm_auth/ntlm_v1/")
+    def test_ntlm_auth_not_configured(self):
+        url = URL(self.server.url(NTLM_PATH))
         http_response = self.uri_opener.GET(url, cache=False)
-        self.assertIn("You are admin from MOTH/", http_response.body)
+
+        self.assertEqual(http_response.get_code(), 401)
+        self.assertIn("Must authenticate.", http_response.body)
+
+    def test_ntlm_auth_valid_creds(self):
+        """
+        Fails until the handlers support NTLM: NoOpErrorHandler never gives
+        the 401 challenge to HTTPNtlmAuthHandler, and the keepalive connection
+        manager opens a new connection (instead of reusing the one that got
+        the challenge) for the NTLM authenticate message.
+        """
+        self.use_ntlm_user_file("MOTH:admin:admin\n")
+        url = self.server.url(NTLM_PATH)
+        self.configure_ntlm("MOTH", "admin", "admin", url)
+
+        http_response = self.uri_opener.GET(URL(url), cache=False)
+
+        self.assertEqual(http_response.get_code(), 200)
+        self.assertIn("You are MOTH\\admin", http_response.body)
 
     def test_gzip(self):
-        url = URL(get_moth_http("/core/gzip/gzip.html"))
-        res = self.uri_opener.GET(url, cache=False)
-        headers = res.get_headers()
-        content_encoding, _ = headers.iget("content-encoding", "")
-        test_res = "gzip" in content_encoding or "compress" in content_encoding
+        res = self.uri_opener.GET(URL(self.server.url("/gzip.html")), cache=False)
 
-        self.assertTrue(test_res, content_encoding)
+        content_encoding, _ = res.get_headers().iget("content-encoding", "")
+        self.assertIn("gzip", content_encoding)
         self.assertIn("View HTTP response headers.", res.get_body())
 
     def test_deflate(self):
-        url = URL(get_moth_http("/core/deflate/deflate.html"))
-        res = self.uri_opener.GET(url, cache=False)
-        headers = res.get_headers()
-        content_encoding, _ = headers.iget("content-encoding", "")
+        res = self.uri_opener.GET(URL(self.server.url("/deflate.html")), cache=False)
 
+        content_encoding, _ = res.get_headers().iget("content-encoding", "")
         self.assertIn("deflate", content_encoding)
         self.assertIn("View HTTP response headers.", res.get_body())
 
     def test_get_cookies(self):
-        self.assertEqual(len([c for c in self.uri_opener.get_cookies()]), 0)
+        self.assertEqual(len(list(self.uri_opener.get_cookies())), 0)
 
-        url_sends_cookie = URL(get_moth_http("/core/cookies/set-cookie.py"))
-        self.uri_opener.GET(url_sends_cookie, cache=False)
+        self.uri_opener.GET(URL(self.server.url("/set-cookie")), cache=False)
 
-        self.assertEqual(len([c for c in self.uri_opener.get_cookies()]), 1)
-        cookie = next(iter(self.uri_opener.get_cookies()))
-        self.assertEqual("127.0.0.1", cookie.domain)
-
-
-class TestUpperCaseHeaders(unittest.TestCase):
-
-    @unittest.skip("urllib lower-cases header names before sending them")
-    def test_headers_upper_case(self):
-        """
-        This unittest is skipped here, but shouldn't be removed, it is a reminder
-        that w3af (and urllib/httplib) does always perform a call to lower() for
-        all the data received over the wire.
-
-        This gives w3af a modified view of the reality, we never see what was
-        really sent to us.
-        """
-        with RouteServer() as server:
-            server.add(
-                "GET",
-                "/",
-                Response(
-                    body="hello world",
-                    headers=[("Content-Type", "application/html")],
-                ),
-            )
-
-            uri_opener = ExtendedUrllib()
-            res = uri_opener.GET(URL(server.url("/")), cache=False)
-            uri_opener.end()
-
-        headers = res.get_headers()
-        content_encoding = headers.get("Content-Type", "")
-
-        self.assertIn("application/html", content_encoding)
+        cookies = list(self.uri_opener.get_cookies())
+        self.assertEqual(len(cookies), 1)
+        self.assertEqual("127.0.0.1", cookies[0].domain)
+        self.assertEqual(("session", "abc123"), (cookies[0].name, cookies[0].value))

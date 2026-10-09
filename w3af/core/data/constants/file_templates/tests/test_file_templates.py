@@ -24,6 +24,7 @@ import unittest
 
 from w3af.core.data.constants.file_templates.file_templates import (
     get_file_from_template,
+    get_template_with_payload,
 )
 
 
@@ -40,3 +41,17 @@ class TestFileTemplates(unittest.TestCase):
 
         self.assertFalse(success)
         self.assertTrue(file_name.endswith(".swf"), file_name)
+
+    def test_get_template_with_payload_replaces_marker(self):
+        success, file_content, file_name = get_template_with_payload("gif", "PAYLOAD")
+
+        self.assertTrue(success)
+        self.assertTrue(file_content.startswith("GIF"))
+        self.assertIn("PAYLOAD", file_content)
+        self.assertNotIn("A" * 239, file_content)
+        self.assertTrue(file_name.endswith(".gif"), file_name)
+
+    def test_get_template_with_payload_accepts_bytes(self):
+        _, file_content, _ = get_template_with_payload("gif", b"BYTES")
+
+        self.assertIn("BYTES", file_content)

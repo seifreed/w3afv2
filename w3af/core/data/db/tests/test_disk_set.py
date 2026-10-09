@@ -208,3 +208,9 @@ class TestDiskSet(unittest.TestCase):
         disk_set.cleanup()
 
         self.assertFalse(db.table_exists(disk_set.table_name))
+
+    def test_list_only_methods_are_rejected(self):
+        ds = DiskSet()
+
+        self.assertRaises(RuntimeError, ds.extend, [1])
+        self.assertRaises(RuntimeError, ds.append, 1)

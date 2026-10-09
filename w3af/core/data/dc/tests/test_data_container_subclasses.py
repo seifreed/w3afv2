@@ -43,7 +43,6 @@ class TestDataContainerSubClasses(unittest.TestCase):
         for subclass in ALL_SUBCLASSES:
             inst = subclass()
 
-            inst._to_str_with_separators("=", "&")
             inst.iter_bound_tokens()
             inst.iter_tokens()
             inst.iter_setters()

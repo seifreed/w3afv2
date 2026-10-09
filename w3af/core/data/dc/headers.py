@@ -63,12 +63,6 @@ class Headers(NonRepeatKeyValueContainer):
 
         return cls(res)
 
-    def to_dict(self):
-        """
-        :return: A dictionary with lower-case key-headers and un-modified values
-        """
-        return {k.lower(): v for k, v in self.items()}
-
     def clean_values(self, init_val):
         if isinstance(init_val, (NonRepeatKeyValueContainer, dict)):
             return init_val
@@ -120,22 +114,6 @@ class Headers(NonRepeatKeyValueContainer):
         """
         value, _stored_header_name = self.iget(header_name)
         return value is not None
-
-    def getheaders(self, header_name):
-        """
-        This is just a shortcut to iget plus some extras to make this Header
-        class inter-exchangeable with the urllib2 / headers.
-
-        https://github.com/andresriancho/w3af/issues/10769
-
-        :param header_name: The header name to query
-        :return: A list with the header values
-        """
-        header_value, _stored_header_name = self.iget(header_name)
-        if header_value is None:
-            return []
-
-        return [header_value]
 
     def idel(self, header_name):
         """
@@ -197,12 +175,3 @@ class Headers(NonRepeatKeyValueContainer):
             header_str_unicode += "\r\n"
 
         return header_str_unicode
-
-    def __unicode__(self):
-        """
-        :see: __str__ documentation.
-        """
-        headers_unicode = self._to_str_with_separators(": ", "\r\n")
-        if headers_unicode:
-            headers_unicode += "\r\n"
-        return headers_unicode

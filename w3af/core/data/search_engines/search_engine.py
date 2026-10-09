@@ -120,19 +120,6 @@ class SearchEngine:
 
         return result
 
-    def number_of_results(self, query):
-        """
-        Return the number of results for a given search.
-        """
-        number_of_results = 0
-        while True:
-            res = self.search(query, number_of_results, 10)
-            number_of_results += len(res)
-            if len(res) != 10:
-                break
-
-        return number_of_results
-
     def search(self, query, start, count=10):
         """
         This method is meant to be overriden by the subclasses of

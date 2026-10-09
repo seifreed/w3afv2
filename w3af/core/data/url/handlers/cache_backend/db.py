@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import logging
-import sqlite3
 
 from w3af.core.data.db.exceptions import DBException
 from w3af.core.data.db.history import HistoryItem
@@ -33,6 +32,26 @@ from w3af.core.exceptions import ScanMustStopException
 from w3af.core.filesystem import create_temp_dir
 
 LOGGER = logging.getLogger(__name__)
+
+
+def store_error(error, request, response):
+    """
+    :return: The exception to raise when saving a request/response to the
+             cache failed: running out of disk stops the scan, anything else
+             is reported as a CacheStoreException
+    """
+    if "disk" in str(error).lower():
+        msg = f'A database error was raised: "{error}". Please check if your disk is full.'
+        return ScanMustStopException(msg)
+
+    args = (error, response.get_id(), request.get_uri(), response.get_code())
+    msg = (
+        "Exception while inserting request/response to the"
+        ' database: "%s". The request/response that generated'
+        " the error is: %s %s %s"
+    )
+    LOGGER.error(msg, *args)
+    return CacheStoreException(msg % args)
 
 
 class SQLCachedResponse(CachedResponse):
@@ -80,35 +99,11 @@ class SQLCachedResponse(CachedResponse):
         hi.request = request
         hi.response = resp
 
-        # Now save them
+        # Now save them. The DBMS reports every sqlite error as a DBException
         try:
             hi.save()
-        except sqlite3.Error as e:
-            msg = f'A sqlite3 error was raised: "{e}".'
-
-            if "disk" in str(e).lower():
-                msg += " Please check if your disk is full."
-
-            raise ScanMustStopException(msg)
-
         except (DBException, OSError, TypeError, ValueError, AttributeError) as ex:
-            args = (ex, resp.get_id(), request.get_uri(), resp.get_code())
-            msg = (
-                "Exception while inserting request/response to the"
-                ' database: "%s". The request/response that generated'
-                " the error is: %s %s %s"
-            )
-            LOGGER.error(msg, *args)
-            raise CacheStoreException(msg % args) from ex
-
-    @staticmethod
-    def exists_in_cache(req):
-        """
-        alias = gen_hash(req)
-        histitem = HistoryItem()
-        return bool(histitem.find([('alias', alias, "=")]))
-        """
-        return True
+            raise store_error(ex, request, resp) from ex
 
     @staticmethod
     def init():

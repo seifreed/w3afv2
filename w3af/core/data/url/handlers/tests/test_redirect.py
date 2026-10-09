@@ -33,41 +33,35 @@ from w3af.core.data.url.handlers.redirect import HTTP30XHandler
 from w3af.core.data.url.http_request import HTTPRequest
 from w3af.core.data.url.tests.helpers.route_server import Response, RouteServer
 
-SRC_PATH = "/src"
-DEST_PATH = "/dest"
 OK_BODY = "Body!"
 
 
-class RedirectServerTestCase(unittest.TestCase):
+def redirect(code, location, header="Location"):
+    return Response(code, headers=[(header, location)])
 
+
+class RedirectServerTestCase(unittest.TestCase):
     def setUp(self):
         consecutive_number_generator.reset()
-        self.server = RouteServer()
-        self.server.start()
-        self.redir_src = self.server.url(SRC_PATH)
-        self.redir_dest = self.server.url(DEST_PATH)
+        self.server = RouteServer().start()
+        self.addCleanup(self.server.stop)
+        self.src = self.server.url("/src")
+        self.dest = self.server.url("/dest")
 
-    def tearDown(self):
-        self.server.stop()
-
-    def add_redirect(self, path, status, headers):
-        self.server.add("GET", path, Response(status=status, headers=headers))
+    def route(self, path, reply):
+        self.server.routes[path] = reply
 
 
 class TestRedirectHandlerLowLevel(RedirectServerTestCase):
-
-    def setUp(self):
-        super().setUp()
-        self.add_redirect(SRC_PATH, FOUND, [("Location", self.redir_dest)])
-        self.server.add("GET", DEST_PATH, Response(status=FOUND, body=OK_BODY))
-
     def test_redirect_handler(self):
         """
         Test the redirect handler using urllib2
         """
-        opener = urllib.request.build_opener(HTTP30XHandler)
+        self.route("/src", redirect(FOUND, self.dest))
+        self.route("/dest", Response(FOUND, OK_BODY))
 
-        request = urllib.request.Request(URL(self.redir_src).url_string)
+        opener = urllib.request.build_opener(HTTP30XHandler)
+        request = urllib.request.Request(self.src)
 
         # This is because the 30x handler doesn't implement default error handling
         # which is in another part of the w3af framework and this is just a urllib2
@@ -79,15 +73,43 @@ class TestRedirectHandlerLowLevel(RedirectServerTestCase):
         Get an instance of the extended urllib and verify that the redirect
         handler still works, even when mixed with all the other handlers.
         """
+        self.route("/src", redirect(FOUND, self.dest))
+        self.route("/dest", Response(FOUND, OK_BODY))
+
         settings = opener_settings.OpenerSettings()
         settings.build_openers()
         opener = settings.get_custom_opener()
 
-        request = HTTPRequest(URL(self.redir_src))
-        response = opener.open(request)
+        response = opener.open(HTTPRequest(URL(self.src)))
 
         self.assertEqual(response.code, FOUND)
         self.assertEqual(response.id, 1)
+
+    def post(self):
+        settings = opener_settings.OpenerSettings()
+        settings.build_openers()
+        request = HTTPRequest(URL(self.src), data="a=1", follow_redirects=True)
+        return settings.get_custom_opener().open(request)
+
+    def test_redirect_after_post_uses_get(self):
+        self.route("/src", redirect(FOUND, "/dest"))
+        self.route("/dest", Response(OK, OK_BODY))
+
+        response = self.post()
+
+        self.assertEqual(response.read(), OK_BODY.encode())
+        self.assertEqual(
+            [(r.method, r.path) for r in self.server.requests],
+            [("POST", "/src"), ("GET", "/dest")],
+        )
+
+    def test_307_after_post_is_not_followed(self):
+        self.route("/src", redirect(307, self.dest))
+
+        response = self.post()
+
+        self.assertEqual(response.code, 307)
+        self.assertEqual(len(self.server.requests), 1)
 
 
 class TestRedirectHandlerExtendedUrllib(RedirectServerTestCase):
@@ -101,58 +123,77 @@ class TestRedirectHandlerExtendedUrllib(RedirectServerTestCase):
 
     def tearDown(self):
         self.uri_opener.end()
-        super().tearDown()
 
     def test_redirect_302_simple_no_follow(self):
-        self.add_redirect(SRC_PATH, FOUND, [("Location", self.redir_dest)])
+        self.route("/src", redirect(FOUND, self.dest))
 
-        response = self.uri_opener.GET(URL(self.redir_src))
+        response = self.uri_opener.GET(URL(self.src))
 
         location, _ = response.get_headers().iget("location")
-        self.assertEqual(location, self.redir_dest)
+        self.assertEqual(location, self.dest)
         self.assertEqual(response.get_code(), FOUND)
         self.assertEqual(response.get_id(), 1)
 
     def test_redirect_302_simple_follow(self):
-        self.add_redirect(SRC_PATH, FOUND, [("Location", self.redir_dest)])
-        self.server.add("GET", DEST_PATH, Response(body=OK_BODY))
+        self.route("/src", redirect(FOUND, self.dest))
+        self.route("/dest", Response(OK, OK_BODY))
 
-        response = self.uri_opener.GET(URL(self.redir_src), follow_redirects=True)
+        response = self.uri_opener.GET(URL(self.src), follow_redirects=True)
 
         self.assertEqual(response.get_code(), OK)
         self.assertEqual(response.get_body(), OK_BODY)
-        self.assertEqual(response.get_redir_uri(), URL(self.redir_dest))
-        self.assertEqual(response.get_url(), URL(self.redir_src))
+        self.assertEqual(response.get_redir_uri(), URL(self.dest))
+        self.assertEqual(response.get_url(), URL(self.src))
         self.assertEqual(response.get_id(), 2)
 
     def test_redirect_301_loop(self):
-        self.add_redirect(SRC_PATH, MOVED_PERMANENTLY, [("Location", self.redir_dest)])
-        self.add_redirect(DEST_PATH, MOVED_PERMANENTLY, [("URI", self.redir_src)])
+        self.route("/src", redirect(MOVED_PERMANENTLY, self.dest))
+        self.route("/dest", redirect(MOVED_PERMANENTLY, self.src, header="URI"))
 
-        response = self.uri_opener.GET(URL(self.redir_src), follow_redirects=True)
+        response = self.uri_opener.GET(URL(self.src), follow_redirects=True)
 
         # At some point the handler detects a loop and stops
         self.assertEqual(response.get_code(), MOVED_PERMANENTLY)
         self.assertEqual(response.get_body(), "")
         self.assertEqual(response.get_id(), 9)
 
+    def test_too_many_redirections(self):
+        hops = HTTP30XHandler.max_redirections + 2
+        for hop in range(hops):
+            self.route(f"/hop{hop}", redirect(FOUND, f"/hop{hop + 1}"))
+
+        response = self.uri_opener.GET(
+            URL(self.server.url("/hop0")), follow_redirects=True
+        )
+
+        self.assertEqual(response.get_code(), FOUND)
+        self.assertEqual(len(self.server.requests), HTTP30XHandler.max_redirections + 1)
+
     def test_redirect_302_without_location_returns_302_response(self):
         # Breaks the RFC
-        self.add_redirect(SRC_PATH, FOUND, [])
+        self.route("/src", Response(FOUND))
 
-        response = self.uri_opener.GET(URL(self.redir_src), follow_redirects=True)
+        response = self.uri_opener.GET(URL(self.src), follow_redirects=True)
 
         # Doesn't follow the redirects
         self.assertEqual(response.get_code(), FOUND)
         self.assertEqual(response.get_body(), "")
         self.assertEqual(response.get_id(), 1)
 
-    def test_redirect_no_follow_file_proto(self):
-        self.add_redirect(SRC_PATH, FOUND, [("Location", "file:///etc/passwd")])
+    def test_redirect_to_an_invalid_url_is_not_followed(self):
+        self.route("/src", redirect(FOUND, "http://[invalid"))
 
-        response = self.uri_opener.GET(URL(self.redir_src), follow_redirects=True)
+        response = self.uri_opener.GET(URL(self.src), follow_redirects=True)
+
+        self.assertEqual(response.get_code(), FOUND)
+        self.assertEqual(len(self.server.requests), 1)
+
+    def test_redirect_no_follow_file_proto(self):
+        self.route("/src", redirect(FOUND, "file:///etc/passwd"))
+
+        response = self.uri_opener.GET(URL(self.src), follow_redirects=True)
 
         self.assertEqual(response.get_code(), FOUND)
         self.assertEqual(response.get_body(), "")
-        self.assertEqual(response.get_url(), URL(self.redir_src))
+        self.assertEqual(response.get_url(), URL(self.src))
         self.assertEqual(response.get_id(), 1)

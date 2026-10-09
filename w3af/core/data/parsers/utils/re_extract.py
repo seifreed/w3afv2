@@ -120,21 +120,13 @@ class ReExtract(BaseParser):
             if self._require_quotes and not self._is_quoted(url_mo, doc_string):
                 continue
 
-            try:
-                url = self._base_url.url_join(url_mo.group(0)).url_string
-                url = URL(self._decode_url(url), encoding=self._encoding)
-            except ValueError:
-                #
-                # In some cases, the relative URL is invalid and triggers a
-                # ValueError: Invalid URL "%s" exception. All we can do at this
-                # point is to ignore it.
-                #
-                pass
-            else:
-                url_lower = url.url_string.lower()
+            # Every match starts with "/" or ":/" (see RELATIVE_URL_RE and
+            # _filter_false_urls) so joining it keeps the base scheme and host
+            url = self._base_url.url_join(url_mo.group(0)).url_string
+            url = URL(self._decode_url(url), encoding=self._encoding)
 
-                if url_lower.startswith(("http://", "https://")):
-                    self._re_urls.add(url)
+            if url.url_string.lower().startswith(("http://", "https://")):
+                self._re_urls.add(url)
 
     def _filter_false_urls(self, potential_url_mo):
         potential_url = potential_url_mo.group(0)
@@ -143,9 +135,6 @@ class ReExtract(BaseParser):
             return False
 
         if potential_url.startswith("://"):
-            return False
-
-        if potential_url.startswith("HTTP/"):
             return False
 
         return not self.PHP_VERSION_RE.match(potential_url)

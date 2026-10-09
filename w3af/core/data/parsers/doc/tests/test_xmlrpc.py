@@ -24,7 +24,13 @@ import html
 import unittest
 import xml.sax
 
-from w3af.core.data.parsers.doc.xmlrpc import XmlRpcReadHandler, XmlRpcWriteHandler
+from w3af.core.data.dc.utils.token import DataToken
+from w3af.core.data.parsers.doc.xmlrpc import (
+    XmlRpcReadHandler,
+    XmlRpcWriteHandler,
+    build_xmlrpc,
+    parse_xmlrpc,
+)
 
 XML_WITH_FUZZABLE = """\
 <methodCall>
@@ -83,3 +89,18 @@ class TestXMLRPC(unittest.TestCase):
 
         xml.sax.parseString(XML_WITH_FUZZABLE, handler)
         self.assertEqual(handler.fuzzed_xml_string, fuzzed)
+
+    def test_parse_and_build_with_tokens_and_attributes(self):
+        xml_string = (
+            '<methodCall><methodName lang="en">sample.sum</methodName>'
+            "<params><param><value><string>Foo</string></value></param>"
+            "</params></methodCall>"
+        )
+
+        data_container = parse_xmlrpc(xml_string).get_data_container()
+        data_container["string"][0] = DataToken("string", "<b>bar</b>", ("string", 0))
+
+        self.assertEqual(
+            build_xmlrpc(xml_string, data_container),
+            xml_string.replace("Foo", "&lt;b&gt;bar&lt;/b&gt;"),
+        )

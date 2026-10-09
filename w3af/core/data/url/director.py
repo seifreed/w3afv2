@@ -8,24 +8,21 @@ from urllib.request import (
     HTTPSHandler,
     OpenerDirector,
     ProxyHandler,
-    Request,
     UnknownHandler,
 )
 
 
 class CustomOpenerDirector(OpenerDirector):
-    def open(self, full_url, data=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
+    def open(self, req, data=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
         """
         Overriding to remove the timeout kwarg which was being used below to
         override my own HTTPRequest.timeout attribute.
+
+        :param req: The HTTPRequest to send, w3af's handlers need its extra
+                    attributes so URL strings are not accepted.
         """
-        # accept a URL or a Request object
-        if isinstance(full_url, str):
-            req = Request(full_url, data)
-        else:
-            req = full_url
-            if data is not None:
-                req.add_data(data)
+        if data is not None:
+            req.data = data
 
         # This is what I want to remove and the reason to override
         # req.timeout = timeout

@@ -25,11 +25,11 @@ import unittest
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url import opener_settings
 from w3af.core.data.url.http_request import HTTPRequest
+from w3af.core.data.url.tests.helpers.certificates import server_tls_context
 from w3af.core.data.url.tests.helpers.route_server import Response, RouteServer
 
 
 class TestURLParameterHandler(unittest.TestCase):
-
     def test_handler_integration(self):
         """
         Integration test with w3af's URL opener.
@@ -41,14 +41,16 @@ class TestURLParameterHandler(unittest.TestCase):
         settings.build_openers()
         opener = settings.get_custom_opener()
 
-        for use_tls in (False, True):
-            with RouteServer(use_tls=use_tls) as server:
-                server.add("GET", "/abc/def.html", Response(body="FAIL"))
-                server.add(
-                    "GET", f"/abc/def.html;{test_param}", Response(body="SUCCESS")
-                )
+        routes = {
+            "/abc/def.html": Response(body="FAIL"),
+            f"/abc/def.html;{test_param}": Response(body="SUCCESS"),
+        }
 
-                request = HTTPRequest(URL(server.url("/abc/def.html")), timeout=5)
-
+        for tls in (False, True):
+            with RouteServer(
+                routes, tls_context=server_tls_context() if tls else None
+            ) as server:
+                request = HTTPRequest(URL(server.url("/abc/def.html")))
                 response = opener.open(request)
-                self.assertIn(b"SUCCESS", response.read())
+
+            self.assertIn(b"SUCCESS", response.read())

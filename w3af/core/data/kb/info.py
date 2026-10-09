@@ -566,12 +566,7 @@ class Info(dict):
             return None
 
     def get_token(self):
-        try:
-            return self._mutant.get_dc().get_token()
-        except AttributeError:
-            # get_token() -> None
-            # None.get_name() -> raise AttributeError
-            return None
+        return self._mutant.get_dc().get_token()
 
     def set_dc(self, data_container):
         """

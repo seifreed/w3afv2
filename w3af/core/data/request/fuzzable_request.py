@@ -176,7 +176,8 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         headers.update(request.unredirected_hdrs)
         headers = Headers(list(headers.items()))
 
-        post_data = smart_unicode(request.get_data() or "")
+        # HTTPRequest stores the body as bytes, from_parts parses text
+        post_data = smart_unicode(request.get_data() or b"")
 
         return cls.from_parts(
             request.url_object,
@@ -372,27 +373,6 @@ class FuzzableRequest(RequestMixIn, DiskItem):
 
     def __ne__(self, other):
         return not self.__eq__(other)
-
-    def is_variant_of(self, other):
-        """
-        Two requests are loosely equal (or variants) if:
-            - They have the same URL
-            - They have the same HTTP method
-            - They have the same parameter names
-            - The values for each parameter have the same type (int / string)
-
-        :return: True if self and other are variants.
-        """
-        if self.get_method() != other.get_method():
-            return False
-
-        if self.get_url() != other.get_url():
-            return False
-
-        self_qs = self.get_uri().querystring
-        other_qs = other.get_uri().querystring
-
-        return self_qs.is_variant_of(other_qs)
 
     def set_url(self, url):
         if not isinstance(url, URL):
@@ -591,9 +571,6 @@ class FuzzableRequest(RequestMixIn, DiskItem):
                 wire_headers[k] = v
 
         return wire_headers
-
-    def get_referer(self):
-        return self.get_headers().get("Referer", None)
 
     def get_cookie(self):
         return self._cookie

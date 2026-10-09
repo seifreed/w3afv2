@@ -23,7 +23,11 @@ import json
 import re
 import unittest
 
-from w3af.core.data.parsers.utils.form_id_matcher import FormIDMatcher
+from w3af.core.data.parsers.utils.form_id_matcher import (
+    FormIDMatcher,
+    InvalidFormIDError,
+)
+from w3af.core.data.parsers.utils.form_id_matcher_list import FormIDMatcherList
 
 
 class TestFormIDMatcher(unittest.TestCase):
@@ -129,3 +133,43 @@ class TestFormIDMatcher(unittest.TestCase):
             }
         )
         self.assertRaises(ValueError, FormIDMatcher.from_json, json_string)
+
+
+class TestFormIDMatcherValidation(unittest.TestCase):
+
+    def test_invalid_types(self):
+        self.assertRaises(InvalidFormIDError, FormIDMatcher, inputs="comment")
+        self.assertRaises(InvalidFormIDError, FormIDMatcher, method=1)
+
+    def test_invalid_json_items(self):
+        self.assertRaises(InvalidFormIDError, FormIDMatcher.from_json, "[]")
+        self.assertRaises(
+            InvalidFormIDError, FormIDMatcher.from_json, '{"unknown": "/x"}'
+        )
+
+    def test_to_dict_and_str(self):
+        form_idm = FormIDMatcher.from_json(
+            '{"action": "/a", "hosted_at_url": "/h", "inputs": ["i"], "method": "get"}'
+        )
+
+        self.assertEqual(
+            form_idm.to_dict(),
+            {"action": "/a", "hosted_at_url": "/h", "inputs": ["i"], "method": "get"},
+        )
+        self.assertTrue(str(form_idm).startswith("<FormIDMatcher: "))
+
+
+class TestFormIDMatcherList(unittest.TestCase):
+
+    def test_round_trip(self):
+        value = '[{"action": "/foo"}, {"action": "/bar", "method": "get"}]'
+
+        form_ids = FormIDMatcherList(value)
+
+        self.assertEqual(form_ids.to_json(), value)
+        self.assertEqual(str(form_ids), value)
+        self.assertEqual(len(form_ids.get_form_ids()), 2)
+
+    def test_invalid_lists(self):
+        self.assertRaises(InvalidFormIDError, FormIDMatcherList, "not json")
+        self.assertRaises(InvalidFormIDError, FormIDMatcherList, '{"action": "/x"}')

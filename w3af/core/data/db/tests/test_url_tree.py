@@ -88,3 +88,40 @@ class TestURLTree(unittest.TestCase):
         }
 
         self.assertEqual(tree.tree, expected)
+
+    def test_path_becomes_leaf_when_added_later(self):
+        tree = URLTree()
+
+        tree.add_url(URL("http://w3af.org/foo/bar/"))
+        tree.add_url(URL("http://w3af.org/foo"))
+
+        ((root, children),) = tree.iteritems()
+        ((foo, _),) = children.iteritems()
+
+        self.assertEqual(root.is_leaf, 0)
+        self.assertEqual(foo.is_leaf, 1)
+
+    def test_iteritems_is_sorted(self):
+        tree = URLTree()
+
+        tree.add_url(URL("https://w3af.org/b"))
+        tree.add_url(URL("https://w3af.org/a"))
+        tree.add_url(URL("http://w3af.org/"))
+
+        roots = [node.path for node, _ in tree.iteritems()]
+        self.assertEqual(roots, ["http://w3af.org", "https://w3af.org"])
+
+        _, children = list(tree.iteritems())[1]
+        self.assertEqual([node.path for node, _ in children.iteritems()], ["a", "b"])
+
+    def test_representations(self):
+        tree = URLTree()
+        tree.add_url(URL("http://w3af.org/foo"))
+
+        node = URLNode("http://w3af.org", 0)
+        self.assertEqual(str(node), '<URLNode (path:"http://w3af.org", is_leaf:0)>')
+        self.assertEqual(repr(node), str(node))
+        self.assertEqual(
+            repr(tree.tree),
+            repr({node: {URLNode("foo", 1): {}}}),
+        )

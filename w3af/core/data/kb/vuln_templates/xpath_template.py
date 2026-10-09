@@ -33,17 +33,6 @@ class XPathTemplate(BaseTemplate):
 
         self.name = self.get_vulnerability_name()
 
-    def create_vuln(self):
-        v = super().create_vuln()
-
-        mutant = self.create_mutant_from_params()
-        mutant.set_dc(self.data)
-        mutant.set_token((self.vulnerable_parameter, 0))
-
-        v.set_mutant(mutant)
-
-        return v
-
     def get_kb_location(self):
         """
         :return: A tuple with the location where the vulnerability will be
@@ -59,6 +48,3 @@ class XPathTemplate(BaseTemplate):
                  strict matching of vulns before exploiting.
         """
         return "XPath injection"
-
-    def get_vulnerability_desc(self):
-        return "XPath injection vulnerability"

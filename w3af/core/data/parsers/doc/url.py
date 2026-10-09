@@ -38,7 +38,6 @@ from w3af.core.data.misc.encoding import (
     smart_unicode,
 )
 from w3af.core.data.misc.ip_address import is_ip_address
-from w3af.core.exceptions import BaseFrameworkException
 
 
 def set_changed(meth):
@@ -75,7 +74,7 @@ def memoized(meth):
     return cache_wrapper
 
 
-def parse_qsl(qs, keep_blank_values=0, strict_parsing=0, encoding=DEFAULT_ENCODING):
+def parse_qsl(qs, encoding=DEFAULT_ENCODING):
     """This was a slightly modified version of the function with the same name
     that is defined in urlparse.py . I modified it, and then reverted the patch
     to have different handling of '+':
@@ -95,15 +94,8 @@ def parse_qsl(qs, keep_blank_values=0, strict_parsing=0, encoding=DEFAULT_ENCODI
 
     qs: percent-encoded query string to be parsed
 
-    keep_blank_values: flag indicating whether blank values in
-        percent-encoded queries should be treated as blank strings.  A
-        true value indicates that blanks should be retained as blank
-        strings.  The default false value indicates that blank values
-        are to be ignored and treated as if they were  not included.
-
-    strict_parsing: flag indicating what to do with parsing errors. If
-        false (the default), errors are silently ignored. If true,
-        errors raise a ValueError exception.
+    Blank values are kept as blank strings, a control-name without an equal
+    sign gets a blank value, and empty pairs are ignored.
 
     encoding: Character encoding used to decode percent-encoded octets.
 
@@ -112,30 +104,24 @@ def parse_qsl(qs, keep_blank_values=0, strict_parsing=0, encoding=DEFAULT_ENCODI
     pairs = [s2 for s1 in qs.split("&") for s2 in s1.split(";")]
     r = []
     for name_value in pairs:
-        if not name_value and not strict_parsing:
+        if not name_value:
             continue
         nv = name_value.split("=", 1)
         if len(nv) != 2:
-            if strict_parsing:
-                raise ValueError(f"bad query field: {name_value!r}")
             # Handle case of a control-name with no equal sign
-            if keep_blank_values:
-                nv.append("")
-            else:
-                continue
-        if len(nv[1]) or keep_blank_values:
-            name = urllib.parse.unquote(
-                nv[0].replace("+", " "), encoding=encoding, errors="ignore"
-            )
-            value = urllib.parse.unquote(
-                nv[1].replace("+", " "), encoding=encoding, errors="ignore"
-            )
-            r.append((name, value))
+            nv.append("")
+        name = urllib.parse.unquote(
+            nv[0].replace("+", " "), encoding=encoding, errors="ignore"
+        )
+        value = urllib.parse.unquote(
+            nv[1].replace("+", " "), encoding=encoding, errors="ignore"
+        )
+        r.append((name, value))
 
     return r
 
 
-def parse_qs(qstr, ignore_exc=True, encoding=DEFAULT_ENCODING):
+def parse_qs(qstr, encoding=DEFAULT_ENCODING):
     """
     Parse a url encoded string (a=b&c=d) into a QueryString object.
 
@@ -147,26 +133,11 @@ def parse_qs(qstr, ignore_exc=True, encoding=DEFAULT_ENCODING):
 
     qs = QueryString(encoding=encoding)
 
-    if qstr:
-        try:
-            odict = OrderedDict()
-            for name, value in parse_qsl(
-                qstr,
-                keep_blank_values=True,
-                strict_parsing=False,
-                encoding=encoding,
-            ):
-                if name in odict:
-                    odict[name].append(value)
-                else:
-                    odict[name] = [value]
-        except (ValueError, TypeError) as error:
-            if not ignore_exc:
-                msg = f'Error while parsing "{qstr!r}"'
-                raise BaseFrameworkException(msg) from error
-        else:
+    odict = OrderedDict()
+    for name, value in parse_qsl(qstr, encoding=encoding):
+        odict.setdefault(name, []).append(value)
 
-            qs.update(odict.items())
+    qs.update(odict.items())
 
     return qs
 
@@ -326,13 +297,7 @@ class URL(DiskItem):
         )
         data = [smart_unicode(s) for s in data]
 
-        calc = urllib.parse.urlunparse(data)
-
-        # ensuring this is actually unicode
-        if not isinstance(calc, str):
-            calc = str(calc, self.encoding, "replace")
-
-        return calc
+        return urllib.parse.urlunparse(data)
 
     @property
     def encoding(self):
@@ -363,7 +328,7 @@ class URL(DiskItem):
         if isinstance(qs, DataContainer):
             self._querystr = qs
         elif isinstance(qs, str):
-            self._querystr = parse_qs(qs, ignore_exc=True, encoding=self.encoding)
+            self._querystr = parse_qs(qs, encoding=self.encoding)
         else:
             # This might fail because of the type-check performed in QueryString
             # __init__, but that's ok.
@@ -666,15 +631,7 @@ class URL(DiskItem):
         """
         :return: Returns the domain name and the path for the url.
         """
-        if self.path:
-            res = (
-                self.scheme
-                + "://"
-                + self.netloc
-                + self.path[: self.path.rfind("/") + 1]
-            )
-        else:
-            res = self.scheme + "://" + self.netloc + "/"
+        res = self.scheme + "://" + self.netloc + self.get_path_without_file()
         return URL(res, self._encoding)
 
     def get_file_name(self):
@@ -844,7 +801,7 @@ class URL(DiskItem):
 
     params = property(get_params_string, set_param)
 
-    def get_params(self, ignore_exc=True):
+    def get_params(self):
         """
         Parses the params string and returns a dict.
 
@@ -857,10 +814,9 @@ class URL(DiskItem):
                 parsed_data = urllib.parse.parse_qs(
                     self.params, keep_blank_values=True, strict_parsing=True
                 )
-            except (ValueError, TypeError) as error:
-                if not ignore_exc:
-                    msg = "Strange things found when parsing params string: %s"
-                    raise BaseFrameworkException(msg % self.params) from error
+            except ValueError:
+                # Params which are not key=value pairs, such as ";jsessionid"
+                pass
             else:
                 for k, v in parsed_data.items():
                     result[k] = v[0]

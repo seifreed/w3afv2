@@ -37,3 +37,30 @@ class TestReExtract(unittest.TestCase):
         references = re_extract.get_references()
 
         self.assertEqual(references, [URL("https://w3af.org/foobar/uploads/foo.png")])
+
+    def references(self, doc_string, **kwargs):
+        re_extract = ReExtract(doc_string, URL("http://w3af.org/a/"), "utf-8", **kwargs)
+        re_extract.parse()
+        return set(re_extract.get_references())
+
+    def test_require_quotes(self):
+        doc_string = (
+            "var a = 'http://w3af.org/quoted'; http://w3af.org/bare "
+            'b = "/rel/quoted.php"; /rel/bare.php http://w3af.org/end'
+        )
+
+        self.assertEqual(
+            self.references(doc_string, require_quotes=True),
+            {URL("http://w3af.org/quoted"), URL("http://w3af.org/rel/quoted.php")},
+        )
+
+    def test_invalid_full_url_is_ignored(self):
+        self.assertEqual(self.references("go to http://w3af.org:abc/x now"), set())
+
+    def test_relative_false_positives(self):
+        doc_string = "see ://w3af.org/a.php or //cdn.w3af.org/b.php or Apache/2.2.8.so"
+
+        self.assertEqual(self.references(doc_string), set())
+
+    def test_relative_disabled(self):
+        self.assertEqual(self.references("/rel/bare.php", relative=False), set())

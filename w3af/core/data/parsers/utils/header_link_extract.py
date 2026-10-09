@@ -77,10 +77,7 @@ def extract_link_from_link_header(http_response, header_name, header_value):
     """
     re_match = LINK_HEADER_RE.search(header_value)
     if re_match:
-        try:
-            url_str = re_match.group(1)
-        except IndexError:
-            return
+        url_str = re_match.group(1)
 
         if not url_str:
             return
@@ -115,10 +112,7 @@ def extract_link_from_set_cookie_header(http_response, header_name, header_value
         return
 
     for key in list(cookie.keys()):
-        try:
-            path = cookie[key]["path"]
-        except KeyError:
-            continue
+        path = cookie[key]["path"]
 
         if path:
             try:

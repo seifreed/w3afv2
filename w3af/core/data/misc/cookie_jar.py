@@ -26,6 +26,10 @@ import traceback
 import warnings
 from http.cookiejar import Cookie, LoadError, MozillaCookieJar
 
+# The header every Netscape cookie file starts with (http.cookiejar keeps its
+# own copy of this regular expression private)
+NETSCAPE_MAGIC_RE = re.compile("#( Netscape)? HTTP Cookie File", re.IGNORECASE)
+
 
 def _warn_unhandled_exception():
     warnings.warn(f"http.cookiejar bug!\n{traceback.format_exc()}", stacklevel=2)
@@ -39,7 +43,7 @@ class ImprovedMozillaCookieJar(MozillaCookieJar):
         now = time.time()
 
         magic = f.readline()
-        if not re.search(self.magic_re, magic):
+        if not NETSCAPE_MAGIC_RE.search(magic):
             f.close()
 
             msg = "%r does not look like a Netscape format cookies file"
@@ -105,6 +109,8 @@ class ImprovedMozillaCookieJar(MozillaCookieJar):
                 if expires == "":
                     expires = None
                     discard = True
+                else:
+                    expires = int(expires)
 
                 # assume path_specified is false
                 c = Cookie(

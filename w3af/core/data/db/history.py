@@ -34,7 +34,6 @@ import msgpack
 from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.db.exceptions import DBException
 from w3af.core.data.db.sql_identifier import require_safe_identifier
-from w3af.core.data.db.where_helper import WhereHelper
 from w3af.core.data.url.http_request import HTTPRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.filesystem import get_temp_dir
@@ -171,40 +170,37 @@ class HistoryItem:
     request = property(get_request, set_request)
 
     @verify_has_db
-    def find(self, search_data, result_limit=-1, order_data=None):
+    def find(self, search_data):
         """
-        Make complex search.
-            search_data = {name: (value, operator), ...}
-            order_data = [(name, direction)]
-        """
-        order_data = order_data or []
-        result = []
+        Find the items matching all the conditions.
 
+        :param search_data: A list of (column, value, operator) tuples, for
+                            example [("alias", "abc", "=")]
+        :return: A list with the HistoryItem instances that match
+        """
         select_all = "SELECT * FROM %s"
         sql = select_all % self._DATA_TABLE
-        where = WhereHelper(search_data)
-        sql += where.sql()
 
-        order_by = ""
-        #
-        # TODO we need to move SQL code to parent class
-        #
-        for item in order_data:
-            order_by += item[0] + " " + item[1] + ","
-        order_by = order_by[:-1]
+        conditions = [
+            f"{require_safe_identifier(column)} {operator} ?"
+            for column, _, operator in search_data
+        ]
+        if conditions:
+            sql += " WHERE " + " AND ".join(conditions)
 
-        if order_by:
-            sql += " ORDER BY " + order_by
+        values = [value for _, value, _ in search_data]
 
-        sql += " LIMIT " + str(result_limit)
         try:
-            for row in self._db.select(sql, list(where.values())):
-                item = self.__class__()
-                item._load_from_row(row)
-                result.append(item)
+            rows = self._db.select(sql, values)
         except DBException:
             msg = "You performed an invalid search. Please verify your syntax."
             raise DBException(msg)
+
+        result = []
+        for row in rows:
+            item = self.__class__()
+            item._load_from_row(row)
+            result.append(item)
         return result
 
     def _load_from_row(self, row):
@@ -309,35 +305,27 @@ class HistoryItem:
         :param _id: The request-response ID
         :return: A tuple containing request and response instances
         """
-        #
-        # First we check if the trace file exists and try to load it from
-        # the uncompressed trace
-        #
         file_name = self._get_trace_filename_for_id(_id)
 
-        if os.path.exists(file_name):
-            return self._load_from_trace_file_concurrent(_id)
-
-        #
-        # The trace file doesn't exist, try to find the zip file where the
-        # compressed file lives and read it from there
-        #
-        try:
-            return self._load_from_zip(_id)
-        except TraceReadException as e:
-            msg = 'Failed to load trace %s from zip file: "%s"'
-            args = (_id, e)
-            LOGGER.debug(msg % args)
+        if not os.path.exists(file_name):
+            #
+            # The trace file doesn't exist, try to find the zip file where the
+            # compressed file lives and read it from there
+            #
+            try:
+                return self._load_from_zip(_id)
+            except TraceReadException as e:
+                msg = 'Failed to load trace %s from zip file: "%s"'
+                LOGGER.debug(msg % (_id, e))
 
             #
-            # Give the .trace file a last chance, it might be possible that when
-            # we checked for os.path.exists(file_name) at the beginning of this
-            # method the file wasn't there yet, but is on disk now
+            # Give the .trace file a last chance, it might be possible that
+            # it was written to disk while we were reading the zip files
             #
-            if os.path.exists(file_name):
-                return self._load_from_trace_file_concurrent(_id)
+            if not os.path.exists(file_name):
+                raise TraceReadException(f"No zip nor trace file for ID {_id}")
 
-            raise TraceReadException(f"No zip nor trace file for ID {_id}")
+        return self._load_from_trace_file_concurrent(_id)
 
     def _load_from_zip(self, _id):
         files = os.listdir(self.get_session_dir())
@@ -374,31 +362,10 @@ class HistoryItem:
         return self._load_from_string(serialized_req_res)
 
     @verify_has_db
-    def delete(self, _id=None):
-        """
-        Delete data from DB by ID.
-        """
-        if _id is None:
-            _id = self.id
-
-        sql = "DELETE FROM %s WHERE id = ? "
-        self._db.execute(sql % self._DATA_TABLE, (_id,))
-
-        fname = self._get_trace_filename_for_id(_id)
-
-        try:
-            os.remove(fname)
-        except OSError:
-            pass
-
-    @verify_has_db
-    def load(self, _id=None, retry=True):
+    def load(self, _id, retry=True):
         """
         Load data from DB by ID
         """
-        if _id is None:
-            _id = self.id
-
         sql = "SELECT * FROM %s WHERE id = ? "
         try:
             row = self._db.select_one(sql % self._DATA_TABLE, (_id,))
@@ -471,25 +438,14 @@ class HistoryItem:
             int(self.request.get_uri().has_query_string()),
         ]
 
-        if not self.id:
-            sql = (
-                "INSERT INTO %s "
-                "(id, url, code, tag, mark, info, time, msg, content_type, "
-                "charset, method, response_size, codef, alias, has_qs) "
-                "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
-            )
-            self._db.execute(sql % self._DATA_TABLE, values)
-            self.id = self.response.get_id()
-        else:
-            values.append(self.id)
-            sql = (
-                "UPDATE %s"
-                " SET id = ?, url = ?, code = ?, tag = ?, mark = ?,"
-                " info = ?, time = ?, msg = ?, content_type = ?,"
-                " charset = ?, method = ?, response_size = ?, codef = ?,"
-                " alias = ?, has_qs = ? WHERE id = ?"
-            )
-            self._db.execute(sql % self._DATA_TABLE, values)
+        sql = (
+            "INSERT INTO %s "
+            "(id, url, code, tag, mark, info, time, msg, content_type, "
+            "charset, method, response_size, codef, alias, has_qs) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+        )
+        self._db.execute(sql % self._DATA_TABLE, values)
+        self.id = self.response.get_id()
 
         #
         # Save raw data to file
@@ -524,17 +480,19 @@ class HistoryItem:
 
         :see: https://github.com/andresriancho/w3af/issues/9022
         """
-        path, _ = os.path.split(path_fname)
-        split_path = path.split("/")
+        missing = None
+        directory = os.path.dirname(path_fname)
 
-        for i in range(len(split_path) + 1):
-            test_path = "/".join(split_path[:i])
-            if not os.path.exists(test_path):
-                msg = (
-                    'Directory does not exist: "%s" while trying to'
-                    ' write DB history to "%s"'
-                )
-                raise OSError(msg % (test_path, path_fname))
+        while directory and not os.path.exists(directory):
+            missing = directory
+            directory = os.path.dirname(directory)
+
+        if missing is not None:
+            msg = (
+                'Directory does not exist: "%s" while trying to'
+                ' write DB history to "%s"'
+            )
+            raise OSError(msg % (missing, path_fname))
 
     def _get_pending_compression_job(self):
         with HistoryItem.compression_lock:
@@ -707,24 +665,6 @@ class HistoryItem:
 
     def get_index_columns(self):
         return self._INDEX_COLUMNS
-
-    def _update_field(self, name, value):
-        """Update custom field in DB."""
-        sql = "UPDATE %s SET %s = ? WHERE id = ?"
-        sql %= (self._DATA_TABLE, require_safe_identifier(name))
-        self._db.execute(sql, (value, self.id))
-
-    def update_tag(self, value, force_db=False):
-        """Update tag."""
-        self.tag = value
-        if force_db:
-            self._update_field("tag", value)
-
-    def toggle_mark(self, force_db=False):
-        """Toggle mark state."""
-        self.mark = not self.mark
-        if force_db:
-            self._update_field("mark", int(self.mark))
 
     def clear(self):
         """Clear history and delete all trace files."""

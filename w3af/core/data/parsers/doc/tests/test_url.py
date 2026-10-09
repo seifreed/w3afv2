@@ -516,29 +516,6 @@ class TestURLParser(unittest.TestCase):
         url = URL("http://w3af.com/a/b/é.php?x=á")
         self.assertEqual(str(url), "http://w3af.com/a/b/é.php?x=%C3%A1")
 
-    def test_str_special_encoding_query_string_urlencoded(self):
-        msg = (
-            "Please note that this test does NOT make any sense."
-            "Leaving this here just as a reminder to myself."
-            ""
-            "When the document parser extracts a URL from the HTML page"
-            " it will call BaseParser._decode_url() to URL-decode and"
-            " utf-8 (or whatever encoding is specified in the headers)"
-            " decode the string and then send unicode to URL.__init__."
-            ""
-            "Thus, sending URL-encoded data to URL.__init__ like we do"
-            " in this test does NOT make any sense and will yield unexpected"
-            " results."
-        )
-
-        raise SkipTest(msg)
-
-        # url = URL('http://w3af.com/a/b/%E1%BA%BC.php?x=%E1%BA%BC')
-        # self.assertEqual(str(url), '#fail')
-
-    #
-    #    __unicode__
-    #
     def test_unicode(self):
         self.assertEqual(str(URL("http://w3af.com:80/")), "http://w3af.com/")
 
@@ -1122,3 +1099,62 @@ class TestURLParser(unittest.TestCase):
     def test_copy(self):
         u = URL("http://www.w3af.com/?id=1&id=2")
         self.assertEqual(u, u.copy())
+
+    def test_requires_a_string(self):
+        self.assertRaises(InvalidURLError, URL, b"http://www.w3af.com/")
+
+    def test_querystring_from_pairs(self):
+        u = URL("http://www.w3af.com/")
+        u.querystring = [("id", ["1"]), ("name", ["abc"])]
+
+        self.assertEqual(u.url_string, "http://www.w3af.com/?id=1&name=abc")
+
+    def test_parse_qs_blank_and_empty_pairs(self):
+        self.assertEqual(
+            list(parse_qs("a=1&&b&c=&a=2").items()),
+            [("a", ["1", "2"]), ("b", [""]), ("c", [""])],
+        )
+        self.assertEqual(list(parse_qs("").items()), [])
+
+    def test_non_numeric_port(self):
+        self.assertRaises(ValueError, URL, "http://www.w3af.com:abc/")
+
+    def test_normalize_parent_directories(self):
+        u = URL("http://www.w3af.com/a/b/../c/")
+        u.normalize_url()
+
+        self.assertEqual(u.path, "/a/c/")
+
+    def test_get_port_by_protocol(self):
+        self.assertEqual(URL("http://www.w3af.com/").get_port(), 80)
+        self.assertEqual(URL("https://www.w3af.com/").get_port(), 443)
+        self.assertEqual(URL("ftp://www.w3af.com/").get_port(), 80)
+        self.assertEqual(URL("http://www.w3af.com:8080/").get_port(), 8080)
+
+    def test_switch_protocol(self):
+        self.assertEqual(
+            URL("http://www.w3af.com/a").switch_protocol(),
+            URL("https://www.w3af.com/a"),
+        )
+        self.assertEqual(
+            URL("https://www.w3af.com/a").switch_protocol(),
+            URL("http://www.w3af.com/a"),
+        )
+
+    def test_get_params_which_are_not_key_value_pairs(self):
+        self.assertEqual(URL("http://www.w3af.com/a;jsessionid").get_params(), {})
+        self.assertEqual(URL("http://www.w3af.com/a;x=1").get_params(), {"x": "1"})
+
+    def test_ordering(self):
+        a = URL("http://www.w3af.com/a")
+        b = URL("http://www.w3af.com/b")
+
+        self.assertLess(a, b)
+        self.assertEqual(sorted([b, a]), [a, b])
+        self.assertRaises(TypeError, lambda: a < "http://www.w3af.com/b")
+
+    def test_repr_and_eq_attrs(self):
+        u = URL("http://www.w3af.com/")
+
+        self.assertEqual(repr(u), '<URL for "http://www.w3af.com/">')
+        self.assertEqual(u.get_eq_attrs(), ["url_string"])

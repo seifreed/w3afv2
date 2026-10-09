@@ -189,15 +189,6 @@ class BaseTemplate(Configurable):
     def get_short_name(self):
         return self.get_kb_location()[0]
 
-    def get_uri(self):
-        return self.url
-
-    def get_method(self):
-        return self.method
-
-    def get_vulnerable_parameter(self):
-        return self.vulnerable_parameter
-
     def get_kb_location(self):
         """
         :return: A tuple with the location where the vulnerability will be
@@ -211,13 +202,5 @@ class BaseTemplate(Configurable):
                  to the KB, example: 'SQL Injection'. This is just a descriptive
                  string which can contain any information, not used for any
                  strict matching of vulns before exploiting.
-        """
-        raise NotImplementedError
-
-    def get_vulnerability_desc(self):
-        """
-        :return: A string containing the description of the vulnerability to be
-                 added to the KB, example: 'DAV misconfiguration which allows
-                 file uploads using the HTTP PUT method'
         """
         raise NotImplementedError

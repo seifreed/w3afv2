@@ -32,7 +32,7 @@ from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.constants import severity
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.vuln import Vuln
-from w3af.core.data.misc.encoding import smart_str_ignore
+from w3af.core.data.misc.encoding import smart_unicode
 from w3af.core.data.parsers import parser_cache
 
 
@@ -107,7 +107,7 @@ class strange_parameters(GrepPlugin):
             " inspection."
         )
         args = (response.get_uri(), token_name, token_value)
-        args = tuple(smart_str_ignore(i) for i in args)
+        args = tuple(smart_unicode(i) for i in args)
         desc %= args
 
         i = Info("Uncommon query string parameter", desc, response.id, self.get_name())

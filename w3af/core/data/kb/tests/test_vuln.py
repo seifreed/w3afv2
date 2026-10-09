@@ -98,3 +98,30 @@ class TestVuln(unittest.TestCase):
         self.assertEqual(inst.get_method(), mutant.get_method())
         self.assertEqual(inst.get_dc(), mutant.get_dc())
         self.assertEqual(inst.get_token_name(), mutant.get_token().get_name())
+
+    def test_factories_validate_their_input(self):
+        desc = "desc" * 30
+
+        self.assertRaises(
+            TypeError, Vuln.from_mutant, "name", desc, "High", 1, "p", None
+        )
+        self.assertRaises(TypeError, Vuln.from_fr, "name", desc, "High", 1, "p", None)
+        self.assertRaises(TypeError, Vuln.from_vuln, "not a vuln")
+
+    def test_from_fr(self):
+        freq = FuzzableRequest(URL("http://moth/?a=1"), method="POST")
+
+        inst = Vuln.from_fr("TestCase", "desc" * 30, "High", 1, "plugin_name", freq)
+
+        self.assertEqual(inst.get_uri(), freq.get_uri())
+        self.assertEqual(inst.get_method(), "POST")
+
+    def test_invalid_severity(self):
+        self.assertRaises(ValueError, MockVuln().set_severity, "Critical")
+
+    def test_repr(self):
+        vuln = MockVuln(long_desc="desc" * 30)
+
+        self.assertEqual(
+            repr(vuln), f'<vuln object for vulnerability: "{"desc" * 30}">'
+        )

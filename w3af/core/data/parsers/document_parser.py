@@ -47,6 +47,8 @@ class DocumentParser:
         (also very specific) and finally we'll try to parse using the HTMLParser
         which will return True to "can_parse" in lots of cases (even when we're
         unsure that the response is really an HTML document).
+
+        :param parsers: The parser classes to try, in order
         """
         self._parser = None
         self._response_repr = None
@@ -142,13 +144,6 @@ class DocumentParser:
         """
         return self._parser.get_meta_tags()
 
-    def get_tags_by_filter(self, tags, yield_text=False):
-        """
-        :param tags: The tag filter
-        :return: Yield tags which match the filter
-        """
-        yield from self._parser.get_tags_by_filter(tags, yield_text=yield_text)
-
     def get_clear_text_body(self):
         """
         :return: Only the text, no tags, which is present in a document.
@@ -162,18 +157,10 @@ class DocumentParser:
         return self._parser
 
     def __repr__(self):
-        if self._parser:
-            klass = self._parser.__class__.__name__
-        else:
-            klass = None
-
+        klass = self._parser.__class__.__name__
         return f'<{klass} DocumentParser for "{self._response_repr}">'
 
     __str__ = __repr__
-
-
-def document_parser_factory(http_resp):
-    return DocumentParser(http_resp)
 
 
 def url_sort_key(url):

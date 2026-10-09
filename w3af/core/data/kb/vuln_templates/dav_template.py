@@ -86,9 +86,3 @@ class DAVTemplate(BaseTemplate):
                  strict matching of vulns before exploiting.
         """
         return "DAV Misconfiguration"
-
-    def get_vulnerability_desc(self):
-        return (
-            "DAV misconfiguration which allows file uploads using the HTTP"
-            " PUT method"
-        )

@@ -187,7 +187,7 @@ class ContextDetectorHTMLParser(HTMLParser):
         elif self.current_tag == "style":
             self.append_context(CSSText(self.payload, self.untidy(text_data)))
 
-        elif CONTEXT_DETECTOR in text_data:
+        else:
             self.append_context(HtmlText(self.payload, self.untidy(text_data)))
 
     def handle_comment(self, comment_text):

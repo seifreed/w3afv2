@@ -26,13 +26,11 @@ import uuid
 
 from w3af.core.controllers.threads.threadpool import Pool
 from w3af.core.controllers.w3af_core import w3afCore
-from w3af.core.data.db.dbms import get_default_persistent_db_instance
 from w3af.core.data.db.exceptions import DBException
 from w3af.core.data.dc.query_string import QueryString
 from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
 from w3af.core.data.kb.info_set import InfoSet
-from w3af.core.data.kb.kb_observer import KBObserver
-from w3af.core.data.kb.knowledge_base import DBKnowledgeBase, kb
+from w3af.core.data.kb.knowledge_base import kb
 from w3af.core.data.kb.shell import Shell
 from w3af.core.data.kb.tests.test_info import MockInfo
 from w3af.core.data.kb.tests.test_vuln import MockVuln
@@ -51,20 +49,8 @@ from w3af.plugins.attack.sqlmap import SQLMapShell
 from w3af.plugins.attack.xpath import IsErrorResponse, XPathReader
 
 
-class RecordingKBObserver(KBObserver):
-    def __init__(self):
-        self.appended = []
-        self.added_urls = []
-        self.updated = []
-
-    def append(self, location_a, location_b, value, ignore_type=False):
-        self.appended.append((location_a, location_b, value, ignore_type))
-
-    def add_url(self, url):
-        self.added_urls.append(url)
-
-    def update(self, old_info, new_info):
-        self.updated.append((old_info, new_info))
+def find_by_uniq_id(uniq_id):
+    return [f for f in kb.get_all_findings() if f.get_uniq_id() == uniq_id]
 
 
 class TestKnowledgeBase(unittest.TestCase):
@@ -375,14 +361,6 @@ class TestKnowledgeBase(unittest.TestCase):
         self.assertEqual(all_findings_except_v1, [i1, iset, vset])
         self.assertEqual(all_findings_except_v1_v2, [i1, iset])
 
-    def test_dump_empty(self):
-        empty = kb.dump()
-        self.assertEqual(empty, {})
-
-    def test_dump(self):
-        kb.raw_write("a", "b", 1)
-        self.assertEqual(kb.dump(), {"a": {"b": [1]}})
-
     def test_clear(self):
         kb.raw_write("a", "b", "abc")
         kb.raw_write("a", "c", "abc")
@@ -398,60 +376,6 @@ class TestKnowledgeBase(unittest.TestCase):
     def test_raw_write_dict(self):
         kb.raw_write("a", "b", {})
         self.assertEqual(kb.raw_read("a", "b"), {})
-
-    def test_drop_table(self):
-        kb = DBKnowledgeBase()
-        kb.setup()
-        table_name = kb.table_name
-
-        db = get_default_persistent_db_instance()
-
-        self.assertTrue(db.table_exists(table_name))
-
-        kb.remove()
-
-        self.assertFalse(db.table_exists(table_name))
-
-    def test_observer_append(self):
-        observer1 = RecordingKBObserver()
-        info = MockInfo()
-
-        kb.add_observer(observer1)
-        kb.append("a", "b", info)
-
-        self.assertEqual(observer1.appended, [("a", "b", info, False)])
-
-    def test_observer_update(self):
-        observer1 = RecordingKBObserver()
-        info = MockInfo()
-
-        kb.add_observer(observer1)
-        kb.append("a", "b", info)
-        old_info = copy.deepcopy(info)
-        info.set_name("new name")
-        kb.update(old_info, info)
-
-        self.assertEqual(observer1.updated, [(old_info, info)])
-
-    def test_observer_add_url(self):
-        observer1 = RecordingKBObserver()
-        url = URL("http://www.w3af.org/")
-
-        kb.add_observer(observer1)
-        kb.add_url(url)
-
-        self.assertEqual(observer1.added_urls, [url])
-
-    def test_observer_multiple_observers(self):
-        observer1 = RecordingKBObserver()
-        observer2 = RecordingKBObserver()
-
-        kb.add_observer(observer1)
-        kb.add_observer(observer2)
-        kb.raw_write("a", "b", 1)
-
-        self.assertEqual(observer1.appended, [("a", "b", 1, True)])
-        self.assertEqual(observer2.appended, [("a", "b", 1, True)])
 
     def test_pickleable_info(self):
         original_info = MockInfo()
@@ -504,32 +428,6 @@ class TestKnowledgeBase(unittest.TestCase):
         core.worker_pool.terminate()
         core.worker_pool.join()
         core.uri_opener.end()
-
-    def test_get_by_uniq_id(self):
-        i1 = MockInfo()
-        kb.append("a", "b", i1)
-
-        i1_copy = kb.get_by_uniq_id(i1.get_uniq_id())
-        self.assertEqual(i1_copy, i1)
-
-    def test_get_by_uniq_id_not_exists(self):
-        self.assertIs(kb.get_by_uniq_id(hash("foo")), None)
-
-    def test_get_by_uniq_id_duplicated_ignores_second(self):
-        """
-        TODO: Analyze this case, i1 and i2 have both the same ID because they
-              have all the same information (this is very very uncommon in a
-              real w3af run).
-
-              Note that in the get_by_uniq_id call i2 is not returned.
-        """
-        i1 = MockInfo()
-        i2 = MockInfo()
-        kb.append("a", "b", i1)
-        kb.append("a", "b", i2)
-
-        i1_copy = kb.get_by_uniq_id(i1.get_uniq_id())
-        self.assertEqual(i1_copy, i1)
 
     def test_raw_write_list(self):
         """
@@ -788,7 +686,7 @@ class TestKnowledgeBase(unittest.TestCase):
         kb.update(info, update_info)
 
         self.assertNotEqual(update_info, info)
-        self.assertEqual(update_info, kb.get_by_uniq_id(update_uniq_id))
+        self.assertEqual([update_info], find_by_uniq_id(update_uniq_id))
 
     def test_update_vuln(self):
         vuln = MockVuln()
@@ -799,7 +697,7 @@ class TestKnowledgeBase(unittest.TestCase):
         kb.update(vuln, update_vuln)
 
         self.assertNotEqual(update_vuln, vuln)
-        self.assertEqual(update_vuln, kb.get_by_uniq_id(update_uniq_id))
+        self.assertEqual([update_vuln], find_by_uniq_id(update_uniq_id))
 
     def test_update_exception(self):
         vuln = MockVuln()
@@ -813,26 +711,7 @@ class TestKnowledgeBase(unittest.TestCase):
 
         self.assertNotEqual(original_id, modified_id)
         self.assertRaises(DBException, kb.update, vuln, update_vuln)
-
-    def test_get_one(self):
-        vuln = MockVuln()
-        kb.append("a", "b", vuln)
-        kb_vuln = kb.get_one("a", "b")
-
-        # pylint: disable=E1103
-        self.assertEqual(kb_vuln.get_uniq_id(), vuln.get_uniq_id())
-        self.assertEqual(kb_vuln, vuln)
         # pylint: enable=E1103
-
-    def test_get_one_none_found(self):
-        empty_list = kb.get_one("a", "b")
-        self.assertEqual(empty_list, [])
-
-    def test_get_one_more_than_one_found(self):
-        vuln = MockVuln()
-        kb.append("a", "b", vuln)
-        kb.append("a", "b", vuln)
-        self.assertRaises(RuntimeError, kb.get_one, "a", "b")
 
     def test_append_uniq_group_empty_address(self):
         vuln = MockVuln()
@@ -997,6 +876,104 @@ class TestKnowledgeBase(unittest.TestCase):
         self.assertEqual(raw_data[0].infos[1].get_id(), [42])
         self.assertEqual(raw_data[0].infos[0].get_id(), [47])
         self.assertEqual(raw_data[1].first_info.get_name(), "Bars")
+
+    def test_append_uniq_requires_info(self):
+        self.assertRaises(TypeError, kb.append_uniq, "a", "b", "not an info")
+
+    def test_append_uniq_unknown_filter(self):
+        self.assertRaises(ValueError, kb.append_uniq, "a", "b", MockInfo(), "FOO")
+
+    def test_append_uniq_group_requires_info_and_info_set(self):
+        self.assertRaises(TypeError, kb.append_uniq_group, "a", "b", "not an info")
+        self.assertRaises(
+            TypeError, kb.append_uniq_group, "a", "b", MockInfo(), group_klass=object
+        )
+
+    def test_append_uniq_group_ignores_plain_infos(self):
+        kb.append("a", "b", MockInfo())
+
+        _, created = kb.append_uniq_group("a", "b", MockInfo())
+
+        self.assertTrue(created)
+        self.assertEqual(len(kb.get("a", "b")), 2)
+
+    def test_append_requires_info(self):
+        self.assertRaises(TypeError, kb.append, "a", "b", "not an info")
+
+    def test_update_requires_info(self):
+        self.assertRaises(TypeError, kb.update, "old", MockInfo())
+        self.assertRaises(TypeError, kb.update, MockInfo(), "new")
+
+    def test_get_iter_requires_info_when_checking_types(self):
+        kb.raw_write("a", "b", "raw value")
+
+        self.assertRaises(TypeError, kb.get, "a", "b")
+
+    def test_get_all_location_b(self):
+        info_1 = MockInfo()
+        info_2 = MockVuln()
+        kb.append("a", "b", info_1)
+        kb.append("a", "c", info_2)
+
+        self.assertEqual(kb.get("a", None), [info_1, info_2])
+
+    def test_plugin_instance_as_location(self):
+        class Plugin:
+            def get_name(self):
+                return "plugin_name"
+
+        info = MockInfo()
+        kb.append(Plugin(), "b", info)
+
+        self.assertEqual(kb.get("plugin_name", "b"), [info])
+
+    def test_get_all_findings_iter(self):
+        info = MockInfo()
+        vuln = MockVuln()
+        kb.append("a", "b", info)
+        kb.append("a", "c", vuln)
+        kb.raw_write("a", "d", "raw value")
+
+        self.assertEqual(list(kb.get_all_findings_iter()), [info, vuln])
+        self.assertEqual(
+            list(kb.get_all_findings_iter(exclude_ids=[info.get_uniq_id()])), [vuln]
+        )
+
+    def test_setup_twice(self):
+        table_name = kb.table_name
+
+        kb.setup()
+
+        self.assertEqual(kb.table_name, table_name)
+
+    def test_clear_removes_cached_info_sets(self):
+        info = MockInfo()
+        info_set = InfoSet([info])
+        kb._record_reached_max_info_instances("a", "b", info, InfoSet, info_set)
+        kb._record_reached_max_info_instances("a", "c", info, InfoSet, info_set)
+
+        kb.clear("a", "b")
+
+        self.assertIsNone(kb._has_reached_max_info_instances("a", "b", info, InfoSet))
+        self.assertIsNotNone(
+            kb._has_reached_max_info_instances("a", "c", info, InfoSet)
+        )
+
+    def test_known_urls(self):
+        url = URL("http://w3af.org/")
+
+        self.assertTrue(kb.add_url(url))
+        self.assertFalse(kb.add_url(url))
+        self.assertEqual(list(kb.get_all_known_urls()), [url])
+        self.assertRaises(TypeError, kb.add_url, "http://w3af.org/")
+
+    def test_known_fuzzable_requests(self):
+        freq = FuzzableRequest(URL("http://w3af.org/foo?id=1"))
+
+        self.assertTrue(kb.add_fuzzable_request(freq))
+        self.assertEqual(list(kb.get_all_known_fuzzable_requests()), [freq])
+        self.assertEqual(list(kb.get_all_known_urls()), [URL("http://w3af.org/foo")])
+        self.assertRaises(TypeError, kb.add_fuzzable_request, "http://w3af.org/")
 
 
 class MockInfoSetITag(InfoSet):

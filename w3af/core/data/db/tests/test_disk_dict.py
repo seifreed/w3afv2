@@ -19,7 +19,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import time
 import unittest
 
 import pytest
@@ -27,6 +26,15 @@ import pytest
 from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.db.disk_dict import DiskDict
 from w3af.core.filesystem import create_temp_dir
+
+
+def _refuse_to_load():
+    raise RuntimeError("DiskDict items must not be unpickled to compute len()")
+
+
+class UnloadableItem:
+    def __reduce__(self):
+        return _refuse_to_load, ()
 
 
 @pytest.mark.smoke
@@ -90,20 +98,29 @@ class TestDiskDict(unittest.TestCase):
 
         self.assertEqual(len(disk_dict), 1)
 
-    def test_len_performance(self):
+    def test_len_does_not_load_items(self):
         disk_dict = DiskDict()
 
-        for i in range(100000):
-            disk_dict[i] = i
+        for i in range(1000):
+            disk_dict[i] = UnloadableItem()
 
-        start = time.time()
+        self.assertEqual(len(disk_dict), 1000)
+        self.assertRaises(RuntimeError, disk_dict.__getitem__, 0)
 
-        for i in range(10000):
-            len(disk_dict)
+    def test_get_without_default(self):
+        disk_dict = DiskDict()
 
-        end = time.time()
+        self.assertRaises(KeyError, disk_dict.get, "missing")
+        self.assertEqual(disk_dict.get("missing", None), None)
 
-        self.assertLess(end - start, 10)
+    def test_pop(self):
+        disk_dict = DiskDict()
+        disk_dict["a"] = "abc"
+
+        self.assertEqual(disk_dict.pop("a"), "abc")
+        self.assertNotIn("a", disk_dict)
+        self.assertEqual(disk_dict.pop("a", None), None)
+        self.assertRaises(KeyError, disk_dict.pop, "a")
 
     def test_len_very_large_dict(self):
         disk_dict = DiskDict()
@@ -115,15 +132,6 @@ class TestDiskDict(unittest.TestCase):
             disk_dict[i] = very_large_string
 
         self.assertEqual(len(disk_dict), items_to_add)
-
-    def test_iterkeys(self):
-        disk_dict = DiskDict()
-
-        disk_dict["a"] = "abc"
-        disk_dict["b"] = "abc"
-        disk_dict["c"] = "abc"
-
-        self.assertEqual(set(disk_dict.keys()), {"a", "b", "c"})
 
     def test_remove_table(self):
         disk_dict = DiskDict()

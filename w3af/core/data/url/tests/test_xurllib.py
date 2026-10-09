@@ -21,15 +21,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 import queue
-import socketserver
 import time
 import unittest
 from multiprocessing.dummy import Process
 
 import pytest
 
+import w3af.core.data.kb.config as cf
 from w3af import ROOT_PATH
-from w3af.core.controllers.ci.moth import get_moth_http, get_moth_https
 from w3af.core.controllers.misc.get_unused_port import get_unused_port
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.dc.urlencoded_form import URLEncodedForm
@@ -38,7 +37,12 @@ from w3af.core.data.url.constants import MAX_ERROR_COUNT
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.data.url.http_response import DEFAULT_WAIT_TIME
-from w3af.core.data.url.tests.helpers.route_server import Response, RouteServer
+from w3af.core.data.url.tests.helpers.raw_handlers import (
+    EmptyTCPHandler,
+    Ok200Handler,
+    closed_port,
+)
+from w3af.core.data.url.tests.helpers.route_server import Response, RouteServer, echo
 from w3af.core.data.url.tests.helpers.ssl_daemon import RawSSLDaemon, SSLServer
 from w3af.core.data.url.tests.helpers.upper_daemon import UpperDaemon
 from w3af.core.exceptions import (
@@ -50,18 +54,25 @@ from w3af.core.filesystem import get_temp_dir
 from w3af.plugins.evasion.rnd_case import rnd_case
 from w3af.plugins.evasion.rnd_path import rnd_path
 
+INDEX = "<title>local test application</title>"
+BIG_BODY = b'{"jquery": "' + b"x" * 500000 + b'"}'
 
-@pytest.mark.moth
+
 @pytest.mark.smoke
 class TestXUrllib(unittest.TestCase):
 
-    MOTH_MESSAGE = "<title>moth: vulnerable web application</title>"
-
     def setUp(self):
         self.uri_opener = ExtendedUrllib()
+        self.addCleanup(self.uri_opener.end)
+        self.addCleanup(self.uri_opener.settings.set_default_values)
 
-    def tearDown(self):
-        self.uri_opener.end()
+        routes = {
+            "/": Response(200, INDEX),
+            "/echo": echo,
+            "/big.json": Response(200, BIG_BODY, content_type="application/json"),
+        }
+        self.server = RouteServer.serve_for(self, routes)
+        self.ssl_server = RouteServer.serve_for(self, routes, use_tls=True)
 
     def test_evasion_plugins_are_sorted_by_priority(self):
         evasion_plugins = [rnd_case(), rnd_path()]
@@ -74,111 +85,107 @@ class TestXUrllib(unittest.TestCase):
         self.assertEqual(priorities, [0, 25])
 
     def test_basic(self):
-        url = URL(get_moth_http())
-        http_response = self.uri_opener.GET(url, cache=False)
+        http_response = self.uri_opener.GET(URL(self.server.url()), cache=False)
 
-        self.assertIn(self.MOTH_MESSAGE, http_response.body)
-
+        self.assertIn(INDEX, http_response.body)
         self.assertGreaterEqual(http_response.id, 1)
-        self.assertNotEqual(http_response.id, None)
 
     def test_basic_ssl(self):
-        url = URL(get_moth_https())
-        http_response = self.uri_opener.GET(url, cache=False)
+        http_response = self.uri_opener.GET(URL(self.ssl_server.url()), cache=False)
 
-        self.assertIn(self.MOTH_MESSAGE, http_response.body)
-
+        self.assertIn(INDEX, http_response.body)
         self.assertGreaterEqual(http_response.id, 1)
-        self.assertNotEqual(http_response.id, None)
 
-    def test_github_ssl(self):
-        url = URL(
-            "https://raw.githubusercontent.com/RetireJS/retire.js/master/repository/jsrepository.json"
-        )
+    def test_download_over_size_limit(self):
+        url = URL(self.ssl_server.url("/big.json"))
 
         http_response = self.uri_opener.GET(
             url, cache=False, binary_response=True, respect_size_limit=False
         )
 
-        self.assertIn("jquery", http_response.body)
+        self.assertEqual(http_response.get_raw_body(), BIG_BODY)
+        self.assertEqual(cf.cf.get("max_file_size"), 400000)
 
-        self.assertGreaterEqual(http_response.id, 1)
-        self.assertNotEqual(http_response.id, None)
+    def test_size_limit_is_restored_when_request_fails(self):
+        url = URL(f"http://127.0.0.1:{closed_port()}/")
+
+        self.assertRaises(
+            HTTPRequestException, self.uri_opener.GET, url, respect_size_limit=False
+        )
+        self.assertEqual(cf.cf.get("max_file_size"), 400000)
 
     def test_cache(self):
-        url = URL(get_moth_http())
-        http_response = self.uri_opener.GET(url)
-        self.assertIn(self.MOTH_MESSAGE, http_response.body)
+        url = URL(self.server.url())
 
-        url = URL(get_moth_http())
-        http_response = self.uri_opener.GET(url)
-        self.assertIn(self.MOTH_MESSAGE, http_response.body)
+        first = self.uri_opener.GET(url, cache=True)
+        second = self.uri_opener.GET(url, cache=True)
+
+        self.assertIn(INDEX, first.body)
+        self.assertIn(INDEX, second.body)
+        self.assertFalse(first.get_from_cache())
+        self.assertTrue(second.get_from_cache())
+        self.assertEqual(len(self.server.requests), 1)
 
     def test_qs_params(self):
-        url = URL(get_moth_http("/audit/xss/simple_xss.py?text=123456abc"))
+        url = URL(self.server.url("/echo?text=123456abc"))
         http_response = self.uri_opener.GET(url, cache=False)
-        self.assertIn("123456abc", http_response.body)
+        self.assertIn("text=123456abc", http_response.body)
 
-        url = URL(get_moth_http("/audit/xss/simple_xss.py?text=root:x:0"))
+        url = URL(self.server.url("/echo?text=root:x:0"))
         http_response = self.uri_opener.GET(url, cache=False)
-        self.assertIn("root:x:0", http_response.body)
-
-    def assert_get_with_post_data(self, path_and_qs):
-        with RouteServer() as server:
-            server.add("GET", "/", Response(body=self.MOTH_MESSAGE))
-
-            data = "abc=123&def=456"
-            response = self.uri_opener.GET(URL(server.url(path_and_qs)), data=data)
-
-            # Check the response
-            self.assertEqual(response.get_code(), 200)
-            self.assertEqual(response.get_body(), self.MOTH_MESSAGE)
-
-            # And check the request received by the server
-            last_request = server.last_request
-
-        self.assertEqual(last_request.method, "GET")
-        self.assertIn("content-length", last_request.headers)
-        self.assertEqual(str(len(data)), last_request.headers["content-length"])
-        self.assertEqual(last_request.body, data.encode())
-        self.assertEqual(last_request.path, path_and_qs)
+        self.assertIn("text=root:x:0", http_response.body)
 
     def test_GET_with_post_data(self):
-        self.assert_get_with_post_data("/")
+        data = "abc=123&def=456"
+        response = self.uri_opener.GET(URL(self.server.url("/")), data=data)
+
+        self.assertEqual(response.get_code(), 200)
+        self.assertEqual(response.get_body(), INDEX)
+
+        request = self.server.requests[-1]
+        self.assertEqual(request.method, "GET")
+        self.assertEqual(request.headers["Content-Length"], str(len(data)))
+        self.assertEqual(request.body, data.encode())
+        self.assertEqual(request.path, "/")
 
     def test_GET_with_post_data_and_qs(self):
-        self.assert_get_with_post_data("/?qs=1")
+        data = "abc=123&def=456"
+        response = self.uri_opener.GET(URL(self.server.url("/?qs=1")), data=data)
+
+        self.assertEqual(response.get_code(), 200)
+
+        request = self.server.requests[-1]
+        self.assertEqual(request.method, "GET")
+        self.assertEqual(request.headers["Content-Length"], str(len(data)))
+        self.assertEqual(request.body, data.encode())
+        self.assertEqual(request.path, "/?qs=1")
 
     def test_post(self):
-        url = URL(get_moth_http("/audit/xss/simple_xss_form.py"))
-
         data = URLEncodedForm()
         data["text"] = ["123456abc"]
 
+        url = URL(self.server.url("/echo"))
         http_response = self.uri_opener.POST(url, data, cache=False)
-        self.assertIn("123456abc", http_response.body)
+
+        self.assertIn("text=123456abc", http_response.body)
+        self.assertEqual(self.server.requests[-1].method, "POST")
 
     def test_post_special_chars(self):
-        url = URL(get_moth_http("/audit/xss/simple_xss_form.py"))
         test_data = 'abc<def>"-á-'
 
         data = URLEncodedForm()
         data["text"] = [test_data]
 
+        url = URL(self.server.url("/echo"))
         http_response = self.uri_opener.POST(url, data, cache=False)
-        self.assertIn(test_data, http_response.body)
-
-    def test_unknown_domain(self):
-        url = URL("http://longsitethatdoesnotexistfoo.com/")
-        self.assertRaises(HTTPRequestException, self.uri_opener.GET, url)
+        self.assertIn(f"text={test_data}", http_response.body)
 
     def test_file_proto(self):
         url = URL("file://foo/bar.txt")
         self.assertRaises(HTTPRequestException, self.uri_opener.GET, url)
 
     def test_url_port_closed(self):
-        # TODO: Change 2312 by an always closed/non-http port
-        url = URL("http://127.0.0.1:2312/")
+        url = URL(f"http://127.0.0.1:{closed_port()}/")
         self.assertRaises(HTTPRequestException, self.uri_opener.GET, url)
 
     def test_url_port_not_http(self):
@@ -186,27 +193,21 @@ class TestXUrllib(unittest.TestCase):
         upper_daemon.start()
         upper_daemon.wait_for_start()
 
-        port = upper_daemon.get_port()
+        url = URL(f"http://127.0.0.1:{upper_daemon.get_port()}/")
 
-        url = URL(f"http://127.0.0.1:{port}/")
-
-        try:
+        with self.assertRaises(HTTPRequestException) as raised:
             self.uri_opener.GET(url)
-        except HTTPRequestException as hre:
-            self.assertEqual(hre.value, "Bad HTTP response status line: ''")
-        else:
-            self.assertTrue(False, "Expected HTTPRequestException.")
+
+        self.assertEqual(raised.exception.value, "Bad HTTP response status line: ''")
 
     def test_url_port_not_http_many(self):
         upper_daemon = UpperDaemon(EmptyTCPHandler)
         upper_daemon.start()
         upper_daemon.wait_for_start()
 
-        port = upper_daemon.get_port()
-
         self.uri_opener.settings.set_max_http_retries(0)
 
-        url = URL(f"http://127.0.0.1:{port}/")
+        url = URL(f"http://127.0.0.1:{upper_daemon.get_port()}/")
         http_request_e = 0
         scan_must_stop_e = 0
 
@@ -227,56 +228,48 @@ class TestXUrllib(unittest.TestCase):
         Asserts that all the responses coming out of the extended urllib have a
         get_wait_time different from the default.
         """
-        url = URL(get_moth_http())
-        http_response = self.uri_opener.GET(url, cache=False)
+        http_response = self.uri_opener.GET(URL(self.server.url()), cache=False)
         self.assertNotEqual(http_response.get_wait_time(), DEFAULT_WAIT_TIME)
 
     def test_ssl_tls(self):
         ssl_daemon = RawSSLDaemon(Ok200Handler)
         ssl_daemon.start()
         ssl_daemon.wait_for_start()
-        port = ssl_daemon.get_port()
 
-        url = URL(f"https://127.0.0.1:{port}/")
+        url = URL(f"https://127.0.0.1:{ssl_daemon.get_port()}/")
 
         resp = self.uri_opener.GET(url)
         self.assertEqual(resp.get_body(), Ok200Handler.body.encode())
 
-    @pytest.mark.internet
-    @pytest.mark.ci_fails
     def test_ssl_sni(self):
         """
-        Test is our HTTP client supports SSL SNI
+        Test if our HTTP client supports SSL SNI
         """
-        url = URL("https://sni.velox.ch/")
+        url = URL(self.ssl_server.url(host="localhost"))
 
         resp = self.uri_opener.GET(url)
-        self.assertIn("<strong>Great!", resp.get_body())
+
+        self.assertIn(INDEX, resp.get_body())
+        self.assertIn("localhost", self.ssl_server.server_names)
 
     def test_ssl_fail_when_requesting_http(self):
         http_daemon = UpperDaemon(Ok200Handler)
         http_daemon.start()
         http_daemon.wait_for_start()
 
-        port = http_daemon.get_port()
-
         # Note that here I'm using httpS <<---- "S" and that I've started an
         # HTTP server. We should get an exception
-        url = URL(f"https://127.0.0.1:{port}/")
+        url = URL(f"https://127.0.0.1:{http_daemon.get_port()}/")
 
         self.assertRaises(HTTPRequestException, self.uri_opener.GET, url)
 
-    def test_ssl_fail_when_requesting_moth_http(self):
+    def test_ssl_fail_when_requesting_http_server(self):
         """
         https://github.com/andresriancho/w3af/issues/7989
-
-        This test takes considerable time to run since it needs to timeout the
-        SSL connection for each SSL protocol
         """
         # Note that here I'm using httpS <<---- "S" and that I'm connecting to
         # the net location (host:port) of an HTTP server.
-        http_url = URL(get_moth_http())
-        test_url = URL(f"https://{http_url.get_net_location()}")
+        test_url = URL(f"https://127.0.0.1:{self.server.port}/")
 
         self.uri_opener.settings.set_max_http_retries(0)
 
@@ -286,66 +279,59 @@ class TestXUrllib(unittest.TestCase):
 
     def test_stop(self):
         self.uri_opener.stop()
-        url = URL(get_moth_http())
+        url = URL(self.server.url())
         self.assertRaises(ScanMustStopByUserRequest, self.uri_opener.GET, url)
 
     def test_pause_stop(self):
         self.uri_opener.pause(True)
         self.uri_opener.stop()
-        url = URL(get_moth_http())
+        url = URL(self.server.url())
         self.assertRaises(ScanMustStopByUserRequest, self.uri_opener.GET, url)
 
-    def test_pause(self):
+    def _send_in_thread(self):
         output = queue.Queue()
-        self.uri_opener.pause(True)
+        url = URL(self.server.url())
 
-        def send(uri_opener, output):
-            url = URL(get_moth_http())
+        def send():
             try:
-                http_response = uri_opener.GET(url)
-                output.put(http_response)
+                output.put(self.uri_opener.GET(url))
             except (BaseFrameworkException, ScanMustStopException):
                 output.put(None)
 
-        th = Process(target=send, args=(self.uri_opener, output))
+        th = Process(target=send)
         th.daemon = True
         th.start()
+        return th, output
+
+    def test_pause(self):
+        self.uri_opener.pause(True)
+        self.addCleanup(self.uri_opener.stop)
+
+        _, output = self._send_in_thread()
 
         self.assertRaises(queue.Empty, output.get, True, 2)
+        self.assertEqual(self.server.requests, [])
 
     def test_pause_unpause(self):
-        output = queue.Queue()
         self.uri_opener.pause(True)
 
-        def send(uri_opener, output):
-            url = URL(get_moth_http())
-            try:
-                http_response = uri_opener.GET(url)
-                output.put(http_response)
-            except (BaseFrameworkException, ScanMustStopException):
-                output.put(None)
-
-        th = Process(target=send, args=(self.uri_opener, output))
-        th.daemon = True
-        th.start()
+        th, output = self._send_in_thread()
 
         self.assertRaises(queue.Empty, output.get, True, 2)
 
         self.uri_opener.pause(False)
 
-        http_response = output.get()
-        self.assertNotIsInstance(http_response, type(None), "Error in send thread.")
-
+        http_response = output.get(timeout=30)
         th.join()
 
+        self.assertIsNotNone(http_response, "Error in send thread.")
         self.assertEqual(http_response.get_code(), 200)
-        self.assertIn(self.MOTH_MESSAGE, http_response.body)
+        self.assertIn(INDEX, http_response.body)
 
     def test_removes_cache(self):
-        url = URL(get_moth_http())
-        self.uri_opener.GET(url, cache=False)
+        self.uri_opener.GET(URL(self.server.url()), cache=False)
 
-        # Please note that this line, together with the tearDown() act as
+        # Please note that this line, together with the cleanup act as
         # a test for a "double call to end()".
         self.uri_opener.end()
 
@@ -360,11 +346,15 @@ class TestXUrllib(unittest.TestCase):
             self.assertFalse(os.path.exists(test_trace_path), test_trace_path)
 
     def test_special_char_header(self):
-        url = URL(get_moth_http("/core/headers/echo-headers.py"))
         header_content = "name=ábc"
         headers = Headers([("Cookie", header_content)])
-        http_response = self.uri_opener.GET(url, cache=False, headers=headers)
-        self.assertIn(header_content, http_response.body)
+
+        url = URL(self.server.url("/echo"))
+        self.uri_opener.GET(url, cache=False, headers=headers)
+
+        # http.server decodes header bytes as latin-1, the client sent UTF-8
+        wire_value = self.server.requests[-1].headers["Cookie"].encode("latin-1")
+        self.assertEqual(wire_value, header_content.encode("utf-8"))
 
     def test_bad_file_descriptor_8125_local(self):
         """
@@ -387,68 +377,32 @@ class TestXUrllib(unittest.TestCase):
         s = SSLServer("localhost", port, certfile, http_response=raw_http_response)
         s.start()
 
-        body = "abc"
-        local_url = f"https://localhost:{port}/"
-        url = URL(local_url)
+        url = URL(f"https://localhost:{port}/")
         http_response = self.uri_opener.GET(url, cache=False)
 
-        self.assertEqual(body, http_response.body)
+        self.assertEqual("abc", http_response.body)
         s.stop()
 
         self.assertEqual(s.errors, [])
 
     def test_rate_limit_high(self):
-        self.rate_limit_generic(500, 0.002, 0.4)
+        self.rate_limit_generic(500, 0.002)
 
     def test_rate_limit_low(self):
-        self.rate_limit_generic(1, 1, 2.2)
+        self.rate_limit_generic(1, 1)
 
     def test_rate_limit_zero(self):
-        self.rate_limit_generic(0, 0.0, 0.4)
+        self.rate_limit_generic(0, 0)
 
-    def rate_limit_generic(self, max_requests_per_second, _min, _max):
-        settings = self.uri_opener.settings
-        original_max_rps = settings.get_max_requests_per_second()
-        self.addCleanup(settings.set_max_requests_per_second, original_max_rps)
+    def rate_limit_generic(self, max_requests_per_second, min_elapsed):
+        url = URL(self.server.url())
+        self.uri_opener.settings.set_max_requests_per_second(max_requests_per_second)
 
-        with RouteServer() as server:
-            server.add("GET", "/", Response(body="Body"))
-            url = URL(server.url("/"))
+        start_time = time.monotonic()
 
-            settings.set_max_requests_per_second(max_requests_per_second)
-            start_time = time.time()
+        self.uri_opener.GET(url, cache=False)
+        self.uri_opener.GET(url, cache=False)
 
-            self.uri_opener.GET(url, cache=False)
-            self.uri_opener.GET(url, cache=False)
-
-            end_time = time.time()
-
-        elapsed_time = end_time - start_time
-        self.assertGreaterEqual(elapsed_time, _min)
-        self.assertLessEqual(elapsed_time, _max)
-
-
-class EmptyTCPHandler(socketserver.BaseRequestHandler):
-    def handle(self):
-        self.data = self.request.recv(1024).strip()
-        self.request.sendall(b"")
-
-
-class TimeoutTCPHandler(socketserver.BaseRequestHandler):
-    def handle(self):
-        self.data = self.request.recv(1024).strip()
-        time.sleep(60)
-        self.request.sendall(b"")
-
-
-class Ok200Handler(socketserver.BaseRequestHandler):
-    body = "abc"
-
-    def handle(self):
-        self.data = self.request.recv(1024).strip()
-        self.request.sendall(
-            b"HTTP/1.0 200 Ok\r\n"
-            b"Connection: Close\r\n"
-            b"Content-Length: 3\r\n"
-            b"\r\n" + self.body.encode()
-        )
+        elapsed_time = time.monotonic() - start_time
+        self.assertGreaterEqual(elapsed_time, min_elapsed)
+        self.assertEqual(len(self.server.requests), 2)

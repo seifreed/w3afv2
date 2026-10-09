@@ -30,10 +30,6 @@ from bravado_core.operation import Operation
 from w3af.core.data.fuzzer.form_filler import smart_fill, smart_fill_file
 
 
-class OpenAPIParamResolutionException(Exception):
-    pass
-
-
 class ParameterHandler:
 
     DEFAULT_VALUES_BY_TYPE: ClassVar[dict[str, object]] = {
@@ -265,16 +261,8 @@ class ParameterHandler:
         The value is set to the parameter.fill attribute
 
         :param parameter: The parameter for which we need to set a value
-        :return: True if we were able to set the parameter value
         """
-        param_spec = parameter.param_spec
-
-        value = self._get_param_value(param_spec)
-        if value is not None:
-            parameter.fill = value
-            return True
-
-        return False
+        parameter.fill = self._get_param_value(parameter.param_spec)
 
     def _get_param_value(self, param_spec):
         """
@@ -290,12 +278,7 @@ class ParameterHandler:
         if value is not None:
             return value
 
-        value = self._get_param_value_for_model(param_spec)
-        if value is not None:
-            return value
-
-        # A default
-        return 42
+        return self._get_param_value_for_model(param_spec)
 
     def _get_param_value_for_type_and_spec(self, parameter_type, parameter_spec):
         """
@@ -447,13 +430,7 @@ class ParameterHandler:
         #
         # And we need to fill the array with one or more tags
         #
-        item_param_spec = param_spec["items"]
-
-        value = self._get_param_value(item_param_spec)
-        if value is not None:
-            return [value]
-
-        return []
+        return [self._get_param_value(param_spec["items"])]
 
     def _get_param_value_for_model(self, param_spec):
         """
@@ -464,15 +441,10 @@ class ParameterHandler:
         and then fill the value for each primitive.
 
         :param param_spec: The parameter specification instance
-        :return: The parameter with a modified default attribute
+        :return: A dict with a value for each model attribute
         """
         parameter_definition = self._get_object_definition(param_spec)
-        created_object = self._create_object(parameter_definition)
-
-        if created_object is not None:
-            return created_object
-
-        raise NotImplementedError
+        return self._create_object(parameter_definition)
 
     def _get_object_definition(self, param_spec):
         """

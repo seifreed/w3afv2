@@ -55,10 +55,6 @@ class BasicKnowledgeBase:
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    UPDATE = "update"
-    APPEND = "append"
-    ADD_URL = "add_url"
-
     def __init__(self):
         self._kb_lock = threading.RLock()
 
@@ -297,26 +293,6 @@ class BasicKnowledgeBase:
             self.append(location_a, location_b, info_set)
             return info_set, True
 
-    def get_all_vulns(self):
-        """
-        :return: A list of all info instances with severity in (LOW, MEDIUM,
-                 HIGH)
-        """
-        raise NotImplementedError
-
-    def get_all_infos(self):
-        """
-        :return: A list of all info instances with severity eq INFORMATION
-        """
-        raise NotImplementedError
-
-    def get_all_entries_of_class_iter(self, klass, exclude_ids=()):
-        """
-        :yield: All objects where class in klass that are saved in the kb.
-        :param exclude_ids: The vulnerability IDs to exclude from the result
-        """
-        raise NotImplementedError
-
     def get_all_findings(self, exclude_ids=()):
         """
         :return: A list of all findings, including Info, Vuln and InfoSet.
@@ -337,12 +313,6 @@ class BasicKnowledgeBase:
         klass = (Info, InfoSet, Vuln)
 
         yield from self.get_all_entries_of_class_iter(klass, exclude_ids)
-
-    def get_all_uniq_ids_iter(self):
-        """
-        :yield: All uniq IDs from the KB
-        """
-        raise NotImplementedError
 
     def get_all_shells(self, w3af_core=None):
         """
@@ -372,77 +342,6 @@ class BasicKnowledgeBase:
             return data
         else:
             return data.get_name()
-
-    def append(self, location_a, location_b, value):
-        """
-        This method appends the location_b value to a dict.
-        """
-        raise NotImplementedError
-
-    def get(self, plugin_name, location_b, check_types=True):
-        """
-        :param plugin_name: The plugin that saved the data to the
-                                kb.info Typically the name of the plugin,
-                                but could also be the plugin instance.
-
-        :param location_b: The name of the variables under which the vuln
-                                 objects were saved. Typically the same name of
-                                 the plugin, or something like "vulns", "errors",
-                                 etc. In most cases this is NOT None. When set
-                                 to None, a dict with all the vuln objects found
-                                 by the plugin_name is returned.
-
-        :return: Returns the data that was saved by another plugin.
-        """
-        raise NotImplementedError
-
-    def get_iter(self, plugin_name, location_b, check_types=True):
-        """
-        Same as get() but yields items one by one instead of returning
-        a list with all the items.
-        """
-        raise NotImplementedError
-
-    def get_all_entries_of_class(self, klass, exclude_ids=()):
-        """
-        :return: A list of all objects of class == klass that are saved in the
-                 kb.
-        :param exclude_ids: The vulnerability IDs to exclude from the result
-        """
-        raise NotImplementedError
-
-    def update(self, old_vuln, update_vuln):
-        """
-        :return: The updated vulnerability/info instance stored in the kb.
-        """
-        raise NotImplementedError
-
-    def clear(self, location_a, location_b):
-        """
-        Clear any values stored in (location_a, location_b)
-        """
-        raise NotImplementedError
-
-    def raw_write(self, location_a, location_b, value):
-        """
-        This method saves the value to (location_a,location_b)
-        """
-        raise NotImplementedError
-
-    def raw_read(self, location_a, location_b):
-        """
-        This method reads the value from (location_a,location_b)
-        """
-        raise NotImplementedError
-
-    def dump(self):
-        raise NotImplementedError
-
-    def cleanup(self):
-        """
-        Cleanup all internal data.
-        """
-        raise NotImplementedError
 
 
 def requires_setup(_method):
@@ -477,10 +376,6 @@ class DBKnowledgeBase(BasicKnowledgeBase):
     def __init__(self):
         super().__init__()
         self.initialized = False
-
-        # TODO: Why doesn't this work with a WeakValueDictionary?
-        self.observers = {}  # WeakValueDictionary()
-        self._observer_id = 0
 
     def setup(self):
         """
@@ -551,27 +446,6 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         else:
             return result[0]
 
-    @requires_setup
-    def get_one(self, location_a, location_b):
-        """
-        This method reads the value from (location_a, location_b), checking it's
-        type and making sure only one is stored at that address.
-
-        Similar to raw_read, but checking types.
-
-        :see: https://github.com/andresriancho/w3af/issues/3955
-        """
-        location_a = self._get_real_name(location_a)
-        result = self.get(location_a, location_b, check_types=True)
-
-        if len(result) > 1:
-            msg = "Incorrect use of get_one(), found %s results."
-            raise RuntimeError(msg % result)
-        elif len(result) == 0:
-            return []
-        else:
-            return result[0]
-
     def _get_uniq_id(self, obj):
         if isinstance(obj, (Info, InfoSet, Shell)):
             return obj.get_uniq_id()
@@ -600,11 +474,8 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         pickled_obj = cpickle_dumps(value)
         t = (location_a, location_b, uniq_id, pickled_obj)
 
-        query = "INSERT INTO %s VALUES (?, ?, ?, ?)"
-        self.db.execute(query % self.table_name, t)
-        self._notify_observers(
-            self.APPEND, location_a, location_b, value, ignore_type=ignore_type
-        )
+        query = f"INSERT INTO {self.table_name} VALUES (?, ?, ?, ?)"
+        self.db.execute(query, t)
 
     @requires_setup
     def get(self, location_a, location_b, check_types=True):
@@ -649,18 +520,6 @@ class DBKnowledgeBase(BasicKnowledgeBase):
                 )
 
             yield obj
-
-    @requires_setup
-    def get_by_uniq_id(self, uniq_id):
-        query = "SELECT pickle FROM %s WHERE uniq_id = ?"
-        params = (uniq_id,)
-
-        result = self.db.select_one(query % self.table_name, params)
-
-        if result is not None:
-            result = loads(result[0])
-
-        return result
 
     @requires_setup
     def get_all_uniq_ids_iter(self, include_ids=()):
@@ -710,9 +569,7 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         params = (pickled, new_uniq_id, old_uniq_id)
         result = self.db.execute(query % self.table_name, params).result()
 
-        if result.rowcount:
-            self._notify_observers(self.UPDATE, old_info, update_info)
-        else:
+        if not result.rowcount:
             ex = (
                 "Failed to update() %s instance because"
                 " the original unique_id (%s) does not exist in the DB,"
@@ -721,30 +578,6 @@ class DBKnowledgeBase(BasicKnowledgeBase):
             raise DBException(
                 ex % (old_info.__class__.__name__, old_uniq_id, new_uniq_id)
             )
-
-    def add_observer(self, observer):
-        """
-        Add the observer instance to the list.
-        """
-        observer_id = self.get_observer_id()
-        self.observers[observer_id] = observer
-
-    def get_observer_id(self):
-        self._observer_id += 1
-        return self._observer_id
-
-    def _notify_observers(self, method, *args, **kwargs):
-        """
-        Call the observer if the location_a/location_b matches with the
-        configured observers.
-
-        :return: None
-        """
-        # Note that I copy the items list in order to iterate though it without
-        # any issues like the size changing
-        for _, observer in list(self.observers.items())[:]:
-            functor = getattr(observer, method)
-            functor(*args, **kwargs)
 
     @requires_setup
     def get_all_entries_of_class(self, klass, exclude_ids=()):
@@ -814,31 +647,6 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         return result_lst
 
     @requires_setup
-    def dump(self):
-        result_dict = {}
-
-        query = "SELECT location_a, location_b, pickle FROM %s"
-        results = self.db.select(query % self.table_name)
-
-        for location_a, location_b, serialized_value in results:
-            obj = loads(serialized_value)
-
-            if location_a not in result_dict:
-                result_dict[location_a] = {
-                    location_b: [
-                        obj,
-                    ]
-                }
-            elif location_b not in result_dict[location_a]:
-                result_dict[location_a][location_b] = [
-                    obj,
-                ]
-            else:
-                result_dict[location_a][location_b].append(obj)
-
-        return result_dict
-
-    @requires_setup
     def cleanup(self):
         """
         Cleanup internal data.
@@ -857,15 +665,6 @@ class DBKnowledgeBase(BasicKnowledgeBase):
             self.fuzzable_requests = DiskSet(table_prefix="kb_fuzzable_requests")
             old_fuzzable_requests.cleanup()
 
-        self.observers.clear()
-
-    @requires_setup
-    def remove(self):
-        self.db.drop_table(self.table_name)
-        self.urls.cleanup()
-        self.fuzzable_requests.cleanup()
-        self.observers.clear()
-
     @requires_setup
     def get_all_known_urls(self):
         """
@@ -882,7 +681,6 @@ class DBKnowledgeBase(BasicKnowledgeBase):
             msg = "add_url requires a URL as parameter got %s instead."
             raise TypeError(msg % type(url))
 
-        self._notify_observers(self.ADD_URL, url)
         return self.urls.add(url)
 
     @requires_setup

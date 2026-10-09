@@ -319,3 +319,60 @@ class TestInfo(unittest.TestCase):
         self.assertEqual(jd["severity"], i.get_severity())
         self.assertEqual(jd["attributes"], i.copy())
         self.assertEqual(jd["highlight"], list(i.get_to_highlight()))
+
+    def test_factories_validate_their_input(self):
+        self.assertRaises(
+            TypeError, Info.from_mutant, "name", MockInfo.LONG_DESC, 1, "p", None
+        )
+        self.assertRaises(
+            TypeError, Info.from_fr, "name", MockInfo.LONG_DESC, 1, "p", None
+        )
+        self.assertRaises(TypeError, Info.from_info, "not an info")
+
+    def test_from_fr(self):
+        freq = FuzzableRequest(URL("http://www.w3af.com/?id=1"))
+
+        i = Info.from_fr("TestCase", MockInfo.LONG_DESC, 1, "plugin_name", freq)
+
+        self.assertEqual(i.get_uri(), freq.get_uri())
+        self.assertIsNone(i.get_token())
+
+    def test_get_token(self):
+        url = URL("http://www.w3af.com/?id=1")
+        mutant = QSMutant(FuzzableRequest(url))
+        mutant.get_dc().set_token(("id", 0))
+
+        i = Info.from_mutant("TestCase", MockInfo.LONG_DESC, 1, "plugin_name", mutant)
+
+        self.assertEqual(i.get_token().get_name(), "id")
+
+    def test_invalid_values(self):
+        i = MockInfo()
+
+        self.assertRaises(TypeError, i.set_desc, 1234)
+        self.assertRaises(TypeError, i.set_id, "1")
+        self.assertRaises(TypeError, i.set_id, [1, "2"])
+        self.assertRaises(TypeError, i.add_to_highlight, 1234)
+        self.assertRaises(ValueError, i.set_vulndb_id, 123456789)
+
+    def test_desc_with_ids(self):
+        self.assertEqual(MockInfo(ids=[]).get_desc(), MockInfo.LONG_DESC)
+        self.assertEqual(
+            MockInfo(ids=[3, 1, 2]).get_desc(),
+            MockInfo.LONG_DESC
+            + ". This information was found in the requests with ids 1 to 3.",
+        )
+
+    def test_str_and_repr(self):
+        i = MockInfo()
+
+        self.assertEqual(str(i), MockInfo.LONG_DESC)
+        self.assertEqual(repr(i), f'<info object for issue: "{MockInfo.LONG_DESC}">')
+
+    def test_wasc_urls(self):
+        i = MockInfo()
+        i.set_vulndb_id(17)
+        i.get_vuln_info_from_db().wasc = ["19"]
+
+        self.assertEqual(list(i.get_wasc_urls()), [DBVuln.get_wasc_url("19")])
+        self.assertEqual(i.to_json()["wasc_urls"], [DBVuln.get_wasc_url("19")])

@@ -36,9 +36,6 @@ from w3af.core.data.url.tests.helpers.route_server import Response, RouteServer
 
 class TestBlacklistHandler(unittest.TestCase):
 
-    SCANNER_PATH = "/scanner/"
-    BLOCK_PATH = "/block/"
-    PASS_PATH = "/pass/"
     BODY = "Hello world"
 
     def setUp(self):
@@ -46,88 +43,86 @@ class TestBlacklistHandler(unittest.TestCase):
         cf.cf.save("blacklist_http_request", [])
         cf.cf.save("ignore_regex", None)
 
-        self.server = RouteServer()
-        for path in (self.SCANNER_PATH, self.BLOCK_PATH, self.PASS_PATH):
-            self.server.add("GET", path, Response(body=self.BODY))
-        self.server.start()
+        routes = {
+            path: Response(body=self.BODY)
+            for path in ("/scanner/", "/block/", "/pass/")
+        }
+        self.server = RouteServer(routes).start()
+        self.addCleanup(self.server.stop)
+
+        self.scanner_url = URL(self.server.url("/scanner/"))
+        self.blocked_url = URL(self.server.url("/block/"))
+        self.safe_url = URL(self.server.url("/pass/"))
 
     def tearDown(self):
-        self.server.stop()
         cf.cf.save("blacklist_http_request", [])
         cf.cf.save("ignore_regex", None)
 
-    def build_custom_opener(self):
+    def sent_paths(self):
+        return [request.path for request in self.server.requests]
+
+    def w3af_opener(self):
+        # Get an instance of the extended urllib and verify that the blacklist
+        # handler still works, even when mixed with all the other handlers.
         settings = opener_settings.OpenerSettings()
         settings.build_openers()
         return settings.get_custom_opener()
 
     def test_blacklist_handler_block(self):
-        blocked_url = URL(self.server.url(self.SCANNER_PATH))
-        cf.cf.save("blacklist_http_request", [blocked_url])
+        cf.cf.save("blacklist_http_request", [self.scanner_url])
 
         opener = urllib.request.build_opener(BlacklistHandler)
 
-        request = urllib.request.Request(blocked_url.url_string)
-        request.url_object = blocked_url
+        request = urllib.request.Request(self.scanner_url.url_string)
+        request.url_object = self.scanner_url
         response = opener.open(request)
 
         self.assertEqual(response.code, NO_CONTENT)
-        self.assertEqual(self.server.requests, [])
+        self.assertEqual(response.msg, "No content")
+        self.assertEqual(response.read(), "")
+        self.assertEqual(self.sent_paths(), [])
 
     def test_blacklist_handler_pass(self):
-        url = self.server.url(self.SCANNER_PATH)
         opener = urllib.request.build_opener(BlacklistHandler)
 
-        request = urllib.request.Request(url)
-        request.url_object = URL(url)
+        request = urllib.request.Request(self.scanner_url.url_string)
+        request.url_object = self.scanner_url
         response = opener.open(request)
 
         self.assertEqual(response.code, 200)
-        self.assertEqual(self.server.last_request.method, "GET")
+        self.assertEqual(self.server.requests[0].method, "GET")
 
     def test_handler_order_block(self):
-        blocked_url = URL(self.server.url(self.SCANNER_PATH))
-        cf.cf.save("blacklist_http_request", [blocked_url])
+        cf.cf.save("blacklist_http_request", [self.scanner_url])
 
-        # Get an instance of the extended urllib and verify that the blacklist
-        # handler still works, even when mixed with all the other handlers.
-        opener = self.build_custom_opener()
-
-        response = opener.open(HTTPRequest(blocked_url))
+        response = self.w3af_opener().open(HTTPRequest(self.scanner_url))
 
         self.assertEqual(response.code, NO_CONTENT)
         self.assertEqual(response.id, 1)
-        self.assertEqual(self.server.requests, [])
+        self.assertEqual(self.sent_paths(), [])
 
-    def assert_safe_sent_and_blocked_not_sent(self, opener):
-        blocked_url = URL(self.server.url(self.BLOCK_PATH))
-        safe_url = URL(self.server.url(self.PASS_PATH))
+    def assert_only_safe_url_is_sent(self):
+        opener = self.w3af_opener()
 
-        response = opener.open(HTTPRequest(safe_url))
-
+        response = opener.open(HTTPRequest(self.safe_url))
         self.assertEqual(response.code, 200)
         self.assertEqual(response.id, 1)
-        self.assertEqual(self.server.last_request.method, "GET")
-        self.assertEqual(len(self.server.requests), 1)
 
-        response = opener.open(HTTPRequest(blocked_url))
-
+        response = opener.open(HTTPRequest(self.blocked_url))
         self.assertEqual(response.code, NO_CONTENT)
         self.assertEqual(response.id, 2)
-        self.assertEqual(len(self.server.requests), 1)
+
+        self.assertEqual(self.sent_paths(), ["/pass/"])
 
     def test_handler_order_pass(self):
-        cf.cf.save("blacklist_http_request", [URL(self.server.url(self.BLOCK_PATH))])
-
-        self.assert_safe_sent_and_blocked_not_sent(self.build_custom_opener())
+        cf.cf.save("blacklist_http_request", [self.blocked_url])
+        self.assert_only_safe_url_is_sent()
 
     def test_handler_order_pass_with_ignore_regex(self):
         cf.cf.save("ignore_regex", re.compile(".*block.*"))
-
-        self.assert_safe_sent_and_blocked_not_sent(self.build_custom_opener())
+        self.assert_only_safe_url_is_sent()
 
     def test_handler_order_pass_with_both_methods(self):
-        cf.cf.save("blacklist_http_request", [URL(self.server.url(self.BLOCK_PATH))])
+        cf.cf.save("blacklist_http_request", [self.blocked_url])
         cf.cf.save("ignore_regex", re.compile(".*blo.*"))
-
-        self.assert_safe_sent_and_blocked_not_sent(self.build_custom_opener())
+        self.assert_only_safe_url_is_sent()

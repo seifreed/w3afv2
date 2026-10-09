@@ -70,9 +70,6 @@ class CacheHandler(urllib.request.BaseHandler):
         if not request.get_from_cache:
             return None
 
-        if not CacheClass.exists_in_cache(request):
-            return None
-
         try:
             cache_response_obj = CacheClass(request)
         except (AttributeError, TypeError, ValueError, DBException):

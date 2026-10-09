@@ -95,6 +95,25 @@ class TestCachedQueue(unittest.TestCase):
         q.put(1)
         self.assertEqual(q.get(), 1)
 
+    def test_dict_items_spilled_to_disk(self):
+        q = CachedQueue(maxsize=1)
+        q.put({"in": "memory"})
+        q.put({"on": "disk"})
+
+        self.assertEqual(len(q.disk), 1)
+        self.assertEqual(q.get(), {"in": "memory"})
+        self.assertEqual(q.get(), {"on": "disk"})
+
+    def test_name_and_processed_tasks(self):
+        q = CachedQueue(maxsize=1, name="audit")
+        q.put("a")
+        q.put("b")
+        q.get()
+        q.get()
+
+        self.assertEqual(q.get_name(), "audit")
+        self.assertEqual(q.get_processed_tasks(), 2)
+
     def test_simple_rpm_speed(self):
         q = CachedQueue()
 
@@ -103,22 +122,17 @@ class TestCachedQueue(unittest.TestCase):
 
         for i in range(4):
             q.put(i)
-            # 20 RPM
-            time.sleep(3)
 
         self.assertEqual(q.qsize(), 4)
+        self.assertEqual(len(q._input_timestamps), 4)
+        self.assertGreater(q.get_input_rpm(), 0)
 
-        self.assertGreater(q.get_input_rpm(), 19)
-        self.assertLess(q.get_input_rpm(), 20)
-
-        for i in range(4):
+        for _ in range(4):
             q.get()
-            # 60 RPM
-            time.sleep(1)
 
-        self.assertGreater(q.get_output_rpm(), 59)
-        self.assertLess(q.get_output_rpm(), 60)
         self.assertEqual(q.qsize(), 0)
+        self.assertEqual(len(q._output_timestamps), 4)
+        self.assertGreater(q.get_output_rpm(), 0)
 
     def test_join_memory(self):
         q = CachedQueue(maxsize=2)

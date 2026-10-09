@@ -53,9 +53,6 @@ class ComboOption(BaseOption):
         self._help = _help
         self._tabid = tabid
 
-    def get_combo_options(self):
-        return self._combo_options
-
     def set_value(self, value):
         """
         :param value: The value parameter is set by the user interface, which

@@ -51,13 +51,9 @@ class FileNameMutant(URLPartsMutant):
         """
         domain_path = self._freq.get_url().get_domain_path()
 
-        # Please note that this double encoding is needed if we want to work
-        # with mod_rewrite
         encoded = urllib.parse.quote_plus(
             self._url_parts_dc[URL_PART_KEY].get_value(), self._safe_encode_chars
         )
-        if self._double_encoding:
-            encoded = urllib.parse.quote_plus(encoded, safe=self._safe_encode_chars)
 
         domain_path.set_file_name(
             f"{self._url_parts_dc.url_start}{encoded}{self._url_parts_dc.url_end}"
@@ -122,7 +118,6 @@ class FileNameMutant(URLPartsMutant):
                     freq_copy = copy.deepcopy(freq)
                     m2 = cls(freq_copy)
                     m2.set_dc(url_parts_container)
-                    # m2.set_double_encoding(True)
                     m2.set_safe_encode_chars("/")
 
                     if m2.get_url() != m.get_url():

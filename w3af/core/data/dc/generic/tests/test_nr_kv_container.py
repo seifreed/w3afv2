@@ -120,30 +120,6 @@ class TestNoRepeatKeyValueContainer(unittest.TestCase):
         self.assertEqual(token.get_name(), "b")
         self.assertEqual(token, dc["b"])
 
-    def test_is_variant_of_eq_keys_eq_value_types(self):
-        dc1 = NonRepeatKeyValueContainer([("a", "1"), ("b", "2")])
-        dc2 = NonRepeatKeyValueContainer([("a", "1"), ("b", "2")])
-
-        self.assertTrue(dc1.is_variant_of(dc2))
-
-    def test_is_variant_of_neq_keys_eq_value_types(self):
-        dc1 = NonRepeatKeyValueContainer([("a", "1"), ("b", "2")])
-        dc2 = NonRepeatKeyValueContainer([("a", "1"), ("c", "2")])
-
-        self.assertFalse(dc1.is_variant_of(dc2))
-
-    def test_is_variant_of_neq_num_keys_eq_values(self):
-        dc1 = NonRepeatKeyValueContainer([("a", "1"), ("b", "2")])
-        dc2 = NonRepeatKeyValueContainer([("a", "1")])
-
-        self.assertFalse(dc1.is_variant_of(dc2))
-
-    def test_is_variant_of_eq_keys_neq_value_types(self):
-        dc1 = NonRepeatKeyValueContainer([("a", "1"), ("b", "2")])
-        dc2 = NonRepeatKeyValueContainer([("a", "1"), ("b", "cc")])
-
-        self.assertFalse(dc1.is_variant_of(dc2))
-
     def test_copy_with_token(self):
         dc = NonRepeatKeyValueContainer([("a", "1"), ("b", "2")])
 

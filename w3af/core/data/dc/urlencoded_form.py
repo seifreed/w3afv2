@@ -20,17 +20,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from typing import ClassVar
-
 from w3af.core.data.dc.generic.form import Form
 from w3af.core.data.parsers.doc.url import parse_qs
 from w3af.core.data.parsers.utils.encode_decode import urlencode
-from w3af.core.data.parsers.utils.form_constants import (
-    INPUT_TYPE_CHECKBOX,
-    INPUT_TYPE_RADIO,
-    INPUT_TYPE_SELECT,
-    INPUT_TYPE_TEXT,
-)
+from w3af.core.data.parsers.utils.form_constants import INPUT_TYPE_TEXT
 from w3af.core.data.parsers.utils.form_fields import GenericFormField
 
 
@@ -43,13 +36,6 @@ class URLEncodedForm(Form):
     """
 
     ENCODING = "application/x-www-form-urlencoded"
-
-    AVOID_FILLING_FORM_TYPES: ClassVar[frozenset[str]] = frozenset(
-        {"checkbox", "radio", "select"}
-    )
-    AVOID_STR_DUPLICATES: ClassVar[frozenset[str]] = frozenset(
-        {INPUT_TYPE_CHECKBOX, INPUT_TYPE_RADIO, INPUT_TYPE_SELECT}
-    )
 
     @staticmethod
     def content_type_matches(headers):

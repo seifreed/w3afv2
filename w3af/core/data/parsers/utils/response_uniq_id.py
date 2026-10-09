@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import zlib
 
 
-def get_response_unique_id(http_response, prepend=None):
+def get_response_unique_id(http_response):
     """
     Before I used md5, but I realized that it was unnecessary. I
     experimented a little bit with python's hash functions and the builtin
@@ -49,9 +49,6 @@ def get_response_unique_id(http_response, prepend=None):
     # Added adler32 after finding some hash() collisions in builds
     hash_string = str(hash(_to_hash))
     hash_string += str(zlib.adler32(_to_hash))
-
-    if prepend:
-        hash_string = f"{prepend}-{hash_string}"
 
     return hash_string
 

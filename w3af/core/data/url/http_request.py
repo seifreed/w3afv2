@@ -75,6 +75,9 @@ class HTTPRequest(RequestMixIn, urllib.request.Request):
         self.retries_left = retries
         self.timeout = timeout
         self.new_connection = new_connection
+        # Connection-oriented auth (NTLM) must send its next message on the
+        # connection that received the challenge
+        self.preferred_connection = None
         self.follow_redirects = follow_redirects
         self.use_basic_auth = use_basic_auth
         self.use_proxy = use_proxy
@@ -171,9 +174,6 @@ class HTTPRequest(RequestMixIn, urllib.request.Request):
     def set_new_connection(self, new_connection):
         self.new_connection = new_connection
 
-    def get_new_connection(self):
-        return self.new_connection
-
     def to_dict(self):
         serializable_dict = {}
         sdict = serializable_dict
@@ -261,6 +261,16 @@ class HTTPRequest(RequestMixIn, urllib.request.Request):
             debugging_id=debugging_id,
             binary_response=binary_response,
         )
+
+    def __deepcopy__(self, memo):
+        # The default timeout is a sentinel compared by identity, a copy of
+        # it would be taken as a (broken) explicit timeout value
+        memo[id(socket._GLOBAL_DEFAULT_TIMEOUT)] = socket._GLOBAL_DEFAULT_TIMEOUT
+
+        clone = self.__class__.__new__(self.__class__)
+        memo[id(self)] = clone
+        clone.__dict__.update(copy.deepcopy(self.__dict__, memo))
+        return clone
 
     def copy(self):
         return copy.deepcopy(self)

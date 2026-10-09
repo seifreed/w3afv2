@@ -109,3 +109,61 @@ class TestSWFParser(unittest.TestCase):
 
         self.assertEqual(parsed, [])
         self.assertEqual(set(re_refs), expected)
+
+
+def get_url_bytecode(url):
+    """
+    :return: The getURL (0x83) bytecode with url as its first parameter
+    """
+    return b"\x83" + bytes([len(url) + 2]) + b"\x00" + url + b"\x00"
+
+
+class TestSWFParserBytecode(unittest.TestCase):
+
+    URL = URL("http://moth/xyz/")
+    HEADER = b"FWS\x0a\x00\x00\x00\x00"
+
+    def response(self, body, mime="application/x-shockwave-flash"):
+        headers = Headers([("Content-Type", mime)])
+        return HTTPResponse(200, body, headers, self.URL, self.URL, _id=1)
+
+    def references(self, body):
+        parser = SWFParser(self.response(body))
+        parser.parse()
+        return parser.get_references()[1]
+
+    def test_can_parse(self):
+        self.assertTrue(SWFParser.can_parse(self.response(self.HEADER)))
+        self.assertTrue(SWFParser.can_parse(self.response(b"CWS\x0a\x00\x00")))
+        self.assertFalse(SWFParser.can_parse(self.response(b"FWS")))
+        self.assertFalse(SWFParser.can_parse(self.response(b"GIF89a")))
+        self.assertFalse(SWFParser.can_parse(self.response(self.HEADER, "text/html")))
+
+    def test_text_body(self):
+        response = self.response(self.HEADER.decode("latin-1"))
+
+        self.assertTrue(SWFParser.can_parse(response))
+
+    def test_get_url_bytecode(self):
+        body = self.HEADER + get_url_bytecode(b"/getme.php")
+
+        self.assertEqual(self.references(body), [URL("http://moth/getme.php")])
+
+    def test_invalid_get_url_bytecode_is_ignored(self):
+        for bytecode in (
+            b"\x83\x05",
+            b"\x83\x05X",
+            b"\x83\x50\x00/too-long",
+            b"\x83\x02\x00\x00",
+            get_url_bytecode(b"javascript:"),
+            get_url_bytecode(b"/caf\xe9.php"),
+        ):
+            self.assertEqual(self.references(self.HEADER + bytecode), [], bytecode)
+
+    def test_corrupt_compressed_swf(self):
+        self.assertEqual(self.references(b"CWS\x0a\x00\x00\x00\x00garbage"), [])
+
+    def test_clear_text_body_is_empty(self):
+        parser = SWFParser(self.response(self.HEADER))
+
+        self.assertEqual(parser.get_clear_text_body(), "")

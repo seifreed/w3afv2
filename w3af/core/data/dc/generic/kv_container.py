@@ -27,7 +27,6 @@ from w3af.core.data.constants.encodings import UTF8
 from w3af.core.data.dc.generic.data_container import DataContainer
 from w3af.core.data.dc.utils.filter_printable import filter_non_printable
 from w3af.core.data.dc.utils.token import DataToken
-from w3af.core.data.misc.encoding import smart_unicode
 from w3af.core.data.parsers.utils.encode_decode import urlencode
 
 ERR_MSG = 'Unsupported init_val "%s", expected format is [(u"b", [u"2", u"3"])]'
@@ -93,12 +92,6 @@ class KeyValueContainer(DataContainer, OrderedDict):
         """
         return urlencode(self, encoding=self.encoding)
 
-    def __unicode__(self):
-        """
-        Return unicode representation
-        """
-        return self._to_str_with_separators("=", "&", errors="percent_encode")
-
     def iter_setters(self):
         """
         :yield: Tuples containing:
@@ -116,23 +109,6 @@ class KeyValueContainer(DataContainer, OrderedDict):
                 if self.token_filter(token_path, ele):
                     yield k, ele, token_path, partial(v.__setitem__, idx)
         # pylint: enable=E1133
-
-    def _to_str_with_separators(self, key_val_sep, pair_sep, errors="strict"):
-        """
-        :return: Join all the values stored in this data container using the
-                 specified separators.
-        """
-        lst = []
-
-        # pylint: disable=E1133
-        for key, value_list in list(self.items()):
-            for value in value_list:
-                value = smart_unicode(value, encoding=UTF8, errors=errors)
-                to_app = f"{key}{key_val_sep}{value}"
-                lst.append(to_app)
-        # pylint: enable=E1133
-
-        return pair_sep.join(lst)
 
     def get_short_printable_repr(self):
         """

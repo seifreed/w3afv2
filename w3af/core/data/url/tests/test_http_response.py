@@ -22,7 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import hashlib
 import pickle
 import unittest
-from random import choice
+import urllib.error
+import urllib.request
 
 import msgpack
 import pytest
@@ -32,9 +33,10 @@ from w3af.core.data.misc.encoding import ESCAPED_CHAR, smart_unicode
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.http_response import (
     DEFAULT_CHARSET,
+    DEFAULT_WAIT_TIME,
     HTTPResponse,
-    merge_repeated_headers,
 )
+from w3af.core.data.url.tests.helpers.route_server import Response, RouteServer
 
 TEST_RESPONSES = {
     "hebrew": ("ולהכיר טוב יותר את המוסכמות, האופי", "Windows-1255"),
@@ -65,17 +67,6 @@ class TestHTTPResponse(unittest.TestCase):
         self.assertEqual(response.get_body(), "café")
         self.assertEqual(response.get_charset(), "utf-8")
 
-    def test_contains_text_body(self):
-        self.assertIn("od", self.resp)
-        self.assertNotIn("xyz", self.resp)
-
-    def test_contains_binary_body(self):
-        headers = Headers([("Content-Type", "application/json")])
-        response = self.create_resp(headers, b'{"entries": []}')
-
-        self.assertIn('"entries":', response)
-        self.assertNotIn("missing", response)
-
     def test_missing_content_type_is_logged(self):
         response = self.create_resp(Headers(), b"body")
 
@@ -91,7 +82,6 @@ class TestHTTPResponse(unittest.TestCase):
         response = HTTPResponse(200, body, headers, url, url, binary_response=True)
         self.assertEqual(response.get_body(), body)
         self.assertEqual(response.get_raw_body(), body)
-        self.assertEqual(response.get_body_hash(), hashlib.sha256(body).hexdigest())
         restored = HTTPResponse.from_dict(response.to_dict())
         self.assertEqual(restored.get_body(), body)
         self.assertEqual(restored.get_raw_body(), body)
@@ -106,8 +96,9 @@ class TestHTTPResponse(unittest.TestCase):
         Guarantee that the '_raw_body' attr is set to None after
         used (Memory optimization)
         """
-        resp = self.resp
-        resp.set_charset("utf-8")
+        url = URL("http://w3af.com")
+        headers = Headers([("Content-Type", "text/html")])
+        resp = HTTPResponse(200, "body", headers, url, url, charset="utf-8")
         # Use the 'raw body'
         _ = resp.get_body()
         self.assertEqual(resp._raw_body, None)
@@ -136,7 +127,7 @@ class TestHTTPResponse(unittest.TestCase):
 
         # PDF
         resp = self.create_resp(Headers([("Content-Type", "application/pdf")]))
-        self.assertEqual(True, resp.is_pdf())
+        self.assertEqual(resp.doc_type, HTTPResponse.DOC_TYPE_PDF)
 
         # SWF
         resp = self.create_resp(
@@ -205,17 +196,18 @@ class TestHTTPResponse(unittest.TestCase):
         # A wrong or non-existant charset was set; try to decode the response
         # using the default charset and handling scheme
         for body, charset in list(TEST_RESPONSES.values()):
-            html = body.encode(charset)
-            headers = Headers(
-                [("Content-Type", f"text/xml; charset={choice(('XXX', 'utf-8'))}")]
-            )
-            resp = self.create_resp(headers, html)
-            self.assertEqual(
-                smart_unicode(
-                    html, DEFAULT_CHARSET, ESCAPED_CHAR, on_error_guess=False
-                ),
-                resp.body,
-            )
+            for wrong_charset in ("XXX", "utf-8"):
+                html = body.encode(charset)
+                headers = Headers(
+                    [("Content-Type", f"text/xml; charset={wrong_charset}")]
+                )
+                resp = self.create_resp(headers, html)
+                self.assertEqual(
+                    smart_unicode(
+                        html, DEFAULT_CHARSET, ESCAPED_CHAR, on_error_guess=False
+                    ),
+                    resp.body,
+                )
 
     def test_get_lower_case_headers(self):
         headers = Headers([("Content-Type", "text/html")])
@@ -320,9 +312,6 @@ class TestHTTPResponse(unittest.TestCase):
             resp.dump_response_head() + html.encode(DEFAULT_CHARSET)
         ).hexdigest()
         self.assertEqual(resp.get_hash(), expected)
-        self.assertEqual(
-            resp.get_body_hash(), hashlib.sha256(html.encode()).hexdigest()
-        )
 
     def test_dump_headers_exclude(self):
         html = "<html>hello world</html>"
@@ -340,21 +329,213 @@ class TestHTTPResponse(unittest.TestCase):
         )
 
 
-class TestMergeRepeatedHeaders(unittest.TestCase):
-    def test_repeated_header_values_are_joined(self):
-        header_items = [
-            ("Date", "Fri, 09 Oct 2026 20:55:51 GMT"),
-            ("Content-Type", "text/html"),
-            ("Date", "Fri, 09 Oct 2026 20:55:52 GMT"),
-        ]
+class TestHTTPResponseAPI(unittest.TestCase):
+
+    URL = URL("http://w3af.com/a/b.html")
+
+    def create_resp(self, headers=None, body="body", **kwargs):
+        headers = (
+            Headers([("Content-Type", "text/html")]) if headers is None else headers
+        )
+        return HTTPResponse(200, body, headers, self.URL, self.URL, **kwargs)
+
+    def test_constructor_validates_types(self):
+        url = self.URL
+        headers = Headers()
+
+        self.assertRaises(TypeError, HTTPResponse, 200, "", headers, "u", url)
+        self.assertRaises(TypeError, HTTPResponse, 200, "", headers, url, "u")
+        self.assertRaises(TypeError, HTTPResponse, 200, "", {}, url, url)
+        self.assertRaises(TypeError, HTTPResponse, 200, 1, headers, url, url)
+
+    def test_from_httplib_resp_without_original_url(self):
+        server = RouteServer.serve_for(self, {"/": Response(200, "hello")})
+
+        with urllib.request.urlopen(server.url()) as httplib_resp:
+            resp = HTTPResponse.from_httplib_resp(httplib_resp)
+
+        self.assertEqual(resp.get_code(), 200)
+        self.assertEqual(resp.get_body(), "hello")
+        self.assertEqual(resp.get_uri().url_string, server.url())
+        self.assertEqual(resp.get_wait_time(), DEFAULT_WAIT_TIME)
+
+    def test_from_httplib_resp_http_error(self):
+        server = RouteServer.serve_for(self, {})
+
+        with self.assertRaises(urllib.error.HTTPError) as raised:
+            urllib.request.urlopen(server.url("/missing"))
+
+        error = raised.exception
+        self.addCleanup(error.close)
+        resp = HTTPResponse.from_httplib_resp(error, original_url=URL(server.url()))
+
+        self.assertEqual(resp.get_code(), 404)
+        self.assertEqual(resp.get_body(), "Not Found")
+        self.assertEqual(resp.get_charset(), "utf-8")
+
+    def test_eq_attrs_and_equality(self):
+        resp = self.create_resp(_id=1)
+
+        self.assertIn("_body", resp.get_eq_attrs())
+        self.assertEqual(resp, self.create_resp(_id=1))
+        self.assertNotEqual(resp, self.create_resp(_id=2))
+
+    def test_contains(self):
+        resp = self.create_resp(body="hello world")
+
+        self.assertIn("world", resp)
+        self.assertNotIn("moon", resp)
+
+    def test_repr(self):
+        self.assertEqual(
+            repr(self.create_resp()), "<HTTPResponse | 200 | http://w3af.com/a/b.html>"
+        )
+
+        resp = self.create_resp(_id=3)
+        resp.set_from_cache(True)
+        self.assertEqual(
+            repr(resp),
+            "<HTTPResponse | 200 | http://w3af.com/a/b.html | id:3 | fcache:True>",
+        )
+
+    def test_set_body(self):
+        resp = self.create_resp()
+
+        resp.body = "new"
+        self.assertEqual(resp.get_body(), "new")
+
+        resp.set_body(b"raw")
+        self.assertEqual(resp.get_body(), "raw")
+
+        self.assertRaises(TypeError, resp.set_body, 1)
+
+    def test_get_body_length(self):
+        # The raw body length is used while the body was not decoded
+        self.assertEqual(self.create_resp(body="abc").get_body_length(), 3)
+
+        # Then the content-length header
+        headers = Headers([("Content-Type", "text/html"), ("Content-Length", "10")])
+        resp = self.create_resp(headers, body="abc")
+        resp.get_body()
+        self.assertEqual(resp.get_body_length(), 10)
+
+        # And finally the decoded body
+        resp = self.create_resp(body="abcd")
+        resp.get_body()
+        self.assertEqual(resp.get_body_length(), 4)
+
+    def test_get_clear_text_body(self):
+        resp = self.create_resp(body="<html><body><p>clear text</p></body></html>")
+        self.assertEqual(resp.get_clear_text_body().strip(), "clear text")
+
+    def test_get_clear_text_body_without_parser(self):
+        headers = Headers([("Content-Type", "image/png")])
+        resp = self.create_resp(headers, body=b"\x89PNG")
+
+        self.assertIsNone(resp.get_parser())
+        self.assertEqual(resp.get_clear_text_body(), "")
+
+    def test_redirect_urls(self):
+        redirected = URL("http://w3af.com/c.html")
+        resp = HTTPResponse(200, "", Headers(), redirected, self.URL)
+
+        self.assertEqual(resp.get_redir_url(), redirected)
+        self.assertEqual(resp.get_redir_uri(), redirected)
+        self.assertTrue(resp.was_redirected())
+        self.assertFalse(self.create_resp().was_redirected())
+
+    def test_doc_types(self):
+        for content_type, doc_type in (
+            ("image/png", HTTPResponse.DOC_TYPE_IMAGE),
+            ("application/pdf", HTTPResponse.DOC_TYPE_PDF),
+            ("application/x-shockwave-flash", HTTPResponse.DOC_TYPE_SWF),
+            ("application/octet-stream", HTTPResponse.DOC_TYPE_OTHER),
+        ):
+            resp = self.create_resp(Headers([("Content-Type", content_type)]))
+            self.assertEqual(resp.doc_type, doc_type)
+            self.assertEqual(resp.content_type, content_type)
+
+        self.assertTrue(
+            self.create_resp(Headers([("Content-Type", "image/gif")])).is_image()
+        )
+        self.assertTrue(
+            self.create_resp(
+                Headers([("Content-Type", "application/x-shockwave-flash")])
+            ).is_swf()
+        )
+        self.assertEqual(self.create_resp(Headers()).content_type, "")
+
+    def test_set_url_and_uri(self):
+        resp = self.create_resp()
+        uri = URL("http://w3af.com/x.html?id=1")
+
+        self.assertRaises(TypeError, resp.set_url, "http://w3af.com/")
+        self.assertRaises(TypeError, resp.set_uri, "http://w3af.com/")
+
+        resp.set_url(uri)
+        self.assertEqual(resp.get_url(), URL("http://w3af.com/x.html"))
+
+        resp.set_uri(uri)
+        self.assertEqual(resp.get_uri(), uri)
+        self.assertEqual(resp.get_url(), URL("http://w3af.com/x.html"))
+
+    def test_metadata_accessors(self):
+        resp = self.create_resp()
+
+        resp.set_wait_time(1.5)
+        resp.set_alias("alias")
+        resp.set_debugging_id("did")
+
+        self.assertEqual(resp.get_wait_time(), 1.5)
+        self.assertEqual(resp.get_alias(), "alias")
+        self.assertEqual(resp.get_debugging_id(), "did")
+        self.assertEqual(resp.info(), resp.get_headers())
+        self.assertEqual(resp.get_status_line(), "HTTP/1.1 200 OK\r\n")
+
+    def test_dump_binary_body(self):
+        headers = Headers([("Content-Type", "application/octet-stream")])
+        resp = self.create_resp(headers, body=b"bin\xff")
 
         self.assertEqual(
-            merge_repeated_headers(header_items),
-            [
-                (
-                    "Date",
-                    "Fri, 09 Oct 2026 20:55:51 GMT, Fri, 09 Oct 2026 20:55:52 GMT",
-                ),
-                ("Content-Type", "text/html"),
-            ],
+            resp.dump(),
+            "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\n\r\nbin�",
         )
+
+    def test_redirect_destination(self):
+        resp = self.create_resp(
+            Headers([("Location", "  /other.html "), ("uri", "/ignored.html")])
+        )
+        self.assertEqual(
+            resp.get_redirect_destination(), URL("http://w3af.com/other.html")
+        )
+
+        resp = self.create_resp(Headers([("URI", "/from-uri.html")]))
+        self.assertEqual(
+            resp.get_redirect_destination(), URL("http://w3af.com/from-uri.html")
+        )
+
+        self.assertIsNone(self.create_resp().get_redirect_destination())
+
+    def test_redirect_destination_invalid_location(self):
+        resp = self.create_resp(Headers([("Location", "http://[invalid")]))
+        self.assertIsNone(resp.get_redirect_destination())
+
+    def test_does_redirect_outside_target(self):
+        def redirect_to(location):
+            return self.create_resp(Headers([("Location", location)]))
+
+        self.assertFalse(self.create_resp().does_redirect_outside_target())
+        self.assertFalse(redirect_to("/x.html").does_redirect_outside_target())
+        self.assertTrue(
+            redirect_to("https://w3af.com/x.html").does_redirect_outside_target()
+        )
+        self.assertTrue(
+            redirect_to("http://evil.com/x.html").does_redirect_outside_target()
+        )
+
+    def test_copy(self):
+        resp = self.create_resp(_id=7)
+        resp_copy = resp.copy()
+
+        self.assertIsNot(resp, resp_copy)
+        self.assertEqual(resp, resp_copy)

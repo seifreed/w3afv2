@@ -48,8 +48,6 @@ from w3af.core.data.misc.web_encodings import (
     HTML_ENCODING_FUNCTIONS,
     JSON_ENCODING_FUNCTIONS,
     URL_ENCODING_FUNCTIONS,
-    generate_html_encoding_functions,
-    generate_url_encoding_functions,
 )
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.handlers.keepalive import URLTimeoutError
@@ -181,10 +179,6 @@ def _multi_escape_table_impl(_input):
     :param _input: The string with special characters
     :return: A string generator with all special characters replaced
     """
-    if not HTML_ENCODING_FUNCTIONS:
-        generate_html_encoding_functions()
-        generate_url_encoding_functions()
-
     yield _input
 
     for encode in itertools.chain(
@@ -419,7 +413,12 @@ def get_exception_reason(error):
     if isinstance(error, urllib.error.URLError) and isinstance(
         error.reason, socket.error
     ):
-        return get_socket_exception_reason(error)
+        return get_socket_exception_reason(error.reason)
+
+    if isinstance(error, http.client.BadStatusLine):
+        # RemoteDisconnected is also a ConnectionResetError: an empty status
+        # line means the server closed the connection without answering
+        return f"Bad HTTP response status line: {error.line or repr(error.line)}"
 
     if (
         isinstance(error, OpenSSL.SSL.SysCallError)
@@ -441,9 +440,6 @@ def get_exception_reason(error):
 
     if isinstance(error, HTTPRequestException):
         return error.value
-
-    if isinstance(error, http.client.BadStatusLine):
-        return f"Bad HTTP response status line: {error.line}"
 
     if isinstance(error, http.client.HTTPException):
         #

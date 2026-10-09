@@ -35,8 +35,8 @@ from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.utils.form_params import FormParameters
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
+from w3af.core.data.url.tests.helpers.raw_handlers import TimeoutTCPHandler
 from w3af.core.data.url.tests.helpers.upper_daemon import UpperDaemon
-from w3af.core.data.url.tests.test_xurllib import TimeoutTCPHandler
 from w3af.plugins.audit.sqli import sqli
 from w3af.tests.helpers.sqli_site import INTEGER_FORM, STRING_QS, SQLInjectionSite
 

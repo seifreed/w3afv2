@@ -29,12 +29,31 @@ import msgpack
 import pytest
 
 from w3af.core.data.db.dbms import get_default_temp_db_instance
+from w3af.core.data.db.disk_item import DiskItem
 from w3af.core.data.db.disk_list import DiskList
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.filesystem import create_temp_dir
+
+
+class ItemWithoutEqAttrs(DiskItem):
+    __slots__ = ()
+
+
+class PlainObject:
+    pass
+
+
+class ItemWithComplexAttr(DiskItem):
+    __slots__ = ("complex",)
+
+    def __init__(self):
+        self.complex = PlainObject()
+
+    def get_eq_attrs(self):
+        return ["complex"]
 
 
 class TestDiskList(unittest.TestCase):
@@ -49,11 +68,11 @@ class TestDiskList(unittest.TestCase):
         for i in range(1000):
             _ = dl.append(i)
 
-        for i in range(1000 / 2):
+        for _ in range(1000 // 2):
             r = random.randint(0, 1000 - 1)
             self.assertEqual(r in dl, True)
 
-        for i in range(1000 / 2):
+        for _ in range(1000 // 2):
             r = random.randint(1000, 1000 * 2)
             self.assertEqual(r in dl, False)
 
@@ -435,3 +454,13 @@ class TestDiskList(unittest.TestCase):
 
             # This tests the deserialization
             _ = dl[i]
+
+    def test_disk_item_must_define_eq_attrs(self):
+        dl = DiskList()
+
+        self.assertRaises(NotImplementedError, dl.append, ItemWithoutEqAttrs())
+
+    def test_disk_item_with_complex_attribute(self):
+        dl = DiskList()
+
+        self.assertRaises(TypeError, dl.append, ItemWithComplexAttr())

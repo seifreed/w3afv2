@@ -151,7 +151,7 @@ class RequestFactory:
         """
         parameters = self._get_filled_parameters()
 
-        return construct_request(self.operation, request_options={}, **parameters)
+        return construct_request(self.operation, **parameters)
 
     def _get_filled_parameters(self):
         return {name: value.fill for name, value in self.parameters.items()}
@@ -260,9 +260,6 @@ class RequestFactory:
         raise ValueError("'consumes' list contains only unknown content types")
 
     def _look_for_consuming_content_type(self, container_type):
-        if not self.operation.consumes:
-            return None
-
         for content_type in self.operation.consumes:
             temp_headers = Headers([("Content-Type", content_type)])
             if container_type.content_type_matches(temp_headers):
@@ -297,10 +294,6 @@ class RequestFactory:
 
         # Create the data container
         dc = dc_from_content_type_and_raw_params(content_type, parameters)
-        if dc is None:
-            LOGGER.error("No data container for content type '%s'", content_type)
-            return None
-
         dc.set_header("Content-Type", content_type)
 
         return dc

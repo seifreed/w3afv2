@@ -47,6 +47,3 @@ class EvalTemplate(BaseTemplate):
                  strict matching of vulns before exploiting.
         """
         return "Eval() code execution"
-
-    def get_vulnerability_desc(self):
-        return "Code execution vulnerability through injection in eval()" " functions."

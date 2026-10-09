@@ -60,9 +60,6 @@ class Shell(ExploitResult):
         self._rSystemName = None
         self.id = 0
 
-    def get_remote_os(self):
-        return self._rOS
-
     def get_remote_system(self):
         """
         :return: dz0@sock3t:~/w3af$ uname -o -r -n -m -s
@@ -73,13 +70,6 @@ class Shell(ExploitResult):
     def get_remote_user(self):
         return self._rUser
 
-    def get_remote_system_name(self):
-        """
-        :return: dz0@sock3t:~/w3af$ uname -n
-        sock3t
-        """
-        return self._rSystemName
-
     def set_url_opener(self, uo):
         self._uri_opener = uo
 
@@ -88,9 +78,6 @@ class Shell(ExploitResult):
 
     def set_worker_pool(self, worker_pool):
         self.worker_pool = worker_pool
-
-    def get_worker_pool(self):
-        return self.worker_pool
 
     def help(self, command):
         """

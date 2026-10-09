@@ -6,50 +6,19 @@ from w3af.core.data.kb.config import cf
 from .utils import debug
 
 
-def close_on_error(read_meth):
-    """
-    Decorator function. When calling decorated `read_meth` if an error occurs
-    we'll proceed to invoke `inst`'s close() method.
-    """
-
-    def new_read_meth(inst):
-        try:
-            return read_meth(inst)
-        except http.client.HTTPException:
-            inst.close()
-            raise
-
-    return new_read_meth
-
-
 class HTTPResponse(http.client.HTTPResponse):
     # we need to subclass HTTPResponse in order to
     #
-    # 1) add readline() and readlines() methods
-    # 2) add close_connection() methods
+    # 1) read the whole body once and allow multiple reads of it
+    # 2) return the connection to the pool when the response is closed
     # 3) add info() and geturl() methods
     # 4) handle cases where the remote server returns two content-length
     #    headers
-
-    # in order to add readline(), read must be modified to deal with a
-    # buffer.  example: readline must read a buffer and then spit back
-    # one line at a time.  The only real alternative is to read one
-    # BYTE at a time (ick).  Once something has been read, it can't be
-    # put back (ok, maybe it can, but that's even uglier than this),
-    # so if you THEN do a normal read, you must first take stuff from
-    # the buffer.
-
-    # the read method wraps the original to accommodate buffering,
-    # although read() never adds to the buffer.
-    # Both readline and readlines have been stolen with almost no
-    # modification from socket.py
 
     def __init__(self, sock, debuglevel=0, method=None):
         http.client.HTTPResponse.__init__(self, sock, debuglevel, method=method)
         self.fileno = sock.fileno
         self.code = None
-        self._rbuf = b""
-        self._rbufsize = 8096
         self._handler = None  # inserted by the handler later
         self._host = None  # (same)
         self._url = None  # (same)
@@ -62,7 +31,9 @@ class HTTPResponse(http.client.HTTPResponse):
     def geturl(self):
         return self._url
 
-    URL = property(geturl)
+    @property
+    def connection(self):
+        return self._connection
 
     def get_encoding(self):
         return self._encoding
@@ -78,11 +49,11 @@ class HTTPResponse(http.client.HTTPResponse):
     def get_wait_time(self):
         return self._time
 
-    def _raw_read(self, amt=None):
+    def _raw_read(self):
         """
-        This is the original read function from httplib with a minor
-        modification that allows me to check the size of the file being
-        fetched, and throw an exception in case it is too big.
+        Read the whole body from the socket. This is the original read
+        function from httplib with a minor modification that allows me to
+        check the size of the file being fetched, and drop it if it is too big.
         """
         if self.fp is None:
             return b""
@@ -95,28 +66,14 @@ class HTTPResponse(http.client.HTTPResponse):
             return b""
 
         if self.chunked:
-            return self._read_chunked(amt)
+            return self._read_chunked(None)
 
-        if amt is None:
-            # unbounded read
-            if self.length is None:
-                s = self.fp.read()
-            else:
-                s = self._safe_read(self.length)
-                self.length = 0
-            self.close()  # we read everything
-            return s
-
-        if self.length is not None:
-            amt = min(amt, self.length)
-
-        # we do not use _safe_read() here because this may be a .will_close
-        # connection, and the user is reading more bytes than will be provided
-        # (for example, reading in 1k chunks)
-        s = self.fp.read(amt)
-        if self.length is not None:
-            self.length -= len(s)
-
+        if self.length is None:
+            s = self.fp.read()
+        else:
+            s = self._safe_read(self.length)
+            self.length = 0
+        self.close()  # we read everything
         return s
 
     def begin(self):
@@ -134,11 +91,8 @@ class HTTPResponse(http.client.HTTPResponse):
                 skip = self.fp.readline(http.client._MAXLINE + 1)
                 if len(skip) > http.client._MAXLINE:
                     raise http.client.LineTooLong("header line")
-                skip = skip.strip()
-                if not skip:
+                if not skip.strip():
                     break
-                if self.debuglevel > 0:
-                    print("header:", skip)
 
         self.status = status
         self.reason = reason.strip()
@@ -159,9 +113,6 @@ class HTTPResponse(http.client.HTTPResponse):
             return
 
         self.msg = http.client.parse_headers(self.fp)
-        if self.debuglevel > 0:
-            for hdr in self.msg.headers:
-                print("header:", hdr, end=" ")
 
         # don't let the msg keep an fp
         self.msg.fp = None
@@ -180,15 +131,10 @@ class HTTPResponse(http.client.HTTPResponse):
         # do we have a Content-Length?
         # NOTE: RFC 2616, S4.4, #3 says we ignore this if tr_enc is "chunked"
         length = self._get_content_length()
-        if length is not None and not self.chunked:
-            try:
-                self.length = int(length)
-            except (ValueError, TypeError):
-                self.length = None
-            else:
-                if self.length < 0:  # ignore nonsensical negative lengths
-                    self.length = None
+        if length is not None and length >= 0 and not self.chunked:
+            self.length = length
         else:
+            # Chunked, unknown or nonsensical (negative) length
             self.length = None
 
         # does the body have a fixed length? (of zero)
@@ -216,18 +162,18 @@ class HTTPResponse(http.client.HTTPResponse):
         from the list. Sadly some bytes might be ignored, but it is much
         better than raising exceptions.
 
-        :return: The content length (as integer)
+        :return: The content length (as integer), None when the header is
+                 missing (most likely a chunked response) or invalid
         """
         length = self.msg.get("content-length")
 
         if length is None:
-            # This is a response where there is no content-length header,
-            # most likely a chunked response
             return None
 
-        split = length.split(",")
-        split = [int(cl) for cl in split]
-        return min(split)
+        try:
+            return min(int(cl) for cl in length.split(","))
+        except ValueError:
+            return None
 
     def close(self):
         # First call parent's close()
@@ -235,20 +181,17 @@ class HTTPResponse(http.client.HTTPResponse):
         if self._handler:
             self._handler._request_closed(self._connection)
 
-    def close_connection(self):
-        self._handler._remove_connection(self._connection)
-        self.close()
-
     def info(self):
         # pylint: disable=E1101
         return self.headers
         # pylint: enable=E1101
 
-    @close_on_error
     def read(self, amt=None):
-        # w3af does always read all the content of the response, and I also need
-        # to do multiple reads to this response...
-        #
+        """
+        w3af reads the whole body at once and might read it many times, so
+        the body is kept after the first read. When `amt` is given only the
+        first `amt` bytes of the body are returned.
+        """
         # TODO: Is this OK? What if a HEAD method actually returns something?!
         if self._method == "HEAD":
             # This indicates that we have read all that we needed from the socket
@@ -257,61 +200,16 @@ class HTTPResponse(http.client.HTTPResponse):
             # This like fixes the bug with title "GET is much faster than HEAD".
             # https://sourceforge.net/tracker2/?func=detail&aid=2202532&group_id=170274&atid=853652
             self.close()
-            return ""
+            return b""
 
         if self._multiread is None:
-            # read all
-            self._multiread = self._raw_read()
+            try:
+                self._multiread = self._raw_read()
+            except http.client.HTTPException:
+                self.close()
+                raise
 
-        if amt is not None:
-            L = len(self._rbuf)
-            if amt > L:
-                amt -= L
-            else:
-                s = self._rbuf[:amt]
-                self._rbuf = self._rbuf[amt:]
-                return s
-        else:
-            s = self._rbuf + self._multiread
-            self._rbuf = b""
-            return s
-
-    def readline(self, limit=-1):
-        i = self._rbuf.find(b"\n")
-
-        while i < 0 and not (0 < limit <= len(self._rbuf)):
-            new = self._raw_read(self._rbufsize)
-            if not new:
-                break
-            i = new.find(b"\n")
-            if i >= 0:
-                i += len(self._rbuf)
-            self._rbuf = self._rbuf + new
-
-        if i < 0:
-            i = len(self._rbuf)
-        else:
-            i += 1
-
-        if 0 <= limit < len(self._rbuf):
-            i = limit
-
-        data, self._rbuf = self._rbuf[:i], self._rbuf[i:]
-        return data
-
-    @close_on_error
-    def readlines(self, sizehint=0):
-        total = 0
-        line_list = []
-        while 1:
-            line = self.readline()
-            if not line:
-                break
-            line_list.append(line)
-            total += len(line)
-            if sizehint and total >= sizehint:
-                break
-        return line_list
+        return self._multiread if amt is None else self._multiread[:amt]
 
     def set_body(self, data):
         """

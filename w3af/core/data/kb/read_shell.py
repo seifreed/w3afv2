@@ -39,9 +39,6 @@ class ReadShell(Shell):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self, vuln, uri_opener, worker_pool):
-        super().__init__(vuln, uri_opener, worker_pool)
-
     def help(self, command):
         """
         Handle the help command.

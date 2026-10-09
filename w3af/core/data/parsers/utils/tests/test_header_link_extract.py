@@ -104,3 +104,22 @@ class TestHeaderURLGenerator(unittest.TestCase):
             self.assertEqual(self.get_urls(extra_headers), [])
 
         self.assertIn("failed to correctly parse as an URL", logs.output[0])
+
+    def assert_logged_unparseable(self, extra_headers):
+        logger = "w3af.core.data.parsers.utils.header_link_extract"
+        with self.assertLogs(logger, level="DEBUG") as logs:
+            self.assertEqual(self.get_urls(extra_headers), [])
+
+        self.assertIn("failed to correctly parse as an URL", logs.output[0])
+
+    def test_unparseable_simple_header_is_logged(self):
+        self.assert_logged_unparseable([("location", "javascript:")])
+
+    def test_unparseable_cookie_path_is_logged(self):
+        self.assert_logged_unparseable([("set-cookie", "a=b; path=javascript:")])
+
+    def test_link_without_url(self):
+        self.assertEqual(self.get_urls([("link", "<>; rel=shortlink")]), [])
+
+    def test_set_cookie_with_control_characters(self):
+        self.assertEqual(self.get_urls([("set-cookie", 'a="\x01"; path=/x')]), [])

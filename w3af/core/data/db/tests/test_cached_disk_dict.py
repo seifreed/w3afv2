@@ -56,8 +56,8 @@ class TestCachedDiskDict(unittest.TestCase):
         self.cdd[4] = 9876
 
         self.assertEqual(self.cdd._access_count, {1: 2, 2: 2, 3: 2, 4: 1})
-        self.assertEqual(list(self.cdd._in_memory.keys()), [1, 2, 3])
-        self.assertEqual(list(self.cdd._disk_dict.keys()), [4])
+        self.assertEqual(sorted(self.cdd._in_memory.keys()), [1, 2, 3])
+        self.assertEqual(sorted(self.cdd._disk_dict.keys()), [4])
         self.assertEqual(self.cdd[1], 6789)
         self.assertEqual(self.cdd[4], 9876)
 
@@ -72,8 +72,8 @@ class TestCachedDiskDict(unittest.TestCase):
 
         self.cdd[4] = 9876
 
-        self.assertEqual(list(self.cdd._in_memory.keys()), [1, 2, 3])
-        self.assertEqual(list(self.cdd._disk_dict.keys()), [4])
+        self.assertEqual(sorted(self.cdd._in_memory.keys()), [1, 2, 3])
+        self.assertEqual(sorted(self.cdd._disk_dict.keys()), [4])
         self.assertEqual(self.cdd[1], 6789)
         self.assertEqual(self.cdd._access_count, {1: 3, 2: 2, 3: 2, 4: 1})
 
@@ -83,8 +83,8 @@ class TestCachedDiskDict(unittest.TestCase):
 
         self.assertEqual(self.cdd._access_count, {1: 3, 2: 2, 3: 2, 4: 4})
 
-        self.assertEqual(list(self.cdd._in_memory.keys()), [1, 2, 4])
-        self.assertEqual(list(self.cdd._disk_dict.keys()), [3])
+        self.assertEqual(sorted(self.cdd._in_memory.keys()), [1, 2, 4])
+        self.assertEqual(sorted(self.cdd._disk_dict.keys()), [3])
         self.assertEqual(self.cdd[4], 9876)
 
     def test_one_in_disk_then_moves_to_memory_then_disk_again(self):
@@ -98,15 +98,15 @@ class TestCachedDiskDict(unittest.TestCase):
 
         self.cdd[4] = 4
 
-        self.assertEqual(list(self.cdd._in_memory.keys()), [1, 2, 3])
-        self.assertEqual(list(self.cdd._disk_dict.keys()), [4])
+        self.assertEqual(sorted(self.cdd._in_memory.keys()), [1, 2, 3])
+        self.assertEqual(sorted(self.cdd._disk_dict.keys()), [4])
 
         self.cdd[4]
         self.cdd[4]
         self.cdd[4]
 
-        self.assertEqual(list(self.cdd._in_memory.keys()), [1, 2, 4])
-        self.assertEqual(list(self.cdd._disk_dict.keys()), [3])
+        self.assertEqual(sorted(self.cdd._in_memory.keys()), [1, 2, 4])
+        self.assertEqual(sorted(self.cdd._disk_dict.keys()), [3])
 
         self.cdd[1]
         self.cdd[1]
@@ -120,9 +120,27 @@ class TestCachedDiskDict(unittest.TestCase):
         self.cdd[2]
         self.cdd[2]
 
-        self.assertEqual(list(self.cdd._in_memory.keys()), [1, 2, 3])
-        self.assertEqual(list(self.cdd._disk_dict.keys()), [4])
+        self.assertEqual(sorted(self.cdd._in_memory.keys()), [1, 2, 3])
+        self.assertEqual(sorted(self.cdd._disk_dict.keys()), [4])
 
-        self.assertEqual(
-            [(k, v) for (k, v) in self.cdd.items()], [(1, 1), (2, 2), (3, 3), (4, 4)]
-        )
+        self.assertEqual([self.cdd[k] for k in (1, 2, 3, 4)], [1, 2, 3, 4])
+
+    def test_get_default(self):
+        self.cdd[1] = "one"
+
+        self.assertEqual(self.cdd.get(1), "one")
+        self.assertEqual(self.cdd.get(2, None), None)
+        self.assertRaises(KeyError, self.cdd.get, 2)
+
+    def test_key_already_moved_to_memory(self):
+        self.cdd._access_count.update([5])
+
+        self.cdd._move_key_to_memory_if_needed(5, [5])
+
+        self.assertNotIn(5, self.cdd._in_memory)
+
+    def test_table_prefix(self):
+        cdd = CachedDiskDict(table_prefix="variants")
+        self.addCleanup(cdd.cleanup)
+
+        self.assertIn("cached_disk_dict_variants_", cdd._disk_dict.table_name)

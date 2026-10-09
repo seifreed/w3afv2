@@ -29,7 +29,7 @@ from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal
 from w3af.core.data.constants import severity
 from w3af.core.data.fuzzer.utils import rand_number
 from w3af.core.data.kb.vuln import Vuln
-from w3af.core.data.misc.encoding import smart_str_ignore
+from w3af.core.data.misc.encoding import smart_unicode
 from w3af.core.data.url.exceptions import HTTPRequestException
 
 
@@ -341,9 +341,9 @@ class BlindSqliResponseDiff:
             ' HTTP method %s. The injectable parameter is: "%s"'
         )
         desc %= (
-            smart_str_ignore(mutant.get_url()),
-            smart_str_ignore(mutant.get_method()),
-            smart_str_ignore(mutant.get_token_name()),
+            smart_unicode(mutant.get_url()),
+            smart_unicode(mutant.get_method()),
+            smart_unicode(mutant.get_token_name()),
         )
 
         v = Vuln.from_mutant(

@@ -25,6 +25,8 @@ from collections import Counter
 from w3af.core.data.db.disk_dict import DiskDict
 from w3af.core.data.fuzzer.utils import rand_alpha
 
+_MISSING = object()
+
 
 class CachedDiskDict:
     """
@@ -106,51 +108,36 @@ class CachedDiskDict:
 
     def _move_key_to_disk_if_needed(self, keys_for_memory):
         """
-        Analyzes the current access count for the last accessed key and
-        checks if any if the keys in memory should be moved to disk.
+        Move the first in-memory key which is no longer one of the most
+        accessed keys to disk.
 
         :param keys_for_memory: The keys that should be in memory
-        :return: The name of the key that was moved to disk, or None if
-                 all the keys are still in memory.
         """
         for key in self._in_memory:
-
             if key in keys_for_memory:
                 continue
 
-            try:
-                value = self._in_memory.pop(key)
-            except KeyError:
-                return
-            else:
+            # Another thread might have moved the key already
+            value = self._in_memory.pop(key, _MISSING)
+            if value is not _MISSING:
                 self._disk_dict[key] = value
-                return key
+            return
 
     def _move_key_to_memory_if_needed(self, key, keys_for_memory):
         """
-        Analyzes the current access count for the last accessed key and
-        checks if any if the keys in disk should be moved to memory.
+        Move the last accessed key from disk to memory if it is now one of
+        the most accessed keys.
 
         :param key: The key that was last accessed
         :param keys_for_memory: The keys that should be in memory
-        :return: The name of the key that was moved to memory, or None if
-                 all the keys are still on disk.
         """
-        # The key is already in memory, nothing to do here
-        if key in self._in_memory:
+        if key in self._in_memory or key not in keys_for_memory:
             return
 
-        # The key must not be in memory, nothing to do here
-        if key not in keys_for_memory:
-            return
-
-        try:
-            value = self._disk_dict.pop(key)
-        except KeyError:
-            return
-        else:
+        # Another thread might have moved the key already
+        value = self._disk_dict.pop(key, _MISSING)
+        if value is not _MISSING:
             self._in_memory[key] = value
-            return key
 
     def __setitem__(self, key, value):
         if key in self._in_memory or len(self._in_memory) < self._max_in_memory:
@@ -160,49 +147,3 @@ class CachedDiskDict:
             self._disk_dict[key] = value
 
         self._increase_access_count(key)
-
-    def __delitem__(self, key):
-        try:
-            del self._in_memory[key]
-        except KeyError:
-            # This will raise KeyError if k is not found, and that is OK
-            # because we don't need to increase the access count when the
-            # key doesn't exist
-            del self._disk_dict[key]
-
-        try:
-            del self._access_count[key]
-        except KeyError:
-            # Another thread removed this key
-            pass
-
-    def __contains__(self, key):
-        if key in self._in_memory:
-            self._increase_access_count(key)
-            return True
-
-        if key in self._disk_dict:
-            self._increase_access_count(key)
-            return True
-
-        return False
-
-    def __iter__(self):
-        """
-        Decided not to increase the access count when iterating through the
-        items. In most cases the iteration will be performed on all items,
-        thus increasing the access count +1 for each, which will leave all
-        access counts +1, forcing no movements between memory and disk.
-        """
-        for key in self._in_memory:
-            yield key
-
-        for key in self._disk_dict:
-            yield key
-
-    def iteritems(self):
-        for key, value in self._in_memory.items():
-            yield key, value
-
-        for key, value in self._disk_dict.items():
-            yield key, value

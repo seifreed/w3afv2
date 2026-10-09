@@ -39,14 +39,9 @@ from email.base64mime import header_encode
 
 import OpenSSL
 
-from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.exceptions import BaseFrameworkException
 
 from .connection_manager import ConnectionManager
-
-# Same header validation rules http.client.putheader() enforces (RFC 7230)
-LEGAL_HEADER_NAME_RE = re.compile(rb"[^:\s][^:\r\n]*")
-ILLEGAL_HEADER_VALUE_RE = re.compile(rb"\n(?![ \t])|\r(?![ \t\n])")
 from .connections import (
     HTTPConnection,
     HTTPSConnection,
@@ -55,7 +50,9 @@ from .connections import (
 )
 from .utils import debug, error, request_body_bytes, to_utf8_raw
 
-DEFAULT_CONTENT_TYPE = "application/x-www-form-urlencoded"
+# Same header validation rules http.client.putheader() enforces (RFC 7230)
+LEGAL_HEADER_NAME_RE = re.compile(rb"[^:\s][^:\r\n]*")
+ILLEGAL_HEADER_VALUE_RE = re.compile(rb"\n(?![ \t])|\r(?![ \t\n])")
 
 
 class URLTimeoutError(urllib.error.URLError):
@@ -99,15 +96,6 @@ class KeepAliveHandler:
         # Map hosts to a `collections.deque` of response status.
         self._hostresp = {}
 
-    def close_connection(self, host):
-        """
-        Close connection(s) to <host>
-        host is the host:port spec, as in 'www.cnn.com:8080' as passed in.
-        no error occurs if there is no connection to that host.
-        """
-        for conn in self._cm.get_all(host):
-            self._cm.remove_connection(conn, reason="close connection")
-
     def close_all(self):
         """
         Close all open connections
@@ -124,9 +112,6 @@ class KeepAliveHandler:
         """
         debug(f"Add {connection} to free-to-use connection list")
         self._cm.free_connection(connection)
-
-    def _remove_connection(self, conn):
-        self._cm.remove_connection(conn, reason="remove connection")
 
     def do_open_keepalive(self, req):
         """
@@ -161,40 +146,15 @@ class KeepAliveHandler:
             self._cm.remove_connection(conn, reason="socket timeout")
             raise URLTimeoutError()
 
-        except OpenSSL.SSL.ZeroReturnError:
-            # According to the pyOpenSSL docs ZeroReturnError means that the
-            # SSL connection has been closed cleanly
-            self._cm.remove_connection(conn, reason="ZeroReturnError")
-            raise
-
-        except OpenSSL.SSL.SysCallError:
-            # We better discard this connection
-            self._cm.remove_connection(conn, reason="OpenSSL SysCallError")
-            raise
-
-        except OpenSSL.SSL.Error:
-            #
-            # OpenSSL.SSL.Error: [('SSL routines',
-            #                      'ssl3_get_record',
-            #                      'decryption failed or bad record mac')]
-            #
-            # Or something similar.
-            #
-            # Note that OpenSSL.SSL.Error is the base class for all the
-            # OpenSSL exceptions, so we're catching quite a lot of things here
-            # and the except order matters.
-            #
-            self._cm.remove_connection(conn, reason="OpenSSL.SSL.Error")
-            raise
-
-        except (OSError, http.client.HTTPException):
-            # We better discard this connection
-            self._cm.remove_connection(conn, reason="socket error")
-            raise
-
         except Exception as e:
-            # We better discard this connection, we don't even know what happen!
-            reason = f'unexpected exception "{e}"'
+            # Socket errors, HTTP protocol errors, OpenSSL errors such as
+            #
+            #   OpenSSL.SSL.Error: [('SSL routines',
+            #                        'ssl3_get_record',
+            #                        'decryption failed or bad record mac')]
+            #
+            # or something we don't even know about: discard the connection
+            reason = f'{e.__class__.__name__} "{e}"'
             self._cm.remove_connection(conn, reason=reason)
             raise
 
@@ -212,14 +172,6 @@ class KeepAliveHandler:
 
         try:
             resp.read()
-        except AttributeError:
-            # The rare case of: 'NoneType' object has no attribute 'recv', we
-            # read the response here because we're closer to the error and can
-            # better understand it.
-            #
-            # https://github.com/andresriancho/w3af/issues/2074
-            self._cm.remove_connection(conn, reason="http connection died")
-            raise HTTPRequestException("The HTTP connection died")
         except Exception as e:
             # We better discard this connection, we don't even know what happen!
             reason = f'unexpected exception while reading "{e}"'
@@ -271,24 +223,17 @@ class KeepAliveHandler:
             resp = conn.getresponse()
             # note: just because we got something back doesn't mean it
             # worked.  We'll check the version below, too.
-        except (OSError, http.client.HTTPException) as e:
-            self._cm.remove_connection(conn, reason="socket error")
-            resp = None
-            reason = e
-        except OpenSSL.SSL.ZeroReturnError as e:
-            # According to the pyOpenSSL docs ZeroReturnError means that the
-            # SSL connection has been closed cleanly
-            self._cm.remove_connection(conn, reason="ZeroReturnError")
-            resp = None
-            reason = e
-        except OpenSSL.SSL.SysCallError as e:
-            # Not sure why we're getting this exception when trying to reuse a
-            # connection (but not when doing the initial request). So we just
-            # ignore the exception and go on.
-            #
-            # A new connection will be created and the scan should continue without
-            # problems
-            self._cm.remove_connection(conn, reason="OpenSSL.SSL.SysCallError")
+        except (
+            OSError,
+            http.client.HTTPException,
+            OpenSSL.SSL.ZeroReturnError,
+            OpenSSL.SSL.SysCallError,
+        ) as e:
+            # The server most likely closed the connection since we last used
+            # it: socket errors, a clean TLS close (ZeroReturnError) or the
+            # SysCallError we get when reusing a TLS connection. A new
+            # connection will be created and the scan continues.
+            self._cm.remove_connection(conn, reason=f"reuse failed: {e!r}")
             resp = None
             reason = e
         except Exception as e:
@@ -317,7 +262,6 @@ class KeepAliveHandler:
             resp = None
         else:
             debug(f"Re-using {conn} to {host}")
-            resp._multiread = None
 
         return resp
 
@@ -333,8 +277,11 @@ class KeepAliveHandler:
         if conn.sock is None:
             return
 
-        if isinstance(conn, HTTPConnection):
-            conn.sock.settimeout(request.get_timeout())
+        timeout = request.get_timeout()
+        if timeout is socket._GLOBAL_DEFAULT_TIMEOUT:
+            timeout = socket.getdefaulttimeout()
+
+        conn.sock.settimeout(timeout)
 
     def _start_transaction(self, conn, req):
         """
@@ -353,15 +300,11 @@ class KeepAliveHandler:
         if not req.has_header("Connection"):
             conn.putheader("Connection", "keep-alive")
 
+        # urllib's do_request_() already added the Content-type and
+        # Content-length headers for requests with a body
         data = req.get_data()
         if data is not None:
             data = request_body_bytes(data)
-
-            if not req.has_header("Content-type"):
-                conn.putheader("Content-type", DEFAULT_CONTENT_TYPE)
-
-            if not req.has_header("Content-length"):
-                conn.putheader("Content-length", str(len(data)))
 
         # Add headers
         header_dict = dict(self.parent.addheaders)

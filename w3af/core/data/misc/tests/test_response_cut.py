@@ -40,11 +40,6 @@ class TestResponseCutMixin(unittest.TestCase):
         with self.assertRaises(BodyCutException):
             self.cam._cut("short")
 
-    def test_get_cut_returns_configured_lengths(self):
-        self.cam.set_cut(2, 3)
-
-        self.assertEqual(self.cam.get_cut(), (2, 3))
-
     def test_cut_requires_configured_lengths(self):
         with self.assertRaises(RuntimeError):
             self.cam._cut("body")
@@ -69,14 +64,14 @@ class TestResponseCutMixin(unittest.TestCase):
         body_b = ["header--", "different", "footer1", "footer2", "footer3"]
 
         self.assertTrue(self.cam._guess_cut(body_a, body_b, expected))
-        self.assertEqual(self.cam.get_cut(), (1, 3))
+        self.assertEqual((self.cam._header_length, self.cam._footer_length), (1, 3))
 
     def test_guess_cut_with_sequence_without_header(self):
         body_a = ["expected", "footer1", "footer2"]
         body_b = ["different", "footer1", "footer2"]
 
         self.assertTrue(self.cam._guess_cut(body_a, body_b, "expected"))
-        self.assertEqual(self.cam.get_cut(), (0, 2))
+        self.assertEqual((self.cam._header_length, self.cam._footer_length), (0, 2))
 
     def test_etc_passwd_extract_basic(self):
         body = """HEADER

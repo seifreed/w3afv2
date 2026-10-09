@@ -34,6 +34,9 @@ class NamedStringIO(str):
         self._stream = StringIO(the_str)
         self._name = name
 
+    def __reduce__(self):
+        return self.__class__, (str(self), self._name)
+
     @property
     def name(self):
         return self._name

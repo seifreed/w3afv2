@@ -57,18 +57,6 @@ class TestPlainContainer(unittest.TestCase):
         # Content is not a token
         self.assertRaises(RuntimeError, dc.set_token, "abc")
 
-    def test_is_variant_all_equal(self):
-        dc1 = PlainContainer("abc", "text/plain")
-        dc2 = PlainContainer("abc", "text/plain")
-
-        self.assertTrue(dc1.is_variant_of(dc2))
-
-    def test_is_variant_diff_headers(self):
-        dc1 = PlainContainer("abc", "text/plain")
-        dc2 = PlainContainer("abc", "text/xml")
-
-        self.assertFalse(dc1.is_variant_of(dc2))
-
     def test_get_headers_none(self):
         dc = PlainContainer("abc")
 

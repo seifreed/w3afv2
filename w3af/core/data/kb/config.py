@@ -34,11 +34,5 @@ class Config(dict):
         """
         self[variable_name] = value
 
-    def cleanup(self):
-        """
-        Cleanup internal data.
-        """
-        self.clear()
-
 
 cf = Config()

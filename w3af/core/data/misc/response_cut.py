@@ -39,9 +39,6 @@ class ResponseCutMixin:
         self._header_length = header_end
         self._footer_length = footer_start
 
-    def get_cut(self):
-        return self._header_length, self._footer_length
-
     def _guess_cut(self, body_a, body_b, expected_result):
         """
         Guesses the header and footer based on two responses and an expected

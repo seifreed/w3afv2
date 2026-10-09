@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import errno
 import os
 import shutil
 import stat
@@ -39,14 +38,9 @@ def create_temp_dir():
     """Create the process-specific temporary directory with user-only access."""
     complete_dir = get_temp_dir()
     if not os.path.exists(complete_dir):
-        try:
-            os.makedirs(complete_dir)
-        except OSError as error:
-            # Concurrent starts can create the same directory.
-            # https://circleci.com/gh/andresriancho/w3af/1347
-            if error.errno != errno.EEXIST:
-                raise
-
+        # Concurrent starts can create the same directory.
+        # https://circleci.com/gh/andresriancho/w3af/1347
+        os.makedirs(complete_dir, exist_ok=True)
         os.chmod(complete_dir, stat.S_IRWXU)
     return complete_dir
 

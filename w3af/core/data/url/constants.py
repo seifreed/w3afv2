@@ -5,9 +5,8 @@ MAX_RESPONSE_COLLECT = 100
 # How many consecutive errors to receive before stopping the scan
 MAX_ERROR_COUNT = 11
 
-# There is a limit on MAX_ERROR_COUNT due to the way we use it in xurllib
-if MAX_RESPONSE_COLLECT <= MAX_ERROR_COUNT * 2:
-    raise ValueError("MAX_RESPONSE_COLLECT must be greater than MAX_ERROR_COUNT * 2")
+# MAX_RESPONSE_COLLECT must stay greater than MAX_ERROR_COUNT * 2 because of
+# the way xurllib uses them, see test_constants
 
 # How many times to retry a request before we give up
 MAX_HTTP_RETRIES = 2

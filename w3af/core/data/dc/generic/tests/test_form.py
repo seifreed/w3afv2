@@ -44,7 +44,7 @@ class TestForm(unittest.TestCase):
     def test_basic(self):
         form_params = FormParameters()
         form = Form(form_params)
-        self.assertIs(form.get_form_params(), form_params)
+        self.assertIs(form.form_params, form_params)
 
     def test_mutant_smart_fill_simple(self):
         form_params = FormParameters()
@@ -69,7 +69,7 @@ class TestForm(unittest.TestCase):
             ],
         )
         self.assertIsInstance(form["username"][0], DataToken)
-        self.assertIs(form.get_form_params(), form_params)
+        self.assertIs(form.form_params, form_params)
 
     def test_mutant_iter_bound_tokens(self):
         form_params = FormParameters()
@@ -115,7 +115,7 @@ class TestForm(unittest.TestCase):
         self.assertEqual(str_file.name[-4:], ".gif")
         self.assertIn("GIF", str_file)
 
-        self.assertIs(form.get_form_params(), form_params)
+        self.assertIs(form.form_params, form_params)
 
     def test_login_form_utils(self):
         form_params = FormParameters()
@@ -144,7 +144,7 @@ class TestForm(unittest.TestCase):
         self.assertEqual(form["username"][0], "pablo")
         self.assertEqual(form["pwd"][0], "long-complex")
 
-        self.assertIs(form.get_form_params(), form_params)
+        self.assertIs(form.form_params, form_params)
 
     def test_cpickle_simple(self):
         form_params = FormParameters()

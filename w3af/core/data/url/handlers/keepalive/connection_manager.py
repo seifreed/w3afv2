@@ -1,6 +1,6 @@
 import logging
+import threading
 import time
-from operator import attrgetter
 
 import OpenSSL
 
@@ -8,6 +8,15 @@ from w3af.core.data.url.exceptions import ConnectionPoolException
 from w3af.core.data.url.handlers.keepalive.utils import debug
 
 LOGGER = logging.getLogger(__name__)
+
+
+def _oldest_request_first(conn):
+    """
+    Sort key: connections which started their request earlier come first,
+    the ones which didn't start any request yet go last.
+    """
+    start = conn.current_request_start
+    return (start is None, start or 0.0)
 
 
 class ConnectionManager:
@@ -35,9 +44,10 @@ class ConnectionManager:
     UNKNOWN = "unknown"
 
     def __init__(self):
-        # Used and free connections
+        # Used and free connections, moved between sets while holding the lock
         self._used_conns = set()
         self._free_conns = set()
+        self._lock = threading.RLock()
 
         # Stats
         self.request_counter = 0
@@ -52,15 +62,16 @@ class ConnectionManager:
         # Just make sure we don't leak open connections
         try:
             conn.close()
-        except (AttributeError, OpenSSL.SSL.SysCallError):
-            # This exception is raised when the remote end closes the connection
+        except (OSError, OpenSSL.SSL.Error):
+            # The remote end might have closed (or broken) the connection
             # before we do. We continue as if nothing happen, because our goal
             # is to have a closed connection, and we already got that.
             pass
 
         # Remove it from out internal DB
-        for conns in (self._free_conns, self._used_conns):
-            conns.discard(conn)
+        with self._lock:
+            self._free_conns.discard(conn)
+            self._used_conns.discard(conn)
 
         msg = 'Removed %s from pool. Reason "%s"'
         args = (conn, reason)
@@ -74,11 +85,12 @@ class ConnectionManager:
         """
         Mark connection as available for being reused
         """
-        if conn in self._used_conns.copy():
-            self._used_conns.discard(conn)
-            self._free_conns.add(conn)
-            conn.current_request_start = None
-            conn.connection_manager_move_ts = time.time()
+        with self._lock:
+            if conn in self._used_conns:
+                self._used_conns.discard(conn)
+                self._free_conns.add(conn)
+                conn.current_request_start = None
+                conn.connection_manager_move_ts = time.time()
 
     def replace_connection(self, bad_conn, req, conn_factory):
         """
@@ -95,7 +107,8 @@ class ConnectionManager:
         new_conn = conn_factory(req)
         new_conn.current_request_start = time.time()
         new_conn.connection_manager_move_ts = time.time()
-        self._used_conns.add(new_conn)
+        with self._lock:
+            self._used_conns.add(new_conn)
 
         # Log
         args = (bad_conn, new_conn)
@@ -128,20 +141,20 @@ class ConnectionManager:
         LOGGER.debug(stats)
 
         # Connection in use time stats
-        in_use = list(self.get_all_used_for_host_port(host_port))
-        in_use.sort(key=attrgetter("current_request_start"))
+        in_use = sorted(
+            self.get_all_used_for_host_port(host_port), key=_oldest_request_first
+        )
         top_offenders = in_use[:5]
 
         connection_info = []
 
         for conn in top_offenders:
-            try:
-                spent = time.time() - conn.current_request_start
-            except TypeError:
-                # This is a race condition where conn.current_request_start is
-                # None, thus the - raises TypeError
+            start = conn.current_request_start
+            if start is None:
+                # In use, but the request wasn't sent yet
                 continue
 
+            spent = time.time() - start
             args = (conn.id, spent)
             connection_info.append("({}, {:.2f} sec)".format(*args))
 
@@ -165,16 +178,6 @@ class ConnectionManager:
         )
         LOGGER.debug(msg)
 
-    def get_free_connection_to_close(self):
-        """
-        Find a connection that is in self._free and return it.
-        :return: An HTTP connection that will be closed
-        """
-        try:
-            return self._free_conns.pop()
-        except KeyError:
-            return None
-
     def _reuse_connection(self, req, host_port):
         """
         Find an existing connection to reuse
@@ -183,13 +186,12 @@ class ConnectionManager:
         :param host: The host to connect to
         :return:
         """
-        for conn in self.get_all_free_for_host_port(host_port):
-            try:
+        with self._lock:
+            for conn in self._free_conns:
+                if conn.host_port != host_port:
+                    continue
+
                 self._free_conns.remove(conn)
-            except KeyError:
-                # The connection was removed from the set by another thread
-                continue
-            else:
                 self._used_conns.add(conn)
                 conn.current_request_start = time.time()
                 conn.connection_manager_move_ts = time.time()
@@ -199,6 +201,37 @@ class ConnectionManager:
                 debug(msg % args)
 
                 return conn
+
+        return None
+
+    def _take_preferred_connection(self, req):
+        """
+        :return: The connection the request asked to be sent on, when it is
+                 free; None otherwise.
+        """
+        conn = req.preferred_connection
+
+        with self._lock:
+            if conn not in self._free_conns:
+                return None
+
+            self._free_conns.remove(conn)
+            self._used_conns.add(conn)
+            conn.current_request_start = time.time()
+            conn.connection_manager_move_ts = time.time()
+
+        debug(f"Reusing preferred {conn} to use in {req}")
+        return conn
+
+    def _pop_free_connection_if_unused(self):
+        """
+        :return: A free connection taken out of the pool when there are more
+                 free connections than used ones, None otherwise.
+        """
+        with self._lock:
+            if len(self._free_conns) > len(self._used_conns):
+                return self._free_conns.pop()
+        return None
 
     def _create_new_connection(self, req, conn_factory, host_port, conn_total):
         """
@@ -214,7 +247,8 @@ class ConnectionManager:
         conn.connection_manager_move_ts = time.time()
 
         # Store it internally
-        self._used_conns.add(conn)
+        with self._lock:
+            self._used_conns.add(conn)
 
         # Log
         msg = "Added %s to pool to use in %s, current %s pool size: %s"
@@ -240,6 +274,10 @@ class ConnectionManager:
         """
         host_port = req.get_netloc()
         self.log_stats(host_port)
+
+        conn = self._take_preferred_connection(req)
+        if conn is not None:
+            return conn
 
         waited_time_for_conn = 0.0
 
@@ -284,23 +322,19 @@ class ConnectionManager:
                 # connection pool, but because new_connection is set, it is
                 # possible to force a free connection to be closed:
                 #
-                if len(self._free_conns) > len(self._used_conns):
-                    #
-                    # Close one of the free connections and create a new one.
+                conn = self._pop_free_connection_if_unused()
+                if conn is not None:
                     #
                     # Close an existing free connection because the framework
                     # is not using them (more free than used), this action should
                     # not degrade the connection pool performance
                     #
-                    conn = self.get_free_connection_to_close()
+                    self.remove_connection(conn, reason="need fresh connection")
 
-                    if conn is not None:
-                        self.remove_connection(conn, reason="need fresh connection")
-
-                        self._log_waited_time_for_conn(waited_time_for_conn)
-                        return self._create_new_connection(
-                            req, conn_factory, host_port, conn_total
-                        )
+                    self._log_waited_time_for_conn(waited_time_for_conn)
+                    return self._create_new_connection(
+                        req, conn_factory, host_port, conn_total
+                    )
 
                 msg = (
                     "The HTTP request %s has new_connection set to True."

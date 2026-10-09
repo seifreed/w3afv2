@@ -1,7 +1,7 @@
 """
 test_pks.py
 
-Copyright 2006 Andres Riancho
+Copyright 2012 Andres Riancho
 
 This file is part of w3af, http://w3af.org/ .
 
@@ -20,17 +20,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import threading
 import unittest
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import parse_qs, urlparse
 
-from w3af.core.data.search_engines.pks import pks
-from w3af.core.data.url.extended_urllib import ExtendedUrllib
-from w3af.core.filesystem import create_temp_dir
+from w3af.core.data.search_engines.pks import PKSResult, pks
+from w3af.core.data.search_engines.tests.fixture_proxy import (
+    DROP_CONNECTION,
+    FixtureProxy,
+)
+from w3af.core.exceptions import BaseFrameworkException
 
 #
-# Good idea to update this every now and then using:
+# Based on the output of:
 # wget 'http://pgp.mit.edu:11371/pks/lookup?op=index&search=bonsai-sec.com'
 #
 BODY = """\
@@ -40,72 +40,58 @@ BODY = """\
 <head>
 <title>Search results for 'sec com bonsai'</title>
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
-<style type="text/css">
-/*<![CDATA[*/
- .uid { color: green; text-decoration: underline; }
- .warn { color: red; font-weight: bold; }
-/*]]>*/
-</style></head><body><h1>Search results for 'sec com bonsai'</h1><pre>Type bits/keyID     Date       User ID
+</head><body><h1>Search results for 'sec com bonsai'</h1><pre>Type bits/keyID     Date       User ID
 </pre><hr /><pre>
 pub  2048R/<a href="/pks/lookup?op=get&amp;search=0x8C9D86461E9B9265">1E9B9265</a> 2010-05-06 <a href="/pks/lookup?op=vindex&amp;search=0x8C9D86461E9B9265">Lucas Apa (Bonsai Security Consultant) &lt;lucas@bonsai-sec.com&gt;</a>
 </pre><hr /><pre>
 pub  1024D/<a href="/pks/lookup?op=get&amp;search=0x3608ED24EB0B8821">EB0B8821</a> 2010-04-11 <a href="/pks/lookup?op=vindex&amp;search=0x3608ED24EB0B8821">Nahuel Grisolia &lt;nahuel@bonsai-sec.com&gt;</a>
+</pre><hr /><pre>
+pub  1024D/<a href="/pks/lookup?op=get&amp;search=0x0000000000000001">00000001</a> 2011-01-01 <a href="/pks/lookup?op=vindex&amp;search=0x0000000000000001">Nahuel Again &lt;nahuel@bonsai-sec.com&gt;</a>
+</pre><hr /><pre>
+pub  1024D/<a href="/pks/lookup?op=get&amp;search=0x0000000000000002">00000002</a> 2011-01-01 <a href="/pks/lookup?op=vindex&amp;search=0x0000000000000002">Someone Else &lt;someone@other.com&gt;</a>
+</pre><hr /><pre>
+pub  1024D/<a href="/pks/lookup?op=get&amp;search=0x0000000000000003">00000003</a> 2011-01-01 <a href="/pks/lookup?op=vindex&amp;search=0x0000000000000003">No Email Here</a>
+</pre><pre>
+short line
 </pre></body></html>
 """
 
 
-class PKSLookupHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        request = urlparse(self.path)
-        query = parse_qs(request.query)
-        expected_query = {"op": ["index"], "search": ["bonsai-sec.com"]}
-
-        if request.path != "/pks/lookup" or query != expected_query:
-            self.send_error(404)
-            return
-
-        body = BODY.encode("utf-8")
-        self.send_response(200)
-        self.send_header("Content-Type", "text/html; charset=utf-8")
-        self.send_header("Content-Length", str(len(body)))
-        self.end_headers()
-        self.wfile.write(body)
-
-    def log_message(self, format, *args):
-        return
-
-
 class TestPKS(unittest.TestCase):
 
-    def setUp(self):
-        create_temp_dir()
-        self.server = ThreadingHTTPServer(("127.0.0.1", 0), PKSLookupHandler)
-        self.server_thread = threading.Thread(
-            target=self.server.serve_forever, daemon=True
-        )
-        self.server_thread.start()
-
-        port = self.server.server_address[1]
-        lookup_url = f"http://127.0.0.1:{port}/pks/lookup"
-        self.uri_opener = ExtendedUrllib()
-        self.pks_se = pks(self.uri_opener, lookup_url=lookup_url)
-
-    def tearDown(self):
-        self.uri_opener.end()
-        self.server.shutdown()
-        self.server.server_close()
-        self.server_thread.join()
+    def search(self, responder, hostname):
+        with FixtureProxy(responder) as proxy:
+            uri_opener = proxy.opener()
+            self.addCleanup(uri_opener.end)
+            return pks(uri_opener).search(hostname), proxy
 
     def test_get_result(self):
-        domain = "bonsai-sec.com"
-
         with self.assertLogs(
             "w3af.core.data.search_engines.pks", level="DEBUG"
         ) as logs:
-            result = self.pks_se.search(domain)
+            result, proxy = self.search(lambda url: BODY, "bonsai-sec.com")
 
-        self.assertEqual(len(result), 2)
+        self.assertEqual([r.username for r in result], ["lucas", "nahuel"])
+        self.assertEqual(result[0].name, "Lucas Apa (Bonsai Security Consultant)")
+        self.assertEqual(result[0].domain, "bonsai-sec.com")
+        self.assertIsNotNone(result[0].id)
         self.assertIn("returned 2 results", logs.output[0])
 
-        expected = {"lucas"}
-        self.assertTrue({r.username for r in result}.issuperset(expected), result)
+        request = proxy.requests[0]
+        self.assertEqual(request.netloc, "pgp.mit.edu:11371")
+        self.assertEqual(proxy.query(), {"op": "index", "search": "bonsai-sec.com"})
+
+    def test_unreachable_server(self):
+        result, _ = self.search(lambda url: DROP_CONNECTION, "bonsai-sec.com")
+
+        self.assertEqual(result, [])
+
+    def test_requires_root_domain(self):
+        self.assertRaises(
+            BaseFrameworkException, pks(None).search, "http://bonsai-sec.com"
+        )
+
+    def test_result_repr(self):
+        result = PKSResult("Lucas", "lucas", "bonsai-sec.com", 1)
+
+        self.assertEqual(repr(result), "<PKSResult: Lucas@bonsai-sec.com>")

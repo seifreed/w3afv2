@@ -246,7 +246,3 @@ VULNS = {
     # Users can add their vulnerabilities
     "Manually added vulnerability": None,
 }
-
-
-def is_valid_name(name):
-    return name in VULNS

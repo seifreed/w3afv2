@@ -24,15 +24,19 @@ from w3af.core.data.context.context.css import (
     StyleComment,
     StyleDoubleQuoteString,
     StyleSingleQuoteString,
-    get_css_context,
+    get_css_context_iter,
 )
 from w3af.core.data.context.tests.context_test import ContextTest
+
+
+def get_css_context_list(data, payload):
+    return list(get_css_context_iter(data, payload))
 
 
 class TestCSSStyle(ContextTest):
     def test_payload_is_all_content(self):
         css_code = "PAYLOAD:("
-        contexts = get_css_context(css_code, css_code)
+        contexts = get_css_context_list(css_code, css_code)
 
         self.assertEqual(len(contexts), 1, contexts)
         context = contexts[0]
@@ -42,7 +46,7 @@ class TestCSSStyle(ContextTest):
 
     def test_payload_is_all_content_no_break(self):
         css_code = "PAYLOAD"
-        contexts = get_css_context(css_code, css_code)
+        contexts = get_css_context_list(css_code, css_code)
 
         self.assertEqual(len(contexts), 1, contexts)
         context = contexts[0]
@@ -53,7 +57,7 @@ class TestCSSStyle(ContextTest):
     def test_payload_in_selector(self):
         payload = "PAYLOAD:("
         css_code = f"{payload} {{background-color:lightgray}}"
-        contexts = get_css_context(css_code, payload)
+        contexts = get_css_context_list(css_code, payload)
 
         self.assertEqual(len(contexts), 1, contexts)
         context = contexts[0]
@@ -64,7 +68,7 @@ class TestCSSStyle(ContextTest):
     def test_payload_in_property(self):
         payload = "PAYLOAD:("
         css_code = f"body {{{payload}:lightgray}}"
-        contexts = get_css_context(css_code, payload)
+        contexts = get_css_context_list(css_code, payload)
 
         self.assertEqual(len(contexts), 1, contexts)
         context = contexts[0]
@@ -75,7 +79,7 @@ class TestCSSStyle(ContextTest):
     def test_payload_in_value(self):
         payload = "PAYLOAD:("
         css_code = f"body {{background-color:{payload}}}"
-        contexts = get_css_context(css_code, payload)
+        contexts = get_css_context_list(css_code, payload)
 
         self.assertEqual(len(contexts), 1, contexts)
         context = contexts[0]
@@ -87,7 +91,7 @@ class TestCSSStyle(ContextTest):
         # Double quote missing
         payload = "PAYLOAD:("
         css_code = f'font-family: Georgia, "Times New Roman {payload}";'
-        contexts = get_css_context(css_code, payload)
+        contexts = get_css_context_list(css_code, payload)
 
         self.assertEqual(len(contexts), 1, contexts)
         context = contexts[0]
@@ -98,7 +102,7 @@ class TestCSSStyle(ContextTest):
     def test_payload_value_double_quote_break(self):
         payload = 'PAYLOAD:("'
         css_code = f'font-family: Georgia, "Times New Roman {payload}";'
-        contexts = get_css_context(css_code, payload)
+        contexts = get_css_context_list(css_code, payload)
 
         self.assertEqual(len(contexts), 1, contexts)
         context = contexts[0]
@@ -109,7 +113,7 @@ class TestCSSStyle(ContextTest):
     def test_payload_value_single_quote(self):
         payload = "PAYLOAD:('"
         css_code = f"background: url('{payload}')"
-        contexts = get_css_context(css_code, payload)
+        contexts = get_css_context_list(css_code, payload)
 
         self.assertEqual(len(contexts), 1, contexts)
         context = contexts[0]
@@ -126,7 +130,7 @@ class TestCSSStyle(ContextTest):
             text-align: center;
         }
         """
-        contexts = get_css_context(css_code % payload, payload)
+        contexts = get_css_context_list(css_code % payload, payload)
 
         self.assertEqual(len(contexts), 1, contexts)
         context = contexts[0]
@@ -143,7 +147,7 @@ class TestCSSStyle(ContextTest):
             text-align: center;
         }
         """
-        contexts = get_css_context(css_code % payload, payload)
+        contexts = get_css_context_list(css_code % payload, payload)
 
         self.assertEqual(len(contexts), 1, contexts)
         context = contexts[0]
@@ -160,7 +164,7 @@ class TestCSSStyle(ContextTest):
             text-align: center;
         }
         """
-        contexts = get_css_context(css_code % payload, payload)
+        contexts = get_css_context_list(css_code % payload, payload)
 
         self.assertEqual(len(contexts), 1, contexts)
         context = contexts[0]

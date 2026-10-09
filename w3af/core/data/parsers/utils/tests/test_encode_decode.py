@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import unittest
 from urllib.parse import parse_qs
 
+from w3af.core.data.dc.utils.token import DataToken
 from w3af.core.data.parsers.utils.encode_decode import htmldecode, urlencode
 
 
@@ -104,3 +105,29 @@ class TestURLEncode(unittest.TestCase):
 
     def test_raises(self):
         self.assertRaises(TypeError, urlencode, "a=b&c=d", "utf-8")
+
+
+class TestEncodeDecodeEdgeCases(unittest.TestCase):
+
+    def test_unknown_named_entity_is_kept(self):
+        self.assertEqual(htmldecode("a &notanentity; b"), "a &notanentity; b")
+
+    def test_urlencode_value_types(self):
+        token = DataToken("token", "x y", ("token", 0))
+
+        self.assertEqual(
+            urlencode(
+                [
+                    ("single", "a/b"),
+                    ("token", token),
+                    ("number", 7),
+                    ("missing", None),
+                    ("numbers", [1, 2]),
+                ],
+                "utf-8",
+            ),
+            "single=a/b&token=x%20y&number=7&missing=&numbers=1&numbers=2",
+        )
+
+    def test_urlencode_mapping(self):
+        self.assertEqual(urlencode({"a": ["1"], "b": [""]}, "utf-8"), "a=1&b=")

@@ -68,9 +68,6 @@ class Form(KeyValueContainer):
         # and Form) instances in sync
         super().__init__(init_val=(), encoding=form_params.get_encoding())
 
-    def get_form_params(self):
-        return self.form_params
-
     def get_autocomplete(self):
         return self.form_params.get_autocomplete()
 
@@ -110,17 +107,11 @@ class Form(KeyValueContainer):
     def get_action(self):
         return self.form_params.get_action()
 
-    def iteritems(self):
-        yield from self.form_params.items()
-
     def items(self):
         return list(self.form_params.items())
 
     def keys(self):
         return list(self.form_params.keys())
-
-    def iterkeys(self):
-        yield from self.form_params.keys()
 
     def update(self, *args, **kwargs):
         return self.form_params.update(*args, **kwargs)
