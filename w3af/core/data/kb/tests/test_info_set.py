@@ -43,6 +43,12 @@ class TestInfoSet(unittest.TestCase):
     def test_not_empty(self):
         self.assertRaises(ValueError, InfoSet, [])
 
+    def test_match_requires_unique_id_tag(self):
+        info = Info("TestCase", "A valid information description.", [1], "plugin")
+
+        with self.assertRaisesRegex(ValueError, "Need to specify unique id tag"):
+            InfoSet([info]).match(info)
+
     def test_get_name(self):
         i = MockInfo()
         iset = InfoSet([i])
@@ -63,6 +69,9 @@ class TestInfoSet(unittest.TestCase):
         iset.TEMPLATE = "{{ 2|human_number }}"
 
         self.assertEqual(iset.get_desc(), "two")
+
+    def test_inline_templates_render_as_plain_text(self):
+        self.assertFalse(InfoSet.JINJA2_ENV.autoescape(None))
 
     def test_get_desc_template_info_attr_access(self):
         value = "Yuuup!"

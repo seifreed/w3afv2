@@ -25,7 +25,7 @@ import pprint
 import textwrap
 import uuid
 
-from jinja2 import Environment, StrictUndefined
+from jinja2 import Environment, StrictUndefined, select_autoescape
 
 from w3af.core.data.fuzzer.mutants.empty_mutant import EmptyMutant
 from w3af.core.data.kb.info import Info
@@ -91,7 +91,10 @@ class InfoSet:
     MAX_INFO_INSTANCES = 30
 
     JINJA2_ENV = Environment(
-        undefined=StrictUndefined, trim_blocks=True, lstrip_blocks=True
+        undefined=StrictUndefined,
+        trim_blocks=True,
+        lstrip_blocks=True,
+        autoescape=select_autoescape(default_for_string=False),
     )
     JINJA2_ENV.filters["human_number"] = human_number
     JINJA2_ENV.filters["sample_count"] = sample_count
@@ -368,7 +371,8 @@ class InfoSet:
 
         :return: True if they do match
         """
-        assert self.ITAG is not None, "Need to specify unique id tag"
+        if self.ITAG is None:
+            raise ValueError("Need to specify unique id tag")
 
         return (
             info.get(self.ITAG, None) is not None

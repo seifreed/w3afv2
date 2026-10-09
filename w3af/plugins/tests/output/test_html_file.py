@@ -19,9 +19,10 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import os
 import re
 from io import StringIO
+from pathlib import Path
+from typing import ClassVar
 
 from lxml import etree
 
@@ -40,7 +41,7 @@ class TestHTMLOutput(PluginTest):
     target_url = get_moth_http("/audit/xss/")
     OUTPUT_FILE = "output-unittest.html"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict[str, object]] = {
         "cfg": {
             "target": target_url,
             "plugins": {
@@ -75,8 +76,8 @@ class TestHTMLOutput(PluginTest):
         self.assertGreaterEqual(len(xss_vulns), 2)
 
         self.assertEqual(
-            set(sorted([v.get_url() for v in xss_vulns])),
-            set(sorted([v.get_url() for v in file_vulns])),
+            {v.get_url() for v in xss_vulns},
+            {v.get_url() for v in file_vulns},
         )
 
         self._validate_xhtml()
@@ -85,14 +86,14 @@ class TestHTMLOutput(PluginTest):
         vuln_url_re = re.compile('<li>Vulnerable URL: <a href="(.*?)">')
         vulns = []
 
-        for line in open(self.OUTPUT_FILE):
-
-            mo = vuln_url_re.search(line)
-            if mo:
-                url = URL(mo.group(1))
-                v = MockVuln("TestCase", None, "High", 1, "plugin")
-                v.set_url(url)
-                vulns.append(v)
+        with Path(self.OUTPUT_FILE).open(encoding="utf-8") as output_file:
+            for line in output_file:
+                mo = vuln_url_re.search(line)
+                if mo:
+                    url = URL(mo.group(1))
+                    v = MockVuln("TestCase", None, "High", 1, "plugin")
+                    v.set_url(url)
+                    vulns.append(v)
 
         return vulns
 
@@ -102,32 +103,25 @@ class TestHTMLOutput(PluginTest):
         def generate_msg(parser):
             msg = "XHTML parsing errors:\n"
             for error in parser.error_log:
-                msg += "\n    %s (line: %s, column: %s)" % (
-                    error.message,
-                    error.line,
-                    error.column,
-                )
+                msg += f"\n    {error.message} (line: {error.line}, column: {error.column})"
             return msg
 
         try:
-            parser = etree.XML(open(self.OUTPUT_FILE).read(), parser)
+            etree.parse(self.OUTPUT_FILE, parser)
         except etree.XMLSyntaxError:
-            self.assertTrue(False, generate_msg(parser))
+            self.fail(generate_msg(parser))
         else:
             if hasattr(parser, "error_log"):
                 self.assertFalse(len(parser.error_log), generate_msg(parser))
 
     def tearDown(self):
         super().tearDown()
-        try:
-            os.remove(self.OUTPUT_FILE)
-        except:
-            pass
+        Path(self.OUTPUT_FILE).unlink(missing_ok=True)
 
 
 class TestHTMLRendering(PluginTest):
 
-    CONTEXT = {
+    CONTEXT: ClassVar[dict[str, object]] = {
         "target_urls": ["http://w3af.com/", "http://w3af.com/blog"],
         "target_domain": "w3af.com",
         "enabled_plugins": {"audit": ["xss"], "crawl": ["web_spider"]},
@@ -177,13 +171,18 @@ class TestHTMLRendering(PluginTest):
 
     def test_render(self):
         output = StringIO()
-        template = open(self.plugin._template, "r")
-
-        result = self.plugin._render_html_file(template, self.CONTEXT, output)
+        with open(self.plugin._template, encoding="utf-8") as template:
+            result = self.plugin._render_html_file(template, self.CONTEXT, output)
 
         self.assertTrue(result)
+        self.assertTrue(output.getvalue())
 
-        output.seek(0)
-        open(os.path.expanduser(self.plugin._output_file_name), "w").write(
-            output.read()
-        )
+    def test_render_escapes_target_domain(self):
+        output = StringIO()
+        context = self.CONTEXT.copy()
+        context["target_domain"] = "<script>alert(1)</script>"
+
+        with open(self.plugin._template, encoding="utf-8") as template:
+            self.plugin._render_html_file(template, context, output)
+
+        self.assertIn("&lt;script&gt;alert(1)&lt;/script&gt;", output.getvalue())

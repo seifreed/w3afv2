@@ -20,20 +20,21 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import base64
 import datetime
 import functools
 import os
 import time
 
 import markdown
-from jinja2 import Environment, FileSystemLoader, StrictUndefined
+from jinja2 import Environment, FileSystemLoader, StrictUndefined, select_autoescape
 
 import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
-from w3af.core.data.db.exceptions import DBException
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
 from w3af.core.data.db.disk_list import DiskList
+from w3af.core.data.db.exceptions import DBException
 from w3af.core.data.db.history import HistoryItem
 from w3af.core.data.misc.encoding import smart_unicode
 from w3af.core.data.options.opt_factory import opt_factory
@@ -198,10 +199,15 @@ class html_file(OutputPlugin):
         }
 
         # The file was verified to exist when setting the plugin configuration
-        template_fh = open(os.path.expanduser(self._template), "r")
-        output_fh = open(os.path.expanduser(self._output_file_name), "w")
-
-        self._render_html_file(template_fh, context, output_fh)
+        with (
+            open(os.path.expanduser(self._template), encoding="utf-8") as template_fh,
+            open(
+                os.path.expanduser(self._output_file_name),
+                "w",
+                encoding="utf-8",
+            ) as output_fh,
+        ):
+            self._render_html_file(template_fh, context, output_fh)
 
     def _render_html_file(self, template_fh, context, output_fh):
         """
@@ -213,24 +219,12 @@ class html_file(OutputPlugin):
         """
         severity_icon = functools.partial(get_severity_icon, self.template_root)
 
-        env_config = {
-            "undefined": StrictUndefined,
-            "trim_blocks": True,
-            "autoescape": True,
-            "lstrip_blocks": True,
-        }
-
-        try:
-            jinja2_env = Environment(**env_config)
-        except TypeError:
-            # Kali uses a different jinja2 version, which doesn't have the same
-            # Environment kwargs, so we first try with the version we expect
-            # to have available, and then if it doesn't work apply this
-            # workaround for Kali
-            #
-            # https://github.com/andresriancho/w3af/issues/9552
-            env_config.pop("lstrip_blocks")
-            jinja2_env = Environment(**env_config)
+        jinja2_env = Environment(
+            undefined=StrictUndefined,
+            trim_blocks=True,
+            autoescape=select_autoescape(default_for_string=True),
+            lstrip_blocks=True,
+        )
 
         jinja2_env.filters["render_markdown"] = render_markdown
         jinja2_env.filters["request"] = request_dump
@@ -246,7 +240,7 @@ class html_file(OutputPlugin):
         report_stream.enable_buffering(5)
 
         for report_section in report_stream:
-            output_fh.write(report_section.encode("utf-8"))
+            output_fh.write(report_section)
 
         return True
 
@@ -311,17 +305,18 @@ def response_dump(_id):
 
 
 def get_current_date():
-    return datetime.date.today().strftime("%d.%m.%Y")
+    return datetime.datetime.now().astimezone().strftime("%d.%m.%Y")
 
 
 def get_severity_icon(template_root, severity):
-    icon_file = os.path.join(template_root, "%s.png" % severity.lower())
-    fmt = "data:image/png;base64,%s"
+    icon_file = os.path.join(template_root, f"{severity.lower()}.png")
 
     if os.path.exists(icon_file):
-        return fmt % open(icon_file).read().encode("base64")
+        with open(icon_file, "rb") as icon:
+            encoded_icon = base64.b64encode(icon.read()).decode("ascii")
+        return f"data:image/png;base64,{encoded_icon}"
 
-    return fmt
+    return "data:image/png;base64,"
 
 
 def get_severity_text(severity):

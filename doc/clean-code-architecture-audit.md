@@ -354,3 +354,28 @@ thread `OutputManager`, que no se reprodujo al ejecutar las suites individual
 y conjuntamente de nuevo. El riesgo B701 de Jinja (`autoescape=False`) sigue
 pendiente de rastrear hasta sus salidas; no se cambió el escape de contenido.
 El score global permanece en **2.5/10**.
+
+## Avance: salida HTML y política de escape
+
+Se verificó el flujo de descripciones: las plantillas de `InfoSet` generan
+texto plano usado también por consola/JSON/CSV, mientras que el reporte HTML
+renderiza su propia plantilla con escape activado. `InfoSet` declara ahora esa
+política inline explícitamente con `select_autoescape(default_for_string=False)`;
+el reporte HTML usa `select_autoescape(default_for_string=True)`. No se cambió
+la representación de las descripciones y Bandit dejó de reportar B701 en ambos
+módulos.
+
+Las pruebas del reporte descubrieron y corrigieron dos incompatibilidades de
+Python 3 en `html_file`: se escribían bytes en un archivo de texto y los iconos
+PNG se abrían como UTF-8 y codificaban con la API retirada `str.encode("base64")`.
+Los archivos ahora se manejan con encoding UTF-8 explícito y los iconos se
+codifican desde bytes. Se añadió un test local que verifica que un `target_domain`
+con `<script>` sale escapado.
+
+Validación focal: **110 tests pasan**, uno se excluye por requerir el host
+externo `fallback`; quedan dos warnings conocidos `ldap3/pyasn1`. Black global
+pasa (1968 archivos), Ruff focal pasa y Bandit focal pasa en `InfoSet` y el
+reporte HTML. La suite XML no pudo recopilarse porque un test abre un fixture
+binario como UTF-8; no se atribuye al cambio. El score global sigue en
+**2.5/10**: restan dependencias de capa extensas, deuda de lint/tipos y flujos
+sin cobertura.
