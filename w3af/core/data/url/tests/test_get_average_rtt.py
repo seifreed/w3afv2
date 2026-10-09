@@ -17,102 +17,135 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
 """
 
-import random
+import threading
 import time
 import unittest
 from itertools import repeat
 from multiprocessing.dummy import Pool as ThreadPool
 
-import httpretty
 import pytest
 
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
+from w3af.core.data.url.get_average_rtt import GetAverageRTTForMutant
+from w3af.core.data.url.tests.helpers.local_server import LocalServer, Reply
+
+# Generous upper bound: the machine running the tests might be under load
+SLOW_MACHINE_MARGIN = 3.0
+
+
+class DelayedResponder:
+    """
+    Answer each request after sleeping for the next delay in the list, the
+    last delay is reused once the list is exhausted.
+    """
+
+    def __init__(self, delays):
+        self.delays = list(delays)
+        self.lock = threading.Lock()
+
+    def __call__(self, request):
+        with self.lock:
+            delay = self.delays.pop(0) if len(self.delays) > 1 else self.delays[0]
+
+        time.sleep(delay)
+        return Reply(200, "Yup")
+
+
+class GatedResponder:
+    """
+    Hold the first request until `release` is set and then close the
+    connection without answering it. Every other request is answered
+    immediately.
+    """
+
+    def __init__(self):
+        self.first_received = threading.Event()
+        self.release = threading.Event()
+        self.lock = threading.Lock()
+        self.calls = 0
+
+    def __call__(self, request):
+        with self.lock:
+            self.calls += 1
+            is_first = self.calls == 1
+
+        if is_first:
+            self.first_received.set()
+            self.release.wait(60)
+            return Reply(drop=True)
+
+        return Reply(200, "Yup")
 
 
 @pytest.mark.smoke
 class TestGetAverageRTT(unittest.TestCase):
 
-    MOCK_URL = "http://www.w3af.org/"
-
     def setUp(self):
         self.uri_opener = ExtendedUrllib()
+        self.addCleanup(self.uri_opener.end)
+        self.addCleanup(self.uri_opener.settings.set_default_values)
 
-    def tearDown(self):
-        self.uri_opener.end()
-        httpretty.reset()
+    def serve(self, responder):
+        server = LocalServer.serve_for(self, {"/": responder})
+        return FuzzableRequest(URL(server.url())), server
 
-    @staticmethod
-    def request_callback_05(request, uri, headers):
-        time.sleep(0.5)
-        body = "Yup"
-        return 200, headers, body
-
-    @httpretty.activate
     def test_get_average_rtt_for_mutant_all_equal(self):
-        httpretty.register_uri(
-            httpretty.GET, self.MOCK_URL, body=TestGetAverageRTT.request_callback_05
-        )
+        fuzzable_request, _ = self.serve(DelayedResponder([0.5]))
 
-        mock_url = URL(self.MOCK_URL)
-        fuzzable_request = FuzzableRequest(mock_url)
         average_rtt = self.uri_opener.get_average_rtt_for_mutant(fuzzable_request)
 
-        # Check the response
-        self.assertGreater(average_rtt, 0.45)
-        self.assertGreater(0.55, average_rtt)
+        self.assertGreaterEqual(average_rtt, 0.5)
+        self.assertLess(average_rtt, 0.5 + SLOW_MACHINE_MARGIN)
 
-    @httpretty.activate
-    def test_get_average_rtt_for_mutant_similar(self):
-
-        def request_callback(request, uri, headers):
-            time.sleep(0.4 + random.randint(1, 9) / 100.0)
-            body = "Yup"
-            return 200, headers, body
-
-        httpretty.register_uri(httpretty.GET, self.MOCK_URL, body=request_callback)
-
-        mock_url = URL(self.MOCK_URL)
-        fuzzable_request = FuzzableRequest(mock_url)
-        average_rtt = self.uri_opener.get_average_rtt_for_mutant(fuzzable_request)
-
-        # Check the response
-        self.assertGreater(average_rtt, 0.45)
-        self.assertGreater(0.55, average_rtt)
-
-    @httpretty.activate
     def test_get_average_rtt_for_mutant_one_off(self):
-        #
-        # TODO: This is one of the cases I need to fix using _has_outliers!
-        #       Calculating the average using 0.3 , 0.2 , 2.0 is madness
-        #
+        fuzzable_request, _ = self.serve(DelayedResponder([0.3, 0.2, 2.0]))
 
-        httpretty.register_uri(
-            httpretty.GET,
-            self.MOCK_URL,
-            body=RequestCallBackWithDelays([0.3, 0.2, 2.0]),
-        )
-
-        mock_url = URL(self.MOCK_URL)
-        fuzzable_request = FuzzableRequest(mock_url)
         average_rtt = self.uri_opener.get_average_rtt_for_mutant(fuzzable_request)
 
-        # Check the response
-        self.assertGreater(average_rtt, 0.80)
-        self.assertGreater(0.90, average_rtt)
+        self.assertGreaterEqual(average_rtt, 2.5 / 3)
+        self.assertLess(average_rtt, 2.5 / 3 + SLOW_MACHINE_MARGIN)
 
-    @httpretty.activate
-    def test_get_average_rtt_for_mutant_with_threads(self):
-        httpretty.register_uri(
-            httpretty.GET, self.MOCK_URL, body=TestGetAverageRTT.request_callback_05
+    def test_count_must_be_at_least_three(self):
+        fuzzable_request, server = self.serve(DelayedResponder([0]))
+
+        self.assertRaises(
+            ValueError,
+            self.uri_opener.get_average_rtt_for_mutant,
+            fuzzable_request,
+            count=2,
         )
+        self.assertEqual(server.requests, [])
+
+    def test_cached_rtt_is_reused(self):
+        fuzzable_request, server = self.serve(DelayedResponder([0.1]))
+
+        first = self.uri_opener.get_average_rtt_for_mutant(fuzzable_request)
+        second = self.uri_opener.get_average_rtt_for_mutant(fuzzable_request)
+
+        self.assertEqual(first, second)
+        self.assertEqual(len(server.requests), 3)
+
+    def test_expired_cache_entry_is_measured_again(self):
+        fuzzable_request, server = self.serve(DelayedResponder([0.1]))
+        rtt_getter = GetAverageRTTForMutant(self.uri_opener, cache_ttl=0)
+
+        rtt_getter.get_average_rtt_for_mutant(fuzzable_request)
+        time.sleep(0.05)
+        rtt_getter.get_average_rtt_for_mutant(fuzzable_request)
+
+        self.assertEqual(len(server.requests), 6)
+
+    def test_get_average_rtt_for_mutant_with_threads(self):
+        fuzzable_request, server = self.serve(DelayedResponder([0.5]))
 
         pool = ThreadPool(25)
-        mock_url = URL(self.MOCK_URL)
-        fuzzable_request = FuzzableRequest(mock_url)
+        self.addCleanup(pool.terminate)
 
         iterations = 50
 
@@ -122,24 +155,76 @@ class TestGetAverageRTT(unittest.TestCase):
         )
 
         self.assertEqual(len(results), iterations)
+        self.assertEqual(set(results), {results[0]})
+        self.assertGreaterEqual(results[0], 0.5)
 
-        for result_n in results:
-            self.assertEqual(result_n, results[0])
+        # Only one thread sent requests, the rest waited for it
+        self.assertEqual(len(server.requests), 3)
 
-        # Check the response
-        self.assertGreater(results[0], 0.45)
-        self.assertGreater(0.55, results[0])
+    def _start_first_measurement(self, rtt_getter, fuzzable_request, responder):
+        errors = []
 
+        def measure():
+            try:
+                rtt_getter.get_average_rtt_for_mutant(fuzzable_request)
+            except HTTPRequestException as hre:
+                errors.append(hre)
 
-class RequestCallBackWithDelays:
+        first = threading.Thread(target=measure, daemon=True)
+        first.start()
+        self.assertTrue(responder.first_received.wait(30))
+        return first, errors
 
-    def __init__(self, delays):
-        self.call = 0
-        self.delays = delays
+    def test_measure_again_when_waiting_times_out(self):
+        responder = GatedResponder()
+        fuzzable_request, server = self.serve(responder)
+        self.uri_opener.settings.set_max_http_retries(0)
 
-    def __call__(self, request, uri, headers):
-        time.sleep(self.delays[self.call])
-        self.call += 1
+        rtt_getter = GetAverageRTTForMutant(self.uri_opener, timeout=0.1)
+        first, errors = self._start_first_measurement(
+            rtt_getter, fuzzable_request, responder
+        )
 
-        body = "Yup"
-        return 200, headers, body
+        # The first thread is still waiting for its response, this one gives
+        # up waiting and measures the RTT itself
+        average_rtt = rtt_getter.get_average_rtt_for_mutant(fuzzable_request)
+
+        responder.release.set()
+        first.join(30)
+
+        self.assertGreater(average_rtt, 0)
+        self.assertEqual(len(errors), 1)
+        self.assertEqual(len(server.requests), 4)
+
+    def test_measure_again_when_other_thread_failed(self):
+        responder = GatedResponder()
+        fuzzable_request, server = self.serve(responder)
+        self.uri_opener.settings.set_max_http_retries(0)
+
+        rtt_getter = GetAverageRTTForMutant(self.uri_opener)
+        first, errors = self._start_first_measurement(
+            rtt_getter, fuzzable_request, responder
+        )
+
+        results = []
+        second = threading.Thread(
+            target=lambda: results.append(
+                rtt_getter.get_average_rtt_for_mutant(fuzzable_request)
+            ),
+            daemon=True,
+        )
+        second.start()
+
+        # Give the second thread time to start waiting for the first one
+        time.sleep(2)
+        responder.release.set()
+
+        first.join(30)
+        second.join(30)
+
+        # The first thread failed without caching anything, so the second
+        # one measured the RTT itself after waiting for the first
+        self.assertEqual(len(errors), 1)
+        self.assertEqual(len(results), 1)
+        self.assertGreater(results[0], 0)
+        self.assertEqual(len(server.requests), 4)

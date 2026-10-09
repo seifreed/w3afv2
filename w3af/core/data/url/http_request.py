@@ -171,9 +171,6 @@ class HTTPRequest(RequestMixIn, urllib.request.Request):
     def set_new_connection(self, new_connection):
         self.new_connection = new_connection
 
-    def get_new_connection(self):
-        return self.new_connection
-
     def to_dict(self):
         serializable_dict = {}
         sdict = serializable_dict
@@ -261,6 +258,16 @@ class HTTPRequest(RequestMixIn, urllib.request.Request):
             debugging_id=debugging_id,
             binary_response=binary_response,
         )
+
+    def __deepcopy__(self, memo):
+        # The default timeout is a sentinel compared by identity, a copy of
+        # it would be taken as a (broken) explicit timeout value
+        memo[id(socket._GLOBAL_DEFAULT_TIMEOUT)] = socket._GLOBAL_DEFAULT_TIMEOUT
+
+        clone = self.__class__.__new__(self.__class__)
+        memo[id(self)] = clone
+        clone.__dict__.update(copy.deepcopy(self.__dict__, memo))
+        return clone
 
     def copy(self):
         return copy.deepcopy(self)

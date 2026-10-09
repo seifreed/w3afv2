@@ -183,9 +183,6 @@ class OpenerSettings(Configurable):
             if handler is not None:
                 handler.close_all()
 
-    def get_headers_file(self):
-        return cfg.get("headers_file")
-
     def set_cookie_jar_file(self, cookiejar_file):
         LOGGER.debug("Called set_cookie_jar_file")
 
@@ -197,8 +194,7 @@ class OpenerSettings(Configurable):
         try:
             cj.load(cookiejar_file)
         except http.cookiejar.LoadError as cle:
-            # pylint: disable=E1101
-            if cle.message.startswith("invalid Netscape format cookies file"):
+            if "invalid Netscape format cookies file" in str(cle):
                 docs_url = (
                     "http://docs.w3af.org/en/latest/"
                     "authentication.html#setting-http-cookie"
@@ -214,7 +210,6 @@ class OpenerSettings(Configurable):
             else:
                 msg = 'Error while loading cookiejar file. Description: "%s".'
                 raise BaseFrameworkException(msg % cle)
-            # pylint: enable=E1101
         except OSError:
             msg = "The specified cookie jar file does not exist."
             raise BaseFrameworkException(msg)
@@ -235,14 +230,11 @@ class OpenerSettings(Configurable):
                 for c in cj:
                     LOGGER.debug("%s", c)
 
-    def get_cookie_jar_file(self):
-        return cfg.get("cookie_jar_file")
-
     def get_cookies(self):
         """
         :return: The cookies that were collected during this scan.
         """
-        return self._cookie_handler.cookiejar
+        return self._cookie_handler.default_cookiejar
 
     def clear_cookies(self):
         self._cookie_handler.clear_cookies()
@@ -267,7 +259,7 @@ class OpenerSettings(Configurable):
 
     def set_user_agent(self, user_agent):
         self.header_list = [
-            i for i in self.header_list if i[0].lower() != USER_AGENT_HEADER
+            i for i in self.header_list if i[0].lower() != USER_AGENT_HEADER.lower()
         ]
         self.header_list.append((USER_AGENT_HEADER, user_agent))
         cfg.save("user_agent", user_agent)
@@ -276,12 +268,6 @@ class OpenerSettings(Configurable):
         LOGGER.debug("Called set_rand_user_agent")
         self.rand_user_agent = rand_user_agent
         cfg.save("rand_user_agent", rand_user_agent)
-
-    def get_user_agent(self):
-        return cfg.get("user_agent")
-
-    def get_rand_user_agent(self):
-        return cfg.get("rand_user_agent")
 
     def set_proxy(self, ip, port):
         """
@@ -351,19 +337,6 @@ class OpenerSettings(Configurable):
         cfg.save("basic_auth_passwd", password)
         cfg.save("basic_auth_user", username)
         cfg.save("basic_auth_domain", url)
-
-    def get_basic_auth(self):
-        basic_auth_domain = cfg.get("basic_auth_domain")
-        scheme, domain, _path, _x1, _x2, _x3 = urllib.parse.urlparse(basic_auth_domain)
-
-        fmt = "%s://%s:%s@%s/"
-
-        return fmt % (
-            scheme,
-            cfg.get("basic_auth_user"),
-            cfg.get("basic_auth_passwd"),
-            domain,
-        )
 
     def set_ntlm_auth(self, url, ntlm_domain, username, password):
         cfg.save("ntlm_auth_passwd", password)
@@ -449,12 +422,6 @@ class OpenerSettings(Configurable):
         """
         self._mangle_plugins = mp
 
-    def get_mangle_plugins(self):
-        return self._mangle_plugins
-
-    def get_max_file_size(self):
-        return cfg.get("max_file_size")
-
     def set_max_file_size(self, max_file_size):
         cfg.save("max_file_size", max_file_size)
 
@@ -479,9 +446,6 @@ class OpenerSettings(Configurable):
         if url_param:
             cfg.save("url_parameter", url_param)
             self._url_parameter_handler = URLParameterHandler(url_param)
-
-    def get_url_parameter(self):
-        return cfg.get("url_parameter")
 
     def get_options(self):
         """

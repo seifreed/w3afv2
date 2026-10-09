@@ -90,3 +90,56 @@ class TestHTTPRequest(unittest.TestCase):
         req = HTTPRequest(u, headers=headers)
 
         self.assertEqual(req.dump(), expected.encode("utf-8"))
+
+    def test_setters(self):
+        req = HTTPRequest(URL("http://w3af.com/a"))
+        uri = URL("http://w3af.org:8080/b?c=1")
+
+        req.set_data(b"x=1")
+        req.set_method("PUT")
+        req.set_uri(uri)
+        req.set_headers(Headers([("A", "b")]))
+        req.set_timeout(5)
+        req.set_new_connection(True)
+
+        self.assertEqual(req.get_data(), b"x=1")
+        self.assertEqual(req.get_method(), "PUT")
+        self.assertEqual(req.get_uri(), uri)
+        self.assertEqual(req.get_full_url(), "http://w3af.org:8080/b?c=1")
+        self.assertEqual(req.get_netloc(), "w3af.org:8080")
+        self.assertEqual(req.get_domain(), "w3af.org")
+        self.assertEqual(req.get_headers(), Headers([("A", "b")]))
+        self.assertEqual(req.get_timeout(), 5)
+        self.assertTrue(req.new_connection)
+
+    def test_method_defaults_to_post_with_data(self):
+        self.assertEqual(HTTPRequest(URL("http://w3af.com/")).get_method(), "GET")
+        self.assertEqual(
+            HTTPRequest(URL("http://w3af.com/"), data="a=1").get_method(), "POST"
+        )
+
+    def test_add_header_with_data_token(self):
+        req = HTTPRequest(URL("http://w3af.com/"))
+        req.add_header("x-token", DataToken("x-token", "value", ("x-token",)))
+
+        self.assertEqual(req.headers["X-token"], "value")
+        self.assertIsInstance(req.headers["X-token"], str)
+
+    def test_copy(self):
+        req = HTTPRequest(URL("http://w3af.com/"), data="a=1", debugging_id="d")
+        req_copy = req.copy()
+
+        self.assertIsNot(req, req_copy)
+        self.assertEqual(req, req_copy)
+        self.assertEqual(req_copy.debugging_id, "d")
+
+    def test_repr(self):
+        req = HTTPRequest(URL("http://w3af.com/"), debugging_id="d")
+        self.assertEqual(
+            repr(req),
+            '<HTTPRequest "http://w3af.com/" (cookies:True, cache:False, did:d,'
+            " timeout:3.00, new_connection:False)>",
+        )
+
+        req.set_timeout(1.5)
+        self.assertIn("timeout:1.50", repr(req))

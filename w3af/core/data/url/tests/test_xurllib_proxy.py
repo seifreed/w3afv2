@@ -1,5 +1,5 @@
 """
-test_xurllib.py
+test_xurllib_proxy.py
 
 Copyright 2011 Andres Riancho
 
@@ -23,73 +23,73 @@ import unittest
 
 import pytest
 
-from w3af.core.controllers.ci.moth import get_moth_http, get_moth_https
 from w3af.core.controllers.daemons.proxy import Proxy, ProxyHandler
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.data.url.opener_settings import OpenerSettings
+from w3af.core.data.url.tests.helpers.local_server import LocalServer, Reply, echo
+from w3af.core.data.url.tests.helpers.raw_handlers import closed_port
+
+INDEX = "<title>local test application</title>"
 
 
-@pytest.mark.moth
 @pytest.mark.smoke
 class TestExtendedUrllibProxy(unittest.TestCase):
 
-    MOTH_MESSAGE = "<title>moth: vulnerable web application</title>"
-
     def setUp(self):
         self.uri_opener = ExtendedUrllib()
+        self.addCleanup(self.uri_opener.end)
+
+        routes = {"/": Reply(200, INDEX), "/echo": echo}
+        self.server = LocalServer.serve_for(self, routes)
+        self.ssl_server = LocalServer.serve_for(self, routes, tls=True)
 
         # Start the proxy daemon
-        self._proxy = Proxy("127.0.0.2", 0, ExtendedUrllib(), ProxyHandler)
+        proxy_opener = ExtendedUrllib()
+        self.addCleanup(proxy_opener.end)
+        self._proxy = Proxy("127.0.0.1", 0, proxy_opener, ProxyHandler)
         self._proxy.start()
         self._proxy.wait_for_start()
-
-        port = self._proxy.get_port()
+        self.addCleanup(self._proxy.stop)
 
         # Configure the proxy
         settings = OpenerSettings()
+        self.addCleanup(settings.set_default_values)
         options = settings.get_options()
-        proxy_address_opt = options["proxy_address"]
-        proxy_port_opt = options["proxy_port"]
-
-        proxy_address_opt.set_value("127.0.0.2")
-        proxy_port_opt.set_value(port)
+        options["proxy_address"].set_value("127.0.0.1")
+        options["proxy_port"].set_value(self._proxy.get_port())
 
         settings.set_options(options)
         self.uri_opener.settings = settings
 
-    def tearDown(self):
-        self.uri_opener.end()
-
-    def test_http_default_port_via_proxy(self):
-        # TODO: Write this test
-        pass
-
     def test_http_port_specification_via_proxy(self):
         self.assertEqual(self._proxy.total_handled_requests, 0)
 
-        url = URL(get_moth_http())
-        http_response = self.uri_opener.GET(url, cache=False)
+        http_response = self.uri_opener.GET(URL(self.server.url()), cache=False)
 
-        self.assertIn(self.MOTH_MESSAGE, http_response.body)
+        self.assertIn(INDEX, http_response.body)
         self.assertEqual(self._proxy.total_handled_requests, 1)
+        self.assertEqual(len(self.server.requests), 1)
 
     def test_https_via_proxy(self):
         self.assertEqual(self._proxy.total_handled_requests, 0)
 
-        url = URL(get_moth_https())
-        http_response = self.uri_opener.GET(url, cache=False)
+        http_response = self.uri_opener.GET(URL(self.ssl_server.url()), cache=False)
 
-        self.assertIn(self.MOTH_MESSAGE, http_response.body)
+        self.assertIn(INDEX, http_response.body)
         self.assertEqual(self._proxy.total_handled_requests, 1)
+        self.assertEqual(len(self.ssl_server.requests), 1)
 
     def test_offline_port_via_proxy(self):
-        url = URL("http://127.0.0.1:8181/")
+        url = URL(f"http://127.0.0.1:{closed_port()}/")
         http_response = self.uri_opener.GET(url, cache=False)
+
         self.assertEqual(http_response.get_code(), 500)
         self.assertIn("Connection refused", http_response.body)
 
     def test_POST_via_proxy(self):
-        url = URL(get_moth_http("/audit/xss/simple_xss_form.py"))
+        url = URL(self.server.url("/echo"))
         http_response = self.uri_opener.POST(url, data="text=123456abc", cache=False)
-        self.assertIn("123456abc", http_response.body)
+
+        self.assertIn("text=123456abc", http_response.body)
+        self.assertEqual(self.server.requests[-1].method, "POST")

@@ -419,7 +419,12 @@ def get_exception_reason(error):
     if isinstance(error, urllib.error.URLError) and isinstance(
         error.reason, socket.error
     ):
-        return get_socket_exception_reason(error)
+        return get_socket_exception_reason(error.reason)
+
+    if isinstance(error, http.client.BadStatusLine):
+        # RemoteDisconnected is also a ConnectionResetError: an empty status
+        # line means the server closed the connection without answering
+        return f"Bad HTTP response status line: {error.line or repr(error.line)}"
 
     if (
         isinstance(error, OpenSSL.SSL.SysCallError)
@@ -441,9 +446,6 @@ def get_exception_reason(error):
 
     if isinstance(error, HTTPRequestException):
         return error.value
-
-    if isinstance(error, http.client.BadStatusLine):
-        return f"Bad HTTP response status line: {error.line}"
 
     if isinstance(error, http.client.HTTPException):
         #

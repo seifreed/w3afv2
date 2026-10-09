@@ -45,6 +45,7 @@ from w3af.core.data.misc.encoding import smart_unicode
 
 # pylint: disable=E0401
 from w3af.core.data.misc.lru import SynchronizedLRUDict
+from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.data.parsers.doc.http_request_parser import http_request_parser
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.constants import (
@@ -462,7 +463,7 @@ class ExtendedUrllib:
             return
 
         min_interval = 1.0 / float(max_requests_per_second)
-        elapsed = time.clock() - self._rate_limit_last_time_called
+        elapsed = time.monotonic() - self._rate_limit_last_time_called
         left_to_wait = min_interval - elapsed
 
         with self._rate_limit_lock:
@@ -475,7 +476,7 @@ class ExtendedUrllib:
                 #             ' requests for %s seconds.' % left_to_wait)
                 time.sleep(left_to_wait)
 
-        self._rate_limit_last_time_called = time.clock()
+        self._rate_limit_last_time_called = time.monotonic()
 
     def _raise_if_should_stop(self):
         # There might be errors that make us stop the process, the exception
@@ -545,17 +546,6 @@ class ExtendedUrllib:
 
             self.clear_timeout()
 
-    def get_headers(self, uri):
-        """
-        :param uri: The URI we want to know the request headers
-
-        :return: A Headers object with the HTTP headers that would be added by
-                the library when sending a request to uri.
-        """
-        req = HTTPRequest(uri)
-        req = self.add_headers(req)
-        return Headers(req.headers)
-
     def get_cookies(self):
         """
         :return: The cookies that this uri opener has collected during this scan
@@ -585,7 +575,7 @@ class ExtendedUrllib:
 
         return http_response, clean_body
 
-    def send_raw_request(self, head, postdata, fix_content_len=True):
+    def send_raw_request(self, head, postdata):
         """
         In some cases the ExtendedUrllib user wants to send a request that was
         typed in a textbox or is stored in a file. When something like that
@@ -595,26 +585,14 @@ class ExtendedUrllib:
         :param head: "<method> <URI> <HTTP version>\r\nHeader: Value\r\n..."
         :param postdata: The data as string
                          If set to '' or None, no postdata is sent
-        :param fix_content_len: Indicates if the content length has to be fixed
+
+        The Content-Length header in `head` is ignored (FuzzableRequest drops
+        it), the length of the sent `postdata` is used instead.
 
         :return: An HTTPResponse object.
         """
-        # Parse the two strings
         fuzz_req = http_request_parser(head, postdata)
 
-        # Fix the content length
-        if fix_content_len:
-            headers = fuzz_req.get_headers()
-            fixed = False
-            for h in headers:
-                if h.lower() == "content-length":
-                    headers[h] = str(len(postdata))
-                    fixed = True
-            if not fixed and postdata:
-                headers["content-length"] = str(len(postdata))
-            fuzz_req.set_headers(headers)
-
-        # Send it
         function_reference = getattr(self, fuzz_req.get_method())
         return function_reference(
             fuzz_req.get_uri(),
@@ -834,7 +812,12 @@ class ExtendedUrllib:
         #    since we *never* want to return cached responses for POST
         #    requests.
         #
-        data = str(data)
+        #    Data containers (forms, JSON, etc.) are serialized, raw bodies
+        #    are sent as they are.
+        #
+        if not isinstance(data, (str, bytes)):
+            data = str(data)
+
         host = uri.get_domain()
         timeout = self.get_timeout(host) if timeout is None else timeout
 
@@ -857,49 +840,6 @@ class ExtendedUrllib:
         req = self.add_headers(req, headers)
 
         return self.send(req, grep=grep)
-
-    def get_remote_file_size(self, req, cache=True):
-        """
-        This method was previously used in the framework to perform a HEAD
-        request before each GET/POST (ouch!) and get the size of the response.
-        The bad thing was that I was performing two requests for each
-        resource... I moved the "protection against big files" to the
-        keepalive.py module.
-
-        I left it here because maybe I want to use it at some point. Mainly
-        to call it directly.
-
-        :return: The file size of the remote file.
-        """
-        res = self.HEAD(
-            req.get_full_url(), headers=req.headers, data=req.get_data(), cache=cache
-        )
-
-        content_length, _ = res.get_headers().iget("content-length", None)
-
-        if content_length is None:
-            msg = (
-                "The HTTP response did not contain a content-length header."
-                " Unable to return the remote file size of request."
-                " (id:%s, did:)"
-            )
-            args = (res.id, req.debugging_id)
-            LOGGER.debug(msg % args)
-            # I prefer to fetch the file, before this om.out.debug was a
-            # "raise BaseFrameworkException", but this didn't make much sense
-            return 0
-
-        if content_length.isdigit():
-            return int(content_length)
-
-        msg = (
-            "The content-length header value for the HTTP response is"
-            " not an integer, this is strange!"
-            ' The value is: "%s" (id:%s, did:%s)'
-        )
-        args = (content_length, req.id, req.debugging_id)
-        LOGGER.error(msg % args)
-        raise HTTPRequestException(msg, request=req)
 
     def __getattr__(self, method_name):
         """
@@ -984,19 +924,11 @@ class ExtendedUrllib:
         :param debugging_id: The debugging_id (if any) associated with the request
         :return: None
         """
-        if not debugging_id:
-            return
-
-        if not http_response:
-            return
-
+        # HTTPErrors raised by the handlers don't measure the RTT
         if not hasattr(http_response, "get_wait_time"):
             return
 
         rtt = http_response.get_wait_time()
-        if not rtt:
-            return
-
         rtt_sum = self._rtt_sum_debugging_id.get(debugging_id, default=None)
         if rtt_sum is None:
             self._rtt_sum_debugging_id[debugging_id] = rtt
@@ -1056,7 +988,12 @@ class ExtendedUrllib:
         try:
             res = self._opener.open(req)
         except urllib.error.HTTPError as e:
-            # We usually get here when response codes in [404, 403, 401,...]
+            # Raised by the handlers, for example when NTLM authentication
+            # fails. Those errors are raised before the cache handler numbers
+            # the response
+            if not hasattr(e, "id"):
+                e.id = consecutive_number_generator.inc()
+
             return self._handle_send_success(
                 req, e, grep, original_url, original_url_inst
             )
@@ -1072,11 +1009,8 @@ class ExtendedUrllib:
         ) as e:
             return self._handle_send_socket_error(req, e, grep, original_url)
 
-        except (
-            urllib.error.URLError,
-            http.client.HTTPException,
-            HTTPRequestException,
-        ) as e:
+        except (http.client.HTTPException, HTTPRequestException) as e:
+            # URLError is an OSError and is handled above
             return self._handle_send_urllib_error(req, e, grep, original_url)
 
         else:
@@ -1095,16 +1029,8 @@ class ExtendedUrllib:
         new_worker_count = worker_pool.get_worker_count() - 2
         new_worker_count = max(new_worker_count, min_workers)
 
-        if new_worker_count >= min_workers:
-            worker_pool.set_worker_count(new_worker_count)
-            msg = "Decreased the worker pool size to %s (error rate: %i%%)"
-        else:
-            msg = (
-                "Not decreasing the worker pool size since it is lower"
-                " than the min value required by w3af: %s (error rate:"
-                " %i%%)"
-            )
-
+        worker_pool.set_worker_count(new_worker_count)
+        msg = "Decreased the worker pool size to %s (error rate: %i%%)"
         LOGGER.debug(msg % (new_worker_count, error_rate))
 
     def _increase_worker_pool_size(self):
@@ -1118,13 +1044,9 @@ class ExtendedUrllib:
         new_worker_count = worker_pool.get_worker_count() + 1
         new_worker_count = min(new_worker_count, max_workers)
 
-        if new_worker_count <= max_workers:
-            worker_pool.set_worker_count(new_worker_count)
-            msg = "Increased the worker pool size to %s (error rate: %i%%)"
-            LOGGER.debug(msg % (new_worker_count, error_rate))
-        else:
-            msg = "Not increasing the worker pool size since it exceeds the max: %s"
-            LOGGER.debug(msg % max_workers)
+        worker_pool.set_worker_count(new_worker_count)
+        msg = "Increased the worker pool size to %s (error rate: %i%%)"
+        LOGGER.debug(msg % (new_worker_count, error_rate))
 
     def _should_increase_worker_pool(self):
         """
@@ -1420,13 +1342,11 @@ class ExtendedUrllib:
         # Note that we can only find the desired pattern if we lock the write
         # and check access to the _last_responses, otherwise the threads will
         # "break" it
+        # The deque starts full of successful responses and is never
+        # emptied, so it always holds at least MAX_ERROR_COUNT items
         last_n_responses = list(self._last_responses)[-MAX_ERROR_COUNT:]
         first_result = last_n_responses[0]
         last_n_without_first = last_n_responses[1:]
-
-        if len(last_n_without_first) != (MAX_ERROR_COUNT - 1):
-            # Not enough last_responses to tell if we should stop the scan
-            return False
 
         all_following_failed = True
 
@@ -1503,12 +1423,10 @@ class ExtendedUrllib:
         """
         :return: The error rate as an integer 0-100
         """
+        # Never empty, see _should_stop_scan
         last_responses = list(self._last_responses)
         total_failed = 0.0
         total = len(last_responses)
-
-        if total == 0:
-            return total
 
         for response_meta in last_responses:
             if not response_meta.successful:
@@ -1611,12 +1529,14 @@ def raise_size_limit(respect_size_limit):
           but it shouldn't be implemented like this! It should look more
           like the cookies attribute/parameter which uses the cookie_handler.
     """
-    if not respect_size_limit:
-        original_size = cf.cf.get("max_file_size")
-        cf.cf.save("max_file_size", 10**10)
-
+    if respect_size_limit:
         yield
+        return
 
+    original_size = cf.cf.get("max_file_size")
+    cf.cf.save("max_file_size", 10**10)
+
+    try:
+        yield
+    finally:
         cf.cf.save("max_file_size", original_size)
-    else:
-        yield

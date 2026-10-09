@@ -37,10 +37,16 @@ LOGGER = logging.getLogger(__name__)
 
 class GetAverageRTTForMutant:
 
-    TIMEOUT = 120
-
-    def __init__(self, url_opener):
+    def __init__(self, url_opener, timeout=120, cache_ttl=5):
+        """
+        :param url_opener: Sends the HTTP requests used to measure the RTT
+        :param timeout: Seconds to wait for another thread measuring the same
+                        mutant before measuring it ourselves
+        :param cache_ttl: Seconds during which a measured RTT is reused
+        """
         self._url_opener = url_opener
+        self._timeout = timeout
+        self._cache_ttl = cache_ttl
 
         # Cache to measure RTT
         self._rtt_mutant_cache = SynchronizedLRUDict(capacity=128)
@@ -97,7 +103,7 @@ class GetAverageRTTForMutant:
         if rtt_processing_event is not None:
             # There is another thread sending HTTP requests to get the average RTT
             # we need to wait for that thread to finish
-            wait_result = rtt_processing_event.wait(timeout=self.TIMEOUT)
+            wait_result = rtt_processing_event.wait(timeout=self._timeout)
 
             if not wait_result:
                 # The TIMEOUT has been reached, the thread that was trying to get
@@ -144,13 +150,12 @@ class GetAverageRTTForMutant:
         self._rtt_processing_events[cache_key] = event
 
         try:
-            average_rtt = self._get_average_rtt_for_mutant(
-                mutant, count=count, debugging_id=debugging_id
-            )
+            rtts = self._get_all_rtts(mutant, count, debugging_id)
+            average_rtt = float(sum(rtts)) / len(rtts)
             self._rtt_mutant_cache[cache_key] = (time.time(), average_rtt)
         finally:
             event.set()
-            self._rtt_processing_events.pop(event, None)
+            self._rtt_processing_events.pop(cache_key, None)
 
         msg = "Returning fresh average RTT of %.2f seconds for mutant %s (did:%s)"
         args = (average_rtt, cache_key, debugging_id)
@@ -165,7 +170,7 @@ class GetAverageRTTForMutant:
             return None
 
         timestamp, value = cached_value
-        if time.time() - timestamp > 5:
+        if time.time() - timestamp > self._cache_ttl:
             return None
 
         # The cache entry is still valid, return the cached value
@@ -173,25 +178,6 @@ class GetAverageRTTForMutant:
         args = (value, cache_key, debugging_id)
         LOGGER.debug(msg, *args)
         return value
-
-    def _get_average_rtt_for_mutant(self, mutant, count=3, debugging_id=None):
-        #
-        # Need to send the HTTP requests and do the average
-        #
-        rtts = self._get_all_rtts(mutant, count, debugging_id)
-
-        if self._has_outliers(rtts):
-            #
-            # The measurement has outliers, we can't continue! If we do
-            # continue the average_rtt will be completely invalid and
-            # potentially yield false positives
-            #
-            rtts_str = ", ".join(str(i) for i in rtts)
-            msg = f"Found outliers while sampling average RTT: {rtts_str}"
-            raise OutlierException(msg)
-
-        average_rtt = float(sum(rtts)) / len(rtts)
-        return average_rtt
 
     def _get_all_rtts(self, mutant, count=3, debugging_id=None):
         """
@@ -210,29 +196,3 @@ class GetAverageRTTForMutant:
             rtts.append(rtt)
 
         return rtts
-
-    def _has_outliers(self, rtts):
-        """
-        When we measure the RTT for a specific endpoint + parameter set we
-        might get a big variation in the result, for example the RTTs might
-        be:
-
-            [0.2, 0.25, 1.8]
-
-        Where 1.8 is an outlier that will break the detection of time-based
-        SQL injection, OS commanding, etc. since the average for that RTT set
-        is very influenced by the outlier.
-
-        :param rtts: The list of RTT obtained by _get_rtts
-        :return: True if the list of rtts has one or more outliers.
-        """
-        #
-        # TODO: perform outlier analysis
-        #
-        # https://github.com/andresriancho/w3af/commit/9494b49acab10833f629fae58dcc104b37f9720f
-        #
-        return False
-
-
-class OutlierException(Exception):
-    pass
