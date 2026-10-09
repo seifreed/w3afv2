@@ -20,18 +20,18 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import collections
 import copy
 import functools
 import pickle
 import threading
+from collections.abc import Iterable
 
 # pylint: enable=E0401
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import DBException
 from w3af.core.data.constants.severity import HIGH, INFORMATION, LOW, MEDIUM
 from w3af.core.data.db.dbms import get_default_persistent_db_instance
 from w3af.core.data.db.disk_set import DiskSet
+from w3af.core.data.db.exceptions import DBException
 from w3af.core.data.fuzzer.utils import rand_alpha
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
@@ -565,10 +565,10 @@ class DBKnowledgeBase(BasicKnowledgeBase):
             return result[0]
 
     def _get_uniq_id(self, obj):
-        if isinstance(obj, (Info, InfoSet)):
+        if isinstance(obj, (Info, InfoSet, Shell)):
             return obj.get_uniq_id()
 
-        if isinstance(obj, collections.Iterable):
+        if isinstance(obj, Iterable):
             concat_all = "".join([str(hash(i)) for i in obj])
             return str(hash(concat_all))
 
@@ -822,8 +822,8 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         query = "SELECT location_a, location_b, pickle FROM %s"
         results = self.db.select(query % self.table_name)
 
-        for location_a, location_b, pickle in results:
-            obj = pickle.loads(pickle)
+        for location_a, location_b, serialized_value in results:
+            obj = pickle.loads(serialized_value)
 
             if location_a not in result_dict:
                 result_dict[location_a] = {

@@ -31,7 +31,7 @@ from jinja2 import Environment, FileSystemLoader, StrictUndefined
 import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
-from w3af.core.controllers.exceptions import DBException
+from w3af.core.data.db.exceptions import DBException
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
 from w3af.core.data.db.disk_list import DiskList
 from w3af.core.data.db.history import HistoryItem

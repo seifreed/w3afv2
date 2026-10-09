@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from w3af.core.data.misc.encoding import smart_str
+from w3af.core.data.misc.encoding import smart_unicode
 
 
 class DataToken:
@@ -70,7 +70,7 @@ class DataToken:
         return '<DataToken for %s: "%s">' % (self.get_path(), self.get_value())
 
     def __str__(self):
-        return smart_str(self._value, errors="ignore")
+        return smart_unicode(self._value, errors="ignore")
 
     def __unicode__(self):
         return str(self._value)

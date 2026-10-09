@@ -25,7 +25,7 @@ import time
 import gobject
 import gtk
 
-from w3af.core.controllers.exceptions import MalformedDBException, NoSuchTableException
+from w3af.core.data.db.exceptions import MalformedDBException, NoSuchTableException
 from w3af.core.data.constants import severity
 from w3af.core.data.db.disk_list import DiskList
 from w3af.core.ui.gui.output.message_consumer import MessageConsumer

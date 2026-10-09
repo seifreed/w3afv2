@@ -24,7 +24,8 @@ import gobject
 import gtk
 import pango
 
-from w3af.core.controllers.exceptions import BaseFrameworkException, DBException
+from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.data.db.exceptions import DBException
 from w3af.core.data.db.history import HistoryItem
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList

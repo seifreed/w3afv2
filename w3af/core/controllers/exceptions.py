@@ -25,18 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #   https://github.com/andresriancho/w3af/wiki/HTTP-error-handling-in-w3af
 #
 
-
-class BaseFrameworkException(Exception):
-    """
-    A small class that defines a BaseFrameworkException.
-    """
-
-    def __init__(self, message):
-        self.value = str(message)
-        Exception.__init__(self, self.value)
-
-    def __str__(self):
-        return self.value
+from w3af.core.exceptions import BaseFrameworkException
 
 
 class HTTPRequestException(BaseFrameworkException):
@@ -158,18 +147,6 @@ class ProxyException(BaseFrameworkException):
     """
     A small class that defines a w3af Proxy Exception.
     """
-
-
-class DBException(BaseFrameworkException):
-    pass
-
-
-class NoSuchTableException(DBException):
-    pass
-
-
-class MalformedDBException(DBException):
-    pass
 
 
 class FileException(BaseFrameworkException):

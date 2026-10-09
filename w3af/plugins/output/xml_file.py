@@ -37,7 +37,7 @@ import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
-from w3af.core.controllers.exceptions import DBException
+from w3af.core.data.db.exceptions import DBException
 from w3af.core.controllers.misc import get_w3af_version
 from w3af.core.controllers.misc.temp_dir import get_temp_dir
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin

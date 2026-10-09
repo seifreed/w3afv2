@@ -25,9 +25,9 @@ import unittest
 import uuid
 from unittest.mock import Mock
 
-from w3af.core.controllers.exceptions import DBException
 from w3af.core.controllers.threads.threadpool import Pool
 from w3af.core.controllers.w3afCore import w3afCore
+from w3af.core.data.db.exceptions import DBException
 from w3af.core.data.db.dbms import get_default_persistent_db_instance
 from w3af.core.data.dc.query_string import QueryString
 from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant

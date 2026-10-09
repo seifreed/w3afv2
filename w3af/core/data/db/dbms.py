@@ -27,12 +27,12 @@ from functools import wraps
 from multiprocessing.dummy import Process, Queue
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import (
+from w3af.core.controllers.misc.temp_dir import create_temp_dir, get_temp_dir
+from w3af.core.data.db.exceptions import (
     DBException,
     MalformedDBException,
     NoSuchTableException,
 )
-from w3af.core.controllers.misc.temp_dir import create_temp_dir, get_temp_dir
 from w3af.core.data.misc.file_utils import replace_file_special_chars
 
 # Constants

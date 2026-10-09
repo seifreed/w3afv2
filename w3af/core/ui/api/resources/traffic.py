@@ -24,7 +24,7 @@ from base64 import b64encode
 
 from flask import jsonify
 
-from w3af.core.controllers.exceptions import DBException
+from w3af.core.data.db.exceptions import DBException
 from w3af.core.data.db.history import HistoryItem
 from w3af.core.ui.api import app
 from w3af.core.ui.api.utils.auth import requires_auth

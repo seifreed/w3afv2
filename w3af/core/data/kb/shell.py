@@ -317,3 +317,6 @@ class Shell(ExploitResult):
 
     def __eq__(self, other):
         return self._vuln == other._vuln
+
+    def get_uniq_id(self):
+        return self._vuln.get_uniq_id()

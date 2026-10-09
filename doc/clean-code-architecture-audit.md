@@ -66,6 +66,27 @@ vendorizado requieren una revisión separada antes de cerrar la puntuación.
 - El orden de evasiones usa la clave de prioridad compatible con Python 3.14.
 - Se acotaron tres `except` desnudos encontrados en los módulos revisados y se
   añadieron pruebas reales para estructura del registro y orden de evasiones.
+- Las excepciones DB se movieron fuera de `controllers.exceptions` a
+  `core.data.db.exceptions`; su base compartida vive ahora en `core.exceptions`.
+  Los consumidores Python se actualizaron sin mantener los nombres DB antiguos
+  en el módulo de controladores.
+- Se corrigieron contratos incompatibles con Python 3 en `Headers.__str__` y
+  `DataToken.__str__`, se sustituyó `collections.Iterable` por
+  `collections.abc.Iterable`, se dio ID estable a shells de KB y se eliminó un
+  sombreado que impedía deserializar valores de la KB.
+
+## Revisión actualizada
+
+La puntuación global permanece en **2.5/10** (Clean Code 3/10, Clean Architecture
+2/10). El traslado de las excepciones DB mejora una frontera concreta, pero
+`core.data` todavía importa ampliamente desde `controllers`; los gates globales
+no se han completado y quedan defectos funcionales abiertos.
+
+En las suites DB/KB/headers revisadas: **109 pasaron, 5 fallaron y 1 fue omitida**.
+Los fallos que permanecen son `HistoryItem.test_find` (filtro `has_qs`), dos
+pruebas de identidad/concurrencia de `InfoSet` y dos fixtures de mutants RFI.
+Los warnings de dependencias siguen visibles. Las pruebas focalizadas para
+`Headers`, `DataToken`, IDs de Shell y la migración de excepciones pasan.
 
 ## Prioridades de refactor
 

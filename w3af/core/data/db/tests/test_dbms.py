@@ -28,7 +28,7 @@ from random import choice
 
 from unittest import SkipTest
 
-from w3af.core.controllers.exceptions import DBException, NoSuchTableException
+from w3af.core.data.db.exceptions import DBException, NoSuchTableException
 from w3af.core.controllers.misc.temp_dir import (
     create_temp_dir,
     get_temp_dir,

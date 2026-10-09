@@ -34,7 +34,7 @@ import webkit
 from markdown import markdown
 
 import w3af.core.data.kb.knowledge_base as kb
-from w3af.core.controllers.exceptions import DBException
+from w3af.core.data.db.exceptions import DBException
 from w3af.core.data.db.history import HistoryItem
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.kb_observer import KBObserver

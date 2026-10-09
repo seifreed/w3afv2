@@ -27,7 +27,7 @@ import zipfile
 import pytest
 
 import w3af.core.data.kb.knowledge_base as kb
-from w3af.core.controllers.exceptions import DBException
+from w3af.core.data.db.exceptions import DBException
 from w3af.core.controllers.misc.temp_dir import create_temp_dir, remove_temp_dir
 from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.db.history import HistoryItem
@@ -69,7 +69,7 @@ class TestHistoryItem(unittest.TestCase):
                 code = 302
 
             hdr = Headers([("Content-Type", "text/html")])
-            res = HTTPResponse(code, "<html>", hdr, url, url)
+            res = HTTPResponse(code, "<html>", hdr, url, url, charset="UTF-8")
             h1 = HistoryItem()
             h1.request = request
             res.set_id(i)
@@ -100,7 +100,7 @@ class TestHistoryItem(unittest.TestCase):
         for i in range(500):
             request = HTTPRequest(url, data="a=1")
             hdr = Headers([("Content-Type", "text/html")])
-            res = HTTPResponse(200, "<html>", hdr, url, url)
+            res = HTTPResponse(200, "<html>", hdr, url, url, charset="UTF-8")
             h1 = HistoryItem()
             h1.request = request
             res.set_id(i)
@@ -123,7 +123,7 @@ class TestHistoryItem(unittest.TestCase):
         request = HTTPRequest(url, data="a=1")
 
         hdr = Headers([("Content-Type", "text/html")])
-        res = HTTPResponse(200, "<html>", hdr, url, url)
+        res = HTTPResponse(200, "<html>", hdr, url, url, charset="UTF-8")
 
         h1 = HistoryItem()
         h1.request = request
@@ -154,7 +154,7 @@ class TestHistoryItem(unittest.TestCase):
         for i in range(1, force_compression_count):
             request = HTTPRequest(url, data="a=%s" % i)
 
-            response = HTTPResponse(200, body, headers, url, url)
+            response = HTTPResponse(200, body, headers, url, url, charset="UTF-8")
             response.set_id(i)
 
             h = HistoryItem()
@@ -189,7 +189,7 @@ class TestHistoryItem(unittest.TestCase):
         url = URL("http://w3af.com/a/b/c.php")
         request = HTTPRequest(url, data="a=1")
         hdr = Headers([("Content-Type", "text/html")])
-        res = HTTPResponse(200, "<html>", hdr, url, url)
+        res = HTTPResponse(200, "<html>", hdr, url, url, charset="UTF-8")
         res.set_id(i)
 
         h1 = HistoryItem()
@@ -209,7 +209,7 @@ class TestHistoryItem(unittest.TestCase):
         url = URL("http://w3af.com/a/b/c.php")
         request = HTTPRequest(url, data="a=1")
         hdr = Headers([("Content-Type", "text/html")])
-        res = HTTPResponse(200, "<html>", hdr, url, url)
+        res = HTTPResponse(200, "<html>", hdr, url, url, charset="UTF-8")
 
         h1 = HistoryItem()
         h1.request = request
@@ -237,7 +237,7 @@ class TestHistoryItem(unittest.TestCase):
         url = URL("http://w3af.com/a/b/c.php")
         request = HTTPRequest(url, data="a=1")
         hdr = Headers([("Content-Type", "text/html")])
-        res = HTTPResponse(200, "<html>", hdr, url, url)
+        res = HTTPResponse(200, "<html>", hdr, url, url, charset="UTF-8")
 
         h1 = HistoryItem()
         h1.request = request
@@ -261,7 +261,7 @@ class TestHistoryItem(unittest.TestCase):
         for i in range(501, 1000):
             request = HTTPRequest(url, data="a=1")
             hdr = Headers([("Content-Type", "text/html")])
-            res = HTTPResponse(200, "<html>", hdr, url, url)
+            res = HTTPResponse(200, "<html>", hdr, url, url, charset="UTF-8")
             h1 = HistoryItem()
             h1.request = request
             res.set_id(i)
@@ -279,7 +279,7 @@ class TestHistoryItem(unittest.TestCase):
         request = HTTPRequest(url, data="a=1")
         headers = Headers([("Content-Type", "text/html")])
 
-        res = HTTPResponse(200, "<html>", headers, url, url)
+        res = HTTPResponse(200, "<html>", headers, url, url, charset="UTF-8")
         res.set_id(1)
 
         h1 = HistoryItem()
