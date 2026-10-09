@@ -617,6 +617,7 @@ class MockResponse:
         "PATCH",
         "OPTIONS",
         "CONNECT",
+        "TRACE",
     )
 
     def __init__(
