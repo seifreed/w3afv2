@@ -58,13 +58,20 @@ class finger_google(InfrastructurePlugin):
         :param fuzzable_request: A fuzzable_request instance that contains
                                     (among other things) the URL to test.
         """
-        if is_private_site(fuzzable_request.get_url().get_domain()):
-            return
+        url = fuzzable_request.get_url()
 
-        # There are no race conditions here with these attributes because of
-        # @runonce
-        self._domain = fuzzable_request.get_url().get_domain()
-        self._domain_root = fuzzable_request.get_url().get_root_domain()
+        if not is_private_site(url.get_domain()):
+            self.search_accounts(url)
+
+    def search_accounts(self, url):
+        """
+        Search Google for "@<root domain>" and find the email accounts of that
+        domain in the search results.
+
+        :param url: The target URL
+        """
+        self._domain = url.get_domain()
+        self._domain_root = url.get_root_domain()
         self._google = google(self._uri_opener)
 
         if self._fast_search:
@@ -89,7 +96,7 @@ class finger_google(InfrastructurePlugin):
         Performs a complete search for email addresses.
         """
         search_string = "@" + self._domain_root
-        google_results = self._google.search(search_string, self._result_limit)
+        google_results = self._google.get_n_results(search_string, self._result_limit)
         self.worker_pool.map(self._find_accounts, google_results)
 
     def _find_accounts(self, google_result):
@@ -99,7 +106,7 @@ class finger_google(InfrastructurePlugin):
         :param google_result: GoogleResult instance
         :return: A list of valid accounts
         """
-        om.out.debug("Searching for emails in: " + google_result.URL)
+        om.out.debug(f"Searching for emails in: {google_result.URL}")
 
         grep_res = google_result.URL.get_domain() == self._domain
 

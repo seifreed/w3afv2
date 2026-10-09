@@ -21,50 +21,81 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import ClassVar
 
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+from w3af.core.data.constants import severity
+from w3af.core.data.parsers.doc.url import URL
+from w3af.plugins.infrastructure.xssed_dot_com import xssed_dot_com
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
+
+SEARCH_RESULTS = """<html><body><table>
+<tr><th class="row3">Date</th><th class="row3">Author</th></tr>
+<tr><td>
+<a href='/mirror/76754/' target='_blank'>alarabiya.net</a>
+</td></tr>
+<tr><td>
+<a href='/mirror/12345/' target='_blank'>www.alarabiya.net</a>
+</td></tr>
+</table></body></html>"""
+
+NO_SEARCH_RESULTS = """<html><body>
+<p>No results were found for your search.</p>
+</body></html>"""
+
+UNFIXED_MIRROR = """<html><body><table>
+<tr><th class="row3">Status: UNFIXED</th></tr>
+<tr><th class="row3">URL: http://www.alarabiya.net/search.php?q=%3Cscript%3Ealert(1)<br>%3C/script%3E</th></tr>
+</table></body></html>"""
+
+FIXED_MIRROR = """<html><body><table>
+<tr><th class="row3">Status: FIXED</th></tr>
+<tr><th class="row3">URL: http://www.alarabiya.net/index.php?id=&quot;&gt;xss</th></tr>
+</table></body></html>"""
 
 
 class TestXssedDotCom(PluginTest):
 
-    vuln_url = "http://www.alarabiya.net"
-    safe_url = "http://www.xssed.com/"
+    target_url = "http://www.alarabiya.net/"
 
-    _run_configs: ClassVar[dict] = {
-        "cfg": {
-            "target": None,
-            "plugins": {"infrastructure": (PluginConfig("xssed_dot_com"),)},
-        }
-    }
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse("http://www.xssed.com/search?key=.alarabiya.net", SEARCH_RESULTS),
+        MockResponse("http://www.xssed.com/search?key=.digi.ninja", NO_SEARCH_RESULTS),
+        MockResponse("http://www.xssed.com/mirror/76754/", UNFIXED_MIRROR),
+        MockResponse("http://www.xssed.com/mirror/12345/", FIXED_MIRROR),
+    ]
+
+    plugins: ClassVar[dict] = {"infrastructure": (PluginConfig("xssed_dot_com"),)}
 
     def test_xssed_dot_com_positive(self):
-        cfg = self._run_configs["cfg"]
-        self._scan(self.vuln_url, cfg["plugins"])
+        self._scan(self.target_url, self.plugins)
 
-        infos = self.kb.get("xssed_dot_com", "xss")
+        vulns = self.kb.get("xssed_dot_com", "xss")
+        self.assertEqual(len(vulns), 2, vulns)
 
-        self.assertEqual(len(infos), 2, infos)
+        by_severity = {vuln.get_severity(): vuln for vuln in vulns}
 
-        info = infos[0]
+        unfixed = by_severity[severity.HIGH]
+        self.assertEqual(unfixed.get_name(), "Potential XSS vulnerability")
+        self.assertIn("the target domain contains a XSS", unfixed.get_desc())
+        self.assertIn("http://www.xssed.com/mirror/76754/", unfixed.get_desc())
+        self.assertEqual(
+            unfixed.get_uri(),
+            URL("http://www.alarabiya.net/search.php?q=<script>alert(1)</script>"),
+        )
 
-        self.assertEqual(info.get_name(), "Potential XSS vulnerability")
-        self.assertIn("According to xssed.com", info.get_desc())
+        fixed = by_severity[severity.LOW]
+        self.assertIn("the target domain contained a XSS", fixed.get_desc())
+        self.assertEqual(
+            fixed.get_uri(),
+            URL('http://www.alarabiya.net/index.php?id=">xss'),
+        )
 
     def test_xssed_dot_com_negative(self):
-        cfg = self._run_configs["cfg"]
-        self._scan(self.safe_url, cfg["plugins"])
-
-        infos = self.kb.get("xssed_dot_com", "xss")
-
-        self.assertEqual(len(infos), 0, infos)
-
-    def test_xssed_dot_com_too_generic_12717(self):
         """
-        Test for issue #12717
-        https://github.com/andresriancho/w3af/issues/12717
+        Searching ".digi.ninja" instead of "digi.ninja" prevents the too
+        generic matches reported in issue #12717.
         """
-        cfg = self._run_configs["cfg"]
-        self._scan("https://digi.ninja", cfg["plugins"])
+        self._scan("https://digi.ninja/", self.plugins)
 
-        infos = self.kb.get("xssed_dot_com", "xss")
+        self.assertEqual(self.kb.get("xssed_dot_com", "xss"), [])
 
-        self.assertEqual(len(infos), 0, infos)
+    def test_long_description(self):
+        self.assertIn("xssed.com", xssed_dot_com().get_long_desc())

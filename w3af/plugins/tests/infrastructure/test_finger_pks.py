@@ -21,27 +21,48 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import ClassVar
 
-import pytest
+from w3af.plugins.infrastructure.finger_pks import finger_pks
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+PKS_INDEX = """<html><head><title>Search results for 'bonsai-sec.com'</title></head>
+<body><h1>Search results for 'bonsai-sec.com'</h1><pre>Type bits/keyID     Date       User ID
+</pre><hr /><pre>
+pub  2048R/<a href="/pks/lookup?op=get&amp;search=0x1A2B3C4D">1A2B3C4D</a> 2011-02-01 <a href="/pks/lookup?op=vindex&amp;search=0x1A2B3C4D">Andres Riancho &lt;andres@bonsai-sec.com&gt;</a>
+pub  1024D/<a href="/pks/lookup?op=get&amp;search=0x5E6F7A8B">5E6F7A8B</a> 2010-05-12 <a href="/pks/lookup?op=vindex&amp;search=0x5E6F7A8B">Andres Riancho &lt;andres@bonsai-sec.com&gt;</a>
+pub  2048R/<a href="/pks/lookup?op=get&amp;search=0x9C0D1E2F">9C0D1E2F</a> 2012-07-30 <a href="/pks/lookup?op=vindex&amp;search=0x9C0D1E2F">Security Team &lt;security@bonsai-sec.com&gt;</a>
+pub  2048R/<a href="/pks/lookup?op=get&amp;search=0x3A4B5C6D">3A4B5C6D</a> 2013-01-15 <a href="/pks/lookup?op=vindex&amp;search=0x3A4B5C6D">Other Person &lt;other@example.com&gt;</a>
+</pre></body></html>"""
 
 
 class TestFingerPKS(PluginTest):
 
-    base_url = "http://www.bonsai-sec.com/"
+    target_url = "http://www.bonsai-sec.com/"
 
-    _run_configs: ClassVar[dict] = {
-        "cfg": {
-            "target": base_url,
-            "plugins": {"infrastructure": (PluginConfig("finger_pks"),)},
-        }
-    }
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(
+            "http://pgp.mit.edu:11371/pks/lookup?op=index&search=bonsai-sec.com",
+            PKS_INDEX,
+        ),
+    ]
 
-    @pytest.mark.ci_fails
+    plugins: ClassVar[dict] = {"infrastructure": (PluginConfig("finger_pks"),)}
+
     def test_find_pks_email(self):
-        cfg = self._run_configs["cfg"]
-        self._scan(cfg["target"], cfg["plugins"])
+        self._scan(self.target_url, self.plugins)
 
         emails = self.kb.get("emails", "emails")
 
-        self.assertEqual(len(emails), 2, emails)
+        self.assertEqual(
+            {(e["mail"], e["user"], e["name"]) for e in emails},
+            {
+                ("andres@bonsai-sec.com", "andres", "Andres Riancho"),
+                ("security@bonsai-sec.com", "security", "Security Team"),
+            },
+        )
+
+        for email in emails:
+            self.assertEqual(email.get_name(), "Email account")
+            self.assertEqual(email.get_url().url_string, "http://pgp.mit.edu:11371/")
+
+    def test_long_description(self):
+        self.assertIn("PGP PKS servers", finger_pks().get_long_desc())

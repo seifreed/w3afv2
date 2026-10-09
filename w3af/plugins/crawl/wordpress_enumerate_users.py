@@ -88,7 +88,9 @@ class wordpress_enumerate_users(CrawlPlugin):
 
             domain_path.querystring = [("author", [f"{uid}"])]
             wp_author_url = domain_path
-            response_author = self._uri_opener.GET(wp_author_url, cache=True)
+            response_author = self._uri_opener.GET(
+                wp_author_url, cache=True, follow_redirects=True
+            )
 
             if is_404(response_author):
                 continue

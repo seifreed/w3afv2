@@ -22,11 +22,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from io import BytesIO
 
 from ds_store import DSStore
+from ds_store.buddy import BuddyError
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.constants import severity
 from w3af.core.data.db.disk_set import DiskSet
@@ -75,15 +75,8 @@ class dot_ds_store(CrawlPlugin):
 
         :return: None, everything is saved to the self.out_queue.
         """
-        # Request the file
         url = domain_path.url_join(self.DS_STORE)
-
-        try:
-            response = self.http_get_and_parse(url, binary_response=True)
-        except BaseFrameworkException as w3:
-            msg = "Failed to GET .DS_Store file: %s. Exception: %s."
-            om.out.debug(msg, (url, w3))
-            return
+        response = self.http_get_and_parse(url, binary_response=True)
 
         # Check if it's a .DS_Store file
         if is_404(response):
@@ -93,6 +86,7 @@ class dot_ds_store(CrawlPlugin):
             store = DsStore(response.get_raw_body())
             entries = store.get_file_entries()
         except (
+            BuddyError,
             OSError,
             ValueError,
             TypeError,

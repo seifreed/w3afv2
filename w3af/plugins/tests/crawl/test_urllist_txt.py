@@ -21,45 +21,77 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import ClassVar
 
-import pytest
+from w3af.plugins.crawl.urllist_txt import urllist_txt
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+URLLIST_TXT = """# URLs for the Yahoo crawler
+
+http://mock/hidden/
+/hidden/
+http://[broken
+"""
+
+HTML_PAGE = """<html>
+<body>
+<p>
+Not a urllist</p>
+</body>
+</html>
+"""
+
+PLUGINS = {"crawl": (PluginConfig("urllist_txt"),)}
 
 
 class TestURLListTxt(PluginTest):
 
-    base_url = "http://moth/w3af/"
+    target_url = "http://mock/w3af/"
 
-    _run_configs: ClassVar[dict] = {
-        "cfg": {
-            "target": base_url,
-            "plugins": {"crawl": (PluginConfig("urllist_txt"),)},
-        }
-    }
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse("http://mock/w3af/", "index"),
+        MockResponse("http://mock/urllist.txt", URLLIST_TXT, "text/plain"),
+        MockResponse("http://mock/hidden/", "hidden"),
+    ]
 
-    @pytest.mark.ci_fails
     def test_urllist_txt(self):
-        cfg = self._run_configs["cfg"]
-        self._scan(cfg["target"], cfg["plugins"])
+        self._scan(self.target_url, PLUGINS)
 
         infos = self.kb.get("urllist_txt", "urllist.txt")
-
         self.assertEqual(len(infos), 1, infos)
 
         info = infos[0]
-
         self.assertTrue(info.get_name().startswith("urllist.txt file"))
-        self.assertEqual(info.get_url().url_string, "http://moth/urllist.txt")
+        self.assertEqual(info.get_url().url_string, "http://mock/urllist.txt")
 
-        urls = self.kb.get_all_known_urls()
+        urls = {u.url_string for u in self.kb.get_all_known_urls()}
+        self.assertEqual(urls, {"http://mock/w3af/", "http://mock/hidden/"})
 
-        self.assertEqual(len(urls), 2, urls)
 
-        hidden_url = "http://moth/hidden/"
+class TestURLListTxtMissing(PluginTest):
 
-        for url in urls:
-            if url.url_string == hidden_url:
-                self.assertTrue(True)
-                break
-        else:
-            self.assertTrue(False)
+    target_url = "http://mock/w3af/"
+
+    MOCK_RESPONSES: ClassVar[list] = [MockResponse("http://mock/w3af/", "index")]
+
+    def test_no_urllist_txt(self):
+        self._scan(self.target_url, PLUGINS)
+
+        self.assertEqual(self.kb.get("urllist_txt", "urllist.txt"), [])
+
+
+class TestURLListTxtIsHTML(PluginTest):
+
+    target_url = "http://mock/w3af/"
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse("http://mock/w3af/", "index"),
+        MockResponse("http://mock/urllist.txt", HTML_PAGE),
+    ]
+
+    def test_html_is_not_urllist_txt(self):
+        self._scan(self.target_url, PLUGINS)
+
+        self.assertEqual(self.kb.get("urllist_txt", "urllist.txt"), [])
+
+
+def test_urllist_txt_long_desc():
+    assert "urllist.txt" in urllist_txt().get_long_desc()

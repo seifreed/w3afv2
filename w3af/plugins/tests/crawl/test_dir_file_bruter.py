@@ -20,11 +20,26 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
+import tempfile
 from typing import ClassVar
 
 from w3af import ROOT_PATH
-from w3af.core.controllers.ci.moth import get_moth_http
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+from w3af.core.data.parsers.doc.url import URL
+from w3af.plugins.crawl.dir_file_bruter import dir_file_bruter
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
+
+SITE_URL = "http://mock/"
+
+EXISTING_PATHS = (
+    "",
+    "crawl/",
+    "portal/",
+    "iamhidden.txt",
+    "crawl/dir_bruter/",
+    "crawl/dir_bruter/hidden-inside-dir.txt",
+    "crawl/dir_bruter/spameggs/",
+    "crawl/dir_bruter/spameggs/foobar/",
+)
 
 
 class TestDirFileBruter(PluginTest):
@@ -34,8 +49,14 @@ class TestDirFileBruter(PluginTest):
     DIR_DB_PATH = os.path.join(TEST_PATH, "test_dirs_small.db")
     FILE_DB_PATH = os.path.join(TEST_PATH, "test_files_small.db")
 
-    directory_url = get_moth_http("/crawl/dir_bruter/")
-    base_url = get_moth_http()
+    directory_url = SITE_URL + "crawl/dir_bruter/"
+    base_url = SITE_URL
+    target_url = SITE_URL
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(SITE_URL + path, f"<html>Content of /{path}</html>")
+        for path in EXISTING_PATHS
+    ]
 
     _run_directories: ClassVar[dict] = {
         "target": base_url,
@@ -86,6 +107,8 @@ class TestDirFileBruter(PluginTest):
                     "dir_file_bruter",
                     ("dir_wordlist", DIR_DB_PATH, PluginConfig.INPUT_FILE),
                     ("bf_directories", True, PluginConfig.BOOL),
+                    ("file_wordlist", FILE_DB_PATH, PluginConfig.INPUT_FILE),
+                    ("bf_files", True, PluginConfig.BOOL),
                     ("be_recursive", True, PluginConfig.BOOL),
                 ),
             )
@@ -121,7 +144,24 @@ class TestDirFileBruter(PluginTest):
 
         expected_urls = (
             "/crawl/dir_bruter/",
+            "/crawl/dir_bruter/hidden-inside-dir.txt",
             "/crawl/dir_bruter/spameggs/foobar/",
             "/crawl/dir_bruter/spameggs/",
         )
         self.assertAllURLsFound(expected_urls)
+
+    def test_wordlist_skips_comments_blank_and_invalid_lines(self):
+        with tempfile.NamedTemporaryFile("w", suffix=".db", delete=False) as wordlist:
+            wordlist.write("# comment\n\n//[\nadmin\n")
+        self.addCleanup(os.remove, wordlist.name)
+
+        plugin = dir_file_bruter()
+        generated = list(
+            plugin._read_db_file_gen_url(URL(SITE_URL), wordlist.name, True)
+        )
+        plugin.end()
+
+        self.assertEqual(generated, [("admin/", URL(SITE_URL + "admin/"))])
+
+    def test_long_description(self):
+        self.assertIn("brute-forcing", dir_file_bruter().get_long_desc())

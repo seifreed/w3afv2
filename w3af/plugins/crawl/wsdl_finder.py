@@ -20,8 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.parsers.doc.url import URL
@@ -73,13 +71,8 @@ class wsdl_finder(CrawlPlugin):
         Perform an HTTP request to the url_to_request parameter.
         :return: None.
         """
-        try:
-            self._uri_opener.GET(url_to_request, cache=True)
-        except BaseFrameworkException:
-            om.out.debug("Failed to request the WSDL file: " + url_to_request)
-        else:
-            # The response is analyzed by the wsdlGreper plugin
-            pass
+        # The response is analyzed by the wsdl_greper plugin
+        self._uri_opener.GET(url_to_request, cache=True)
 
     def get_plugin_deps(self):
         """

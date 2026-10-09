@@ -33,7 +33,6 @@ from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.url.exceptions import HTTPRequestException
 
 
 class archive_dot_org(CrawlPlugin):
@@ -48,6 +47,7 @@ class archive_dot_org(CrawlPlugin):
     INTERESTING_URLS_RE = (
         r'<a href="(http://web\.archive\.org/web/\d*?/https?://%s/.*?)"'
     )
+    ARCHIVED_URL_RE = re.compile(r"/web/\d*/(https?):/+(.*)$")
     NOT_IN_ARCHIVE = "<p>Wayback Machine doesn&apos;t have that page archived.</p>"
 
     def __init__(self):
@@ -106,14 +106,7 @@ class archive_dot_org(CrawlPlugin):
         :return: A list of query string objects for the URLs that are in
                  the cache AND are in the target web site.
         """
-        real_urls = []
-
-        # Translate archive.org URL's to normal URL's
-        for url in references:
-            url = url.url_string[url.url_string.index("http", 1) :]
-            real_urls.append(URL(url))
-
-        real_urls = list(set(real_urls))
+        real_urls = list({self._archived_url(url) for url in references})
 
         if len(real_urls):
             om.out.debug("Archive.org cached the following pages:")
@@ -134,42 +127,55 @@ class archive_dot_org(CrawlPlugin):
         :param max_depth: The max link depth that we have to follow.
         :param domain: The domain name we are checking
         """
-        # Start the recursive spidering
         res = []
 
         def spider_worker(url, max_depth, domain):
             if url in self._already_crawled:
-                return []
+                return
 
             self._already_crawled.add(url)
 
-            try:
-                http_response = self._uri_opener.GET(url, cache=True)
-            except HTTPRequestException:
-                return []
+            http_response = self._uri_opener.GET(url, cache=True)
 
             # Filter the ones we need
             url_regex_str = self.INTERESTING_URLS_RE % domain
             matched_urls = re.findall(url_regex_str, http_response.body)
-            new_urls = [URL(u) for u in matched_urls]
-            new_urls = [u.remove_fragment() for u in new_urls]
-            new_urls = set(new_urls)
+            new_urls = {self._without_fragment(u) for u in matched_urls}
+            res.extend(new_urls)
 
-            # Go recursive
+            if not new_urls:
+                return
+
             if max_depth - 1 > 0:
-                if new_urls:
-                    res.extend(new_urls)
-                    res.extend(self._spider_archive(new_urls, max_depth - 1, domain))
+                res.extend(self._spider_archive(new_urls, max_depth - 1, domain))
             else:
                 msg = "Some sections of the archive.org site were not analyzed"
                 msg += " because of the configured max_depth."
                 om.out.debug(msg)
-                return new_urls
 
         args = zip(url_list, repeat(max_depth), repeat(domain))
         self.worker_pool.map_multi_args(spider_worker, args)
 
         return list(set(res))
+
+    def _archived_url(self, snapshot_url):
+        """
+        Translate an archive.org snapshot URL to the archived URL. The URL
+        normalization squashes the "//" after the archived URL scheme, so it
+        is rebuilt here.
+
+        :param snapshot_url: A URL such as http://web.archive.org/web/2011/http:/host/
+        :return: The archived URL, http://host/ in the example above
+        """
+        match = self.ARCHIVED_URL_RE.search(snapshot_url.url_string)
+        scheme, archived_path = match.groups()
+        return URL(f"{scheme}://{archived_path}")
+
+    @staticmethod
+    def _without_fragment(url_string):
+        url = URL(url_string)
+        url.remove_fragment()
+        return url
 
     def _exists_in_target(self, url):
         """

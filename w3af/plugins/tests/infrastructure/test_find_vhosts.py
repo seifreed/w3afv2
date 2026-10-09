@@ -19,104 +19,122 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import socketserver
+import re
+import unittest
 from typing import ClassVar
 
-from w3af.core.data.url.tests.helpers.upper_daemon import ThreadingUpperDaemon
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.data.url.extended_urllib import ExtendedUrllib
+from w3af.plugins.infrastructure.find_vhosts import find_vhosts
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
+from w3af.plugins.tests.infrastructure.canned_plugin_test import closed_port_url
+
+TARGET = "http://w3af.org/"
+
+DEAD_LINKS = (
+    "<html><body>"
+    '<a href="http://10.1.2.3/">internal</a>'
+    '<a href="http://10.1.2.3/other">internal again</a>'
+    '<a href="http://8.8.8.8/">public</a>'
+    "</body></html>"
+)
 
 
-class TestFindVhosts(PluginTest):
-    #
-    # Note: I tried implementing this test using httpretty and found
-    #       that it doesn't support the connection to w3af.org with
-    #       a Host header that specifies a different host.
-    #
-    #       That is why we need a real server for testing.
-    #
-    _run_configs: ClassVar[dict] = {
-        "cfg": {
-            "target": None,
-            "plugins": {"infrastructure": (PluginConfig("find_vhosts"),)},
-        }
-    }
+def virtual_hosts(pages):
+    """
+    :param pages: Maps the Host header to the body of the page it serves
+    :return: A MockResponse body which serves each virtual host page, or a 404
+    """
 
-    def test_find_vhosts(self):
-        # Setup the server
-        upper_daemon = ThreadingUpperDaemon(MultipleVHostsHandler)
-        upper_daemon.start()
-        upper_daemon.wait_for_start()
+    def respond(mock_response, request, uri, headers):
+        headers["Content-Type"] = "text/html"
+        host = request.headers["Host"]
 
-        port = upper_daemon.get_port()
-        target_url = f"http://127.0.0.1:{port}/"
+        if host == "admin":
+            raise ConnectionResetError("The admin virtual host is broken")
 
-        cfg = self._run_configs["cfg"]
-        self._scan(target_url, cfg["plugins"])
+        if host in pages and request.path == "/":
+            return 200, headers, pages[host]
 
-        infos = self.kb.get("find_vhosts", "find_vhosts")
-        self.assertEqual(len(infos), 1, infos)
+        return 404, headers, "Not found"
 
-        info = infos[0]
-        self.assertEqual("Virtual host identified", info.get_name())
-        self.assertTrue(
-            'the virtual host name is: "intranet"' in info.get_desc(), info.get_desc()
-        )
+    return respond
 
 
-class TestFindVhostsInHTML(PluginTest):
-    target_url = "http://w3af.org"
+class FindVhostsTest(PluginTest):
+
+    target_url = TARGET
+
+    plugins: ClassVar[dict] = {"infrastructure": (PluginConfig("find_vhosts"),)}
+
+    def scan_findings(self):
+        self._scan(self.target_url, self.plugins)
+        return self.kb.get("find_vhosts", "find_vhosts")
+
+
+class TestFindVhosts(FindVhostsTest):
 
     MOCK_RESPONSES: ClassVar[list] = [
-        MockResponse(target_url, '<a href="http://intranet/">x</a>')
+        MockResponse(
+            re.compile(".*"),
+            virtual_hosts(
+                {
+                    "w3af.org": "<html><body>Welcome to w3af.org</body></html>",
+                    "intranet": "Intranet secrets are here: 0123456789 " * 4,
+                }
+            ),
+        )
     ]
 
-    _run_configs: ClassVar[dict] = {
-        "cfg": {
-            "target": target_url,
-            "plugins": {"infrastructure": (PluginConfig("find_vhosts"),)},
-        }
-    }
+    def test_find_vhosts(self):
+        findings = self.scan_findings()
+
+        self.assertEqual(len(findings), 1, findings)
+
+        vuln = findings[0]
+        self.assertEqual("Virtual host identified", vuln.get_name())
+        self.assertIn('the virtual host name is: "intranet"', vuln.get_desc())
+
+
+class TestFindVhostsInHTML(FindVhostsTest):
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(re.compile(".*"), virtual_hosts({"w3af.org": DEAD_LINKS}))
+    ]
 
     def test_find_vhost_dead_link(self):
-        cfg = self._run_configs["cfg"]
-        self._scan(self.target_url, cfg["plugins"])
+        findings = self.scan_findings()
 
-        infos = self.kb.get("find_vhosts", "find_vhosts")
-        self.assertEqual(len(infos), 1, infos)
-
-        expected = {"Internal hostname in HTML link"}
-        self.assertEqual(expected, {i.get_name() for i in infos})
+        self.assertEqual(len(findings), 1, findings)
+        self.assertEqual(findings[0].get_name(), "Internal hostname in HTML link")
+        self.assertIn('"10.1.2.3"', findings[0].get_desc())
 
 
-class MultipleVHostsHandler(socketserver.BaseRequestHandler):
-    RESPONSE = (
-        "HTTP/1.0 200 Ok\r\n"
-        "Connection: Close\r\n"
-        "Content-Length: %s\r\n"
-        "Content-Type: text/html\r\n"
-        "\r\n%s"
-    )
+class TestFindVhostsUnparseableDocument(FindVhostsTest):
 
-    RESPONSE_404 = (
-        "HTTP/1.0 404 Not Found\r\n"
-        "Connection: Close\r\n"
-        "Content-Length: %s\r\n"
-        "Content-Type: text/html\r\n"
-        "\r\n%s"
-    )
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(TARGET, b"\x89PNG\r\n\x1a\n", content_type="image/png")
+    ]
 
-    def handle(self):
-        data = self.request.recv(1024).strip()
+    def test_no_dead_links_in_images(self):
+        self.assertEqual(self.scan_findings(), [])
 
-        # Match hosts
-        if "Host: w3af.org\r\n" in data:
-            body = "Welcome to w3af.org"
-            self.request.sendall(self.RESPONSE % (len(body), body))
 
-        if "Host: intranet\r\n" in data:
-            body = "Intranet secrets are here"
-            self.request.sendall(self.RESPONSE % (len(body), body))
+class TestFindVhostsUnits(unittest.TestCase):
+    def test_non_existent_vhost_requests_fail(self):
+        plugin = find_vhosts()
+        plugin._uri_opener = ExtendedUrllib()
+        self.addCleanup(plugin._uri_opener.end)
 
-        else:
-            body = "Not found"
-            self.request.sendall(self.RESPONSE_404 % (len(body), body))
+        self.assertEqual(plugin._get_non_exist(FuzzableRequest(closed_port_url())), [])
+
+    def test_no_subdomains_for_ip_addresses(self):
+        fuzzable_request = FuzzableRequest(URL("http://10.1.2.3/"))
+
+        vhosts = list(find_vhosts()._get_common_virtual_hosts(fuzzable_request))
+
+        self.assertEqual(vhosts, find_vhosts.COMMON_VHOSTS)
+
+    def test_long_description(self):
+        self.assertIn("Host header", find_vhosts().get_long_desc())
