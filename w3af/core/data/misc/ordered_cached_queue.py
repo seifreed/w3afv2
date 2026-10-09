@@ -21,13 +21,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import bisect
+import logging
 import queue
 import uuid
+from collections.abc import Callable
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.constants import POISON_PILL
 from w3af.core.data.db.disk_dict import DiskDict
 from w3af.core.data.misc.smart_queue import QueueSpeedMeasurement
+
+LOGGER = logging.getLogger(__name__)
 
 
 class OrderedCachedQueue(queue.Queue, QueueSpeedMeasurement):
@@ -49,10 +52,17 @@ class OrderedCachedQueue(queue.Queue, QueueSpeedMeasurement):
 
     LAST_SHA256_HASH = "f" * 64
 
-    def __init__(self, maxsize=0, name="Unknown"):
+    def __init__(
+        self,
+        maxsize=0,
+        name="Unknown",
+        *,
+        debug_log: Callable[[str], None] | None = None,
+    ):
         self.name = name
         self.max_in_memory = maxsize
         self.processed_tasks = 0
+        self._debug_log = debug_log or LOGGER.debug
 
         QueueSpeedMeasurement.__init__(self)
 
@@ -114,19 +124,12 @@ class OrderedCachedQueue(queue.Queue, QueueSpeedMeasurement):
             #   If you see many messages like this in the scan log, then you
             #   might want to experiment with a larger maxsize for this queue
             #
-            msg = (
-                "OrderedCachedQueue.put() will write a %r item to the %s"
-                " DiskDict. This uses more CPU and disk IO than storing"
-                " in memory but will avoid high memory usage issues. The"
-                " current %s DiskDict size is %s."
+            self._debug_log(
+                f"OrderedCachedQueue.put() will write a {self._get_class_name(item)!r}"
+                f" item to the {self.get_name()} DiskDict. This uses more CPU and disk"
+                f" IO than storing in memory but will avoid high memory usage issues."
+                f" The current {self.get_name()} DiskDict size is {len(self.disk)}."
             )
-            args = (
-                self._get_class_name(item),
-                self.get_name(),
-                self.get_name(),
-                len(self.disk),
-            )
-            om.out.debug(msg % args)
 
         #
         #   Get the item hash to store it in the queue order list, and insert
@@ -184,13 +187,11 @@ class OrderedCachedQueue(queue.Queue, QueueSpeedMeasurement):
                 #   If you see many messages like this in the scan log, then you
                 #   might want to experiment with a larger maxsize for this queue
                 #
-                msg = (
-                    "OrderedCachedQueue.get() from %s DiskDict was used to"
-                    " read an item from disk. The current %s DiskDict"
-                    " size is %s."
+                self._debug_log(
+                    f"OrderedCachedQueue.get() from {self.get_name()} DiskDict was used"
+                    f" to read an item from disk. The current {self.get_name()} DiskDict"
+                    f" size is {len(self.disk)}."
                 )
-                args = (self.get_name(), self.get_name(), len(self.disk))
-                om.out.debug(msg % args)
 
         self._item_left_queue()
         self.processed_tasks += 1
@@ -206,18 +207,19 @@ class OrderedCachedQueue(queue.Queue, QueueSpeedMeasurement):
 
         When the count of unfinished tasks drops to zero, join() unblocks.
         """
-        msg = "Called join on %s with %s unfinished tasks"
-        args = (self.name, self.unfinished_tasks)
-        om.out.debug(msg % args)
+        self._debug_log(
+            f"Called join on {self.name} with {self.unfinished_tasks} unfinished tasks"
+        )
 
         self.all_tasks_done.acquire()
         try:
             while self.unfinished_tasks:
                 result = self.all_tasks_done.wait(timeout=5)
 
-                if result is None:
-                    msg = "Still have %s unfinished tasks in %s join()"
-                    args = (self.unfinished_tasks, self.name)
-                    om.out.debug(msg % args)
+                if not result:
+                    self._debug_log(
+                        f"Still have {self.unfinished_tasks} unfinished tasks in"
+                        f" {self.name} join()"
+                    )
         finally:
             self.all_tasks_done.release()

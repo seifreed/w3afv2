@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import threading
 import time
 import unittest
@@ -33,6 +34,50 @@ from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
 class TestOrderedCachedQueue(unittest.TestCase):
+
+    def test_uses_injected_debug_logger(self):
+        logger = logging.getLogger("ordered-cached-queue-test")
+        queue = OrderedCachedQueue(debug_log=logger.debug)
+
+        with self.assertLogs(logger, level="DEBUG") as captured:
+            queue.join()
+
+        self.assertIn("Called join on Unknown", captured.output[0])
+
+    def test_processed_count_and_memory_capacity(self):
+        queue = OrderedCachedQueue(maxsize=1)
+
+        self.assertTrue(queue.next_item_saved_to_memory())
+        queue.put(None)
+        self.assertFalse(queue.next_item_saved_to_memory())
+        queue.get()
+
+        self.assertEqual(queue.get_processed_tasks(), 1)
+
+    def test_join_logs_when_a_task_remains_after_timeout(self):
+        logger = logging.getLogger("ordered-cached-queue-timeout-test")
+        queue = OrderedCachedQueue(maxsize=1, debug_log=logger.debug)
+        queue.put(None)
+        consumer_started = threading.Event()
+
+        def complete_task():
+            consumer_started.set()
+            time.sleep(5.1)
+            queue.get()
+            queue.task_done()
+
+        consumer = threading.Thread(target=complete_task)
+        consumer.start()
+        self.assertTrue(consumer_started.wait(timeout=1))
+
+        with self.assertLogs(logger, level="DEBUG") as captured:
+            queue.join()
+
+        consumer.join(timeout=1)
+        self.assertFalse(consumer.is_alive())
+        self.assertTrue(
+            any("Still have 1 unfinished tasks" in line for line in captured.output)
+        )
 
     def test_put_none_then_fuzzable_request(self):
         q = OrderedCachedQueue(maxsize=2)

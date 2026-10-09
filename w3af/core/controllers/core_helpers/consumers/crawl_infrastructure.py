@@ -82,7 +82,11 @@ class CrawlInfrastructure(BaseConsumer):
         #
         # Read OrderedCachedQueue's documentation to understand why order is
         # important
-        self.in_queue = OrderedCachedQueue(maxsize=10, name=self.get_name() + "In")
+        self.in_queue = OrderedCachedQueue(
+            maxsize=10,
+            name=self.get_name() + "In",
+            debug_log=om.out.debug,
+        )
 
     def get_name(self):
         return "CrawlInfra"

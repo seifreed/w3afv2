@@ -1007,3 +1007,17 @@ de producción pasan en el módulo, sin imports de `controllers`; las referencia
 directas `core.data -> controllers` bajan de 60 a 58. Mypy global sigue en 897
 errores, y el dirigido hereda dos errores del paquete `core`. Score global:
 **4.9/10**.
+
+## Avance: logging inyectado en OrderedCachedQueue
+
+`OrderedCachedQueue` ya no importa `output_manager`: su callback de depuración
+se inyecta desde `CrawlInfrastructure`, preservando los mensajes del escaneo;
+los usos aislados recurren al logger estándar. La firma permite seguir usando
+la cola sin depender de la capa de controladores. `Condition.wait()` se evalúa
+como booleano (`False` al vencer el timeout), de modo que vuelve a emitirse el
+aviso de tareas pendientes, ahora cubierto con un consumidor real. Las 13
+pruebas de la cola pasan con 100% de cobertura. Black, Ruff y Bandit de
+producción pasan en el módulo; las referencias directas `core.data ->
+controllers` bajan de 58 a 57. Mypy dirigido no marca estos módulos, aunque
+hereda 30 errores en 21 archivos importados; la deuda global continúa. Score
+global: **4.9/10**.
