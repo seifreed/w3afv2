@@ -20,9 +20,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
+import threading
+import unittest
 from typing import ClassVar
-from unittest import SkipTest
 
+from werkzeug.debug import DebuggedApplication
+from werkzeug.serving import make_server
+from werkzeug.wrappers import Response
+
+from w3af.plugins.infrastructure.werkzeug_debugger import werkzeug_debugger
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 JS_RESOURCE = """
@@ -119,34 +125,37 @@ class TestWerkzeugDebuggerDisabled(PluginTest):
 
 class TestWerkzeugDebuggerRealDebugger(PluginTest):
     """
-    If you want to test this vulnerability in real life just use:
-
-        from flask import Flask
-        app = Flask(__name__)
-
-        @app.route('/')
-        def hello_world():
-            return 'Hello World!'
-
-        if __name__ == '__main__':
-            app.run(debug=True)
+    Scan a real Werkzeug application with the interactive debugger enabled,
+    served on an ephemeral 127.0.0.1 port.
     """
 
-    target_url = "http://127.0.0.1:5000/"
+    def setUp(self):
+        super().setUp()
 
-    _run_configs: ClassVar[dict] = {
-        "cfg": {
-            "target": target_url,
-            "plugins": {"infrastructure": (PluginConfig("werkzeug_debugger"),)},
-        }
-    }
+        application = DebuggedApplication(Response("Hello World!"), evalex=True)
+        self.debugger_server = make_server("127.0.0.1", 0, application, threaded=True)
+        server_thread = threading.Thread(
+            target=self.debugger_server.serve_forever, daemon=True
+        )
+        server_thread.start()
+
+        self.addCleanup(self.debugger_server.server_close)
+        self.addCleanup(server_thread.join)
+        self.addCleanup(self.debugger_server.shutdown)
 
     def test_vulnerable_werkzeug(self):
-        raise SkipTest("Only run during dev phase!")
+        target_url = f"http://127.0.0.1:{self.debugger_server.server_port}/"
+        plugins = {"infrastructure": (PluginConfig("werkzeug_debugger"),)}
 
-        cfg = self._run_configs["cfg"]
-
-        self._scan(self.target_url, cfg["plugins"])
+        self._scan(target_url, plugins)
 
         vulns = self.kb.get("werkzeug_debugger", "werkzeug_debugger")
         self.assertEqual(len(vulns), 1, vulns)
+
+
+class TestWerkzeugDebuggerDescription(unittest.TestCase):
+    def test_long_desc_mentions_code_execution(self):
+        self.assertIn(
+            "execute\n        arbitrary Python code",
+            werkzeug_debugger().get_long_desc(),
+        )

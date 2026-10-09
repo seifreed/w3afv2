@@ -29,6 +29,7 @@ import threading
 import urllib.error
 import urllib.parse
 import urllib.request
+from collections.abc import Iterable
 
 from w3af.core.data.constants.encodings import DEFAULT_ENCODING
 from w3af.core.data.db.disk_item import DiskItem
@@ -53,6 +54,25 @@ CHARSET_META_RE = re.compile(
 )
 DEFAULT_WAIT_TIME = 0.2
 LOGGER = logging.getLogger(__name__)
+
+
+def merge_repeated_headers(
+    header_items: Iterable[tuple[str, str]],
+) -> list[tuple[str, str]]:
+    """
+    Servers may repeat a header (Werkzeug sends Date twice, for example), but
+    Headers does not allow repeated names, so the values of a repeated header
+    are joined with ", " as RFC 9110 section 5.3 allows.
+
+    :param header_items: (name, value) tuples as they came from the wire
+    :return: A list of (name, value) tuples without repeated names
+    """
+    merged: dict[str, str] = {}
+
+    for name, value in header_items:
+        merged[name] = f"{merged[name]}, {value}" if name in merged else value
+
+    return list(merged.items())
 
 
 class HTTPResponse(DiskItem):
@@ -197,7 +217,7 @@ class HTTPResponse(DiskItem):
         """
         resp = httplibresp
         code, msg, hdrs, body = (resp.code, resp.msg, resp.info(), resp.read())
-        hdrs = Headers(list(hdrs.items()))
+        hdrs = Headers(merge_repeated_headers(hdrs.items()))
 
         if original_url:
             url_inst = URL(resp.geturl(), original_url.encoding)
@@ -313,9 +333,17 @@ class HTTPResponse(DiskItem):
         Determine if the `string_to_test` is contained by the HTTP response
         body.
 
+        Bodies which are not text (JSON, images, etc.) are kept as bytes, so
+        the string is encoded before looking for it in them.
+
         :param string_to_test: String to look for in the body
         """
-        return string_to_test in self.body
+        body = self.body
+
+        if isinstance(body, bytes):
+            return smart_str_ignore(string_to_test) in body
+
+        return string_to_test in body
 
     def __eq__(self, other):
         return (

@@ -25,7 +25,7 @@ from itertools import repeat
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
-from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
+from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.data.fuzzer.utils import rand_alpha
@@ -92,15 +92,11 @@ class fingerprint_waf(InfrastructurePlugin):
         # And now a final check for SecureIIS
         headers = fuzzable_request.get_headers()
         headers["Transfer-Encoding"] = rand_alpha(1024 + 1)
-        try:
-            lock_response2 = self._uri_opener.GET(
-                fuzzable_request.get_url(), headers=headers, cache=True
-            )
-        except BaseFrameworkException as w3:
-            om.out.debug("Failed to identify secure IIS, exception: " + str(w3))
-        else:
-            if lock_response2.get_code() == 404:
-                self._report_finding("SecureIIS", lock_response2)
+        lock_response2 = self._uri_opener.GET(
+            fuzzable_request.get_url(), headers=headers, cache=True
+        )
+        if lock_response2.get_code() == 404:
+            self._report_finding("SecureIIS", lock_response2)
 
     def _fingerprint_ModSecurity(self, fuzzable_request):
         """
@@ -134,7 +130,7 @@ class fingerprint_waf(InfrastructurePlugin):
                 # ToDo: not sure if this is always there (08jul08 Achim)
                 protected_by = response.get_headers()[header_name]
                 if re.match("^barra_counter_session=", protected_by, re.IGNORECASE):
-                    self._report_finding("Barracuda", protected_by)
+                    self._report_finding("Barracuda", response, protected_by)
                     return
             # else
             # don't know ...
@@ -197,8 +193,9 @@ class fingerprint_waf(InfrastructurePlugin):
                 if re.match("^TS[a-zA-Z0-9]{3,6}=", protected_by):
                     self._report_finding("F5 ASM", response, protected_by)
                     return
-            elif header_name.lower() == "X-Cnection":
-                if re.match("^close", response.get_headers()[header_name]):
+            elif header_name.lower() == "x-cnection":
+                protected_by = response.get_headers()[header_name]
+                if re.match("^close", protected_by):
                     self._report_finding("F5 ASM", response, protected_by)
                     return
 
@@ -243,7 +240,7 @@ class fingerprint_waf(InfrastructurePlugin):
         for header_name in list(response.get_headers().keys()):
             if header_name.lower() == "set-cookie":
                 protected_by = response.get_headers()[header_name]
-                if re.match("^(incap_ses|visid_incap)=", protected_by, re.IGNORECASE):
+                if re.match("^(incap_ses|visid_incap)_", protected_by, re.IGNORECASE):
                     self._report_finding("Incapsula", response, protected_by)
                     return
             # else
@@ -273,13 +270,12 @@ class fingerprint_waf(InfrastructurePlugin):
         for header_name in list(response.get_headers().keys()):
             if header_name.lower() == "set-cookie":
                 protected_by = response.get_headers()[header_name]
-                if re.match("^PLBSID==", protected_by, re.IGNORECASE):
+                if re.match("^PLBSID=", protected_by, re.IGNORECASE):
                     self._report_finding("Profense", response, protected_by)
                     return
-            elif header_name.lower() == "Server":
-                if re.match(
-                    "^Profense", response.get_headers()[header_name], re.IGNORECASE
-                ):
+            elif header_name.lower() == "server":
+                protected_by = response.get_headers()[header_name]
+                if re.match("^Profense", protected_by, re.IGNORECASE):
                     self._report_finding("Profense", response, protected_by)
                     return
 

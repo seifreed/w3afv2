@@ -22,11 +22,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import json
 import os
 import tempfile
+import unittest
 from typing import ClassVar
 
 import pytest
 
-from w3af.plugins.infrastructure.php_eggs import md5_hash
+import w3af.core.data.kb.knowledge_base as kb
+from w3af.core.data.dc.headers import Headers
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.url.http_response import HTTPResponse
+from w3af.plugins.infrastructure.php_eggs import EggQueryResult, md5_hash, php_eggs
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 EGG_HASHES = {
@@ -126,3 +131,54 @@ class TestPHPEggsNoFingerprint(PluginTest):
 
         self.assertEqual(len(eggs), 0, eggs)
         self.assertEqual(len(php_version), 0, php_version)
+
+
+def _egg_query_result(body, egg_desc):
+    url = URL("http://mock/?=PHPB8B5F2A0-3C92-11d3-A3A9-4C7B08C10000")
+    headers = Headers([("Content-Type", "image/png")])
+    response = HTTPResponse(200, body, headers, url, url, _id=1)
+    return EggQueryResult(response, egg_desc, url)
+
+
+class TestPHPEggsVersionExtraction(unittest.TestCase):
+    def setUp(self):
+        kb.kb.cleanup()
+        self.addCleanup(kb.kb.cleanup)
+        self.plugin = php_eggs()
+        self.plugin.EGG_DB = {
+            "5.3.2": dict(EGG_HASHES),
+            "5.2.0": {**EGG_HASHES, "credits": md5_hash("other")},
+        }
+
+    def test_single_matching_version(self):
+        query_results = [_egg_query_result("1", "PHP Credits")]
+
+        self.plugin._extract_version_from_egg(query_results)
+
+        php_version = kb.kb.get("php_eggs", "version")
+        self.assertEqual(len(php_version), 1, php_version)
+        self.assertEqual(php_version[0]["version"], ["5.3.2"])
+        self.assertIn("identified as:\n- 5.3.2", php_version[0].get_desc())
+
+    def test_unknown_eggs_report_no_version(self):
+        query_results = [_egg_query_result("unknown", "PHP Credits")]
+
+        self.plugin._extract_version_from_egg(query_results)
+
+        self.assertEqual(kb.kb.get("php_eggs", "version"), [])
+
+    def test_php_version_from_powered_by(self):
+        kb.kb.raw_write(
+            "server_header", "powered_by_string", ["ASP.NET", "PHP", "PHP/5.3.2"]
+        )
+
+        self.assertEqual(self.plugin._php_version_from_powered_by(), "5.3.2")
+
+    def test_php_version_without_powered_by(self):
+        self.assertEqual(self.plugin._php_version_from_powered_by(), "unknown")
+
+    def test_depends_on_server_header(self):
+        self.assertEqual(
+            self.plugin.get_plugin_deps(), ["infrastructure.server_header"]
+        )
+        self.assertIn("PHP Credits", self.plugin.get_long_desc())

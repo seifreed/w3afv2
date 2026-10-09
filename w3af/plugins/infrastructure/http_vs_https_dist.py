@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from scapy.error import Scapy_Exception
+
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import RunOnce
@@ -29,10 +31,10 @@ from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.options.option_types import INT
 
-PERM_ERROR_MSG = (
-    "w3af won't be able to run plugin infrastructure.http_vs_"
-    "https_dist. It seems that the user running the w3af process"
-    " has not enough privileges."
+TRACEROUTE_ERROR_MSG = (
+    "w3af won't be able to run plugin infrastructure.http_vs_https_dist."
+    ' Scapy\'s traceroute failed with: "%s". Note that tracing routes'
+    " requires enough privileges to send and capture raw packets."
 )
 
 
@@ -60,39 +62,18 @@ class http_vs_https_dist(InfrastructurePlugin):
         :param fuzzable_request: A fuzzable_request instance that contains
                                     (among other things) the URL to test.
         """
-        if not self._has_permission():
-            om.out.error(PERM_ERROR_MSG)
-            return
-
         target_url = fuzzable_request.get_url()
         domain = target_url.get_domain()
         http_port, https_port = self.get_target_ports(target_url)
 
-        # Import things from scapy when I need them in order to reduce memory
-        # usage (which is specially big in scapy module, just when importing)
         try:
-            from scapy.all import traceroute
-            from scapy.error import Scapy_Exception
-        except ImportError as ie:
-            om.out.debug(f'There was an error importing scapy.all: "{ie}"')
-            return
-
-        try:
-            # pylint: disable=E1124,E1136
-
-            # First try with httpS
-            https_troute = traceroute(domain, dport=https_port)[0].get_trace()
-            # Then with http
-            http_troute = traceroute(domain, dport=http_port)[0].get_trace()
-
-            # pylint: enable=E1124,E1136
+            https_troute = _traceroute(domain, https_port)
+            http_troute = _traceroute(domain, http_port)
         except (OSError, Scapy_Exception) as e:
-            # I've seen numerous bug reports with the following exception:
-            # "error: illegal IP address string passed to inet_aton"
-            # that come from this part of the code. It seems that in some cases
-            # the domain resolves to an IPv6 address and scapy does NOT
-            # support that protocol.
-            om.out.debug(f'There was an error running scapy\'s traceroute: "{e}"')
+            # Raised when the user has no privileges to send raw packets, and
+            # also when the domain can not be resolved or resolves to an IPv6
+            # address, which scapy's traceroute does not support.
+            om.out.error(TRACEROUTE_ERROR_MSG % e)
             return
 
         self.report_routes(domain, http_port, https_port, http_troute, https_troute)
@@ -168,28 +149,6 @@ class http_vs_https_dist(InfrastructurePlugin):
         i = Info(name, desc, 1, self.get_name())
         kb.kb.append(self, "http_vs_https_dist", i)
 
-    def _has_permission(self):
-        """
-        Return boolean value that indicates if the user running w3af has
-        enough privileges to exec 'traceroute'
-        """
-        # Import things from scapy when I need them in order to reduce memory
-        # usage (which is specially big in scapy module, just when importing)
-        try:
-            from scapy.all import traceroute
-            from scapy.error import Scapy_Exception
-        except OSError:
-            # [Errno 1] Operation not permitted #12131
-            # https://github.com/andresriancho/w3af/issues/12131
-            return False
-
-        try:
-            traceroute("127.0.0.1", maxttl=1)
-        except (OSError, Scapy_Exception):
-            return False
-
-        return True
-
     def get_options(self):
         """
         :return: A list of option objects for this plugin.
@@ -237,3 +196,14 @@ def _trace_str(ip_tuples):
     return "\n".join(
         f"    {hop} {ip_tuple[0]}" for hop, ip_tuple in enumerate(ip_tuples)
     )
+
+
+def _traceroute(domain, port):
+    """
+    Import scapy.all only when tracing, the import uses a lot of memory.
+
+    :return: The scapy trace dict for a TCP traceroute to domain:port
+    """
+    from scapy.all import traceroute
+
+    return traceroute(domain, dport=port, verbose=0)[0].get_trace()

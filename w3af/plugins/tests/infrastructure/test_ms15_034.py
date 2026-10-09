@@ -19,8 +19,10 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import unittest
 from typing import ClassVar
 
+from w3af.plugins.infrastructure.ms15_034 import ms15_034
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 
@@ -68,3 +70,8 @@ class TestNotFindMS14_034(PluginTest):
 
         infos = self.kb.get("ms15_034", "ms15_034")
         self.assertEqual(len(infos), 0, infos)
+
+
+class TestMS15_034Description(unittest.TestCase):
+    def test_long_desc_names_the_range_header(self):
+        self.assertIn("bytes=18-18446744073709551615", ms15_034().get_long_desc())

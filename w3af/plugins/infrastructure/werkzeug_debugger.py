@@ -25,6 +25,7 @@ from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.data.constants.severity import HIGH
 from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.misc.encoding import smart_unicode
 
 
 class werkzeug_debugger(InfrastructurePlugin):
@@ -46,9 +47,12 @@ class werkzeug_debugger(InfrastructurePlugin):
         url = fuzzable_request.get_url().url_join(self.TEST_URL)
         response = self._uri_opener.GET(url, cache=False, grep=False)
 
+        # The body stays as bytes when the response has no Content-Type
+        body = smart_unicode(response.get_body())
+
         # All strings need to be there
         for req_string in self.REQUIRED_STRINGS:
-            if req_string not in response.get_body():
+            if req_string not in body:
                 return
 
         desc = (

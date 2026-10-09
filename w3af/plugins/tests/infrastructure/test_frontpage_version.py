@@ -19,8 +19,10 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import unittest
 from typing import ClassVar
 
+from w3af.plugins.infrastructure.frontpage_version import frontpage_version
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 
@@ -64,3 +66,40 @@ class TestFrontpageVersion(PluginTest):
             {self.target_url + path_file for path_file in EXPECTED},
             {i.get_url().url_string for i in infos},
         )
+
+
+class TestFrontpageVersionDefaultLocations(PluginTest):
+
+    target_url = "http://httpretty/site/index.html"
+
+    DEFAULT_BODY = (
+        'FPVersion="5.0.2.6790"\n'
+        'FPAdminScriptUrl="_vti_bin/_vti_adm/admin.exe"\n'
+        'FPAuthorScriptUrl="_vti_bin/_vti_aut/author.exe"\n'
+    )
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse("http://httpretty/site/index.html", "Index"),
+        MockResponse("http://httpretty/_vti_inf.html", "<html>Maintenance</html>"),
+        MockResponse("http://httpretty/site/_vti_inf.html", DEFAULT_BODY),
+    ]
+
+    def test_default_script_locations(self):
+        plugins = {"infrastructure": (PluginConfig("frontpage_version"),)}
+        self._scan(self.target_url, plugins)
+
+        infos = self.kb.get("frontpage_version", "frontpage_version")
+
+        self.assertEqual(
+            {(i.get_name(), i.get_url().get_path()) for i in infos},
+            {
+                ("FrontPage configuration information", "/site/_vti_inf.html"),
+                ("FrontPage FPAdminScriptUrl", "/site/_vti_bin/_vti_adm/admin.exe"),
+                ("FrontPage FPAuthorScriptUrl", "/site/_vti_bin/_vti_aut/author.exe"),
+            },
+        )
+
+
+class TestFrontpageVersionDescription(unittest.TestCase):
+    def test_long_desc_names_the_info_file(self):
+        self.assertIn("_vti_inf.html", frontpage_version().get_long_desc())
