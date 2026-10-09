@@ -19,9 +19,13 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import csv
 from typing import ClassVar
 
+import pytest
+
 from w3af.core.data.kb.info import Info
+from w3af.plugins.crawl.user_db.user_db import APPLICATION, OS, get_users_from_csv
 from w3af.plugins.crawl.user_dir import user_dir
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
@@ -72,3 +76,35 @@ class TestUserDir(PluginTest):
 
 def test_user_dir_long_desc():
     assert "home directories" in user_dir().get_long_desc()
+
+
+def test_users_from_csv_reads_bundled_database():
+    users = list(get_users_from_csv(OS))
+
+    assert users
+    assert all(isinstance(user, str) for _, user in users)
+
+
+def test_users_from_csv_rejects_unknown_database():
+    with pytest.raises(ValueError, match="Invalid identification"):
+        list(get_users_from_csv("unknown"))
+
+
+def test_users_from_csv_skips_invalid_rows(tmp_path):
+    oversized_field = "x" * (csv.field_size_limit() + 1)
+    (tmp_path / f"{APPLICATION}.csv").write_text(
+        "\n".join(
+            [
+                "# a comment line",
+                "",
+                "a row with a single field",
+                f'"{oversized_field}",user',
+                "Apache web server,www",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    users = list(get_users_from_csv(APPLICATION, db_path=tmp_path))
+
+    assert users == [("Apache web server", "www")]
