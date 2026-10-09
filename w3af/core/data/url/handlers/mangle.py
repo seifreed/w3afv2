@@ -96,20 +96,9 @@ class MangledKeepAliveHTTPResponse(kaHTTPResponse):
 
         :see: https://github.com/andresriancho/w3af/issues/2172
         """
-        self._rbuf = ""
         self._method = None
 
     def close(self):
-        """
-        Since this HTTP response doesn't have a socket, there is nothing to
-        close. We just "pass" to avoid issues like
-
-            https://github.com/andresriancho/w3af/issues/11822
-
-        :return: None
-        """
-
-    def close_connection(self):
         """
         Since this HTTP response doesn't have a socket, there is nothing to
         close. We just "pass" to avoid issues like

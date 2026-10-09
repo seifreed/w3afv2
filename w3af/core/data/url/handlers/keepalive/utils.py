@@ -1,8 +1,12 @@
 import logging
 import os
 
-KA_DEBUG = os.environ.get("KA_DEBUG", "0") == "1"
 LOGGER = logging.getLogger(__name__)
+
+# The keep-alive internals are very verbose, only log them on demand
+LOGGER.setLevel(
+    logging.DEBUG if os.environ.get("KA_DEBUG", "0") == "1" else logging.CRITICAL + 1
+)
 
 
 def to_utf8_raw(unicode_or_str):
@@ -23,10 +27,8 @@ def request_body_bytes(data):
 
 
 def debug(msg):
-    if KA_DEBUG:
-        LOGGER.debug("[keepalive] %s", msg)
+    LOGGER.debug("[keepalive] %s", msg)
 
 
 def error(msg):
-    if KA_DEBUG:
-        LOGGER.error("[keepalive] %s", msg)
+    LOGGER.error("[keepalive] %s", msg)

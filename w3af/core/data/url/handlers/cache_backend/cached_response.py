@@ -116,17 +116,6 @@ class CachedResponse(io.StringIO):
         raise NotImplementedError
 
     @staticmethod
-    def exists_in_cache(request):
-        """
-        Verifies if a request is in the cache container
-
-        :param reqid: Request object
-        :return: Boolean value
-        @raises NotImplementedError: if the method is not redefined
-        """
-        raise NotImplementedError
-
-    @staticmethod
     def store_in_cache(request, response):
         """
         Saves data in request and response objects to the cache container

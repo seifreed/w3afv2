@@ -20,79 +20,76 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import io
 import unittest
-import urllib.error
-import urllib.parse
-import urllib.request
-from unittest.mock import Mock, _Call, patch
+import urllib.response
+from email.message import Message
 
+from w3af.core.data.db.exceptions import DBException
 from w3af.core.data.db.history import HistoryItem
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url import opener_settings
+from w3af.core.data.url.director import CustomOpenerDirector, build_opener
+from w3af.core.data.url.exceptions import CacheStoreException
 from w3af.core.data.url.handlers.cache import CacheHandler
-from w3af.core.data.url.handlers.cache_backend.db import SQLCachedResponse
+from w3af.core.data.url.handlers.cache_backend.cached_response import CachedResponse
+from w3af.core.data.url.handlers.cache_backend.db import SQLCachedResponse, store_error
 from w3af.core.data.url.handlers.cache_backend.utils import gen_hash
+from w3af.core.data.url.handlers.keepalive import HTTPHandler
+from w3af.core.data.url.handlers.tests.local_server import LocalServer, Reply
 from w3af.core.data.url.http_request import HTTPRequest
 from w3af.core.data.url.http_response import HTTPResponse
+from w3af.core.exceptions import ScanMustStopException
 
 
 class TestCacheHandler(unittest.TestCase):
+    def setUp(self):
+        self.cache = CacheHandler()
+        self.addCleanup(self.cache.clear)
+        self.server = LocalServer(
+            {"/": Reply(body="spameggs", headers=[("X-Test", "cached")])}
+        ).start()
+        self.addCleanup(self.server.stop)
+        self.url = URL(self.server.url())
+        self.opener = build_opener(CustomOpenerDirector, [HTTPHandler(), self.cache])
 
-    def tearDown(self):
-        CacheHandler().clear()
+    def test_responses_are_served_from_the_cache(self):
+        live = self.opener.open(HTTPRequest(self.url, cache=True))
+        cached = self.opener.open(HTTPRequest(self.url, cache=True))
 
-    def test_basic(self):
-        url = URL("http://www.w3af.org")
-        request = HTTPRequest(url, cache=True)
+        self.assertEqual(len(self.server.requests), 1)
+        self.assertIsInstance(cached, SQLCachedResponse)
+        self.assertTrue(cached.from_cache)
+        self.assertEqual(cached.code, live.code)
+        self.assertEqual(cached.msg, live.msg)
+        self.assertEqual(cached.read(), "spameggs")
+        self.assertEqual(cached.info()["X-Test"], "cached")
+        self.assertIs(cached.headers(), cached.info())
+        self.assertEqual(cached.geturl(), self.url.url_string)
+        self.assertEqual(cached.get_full_url(), self.url.url_string)
+        self.assertEqual(cached.encoding, "utf-8")
+        self.assertGreaterEqual(cached.get_wait_time(), 0)
 
-        cache = CacheHandler()
-        self.assertEqual(cache.default_open(request), None)
+    def test_requests_which_should_not_use_the_cache(self):
+        self.opener.open(HTTPRequest(self.url, cache=True))
 
-        response = FakeHttplibHTTPResponse(
-            200, "OK", "spameggs", Headers(), url.url_string
+        self.opener.open(HTTPRequest(self.url, cache=False))
+        self.opener.open(HTTPRequest(self.url, cache=True, data="a=1"))
+
+        self.assertEqual(
+            [request.method for request in self.server.requests],
+            ["GET", "GET", "POST"],
         )
-
-        with patch("w3af.core.data.url.handlers.cache.CacheClass") as cc_mock:
-            store_in_cache = Mock()
-            cc_mock.attach_mock(store_in_cache, "store_in_cache")
-
-            # This stores the response
-            cache.http_response(request, response)
-
-            # Make sure the right call was made
-            _call = _Call(("store_in_cache", (request, response)))
-            self.assertEqual(cc_mock.mock_calls, [_call])
-            cc_mock.reset_mock()
-
-            exists_in_cache = Mock()
-            cc_mock.return_value = response
-            cc_mock.attach_mock(exists_in_cache, "exists_in_cache")
-
-            # This retrieves the response from the "cache"
-            cached_response = cache.default_open(request)
-
-            # Make sure the right call was made
-            _exists_call = _Call(("exists_in_cache", (request,)))
-            _retrieve_call = _Call(((request,), {}))
-            self.assertEqual(cc_mock.mock_calls, [_exists_call, _retrieve_call])
-
-        self.assertIsNotNone(cached_response)
-
-        self.assertEqual(cached_response.code, response.code)
-        self.assertEqual(cached_response.msg, response.msg)
-        self.assertEqual(cached_response.read(), response.read())
-        self.assertEqual(Headers(list(cached_response.info().items())), response.info())
-        self.assertEqual(cached_response.geturl(), response.geturl())
 
     def test_cached_response_keeps_headers(self):
         url = URL("http://www.w3af.org/")
         request = HTTPRequest(url, cache=True)
-        CacheHandler()
 
         headers = Headers([("Content-Type", "text/html")])
         response = HTTPResponse(200, "<html/>", headers, url, url, msg="OK")
-        response.set_id(1)
+        response.set_id(consecutive_number_generator.inc())
         response.set_alias(gen_hash(request))
 
         history = HistoryItem()
@@ -102,19 +99,41 @@ class TestCacheHandler(unittest.TestCase):
 
         cached_response = SQLCachedResponse(request)
         self.assertEqual(cached_response.info()["Content-Type"], "text/html")
+        self.assertRaises(ValueError, cached_response._get_from_response, "PART_FOO")
 
-    def test_no_cache(self):
-        url = URL("http://www.w3af.org")
-        request = HTTPRequest(url, cache=False)
-
-        cache = CacheHandler()
-        self.assertEqual(cache.default_open(request), None)
-
-        response = FakeHttplibHTTPResponse(
-            200, "OK", "spameggs", Headers(), url.url_string
+    def test_store_errors(self):
+        request = HTTPRequest(self.url, cache=True)
+        response = urllib.response.addinfourl(
+            io.BytesIO(b"body"), Message(), self.url.url_string, code="abc"
         )
-        cache.http_response(request, response)
-        self.assertEqual(cache.default_open(request), None)
+        response.msg = "OK"
+        response.id = 1
+
+        with self.assertRaises(CacheStoreException):
+            self.cache.http_response(request, response)
+
+    def test_running_out_of_disk_stops_the_scan(self):
+        request = HTTPRequest(self.url)
+        response = HTTPResponse(200, "", Headers(), self.url, self.url)
+
+        error = store_error(DBException("database or disk is full"), request, response)
+        self.assertIsInstance(error, ScanMustStopException)
+
+        error = store_error(ValueError("invalid"), request, response)
+        self.assertIsInstance(error, CacheStoreException)
+
+
+class TestCachedResponseInterface(unittest.TestCase):
+    def test_backends_must_implement_the_storage(self):
+        self.assertRaises(
+            NotImplementedError, CachedResponse.store_in_cache, None, None
+        )
+        self.assertRaises(NotImplementedError, CachedResponse.init)
+        self.assertRaises(
+            NotImplementedError,
+            CachedResponse,
+            HTTPRequest(URL("http://w3af.org/")),
+        )
 
 
 class CacheIntegrationTest(unittest.TestCase):
@@ -123,41 +142,14 @@ class CacheIntegrationTest(unittest.TestCase):
         settings.build_openers()
         opener = settings.get_custom_opener()
 
-        url = URL("http://w3af.org/foo-bar-not-exists.htm")
-        request = HTTPRequest(url, cache=False)
-
-        with patch("w3af.core.data.url.handlers.cache.CacheClass") as cc_mock:
-            store_in_cache = Mock()
-            cc_mock.attach_mock(store_in_cache, "store_in_cache")
+        with LocalServer() as server:
+            url = URL(server.url("/foo-bar-not-exists.htm"))
+            response = opener.open(HTTPRequest(url, cache=False))
 
             # If there is a response we should store it, even if it is a 404
-            try:
-                response = opener.open(request)
-            except urllib.error.HTTPError:
-                pass
-
-            # Make sure the right call was made
-            _call = _Call(("store_in_cache", (request, response)))
-            self.assertEqual(cc_mock.mock_calls, [_call])
-            cc_mock.reset_mock()
-
-            # And make sure the response was a 404
             self.assertEqual(response.status, 404)
+            cached = opener.open(HTTPRequest(url, cache=True))
 
-
-class FakeHttplibHTTPResponse:
-    def __init__(self, code, msg, body, headers, url):
-        self.code = code
-        self.msg = msg
-        self.body = body
-        self.headers = headers
-        self.url = url
-
-    def geturl(self):
-        return self.url
-
-    def read(self):
-        return self.body
-
-    def info(self):
-        return self.headers
+        self.assertIsInstance(cached, SQLCachedResponse)
+        self.assertEqual(cached.code, 404)
+        self.assertEqual(len(server.requests), 1)

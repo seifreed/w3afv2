@@ -22,11 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 import unittest
-import urllib.error
-import urllib.parse
 import urllib.request
-
-import httpretty
 
 import w3af.core.data.kb.config as cf
 from w3af.core.data.constants.response_codes import NO_CONTENT
@@ -34,193 +30,98 @@ from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url import opener_settings
 from w3af.core.data.url.handlers.blacklist import BlacklistHandler
+from w3af.core.data.url.handlers.tests.local_server import LocalServer, Reply
 from w3af.core.data.url.http_request import HTTPRequest
 
 
 class TestBlacklistHandler(unittest.TestCase):
 
-    MOCK_URL = "http://w3af.org/scanner/"
-    MOCK_URL_BLOCK = "http://w3af.org/block/"
-    MOCK_URL_PASS = "http://w3af.org/pass/"
-    MOCK_BODY = "Hello world"
+    BODY = "Hello world"
 
     def setUp(self):
         consecutive_number_generator.reset()
         cf.cf.save("blacklist_http_request", [])
         cf.cf.save("ignore_regex", None)
 
+        routes = {
+            path: Reply(body=self.BODY) for path in ("/scanner/", "/block/", "/pass/")
+        }
+        self.server = LocalServer(routes).start()
+        self.addCleanup(self.server.stop)
+
+        self.scanner_url = URL(self.server.url("/scanner/"))
+        self.blocked_url = URL(self.server.url("/block/"))
+        self.safe_url = URL(self.server.url("/pass/"))
+
     def tearDown(self):
         cf.cf.save("blacklist_http_request", [])
         cf.cf.save("ignore_regex", None)
 
-    @httpretty.activate
+    def sent_paths(self):
+        return [request.path for request in self.server.requests]
+
+    def w3af_opener(self):
+        # Get an instance of the extended urllib and verify that the blacklist
+        # handler still works, even when mixed with all the other handlers.
+        settings = opener_settings.OpenerSettings()
+        settings.build_openers()
+        return settings.get_custom_opener()
+
     def test_blacklist_handler_block(self):
-        httpretty.register_uri(
-            httpretty.GET, self.MOCK_URL, body=self.MOCK_BODY, status=200
-        )
-
-        # Configure the handler
-        blocked_url = URL(self.MOCK_URL)
-        cf.cf.save("blacklist_http_request", [blocked_url])
+        cf.cf.save("blacklist_http_request", [self.scanner_url])
 
         opener = urllib.request.build_opener(BlacklistHandler)
 
-        request = urllib.request.Request(blocked_url.url_string)
-        request.url_object = blocked_url
+        request = urllib.request.Request(self.scanner_url.url_string)
+        request.url_object = self.scanner_url
         response = opener.open(request)
 
         self.assertEqual(response.code, NO_CONTENT)
-        self.assertIsInstance(
-            httpretty.last_request(), httpretty.core.HTTPrettyRequestEmpty
-        )
+        self.assertEqual(response.msg, "No content")
+        self.assertEqual(response.read(), "")
+        self.assertEqual(self.sent_paths(), [])
 
-    @httpretty.activate
     def test_blacklist_handler_pass(self):
-        httpretty.register_uri(
-            httpretty.GET, self.MOCK_URL, body=self.MOCK_BODY, status=200
-        )
-
         opener = urllib.request.build_opener(BlacklistHandler)
 
-        request = urllib.request.Request(self.MOCK_URL)
-        request.url_object = URL(self.MOCK_URL)
+        request = urllib.request.Request(self.scanner_url.url_string)
+        request.url_object = self.scanner_url
         response = opener.open(request)
 
         self.assertEqual(response.code, 200)
-        self.assertEqual(httpretty.last_request().method, httpretty.GET)
+        self.assertEqual(self.server.requests[0].method, "GET")
 
-    @httpretty.activate
     def test_handler_order_block(self):
-        httpretty.register_uri(
-            httpretty.GET, self.MOCK_URL, body=self.MOCK_BODY, status=200
-        )
+        cf.cf.save("blacklist_http_request", [self.scanner_url])
 
-        blocked_url = URL(self.MOCK_URL)
-        cf.cf.save("blacklist_http_request", [blocked_url])
-
-        # Get an instance of the extended urllib and verify that the blacklist
-        # handler still works, even when mixed with all the other handlers.
-        settings = opener_settings.OpenerSettings()
-        settings.build_openers()
-        opener = settings.get_custom_opener()
-
-        request = HTTPRequest(blocked_url)
-        response = opener.open(request)
+        response = self.w3af_opener().open(HTTPRequest(self.scanner_url))
 
         self.assertEqual(response.code, NO_CONTENT)
         self.assertEqual(response.id, 1)
-        self.assertIsInstance(
-            httpretty.last_request(), httpretty.core.HTTPrettyRequestEmpty
-        )
+        self.assertEqual(self.sent_paths(), [])
 
-    @httpretty.activate
+    def assert_only_safe_url_is_sent(self):
+        opener = self.w3af_opener()
+
+        response = opener.open(HTTPRequest(self.safe_url))
+        self.assertEqual(response.code, 200)
+        self.assertEqual(response.id, 1)
+
+        response = opener.open(HTTPRequest(self.blocked_url))
+        self.assertEqual(response.code, NO_CONTENT)
+        self.assertEqual(response.id, 2)
+
+        self.assertEqual(self.sent_paths(), ["/pass/"])
+
     def test_handler_order_pass(self):
-        httpretty.register_uri(
-            httpretty.GET, self.MOCK_URL_BLOCK, body=self.MOCK_BODY, status=200
-        )
+        cf.cf.save("blacklist_http_request", [self.blocked_url])
+        self.assert_only_safe_url_is_sent()
 
-        httpretty.register_uri(
-            httpretty.GET, self.MOCK_URL_PASS, body=self.MOCK_BODY, status=200
-        )
-
-        blocked_url = URL(self.MOCK_URL_BLOCK)
-        safe_url = URL(self.MOCK_URL_PASS)
-        cf.cf.save("blacklist_http_request", [blocked_url])
-
-        # Get an instance of the extended urllib and verify that the blacklist
-        # handler still works, even when mixed with all the other handlers.
-        settings = opener_settings.OpenerSettings()
-        settings.build_openers()
-        opener = settings.get_custom_opener()
-
-        request = HTTPRequest(safe_url)
-        response = opener.open(request)
-
-        last_request = httpretty.last_request()
-
-        self.assertEqual(response.code, 200)
-        self.assertEqual(response.id, 1)
-        self.assertEqual(last_request.method, httpretty.GET)
-
-        request = HTTPRequest(blocked_url)
-        response = opener.open(request)
-
-        self.assertEqual(response.code, 204)
-        self.assertEqual(response.id, 2)
-        self.assertIs(last_request, httpretty.last_request())
-
-    @httpretty.activate
     def test_handler_order_pass_with_ignore_regex(self):
-        httpretty.register_uri(
-            httpretty.GET, self.MOCK_URL_BLOCK, body=self.MOCK_BODY, status=200
-        )
+        cf.cf.save("ignore_regex", re.compile(".*block.*"))
+        self.assert_only_safe_url_is_sent()
 
-        httpretty.register_uri(
-            httpretty.GET, self.MOCK_URL_PASS, body=self.MOCK_BODY, status=200
-        )
-
-        blocked_url = URL(self.MOCK_URL_BLOCK)
-        safe_url = URL(self.MOCK_URL_PASS)
-
-        ignore_regex = re.compile(".*block.*")
-        cf.cf.save("ignore_regex", ignore_regex)
-
-        # Get an instance of the extended urllib and verify that the blacklist
-        # handler still works, even when mixed with all the other handlers.
-        settings = opener_settings.OpenerSettings()
-        settings.build_openers()
-        opener = settings.get_custom_opener()
-
-        request = HTTPRequest(safe_url)
-        response = opener.open(request)
-
-        last_request = httpretty.last_request()
-
-        self.assertEqual(response.code, 200)
-        self.assertEqual(response.id, 1)
-
-        request = HTTPRequest(blocked_url)
-        response = opener.open(request)
-
-        self.assertEqual(response.code, 204)
-        self.assertEqual(response.id, 2)
-        self.assertIs(last_request, httpretty.last_request())
-
-    @httpretty.activate
     def test_handler_order_pass_with_both_methods(self):
-        httpretty.register_uri(
-            httpretty.GET, self.MOCK_URL_BLOCK, body=self.MOCK_BODY, status=200
-        )
-
-        httpretty.register_uri(
-            httpretty.GET, self.MOCK_URL_PASS, body=self.MOCK_BODY, status=200
-        )
-
-        blocked_url = URL(self.MOCK_URL_BLOCK)
-        safe_url = URL(self.MOCK_URL_PASS)
-
-        cf.cf.save("blacklist_http_request", [blocked_url])
-
-        ignore_regex = re.compile(".*blo.*")
-        cf.cf.save("ignore_regex", ignore_regex)
-
-        # Get an instance of the extended urllib and verify that the blacklist
-        # handler still works, even when mixed with all the other handlers.
-        settings = opener_settings.OpenerSettings()
-        settings.build_openers()
-        opener = settings.get_custom_opener()
-
-        request = HTTPRequest(safe_url)
-        response = opener.open(request)
-
-        last_request = httpretty.last_request()
-
-        self.assertEqual(response.code, 200)
-        self.assertEqual(response.id, 1)
-
-        request = HTTPRequest(blocked_url)
-        response = opener.open(request)
-
-        self.assertEqual(response.code, 204)
-        self.assertEqual(response.id, 2)
-        self.assertIs(last_request, httpretty.last_request())
+        cf.cf.save("blacklist_http_request", [self.blocked_url])
+        cf.cf.save("ignore_regex", re.compile(".*blo.*"))
+        self.assert_only_safe_url_is_sent()

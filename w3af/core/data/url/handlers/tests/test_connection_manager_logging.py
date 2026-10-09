@@ -26,6 +26,6 @@ class TestConnectionManagerLogging(unittest.TestCase):
             if "Connections with more in use time" in record.getMessage()
         )
         self.assertLess(
-            connection_info.index(repr(earlier_connection.id)),
-            connection_info.index(repr(later_connection.id)),
+            connection_info.index(earlier_connection.id),
+            connection_info.index(later_connection.id),
         )

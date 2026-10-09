@@ -84,42 +84,51 @@ class AbstractNtlmAuthHandler(urllib.request.BaseHandler):
         return None, user
 
     def retry_using_http_NTLM_auth(self, request, auth_header_field, realm, headers):
-        auth_header_value = headers.get(auth_header_field, None)
-        if auth_header_value is not None:
-            try:
-                ntlm_challenge = next(
-                    challenge.strip().split(None, 1)[1]
-                    for challenge in auth_header_value.split(",")
-                    if challenge.strip().lower().startswith("ntlm ")
-                )
-                challenge = base64.b64decode(ntlm_challenge, validate=True)
-                user, password = self.passwd.find_user_password(
-                    None, request.get_full_url()
-                )
-                if password is None:
-                    return None
-                domain, username = self._split_user(user)
-                user = f"{domain}\\{username}" if domain else username
-                context = spnego.client(user, password, protocol="ntlm")
-                context.step()
-                response = base64.b64encode(context.step(challenge)).decode("ascii")
-            except (ValueError, StopIteration, struct.error, SpnegoError):
-                # Invalid protocol
+        auth_header_value = headers[auth_header_field]
+        try:
+            ntlm_challenge = next(
+                challenge.strip().split(None, 1)[1]
+                for challenge in auth_header_value.split(",")
+                if challenge.strip().lower().startswith("ntlm ")
+            )
+            challenge = base64.b64decode(ntlm_challenge, validate=True)
+            user, password = self.passwd.find_user_password(
+                None, request.get_full_url()
+            )
+            if password is None:
                 return None
-            else:
-                auth = f"NTLM {response}"
-                request.add_unredirected_header(self.auth_header, auth)
-                return self.parent.open(request, timeout=request.timeout)
-        else:
+            domain, username = self._split_user(user)
+            user = f"{domain}\\{username}" if domain else username
+            context = spnego.client(user, password, protocol="ntlm")
+            context.step()
+            response = base64.b64encode(context.step(challenge)).decode("ascii")
+        except (ValueError, StopIteration, struct.error, SpnegoError):
+            # Invalid protocol
             return None
+
+        auth = f"NTLM {response}"
+        request.add_unredirected_header(self.auth_header, auth)
+        return self.parent.open(request, timeout=request.timeout)
 
 
 class HTTPNtlmAuthHandler(AbstractNtlmAuthHandler):
 
     auth_header = "Authorization"
 
-    def http_error_401(self, req, fp, code, msg, headers):
+    def http_response(self, req, response):
+        """
+        Answer NTLM challenges while processing the response: w3af's opener
+        replaces urllib's HTTPErrorProcessor (see NoOpErrorHandler), so a
+        http_error_401() method would never be called.
+        """
+        if response.code != 401:
+            return response
+
         url = req.get_full_url()
-        response = self.http_error_auth_reqed("www-authenticate", url, req, headers)
+        retried = self.http_error_auth_reqed(
+            "www-authenticate", url, req, response.info()
+        )
         self.reset_retry_count()
-        return response
+        return retried or response
+
+    https_response = http_response

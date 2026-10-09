@@ -22,16 +22,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import httpretty
-
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url import opener_settings
+from w3af.core.data.url.handlers.tests.local_server import LocalServer, Reply
 from w3af.core.data.url.http_request import HTTPRequest
 
 
 class TestURLParameterHandler(unittest.TestCase):
-
-    @httpretty.activate
     def test_handler_integration(self):
         """
         Integration test with w3af's URL opener.
@@ -43,16 +40,14 @@ class TestURLParameterHandler(unittest.TestCase):
         settings.build_openers()
         opener = settings.get_custom_opener()
 
-        for proto in ("http", "https"):
-            test_url = URL(f"{proto}://mock/abc/def.html")
-            test_url_param = URL(f"{proto}://mock/abc/def.html;{test_param}")
-            request = HTTPRequest(test_url)
+        routes = {
+            "/abc/def.html": Reply(body="FAIL"),
+            f"/abc/def.html;{test_param}": Reply(body="SUCCESS"),
+        }
 
-            httpretty.register_uri(httpretty.GET, test_url.url_string, body="FAIL")
+        for tls in (False, True):
+            with LocalServer(routes, tls=tls) as server:
+                request = HTTPRequest(URL(server.url("/abc/def.html")))
+                response = opener.open(request)
 
-            httpretty.register_uri(
-                httpretty.GET, test_url_param.url_string, body="SUCCESS"
-            )
-
-            response = opener.open(request)
-            self.assertIn("SUCCESS", response.read())
+            self.assertIn(b"SUCCESS", response.read())

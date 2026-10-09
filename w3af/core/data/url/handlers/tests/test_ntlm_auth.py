@@ -19,62 +19,162 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import base64
+import os
+import tempfile
 import unittest
 import urllib.error
-import urllib.parse
 import urllib.request
+from pathlib import Path
 
-import pytest
+import spnego
+from spnego.exceptions import SpnegoError
 
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.url import opener_settings
+from w3af.core.data.url.director import CustomOpenerDirector, build_opener
+from w3af.core.data.url.handlers.keepalive import HTTPHandler
 from w3af.core.data.url.handlers.ntlm_auth import HTTPNtlmAuthHandler
+from w3af.core.data.url.handlers.tests.local_server import LocalServer, Reply
+from w3af.core.data.url.http_request import HTTPRequest
+
+NEGOTIATE_MESSAGE = b"\x01\x00\x00\x00"
 
 
-@pytest.mark.moth
+def b64(token):
+    return base64.b64encode(token).decode("ascii")
+
+
+def ntlm_required(header="NTLM"):
+    return Reply(401, "Must authenticate.", headers=[("WWW-Authenticate", header)])
+
+
+class NTLMServer:
+    """
+    Answers like an IIS site protected with NTLM, validating the credentials
+    against the pyspnego NTLM_USER_FILE. When `restart` is True the server
+    never accepts the authentication and keeps sending new challenges.
+    """
+
+    def __init__(self, restart=False):
+        self.restart = restart
+        self.negotiate = None
+        self.context = None
+
+    def challenge(self):
+        self.context = spnego.server(protocol="ntlm")
+        return ntlm_required(
+            f"Basic realm=w3af, NTLM {b64(self.context.step(self.negotiate))}"
+        )
+
+    def __call__(self, request):
+        authorization = request.headers.get("Authorization", "")
+        if not authorization.startswith("NTLM "):
+            return ntlm_required()
+
+        token = base64.b64decode(authorization[5:])
+        if token[8:12] == NEGOTIATE_MESSAGE or self.restart:
+            self.negotiate = self.negotiate or token
+            return self.challenge()
+
+        try:
+            self.context.step(token)
+        except SpnegoError:
+            return ntlm_required()
+        return Reply(body=f"You are {self.context.client_principal}")
+
+
 class TestNTLMHandler(unittest.TestCase):
+    def setUp(self):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        users = Path(directory.name, "ntlm_users")
+        users.write_text("MOTH:admin:admin\n:local:secret\n")
 
-    @pytest.mark.ci_fails
-    def test_auth_valid_creds(self):
-        url = "http://moth/w3af/core/ntlm_auth/ntlm_v1/"
-        user = "moth\\admin"
-        password = "admin"
+        previous = os.environ.get("NTLM_USER_FILE")
+        os.environ["NTLM_USER_FILE"] = str(users)
+        self.addCleanup(self.restore_user_file, previous)
 
+        self.server = LocalServer(
+            {
+                "/ntlm": NTLMServer(),
+                "/restart": NTLMServer(restart=True),
+                "/no-header": Reply(401, "Who are you?"),
+                "/bad-challenge": ntlm_required("NTLM !!!"),
+            }
+        ).start()
+        self.addCleanup(self.server.stop)
+
+    @staticmethod
+    def restore_user_file(previous):
+        if previous is None:
+            os.environ.pop("NTLM_USER_FILE")
+        else:
+            os.environ["NTLM_USER_FILE"] = previous
+
+    def open(self, path, user="moth\\admin", password="admin", url=None):
+        url = url or self.server.url(path)
         passman = urllib.request.HTTPPasswordMgrWithDefaultRealm()
         passman.add_password(None, url, user, password)
-        auth_NTLM = HTTPNtlmAuthHandler(passman)
+        opener = build_opener(
+            CustomOpenerDirector, [HTTPHandler(), HTTPNtlmAuthHandler(passman)]
+        )
+        return opener.open(HTTPRequest(URL(self.server.url(path))))
 
-        opener = urllib.request.build_opener(auth_NTLM)
+    def test_auth_valid_creds(self):
+        response = self.open("/ntlm")
+        self.assertEqual(response.read(), b"You are moth\\admin")
 
-        urllib.request.install_opener(opener)
-
-        response = urllib.request.urlopen(url).read()
-        self.assertTrue(response.startswith("You are admin from MOTH/"), response)
+    def test_auth_valid_creds_without_domain(self):
+        response = self.open("/ntlm", user="local", password="secret")
+        self.assertTrue(response.read().startswith(b"You are "))
 
     def test_auth_invalid_creds(self):
-        url = "http://moth/w3af/core/ntlm_auth/ntlm_v1/"
-        user = "moth\\invalid"
-        password = "invalid"
+        self.assertRaises(
+            urllib.error.HTTPError, self.open, "/ntlm", "moth\\invalid", "invalid"
+        )
 
-        passman = urllib.request.HTTPPasswordMgrWithDefaultRealm()
-        passman.add_password(None, url, user, password)
-        auth_NTLM = HTTPNtlmAuthHandler(passman)
+    def test_server_never_accepting_the_authentication(self):
+        with self.assertRaisesRegex(urllib.error.HTTPError, "NTLM auth failed"):
+            self.open("/restart")
 
-        opener = urllib.request.build_opener(auth_NTLM)
+    def test_responses_without_ntlm_challenge(self):
+        for path in ("/no-header", "/bad-challenge"):
+            with self.assertRaises(urllib.error.HTTPError) as error:
+                self.open(path)
+            self.assertEqual(error.exception.code, 401)
+            error.exception.close()
 
-        urllib.request.install_opener(opener)
+    def test_no_credentials_for_the_url(self):
+        other_url = f"http://localhost:{self.server.port}/"
 
-        self.assertRaises(urllib.error.URLError, urllib.request.urlopen, url)
+        with self.assertRaises(urllib.error.HTTPError) as error:
+            self.open("/restart", url=other_url)
+        self.assertEqual(error.exception.code, 401)
+        error.exception.close()
 
-    def test_auth_invalid_proto(self):
-        url = "http://moth/w3af/core/ntlm_auth/ntlm_v2/"
-        user = "moth\\admin"
-        password = "admin"
+    def test_challenge_without_credentials(self):
+        handler = HTTPNtlmAuthHandler()
+        request = HTTPRequest(URL(self.server.url("/ntlm")))
+        negotiate = spnego.client("user", "pass", protocol="ntlm").step()
+        challenge = spnego.server(protocol="ntlm").step(negotiate)
+        headers = {"www-authenticate": f"NTLM {b64(challenge)}"}
 
-        passman = urllib.request.HTTPPasswordMgrWithDefaultRealm()
-        passman.add_password(None, url, user, password)
-        auth_NTLM = HTTPNtlmAuthHandler(passman)
+        self.assertIs(handler.http_request(request), request)
+        self.assertIsNone(
+            handler.retry_using_http_NTLM_auth(
+                request, "www-authenticate", None, headers
+            )
+        )
 
-        opener = urllib.request.build_opener(auth_NTLM)
+    def test_w3af_opener_authenticates(self):
+        settings = opener_settings.OpenerSettings()
+        settings.set_ntlm_auth(self.server.url("/ntlm"), "moth", "admin", "admin")
+        settings.build_openers()
 
-        urllib.request.install_opener(opener)
+        response = settings.get_custom_opener().open(
+            HTTPRequest(URL(self.server.url("/ntlm")))
+        )
 
-        self.assertRaises(urllib.error.URLError, urllib.request.urlopen, url)
+        self.assertEqual(response.code, 200)
+        self.assertEqual(response.read(), b"You are moth\\admin")
