@@ -20,17 +20,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import pprint
 import textwrap
 import uuid
 
 from jinja2 import Environment, StrictUndefined
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.data.fuzzer.mutants.empty_mutant import EmptyMutant
 from w3af.core.data.kb.info import Info
-from w3af.core.data.misc.encoding import smart_str, smart_unicode
+from w3af.core.data.misc.encoding import smart_unicode
 from w3af.core.data.misc.human_number import human_number
+
+LOGGER = logging.getLogger(__name__)
 
 
 def sample_count(value):
@@ -164,12 +166,12 @@ class InfoSet:
         try:
             rendered_desc = template.render(context)
         except UnicodeDecodeError:
-            context_pp = pprint.pformat(context, indent=4)
-            msg = (
-                "UnicodeDecodeError found while rendering:\n\n%s\n\n"
-                "Using the following context:\n\n%r\n\n"
+            LOGGER.debug(
+                "UnicodeDecodeError found while rendering template %r with context:\n%s",
+                template_str,
+                pprint.pformat(context, indent=4),
+                exc_info=True,
             )
-            om.out.debug(msg % (smart_str(template_str), smart_str(context_pp)))
             raise
 
         return rendered_desc

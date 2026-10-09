@@ -338,3 +338,19 @@ símbolos privados de `multiprocessing` y nombres indefinidos en paquetes
 existentes. No se ejecutó `pip-audit`. El score global sigue en **2.5/10**:
 la KB reduce acoplamientos de test/infraestructura, pero aún contiene otros
 imports de `controllers` y responsabilidades concentradas.
+
+## Avance: logging de InfoSet
+
+`InfoSet` ya no importa `controllers.output_manager`: el único uso era un
+mensaje de debug en la ruta que registra y relanza `UnicodeDecodeError` al
+renderizar una plantilla. El mismo contexto y traceback ahora se envían a
+`logging` estándar antes de relanzar la excepción. Esto elimina otro detalle
+de UI/controladores del modelo sin alterar el retorno ni el error de render.
+
+La batería focal de vulnerabilidades, `Info`, `Vuln`, `InfoSet` y `knowledge_base`
+volvió a pasar (**106 tests**); Ruff pasa en `info_set.py` y Black en ese
+módulo. El primer cierre combinado mostró una línea incompleta de excepción del
+thread `OutputManager`, que no se reprodujo al ejecutar las suites individual
+y conjuntamente de nuevo. El riesgo B701 de Jinja (`autoescape=False`) sigue
+pendiente de rastrear hasta sus salidas; no se cambió el escape de contenido.
+El score global permanece en **2.5/10**.
