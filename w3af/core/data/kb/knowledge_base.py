@@ -600,8 +600,8 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         pickled_obj = cpickle_dumps(value)
         t = (location_a, location_b, uniq_id, pickled_obj)
 
-        query = f"INSERT INTO {self.table_name} VALUES (?, ?, ?, ?)"
-        self.db.execute(query, t)
+        query = "INSERT INTO %s VALUES (?, ?, ?, ?)"
+        self.db.execute(query % self.table_name, t)
         self._notify_observers(
             self.APPEND, location_a, location_b, value, ignore_type=ignore_type
         )
@@ -844,7 +844,8 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         Cleanup internal data.
         """
         with self._kb_lock:
-            self.db.execute(f"DELETE FROM {self.table_name} WHERE 1=1")
+            query = "DELETE FROM %s WHERE 1=1"
+            self.db.execute(query % self.table_name)
             self._reached_max_info_instances_cache.clear()
 
             # Remove the old, create new.
