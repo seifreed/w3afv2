@@ -86,9 +86,9 @@ def paginate_logs(scan_id, scan_info, page, _id):
 
         messages = scan_info.output.get_entries(start, end)
 
-        more = True if len(scan_info.output.log) > end else False
+        more = len(scan_info.output) > end
         next = page + 1 if more else None
-        next_url = "/scans/%s/log?page=%s" % (scan_id, next) if more else None
+        next_url = f"/scans/{scan_id}/log?page={next}" if more else None
         log_entries = [m.to_json() for m in messages]
 
         return next, next_url, log_entries
@@ -102,9 +102,9 @@ def paginate_logs(scan_id, scan_info, page, _id):
 
         messages = scan_info.output.get_entries(start_id, end_id)
 
-        more = True if len(scan_info.output.log) > end_id else False
+        more = len(scan_info.output) > end_id
         next = end_id if more else None
-        next_url = "/scans/%s/log?id=%s" % (scan_id, next) if more else None
+        next_url = f"/scans/{scan_id}/log?id={next}" if more else None
         log_entries = [m.to_json() for m in messages]
 
         return next, next_url, log_entries

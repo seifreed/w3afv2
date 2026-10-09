@@ -23,21 +23,29 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import base64
 import hashlib
 import json
+import secrets
 import time
 import unittest
+from types import MappingProxyType
 
 from w3af.core.ui.api import app
 from w3af.core.ui.api.db.master import SCANS
 
+USERNAME = "admin"
+PASSWORD = secrets.token_urlsafe(16)
+AUTHORIZATION = base64.b64encode(f"{USERNAME}:{PASSWORD}".encode()).decode("ascii")
+
 
 class APIUnitTest(unittest.TestCase):
-    PASSWORD = "password"
-    AUTHORIZATION = base64.b64encode("%s:%s" % ("admin", PASSWORD))
-    HEADERS = {
-        "Content-type": "application/json",
-        "Accept": "application/json",
-        "Authorization": "Basic %s" % AUTHORIZATION,
-    }
+    PASSWORD = PASSWORD
+    AUTHORIZATION = AUTHORIZATION
+    HEADERS = MappingProxyType(
+        {
+            "Content-type": "application/json",
+            "Accept": "application/json",
+            "Authorization": f"Basic {AUTHORIZATION}",
+        }
+    )
 
     def setUp(self):
         # Raise exceptions
@@ -45,8 +53,8 @@ class APIUnitTest(unittest.TestCase):
         app.testing = True
 
         # Configure authentication
-        app.config["PASSWORD"] = hashlib.sha512(self.PASSWORD).hexdigest()
-        app.config["USERNAME"] = "admin"
+        app.config["PASSWORD"] = hashlib.sha512(self.PASSWORD.encode()).hexdigest()
+        app.config["USERNAME"] = USERNAME
 
         self.app = app.test_client()
 
@@ -60,6 +68,8 @@ class APIUnitTest(unittest.TestCase):
                 scan_info.w3af_core.stop()
                 scan_info.w3af_core.cleanup()
                 SCANS[scan_id] = None
+
+        app.config.pop("PASSWORD", None)
 
     def wait_until_running(self):
         """

@@ -115,11 +115,7 @@ class CoreStatus:
                 if status_str:
                     status_str += "\n"
 
-                status_str += "Auditing %s using %s.%s" % (
-                    audit_fr,
-                    "audit",
-                    audit_plugin,
-                )
+                status_str += f"Auditing {audit_fr} using audit.{audit_plugin}"
 
             status_str = status_str.replace("\x00", "")
             return status_str
@@ -157,6 +153,13 @@ class CoreStatus:
 
     def is_paused(self):
         return self._paused
+
+    def has_started(self):
+        """
+        :return: True once start() was called, the run time, ETA and progress
+                 can only be calculated after that
+        """
+        return self._start_time_epoch is not None
 
     def get_run_time(self):
         """
@@ -517,7 +520,7 @@ class CoreStatus:
             if fuzzable_request is None:
                 return fuzzable_request
 
-            return "%s %s" % (fuzzable_request.get_method(), fuzzable_request.get_uri())
+            return f"{fuzzable_request.get_method()} {fuzzable_request.get_uri()}"
 
         crawl_fuzzable_request = self.get_current_fuzzable_request("crawl")
         crawl_fuzzable_request = serialize_fuzzable_request(crawl_fuzzable_request)
@@ -596,9 +599,7 @@ class CoreStatus:
         if progress == 100 and self.any_consumer_running():
             progress = 99
 
-        om.out.debug(
-            "The scan will finish in %.2f seconds (%s%% done)" % (eta, progress)
-        )
+        om.out.debug(f"The scan will finish in {eta:.2f} seconds ({progress}% done)")
 
         return progress
 
@@ -609,10 +610,7 @@ class CoreStatus:
         if not self.has_finished_audit():
             return True
 
-        if not self.has_finished_grep():
-            return True
-
-        return False
+        return not self.has_finished_grep()
 
     def get_crawl_adjustment_ratio(self):
         """
@@ -730,7 +728,7 @@ class CoreStatus:
         return Adjustment(known=1.0, unknown=0.75)
 
     def log_eta(self, msg):
-        om.out.debug("[get_eta] %s" % msg)
+        om.out.debug(f"[get_eta] {msg}")
 
     def get_eta(self):
         """

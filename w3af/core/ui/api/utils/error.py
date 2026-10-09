@@ -21,27 +21,39 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import json
+from typing import Any, NoReturn
 
 from werkzeug.exceptions import HTTPException
 
+UNAUTHORIZED = 401
+BASIC_AUTH_CHALLENGE = ("WWW-Authenticate", 'Basic realm="w3af", charset="UTF-8"')
+
 
 class JSONHTTPException(HTTPException):
-    def __init__(self, description=None, code=None):
+    def __init__(self, description: str | None = None, code: int | None = None):
         Exception.__init__(self)
         self.response = None
         self.description = description
         self.code = code
 
-    def get_body(self, environ=None):
+    def get_body(self, environ: Any = None, scope: Any = None) -> str:
         """Get the JSON body"""
         return json.dumps({"message": self.description, "code": self.code})
 
-    def get_headers(self, environ=None):
-        """Get a list of headers."""
-        return [("Content-Type", "application/json")]
+    def get_headers(
+        self, environ: Any = None, scope: Any = None
+    ) -> list[tuple[str, str]]:
+        """
+        Get a list of headers, asking browsers for credentials when the request
+        was not authenticated.
+        """
+        headers = [("Content-Type", "application/json")]
+        if self.code == UNAUTHORIZED:
+            headers.append(BASIC_AUTH_CHALLENGE)
+        return headers
 
 
-def abort(code, message):
+def abort(code: int, message: str) -> NoReturn:
     """
     Raise an exception to stop HTTP processing execution
 

@@ -69,6 +69,14 @@ class TestStatus(unittest.TestCase):
         self.assertEqual(s.get_status(), STOPPED)
         self.assertFalse(s.is_running())
 
+    def test_has_started(self):
+        s = CoreStatus(None)
+        self.assertFalse(s.has_started())
+
+        s.start()
+        s.stop()
+        self.assertTrue(s.has_started())
+
     def test_queue_status_not_started(self):
         core = w3afCore()
         s = CoreStatus(core)

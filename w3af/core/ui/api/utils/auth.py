@@ -20,8 +20,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from collections.abc import Callable
 from functools import wraps
 from hashlib import sha512
+from hmac import compare_digest
 
 from flask import request
 
@@ -29,21 +31,27 @@ from w3af.core.ui.api import app
 from w3af.core.ui.api.utils.error import abort
 
 
-def check_auth(username, password):
-    """This function is called to check if a username /
-    password combination is valid.
+def check_auth(username: str | None, password: str | None) -> bool:
     """
-    return (
-        username == app.config["USERNAME"]
-        and sha512(password).hexdigest() == app.config["PASSWORD"]
+    :return: True if the username / password combination is valid
+    """
+    if username is None or password is None:
+        return False
+
+    password_hash = sha512(password.encode("utf-8")).hexdigest()
+    valid_username = compare_digest(
+        username.encode("utf-8"), str(app.config["USERNAME"]).encode("utf-8")
     )
+    valid_password = compare_digest(
+        password_hash.encode("utf-8"), str(app.config["PASSWORD"]).encode("utf-8")
+    )
+    return valid_username and valid_password
 
 
-def requires_auth(f):
+def requires_auth[**P, R](f: Callable[P, R]) -> Callable[P, R]:
     @wraps(f)
-    def decorated(*args, **kwargs):
-
-        if not "PASSWORD" in app.config:
+    def decorated(*args: P.args, **kwargs: P.kwargs) -> R:
+        if "PASSWORD" not in app.config:
             # Auth was not enabled at startup
             return f(*args, **kwargs)
 

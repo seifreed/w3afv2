@@ -24,6 +24,7 @@ from multiprocessing.dummy import Process
 
 from flask import jsonify, request
 
+from w3af.core.controllers.core_helpers.status import RUNNING, STOPPED
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.w3afCore import w3afCore
 from w3af.core.data.parsers.doc.url import URL
@@ -39,6 +40,8 @@ from w3af.core.ui.api.utils.scans import (
     remove_temp_profile,
     start_scan_helper,
 )
+
+STARTING = "Starting"
 
 
 @app.route("/scans/", methods=["POST"])
@@ -68,8 +71,7 @@ def start_scan():
     # First make sure that there are no other scans running, remember that this
     # REST API is an MVP and we can only run one scan at the time (for now)
     #
-    scan_infos = list(SCANS.values())
-    if not all([si is None for si in scan_infos]):
+    if any(scan_info is not None for scan_info in SCANS.values()):
         abort(
             400,
             "This version of the REST API does not support"
@@ -101,7 +103,7 @@ def start_scan():
         try:
             URL(target_url)
         except ValueError:
-            abort(400, 'Invalid URL: "%s"' % target_url)
+            abort(400, f'Invalid URL: "{target_url}"')
 
     target_options = w3af_core.target.get_options()
     target_option = target_options["target"]
@@ -129,7 +131,7 @@ def start_scan():
     t.start()
 
     return (
-        jsonify({"message": "Success", "id": scan_id, "href": "/scans/%s" % scan_id}),
+        jsonify({"message": "Success", "id": scan_id, "href": f"/scans/{scan_id}"}),
         201,
     )
 
@@ -152,12 +154,12 @@ def list_scans():
 
         target_urls = scan_info.target_urls
         status = scan_info.w3af_core.status.get_simplified_status()
-        errors = True if scan_info.exception is not None else False
+        errors = scan_info.exception is not None
 
         data.append(
             {
                 "id": scan_id,
-                "href": "/scans/%s" % scan_id,
+                "href": f"/scans/{scan_id}",
                 "target_urls": target_urls,
                 "status": status,
                 "errors": errors,
@@ -205,10 +207,27 @@ def scan_status(scan_id):
         abort(404, "Scan not found")
 
     exc = scan_info.exception
-    status = scan_info.w3af_core.status.get_status_as_dict()
+    status = status_as_dict(scan_info)
     status["exception"] = exc if exc is None else str(exc)
 
     return jsonify(status)
+
+
+def status_as_dict(scan_info):
+    """
+    :return: The scan status. Before the core starts the scan only the state is
+             known: it is starting, or stopped if it failed to start.
+    """
+    core_status = scan_info.w3af_core.status
+    if core_status.has_started():
+        return core_status.get_status_as_dict()
+
+    return {
+        "status": STOPPED if scan_info.finished else STARTING,
+        "is_paused": False,
+        "is_running": False,
+        "progress": 0,
+    }
 
 
 @app.route("/scans/<int:scan_id>/pause", methods=["GET"])
@@ -225,10 +244,31 @@ def scan_pause(scan_id):
     if scan_info is None:
         abort(404, "Scan not found")
 
-    if not scan_info.w3af_core.can_pause():
+    if scan_info.w3af_core.status.get_simplified_status() != RUNNING:
         abort(403, "Scan can not be paused")
 
-    scan_info.w3af_core.pause()
+    scan_info.w3af_core.pause(True)
+
+    return jsonify({"message": "Success"})
+
+
+@app.route("/scans/<int:scan_id>/resume", methods=["GET"])
+@requires_auth
+def scan_resume(scan_id):
+    """
+    Resume a paused scan
+
+    :param scan_id: The scan ID to resume
+    :return: Empty result if success, 403 if the scan is not paused.
+    """
+    scan_info = get_scan_info_from_id(scan_id)
+    if scan_info is None:
+        abort(404, "Scan not found")
+
+    if not scan_info.w3af_core.status.is_paused():
+        abort(403, "Scan is not paused")
+
+    scan_info.w3af_core.pause(False)
 
     return jsonify({"message": "Success"})
 
