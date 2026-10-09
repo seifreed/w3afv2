@@ -20,13 +20,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import os
+import tempfile
 import threading
 
 from w3af.core.profiling import is_cpu_profiling_enabled
 
 from .utils import cancel_thread, dump_data_every_thread, get_filename_fmt
 
-PROFILING_OUTPUT_FMT = "/tmp/w3af-%s-%s.cpu"
+PROFILING_OUTPUT_FMT = os.path.join(tempfile.gettempdir(), "w3af-%s-%s.cpu")
 DELAY_MINUTES = 2
 SAVE_THREAD_PTR: list[threading.Timer] = []
 

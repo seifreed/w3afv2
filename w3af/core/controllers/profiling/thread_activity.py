@@ -23,12 +23,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import json
 import os
 import sys
+import tempfile
 import threading
 import traceback
 
 from .utils import cancel_thread, dump_data_every_thread, get_filename_fmt
 
-PROFILING_OUTPUT_FMT = "/tmp/w3af-%s-%s.threads"
+PROFILING_OUTPUT_FMT = os.path.join(tempfile.gettempdir(), "w3af-%s-%s.threads")
 DELAY_MINUTES = 2
 SAVE_THREAD_PTR: list[threading.Timer] = []
 

@@ -21,8 +21,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import gc
+import os
 import pickle
 import sys
+import tempfile
 import threading
 
 from w3af.core.profiling import is_tracemalloc_enabled
@@ -39,7 +41,7 @@ if is_tracemalloc_enabled():
 
 from .utils import cancel_thread, dump_data_every_thread, get_filename_fmt
 
-PROFILING_OUTPUT_FMT = "/tmp/w3af-%s-%s.tracemalloc"
+PROFILING_OUTPUT_FMT = os.path.join(tempfile.gettempdir(), "w3af-%s-%s.tracemalloc")
 DELAY_MINUTES = 2
 SAVE_TRACEMALLOC_PTR: list[threading.Timer] = []
 

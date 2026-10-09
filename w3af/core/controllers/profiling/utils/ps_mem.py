@@ -75,20 +75,12 @@
 
 import errno
 import getopt
+import hashlib
 import os
 import sys
 import time
 
-try:
-    # md5 module is deprecated on python 2.6
-    # so try the newer hashlib first
-    import hashlib
-
-    md5_new = hashlib.md5
-except ImportError:
-    import md5
-
-    md5_new = md5.new
+md5_new = hashlib.md5
 
 
 # The following exits cleanly on Ctrl-C or EPIPE

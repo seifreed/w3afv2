@@ -22,7 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import json
 import logging
+import os
 import sys
+import tempfile
 import threading
 import traceback
 from functools import partial
@@ -33,7 +35,7 @@ from w3af.core.profiling import is_core_profiling_enabled
 
 from .utils import cancel_thread, dump_data_every_thread, get_filename_fmt
 
-PROFILING_OUTPUT_FMT = "/tmp/w3af-%s-%s.core"
+PROFILING_OUTPUT_FMT = os.path.join(tempfile.gettempdir(), "w3af-%s-%s.core")
 DELAY_MINUTES = 2
 SAVE_THREAD_PTR: list[threading.Timer] = []
 
