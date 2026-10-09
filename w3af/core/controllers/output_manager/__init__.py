@@ -24,6 +24,10 @@ from .log_sink import LogSink
 from .manager import OutputManager
 
 
+def log_http(request, response):
+    out.log_http(request, response)
+
+
 def fresh_output_manager_inst():
     """
     Creates a new "manager" instance at the module level.

@@ -164,7 +164,7 @@ class w3afCore:
         self.strategy = CoreStrategy(self)
 
         # Create the URI opener object
-        self.uri_opener = ExtendedUrllib()
+        self.uri_opener = ExtendedUrllib(om.log_http)
         self.uri_opener.set_w3af_core(self)
 
         # Keep track of first scan to call cleanup or not

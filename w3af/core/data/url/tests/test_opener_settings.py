@@ -36,6 +36,7 @@ from w3af.core.data.options.option_types import (
     REGEX,
     STRING,
     URL,
+    URL_LIST,
 )
 from w3af.core.data.url.opener_settings import OpenerSettings
 
@@ -53,6 +54,7 @@ OPTION_TYPES = (
     INPUT_FILE,
     OUTPUT_FILE,
     PORT,
+    URL_LIST,
 )
 
 

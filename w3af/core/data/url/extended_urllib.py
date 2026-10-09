@@ -86,8 +86,8 @@ class ExtendedUrllib:
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self):
-        self.settings = opener_settings.OpenerSettings()
+    def __init__(self, http_log_callback=None):
+        self.settings = opener_settings.OpenerSettings(http_log_callback)
         self._opener = None
         self._w3af_core = None
         self._average_rtt_mutant = GetAverageRTTForMutant(self)

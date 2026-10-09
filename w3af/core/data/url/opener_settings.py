@@ -21,11 +21,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import http.cookiejar
+import logging
 import urllib.error
 import urllib.parse
 import urllib.request
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.configurable import Configurable
 from w3af.core.data.kb.config import cf as cfg
 from w3af.core.data.misc.cookie_jar import ImprovedMozillaCookieJar
@@ -47,16 +47,17 @@ from w3af.core.data.url.handlers.cookie_handler import CookieHandler
 from w3af.core.data.url.handlers.errors import ErrorHandler, NoOpErrorHandler
 from w3af.core.data.url.handlers.fast_basic_auth import FastHTTPBasicAuthHandler
 from w3af.core.data.url.handlers.gzip_handler import HTTPGzipProcessor
+from w3af.core.data.url.handlers.http_log import HTTPLogHandler
 from w3af.core.data.url.handlers.keepalive import HTTPHandler, HTTPSHandler
 from w3af.core.data.url.handlers.mangle import MangleHandler
 from w3af.core.data.url.handlers.normalize import NormalizeHandler
 from w3af.core.data.url.handlers.ntlm_auth import HTTPNtlmAuthHandler
-from w3af.core.data.url.handlers.output_manager import OutputManagerHandler
 from w3af.core.data.url.handlers.redirect import HTTP30XHandler
 from w3af.core.data.url.handlers.url_parameter import URLParameterHandler
 from w3af.core.exceptions import BaseFrameworkException
 
 USER_AGENT_HEADER = "User-Agent"
+LOGGER = logging.getLogger(__name__)
 
 
 class OpenerSettings(Configurable):
@@ -66,7 +67,7 @@ class OpenerSettings(Configurable):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self):
+    def __init__(self, http_log_callback=None):
 
         # Set the openers to None
         self._basic_auth_handler = None
@@ -84,6 +85,7 @@ class OpenerSettings(Configurable):
 
         # Openers
         self._uri_opener = None
+        self._http_log_callback = http_log_callback
 
         # Some internal variables
         self.need_update = True
@@ -172,7 +174,7 @@ class OpenerSettings(Configurable):
         """
         for h, v in header_list:
             self.header_list.append((h, v))
-            om.out.debug('Added the following header: "%s: %s"' % (h, v))
+            LOGGER.debug('Added the following header: "%s: %s"', h, v)
 
     def close_connections(self):
         handlers = (self._ka_http, self._ka_https)
@@ -184,7 +186,7 @@ class OpenerSettings(Configurable):
         return cfg.get("headers_file")
 
     def set_cookie_jar_file(self, cookiejar_file):
-        om.out.debug("Called set_cookie_jar_file")
+        LOGGER.debug("Called set_cookie_jar_file")
 
         if not cookiejar_file:
             return
@@ -228,9 +230,9 @@ class OpenerSettings(Configurable):
                 )
                 raise BaseFrameworkException(msg)
             else:
-                om.out.debug("Loaded the following cookies:")
+                LOGGER.debug("Loaded the following cookies:")
                 for c in cj:
-                    om.out.debug(str(c))
+                    LOGGER.debug("%s", c)
 
     def get_cookie_jar_file(self):
         return cfg.get("cookie_jar_file")
@@ -270,7 +272,7 @@ class OpenerSettings(Configurable):
         cfg.save("user_agent", user_agent)
 
     def set_rand_user_agent(self, rand_user_agent):
-        om.out.debug("Called set_rand_user_agent")
+        LOGGER.debug("Called set_rand_user_agent")
         self.rand_user_agent = rand_user_agent
         cfg.save("rand_user_agent", rand_user_agent)
 
@@ -289,7 +291,7 @@ class OpenerSettings(Configurable):
 
         :return: None
         """
-        om.out.debug("Called set_proxy(%s, %s)" % (ip, port))
+        LOGGER.debug("Called set_proxy(%s, %s)", ip, port)
 
         if not ip:
             #    The user doesn't want a proxy anymore
@@ -317,7 +319,7 @@ class OpenerSettings(Configurable):
         return cfg.get("proxy_address") + ":" + str(cfg.get("proxy_port"))
 
     def set_basic_auth(self, url, username, password):
-        om.out.debug("Called set_basic_auth")
+        LOGGER.debug("Called set_basic_auth")
 
         if not url:
             if url is None:
@@ -397,7 +399,11 @@ class OpenerSettings(Configurable):
             NormalizeHandler,
             self._ka_http,
             self._ka_https,
-            OutputManagerHandler,
+            (
+                HTTPLogHandler(self._http_log_callback)
+                if self._http_log_callback is not None
+                else None
+            ),
             HTTP30XHandler,
             BlacklistHandler,
             MangleHandler(self._mangle_plugins),

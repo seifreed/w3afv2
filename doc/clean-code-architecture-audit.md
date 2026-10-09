@@ -1113,3 +1113,26 @@ reporta 5.449 hallazgos, Mypy 897 errores en 308 archivos, y Bandit 17.064
 hallazgos al recorrer también `venv` (781 altos, 956 medios y 15.327 bajos).
 `pip-audit` reporta `nltk==3.10.3` (`PYSEC-2026-3740`); no puede auditar el
 mitmproxy fijado desde Git porque no está publicado en PyPI.
+
+## Avance: logging HTTP con dependencia invertida
+
+`OutputManagerHandler` pasa a ser `HTTPLogHandler` y recibe un callback en lugar
+de importar `controllers`. `w3afCore` lo suministra por `ExtendedUrllib` y
+`OpenerSettings`; el forwarding `om.log_http` resuelve el `LogSink` actual en
+cada emisión, incluso después de reemplazarlo. Los logs de configuración de
+`OpenerSettings` usan `logging` estándar, por lo que el módulo de datos ya no
+importa controllers. Las referencias de producción `core.data -> controllers`
+bajan de 32 a 30. También se actualizó la prueba de tipos de opciones para
+incluir el `URL_LIST` ya admitido por el opener.
+
+Verificación: 8 pruebas focalizadas pasan, incluyendo conversión de respuesta
+HTTP desde un servidor local real; `http_log.py` alcanza 100% de cobertura.
+Black y Ruff pasan en los módulos nuevos/de test; las comprobaciones Ruff sobre
+módulos legacy modificados aún encuentran deuda existente. Mypy focalizado no
+reporta errores en los dos archivos objetivo, pero sí 24 en sus dependencias
+importadas. Score global: **4.9/10**; la mayor parte de los 30 acoplamientos de
+producción y las gates globales permanecen pendientes.
+
+La suite de integración ampliada aún no queda validada: cinco casos requieren
+el servicio externo `moth`, no resoluble en este entorno; el caso de mangle
+falla en código existente porque `HTTPRequest` no implementa `add_data`.

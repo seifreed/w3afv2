@@ -25,7 +25,7 @@ import urllib.parse
 import urllib.request
 
 from w3af.core.data.url.handlers.keepalive import HTTPResponse as kaHTTPResponse
-from w3af.core.data.url.handlers.output_manager import OutputManagerHandler
+from w3af.core.data.url.handlers.http_log import HTTPLogHandler
 from w3af.core.data.url.HTTPResponse import HTTPResponse
 
 
@@ -34,7 +34,7 @@ class MangleHandler(urllib.request.BaseHandler):
     Call mangle plugins for each request and response.
     """
 
-    handler_order = OutputManagerHandler.handler_order - 2
+    handler_order = HTTPLogHandler.handler_order - 2
 
     def __init__(self, plugin_list):
         self._plugin_list = plugin_list
