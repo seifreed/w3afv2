@@ -18,22 +18,22 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import io
 import os
-import tempfile
 import unittest
+from contextlib import redirect_stdout
 
 from w3af.core.data.db.startup_cfg import StartUpConfig
 from w3af.core.ui.console.console_ui import ConsoleUI
+from w3af.tests.helpers.home_dir import use_temporary_home
 
 
 class TestAcceptDisclaimer(unittest.TestCase):
 
     def setUp(self):
+        home = use_temporary_home(self)
         self.console_ui = ConsoleUI(do_upd=False)
-
-        temp_dir = tempfile.TemporaryDirectory()
-        self.addCleanup(temp_dir.cleanup)
-        self.cfg_file = os.path.join(temp_dir.name, "startup.conf")
+        self.cfg_file = os.path.join(home, "startup.conf")
         self.questions = []
 
     def answer(self, response):
@@ -74,3 +74,23 @@ class TestAcceptDisclaimer(unittest.TestCase):
 
         self.assertTrue(accepted)
         self.assertEqual(self.questions, [])
+
+    def test_default_config_is_the_home_startup_config(self):
+        accepted = self.console_ui.accept_disclaimer(ask_user=self.answer("yes"))
+
+        self.assertTrue(accepted)
+        self.assertTrue(self.saved_decision())
+
+    def test_interrupted_answer_is_not_accepted(self):
+        def interrupted(question):
+            raise EOFError
+
+        output = io.StringIO()
+        with redirect_stdout(output):
+            accepted = self.console_ui.accept_disclaimer(
+                StartUpConfig(self.cfg_file), interrupted
+            )
+
+        self.assertFalse(accepted)
+        self.assertEqual(output.getvalue(), "\n")
+        self.assertFalse(self.saved_decision())

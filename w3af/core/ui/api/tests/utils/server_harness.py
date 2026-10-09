@@ -23,11 +23,8 @@ import hashlib
 import http.client
 import io
 import logging
-import os
-import shutil
 import signal
 import socket
-import tempfile
 import threading
 import time
 import unittest
@@ -35,9 +32,9 @@ from collections.abc import Callable, Sequence
 
 from w3af.core.ui.api import app
 from w3af.core.ui.api.tests.utils.api_unittest import AUTHORIZATION, PASSWORD
+from w3af.tests.helpers.home_dir import use_temporary_home
 
 STARTUP_SECONDS = 30
-HOME_DIR_VARIABLE = "W3AF_HOME_DIR"
 PASSWORD_HASH = hashlib.sha512(PASSWORD.encode()).hexdigest()
 
 
@@ -103,17 +100,12 @@ class ServerMainTestCase(unittest.TestCase):
     def setUp(self):
         self.config = dict(app.config)
         self.root_level = logging.getLogger().level
-        self.environ = dict(os.environ)
-        self.home = tempfile.mkdtemp(prefix="w3af-home-")
-        os.environ[HOME_DIR_VARIABLE] = self.home
+        self.home = use_temporary_home(self)
 
     def tearDown(self):
         app.config.clear()
         app.config.update(self.config)
         logging.getLogger().setLevel(self.root_level)
-        os.environ.clear()
-        os.environ.update(self.environ)
-        shutil.rmtree(self.home)
 
     def run_main(self, *argv):
         output = io.StringIO()

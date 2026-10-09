@@ -7,8 +7,32 @@ verbose = True
 use_colors = True
 
 [bruteforce.basic_auth]
+users_file = %ROOT_PATH%/core/controllers/bruteforce/users.txt
+passwd_file = %ROOT_PATH%/core/controllers/bruteforce/passwords.txt
+use_svn_users = True
+stop_on_first = True
+pass_eq_user = True
+use_leet_password = True
+use_emails = True
+use_profiling = True
+profiling_number = 50
+mask_password_report = False
+combo_file = %ROOT_PATH%/core/controllers/bruteforce/combo.txt
+combo_separator = :
 
 [bruteforce.form_auth]
+users_file = %ROOT_PATH%/core/controllers/bruteforce/users.txt
+passwd_file = %ROOT_PATH%/core/controllers/bruteforce/passwords.txt
+use_svn_users = True
+stop_on_first = True
+pass_eq_user = True
+use_leet_password = True
+use_emails = True
+use_profiling = True
+profiling_number = 50
+mask_password_report = False
+combo_file = %ROOT_PATH%/core/controllers/bruteforce/combo.txt
+combo_separator = :
 
 [misc-settings]
 fuzz_form_files = True
@@ -22,8 +46,16 @@ max_discovery_time = 120
 interface = ppp0
 local_ip_address = 10.5.6.18
 blacklist_http_request = 
-blacklist_audit =
+blacklist_audit = 
 msf_location = /opt/metasploit3/bin/
+fuzz_cookies = False
+max_scan_time = 240
+path_max_variants = 50
+params_max_variants = 15
+max_equal_form_variants = 5
+form_id_list = []
+form_id_action = exclude
+vulndb_language = en
 
 [http-settings]
 timeout = 0
@@ -45,4 +77,7 @@ always_404 =
 never_404 = 
 string_match_404 = 
 url_parameter = 
+rand_user_agent = False
+max_file_size = 400000
+max_requests_per_second = 0
 
