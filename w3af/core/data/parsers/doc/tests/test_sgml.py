@@ -26,15 +26,16 @@ import unittest
 from functools import partial
 from itertools import combinations
 from random import choice
+from unittest import SkipTest
 
 import pytest
-from unittest import SkipTest
 
 from w3af import ROOT_PATH
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.sgml import SGMLParser, Tag
 from w3af.core.data.parsers.doc.tests.data.constants import *
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.parsers.exceptions import ParserException
 from w3af.core.data.url.HTTPResponse import HTTPResponse
 from w3af.core.data.url.tests.test_HTTPResponse import TEST_RESPONSES
 
@@ -65,6 +66,16 @@ class TestSGMLParser(unittest.TestCase):
         p = SGMLParser(resp)
 
         self.assertEqual(p.get_emails(), set())
+
+    def test_parser_errors_are_wrapped(self):
+        class FailingParser(SGMLParser):
+            def start(self, elem):
+                raise ValueError("parser callback failed")
+
+        response = build_http_response(self.url, "<a href='/path'>link</a>")
+
+        with self.assertRaisesRegex(ParserException, "parser callback failed"):
+            FailingParser(response).parse()
 
     def test_extract_emails_mailto(self):
         body = '<a href="mailto:abc@w3af.com">test</a>'

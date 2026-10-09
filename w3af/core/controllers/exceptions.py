@@ -147,7 +147,3 @@ class ExploitFailedException(BaseFrameworkException):
 
 class FourOhFourDetectionException(BaseFrameworkException):
     pass
-
-
-class ParserException(BaseFrameworkException):
-    pass

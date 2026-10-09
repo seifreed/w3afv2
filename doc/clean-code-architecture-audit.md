@@ -499,3 +499,19 @@ controllers desde `core.data` y el objeto de respuesta 404 quedó junto a sus
 reglas de normalización/limpieza. Continúan pendientes los numerosos imports
 ascendentes restantes, la suite de fingerprinting y las gates globales de Ruff,
 mypy y Bandit.
+
+## Avance: excepción de parsing en la capa parser
+
+`ParserException` estaba declarada en `controllers.exceptions`, aunque su único
+uso de producción era envolver errores de callbacks dentro de
+`data.parsers.doc.sgml`. Se trasladó a `core.data.parsers.exceptions`, se
+actualizó el import del parser y se eliminó la definición en controllers sin
+dejar alias. Un test ejecuta el parser con un callback real que falla y verifica
+que la excepción queda envuelta con el tipo correcto.
+
+La suite SGML suma **22 tests correctos y uno omitido**; `ParserException` tiene
+100% de cobertura. Ruff focal (`F401`, `I001`), Black y `compileall` pasan en
+los archivos afectados, y `git diff --check` queda limpio. La puntuación global
+sube a **2.8/10**: se elimina otra dependencia ascendente demostrable, pero
+permanecen muchas referencias de `core.data` a `controllers`, además de las
+gates globales pendientes.
