@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 import string
-from random import choice
+from secrets import choice
 
 from w3af.core.filesystem import get_temp_dir
 

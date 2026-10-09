@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import difflib
 import re
 import textwrap
-from random import randint
+from secrets import randbelow
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.exceptions import BaseFrameworkException
@@ -48,7 +48,7 @@ class xpath(AttackPlugin):
         AttackPlugin.__init__(self)
 
         # Internal variables
-        self.rnum = randint(1, 100)
+        self.rnum = randbelow(100) + 1
 
     def get_attack_type(self):
         """

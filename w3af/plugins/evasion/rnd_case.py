@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from random import randint
+from secrets import randbelow
 
 from w3af.core.controllers.plugins.evasion_plugin import EvasionPlugin
 from w3af.core.data.parsers.doc.url import parse_qs
@@ -73,7 +73,7 @@ class rnd_case(EvasionPlugin):
         """
         new_data = ""
         for char in data:
-            if randint(1, 2) == 2:
+            if randbelow(2) == 1:
                 char = char.upper()
             else:
                 char = char.lower()

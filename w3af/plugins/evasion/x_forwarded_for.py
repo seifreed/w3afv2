@@ -20,9 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import random
-
 from w3af.core.controllers.plugins.evasion_plugin import EvasionPlugin
+from w3af.core.data.misc.deterministic_random import get_deterministic_random
 
 
 class x_forwarded_for(EvasionPlugin):
@@ -41,8 +40,7 @@ class x_forwarded_for(EvasionPlugin):
         (scan #1 finds bug because of some specific IP it's sent in the header; 
         and then scan #2 doesn't send the same IP and the bug is not found).
         """
-        self.random = random.Random()
-        self.random.seed(42)
+        self.random = get_deterministic_random(42)
 
     def modify_request(self, request):
         """

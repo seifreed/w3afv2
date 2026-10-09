@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
-import random
+import secrets
 import subprocess
 import tempfile
 import time
@@ -179,7 +179,7 @@ class vdaemon:
         :return: The name of the generated file, in the example above: "/tmp/output2.exe"
         """
         temp_dir = tempfile.gettempdir()
-        randomness = str(random.randint(0, 293829839))
+        randomness = str(secrets.randbelow(293829840))
         output_filename = os.path.join(temp_dir, "msf-" + randomness + ".exe")
 
         command = "{} {} {} X > {}".format(

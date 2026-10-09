@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import logging
 import os
-import random
+import secrets
 import shlex
 import sys
 import traceback
@@ -504,6 +504,6 @@ class ConsoleUI:
         )
         with open(messages_file) as messages:
             lines = messages.readlines()
-        idx = random.randrange(len(lines))
+        idx = secrets.randbelow(len(lines))
         line = lines[idx]
         return "\n" + line
