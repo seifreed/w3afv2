@@ -725,3 +725,16 @@ tests de `parser_cache` pasan, Black/Ruff focal, compilación y diff check pasan
 y no quedan referencias a las funciones antiguas. La puntuación global sube a
 **3.8/10**: se desacopla un conjunto coherente de opciones del parser, pero
 continúan numerosos imports ascendentes y las gates globales pendientes.
+
+## Avance: eliminar detección de tests del runtime
+
+`keepalive.utils.debug()` y `error()` importaban
+`controllers.tests.running_tests`, pero ambas ramas `if is_running_tests()` no
+hacían nada: el único `print` estaba comentado y el cuerpo era `pass`. Se
+eliminaron las ramas, el import y el módulo `running_tests.py`, que quedó sin
+ningún caller. El comportamiento efectivo de logging bajo `KA_DEBUG` no cambia.
+
+Black, Ruff (`F401`, `I001`), compilación, import/smoke test y `git diff
+--check` pasan; no quedan referencias a `running_tests`. La puntuación global
+pasa a **3.9/10**: se retira una dependencia de test de una capa de runtime y
+código muerto, aunque siguen pendientes la deuda restante y las gates globales.

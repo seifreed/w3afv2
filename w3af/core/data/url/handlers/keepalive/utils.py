@@ -1,7 +1,6 @@
 import os
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.tests.running_tests import is_running_tests
 
 KA_DEBUG = os.environ.get("KA_DEBUG", "0") == "1"
 
@@ -18,16 +17,8 @@ def debug(msg):
         msg = "[keepalive] %s" % msg
         om.out.debug(msg)
 
-        if is_running_tests():
-            # print(msg)
-            pass
-
 
 def error(msg):
     if KA_DEBUG:
         msg = "[keepalive] %s" % msg
         om.out.error(msg)
-
-        if is_running_tests():
-            # print(msg)
-            pass
