@@ -70,8 +70,6 @@ class retirejs(GrepPlugin):
         GrepPlugin.__init__(self)
 
         self._analyzed_hashes = ScalableBloomFilter()
-        self._retirejs_path = self._get_retirejs_path()
-
         self._is_valid_retire_version = None
         self._is_valid_retirejs_exit_code = None
         self._should_run_retirejs_install_check = True
@@ -223,6 +221,13 @@ class retirejs(GrepPlugin):
             if self._should_run_retirejs_install_check:
                 # Only run once
                 self._should_run_retirejs_install_check = False
+
+                if not which("retire"):
+                    msg = "retire.js is not installed. Disabling grep.retirejs plugin."
+                    om.out.error(msg)
+                    self._is_valid_retire_version = False
+                    self._is_valid_retirejs_exit_code = False
+                    return False
 
                 self._is_valid_retire_version = self._get_is_valid_retire_version()
                 self._is_valid_retirejs_exit_code = self._retire_smoke_test()
@@ -497,16 +502,6 @@ class retirejs(GrepPlugin):
         v.set_uri(url)
 
         self.kb_append_uniq(self, "js", v, filter_by="URL")
-
-    def _get_retirejs_path(self):
-        """
-        :return: Path to the retirejs binary
-        """
-        paths_to_retire = which("retire")
-
-        # The dependency check script guarantees that there will always be
-        # at least one installation of the retirejs command.
-        return paths_to_retire[0]
 
     def get_options(self):
         """
