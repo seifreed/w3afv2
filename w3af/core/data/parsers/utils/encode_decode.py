@@ -58,7 +58,7 @@ def htmldecode(text, use_repr=False):
                 return chr(name2codepoint[entity])
             else:
                 return match.group(0)
-        except:
+        except (ValueError, OverflowError):
             return match.group(0)
 
     # TODO: Requires more analysis
@@ -130,7 +130,7 @@ def urlencode(query, encoding, safe="/<>\"'=:()"):
         k = to_encodable_string(k, encoding)
         k = urllib.parse.quote(k, safe)
 
-        if isinstance(v, str):
+        if isinstance(v, (str, DataToken)):
             v = [v]
         else:
             try:

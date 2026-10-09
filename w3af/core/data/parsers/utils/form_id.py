@@ -75,9 +75,12 @@ class FormID:
                 if (attribute, attribute_value) not in self_attribute_values:
                     return False
 
-        if form_matcher.method is not None and self.method is not None:
-            if form_matcher.method.lower() != self.method.lower():
-                return False
+        if (
+            form_matcher.method is not None
+            and self.method is not None
+            and form_matcher.method.lower() != self.method.lower()
+        ):
+            return False
 
         # Now we match the slower things, which have more impact on performance
         if form_matcher.action is not None:

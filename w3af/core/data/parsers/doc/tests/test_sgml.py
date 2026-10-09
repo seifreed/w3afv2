@@ -25,6 +25,7 @@ import os
 import unittest
 from functools import partial
 from itertools import combinations
+from pathlib import Path
 from random import choice
 from unittest import SkipTest
 
@@ -40,7 +41,9 @@ from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.data.url.tests.test_http_response import TEST_RESPONSES
 
 
-def build_http_response(url, body_content, headers=Headers()):
+def build_http_response(url, body_content, headers=None):
+    if headers is None:
+        headers = Headers()
     if "content-type" not in headers:
         headers["content-type"] = "text/html"
     return HTTPResponse(200, body_content, headers, url, url, charset="utf-8")
@@ -286,7 +289,7 @@ class TestSGMLParser(unittest.TestCase):
 
         raise SkipTest("Not sure why this one is failing :S")
 
-        for lang_desc, (body, encoding) in TEST_RESPONSES.items():
+        for body, encoding in TEST_RESPONSES.values():
             encoding_header = f"text/html; charset={encoding}"
             headers = Headers([("Content-Type", encoding_header)])
 
@@ -307,7 +310,7 @@ class TestSGMLParser(unittest.TestCase):
         """
         test_file_path = "core/data/url/tests/data/encoding_4402.php"
         test_file = os.path.join(ROOT_PATH, test_file_path)
-        body = open(test_file, "rb").read()
+        body = Path(test_file).read_bytes()
 
         sample_encodings = [encoding for _, (_, encoding) in TEST_RESPONSES.items()]
         sample_encodings.extend(["", "utf-8"])

@@ -1,6 +1,7 @@
 import os
 import pprint
 import sys
+from pathlib import Path
 
 sys.path.append(os.getcwd())
 
@@ -13,7 +14,7 @@ spec_filename = sys.argv[1]
 
 _, extension = os.path.splitext(spec_filename)
 
-body = open(spec_filename).read()
+body = Path(spec_filename).read_text()
 headers = Headers(list({"Content-Type": f"application/{extension}"}.items()))
 response = HTTPResponse(
     200,

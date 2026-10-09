@@ -21,8 +21,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import os
 import unittest
+from pathlib import Path
 
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.javascript import JavaScriptParser
@@ -35,7 +35,7 @@ class TestJavaScriptParser(unittest.TestCase):
     DATA_PATH = "w3af/core/data/parsers/pynarcissus/tests/data/"
 
     def parse(self, filename):
-        body = open(os.path.join(self.DATA_PATH, filename)).read()
+        body = Path(self.DATA_PATH, filename).read_text()
         js_mime = "text/javascript"
         hdrs = Headers(list({"Content-Type": js_mime}.items()))
         response = HTTPResponse(

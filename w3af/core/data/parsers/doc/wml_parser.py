@@ -58,10 +58,7 @@ class WMLParser(SGMLParser):
 
         document = http_resp.get_body().lower()
 
-        if WML_HEADER in document:
-            return True
-
-        return False
+        return WML_HEADER in document
 
     def _handle_go_tag_start(self, tag, tag_name, attrs):
         self._inside_form = True

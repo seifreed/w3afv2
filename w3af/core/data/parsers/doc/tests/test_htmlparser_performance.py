@@ -25,6 +25,7 @@ import os
 import resource
 import time
 import unittest
+from pathlib import Path
 
 import pytest
 
@@ -48,13 +49,11 @@ class TestHTMLParserPerformance(unittest.TestCase):
     def test_parse_html_performance(self):
         headers = Headers()
         headers["content-type"] = "text/html"
-        body = open(self.HTML_FILE).read()
+        body = Path(self.HTML_FILE).read_text()
         url = URL("http://www.w3af.org/")
         response = HTTPResponse(200, body, headers, url, url, charset="utf-8")
 
         # self.measure_memory(1)
-
-        parsers = []
 
         for _ in range(40):
             p = HTMLParser(response)
@@ -104,7 +103,7 @@ def test():
 
     That will activate the profiler.
     """
-    body = open(OUTPUT_FILE).read()
+    body = Path(OUTPUT_FILE).read_text()
     url = URL("http://www.clarin.com.ar/")
     headers = Headers()
     headers["content-type"] = "text/html"

@@ -1,11 +1,11 @@
 import sys
 import zlib
+from pathlib import Path
 
 if __name__ == "__main__":
-    filename = sys.argv[1]
+    filename = Path(sys.argv[1])
 
-    compressed_data = open(filename).read()[8:]
+    compressed_data = filename.read_bytes()[8:]
     uncompressed_data = zlib.decompress(compressed_data)
 
-    output_file = f"{filename}.bytecode"
-    open(output_file, "w").write(uncompressed_data)
+    filename.with_name(f"{filename.name}.bytecode").write_bytes(uncompressed_data)

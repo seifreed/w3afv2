@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 import unittest
+from pathlib import Path
 
 from w3af import ROOT_PATH
 from w3af.core.data.dc.headers import Headers
@@ -40,7 +41,7 @@ class TestOpenAPIFuzzing(unittest.TestCase):
     INVALID_TOKEN_PATH = os.path.join(DATA_PATH, "invalid-token-path.json")
 
     def test_fuzing_on_invalid_token_path(self):
-        body = open(self.INVALID_TOKEN_PATH).read()
+        body = Path(self.INVALID_TOKEN_PATH).read_text()
         headers = Headers(list({"Content-Type": "application/json"}.items()))
         response = HTTPResponse(
             200,

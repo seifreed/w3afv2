@@ -30,6 +30,31 @@ from w3af.core.data.dc.utils.token import DataToken
 
 BASE_64 = "base64"
 FUZZABLE_TYPES = (BASE_64, "string", "name")
+
+# Binary base64 payloads survive the bytes -> text -> bytes round trip
+BASE_64_TEXT_ENCODING = "utf-8"
+BASE_64_TEXT_ERRORS = "surrogateescape"
+
+
+def decode_base64_value(value):
+    """
+    :param value: The base64 encoded value found in the XML-RPC document
+    :return: The decoded value as text, ready to be fuzzed
+    """
+    decoded = base64.b64decode(value)
+    return decoded.decode(BASE_64_TEXT_ENCODING, BASE_64_TEXT_ERRORS)
+
+
+def encode_base64_value(value):
+    """
+    :param value: The (potentially fuzzed) value as text or bytes
+    :return: The value base64 encoded, ready to be sent in an XML-RPC document
+    """
+    if isinstance(value, str):
+        value = value.encode(BASE_64_TEXT_ENCODING, BASE_64_TEXT_ERRORS)
+    return base64.b64encode(value).decode("ascii")
+
+
 ALL_TYPES = ("i4", "int", "boolean", "dateTime.iso8601", "double")
 
 
@@ -79,7 +104,7 @@ class XmlRpcReadHandler(ContentHandler):
             value_list = init_val.setdefault(name, [])
 
             if name == BASE_64:
-                value_list.append(base64.b64decode(value))
+                value_list.append(decode_base64_value(value))
             else:
                 value_list.append(value)
 
@@ -132,7 +157,7 @@ class XmlRpcWriteHandler(ContentHandler):
                 modified_value = modified_value.get_value()
 
             if self._fuzzed_parameters[self._fuzzable_index][0] == "base64":
-                enc_val = base64.b64encode(modified_value).decode("ascii")
+                enc_val = encode_base64_value(modified_value)
             else:
                 enc_val = html.escape(modified_value, quote=False)
                 enc_val = enc_val.encode("ascii", "xmlcharrefreplace").decode("ascii")

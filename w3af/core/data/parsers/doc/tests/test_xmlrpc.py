@@ -65,7 +65,7 @@ class TestXMLRPC(unittest.TestCase):
         handler = XmlRpcReadHandler()
         xml.sax.parseString(XML_WITH_FUZZABLE, handler)
 
-        EXPECTED = [("string", ["Foo bar"]), ("base64", [b"Spam eggs"])]
+        EXPECTED = [("string", ["Foo bar"]), ("base64", ["Spam eggs"])]
 
         self.assertEqual(list(handler.get_data_container().items()), EXPECTED)
 

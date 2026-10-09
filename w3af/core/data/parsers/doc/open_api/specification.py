@@ -24,6 +24,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import json
 import logging
 
+from bravado_core.exception import SwaggerError
+from jsonschema.exceptions import SchemaError, ValidationError
+from swagger_spec_validator.common import SwaggerValidationError
 from yaml import YAMLError, load
 
 try:
@@ -33,6 +36,19 @@ except ImportError:
 
 from w3af.core.data.parsers.doc.open_api.parameters import ParameterHandler
 from w3af.core.data.parsers.doc.open_api.relaxed_spec import RelaxedSpec
+
+# Errors raised by bravado-core and our own code while processing a malformed
+# Open API specification
+SPEC_PROCESSING_ERRORS = (
+    SwaggerError,
+    SwaggerValidationError,
+    ValidationError,
+    SchemaError,
+    LookupError,
+    TypeError,
+    ValueError,
+    AttributeError,
+)
 
 # Silence please.
 SILENCE = (
@@ -150,7 +166,7 @@ class SpecificationHandler:
             self.spec = RelaxedSpec.from_dict(
                 spec_dict, origin_url=url_string, config=config
             )
-        except Exception as e:
+        except SPEC_PROCESSING_ERRORS as e:
             msg = (
                 'The document at "%s" is not a valid Open API specification.'
                 " The following exception was raised while parsing the dict"

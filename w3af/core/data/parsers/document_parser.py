@@ -20,8 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from functools import cmp_to_key
-
 from w3af.core.data.parsers.doc.html import HTMLParser
 from w3af.core.data.parsers.doc.javascript import JavaScriptParser
 from w3af.core.data.parsers.doc.pdf import PDFParser
@@ -38,7 +36,7 @@ class DocumentParser:
     """
 
     # WARNING! The order of this list is important. See note below
-    PARSERS = [WMLParser, JavaScriptParser, PDFParser, SWFParser, HTMLParser]
+    PARSERS = (WMLParser, JavaScriptParser, PDFParser, SWFParser, HTMLParser)
 
     def __init__(self, http_resp):
         """
@@ -104,8 +102,8 @@ class DocumentParser:
         """
         parsed_refs, re_refs = self._parser.get_references()
 
-        parsed_refs.sort(key=cmp_to_key(sort_by_url))
-        re_refs.sort(key=cmp_to_key(sort_by_url))
+        parsed_refs.sort(key=url_sort_key)
+        re_refs.sort(key=url_sort_key)
 
         return parsed_refs, re_refs
 
@@ -178,5 +176,5 @@ def document_parser_factory(http_resp):
     return DocumentParser(http_resp)
 
 
-def sort_by_url(url_a, url_b):
-    return cmp(url_a.url_string, url_b.url_string)
+def url_sort_key(url):
+    return url.url_string

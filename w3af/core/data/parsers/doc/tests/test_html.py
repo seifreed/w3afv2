@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 import unittest
+from pathlib import Path
 
 import pytest
 
@@ -504,7 +505,7 @@ class TestHTMLParser(unittest.TestCase):
         HTML_FILE = os.path.join(
             ROOT_PATH, "core", "data", "parsers", "doc", "tests", "data", "se.html"
         )
-        body = open(HTML_FILE).read()
+        body = Path(HTML_FILE).read_text()
 
         headers = Headers()
         headers["content-type"] = "text/html; charset=utf-8"

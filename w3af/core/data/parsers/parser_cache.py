@@ -31,7 +31,11 @@ from w3af.core.data.db.disk_set import DiskSet
 # pylint: disable=E0401
 from w3af.core.data.misc.lru import SynchronizedLRUDict
 from w3af.core.data.parsers.document_parser import DocumentParser
-from w3af.core.data.parsers.mp_document_parser import mp_doc_parser
+from w3af.core.data.parsers.ipc.serialization import DeserializationError
+from w3af.core.data.parsers.mp_document_parser import (
+    DocumentParsingError,
+    mp_doc_parser,
+)
 from w3af.core.data.parsers.utils.cache_stats import CacheStats
 from w3af.core.data.parsers.utils.response_uniq_id import (
     get_body_unique_id,
@@ -108,15 +112,8 @@ class ParserCache(CacheStats):
         #
         # We need to verify if we can parse this HTTP response
         #
-        try:
-            can_parse = DocumentParser.can_parse(http_response)
-        except Exception:
-            # We catch all the exceptions here and just return False because
-            # the real parsing procedure will (most likely) fail to parse
-            # this response too.
-            can_parse = False
-
-        self._can_parse_cache[can_parse] = can_parse
+        can_parse = DocumentParser.can_parse(http_response)
+        self._can_parse_cache[http_response.get_id()] = can_parse
         return can_parse
 
     def add_to_blacklist(self, hash_string):
@@ -212,10 +209,10 @@ class ParserCache(CacheStats):
             except ScanMustStopException as e:
                 msg = "The document parser is in an invalid state! %s"
                 raise ScanMustStopException(msg % e)
-            except Exception:
+            except (DocumentParsingError, DeserializationError) as error:
                 # Act just like when there is no parser
                 msg = f'There is no parser for "{http_response.get_url()}".'
-                raise BaseFrameworkException(msg)
+                raise BaseFrameworkException(msg) from error
             else:
                 save_to_cache = self.should_cache(http_response) and cache
                 if save_to_cache:
@@ -347,11 +344,10 @@ class ParserCache(CacheStats):
             except ScanMustStopException as e:
                 msg = "The document parser is in an invalid state! %s"
                 raise ScanMustStopException(msg % e)
-            except Exception as e:
-                # Act just like when there is no parser
+            except DeserializationError as error:
                 msg = 'Unhandled exception running get_tags_by_filter("%s"): %s'
-                args = (http_response.get_url(), e)
-                raise BaseFrameworkException(msg % args)
+                args = (http_response.get_url(), error)
+                raise BaseFrameworkException(msg % args) from error
             else:
                 if cache:
                     self._cache[hash_string] = tags

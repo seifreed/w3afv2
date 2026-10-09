@@ -160,14 +160,19 @@ def parse_qs(qstr, ignore_exc=True, encoding=DEFAULT_ENCODING):
                     odict[name].append(value)
                 else:
                     odict[name] = [value]
-        except Exception:
+        except (ValueError, TypeError) as error:
             if not ignore_exc:
-                raise BaseFrameworkException(f'Error while parsing "{qstr!r}"')
+                msg = f'Error while parsing "{qstr!r}"'
+                raise BaseFrameworkException(msg) from error
         else:
 
             qs.update(odict.items())
 
     return qs
+
+
+class InvalidURLError(ValueError):
+    """Raised when a URL can not be built or modified as requested."""
 
 
 class URL(DiskItem):
@@ -218,7 +223,7 @@ class URL(DiskItem):
         self._encoding = encoding
 
         if not isinstance(data, str):
-            raise ValueError(f"Can not build a URL from {type(data)}.")
+            raise InvalidURLError(f"Can not build a URL from {type(data)}.")
 
         # Verify that the encoding is a valid one. If we don't do it here,
         # things might get crazy afterwards.
@@ -516,7 +521,7 @@ class URL(DiskItem):
         protocol = self.get_protocol()
 
         if ":" in net_location:
-            host, port = net_location.split(":")
+            _host, port = net_location.split(":")
             return int(port)
         else:
             if protocol.lower() == "http":
@@ -709,7 +714,8 @@ class URL(DiskItem):
         original URL had no extension.
         """
         if not self.get_extension():
-            raise Exception("You can only set a new extension to a URL that had one.")
+            msg = "You can only set a new extension to a URL that had one."
+            raise InvalidURLError(msg)
 
         filename = self.get_file_name()
 
@@ -805,9 +811,7 @@ class URL(DiskItem):
 
         :return: True if the URL has params.
         """
-        if self._params != "":
-            return True
-        return False
+        return self._params != ""
 
     def get_params_string(self):
         """
@@ -853,10 +857,10 @@ class URL(DiskItem):
                 parsed_data = urllib.parse.parse_qs(
                     self.params, keep_blank_values=True, strict_parsing=True
                 )
-            except Exception:
+            except (ValueError, TypeError) as error:
                 if not ignore_exc:
                     msg = "Strange things found when parsing params string: %s"
-                    raise BaseFrameworkException(msg % self.params)
+                    raise BaseFrameworkException(msg % self.params) from error
             else:
                 for k, v in parsed_data.items():
                     result[k] = v[0]
