@@ -33,7 +33,6 @@ from w3af.core.controllers.core_helpers.status import CoreStatus
 from w3af.core.controllers.exception_handling.cleanup_bug_report import (
     cleanup_bug_report,
 )
-from w3af.core.controllers.misc.traceback_utils import get_exception_location
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.exceptions import (
@@ -41,6 +40,7 @@ from w3af.core.exceptions import (
     ScanMustStopByUserRequest,
     ScanMustStopException,
 )
+from w3af.core.traceback_utils import get_exception_location
 
 DEBUG = os.environ.get("DEBUG", "0") == "1"
 

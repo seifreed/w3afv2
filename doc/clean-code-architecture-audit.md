@@ -801,3 +801,23 @@ sigue encontrando el error preexistente de `_DummyThread` en `core/__init__.py`.
 La puntuación global sube a **4.3/10**: otra dependencia de datos hacia
 controladores se elimina, pero quedan numerosos acoplamientos y gates globales
 sin resolver.
+
+## Avance: utilidades de traceback en core
+
+`get_traceback` y `get_exception_location` solo usan la biblioteca estándar,
+pero estaban en `controllers.misc` y eran importadas por el parser OpenAPI en
+`core.data` y por el manejador de excepciones. Se movieron a
+`core.traceback_utils` y se actualizaron ambos consumidores sin conservar la
+ruta anterior. Tres pruebas con excepciones reales cubren el caso con
+traceback, su frame más profundo y el caso `None`; cobertura del módulo: 100%.
+
+Pasan las tres pruebas nuevas, el caso de OpenAPI con validación de una
+especificación inválida, el smoke de importación, Black, Ruff completo para
+helper/tests, Ruff de imports para consumidores, compilación y `git diff
+--check`. La suite conjunta de `ExceptionHandler` y OpenAPI tiene 13 fallos y
+14 pases, incluidos errores ajenos de compatibilidad Python 3.14 y
+expectativas de rutas/líneas; además muestra 203 warnings deprecados de
+`jsonschema`/Bravado. No se consideran regresiones demostradas del traslado,
+pero impiden declarar verdes esas suites. Score global: **4.4/10**; se elimina
+otra dependencia ascendente, mientras permanecen los acoplamientos restantes
+y las gates globales.

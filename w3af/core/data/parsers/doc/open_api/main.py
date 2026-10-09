@@ -31,10 +31,6 @@ except ImportError:
     from yaml import Loader
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.misc.traceback_utils import (
-    get_exception_location,
-    get_traceback,
-)
 from w3af.core.data.parsers.doc.baseparser import BaseParser
 
 #
@@ -45,6 +41,7 @@ from w3af.core.data.parsers.doc.baseparser import BaseParser
 from w3af.core.data.parsers.doc.open_api.operation_mp import build_params_monkey_patch
 from w3af.core.data.parsers.doc.open_api.requests import RequestFactory
 from w3af.core.data.parsers.doc.open_api.specification import SpecificationHandler
+from w3af.core.traceback_utils import get_exception_location, get_traceback
 
 _ = build_params_monkey_patch
 
