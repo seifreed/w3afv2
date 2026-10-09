@@ -38,6 +38,7 @@ from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.options.option_types import URL as URL_OPTION
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.filesystem import get_temp_dir
 
 
@@ -183,7 +184,7 @@ class retirejs(GrepPlugin):
                 http_response = self._uri_opener.GET(
                     self._retire_db_url, binary_response=True, respect_size_limit=False
                 )
-            except Exception as e:
+            except HTTPRequestException as e:
                 msg = 'Failed to download the retirejs database: "%s"'
                 om.out.error(msg % e)
                 return
@@ -373,7 +374,7 @@ class retirejs(GrepPlugin):
 
         try:
             file_contents = open(json_file.name).read()
-        except Exception:
+        except OSError:
             msg = "Failed to read retirejs output file at %s"
             om.out.debug(msg % json_file.name)
 
@@ -382,7 +383,7 @@ class retirejs(GrepPlugin):
 
         try:
             json_doc = json.loads(file_contents)
-        except Exception as e:
+        except (ValueError, TypeError) as e:
             msg = (
                 "Failed to parse retirejs output as JSON."
                 ' Exception is "%s" and file content: "%s..."'

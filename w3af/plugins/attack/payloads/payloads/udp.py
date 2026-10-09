@@ -81,7 +81,7 @@ class udp(Payload):
                         "uid": parsed_line[7],
                         "inode": parsed_line[11],
                     }
-            except:
+            except IndexError:
                 pass
 
         return result

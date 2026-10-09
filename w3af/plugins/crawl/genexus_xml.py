@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import xml.dom.minidom
+from xml.parsers.expat import ExpatError
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
@@ -89,7 +90,7 @@ class genexus_xml(CrawlPlugin):
         om.out.debug("Parsing xml file with xml.dot.minidom.")
         try:
             dom = xml.dom.minidom.parseString(http_response.get_body())
-        except Exception as e:
+        except ExpatError as e:
             msg = 'Error while parsing "%s": "%s"'
             args = (http_response.get_url(), e)
             om.out.debug(msg % args)
@@ -105,7 +106,7 @@ class genexus_xml(CrawlPlugin):
             except ValueError as ve:
                 msg = '"%s" file had an invalid URL "%s"'
                 om.out.debug(msg % (file_name, ve))
-            except:
+            except (IndexError, AttributeError):
                 msg = '"%s" file had an invalid format'
                 om.out.debug(msg % file_name)
             else:

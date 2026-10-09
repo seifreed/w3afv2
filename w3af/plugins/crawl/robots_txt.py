@@ -110,7 +110,7 @@ class robots_txt(CrawlPlugin):
             url = url.strip()
             try:
                 url = base_url.url_join(url)
-            except:
+            except ValueError:
                 # Simply ignore the invalid URL
                 pass
             else:

@@ -25,7 +25,7 @@ import hashlib
 import os
 import re
 from collections import namedtuple
-from xml.sax import make_parser
+from xml.sax import SAXException, make_parser
 from xml.sax.handler import ContentHandler
 
 import w3af.core.controllers.output_manager as om
@@ -127,7 +127,7 @@ class wordpress_fingerprint(CrawlPlugin):
                 try:
                     line = line.strip()
                     release_db_hash, release_db_name = line.split(",")
-                except:
+                except ValueError:
                     continue
 
                 if release_db_hash == remote_release_hash:
@@ -272,10 +272,10 @@ class wordpress_fingerprint(CrawlPlugin):
             wordpress_fp_fd = codecs.open(
                 self.WP_VERSIONS_XML, "r", "utf-8", errors="ignore"
             )
-        except Exception as e:
+        except OSError as e:
             msg = 'Failed to open wordpress fingerprint database "%s": "%s".'
             args = (self.WP_VERSIONS_XML, e)
-            raise BaseFrameworkException(msg % args)
+            raise BaseFrameworkException(msg % args) from e
 
         parser = make_parser()
         wp_handler = WPVersionsHandler()
@@ -284,9 +284,9 @@ class wordpress_fingerprint(CrawlPlugin):
 
         try:
             parser.parse(wordpress_fp_fd)
-        except Exception as e:
+        except SAXException as e:
             msg = 'XML parsing error in wordpress version DB, exception: "%s".'
-            raise BaseFrameworkException(msg % e)
+            raise BaseFrameworkException(msg % e) from e
 
         om.out.debug("Finished xml parsing. ")
 

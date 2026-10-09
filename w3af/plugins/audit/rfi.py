@@ -263,7 +263,13 @@ class rfi(AuditPlugin):
                     )
                     om.out.error(msg)
 
-            except Exception as e:
+            except (
+                BaseFrameworkException,
+                ValueError,
+                TypeError,
+                AttributeError,
+                RuntimeError,
+            ) as e:
                 msg = (
                     "An error occurred while running local web server for"
                     ' the remote file inclusion (rfi) plugin: "%s"'
@@ -532,7 +538,7 @@ class RFIWebHandler(http.server.BaseHTTPRequestHandler):
             self.send_header("Content-type", "text/html")
             self.end_headers()
             self.wfile.write(self.RESPONSE_BODY)
-        except Exception as e:
+        except OSError as e:
             om.out.debug(f'[RFIWebHandler] Exception: "{e}".')
         finally:
             # Clean up

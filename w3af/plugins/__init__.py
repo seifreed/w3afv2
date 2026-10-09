@@ -1,7 +1,5 @@
 # Translation hack. Needed for tests completion.
-try:
-    _("blah")
-except:
-    import builtins
+import builtins
 
-    builtins.__dict__["_"] = lambda x: x
+if not hasattr(builtins, "_"):
+    builtins._ = lambda text: text

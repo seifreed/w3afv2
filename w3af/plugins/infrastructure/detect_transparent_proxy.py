@@ -82,7 +82,7 @@ class detect_transparent_proxy(InfrastructurePlugin):
             sock_obj = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:
                 sock_obj.connect((ip_address, 80))
-            except:
+            except OSError:
                 return False
             else:
                 continue

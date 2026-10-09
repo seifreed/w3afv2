@@ -112,7 +112,7 @@ class phishtank(CrawlPlugin):
         for func in (addrinfo, getfqdn, root_domain):
             try:
                 data_lst = func(target_url)
-            except Exception:
+            except (OSError, ValueError):
                 pass
             else:
                 for data in data_lst:
@@ -129,9 +129,9 @@ class phishtank(CrawlPlugin):
         """
         try:
             phishtank_db_fd = open(self.PHISHTANK_DB, "r")
-        except Exception as e:
+        except OSError as e:
             msg = 'Failed to open phishtank database: "%s", exception: "%s".'
-            raise BaseFrameworkException(msg % (self.PHISHTANK_DB, e))
+            raise BaseFrameworkException(msg % (self.PHISHTANK_DB, e)) from e
 
         pt_matches = []
         self._multi_in = MultiIn(to_check)

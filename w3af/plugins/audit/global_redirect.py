@@ -202,7 +202,7 @@ class global_redirect(AuditPlugin):
         try:
             redir_domain = URL(redir_url).get_domain()
             return redir_domain.endswith(self.TEST_DOMAIN)
-        except:
+        except ValueError:
             return False
 
     def _find_redirect(self, response):

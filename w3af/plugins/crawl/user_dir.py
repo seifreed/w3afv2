@@ -30,6 +30,7 @@ from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_not_equal
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.info import Info
+from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.plugins.crawl.user_db.user_db import APPLICATION, OS, get_users_from_csv
 
 
@@ -83,9 +84,9 @@ class user_dir(CrawlPlugin):
         test_url = base_url.url_join(non_existent_user)
         try:
             response = self._uri_opener.GET(test_url, cache=True, headers=headers)
-        except:
+        except HTTPRequestException as exc:
             msg = "user_dir failed to create a non existent signature."
-            raise BaseFrameworkException(msg)
+            raise BaseFrameworkException(msg) from exc
 
         response_body = response.get_body()
 

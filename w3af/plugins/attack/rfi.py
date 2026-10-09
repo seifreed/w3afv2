@@ -35,6 +35,7 @@ from w3af.core.data.kb.exec_shell import ExecShell
 from w3af.core.data.kb.shell import Shell
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
+from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.paths import get_home_dir
 from w3af.plugins.attack.payloads import shell_handler
 from w3af.plugins.attack.payloads.decorators.exec_decorator import exec_debug
@@ -156,7 +157,7 @@ class rfi(AttackPlugin):
 
             try:
                 http_res = self._uri_opener.send_mutant(xss_mutant)
-            except:
+            except HTTPRequestException:
                 continue
             else:
                 if test_string in http_res.get_body():
@@ -249,7 +250,7 @@ class rfi(AttackPlugin):
 
             try:
                 http_res = self._uri_opener.send_mutant(mutant)
-            except:
+            except HTTPRequestException:
                 continue
             else:
                 if shell_handler.SHELL_IDENTIFIER in http_res.body:
@@ -271,7 +272,7 @@ class rfi(AttackPlugin):
 
         try:
             http_response = self._uri_opener.send_mutant(mutant)
-        except:
+        except HTTPRequestException:
             return False
         else:
             rfi_errors = [
@@ -303,8 +304,10 @@ class rfi(AttackPlugin):
                 file_handler = open(filepath, "w")
                 file_handler.write(file_content)
                 file_handler.close()
-            except:
-                raise BaseFrameworkException("Could not create file in webroot.")
+            except OSError as exc:
+                raise BaseFrameworkException(
+                    "Could not create file in webroot."
+                ) from exc
             else:
                 url_to_include = (
                     f"http://{self._listen_address}:{self._listen_port}/{filename}"
@@ -415,7 +418,7 @@ class PortScanShell(Shell):
             http_response = self._uri_opener.send_mutant(mutant)
         except BaseFrameworkException as w3:
             return f'Exception from the remote web application: "{w3}"'
-        except Exception as e:
+        except (OSError, ValueError, TypeError, AttributeError) as e:
             return f'Unhandled exception, "{e}"'
         else:
             if "HTTP request failed!" in http_response.get_body():
@@ -500,7 +503,7 @@ class RFIShell(ExecShell, PortScanShell):
             http_res = self._uri_opener.send_mutant(mutant)
         except BaseFrameworkException as w3:
             return f'Exception from the remote web application: "{w3}"'
-        except Exception as e:
+        except (OSError, ValueError, TypeError, AttributeError) as e:
             return f'Unhandled exception from the remote web application: "{e}"'
         else:
             return shell_handler.extract_result(http_res.get_body())
@@ -512,7 +515,7 @@ class RFIShell(ExecShell, PortScanShell):
         om.out.debug("Remote file inclusion shell is cleaning up.")
         try:
             self._rm_file(self._exploit_mutant.get_token_value())
-        except Exception as e:
+        except BaseFrameworkException as e:
             msg = "Remote file inclusion shell cleanup failed with exception: %s"
             om.out.error(msg % e)
         else:

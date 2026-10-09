@@ -55,7 +55,7 @@ class rnd_param(EvasionPlugin):
             try:
                 # Only mangle the postdata if it is a url encoded string
                 post_data = parse_qs(data)
-            except:
+            except (ValueError, TypeError, AttributeError):
                 pass
             else:
                 data = str(self._mutate(post_data))

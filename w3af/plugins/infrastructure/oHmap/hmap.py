@@ -75,10 +75,10 @@ class request:
             else:
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.connect((HOST, PORT))
-        except Exception as e:
+        except OSError as e:
             msg = 'hmap connection failed to %s:%s. Exception: "%s"'
             args = (HOST, PORT, e)
-            raise BaseFrameworkException(msg % args)
+            raise BaseFrameworkException(msg % args) from e
 
         # SSL handling
         if useSSL:
@@ -87,10 +87,10 @@ class request:
                 context.check_hostname = False
                 context.verify_mode = ssl.CERT_NONE
                 s = context.wrap_socket(s, server_hostname=HOST)
-            except Exception as e:
+            except (ssl.SSLError, OSError) as e:
                 msg = 'hmap SSL connection failed to %s:%s. Exception: "%s"'
                 args = (HOST, PORT, e)
-                raise BaseFrameworkException(msg % args)
+                raise BaseFrameworkException(msg % args) from e
 
         s.settimeout(10)
 
@@ -105,12 +105,12 @@ class request:
         while tries != 0:
             s = self.get_connection()
 
-            data = ""
+            data = b""
 
             # Send the "HTTP request" to the socket
             try:
-                s.send(str(self))
-            except Exception as e:
+                s.send(str(self).encode("utf-8"))
+            except OSError as e:
                 om.out.debug(f'hmap failed to send data to socket: "{e}"')
 
                 # Try again
@@ -145,7 +145,7 @@ class request:
                 # It simply closes the remote connection, which raises:
                 # (6, 'TLS/SSL connection has been closed')
                 if isinstance(ssl_err, ssl.SSLZeroReturnError):
-                    return response(data)
+                    return response(data.decode("latin-1"))
 
                 msg = 'hmap found an SSL error while reading data from socket: "%s"'
                 om.out.debug(msg % ssl_err)
@@ -158,7 +158,7 @@ class request:
 
                 continue
 
-            except Exception as e:
+            except OSError as e:
                 msg = 'hmap found an exception while reading data from socket: "%s"'
                 om.out.debug(msg % e)
 
@@ -176,7 +176,7 @@ class request:
             # Success!
             msg = f'hmap received: "{repr(data)[1:-1][:40]}..."'
             om.out.debug(msg)
-            return response(data)
+            return response(data.decode("latin-1"))
 
         # Something happen... we just return an empty response
         return response("")
@@ -1064,10 +1064,10 @@ def testServer(ssl, server, port, matchCount, generateFP, threads):
         try:
             ### FIXME: This eval is awful, I should change it to pickle.
             ks = eval(ksf.read())
-        except Exception:
+        except (SyntaxError, ValueError, TypeError, NameError) as exc:
             raise BaseFrameworkException(
                 'The signature file "' + f + '" has an invalid syntax.'
-            )
+            ) from exc
         else:
             known_servers.append(ks)
             ksf.close()
@@ -1077,10 +1077,10 @@ def testServer(ssl, server, port, matchCount, generateFP, threads):
         for i in range(10):
             try:
                 fd = open("hmap-fingerprint-" + server + "-" + str(i), "w")
-            except Exception as e:
+            except OSError as e:
                 raise BaseFrameworkException(
                     "Cannot open fingerprint file. Error:" + str(e)
-                )
+                ) from e
             else:
                 import pprint
 

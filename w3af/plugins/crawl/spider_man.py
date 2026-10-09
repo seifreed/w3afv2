@@ -29,7 +29,11 @@ import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.controllers.daemons.proxy import Proxy, ProxyHandler
 from w3af.core.controllers.daemons.proxy.templates.utils import render
-from w3af.core.controllers.exceptions import ProxyException, RunOnce
+from w3af.core.controllers.exceptions import (
+    BaseFrameworkException,
+    ProxyException,
+    RunOnce,
+)
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.constants import ports
@@ -199,7 +203,16 @@ class LoggingHandler(ProxyHandler):
 
                 # Send the request to the remote webserver
                 http_response = self._send_http_request(http_request, grep=grep)
-        except Exception as e:
+        except (
+            BaseFrameworkException,
+            OSError,
+            ValueError,
+            TypeError,
+            AttributeError,
+            KeyError,
+            IndexError,
+            RuntimeError,
+        ) as e:
             trace = str(traceback.format_exc())
             http_response = self._create_error_response(
                 http_request, None, e, trace=trace

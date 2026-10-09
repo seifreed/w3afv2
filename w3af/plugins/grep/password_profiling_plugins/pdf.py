@@ -58,7 +58,15 @@ class pdf(BasePwdProfilingPlugin):
         if response.content_type in ("application/x-pdf", "application/pdf"):
             try:
                 words = self._get_pdf_content(response.get_body())
-            except:
+            except (
+                OSError,
+                ValueError,
+                TypeError,
+                AttributeError,
+                KeyError,
+                IndexError,
+                RuntimeError,
+            ):
                 return None
             else:
                 res = {}

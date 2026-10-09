@@ -113,7 +113,7 @@ class favicon_identification(InfrastructurePlugin):
         try:
             # read MD5 database.
             db_file = open(self._db_file, "r")
-        except Exception as e:
+        except OSError as e:
             msg = 'Failed to open the MD5 database at %s. Exception: "%s".'
             om.out.error(msg % (self._db_file, e))
         else:

@@ -38,6 +38,7 @@ from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.misc.ip_address import is_ip_address
 from w3af.core.data.parsers import parser_cache
+from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.helpers import is_no_content_response
 
 
@@ -275,7 +276,7 @@ class find_vhosts(InfrastructurePlugin):
         for ne_domain in (non_existent_domain, non_existent_subdomain):
             try:
                 http_response = self._http_get_vhost(base_url, ne_domain)
-            except Exception as e:
+            except HTTPRequestException as e:
                 msg = "Failed to generate invalid domain fingerprint: %s"
                 om.out.debug(msg % e)
             else:

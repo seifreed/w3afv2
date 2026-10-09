@@ -41,6 +41,7 @@ from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.options.option_types import BOOL, INPUT_FILE, LIST
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.data.url.exceptions import HTTPRequestException
 
 
 class pykto(CrawlPlugin):
@@ -170,7 +171,7 @@ class pykto(CrawlPlugin):
         if nikto_test.is_vulnerable.checks_only_response_code():
             try:
                 http_response = self._uri_opener.HEAD(nikto_test.uri)
-            except Exception:
+            except HTTPRequestException:
                 return
             else:
                 if not nikto_test.is_vulnerable.check(http_response):
@@ -409,10 +410,10 @@ class NiktoTestParser:
         """
         try:
             db_file = codecs.open(self.filename, "r", "utf-8")
-        except Exception as e:
+        except OSError as e:
             msg = 'Failed to open the scan database. Exception: "%s".'
             om.out.error(msg % e)
-            raise StopIteration
+            return
 
         for line in db_file:
 
@@ -497,7 +498,7 @@ class NiktoTestParser:
 
         if len(splitted_line) != 13:
             self.ignored.append(line)
-            raise StopIteration
+            return
 
         # Remove those ugly double quotes which I get after splitting by '","'
         splitted_line[0] = splitted_line[0][1:]
@@ -521,9 +522,9 @@ class NiktoTestParser:
                 flags = re.IGNORECASE | re.MULTILINE | re.DOTALL
                 try:
                     splitted_line[test_index] = re.compile(test_value, flags)
-                except:
+                except re.error:
                     # Protect myself against buggy regular expressions
-                    raise StopIteration
+                    return
 
             else:
                 splitted_line[test_index] = None
@@ -548,7 +549,7 @@ class NiktoTestParser:
 
         if uri.count(" "):
             self.ignored.append(line)
-            raise StopIteration
+            return
 
         # Now I should replace the @CGIDIRS variable with the user settings
         # The same goes for every @* variable.

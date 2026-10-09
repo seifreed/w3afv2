@@ -24,7 +24,7 @@ class arp_cache(Payload):
                         ip_address = splitted_line[0]
                         hw_address = splitted_line[3]
                         device = splitted_line[5]
-                    except:
+                    except IndexError:
                         pass
                     else:
                         result[ip_address] = (hw_address, device)

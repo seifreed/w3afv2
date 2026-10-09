@@ -104,7 +104,15 @@ class php_sca(Payload):
             try:
                 sca = PhpSCA(file=file[1])
                 vulns = sca.get_vulns()
-            except Exception as e:
+            except (
+                OSError,
+                ValueError,
+                TypeError,
+                AttributeError,
+                KeyError,
+                IndexError,
+                RuntimeError,
+            ) as e:
                 msg = 'The PHP SCA failed with an unhandled exception: "%s".'
                 om.out.console(msg % e)
                 return {}

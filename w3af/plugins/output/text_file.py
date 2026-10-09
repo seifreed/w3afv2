@@ -80,11 +80,7 @@ class text_file(OutputPlugin):
         except OSError as io:
             msg = 'Can\'t open report file "%s" for writing, error: %s.'
             args = (os.path.abspath(self._output_file_name), io.strerror)
-            raise BaseFrameworkException(msg % args)
-        except Exception as e:
-            msg = 'Can\'t open report file "%s" for writing, error: %s.'
-            args = (os.path.abspath(self._output_file_name), e)
-            raise BaseFrameworkException(msg % args)
+            raise BaseFrameworkException(msg % args) from io
 
         if self._http_file_name == DEV_NULL:
             # The user wants to ignore output to this file
@@ -97,11 +93,7 @@ class text_file(OutputPlugin):
         except OSError as io:
             msg = 'Can\'t open HTTP report file "%s" for writing, error: %s.'
             args = (os.path.abspath(self._http_file_name), io.strerror)
-            raise BaseFrameworkException(msg % args)
-        except Exception as e:
-            msg = 'Can\'t open HTTP report file "%s" for writing, error: %s.'
-            args = (os.path.abspath(self._http_file_name), e)
-            raise BaseFrameworkException(msg % args)
+            raise BaseFrameworkException(msg % args) from io
 
     def _write_to_file(self, msg, flush=False):
         """
@@ -114,7 +106,7 @@ class text_file(OutputPlugin):
 
         try:
             self._log.write(msg)
-        except Exception as e:
+        except (OSError, ValueError) as e:
             self._log = None
             msg = (
                 "An exception was raised while trying to write to the output"
@@ -142,7 +134,7 @@ class text_file(OutputPlugin):
 
         try:
             self._http.write(msg)
-        except Exception as e:
+        except (OSError, ValueError) as e:
             self._http = None
             msg = (
                 "An exception was raised while trying to write to the output"

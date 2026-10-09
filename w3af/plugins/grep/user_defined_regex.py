@@ -132,17 +132,17 @@ class user_defined_regex(GrepPlugin):
 
             try:
                 f = open(self._regex_file_path)
-            except Exception as e:
+            except OSError as e:
                 msg = 'Unable to open file "%s", error: "%s".'
-                raise BaseFrameworkException(msg % (self._regex_file_path, e))
+                raise BaseFrameworkException(msg % (self._regex_file_path, e)) from e
             else:
                 for regex in f:
                     current_regex = regex.strip()
                     try:
                         re_inst = re.compile(current_regex, re.IGNORECASE | re.DOTALL)
-                    except:
+                    except re.error as e:
                         msg = 'Invalid regex in input file: "%s"'
-                        raise BaseFrameworkException(msg % current_regex)
+                        raise BaseFrameworkException(msg % current_regex) from e
                     else:
                         self._regexlist_compiled.append((re_inst, None))
                         tmp_not_compiled_all.append(current_regex)

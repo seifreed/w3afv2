@@ -121,7 +121,7 @@ class ssn(GrepPlugin):
             area_number = int(potential_ssn.group(2))
             group_number = int(potential_ssn.group(4))
             serial_number = int(potential_ssn.group(5))
-        except:
+        except (ValueError, TypeError, AttributeError):
             return False
 
         if not group_number:

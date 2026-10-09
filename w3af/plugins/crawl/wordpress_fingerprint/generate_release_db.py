@@ -48,7 +48,7 @@ for i, version in enumerate(extracted_links):
         version_md5 = urllib.request.urlopen(version_md5_url).read().strip()
     except KeyboardInterrupt:
         break
-    except:
+    except OSError:
         errors += 1
         if DEBUG:
             print(f"{version_md5_url} is a 404")

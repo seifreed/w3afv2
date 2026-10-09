@@ -54,7 +54,7 @@ class full_width_encode(EvasionPlugin):
             try:
                 # Only mangle the postdata if it is a url encoded string
                 parse_qs(data)
-            except:
+            except (ValueError, TypeError, AttributeError):
                 pass
             else:
                 # We get here only if the parsing was successful

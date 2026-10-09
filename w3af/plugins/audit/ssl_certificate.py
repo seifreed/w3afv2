@@ -105,7 +105,7 @@ class ssl_certificate(AuditPlugin):
 
         try:
             cert, cert_der, cipher = self._get_ssl_cert(domain, port)
-        except Exception as e:
+        except (ssl.SSLError, OSError, OpenSSL.SSL.Error) as e:
             om.out.debug(f'Failed to retrieve SSL certificate: "{e}"')
         else:
             self._cert_expiration_analysis(domain, port, cert, cert_der, cipher)
@@ -298,7 +298,7 @@ class ssl_certificate(AuditPlugin):
                 # Raise SSL errors
                 raise
 
-        except Exception as e:
+        except (OSError, ValueError, TypeError, AttributeError) as e:
             msg = 'Unhandled %s exception in _ssl_connect_specific_protocol(): "%s"'
             args = (e.__class__.__name__, e)
             om.out.debug(msg % args)
@@ -313,7 +313,7 @@ class ssl_certificate(AuditPlugin):
 
             try:
                 ssl_sock.close()
-            except Exception as e:
+            except OSError as e:
                 om.out.debug(f'Exception found while closing SSL socket: "{e}"')
 
             return result
@@ -325,7 +325,7 @@ class ssl_certificate(AuditPlugin):
     def _get_ssl_error_details(self, cve):
         try:
             return cve.args[0][0][2]
-        except:
+        except (IndexError, KeyError, TypeError):
             return str(cve)
 
     def _handle_certificate_validation_error(self, cve, domain, port):

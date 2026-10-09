@@ -49,7 +49,7 @@ class mod_security(EvasionPlugin):
         # Only mangle the postdata if it is a url encoded string
         try:
             parse_qs(data)
-        except:
+        except (ValueError, TypeError, AttributeError):
             return request
 
         data = "\x00" + data

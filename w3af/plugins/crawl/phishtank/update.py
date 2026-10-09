@@ -133,13 +133,13 @@ def convert_xml_to_csv():
         #
         # <?xml version="1.0" encoding="utf-8"?>
         phishtank_db_fd = open(XML_DB_FILE, "r")
-    except Exception as e:
+    except OSError as e:
         msg = 'Failed to open XML phishtank database: "%s", exception: "%s".'
         sys.exit(msg % (XML_DB_FILE, e))
 
     try:
         output_csv_file = open(CSV_DB_FILE, "w")
-    except Exception as e:
+    except OSError as e:
         msg = 'Failed to open CSV phishtank database: "%s", exception: "%s".'
         sys.exit(msg % (CSV_DB_FILE, e))
 
@@ -150,7 +150,7 @@ def convert_xml_to_csv():
 
     try:
         etree.parse(phishtank_db_fd, parser)
-    except Exception as e:
+    except (etree.LxmlError, OSError) as e:
         msg = 'XML parsing error in phishtank DB, exception: "%s".'
         sys.exit(msg % e)
 

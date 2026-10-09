@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.constants.cookies import ALL_COOKIES
@@ -68,7 +69,7 @@ class url_session(GrepPlugin):
         """
         try:
             doc_parser = parser_cache.dpc.get_document_parser_for(response)
-        except:
+        except BaseFrameworkException:
             pass
         else:
             parsed_refs, _ = doc_parser.get_references()
