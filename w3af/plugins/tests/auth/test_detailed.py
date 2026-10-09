@@ -21,8 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import ClassVar
 
-from httpretty import httpretty
-
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.parsers.doc.url import URL
@@ -201,7 +199,7 @@ class TestDetailedRedirect(PluginTest):
         self._scan(self._run_config["target"], self._run_config["plugins"])
 
         all_paths = set()
-        for request in httpretty.latest_requests:
+        for request in self.received_requests:
             all_paths.add(request.path)
 
         # Followed two redirects
@@ -276,7 +274,7 @@ class TestDetailedRedirectLoop(PluginTest):
         self._scan(self._run_config["target"], self._run_config["plugins"])
 
         all_paths = set()
-        for request in httpretty.latest_requests:
+        for request in self.received_requests:
             all_paths.add(request.path)
 
         # Followed two redirects which are in a loop
