@@ -42,6 +42,12 @@ class TestHTTPRequest(unittest.TestCase):
         self.assertEqual(req.get_full_url(), "http://www.w3af.com/")
         self.assertEqual(req.get_uri().url_string, "http://www.w3af.com/")
 
+    def test_get_data(self):
+        request_data = b"post body"
+        req = HTTPRequest(URL("http://www.w3af.com"), data=request_data)
+
+        self.assertEqual(req.get_data(), request_data)
+
     def test_to_from_dict(self):
         headers = Headers([("Host", "www.w3af.com")])
         req = HTTPRequest(URL("http://www.w3af.com/"), data="spameggs", headers=headers)

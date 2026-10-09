@@ -111,6 +111,9 @@ class HTTPRequest(RequestMixIn, urllib.request.Request):
     def set_data(self, data):
         self.data = data
 
+    def get_data(self):
+        return self.data
+
     def add_header(self, key, val):
         """
         Override mostly to avoid having header values of DataToken type
