@@ -22,8 +22,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import re
 import unittest
 
+import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.consumers.audit import audit
+from w3af.core.controllers.core_helpers.consumers.tests.consumer_plugins import (
+    CrashingObserver,
+    crashing_audit,
+    prepare_plugins,
+    recording_audit,
+    reported_errors,
+)
 from w3af.core.controllers.tests.local_http_server import LocalHTTPServer, Reply
 from w3af.core.controllers.tests.recording_output import start_recording_output
 from w3af.core.controllers.w3af_core import w3afCore
@@ -86,3 +94,89 @@ class TestAuditConsumer(unittest.TestCase):
         )
 
         w3af_core.worker_pool.terminate_join()
+
+
+class TestAuditConsumerBranches(unittest.TestCase):
+    def setUp(self):
+        self.server = LocalHTTPServer(hello_world).start()
+        self.addCleanup(self.server.close)
+        self.core = w3afCore()
+        self.addCleanup(self.core.worker_pool.terminate_join)
+        self.addCleanup(kb.kb.cleanup)
+        self.recorder = start_recording_output()
+
+    def run_audit(self, plugins, urls, observer=None):
+        consumer = audit(prepare_plugins(plugins, self.core), self.core)
+        if observer is not None:
+            consumer.add_observer(observer)
+        consumer.start()
+
+        for url in urls:
+            consumer.in_queue_put(FuzzableRequest(URL(url)))
+
+        consumer.join()
+        return consumer
+
+    def test_plugins_receive_the_original_response(self):
+        plugin = recording_audit()
+        url = self.server.url("/?id=1")
+
+        self.run_audit([plugin], [url])
+
+        self.assertEqual(plugin.audited, [(url, 200)])
+        self.assertEqual(plugin.end_calls, 1)
+        expected = re.compile(
+            r"Spent \d+\.\d\d seconds running recording_audit\.end\(\)$"
+        )
+        debug_messages = self.recorder.messages_of("debug")
+        self.assertTrue(any(expected.match(m) for m in debug_messages))
+
+    def test_plugin_errors_are_reported(self):
+        consumer = self.run_audit([crashing_audit()], [self.server.url("/")])
+
+        self.assertEqual(
+            reported_errors(consumer),
+            [
+                ("crashing_audit", "audit failed"),
+                ("crashing_audit", "audit end failed"),
+            ],
+        )
+
+    def test_blacklisted_url_is_not_audited(self):
+        url = self.server.url("/blacklisted")
+        cf.cf.save("blacklist_audit", [URL(url)])
+        self.addCleanup(cf.cf.save, "blacklist_audit", [])
+        plugin = recording_audit()
+
+        self.run_audit([plugin], [url])
+
+        self.assertEqual(plugin.audited, [])
+        self.assertIn(
+            f"{url} was included in the audit blacklist, the scan engine is NOT"
+            " going to perform fuzzing on this URL",
+            self.recorder.messages_of("debug"),
+        )
+
+    def test_original_response_error_is_reported(self):
+        plugin = recording_audit()
+        self.core.uri_opener.stop()
+
+        consumer = self.run_audit([plugin], [self.server.url("/")])
+
+        self.assertEqual(plugin.audited, [])
+        self.assertEqual(
+            reported_errors(consumer),
+            [("audit.get_original_response()", "The user stopped the scan.")],
+        )
+
+    def test_observer_errors_are_reported(self):
+        plugin = recording_audit()
+        url = self.server.url("/")
+
+        consumer = self.run_audit([plugin], [url], observer=CrashingObserver())
+
+        self.assertEqual(plugin.audited, [(url, 200)])
+        self.assertEqual(
+            reported_errors(consumer),
+            [("audit._run_observers()", "audit observer failed")],
+        )
