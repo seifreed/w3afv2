@@ -16,6 +16,7 @@
 
 
 import difflib
+from typing import ClassVar
 
 
 def _null_or_space(s):
@@ -77,7 +78,7 @@ class IncrementalSequenceMatcher(difflib.SequenceMatcher):
 class Differ:
     """Utility class to hold diff2 or diff3 chunks"""
 
-    reversemap = {
+    reversemap: ClassVar[dict[str, str]] = {
         "replace": "replace",
         "insert": "delete",
         "delete": "insert",
@@ -110,14 +111,14 @@ class Differ:
             self.diffs = seq0, seq1
         else:
             raise ValueError(
-                "Bad number of arguments to Differ constructor (%i)" % len(sequences)
+                f"Bad number of arguments to Differ constructor ({len(sequences)})"
             )
 
     def change_sequence(self, sequence, startidx, sizechange, texts):
         assert sequence in (0, 1, 2)
         changes = [[0, 0], [0, 0]]
         if sequence != 1:  # 0 or 2
-            which = sequence / 2
+            which = sequence // 2
             changes[which] = self._change_sequence(
                 which, sequence, startidx, sizechange, texts
             )
@@ -201,22 +202,20 @@ class Differ:
         return self.reversemap[c[0]], c[3], c[4], c[1], c[2]
 
     def all_changes(self, texts):
-        for c in self._merge_diffs(self.diffs[0], self.diffs[1], texts):
-            yield c
+        yield from self._merge_diffs(self.diffs[0], self.diffs[1], texts)
 
     def all_changes_in_range(self, texts, l0, h0, l1, h1):
-        for c in self._merge_diffs(self.diffs[0][l0:h0], self.diffs[1][l0:h0], texts):
-            yield c
+        yield from self._merge_diffs(self.diffs[0][l0:h0], self.diffs[1][l0:h0], texts)
 
     def pair_changes(self, fromindex, toindex, texts):
         """Give all changes between file1 and either file0 or file2."""
         if fromindex == 1:
-            seq = toindex / 2
+            seq = toindex // 2
             for c in self.all_changes(texts):
                 if c[seq]:
                     yield c[seq]
         else:
-            seq = fromindex / 2
+            seq = fromindex // 2
             for c in self.all_changes(texts):
                 if c[seq]:
                     yield self.reverse(c[seq])
@@ -224,7 +223,7 @@ class Differ:
     def single_changes(self, textindex, texts):
         """Give changes for single file only. do not return 'equal' hunks."""
         if textindex in (0, 2):
-            seq = textindex / 2
+            seq = textindex // 2
             for cs in self.all_changes(texts):
                 c = cs[seq]
                 if c:
@@ -340,7 +339,7 @@ class Differ:
                 diffs[i] = matcher.get_difference_opcodes()
         else:
             raise ValueError(
-                "Bad number of arguments to Differ constructor (%i)" % len(sequences)
+                f"Bad number of arguments to Differ constructor ({len(sequences)})"
             )
         self.diffs = diffs
         self.num_sequences = len(sequences)

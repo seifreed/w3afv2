@@ -26,6 +26,7 @@ from w3af.core.controllers.plugins.plugin import Plugin
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.ui.gui import entries, helpers
 from w3af.core.ui.gui.constants import W3AF_ICON
+from w3af.core.ui.gui.i18n import _
 
 
 class OnlyOptions(gtk.VBox):
@@ -135,7 +136,7 @@ class OnlyOptions(gtk.VBox):
         """
         table = entries.EasyTable(len(options), 3)
 
-        for _, opt in enumerate(options):
+        for opt in options:
             titl = gtk.Label(opt.get_name())
             titl.set_alignment(0.0, 0.5)
             input_widget_klass = entries.wrapperWidgets.get(
@@ -154,7 +155,7 @@ class OnlyOptions(gtk.VBox):
             self.widgets_status[widg] = (
                 titl,
                 opt.get_name(),
-                "<b>%s</b>" % opt.get_name(),
+                f"<b>{opt.get_name()}</b>",
             )
             self.propagLabels[widg] = prop
         table.show()
@@ -177,7 +178,7 @@ class OnlyOptions(gtk.VBox):
         if like_initial:
             label.set_text(text)
         else:
-            label.set_markup("<b>%s</b>" % text)
+            label.set_markup(f"<b>{text}</b>")
 
     def _changedWidget(self, widg, like_initial):
         """Receives signal when a widget changed or not.
@@ -223,9 +224,8 @@ class OnlyOptions(gtk.VBox):
         # check if all widgets are valid
         invalid = []
         for opt in self.options:
-            if hasattr(opt.widg, "is_valid"):
-                if not opt.widg.is_valid():
-                    invalid.append(opt.get_name())
+            if hasattr(opt.widg, "is_valid") and not opt.widg.is_valid():
+                invalid.append(opt.get_name())
 
         if invalid:
             msg = (

@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import gtk
 
 from w3af.core.ui.gui.entries import SemiStockButton
+from w3af.core.ui.gui.i18n import _
 
 
 class Searchable:

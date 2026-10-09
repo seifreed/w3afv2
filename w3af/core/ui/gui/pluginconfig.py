@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import logging
 import os
 
 import gobject
@@ -26,8 +27,11 @@ import gtk
 
 from w3af.core.paths import get_home_dir
 from w3af.core.ui.gui import GUI_DATA_PATH, confpanel, entries, helpers
+from w3af.core.ui.gui.i18n import _
 from w3af.core.ui.gui.misc.text_wrap_label import WrapLabel
-from w3af.core.ui.gui.pluginEditor import pluginEditor
+from w3af.core.ui.gui.plugin_editor import pluginEditor
+
+logger = logging.getLogger(__name__)
 
 
 class OptionsPanel(gtk.VBox):
@@ -223,7 +227,7 @@ class PluginTree(gtk.TreeView):
             plugins_toshow = ("output",)
             col_title = _("Plugin")
         else:
-            raise ValueError("Invalid PluginTree style: %r" % style)
+            raise ValueError(f"Invalid PluginTree style: {style!r}")
 
         # just build the tree with the plugin names
         for plugintype in plugins_toshow:
@@ -325,7 +329,7 @@ class PluginTree(gtk.TreeView):
             plugin = self._get_plugin_inst(path)
             self.mainwin.profiles.profile_changed(plugin)
         else:
-            row[0] = "<b>%s</b>" % row[3]
+            row[0] = f"<b>{row[3]}</b>"
 
         # update the general config status, and check if the plugin
         # type has any leaf in changed state
@@ -336,11 +340,11 @@ class PluginTree(gtk.TreeView):
         if all(children.values()):
             father[0] = father[3]
         else:
-            father[0] = "<b>%s</b>" % father[3]
+            father[0] = f"<b>{father[3]}</b>"
 
         # if anything is changed, you can not start scanning
         isallok = all(
-            [all(children.values()) for children in list(self.config_status.values())]
+            all(children.values()) for children in list(self.config_status.values())
         )
         self.mainwin.scanok.change(self, isallok)
 
@@ -377,7 +381,7 @@ class PluginTree(gtk.TreeView):
         if event.button == 3:
             # It's a right click !
             _time = event.time
-            path, column = tv.get_cursor()
+            path, _column = tv.get_cursor()
             # Is it over a plugin name ?
             if path is not None and len(path) > 1:
                 # Get the information about the click
@@ -428,8 +432,9 @@ class PluginTree(gtk.TreeView):
         try:
             self.w3af.plugins.reload_modified_plugin(plugin_type, plugin_name)
         except Exception as e:
+            logger.exception("Failed to reload the modified plugin")
             msg = "The plugin you modified raised the following exception"
-            msg += ' while trying to reload it: "%s",' % str(e)
+            msg += f' while trying to reload it: "{e!s}",'
             msg += " please fix this issue before continuing or w3af will crash."
             dlg = gtk.MessageDialog(
                 None, gtk.DIALOG_MODAL, gtk.MESSAGE_INFO, gtk.BUTTONS_OK, msg
@@ -438,7 +443,7 @@ class PluginTree(gtk.TreeView):
             dlg.destroy()
         else:
             # if we still are in the same tree position, refresh the config
-            newpath, column = self.get_cursor()
+            newpath, _column = self.get_cursor()
             if newpath == path:
                 self.configure_plugin()
 
@@ -447,7 +452,7 @@ class PluginTree(gtk.TreeView):
 
         :param tv: the treeview.
         """
-        path, column = self.get_cursor()
+        path, _column = self.get_cursor()
         if path is None:
             return
 
@@ -740,7 +745,7 @@ class PluginConfigBody(gtk.VBox):
             return
 
         # self.out_plugin_tree
-        path, column = treeToUse.get_cursor()
+        path, _column = treeToUse.get_cursor()
         # Is it over a plugin name ?
         if path is not None and len(path) > 1:
             # Get the information about the click
@@ -763,7 +768,6 @@ class PluginConfigBody(gtk.VBox):
             self.w3af.mainwin.scanok.change(self.target, False)
 
         # replace panel
-        pan = self.get_children()[0]
         newpan = self._buildpan(profile_description)
         self.remove(self.pan)
         self.pack_start(newpan)
@@ -772,10 +776,9 @@ class PluginConfigBody(gtk.VBox):
     def _key(self, widg, event):
         """Handles keystrokes."""
         # ctrl-something
-        if event.state & gtk.gdk.CONTROL_MASK:
-            if event.keyval == self.key_l:  # -l
-                self.target.grab_focus()
-                return True
+        if event.state & gtk.gdk.CONTROL_MASK and event.keyval == self.key_l:
+            self.target.grab_focus()
+            return True
 
         # let the key pass through
         return False

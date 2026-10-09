@@ -28,6 +28,7 @@ import gtk
 from w3af import ROOT_PATH
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.ui.gui import GUI_DATA_PATH, confpanel, entries, helpers
+from w3af.core.ui.gui.i18n import _
 
 
 class Quest:
@@ -58,19 +59,9 @@ class QuestOptions(gtk.VBox):
         invalid = []
 
         for opt in options:
-            #       Trying to reproduce bug
-            #       https://sourceforge.net/tracker2/?func=detail&aid=2652434&group_id=170274&atid=853652
-            #
-            #       To get more info:
-            try:
-                opt.widg
-            except Exception as e:
-                raise Exception(str(e) + " || " + opt.get_name())
-            # end of debugging code
 
-            if hasattr(opt.widg, "is_valid"):
-                if not opt.widg.is_valid():
-                    invalid.append(opt.get_name())
+            if hasattr(opt.widg, "is_valid") and not opt.widg.is_valid():
+                invalid.append(opt.get_name())
         if invalid:
             msg = "The configuration can't be saved, there is a problem in the"
             msg += " following parameter(s):\n\n" + "\n-".join(invalid)
@@ -218,9 +209,8 @@ class Wizard(entries.RememberingWindow):
 
     def _goBack(self, widg):
         """Shows the previous question."""
-        if not self.finalQ:
-            if not self.panel.save_options():
-                return
+        if not self.finalQ and not self.panel.save_options():
+            return
         self.finalQ = False
         quest = self.wizard.previous()
         if quest is self._firstQuestion:
@@ -232,7 +222,7 @@ class Wizard(entries.RememberingWindow):
 
         :param question: the question with the info to build.
         """
-        self.qtitle.set_markup("<b>%s</b>" % question.get_question_title())
+        self.qtitle.set_markup(f"<b>{question.get_question_title()}</b>")
         self.quest.set_text(question.get_question_string())
         self.panel.set_quest_options(question)
         self.nextbtn.set_label("  Next  ")

@@ -38,10 +38,11 @@ from w3af.core.data.db.exceptions import DBException
 from w3af.core.data.db.history import HistoryItem
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.kb_observer import KBObserver
-from w3af.core.ui.gui import entries, httpLogTab
+from w3af.core.ui.gui import entries, http_log_tab
+from w3af.core.ui.gui.i18n import _
 from w3af.core.ui.gui.kb.kbtree import KBTree
 from w3af.core.ui.gui.misc.xdot_wrapper import WrappedDotWidget
-from w3af.core.ui.gui.reqResViewer import ReqResViewer
+from w3af.core.ui.gui.req_res_viewer import ReqResViewer
 from w3af.core.ui.gui.tools.fuzzy_requests import FuzzyRequests
 from w3af.core.ui.gui.tools.manual_requests import ManualRequests
 
@@ -86,7 +87,7 @@ class FullKBTree(KBTree):
 
         output = "\n\n### References\n"
         for ref in info.get_references():
-            output += " * [%s](%s)\n" % (ref.title, ref.url)
+            output += f" * [{ref.title}]({ref.url})\n"
 
         return output
 
@@ -95,7 +96,7 @@ class FullKBTree(KBTree):
 
         :param tv: the treeview.
         """
-        path, column = tv.get_cursor()
+        path, _column = tv.get_cursor()
         if path is None:
             return
 
@@ -155,16 +156,16 @@ class FullKBTree(KBTree):
             try:
                 # These lines will trigger the code that reads the .trace file
                 # from disk and if they aren't there an exception will rise
-                history_item.request
-                history_item.response
+                request = history_item.request
+                response = history_item.response
             except OSError as ioe:
                 self._show_message(_("Error"), str(ioe))
                 return
 
             # Now we know that these two lines will work and we won't trigger
             # https://github.com/andresriancho/w3af/issues/1174
-            self.kbbrowser.rrV.request.show_object(history_item.request)
-            self.kbbrowser.rrV.response.show_object(history_item.response)
+            self.kbbrowser.rrV.request.show_object(request)
+            self.kbbrowser.rrV.response.show_object(response)
 
             # Don't forget to highlight if necessary
             severity = instance.get_severity()
@@ -339,14 +340,14 @@ class KBBrowser(entries.RememberingHPaned):
             request_id = self.req_res_ids[page]
             try:
                 historyItem = self._historyItem.read(request_id)
-            except:
+            except DBException:
                 # the request brought problems
                 self.rrV.request.clear_panes()
                 self.rrV.response.clear_panes()
                 self.rrV.set_sensitive(False)
                 self.title0.set_markup("<b>Error</b>")
             else:
-                self.title0.set_markup("<b>Id: %d</b>" % request_id)
+                self.title0.set_markup(f"<b>Id: {request_id:d}</b>")
                 self.rrV.request.show_object(historyItem.request)
                 self.rrV.response.show_object(historyItem.response)
                 self.rrV.set_sensitive(True)
@@ -408,7 +409,7 @@ class URLsGraph(gtk.VBox):
     def _draw_real(self, q, evt):
         new_widget = WrappedDotWidget()
         self._somethingnew = False
-        dotcode = "graph G {%s}" % "\n".join(self.nodos_code)
+        dotcode = "graph G {{{}}}".format("\n".join(self.nodos_code))
 
         try:
             new_widget.set_dotcode(dotcode)
@@ -447,10 +448,10 @@ class URLsGraph(gtk.VBox):
         node = str(node).replace('"', '\\"')
         name = str(name).replace('"', '\\"')
 
-        self.nodos_code.append('"%s" [label="%s"]' % (node, name))
+        self.nodos_code.append(f'"{node}" [label="{name}"]')
         if parent:
             parent = str(parent).replace('"', '\\"')
-            nline = '"%s" -- "%s"' % (parent, node)
+            nline = f'"{parent}" -- "{node}"'
             self.nodos_code.append(nline)
         self._somethingnew = True
 
@@ -461,11 +462,11 @@ class URLsGraph(gtk.VBox):
         name = str(name).replace('"', '\\"')
 
         if not isLeaf:
-            self.nodos_code.append('"%s" [shape=box]' % node)
-        self.nodos_code.append('"%s" [label="%s"]' % (node, name))
+            self.nodos_code.append(f'"{node}" [shape=box]')
+        self.nodos_code.append(f'"{node}" [label="{name}"]')
         if parent:
             parent = str(parent).replace('"', '\\"')
-            nline = '"%s" -- "%s"' % (parent, node)
+            nline = f'"{parent}" -- "{node}"'
             self.nodos_code.append(nline)
         self._somethingnew = True
 
@@ -546,7 +547,7 @@ class URLsTree(gtk.TreeView):
             scheme = url.get_protocol()
             netloc = url.get_domain()
 
-            ini = "%s://%s" % (scheme, netloc)
+            ini = f"{scheme}://{netloc}"
             end = ""
             if params:
                 end += ";" + params
@@ -618,7 +619,7 @@ class URLsTree(gtk.TreeView):
         if event.button != 3:
             return
 
-        path, column = tv.get_cursor()
+        path, _column = tv.get_cursor()
         # Is it over a URL?
         if path is None:
             return
@@ -697,7 +698,7 @@ class ScanRunBody(gtk.Notebook):
         self.append_page(pan, l)
 
         # Request Response navigator
-        httplog = httpLogTab.httpLogTab(w3af)
+        httplog = http_log_tab.httpLogTab(w3af)
         l = gtk.Label(_("Request/Response navigator"))
         self.append_page(httplog, l)
 

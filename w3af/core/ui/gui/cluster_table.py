@@ -1,5 +1,5 @@
 """
-clusterTable.py
+cluster_table.py
 
 Copyright 2008 Andres Riancho
 
@@ -33,14 +33,14 @@ from w3af.core.ui.gui import entries, helpers
 
 class ClusterCellWindow(entries.RememberingWindow):
 
-    def __init__(self, w3af, data=[]):
+    def __init__(self, w3af, data=None):
         """
         A window that stores the clusterCellData and the level changer.
 
         :param data: A list with the HTTPResponse objects to be clustered.
         """
         # First we save the data
-        self._data = data
+        self._data = data if data is not None else []
         self.w3af = w3af
         self._cl_data_widget = None
 
@@ -174,7 +174,7 @@ class clusterCellData(gtk.TreeView):
         clusteredData = cl.getlevel(level)
 
         self._parsed_clusteredData = self._parse(clusteredData)
-        self._column_names = ["Group %d" % i for i in range(len(clusteredData))]
+        self._column_names = [f"Group {i:d}" for i in range(len(clusteredData))]
 
         # Start with the treeview and liststore creation
         dynamicListStoreTypes = [str for i in range(len(self._column_names))]
@@ -343,8 +343,8 @@ class clusterCellData(gtk.TreeView):
             ["" for w in range(len(padded_list))] for i in range(len(padded_list[0]))
         ]
 
-        for x, padded_list in enumerate(padded_list):
-            for y, paddedItem in enumerate(padded_list):
+        for x, padded_row in enumerate(padded_list):
+            for y, paddedItem in enumerate(padded_row):
                 resList[y][x] = str(paddedItem)
         return resList
 
@@ -371,7 +371,7 @@ class clusterCellData(gtk.TreeView):
             current_path, current_column = treeview.get_path_at_pos(
                 int(event.x), int(event.y)
             )[:2]
-        except:
+        except TypeError:
             return (None, None, None, None, None, None)
 
         current_cell_area = treeview.get_cell_area(current_path, current_column)
@@ -398,8 +398,8 @@ class clusterCellData(gtk.TreeView):
         :return: A string with information about the request with id == id
         """
         try:
-            obj = [i for i in self._data if i.get_id() == int(id)][0]
-        except Exception:
+            obj = next(i for i in self._data if i.get_id() == int(id))
+        except (StopIteration, TypeError, ValueError):
             return ""
         else:
             msg = (

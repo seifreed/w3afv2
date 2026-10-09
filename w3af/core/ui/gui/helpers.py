@@ -26,6 +26,7 @@ import queue
 import textwrap
 import threading
 
+import gobject
 import gtk
 
 from w3af.core.controllers.exceptions import BaseFrameworkException
@@ -122,7 +123,7 @@ def clean_description(desc):
 
 # -- the following are for thread handling
 
-_threadPool = []
+_threadPool: list[threading.Thread] = []
 
 
 def end_threads():
@@ -388,7 +389,7 @@ def loadIcon(stock_item_id):
     """
     stock_item = getattr(gtk, stock_item_id)
 
-    local_icon = os.path.join(GUI_DATA_PATH, "icons", "16", "%s.png" % stock_item)
+    local_icon = os.path.join(GUI_DATA_PATH, "icons", "16", f"{stock_item}.png")
     if os.path.exists(local_icon):
         im = gtk.Image()
         im.set_from_file(local_icon)
@@ -398,7 +399,7 @@ def loadIcon(stock_item_id):
         icon_theme = gtk.IconTheme()
         try:
             icon = icon_theme.load_icon(stock_item, 16, ())
-        except:
+        except gobject.GError:
             # If param id not found use this image
             icon = loadImage("missing-image.png").get_pixbuf()
         return icon

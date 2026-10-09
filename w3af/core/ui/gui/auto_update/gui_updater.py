@@ -27,6 +27,7 @@ from w3af.core.controllers.auto_update.utils import get_commit_id_date, to_short
 from w3af.core.controllers.auto_update.version_manager import VersionMgr
 from w3af.core.ui.gui import entries
 from w3af.core.ui.gui.constants import W3AF_ICON
+from w3af.core.ui.gui.i18n import _
 
 
 def ask(msg):

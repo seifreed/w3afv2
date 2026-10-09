@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import queue
 import threading
 
@@ -37,6 +38,9 @@ from w3af.core.controllers.easy_contribution.github_issues import (
 from w3af.core.ui.gui.constants import W3AF_ICON
 from w3af.core.ui.gui.entries import EmailEntry
 from w3af.core.ui.gui.helpers import Throbber, end_threads
+from w3af.core.ui.gui.i18n import _
+
+logger = logging.getLogger(__name__)
 
 
 class SimpleBaseWindow(gtk.Window):
@@ -596,7 +600,8 @@ class GithubBugReport:
                 self.autogen,
                 email,
             )
-        except:
+        except Exception:
+            logger.exception("Failed to report the bug to GitHub")
             return None, None
         else:
             return ticket_url, ticket_id
@@ -694,7 +699,7 @@ class GithubMultiBugReport(GithubBugReport):
         userdesc = (
             "No user description was provided for this bug report given"
             " that it was related to handled exceptions in scan with id"
-            " %s" % scan_id
+            f" {scan_id}"
         )
         try:
             ticket_url, ticket_id = gh.report_bug(
@@ -705,7 +710,8 @@ class GithubMultiBugReport(GithubBugReport):
                 autogen=self.autogen,
                 email=email,
             )
-        except:
+        except Exception:
+            logger.exception("Failed to report the bug to GitHub")
             return None, None
         else:
             return ticket_url, ticket_id

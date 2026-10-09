@@ -26,7 +26,7 @@ import gtk
 from w3af.core.ui.gui import GUI_DATA_PATH, entries
 
 # Alternative ways of seeing the data
-from w3af.core.ui.gui.clusterGraph import distance_function_selector
+from w3af.core.ui.gui.cluster_graph import distance_function_selector
 from w3af.core.ui.gui.comparator import comparator
 from w3af.core.ui.gui.tools.fuzzy_requests import FuzzyRequests
 from w3af.core.ui.gui.tools.manual_requests import ManualRequests
@@ -330,7 +330,7 @@ class Compare(entries.RememberingWindow):
             element = self.elements[self.showingPage]
         reqhead, reqbody, httpResp = element
         if httpResp is not None:
-            title = "Id: %d" % httpResp.id
+            title = f"Id: {httpResp.id:d}"
             resphead = httpResp.dump_response_head()
             respbody = httpResp.get_body()
         else:
@@ -386,12 +386,12 @@ class Compare(entries.RememberingWindow):
 
     def _send_requests(self, widg, edittype, paneside):
         """Send the request to the manual or fuzzy request window."""
-        func = dict(manual=ManualRequests, fuzzy=FuzzyRequests)[edittype]
+        func = {"manual": ManualRequests, "fuzzy": FuzzyRequests}[edittype]
         if paneside == "left":
             element = self.leftElement
         else:
             element = self.elements[self.showingPage]
-        reqhead, reqbody, httpResp = element
+        reqhead, reqbody, _httpResp = element
         func(self.w3af, (reqhead, reqbody))
 
     def _sendCluster(self, widg):
@@ -406,5 +406,5 @@ class Compare(entries.RememberingWindow):
             dlg = gtk.MessageDialog(
                 None, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_OK, msg
             )
-            opt = dlg.run()
+            dlg.run()
             dlg.destroy()

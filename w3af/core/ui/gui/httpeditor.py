@@ -30,15 +30,16 @@ import pango
 from w3af import ROOT_PATH
 from w3af.core.data.constants import severity
 from w3af.core.ui.gui.common.searchable import Searchable
+from w3af.core.ui.gui.i18n import _
 from w3af.core.ui.gui.tools.encdec import EncodeDecode
 
-SEVERITY_TO_COLOR = {
+SEVERITY_TO_COLOR: dict[str, str | None] = {
     severity.INFORMATION: "green",
     severity.LOW: "blue",
     severity.MEDIUM: "yellow",
     severity.HIGH: "red",
 }
-SEVERITY_TO_COLOR.setdefault("yellow")
+SEVERITY_TO_COLOR.setdefault("yellow", None)
 
 
 class HttpEditor(gtk.VBox, Searchable):
@@ -74,10 +75,8 @@ class HttpEditor(gtk.VBox, Searchable):
         # b.set_highlight_syntax(True)
 
         self.reset_bg_color()
-        for sev in SEVERITY_TO_COLOR:
-            self.textView.get_buffer().create_tag(
-                sev, background=SEVERITY_TO_COLOR[sev]
-            )
+        for sev, color in SEVERITY_TO_COLOR.items():
+            self.textView.get_buffer().create_tag(sev, background=color)
         self.textView.show()
         # Scroll where the textView goes
         sw1 = gtk.ScrolledWindow()

@@ -20,7 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import time
+from collections.abc import Callable
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
@@ -33,8 +35,10 @@ VULNERABILITY = "vulnerability"
 CONSOLE = "console"
 LOG_HTTP = "log_http"
 
+logger = logging.getLogger(__name__)
 
-observers = set()
+
+observers: set[Callable[..., object]] = set()
 
 
 class GtkOutput(OutputPlugin):
@@ -114,11 +118,11 @@ class GtkOutput(OutputPlugin):
             try:
                 observer(m)
             except Exception as e:
-                msg = (
-                    'Observer function at "%s" failed with exception "%s".'
-                    " Removing observer from list."
+                logger.exception("GTK output observer failed")
+                om.out.error(
+                    f'Observer function at "{observer}" failed with exception'
+                    f' "{e}". Removing observer from list.'
                 )
-                om.out.error(msg % (observer, e))
                 to_remove.add(observer)
 
         for broken_obs in to_remove:
@@ -128,8 +132,7 @@ class GtkOutput(OutputPlugin):
         observers.add(observer)
 
     def unsubscribe(self, observer):
-        if observer in observers:
-            observers.remove(observer)
+        observers.discard(observer)
 
     def end(self):
         global observers

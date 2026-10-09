@@ -1,5 +1,5 @@
 """
-clusterGraph.py
+cluster_graph.py
 
 Copyright 2008 Andres Riancho
 
@@ -28,7 +28,7 @@ from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.misc.fuzzy_string_cmp import relative_distance
 from w3af.core.ui.gui import entries
 from w3af.core.ui.gui.constants import W3AF_ICON
-from w3af.core.ui.gui.reqResViewer import reqResWindow
+from w3af.core.ui.gui.req_res_viewer import reqResWindow
 
 # Constants that define the distance available distance functions
 LEVENSHTEIN = 0
@@ -195,7 +195,7 @@ class distance_function_selector(entries.RememberingWindow):
             dlg = gtk.MessageDialog(
                 None, gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR, gtk.BUTTONS_OK, msg
             )
-            opt = dlg.run()
+            dlg.run()
             dlg.destroy()
         else:
             # Don't show me anymore
@@ -340,9 +340,9 @@ class clusterGraphWidget(w3afDotWindow):
                 self.hide()
                 msg = (
                     "Please review your customized code. An error was raised"
-                    ' while compiling: "%s".' % e
+                    f' while compiling: "{e}".'
                 )
-                raise BaseFrameworkException(msg)
+                raise BaseFrameworkException(msg) from e
 
             try:
                 dotcode = self._generateDotCode(
@@ -354,12 +354,12 @@ class clusterGraphWidget(w3afDotWindow):
                 self.hide()
                 msg = (
                     "Please review your customized code. An error was raised"
-                    ' on run time: "%s"'
+                    f' on run time: "{e}"'
                 )
-                raise BaseFrameworkException(msg % e)
+                raise BaseFrameworkException(msg) from e
 
         else:
-            raise Exception("Please review your buggy code ;)")
+            raise ValueError("Please review your buggy code ;)")
 
         self.set_filter("neato")
 
@@ -472,23 +472,9 @@ class clusterGraphWidget(w3afDotWindow):
         Perform some magic in order to get a nice graph
         :return: A normalized distance dict
         """
-        # Find max
-        max = 0
-        for d in list(dist_dict.values()):
-            if d > max:
-                max = d
-
-        # Find min
-        min = list(dist_dict.values())[0]
-        for d in list(dist_dict.values()):
-            if d < min:
-                min = d
-
-        # Find avg
-        sum = 0
-        for d in list(dist_dict.values()):
-            sum += d
-        avg = sum / len(dist_dict)
+        distances = list(dist_dict.values())
+        min_distance = min(distances)
+        avg = sum(distances) / len(dist_dict)
 
         # Normalize
         res = {}
@@ -500,7 +486,7 @@ class clusterGraphWidget(w3afDotWindow):
                 new_value = actual_value
 
             if actual_value < 0.1:
-                new_value = min + avg / 3
+                new_value = min_distance + avg / 3
 
             res[(r1, r2)] = new_value
 

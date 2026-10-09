@@ -29,6 +29,7 @@ from w3af.core.data.kb.kb_observer import KBObserver
 from w3af.core.data.kb.shell import Shell
 from w3af.core.ui.gui import helpers
 from w3af.core.ui.gui.exception_handling import handled
+from w3af.core.ui.gui.i18n import _
 
 
 class _Guarded:

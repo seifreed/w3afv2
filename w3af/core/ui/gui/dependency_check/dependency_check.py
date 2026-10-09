@@ -29,6 +29,17 @@ from w3af.core.controllers.dependency_check.platforms.base_platform import GUI
 from w3af.core.controllers.misc.which import which
 
 
+def _gtk_requirements_met():
+    try:
+        import pygtk
+
+        pygtk.require("2.0")
+        import gtk
+    except (ImportError, AssertionError, ValueError):
+        return False
+    return gtk.gtk_version >= (2, 12) and gtk.pygtk_version >= (2, 12)
+
+
 def dependency_check():
     """
     This dependency check function uses the information stored in the platforms
@@ -42,15 +53,7 @@ def dependency_check():
     """
     should_exit = mdep_check(dependency_set=GUI, exit_on_failure=False)
 
-    try:
-        import pygtk
-
-        pygtk.require("2.0")
-        import gtk
-
-        assert gtk.gtk_version >= (2, 12)
-        assert gtk.pygtk_version >= (2, 12)
-    except:
+    if not _gtk_requirements_met():
         msg = (
             "The GTK package requirements are not met, please make sure your"
             " system meets these requirements:\n"

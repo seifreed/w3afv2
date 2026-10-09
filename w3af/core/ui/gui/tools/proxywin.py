@@ -28,9 +28,10 @@ from w3af.core.controllers.exceptions import BaseFrameworkException, ProxyExcept
 from w3af.core.data.options import option_types
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
-from w3af.core.ui.gui import entries, helpers, httpLogTab
+from w3af.core.ui.gui import entries, helpers, http_log_tab
 from w3af.core.ui.gui.entries import ConfigOptions, StatusBar
-from w3af.core.ui.gui.reqResViewer import ReqResViewer
+from w3af.core.ui.gui.i18n import _
+from w3af.core.ui.gui.req_res_viewer import ReqResViewer
 
 ui_proxy_menu = """
 <ui>
@@ -164,7 +165,7 @@ class ProxiedRequests(entries.RememberingWindow):
         tabs.append("Intercept")
 
         # History
-        self.httplog = httpLogTab.httpLogTab(w3af, time_refresh=True)
+        self.httplog = http_log_tab.httpLogTab(w3af, time_refresh=True)
         tmp = gtk.Label(_("_History"))
         tmp.set_use_underline(True)
         self.nb.append_page(self.httplog, tmp)
@@ -351,7 +352,7 @@ class ProxiedRequests(entries.RememberingWindow):
         except ProxyException as w3:
             if not silent:
                 self.show_alert(_(str(w3)))
-            raise w3
+            raise
         else:
             self.proxy.start()
 
@@ -453,7 +454,7 @@ class ProxiedRequests(entries.RememberingWindow):
         trapactive = widget.get_active()
         self.proxy.set_trap(trapactive)
 
-        status = "Trap is %s" % ("on" if trapactive else "off",)
+        status = "Trap is {}".format("on" if trapactive else "off")
         self.status_bar(status)
 
         # Send all requests in queue if Intercept is switched off

@@ -31,7 +31,8 @@ from w3af.core.controllers.exceptions import (
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.exceptions import BaseFrameworkException, ScanMustStopException
 from w3af.core.ui.gui import entries, helpers
-from w3af.core.ui.gui.reqResViewer import ReqResViewer
+from w3af.core.ui.gui.i18n import _
+from w3af.core.ui.gui.req_res_viewer import ReqResViewer
 from w3af.core.ui.gui.tools.helpers.threaded_impact import ThreadedURLImpact
 
 MANUAL_REQUEST_EXAMPLE = """\

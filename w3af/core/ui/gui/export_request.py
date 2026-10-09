@@ -28,6 +28,7 @@ from w3af.core.data.export.html_export import html_export
 from w3af.core.data.export.python_export import python_export
 from w3af.core.data.export.ruby_export import ruby_export
 from w3af.core.ui.gui import entries
+from w3af.core.ui.gui.i18n import _
 from w3af.core.ui.gui.tools.encdec import SimpleTextView
 
 export_request_example = """\
@@ -147,14 +148,14 @@ class export_request(entries.RememberingWindow):
             # Save the contents of the self.exported_text to the selected file
             filename = chooser.get_filename()
             try:
-                fh = open(filename, "w")
-                fh.write(self.exported_text.get_text())
-            except:
+                with open(filename, "w") as fh:
+                    fh.write(self.exported_text.get_text())
+            except OSError:
                 msg = _("Failed to save exported data to file")
                 dlg = gtk.MessageDialog(
                     None, gtk.DIALOG_MODAL, gtk.MESSAGE_ERROR, gtk.BUTTONS_OK, msg
                 )
-                opt = dlg.run()
+                dlg.run()
                 dlg.destroy()
         elif response == gtk.RESPONSE_CANCEL:
             pass

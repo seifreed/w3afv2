@@ -21,6 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 # Now that I know that I have them, import them!
+import contextlib
+import dbm
+import logging
 import os
 import shelve
 import sys
@@ -62,6 +65,7 @@ from w3af.core.ui.gui.auto_update.gui_updater import GUIUpdater
 from w3af.core.ui.gui.constants import MAIN_TITLE, UI_MENU, W3AF_ICON
 from w3af.core.ui.gui.disclaimer import DisclaimerController
 from w3af.core.ui.gui.exception_handling import unhandled, user_reports_bug
+from w3af.core.ui.gui.i18n import _
 from w3af.core.ui.gui.output.gtk_output import GtkOutput
 from w3af.core.ui.gui.splash import Splash
 from w3af.core.ui.gui.tabs.exploit.main_body import ExploitBody
@@ -71,6 +75,8 @@ from w3af.core.ui.gui.tools.fuzzy_requests import FuzzyRequests
 from w3af.core.ui.gui.tools.manual_requests import ManualRequests
 from w3af.core.ui.gui.tools.proxywin import ProxiedRequests
 from w3af.core.ui.gui.user_help.open_help import open_help
+
+logger = logging.getLogger(__name__)
 
 # This is just general info, to help people know their system and report more
 # complete bugs
@@ -135,7 +141,7 @@ class AboutDialog(gtk.Dialog):
         """Opens the web site and closes the dialog."""
         try:
             webbrowser.open("http://w3af.org/")
-        except Exception:
+        except (webbrowser.Error, OSError):
             #
             #   This catches bug #2685576
             #   https://sourceforge.net/tracker2/?func=detail&atid=853652&aid=2685576&group_id=170274
@@ -240,11 +246,11 @@ class MainApp:
         self.window.set_title(MAIN_TITLE)
         genconfigfile = os.path.join(get_home_dir(), "gui_config.pkl")
         try:
-            self.generalconfig = shelve.open(genconfigfile)
-        except Exception as e:
+            self.generalconfig = shelve.DbfilenameShelf(genconfigfile)
+        except (OSError, *dbm.error) as e:
             print(
                 "WARNING: something bad happened when trying to open the"
-                " general config! File: %s. Problem: %s" % (genconfigfile, e)
+                f" general config! File: {genconfigfile}. Problem: {e}"
             )
             self.generalconfig = FakeShelve()
 
@@ -564,9 +570,10 @@ class MainApp:
         toolbar.insert(self.throbber, -1)
 
         # help structure
-        self.w3af.helpChapters = dict(
-            main="Configuring_the_scan", scanrun="Browsing_the_Knowledge_Base"
-        )
+        self.w3af.helpChapters = {
+            "main": "Configuring_the_scan",
+            "scanrun": "Browsing_the_Knowledge_Base",
+        }
         self.helpChapter = (
             "Configuring_the_scan",
             "Running_the_scan",
@@ -653,7 +660,7 @@ class MainApp:
             return
 
         # We know that we have focus.... but... is the selection a plugin ?
-        path, column = treeToUse.get_cursor()
+        path, _column = treeToUse.get_cursor()
         if path is not None and len(path) > 1:
             # Excellent! it is over a plugin!
             # enable the menu option
@@ -743,11 +750,9 @@ class MainApp:
         url = self.pcbody.target.get_text().decode("utf8")
         target_option = options["target"]
         if relaxedTarget:
-            try:
+            with contextlib.suppress(BaseFrameworkException):
                 target_option.set_value(url)
                 self.w3af.target.set_options(options)
-            except:
-                pass
             return True
         else:
 
@@ -797,6 +802,7 @@ class MainApp:
                 #    The only exceptions that can get here are the ones in the
                 #    framework and UI itself.
                 #
+                logger.exception("Unhandled exception in the w3af framework")
                 plugins_str = pprint_plugins(self.w3af)
                 exc_class, exc_inst, exc_tb = sys.exc_info()
                 unhandled.handle_crash(
@@ -870,6 +876,7 @@ class MainApp:
                 #    The only exceptions that can get here are the ones in the
                 #    framework and UI itself.
                 #
+                logger.exception("Unhandled exception in the w3af framework")
                 plugins_str = pprint_plugins(self.w3af)
                 exc_class, exc_inst, exc_tb = sys.exc_info()
                 unhandled.handle_crash(
@@ -1028,7 +1035,7 @@ class MainApp:
         if page not in self.menuViews:
             # even when we don't have no view, we should put
             # anyone, but disabled
-            fake = list(self.menuViews.items())[0][1]
+            fake = next(iter(self.menuViews.items()))[1]
             fake.set_sensitive(False)
             fake.set_visible(True)
 

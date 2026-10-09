@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import base64
 import hashlib
+import logging
 import random
 import threading
 import urllib.error
@@ -34,6 +35,9 @@ import gtk
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.parsers.utils import encode_decode
 from w3af.core.ui.gui import entries
+from w3af.core.ui.gui.i18n import _
+
+logger = logging.getLogger(__name__)
 
 
 class SimpleTextView(gtk.TextView):
@@ -83,11 +87,6 @@ class SimpleTextView(gtk.TextView):
             # Example: base64 decode /w== returns \xff which raises an exception
             # here if we use unicode(newtext)
             newtext = newtext.replace("\0", "\\x00")
-
-            try:
-                newtext = str(newtext)
-            except:
-                newtext = repr(newtext)[1:-1]
 
         self.buffer.insert(iterl, newtext)
 
@@ -240,6 +239,7 @@ class ThreadedProc(threading.Thread):
         except Exception as e:
             self.exception = e
             self.ok = False
+            logger.debug("Encoding/decoding function failed", exc_info=True)
         finally:
             self.event.set()
 
@@ -252,7 +252,7 @@ def _get_nibbles(char):
     """
     try:
         x, y = hex(ord(char))[2:]
-    except:
+    except ValueError:
         # We get here with chars like \t
         # that translate to 0x9 (they "don't have" first and second nibble")
         x = "0"
@@ -461,7 +461,7 @@ def double_nibble_hex_encoding(t):
     parts = []
     for c in t:
         x, y = _get_nibbles(c)
-        parts.append("%%%X%%%X" % (ord(x), ord(y)))
+        parts.append(f"%{ord(x):X}%{ord(y):X}")
     return "%" + "%".join(parts)
 
 
@@ -479,7 +479,7 @@ def first_nibble_hex_encoding(t):
     parts = []
     for c in t:
         x, y = _get_nibbles(c)
-        parts.append("%%%X%s" % (ord(x), y))
+        parts.append(f"%{ord(x):X}{y}")
     return "%" + "%".join(parts)
 
 
@@ -497,7 +497,7 @@ def second_nibble_hex_encoding(t):
     parts = []
     for c in t:
         x, y = _get_nibbles(c)
-        parts.append("%s%%%X" % (x, ord(y)))
+        parts.append(f"{x}%{ord(y):X}")
     return "%" + "%".join(parts)
 
 
@@ -520,7 +520,7 @@ def utf8_encoding(t):
     >>> utf8_encoding("Año")
     'A%C3%B1o'
     """
-    return "".join("%%%X" % ord(x) if ord(x) > 127 else x for x in t)
+    return "".join(f"%{ord(x):X}" if ord(x) > 127 else x for x in t)
 
 
 def msu_encoding(t):
@@ -562,7 +562,7 @@ def mysql_encode(t):
     >>> mysql_encode("Hola mundo")
     'CHAR(72,111,108,97,32,109,117,110,100,111)'
     """
-    return "CHAR(%s)" % ",".join(str(ord(c)) for c in t)
+    return "CHAR({})".format(",".join(str(ord(c)) for c in t))
 
 
 def mssql_encode(t):
@@ -571,7 +571,7 @@ def mssql_encode(t):
     >>> mssql_encode("Mundo")
     'CHAR(77)+CHAR(117)+CHAR(110)+CHAR(100)+CHAR(111)'
     """
-    return "CHAR(%s)" % ")+CHAR(".join(str(ord(c)) for c in t)
+    return "CHAR({})".format(")+CHAR(".join(str(ord(c)) for c in t))
 
 
 _butNameFunc_enc = [

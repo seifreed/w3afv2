@@ -21,6 +21,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import gtk
 
+from w3af.core.ui.gui.i18n import _
+
 
 def create_generator_menu(text_view_obj):
     """

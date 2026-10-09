@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # This is a sample implementation of an editor.
 
 import os
@@ -7,8 +5,9 @@ import os
 import gtk
 
 from w3af import ROOT_PATH
+from w3af.core.ui.gui.i18n import _
 
-from . import pluginEditorDialogs
+from . import plugin_editor_dialogs
 
 BLOCK_SIZE = 2048
 RESPONSE_FORWARD = 1
@@ -48,19 +47,19 @@ class EditWindow(gtk.Window):
 
     def load_file(self, fname):
         try:
-            fd = open(fname)
-            self.buffer.set_text("")
-            buf = fd.read(BLOCK_SIZE)
-            while buf != "":
-                self.buffer.insert_at_cursor(buf)
+            with open(fname) as fd:
+                self.buffer.set_text("")
                 buf = fd.read(BLOCK_SIZE)
+                while buf != "":
+                    self.buffer.insert_at_cursor(buf)
+                    buf = fd.read(BLOCK_SIZE)
             self.text.queue_draw()
             self.set_title(os.path.basename(fname))
             self.fname = fname
             self.dirname = os.path.dirname(self.fname)
             self.buffer.set_modified(False)
             self.new = 0
-        except:
+        except (OSError, UnicodeDecodeError):
             dlg = gtk.MessageDialog(
                 self,
                 gtk.DIALOG_DESTROY_WITH_PARENT,
@@ -68,7 +67,7 @@ class EditWindow(gtk.Window):
                 gtk.BUTTONS_OK,
                 _("Can't open ") + fname,
             )
-            resp = dlg.run()
+            dlg.run()
             dlg.hide()
 
     def create_menu(self):
@@ -160,9 +159,8 @@ class EditWindow(gtk.Window):
             dlg.hide()
             if ret == gtk.RESPONSE_NO:
                 return 0
-            if ret == gtk.RESPONSE_YES:
-                if self.file_save():
-                    return 0
+            if ret == gtk.RESPONSE_YES and self.file_save():
+                return 0
             return 1
         return 0
 
@@ -179,7 +177,7 @@ class EditWindow(gtk.Window):
     def file_open(self, mi=None):
         if self.chk_save():
             return
-        fname = pluginEditorDialogs.OpenFile(
+        fname = plugin_editor_dialogs.OpenFile(
             _("Open File"), self, self.dirname, self.fname
         )
         if not fname:
@@ -192,19 +190,18 @@ class EditWindow(gtk.Window):
             return self.file_saveas()
         ret = False
         try:
-            start, end = self.buffer.get_bounds()
+            start, _end = self.buffer.get_bounds()
             blockend = start.copy()
-            fd = open(self.fname, "w")
-            while blockend.forward_chars(BLOCK_SIZE):
+            with open(self.fname, "w") as fd:
+                while blockend.forward_chars(BLOCK_SIZE):
+                    buf = self.buffer.get_text(start, blockend)
+                    fd.write(buf)
+                    start = blockend.copy()
                 buf = self.buffer.get_text(start, blockend)
                 fd.write(buf)
-                start = blockend.copy()
-            buf = self.buffer.get_text(start, blockend)
-            fd.write(buf)
-            fd.close()
             self.buffer.set_modified(False)
             ret = True
-        except:
+        except OSError:
             dlg = gtk.MessageDialog(
                 self,
                 gtk.DIALOG_DESTROY_WITH_PARENT,
@@ -212,12 +209,12 @@ class EditWindow(gtk.Window):
                 gtk.BUTTONS_OK,
                 _("Error saving file ") + self.fname,
             )
-            resp = dlg.run()
+            dlg.run()
             dlg.hide()
         return ret
 
     def file_saveas(self, mi=None):
-        fname = pluginEditorDialogs.SaveFile(
+        fname = plugin_editor_dialogs.SaveFile(
             _("Save File As"), self, self.dirname, self.fname
         )
         if not fname:
@@ -254,7 +251,6 @@ class EditWindow(gtk.Window):
             start = self.buffer.get_start_iter()
         else:
             start = iter
-        i = 0
         if search_string:
             self.search_string = search_string
             res = start.forward_search(search_string, gtk.TEXT_SEARCH_TEXT_ONLY)
@@ -291,7 +287,7 @@ class EditWindow(gtk.Window):
         search_text.show()
         search_text.grab_focus()
         dialog.show_all()
-        response_id = dialog.run()
+        dialog.run()
 
     def edit_find_next(self, mi):
         self._search(self.search_string, self.last_search_iter)

@@ -31,6 +31,7 @@ from w3af.core.controllers.exception_handling.cleanup_bug_report import (
 from w3af.core.controllers.exception_handling.helpers import create_crash_file
 from w3af.core.ui.gui import helpers
 from w3af.core.ui.gui.exception_handling import unhandled_bug_report
+from w3af.core.ui.gui.i18n import _
 
 DEBUG_THREADS = False
 

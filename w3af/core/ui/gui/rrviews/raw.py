@@ -56,7 +56,7 @@ class HttpRawView(HttpEditor):
         if self.is_request:
             return http_request_parser(head, body)
         else:
-            raise Exception("HttpResponseParser is not implemented!")
+            raise NotImplementedError("HttpResponseParser is not implemented!")
 
     def _changed(self, widg=None):
         """

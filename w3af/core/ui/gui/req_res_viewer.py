@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import signal
 import threading
 
@@ -44,9 +45,12 @@ from w3af.core.ui.gui.entries import (
 )
 from w3af.core.ui.gui.export_request import export_request
 from w3af.core.ui.gui.httpeditor import HttpEditor
+from w3af.core.ui.gui.i18n import _
 from w3af.core.ui.gui.rrviews.headers import HttpHeadersView
 from w3af.core.ui.gui.rrviews.raw import HttpRawView
 from w3af.core.ui.gui.rrviews.rendering import getRenderingView
+
+logger = logging.getLogger(__name__)
 
 SIGSEV_ERROR = (
     "We caught a segmentation fault! Please report this bug"
@@ -285,12 +289,12 @@ class ReqResViewer(gtk.VBox):
             if isinstance(impact.exception, HTTPRequestException):
                 msg = (
                     "Exception found while sending HTTP request. Original"
-                    ' exception is: "%s"' % impact.exception
+                    f' exception is: "{impact.exception}"'
                 )
             elif isinstance(impact.exception, ScanMustStopException):
                 msg = (
                     "Multiple exceptions found while sending HTTP requests."
-                    ' Exception: "%s"' % impact.exception
+                    f' Exception: "{impact.exception}"'
                 )
             elif isinstance(impact.exception, BaseFrameworkException):
                 msg = str(impact.exception)
@@ -329,7 +333,7 @@ class RequestResponsePart(gtk.Notebook):
     """Request/response common class."""
 
     def __init__(
-        self, parent, w3af, enableWidget=[], editable=False, widgname="default"
+        self, parent, w3af, enableWidget=None, editable=False, widgname="default"
     ):
         super().__init__()
         self._parent = parent
@@ -427,7 +431,7 @@ class RequestResponsePart(gtk.Notebook):
 class RequestPart(RequestResponsePart):
 
     def __init__(
-        self, parent, w3af, enableWidget=[], editable=False, widgname="default"
+        self, parent, w3af, enableWidget=None, editable=False, widgname="default"
     ):
         RequestResponsePart.__init__(
             self, parent, w3af, enableWidget, editable, widgname=widgname + "request"
@@ -465,8 +469,8 @@ class ResponsePart(RequestResponsePart):
         try:
             rend = getRenderingView(w3af, self)
             self.add_view(rend)
-        except Exception as ex:
-            print(ex)
+        except Exception:
+            logger.exception("Failed to create the rendering view")
 
     def get_both_texts(self):
         return self._obj.dump_response_head(), str(self._obj.get_body())
@@ -594,11 +598,6 @@ class ThreadedURLImpact(threading.Thread):
 
         except Exception as e:
             self.exception = e
-            #
-            #   This is for debugging errors in the audit button of the
-            #   ReqResViewer
-            #
-            # import traceback
-            # print traceback.format_exc()
+            logger.debug("Audit request with plugin failed", exc_info=True)
         finally:
             self.event.set()

@@ -25,6 +25,7 @@ from w3af.core.controllers.exception_handling.helpers import (
     gettempdir,
 )
 from w3af.core.ui.gui.exception_handling import handled_bug_report
+from w3af.core.ui.gui.i18n import _
 
 
 def handle_exceptions(w3af_core):

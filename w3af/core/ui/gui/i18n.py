@@ -1,5 +1,5 @@
 """
-__init__.py
+i18n.py
 
 Copyright 2013 Andres Riancho
 
@@ -20,6 +20,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import gettext
 import os
 
-GUI_DATA_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "data")
+from w3af import ROOT_PATH
+
+_translation = gettext.translation(
+    "w3af", os.path.join(ROOT_PATH, "locales"), fallback=True
+)
+
+_ = _translation.gettext

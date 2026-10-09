@@ -1,9 +1,10 @@
 import difflib
+import logging
 import math
 import os
 import re
 import struct
-import traceback
+from typing import ClassVar
 
 import gobject
 import gtk
@@ -26,7 +27,7 @@ class FifoScheduler:
         self.callbacks = []
 
     def __repr__(self):
-        return "%s" % self.tasks
+        return str(self.tasks)
 
     def connect(self, signal, action):
         assert signal == "runnable"
@@ -79,7 +80,7 @@ class FifoScheduler:
         except StopIteration:
             pass
         except Exception:
-            traceback.print_exc()
+            logging.getLogger(__name__).exception("Comparator task failed")
         else:
             if ret:
                 return ret
@@ -103,7 +104,7 @@ class ListItem:
         self.value = " ".join(a)
 
     def __str__(self):
-        return "<%s %s %i %s>" % (self.__class__, self.name, self.active, self.value)
+        return f"<{self.__class__} {self.name} {self.active:d} {self.value}>"
 
 
 _pixmap_path = os.path.join(ROOT_PATH, "core/ui/gui/comparator/pixmaps")
@@ -134,12 +135,9 @@ class Struct:
     def __repr__(self):
         r = ["<"]
         for i in list(self.__dict__.keys()):
-            r.append("%s=%s" % (i, getattr(self, i)))
+            r.append(f"{i}={getattr(self, i)}")
         r.append(">\n")
         return " ".join(r)
-
-    def __cmp__(self, other):
-        return cmp(self.__dict__, other.__dict__)
 
 
 class Prefs:
@@ -154,14 +152,14 @@ class Prefs:
     color_inline_fg = "Red"
     color_edited_bg = "gray90"
     color_edited_fg = "Black"
-    regexes = [
+    regexes = (
         "CVS keywords\t0\t\\$\\w+(:[^\\n$]+)?\\$",
         "C++ comment\t0\t//.*",
         "C comment\t0\t/\\*.*?\\*/",
         "All whitespace\t0\t[ \\t\\r\\f\\v]*",
         "Leading whitespace\t0\t^[ \\t\\r\\f\\v]*",
         "Script comment\t0\t#.*",
-    ]
+    )
     tab_size = 4
     supply_newline = 1
     save_encoding = 0
@@ -176,7 +174,7 @@ MASK_SHIFT, MASK_CTRL, MASK_ALT = 1, 2, 3
 class FileDiff:
     """Two or three way diff of text files."""
 
-    keylookup = {
+    keylookup: ClassVar[dict[int, int]] = {
         gtk.keysyms.Shift_L: MASK_SHIFT,
         gtk.keysyms.Control_L: MASK_CTRL,
         gtk.keysyms.Alt_L: MASK_ALT,
@@ -233,7 +231,6 @@ class FileDiff:
         buf.connect("delete-range", self.on_text_delete_range)
         buf.connect_after("insert-text", self.after_text_insert_text)
         buf.connect_after("delete-range", self.after_text_delete_range)
-        buf.connect("mark-set", self.on_textbuffer_mark_set)
 
         sw.add(tv)
         return (sw, tv)
@@ -272,7 +269,7 @@ class FileDiff:
         table.show_all()
 
     def on_idle(self):
-        ret = self.scheduler.iteration()
+        self.scheduler.iteration()
         if self.scheduler.tasks_pending():
             return 1
         else:
@@ -292,7 +289,6 @@ class FileDiff:
         self.idle_hooked = 0
         self.scheduler = FifoScheduler()
         self.scheduler.connect("runnable", self.on_scheduler_runnable)
-        override = {}
         self._genTodo()
 
         self._update_regexes()
@@ -317,63 +313,36 @@ class FileDiff:
 
         for text in self.textview:
             text.set_wrap_mode(Prefs.edit_wrap_lines)
-            buf = text.get_buffer()
-
-            def add_tag(name, props):
-                tag = buf.create_tag(name)
-                for p, v in list(props.items()):
-                    tag.set_property(p, v)
-
-            add_tag(
-                "edited line",
-                {
-                    "background": Prefs.color_edited_bg,
-                    "foreground": Prefs.color_edited_fg,
-                },
-            )
-            add_tag(
-                "delete line",
-                {
-                    "background": Prefs.color_delete_bg,
-                    "foreground": Prefs.color_delete_fg,
-                },
-            )
-            add_tag(
-                "replace line",
-                {
-                    "background": Prefs.color_replace_bg,
-                    "foreground": Prefs.color_replace_fg,
-                },
-            )
-            add_tag(
-                "conflict line",
-                {
-                    "background": Prefs.color_conflict_bg,
-                    "foreground": Prefs.color_conflict_fg,
-                },
-            )
-            add_tag(
-                "inline line",
-                {
-                    "background": Prefs.color_inline_bg,
-                    "foreground": Prefs.color_inline_fg,
-                },
-            )
+            self._add_line_tags(text.get_buffer())
 
         self.find_dialog = None
         self.last_search = None
         self.queue_draw()
         gobject.idle_add(lambda *args: self.load_font())  # hack around Bug 316730
 
+    @staticmethod
+    def _add_line_tags(buf):
+        line_tag_colors = (
+            ("edited line", Prefs.color_edited_bg, Prefs.color_edited_fg),
+            ("delete line", Prefs.color_delete_bg, Prefs.color_delete_fg),
+            ("replace line", Prefs.color_replace_bg, Prefs.color_replace_fg),
+            ("conflict line", Prefs.color_conflict_bg, Prefs.color_conflict_fg),
+            ("inline line", Prefs.color_inline_bg, Prefs.color_inline_fg),
+        )
+        for name, background, foreground in line_tag_colors:
+            tag = buf.create_tag(name)
+            tag.set_property("background", background)
+            tag.set_property("foreground", foreground)
+
     def set_left_pane(self, title, text):
-        self.title0.set_markup("<b>%s</b>" % title)
+        self.title0.set_markup(f"<b>{title}</b>")
         leftText = text
         buf = self.textview1.get_buffer()
         rightText = buf.get_text(*buf.get_bounds())
         self._set_internal((leftText, rightText))
 
     def set_right_pane(self, title, text):
-        self.title1.set_markup("<b>%s</b>" % title)
+        self.title1.set_markup(f"<b>{title}</b>")
         buf = self.textview0.get_buffer()
         leftText = buf.get_text(*buf.get_bounds())
         rightText = text
@@ -388,28 +357,8 @@ class FileDiff:
                 except re.error:
                     pass
 
-    def _update_cursor_status(self, buf):
-        def update():
-            it = buf.get_iter_at_mark(buf.get_insert())
-            # Abbreviation for insert,overwrite so that it will fit in the status bar
-            insert_overwrite = ["INS", "OVR"][self.textview_overwrite]
-            # Abbreviation for line, column so that it will fit in the status bar
-            line_column = "Ln %i, Col %i" % (
-                it.get_line() + 1,
-                it.get_line_offset() + 1,
-            )
-            raise StopIteration
-            yield 0
-
-        self.scheduler.add_task(update().__next__)
-
-    def on_textbuffer_mark_set(self, buffer, it, mark):
-        if mark.get_name() == "insert":
-            self._update_cursor_status(buffer)
-
     def on_textview_focus_in_event(self, view, event):
         self.textview_focussed = view
-        self._update_cursor_status(view.get_buffer())
 
     def _after_text_modified(self, buffer, startline, sizechange):
         buffers = [t.get_buffer() for t in self.textview]
@@ -420,16 +369,17 @@ class FileDiff:
         for it in self._update_highlighting(change_range[0], change_range[1]):
             pass
         self.queue_draw()
-        self._update_cursor_status(buffer)
 
     def _get_texts(self, raw=0):
         class FakeText:
             def __init__(self, buf, textfilter):
                 self.buf, self.textfilter = buf, textfilter
 
-            def __getslice__(self, lo, hi):
+            def __getitem__(self, lines):
                 b = self.buf
-                txt = b.get_text(b.get_iter_at_line(lo), b.get_iter_at_line(hi), 0)
+                txt = b.get_text(
+                    b.get_iter_at_line(lines.start), b.get_iter_at_line(lines.stop), 0
+                )
                 txt = self.textfilter(txt)
                 return txt.split("\n")[:-1]
 
@@ -462,8 +412,8 @@ class FileDiff:
                 txt = c.sub(killit, txt)
         except AssertionError:
             print(
-                "Regular expression '%s' changed the number of lines in"
-                "the file. Comparison will be incorrect. " % r
+                f"Regular expression '{r}' changed the number of lines in"
+                "the file. Comparison will be incorrect. "
             )
         return txt
 
@@ -530,7 +480,6 @@ class FileDiff:
             t.connect("toggle-overwrite", self.on_textview_toggle_overwrite)
             for t in self.textview
         ]
-        self._update_cursor_status(view.get_buffer())
 
     def _set_internal(self, texts):
         self.linediffer.diffs = [[], []]
@@ -566,11 +515,11 @@ class FileDiff:
                     text1 = "\n".join(self._get_texts(raw=1)[1][c[1] : c[2]]).encode(
                         "utf16"
                     )
-                    text1 = struct.unpack("%iH" % (len(text1) / 2), text1)[1:]
+                    text1 = struct.unpack(f"{len(text1) // 2}H", text1)[1:]
                     textn = "\n".join(
                         self._get_texts(raw=1)[i * 2][c[3] : c[4]]
                     ).encode("utf16")
-                    textn = struct.unpack("%iH" % (len(textn) / 2), textn)[1:]
+                    textn = struct.unpack(f"{len(textn) // 2}H", textn)[1:]
                     matcher = difflib.SequenceMatcher(None, text1, textn)
                     # print "<<<\n%s\n---\n%s\n>>>" % (text1, textn)
                     tags = [b.get_tag_table().lookup("inline line") for b in bufs]

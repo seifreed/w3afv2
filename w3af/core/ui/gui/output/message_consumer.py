@@ -74,6 +74,6 @@ class MessageConsumer:
         :param msg: A gtk_output.Message object.
         """
         if not isinstance(msg, Message):
-            raise TypeError("Expected Message and got %s instead." % type(msg))
+            raise TypeError(f"Expected Message and got {type(msg)} instead.")
 
         yield True

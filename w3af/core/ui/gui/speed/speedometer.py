@@ -166,7 +166,6 @@ class Speedometer(gtk.DrawingArea):
             str(self._current_speed) + " req/second"
         )
         self._layout.set_font_description(pango.FontDescription("Arial 13"))
-        fontw, fonth = self._layout.get_pixel_size()
         self.text_ctx.move_to(150, 243)
         self.text_ctx.set_source_color(gtk.gdk.Color(255, 255, 255))
         self.text_ctx.update_layout(self._layout)
@@ -176,18 +175,9 @@ class Speedometer(gtk.DrawingArea):
         ctx.save()
         ctx.translate(x, y)
         pixbuf = gtk.gdk.pixbuf_new_from_file(image_file)
-        format = cairo.FORMAT_RGB24
-        if pixbuf.get_has_alpha():
-            format = cairo.FORMAT_ARGB32
-
-        iw = pixbuf.get_width()
-        ih = pixbuf.get_height()
-        image = cairo.ImageSurface(format, iw, ih)
-        image = ctx.set_source_pixbuf(pixbuf, 0, 0)
+        ctx.set_source_pixbuf(pixbuf, 0, 0)
 
         ctx.paint()
-        puxbuf = None
-        image = None
         ctx.restore()
         ctx.clip()
 

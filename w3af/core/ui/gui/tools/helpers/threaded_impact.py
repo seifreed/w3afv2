@@ -20,7 +20,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import threading
+
+logger = logging.getLogger(__name__)
 
 
 class ThreadedURLImpact(threading.Thread):
@@ -46,5 +49,6 @@ class ThreadedURLImpact(threading.Thread):
             self.ok = True
         except Exception as e:
             self.exception = e
+            logger.debug("Sending the raw request failed", exc_info=True)
         finally:
             self.event.set()

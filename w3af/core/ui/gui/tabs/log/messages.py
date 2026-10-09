@@ -24,6 +24,7 @@ import gtk
 from w3af.core.data.db.disk_list import DiskList
 from w3af.core.ui.gui import entries
 from w3af.core.ui.gui.common.searchable import Searchable
+from w3af.core.ui.gui.i18n import _
 from w3af.core.ui.gui.output.message_consumer import MessageConsumer
 
 
@@ -92,7 +93,7 @@ class _LineScroller(gtk.TextView, MessageConsumer):
 
         textbuff = self.textbuffer
 
-        text = "[%s] %s\n" % (msg.get_time(), msg.get_msg())
+        text = f"[{msg.get_time()}] {msg.get_msg()}\n"
         mtype = msg.get_type()
 
         # only store it if it's of one of the possible filtered
@@ -100,7 +101,6 @@ class _LineScroller(gtk.TextView, MessageConsumer):
 
             # store it
             self.all_messages.append((mtype, text))
-            antpos = self.text_position
             self.text_position += len(text)
 
             if mtype in self.active_filter:
@@ -121,9 +121,7 @@ class _LineScroller(gtk.TextView, MessageConsumer):
         the scroll bar should be stopped.
         """
         adj = vscrollbar.get_adjustment()
-        self.freeze_scrollbar = (
-            False if adj.value >= (adj.upper - adj.page_size) else True
-        )
+        self.freeze_scrollbar = not adj.value >= adj.upper - adj.page_size
 
 
 class Messages(gtk.VBox, Searchable):

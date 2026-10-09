@@ -20,7 +20,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
+
 import gtk
+
+from w3af.core.ui.gui.i18n import _
 
 RENDERING_ENGINES = {"webkit": False, "gtkhtml2": False, "moz": False}
 
@@ -51,6 +55,8 @@ except ImportError:
 
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.constants.encodings import UTF8
+
+logger = logging.getLogger(__name__)
 
 NO_RENDER_MSG = (
     "If you want to render HTML responses, install at least one"
@@ -126,8 +132,8 @@ class GtkHtmlRenderingView(RenderingView):
             # I get here when the mime type is an image or something that I
             # can't display
             pass
-        except Exception as e:
-            print((_("gtkhtml2 exception:"), type(e), str(e)))
+        except Exception:
+            logger.exception(_("gtkhtml2 exception:"))
             print(_("Please report this issue here:"))
             print("https://github.com/andresriancho/w3af/issues/new")
 
@@ -183,19 +189,25 @@ class WebKitRenderingView(RenderingView):
         load_string = self._renderingWidget.load_string
 
         try:
-            if obj.is_text_or_html():
-
-                body = obj.get_body()
-                uri = obj.get_uri().url_string
-                try:
-                    load_string(body, mime_type, UTF8, uri)
-                except Exception:
-                    load_string(repr(body), mime_type, UTF8, uri)
-
-            else:
-                raise Exception
+            renderable = obj.is_text_or_html()
+            if renderable:
+                self._load_body(obj, load_string, mime_type)
         except Exception:
+            logger.debug("Failed to render the response", exc_info=True)
+            renderable = False
+
+        if not renderable:
             load_string(_("Can't render response"), mime_type, "UTF-8", "error")
+
+    @staticmethod
+    def _load_body(obj, load_string, mime_type):
+        body = obj.get_body()
+        uri = obj.get_uri().url_string
+        try:
+            load_string(body, mime_type, UTF8, uri)
+        except Exception:
+            logger.debug("Failed to render the body, using its repr", exc_info=True)
+            load_string(repr(body), mime_type, UTF8, uri)
 
     def clear(self):
         """Clear view."""

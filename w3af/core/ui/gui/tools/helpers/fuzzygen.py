@@ -22,11 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 
-try:
-    from w3af.core.controllers.exceptions import BaseFrameworkException
-except ImportError:
-    # this is to easy the test when executing this file directly
-    BaseFrameworkException = Exception
+from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.ui.gui.i18n import _
 
 REPP = re.compile(r"\$.*?\$")
 
@@ -83,13 +80,13 @@ class FuzzyGenerator:
             it = eval(text, namespace)
         except Exception as e:
             msg = _("%s: %s (generated from %r)") % (e.__class__.__name__, e, text)
-            raise FuzzyError(msg)
+            raise FuzzyError(msg) from e
 
         try:
             iter(it)
         except TypeError:
             msg = _("%r is not iterable! (generated from %r)") % (it, text)
-            raise FuzzyError(msg)
+            raise FuzzyError(msg) from None
         return it
 
     def _dissect(self, txt):
@@ -105,7 +102,7 @@ class FuzzyGenerator:
             url_string = header.split(" ")[1]
             replaced_url_string = url_string.replace("%24", "$")
             txt = txt.replace(url_string, replaced_url_string)
-        except:
+        except IndexError:
             pass
         #
         #    /fix for bug #164086
@@ -162,5 +159,4 @@ class FuzzyGenerator:
             if pos + 1 == len(generat):
                 yield constr + [elem]
             else:
-                for val in self._possib(generat, constr + [elem]):
-                    yield val
+                yield from self._possib(generat, constr + [elem])

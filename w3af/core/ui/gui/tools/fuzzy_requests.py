@@ -31,9 +31,10 @@ from w3af.core.data.db.history import HistoryItem
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.exceptions import ScanMustStopException
 from w3af.core.ui.gui import entries, helpers
-from w3af.core.ui.gui.clusterGraph import distance_function_selector
+from w3af.core.ui.gui.cluster_graph import distance_function_selector
+from w3af.core.ui.gui.i18n import _
 from w3af.core.ui.gui.payload_generators import create_generator_menu
-from w3af.core.ui.gui.reqResViewer import ReqResViewer, RequestPart
+from w3af.core.ui.gui.req_res_viewer import ReqResViewer, RequestPart
 from w3af.core.ui.gui.tools.helpers import fuzzygen
 
 FUZZY_REQUEST_EXAMPLE = """\
@@ -306,7 +307,7 @@ class FuzzyRequests(entries.RememberingWindow):
             dlg = gtk.MessageDialog(
                 None, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_OK, msg
             )
-            opt = dlg.run()
+            dlg.run()
             dlg.destroy()
 
     def _analyze(self, widg):
@@ -317,7 +318,7 @@ class FuzzyRequests(entries.RememberingWindow):
         except fuzzygen.FuzzyError:
             return
 
-        self.analyzefb.set_text("%d requests" % fg.calculate_quantity())
+        self.analyzefb.set_text(f"{fg.calculate_quantity():d} requests")
         self.analyzefb.set_sensitive(True)
 
         # raise the window only if preview is active
@@ -366,7 +367,7 @@ class FuzzyRequests(entries.RememberingWindow):
 
         quant = fg.calculate_quantity()
         if quant > 20:
-            msg = "Are you sure you want to send %d requests?" % quant
+            msg = f"Are you sure you want to send {quant:d} requests?"
             dlg = gtk.MessageDialog(
                 None, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_YES_NO, msg
             )
@@ -494,7 +495,7 @@ class FuzzyRequests(entries.RememberingWindow):
             else:
                 self.resultReqResp.request.show_object(historyItem.request)
                 self.resultReqResp.response.show_object(historyItem.response)
-                self.title0.set_markup("<b>Id: %d</b>" % reqid)
+                self.title0.set_markup(f"<b>Id: {reqid:d}</b>")
         else:
             # the request brought problems
             realreq, realbody, error_msg = info[1:]

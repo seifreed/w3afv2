@@ -49,7 +49,7 @@ class StatsViewer(gtk.VBox):
     HTTP speed: 150 req/min
     """
 
-    VIEW_DATA = [
+    VIEW_DATA = (
         Frame(
             "Crawl status",
             [
@@ -126,7 +126,7 @@ class StatsViewer(gtk.VBox):
                 ),
             ],
         ),
-    ]
+    )
 
     def __init__(self, w3af):
         super().__init__()
@@ -175,7 +175,7 @@ class StatsViewer(gtk.VBox):
 
     def generate_text(self, item, default=False):
         try:
-            value = getattr(self.w3af.status, "get_%s" % item.getter)()
+            value = getattr(self.w3af.status, f"get_{item.getter}")()
         except RuntimeError:
             value = item.default_value
         else:
@@ -185,10 +185,10 @@ class StatsViewer(gtk.VBox):
         if isinstance(value, str):
             value = value.replace("\0", "")
 
-        text = "%s: %s" % (item.title, value)
+        text = f"{item.title}: {value}"
 
         if item.unit is not None:
-            text += " (%s)" % item.unit
+            text += f" ({item.unit})"
 
         return text
 
@@ -211,10 +211,9 @@ class StatsViewer(gtk.VBox):
     def update_status_item(self, identifier, new_text, parent):
         for child in parent.get_children():
 
-            if hasattr(child, "identifier"):
-                if child.identifier == identifier:
-                    child.set_text(new_text)
-                    return
+            if hasattr(child, "identifier") and child.identifier == identifier:
+                child.set_text(new_text)
+                return
 
             if hasattr(child, "get_children"):
                 self.update_status_item(identifier, new_text, child)

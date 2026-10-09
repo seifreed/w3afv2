@@ -1,5 +1,5 @@
 """
-httpLogTab.py
+http_log_tab.py
 
 Copyright 2007 Andres Riancho
 
@@ -37,9 +37,10 @@ from w3af.core.ui.gui.entries import (
     TextInput,
     wrapperWidgets,
 )
+from w3af.core.ui.gui.i18n import _
 
 # The elements to create the req/res viewer
-from w3af.core.ui.gui.reqResViewer import ReqResViewer
+from w3af.core.ui.gui.req_res_viewer import ReqResViewer
 
 
 class httpLogTab(RememberingHPaned):
@@ -143,7 +144,7 @@ class httpLogTab(RememberingHPaned):
         ids = []
         iters = []
         sel = self._lstoreTreeview.get_selection()
-        model, pathlist = sel.get_selected_rows()
+        _model, pathlist = sel.get_selected_rows()
         for path in pathlist:
             iters.append(self._lstore.get_iter(path))
             itemNumber = path[0]
@@ -361,11 +362,11 @@ class httpLogTab(RememberingHPaned):
         # IDs
         try:
             minId = int(self.pref.get_value("trans_id", "min"))
-        except:
+        except (TypeError, ValueError):
             minId = 0
         try:
             maxId = int(self.pref.get_value("trans_id", "max"))
-        except:
+        except (TypeError, ValueError):
             maxId = 0
         if maxId > 0:
             search_data.append(("id", maxId, "<"))
@@ -461,12 +462,6 @@ class httpLogTab(RememberingHPaned):
                     item.time,
                 ]
             )
-        # Size search results
-        if len(results) < 10:
-            position = 13 + 48 * len(results)
-        else:
-            position = 13 + 120
-        # self._vpan.set_position(position)
         if not appendMode:
             self._sw.show_all()
 
@@ -479,7 +474,7 @@ class httpLogTab(RememberingHPaned):
 
     def _view_in_req_res_viewer(self, widget):
         """Action for "onselect" event of the main listview."""
-        path, column = widget.get_cursor()
+        path, _column = widget.get_cursor()
         itemNumber = path[0]
         # Now I have the item number in the lstore,
         # the next step is to get the id of that item in the lstore
@@ -503,16 +498,16 @@ class httpLogTab(RememberingHPaned):
         try:
             # These lines will trigger the code that reads the .trace file
             # from disk and if they aren't there an exception will rise
-            history_item.request
-            history_item.response
+            request = history_item.request
+            response = history_item.response
         except OSError as ioe:
             self._show_message(_("Error"), str(ioe))
             return
 
         # Now we know that these two lines will work and we won't trigger
         # https://github.com/andresriancho/w3af/issues/1101
-        self._req_res_viewer.request.show_object(history_item.request)
-        self._req_res_viewer.response.show_object(history_item.response)
+        self._req_res_viewer.request.show_object(request)
+        self._req_res_viewer.response.show_object(response)
         if history_item.info:
             buff = self._req_res_viewer.info.get_buffer()
             buff.set_text(history_item.info)
@@ -537,7 +532,7 @@ class FilterOptions(gtk.HBox, Preferences):
     def _init_optionsView(self):
         for section, optList in list(self.options.items()):
             frame = gtk.Frame()
-            label = gtk.Label("<b>%s</b>" % self.sections[section])
+            label = gtk.Label(f"<b>{self.sections[section]}</b>")
             label.set_use_markup(True)
             label.show()
             frame.set_label_widget(label)
@@ -562,9 +557,8 @@ class FilterOptions(gtk.HBox, Preferences):
         invalid = []
         for section, optList in list(self.options.items()):
             for opt in optList:
-                if hasattr(opt.widg, "is_valid"):
-                    if not opt.widg.is_valid():
-                        invalid.append(opt.get_name())
+                if hasattr(opt.widg, "is_valid") and not opt.widg.is_valid():
+                    invalid.append(opt.get_name())
         if invalid:
             msg = _(
                 "The configuration can't be saved, there is a problem in the following parameter(s):\n\n"

@@ -27,6 +27,7 @@ from w3af.core.ui.gui.exception_handling.common_windows import (
     GithubMultiBugReport,
     SimpleBaseWindow,
 )
+from w3af.core.ui.gui.i18n import _
 
 
 class BugReportWindow(SimpleBaseWindow, GithubMultiBugReport):

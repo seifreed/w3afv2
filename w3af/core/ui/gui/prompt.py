@@ -26,6 +26,7 @@ import gtk
 import pango
 
 from w3af.core.ui.gui import GUI_DATA_PATH
+from w3af.core.ui.gui.i18n import _
 from w3af.core.ui.gui.output.message_consumer import MessageConsumer
 
 
@@ -196,9 +197,7 @@ class PromptView(gtk.TextView, MessageConsumer):
     def _key_backspace(self):
         """The key BACKSPACE was pressed."""
         cursor_pos = self.textbuffer.get_property("cursor-position")
-        if cursor_pos <= self.cursorLimit:
-            return True
-        return False
+        return cursor_pos <= self.cursorLimit
 
     def _key_enter(self):
         """The user pressed Return."""
@@ -324,9 +323,8 @@ class PromptDialog(gtk.Dialog):
         fname = dlg.get_filename()
         dlg.destroy()
         if resp == gtk.RESPONSE_OK and fname is not None:
-            fh = open(fname, "w")
-            fh.write(text)
-            fh.close()
+            with open(fname, "w") as fh:
+                fh.write(text)
 
 
 if __name__ == "__main__":
@@ -352,6 +350,6 @@ if __name__ == "__main__":
             gtk.main()
 
         def prompt(self, widg):
-            prompt = PromptDialog("Just a test", "test", proc_func)
+            PromptDialog("Just a test", "test", proc_func)
 
     Test()

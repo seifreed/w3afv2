@@ -28,6 +28,7 @@ from w3af.core.data.parsers.doc.sgml import SGMLParser
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.ui.gui import helpers, history
 from w3af.core.ui.gui.constants import W3AF_ICON
+from w3af.core.ui.gui.i18n import _
 from w3af.core.ui.gui.user_help.open_help import open_help
 
 
@@ -279,10 +280,7 @@ class ComboBoxInput(gtk.ComboBox, ModifiedMixIn):
         :param text: the text to validate
         :return True if the text is ok.
         """
-        if text in self._opt.get_combo_options():
-            return True
-        else:
-            return False
+        return text in self._opt.get_combo_options()
 
 
 class EmailEntry(ValidatedEntry, ModifiedMixIn):
@@ -306,10 +304,7 @@ class EmailEntry(ValidatedEntry, ModifiedMixIn):
         if len(text) < 5:
             return True
         else:
-            if self.EMAIL_RE.match(text):
-                return True
-            else:
-                return False
+            return bool(self.EMAIL_RE.match(text))
 
 
 class SemiStockButton(gtk.Button):
@@ -360,7 +355,7 @@ class ToolbuttonWrapper:
         self.toolbut = toolbar.get_nth_item(position)
         if self.toolbut is None:
             raise ValueError(
-                "The toolbar does not have a button in position %d" % position
+                f"The toolbar does not have a button in position {position:d}"
             )
 
     def change_internals(self, newlabel, newimage, newtooltip):
@@ -597,7 +592,7 @@ class TextDialog(gtk.Dialog):
         self.show_all()
 
     def run(self):
-        raise Exception("Please use dialog_run().")
+        raise NotImplementedError("Please use dialog_run().")
 
     def _handle_click(self, widg):
         """
@@ -712,9 +707,8 @@ class RememberingWindow(gtk.Window):
         :param widget: who sent the signal.
         :param event: the event that happened
         """
-        if self.onDestroy is not None:
-            if not self.onDestroy():
-                return True
+        if self.onDestroy is not None and not self.onDestroy():
+            return True
 
         try:
             self.winconfig[self.id_size] = self.get_size()
@@ -799,7 +793,7 @@ class PagesControl(gtk.HBox):
         if maxpages is None:
             self.set_sensitive(False)
         else:
-            self.total.set_text(" of %d " % maxpages)
+            self.total.set_text(f" of {maxpages:d} ")
             self.maxpages = maxpages
             self._arrow()
         self.show_all()
@@ -813,7 +807,7 @@ class PagesControl(gtk.HBox):
 
     def activate(self, maxpages):
         self.maxpages = maxpages
-        self.total.set_text(" of %d " % maxpages)
+        self.total.set_text(f" of {maxpages:d} ")
         self.pageentry.set_max(maxpages)
         self.set_sensitive(True)
         self._arrow()
@@ -915,13 +909,13 @@ class _RememberingPane:
         # if we have it from before, get the info; otherwise plan to
         # set it up around its half
         try:
-            widgname in self.winconfig
+            remembered = widgname in self.winconfig
         except ValueError:
             # https://github.com/andresriancho/w3af/issues/332
             # ValueError: invalid operation on closed shelf
             self.signal = self.connect("expose-event", self.exposed)
         else:
-            if widgname in self.winconfig:
+            if remembered:
                 self.set_position(self.winconfig[widgname])
             elif defaultInitPos is not None:
                 self.set_position(defaultInitPos)
@@ -992,7 +986,7 @@ class StatusBar(gtk.Statusbar):
     :author: Facundo Batista <facundobatista =at= taniquetil.com.ar>
     """
 
-    def __init__(self, initmsg=None, others=[]):
+    def __init__(self, initmsg=None, others=()):
         super().__init__()
         self._context = self.get_context_id("unique_sb")
         self._active_counter = 0
@@ -1070,7 +1064,7 @@ class ConfigOptions(gtk.VBox, Preferences):
 
         for section, optList in list(self.options.items()):
             frame = gtk.Frame()
-            label = gtk.Label("<b>%s</b>" % self.sections[section])
+            label = gtk.Label(f"<b>{self.sections[section]}</b>")
             label.set_use_markup(True)
             label.show()
             frame.set_label_widget(label)
@@ -1090,7 +1084,7 @@ class ConfigOptions(gtk.VBox, Preferences):
                 self.widgets_status[widg] = (
                     titl,
                     opt.get_desc(),
-                    "<b>%s</b>" % opt.get_desc(),
+                    f"<b>{opt.get_desc()}</b>",
                 )
                 table.show()
                 frame.add(table)
@@ -1112,7 +1106,7 @@ class ConfigOptions(gtk.VBox, Preferences):
         if like_initial:
             label.set_text(text)
         else:
-            label.set_markup("<b>%s</b>" % text)
+            label.set_markup(f"<b>{text}</b>")
 
     def _changedWidget(self, widg, like_initial):
         """Receives signal when a widget changed or not.
@@ -1145,9 +1139,8 @@ class ConfigOptions(gtk.VBox, Preferences):
         invalid = []
         for section, optList in list(self.options.items()):
             for opt in optList:
-                if hasattr(opt.widg, "is_valid"):
-                    if not opt.widg.is_valid():
-                        invalid.append(opt.get_name())
+                if hasattr(opt.widg, "is_valid") and not opt.widg.is_valid():
+                    invalid.append(opt.get_name())
         if invalid:
             msg = _(
                 "The configuration can't be saved, there is a problem in"

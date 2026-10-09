@@ -24,8 +24,9 @@ import cgi
 import gtk
 
 from w3af.core.controllers.exceptions import BaseFrameworkException
-from w3af.core.data.profile.profile import profile as profile
+from w3af.core.data.profile.profile import profile
 from w3af.core.ui.gui import entries, helpers
+from w3af.core.ui.gui.i18n import _
 
 
 class ProfileList(gtk.TreeView):
@@ -220,7 +221,7 @@ class ProfileList(gtk.TreeView):
         row = self.liststore[path]
         row[3] = changed
         if changed:
-            row[0] = "<b>%s</b>" % row[4]
+            row[0] = f"<b>{row[4]}</b>"
         else:
             row[0] = row[4]
 
@@ -324,7 +325,7 @@ class ProfileList(gtk.TreeView):
         else:
             gm = self._rightButtonMenu
 
-        path, column = tv.get_cursor()
+        path, _column = tv.get_cursor()
         # Is it over a plugin name ?
         if path is not None and len(path) == 1:
             # Enable/disable the options in function of state
@@ -360,7 +361,7 @@ class ProfileList(gtk.TreeView):
 
         :return: The profile instance for the actual cursor position.
         """
-        path, focus = self.get_cursor()
+        path, _focus = self.get_cursor()
         if path is None:
             return None
 

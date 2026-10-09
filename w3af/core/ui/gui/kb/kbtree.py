@@ -31,6 +31,7 @@ from w3af.core.data.kb.kb_observer import KBObserver
 from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.misc.encoding import smart_str
 from w3af.core.ui.gui import helpers
+from w3af.core.ui.gui.i18n import _
 from w3af.core.ui.gui.tabs.exploit.exploit_all import effectively_exploit_all
 
 TYPES_OBJ = {
@@ -226,7 +227,6 @@ class KBTree(gtk.TreeView):
         else:
             # There's already data in location_a, might need to update the
             # child count
-            assert len(contains_location_a), 1
             location_a_row = contains_location_a[0]
 
             location_a_b_iter = location_a_row.iterchildren()
@@ -256,7 +256,6 @@ class KBTree(gtk.TreeView):
         level is increased by each call to this method.
         """
         location_a = [r for r in self.treestore if r[1] == data.location_a]
-        assert len(location_a), 1
         location_a_row = location_a[0]
 
         contains_location_ab = [
@@ -277,7 +276,6 @@ class KBTree(gtk.TreeView):
             location_b_rows = [
                 r for r in location_a_row.iterchildren() if r[1] == data.location_b
             ]
-            assert len(location_b_rows), 1
             location_b_row = location_b_rows[0]
 
             store_iter = location_b_row.iter
@@ -333,10 +331,10 @@ class KBTree(gtk.TreeView):
             "",
         ]
 
-        location_a = [r for r in self.treestore if r[1] == data.location_a][0]
-        location_b = [r for r in location_a.iterchildren() if r[1] == data.location_b][
-            0
-        ]
+        location_a = next(r for r in self.treestore if r[1] == data.location_a)
+        location_b = next(
+            r for r in location_a.iterchildren() if r[1] == data.location_b
+        )
         self.treestore.append(location_b.iter, tree_store_info)
 
     def _popup(self, tv, event):
@@ -349,7 +347,7 @@ class KBTree(gtk.TreeView):
             return
 
         # is it over a vulnerability?
-        path, column = tv.get_cursor()
+        path, _column = tv.get_cursor()
         if path is None:
             return
 
@@ -380,11 +378,11 @@ class KBTree(gtk.TreeView):
         Shows tooltip for 'exploit vulns' buttons
         """
         # TODO: Why 27? Do something better here!!!
-        th = title_height = 27
+        th = 27
 
         try:
-            path, tv_column, x_cell, y_cell = self.get_path_at_pos(x, y - th)
-        except:
+            path, tv_column, x_cell, _y_cell = self.get_path_at_pos(x, y - th)
+        except TypeError:
             return False
         else:
             # Make the X coord relative to the cell
@@ -416,7 +414,7 @@ class KBTree(gtk.TreeView):
         """Exploits row's vulnerability"""
         try:
             # This method returns None if there is no path at the position.
-            path, tv_column, x_cell, _ = self.get_path_at_pos(
+            path, tv_column, x_cell, _y_cell = self.get_path_at_pos(
                 int(event.x), int(event.y)
             )
         except TypeError:

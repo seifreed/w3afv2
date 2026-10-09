@@ -24,7 +24,7 @@ class WrapLabel(gtk.Label):
 
     def do_size_request(self, requisition):
         layout = self.get_layout()
-        width, height = layout.get_pixel_size()
+        _width, height = layout.get_pixel_size()
         requisition.width = 0
         requisition.height = height
 
