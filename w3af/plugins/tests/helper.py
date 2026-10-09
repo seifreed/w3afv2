@@ -28,7 +28,6 @@ import unittest
 from functools import wraps
 from typing import ClassVar
 
-import httpretty
 import pytest
 import requests
 
@@ -45,6 +44,7 @@ from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.options.option_types import URL_LIST
 from w3af.core.data.parsers.doc.url import URL
+from w3af.plugins.tests.canned_http_server import CannedHTTPServer, CannedReply
 
 os.chdir(W3AF_LOCAL_PATH)
 RE_COMPILE_TYPE = type(re.compile(""))
@@ -79,55 +79,54 @@ class PluginTest(unittest.TestCase):
         self.request_callback_call_count = 0
         self.request_callback_match = 0
 
+        self.canned_server = None
+
         if self.MOCK_RESPONSES:
-            httpretty.reset()
-            httpretty.enable()
+            self._validate_mock_target_url()
+            self._start_canned_server()
 
-            if self.target_url is None:
-                raise ValueError(
-                    "When using MOCK_RESPONSES you need to set the"
-                    " target_url attribute to a valid URL."
-                )
-
-            try:
-                url = URL(self.target_url)
-            except ValueError as error:
-                raise ValueError(
-                    "When using MOCK_RESPONSES you need to set the"
-                    " target_url attribute to a valid URL, exception was:"
-                    f' "{error}".'
-                ) from error
-
-            domain = url.get_domain()
-            proto = url.get_protocol()
-            port = url.get_port()
-
-            self._register_httpretty_uri(proto, domain, port)
-
-    def _register_httpretty_uri(self, proto, domain, port):
-        if not isinstance(port, int):
-            raise TypeError("Port needs to be an integer")
-
-        if (port == 80 and proto == "http") or (port == 443 and proto == "https"):
-            re_str = f"{proto}://{domain}/(.*)"
-        else:
-            re_str = f"{proto}://{domain}:{port}/(.*)"
-
-        all_methods = {mock_resp.method for mock_resp in self.MOCK_RESPONSES}
-
-        for http_method in all_methods:
-            httpretty.register_uri(
-                http_method, re.compile(re_str), body=self.__internal_request_callback
+    def _validate_mock_target_url(self):
+        if self.target_url is None:
+            raise ValueError(
+                "When using MOCK_RESPONSES you need to set the"
+                " target_url attribute to a valid URL."
             )
+
+        try:
+            URL(self.target_url)
+        except ValueError as error:
+            raise ValueError(
+                "When using MOCK_RESPONSES you need to set the"
+                " target_url attribute to a valid URL, exception was:"
+                f' "{error}".'
+            ) from error
+
+    def _start_canned_server(self):
+        """
+        Serve MOCK_RESPONSES from a real HTTP server listening on 127.0.0.1
+        and route the scanner traffic through it, acting as an HTTP proxy,
+        so the plugins keep sending requests to the original target URLs.
+        """
+        self.canned_server = CannedHTTPServer(self._respond)
+        self.canned_server.start()
+        self.w3afcore.uri_opener.settings.set_proxy(
+            self.canned_server.host, self.canned_server.port
+        )
+
+    @property
+    def received_requests(self):
+        """
+        :return: The CannedRequest objects received by the canned server
+        """
+        return list(self.canned_server.requests)
 
     def tearDown(self):
         self.w3afcore.quit()
         self.kb.cleanup()
         self.assert_all_get_desc_work()
 
-        if self.MOCK_RESPONSES:
-            httpretty.disable()
-            httpretty.reset()
+        if self.canned_server is not None:
+            self.canned_server.stop()
 
     def assert_all_get_desc_work(self):
         """
@@ -197,25 +196,18 @@ class PluginTest(unittest.TestCase):
 
         self.assertEqual(set(found), set(expected))
 
-    def __internal_request_callback(self, http_request, uri, headers):
+    def _respond(self, request):
         self.request_callback_call_count += 1
-        match = None
+        uri = request.uri
 
         for mock_response in self.MOCK_RESPONSES:
-            if mock_response.matches(http_request, uri, headers):
-                match = mock_response
-                break
+            if mock_response.matches(request, uri):
+                self.request_callback_match += 1
+                om.out.debug(f"[request_callback] URI {uri} matched {mock_response}")
+                return CannedReply(*mock_response.get_response(request, uri, {}))
 
-        if match is not None:
-            self.request_callback_match += 1
-
-            om.out.debug(f"[request_callback] URI {uri} matched {match}")
-
-            return match.get_response(http_request, uri, headers)
-
-        else:
-            om.out.debug(f"[request_callback] URI {uri} will return 404")
-            return MockResponse.get_404(http_request, uri, headers)
+        om.out.debug(f"[request_callback] URI {uri} will return 404")
+        return CannedReply(*MockResponse.get_404(request, uri, {}))
 
     @retry(tries=3, delay=0.5, backoff=2)
     def _verify_targets_up(self, target_list):
@@ -589,7 +581,12 @@ def create_target_option_list(*target):
 
 
 class MockResponse:
-    NO_MOCK = "httpretty can not mock this method"
+    """
+    A canned response served by the CannedHTTPServer when a request matches
+    its method and URL.
+    """
+
+    NO_MOCK = "The canned HTTP server can not serve this method"
     KNOWN_METHODS = (
         "GET",
         "PUT",
@@ -646,7 +643,7 @@ class MockResponse:
     def get_404(http_request, uri, headers):
         status = 404
         body = "Not found"
-        headers.update({"Content-Type": "text/html", "status": status})
+        headers.update({"Content-Type": "text/html"})
         return status, headers, body
 
     def get_response(self, http_request, uri, response_headers):
@@ -659,7 +656,6 @@ class MockResponse:
         if callable(self.body):
             return self.body(self, http_request, uri, response_headers)
 
-        response_headers.update({"status": self.status})
         response_headers.update(self.headers)
 
         if self.delay is not None:
@@ -667,7 +663,7 @@ class MockResponse:
 
         return self.status, response_headers, self.body
 
-    def matches(self, http_request, uri, headers):
+    def matches(self, http_request, uri):
         if self.method != http_request.command:
             return False
 
