@@ -297,13 +297,12 @@ class DeserializationExactDelay(ExactDelay):
         delay_len = len(seconds)
 
         payload, offsets = self._get_payload_and_offset(delay_len)
-        payload_lst = list(payload)
+        payload_bytes = bytearray(payload)
 
         for offset in offsets:
-            for i, second_i in enumerate(seconds):
-                payload_lst[offset + i] = second_i
+            payload_bytes[offset : offset + delay_len] = seconds.encode("ascii")
 
-        return "".join(payload_lst)
+        return payload_bytes.decode("latin-1")
 
 
 class B64DeserializationExactDelay(DeserializationExactDelay):
@@ -318,4 +317,4 @@ class B64DeserializationExactDelay(DeserializationExactDelay):
         string.
         """
         payload = super().get_string_for_delay(seconds)
-        return base64.b64encode(payload)
+        return base64.b64encode(payload.encode("latin-1")).decode("ascii")
