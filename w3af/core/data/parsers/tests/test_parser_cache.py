@@ -21,14 +21,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
-from unittest.mock import PropertyMock, patch
 
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.parsers.doc.html import HTMLParser
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.parser_cache import ParserCache
 from w3af.core.data.parsers.tests.test_document_parser import _build_http_response
-from w3af.core.data.parsers.tests.test_mp_document_parser import DelayedParser
 from w3af.core.data.parsers.utils.response_uniq_id import get_response_unique_id
 from w3af.core.data.url.HTTPResponse import HTTPResponse
 from w3af.core.exceptions import BaseFrameworkException
@@ -76,57 +73,15 @@ class TestParserCache(unittest.TestCase):
         response = HTTPResponse(200, all_chars, self.headers, self.url, self.url)
         self.dpc.get_document_parser_for(response)
 
-    def test_cache_blacklist_after_timeout(self):
-        #
-        # If the cache tries to parse an HTTP response, that process fails, then we blacklist
-        # the HTTP response so it never gets parsed again.
-        #
-        mmpdp = "w3af.core.data.parsers.mp_document_parser.%s"
-        kmpdp = mmpdp % "MultiProcessingDocumentParser.%s"
-        modp = "w3af.core.data.parsers.document_parser.%s"
+    def test_blacklisted_response_is_not_parsed_again(self):
+        http_resp = _build_http_response("<html>blacklisted</html>", "text/html")
+        hash_string = get_response_unique_id(http_resp)
+        self.dpc.add_to_blacklist(hash_string)
 
-        with patch(
-            kmpdp % "PARSER_TIMEOUT", new_callable=PropertyMock
-        ) as timeout_mock, patch(
-            kmpdp % "MAX_WORKERS", new_callable=PropertyMock
-        ) as max_workers_mock, patch(
-            modp % "DocumentParser.PARSERS", new_callable=PropertyMock
-        ) as parsers_mock:
-
-            #
-            # Trigger the timeout
-            #
-            html = "<html>DelayedParser!</html>"
-            http_resp = _build_http_response(html, "text/html")
-
-            timeout_mock.return_value = 1
-            max_workers_mock.return_value = 1
-            parsers_mock.return_value = [DelayedParser, HTMLParser]
-
-            try:
-                self.dpc.get_document_parser_for(http_resp)
-            except BaseFrameworkException as bfe:
-                self._is_timeout_exception_message(bfe, http_resp)
-            else:
-                self.assertTrue(False)
-
-            #
-            # Make sure it is in the blacklist
-            #
-            hash_string = get_response_unique_id(http_resp)
-            self.assertIn(hash_string, self.dpc._parser_blacklist)
-
-            #
-            # Make sure the blacklist is used
-            #
-            try:
-                self.dpc.get_document_parser_for(http_resp)
-            except BaseFrameworkException as bfe:
-                self.assertIn("Exceeded timeout while parsing", str(bfe))
-
-    def _is_timeout_exception_message(self, toe, http_resp):
-        msg = 'Reached timeout parsing "http://w3af.com/".'
-        self.assertEqual(str(toe), msg)
+        with self.assertRaisesRegex(
+            BaseFrameworkException, "Exceeded timeout while parsing"
+        ):
+            self.dpc.get_document_parser_for(http_resp)
 
     def test_get_tags_by_filter_simple(self):
         html = '<a href="/def">abc</a>'

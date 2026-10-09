@@ -1065,3 +1065,17 @@ deprecación de dependencias. Las declaraciones `core.data -> controllers`
 bajan de 54 a 53. La puntuación global continúa en **4.9/10**: quedan deuda
 arquitectónica en otras áreas, cobertura inferior al 100% y gates globales
 fallidos.
+
+## Avance: ParserCache sin output_manager
+
+Los dos diagnósticos de `ParserCache` ahora usan `logging` estándar y se elimina
+su import directo de controllers. Se sustituyeron además dos `except:` desnudos
+por `except Exception`, preservando la recuperación ante errores de parseo sin
+capturar señales del proceso. La suite de `ParserCache` pasa 6/6; Ruff, Black y
+Bandit pasan en los archivos productivos modificados. La cobertura del módulo es
+65% y Mypy dirigido reporta 22 errores en 16 módulos importados. Las
+declaraciones `core.data -> controllers` bajan de 53 a 52. El antiguo test que
+intentaba inyectar un parser retardado con mocks no funcionaba con el método
+`spawn` de Python 3.14; ahora se prueba el cortocircuito de blacklist con código
+real y sin mocks. La integración de timeout en worker queda pendiente de un test
+multiplataforma real; la puntuación global permanece en **4.9/10**.

@@ -21,11 +21,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import atexit
+import logging
 import threading
 from concurrent.futures import TimeoutError
 
 # pylint: enable=E0401
-import w3af.core.controllers.output_manager as om
 from w3af.core.data.db.disk_set import DiskSet
 
 # pylint: disable=E0401
@@ -40,6 +40,8 @@ from w3af.core.data.parsers.utils.response_uniq_id import (
 from w3af.core.exceptions import BaseFrameworkException, ScanMustStopException
 from w3af.core.process import is_main_process
 from w3af.core.profiling import is_core_profiling_enabled
+
+LOGGER = logging.getLogger(__name__)
 
 
 class ParserCache(CacheStats):
@@ -66,7 +68,7 @@ class ParserCache(CacheStats):
         Clear all the internal variables
         :return: None
         """
-        om.out.debug("Called clear() on ParserCache")
+        LOGGER.debug("Called clear() on ParserCache")
 
         # Stop any workers
         mp_doc_parser.stop_workers()
@@ -108,7 +110,7 @@ class ParserCache(CacheStats):
         #
         try:
             can_parse = DocumentParser.can_parse(http_response)
-        except:
+        except Exception:
             # We catch all the exceptions here and just return False because
             # the real parsing procedure will (most likely) fail to parse
             # this response too.
@@ -212,7 +214,7 @@ class ParserCache(CacheStats):
             except ScanMustStopException as e:
                 msg = "The document parser is in an invalid state! %s"
                 raise ScanMustStopException(msg % e)
-            except:
+            except Exception:
                 # Act just like when there is no parser
                 msg = 'There is no parser for "%s".' % http_response.get_url()
                 raise BaseFrameworkException(msg)
@@ -231,7 +233,7 @@ class ParserCache(CacheStats):
     def _log_return_empty(self, http_response, detail):
         msg = 'Returning empty list in get_tags_by_filter("%s"). '
         msg += detail
-        om.out.debug(msg % http_response.get_uri())
+        LOGGER.debug(msg % http_response.get_uri())
 
     def get_tags_by_filter(self, http_response, tags, yield_text=False, cache=True):
         """
