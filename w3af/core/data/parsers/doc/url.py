@@ -879,8 +879,13 @@ class URL(DiskItem):
         """
         return isinstance(other, URL) and self.url_string == other.url_string
 
-    def __ne__(self, other):
-        return not self.__eq__(other)
+    def __lt__(self, other):
+        """
+        :return: True if self sorts before other, ordering by url_string
+        """
+        if not isinstance(other, URL):
+            return NotImplemented
+        return self.url_string < other.url_string
 
     def __hash__(self):
         return hash(self.url_string)

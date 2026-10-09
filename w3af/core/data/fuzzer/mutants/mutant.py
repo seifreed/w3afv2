@@ -24,7 +24,7 @@ import copy
 
 from w3af.core.data.constants.ignored_params import is_in_ignored_parameters
 from w3af.core.data.db.disk_item import DiskItem
-from w3af.core.data.misc.encoding import smart_str_ignore
+from w3af.core.data.misc.encoding import smart_unicode
 
 
 class Mutant(DiskItem):
@@ -168,15 +168,13 @@ class Mutant(DiskItem):
 
         msg = '"%s", using HTTP method %s. The sent data was: "%s"'
         msg %= (
-            smart_str_ignore(self.get_url()),
-            smart_str_ignore(self.get_method()),
-            smart_str_ignore(dc_short),
+            smart_unicode(self.get_url()),
+            smart_unicode(self.get_method()),
+            smart_unicode(dc_short),
         )
 
         if token is not None:
-            msg += (
-                f' The modified parameter was "{smart_str_ignore(token.get_name())}".'
-            )
+            msg += f' The modified parameter was "{smart_unicode(token.get_name())}".'
 
         return msg
 

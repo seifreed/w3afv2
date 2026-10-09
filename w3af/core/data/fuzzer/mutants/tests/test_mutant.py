@@ -139,6 +139,20 @@ class TestMutant(unittest.TestCase):
         mutant.set_original_response_body(body)
         self.assertEqual(mutant.get_original_response_body(), body)
 
+    def test_found_at_is_readable_text(self):
+        freq = FuzzableRequest(self.url)
+        freq.set_querystring(QueryString(self.SIMPLE_KV))
+
+        mutant = FakeMutant.create_mutants(
+            freq, self.payloads, [], False, self.fuzzer_config
+        )[0]
+
+        self.assertEqual(
+            mutant.found_at(),
+            '"http://moth/", using HTTP method GET. The sent data was: "a=abc&b=2"'
+            ' The modified parameter was "a".',
+        )
+
     def test_mutant_creation_ignore_params(self):
         qs = QueryString(self.SIMPLE_KV)
         freq = FuzzableRequest(self.url)
