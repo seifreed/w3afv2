@@ -295,7 +295,9 @@ class retirejs(GrepPlugin):
         #
         # Avoid running this plugin twice on the same URL
         #
-        url_hash = hashlib.md5(response.get_url().url_string).hexdigest()
+        url_hash = hashlib.md5(
+            response.get_url().url_string, usedforsecurity=False
+        ).hexdigest()
         if url_hash in self._analyzed_hashes:
             return False
 
@@ -305,7 +307,7 @@ class retirejs(GrepPlugin):
         # Avoid running this plugin twice on the same file content
         #
         body = smart_str_ignore(response.get_body())
-        response_hash = hashlib.md5(body).hexdigest()
+        response_hash = hashlib.md5(body, usedforsecurity=False).hexdigest()
 
         if response_hash in self._analyzed_hashes:
             return False

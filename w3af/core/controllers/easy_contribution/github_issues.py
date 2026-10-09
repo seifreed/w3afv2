@@ -164,7 +164,7 @@ class GithubIssues:
                 bug_summary = tback.split("\n")[-2]
             else:
                 # Failed... lets generate something random!
-                m = hashlib.md5()
+                m = hashlib.md5(usedforsecurity=False)
                 m.update(time.ctime())
                 bug_summary = m.hexdigest()
 

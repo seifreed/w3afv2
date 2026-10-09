@@ -125,7 +125,7 @@ class DiskList:
         """
         attr_values = self._get_attr_values_as_builtin(obj)
         concatenated_eq_attrs = cpickle_dumps(attr_values)
-        return hashlib.md5(concatenated_eq_attrs).hexdigest()
+        return hashlib.md5(concatenated_eq_attrs, usedforsecurity=False).hexdigest()
 
     def _get_attr_values_as_builtin(self, obj):
         if self._is_builtin(obj):
