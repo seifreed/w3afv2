@@ -19,7 +19,6 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import random
 import time
 import unittest
 from itertools import repeat
@@ -39,11 +38,6 @@ from w3af.core.data.url.tests.helpers.route_server import (
 
 def delayed_response_05(_request: RecordedRequest) -> Response:
     time.sleep(0.5)
-    return Response(body="Yup")
-
-
-def delayed_response_similar(_request: RecordedRequest) -> Response:
-    time.sleep(0.4 + random.randint(1, 9) / 100.0)
     return Response(body="Yup")
 
 
@@ -86,7 +80,7 @@ class TestGetAverageRTT(unittest.TestCase):
         self.assertGreater(0.55, average_rtt)
 
     def test_get_average_rtt_for_mutant_similar(self):
-        self.server.add("GET", "/", delayed_response_similar)
+        self.server.add("GET", "/", DelayedResponses([0.47, 0.49, 0.51, 0.48, 0.5]))
 
         average_rtt = self.uri_opener.get_average_rtt_for_mutant(
             self.fuzzable_request()
