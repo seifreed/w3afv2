@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import base64
 import os
-import subprocess
+import shutil
 import sys
 import time
 from functools import wraps
@@ -436,8 +436,7 @@ class xml_file(OutputPlugin):
             # Copy to the real output file
             report_file_name = os.path.expanduser(self._file_name)
 
-            cmd = f"cp {tempfh.name} {report_file_name}"
-            subprocess.call(cmd, shell=True)
+            shutil.copyfile(tempfh.name, report_file_name)
 
             om.out.debug(
                 "[xml_file.flush()] write_context_to_file() finished copy" " operation."

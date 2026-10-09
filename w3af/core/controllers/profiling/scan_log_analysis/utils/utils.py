@@ -124,8 +124,11 @@ def make_relative_timestamps(timestamps, first_timestamp):
     return [t - first_timestamp for t in timestamps]
 
 
+CLEAR_SCREEN_SEQUENCE = "\x1b[2J\x1b[H"
+
+
 def clear_screen():
-    os.system("clear")
+    print(CLEAR_SCREEN_SEQUENCE, end="", flush=True)
 
 
 def epoch_to_string(spent_time):

@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import subprocess
 import sys
 from typing import ClassVar
 
@@ -30,6 +29,7 @@ from w3af.core.controllers.dependency_check.requirements import (
     CORE,
     CORE_PIP_PACKAGES,
 )
+from w3af.core.controllers.misc.external_process import run_process
 
 TWO_PYTHON_MSG = """\
 It seems that your system has two different python installations: One provided
@@ -86,16 +86,12 @@ class MacOSX(Platform):
         installed = "The following ports are currently installed"
 
         try:
-            p = subprocess.Popen(
-                ["port", "-v", "installed", package_name],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
+            result = run_process(["port", "-v", "installed", package_name])
         except OSError:
             # We're not on a mac based system
             return None
         else:
-            port_output, _ = p.communicate()
+            port_output = result.stdout
 
             if not_installed in port_output:
                 return False

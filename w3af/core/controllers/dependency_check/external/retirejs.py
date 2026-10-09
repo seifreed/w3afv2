@@ -20,8 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import subprocess
-
+from w3af.core.controllers.misc.external_process import run_process
 from w3af.core.controllers.misc.which import which
 
 SUPPORTED_RETIREJS = "2."
@@ -38,11 +37,14 @@ def retirejs_is_installed():
     path_to_retire = paths_to_retire[0]
 
     try:
-        version = subprocess.check_output(f"{path_to_retire} --version", shell=True)
-    except subprocess.CalledProcessError:
+        result = run_process([path_to_retire, "--version"])
+    except OSError:
         return False
 
-    version = version.strip()
+    if result.returncode != 0:
+        return False
+
+    version = result.stdout.strip()
     version_split = version.split(".")
 
     # Just check that the version has the format 1.6.0

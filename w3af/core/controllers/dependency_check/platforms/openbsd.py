@@ -21,8 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import platform
-import subprocess
 from typing import ClassVar
+
+from w3af.core.controllers.misc.external_process import run_process
 
 from ..requirements import CORE
 from .base_platform import Platform
@@ -54,11 +55,15 @@ class OpenBSD5(Platform):
     @staticmethod
     def os_package_is_installed(package_name):
         try:
-            pkg_info_output = subprocess.check_output(["pkg_info"], text=True)
-        except (OSError, subprocess.CalledProcessError):
+            result = run_process(["pkg_info"])
+        except OSError:
             # We're not on an openbsd based system
             return None
 
+        if result.returncode != 0:
+            return None
+
+        pkg_info_output = result.stdout
         return any(
             line.startswith(package_name) for line in pkg_info_output.splitlines()
         )

@@ -24,10 +24,14 @@ import hashlib
 import json
 import os
 import shlex
-import subprocess
 import tempfile
 
 import w3af.core.controllers.output_manager as om
+from w3af.core.controllers.misc.external_process import (
+    DEVNULL,
+    ProcessTimeoutError,
+    run_process,
+)
 from w3af.core.controllers.misc.which import which
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
@@ -235,11 +239,8 @@ class retirejs(GrepPlugin):
         with tempfile.NamedTemporaryFile(
             prefix="retirejs-version-", suffix=".out", delete=False, mode="w"
         ) as retire_version_fd:
-            try:
-                subprocess.check_call(
-                    cmd, stderr=subprocess.DEVNULL, stdout=retire_version_fd
-                )
-            except subprocess.CalledProcessError:
+            result = run_process(cmd, stdout=retire_version_fd, stderr=DEVNULL)
+            if result.returncode != 0:
                 msg = "Unexpected retire.js exit code. Disabling grep.retirejs plugin."
                 om.out.error(msg)
                 return False
@@ -269,11 +270,7 @@ class retirejs(GrepPlugin):
         args = (output_file.name, check_file.name)
         cmd = self.RETIRE_CMD % args
 
-        process = subprocess.Popen(
-            shlex.split(cmd), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
-        )
-
-        process.wait()
+        process = run_process(shlex.split(cmd), stdout=DEVNULL, stderr=DEVNULL)
 
         self._remove_file(output_file.name)
         self._remove_file(check_file.name)
@@ -351,13 +348,13 @@ class retirejs(GrepPlugin):
         cmd = self.RETIRE_CMD_JSREPO % args
 
         try:
-            returncode = subprocess.call(
+            returncode = run_process(
                 shlex.split(cmd),
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
+                stdout=DEVNULL,
+                stderr=DEVNULL,
                 timeout=self.RETIRE_TIMEOUT,
-            )
-        except subprocess.TimeoutExpired:
+            ).returncode
+        except ProcessTimeoutError:
             # The process timed out and the returncode was never set
             om.out.debug(f"The retirejs process for batch {batch} timeout out")
             return {}
