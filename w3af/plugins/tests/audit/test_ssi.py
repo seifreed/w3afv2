@@ -42,6 +42,7 @@ class TestSSI(PluginTest):
 
     class SSIMockResponse(MockResponse):
         def get_response(self, http_request, uri, response_headers):
+            response_headers.update(self.headers)
             uri = urllib.parse.unquote(uri)
             seeds = re.findall("[1-9]{5}", uri)
 
@@ -78,6 +79,7 @@ class TestJinja2SSI(PluginTest):
 
     class SSIMockResponse(MockResponse):
         def get_response(self, http_request, uri, response_headers):
+            response_headers.update(self.headers)
             uri = urllib.parse.unquote(uri)
             template = Template("Hello" + uri)
             body = template.render()
@@ -101,3 +103,53 @@ class TestJinja2SSI(PluginTest):
         self.assertEqual(
             URL(self.target_url).uri2url().url_string, vuln.get_url().url_string
         )
+
+
+class GuestBook:
+    """
+    A guest book which stores the messages and renders them in another page,
+    with the SSI exec directives evaluated by the web server.
+    """
+
+    EXEC_RE = re.compile(r'<!--#exec cmd="echo -n (\d+);echo -n (\d+)" -->')
+
+    def __init__(self):
+        self.messages = []
+
+    def sign(self, mock_response, request, uri, response_headers):
+        message = URL(uri).get_querystring().get("message", [""])[0]
+        self.messages.append(self.EXEC_RE.sub(r"\1\2", message))
+        response_headers["Content-Type"] = "text/html"
+        return 200, response_headers, "<html>Thanks for signing!</html>"
+
+    def view(self, mock_response, request, uri, response_headers):
+        response_headers["Content-Type"] = "text/html"
+        return 200, response_headers, f"<html>{'<br>'.join(self.messages)}</html>"
+
+
+class TestPersistentSSI(PluginTest):
+
+    target_url = "http://mock/guestbook/"
+    guest_book = GuestBook()
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(
+            target_url,
+            '<a href="sign.shtml?message=hi">Sign</a><a href="view.shtml">View</a>',
+        ),
+        MockResponse(re.compile(r"http://mock/guestbook/sign.*"), guest_book.sign),
+        MockResponse(re.compile(r"http://mock/guestbook/view.*"), guest_book.view),
+    ]
+
+    def test_found_persistent_ssi(self):
+        self._scan(self.target_url, test_config)
+
+        vulns = self.kb.get("ssi", "ssi")
+
+        self.assertEqual(1, len(vulns), vulns)
+        vuln = vulns[0]
+        self.assertEqual("message", vuln.get_token_name())
+        self.assertEqual(
+            "Persistent server side include vulnerability", vuln.get_name()
+        )
+        self.assertEqual("http://mock/guestbook/sign.shtml", vuln.get_url().url_string)
