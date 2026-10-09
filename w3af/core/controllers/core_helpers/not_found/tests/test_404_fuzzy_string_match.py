@@ -255,7 +255,7 @@ class Test404FuzzyStringMatch(unittest.TestCase):
         def jelly_fuzzy(str_a, str_b, ratio):
             str_a = str_a.replace("\0", "")
             str_b = str_b.replace("\0", "")
-            return jellyfish.jaro_distance(str_a, str_b) > ratio
+            return jellyfish.jaro_similarity(str_a, str_b) > ratio
 
         self.generic_fuzzy_string_diff_runner_against_404(jelly_fuzzy, IS_EQUAL_RATIO)
 

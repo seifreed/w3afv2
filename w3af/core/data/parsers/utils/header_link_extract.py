@@ -20,14 +20,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import re
 from http.cookies import CookieError
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.data.misc.encoding import smart_unicode
 from w3af.core.data.parsers.doc.cookie_parser import parse_cookie
 
 LINK_HEADER_RE = re.compile("<(.*?)>.*")
+
+LOGGER = logging.getLogger(__name__)
 
 
 def extract_link_from_header_simple(http_response, header_name, header_value):
@@ -56,7 +58,7 @@ def extract_link_from_header_simple(http_response, header_name, header_value):
             " failed to correctly parse as an URL, the header"
             ' value was: "%s"'
         )
-        om.out.debug(msg % (header_name, header_value))
+        LOGGER.debug(msg % (header_name, header_value))
 
 
 def extract_link_from_link_header(http_response, header_name, header_value):
@@ -91,7 +93,7 @@ def extract_link_from_link_header(http_response, header_name, header_value):
                 " failed to correctly parse as an URL, the header"
                 ' value was: "%s"'
             )
-            om.out.debug(msg % (header_name, header_value))
+            LOGGER.debug(msg % (header_name, header_value))
 
 
 def extract_link_from_set_cookie_header(http_response, header_name, header_value):
@@ -127,7 +129,7 @@ def extract_link_from_set_cookie_header(http_response, header_name, header_value
                     " failed to correctly parse as an URL, the header"
                     ' value was: "%s"'
                 )
-                om.out.debug(msg % (header_name, header_value))
+                LOGGER.debug(msg % (header_name, header_value))
 
 
 URL_HEADERS = {

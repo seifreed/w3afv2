@@ -1288,3 +1288,59 @@ Black y Bandit focalizados pasan. Ruff conserva seis hallazgos existentes en
 `exec_shell.py` sobre manejo de archivos y formato de cadenas. El score global
 se mantiene en **5.4/10** mientras siga pendiente la inversión de dependencia
 del flujo de ejecución de payloads.
+
+## Avance: logging de parsers y pila URL fuera de controllers
+
+El parser SGML, la extracción de enlaces desde cabeceras, `FuzzableRequest` y
+`ExtendedUrllib` sustituyen su import directo de `output_manager` por loggers
+estándar de módulo. Los mensajes conservan nivel y contenido y llegan al
+output manager por el puente de logging ya existente. Se eliminan cuatro
+dependencias de producción `core.data -> controllers`. Se añade una regresión
+que comprueba que la cabecera `Link` no parseable emite su diagnóstico.
+
+## Avance: renderizador de tablas en la capa de controllers
+
+El renderizador de tablas de consola vivía en `w3af.core.ui.console.tables`, lo
+que obligaba a los 53 plugins de payload que imprimen tablas de resultados a
+importar la capa de UI. Se mueve a `w3af.core.controllers.console_tables`, se
+incorporan en él los dos ayudantes de formateo de párrafos que tomaba de
+`console.util` (eliminados de ahí por quedar sin uso) y `draw()` exige ahora un
+ancho explícito, de modo que ya no depende del dimensionado de terminal de la
+UI. La consola y el menú raíz conservan su comportamiento pasando el ancho de
+terminal de forma explícita. Se eliminan 53 dependencias de producción
+`plugins -> ui`.
+
+## Avance: logging de shells de explotación
+
+`Shell` y `ExecShell` dejan de importar `output_manager` para sus diagnósticos:
+usan loggers estándar que alcanzan el output manager por el puente de logging.
+Las dependencias funcionales restantes de estas clases (manejador de payloads,
+detección remota de SO y transferencia de payloads) quedan como deuda conocida.
+
+## Fitness test de capas y deuda restante
+
+Se añade `w3af/tests/test_architecture_layers.py`, una prueba de pytest que
+parsea con `ast` los imports de todos los módulos de producción y falla si una
+capa interior importa una exterior, siguiendo el orden
+`core.data -> controllers -> plugins -> core.ui`. La prueba también falla si una
+entrada de `KNOWN_DEBT` deja de existir, de modo que la lista solo puede
+encogerse (ratchet). No introduce dependencias nuevas.
+
+Estado actual: no queda ninguna infracción `plugins -> ui` ni ningún uso de
+`output_manager` por logging en la capa de datos. Las seis infracciones
+restantes, todas funcionales/infraestructura y recogidas como deuda conocida,
+son:
+
+- `exec_shell` -> `intrusion_tools.exec_method_helpers` y
+  `payload_transfer.payload_transfer_factory` (orquestación de ejecución y
+  transferencia remota).
+- `shell` -> `plugins.attack.payloads` (manejador de payloads).
+- `mp_document_parser` -> `output_manager`, `profiling` y `threads.decorators`
+  (arranque de los procesos worker del parser multiproceso).
+
+Invertir estas fronteras exige reubicar lógica de explotación y del parser
+multiproceso hacia la capa de aplicación y tocar los plugins de ataque que
+construyen los shells; se deja para iteraciones posteriores. Verificación: la
+fitness test pasa (2 pruebas) y las suites de parsers, `kb` y payloads siguen
+en verde. Black y ruff focalizados pasan; mypy no añade errores propios en los
+módulos tocados.

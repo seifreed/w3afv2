@@ -72,7 +72,7 @@ class TestSerializedObject(unittest.TestCase):
     def test_php_serialized_objects_query_string_b64(self):
         url = self.url.copy()
 
-        b64obj = base64.b64encode(SERIALIZED_PHP_OBJECTS[0])
+        b64obj = base64.b64encode(SERIALIZED_PHP_OBJECTS[0].encode()).decode()
         qs = QueryString([("viewstate", [b64obj])])
         url.set_querystring(qs)
 
@@ -91,7 +91,9 @@ class TestSerializedObject(unittest.TestCase):
         self.assertEqual(len(kb.kb.get("serialized_object", "serialized_object")), 1)
 
     def test_php_serialized_objects_cookies(self):
-        cookie_value = f"state={base64.b64encode(SERIALIZED_PHP_OBJECTS[0])}"
+        cookie_value = (
+            f"state={base64.b64encode(SERIALIZED_PHP_OBJECTS[0].encode()).decode()}"
+        )
         headers = Headers([("Cookie", cookie_value)])
         request = FuzzableRequest(self.url, headers=headers)
 
@@ -100,7 +102,9 @@ class TestSerializedObject(unittest.TestCase):
         self.assertEqual(len(kb.kb.get("serialized_object", "serialized_object")), 1)
 
     def test_php_serialized_objects_post_data(self):
-        post_data = f"obj={base64.b64encode(SERIALIZED_PHP_OBJECTS[1])}"
+        post_data = (
+            f"obj={base64.b64encode(SERIALIZED_PHP_OBJECTS[1].encode()).decode()}"
+        )
         headers = Headers([("Content-Type", "application/x-www-form-urlencoded")])
 
         form = URLEncodedForm.from_postdata(headers, post_data)
@@ -112,7 +116,9 @@ class TestSerializedObject(unittest.TestCase):
 
     def test_not_php_serialized_objects(self):
         # Note that I'm sending the serialized object in reverse string order
-        post_data = f"obj={base64.b64encode(SERIALIZED_PHP_OBJECTS[1][::-1])}"
+        post_data = (
+            f"obj={base64.b64encode(SERIALIZED_PHP_OBJECTS[1][::-1].encode()).decode()}"
+        )
         headers = Headers([("Content-Type", "application/x-www-form-urlencoded")])
 
         form = URLEncodedForm.from_postdata(headers, post_data)
@@ -124,7 +130,7 @@ class TestSerializedObject(unittest.TestCase):
 
     def test_mutated_request(self):
         # Note that I'm sending the serialized object in reverse string order
-        post_data = f"test=1&obj={base64.b64encode(SERIALIZED_PHP_OBJECTS[1])}"
+        post_data = f"test=1&obj={base64.b64encode(SERIALIZED_PHP_OBJECTS[1].encode()).decode()}"
         headers = Headers([("Content-Type", "application/x-www-form-urlencoded")])
 
         form = URLEncodedForm.from_postdata(headers, post_data)
@@ -156,7 +162,7 @@ class TestSerializedObjectIntegration(PluginTest):
 
     html = (
         '<form action="/form" method="GET">'
-        f'<input type="hidden" name="viewstate" value="{base64.b64encode(SERIALIZED_PHP_OBJECTS[0])}">'
+        f'<input type="hidden" name="viewstate" value="{base64.b64encode(SERIALIZED_PHP_OBJECTS[0].encode()).decode()}">'
         "</form>"
     )
 

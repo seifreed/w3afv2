@@ -1,6 +1,6 @@
 import re
 
-files = []
+files: list[str] = []
 
 
 def check_files(file_list):

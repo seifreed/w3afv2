@@ -1,7 +1,7 @@
 import re
 
+from w3af.core.controllers.console_tables import table
 from w3af.core.data.constants.common_directories import get_common_directories
-from w3af.core.ui.console.tables import table
 from w3af.plugins.attack.payloads.base_payload import Payload
 
 
