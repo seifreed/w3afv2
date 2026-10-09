@@ -24,12 +24,12 @@ import re
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.exceptions import (
-    BaseFrameworkException,
     HTTPRequestException,
 )
 from w3af.core.data.parsers.doc.sgml import SGMLParser
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.search_engines.search_engine import SearchEngine
+from w3af.core.exceptions import BaseFrameworkException
 
 
 class pks(SearchEngine):

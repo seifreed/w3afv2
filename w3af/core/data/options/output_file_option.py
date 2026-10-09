@@ -22,10 +22,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.fuzzer.utils import rand_alpha
 from w3af.core.data.options.baseoption import BaseOption
 from w3af.core.data.options.option_types import OUTPUT_FILE
+from w3af.core.exceptions import BaseFrameworkException
 
 DEV_NULL = "/dev/null"
 

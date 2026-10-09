@@ -21,10 +21,9 @@ vendorizado requieren una revisión separada antes de cerrar la puntuación.
 
 ### Dependencias entre capas
 
-- El árbol contiene carpetas que sugieren capas, pero `w3af.core.data` importa
-  controladores desde 113 archivos (179 coincidencias de import); esto acopla
-  datos/dominio con detalles de aplicación e infraestructura.
-  Esto acopla datos/dominio con detalles de aplicación e infraestructura.
+- El árbol contiene carpetas que sugieren capas, pero `w3af.core.data` todavía
+  importa controladores desde 88 archivos (141 coincidencias de import); esto
+  acopla datos/dominio con detalles de aplicación e infraestructura.
 - Los módulos `w3af/core/data/kb/shell.py`, `read_shell.py` y `exec_shell.py`
   conocen payload handlers, output manager, controladores y plugins. La
   Knowledge Base no está aislada como modelo de dominio.
@@ -92,14 +91,19 @@ vendorizado requieren una revisión separada antes de cerrar la puntuación.
   usan archivos temporales y la API actual de `multiprocessing`.
 - `cleanup()` y `clear()` invalidan las entradas de la caché de `InfoSet` bajo
   el lock del KB, evitando que datos cacheados sobrevivan al borrado.
+- Las opciones, parsers, requests y buscadores de `core.data` importan
+  `BaseFrameworkException` desde `core.exceptions`, su módulo común, y ya no
+  dependen de `controllers.exceptions` para esa clase.
 
 ## Revisión actualizada
 
 La puntuación global permanece en **2.5/10** (Clean Code 3/10, Clean Architecture
 2/10). Se trasladaron errores DB a la capa de datos, el parser URL y la KB
-perdieron dos dependencias concretas de `controllers`, y los contratos Python 3
-se corrigieron. Aún así, `core.data` importa ampliamente desde `controllers` y
-las gates globales Ruff/mypy/Bandit fallan.
+perdieron dependencias concretas de `controllers`, y los contratos Python 3 se
+corrigieron. La excepción base común dejó de ser importada desde controladores,
+reduciendo las referencias de `core.data` de 179 en 113 archivos a 141 en 88
+archivos. Aun así, `core.data` importa ampliamente desde `controllers` y las
+gates globales Ruff/mypy/Bandit fallan.
 
 En las suites integradas de URL, DB, histórico y KB: **203 pasaron, 3 fueron
 omitidas y no hubo fallos**. El archivo URL pasa con 113 pruebas y 2 omitidas;
@@ -109,6 +113,13 @@ Persisten dos warnings de dependencias `ldap3/pyasn1`; no se suprimieron.
 Esta verificación no cubre la suite completa ni acredita cobertura global del
 100%. Quedan los defectos de lint/tipos/seguridad, y pruebas de plugins que
 requieren el ejecutable externo `retire`.
+
+La verificación más reciente de opciones, parsers, requests y buscadores obtuvo
+240 pruebas correctas, 4 omitidas y 146 fallidas; una selección más acotada de
+los módulos consumidores obtuvo 12 correctas y 13 fallidas. Los fallos incluyen
+uso de `re._pattern_type` y contratos antiguos de HTTP/base64. No se atribuyen
+al cambio de ruta de importación, pero tampoco se ha comparado la suite contra
+un checkout previo para demostrarlo.
 
 ## Prioridades de refactor
 

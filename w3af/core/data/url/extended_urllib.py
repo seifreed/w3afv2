@@ -40,7 +40,6 @@ import OpenSSL
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.exceptions import (
-    BaseFrameworkException,
     ConnectionPoolException,
     HTTPRequestException,
     ScanMustStopByKnownReasonExc,
@@ -76,6 +75,7 @@ from w3af.core.data.url.HTTPRequest import HTTPRequest
 from w3af.core.data.url.HTTPResponse import HTTPResponse
 from w3af.core.data.url.response_meta import SUCCESS, ResponseMeta
 from w3af.core.data.user_agent.random_user_agent import get_random_user_agent
+from w3af.core.exceptions import BaseFrameworkException
 
 from . import opener_settings
 

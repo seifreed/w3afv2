@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.http_request_parser import (
     check_uri_syntax,
@@ -30,6 +29,7 @@ from w3af.core.data.parsers.doc.http_request_parser import (
     http_request_parser,
 )
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.exceptions import BaseFrameworkException
 
 
 class TestHttpRequestParser(unittest.TestCase):

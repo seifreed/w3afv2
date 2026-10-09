@@ -22,10 +22,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 # python stuff
 
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.intrusion_tools.execMethodHelpers import *
 from w3af.core.controllers.misc.common_attack_methods import CommonAttackMethods
 from w3af.core.data.kb.exploit_result import ExploitResult
+from w3af.core.exceptions import BaseFrameworkException
 
 
 class proxy(ExploitResult, CommonAttackMethods):

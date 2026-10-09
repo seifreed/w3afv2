@@ -22,12 +22,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from functools import cmp_to_key
 
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.parsers.doc.html import HTMLParser
 from w3af.core.data.parsers.doc.javascript import JavaScriptParser
 from w3af.core.data.parsers.doc.pdf import PDFParser
 from w3af.core.data.parsers.doc.swf import SWFParser
 from w3af.core.data.parsers.doc.wml_parser import WMLParser
+from w3af.core.exceptions import BaseFrameworkException
 
 
 class DocumentParser:

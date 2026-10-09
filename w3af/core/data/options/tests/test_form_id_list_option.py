@@ -23,9 +23,9 @@ import os
 import unittest
 
 from w3af import ROOT_PATH
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_types import FORM_ID_LIST
+from w3af.core.exceptions import BaseFrameworkException
 
 
 class TestFormIDListOptionOption(unittest.TestCase):

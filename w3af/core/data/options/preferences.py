@@ -23,8 +23,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 from configparser import RawConfigParser
 
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.misc.home_dir import get_home_dir
+from w3af.core.exceptions import BaseFrameworkException
 
 
 class Preferences:

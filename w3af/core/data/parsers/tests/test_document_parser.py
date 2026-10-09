@@ -25,7 +25,6 @@ import os
 import unittest
 
 from w3af import ROOT_PATH
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.html import HTMLParser
 from w3af.core.data.parsers.doc.pdf import PDFParser
@@ -35,6 +34,7 @@ from w3af.core.data.parsers.document_parser import (
     document_parser_factory,
 )
 from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.exceptions import BaseFrameworkException
 
 
 def _build_http_response(body_content, content_type):

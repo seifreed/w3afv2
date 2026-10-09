@@ -20,11 +20,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.dc.query_string import QueryString
 from w3af.core.data.options.baseoption import BaseOption
 from w3af.core.data.options.option_types import QUERY_STRING
 from w3af.core.data.parsers.doc.url import parse_qs
+from w3af.core.exceptions import BaseFrameworkException
 
 
 class QueryStringOption(BaseOption):

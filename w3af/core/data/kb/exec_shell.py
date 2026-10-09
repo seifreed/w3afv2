@@ -23,12 +23,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import textwrap
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.intrusion_tools.execMethodHelpers import os_detection_exec
 from w3af.core.controllers.payload_transfer.payload_transfer_factory import (
     payload_transfer_factory,
 )
 from w3af.core.data.kb.shell import Shell
+from w3af.core.exceptions import BaseFrameworkException
 from w3af.plugins.attack.payloads import payload_handler
 from w3af.plugins.attack.payloads.decorators.download_decorator import download_debug
 from w3af.plugins.attack.payloads.decorators.read_decorator import read_debug

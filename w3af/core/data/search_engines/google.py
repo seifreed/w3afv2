@@ -27,11 +27,11 @@ import urllib.parse
 import urllib.request
 
 from w3af.core.controllers import output_manager as om
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.search_engines.search_engine import SearchEngine
 from w3af.core.data.user_agent.random_user_agent import get_random_user_agent
+from w3af.core.exceptions import BaseFrameworkException
 
 GOOGLE_SORRY_PAGES = {
     "http://www.google.com/support/bin/answer.py?answer=86640",

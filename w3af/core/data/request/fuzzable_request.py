@@ -29,7 +29,6 @@ from urllib.parse import quote, quote_plus, unquote
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.constants.encodings import DEFAULT_ENCODING
 from w3af.core.data.db.disk_item import DiskItem
 from w3af.core.data.dc.cookie import Cookie
@@ -40,6 +39,7 @@ from w3af.core.data.dc.headers import Headers
 from w3af.core.data.misc.encoding import smart_str_ignore
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.request_mixin import RequestMixIn
+from w3af.core.exceptions import BaseFrameworkException
 
 ALL_CHARS = "".join(chr(i) for i in range(256))
 TRANS_TABLE = str.maketrans(ALL_CHARS, ALL_CHARS)

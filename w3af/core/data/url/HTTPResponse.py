@@ -30,13 +30,13 @@ import urllib.request
 import zlib
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.constants.encodings import DEFAULT_ENCODING
 from w3af.core.data.db.disk_item import DiskItem
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.misc.encoding import ESCAPED_CHAR, smart_str_ignore, smart_unicode
 from w3af.core.data.parsers import parser_cache
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.exceptions import BaseFrameworkException
 
 DEFAULT_CHARSET = DEFAULT_ENCODING
 CR = "\r"
