@@ -21,8 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
-from itertools import repeat
-from unittest.mock import patch
 
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
@@ -30,7 +28,7 @@ from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.plugins.grep.code_disclosure import code_disclosure
-from w3af.plugins.tests.helper import LOREM
+from w3af.plugins.tests.helper import LOREM, configure_never_404
 
 
 class TestCodeDisclosurePlugin(unittest.TestCase):
@@ -38,6 +36,7 @@ class TestCodeDisclosurePlugin(unittest.TestCase):
     def setUp(self):
         self.plugin = code_disclosure()
         kb.kb.clear("code_disclosure", "code_disclosure")
+        configure_never_404(self, URL("http://www.w3af.com/"))
 
     def tearDown(self):
         self.plugin.end()
@@ -52,40 +51,35 @@ class TestCodeDisclosurePlugin(unittest.TestCase):
 
         return request, response
 
-    @patch("w3af.plugins.grep.code_disclosure.is_404", side_effect=repeat(False))
-    def test_ASP_code_disclosure(self, *args):
+    def test_ASP_code_disclosure(self):
         body = 'header <% Response.Write("Hello World!") %> footer'
         request, response = self._build_request_response(body)
 
         self.plugin.grep(request, response)
         self.assertEqual(len(kb.kb.get("code_disclosure", "code_disclosure")), 1)
 
-    @patch("w3af.plugins.grep.code_disclosure.is_404", side_effect=repeat(False))
-    def test_PHP_code_disclosure(self, *args):
+    def test_PHP_code_disclosure(self):
         body = "header <?php echo $a; ?> footer"
         request, response = self._build_request_response(body)
 
         self.plugin.grep(request, response)
         self.assertEqual(len(kb.kb.get("code_disclosure", "code_disclosure")), 1)
 
-    @patch("w3af.plugins.grep.code_disclosure.is_404", side_effect=repeat(False))
-    def test_no_code_disclosure_blank(self, *args):
+    def test_no_code_disclosure_blank(self):
         body = ""
         request, response = self._build_request_response(body)
 
         self.plugin.grep(request, response)
         self.assertEqual(len(kb.kb.get("code_disclosure", "code_disclosure")), 0)
 
-    @patch("w3af.plugins.grep.code_disclosure.is_404", side_effect=repeat(False))
-    def test_no_code_disclosure(self, *args):
+    def test_no_code_disclosure(self):
         body = LOREM
         request, response = self._build_request_response(body)
 
         self.plugin.grep(request, response)
         self.assertEqual(len(kb.kb.get("code_disclosure", "code_disclosure")), 0)
 
-    @patch("w3af.plugins.grep.code_disclosure.is_404", side_effect=repeat(False))
-    def test_no_code_disclosure_xml(self, *args):
+    def test_no_code_disclosure_xml(self):
         body = """
                 <?xml version="1.0"?>
                 <note>
@@ -99,8 +93,7 @@ class TestCodeDisclosurePlugin(unittest.TestCase):
         self.plugin.grep(request, response)
         self.assertEqual(len(kb.kb.get("code_disclosure", "code_disclosure")), 0)
 
-    @patch("w3af.plugins.grep.code_disclosure.is_404", side_effect=repeat(False))
-    def test_no_analysis_content_type(self, *args):
+    def test_no_analysis_content_type(self):
         body = "header <? echo $a; ?> footer"
         request, response = self._build_request_response(body)
 

@@ -21,12 +21,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 from typing import ClassVar
-from unittest.mock import Mock
 
-from httpretty import httpretty
-
+import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.parsers.utils.form_params import FormParameters
 from w3af.plugins.auth.autocomplete import autocomplete
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
@@ -142,7 +141,7 @@ class TestAutocomplete(PluginTest):
         self._scan(self._run_config["target"], self._run_config["plugins"])
 
         all_paths = set()
-        for request in httpretty.latest_requests:
+        for request in self.received_requests:
             all_paths.add(request.path)
 
         self.assertIn("/login_form.py", all_paths)
@@ -221,6 +220,14 @@ class TestAutocompleteInvalidCredentials(PluginTest):
 
 
 class TestAutocompleteAuthenticationFailure(unittest.TestCase):
+    login_form = FormParameters(
+        method="POST", action=URL("http://w3af.org/login_post.py")
+    )
+
+    def setUp(self):
+        blacklist_audit = list(cf.cf.get("blacklist_audit") or [])
+        self.addCleanup(cf.cf.save, "blacklist_audit", blacklist_audit)
+
     def test_consecutive_authentication_failure(self):
         plugin = autocomplete()
         kb.kb.cleanup()
@@ -260,7 +267,7 @@ class TestAutocompleteAuthenticationFailure(unittest.TestCase):
         for i in range(autocomplete.MAX_CONSECUTIVE_FAILED_LOGIN_COUNT):
             plugin._log_debug(str(i))
             plugin._handle_authentication_failure()
-            plugin._handle_authentication_success(Mock())
+            plugin._handle_authentication_success(self.login_form)
 
             infos = kb.kb.get("authentication", "error")
             self.assertEqual(len(infos), 0)
@@ -279,7 +286,7 @@ class TestAutocompleteAuthenticationFailure(unittest.TestCase):
 
             plugin._handle_authentication_failure()
             plugin._handle_authentication_failure()
-            plugin._handle_authentication_success(Mock())
+            plugin._handle_authentication_success(self.login_form)
 
             infos = kb.kb.get("authentication", "error")
             self.assertEqual(len(infos), 0)

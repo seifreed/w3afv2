@@ -468,3 +468,12 @@ class HTTPSHandler(KeepAliveHandler, urllib.request.HTTPSHandler):
             )
         else:
             return HTTPSConnection(request.host, timeout=request.get_timeout())
+
+
+def request_body_bytes(data):
+    """
+    :return: The request body as the bytes which are sent to the wire
+    """
+    if isinstance(data, bytes):
+        return data
+    return str(data).encode("utf-8")

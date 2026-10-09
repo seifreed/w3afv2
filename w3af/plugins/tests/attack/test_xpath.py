@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 from typing import ClassVar
-from unittest.mock import MagicMock
 
 import pytest
 
@@ -98,13 +97,10 @@ class TestXPathShell(PluginTest):
 
         self.assertEqual(shell._get_data_len(), 183)
 
-        # Now that I know that this worked, lets modify the method in order for
-        # it to return a lower number and the getxml() process to be much
-        # shorter an faster to test.
-
-        shell._get_data_len = MagicMock(return_value=45)
-
-        xml = shell.generic_user_input("getxml", [])
+        # Now that I know that this worked, extract only the first bytes of
+        # the XML document, which is much shorter and faster to test than the
+        # full getxml command.
+        xml = shell.get_data(45)
         self.assertIn("moth", xml)
 
         _help = shell.help(None)

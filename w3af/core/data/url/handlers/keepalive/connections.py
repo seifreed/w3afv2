@@ -142,42 +142,32 @@ class ProxyHTTPConnection(_HTTPConnection):
     def proxy_setup(self, url):
         # request is called before connect, so can interpret url and get
         # real host/port to be used to make CONNECT request to proxy
-        proto, rest = urllib.parse.splittype(url)
-        if proto is None:
+        split_url = urllib.parse.urlsplit(url)
+        if not split_url.scheme:
             raise ValueError(f"Unknown URL type: {url}")
 
-        # get host and port
-        host_port, rest = urllib.parse.splithost(rest)
-        host, port = urllib.parse.splitport(host_port)
-        self._real_host = host
+        self._real_host = split_url.hostname
 
-        # if port is not defined try to get from proto
-        if port is None:
+        if split_url.port is None:
             try:
-                self._real_port = self._ports[proto]
+                self._real_port = self._ports[split_url.scheme]
             except KeyError:
                 raise ValueError(f"Unknown protocol for: {url}")
         else:
-            self._real_port = int(port)
+            self._real_port = split_url.port
 
     def connect(self):
         super().connect()
 
         # send proxy CONNECT request
-        new_line = "\r\n"
         host_port = f"{self._real_host}:{self._real_port:d}"
-        self.send(f"CONNECT {host_port} HTTP/1.1{new_line}")
-
-        connect_headers = {
-            "Proxy-Connection": "keep-alive",
-            "Connection": "keep-alive",
-            "Host": host_port,
-        }
-
-        for header_name, header_value in list(connect_headers.items()):
-            self.send(f"{header_name}: {header_value}{new_line}")
-
-        self.send(new_line)
+        connect_lines = [
+            f"CONNECT {host_port} HTTP/1.1",
+            "Proxy-Connection: keep-alive",
+            "Connection: keep-alive",
+            f"Host: {host_port}",
+        ]
+        self.send(("\r\n".join(connect_lines) + "\r\n\r\n").encode("ascii"))
 
         # expect a HTTP/1.0 200 Connection established
         response = self.response_class(self.sock, method=self._method)
@@ -193,7 +183,7 @@ class ProxyHTTPConnection(_HTTPConnection):
         while True:
             # should not use directly fp probably
             line = response.fp.readline()
-            if line == "\r\n":
+            if line in (b"\r\n", b""):
                 break
 
 
