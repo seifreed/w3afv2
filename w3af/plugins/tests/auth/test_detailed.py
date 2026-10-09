@@ -19,22 +19,78 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import re
+import urllib.parse
 from typing import ClassVar
 
 import w3af.core.data.kb.knowledge_base as kb
-from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.parsers.doc.url import URL
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
+
+SESSION_COOKIE = "w3af_session=valid"
+VALID_PASSWORD = "passw0rd"
+
+
+def _is_authenticated(request):
+    return SESSION_COOKIE in (request.headers.get("Cookie") or "")
+
+
+def _detailed_login_post(mock_response, request, uri, response_headers):
+    response_headers["content-type"] = "text/html"
+    password = request.parsed_body.get("password", [""])[0]
+    if password == VALID_PASSWORD:
+        response_headers["Set-Cookie"] = f"{SESSION_COOKIE}; Path=/"
+        return 200, response_headers, "<html><body>Login successful</body></html>"
+    return 200, response_headers, "<html><body>Invalid credentials</body></html>"
+
+
+def _post_auth_xss(mock_response, request, uri, response_headers):
+    response_headers["content-type"] = "text/html"
+
+    if not _is_authenticated(request):
+        return 200, response_headers, "<html><body>Please login first</body></html>"
+
+    query = urllib.parse.urlsplit(request.uri).query
+    text = urllib.parse.parse_qs(query).get("text", [""])[0]
+
+    body = (
+        "<html><body>"
+        "or read your input"
+        '<form action="post_auth_xss.py" method="GET">'
+        f'<input name="text" type="text" value="{text}" />'
+        "</form>"
+        f"{text}"
+        "</body></html>"
+    )
+    return 200, response_headers, body
 
 
 class TestDetailedBasic(PluginTest):
 
-    target_url = get_moth_http("/auth/auth_1/")
+    target_url = "http://mock/auth/auth_1/"
 
     auth_url = URL(target_url + "login_form.py")
     check_url = URL(target_url + "post_auth_xss.py")
     check_string = "or read your input"
     data_format = "%u=%U&%p=%P&Login=Login"
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(
+            target_url,
+            body=(
+                "<html><body>"
+                '<a href="post_auth_xss.py?text=hello">input</a>'
+                "</body></html>"
+            ),
+            method="GET",
+        ),
+        MockResponse(str(auth_url), body=_detailed_login_post, method="POST"),
+        MockResponse(
+            re.compile(r"http://mock/auth/auth_1/post_auth_xss\.py.*"),
+            body=_post_auth_xss,
+            method="GET",
+        ),
+    ]
 
     _run_config: ClassVar[dict] = {
         "target": target_url,
@@ -82,12 +138,30 @@ class TestDetailedBasic(PluginTest):
 
 
 class TestDetailedFailAuth(PluginTest):
-    target_url = get_moth_http("/auth/auth_1/")
+    target_url = "http://mock/auth/auth_1/"
 
     auth_url = URL(target_url + "login_form.py")
     check_url = URL(target_url + "post_auth_xss.py")
     check_string = "or read your input"
     data_format = "%u=%U&%p=%P&Login=Login"
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(
+            target_url,
+            body=(
+                "<html><body>"
+                '<a href="post_auth_xss.py?text=hello">input</a>'
+                "</body></html>"
+            ),
+            method="GET",
+        ),
+        MockResponse(str(auth_url), body=_detailed_login_post, method="POST"),
+        MockResponse(
+            re.compile(r"http://mock/auth/auth_1/post_auth_xss\.py.*"),
+            body=_post_auth_xss,
+            method="GET",
+        ),
+    ]
 
     _run_config: ClassVar[dict] = {
         "target": target_url,
@@ -131,19 +205,22 @@ class TestDetailedFailAuth(PluginTest):
         info = infos[0]
 
         expected_desc = (
-            "The authentication plugin failed to get a valid application session using the user-provided configuration settings.\n"
+            "The `detailed` authentication plugin was never able to"
+            " authenticate and get a valid application session using the"
+            " user-provided configuration settings\n"
             "\n"
-            "The plugin generated the following log messages:\n"
+            "The following are the last log messages from the authentication"
+            " plugin:\n"
             "\n"
-            "Logging into the application with user: user@mail.com\n"
-            "Checking if session for user user@mail.com is active\n"
-            'User "user@mail.com" is NOT logged into the application, the `check_string` was not found in the HTTP response with ID 24.\n'
-            "The `detailed` authentication plugin failed 1 times to get a valid application session using the user-provided configuration settings\nThe `detailed` authentication plugin failed 1 times to get a valid application session using the user-provided configuration settings"
+            " - Logging into the application with user: user@mail.com\n"
+            " - Checking if session for user user@mail.com is active\n"
+            ' - User "user@mail.com" is NOT logged into the application, the'
+            " `check_string` was not found in the HTTP response with ID 22."
         )
 
         self.assertEqual(info.get_name(), "Authentication failure")
         self.assertEqual(info.get_desc(with_id=False), expected_desc)
-        self.assertEqual(info.get_id(), [22, 24])
+        self.assertEqual(info.get_id(), [21, 22])
 
 
 class TestDetailedRedirect(PluginTest):
@@ -290,12 +367,30 @@ class TestDetailedSquareBrackets(PluginTest):
     :see: https://github.com/andresriancho/w3af/issues/5593
     """
 
-    target_url = get_moth_http("/auth/")
+    target_url = "http://mock/auth/"
 
-    auth_url = URL(get_moth_http("/auth/auth_2/square_bracket_login_form.py"))
-    check_url = URL(get_moth_http("/auth/auth_1/post_auth_xss.py"))
+    auth_url = URL("http://mock/auth/auth_2/square_bracket_login_form.py")
+    check_url = URL("http://mock/auth/auth_1/post_auth_xss.py")
     check_string = "or read your input"
     data_format = "%u=%U&%p=%P&Login=Login"
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(
+            target_url,
+            body=(
+                "<html><body>"
+                '<a href="auth_1/post_auth_xss.py?text=hello">input</a>'
+                "</body></html>"
+            ),
+            method="GET",
+        ),
+        MockResponse(str(auth_url), body=_detailed_login_post, method="POST"),
+        MockResponse(
+            re.compile(r"http://mock/auth/auth_1/post_auth_xss\.py.*"),
+            body=_post_auth_xss,
+            method="GET",
+        ),
+    ]
 
     _run_config: ClassVar[dict] = {
         "target": target_url,

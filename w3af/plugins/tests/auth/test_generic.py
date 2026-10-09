@@ -19,25 +19,78 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import re
+import urllib.parse
 from typing import ClassVar
 from unittest import SkipTest
 
 import pytest
 
-from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.exceptions import (
     ConnectionPoolException,
     HTTPRequestException,
 )
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
+
+SESSION_COOKIE = "w3af_session=valid"
+
+
+def _is_authenticated(request):
+    return SESSION_COOKIE in (request.headers.get("Cookie") or "")
+
+
+def _login_post(mock_response, request, uri, response_headers):
+    response_headers["content-type"] = "text/html"
+    response_headers["Set-Cookie"] = f"{SESSION_COOKIE}; Path=/"
+    return 200, response_headers, "<html><body>Login successful</body></html>"
+
+
+def _post_auth_xss(mock_response, request, uri, response_headers):
+    response_headers["content-type"] = "text/html"
+
+    if not _is_authenticated(request):
+        return 200, response_headers, "<html><body>Please login first</body></html>"
+
+    query = urllib.parse.urlsplit(request.uri).query
+    text = urllib.parse.parse_qs(query).get("text", [""])[0]
+
+    body = (
+        "<html><body>"
+        "read your input"
+        '<form action="post_auth_xss.py" method="GET">'
+        f'<input name="text" type="text" value="{text}" />'
+        "</form>"
+        f"{text}"
+        "</body></html>"
+    )
+    return 200, response_headers, body
 
 
 class TestGeneric(PluginTest):
 
-    base_url = get_moth_http("/auth/auth_1/")
+    base_url = "http://mock/auth/auth_1/"
+    target_url = base_url
     demo_testfire = "http://demo.testfire.net/bank/"
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(
+            base_url,
+            body=(
+                "<html><body>"
+                '<a href="post_auth_xss.py?text=hello">input</a>'
+                "</body></html>"
+            ),
+            method="GET",
+        ),
+        MockResponse(base_url + "login_form.py", body=_login_post, method="POST"),
+        MockResponse(
+            re.compile(r"http://mock/auth/auth_1/post_auth_xss\.py.*"),
+            body=_post_auth_xss,
+            method="GET",
+        ),
+    ]
 
     _run_config: ClassVar[dict] = {
         "target": base_url,
