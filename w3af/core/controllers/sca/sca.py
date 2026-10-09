@@ -38,14 +38,14 @@ from ply import yacc
 #
 parser = yacc.yacc(module=phpparse, write_tables=0, debug=0)
 
-# We prefer our way. Slight modification to original 'accept' method.
-# Now we can now know which is the parent of the current node while
-# the AST traversal takes place. This will be *super* useful for
-# pushing/popping the scopes from the stack.
+# Slight modification to phply's 'accept' method: it records the parent of
+# each node while the AST traversal takes place and lets the visitor skip a
+# subtree. This is *super* useful for pushing/popping the scopes from the
+# stack.
 Node = phpast.Node
 
 
-def accept(nodeinst, visitor):
+def accept_with_parents(nodeinst, visitor):
     skip = visitor(nodeinst)
     if skip:
         return
@@ -54,20 +54,14 @@ def accept(nodeinst, visitor):
         value = getattr(nodeinst, field)
 
         if isinstance(value, Node):
-            # Add parent
             value._parent_node = nodeinst
-            value.accept(visitor)
+            accept_with_parents(value, visitor)
 
         elif isinstance(value, list):
             for item in value:
                 if isinstance(item, Node):
-                    # Set parent
                     item._parent_node = nodeinst
-                    item.accept(visitor)
-
-
-# Finally monkeypatch phpast.Node's accept method.
-Node.accept = accept
+                    accept_with_parents(item, visitor)
 
 
 class CodeSyntaxError(Exception):
@@ -134,7 +128,7 @@ class PhpSCA:
                     node._parent_node = global_pnode
 
                 # Start AST traversal!
-                global_pnode.accept(self._visitor)
+                accept_with_parents(global_pnode, self._visitor)
 
     def get_vulns(self):
         """
