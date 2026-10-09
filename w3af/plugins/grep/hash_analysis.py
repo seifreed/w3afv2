@@ -69,27 +69,29 @@ class hash_analysis(GrepPlugin):
                 return
 
             possible_hash = possible_hash.lower()
-            if self._has_hash_distribution(possible_hash):
-                if (possible_hash, response.get_url()) not in self._already_reported:
-                    desc = (
-                        'The URL: "%s" returned a response that may contain'
-                        ' a "%s" hash. The hash string is: "%s". This is'
-                        " uncommon and requires human verification."
-                    )
-                    desc = desc % (response.get_url(), hash_type, possible_hash)
+            if (
+                self._has_hash_distribution(possible_hash)
+                and (possible_hash, response.get_url()) not in self._already_reported
+            ):
+                desc = (
+                    'The URL: "%s" returned a response that may contain'
+                    ' a "%s" hash. The hash string is: "%s". This is'
+                    " uncommon and requires human verification."
+                )
+                desc = desc % (response.get_url(), hash_type, possible_hash)
 
-                    i = Info(
-                        "Hash string in HTML content",
-                        desc,
-                        response.id,
-                        self.get_name(),
-                    )
-                    i.set_url(response.get_url())
-                    i.add_to_highlight(possible_hash)
+                i = Info(
+                    "Hash string in HTML content",
+                    desc,
+                    response.id,
+                    self.get_name(),
+                )
+                i.set_url(response.get_url())
+                i.add_to_highlight(possible_hash)
 
-                    self.kb_append(self, "hash_analysis", i)
+                self.kb_append(self, "hash_analysis", i)
 
-                    self._already_reported.add((possible_hash, response.get_url()))
+                self._already_reported.add((possible_hash, response.get_url()))
 
     def _has_hash_distribution(self, possible_hash):
         """

@@ -156,7 +156,7 @@ class dir_file_bruter(CrawlPlugin):
 
         :return: None, data is stored in self.output_queue
         """
-        file_or_path, new_url = file_path
+        _, new_url = file_path
         http_response = self._uri_opener.GET(new_url, cache=False)
 
         if is_404(http_response):

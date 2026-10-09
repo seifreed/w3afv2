@@ -106,7 +106,7 @@ class shell_shock(AuditPlugin):
         mutant.set_token_value(payload)
 
         response = self._uri_opener.send_mutant(mutant, debugging_id=debugging_id)
-        header_value, header_name = response.get_headers().iget(injected_header)
+        header_value, _ = response.get_headers().iget(injected_header)
 
         if header_value is not None and injected_value in header_value.lower():
             desc = f"Shell shock was found at: {mutant.found_at()}"

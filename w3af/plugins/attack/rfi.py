@@ -424,11 +424,8 @@ class PortScanShell(Shell):
             if "HTTP request failed!" in http_response.get_body():
                 # The port is open but it's not an HTTP daemon
                 return True
-            elif "failed to open stream" not in http_response.get_body():
-                # Open port, AND HTTP daemon
-                return True
-            else:
-                return False
+            # Open port, AND HTTP daemon
+            return "failed to open stream" not in http_response.get_body()
 
     def scan(self, host, port):
         return self.is_open_port(host, port)

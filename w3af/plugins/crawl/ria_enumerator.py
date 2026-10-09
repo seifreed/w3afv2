@@ -169,10 +169,10 @@ class ria_enumerator(CrawlPlugin):
         tag, attribute = self.FILE_TAG_ATTR.get(file_name)
         url_list = dom.getElementsByTagName(tag)
 
-        for url in url_list:
-            url = url.getAttribute(attribute)
+        for policy_url in url_list:
+            policy_url = policy_url.getAttribute(attribute)
 
-            if url == "*":
+            if policy_url == "*":
                 desc = (
                     'The "%s" file at "%s" allows flash / silverlight'
                     " access from any site."
@@ -200,7 +200,7 @@ class ria_enumerator(CrawlPlugin):
                     'The "%s" file at "%s" allows flash / silverlight'
                     ' access from "%s".'
                 )
-                desc %= (file_name, response.get_url(), url)
+                desc %= (file_name, response.get_url(), policy_url)
 
                 i = Info("Cross-domain allow ACL", desc, response.id, self.get_name())
                 i.set_url(response.get_url())

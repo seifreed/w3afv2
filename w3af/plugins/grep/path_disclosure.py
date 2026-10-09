@@ -234,10 +234,11 @@ class path_disclosure(GrepPlugin):
             for url in url_list:
                 path_and_file = url.get_path()
 
-                if path_disc_vuln["path"].endswith(path_and_file):
-                    if len(longest_match) < len(path_and_file):
-                        longest_match = path_and_file
-                        longest_path_disc_vuln = path_disc_vuln
+                if path_disc_vuln["path"].endswith(path_and_file) and len(
+                    longest_match
+                ) < len(path_and_file):
+                    longest_match = path_and_file
+                    longest_path_disc_vuln = path_disc_vuln
 
         # Now I recalculate the place where all the resources are in disk, all
         # this is done taking the longest_match as a reference, so... if we

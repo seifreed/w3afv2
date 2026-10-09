@@ -24,7 +24,7 @@ import os
 import re
 import socket
 import ssl
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from pprint import pformat
 
 import OpenSSL
@@ -383,7 +383,9 @@ class ssl_certificate(AuditPlugin):
         not_after = cert["notAfter"]
 
         try:
-            exp_date = datetime.strptime(not_after, "%Y%m%d%H%M%SZ")
+            exp_date = datetime.strptime(not_after, "%Y%m%d%H%M%SZ").replace(
+                tzinfo=timezone.utc
+            )
         except ValueError:
             msg = f"Invalid SSL certificate date format: {not_after}"
             om.out.debug(msg)
@@ -394,7 +396,7 @@ class ssl_certificate(AuditPlugin):
             return
 
         exp_date_parsed = date(exp_date.year, exp_date.month, exp_date.day)
-        expire_days = (exp_date_parsed - date.today()).days
+        expire_days = (exp_date_parsed - datetime.now(timezone.utc).date()).days
 
         if expire_days > self._min_expire_days:
             om.out.debug(f"Certificate will expire in {expire_days} days")

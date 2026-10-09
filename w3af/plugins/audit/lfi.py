@@ -211,7 +211,7 @@ class lfi(AuditPlugin):
         token_value = smart_str_ignore(mutant.get_token_value())
 
         if filename in token_value:
-            match, lang = contains_source_code(response)
+            match, _ = contains_source_code(response)
             if match:
                 # We were able to read the source code of the file that is
                 # vulnerable to local file read

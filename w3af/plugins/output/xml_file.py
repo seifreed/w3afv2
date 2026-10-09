@@ -427,11 +427,7 @@ class xml_file(OutputPlugin):
             # Write each report section to the temp file
             for report_section in report_stream:
                 tempfh.write(report_section.encode(DEFAULT_ENCODING))
-        except Exception:
-            # No exception handling is done here, we just raise the exception
-            # so that the core can handle it properly
-            raise
-        else:
+
             # Close the temp file so all the content is flushed
             tempfh.close()
 

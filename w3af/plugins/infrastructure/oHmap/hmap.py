@@ -124,7 +124,7 @@ class request:
             # Receive the HTTP response from the server
             try:
                 while True:
-                    readable, writable, exceptional = select.select([s], [], [], 10)
+                    readable, _, _ = select.select([s], [], [], 10)
                     if not readable:
                         break
 
@@ -137,8 +137,8 @@ class request:
 
                     # we were able to read from the socket, append and try again
                     data += temp
-            except KeyboardInterrupt as e:
-                raise e
+            except KeyboardInterrupt:
+                raise
 
             except ssl.SSLError as ssl_err:
                 # When the remote server has no more data to send
@@ -544,7 +544,9 @@ def malformed_method_line(url):
         get_characteristics("MALFORMED_" + ("000" + str(index))[-3:], res)
 
 
-def large_binary_searcher(url, large_helper, largest, guesses=[]):
+def large_binary_searcher(url, large_helper, largest, guesses=None):
+    if guesses is None:
+        guesses = []
     ranges = [(x, large_helper(url, x)) for x in [1] + guesses + [largest]]
 
     while True:
@@ -1094,7 +1096,7 @@ def testServer(ssl, server, port, matchCount, generateFP, threads):
     scores.sort(key=lambda score: (-score[1][0], score[0]["LEXICAL"]["SERVER_NAME"]))
 
     res = []
-    for server, (matches, mismatches, unknowns) in scores[:MATCH_COUNT]:
-        res.append(server["LEXICAL"]["SERVER_NAME"])
+    for server_entry, (matches, mismatches, unknowns) in scores[:MATCH_COUNT]:
+        res.append(server_entry["LEXICAL"]["SERVER_NAME"])
 
     return res

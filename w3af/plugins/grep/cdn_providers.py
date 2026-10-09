@@ -226,10 +226,12 @@ class cdn_providers(GrepPlugin):
         """
         headers = response.get_headers()
         for cdn_header_name, cdn_header_value, provider_name in self.cdn_headers:
-            if cdn_header_name in headers:
-                if cdn_header_value == headers[cdn_header_name]:
-                    self._save_found_cdn_to_kb(response, provider_name)
-                    return  # We don't want to check the URL also
+            if (
+                cdn_header_name in headers
+                and cdn_header_value == headers[cdn_header_name]
+            ):
+                self._save_found_cdn_to_kb(response, provider_name)
+                return  # We don't want to check the URL also
 
         url = request.get_url()
         domain = url.get_domain()

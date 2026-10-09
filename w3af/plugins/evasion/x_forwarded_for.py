@@ -57,7 +57,7 @@ class x_forwarded_for(EvasionPlugin):
         ret_ip = ""
 
         for _ in range(4):
-            ret_ip += "%d." % (self.random.randint(1, 254))
+            ret_ip += f"{self.random.randint(1, 254)}."
 
         return ret_ip[:-1]
 

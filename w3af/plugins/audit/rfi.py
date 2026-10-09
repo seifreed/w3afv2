@@ -545,7 +545,6 @@ class RFIWebHandler(http.server.BaseHTTPRequestHandler):
             self.close_connection = 1
             self.rfile.close()
             self.wfile.close()
-            return
 
     def log_message(self, fmt, *args):
         """

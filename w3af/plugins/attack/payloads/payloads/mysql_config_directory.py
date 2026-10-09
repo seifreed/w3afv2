@@ -31,8 +31,7 @@ class mysql_config_directory(Payload):
         paths.append("/var/lib/mysql/")
 
         folders = self.exec_payload("users")
-        for folder in folders:
-            paths.append(folder)
+        paths.extend(folders)
 
         for path in paths:
             if check_mysql_config_dir(path):

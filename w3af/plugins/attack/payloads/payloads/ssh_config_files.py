@@ -28,8 +28,7 @@ class ssh_config_files(Payload):
 
         for file_ in files:
             hostkey = parse_hostkey(self.shell.read(file_))
-            for key in hostkey:
-                files.append(key)
+            files.extend(hostkey)
 
         for file_ in files:
             content = self.shell.read(file_)

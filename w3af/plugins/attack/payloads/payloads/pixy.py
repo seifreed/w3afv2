@@ -68,13 +68,15 @@ class pixy(Payload):
                             self.result[vuln_type] = []
                         self.result[vuln_type].append(location)
 
-                elif "directly tainted" in line:
-                    if "sql" in splitted_output[line_number + 2]:
-                        vuln_type = "SQLi"
-                        location = splitted_output[line_number + 1][2:]
-                        if vuln_type not in self.result:
-                            self.result[vuln_type] = []
-                        self.result[vuln_type].append(location)
+                elif (
+                    "directly tainted" in line
+                    and "sql" in splitted_output[line_number + 2]
+                ):
+                    vuln_type = "SQLi"
+                    location = splitted_output[line_number + 1][2:]
+                    if vuln_type not in self.result:
+                        self.result[vuln_type] = []
+                    self.result[vuln_type].append(location)
 
         def visitor(_, path, list_of_subitems):
             for item in list_of_subitems:

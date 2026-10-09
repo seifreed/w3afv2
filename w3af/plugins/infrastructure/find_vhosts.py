@@ -244,7 +244,7 @@ class find_vhosts(InfrastructurePlugin):
         http_get = return_args(one_to_many(self._http_get_vhost))
         pool_results = self.worker_pool.imap_unordered(http_get, args_iterator)
 
-        for ((base_url, vhost),), vhost_response in pool_results:
+        for ((_, vhost),), vhost_response in pool_results:
             yield vhost, vhost_response
 
     def _http_get_vhost(self, base_url, vhost):

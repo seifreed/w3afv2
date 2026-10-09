@@ -220,7 +220,7 @@ class LoggingHandler(ProxyHandler):
 
         # Useful logging
         headers = http_response.get_headers()
-        cookie_value, cookie_header = headers.iget("cookie", None)
+        cookie_value, _ = headers.iget("cookie", None)
         if cookie_value is not None:
             msg = (
                 "The remote web application sent the following"
