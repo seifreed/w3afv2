@@ -952,3 +952,15 @@ pasa en el módulo productivo. Bandit sigue señalando la deserialización pickl
 existente en el test (B403/B301); no se silenció. Con la configuración de Mypy
 ya establecida, el total baja de 1010 errores en 353 archivos a 942 en 329. El
 resto de errores y gates globales continúan pendientes. Score global: **4.9/10**.
+
+## Avance: atributos opcionales de XpresserUnittest
+
+Las rutas de imágenes `EXTRA_IMAGES` e `IMAGES` se inicializan como `None` en
+la base de tests GUI y se reemplazan por cadenas en subclases. Sus tipos ahora
+reflejan `str | None`, eliminando 24 errores repetidos de Mypy. También se
+limpiaron tres diagnósticos Ruff del wrapper: re-lanzamiento de excepción,
+`except` desnudo y formato antiguo. Black y Ruff pasan para el archivo; Mypy
+global baja a 918 errores en 311 archivos. No se pudo ejecutar la GUI en este
+entorno (faltan GTK/Xpresser); Mypy dirigido conserva errores por esas
+dependencias y Bandit reporta la invocación controlada de `subprocess.Popen`,
+sin suprimir hallazgos. Score global: **4.9/10**.

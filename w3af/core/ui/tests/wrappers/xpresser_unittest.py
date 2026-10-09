@@ -66,7 +66,7 @@ def debug_notify(meth):
             notification = Notify.Notification.new(title, message, "dialog-error")
             # pylint: enable=E1101
             notification.show()
-            raise inf
+            raise
         else:
             """
             title = 'Success'
@@ -84,8 +84,8 @@ def debug_notify(meth):
 class XpresserUnittest(unittest.TestCase):
 
     GENERIC_IMAGES = os.path.join(GUI_TEST_ROOT_PATH, "main_window", "images")
-    EXTRA_IMAGES = None
-    IMAGES = None
+    EXTRA_IMAGES: str | None = None
+    IMAGES: str | None = None
 
     """    
     @classmethod
@@ -157,10 +157,10 @@ class XpresserUnittest(unittest.TestCase):
     def not_find(self, image, timeout=3):
         try:
             self.xp.find(image, timeout=timeout)
-        except:
+        except ImageNotFound:
             return
         else:
-            raise ImageFound("%s was found and should NOT be there" % image)
+            raise ImageFound(f"{image} was found and should NOT be there")
 
     @debug_notify
     def hover(self, *args):
