@@ -79,7 +79,7 @@ def factory(module_name, *args):
         raise
     except Exception as e:
         msg = 'There was an error while importing %s: "%s".'
-        raise BaseFrameworkException(msg % (module_name, e))
+        raise BaseFrameworkException(msg % (module_name, e)) from e
 
     # Now that we have the module imported get the class and instance
     class_name = module_name.split(".")[-1]
@@ -87,14 +87,14 @@ def factory(module_name, *args):
     try:
         module_inst = sys.modules[module_name]
         a_class = getattr(module_inst, class_name)
-    except Exception:
+    except (KeyError, AttributeError) as e:
         msg = (
             "The requested plugin (%s) does not have the expected format."
             " Our plugins need to define a class with the same name as the"
             " module/file, in other words, if you name the module foo.py"
             ' there should be a "class foo(...):" inside that file.'
         )
-        raise BaseFrameworkException(msg % module_name)
+        raise BaseFrameworkException(msg % module_name) from e
 
     try:
         inst = a_class(*args)
@@ -104,6 +104,6 @@ def factory(module_name, *args):
             ' was: "%s". Traceback for this error:\n%s'
         )
         msg = msg % (class_name, e, traceback.format_exc())
-        raise BaseFrameworkException(msg)
+        raise BaseFrameworkException(msg) from e
 
     return inst

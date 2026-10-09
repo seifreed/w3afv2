@@ -40,12 +40,15 @@ __all__ = ["Pool"]
 
 import collections
 import itertools
+import logging
 import pickle
 import queue
 import threading
 import time
 from multiprocessing import Process, TimeoutError, cpu_count
 from multiprocessing.util import Finalize, debug
+
+LOGGER = logging.getLogger(__name__)
 
 #
 # Constants representing the state of a pool
@@ -129,11 +132,13 @@ def worker(inqueue, outqueue, initializer=None, initargs=(), maxtasks=None):
         try:
             result = (True, func(*args, **kwds))
         except Exception as e:
+            LOGGER.debug("Pool task raised an exception", exc_info=True)
             result = (False, e)
 
         try:
             put((job, i, result))
         except Exception as e:
+            LOGGER.debug("Failed to send pool task result", exc_info=True)
             wrapped = create_detailed_pickling_error(e, result[1])
             put((job, i, (False, wrapped)))
         completed += 1
@@ -344,7 +349,7 @@ class Pool:
         self._quick_put = self._inqueue._writer.send
         self._quick_get = self._outqueue._reader.recv
 
-    def apply(self, func, args=(), kwds={}):
+    def apply(self, func, args=(), kwds=None):
         """
         Equivalent of `apply()` builtin
         """
@@ -416,13 +421,14 @@ class Pool:
             )
             return (item for chunk in result for item in chunk)
 
-    def apply_async(self, func, args=(), kwds={}, callback=None):
+    def apply_async(self, func, args=(), kwds=None, callback=None):
         """
         Asynchronous equivalent of `apply()` builtin
         """
         assert self._state == RUN
         result = ApplyResult(self._cache, callback)
-        self._taskqueue.put(([(result._job, None, func, args, kwds)], None))
+        task = (result._job, None, func, args, kwds or {})
+        self._taskqueue.put(([task], None))
         return result
 
     def map_async(self, func, iterable, chunksize=None, callback=None):
@@ -482,6 +488,7 @@ class Pool:
                     try:
                         put(task)
                     except Exception as e:
+                        LOGGER.debug("Failed to queue pool task", exc_info=True)
                         job, ind = task[:2]
                         try:
                             cache[job]._set(ind, (False, e))
@@ -494,6 +501,7 @@ class Pool:
                     continue
                 break
             except Exception as ex:
+                LOGGER.debug("Pool task generator failed", exc_info=True)
                 job, ind = task[:2] if task else (0, 0)
                 if job in cache:
                     cache[job]._set(ind + 1, (False, ex))

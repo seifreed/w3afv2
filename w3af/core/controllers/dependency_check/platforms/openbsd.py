@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import platform
 import subprocess
+from typing import ClassVar
 
 from ..requirements import CORE, GUI
 from .base_platform import Platform
@@ -35,7 +36,7 @@ class OpenBSD5(Platform):
     #
     #    Package list here http://ftp.openbsd.org/pub/OpenBSD/5.2/packages/i386/
     #
-    CORE_SYSTEM_PACKAGES = [
+    CORE_SYSTEM_PACKAGES: ClassVar[list] = [
         "py-pip",
         "python-2.7.3p0",
         "py-setuptools",
@@ -51,7 +52,10 @@ class OpenBSD5(Platform):
     GUI_SYSTEM_PACKAGES = CORE_SYSTEM_PACKAGES[:]
     GUI_SYSTEM_PACKAGES.extend(["graphviz", "gtksourceview"])
 
-    SYSTEM_PACKAGES = {CORE: CORE_SYSTEM_PACKAGES, GUI: GUI_SYSTEM_PACKAGES}
+    SYSTEM_PACKAGES: ClassVar[dict] = {
+        CORE: CORE_SYSTEM_PACKAGES,
+        GUI: GUI_SYSTEM_PACKAGES,
+    }
 
     @staticmethod
     def os_package_is_installed(package_name):
@@ -59,7 +63,7 @@ class OpenBSD5(Platform):
 
         try:
             pkg_info_output = subprocess.check_output(command, shell=True)
-        except:
+        except (OSError, subprocess.CalledProcessError):
             # We're not on an openbsd based system
             return None
         else:

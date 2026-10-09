@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from typing import ClassVar
+
 from ..external.retirejs import retirejs_is_installed
 from ..requirements import CORE, CORE_PIP_PACKAGES, GUI, GUI_PIP_PACKAGES
 
@@ -30,9 +32,9 @@ class Platform:
     checks.
     """
 
-    PIP_PACKAGES = {CORE: CORE_PIP_PACKAGES, GUI: GUI_PIP_PACKAGES}
+    PIP_PACKAGES: ClassVar[dict] = {CORE: CORE_PIP_PACKAGES, GUI: GUI_PIP_PACKAGES}
 
-    SYSTEM_PACKAGES = {CORE: [], GUI: []}
+    SYSTEM_PACKAGES: ClassVar[dict] = {CORE: [], GUI: []}
 
     @staticmethod
     def is_current_platform():
@@ -62,4 +64,4 @@ class Platform:
 
         return ["npm install -g retire@2.0.3", "npm update -g retire"]
 
-    EXTERNAL_COMMAND_HANDLERS = [retirejs_handler]
+    EXTERNAL_COMMAND_HANDLERS: ClassVar[list] = [retirejs_handler]

@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import subprocess
+from typing import ClassVar
 
 from ..requirements import CORE, GUI
 from .base_platform import Platform
@@ -32,7 +33,7 @@ class Fedora(Platform):
     PKG_MANAGER_CMD = "sudo dnf install"
     PIP_CMD = "python3 -m pip"
 
-    CORE_SYSTEM_PACKAGES = [
+    CORE_SYSTEM_PACKAGES: ClassVar[list] = [
         "python3-pip",
         "npm",
         "python3-devel",
@@ -49,7 +50,10 @@ class Fedora(Platform):
     GUI_SYSTEM_PACKAGES = CORE_SYSTEM_PACKAGES[:]
     GUI_SYSTEM_PACKAGES.extend(["graphviz", "pygtksourceview", "pygtk2", "pywebkitgtk"])
 
-    SYSTEM_PACKAGES = {CORE: CORE_SYSTEM_PACKAGES, GUI: GUI_SYSTEM_PACKAGES}
+    SYSTEM_PACKAGES: ClassVar[dict] = {
+        CORE: CORE_SYSTEM_PACKAGES,
+        GUI: GUI_SYSTEM_PACKAGES,
+    }
 
     @staticmethod
     def os_package_is_installed(package_name):

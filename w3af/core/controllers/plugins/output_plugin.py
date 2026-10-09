@@ -38,7 +38,7 @@ class OutputPlugin(Plugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    STRING_CLEAN = [("\0", "\\0"), ("\t", "\\t"), ("\n", "\\n"), ("\r", "\\r")]
+    STRING_CLEAN = (("\0", "\\0"), ("\t", "\\t"), ("\n", "\\n"), ("\r", "\\r"))
 
     def __init__(self):
         Plugin.__init__(self)
@@ -210,7 +210,7 @@ class OutputPlugin(Plugin):
             res = item[1].split("/")[-1:][0]
             return res.replace(".py", "")
 
-        except Exception:
+        except (IndexError, OSError):
             return "unknown-caller"
 
     def _create_plugin_info(self, plugin_type, plugins_list, plugins_options):

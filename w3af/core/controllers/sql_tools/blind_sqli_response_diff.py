@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import time
+from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.diff import chunked_diff
@@ -48,7 +49,7 @@ class BlindSqliResponseDiff:
     NUMERIC = "numeric"
     STRING_SINGLE = "string_single"
     STRING_DOUBLE = "string_double"
-    STATEMENT_TYPES = [NUMERIC, STRING_SINGLE, STRING_DOUBLE]
+    STATEMENT_TYPES: ClassVar[list] = [NUMERIC, STRING_SINGLE, STRING_DOUBLE]
 
     def __init__(self, uri_opener):
         # User configured variables

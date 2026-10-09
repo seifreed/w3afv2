@@ -36,17 +36,11 @@ def generate_requirements_txt(failed_deps):
     :param failed_deps: A list with missing PIPDependency objects
     :return: The path to the script name.
     """
-    req_file = open(REQUIREMENTS_TXT, "w")
-
-    #
-    #    Report all missing python modules
-    #
-    if failed_deps:
-        for pkg in failed_deps:
+    with open(REQUIREMENTS_TXT, "w") as req_file:
+        for pkg in failed_deps or []:
             if pkg.is_git:
                 req_file.write(f"{pkg.git_src}\n")
             else:
                 req_file.write(f"{pkg.package_name}=={pkg.package_version}\n")
 
-    req_file.close()
     return REQUIREMENTS_TXT

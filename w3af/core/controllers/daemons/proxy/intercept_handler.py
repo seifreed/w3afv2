@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import traceback
 
 from w3af.core.controllers.daemons.proxy import ProxyHandler
@@ -27,6 +28,8 @@ from w3af.core.controllers.daemons.proxy.templates.utils import render
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.http_request_parser import http_request_parser
 from w3af.core.data.url.HTTPResponse import HTTPResponse
+
+LOGGER = logging.getLogger(__name__)
 
 
 class InterceptProxyHandler(ProxyHandler):
@@ -53,6 +56,7 @@ class InterceptProxyHandler(ProxyHandler):
                 # Send the request to the remote webserver
                 http_response = self._send_http_request(http_request)
         except Exception as e:
+            LOGGER.debug("Intercepted request failed", exc_info=True)
             trace = str(traceback.format_exc())
             http_response = self._create_error_response(
                 http_request, None, e, trace=trace
@@ -102,6 +106,7 @@ class InterceptProxyHandler(ProxyHandler):
             http_request = http_request_parser(head, post_data)
             http_response = self._send_http_request(http_request)
         except Exception as e:
+            LOGGER.debug("Edited intercepted request failed", exc_info=True)
             trace = str(traceback.format_exc())
             http_response = self._create_error_response(
                 orig_http_request, None, e, trace=trace

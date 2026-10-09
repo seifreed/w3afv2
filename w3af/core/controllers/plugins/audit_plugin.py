@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import copy
 import inspect
+import logging
 import threading
 
 import w3af.core.controllers.output_manager as om
@@ -30,6 +31,8 @@ from w3af.core.controllers.exceptions import FourOhFourDetectionException
 from w3af.core.controllers.misc.safe_deepcopy import safe_deepcopy
 from w3af.core.controllers.plugins.plugin import Plugin
 from w3af.core.data.fuzzer.utils import rand_alnum
+
+LOGGER = logging.getLogger(__name__)
 
 
 class AuditPlugin(Plugin):
@@ -73,6 +76,7 @@ class AuditPlugin(Plugin):
                 orig_response = self.get_original_response(fuzzable_request)
                 self.audit_with_copy(fuzzable_request, orig_response, debugging_id)
             except Exception as e:
+                LOGGER.debug("Audit with return vulns failed", exc_info=True)
                 om.out.error(str(e))
             finally:
                 self._store_kb_vulns = False
@@ -103,9 +107,8 @@ class AuditPlugin(Plugin):
         """
         kb.kb.append_uniq a vulnerability to the KB
         """
-        if self._store_kb_vulns:
-            if self._audit_return_vulns_in_caller():
-                self._newly_found_vulns.append(info)
+        if self._store_kb_vulns and self._audit_return_vulns_in_caller():
+            self._newly_found_vulns.append(info)
 
         return super().kb_append_uniq(location_a, location_b, info)
 
@@ -113,9 +116,8 @@ class AuditPlugin(Plugin):
         """
         kb.kb.append a vulnerability to the KB
         """
-        if self._store_kb_vulns:
-            if self._audit_return_vulns_in_caller():
-                self._newly_found_vulns.append(info)
+        if self._store_kb_vulns and self._audit_return_vulns_in_caller():
+            self._newly_found_vulns.append(info)
 
         super().kb_append(location_a, location_b, info)
 

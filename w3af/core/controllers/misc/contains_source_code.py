@@ -124,9 +124,8 @@ def is_false_positive(http_response, match, detected_langs):
     # The detection for some languages is weaker, thus we don't fully trust
     # them:
     for lang in detected_langs:
-        if lang in {PHP, ASP, JSP, ASPX}:
-            if "javascript" in http_response.content_type:
-                return True
+        if lang in {PHP, ASP, JSP, ASPX} and "javascript" in http_response.content_type:
+            return True
 
     # Avoid some false positives in large binary files where we might
     # have <% , then 182837 binary chars, and finally %>.

@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import asyncio
+import logging
 import traceback
 
 from mitmproxy import http
@@ -31,6 +32,8 @@ from w3af.core.data.misc.encoding import smart_str
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.HTTPRequest import HTTPRequest
 from w3af.core.data.url.HTTPResponse import HTTPResponse
+
+LOGGER = logging.getLogger(__name__)
 
 
 class ProxyHandler:
@@ -177,6 +180,7 @@ class ProxyHandler:
             # Send the request to the remote webserver
             http_response = self._send_http_request(http_request)
         except Exception as e:
+            LOGGER.debug("Proxied request failed", exc_info=True)
             trace = str(traceback.format_exc())
             http_response = self._create_error_response(
                 http_request, None, e, trace=trace

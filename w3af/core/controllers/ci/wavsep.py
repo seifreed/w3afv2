@@ -20,13 +20,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from pathlib import Path
+
 HTTP_WAVSEP = "/tmp/wavsep.txt"
 DEFAULT_WAVSEP = "wavsep-fallback:80"
 
 
 def get_wavsep_http(path="/"):
     try:
-        wavsep_netloc = open(HTTP_WAVSEP).read().strip()
+        wavsep_netloc = Path(HTTP_WAVSEP).read_text().strip()
     except OSError:
         wavsep_netloc = DEFAULT_WAVSEP
 

@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import subprocess
+from typing import ClassVar
 
 from ..requirements import CORE, GUI
 from .base_platform import Platform
@@ -32,7 +33,7 @@ class SuSE(Platform):
     PKG_MANAGER_CMD = "sudo zypper install"
     PIP_CMD = "pip-2.7"
 
-    CORE_SYSTEM_PACKAGES = [
+    CORE_SYSTEM_PACKAGES: ClassVar[list] = [
         "python-pip",
         "npm",
         "python-devel",
@@ -49,7 +50,10 @@ class SuSE(Platform):
         ["graphviz", "python-gtksourceview", "python-gtk", "python-webkitgtk"]
     )
 
-    SYSTEM_PACKAGES = {CORE: CORE_SYSTEM_PACKAGES, GUI: GUI_SYSTEM_PACKAGES}
+    SYSTEM_PACKAGES: ClassVar[dict] = {
+        CORE: CORE_SYSTEM_PACKAGES,
+        GUI: GUI_SYSTEM_PACKAGES,
+    }
 
     @staticmethod
     def os_package_is_installed(package_name):

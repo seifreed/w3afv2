@@ -20,10 +20,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
+
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.plugins.auth_plugin import AuthPlugin
 from w3af.core.data.kb.info import Info
 from w3af.core.data.misc.encoding import smart_str_ignore
+
+LOGGER = logging.getLogger(__name__)
 
 SESSIONS_FAILED_MSG = """\
 The authentication plugin identified that the user session was lost %i times
@@ -98,6 +102,7 @@ class AuthSessionPlugin(AuthPlugin):
                 debugging_id=self._debugging_id,
             )
         except Exception as e:
+            LOGGER.debug("Session check failed", exc_info=True)
             msg = "Failed to check if session is active because of exception: %s"
             self._log_debug(msg % e)
 

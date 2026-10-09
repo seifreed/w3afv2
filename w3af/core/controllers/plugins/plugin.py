@@ -290,24 +290,27 @@ class UrlOpenerProxy:
     #
     # I noticed this issue when #8705 was reported
     # https://github.com/andresriancho/w3af/issues/8705
-    NO_WRAPPER_FOR = {
-        "send_clean",
-        "clear",
-        "end",
-        "restart",
-        "get_headers",
-        "get_cookies",
-        "get_remote_file_size",
-        "add_headers",
-        "assert_allowed_proto",
-        "get_average_rtt_for_mutant",
-        "_handle_send_socket_error",
-        "_handle_send_urllib_error",
-        "_handle_send_success",
-        "_handle_error_on_increment" "_generic_send_error_handler",
-        "_increment_global_error_count",
-        "_log_successful_response",
-    }
+    NO_WRAPPER_FOR = frozenset(
+        {
+            "send_clean",
+            "clear",
+            "end",
+            "restart",
+            "get_headers",
+            "get_cookies",
+            "get_remote_file_size",
+            "add_headers",
+            "assert_allowed_proto",
+            "get_average_rtt_for_mutant",
+            "_handle_send_socket_error",
+            "_handle_send_urllib_error",
+            "_handle_send_success",
+            "_handle_error_on_increment",
+            "_generic_send_error_handler",
+            "_increment_global_error_count",
+            "_log_successful_response",
+        }
+    )
 
     def __init__(self, url_opener, plugin_inst):
         self._url_opener = url_opener

@@ -20,13 +20,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from pathlib import Path
+
 HTTP_WIVET = "/tmp/wivet.txt"
 DEFAULT_WIVET = "wivet-fallback:80"
 
 
 def get_wivet_http(path="/"):
     try:
-        wivet_netloc = open(HTTP_WIVET).read().strip()
+        wivet_netloc = Path(HTTP_WIVET).read_text().strip()
     except OSError:
         wivet_netloc = DEFAULT_WIVET
 

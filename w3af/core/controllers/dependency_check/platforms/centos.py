@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from typing import ClassVar
+
 from ..requirements import CORE, GUI
 from .fedora import Fedora
 from .system_info import distribution_matches
@@ -30,7 +32,7 @@ class CentOS(Fedora):
     PKG_MANAGER_CMD = "sudo yum install"
     PIP_CMD = "pip-python"
 
-    CORE_SYSTEM_PACKAGES = [
+    CORE_SYSTEM_PACKAGES: ClassVar[list] = [
         "python-pip",
         "npm",
         "python-devel",
@@ -54,7 +56,10 @@ class CentOS(Fedora):
         ["graphviz", "gtksourceview2", "pygtksourceview", "pywebkitgtk"]
     )
 
-    SYSTEM_PACKAGES = {CORE: CORE_SYSTEM_PACKAGES, GUI: GUI_SYSTEM_PACKAGES}
+    SYSTEM_PACKAGES: ClassVar[dict] = {
+        CORE: CORE_SYSTEM_PACKAGES,
+        GUI: GUI_SYSTEM_PACKAGES,
+    }
 
     @staticmethod
     def is_current_platform():
