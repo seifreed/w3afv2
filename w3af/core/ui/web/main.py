@@ -24,13 +24,9 @@ import webbrowser
 from argparse import ArgumentTypeError
 from collections.abc import Sequence
 
-from flask import Flask
-from werkzeug.serving import BaseWSGIServer
-
 from w3af.core.ui.api import app
 from w3af.core.ui.api.utils import cli
-from w3af.core.ui.api.utils.digital_certificate import SSLCertificate
-from w3af.core.ui.api.utils.mp_flask import make_server
+from w3af.core.ui.api.utils.mp_flask import create_server, server_url
 from w3af.core.ui.web.views import UI_PREFIX, register
 
 DESCRIPTION = "Web user interface for w3af"
@@ -53,25 +49,7 @@ def ui_url(host: str, port: int, use_ssl: bool) -> str:
     """
     :return: The URL where the web user interface is served
     """
-    scheme = "https" if use_ssl else "http"
-    display_host = f"[{host}]" if ":" in host else host
-    return f"{scheme}://{display_host}:{port}{UI_PREFIX}/"
-
-
-def ssl_context(flask_app: Flask) -> tuple[str, str] | None:
-    if flask_app.config["DISABLE_SSL"]:
-        return None
-    return SSLCertificate().get_cert_key(flask_app.config["HOST"])
-
-
-def create_server(flask_app: Flask) -> BaseWSGIServer:
-    return make_server(
-        flask_app.config["HOST"],
-        flask_app.config["PORT"],
-        flask_app,
-        threaded=True,
-        ssl_context=ssl_context(flask_app),
-    )
+    return f"{server_url(host, port, use_ssl)}{UI_PREFIX}/"
 
 
 def main(argv: Sequence[str] | None = None) -> int:

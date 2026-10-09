@@ -1,6 +1,6 @@
-from .utils.mp_flask import ThreadedFlask
+from flask import Flask
 
-app = ThreadedFlask("w3af")
+app = Flask("w3af")
 
 from . import middlewares, resources
 

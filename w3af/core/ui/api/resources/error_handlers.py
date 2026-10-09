@@ -58,6 +58,10 @@ def error_500_handler(error):
     """
     new_issue = "https://github.com/andresriancho/w3af/issues/new"
 
+    # Flask wraps unhandled exceptions in an InternalServerError, report the
+    # exception that was actually raised by the API code
+    error = getattr(error, "original_exception", None) or error
+
     try:
         # Extract the filename and line number where the exception was raised
         _exc_type, _exc_value, exc_traceback = sys.exc_info()

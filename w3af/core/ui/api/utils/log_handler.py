@@ -191,12 +191,6 @@ class Message:
     def get_msg(self):
         return self._msg
 
-    def get_type(self):
-        return self._type
-
-    def get_real_time(self):
-        return self._time
-
     def get_time(self):
         return time.strftime("%c", time.localtime(self._time))
 
