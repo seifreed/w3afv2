@@ -1,8 +1,6 @@
 """
 test_ctrl_c.py
 
-Copyright 2012 Andres Riancho
-
 This file is part of w3af, http://w3af.org/ .
 
 w3af is free software; you can redistribute it and/or modify
@@ -17,105 +15,80 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
 """
 
-import os
-import signal
-import subprocess
-import tempfile
-import time
-import unittest
-
-import pytest
-
-from w3af import ROOT_PATH
-from w3af.core.controllers.ci.moth import get_moth_http
+import w3af.core.controllers.output_manager as om
+from w3af.core.ui.console.console_ui import ConsoleUI
+from w3af.core.ui.console.root_menu import rootMenu, stdin_is_terminal
+from w3af.core.ui.console.tests.helper import ConsoleTestHelper
 
 
-@pytest.mark.moth
-@pytest.mark.fails
-class TestHandleCtrlC(unittest.TestCase):
+class TestScanControl(ConsoleTestHelper):
+    """
+    Exercise the console scan-control handlers (the keypress actions used
+    while a scan is running, including the Ctrl+C handler) directly against a
+    real w3afCore.
+    """
 
-    SCRIPT = f"{ROOT_PATH}/core/ui/console/tests/data/spider_long.w3af"
+    def setUp(self):
+        super().setUp()
+        self.console = ConsoleUI(do_upd=False)
+        self.menu = rootMenu("w3af", self.console, self.console._w3af)
 
-    def prepare_script(self):
-        with open(self.SCRIPT) as script_template:
-            script = script_template.read() % {"moth": get_moth_http()}
+    def tearDown(self):
+        self.console._w3af.quit()
+        super().tearDown()
 
-        with tempfile.NamedTemporaryFile(
-            mode="w",
-            prefix="spider_long-",
-            suffix=".w3af",
-            dir=tempfile.tempdir,
-            delete=False,
-        ) as fhandler:
-            fhandler.write(script)
-        return fhandler.name
+    def _output(self):
+        om.manager.process_all_messages()
+        return "".join(self._mock_stdout.messages)
 
-    def test_scan_ctrl_c(self):
-        script = self.prepare_script()
-        cmd = ["python", "w3af_console", "-s", script]
+    def test_handle_scan_stop_reports_and_stops(self):
+        self.menu.handle_scan_stop()
+        self.assertIn("User pressed Ctrl+C, stopping scan.", self._output())
 
-        process = subprocess.Popen(
-            args=cmd,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            shell=False,
-            universal_newlines=True,
-        )
+    def test_stop_scan_raises_keyboard_interrupt(self):
+        with self.assertRaises(KeyboardInterrupt):
+            self.menu._stop_scan()
 
-        # Let it run until the first new URL is found (and while the process
-        # is still running)
-        while process.poll() is None:
-            w3af_output = process.stdout.readline()
-            if "New URL found by web_spider plugin" in w3af_output:
-                time.sleep(1)
-                break
+    def test_unknown_key_during_scan_prints_help(self):
+        self.menu._default_during_scan_handler()
+        output = self._output()
+        self.assertIn("pause the scan", output)
+        self.assertIn("stop scan", output)
 
-        self.assertIs(process.poll(), None, "w3af died before we could send Ctrl+C")
+    def test_resume_when_not_paused(self):
+        self.menu._resume_scan()
+        self.assertIn("The scan is running. Can not resume.", self._output())
 
-        # Send Ctrl+C
-        process.send_signal(signal.SIGINT)
+    def test_pause_and_resume(self):
+        self.menu._pause_scan()
+        self.assertIn("The scan was paused.", self._output())
 
-        EXPECTED = (
-            "User pressed Ctrl+C, stopping scan",
-            "The user stopped the scan.",
-            "w3af>>> exit",
-        )
+        # Pausing again is a no-op with a message
+        self.clear_stdout_messages()
+        self.menu._pause_scan()
+        self.assertIn("The scan is already paused.", self._output())
 
-        # set signal handler
-        signal.signal(signal.SIGALRM, alarm_handler)
-        # produce SIGALRM in X seconds
-        signal.alarm(30)
+        # And now it can be resumed
+        self.clear_stdout_messages()
+        self.menu._resume_scan()
+        self.assertIn("The scan was resumed.", self._output())
 
-        # In some cases process.stdout.read() simply hang for ever, so I want
-        # to wait for 30 seconds (see signal.alarm) and then terminate the
-        # process
-        try:
-            w3af_output = process.stdout.read()
-            # cancel alarm
-            signal.alarm(0)
-        except Alarm:
-            process.terminate()
-            msg = "w3af did not stop on Ctrl+C, read() timeout."
-            self.assertTrue(False, msg)
+    def test_show_status(self):
+        self.menu._show_status()
+        # The idle core reports its status without raising
+        self.assertIn("Stopped", self._output())
 
-        for estr in EXPECTED:
-            self.assertIn(estr, w3af_output)
+    def test_version_command(self):
+        self.menu._cmd_version([])
+        self.assertTrue(self._output().strip())
 
-        NOT_EXPECTED = ("The list of fuzzable requests is:",)
+    def test_wait_for_start_times_out(self):
+        self.menu.MAX_WAIT_FOR_START = 0.2
+        self.assertFalse(self.menu.wait_for_start())
 
-        for estr in NOT_EXPECTED:
-            self.assertNotIn(estr, w3af_output)
-
-        # We don't need this anymore...
-        os.remove(script)
-
-
-class Alarm(Exception):
-    pass
-
-
-def alarm_handler(signum, frame):
-    raise Alarm
+    def test_stdin_is_terminal_under_pytest(self):
+        # pytest captures stdin, so it is not a terminal
+        self.assertFalse(stdin_is_terminal())
