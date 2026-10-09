@@ -22,11 +22,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import random
-import re
 import unittest
 
 from w3af.core.controllers.core_helpers.not_found.fuzzy_equal_for_diff import (
     fuzzy_equal_for_diff,
+)
+
+SHARED_PAGE_TEXT = "\n".join(
+    f"Shared paragraph {line_number} of the page body" for line_number in range(60)
 )
 
 
@@ -35,9 +38,11 @@ class Test404FuzzyEqualForDiff(unittest.TestCase):
     IS_EQUAL_RATIO = 0.90
 
     def get_body(self, unique_parts):
+        # A fixed text keeps the expected ratios independent of the running
+        # interpreter (module docstrings change between Python releases).
         # Do not increase this 50 too much, it will exceed the xurllib max
         # HTTP response body length
-        parts = [re.__doc__]
+        parts = [SHARED_PAGE_TEXT]
         parts = parts * 50
 
         parts.extend(unique_parts)
