@@ -1021,3 +1021,16 @@ producción pasan en el módulo; las referencias directas `core.data ->
 controllers` bajan de 58 a 57. Mypy dirigido no marca estos módulos, aunque
 hereda 30 errores en 21 archivos importados; la deuda global continúa. Score
 global: **4.9/10**.
+
+## Avance: eliminación de análisis temporal sin consumidores
+
+`w3af.core.data.url.time_analysis` no tenía importadores ni llamadas en el
+repositorio. Su análisis de desviaciones terminaba en `pass` y conservaba un
+import a `output_manager` solo para una rama de error interna. Se eliminó el
+módulo en desuso en vez de mantener una API interna sin consumidores; las
+declaraciones de importación `core.data -> controllers` bajan de 56 a 55
+(`git grep -E '^(from|import) w3af.core.controllers'`). El conteo previo de
+57 usaba otro criterio. No había una suite del módulo que migrar. La puntuación
+global se mantiene en **4.9/10**:
+este cambio elimina código muerto, pero no resuelve la deuda arquitectónica ni
+las gates globales pendientes.
