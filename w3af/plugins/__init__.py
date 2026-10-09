@@ -2,4 +2,4 @@
 import builtins
 
 if not hasattr(builtins, "_"):
-    builtins._ = lambda text: text
+    builtins.__dict__["_"] = lambda text: text
