@@ -23,11 +23,26 @@ import os
 import random
 import time
 import unittest
-from unittest.mock import Mock
 
 from w3af import ROOT_PATH
 from w3af.core.controllers.core_helpers.fingerprint_404 import Fingerprint404
 from w3af.tests.helpers.parse_http_log import iter_http_request_responses
+
+
+class RecordedResponseOpener:
+    """
+    URL opener which answers every GET with the HTTP response recorded in the
+    scan log that the test chose, after a delay similar to the network one.
+    """
+
+    NETWORK_DELAY = 0.1
+
+    def __init__(self):
+        self.response = None
+
+    def GET(self, url, **kwargs):
+        time.sleep(self.NETWORK_DELAY)
+        return self.response
 
 
 class TestFingerprint404Perf(unittest.TestCase):
@@ -66,16 +81,8 @@ class TestFingerprint404Perf(unittest.TestCase):
 
         recorded_404s = []
         recorded_200s = []
-        mock_404_response = None
 
-        def mock_get(url, **kwargs):
-            # 100ms delay to simulate the network
-            time.sleep(0.1)
-
-            return mock_404_response
-
-        urllib = Mock()
-        urllib.GET = mock_get
+        urllib = RecordedResponseOpener()
 
         fingerprint_404 = Fingerprint404()
         fingerprint_404.set_url_opener(urllib)
@@ -93,13 +100,13 @@ class TestFingerprint404Perf(unittest.TestCase):
 
             if len(recorded_404s):
                 if count % self.RECORDED_404_EVERY == 0:
-                    mock_404_response = rnd.choice(recorded_404s)
+                    urllib.response = rnd.choice(recorded_404s)
 
             elif len(recorded_200s) and count % self.RECORDED_200_EVERY == 0:
-                mock_404_response = rnd.choice(recorded_200s)
+                urllib.response = rnd.choice(recorded_200s)
 
-            if mock_404_response is None:
-                mock_404_response = response
+            if urllib.response is None:
+                urllib.response = response
 
             fingerprint_404._is_404_complex(response)
 
@@ -110,4 +117,4 @@ class TestFingerprint404Perf(unittest.TestCase):
             if count >= self.MAX_REQUEST_RESPONSE:
                 break
 
-            mock_404_response = None
+            urllib.response = None

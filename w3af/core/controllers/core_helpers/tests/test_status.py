@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
-from unittest.mock import Mock
 
 from w3af.core.controllers.core_helpers.status import (
     PAUSED,
@@ -35,7 +34,9 @@ from w3af.core.controllers.w3af_core import w3afCore
 class TestStatus(unittest.TestCase):
 
     def test_simple(self):
-        s = CoreStatus(Mock())
+        core = w3afCore()
+        self.addCleanup(core.worker_pool.terminate_join)
+        s = CoreStatus(core)
 
         self.assertEqual(s.get_status(), STOPPED)
 
