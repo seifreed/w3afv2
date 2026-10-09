@@ -216,7 +216,8 @@ class w3afAgentManager(Process):
                 "client",
                 "w3af_agent_client.py",
             )
-            file_content = open(client).read()
+            with open(client) as client_file:
+                file_content = client_file.read()
             extension = "py"
             interpreter = python
         else:
@@ -235,7 +236,7 @@ class w3afAgentManager(Process):
 
         try:
             s.bind(("0.0.0.0", port))
-        except:
+        except OSError:
             #    socket.error: [Errno 13] Permission denied
             #    Or some similar error
             return False

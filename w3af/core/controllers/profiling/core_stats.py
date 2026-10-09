@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import json
+import logging
 import sys
 import traceback
 from functools import partial
@@ -75,6 +76,7 @@ def dump_data(w3af_core):
             "Cache stats": get_parser_cache_stats(),
         }
     except Exception as e:
+        logging.getLogger(__name__).debug("Failed to collect core stats", exc_info=True)
         exc_type, exc_value, exc_tb = sys.exc_info()
         tback = traceback.format_exception(exc_type, exc_value, exc_tb)
 
@@ -82,7 +84,8 @@ def dump_data(w3af_core):
 
     json_data = json.dumps(data, indent=4)
     output_file = PROFILING_OUTPUT_FMT % get_filename_fmt()
-    open(output_file, "w").write(json_data)
+    with open(output_file, "w") as output_fh:
+        output_fh.write(json_data)
 
 
 @should_profile_core

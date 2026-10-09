@@ -40,8 +40,8 @@ class TestEchoLinux(unittest.TestCase):
         file_content = "A" * file_len
         echo_linux.estimate_transfer_time(file_len)
 
-        temp_file_inst = tempfile.NamedTemporaryFile()
-        temp_fname = temp_file_inst.name
-        upload_success = echo_linux.transfer(file_content, temp_fname)
+        with tempfile.NamedTemporaryFile() as temp_file_inst:
+            temp_fname = temp_file_inst.name
+            upload_success = echo_linux.transfer(file_content, temp_fname)
 
         self.assertTrue(upload_success)

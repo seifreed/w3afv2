@@ -133,7 +133,7 @@ class logger:
         try:
             msg = " ".join([str(x) for x in list(msg)])
             return msg
-        except:
+        except (TypeError, ValueError):
             return msg
 
     def info(self, *msg):
@@ -221,7 +221,7 @@ class w3afAgentClient(threading.Thread):
         if self.socks_bind_address is None:
             self.socks_bind_address = ipaddrlist[0]
 
-        log.info("The chosen bind adress is", self.socks_bind_address)
+        log.info(f"The chosen bind adress is {self.socks_bind_address}")
 
     def run(self):
         # Start the connection manager
@@ -260,7 +260,7 @@ class ConnectionManager(threading.Thread):
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             try:
                 s.connect((self._w3afAgentServer_address, self._w3afAgentServer_port))
-            except Exception as e:
+            except OSError as e:
                 log.debug(
                     "Failed to connect to the w3afAgentServer, exception: " + str(e)
                 )
@@ -379,22 +379,23 @@ class SocksHandler(threading.Thread):
         # Global SOCKS errors handling.
         except Request_Failed_No_Identd:
             self.answer_rejected(REQUEST_REJECTED_NO_IDENTD)
-            log.error("Request", _thread.get_ident(), "failed, no identd.")
+            log.error(f"Request {_thread.get_ident()} failed, no identd.")
         except Request_Failed_Ident_failed:
             self.answer_rejected(REQUEST_REJECTED_IDENT_FAILED)
-            log.error("Request", _thread.get_ident(), "failed, ident failed.")
+            log.error(f"Request {_thread.get_ident()} failed, ident failed.")
         except Request_Error:
             self.answer_rejected()
-            log.error("Request", _thread.get_ident(), "failed, invalid request.")
+            log.error(f"Request {_thread.get_ident()} failed, invalid request.")
         except Remote_Connection_Failed:
             self.answer_rejected()
             log.error(
-                "Remote connection failed while processing request", _thread.get_ident()
+                "Remote connection failed while processing request "
+                f"{_thread.get_ident()}"
             )
         except Bind_TimeOut_Expired:
             self.answer_rejected()
             log.error(
-                "Bind timeout expired while processing request", _thread.get_ident()
+                f"Bind timeout expired while processing request {_thread.get_ident()}"
             )
         # Once established, if the remote or the client connection is closed
         # we must exit silently. This exception is in fact the way the function
@@ -494,7 +495,7 @@ class SocksHandler(threading.Thread):
 
                 # An incoming connection is pending. Let us accept it
                 incoming, peer = remote.accept()
-            except:
+            except (SocksError, OSError):
                 # We try to keep a trace of the previous exception
                 # for debugging purpose.
                 raise Remote_Connection_Failed(sys.exc_info())
@@ -559,7 +560,7 @@ class SocksHandler(threading.Thread):
                     )
                 else:
                     raise Remote_Connection_Failed
-            except:
+            except (ValueError, TypeError, IndexError):
                 raise Remote_Connection_Failed
 
             # From now on we will already have answered to the client.
@@ -611,7 +612,7 @@ class SocksHandler(threading.Thread):
                 socket.inet_ntoa(ip),
             )
             self.client_socketet.send(packet)
-        except:
+        except (OSError, ValueError, TypeError, AttributeError):
             # Trying to keep a trace of the original exception.
             raise Client_Connection_Closed(sys.exc_info())
 

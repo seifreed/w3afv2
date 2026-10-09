@@ -4,16 +4,15 @@ if __name__ == "__main__":
 
     ip = sys.argv[1]
     port = sys.argv[2]
-    f = open(sys.argv[3], "w")
 
-    cs = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    cs.connect((ip, port))
+    with open(sys.argv[3], "w") as f:
+        cs = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        cs.connect((ip, port))
 
-    while 1:
-        data = cs.recv(1024)
-        if not data:
-            break
-        f.write(data)
+        while 1:
+            data = cs.recv(1024)
+            if not data:
+                break
+            f.write(data)
 
-    cs.close()
-    f.close()
+        cs.close()

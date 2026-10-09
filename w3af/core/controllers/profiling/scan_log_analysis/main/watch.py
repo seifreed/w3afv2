@@ -1,3 +1,4 @@
+import logging
 import sys
 import time
 
@@ -16,6 +17,7 @@ def watch(scan_log_filename, scan, function_name):
         except KeyboardInterrupt:
             sys.exit(0)
         except Exception as e:
+            logging.getLogger(__name__).debug("watch() failed", exc_info=True)
             print(f"Exception: {e}")
             sys.exit(1)
         else:

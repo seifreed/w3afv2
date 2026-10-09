@@ -71,11 +71,11 @@ else:
             getrusage = ctypes.CDLL(
                 ctypes.util.find_library("c"), use_errno=True
             ).getrusage
-        except Exception:
+        except (OSError, AttributeError):
             getrusage = ctypes.CDLL(
                 ctypes.util.find_library("rt"), use_errno=True
             ).getrusage
-    except:
+    except (OSError, AttributeError):
         #
         # Something went wrong, either ctypes is not finding the libraries, or
         # they are not there. Fallback to time.time

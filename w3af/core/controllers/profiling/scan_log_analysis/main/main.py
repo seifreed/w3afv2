@@ -172,12 +172,6 @@ def generate_console_output(scan_log_filename, scan):
 
 
 def generate_json_output(scan_log_filename, scan, json_filename):
-    try:
-        output_fp = open(json_filename, "w")
-    except Exception as e:
-        print('Failed to open {} for writing: "{}"'.format(*e))
-        sys.exit(1)
-
     output_data = {}
     print("Generating JSON output...")
 
@@ -196,4 +190,9 @@ def generate_json_output(scan_log_filename, scan, json_filename):
             key = _function.__name__.replace("get_", "")
             output_data[key] = function_output
 
-    json.dump(output_data, output_fp, indent=4, sort_keys=True)
+    try:
+        with open(json_filename, "w") as output_fp:
+            json.dump(output_data, output_fp, indent=4, sort_keys=True)
+    except OSError as e:
+        print('Failed to open {} for writing: "{}"'.format(*e))
+        sys.exit(1)

@@ -84,11 +84,10 @@ class EchoWindows(BasePayloadTransfer):
         self._filename = self._get_filename(destination)
 
         # Check if echo exists and works as expected
-        if not self._exec_methodutedCanTransfer:
-            if not self.can_transfer():
-                msg = "Failed to transfer file to the compromised server, "
-                msg += "EchoWindows.can_transfer returned False."
-                raise BaseFrameworkException(msg)
+        if not self._exec_methodutedCanTransfer and not self.can_transfer():
+            msg = "Failed to transfer file to the compromised server, "
+            msg += "EchoWindows.can_transfer returned False."
+            raise BaseFrameworkException(msg)
 
         # if exists, delete _filename
         res = self._exec_method("del " + self._filename)

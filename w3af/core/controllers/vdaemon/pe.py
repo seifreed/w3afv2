@@ -54,15 +54,14 @@ class pe:
         :return: A string with the complete pe file.
         """
         try:
-            template = open(self._templateFileName, "r").read()
-        except Exception as e:
+            with open(self._templateFileName) as template_file:
+                template = template_file.read()
+        except OSError as e:
             raise BaseFrameworkException(
                 "Failed to open PE template file. Exception: " + str(e)
             )
-        else:
-            paddingLen = self._maxPayloadLen - len(self._shellcode)
-            executable = template.replace(
-                "\x90" * self._maxPayloadLen, self._shellcode + "\x90" * paddingLen
-            )
 
-        return executable
+        paddingLen = self._maxPayloadLen - len(self._shellcode)
+        return template.replace(
+            "\x90" * self._maxPayloadLen, self._shellcode + "\x90" * paddingLen
+        )

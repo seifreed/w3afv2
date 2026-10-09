@@ -49,7 +49,7 @@ class KeyValueOutput:
 
         else:
             msg = "Unsupported type found in to_console(): %s"
-            raise Exception(msg % self.values.__class__.__name__)
+            raise TypeError(msg % self.values.__class__.__name__)
 
         print()
 

@@ -33,18 +33,15 @@ def get_virtual_daemon(exec_method):
     remote OS is, and based on that info, it returns the corresponding virtual
     daemon.
     """
-    try:
-        os = os_detection_exec(exec_method)
-    except BaseFrameworkException as w3:
-        raise
+    os = os_detection_exec(exec_method)
+
+    if os == "windows":
+        om.out.debug("Identified remote OS as Windows, returning winVd object.")
+        return winVd(exec_method)
+    elif os == "linux":
+        om.out.debug("Identified remote OS as Linux, returning lnxVd object.")
+        return lnxVd(exec_method)
     else:
-        if os == "windows":
-            om.out.debug("Identified remote OS as Windows, returning winVd object.")
-            return winVd(exec_method)
-        elif os == "linux":
-            om.out.debug("Identified remote OS as Linux, returning lnxVd object.")
-            return lnxVd(exec_method)
-        else:
-            raise BaseFrameworkException(
-                "Failed to get a virtual daemon for the remote OS: " + os
-            )
+        raise BaseFrameworkException(
+            "Failed to get a virtual daemon for the remote OS: " + os
+        )

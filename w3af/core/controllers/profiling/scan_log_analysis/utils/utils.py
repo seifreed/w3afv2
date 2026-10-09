@@ -24,13 +24,13 @@ def get_line_epoch(scan_line):
     """
     timestamp = scan_line[1 : scan_line.find("-")].strip()
     try:
-        parsed_time = datetime.datetime.strptime(timestamp, "%c")
+        parsed_time = datetime.datetime.strptime(timestamp, "%c").astimezone()
     except KeyboardInterrupt:
         sys.exit(3)
-    except:
+    except ValueError:
         raise InvalidTimeStamp(f'Invalid timestamp: "{scan_line}"')
     else:
-        return int(parsed_time.strftime("%s"))
+        return int(parsed_time.timestamp())
 
 
 def get_first_timestamp(scan):

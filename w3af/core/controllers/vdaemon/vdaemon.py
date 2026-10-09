@@ -105,7 +105,7 @@ class vdaemon:
 
         try:
             executable_file_name = self._generate_exe(payload, msfpayload_parameters)
-        except Exception as e:
+        except (BaseFrameworkException, OSError) as e:
             raise BaseFrameworkException(
                 f'Failed to create the payload file, error: "{e!s}".'
             )
@@ -130,7 +130,7 @@ class vdaemon:
             else:
                 try:
                     self._exec_payload(remote_file_location)
-                except Exception as e:
+                except (BaseFrameworkException, OSError) as e:
                     raise BaseFrameworkException(
                         f"Failed to execute the executable file on the server, error: {e}"
                     )
@@ -198,7 +198,8 @@ class vdaemon:
         if os.path.isfile(output_filename):
 
             #    Error handling
-            file_content = open(output_filename).read()
+            with open(output_filename) as output_file:
+                file_content = output_file.read()
             for tag in ["Invalid", "Error"]:
                 if tag in file_content:
                     raise BaseFrameworkException(file_content.strip())
@@ -247,7 +248,10 @@ class vdaemon:
                 + '".'
             )
 
-            if transferHandler.transfer(open(exe_file).read(), self._remote_filename):
+            with open(exe_file) as exe_handle:
+                exe_content = exe_handle.read()
+
+            if transferHandler.transfer(exe_content, self._remote_filename):
                 om.out.console(f'Finished payload upload to "{self._remote_filename}"')
                 return self._remote_filename
             else:

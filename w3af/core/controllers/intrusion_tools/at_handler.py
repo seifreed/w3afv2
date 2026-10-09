@@ -72,7 +72,7 @@ class atHandler(delayedExecution):
                     break
 
             self._exec("at " + taskId + " /delete")
-        except:
+        except (IndexError, UnboundLocalError):
             om.out.debug('Failed to remove task from "at" service.')
 
     def _create_at_command(self, time, command):
@@ -107,7 +107,7 @@ class atHandler(delayedExecution):
                 # TODO !
                 # analyze... before I had am_pm = 'a' ; check if this is really necesary
                 am_pm = ""
-        except:
+        except (IndexError, ValueError):
             raise BaseFrameworkException(
                 "The time command of the remote server returned an unknown format."
             )

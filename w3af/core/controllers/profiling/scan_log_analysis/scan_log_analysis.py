@@ -2,6 +2,7 @@
 
 import argparse
 import importlib.util
+import os
 import sys
 
 if importlib.util.find_spec("plotille") is None:
@@ -54,17 +55,16 @@ if __name__ == "__main__":
 
     parsed_args = parser.parse_args()
 
-    try:
-        scan = open(parsed_args.scan_log)
-    except:
+    if not os.path.isfile(parsed_args.scan_log):
         print("The scan log file does not exist!")
         sys.exit(2)
 
-    if parsed_args.output:
-        generate_json_output(parsed_args.scan_log, scan, parsed_args.output)
-        sys.exit(0)
+    with open(parsed_args.scan_log) as scan:
+        if parsed_args.output:
+            generate_json_output(parsed_args.scan_log, scan, parsed_args.output)
+            sys.exit(0)
 
-    if parsed_args.watch:
-        watch(parsed_args.scan_log, scan, parsed_args.watch)
-    else:
-        generate_console_output(parsed_args.scan_log, scan)
+        if parsed_args.watch:
+            watch(parsed_args.scan_log, scan, parsed_args.watch)
+        else:
+            generate_console_output(parsed_args.scan_log, scan)

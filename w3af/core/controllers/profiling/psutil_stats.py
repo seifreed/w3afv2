@@ -137,7 +137,8 @@ def dump_psutil():
         "Thread CPU usage": get_threads_cpu_percent(),
     }
 
-    json.dump(psutil_data, open(output_file, "w"), indent=4, sort_keys=True)
+    with open(output_file, "w") as output_fh:
+        json.dump(psutil_data, output_fh, indent=4, sort_keys=True)
 
 
 def ps_mem_to_json(sorted_cmds, shareds, count, total):

@@ -26,7 +26,7 @@ def get_should_grep_data(scan_log_filename, scan):
 
         try:
             stats_dict = to_dict(match.group(1))
-        except:
+        except json.JSONDecodeError:
             print(f"Warning: {match.group(1)} is not valid JSON")
             continue
         else:

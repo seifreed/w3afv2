@@ -302,10 +302,9 @@ if __name__ == "__main__":
     parser.add_argument("scan_log", action="store")
     parsed_args = parser.parse_args()
 
-    try:
-        scan = open(parsed_args.scan_log)
-    except:
+    if not os.path.isfile(parsed_args.scan_log):
         print("The scan log file does not exist!")
         sys.exit(2)
 
-    create_eta_table(scan)
+    with open(parsed_args.scan_log) as scan:
+        create_eta_table(scan)

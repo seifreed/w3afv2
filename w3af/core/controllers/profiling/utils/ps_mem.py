@@ -178,13 +178,13 @@ def parse_options():
         if o in ("-p",):
             try:
                 pids_to_show = [int(x) for x in a.split(",")]
-            except:
+            except ValueError:
                 sys.stderr.write(help())
                 sys.exit(3)
         if o in ("-w",):
             try:
                 watch = int(a)
-            except:
+            except ValueError:
                 sys.stderr.write(help())
                 sys.exit(3)
 
@@ -218,7 +218,7 @@ def kernel_ver():
             kv[last] = kv[last].split(char)[0]
         try:
             int(kv[last])
-        except:
+        except ValueError:
             kv[last] = 0
         last -= 1
     return (int(kv[0]), int(kv[1]), int(kv[2]))
@@ -429,7 +429,7 @@ def get_memory_usage(pids_to_show, split_args, include_self=False, only_self=Fal
 
     # Add shared mem for each program
     total = 0
-    for cmd in cmds:
+    for cmd in list(cmds):
         cmd_count = count[cmd]
         if len(mem_ids[cmd]) == 1 and cmd_count > 1:
             # Assume this program is using CLONE_VM without CLONE_THREAD
