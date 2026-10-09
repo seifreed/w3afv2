@@ -34,7 +34,6 @@ from w3af.core.controllers.core_helpers.consumers.constants import POISON_PILL
 from w3af.core.controllers.misc.factory import factory
 from w3af.core.controllers.threads.silent_joinable_queue import SilentJoinableQueue
 from w3af.core.controllers.threads.threadpool import Pool
-from w3af.core.data.constants.encodings import UTF8
 
 
 def start_thread_on_demand(func):
@@ -405,24 +404,6 @@ class OutputManager(Process):
         keyword argument.
 
         """
-        encoded_params = []
-
-        # http://docs.python.org/2/howto/unicode.html
-        #
-        # The most important tip is:
-        #     Software should only work with Unicode strings internally,
-        #     converting to a particular encoding on output.
-        #
-        # Given that we don't want to convert to utf8 inside every plugin
-        # before sending to a file, we do it here
-        for arg in args:
-            if isinstance(arg, str):
-                arg = arg.encode(UTF8, "replace")
-
-            encoded_params.append(arg)
-
-        args = tuple(encoded_params)
-
         # A caller to any of the METHODS can specify that the call he's doing
         # should NOT go to a specific plugin set specified in the ignore_plugins
         # keyword argument

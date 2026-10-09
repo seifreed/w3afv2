@@ -28,6 +28,7 @@ import w3af.core.data.kb.config as cf
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
 from w3af.core.data.constants import severity
+from w3af.core.data.constants.encodings import UTF8
 from w3af.core.data.misc.encoding import smart_str_ignore
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
@@ -135,6 +136,9 @@ class text_file(OutputPlugin):
         """
         if self._http is None:
             return
+
+        if isinstance(msg, str):
+            msg = msg.encode(UTF8, "replace")
 
         try:
             self._http.write(msg)

@@ -571,3 +571,25 @@ un temporal después de que `quit()` borre el directorio, y el test de proceso
 externo requiere `retire`. La puntuación global permanece en **3.0/10**: se
 corrigen APIs retiradas y se verifican contratos de datos, pero la deuda de
 capas, cobertura completa y gates globales sigue abierta.
+
+## Avance: contrato de texto en OutputManager
+
+`OutputManager` codificaba todos los argumentos `str` a bytes antes de llamar a
+cualquier output plugin. En Python 3 eso hacía que la consola mostrase la
+representación `b'...'`, el syslog recibiese el tipo incorrecto y los plugins
+de texto no pudiesen preservar Unicode. El manager ahora conserva `str`; el
+plugin de consola retiene caracteres imprimibles Unicode y `text_file` codifica
+solo las cabeceras/separadores al escribir en su sink HTTP binario.
+
+Los tests de `OutputManager` usan el plugin real de consola y un fichero
+temporal real, sin mocks, y cubren acciones, Unicode, filtrado, kwargs,
+multiproceso y el límite binario: **8 tests pasan**. Dos flujos de perfil
+autocontenido también pasan tras corregir expectativas obsoletas y comprobar el
+archivo en el directorio temporal vigente. La validación combinada suma **14
+tests correctos**; Ruff (`F401`, `I001`), Black y `git diff --check` pasan. La
+suite ampliada todavía tiene casos heredados que comparan perfiles ante
+opciones que ya no están en el resultado guardado, ejecución CLI que requiere
+`retire` y warnings deprecados de dependencias. La nota global sube a
+**3.1/10**: mejora un contrato compartido de infraestructura y datos, pero
+persisten los acoplamientos entre capas, las gates globales y cobertura
+incompleta.

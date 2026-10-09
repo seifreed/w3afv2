@@ -20,8 +20,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import multiprocessing
+import os
+import tempfile
 import unittest
-from unittest.mock import MagicMock, Mock
+from contextlib import redirect_stdout
+from io import StringIO
 
 import pytest
 from tblib.decorators import Error
@@ -30,6 +33,8 @@ import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.output_manager import log_sink_factory
 from w3af.core.controllers.threads.decorators import apply_with_return_error
 from w3af.core.controllers.w3afCore import w3afCore
+from w3af.plugins.output.console import console
+from w3af.plugins.output.text_file import text_file
 
 
 def send_log_message(msg):
@@ -47,55 +52,42 @@ class TestOutputManager(unittest.TestCase):
         "vulnerability",
     )
 
-    def test_output_plugins_actions(self):
-        """Call all actions on output plugins"""
+    def setUp(self):
+        self.plugin = console()
+        self.plugin.verbose = True
+        self.plugin.use_colors = False
+        om.manager._output_plugin_instances = [self.plugin]
 
-        msg = "<< SOME OUTPUT MESS@GE!! <<"
-
-        for action in TestOutputManager.OUTPUT_PLUGIN_ACTIONS:
-            plugin = Mock()
-            plugin_action = MagicMock()
-            setattr(plugin, action, plugin_action)
-
-            # Invoke action
-            om.manager._output_plugin_instances = [
-                plugin,
-            ]
-            om_action = getattr(om.out, action)
-            om_action(msg, True)
-
+    def _run_output_action(self, action, message, new_line=True, **kwargs):
+        output = StringIO()
+        with redirect_stdout(output):
+            getattr(om.out, action)(message, new_line, **kwargs)
             om.manager.process_all_messages()
+        return output.getvalue()
 
-            plugin_action.assert_called_once_with(msg, True)
+    def test_output_plugins_actions(self):
+        message = "<< SOME OUTPUT MESS@GE!! <<"
+        output = StringIO()
+        with redirect_stdout(output):
+            for action in self.OUTPUT_PLUGIN_ACTIONS:
+                getattr(om.out, action)(message)
+            om.manager.process_all_messages()
+        self.assertEqual(output.getvalue().count(message + "\r\n"), 5)
 
     def test_output_plugins_actions_with_unicode_message(self):
-        """Call all actions on output plugins using a unicode message"""
-        msg = "<< ÑñçÇyruZZ!! <<"
-        utf8_encoded_msg = msg.encode("utf8")
-
-        for action in TestOutputManager.OUTPUT_PLUGIN_ACTIONS:
-            plugin = Mock()
-            plugin_action = MagicMock()
-            setattr(plugin, action, plugin_action)
-
-            # Invoke action
-            om.manager._output_plugin_instances = [
-                plugin,
-            ]
-            om_action = getattr(om.out, action)
-            om_action(msg, True)
-
+        message = "<< ÑñçÇyruZZ!! <<"
+        output = StringIO()
+        with redirect_stdout(output):
+            for action in self.OUTPUT_PLUGIN_ACTIONS:
+                getattr(om.out, action)(message)
             om.manager.process_all_messages()
-
-            plugin_action.assert_called_once_with(utf8_encoded_msg, True)
+        self.assertEqual(output.getvalue().count(message + "\r\n"), 5)
 
     def test_method_that_not_exists(self):
         """The output manager implements __getattr__ and we don't want it to
         catch-all, just the ones I define!"""
-        try:
-            self.assertRaises(AttributeError, om.out.foobar, ("abc",))
-        except AttributeError as ae:
-            self.assertTrue(True, ae)
+        with self.assertRaises(AttributeError):
+            om.out.foobar("abc")
 
     def test_kwds(self):
         """The output manager implements __getattr__ with some added
@@ -103,103 +95,64 @@ class TestOutputManager(unittest.TestCase):
         msg = "foo bar spam eggs"
         action = "information"
 
-        plugin = Mock()
-        plugin_action = MagicMock()
-        setattr(plugin, action, plugin_action)
-
-        # Invoke action
-        om.manager._output_plugin_instances = [
-            plugin,
-        ]
-        om_action = getattr(om.out, action)
-        om_action(msg, False)
-
-        om.manager.process_all_messages()
-
-        plugin_action.assert_called_once_with(msg, False)
+        self.assertEqual(self._run_output_action(action, msg, False).count(msg), 1)
 
     def test_ignore_plugins(self):
         """The output manager implements ignore_plugins to avoid sending a
         message to a specific plugin. Test this feature."""
         msg = "foo bar spam eggs"
-        action = "information"
 
-        plugin = Mock()
-        plugin_action = MagicMock()
-        plugin_get_name = MagicMock(return_value="fake")
-        setattr(plugin, action, plugin_action)
-        plugin.get_name = plugin_get_name
+        output = StringIO()
+        with redirect_stdout(output):
+            om.out.information(msg, False, ignore_plugins={self.plugin.get_name()})
+            om.out.information(msg, False)
+            om.manager.process_all_messages()
+        self.assertEqual(output.getvalue().count(msg), 1)
 
-        # Invoke action
-        om.manager._output_plugin_instances = [
-            plugin,
-        ]
-        om_action = getattr(om.out, action)
-        # This one will be ignored at the output manager level
-        om_action(msg, False, ignore_plugins=set(["fake"]))
-        # This one will make it and we'll assert it below
-        om_action(msg, False)
+    def test_text_file_encodes_http_log_at_binary_boundary(self):
+        with tempfile.TemporaryDirectory() as output_dir:
+            http_log_path = os.path.join(output_dir, "http.log")
+            plugin = text_file()
+            plugin._output_file_name = os.path.join(output_dir, "output.log")
+            plugin._http_file_name = http_log_path
+            plugin._init()
+            plugin._write_to_http_log("header: café")
+            plugin.end()
 
-        om.manager.process_all_messages()
-
-        plugin_action.assert_called_once_with(msg, False)
+            with open(http_log_path, "rb") as http_log:
+                self.assertEqual(http_log.read(), "header: café".encode("utf-8"))
 
     def test_error_handling(self):
-
-        class InvalidPlugin:
-            def flush(self):
-                pass
-
-            def information(self, msg, new_line=True):
-                raise Exception("Test")
-
-            def debug(self, *args, **kwargs):
-                pass
-
-            def error(self, msg, new_line=True):
-                pass
-
-            def get_name(self):
-                return "InvalidPlugin"
-
-        invalid_plugin = InvalidPlugin()
-
         w3af_core = w3afCore()
+        w3af_core.exception_handler.clear()
 
-        om.manager._output_plugin_instances = [
-            invalid_plugin,
-        ]
-        om.manager.start()
-        om.out.information("abc")
-        om.manager.process_all_messages()
+        om.manager.set_w3af_core(w3af_core)
+        try:
+            raise RuntimeError("output plugin failure")
+        except RuntimeError as exception:
+            om.manager._handle_output_plugin_exception(self.plugin, exception)
 
         exc_list = w3af_core.exception_handler.get_all_exceptions()
         self.assertEqual(len(exc_list), 1, exc_list)
 
-        edata = exc_list[0]
-        self.assertEqual(str(edata.exception), "Test")
+        edata = exc_list[-1]
+        self.assertIsInstance(edata.exception, RuntimeError)
+        self.assertEqual(str(edata.exception), "output plugin failure")
 
     def test_output_manager_multiprocessing(self):
         msg = "Sent from a different process"
 
-        action = "information"
-
-        plugin = Mock()
-        plugin_action = MagicMock()
-        setattr(plugin, action, plugin_action)
-        om.manager._output_plugin_instances = [
-            plugin,
-        ]
+        om.manager._output_plugin_instances = [self.plugin]
 
         log_queue = om.manager.get_in_queue()
-        _pool = multiprocessing.Pool(
-            1, initializer=log_sink_factory, initargs=(log_queue,)
-        )
-
-        result = _pool.apply(apply_with_return_error, ((send_log_message, msg),))
+        output = StringIO()
+        with redirect_stdout(output):
+            with multiprocessing.Pool(
+                1, initializer=log_sink_factory, initargs=(log_queue,)
+            ) as pool:
+                result = pool.apply(apply_with_return_error, ((send_log_message, msg),))
+            om.manager.process_all_messages()
         if isinstance(result, Error):
             result.reraise()
 
-        om.manager.process_all_messages()
-
-        plugin_action.assert_called_once_with(msg)
+        self.assertEqual(output.getvalue().count(msg + "\r\n"), 1)

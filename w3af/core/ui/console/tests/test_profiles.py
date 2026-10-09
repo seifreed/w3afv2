@@ -19,7 +19,6 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import re
 import subprocess
 import sys
 import tempfile
@@ -29,6 +28,7 @@ import pytest
 from w3af.core.controllers.core_helpers.tests.test_profiles import (
     assertProfileOptionsPreserved,
 )
+from w3af.core.controllers.misc.temp_dir import create_temp_dir, remove_temp_dir
 from w3af.core.data.db.startup_cfg import StartUpConfig
 from w3af.core.data.profile.profile import profile
 from w3af.core.ui.console.console_ui import ConsoleUI
@@ -154,11 +154,19 @@ class TestProfilesConsoleUI(ConsoleTestHelper):
 
         # The profile is now self contained
         p = profile(self.get_profile_name())
-        self.assertIn("caFileName = base64://", open(p.profile_file_name).read())
+        self.assertTrue(
+            p._config.get("audit.ssl_certificate", "ca_file_name").startswith(
+                "base64://"
+            )
+        )
 
         # Before it wasn't
         p = profile("OWASP_TOP10")
-        self.assertIn("caFileName = %ROOT_PATH%", open(p.profile_file_name).read())
+        self.assertTrue(
+            p._config.get("audit.ssl_certificate", "ca_file_name").startswith(
+                "%ROOT_PATH%"
+            )
+        )
 
     def test_use_self_contained_profile(self):
         """
@@ -184,20 +192,17 @@ class TestProfilesConsoleUI(ConsoleTestHelper):
         self.console = ConsoleUI(commands=commands_to_run, do_upd=False)
         self.console.sh()
 
-        #
-        # Extract the temp file from the plugin configuration and read it
-        #
-        for line in self._mock_stdout.messages:
-            match = re.search(r"(/tmp/w3af-.*-sc\.dat)", line)
-            if not match:
-                continue
-
-            filename = match.group(0)
-
-            self.assertIn("Bundle of CA Root Certificates", open(filename).read())
-            break
-        else:
-            self.assertTrue(False, "No self contained file found")
+        create_temp_dir()
+        try:
+            saved_profile = profile(self.get_profile_name())
+            options = saved_profile.get_plugin_options("audit", "ssl_certificate")
+            certificate_path = options["ca_file_name"].get_value()
+            with open(certificate_path, "rb") as certificate_file:
+                self.assertIn(
+                    b"Bundle of CA Root Certificates", certificate_file.read()
+                )
+        finally:
+            remove_temp_dir(ignore_errors=True)
 
     def test_set_save_use(self):
         """
