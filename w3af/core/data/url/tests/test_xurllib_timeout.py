@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import socketserver
 import time
 import unittest
-from unittest.mock import Mock
 
 import pytest
 
@@ -38,8 +37,12 @@ from w3af.core.data.url.constants import (
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.data.url.handlers.keepalive.connection_manager import ConnectionManager
+from w3af.core.data.url.tests.helpers.sleep_recorder import SleepRecorder
 from w3af.core.data.url.tests.helpers.ssl_daemon import RawSSLDaemon
-from w3af.core.data.url.tests.helpers.upper_daemon import UpperDaemon
+from w3af.core.data.url.tests.helpers.upper_daemon import (
+    ThreadingUpperDaemon,
+    UpperDaemon,
+)
 from w3af.core.data.url.tests.test_xurllib import TimeoutTCPHandler
 from w3af.core.exceptions import ScanMustStopException
 
@@ -49,13 +52,16 @@ from w3af.core.exceptions import ScanMustStopException
 class TestXUrllibTimeout(unittest.TestCase):
 
     def setUp(self):
-        self.uri_opener = ExtendedUrllib()
+        # The pause on HTTP error is tested at TestXUrllibDelayOnError, here
+        # we only record the delays to keep the tests fast
+        self.error_pauses = SleepRecorder()
+        self.uri_opener = ExtendedUrllib(sleep=self.error_pauses)
 
     def tearDown(self):
         self.uri_opener.end()
 
     def test_timeout(self):
-        upper_daemon = UpperDaemon(TimeoutTCPHandler)
+        upper_daemon = ThreadingUpperDaemon(TimeoutTCPHandler)
         upper_daemon.start()
         upper_daemon.wait_for_start()
 
@@ -65,8 +71,6 @@ class TestXUrllibTimeout(unittest.TestCase):
 
         self.uri_opener.settings.set_configured_timeout(0.5)
         self.uri_opener.clear_timeout()
-        # We can mock this because it's being tested at TestXUrllibDelayOnError
-        self.uri_opener._pause_on_http_error = Mock()
         start = time.time()
 
         try:
@@ -107,7 +111,7 @@ class TestXUrllibTimeout(unittest.TestCase):
         self.assertLess(end - start, 80)
 
     def test_timeout_many(self):
-        upper_daemon = UpperDaemon(TimeoutTCPHandler)
+        upper_daemon = ThreadingUpperDaemon(TimeoutTCPHandler)
         upper_daemon.start()
         upper_daemon.wait_for_start()
 
@@ -115,8 +119,6 @@ class TestXUrllibTimeout(unittest.TestCase):
 
         self.uri_opener.settings.set_configured_timeout(0.5)
         self.uri_opener.clear_timeout()
-        # We can mock this because it's being tested at TestXUrllibDelayOnError
-        self.uri_opener._pause_on_http_error = Mock()
 
         url = URL(f"http://127.0.0.1:{port}/")
         http_request_e = 0
@@ -142,7 +144,7 @@ class TestXUrllibTimeout(unittest.TestCase):
         self.assertEqual(scan_stop_e, 1)
 
     def test_timeout_auto_adjust(self):
-        upper_daemon = UpperDaemon(Ok200SmallDelayHandler)
+        upper_daemon = UpperDaemon(Ok200HalfSecondDelayHandler)
         upper_daemon.start()
         upper_daemon.wait_for_start()
 
@@ -151,12 +153,6 @@ class TestXUrllibTimeout(unittest.TestCase):
         # Enable timeout auto-adjust
         self.uri_opener.settings.set_configured_timeout(0)
         self.uri_opener.clear_timeout()
-
-        # We can mock this because it's being tested at TestXUrllibDelayOnError
-        self.uri_opener._pause_on_http_error = Mock()
-
-        # Mock to verify the calls
-        self.uri_opener.set_timeout = Mock()
 
         # Make sure we start from the desired timeout value
         self.assertEqual(self.uri_opener.get_timeout("127.0.0.1"), DEFAULT_TIMEOUT)
@@ -170,14 +166,12 @@ class TestXUrllibTimeout(unittest.TestCase):
         for _ in range(TIMEOUT_ADJUST_LIMIT * 3):
             self.uri_opener.GET(url)
             sent_requests += 1
-            if self.uri_opener.set_timeout.call_count:
+            if self.uri_opener.get_timeout("127.0.0.1") != DEFAULT_TIMEOUT:
                 break
-
-        self.assertEqual(self.uri_opener.set_timeout.call_count, 1)
 
         # pylint: disable=E1136
         rtt = self.uri_opener.get_average_rtt()[0]
-        adjusted_tout = self.uri_opener.set_timeout.call_args[0][0]
+        adjusted_tout = self.uri_opener.get_timeout("127.0.0.1")
         expected_tout = TIMEOUT_MULT_CONST * rtt
         delta = rtt * 0.2
         # pylint: enable=E1136
@@ -246,6 +240,15 @@ class Ok200SmallDelayHandler(socketserver.BaseRequestHandler):
             b"Content-Length: 3\r\n"
             b"\r\n" + self.body.encode()
         )
+
+
+class Ok200HalfSecondDelayHandler(Ok200SmallDelayHandler):
+    """
+    Slow enough for TIMEOUT_MULT_CONST * RTT to be above MIN_TIMEOUT, which
+    makes the adjusted timeout observable without being clamped.
+    """
+
+    sleep = 0.5
 
 
 class Ok200SmallDelayWithLongTriggeredTimeoutHandler(socketserver.BaseRequestHandler):

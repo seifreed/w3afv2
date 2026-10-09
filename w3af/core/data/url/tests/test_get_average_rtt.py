@@ -25,94 +25,97 @@ import unittest
 from itertools import repeat
 from multiprocessing.dummy import Pool as ThreadPool
 
-import httpretty
 import pytest
 
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
+from w3af.core.data.url.tests.helpers.route_server import (
+    RecordedRequest,
+    Response,
+    RouteServer,
+)
+
+
+def delayed_response_05(_request: RecordedRequest) -> Response:
+    time.sleep(0.5)
+    return Response(body="Yup")
+
+
+def delayed_response_similar(_request: RecordedRequest) -> Response:
+    time.sleep(0.4 + random.randint(1, 9) / 100.0)
+    return Response(body="Yup")
+
+
+class DelayedResponses:
+
+    def __init__(self, delays):
+        self.call = 0
+        self.delays = delays
+
+    def __call__(self, _request: RecordedRequest) -> Response:
+        time.sleep(self.delays[self.call])
+        self.call += 1
+        return Response(body="Yup")
 
 
 @pytest.mark.smoke
 class TestGetAverageRTT(unittest.TestCase):
 
-    MOCK_URL = "http://www.w3af.org/"
-
     def setUp(self):
         self.uri_opener = ExtendedUrllib()
+        self.server = RouteServer()
+        self.server.start()
 
     def tearDown(self):
         self.uri_opener.end()
-        httpretty.reset()
+        self.server.stop()
 
-    @staticmethod
-    def request_callback_05(request, uri, headers):
-        time.sleep(0.5)
-        body = "Yup"
-        return 200, headers, body
+    def fuzzable_request(self):
+        return FuzzableRequest(URL(self.server.url("/")))
 
-    @httpretty.activate
     def test_get_average_rtt_for_mutant_all_equal(self):
-        httpretty.register_uri(
-            httpretty.GET, self.MOCK_URL, body=TestGetAverageRTT.request_callback_05
+        self.server.add("GET", "/", delayed_response_05)
+
+        average_rtt = self.uri_opener.get_average_rtt_for_mutant(
+            self.fuzzable_request()
         )
 
-        mock_url = URL(self.MOCK_URL)
-        fuzzable_request = FuzzableRequest(mock_url)
-        average_rtt = self.uri_opener.get_average_rtt_for_mutant(fuzzable_request)
-
         # Check the response
         self.assertGreater(average_rtt, 0.45)
         self.assertGreater(0.55, average_rtt)
 
-    @httpretty.activate
     def test_get_average_rtt_for_mutant_similar(self):
+        self.server.add("GET", "/", delayed_response_similar)
 
-        def request_callback(request, uri, headers):
-            time.sleep(0.4 + random.randint(1, 9) / 100.0)
-            body = "Yup"
-            return 200, headers, body
-
-        httpretty.register_uri(httpretty.GET, self.MOCK_URL, body=request_callback)
-
-        mock_url = URL(self.MOCK_URL)
-        fuzzable_request = FuzzableRequest(mock_url)
-        average_rtt = self.uri_opener.get_average_rtt_for_mutant(fuzzable_request)
+        average_rtt = self.uri_opener.get_average_rtt_for_mutant(
+            self.fuzzable_request()
+        )
 
         # Check the response
         self.assertGreater(average_rtt, 0.45)
         self.assertGreater(0.55, average_rtt)
 
-    @httpretty.activate
     def test_get_average_rtt_for_mutant_one_off(self):
         #
         # TODO: This is one of the cases I need to fix using _has_outliers!
         #       Calculating the average using 0.3 , 0.2 , 2.0 is madness
         #
+        self.server.add("GET", "/", DelayedResponses([0.3, 0.2, 2.0]))
 
-        httpretty.register_uri(
-            httpretty.GET,
-            self.MOCK_URL,
-            body=RequestCallBackWithDelays([0.3, 0.2, 2.0]),
+        average_rtt = self.uri_opener.get_average_rtt_for_mutant(
+            self.fuzzable_request()
         )
-
-        mock_url = URL(self.MOCK_URL)
-        fuzzable_request = FuzzableRequest(mock_url)
-        average_rtt = self.uri_opener.get_average_rtt_for_mutant(fuzzable_request)
 
         # Check the response
         self.assertGreater(average_rtt, 0.80)
         self.assertGreater(0.90, average_rtt)
 
-    @httpretty.activate
     def test_get_average_rtt_for_mutant_with_threads(self):
-        httpretty.register_uri(
-            httpretty.GET, self.MOCK_URL, body=TestGetAverageRTT.request_callback_05
-        )
+        self.server.add("GET", "/", delayed_response_05)
 
         pool = ThreadPool(25)
-        mock_url = URL(self.MOCK_URL)
-        fuzzable_request = FuzzableRequest(mock_url)
+        fuzzable_request = self.fuzzable_request()
 
         iterations = 50
 
@@ -129,17 +132,3 @@ class TestGetAverageRTT(unittest.TestCase):
         # Check the response
         self.assertGreater(results[0], 0.45)
         self.assertGreater(0.55, results[0])
-
-
-class RequestCallBackWithDelays:
-
-    def __init__(self, delays):
-        self.call = 0
-        self.delays = delays
-
-    def __call__(self, request, uri, headers):
-        time.sleep(self.delays[self.call])
-        self.call += 1
-
-        body = "Yup"
-        return 200, headers, body
