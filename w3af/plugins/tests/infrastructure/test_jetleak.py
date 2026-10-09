@@ -21,9 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 from typing import ClassVar
-from unittest.mock import patch
-
-from httpretty.http import STATUSES
 
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
@@ -43,16 +40,13 @@ class TestJetLeak(PluginTest):
 
     class JettyMockResponse(MockResponse):
         def get_response(self, http_request, uri, response_headers):
-            referer = http_request.headers.getrawheader("Referer")
+            referer = http_request.headers.get("Referer")
 
             if referer is not None and "\x00" in referer:
                 body = "See HTTP reason text"
-                status = 400
-            else:
-                body = "Regular response"
-                status = 200
+                return 400, response_headers, body, TestJetLeak.JETLEAK_ERROR
 
-            return status, response_headers, body
+            return 200, response_headers, "Regular response"
 
     MOCK_RESPONSES: ClassVar[list] = [
         JettyMockResponse(re.compile(".*"), body=None, method="GET", status=200)
@@ -61,8 +55,7 @@ class TestJetLeak(PluginTest):
     def test_vulnerable_jetty(self):
         cfg = self._run_configs["cfg"]
 
-        with patch.dict(STATUSES, {400: self.JETLEAK_ERROR}):
-            self._scan(self.target_url, cfg["plugins"])
+        self._scan(self.target_url, cfg["plugins"])
 
         vulns = self.kb.get("jetleak", "jetleak")
 

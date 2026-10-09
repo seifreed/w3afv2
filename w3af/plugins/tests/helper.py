@@ -664,6 +664,7 @@ class MockResponse:
                     * HTTP status code
                     * Headers dict
                     * Response body string
+                    * Optionally, the HTTP reason phrase
         """
         if callable(self.body):
             return self.body(self, http_request, uri, response_headers)
