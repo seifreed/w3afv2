@@ -32,7 +32,7 @@ from w3af.core.data.url.http_response import HTTPResponse
 
 class TestJavaScriptParser(unittest.TestCase):
 
-    DATA_PATH = "w3af/core/data/parsers/pynarcissus/tests/data/"
+    DATA_PATH = "w3af/core/data/parsers/doc/tests/data/javascript/"
 
     def parse(self, filename):
         body = Path(self.DATA_PATH, filename).read_text()

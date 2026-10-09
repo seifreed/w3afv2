@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-from w3af.core.data.constants.browsers import INTERNET_EXPLORER_7
 from w3af.core.data.constants.dbms import MYSQL
 from w3af.core.data.constants.disclaimer import DISCLAIMER
 from w3af.core.data.constants.file_patterns import FILE_PATTERNS
@@ -41,7 +40,6 @@ class TestAll(unittest.TestCase):
     """
 
     def test_all(self):
-        self.assertEqual(INTERNET_EXPLORER_7, INTERNET_EXPLORER_7)
         self.assertEqual(MYSQL, MYSQL)
         self.assertEqual(DISCLAIMER, DISCLAIMER)
         self.assertEqual(MAILER, MAILER)

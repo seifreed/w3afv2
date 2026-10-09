@@ -34,9 +34,7 @@ from w3af.core.data.dc.utils.multipart import multipart_encode
 from w3af.core.data.dc.xmlrpc import XmlRpcContainer
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.utils.form_params import FormParameters
-from w3af.core.data.request.factory import create_fuzzable_request_from_request
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.url.http_request import HTTPRequest
 
 
 @pytest.mark.smoke
@@ -216,28 +214,3 @@ class TestCreateFuzzableRequestFromParts(unittest.TestCase):
         # failed to parse the post-data
         self.assertIsInstance(fr.get_raw_data(), PlainContainer)
         self.assertEqual(fr.get_raw_data().get_param_names(), [])
-
-
-@pytest.mark.smoke
-class TestCreateFuzzableRequestRequest(unittest.TestCase):
-
-    def setUp(self):
-        self.url = URL("http://www.w3af.com/")
-
-    def test_from_HTTPRequest(self):
-        request = HTTPRequest(self.url)
-        fr = create_fuzzable_request_from_request(request)
-
-        self.assertEqual(fr.get_url(), self.url)
-        self.assertEqual(fr.get_method(), "GET")
-
-    def test_from_HTTPRequest_headers(self):
-        hdr = Headers([("Foo", "bar")])
-        request = HTTPRequest(self.url, headers=hdr)
-        fr = create_fuzzable_request_from_request(request)
-
-        self.assertEqual(fr.get_url(), self.url)
-        self.assertEqual(fr.get_headers(), hdr)
-        self.assertEqual(fr.get_method(), "GET")
-        self.assertIsInstance(fr, FuzzableRequest)
-        self.assertIsInstance(fr.get_raw_data(), KeyValueContainer)
