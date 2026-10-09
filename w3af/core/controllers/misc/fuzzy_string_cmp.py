@@ -76,28 +76,6 @@ def fuzzy_equal(a_str, b_str, threshold=0.6):
     return distance > threshold
 
 
-def fuzzy_equal_return_distance(a_str, b_str, threshold=0.6):
-    """
-    Similar to fuzzy_equal() but returns the distance between the strings
-
-    :param a_str: A string instance
-    :param b_str: A string instance
-    :param threshold: Float value indicating the expected "similarity". Must be
-                      0 <= threshold <= 1.0
-    :return: A tuple containing:
-                - A boolean indicating the fuzzy_equal result
-                - The distance between the two strings, if it was calculated
-    """
-    optimization_result = _get_optimized_fuzzy_equal(a_str, b_str, threshold=threshold)
-
-    if optimization_result is not None:
-        return optimization_result, None
-
-    # Bad, we can't optimize anything better, just calculate the relative distance
-    distance = relative_distance(a_str, b_str)
-    return distance > threshold, distance
-
-
 def _get_optimized_fuzzy_equal(a_str, b_str, threshold=0.6):
     """
     Indicates if the strings to compare are similar enough. This (optimized)

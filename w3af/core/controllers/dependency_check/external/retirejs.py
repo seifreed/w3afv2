@@ -20,8 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import shutil
+
 from w3af.core.controllers.misc.external_process import run_process
-from w3af.core.controllers.misc.which import which
 
 SUPPORTED_RETIREJS = "2."
 
@@ -30,11 +31,9 @@ def retirejs_is_installed():
     """
     :return: True if retirejs is installed and we were able to parse the version.
     """
-    paths_to_retire = which("retire")
-    if not paths_to_retire:
+    path_to_retire = shutil.which("retire")
+    if path_to_retire is None:
         return False
-
-    path_to_retire = paths_to_retire[0]
 
     try:
         result = run_process([path_to_retire, "--version"])

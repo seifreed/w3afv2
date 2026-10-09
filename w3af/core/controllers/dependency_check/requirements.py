@@ -111,7 +111,6 @@ CORE_PIP_PACKAGES = [
     PIPDependency("pebble", "pebble", _version("pebble")),
     PIPDependency("ahocorapy.keywordtree", "ahocorapy", _version("ahocorapy")),
     PIPDependency("multiregex", "multiregex", _version("multiregex")),
-    PIPDependency("diff_match_patch", "diff-match-patch", _version("diff-match-patch")),
     PIPDependency("bravado_core", "bravado-core", _version("bravado-core")),
     PIPDependency("lz4", "lz4", _version("lz4")),
     PIPDependency("vulners", "vulners", _version("vulners")),

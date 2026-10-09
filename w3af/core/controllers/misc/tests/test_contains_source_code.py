@@ -30,6 +30,7 @@ from w3af.core.controllers.misc.contains_source_code import (
     PHP,
     PYTHON,
     RUBY,
+    _multi_re,
     contains_source_code,
 )
 from w3af.core.data.dc.headers import Headers
@@ -209,3 +210,8 @@ class TestContainsSourceCode(unittest.TestCase):
         )
         match, _lang = contains_source_code(no_source)
         self.assertEqual(match, None)
+
+    def test_every_regex_has_a_keyword_hint(self):
+        # A regex without keywords is evaluated against every response body,
+        # which defeats the MultiRE pre-filter
+        self.assertEqual(_multi_re._regexes_with_no_keywords, [])
