@@ -25,6 +25,7 @@ import subprocess
 import sys
 
 from w3af.core.data.db.startup_cfg import StartUpConfig
+from w3af.core.data.misc.local_date import local_today
 from w3af.core.ui.tests.gui import GUI_TEST_ROOT_PATH
 from w3af.core.ui.tests.wrappers.xpresser_unittest import XpresserUnittest
 
@@ -50,12 +51,12 @@ class TestAutoUpdate(XpresserUnittest):
 
         # Just in case... we don't want to break other tests
         startup_cfg = StartUpConfig()
-        startup_cfg.last_upd = datetime.date.today()
+        startup_cfg.last_upd = local_today()
         startup_cfg.save()
 
     def test_disclaimer_shown_accept(self):
         startup_cfg = StartUpConfig()
-        startup_cfg.last_upd = datetime.date.today() - datetime.timedelta(days=3)
+        startup_cfg.last_upd = local_today() - datetime.timedelta(days=3)
         startup_cfg.save()
 
         self.find("update_window")

@@ -24,6 +24,7 @@ import re
 import urllib.error
 import urllib.parse
 import urllib.request
+from typing import ClassVar
 
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.search_engines.search_engine import SearchEngine
@@ -37,7 +38,7 @@ class bing(SearchEngine):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    BLACKLISTED_DOMAINS = {
+    BLACKLISTED_DOMAINS: ClassVar[set[str]] = {
         "cc.bingj.com",
         "www.microsofttranslator.com",
         "onlinehelp.microsoft.com",

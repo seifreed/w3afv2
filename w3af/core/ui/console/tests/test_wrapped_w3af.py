@@ -20,12 +20,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import datetime
 import subprocess
 import sys
 import unittest
 
 from w3af.core.data.db.startup_cfg import StartUpConfig
+from w3af.core.data.misc.local_date import local_today
 
 
 class TestWrappedW3afConsole(unittest.TestCase):
@@ -36,7 +36,7 @@ class TestWrappedW3afConsole(unittest.TestCase):
         """
         # Just in case... we don't want to break other tests
         startup_cfg = StartUpConfig()
-        startup_cfg.last_upd = datetime.date.today()
+        startup_cfg.last_upd = local_today()
         startup_cfg.set_accepted_disclaimer(True)
         startup_cfg.save()
 

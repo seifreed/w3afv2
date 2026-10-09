@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import random
 import re
 import unittest
+from typing import ClassVar
 
 import pytest
 
@@ -31,6 +32,7 @@ from w3af.core.data.search_engines.google import (
     IS_NEW,
     GAjaxSearch,
     GMobileSearch,
+    GoogleAPISearch,
     GStandardSearch,
     google,
 )
@@ -105,7 +107,7 @@ class BaseGoogleAPISearch(unittest.TestCase):
     This base class is not intended to be collected by pytest.
     """
 
-    GoogleApiSearcher = None
+    GoogleApiSearcher: ClassVar[type[GoogleAPISearch] | None] = None
 
     COUNT = 10
 
@@ -131,7 +133,7 @@ class BaseGoogleAPISearch(unittest.TestCase):
         self.assertEqual(searcher.status, IS_NEW)
 
         # This actually does the search
-        searcher.links
+        _ = searcher.links
 
         self.assertEqual(searcher.status, FINISHED_OK, GOOGLE_MSG)
 
@@ -172,7 +174,7 @@ class BaseGoogleAPISearch(unittest.TestCase):
         self.assertEqual(searcher.status, IS_NEW)
 
         # This actually does the search
-        searcher.links
+        _ = searcher.links
 
         self.assertEqual(searcher.status, FINISHED_OK, GOOGLE_MSG)
 

@@ -26,6 +26,7 @@ import logging
 import pickle
 import threading
 from collections.abc import Iterable
+from typing import ClassVar
 
 from w3af.core.data.constants.severity import HIGH, INFORMATION, LOW, MEDIUM
 from w3af.core.data.db.dbms import get_default_persistent_db_instance
@@ -89,7 +90,7 @@ class BasicKnowledgeBase:
                  parameter.
         """
         if not isinstance(info_inst, Info):
-            raise ValueError("append_uniq requires an info object as parameter.")
+            raise TypeError("append_uniq requires an info object as parameter.")
 
         filter_function = self.FILTERS.get(filter_by, None)
 
@@ -466,7 +467,7 @@ class DBKnowledgeBase(BasicKnowledgeBase):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    COLUMNS = [
+    COLUMNS: ClassVar[list[tuple[str, str]]] = [
         ("location_a", "TEXT"),
         ("location_b", "TEXT"),
         ("uniq_id", "TEXT"),
@@ -621,12 +622,7 @@ class DBKnowledgeBase(BasicKnowledgeBase):
 
         :return: Returns the data that was saved by another plugin.
         """
-        result_lst = []
-
-        for obj in self.get_iter(location_a, location_b, check_types=check_types):
-            result_lst.append(obj)
-
-        return result_lst
+        return list(self.get_iter(location_a, location_b, check_types=check_types))
 
     @requires_setup
     def get_iter(self, location_a, location_b, check_types=True):
@@ -756,12 +752,7 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         :return: A list of all objects where class in klass that are saved in the
                  kb.
         """
-        result_lst = []
-
-        for entry in self.get_all_entries_of_class_iter(klass, exclude_ids=exclude_ids):
-            result_lst.append(entry)
-
-        return result_lst
+        return list(self.get_all_entries_of_class_iter(klass, exclude_ids=exclude_ids))
 
     @requires_setup
     def get_all_entries_of_class_iter(self, klass, exclude_ids=()):

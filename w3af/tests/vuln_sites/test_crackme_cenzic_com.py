@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.plugins.tests.helper import PluginTest
 from w3af.tests.vuln_sites.utils.scan_vulnerable_site import TestScanVulnerableSite
 
@@ -26,7 +28,7 @@ from w3af.tests.vuln_sites.utils.scan_vulnerable_site import TestScanVulnerableS
 class TestScanCrackmeCenzicCom(TestScanVulnerableSite, PluginTest):
 
     target_url = "http://crackme.cenzic.com"
-    EXPECTED_VULNS = {
+    EXPECTED_VULNS: ClassVar[set[tuple]] = {
         ("Interesting HTML comment", "/Kelev/view/credit.php", None),
         ("HTML comment contains HTML code", "/Kelev/view/loanrequest.php", None),
         ("Interesting HTML comment", "/Kelev/loans/studentloan.php", None),

@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import contextlib
 import os
 import shlex
 import shutil
@@ -26,6 +27,7 @@ import subprocess
 import tempfile
 import threading
 import time
+from typing import ClassVar
 
 from w3af.core.ui.tests.wrappers.constants import DISPLAY
 from w3af.core.ui.tests.wrappers.utils import restore_original_display
@@ -44,7 +46,7 @@ class XVFBServer(threading.Thread):
     WIDTH = 1024
     HEIGTH = 768
 
-    REQUIRED_BINS = ["convert", "xvnc4viewer", "Xvfb", "x11vnc"]
+    REQUIRED_BINS: ClassVar[list[str]] = ["convert", "xvnc4viewer", "Xvfb", "x11vnc"]
 
     XVFB_BIN = "/usr/bin/Xvfb"
     START_CMD = f"{XVFB_BIN} {DISPLAY} -screen 0 {WIDTH}x{HEIGTH}x16 -fbdir {tempfile.gettempdir()}"
@@ -121,11 +123,9 @@ class XVFBServer(threading.Thread):
 
     def __del__(self):
         """Just in case, restore the DISPLAY to the original value again"""
-        try:
+        with contextlib.suppress(OSError):
             self.stop()
             restore_original_display()
-        except:
-            pass
 
     def run_x_process(self, cmd, block=False, display=DISPLAY):
         """

@@ -31,8 +31,8 @@ from w3af.core.data.parsers.doc.url import URL
 
 class GenericFilterTest(unittest.TestCase):
 
-    CAPACITY = None
-    ERROR_RATE = None
+    CAPACITY: int | None = None
+    ERROR_RATE: float | None = None
     filter = None
 
     def setUp(self):

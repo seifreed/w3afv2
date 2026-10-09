@@ -27,6 +27,7 @@ import time
 import zipfile
 from functools import wraps
 from shutil import rmtree
+from typing import ClassVar
 
 import msgpack
 
@@ -58,7 +59,7 @@ class HistoryItem:
 
     _db = None
     _DATA_TABLE = "history_items"
-    _COLUMNS = [
+    _COLUMNS: ClassVar[list[tuple[str, str]]] = [
         ("id", "INTEGER"),
         ("url", "TEXT"),
         ("code", "INTEGER"),
@@ -90,7 +91,7 @@ class HistoryItem:
 
     _MIN_FILE_COUNT = _COMPRESSED_FILE_BATCH + _UNCOMPRESSED_FILES
 
-    _pending_compression_jobs = []
+    _pending_compression_jobs: ClassVar[list] = []
     _latest_compression_job_end = 0
 
     id = None
@@ -238,7 +239,8 @@ class HistoryItem:
             raise TraceReadException(f"Trace file {file_name} does not exist")
 
         # The file exists, but the contents might not be all on-disk yet
-        serialized_req_res = open(file_name, "rb").read()
+        with open(file_name, "rb") as trace_file:
+            serialized_req_res = trace_file.read()
         return self._load_from_string(serialized_req_res)
 
     def _load_from_string(self, serialized_req_res):
@@ -492,39 +494,15 @@ class HistoryItem:
         #
         path_fname = self._get_trace_filename_for_id(self.id)
 
-        try:
-            req_res = open(path_fname, "wb")
-        except OSError:
-            # We get here when the path_fname does not exist (for some reason)
-            # and want to analyze exactly why to be able to fix the issue in
-            # the future.
-            #
-            # Now the path_fname looks like:
-            #   /root/.w3af/tmp/19524/main.db_traces/1.trace
-            #
-            # I want to investigate which path doesn't exist, so I'm starting
-            # from the first and add directories until reaching the last one
-            #
-            # https://github.com/andresriancho/w3af/issues/9022
-            path, _fname = os.path.split(path_fname)
-            split_path = path.split("/")
-
-            for i in range(len(split_path) + 1):
-                test_path = "/".join(split_path[:i])
-                if not os.path.exists(test_path):
-                    msg = (
-                        'Directory does not exist: "%s" while trying to'
-                        ' write DB history to "%s"'
-                    )
-                    raise OSError(msg % (test_path, path_fname))
-
-            raise
-
         data = (self.request.to_dict(), self.response.to_dict(), self._MSGPACK_CANARY)
         msgpack_data = msgpack.dumps(data)
 
-        req_res.write(msgpack_data)
-        req_res.close()
+        try:
+            with open(path_fname, "wb") as req_res:
+                req_res.write(msgpack_data)
+        except OSError:
+            self._raise_if_trace_directory_missing(path_fname)
+            raise
 
         response_id = resp.get_id()
         self._queue_compression_requests(response_id)
@@ -535,6 +513,26 @@ class HistoryItem:
             self._process_pending_compression(pending_compression)
 
         return True
+
+    @staticmethod
+    def _raise_if_trace_directory_missing(path_fname):
+        """
+        Find the first directory in the trace file path which does not exist
+        and raise an OSError naming it.
+
+        :see: https://github.com/andresriancho/w3af/issues/9022
+        """
+        path, _ = os.path.split(path_fname)
+        split_path = path.split("/")
+
+        for i in range(len(split_path) + 1):
+            test_path = "/".join(split_path[:i])
+            if not os.path.exists(test_path):
+                msg = (
+                    'Directory does not exist: "%s" while trying to'
+                    ' write DB history to "%s"'
+                )
+                raise OSError(msg % (test_path, path_fname))
 
     def _get_pending_compression_job(self):
         with HistoryItem.compression_lock:

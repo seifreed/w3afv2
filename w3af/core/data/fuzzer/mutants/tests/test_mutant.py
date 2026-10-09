@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import copy
 import unittest
+from typing import ClassVar
 from unittest.mock import patch
 
 from w3af.core.data.constants.file_templates.file_templates import (
@@ -55,7 +56,7 @@ class FakeMutant(Mutant):
 
 class TestMutant(unittest.TestCase):
 
-    SIMPLE_KV = [("a", ["1"]), ("b", ["2"])]
+    SIMPLE_KV: ClassVar[list[tuple[str, list[str]]]] = [("a", ["1"]), ("b", ["2"])]
 
     def setUp(self):
         self.url = URL("http://moth/")

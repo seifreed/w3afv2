@@ -22,9 +22,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import shlex
 import string
-from datetime import date, datetime
+from datetime import datetime
 
 from git.cmd import Git, GitCommandError
+
+from w3af.core.data.misc.local_date import local_today
 
 ALLOWED = string.digits + string.ascii_letters + "/.-_"
 
@@ -63,13 +65,10 @@ def get_days_since_last_update(path):
         raise ValueError(f'"{path}" is not in tracked by this repository.')
 
     # The date_str is in the following format: Sat Jun 21 10:20:31 2014 -0300
-    # We need to parse it, and then do some date math to return the result
-    #
-    # We ignore the UTC offset because it was "hard to parse" and we don't care
-    last_commit_time = datetime.strptime(date_str[:-6], "%a %b %d %H:%M:%S %Y")
+    last_commit_time = datetime.strptime(date_str, "%a %b %d %H:%M:%S %Y %z")
     last_commit_date = last_commit_time.date()
 
-    today_date = date.today()
+    today_date = local_today()
 
     time_delta = today_date - last_commit_date
 

@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import functools
 import string
+from collections.abc import Callable
 
 from w3af.core.data.misc.constants.web_encodings import (
     DEC_FORMAT,
@@ -33,8 +34,8 @@ from w3af.core.data.misc.constants.web_encodings import (
     URL_HEX_FORMAT,
 )
 
-HTML_ENCODING_FUNCTIONS = []
-URL_ENCODING_FUNCTIONS = []
+HTML_ENCODING_FUNCTIONS: list[Callable[[str], str]] = []
+URL_ENCODING_FUNCTIONS: list[Callable[[str], str]] = []
 
 
 def url_encode(data, by_code_replacer=None, replace_by_code=None, should_upper=False):

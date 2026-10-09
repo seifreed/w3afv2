@@ -1,7 +1,7 @@
 """
-random_user_agent.py
+local_date.py
 
-Copyright 2012 Andres Riancho
+Copyright 2026 w3af contributors
 
 This file is part of w3af, http://w3af.org/ .
 
@@ -20,23 +20,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import os
-import random
-
-from w3af import ROOT_PATH
-
-UA_CACHE: list[str] = []
-UA_FILE = os.path.join(ROOT_PATH, "core", "data", "user_agent", "user-agent-list.txt")
+from datetime import UTC, date, datetime
 
 
-def get_random_user_agent(agent_list=UA_CACHE):
-    if not len(agent_list):
-        with open(UA_FILE) as ua_file:
-            for line in ua_file:
-                line = line.strip()
-
-                if line:
-                    agent_list.append(line)
-
-    ua = random.choice(UA_CACHE)
-    return ua
+def local_today() -> date:
+    """
+    :return: The current date in the local timezone of this host.
+    """
+    return datetime.now(UTC).astimezone().date()
