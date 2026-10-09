@@ -6,8 +6,20 @@ fuzz_form_files = True
 fuzz_url_filenames = False
 max_discovery_time = 120
 blacklist_http_request = 
-blacklist_audit =
+blacklist_audit = 
 local_ip_address = 127.0.0.1
+fuzz_cookies = False
+fuzz_url_parts = False
+stop_on_first_exception = False
+max_scan_time = 240
+path_max_variants = 50
+params_max_variants = 15
+max_equal_form_variants = 5
+interface = ppp0
+form_id_list = []
+form_id_action = exclude
+msf_location = /opt/metasploit3/bin/
+vulndb_language = en
 
 [target]
 target = 
@@ -38,4 +50,9 @@ user_agent = w3af.org
 basic_auth_user = 
 basic_auth_passwd = 
 string_match_404 = 
+ntlm_auth_domain = 
+ntlm_auth_url = 
+rand_user_agent = False
+max_file_size = 400000
+max_requests_per_second = 0
 

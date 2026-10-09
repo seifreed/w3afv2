@@ -21,12 +21,20 @@ fuzz_url_filenames = False
 fuzz_form_files = True
 max_discovery_time = 120
 blacklist_http_request = 
-blacklist_audit =
+blacklist_audit = 
 fuzz_url_parts = False
 stop_on_first_exception = False
 interface = ppp0
 local_ip_address = 10.5.6.18
 msf_location = /opt/metasploit3/bin/
+fuzz_cookies = False
+max_scan_time = 240
+path_max_variants = 50
+params_max_variants = 15
+max_equal_form_variants = 5
+form_id_list = []
+form_id_action = exclude
+vulndb_language = en
 
 [audit.sqli]
 
@@ -52,6 +60,9 @@ string_match_404 =
 cookie_jar_file = 
 ntlm_auth_domain = 
 ntlm_auth_url = 
+rand_user_agent = False
+max_file_size = 400000
+max_requests_per_second = 0
 
 [audit.blind_sqli]
 eq_limit = 0.9
@@ -64,11 +75,10 @@ use_colors = True
 follow_regex = .*
 ignore_regex = 
 only_forward = False
+ignore_extensions = 
 
 [audit.file_upload]
 extensions = gif,html,bmp,jpg,png,txt
 
 [audit.lfi]
-
-[crawl.web_spider]
 

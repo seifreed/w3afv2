@@ -20,17 +20,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import importlib
 import sys
 
-if sys.platform == "win32":
-    from msvcrt import getwch
-else:
-    # Fallback so this module can be imported (tests, linters) outside Windows
-    def getwch():
-        return ""
-
-
-from w3af.core.ui.console.io.common import *
+from w3af.core.ui.console.io.common import (
+    KEY_DOWN,
+    KEY_END,
+    KEY_HOME,
+    KEY_LEFT,
+    KEY_RIGHT,
+    KEY_UP,
+)
 
 SEQ_PREFIX = "\xe0"
 LONGEST_SEQUENCE = 2
@@ -46,28 +46,30 @@ win2UnixMap = {
 
 
 def read(amt):
-    res = ""
-    for i in range(amt):
-        res += getwch()
-    return res
+    """
+    Read amt characters from the Windows console. msvcrt only exists on
+    Windows, it is imported when the first character is read so the key
+    mapping in this module can be used (and tested) on every platform.
+    """
+    return "".join(importlib.import_module("msvcrt").getwch() for _ in range(amt))
 
 
 def set_raw_input_mode(raw):
     """
-    Sets the raw input mode, in windows.
+    The Windows console already delivers every key press, there is no raw
+    mode to switch.
     """
 
 
 def normalizeSequence(seq):
-    if seq in win2UnixMap:
-        return win2UnixMap[seq]
-    return None
+    return win2UnixMap.get(seq)
 
 
 def moveBack(steps=1):
-    for i in range(steps):
-        sys.stdout.write("\x08")
+    sys.stdout.write("\x08" * steps)
 
 
 def clearScreen():
-    """Clears the screen (Plug)"""
+    """
+    Clearing the Windows console is not supported.
+    """

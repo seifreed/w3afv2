@@ -18,30 +18,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import os
-import shutil
-import tempfile
 from pathlib import Path
 
 from w3af.core.ui.api.tests.utils.api_unittest import APIUnitTest
-
-HOME_DIR_VARIABLE = "W3AF_HOME_DIR"
+from w3af.tests.helpers.home_dir import use_temporary_home
 
 
 class ProfilesTest(APIUnitTest):
     def setUp(self):
         super().setUp()
-        self.previous_home = os.environ.get(HOME_DIR_VARIABLE)
-        self.home = tempfile.mkdtemp(prefix="w3af-home-")
-        os.environ[HOME_DIR_VARIABLE] = self.home
-
-    def tearDown(self):
-        if self.previous_home is None:
-            os.environ.pop(HOME_DIR_VARIABLE)
-        else:
-            os.environ[HOME_DIR_VARIABLE] = self.previous_home
-        shutil.rmtree(self.home)
-        super().tearDown()
+        self.home = use_temporary_home(self)
 
     def get(self, path):
         return self.app.get(path, headers=self.HEADERS)

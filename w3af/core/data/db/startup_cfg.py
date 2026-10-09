@@ -34,8 +34,6 @@ class StartUpConfig:
     Holds the configuration for the VersionMgr update/commit process
     """
 
-    CFG_FILE = os.path.join(get_home_dir(), "startup.conf")
-
     ISO_DATE_FMT = "%Y-%m-%d"
     # Frequency constants
     FREQ_DAILY = "D"  # [D]aily
@@ -51,7 +49,13 @@ class StartUpConfig:
         "skip-dependencies-check": "false",
     }
 
-    def __init__(self, cfg_file=CFG_FILE):
+    def __init__(self, cfg_file=None):
+        """
+        :param cfg_file: The configuration file, by default startup.conf in
+                         the w3af home directory at the time of the call
+        """
+        if cfg_file is None:
+            cfg_file = os.path.join(get_home_dir(), "startup.conf")
 
         self._start_cfg_file = cfg_file
         self._start_section = "STARTUP_CONFIG"

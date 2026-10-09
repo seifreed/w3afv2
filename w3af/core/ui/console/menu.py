@@ -100,8 +100,6 @@ class menu:
     def _load_help(self, name, vars=None):
         helpMainRepository.load_help(name, self._help, vars)
 
-    #        self._help = load_help(name, self._help, vars)
-
     def addChild(self, name, constructor):
         if type(constructor) in (tuple, list):
             constructor, params = constructor[0], constructor[1:]
@@ -196,7 +194,7 @@ class menu:
 
     def _cmd_help(self, params, brief=False):
         if len(params) == 0:
-            table = self._help.get_plain_help_table(True)
+            table = self._help.get_plain_help_table()
             self._console.draw_table(table)
         else:
             subj = params[0]
@@ -209,7 +207,7 @@ class menu:
                 om.out.console(full)
 
     def _cmd_keys(self, params=None):
-        table = self._keysHelp.get_plain_help_table(True)
+        table = self._keysHelp.get_plain_help_table()
         self._console.draw_table(table)
 
     def _cmd_print(self, params):
