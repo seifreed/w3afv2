@@ -1,5 +1,10 @@
-from utils.output import KeyValueOutput
-from utils.utils import InvalidTimeStamp, get_line_epoch
+from w3af.core.controllers.profiling.scan_log_analysis.utils.output import (
+    KeyValueOutput,
+)
+from w3af.core.controllers.profiling.scan_log_analysis.utils.utils import (
+    InvalidTimeStamp,
+    get_line_epoch,
+)
 
 
 def get_freeze_locations(scan_log_filename, scan):

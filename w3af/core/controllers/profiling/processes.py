@@ -23,12 +23,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import json
 import multiprocessing
 import os
+import threading
 
 from .utils import cancel_thread, dump_data_every_thread, get_filename_fmt
 
 PROFILING_OUTPUT_FMT = "/tmp/w3af-%s-%s.processes"
 DELAY_MINUTES = 2
-SAVE_PROCESS_PTR = []
+SAVE_PROCESS_PTR: list[threading.Timer] = []
 
 
 def should_dump_processes(wrapped):

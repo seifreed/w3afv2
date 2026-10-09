@@ -19,12 +19,11 @@ sys.path.append(ROOT_PATH)
 
 from w3af.core.controllers.core_helpers.status import Adjustment, CoreStatus
 
-from .scan_log_analysis import (
+from .scan_log_analysis.graphs.progress_delta import (
     CRAWL_INFRA_FINISHED,
     JOIN_TIMES,
-    get_first_timestamp,
-    get_line_epoch,
 )
+from .scan_log_analysis.utils.utils import get_first_timestamp, get_line_epoch
 
 HELP = """\
 Usage: ./calculate_eta_adjustments.py <scan.log>

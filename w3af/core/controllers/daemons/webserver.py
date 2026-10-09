@@ -34,7 +34,7 @@ import w3af.core.controllers.output_manager as om
 LOGGER = logging.getLogger(__name__)
 
 # Created servers
-_servers = {}
+_servers: dict[tuple[str, int], object] = {}
 
 
 def is_running(ip, port):

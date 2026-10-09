@@ -30,7 +30,7 @@ from .utils import cancel_thread, dump_data_every_thread, get_filename_fmt
 
 PROFILING_OUTPUT_FMT = "/tmp/w3af-%s-%s.threads"
 DELAY_MINUTES = 2
-SAVE_THREAD_PTR = []
+SAVE_THREAD_PTR: list[threading.Timer] = []
 
 
 def should_dump_thread_stack(wrapped):

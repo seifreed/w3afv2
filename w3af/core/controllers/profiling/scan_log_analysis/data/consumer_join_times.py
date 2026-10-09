@@ -1,6 +1,8 @@
 import re
 
-from utils.output import KeyValueOutput
+from w3af.core.controllers.profiling.scan_log_analysis.utils.output import (
+    KeyValueOutput,
+)
 
 JOIN_TIMES = re.compile(r"(.*?) took (.*?) seconds to join\(\)")
 

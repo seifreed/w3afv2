@@ -18,6 +18,5 @@ if __name__ == "__main__":
 
     latest_w3af_tag = Path("/tmp/new-w3af-docker-tag.txt").read_text()
 
-    data = {"build_parameters": {"W3AF_REGISTRY_TAG": latest_w3af_tag}}
-    data = json.dumps(data)
-    requests.post(url % (branch, token), headers=headers, data=data)
+    payload = {"build_parameters": {"W3AF_REGISTRY_TAG": latest_w3af_tag}}
+    requests.post(url % (branch, token), headers=headers, data=json.dumps(payload))

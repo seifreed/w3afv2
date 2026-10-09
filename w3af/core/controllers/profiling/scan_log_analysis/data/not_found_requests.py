@@ -1,4 +1,6 @@
-from utils.output import KeyValueOutput
+from w3af.core.controllers.profiling.scan_log_analysis.utils.output import (
+    KeyValueOutput,
+)
 
 NOT_FOUND_RESPONSE = ("Received response for 404 URL",)
 

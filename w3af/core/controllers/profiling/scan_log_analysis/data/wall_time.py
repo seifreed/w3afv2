@@ -1,8 +1,14 @@
 import re
 from operator import itemgetter
 
-from utils.output import KeyValueOutput, ListOutput, ListOutputItem
-from utils.utils import epoch_to_string
+from w3af.core.controllers.profiling.scan_log_analysis.utils.output import (
+    KeyValueOutput,
+    ListOutput,
+    ListOutputItem,
+)
+from w3af.core.controllers.profiling.scan_log_analysis.utils.utils import (
+    epoch_to_string,
+)
 
 SCAN_TOOK_RE = re.compile(r"took (\d*\.\d\d)s to run")
 PLUGIN_TOOK_RE = re.compile(

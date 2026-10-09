@@ -414,7 +414,7 @@ class CoreStrategy:
                 elif isinstance(result_item, ExceptionData):
                     self._handle_consumer_exception(result_item)
                 else:
-                    _, _, fuzzable_request_inst = result_item
+                    *_unused, fuzzable_request_inst = result_item
 
                     # Safety check, I need these to be FuzzableRequest objects
                     # if not, the url_producer is doing something wrong and I

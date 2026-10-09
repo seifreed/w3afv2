@@ -23,13 +23,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import json
 import os
 import sys
+import threading
 
 from .utils import cancel_thread, dump_data_every_thread, get_filename_fmt
 from .utils.ps_mem import cmd_with_count, get_memory_usage
 
 PROFILING_OUTPUT_FMT = "/tmp/w3af-%s-%s.psutil"
 DELAY_MINUTES = 2
-SAVE_PSUTIL_PTR = []
+SAVE_PSUTIL_PTR: list[threading.Timer] = []
 
 
 def user_wants_psutil():

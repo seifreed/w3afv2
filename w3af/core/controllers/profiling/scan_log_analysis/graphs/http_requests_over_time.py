@@ -1,8 +1,12 @@
 import re
 
 import plotille
-from utils.graph import num_formatter
-from utils.utils import InvalidTimeStamp, get_line_epoch
+
+from w3af.core.controllers.profiling.scan_log_analysis.utils.graph import num_formatter
+from w3af.core.controllers.profiling.scan_log_analysis.utils.utils import (
+    InvalidTimeStamp,
+    get_line_epoch,
+)
 
 HTTP_CODE_RE = re.compile('returned HTTP code "(.*?)"')
 

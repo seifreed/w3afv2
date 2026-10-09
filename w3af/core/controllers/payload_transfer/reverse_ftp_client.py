@@ -5,7 +5,7 @@ if __name__ == "__main__":
     ip = sys.argv[1]
     port = sys.argv[2]
 
-    with open(sys.argv[3], "w") as f:
+    with open(sys.argv[3], "wb") as f:
         cs = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         cs.connect((ip, port))
 
