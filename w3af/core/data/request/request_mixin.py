@@ -43,37 +43,32 @@ class RequestMixIn:
                  by the RFC, and the POST-data (potentially) holding raw bytes
                  such as an image content.
         """
-        data = self.get_data() or ""
+        data = self.get_data() or b""
+        if isinstance(data, str):
+            data = data.encode("utf-8")
 
         request_head = self.dump_request_head(ignore_headers=ignore_headers)
         request_head = request_head.encode("utf-8")
 
-        return "%s%s%s" % (request_head, CRLF, data)
+        return request_head + CRLF.encode("ascii") + data
 
     def get_request_hash(self, ignore_headers=()):
         """
         :return: Hash the request (as it would be sent to the wire) and return
         """
-        return hashlib.md5(self.dump(ignore_headers=ignore_headers)).hexdigest()
+        return hashlib.sha256(self.dump(ignore_headers=ignore_headers)).hexdigest()
 
     def get_request_line(self):
         """
         :return: request first line as sent to the wire.
         """
-        return "%s %s HTTP/1.1%s" % (
-            self.get_method(),
-            self.get_uri().url_encode(),
-            CRLF,
-        )
+        return f"{self.get_method()} {self.get_uri().url_encode()} HTTP/1.1{CRLF}"
 
     def dump_request_head(self, ignore_headers=()):
         """
         :return: A string with the head of the request
         """
-        return "%s%s" % (
-            self.get_request_line(),
-            self.dump_headers(ignore_headers=ignore_headers),
-        )
+        return f"{self.get_request_line()}{self.dump_headers(ignore_headers=ignore_headers)}"
 
     def dump_headers(self, ignore_headers=()):
         """

@@ -47,9 +47,7 @@ class TestFuzzableRequest(unittest.TestCase):
         self.url = URL("http://w3af.com/a/b/c.php")
 
     def test_dump_case01(self):
-        expected = "\r\n".join(
-            ["GET http://w3af.com/a/b/c.php HTTP/1.1", "Hello: World", "", "a=b"]
-        )
+        expected = "GET http://w3af.com/a/b/c.php HTTP/1.1\r\nHello: World\r\n\r\na=b"
 
         headers = Headers([("Hello", "World")])
         post_data = KeyValueContainer(init_val=[("a", ["b"])])
@@ -57,12 +55,10 @@ class TestFuzzableRequest(unittest.TestCase):
             self.url, method="GET", post_data=post_data, headers=headers
         )
 
-        self.assertEqual(fr.dump(), expected)
+        self.assertEqual(fr.dump(), expected.encode())
 
     def test_dump_case02(self):
-        expected = "\r\n".join(
-            ["GET http://w3af.com/a/b/c.php HTTP/1.1", "Hola: Múndo", "", "a=b"]
-        )
+        expected = "GET http://w3af.com/a/b/c.php HTTP/1.1\r\nHola: Múndo\r\n\r\na=b"
 
         headers = Headers([("Hola", "Múndo")])
         post_data = KeyValueContainer(init_val=[("a", ["b"])])
@@ -78,7 +74,7 @@ class TestFuzzableRequest(unittest.TestCase):
         expected = "\r\n".join(
             [
                 "GET http://w3af.com/a/b/c.php HTTP/1.1",
-                "Hola: %s" % smart_unicode(header_value),
+                f"Hola: {smart_unicode(header_value)}",
                 "",
                 "a=b",
             ]
@@ -90,27 +86,25 @@ class TestFuzzableRequest(unittest.TestCase):
             self.url, method="GET", post_data=post_data, headers=headers
         )
 
-        self.assertEqual(fr.dump(), expected)
+        self.assertEqual(fr.dump(), expected.encode())
 
     def test_dump_mangle(self):
         fr = FuzzableRequest(
             URL("http://www.w3af.com/"), headers=Headers([("Host", "www.w3af.com")])
         )
 
-        expected = "\r\n".join(
-            ["GET http://www.w3af.com/ HTTP/1.1", "Host: www.w3af.com", "", ""]
-        )
+        expected = "GET http://www.w3af.com/ HTTP/1.1\r\nHost: www.w3af.com\r\n\r\n"
 
-        self.assertEqual(fr.dump(), expected)
+        self.assertEqual(fr.dump(), expected.encode())
 
         fr.set_method("POST")
         fr.set_data(KeyValueContainer(init_val=[("data", ["23"])]))
 
-        expected = "\r\n".join(
-            ["POST http://www.w3af.com/ HTTP/1.1", "Host: www.w3af.com", "", "data=23"]
+        expected = (
+            "POST http://www.w3af.com/ HTTP/1.1\r\nHost: www.w3af.com\r\n\r\ndata=23"
         )
 
-        self.assertEqual(fr.dump(), expected)
+        self.assertEqual(fr.dump(), expected.encode())
 
     def test_export_import_without_post_data(self):
         fr = FuzzableRequest(URL("http://www.w3af.com/"))
@@ -176,7 +170,7 @@ class TestFuzzableRequest(unittest.TestCase):
         url = "http://www.w3af.com/"
         fr = FuzzableRequest(URL(url))
 
-        self.assertEqual(repr(fr), "<fuzzable request | GET | %s>" % url)
+        self.assertEqual(repr(fr), f"<fuzzable request | GET | {url}>")
 
     def test_sent_url_unicode_decode_1(self):
         f = FuzzableRequest(URL("http://example.com/a%c3%83b"))
@@ -379,5 +373,5 @@ class TestFuzzableRequest(unittest.TestCase):
         self.assertEqual(len(force_fuzzing_headers), 3)
         self.assertNotIn("X-Another-Header", force_fuzzing_headers)
 
-        fr.set_force_fuzzing_headers(tuple())
+        fr.set_force_fuzzing_headers(())
         self.assertEqual(fr.get_force_fuzzing_headers(), [])

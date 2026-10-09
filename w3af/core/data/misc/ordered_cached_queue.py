@@ -47,7 +47,7 @@ class OrderedCachedQueue(queue.Queue, QueueSpeedMeasurement):
     memory swapping, etc.
     """
 
-    LAST_MD5_HASH = "f" * 32
+    LAST_SHA256_HASH = "f" * 64
 
     def __init__(self, maxsize=0, name="Unknown"):
         self.name = name
@@ -80,29 +80,24 @@ class OrderedCachedQueue(queue.Queue, QueueSpeedMeasurement):
         Initialize the dicts and pointer
         :param maxsize: The max size for the queue
         """
-        self.queue_order = list()
-        self.hash_to_uuid = dict()
-        self.memory = dict()
-        self.disk = DiskDict(table_prefix="%sCachedQueue" % self.name)
+        self.queue_order = []
+        self.hash_to_uuid = {}
+        self.memory = {}
+        self.disk = DiskDict(table_prefix=f"{self.name}CachedQueue")
 
     def _qsize(self, _len=len):
         return _len(self.memory) + _len(self.disk)
 
     def _get_class_name(self, obj):
-        try:
-            return obj.__class__.__name__
-        except:
-            return type(obj)
+        return type(obj).__name__
 
     def _get_hash(self, item):
         if item is None or item == POISON_PILL:
-            # Return ffff...ffff which is the latest (in alphanumeric order)
-            # hash that exists in MD5. This forces the None item to be placed
-            # at the end of the queue.
+            # Place the sentinel after request hashes in lexicographic order.
             #
             # Warning! If FuzzableRequest.get_hash() ever changes its
             # implementation this will stop working as expected!
-            return self.LAST_MD5_HASH
+            return self.LAST_SHA256_HASH
 
         return item.get_hash()
 

@@ -25,8 +25,8 @@ import unittest
 from w3af.core.controllers.misc.temp_dir import create_temp_dir
 from w3af.core.controllers.misc_settings import MiscSettings
 from w3af.core.data.db.clean_dc import (
-    FILENAME_TOKEN,
-    PATH_TOKEN,
+    FILENAME_PLACEHOLDER,
+    PATH_PLACEHOLDER,
     clean_fuzzable_request,
 )
 from w3af.core.data.db.variant_db import (
@@ -127,13 +127,13 @@ class TestVariantDB(unittest.TestCase):
     def test_clean_fuzzable_request_file(self):
         u = "http://w3af.org/index.php"
         s = clean_fuzzable_request(fr(URL(u)))
-        e = "(GET)-http://w3af.org/%s.php" % FILENAME_TOKEN
+        e = f"(GET)-http://w3af.org/{FILENAME_PLACEHOLDER}.php"
         self.assertEqual(s, e)
 
     def test_clean_fuzzable_request_directory_file(self):
         u = "http://w3af.org/foo/index.php"
         s = clean_fuzzable_request(fr(URL(u)))
-        e = "(GET)-http://w3af.org/foo/%s.php" % FILENAME_TOKEN
+        e = f"(GET)-http://w3af.org/foo/{FILENAME_PLACEHOLDER}.php"
         self.assertEqual(s, e)
 
     def test_clean_fuzzable_request_directory_file_int(self):
@@ -163,19 +163,19 @@ class TestVariantDB(unittest.TestCase):
     def test_clean_fuzzable_request_directory_file_no_params(self):
         u = "http://w3af.org/foo/index.php"
         s = clean_fuzzable_request(fr(URL(u)))
-        e = "(GET)-http://w3af.org/foo/%s.php" % FILENAME_TOKEN
+        e = f"(GET)-http://w3af.org/foo/{FILENAME_PLACEHOLDER}.php"
         self.assertEqual(s, e)
 
     def test_clean_fuzzable_request_directory(self):
         u = "http://w3af.org/foo/"
         s = clean_fuzzable_request(fr(URL(u)))
-        e = "(GET)-http://w3af.org/%s/" % PATH_TOKEN
+        e = f"(GET)-http://w3af.org/{PATH_PLACEHOLDER}/"
         self.assertEqual(s, e)
 
     def test_clean_fuzzable_request_directory_parent_path(self):
         u = "http://w3af.org/spam/foo/"
         s = clean_fuzzable_request(fr(URL(u)))
-        e = "(GET)-http://w3af.org/spam/%s/" % PATH_TOKEN
+        e = f"(GET)-http://w3af.org/spam/{PATH_PLACEHOLDER}/"
         self.assertEqual(s, e)
 
     def test_clean_fuzzable_request_json(self):
@@ -186,7 +186,7 @@ class TestVariantDB(unittest.TestCase):
             post_data=JSONContainer('{"key": "value", "second_key": ["abc", 3, 2.1]}'),
         )
 
-        expected = "(PUT)-http://www.w3af.com/!object-second_key-list-0-string=string&object-key-string=string"
+        expected = "(PUT)-http://www.w3af.com/!object-key-string=string&object-second_key-list-0-string=string"
         self.assertEqual(clean_fuzzable_request(fr), expected)
 
     def test_clean_fuzzable_request_json_array_null(self):
@@ -427,7 +427,7 @@ class TestVariantDB(unittest.TestCase):
         def create_fuzzable_request(_id):
             path_count = _id * 5
             paths = [rand_alnum(9) for _ in range(path_count)]
-            url = "http://example.com/%s" % "/".join(paths)
+            url = f"http://example.com/{'/'.join(paths)}"
 
             form_params = FormParameters()
             form_params.add_field_by_attr_items(
@@ -455,7 +455,7 @@ class TestVariantDB(unittest.TestCase):
 
             form_params = FormParameters()
             form_params.add_field_by_attr_items(
-                [("name", "username%s" % _id), ("value", "abc")]
+                [("name", f"username{_id}"), ("value", "abc")]
             )
             form_params.add_field_by_attr_items([("name", "address"), ("value", "")])
             form_params.set_action(URL(url_fmt % _id))
@@ -476,7 +476,7 @@ class TestVariantDB(unittest.TestCase):
 
             form_params = FormParameters()
             form_params.add_field_by_attr_items(
-                [("name", "username%s" % _id), ("value", "abc")]
+                [("name", f"username{_id}"), ("value", "abc")]
             )
             form_params.add_field_by_attr_items([("name", "address"), ("value", "")])
             form_params.set_action(URL(url))

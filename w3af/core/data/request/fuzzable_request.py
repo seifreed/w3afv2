@@ -21,31 +21,27 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import base64
-import collections
-import hashlib
-import string
+from collections.abc import Iterable
 from itertools import chain
 from urllib.parse import quote, quote_plus, unquote
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
-from w3af.core.data.constants.encodings import DEFAULT_ENCODING
 from w3af.core.data.db.disk_item import DiskItem
 from w3af.core.data.dc.cookie import Cookie
 from w3af.core.data.dc.factory import dc_from_hdrs_post
 from w3af.core.data.dc.generic.data_container import DataContainer
 from w3af.core.data.dc.generic.kv_container import KeyValueContainer
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.misc.encoding import smart_str_ignore
+from w3af.core.data.misc.encoding import smart_unicode
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.request_mixin import RequestMixIn
 from w3af.core.exceptions import BaseFrameworkException
 
-ALL_CHARS = "".join(chr(i) for i in range(256))
-TRANS_TABLE = str.maketrans(ALL_CHARS, ALL_CHARS)
 DELETE_CHARS = "".join(
     ["\\", "'", '"', "+", " ", chr(0), chr(int("0D", 16)), chr(int("0A", 16))]
 )
+TRANS_TABLE = str.maketrans("", "", DELETE_CHARS)
 
 
 TYPE_ERROR = "FuzzableRequest __init__ parameter %s needs to be of %s type"
@@ -115,7 +111,7 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         self._force_fuzzing_headers = set()
 
         # Set a path template explicitly (empty by default)
-        self._force_fuzzing_url_parts = tuple()
+        self._force_fuzzing_url_parts = ()
 
     def __getstate__(self):
         state = {k: getattr(self, k) for k in self.__slots__}
@@ -222,14 +218,14 @@ class FuzzableRequest(RequestMixIn, DiskItem):
             raw_http_request_parser,
         )
 
-        raw_http_request = base64.b64decode(base64_data)
+        raw_http_request = base64.b64decode(base64_data).decode("utf-8")
         return raw_http_request_parser(raw_http_request)
 
     def make_comp(self, heterogen_string):
         """
         This basically removes characters that are used as escapes such as \
         """
-        return string.translate(heterogen_string, TRANS_TABLE, deletions=DELETE_CHARS)
+        return heterogen_string.translate(TRANS_TABLE)
 
     def sent(self, needle):
         """
@@ -264,7 +260,7 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         :param needle: The string
         :return: True if something similar was sent
         """
-        needle = smart_str_ignore(needle)
+        needle = smart_unicode(needle, errors="ignore")
 
         needles = set()
         needles.add(needle)
@@ -281,22 +277,23 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         needles = {n for n in needles if len(n) >= 3}
 
         uri = self.get_uri()
-        data = smart_str_ignore(self.get_data())
-        headers = smart_str_ignore(self.get_all_headers())
+        data = smart_unicode(self.get_data(), errors="ignore")
+        headers = str(self.get_all_headers())
 
         haystacks = set()
 
         # uris
         uri_decoded = uri.url_decode()
 
-        haystacks.add(smart_str_ignore(uri))
-        haystacks.add(smart_str_ignore(uri_decoded))
-        haystacks.add(self.make_comp(smart_str_ignore(uri_decoded)))
+        haystacks.add(str(uri))
+        haystacks.add(str(uri_decoded))
+        haystacks.add(self.make_comp(str(uri_decoded)))
 
         # uris without encoding
-        haystacks.add(smart_str_ignore(uri.url_string))
-        haystacks.add(smart_str_ignore(uri_decoded.url_string))
-        haystacks.add(self.make_comp(smart_str_ignore(uri_decoded.url_string)))
+        haystacks.add(uri.url_string)
+        haystacks.add(uri_decoded.url_string)
+        haystacks.add(self.make_comp(unquote(uri.url_string)))
+        haystacks.add(self.make_comp(uri_decoded.url_string))
 
         # data
         haystacks.add(data)
@@ -321,8 +318,7 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         return False
 
     def get_hash(self):
-        raw_http_request = self.dump()
-        return hashlib.md5(raw_http_request).hexdigest()
+        return self.get_request_hash()
 
     def __hash__(self):
         return hash(str(self.get_uri()) + self.get_data())
@@ -331,9 +327,6 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         """
         :return: A string representation of this fuzzable request.
         """
-        short_fmt = "Method: %s | %s"
-        long_fmt = "Method: %s | %s | %s: (%s)"
-
         if self.get_raw_data():
             parameters = self.get_raw_data().get_param_names()
             dc_type = self.get_raw_data().get_type()
@@ -342,18 +335,15 @@ class FuzzableRequest(RequestMixIn, DiskItem):
             dc_type = self.get_uri().querystring.get_type()
 
         if not parameters:
-            output = short_fmt % (self.get_method(), self.get_url())
+            output = f"Method: {self.get_method()} | {self.get_url()}"
         else:
             jparams = ", ".join(parameters)
-            output = long_fmt % (self.get_method(), self.get_url(), dc_type, jparams)
+            output = f"Method: {self.get_method()} | {self.get_url()} | {dc_type}: ({jparams})"
 
-        return output.encode(DEFAULT_ENCODING)
-
-    def __unicode__(self):
-        return str(self).decode(encoding=DEFAULT_ENCODING, errors="ignore")
+        return output
 
     def __repr__(self):
-        return "<fuzzable request | %s | %s>" % (self.get_method(), self.get_uri())
+        return f"<fuzzable request | {self.get_method()} | {self.get_uri()}>"
 
     def __eq__(self, other):
         """
@@ -400,10 +390,7 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         self_qs = self.get_uri().querystring
         other_qs = other.get_uri().querystring
 
-        if not self_qs.is_variant_of(other_qs):
-            return False
-
-        return True
+        return self_qs.is_variant_of(other_qs)
 
     def set_url(self, url):
         if not isinstance(url, URL):
@@ -444,7 +431,7 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         for k, v in list(self.get_default_headers().items()):
             # Ignore any keys which are already defined in the user-specified
             # headers
-            kvalue, kreal = headers.iget(k, None)
+            kvalue, _ = headers.iget(k, None)
             if kvalue is not None:
                 continue
 
@@ -460,7 +447,7 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         if headers is None:
             raise TypeError("headers should not be null")
 
-        if not isinstance(headers, collections.Iterable):
+        if not isinstance(headers, Iterable):
             raise TypeError(TYPE_ERROR % ("_force_fuzzing_headers", "iterable"))
 
         self._force_fuzzing_headers = set(headers)
@@ -480,7 +467,7 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         if url_parts is None:
             raise TypeError("url_parts should not be null")
 
-        if not isinstance(url_parts, collections.Iterable):
+        if not isinstance(url_parts, Iterable):
             raise TypeError(TYPE_ERROR % ("_force_fuzzing_url_parts", "iterable"))
 
         self._force_fuzzing_url_parts = tuple(url_parts)
@@ -527,8 +514,8 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         """
         if not isinstance(post_data, DataContainer):
             raise TypeError(
-                'The "post_data" parameter of a %s must be of '
-                "DataContainer type." % type(self).__name__
+                f'The "post_data" parameter of a {type(self).__name__} must be '
+                "of DataContainer type."
             )
         self._post_data = post_data
 

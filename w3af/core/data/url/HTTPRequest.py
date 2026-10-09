@@ -135,7 +135,7 @@ class HTTPRequest(RequestMixIn, urllib.request.Request):
 
     def get_netloc(self):
         uri = self.get_uri()
-        return "%s:%s" % (uri.get_domain(), uri.get_port())
+        return f"{uri.get_domain()}:{uri.get_port()}"
 
     def get_domain(self):
         return self.get_uri().get_domain()
@@ -223,7 +223,9 @@ class HTTPRequest(RequestMixIn, urllib.request.Request):
         session = udict["session"]
         cache = udict["cache"]
         timeout = (
-            socket.getdefaulttimeout() if udict["timeout"] is None else udict["timeout"]
+            socket._GLOBAL_DEFAULT_TIMEOUT
+            if udict["timeout"] is None
+            else udict["timeout"]
         )
         new_connection = udict["new_connection"]
         follow_redirects = udict["follow_redirects"]

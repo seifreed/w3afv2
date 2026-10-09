@@ -20,11 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from w3af.core.data.constants.encodings import DEFAULT_ENCODING
-from w3af.core.data.misc.encoding import smart_str_ignore
-
-FILENAME_TOKEN = "file-5692fef3f5dcd97"
-PATH_TOKEN = "path-0fb923a04c358a37c"
+FILENAME_PLACEHOLDER = "file-5692fef3f5dcd97"
+PATH_PLACEHOLDER = "path-0fb923a04c358a37c"
 
 
 def clean_data_container(data_container):
@@ -50,7 +47,7 @@ def clean_data_container(data_container):
         else:
             _type = "string"
 
-        result.append("%s=%s" % (key.encode(DEFAULT_ENCODING), _type))
+        result.append(f"{key}={_type}")
 
     return "&".join(result)
 
@@ -63,7 +60,7 @@ def clean_fuzzable_request(fuzzable_request, dc_handler=clean_data_container):
 
     :param fuzzable_request: The fuzzable request instance to clean
     """
-    res = "(%s)-" % fuzzable_request.get_method().upper()
+    res = f"({fuzzable_request.get_method().upper()})-"
     res += clean_url(fuzzable_request.get_uri(), dc_handler=dc_handler)
 
     raw_data = fuzzable_request.get_raw_data()
@@ -105,7 +102,7 @@ def clean_fuzzable_request_form(fuzzable_request, dc_handler=clean_data_containe
     else:
         res.append("")
 
-    return "|".join([smart_str_ignore(s) for s in res])
+    return "|".join(res)
 
 
 def clean_url(url, dc_handler=clean_data_container):
@@ -119,10 +116,10 @@ def clean_url(url, dc_handler=clean_data_container):
     :param url: URL instance
     :return: A "clean" representation of the URL
     """
-    res = url.base_url().url_string.encode(DEFAULT_ENCODING)
+    res = url.base_url().url_string
 
     if url.has_query_string():
-        res += url.get_path().encode(DEFAULT_ENCODING)[1:]
+        res += url.get_path()[1:]
         res += "?" + dc_handler(url.querystring)
     else:
         res += clean_path_filename(url)
@@ -140,14 +137,14 @@ def clean_path_filename(url):
     :param url: The URL instance
     :return: A clean URL string
     """
-    filename = url.get_file_name().encode(DEFAULT_ENCODING)
-    path = url.get_path_without_file().encode(DEFAULT_ENCODING)
+    filename = url.get_file_name()
+    path = url.get_path_without_file()
 
     if filename:
         res = path[1:]
         res += clean_filename(filename)
     else:
-        res = clean_path(url.get_path().encode(DEFAULT_ENCODING))[1:]
+        res = clean_path(url.get_path())[1:]
 
     return res
 
@@ -160,7 +157,7 @@ def clean_filename(filename):
     """
     # Clean the filename
     split_fname = filename.rsplit(".", 1)
-    split_fname[0] = FILENAME_TOKEN
+    split_fname[0] = FILENAME_PLACEHOLDER
 
     # Create the filename again
     return ".".join(split_fname)
@@ -176,6 +173,6 @@ def clean_path(path):
 
     if len(split_path) == 2:
         # We have a path, clean the last part of it
-        split_path[1] = PATH_TOKEN
+        split_path[1] = PATH_PLACEHOLDER
 
     return "/".join(split_path) + "/"

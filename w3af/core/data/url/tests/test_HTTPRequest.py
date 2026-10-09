@@ -71,19 +71,15 @@ class TestHTTPRequest(unittest.TestCase):
         msgpack.dumps(req.to_dict())
 
     def test_dump_case01(self):
-        expected = "\r\n".join(
-            ["GET http://w3af.com/a/b/c.php HTTP/1.1", "Hello: World", "", ""]
-        )
+        expected = "GET http://w3af.com/a/b/c.php HTTP/1.1\r\nHello: World\r\n\r\n"
         u = URL("http://w3af.com/a/b/c.php")
         headers = Headers([("Hello", "World")])
         req = HTTPRequest(u, headers=headers)
 
-        self.assertEqual(req.dump(), expected)
+        self.assertEqual(req.dump(), expected.encode())
 
     def test_dump_case02(self):
-        expected = "\r\n".join(
-            ["GET http://w3af.com/a/b/c.php HTTP/1.1", "Hola: Múndo", "", ""]
-        )
+        expected = "GET http://w3af.com/a/b/c.php HTTP/1.1\r\nHola: Múndo\r\n\r\n"
         u = URL("http://w3af.com/a/b/c.php")
         headers = Headers([("Hola", "Múndo")])
         req = HTTPRequest(u, headers=headers)

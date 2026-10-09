@@ -192,6 +192,38 @@ concretos de Python 3 en `HTTPResponse`, pero no reduce los acoplamientos de
 capas, los módulos concentrados ni los fallos globales de calidad descritos
 arriba.
 
+## Avance: serialización de requests y cola
+
+`RequestMixIn.dump()` ahora devuelve bytes de wire correctamente concatenados,
+codificando texto UTF-8 y preservando cuerpos ya binarios. `FuzzableRequest`
+devuelve `str` válido desde `__str__`, usa `str.translate` y `collections.abc`;
+el roundtrip Base64 funciona para requests de texto. `HTTPRequest.from_dict()`
+conserva el sentinel de timeout por defecto para que el estado serializado sea
+idéntico. Los hashes de requests usan SHA-256; la cola actualizó su sentinel a
+64 dígitos y sus pruebas validan orden por hash, no un orden accidental de
+MD5. El cambio de algoritmo invalida hashes viejos en cachés/índices efímeros,
+pero no cambia el esquema de persistencia.
+
+`clean_dc` ya opera en texto Python 3 en vez de codificar a bytes y mezclar
+separadores; los placeholders se renombraron para distinguirlos de secretos.
+La medición RPM cuenta intervalos entre eventos y la cola ya no tiene bloques
+`except` que solo relanzaban la misma excepción.
+
+Validación focal: **42** pruebas de request/parser, **38** de VariantDB y **10**
+de cola pasan. Black global pasa (1967 archivos), Bandit en los módulos de
+producción tocados no reporta hallazgos, y Ruff focal pasa salvo los dos
+`N999` de nombres CamelCase establecidos (`HTTPRequest.py` y
+`test_HTTPRequest.py`). El total de `ruff check --statistics .` bajó a **5740**.
+Mypy, Bandit global y pip-audit no se ejecutaron en este avance.
+
+Esto resuelve la mayoría de fallos de la batería exploratoria anterior en
+`FuzzableRequest`, VariantDB y cola. Permanecen riesgos por importación Base64
+de bodies binarios (la representación estructurada de FuzzableRequest solo
+decodifica UTF-8), y fallos pendientes en medición RTT, `xml_bones`, lectura de
+plantilla binaria e integración del proxy. La nota global sigue en **2.5/10**:
+los defectos de comportamiento corregidos no cambian aún la arquitectura de
+capas ni hacen pasar las gates globales.
+
 ## Prioridades de refactor
 
 1. Establecer límites de capas y una regla automatizada que impida imports desde

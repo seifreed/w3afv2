@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import threading
 import time
 import unittest
+from queue import Empty
 
 from w3af.core.data.dc.generic.kv_container import KeyValueContainer
 from w3af.core.data.dc.headers import Headers
@@ -83,58 +84,45 @@ class TestOrderedCachedQueue(unittest.TestCase):
             fr = q.get()
             self.assertEqual(fr.get_hash(), hash_list[i])
 
-    def test_prefer_memory_over_disk(self):
+    def test_reads_disk_and_memory_entries_in_hash_order(self):
         q = OrderedCachedQueue(maxsize=2)
 
-        # These two go to the in memory queue
-        q.put(create_simple_fuzzable_request(1))
-        q.put(create_simple_fuzzable_request(2))
+        requests = [create_simple_fuzzable_request(i) for i in range(1, 4)]
+        for request in requests[:2]:
+            q.put(request)
 
-        # This one goes to the disk queue
-        q.put(create_simple_fuzzable_request(3))
-
-        # Read one from memory
-        q.get()
-        self.assertEqual(len(q.memory), 1)
-        self.assertEqual(len(q.disk), 1)
-
-        # Write one to memory
-        q.put(create_simple_fuzzable_request(3))
+        q.put(requests[2])
         self.assertEqual(len(q.memory), 2)
         self.assertEqual(len(q.disk), 1)
 
+        self.assertEqual(q.get(), min(requests, key=lambda request: request.get_hash()))
+        self.assertEqual(q.qsize(), 2)
+
+        q.put(requests[2])
+        self.assertEqual(q.qsize(), 3)
+        self.assertEqual(len(q.memory) + len(q.disk), 3)
+
     def test_add_exceed_memory(self):
         q = OrderedCachedQueue(maxsize=2)
+        requests = [create_simple_fuzzable_request(i) for i in range(1, 4)]
 
         # These two go to the in memory queue
-        q.put(create_simple_fuzzable_request(1))
-        q.put(create_simple_fuzzable_request(2))
+        q.put(requests[0])
+        q.put(requests[1])
 
         self.assertEqual(q.qsize(), 2)
         self.assertEqual(len(q.memory), 2)
 
         # This one goes to the disk queue
-        q.put(create_simple_fuzzable_request(3))
+        q.put(requests[2])
 
         self.assertEqual(q.qsize(), 3)
         self.assertEqual(len(q.memory), 2)
         self.assertEqual(len(q.disk), 1)
 
-        # Get all
-        self.assertEqual(read_fuzzable_request_parameter(q.get()), 1)
-
-        self.assertEqual(len(q.memory), 1)
-        self.assertEqual(len(q.disk), 1)
-
-        self.assertEqual(read_fuzzable_request_parameter(q.get()), 2)
-
-        self.assertEqual(len(q.memory), 0)
-        self.assertEqual(len(q.disk), 1)
-
-        self.assertEqual(read_fuzzable_request_parameter(q.get()), 3)
-
-        self.assertEqual(len(q.memory), 0)
-        self.assertEqual(len(q.disk), 0)
+        expected = sorted(requests, key=lambda request: request.get_hash())
+        for expected_request in expected:
+            self.assertEqual(q.get(), expected_request)
 
         self.assertEqual(q.qsize(), 0)
 
@@ -143,7 +131,7 @@ class TestOrderedCachedQueue(unittest.TestCase):
         q.put(create_simple_fuzzable_request(1))
         q.get()
 
-        self.assertRaises(Exception, q.get, block=False)
+        self.assertRaises(Empty, q.get, block=False)
 
         q.put(create_simple_fuzzable_request(1))
         self.assertEqual(read_fuzzable_request_parameter(q.get()), 1)

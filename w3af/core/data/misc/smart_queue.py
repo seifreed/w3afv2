@@ -80,7 +80,7 @@ class QueueSpeedMeasurement:
         last_item = data[-1]
 
         # Count all items that were logged in the last MAX_SECONDS_IN_THE_PAST
-        all_items = len(data)
+        all_intervals = len(data) - 1
 
         time_delta = last_item - first_item
 
@@ -90,7 +90,7 @@ class QueueSpeedMeasurement:
             time_delta = 0.01
 
         # Calculate RPM and return it
-        return 60.0 * all_items / time_delta
+        return 60.0 * all_intervals / time_delta
 
 
 class SmartQueue(QueueSpeedMeasurement):
@@ -113,29 +113,25 @@ class SmartQueue(QueueSpeedMeasurement):
         return self._name
 
     def get(self, block=True, timeout=None):
-        try:
-            data = self.q.get(block=block, timeout=timeout)
-        except:
-            raise
-        else:
-            if data is None:
-                return data
+        data = self.q.get(block=block, timeout=timeout)
+        if data is None:
+            return data
 
-            timestamp, item = data
-            import w3af.core.controllers.output_manager as om
+        timestamp, item = data
+        import w3af.core.controllers.output_manager as om
 
-            msg = "Item waited %.2f seconds to get out of the %s queue. Items in queue: %s / %s"
-            block_time = time.time() - timestamp
-            args = (
-                round(block_time, 2),
-                self.get_name(),
-                self.q.qsize(),
-                self.q.maxsize,
-            )
-            om.out.debug(msg % args)
+        msg = "Item waited %.2f seconds to get out of the %s queue. Items in queue: %s / %s"
+        block_time = time.time() - timestamp
+        args = (
+            round(block_time, 2),
+            self.get_name(),
+            self.q.qsize(),
+            self.q.maxsize,
+        )
+        om.out.debug(msg % args)
 
-            self._item_left_queue()
-            return item
+        self._item_left_queue()
+        return item
 
     def put(self, item, block=True, timeout=None):
         #
@@ -165,23 +161,19 @@ class SmartQueue(QueueSpeedMeasurement):
 
         timestamp = time.time()
 
-        try:
-            put_res = self.q.put((timestamp, item), block=block, timeout=timeout)
-        except:
-            raise
-        else:
-            if block_start_time is not None:
-                msg = (
-                    "Thread blocked %.2f seconds waiting for Queue.put() to"
-                    " have space in the %s queue. The queue's maxsize is"
-                    " %s."
-                )
-                block_time = time.time() - block_start_time
-                args = (round(block_time, 2), self.get_name(), self.q.maxsize)
-                om.out.debug(msg % args)
+        put_res = self.q.put((timestamp, item), block=block, timeout=timeout)
+        if block_start_time is not None:
+            msg = (
+                "Thread blocked %.2f seconds waiting for Queue.put() to"
+                " have space in the %s queue. The queue's maxsize is"
+                " %s."
+            )
+            block_time = time.time() - block_start_time
+            args = (round(block_time, 2), self.get_name(), self.q.maxsize)
+            om.out.debug(msg % args)
 
-            self._item_added_to_queue()
-            return put_res
+        self._item_added_to_queue()
+        return put_res
 
     def __getattr__(self, attr):
         if attr in self.__dict__:
