@@ -25,7 +25,7 @@ from operator import xor
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.epoch_to_string import epoch_to_string
-from w3af.core.controllers.misc.number_generator import consecutive_number_generator
+from w3af.core.data.misc.number_generator import consecutive_number_generator
 
 PAUSED = "Paused"
 STOPPED = "Stopped"

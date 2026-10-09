@@ -395,10 +395,31 @@ tests de integración de los plugins fallaron al no resolver el host externo
 `fallback`; uno de esos caminos también expuso el uso legado de
 `socket.sslerror` al procesar ese error de conexión. Los módulos de producción
 tocados pasan Ruff, Black e inspección Bandit focal. Black global pasa (1968
-archivos); Ruff global reporta 1244 errores, mypy 2254 en 615 archivos y
+archivos); Ruff global reporta 1243 errores, mypy 2254 en 615 archivos y
 Bandit global 15343 Low, 960 Medium y 780 High al incluir `venv` y código
 vendorizado. `pip-audit` no halló vulnerabilidades conocidas, aunque avisó de
 entradas de caché ilegibles. Los pins de mitmproxy, `aioquic==1.2.0` y
 `urwid==4.0.13` permanecen intactos. El score global sigue en **2.5/10**:
 este movimiento retira una dependencia de controllers del flujo de KB, pero
 quedan muchos imports y los gates globales siguen fallando.
+
+## Avance: generador de IDs en la capa de datos
+
+`NumberGenerator` y su singleton `consecutive_number_generator` se movieron de
+`controllers.misc` a `data.misc`; los consumidores de KB, URL y controladores
+comparten ahora la misma instancia desde la capa inferior. `get()` lee el
+contador bajo el lock usado por `inc()`/`reset()`. Cuatro tests reales cubren
+incremento, lectura, reset y concurrencia con **100% de cobertura** del módulo.
+
+Al validar los consumidores también apareció un `cmp` indefinido en
+`url.helpers`, ruta ejecutada al limpiar cuerpos: se ordenan payloads por
+longitud descendente con la API actual de Python y un test demuestra que se
+retira el payload más largo antes que su prefijo. Ruff y Black pasan en los 12
+archivos tocados; Bandit focal no reporta hallazgos. Las suites focales del
+contador y limpieza de cuerpo suman **23 tests correctos**. En suites
+relacionadas, 13 pasan y uno falla por DNS externo; otras dos fallas son una
+expectativa preexistente de status (`None` frente a `0`) y un servidor remoto
+que devolvió 522 en vez de 404. Mypy focal sigue fallando por dos errores
+transitivos en `core.data.__init__` y `core.__init__`. El score global permanece
+en **2.5/10**: se eliminaron más dependencias ascendentes de la capa de datos,
+pero la mayor parte de los acoplamientos y deuda global siguen pendientes.

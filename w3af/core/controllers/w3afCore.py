@@ -65,7 +65,7 @@ from w3af.core.controllers.misc.home_dir import (
     get_home_dir,
     verify_dir_has_perm,
 )
-from w3af.core.controllers.misc.number_generator import consecutive_number_generator
+from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.controllers.misc.temp_dir import (
     TEMP_DIR,
     create_temp_dir,

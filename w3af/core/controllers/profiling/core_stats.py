@@ -27,7 +27,7 @@ import traceback
 from functools import partial
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.misc.number_generator import consecutive_number_generator
+from w3af.core.data.misc.number_generator import consecutive_number_generator
 
 from .utils import cancel_thread, dump_data_every_thread, get_filename_fmt
 

@@ -36,13 +36,12 @@ from errno import (
     ENOSPC,
     ETIMEDOUT,
 )
-from functools import cmp_to_key
 
 import OpenSSL
 
 from w3af.core.controllers.exceptions import HTTPRequestException
 from w3af.core.controllers.misc.itertools_toolset import unique_everseen_hash
-from w3af.core.controllers.misc.number_generator import consecutive_number_generator
+from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.data.constants.response_codes import NO_CONTENT
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.misc.encoding import PERCENT_ENCODE, smart_unicode
@@ -348,7 +347,7 @@ def get_clean_body_impl(
 
     # uniq sorted by longest len
     encoded_payloads = list(encoded_payloads)
-    encoded_payloads.sort(key=cmp_to_key(lambda x, y: cmp(len(y), len(x))))
+    encoded_payloads.sort(key=len, reverse=True)
     encoded_payloads = [i.lower() for i in encoded_payloads]
 
     for to_replace in encoded_payloads:

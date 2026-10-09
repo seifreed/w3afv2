@@ -49,7 +49,8 @@ class NumberGenerator:
         """
         :return: The current number
         """
-        return self._id
+        with self._lock:
+            return self._id
 
     def reset(self):
         """

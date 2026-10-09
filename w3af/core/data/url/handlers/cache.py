@@ -24,7 +24,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-from w3af.core.controllers.misc.number_generator import (
+from w3af.core.data.misc.number_generator import (
     consecutive_number_generator as core_num_gen,
 )
 from w3af.core.data.url.handlers.cache_backend.db import SQLCachedResponse

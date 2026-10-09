@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.configurable import Configurable
-from w3af.core.controllers.misc.number_generator import consecutive_number_generator
+from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.data.constants import severity
 from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
 from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant

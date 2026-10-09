@@ -30,11 +30,22 @@ from w3af.core.data.fuzzer.mutants.tests.test_mutant import FakeMutant
 from w3af.core.data.misc.web_encodings import SPECIAL_CHARS
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.url.helpers import apply_multi_escape_table, get_clean_body
+from w3af.core.data.url.helpers import (
+    apply_multi_escape_table,
+    get_clean_body,
+    get_clean_body_impl,
+)
 from w3af.core.data.url.HTTPResponse import HTTPResponse
 
 
 class TestGetCleanBody(unittest.TestCase):
+    def test_get_clean_body_impl_removes_longer_payload_first(self):
+        clean_body = get_clean_body_impl(
+            "abc123", ["abc", "abc123"], multi_encode=False
+        )
+
+        self.assertEqual(clean_body, "")
+
     def test_get_clean_body_simple(self):
         payload = "payload"
 
