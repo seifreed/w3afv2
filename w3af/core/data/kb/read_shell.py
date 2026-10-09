@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import textwrap
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.intrusion_tools.readMethodHelpers import read_os_detection
+from w3af.core.data.kb.os_detection import detect_remote_os
 from w3af.core.data.kb.shell import Shell
 from w3af.core.exceptions import OSDetectionException
 from w3af.plugins.attack.payloads.decorators.download_decorator import download_debug
@@ -146,7 +146,11 @@ class ReadShell(Shell):
         the OS.
         """
         try:
-            self._rOS = read_os_detection(self.read)
+            self._rOS = detect_remote_os(self.read)
+            om.out.debug(
+                f"Identified remote OS as {self._rOS.title()}, "
+                f'returning "{self._rOS}".'
+            )
         except OSDetectionException:
             self._rOS = "unknown"
 

@@ -766,3 +766,20 @@ Diez tests de excepciones pasan con **100% de cobertura** y los tres tests de
 no quedan imports de la definición anterior. El score global sube a **4.1/10**:
 se elimina otro acoplamiento de datos a controllers, aunque aún queda amplia
 deuda de capas y las gates globales no están verdes.
+
+## Avance: detección de SO en la capa de datos
+
+`read_os_detection(remote_read)` era un algoritmo basado en un callback, pero
+vivía en `controllers.intrusion_tools` e importaba `output_manager`. Se movió a
+`core.data.kb.os_detection.detect_remote_os`; los mensajes de diagnóstico
+quedaron en los dos callers y el helper ahora solo depende del callback y de
+`core.exceptions`. Se eliminó el módulo controller que no tenía más funciones.
+Los errores esperables de lectura se limitan a `BaseFrameworkException` y
+`OSError`, dejando propagar errores de programación antes silenciados.
+
+Cuatro tests usan ficheros temporales reales para Linux, Windows, detección
+desconocida y errores de lectura; el módulo tiene **100% de cobertura**. Los
+tres tests de `ReadShell` pasan, al igual que Ruff completo para el helper y
+test, Black, Ruff de imports de callers, compilación y diff check. Score global:
+**4.2/10**; reduce otro import ascendente de datos, pero el resto del proyecto y
+las gates globales aún requieren trabajo.

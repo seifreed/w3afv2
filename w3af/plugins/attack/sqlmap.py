@@ -27,10 +27,10 @@ import textwrap
 from multiprocessing.dummy import Process
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.intrusion_tools.readMethodHelpers import read_os_detection
 from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
 from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
 from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
+from w3af.core.data.kb.os_detection import detect_remote_os
 from w3af.core.data.kb.read_shell import ReadShell
 from w3af.core.exceptions import OSDetectionException
 from w3af.plugins.attack.db.sqlmap_wrapper import SQLMapWrapper, Target
@@ -299,7 +299,11 @@ class SQLMapShell(ReadShell):
         the OS.
         """
         try:
-            self._rOS = read_os_detection(self.read)
+            self._rOS = detect_remote_os(self.read)
+            om.out.debug(
+                f"Identified remote OS as {self._rOS.title()}, "
+                f'returning "{self._rOS}".'
+            )
         except OSDetectionException as osde:
             om.out.debug("%s" % osde)
             self._rOS = "unknown"
