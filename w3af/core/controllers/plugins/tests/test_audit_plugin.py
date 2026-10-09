@@ -77,7 +77,7 @@ class TestAuditPlugin(unittest.TestCase):
 
         port = upper_daemon.get_port()
 
-        url = URL("http://127.0.0.1:%s/" % port)
+        url = URL(f"http://127.0.0.1:{port}/")
         freq = FuzzableRequest(url)
 
         plugin_inst = self.w3af.plugins.get_plugin_inst("audit", "sqli")

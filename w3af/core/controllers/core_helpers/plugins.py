@@ -166,7 +166,7 @@ class CorePlugins:
             ):
 
                 if raise_on_error:
-                    raise ValueError("Unknown plugin %s" % plugin_name)
+                    raise ValueError(f"Unknown plugin {plugin_name}")
                 else:
                     unknown_plugins.append(plugin_name)
 
@@ -202,7 +202,7 @@ class CorePlugins:
                             'sqli', etc
         """
         try:
-            amodule = sys.modules["w3af.plugins.%s.%s" % (plugin_type, plugin_name)]
+            amodule = sys.modules[f"w3af.plugins.{plugin_type}.{plugin_name}"]
         except KeyError:
             msg = "Tried to reload a plugin that was never imported! (%s.%s)"
             om.out.debug(msg % (plugin_type, plugin_name))
@@ -215,8 +215,8 @@ class CorePlugins:
         :return: A description of the plugin type passed as parameter
         """
         try:
-            __import__("w3af.plugins.%s" % plugin_type)
-            a_module = sys.modules["w3af.plugins.%s" % plugin_type]
+            __import__(f"w3af.plugins.{plugin_type}")
+            a_module = sys.modules[f"w3af.plugins.{plugin_type}"]
         except Exception:
             msg = 'Unknown plugin type: "%s".'
             raise BaseFrameworkException(msg % plugin_type)
@@ -253,7 +253,7 @@ class CorePlugins:
         """
         :return: An instance of a plugin.
         """
-        plugin_inst = factory("w3af.plugins.%s.%s" % (plugin_type, plugin_name))
+        plugin_inst = factory(f"w3af.plugins.{plugin_type}.{plugin_name}")
         plugin_inst.set_url_opener(self._w3af_core.uri_opener)
         plugin_inst.set_worker_pool(self._w3af_core.worker_pool)
         plugin_inst.set_w3af_core(self._w3af_core)
@@ -312,14 +312,13 @@ class CorePlugins:
                         msg = (
                             "Plugin dependencies must be indicated using"
                             " plugin_type.plugin_name notation. This is"
-                            " an error in %s.get_plugin_deps()." % plugin_name
+                            f" an error in {plugin_name}.get_plugin_deps()."
                         )
                         raise BaseFrameworkException(msg)
 
                     if dep_plugin_name not in self._plugins_names_dict[dep_plugin_type]:
                         om.out.information(
-                            "Enabling %s's dependency %s"
-                            % (plugin_name, dep_plugin_name)
+                            f"Enabling {plugin_name}'s dependency {dep_plugin_name}"
                         )
 
                         self._plugins_names_dict[dep_plugin_type].append(

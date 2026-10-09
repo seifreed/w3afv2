@@ -13,7 +13,7 @@ def distribution_matches(name, version=None):
     except OSError:
         return False
 
-    identifiers = "%s %s" % (release.get("ID", ""), release.get("NAME", ""))
+    identifiers = "{} {}".format(release.get("ID", ""), release.get("NAME", ""))
     if name.lower() not in identifiers.lower():
         return False
 

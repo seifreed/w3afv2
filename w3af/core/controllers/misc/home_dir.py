@@ -109,7 +109,7 @@ def verify_dir_has_perm(path, perm, levels=0):
     :param levels: Depth levels to test
     """
     if not os.path.exists(path):
-        raise RuntimeError("%s does NOT exist!" % path)
+        raise RuntimeError(f"{path} does NOT exist!")
 
     path = os.path.normpath(path)
     pdepth = len(path.split(os.path.sep))

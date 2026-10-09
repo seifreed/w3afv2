@@ -49,4 +49,4 @@ class PIPDependency:
         )
 
     def __repr__(self):
-        return "<PIPDependency (%s|%s)>" % (self.package_name, self.package_version)
+        return f"<PIPDependency ({self.package_name}|{self.package_version})>"

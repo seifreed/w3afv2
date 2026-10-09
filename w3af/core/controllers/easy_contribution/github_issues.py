@@ -159,7 +159,7 @@ class GithubIssues:
                 bug_summary = m.hexdigest()
 
         # Generate the summary string. Concat 'user_title'
-        summary = "%sBug Report - %s" % (
+        summary = "{}Bug Report - {}".format(
             autogen and "[Auto-Generated] " or "",
             bug_summary,
         )

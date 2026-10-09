@@ -158,7 +158,7 @@ def parse_options():
         sys.exit(3)
 
     if len(args):
-        sys.stderr.write("Extraneous arguments: %s\n" % args)
+        sys.stderr.write(f"Extraneous arguments: {args}\n")
         sys.exit(3)
 
     # ps_mem.py options
@@ -318,14 +318,14 @@ def human(num, power="Ki", units=None):
         while num >= 1000:  # 4 digits
             num /= 1024.0
             power = powers[powers.index(power) + 1]
-        return "%.1f %sB" % (num, power)
+        return f"{num:.1f} {power}B"
     else:
         return "%.f" % ((num * 1024) / units)
 
 
 def cmd_with_count(cmd, count):
     if count > 1:
-        return "%s (%u)" % (cmd, count)
+        return f"{cmd} ({count:d})"
     else:
         return cmd
 
@@ -361,21 +361,21 @@ def shared_val_accuracy():
 def show_shared_val_accuracy(possible_inacc, only_total=False):
     level = ("Warning", "Error")[only_total]
     if possible_inacc == -1:
-        sys.stderr.write("%s: Shared memory is not reported by this system.\n" % level)
+        sys.stderr.write(f"{level}: Shared memory is not reported by this system.\n")
         sys.stderr.write(
             "Values reported will be too large, and totals are not reported\n"
         )
     elif possible_inacc == 0:
         sys.stderr.write(
-            "%s: Shared memory is not reported accurately by this system.\n" % level
+            f"{level}: Shared memory is not reported accurately by this system.\n"
         )
         sys.stderr.write(
             "Values reported could be too large, and totals are not reported\n"
         )
     elif possible_inacc == 1:
         sys.stderr.write(
-            "%s: Shared memory is slightly over-estimated by this system\n"
-            "for each program, so totals are not reported.\n" % level
+            f"{level}: Shared memory is slightly over-estimated by this system\n"
+            "for each program, so totals are not reported.\n"
         )
     sys.stderr.close()
     if only_total and possible_inacc != 2:
@@ -452,19 +452,16 @@ def print_header():
 
 def print_memory_usage(sorted_cmds, shareds, count, total):
     for cmd in sorted_cmds:
-        sys.stdout.write(
-            "%9s + %9s = %9s\t%s\n"
-            % (
-                human(cmd[1] - shareds[cmd[0]]),
-                human(shareds[cmd[0]]),
-                human(cmd[1]),
-                cmd_with_count(cmd[0], count[cmd[0]]),
-            )
-        )
+        private = human(cmd[1] - shareds[cmd[0]])
+        shared = human(shareds[cmd[0]])
+        used = human(cmd[1])
+        program = cmd_with_count(cmd[0], count[cmd[0]])
+        sys.stdout.write(f"{private:>9} + {shared:>9} = {used:>9}\t{program}\n")
     if have_pss:
-        sys.stdout.write(
-            "%s\n%s%9s\n%s\n" % ("-" * 33, " " * 24, human(total), "=" * 33)
-        )
+        separator = "-" * 33
+        padding = " " * 24
+        footer = "=" * 33
+        sys.stdout.write(f"{separator}\n{padding}{human(total):>9}\n{footer}\n")
 
 
 def verify_environment():

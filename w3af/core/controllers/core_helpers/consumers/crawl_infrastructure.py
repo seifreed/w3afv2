@@ -159,7 +159,7 @@ class CrawlInfrastructure(BaseConsumer):
         om.out.debug(msg % len(to_teardown))
 
         for plugin in to_teardown:
-            om.out.debug("Calling %s.end()" % plugin.get_name())
+            om.out.debug(f"Calling {plugin.get_name()}.end()")
             start_time = time.time()
 
             try:
@@ -373,14 +373,14 @@ class CrawlInfrastructure(BaseConsumer):
         # print the URLs
         om.out.information("The URL list is:")
 
-        tmp_url_list = ["- %s" % u.url_string for u in tmp_url_list]
+        tmp_url_list = [f"- {u.url_string}" for u in tmp_url_list]
         tmp_url_list.sort()
         list(map(om.out.information, tmp_url_list))
 
         # Now I simply print the list that I have after the filter.
         om.out.information("The list of fuzzable requests is:")
 
-        tmp_fr = ["- %s" % str(fr) for fr in all_known_fuzzable_requests]
+        tmp_fr = [f"- {str(fr)}" for fr in all_known_fuzzable_requests]
         tmp_fr.sort()
         list(map(om.out.information, tmp_fr))
 
@@ -542,7 +542,7 @@ class CrawlInfrastructure(BaseConsumer):
         debugging_id = rand_alnum(8)
 
         args = (plugin.get_name(), fuzzable_request.get_uri(), debugging_id)
-        om.out.debug("%s.discover(%s, did=%s)" % args)
+        om.out.debug("{}.discover({}, did={})".format(*args))
 
         took_line = TookLine(
             self._w3af_core,

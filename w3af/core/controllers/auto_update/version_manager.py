@@ -221,7 +221,7 @@ class VersionMgr:
         try:
             changelog = self._client.pull()
         except GitClientError as exc:
-            msg = "%s" % exc
+            msg = f"{exc}"
             self._notify(VersionMgr.ON_ACTION_ERROR, msg)
             return
         else:

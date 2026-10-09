@@ -45,7 +45,7 @@ def factory(module_name, *args):
     """
     module_path = module_name.replace(".", "/")
     module_path = module_path.replace("w3af/", "")
-    module_path = "%s.py" % module_path
+    module_path = f"{module_path}.py"
     module_path = os.path.join(ROOT_PATH, module_path)
 
     if not os.path.exists(module_path):

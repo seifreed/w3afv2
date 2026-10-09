@@ -54,12 +54,7 @@ class ProxyHandler:
         Convert libmproxy.http.HTTPRequest to
         w3af.core.data.url.HTTPRequest.HTTPRequest
         """
-        url = "%s://%s:%s%s" % (
-            request.scheme,
-            request.host,
-            request.port,
-            request.path,
-        )
+        url = f"{request.scheme}://{request.host}:{request.port}{request.path}"
 
         return HTTPRequest(
             URL(url),

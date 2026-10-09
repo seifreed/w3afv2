@@ -139,7 +139,7 @@ class w3afCore:
         # output manager thread to start it's work. I would start that thread
         # on output manager instantiation but there are issues with starting
         # threads at module import time.
-        om.out.debug("Created new w3afCore instance: %s" % id(self))
+        om.out.debug(f"Created new w3afCore instance: {id(self)}")
 
         # Create some directories, do this every time before starting a new
         # scan and before doing any other core init because these are widely
@@ -249,7 +249,7 @@ class w3afCore:
         self._first_scan = False
 
         om.out.debug(
-            "Starting the scan using w3af version %s" % get_w3af_version_minimal()
+            f"Starting the scan using w3af version {get_w3af_version_minimal()}"
         )
 
         try:
@@ -299,7 +299,7 @@ class w3afCore:
             # requested the scanner to stop. From here the code continues at the
             # "finally" clause, which simply shows a message saying that the
             # scan finished.
-            om.out.information("%s" % sbur)
+            om.out.information(f"{sbur}")
 
         except ScanMustStopByUnknownReasonExc:
             #
@@ -332,7 +332,7 @@ class w3afCore:
         finally:
             time_spent = self.status.get_scan_time()
 
-            om.out.information("Scan finished in %s" % time_spent)
+            om.out.information(f"Scan finished in {time_spent}")
             om.out.information("Stopping the core...")
 
             self.strategy.stop()
@@ -485,7 +485,7 @@ class w3afCore:
         for _ in range(int(wait_max / loop_delay)):
             if not self.status.is_running():
                 core_stop_time = epoch_to_string(stop_start_time)
-                msg = "%s were needed to stop the core." % core_stop_time
+                msg = f"{core_stop_time} were needed to stop the core."
                 break
 
             try:
@@ -640,17 +640,17 @@ class w3afCore:
 
         # Start by trying to create the home directory (linux: /home/user/.w3af/)
         if not create_home_dir():
-            print('Failed to create the w3af home directory "%s".' % home_dir)
+            print(f'Failed to create the w3af home directory "{home_dir}".')
             sys.exit(-3)
 
         # If this fails, maybe it is because the home directory doesn't exist
         # or simply because it ain't writable|readable by this user
         if not verify_dir_has_perm(home_dir, perm=os.W_OK | os.R_OK, levels=1):
             print(
-                'Either the w3af home directory "%s" or its contents are not'
+                f'Either the w3af home directory "{home_dir}" or its contents are not'
                 " writable or readable. Please set the correct permissions"
                 " and ownership. This usually happens when running w3af as"
-                ' root using "sudo".' % home_dir
+                ' root using "sudo".'
             )
             sys.exit(-3)
 
@@ -663,8 +663,8 @@ class w3afCore:
             create_temp_dir()
         except Exception:
             msg = (
-                'The w3af tmp directory "%s" is not writable. Please set '
-                "the correct permissions and ownership." % TEMP_DIR
+                f'The w3af tmp directory "{TEMP_DIR}" is not writable. Please set '
+                "the correct permissions and ownership."
             )
             print(msg)
             sys.exit(-3)

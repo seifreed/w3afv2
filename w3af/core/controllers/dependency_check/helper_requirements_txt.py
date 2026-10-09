@@ -44,9 +44,9 @@ def generate_requirements_txt(failed_deps):
     if failed_deps:
         for pkg in failed_deps:
             if pkg.is_git:
-                req_file.write("%s\n" % pkg.git_src)
+                req_file.write(f"{pkg.git_src}\n")
             else:
-                req_file.write("%s==%s\n" % (pkg.package_name, pkg.package_version))
+                req_file.write(f"{pkg.package_name}=={pkg.package_version}\n")
 
     req_file.close()
     return REQUIREMENTS_TXT

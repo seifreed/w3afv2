@@ -54,7 +54,7 @@ class TestInterceptProxy(unittest.TestCase):
         port = self._proxy.get_port()
 
         # Build the proxy opener
-        proxy_url = "http://%s:%s" % (self.IP, port)
+        proxy_url = f"http://{self.IP}:{port}"
         proxy_handler = urllib.request.ProxyHandler(
             {"http": proxy_url, "https": proxy_url}
         )
@@ -146,7 +146,7 @@ class TestInterceptProxy(unittest.TestCase):
 
     def test_trap_many(self):
         def send_request(_id, proxy_opener, results, exceptions):
-            url = get_moth_http("/%s" % _id)
+            url = get_moth_http(f"/{_id}")
 
             try:
                 response = proxy_opener.open(url, timeout=10)

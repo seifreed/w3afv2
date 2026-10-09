@@ -30,4 +30,4 @@ class TestW3afGUI(unittest.TestCase):
         try:
             compiler.compile(open("w3af_gui").read(), "/tmp/foo.tmp", "exec")
         except SyntaxError as se:
-            self.assertTrue(False, 'Error in w3af_gui code "%s"' % se)
+            self.assertTrue(False, f'Error in w3af_gui code "{se}"')

@@ -30,4 +30,4 @@ def get_sqlmap_testenv_http(path="/"):
     except OSError:
         sqlmap_testenv_netloc = DEFAULT_SQLMAP_TESTENV
 
-    return "http://%s%s" % (sqlmap_testenv_netloc, path)
+    return f"http://{sqlmap_testenv_netloc}{path}"

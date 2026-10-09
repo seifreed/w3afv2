@@ -115,7 +115,7 @@ class CoreStatus:
                 if status_str:
                     status_str += "\n"
 
-                status_str += "Auditing %s using %s.%s" % (
+                status_str += "Auditing {} using {}.{}".format(
                     audit_fr,
                     "audit",
                     audit_plugin,
@@ -517,7 +517,7 @@ class CoreStatus:
             if fuzzable_request is None:
                 return fuzzable_request
 
-            return "%s %s" % (fuzzable_request.get_method(), fuzzable_request.get_uri())
+            return f"{fuzzable_request.get_method()} {fuzzable_request.get_uri()}"
 
         crawl_fuzzable_request = self.get_current_fuzzable_request("crawl")
         crawl_fuzzable_request = serialize_fuzzable_request(crawl_fuzzable_request)
@@ -596,9 +596,7 @@ class CoreStatus:
         if progress == 100 and self.any_consumer_running():
             progress = 99
 
-        om.out.debug(
-            "The scan will finish in %.2f seconds (%s%% done)" % (eta, progress)
-        )
+        om.out.debug(f"The scan will finish in {eta:.2f} seconds ({progress}% done)")
 
         return progress
 
@@ -730,7 +728,7 @@ class CoreStatus:
         return Adjustment(known=1.0, unknown=0.75)
 
     def log_eta(self, msg):
-        om.out.debug("[get_eta] %s" % msg)
+        om.out.debug(f"[get_eta] {msg}")
 
     def get_eta(self):
         """

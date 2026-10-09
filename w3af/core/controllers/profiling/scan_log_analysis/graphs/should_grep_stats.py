@@ -27,7 +27,7 @@ def get_should_grep_data(scan_log_filename, scan):
         try:
             stats_dict = to_dict(match.group(1))
         except:
-            print("Warning: %s is not valid JSON" % match.group(1))
+            print(f"Warning: {match.group(1)} is not valid JSON")
             continue
         else:
             should_grep_data.append(stats_dict)
@@ -54,14 +54,14 @@ def draw_should_grep(scan_log_filename, scan):
     last_data = should_grep_data[-1]
 
     print("should_grep() stats")
-    print("    Latest should_grep() count: %r" % last_data)
+    print(f"    Latest should_grep() count: {last_data!r}")
 
     # Calculate %
     last_data = should_grep_data[-1]
     total = sum(v for k, v in last_data.items())
     total = float(total)
     data_percent = dict((k, round((v / total) * 100)) for k, v in last_data.items())
-    print("    Latest should_grep() percentages: %r" % data_percent)
+    print(f"    Latest should_grep() percentages: {data_percent!r}")
     print()
 
     fig = plotille.Figure()

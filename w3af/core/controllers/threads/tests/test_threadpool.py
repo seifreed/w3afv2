@@ -41,7 +41,7 @@ class TestWorkerPool(unittest.TestCase):
 
         def raise_on_1(foo):
             if foo == 1:
-                raise TypeError("%s Boom!" % foo)
+                raise TypeError(f"{foo} Boom!")
 
             return foo
 

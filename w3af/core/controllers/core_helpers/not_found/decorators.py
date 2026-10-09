@@ -135,7 +135,7 @@ class LRUCache404(Decorator):
     def _log_stats(self, http_response):
         if self._stats_total % self.STATS_EVERY == 0:
             rate = self._stats_from_cache / self._stats_total * 100
-            om.out.debug("The 404 cache has a %.2f %% hit rate" % rate)
+            om.out.debug(f"The 404 cache has a {rate:.2f} % hit rate")
 
     def _log_success(self, http_response, result, cache_name):
         self._stats_from_cache += 1

@@ -47,9 +47,7 @@ class CrawlPlugin(Plugin):
         :param fuzzable_request: The target to use for infrastructure plugins.
         :param debugging_id: A unique identifier for this call to discover()
         """
-        om.out.debug(
-            '[%s] Crawling "%s"' % (self.get_name(), fuzzable_request.get_uri())
-        )
+        om.out.debug(f'[{self.get_name()}] Crawling "{fuzzable_request.get_uri()}"')
 
         # I copy the fuzzable request, to avoid cross plugin contamination
         # in other words, if one plugin modified the fuzzable request object
@@ -64,7 +62,7 @@ class CrawlPlugin(Plugin):
             # happens at lower layers.
             #
             # https://github.com/andresriancho/w3af/issues/8949
-            om.out.debug("%s" % ffde)
+            om.out.debug(f"{ffde}")
 
     def crawl(self, fuzzable_request, debugging_id):
         """

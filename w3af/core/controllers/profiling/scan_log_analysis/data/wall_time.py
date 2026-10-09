@@ -23,8 +23,8 @@ def show_generic_spent_time(scan, name, must_have):
             spent_time += float(match.group(1))
 
     return KeyValueOutput(
-        "%s_spent_time" % name,
-        "Time spent running %s plugins" % name,
+        f"{name}_spent_time",
+        f"Time spent running {name} plugins",
         {"human": epoch_to_string(spent_time), "seconds": spent_time},
     )
 

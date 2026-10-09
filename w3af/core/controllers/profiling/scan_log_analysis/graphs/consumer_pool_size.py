@@ -74,13 +74,13 @@ def draw_consumer_pool_size(scan_log_filename, scan):
         return
 
     print("Idle thread pool workers over time")
-    print("    Latest idle core workers %s%%" % worker_pool_perc[-1])
+    print(f"    Latest idle core workers {worker_pool_perc[-1]}%")
 
     if consumer_pool_perc_audit:
-        print("    Latest idle audit workers %s%%" % consumer_pool_perc_audit[-1])
+        print(f"    Latest idle audit workers {consumer_pool_perc_audit[-1]}%")
 
     if consumer_pool_perc_crawl:
-        print("    Latest idle crawl-infra workers %s%%" % consumer_pool_perc_crawl[-1])
+        print(f"    Latest idle crawl-infra workers {consumer_pool_perc_crawl[-1]}%")
 
     print()
 

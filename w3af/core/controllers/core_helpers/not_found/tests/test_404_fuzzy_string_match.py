@@ -72,7 +72,7 @@ class Test404FuzzyStringMatch(unittest.TestCase):
             self.not_exists_data.close()
 
     def _create_http_response(self, domain, body, is_404):
-        url = URL("http://%s/%s" % (domain, FAILED_FILENAME if is_404 else ""))
+        url = URL("http://{}/{}".format(domain, FAILED_FILENAME if is_404 else ""))
         resp = HTTPResponse(200, body, self.empty_headers, url, url)
         return resp
 
@@ -125,18 +125,18 @@ class Test404FuzzyStringMatch(unittest.TestCase):
         perc_fail = len(failed_domains) / total
         func_name = fuzzy_func.__name__
 
-        print("%s fail rate: %s" % (func_name, perc_fail))
+        print(f"{func_name} fail rate: {perc_fail}")
         print("Total time: %ss" % (end - start))
-        print("Analyzed samples: %s" % total)
+        print(f"Analyzed samples: {total}")
 
-        output = "/tmp/%s.txt" % func_name
+        output = f"/tmp/{func_name}.txt"
         output_fh = open(output, "w")
         output_fh.writelines(
-            "%s - %s\n" % (domain_a, domain_b)
+            f"{domain_a} - {domain_b}\n"
             for domain_a, domain_b in sorted(failed_domains)
         )
 
-        print("Failed domains stored at %s" % output)
+        print(f"Failed domains stored at {output}")
 
     def generic_fuzzy_string_diff_runner_against_404(self, fuzzy_func, ratio):
         """
@@ -165,16 +165,16 @@ class Test404FuzzyStringMatch(unittest.TestCase):
         perc_fail = len(failed_domains) / total
         func_name = fuzzy_func.__name__
 
-        print("%s fail rate: %s" % (func_name, perc_fail))
+        print(f"{func_name} fail rate: {perc_fail}")
         print("Total time: %ss" % (end - start))
-        print("Analyzed samples: %s" % total)
+        print(f"Analyzed samples: {total}")
 
-        output = "/tmp/%s.txt" % func_name
+        output = f"/tmp/{func_name}.txt"
         output_fh = open(output, "w")
         for domain in sorted(failed_domains):
-            output_fh.write("%s\n" % domain)
+            output_fh.write(f"{domain}\n")
 
-        print("Failed domains stored at %s" % output)
+        print(f"Failed domains stored at {output}")
         #
         #   Hah! At some point I thought this was possible!
         #
@@ -193,7 +193,7 @@ class Test404FuzzyStringMatch(unittest.TestCase):
 
         for i in range(len(chunks)):
             noise = "".join(random.choice(printable) for _ in range(each_noise_len))
-            str_with_noise += "%s%s" % (chunks[i], noise)
+            str_with_noise += f"{chunks[i]}{noise}"
 
         return str_with_noise
 
@@ -227,16 +227,16 @@ class Test404FuzzyStringMatch(unittest.TestCase):
         perc_fail = len(failed_domains) / total
         func_name = fuzzy_func.__name__
 
-        print("%s fail rate: %s" % (func_name, perc_fail))
+        print(f"{func_name} fail rate: {perc_fail}")
         print("Total time: %ss" % (end - start))
-        print("Analyzed samples: %s" % total)
+        print(f"Analyzed samples: {total}")
 
-        output = "/tmp/%s.txt" % func_name
+        output = f"/tmp/{func_name}.txt"
         output_fh = open(output, "w")
         for domain in sorted(failed_domains):
-            output_fh.write("%s\n" % domain)
+            output_fh.write(f"{domain}\n")
 
-        print("Failed domains stored at %s" % output)
+        print(f"Failed domains stored at {output}")
 
     def test_fuzzy_equal(self):
         """

@@ -175,9 +175,9 @@ class ThreadStateObserver(StrategyObserver):
             #
             if pool is None:
                 self.write_to_log(
-                    "The %s consumer finished all tasks and closed the pool." % name
+                    f"The {name} consumer finished all tasks and closed the pool."
                 )
-                self.write_to_log("100%% of %s workers are idle." % name)
+                self.write_to_log(f"100% of {name} workers are idle.")
                 break
 
             inspect_data = pool.inspect_threads()
@@ -239,7 +239,7 @@ class ThreadStateObserver(StrategyObserver):
 
             trace = []
             for filename, lineno, name, line in traceback.extract_stack(frame):
-                trace.append("%s:%s @ %s()" % (filename, lineno, name))
+                trace.append(f"{filename}:{lineno} @ {name}()")
 
             trace = trace[-10:]
             trace = ", ".join(trace)
@@ -296,7 +296,7 @@ class ThreadStateObserver(StrategyObserver):
         name = pool.worker_names
 
         if not len(inspect_data):
-            self.write_to_log("No pool workers at %s." % (name,))
+            self.write_to_log(f"No pool workers at {name}.")
             return
 
         #
@@ -370,7 +370,7 @@ class ThreadStateObserver(StrategyObserver):
 
             trace = worker_state.get("trace", None)
             if trace is not None:
-                message += ". Function call tree: %s" % trace
+                message += f". Function call tree: {trace}"
 
             self.write_to_log(message)
 
@@ -394,7 +394,7 @@ class ThreadStateObserver(StrategyObserver):
                 idle_workers += 1
 
         idle_perc = (idle_workers / total_workers) * 100
-        self.write_to_log("%i%% of %s workers are idle." % (idle_perc, name))
+        self.write_to_log(f"{int(idle_perc)}% of {name} workers are idle.")
 
     def write_to_log(self, message):
         om.out.debug(message)

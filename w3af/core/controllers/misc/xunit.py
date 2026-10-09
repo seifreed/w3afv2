@@ -51,10 +51,12 @@ class XunitGen:
             + self._stats["skip"]
         )
 
+        stats = self._stats
         xml_chunks = [
             '<?xml version="1.0" encoding="UTF-8"?>'
-            '<testsuite name="w3aftestscripts" tests="%(total)d" '
-            'errors="%(error)d" failures="%(fail)d" skip="%(skip)d">' % self._stats
+            f'<testsuite name="w3aftestscripts" tests="{stats["total"]:d}" '
+            f'errors="{stats["error"]:d}" failures="{stats["fail"]:d}" '
+            f'skip="{stats["skip"]:d}">'
         ]
         xml_chunks.append("".join(self.results))
         xml_chunks.append("</testsuite>")
@@ -63,7 +65,7 @@ class XunitGen:
             output.write(parseString("".join(xml_chunks)).toprettyxml())
 
         om.out.information(
-            "XML output file was successfuly generated: %s" % self.outputfile
+            f"XML output file was successfuly generated: {self.outputfile}"
         )
 
     def add_failure(self, test, fail, took):
@@ -81,20 +83,15 @@ class XunitGen:
         self._stats["fail"] += 1
         faillines = fail.split("\n")
         quoteattr = saxutils.quoteattr
-        pkg, _, id = test.rpartition(".")
+        pkg, _, test_id = test.rpartition(".")
 
+        failure_text = "\n".join(faillines[:-1])
         self.results.append(
-            '<testcase classname=%(pkg)s name=%(name)s time="%(took)d">'
-            '<failure type=%(errtype)s message="">'
-            "<![CDATA[%(fail)s]]></failure>"
+            f"<testcase classname={quoteattr(pkg)} name={quoteattr(test_id)} "
+            f'time="{int(took)}">'
+            f'<failure type={quoteattr(faillines[-1])} message="">'
+            f"<![CDATA[{failure_text}]]></failure>"
             "</testcase>"
-            % {
-                "name": quoteattr(id),
-                "pkg": quoteattr(pkg),
-                "took": took,
-                "errtype": quoteattr(faillines[-1]),
-                "fail": "\n".join(faillines[:-1]),
-            }
         )
 
     def add_error(self, test, err, took, skipped=False):
@@ -114,20 +111,14 @@ class XunitGen:
             self._stats["error"] += 1
         quoteattr = saxutils.quoteattr
         errlinedets = err.split("\n")[-1].split(":", 1)
-        pkg, _, id = test.rpartition(".")
+        pkg, _, test_id = test.rpartition(".")
 
         self.results.append(
-            '<testcase classname=%(pkg)s name=%(name)s time="%(took)d">'
-            "<error type=%(errtype)s message=%(message)s><![CDATA[%(tb)s]]>"
+            f"<testcase classname={quoteattr(pkg)} name={quoteattr(test_id)} "
+            f'time="{int(took)}">'
+            f"<error type={quoteattr(errlinedets[0])} "
+            f"message={quoteattr(errlinedets[-1])}><![CDATA[{err}]]>"
             "</error></testcase>"
-            % {
-                "name": quoteattr(id),
-                "pkg": quoteattr(pkg),
-                "took": took,
-                "errtype": quoteattr(errlinedets[0]),
-                "message": quoteattr(errlinedets[-1]),
-                "tb": err,
-            }
         )
 
     def add_success(self, test, took):
@@ -142,8 +133,8 @@ class XunitGen:
         """
         self._stats["pass"] += 1
         quoteattr = saxutils.quoteattr
-        pkg, _, id = test.rpartition(".")
+        pkg, _, test_id = test.rpartition(".")
         self.results.append(
-            '<testcase classname=%s name=%s time="%d" />'
-            % (quoteattr(pkg), quoteattr(id), took)
+            f"<testcase classname={quoteattr(pkg)} name={quoteattr(test_id)} "
+            f'time="{int(took)}" />'
         )

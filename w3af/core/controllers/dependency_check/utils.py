@@ -29,7 +29,7 @@ def verify_python_version():
     """
     if sys.version_info[:2] != (3, 14):
         version = ".".join(str(part) for part in sys.version_info[:3])
-        print("Error: Python 3.14 required; found Python %s." % version)
+        print(f"Error: Python 3.14 required; found Python {version}.")
         sys.exit(1)
 
 

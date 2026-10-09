@@ -32,7 +32,7 @@ if is_tracemalloc_enabled():
         # http://pytracemalloc.readthedocs.org/install.html
         import tracemalloc
     except ImportError as ie:
-        print("Failed to import tracemalloc: %s" % ie)
+        print(f"Failed to import tracemalloc: {ie}")
         sys.exit(-1)
 
 

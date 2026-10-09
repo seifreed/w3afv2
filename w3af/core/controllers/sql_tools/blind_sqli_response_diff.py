@@ -105,18 +105,12 @@ class BlindSqliResponseDiff:
 
             # One of the confirmation rounds yields "no vuln found"
             if vuln is None:
-                msg = "Confirmation round %s for %s failed." % (
-                    confirmations,
-                    statement_type,
-                )
+                msg = f"Confirmation round {confirmations} for {statement_type} failed."
                 self.debug(msg, mutant=mutant)
                 break
 
             # One confirmation round succeeded
-            msg = "Confirmation round %s for %s succeeded." % (
-                confirmations,
-                statement_type,
-            )
+            msg = f"Confirmation round {confirmations} for {statement_type} succeeded."
             self.debug(msg, mutant=mutant)
             confirmations += 1
 
@@ -136,18 +130,18 @@ class BlindSqliResponseDiff:
         num_dict = {"num": rnd_num}
 
         # Numeric/Datetime
-        true_stm = "%(num)s OR %(num)s=%(num)s OR %(num)s=%(num)s " % num_dict
-        false_stm = "%i AND %i=%i " % (rnd_num, rnd_num, rnd_num_plus_one)
+        true_stm = "{num} OR {num}={num} OR {num}={num} ".format(**num_dict)
+        false_stm = f"{rnd_num} AND {rnd_num}={rnd_num_plus_one} "
         res[self.NUMERIC] = (true_stm, false_stm)
 
         # Single quotes
-        true_stm = "%(num)s' OR '%(num)s'='%(num)s' OR '%(num)s'='%(num)s" % num_dict
-        false_stm = "%i' AND '%i'='%i" % (rnd_num, rnd_num, rnd_num_plus_one)
+        true_stm = "{num}' OR '{num}'='{num}' OR '{num}'='{num}".format(**num_dict)
+        false_stm = f"{rnd_num}' AND '{rnd_num}'='{rnd_num_plus_one}"
         res[self.STRING_SINGLE] = (true_stm, false_stm)
 
         # Double quotes
-        true_stm = '%(num)s" OR "%(num)s"="%(num)s" OR "%(num)s"="%(num)s' % num_dict
-        false_stm = '%i" AND "%i"="%i' % (rnd_num, rnd_num, rnd_num_plus_one)
+        true_stm = '{num}" OR "{num}"="{num}" OR "{num}"="{num}'.format(**num_dict)
+        false_stm = f'{rnd_num}" AND "{rnd_num}"="{rnd_num_plus_one}'
         res[self.STRING_DOUBLE] = (true_stm, false_stm)
 
         return res
@@ -391,23 +385,23 @@ class BlindSqliResponseDiff:
         tags = ["[blind_sqli]"]
 
         did = self._debugging_id
-        tags.append("[did: %s]" % did)
+        tags.append(f"[did: {did}]")
 
         if mutant is not None:
-            tags.append("[mid: %s]" % id(mutant))
-            tags.append("[param: %s]" % mutant.get_token_name())
+            tags.append(f"[mid: {id(mutant)}]")
+            tags.append(f"[param: {mutant.get_token_name()}]")
 
         if statement_type is not None:
-            tags.append("[stm: %s]" % statement_type)
+            tags.append(f"[stm: {statement_type}]")
 
         if response_1 is not None:
-            tags.append("[r1.id: %s]" % response_1.id)
+            tags.append(f"[r1.id: {response_1.id}]")
 
         if response_2 is not None:
-            tags.append("[r2.id: %s]" % response_2.id)
+            tags.append(f"[r2.id: {response_2.id}]")
 
         log_line = " ".join(tags)
-        log_line += " %s" % msg
+        log_line += f" {msg}"
 
         om.out.debug(log_line)
 
@@ -424,9 +418,9 @@ class BlindSqliResponseDiff:
 
         are = "ARE" if cmp_res else "ARE NOT"
         args = (are, self._eq_limit)
-        self.debug("Strings %s similar enough (limit: %s)" % args)
+        self.debug("Strings {} similar enough (limit: {})".format(*args))
 
         spent = time.time() - start
-        self.debug("Took %.2f seconds to run equal_with_limit" % spent)
+        self.debug(f"Took {spent:.2f} seconds to run equal_with_limit")
 
         return cmp_res

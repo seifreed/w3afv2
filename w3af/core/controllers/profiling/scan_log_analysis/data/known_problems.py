@@ -28,9 +28,9 @@ def get_known_problems(scan_log_filename, scan):
         if discover_call in line and found_grep_teardown:
             data = (
                 "The grep consumer was finished at:\n"
-                "    %s\n"
+                f"    {found_grep_teardown}\n"
                 "But calls to discover were found after:\n"
-                "    %s" % (found_grep_teardown, line)
+                f"    {line}"
             )
 
             return KeyValueOutput(

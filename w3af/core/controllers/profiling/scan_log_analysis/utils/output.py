@@ -21,7 +21,7 @@ class KeyValueOutput:
         return {self.function: {self.title: self.values}}
 
     def to_console(self):
-        print("[%s] %s" % (self.function, self.title))
+        print(f"[{self.function}] {self.title}")
 
         if isinstance(self.values, dict):
             values_list = list(self.values.items())
@@ -29,27 +29,27 @@ class KeyValueOutput:
 
             for key, value in values_list:
                 if isinstance(value, list):
-                    list_header = "    - %s:" % key
+                    list_header = f"    - {key}:"
                     print(list_header)
 
                     for value_i in value:
-                        print("%s - %s" % (" " * 8, value_i))
+                        print("{} - {}".format(" " * 8, value_i))
                 else:
-                    print("    - %s: %s" % (key, value))
+                    print(f"    - {key}: {value}")
 
         elif isinstance(self.values, (int, float)):
-            print("    - %s" % (self.values,))
+            print(f"    - {self.values}")
 
         elif isinstance(self.values, str):
             data = self.values
             data = data.replace("\n", "\n    ")
-            print("    %s" % data)
+            print(f"    {data}")
 
         elif isinstance(self.values, list):
             self.values.sort()
 
             for value in self.values:
-                print("    - %s" % (value,))
+                print(f"    - {value}")
 
         else:
             msg = "Unsupported type found in to_console(): %s"

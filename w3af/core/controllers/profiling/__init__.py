@@ -52,7 +52,7 @@ def stop_profiling(w3af_core):
         stop_core_profiling(w3af_core)
         stop_profiling_no_core()
     except Exception as e:
-        om.out.debug('Call to stop_profiling() failed with: "%s"' % e)
+        om.out.debug(f'Call to stop_profiling() failed with: "{e}"')
 
 
 def stop_profiling_no_core():

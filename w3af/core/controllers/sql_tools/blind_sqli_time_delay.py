@@ -150,4 +150,4 @@ class BlindSQLTimeDelay:
         return self.DELAYS
 
     def __repr__(self):
-        return "<BlindSQLTimeDelay did=%s>" % self.get_debugging_id()
+        return f"<BlindSQLTimeDelay did={self.get_debugging_id()}>"

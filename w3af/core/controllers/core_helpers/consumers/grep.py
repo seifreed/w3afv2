@@ -130,7 +130,7 @@ class grep(BaseConsumer):
         om.out.debug(msg % len(self._consumer_plugins))
 
         for plugin in self._consumer_plugins:
-            om.out.debug("Calling %s.end()" % plugin.get_name())
+            om.out.debug(f"Calling {plugin.get_name()}.end()")
             start_time = time.time()
 
             try:
@@ -221,7 +221,7 @@ class grep(BaseConsumer):
                 om.out.error(
                     "There was a timeout waiting for the"
                     " deserialization of HTTP request and response"
-                    " with id %s" % http_response_id
+                    f" with id {http_response_id}"
                 )
                 return None, None
 

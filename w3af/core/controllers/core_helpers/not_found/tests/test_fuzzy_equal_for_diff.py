@@ -105,7 +105,7 @@ class Test404FuzzyEqualForDiff(unittest.TestCase):
             self.assertEqual(
                 fuzzy_equal_for_diff(*args),
                 expected_result,
-                "Failed at test %s" % num_lines,
+                f"Failed at test {num_lines}",
             )
 
     def test_empty_add_text_lines(self):
@@ -126,7 +126,7 @@ class Test404FuzzyEqualForDiff(unittest.TestCase):
             self.assertEqual(
                 fuzzy_equal_for_diff(*args),
                 expected_result,
-                "Failed at test %s" % num_lines,
+                f"Failed at test {num_lines}",
             )
 
     def test_empty_add_hash_lines(self):
@@ -147,5 +147,5 @@ class Test404FuzzyEqualForDiff(unittest.TestCase):
             self.assertEqual(
                 fuzzy_equal_for_diff(*args),
                 expected_result,
-                "Failed at test %s" % num_lines,
+                f"Failed at test {num_lines}",
             )

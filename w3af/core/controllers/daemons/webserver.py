@@ -128,7 +128,7 @@ class WebHandler(http.server.BaseHTTPRequestHandler):
                 f = open(self.server.webroot + os.path.sep + self.path[1:])
             except OSError:
                 try:
-                    self.send_error(404, "File Not Found: %s" % self.path)
+                    self.send_error(404, f"File Not Found: {self.path}")
                 except Exception as e:
                     om.out.debug("[webserver] Exception: " + str(e))
             else:
@@ -159,7 +159,7 @@ class WebHandler(http.server.BaseHTTPRequestHandler):
         I dont want messages to be written to stderr, please write them
         to the om.
         """
-        message = "webserver.py: %s - %s" % (self.address_string(), fmt % args)
+        message = f"webserver.py: {self.address_string()} - {fmt % args}"
         om.out.debug(message)
 
 

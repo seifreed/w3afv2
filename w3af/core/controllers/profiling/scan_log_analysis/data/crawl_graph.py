@@ -41,10 +41,10 @@ def generate_crawl_graph(scan_log_filename, scan):
         new_links.sort(key=cmp_to_key(sort_by_len))
         for new_link in new_links:
             if referer is previous_referer:
-                spaces = " " * len("%s -> " % previous_referer)
-                print("%s%s" % (spaces, new_link))
+                spaces = " " * len(f"{previous_referer} -> ")
+                print(f"{spaces}{new_link}")
             else:
-                print("%s -> %s" % (referer, new_link))
+                print(f"{referer} -> {new_link}")
                 previous_referer = referer
 
     print()

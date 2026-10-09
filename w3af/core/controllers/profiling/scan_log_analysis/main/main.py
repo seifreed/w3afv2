@@ -165,7 +165,7 @@ def generate_console_output(scan_log_filename, scan):
 
         if output is None:
             if not _function.__name__.startswith("draw_"):
-                print("%s returned None" % _function.__name__)
+                print(f"{_function.__name__} returned None")
                 sys.exit(1)
         else:
             output.to_console()
@@ -175,7 +175,7 @@ def generate_json_output(scan_log_filename, scan, json_filename):
     try:
         output_fp = open(json_filename, "w")
     except Exception as e:
-        print('Failed to open %s for writing: "%s"' % e)
+        print('Failed to open {} for writing: "{}"'.format(*e))
         sys.exit(1)
 
     output_data = dict()
@@ -187,7 +187,7 @@ def generate_json_output(scan_log_filename, scan, json_filename):
         function_output = _function(scan_log_filename, scan)
 
         if function_output is None:
-            print("%s returned None" % _function.__name__)
+            print(f"{_function.__name__} returned None")
             sys.exit(2)
 
         if hasattr(function_output, "to_json"):

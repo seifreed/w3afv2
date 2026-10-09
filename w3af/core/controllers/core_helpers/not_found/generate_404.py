@@ -47,11 +47,11 @@ def generate_404_without_filename():
 
 
 def generate_404_without_name(extension):
-    return "%s.%s" % (rand_alnum(5), extension)
+    return f"{rand_alnum(5)}.{extension}"
 
 
 def generate_404_for_short_filename(filename, extension):
-    mod_filename = "%s%s" % (rand_alnum(4), filename)
+    mod_filename = f"{rand_alnum(4)}{filename}"
     return append_extension_if_exists(mod_filename, extension)
 
 
@@ -144,7 +144,7 @@ def append_extension_if_exists(filename, extension):
     final_result = filename
 
     if extension is not None:
-        final_result += ".%s" % extension
+        final_result += f".{extension}"
 
     return final_result
 
@@ -285,7 +285,7 @@ def get_url_for_404_request(http_response, seed=1):
         url_404.set_file_name(relative_url)
 
     else:
-        relative_url = "../%s/" % rand_alnum(8, seed=seed)
+        relative_url = f"../{rand_alnum(8, seed=seed)}/"
         url_404 = response_url.url_join(relative_url)
 
     return url_404

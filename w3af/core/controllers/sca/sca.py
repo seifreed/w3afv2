@@ -409,19 +409,18 @@ class VariableDef(NodeRep):
         return hash(self._name)
 
     def __repr__(self):
-        return "<Var definition at line %s>" % self.lineno
+        return f"<Var definition at line {self.lineno}>"
 
     def __str__(self):
         return (
-            "Line  %(lineno)s. Declaration of variable '%(name)s'."
-            " Status: %(status)s"
-        ) % {
-            "name": self.name,
-            "lineno": self.lineno,
-            "status": self.controlled_by_user
-            and ("'Tainted'. Source: '%s'" % self.taint_source)
+            "Line  {lineno}. Declaration of variable '{name}'." " Status: {status}"
+        ).format(
+            name=self.name,
+            lineno=self.lineno,
+            status=self.controlled_by_user
+            and (f"'Tainted'. Source: '{self.taint_source}'")
             or "'Clean'",
-        }
+        )
 
     def is_tainted_for(self, vulnty):
         return vulnty not in self._safe_for and (
@@ -556,13 +555,13 @@ class FuncCall(NodeRep):
         return None
 
     def __repr__(self):
-        return "<'%s' call at line %s>" % (self._name, self._lineno)
+        return f"<'{self._name}' call at line {self._lineno}>"
 
     def __str__(self):
-        return "Line %s. '%s' function call. Vulnerable%s" % (
+        return "Line {}. '{}' function call. Vulnerable{}".format(
             self.lineno,
             self.name,
-            self.vulntypes and " for %s." % ",".join(self.vulntypes) or ": No.",
+            self.vulntypes and " for {}.".format(",".join(self.vulntypes)) or ": No.",
         )
 
     def _parse_params(self):
@@ -629,7 +628,7 @@ class Scope:
         return list(self._vars.values())
 
     def __repr__(self):
-        return "<Scope [%s]>" % ", ".join(v.name for v in self.get_all_vars())
+        return "<Scope [{}]>".format(", ".join(v.name for v in self.get_all_vars()))
 
 
 class Param:

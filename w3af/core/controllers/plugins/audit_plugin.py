@@ -142,7 +142,7 @@ class AuditPlugin(Plugin):
             # happens at lower layers.
             #
             # https://github.com/andresriancho/w3af/issues/8949
-            om.out.debug("%s" % ffde)
+            om.out.debug(f"{ffde}")
 
     def audit(self, freq, orig_resp, debugging_id):
         """

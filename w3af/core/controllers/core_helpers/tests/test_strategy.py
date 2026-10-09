@@ -96,13 +96,13 @@ class TestStrategy(PluginTest):
         python_executable = sys.executable
 
         VULN_STRING = "A Cross Site Scripting vulnerability was found at"
-        URL_VULN_RE = re.compile('%s: "(.*?)"' % VULN_STRING)
+        URL_VULN_RE = re.compile(f'{VULN_STRING}: "(.*?)"')
         all_previous_vulns = []
 
         loops = 2 if is_running_on_ci() else 10
 
         for i in range(loops):
-            print("Start run #%s" % i)
+            print(f"Start run #{i}")
             found_vulns = set()
 
             p = subprocess.Popen(
@@ -116,7 +116,7 @@ class TestStrategy(PluginTest):
 
             stdout, stderr = p.communicate()
             i_vuln_count = stdout.count(VULN_STRING)
-            print("%s vulnerabilities found" % i_vuln_count)
+            print(f"{i_vuln_count} vulnerabilities found")
 
             self.assertNotEqual(i_vuln_count, 0, stdout)
 

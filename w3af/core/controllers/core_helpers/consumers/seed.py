@@ -43,7 +43,7 @@ class seed(Process):
         """
         :param w3af_core: The w3af core that we'll use for status reporting
         """
-        super().__init__(name="%sController" % self.get_name())
+        super().__init__(name=f"{self.get_name()}Controller")
 
         self._w3af_core = w3af_core
 

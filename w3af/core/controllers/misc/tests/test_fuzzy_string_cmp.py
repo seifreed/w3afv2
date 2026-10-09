@@ -88,7 +88,7 @@ class TestFuzzyStringCompare(unittest.TestCase):
 
         for e, d, f in acceptance_tests:
             res = relative_distance(e, d)
-            msg = "return value: %f, expected value: %f" % (res, f)
+            msg = f"return value: {res:f}, expected value: {f:f}"
             self.assertTrue(res >= f, msg)
 
     def test_17092(self):

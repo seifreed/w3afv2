@@ -46,7 +46,7 @@ if user_wants_psutil():
         # User's don't need this module
         import psutil
     except ImportError as ie:
-        print("Failed to import psutil: %s" % ie)
+        print(f"Failed to import psutil: {ie}")
         sys.exit(-1)
 
 
@@ -203,4 +203,4 @@ def get_human_readable_size(num):
     while i + 1 < len(exp_str) and num >= (2 ** exp_str[i + 1][0]):
         i += 1
         rounded_val = round(float(num) / 2 ** exp_str[i][0], 2)
-    return "%s %s" % (int(rounded_val), exp_str[i][1])
+    return f"{int(rounded_val)} {exp_str[i][1]}"

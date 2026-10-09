@@ -16,7 +16,7 @@ def watch(scan_log_filename, scan, function_name):
         except KeyboardInterrupt:
             sys.exit(0)
         except Exception as e:
-            print("Exception: %s" % e)
+            print(f"Exception: {e}")
             sys.exit(1)
         else:
             if output is not None:

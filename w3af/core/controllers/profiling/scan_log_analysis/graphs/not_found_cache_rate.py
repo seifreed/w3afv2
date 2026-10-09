@@ -38,7 +38,7 @@ def draw_not_found_cache_rate_over_time(scan_log_filename, scan):
         return
 
     print("404 cache hit rate")
-    print("    Latest hit rate value: %s %%" % cache_rate[-1])
+    print(f"    Latest hit rate value: {cache_rate[-1]} %")
     print()
 
     fig = plotille.Figure()

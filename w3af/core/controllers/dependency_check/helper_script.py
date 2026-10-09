@@ -49,7 +49,7 @@ def generate_helper_script(
     #
     if os_packages:
         missing_pkgs = " ".join(os_packages)
-        script_file.write("%s %s\n" % (pkg_manager_cmd, missing_pkgs))
+        script_file.write(f"{pkg_manager_cmd} {missing_pkgs}\n")
 
     #
     #    Report all missing python modules
@@ -65,15 +65,15 @@ def generate_helper_script(
 
         if not_git_pkgs:
             cmd = generate_pip_install_non_git(pip_cmd, not_git_pkgs)
-            script_file.write("%s\n" % cmd)
+            script_file.write(f"{cmd}\n")
 
         if git_pkgs:
             for missing_git_pkg in git_pkgs:
                 cmd = generate_pip_install_git(pip_cmd, missing_git_pkg)
-                script_file.write("%s\n" % cmd)
+                script_file.write(f"{cmd}\n")
 
     for cmd in external_commands:
-        script_file.write("%s\n" % cmd)
+        script_file.write(f"{cmd}\n")
 
     # Make it executable
     os.chmod(script_path, 0o755)
@@ -90,7 +90,7 @@ def generate_pip_install_non_git(pip_cmd, not_git_pkgs):
 
     install_specs = []
     for fdep in not_git_pkgs:
-        install_specs.append("%s==%s" % (fdep.package_name, fdep.package_version))
+        install_specs.append(f"{fdep.package_name}=={fdep.package_version}")
 
     cmd = cmd_fmt % (pip_cmd, " ".join(install_specs))
     return cmd

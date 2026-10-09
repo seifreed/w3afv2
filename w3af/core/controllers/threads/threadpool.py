@@ -312,7 +312,7 @@ class Worker:
 
                 completed += 1
 
-        debug("worker exiting after %d tasks" % completed)
+        debug(f"worker exiting after {completed:d} tasks")
 
 
 class Pool(ThreadPool):
@@ -552,7 +552,7 @@ class Pool(ThreadPool):
                     #
                     continue
                 else:
-                    debug("cleaning up worker %d" % i)
+                    debug(f"cleaning up worker {i:d}")
                 cleaned = True
                 del self._pool[i]
         return cleaned

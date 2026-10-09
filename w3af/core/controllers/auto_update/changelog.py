@@ -82,7 +82,7 @@ class Commit:
         return self._changes
 
     def __str__(self):
-        return "<Commit %s with %s file changes>" % (self.commit_id, len(self._changes))
+        return f"<Commit {self.commit_id} with {len(self._changes)} file changes>"
 
 
 def get_affected_file(file_diff):
@@ -107,7 +107,7 @@ class ChangeLog:
     def get_changes(self):
         changes = []
 
-        crange = "%s..%s" % (self.start, self.end)
+        crange = f"{self.start}..{self.end}"
 
         for git_commit in git.Repo(self._path).iter_commits(crange):
             commit = Commit(git_commit)
@@ -132,16 +132,14 @@ class ChangeLog:
 
             file_changes_str = ""
             for file_change in commit.changes[:MAX_FILES]:
-                file_changes_str += "    %s %s\n" % (file_change[0], file_change[1])
+                file_changes_str += f"    {file_change[0]} {file_change[1]}\n"
 
             if len(commit.changes) > MAX_FILES:
                 more = len(commit.changes) - MAX_FILES
-                file_changes_str += "    And %s files more...\n" % more
+                file_changes_str += f"    And {more} files more...\n"
 
-            output += "%s: %s\n%s" % (
-                commit.commit_id[:10],
-                commit.summary[:100],
-                file_changes_str,
+            output += (
+                f"{commit.commit_id[:10]}: {commit.summary[:100]}\n{file_changes_str}"
             )
 
         return output

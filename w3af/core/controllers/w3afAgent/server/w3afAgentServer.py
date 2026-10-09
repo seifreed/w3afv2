@@ -80,11 +80,8 @@ class ConnectionManager(Process):
             self.sock.bind((self._ip_address, self._port))
             self.sock.listen(5)
         except Exception as e:
-            msg = "[w3afAgentServer] Failed to bind to %s:%s" % (
-                self._ip_address,
-                self._port,
-            )
-            msg += '. Error: "%s".' % e
+            msg = f"[w3afAgentServer] Failed to bind to {self._ip_address}:{self._port}"
+            msg += f'. Error: "{e}".'
             raise BaseFrameworkException(msg)
 
         # loop !
@@ -139,12 +136,11 @@ class PipeThread(Process):
         self.sink = sink
 
         om.out.debug(
-            "[PipeThread] Starting data forwarding: %s ( %s -> %s )"
-            % (self, source.getpeername(), sink.getpeername())
+            f"[PipeThread] Starting data forwarding: {self} ( {source.getpeername()} -> {sink.getpeername()} )"
         )
 
         PipeThread.pipes.append(self)
-        om.out.debug("[PipeThread] Active forwardings: %s" % len(PipeThread.pipes))
+        om.out.debug(f"[PipeThread] Active forwardings: {len(PipeThread.pipes)}")
 
         self._keep_running = True
 
@@ -168,8 +164,7 @@ class PipeThread(Process):
 
         PipeThread.pipes.remove(self)
         om.out.debug(
-            "[PipeThread] Terminated one connection, active forwardings: %s"
-            % len(PipeThread.pipes)
+            f"[PipeThread] Terminated one connection, active forwardings: {len(PipeThread.pipes)}"
         )
 
 
@@ -282,10 +277,7 @@ class w3afAgentServer(Process):
                 self._TCPRelay = TCPRelay(self._ip_address, self._socks_port, self._cm)
                 self._TCPRelay.start()
             except BaseFrameworkException as w3:
-                self._error = (
-                    'Failed to start TCPRelay inside w3afAgentServer, exception: "%s"'
-                    % w3
-                )
+                self._error = f'Failed to start TCPRelay inside w3afAgentServer, exception: "{w3}"'
                 self._cm.stop()
             else:
                 self._is_running = True

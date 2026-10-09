@@ -154,9 +154,7 @@ class Proxy(Process):
         if not self._ready.wait(timeout=30):
             raise ProxyException("Timed out while starting the proxy server.")
         if self._startup_error is not None:
-            raise ProxyException(
-                "Proxy server failed to start: %s" % self._startup_error
-            )
+            raise ProxyException(f"Proxy server failed to start: {self._startup_error}")
 
     def _proxy_started(self, addresses):
         if addresses:
@@ -184,7 +182,7 @@ class Proxy(Process):
             self._handler = self._handler_klass(self._master, self._uri_opener, self)
             self._master.addons.add(self._handler)
             args = (self._host, self._requested_port, self._handler.__class__.__name__)
-            om.out.debug("Proxy server listening on %s:%s using %s" % args)
+            om.out.debug("Proxy server listening on {}:{} using {}".format(*args))
             self._running = True
             await self._master.run()
 

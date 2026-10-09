@@ -33,7 +33,7 @@ from ..platforms.ubuntu1204 import Ubuntu1204
 class TestDependencyCheck(unittest.TestCase):
 
     DEPE_MODULE = "w3af.core.controllers.dependency_check.dependency_check"
-    CURR_PLATFORM = "%s.get_current_platform" % DEPE_MODULE
+    CURR_PLATFORM = f"{DEPE_MODULE}.get_current_platform"
     MISSING_DEP_CMD = "pip install rumbamanager==3.2.1"
 
     def setUp(self):

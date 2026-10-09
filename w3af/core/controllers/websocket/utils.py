@@ -78,7 +78,7 @@ def build_ws_upgrade_request(
         # If no origin is specified, guess:
         scheme = "https://" if "wss://" in web_socket_url else "http://"
         args = (scheme, web_socket_url.get_domain())
-        request_headers["Origin"] = "%s%s" % args
+        request_headers["Origin"] = "{}{}".format(*args)
 
     # Replace the protocol so we can easily send a request
     forged_url = web_socket_url.url_string.replace("wss://", "https://", 1)

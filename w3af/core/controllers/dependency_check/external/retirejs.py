@@ -38,7 +38,7 @@ def retirejs_is_installed():
     path_to_retire = paths_to_retire[0]
 
     try:
-        version = subprocess.check_output("%s --version" % path_to_retire, shell=True)
+        version = subprocess.check_output(f"{path_to_retire} --version", shell=True)
     except subprocess.CalledProcessError:
         return False
 

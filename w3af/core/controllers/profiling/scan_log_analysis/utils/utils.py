@@ -28,7 +28,7 @@ def get_line_epoch(scan_line):
     except KeyboardInterrupt:
         sys.exit(3)
     except:
-        raise InvalidTimeStamp('Invalid timestamp: "%s"' % scan_line)
+        raise InvalidTimeStamp(f'Invalid timestamp: "{scan_line}"')
     else:
         return int(parsed_time.strftime("%s"))
 

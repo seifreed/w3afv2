@@ -137,7 +137,7 @@ class CoreStrategy:
 
         except Exception as e:
 
-            om.out.debug('strategy.start() found exception "%s"' % e)
+            om.out.debug(f'strategy.start() found exception "{e}"')
             exc_info = sys.exc_info()
 
             try:
@@ -183,14 +183,14 @@ class CoreStrategy:
 
         for consumer in consumers:
 
-            consumer_inst = getattr(self, "_%s_consumer" % consumer)
+            consumer_inst = getattr(self, f"_{consumer}_consumer")
 
             if consumer_inst is None:
                 msg = "%s consumer is None. Skipping call to terminate()"
                 om.out.debug(msg % consumer)
                 continue
 
-            om.out.debug("Calling terminate() on %s consumer" % consumer)
+            om.out.debug(f"Calling terminate() on {consumer} consumer")
             start = time.time()
 
             # Set it immediately to None to avoid any race conditions where
@@ -200,7 +200,7 @@ class CoreStrategy:
             # The getattr/setattr tricks are required to make sure that "the
             # real consumer instance" is set to None. Do not modify unless
             # you know what you're doing!
-            setattr(self, "_%s_consumer" % consumer, None)
+            setattr(self, f"_{consumer}_consumer", None)
 
             try:
                 consumer_inst.terminate()
@@ -211,7 +211,9 @@ class CoreStrategy:
             else:
                 spent = time.time() - start
                 args = (consumer, spent)
-                om.out.debug("terminate() on %s consumer took %.2f seconds" % args)
+                om.out.debug(
+                    "terminate() on {} consumer took {:.2f} seconds".format(*args)
+                )
 
         self.set_consumers_to_none()
 
@@ -394,8 +396,7 @@ class CoreStrategy:
                     # pending or in progress work
                     finished.add(url_producer)
                     om.out.debug(
-                        "Producer %s has finished (empty queue)"
-                        % url_producer.get_name()
+                        f"Producer {url_producer.get_name()} has finished (empty queue)"
                     )
             else:
                 if result_item == POISON_PILL:
@@ -511,7 +512,7 @@ class CoreStrategy:
                     dbg = 'Exception found during verify_target_server_up: "%s"'
                     om.out.debug(dbg % e)
 
-                    target_list = "\n".join(" - %s\n" % url for url in targets)
+                    target_list = "\n".join(f" - {url}\n" for url in targets)
 
                     raise ScanMustStopException(msg % target_list)
                 else:
@@ -661,7 +662,7 @@ class CoreStrategy:
                     targets_with_404.append(url)
 
         if targets_with_404:
-            urls = [" - %s\n" % u.url_string for u in targets_with_404]
+            urls = [f" - {u.url_string}\n" for u in targets_with_404]
             urls = "".join(urls)
             om.out.information(
                 "w3af identified the user-configured URLs listed"
@@ -673,13 +674,13 @@ class CoreStrategy:
                 " and, consider running a new scan with different"
                 " targets.\n"
                 "\n"
-                "%s"
+                f"{urls}"
                 "\n"
                 "In some scenarios it might be possible to fix"
                 " this issue adding one or more target URLs to the"
                 " `never_ssl` configuration parameter in `http-settings."
                 " This will make sure that specific URLs are never"
-                " seen as non-existing (404).\n" % urls
+                " seen as non-existing (404).\n"
             )
 
     def _setup_crawl_infrastructure(self):

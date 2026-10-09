@@ -60,7 +60,7 @@ class GrepPlugin(Plugin):
             # happens at lower layers.
             #
             # https://github.com/andresriancho/w3af/issues/8949
-            om.out.debug("%s" % ffde)
+            om.out.debug(f"{ffde}")
 
     def grep(self, fuzzable_request, response):
         """
@@ -70,8 +70,8 @@ class GrepPlugin(Plugin):
         :param response: The HTTP response obj
         """
         raise NotImplementedError(
-            'Plugin "%s" must not implement required '
-            "method grep" % self.__class__.__name__
+            f'Plugin "{self.__class__.__name__}" must not implement required '
+            "method grep"
         )
 
     def get_type(self):

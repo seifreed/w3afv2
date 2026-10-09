@@ -65,7 +65,7 @@ class TestDiffPerformance(unittest.TestCase):
         print()
 
         for func, spent in results:
-            print("%s: %.2f" % (func, spent))
+            print(f"{func}: {spent:.2f}")
 
         print()
 

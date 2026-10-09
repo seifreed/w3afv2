@@ -107,7 +107,7 @@ def get_versions():
 
 
 def create_crash_file(exception):
-    filename = "w3af-crash-%s.txt" % rand_alnum(5)
+    filename = f"w3af-crash-{rand_alnum(5)}.txt"
     filename = os.path.join(gettempdir(), filename)
     crash_dump = open(filename, "w")
     crash_dump.write(

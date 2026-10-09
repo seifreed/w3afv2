@@ -131,8 +131,7 @@ class w3afAgentManager(Process):
 
                     #    Upload the file and check integrity
                     om.out.console(
-                        'Starting w3afAgent client upload, remote filename is: "%s" ...'
-                        % filename
+                        f'Starting w3afAgent client upload, remote filename is: "{filename}" ...'
                     )
 
                     upload_success = transferHandler.transfer(client_code, filename)
@@ -162,17 +161,11 @@ class w3afAgentManager(Process):
                             "Something went wrong, the w3afAgent client failed to connect back."
                         )
                     else:
-                        msg = "A SOCKS proxy is listening on %s:%s" % (
-                            self._ip_address,
-                            self._socks_port,
-                        )
+                        msg = f"A SOCKS proxy is listening on {self._ip_address}:{self._socks_port}"
                         msg += " , all connections made through this daemon will be routed "
                         msg += " through the compromised server. We recommend using the proxychains tool "
                         msg += ' ("apt-get install proxychains") to route connections through the proxy, the '
-                        msg += (
-                            ' proxy configuration should look like "socks4    %s     %s"'
-                            % (self._ip_address, self._socks_port)
-                        )
+                        msg += f' proxy configuration should look like "socks4    {self._ip_address}     {self._socks_port}"'
                         om.out.console(msg)
 
     def is_working(self):

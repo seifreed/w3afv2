@@ -45,7 +45,7 @@ def task_decorator(method):
     @wraps(method)
     def _wrapper(self, *args, **kwds):
         rnd_id = os.urandom(32).encode("hex")
-        function_id = "%s_%s" % (method.__name__, rnd_id)
+        function_id = f"{method.__name__}_{rnd_id}"
 
         self._add_task(function_id)
 
@@ -87,7 +87,7 @@ class BaseConsumer(Process):
         :param thread_name: How to name the current thread, eg. Auditor
         :param create_pool: True to create a worker pool for this consumer
         """
-        super().__init__(name="%sController" % thread_name)
+        super().__init__(name=f"{thread_name}Controller")
 
         self.in_queue = CachedQueue(maxsize=max_in_queue_size, name=thread_name + "In")
 
@@ -148,7 +148,7 @@ class BaseConsumer(Process):
         if create_pool:
             self._threadpool = Pool(
                 thread_pool_size or self.THREAD_POOL_SIZE,
-                worker_names="%sWorker" % thread_name,
+                worker_names=f"{thread_name}Worker",
                 max_queued_tasks=max_pool_queued_tasks,
             )
 
@@ -229,7 +229,7 @@ class BaseConsumer(Process):
             om.out.debug(msg % args)
 
     def _process_poison_pill(self):
-        om.out.debug("Processing POISON_PILL in %s" % self._thread_name)
+        om.out.debug(f"Processing POISON_PILL in {self._thread_name}")
 
         try:
             self._shutdown_threadpool()
@@ -361,7 +361,7 @@ class BaseConsumer(Process):
         try:
             self._tasks_in_progress.pop(function_id)
         except KeyError:
-            raise AssertionError("The function with ID %s was not found!" % function_id)
+            raise AssertionError(f"The function with ID {function_id} was not found!")
 
     def _add_task(self, function_id):
         """
@@ -486,7 +486,7 @@ class BaseConsumer(Process):
         self._shutdown_threadpool()
 
         spent_time = time.time() - start_time
-        om.out.debug("%s took %.2f seconds to join()" % (self._thread_name, spent_time))
+        om.out.debug(f"{self._thread_name} took {spent_time:.2f} seconds to join()")
 
     def _clear_input_output_queues(self):
         #

@@ -96,7 +96,7 @@ class TestTarget(unittest.TestCase):
         ctarget = CoreTarget()
 
         target_file = "/tmp/moth.target"
-        target = "file://%s" % target_file
+        target = f"file://{target_file}"
 
         target_file_handler = open(target_file, "w")
         target_file_handler.write("http://moth/1\n")

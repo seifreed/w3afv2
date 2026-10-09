@@ -432,8 +432,8 @@ class MiscSettings(Configurable):
         # Metasploit
         #
         desc = (
-            "Full path of Metasploit framework binary directory (%s in "
-            "most linux installs)" % cf.cf.get("msf_location")
+            "Full path of Metasploit framework binary directory ({} in "
+            "most linux installs)".format(cf.cf.get("msf_location"))
         )
         opt = opt_factory(
             "msf_location", cf.cf.get("msf_location"), desc, STRING, tabid="Metasploit"

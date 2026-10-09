@@ -110,7 +110,7 @@ class TestPebbleMemoryUsage(unittest.TestCase):
             try:
                 future.result()
             except MemoryError:
-                print("Limit found at %s bytes" % current_len)
+                print(f"Limit found at {current_len} bytes")
                 break
 
         # self.assertGreaterEqual(self.MEMORY_LIMIT * 1.2, current_len)

@@ -59,7 +59,7 @@ class InfrastructurePlugin(Plugin):
             # happens at lower layers.
             #
             # https://github.com/andresriancho/w3af/issues/8949
-            om.out.debug("%s" % ffde)
+            om.out.debug(f"{ffde}")
 
     def discover(self, fuzzable_request, debugging_id):
         """

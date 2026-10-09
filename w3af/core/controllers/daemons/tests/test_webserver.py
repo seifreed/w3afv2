@@ -57,7 +57,7 @@ class TestWebserver(unittest.TestCase):
         self.assertRaises(
             urllib.error.HTTPError,
             urllib.request.urlopen,
-            "http://%s:%s" % (self.IP, self.PORT),
+            f"http://{self.IP}:{self.PORT}",
         )
 
     def _create_file(self):
@@ -74,7 +74,7 @@ class TestWebserver(unittest.TestCase):
     def test_GET_exists(self):
         self._create_file()
 
-        url = "http://%s:%s/foofile.txt" % (self.IP, self.PORT)
+        url = f"http://{self.IP}:{self.PORT}/foofile.txt"
         response_body = urllib.request.urlopen(url).read()
 
         self.assertEqual(response_body, self.TESTSTRING)
@@ -83,7 +83,7 @@ class TestWebserver(unittest.TestCase):
         self._create_file()
         _, port = start_webserver_any_free_port(self.IP, self.tempdir)
 
-        url = "http://%s:%s/foofile.txt" % (self.IP, port)
+        url = f"http://{self.IP}:{port}/foofile.txt"
         response_body = urllib.request.urlopen(url).read()
 
         self.assertEqual(response_body, self.TESTSTRING)

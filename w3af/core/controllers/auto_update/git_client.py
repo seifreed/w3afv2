@@ -131,7 +131,7 @@ class GitClient:
         # Get the latest changes from the remote end
         self.fetch()
 
-        branch_origin = "origin/%s" % get_current_branch(self._path)
+        branch_origin = f"origin/{get_current_branch(self._path)}"
         all_refs = self._repo.remotes.origin.refs
         origin_master = [ref for ref in all_refs if ref.name == branch_origin][0]
 

@@ -87,7 +87,7 @@ class payload_transfer_factory:
             )
             om.out.error(msg % w3)
         except Exception as e:
-            om.out.error('Unhandled exception: "%s"' % e)
+            om.out.error(f'Unhandled exception: "{e}"')
         else:
             to_test.append(ReverseFTP(self._exec_method, os, inbound_port))
             if os == "windows":
@@ -106,18 +106,17 @@ class payload_transfer_factory:
         for method in to_test:
 
             om.out.debug(
-                'Testing if "%s" is able to transfer a file to the '
-                "compromised host." % method
+                f'Testing if "{method}" is able to transfer a file to the '
+                "compromised host."
             )
             if method.can_transfer():
                 om.out.debug(
-                    "%s is able to transfer a file to the compromised" " host." % method
+                    f"{method} is able to transfer a file to the compromised" " host."
                 )
                 return method
             else:
                 om.out.debug(
-                    "%s *FAILED* to transfer a file to the"
-                    " compromised host." % method
+                    f"{method} *FAILED* to transfer a file to the" " compromised host."
                 )
 
         raise BaseFrameworkException(

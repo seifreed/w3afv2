@@ -53,7 +53,7 @@ class bruteforce(BaseConsumer):
         om.out.debug(msg % len(self._consumer_plugins))
 
         for plugin in self._consumer_plugins:
-            om.out.debug("Calling %s.end()" % plugin.get_name())
+            om.out.debug(f"Calling {plugin.get_name()}.end()")
             start_time = time.time()
 
             try:
@@ -147,7 +147,7 @@ class bruteforce(BaseConsumer):
 
         # Logging
         args = (plugin.get_name(), fuzzable_request.get_uri())
-        om.out.debug("%s.bruteforce(%s)" % args)
+        om.out.debug("{}.bruteforce({})".format(*args))
         took_line = TookLine(
             self._w3af_core,
             plugin.get_name(),

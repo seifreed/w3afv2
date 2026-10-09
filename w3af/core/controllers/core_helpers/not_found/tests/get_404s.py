@@ -23,7 +23,7 @@ if __name__ == "__main__":
 
     # This is a "resume" feature
     last = len(s)
-    print("c(%s)" % last, end=" ")
+    print(f"c({last})", end=" ")
 
     for i, line in enumerate(open(ALEXA_FILE)):
         if i <= last:
@@ -33,9 +33,9 @@ if __name__ == "__main__":
         _, domain = line.split(",")
 
         try:
-            ok = urllib.request.urlopen("http://%s/" % domain).read()
+            ok = urllib.request.urlopen(f"http://{domain}/").read()
             try:
-                bad = urllib.request.urlopen("http://%s/not-ex1st.html" % domain).read()
+                bad = urllib.request.urlopen(f"http://{domain}/not-ex1st.html").read()
             except urllib.error.HTTPError as error:
                 bad = error.read()
         except KeyboardInterrupt:

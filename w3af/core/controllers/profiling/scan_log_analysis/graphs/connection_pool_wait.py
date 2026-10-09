@@ -33,7 +33,7 @@ def get_time_waited_by_workers(scan_log_filename, scan):
     return KeyValueOutput(
         "connection_pool_wait",
         "Time waited for worker threads for an available TCP/IP connection",
-        "%.2f seconds" % sum(connection_pool_waits),
+        f"{sum(connection_pool_waits):.2f} seconds",
     )
 
 

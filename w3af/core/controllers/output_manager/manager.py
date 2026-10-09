@@ -261,7 +261,7 @@ class OutputManager(Process):
 
             import w3af.core.controllers.output_manager as om
 
-            om.out.debug("%s.flush() took %.2fs to run" % args)
+            om.out.debug("{}.flush() took {:.2f}s to run".format(*args))
 
     def _handle_output_plugin_exception(self, o_plugin, exception):
         if self._w3af_core is None:
@@ -486,7 +486,7 @@ class OutputManager(Process):
             self._output_plugin_instances.append(plugin)
 
     def _get_plugin_instance(self, plugin_name):
-        plugin = factory("w3af.plugins.output.%s" % plugin_name)
+        plugin = factory(f"w3af.plugins.output.{plugin_name}")
         plugin.set_w3af_core(self._w3af_core)
 
         if plugin_name in list(self._plugin_options.keys()):

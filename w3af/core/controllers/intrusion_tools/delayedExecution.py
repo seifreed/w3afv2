@@ -35,9 +35,9 @@ class delayedExecution:
         """
         A wrapper for executing commands
         """
-        om.out.debug('Executing: "%s".' % command)
+        om.out.debug(f'Executing: "{command}".')
         response = self._exec_method(*(command,))
-        om.out.debug('"%s" returned "%s".' % (command, response))
+        om.out.debug(f'"{command}" returned "{response}".')
 
         return response
 

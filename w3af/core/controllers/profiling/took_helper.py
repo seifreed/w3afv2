@@ -95,7 +95,7 @@ class TookLine:
             method_params["did"] = self._debugging_id
 
         params_str = ",".join(
-            '%s="%s"' % (key, value) for key, value in method_params.items()
+            f'{key}="{value}"' for key, value in method_params.items()
         )
 
         #
@@ -146,6 +146,6 @@ class TookLine:
         # Adding any extras we might have
         #
         if parentheses_data:
-            msg += " (%s)" % ", ".join(parentheses_data)
+            msg += " ({})".format(", ".join(parentheses_data))
 
         om.out.debug(msg)

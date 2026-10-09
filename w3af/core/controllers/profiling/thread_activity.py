@@ -80,7 +80,7 @@ def dump_thread_stack():
         # Actually saving it as a list makes it more human readable
         trace = traceback.format_stack(frame)
 
-        data["%x" % thread] = {
+        data[f"{thread:x}"] = {
             "traceback": trace,
             "name": get_thread_name(threads, thread),
         }

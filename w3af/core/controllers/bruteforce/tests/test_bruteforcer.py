@@ -105,7 +105,7 @@ class TestUserPasswordBruteforcer(unittest.TestCase):
         combo_fd = open(combo_filename, "w")
 
         combo_fd.writelines(
-            "%s:%s\n" % (user, password) for user, password in expected_combinations
+            f"{user}:{password}\n" for user, password in expected_combinations
         )
 
         combo_fd.close()

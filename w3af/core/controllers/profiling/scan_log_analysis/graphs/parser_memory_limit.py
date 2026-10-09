@@ -28,7 +28,9 @@ def get_parser_process_memory_limit_data(scan_log_filename, scan):
 def get_parser_process_memory_limit_summary(scan_log_filename, scan):
     memory_limit, _ = get_parser_process_memory_limit_data(scan_log_filename, scan)
     return KeyValueOutput(
-        "parser_process_memory_limit", "Latest memory limit", "%s MB" % memory_limit[-1]
+        "parser_process_memory_limit",
+        "Latest memory limit",
+        f"{memory_limit[-1]} MB",
     )
 
 
