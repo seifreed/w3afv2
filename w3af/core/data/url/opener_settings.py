@@ -242,7 +242,7 @@ class OpenerSettings(Configurable):
         """
         :return: The cookies that were collected during this scan.
         """
-        return self._cookie_handler.cookiejar
+        return self._cookie_handler.default_cookiejar
 
     def clear_cookies(self):
         self._cookie_handler.clear_cookies()
