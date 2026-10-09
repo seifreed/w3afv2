@@ -137,13 +137,13 @@ class file_upload(AttackPlugin):
         for shell_str, orig_extension in shell_handler.get_webshells(extension):
             # If the webshell was webshell.php this will return a file_name
             # containing kgiwjxh.php (8 rand and the extension)
-            file_name = "%s.%s" % (rand_alpha(8), orig_extension)
+            file_name = f"{rand_alpha(8)}.{orig_extension}"
             yield shell_str, file_name
 
             # Now we want to return the webshell content <?php ... ?> but in a
             # file with the extension that the upload URL had. This makes our
             # chances of getting access a little greater
-            file_name = "%s.%s" % (rand_alpha(8), extension)
+            file_name = f"{rand_alpha(8)}.{extension}"
             yield shell_str, file_name
 
     def get_root_probability(self):
@@ -214,7 +214,7 @@ class FileUploadShell(ExecShell):
         else:
             msg = (
                 "File upload shell cleanup complete; successfully removed"
-                ' file: "%s".' % file_to_del
+                f' file: "{file_to_del}".'
             )
             om.out.debug(msg)
 

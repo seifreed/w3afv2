@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
+from typing import ClassVar
 
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.constants import severity
@@ -44,7 +45,7 @@ class svn_users(GrepPlugin):
         r"\$.{1,12}: .*? .*? \d{4}[-/]\d{1,2}[-/]\d{1,2}"
         r" \d{1,2}:\d{1,2}:\d{1,2}.*? (.*?) (Exp )?\$"
     )
-    RE_LIST = [re.compile(SVN_RE)]
+    RE_LIST: ClassVar = [re.compile(SVN_RE)]
 
     def grep(self, request, response):
         """

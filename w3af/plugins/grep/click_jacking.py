@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from typing import ClassVar
+
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.csp.utils import retrieve_csp_policies
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
@@ -37,7 +39,7 @@ class click_jacking(GrepPlugin):
     """
 
     MAX_SAMPLES = 25
-    DO_NOT_FRAME = {301, 302, 303, 307, 400, 403, 404, 500}
+    DO_NOT_FRAME: ClassVar = {301, 302, 303, 307, 400, 403, 404, 500}
 
     def __init__(self):
         GrepPlugin.__init__(self)
@@ -94,10 +96,7 @@ class click_jacking(GrepPlugin):
         if "css" in response.content_type:
             return False
 
-        if "application/xml" in response.content_type:
-            return False
-
-        return True
+        return "application/xml" not in response.content_type
 
     def _add_response_to_findings(self, response):
         self._vuln_count += 1
@@ -137,10 +136,7 @@ class click_jacking(GrepPlugin):
         headers = response.get_headers()
         x_frame_options, header_name = headers.iget("x-frame-options", "")
 
-        if x_frame_options.lower() in ("deny", "sameorigin"):
-            return True
-
-        return False
+        return x_frame_options.lower() in ("deny", "sameorigin")
 
     def _is_protected_with_csp(self, request, response):
         """
@@ -189,10 +185,7 @@ class click_jacking(GrepPlugin):
             return True
 
         # Content-Security-Policy: frame-ancestors 'foo.com' '*.somesite.com';
-        if len(frame_ancestors):
-            return True
-
-        return False
+        return bool(len(frame_ancestors))
 
     def end(self):
         # If all URLs implement protection, don't report anything.
@@ -209,8 +202,8 @@ class click_jacking(GrepPlugin):
             if len(response_ids) >= self.MAX_SAMPLES:
                 desc += (
                     " All the received HTTP responses were found to be"
-                    " vulnerable, only the first %s samples were captured"
-                    " as proof." % self.MAX_SAMPLES
+                    f" vulnerable, only the first {self.MAX_SAMPLES} samples were captured"
+                    " as proof."
                 )
 
         else:
@@ -220,9 +213,9 @@ class click_jacking(GrepPlugin):
             if len(response_ids) >= self.MAX_SAMPLES:
                 desc = (
                     "Multiple application URLs have no protection against"
-                    " Click-Jacking attacks. Only the first %s samples were"
+                    f" Click-Jacking attacks. Only the first {self.MAX_SAMPLES} samples were"
                     " captured as proof. The list of vulnerable URLs is:"
-                    "\n\n - " % self.MAX_SAMPLES
+                    "\n\n - "
                 )
             else:
                 desc = (

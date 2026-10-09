@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from typing import ClassVar
+
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.data.constants import severity
 from w3af.core.data.fuzzer.fuzzer import create_mutants
@@ -33,7 +35,7 @@ class mx_injection(AuditPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    MX_PAYLOADS = ['"', "iDontExist", ""]
+    MX_PAYLOADS: ClassVar = ['"', "iDontExist", ""]
 
     MX_ERRORS = (
         "Unexpected extra arguments to Select",
@@ -85,7 +87,7 @@ class mx_injection(AuditPlugin):
             if mx_error in mutant.get_original_response_body():
                 continue
 
-            desc = "MX injection was found at: %s" % mutant.found_at()
+            desc = f"MX injection was found at: {mutant.found_at()}"
 
             v = Vuln.from_mutant(
                 "MX injection vulnerability",

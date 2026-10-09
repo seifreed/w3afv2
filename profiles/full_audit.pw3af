@@ -203,7 +203,7 @@ httpsPort = 443
 
 [infrastructure.domain_dot]
 
-[infrastructure.fingerprint_WAF]
+[infrastructure.fingerprint_waf]
 
 [infrastructure.allowed_methods]
 run_once = True

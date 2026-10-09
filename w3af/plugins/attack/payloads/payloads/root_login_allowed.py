@@ -67,7 +67,10 @@ class root_login_allowed(Payload):
             ):
                 rows.append(
                     [
-                        "Root user is not allowed to login through SSH" " nor console.",
+                        (
+                            "Root user is not allowed to login through SSH"
+                            " nor console."
+                        ),
                     ]
                 )
 
@@ -85,6 +88,6 @@ def parse_securetty(securetty):
 def parse_permit_root_login(config):
     match_obj = re.search("PermitRootLogin (yes|no)", config)
     if match_obj is not None:
-        return True if match_obj.group(1) == "yes" else False
+        return match_obj.group(1) == "yes"
 
     return False

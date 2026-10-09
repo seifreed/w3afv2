@@ -71,7 +71,7 @@ class genexus_xml(CrawlPlugin):
                 " crawl queue."
             )
             desc = desc % (file_name, genexus_url)
-            title_info = 'GeneXus "%s" file' % file_name
+            title_info = f'GeneXus "{file_name}" file'
 
             i = Info(title_info, desc, http_response.id, self.get_name())
             i.set_url(genexus_url)

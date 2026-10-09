@@ -53,7 +53,7 @@ class meta_generator(GrepPlugin):
             self._save_to_kb(request, response, generator)
 
     def _save_to_kb(self, request, response, generator):
-        desc = 'Found generator meta tag value: "%s"' % generator
+        desc = f'Found generator meta tag value: "{generator}"'
 
         info = Info("Generator information", desc, response.id, self.get_name())
         info.set_uri(response.get_uri())

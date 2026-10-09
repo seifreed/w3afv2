@@ -63,9 +63,9 @@ class rfd(AuditPlugin):
             if "filename" in cd.lower():
                 # yes filename exists
                 om.out.debug(
-                    'URL "%s" is not vulnerable to RFD because of'
+                    f'URL "{freq.get_url()}" is not vulnerable to RFD because of'
                     " explicit filename in content-disposition header"
-                    ", response id %s" % (freq.get_url(), orig_response.id)
+                    f", response id {orig_response.id}"
                 )
                 return
             else:
@@ -73,10 +73,10 @@ class rfd(AuditPlugin):
 
         elif ct in NOT_VULNERABLE_TYPES:
             om.out.debug(
-                'URL "%s" is not vulnerable to RFD because'
-                ' response content-type is "%s" and'
+                f'URL "{freq.get_url()}" is not vulnerable to RFD because'
+                f' response content-type is "{ct}" and'
                 " content-disposition header is missing,"
-                " response id %s" % (freq.get_url(), ct, orig_response.id)
+                f" response id {orig_response.id}"
             )
             return
         else:
@@ -113,7 +113,7 @@ class rfd(AuditPlugin):
         for mutant in mutants:
             response = self._uri_opener.send_mutant(mutant)
             body = response.body.decode("unicode-escape")
-            if not response.get_code() == 200:
+            if response.get_code() != 200:
                 # no need to seek reflection if it is not OK
                 continue
 

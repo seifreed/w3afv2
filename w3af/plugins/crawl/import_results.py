@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import base64
 import os
+from typing import ClassVar
 
 from lxml import etree
 from lxml.etree import XMLSyntaxError
@@ -96,7 +97,7 @@ class import_results(CrawlPlugin):
             try:
                 fuzzable_request = FuzzableRequest.from_base64(line)
             except ValueError:
-                om.out.debug('Invalid import_results input: "%r"' % line)
+                om.out.debug(f'Invalid import_results input: "{line!r}"')
             else:
                 self.output_queue.put(fuzzable_request)
 
@@ -195,7 +196,7 @@ class BurpParser:
           works with http and 80.
     """
 
-    requests = []
+    requests: ClassVar = []
     parsing_request = False
     current_is_base64 = False
 

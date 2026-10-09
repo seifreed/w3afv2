@@ -24,6 +24,7 @@ import re
 import urllib.error
 import urllib.parse
 import urllib.request
+from typing import ClassVar
 
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
@@ -44,7 +45,7 @@ class strange_parameters(GrepPlugin):
 
     STRANGE_RE_CHARS = re.compile(r"([a-zA-Z0-9. ]+)")
 
-    STRANGE_RE_LIST = [re.compile(r"\w+\(.*?\)")]
+    STRANGE_RE_LIST: ClassVar = [re.compile(r"\w+\(.*?\)")]
 
     SQL_RE = re.compile(
         r"(SELECT .*? FROM|" r"INSERT INTO .*? VALUES|" r"UPDATE .*? SET .*? WHERE)",
@@ -197,11 +198,7 @@ class strange_parameters(GrepPlugin):
         # the length is greater than X then report it
         #
         split_value = [x for x in self.STRANGE_RE_CHARS.split(value) if x != ""]
-        if len(split_value) > 4:
-            if not request.sent(value):
-                return True
-
-        return False
+        return bool(len(split_value) > 4 and not request.sent(value))
 
     def get_long_desc(self):
         """

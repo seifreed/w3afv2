@@ -65,7 +65,7 @@ class generic(AuthSessionPlugin):
         self._clear_log()
         self._configure_audit_blacklist(self.auth_url)
 
-        msg = "Logging into the application using %s" % self.username
+        msg = f"Logging into the application using {self.username}"
         om.out.debug(msg)
 
         #
@@ -111,7 +111,7 @@ class generic(AuthSessionPlugin):
 
     def _handle_authentication_success(self):
         super()._handle_authentication_success()
-        self._log_debug("Login success for %s" % self.username)
+        self._log_debug(f"Login success for {self.username}")
 
     def get_options(self):
         """
@@ -134,36 +134,46 @@ class generic(AuthSessionPlugin):
                 "username_field",
                 self.username_field,
                 "string",
-                'Username parameter name (ie. "uname" if the HTML looks'
-                ' like <input type="text" name="uname">...)',
+                (
+                    'Username parameter name (ie. "uname" if the HTML looks'
+                    ' like <input type="text" name="uname">...)'
+                ),
             ),
             (
                 "password_field",
                 self.password_field,
                 "string",
-                'Password parameter name (ie. "pwd" if the HTML looks'
-                ' like <input type="password" name="pwd">...)',
+                (
+                    'Password parameter name (ie. "pwd" if the HTML looks'
+                    ' like <input type="password" name="pwd">...)'
+                ),
             ),
             (
                 "auth_url",
                 self.auth_url,
                 "url",
-                "URL where the username and password will be sent using a POST"
-                " request",
+                (
+                    "URL where the username and password will be sent using a POST"
+                    " request"
+                ),
             ),
             (
                 "check_url",
                 self.check_url,
                 "url",
-                "URL used to verify if the session is still active by looking for"
-                " the check_string.",
+                (
+                    "URL used to verify if the session is still active by looking for"
+                    " the check_string."
+                ),
             ),
             (
                 "check_string",
                 self.check_string,
                 "string",
-                "String for searching on check_url page to determine if the"
-                "current session is active.",
+                (
+                    "String for searching on check_url page to determine if the"
+                    "current session is active."
+                ),
             ),
         ]
 

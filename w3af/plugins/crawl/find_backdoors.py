@@ -120,7 +120,7 @@ class find_backdoors(CrawlPlugin):
         try:
             response = self._uri_opener.GET(web_shell_url, cache=True)
         except BaseFrameworkException:
-            om.out.debug("Failed to GET webshell: %s" % web_shell_url)
+            om.out.debug(f"Failed to GET webshell: {web_shell_url}")
             return
 
         signature = self._match_signature(response)

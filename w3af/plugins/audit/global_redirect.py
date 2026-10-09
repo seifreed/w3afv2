@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
+from typing import ClassVar
 
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
@@ -42,20 +43,20 @@ class global_redirect(AuditPlugin):
     TEST_DOMAIN = _TEST_DOMAIN
 
     EXTENDED_PAYLOADS = None
-    BASIC_PAYLOADS = {"http://www.%s/" % TEST_DOMAIN, "//%s" % TEST_DOMAIN}
+    BASIC_PAYLOADS: ClassVar = {f"http://www.{TEST_DOMAIN}/", f"//{TEST_DOMAIN}"}
 
     SCRIPT_RE = re.compile("<script.*?>(.*?)</script>", re.IGNORECASE | re.DOTALL)
     META_URL_RE = re.compile(".*?; *?URL *?= *?(.*)", re.IGNORECASE | re.DOTALL)
 
-    JS_REDIR_GENERIC_FMT = [
+    JS_REDIR_GENERIC_FMT: ClassVar = [
         "window\\.location.*?=.*?[\"'].*?%s.*?[\"']",
         "(self|top)\\.location.*?=.*?[\"'].*?%s.*?[\"']",
         "window\\.location\\.(replace|assign)\\([\"'].*?%s.*?[\"']\\)",
     ]
-    REDIR_TO_TEST_DOMAIN_JS_RE = [
+    REDIR_TO_TEST_DOMAIN_JS_RE: ClassVar = [
         re.compile(r % _TEST_DOMAIN) for r in JS_REDIR_GENERIC_FMT
     ]
-    JS_REDIR_RE = [re.compile(r % "") for r in JS_REDIR_GENERIC_FMT]
+    JS_REDIR_RE: ClassVar = [re.compile(r % "") for r in JS_REDIR_GENERIC_FMT]
 
     def audit(self, freq, orig_response, debugging_id):
         """
@@ -161,14 +162,14 @@ class global_redirect(AuditPlugin):
         extended_payloads = set()
         extended_payloads.update(
             [
-                "%s.%s" % args,
-                "//%s.%s/" % args,
-                "http://%s.%s/" % args,
-                "https://%s.%s/" % args,
-                "%s@%s" % args,
-                "//%s@%s" % args,
-                "http://%s@%s" % args,
-                "https://%s@%s" % args,
+                "{}.{}".format(*args),
+                "//{}.{}/".format(*args),
+                "http://{}.{}/".format(*args),
+                "https://{}.{}/".format(*args),
+                "{}@{}".format(*args),
+                "//{}@{}".format(*args),
+                "http://{}@{}".format(*args),
+                "https://{}@{}".format(*args),
             ]
         )
 
@@ -256,10 +257,7 @@ class global_redirect(AuditPlugin):
             return False
 
         _, url = split_refresh
-        if self._domain_equals_test_domain(url):
-            return True
-
-        return False
+        return bool(self._domain_equals_test_domain(url))
 
     def _meta_redirect(self, response):
         """

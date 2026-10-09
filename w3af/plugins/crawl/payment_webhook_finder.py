@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 from itertools import repeat
+from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
@@ -40,7 +41,7 @@ class payment_webhook_finder(CrawlPlugin):
     :author: Coiffey Pierre (pierre.coiffey@gmail.com)
     """
 
-    _dirs = {
+    _dirs: ClassVar = {
         "/",
         "/inc/",
         "/include/",
@@ -63,7 +64,7 @@ class payment_webhook_finder(CrawlPlugin):
         "/cgibin/",
     }
 
-    _files = {
+    _files: ClassVar = {
         "pay",
         "payment",
         "success",
@@ -88,7 +89,7 @@ class payment_webhook_finder(CrawlPlugin):
         "finished",
     }
 
-    _exts = {
+    _exts: ClassVar = {
         "",
         "php",
         "asp",
@@ -103,7 +104,7 @@ class payment_webhook_finder(CrawlPlugin):
         "php5",
     }
 
-    _methods = {"GET", "POST"}
+    _methods: ClassVar = {"GET", "POST"}
 
     MIN_URL_COUNT_FOR_EXTENSION_FILTER = 100
 
@@ -207,10 +208,10 @@ class payment_webhook_finder(CrawlPlugin):
                 for ext_to_append in exts_to_append:
 
                     if ext_to_append:
-                        ext_to_append = ".%s" % ext_to_append
+                        ext_to_append = f".{ext_to_append}"
 
                     args = (url_string, dir_to_append, file_to_append, ext_to_append)
-                    url_str = "%s%s%s%s" % args
+                    url_str = "{}{}{}{}".format(*args)
 
                     new_url = URL(url_str)
 

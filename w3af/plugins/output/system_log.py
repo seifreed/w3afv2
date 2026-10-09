@@ -57,7 +57,7 @@ class system_log(OutputPlugin):
 
     def _create_message(self, message):
         message = "".join(ch for ch in message if ch in string.printable)
-        return "[%s] %s" % (self.scan_id, message)
+        return f"[{self.scan_id}] {message}"
 
     @catch_ioerror
     def debug(self, message, new_line=True):

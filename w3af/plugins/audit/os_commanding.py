@@ -123,7 +123,7 @@ class os_commanding(AuditPlugin):
             # Search for the correct command and separator
             sent_os, sent_separator = self._get_os_separator(mutant)
 
-            desc = "OS Commanding was found at: %s" % mutant.found_at()
+            desc = f"OS Commanding was found at: {mutant.found_at()}"
             # Create the vuln obj
             v = Vuln.from_mutant(
                 "OS commanding vulnerability",
@@ -219,7 +219,7 @@ class os_commanding(AuditPlugin):
         if not success:
             return
 
-        desc = "OS Commanding was found at: %s" % mutant.found_at()
+        desc = f"OS Commanding was found at: {mutant.found_at()}"
 
         v = Vuln.from_mutant(
             "OS commanding vulnerability",

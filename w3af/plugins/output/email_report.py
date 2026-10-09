@@ -102,7 +102,7 @@ class email_report(OutputPlugin):
         msg = MIMEText(data)
         msg["From"] = self.fromAddr
         msg["To"] = ", ".join(self.toAddrs)
-        msg["Subject"] = "w3af report on %s" % self.targets[0]
+        msg["Subject"] = f"w3af report on {self.targets[0]}"
 
         try:
             server = smtplib.SMTP(self.smtpServer, self.smtpPort)

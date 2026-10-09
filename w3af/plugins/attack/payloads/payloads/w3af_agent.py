@@ -20,7 +20,7 @@ class w3af_agent(Payload):
         start and thats it.
         """
         if not is_ip_address(ip_address):
-            ValueError('Invalid IP address: "%s"' % ip_address)
+            raise ValueError(f'Invalid IP address: "{ip_address}"')
 
         try:
             agentManager = w3afAgentManager(self.shell.execute, ip_address)

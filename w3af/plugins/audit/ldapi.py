@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from typing import ClassVar
+
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.data.constants import severity
@@ -73,7 +75,7 @@ class ldapi(AuditPlugin):
 
     _multi_in = MultiIn(LDAP_ERRORS)
 
-    LDAPI_STRINGS = [
+    LDAPI_STRINGS: ClassVar = [
         "^(#$!@#$)(()))******",
     ]
 
@@ -107,7 +109,7 @@ class ldapi(AuditPlugin):
             for ldap_error_string in ldap_error_list:
                 if ldap_error_string not in mutant.get_original_response_body():
 
-                    desc = "LDAP injection was found at: %s" % mutant.found_at()
+                    desc = f"LDAP injection was found at: {mutant.found_at()}"
 
                     v = Vuln.from_mutant(
                         "LDAP injection vulnerability",

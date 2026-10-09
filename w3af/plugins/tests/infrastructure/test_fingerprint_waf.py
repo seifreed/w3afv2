@@ -29,7 +29,7 @@ class WAFTest:
     _run_configs = {
         "cfg": {
             "target": target_url,
-            "plugins": {"infrastructure": (PluginConfig("fingerprint_WAF"),)},
+            "plugins": {"infrastructure": (PluginConfig("fingerprint_waf"),)},
         }
     }
 
@@ -45,7 +45,7 @@ class TestFingerprintWAFIBMWebSphere(WAFTest, PluginTest):
         cfg = self._run_configs["cfg"]
         self._scan(cfg["target"], cfg["plugins"])
 
-        infos = self.kb.get("fingerprint_WAF", "IBM WebSphere")
+        infos = self.kb.get("fingerprint_waf", "IBM WebSphere")
         self.assertEqual(len(infos), 1, infos)
         info = infos[0]
 
@@ -69,5 +69,5 @@ class TestFingerprintWAFNone(WAFTest, PluginTest):
         cfg = self._run_configs["cfg"]
         self._scan(cfg["target"], cfg["plugins"])
 
-        infos = self.kb.get("fingerprint_WAF", "fingerprint_WAF")
+        infos = self.kb.get("fingerprint_waf", "fingerprint_waf")
         self.assertEqual(len(infos), 0, infos)

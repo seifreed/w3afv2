@@ -80,7 +80,7 @@ class response_splitting(AuditPlugin):
         if not self._header_was_injected(mutant, response):
             return
 
-        desc = "Response splitting was found at: %s" % mutant.found_at()
+        desc = f"Response splitting was found at: {mutant.found_at()}"
         v = Vuln.from_mutant(
             "Response splitting vulnerability",
             desc,

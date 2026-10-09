@@ -62,7 +62,7 @@ class xssed_dot_com(InfrastructurePlugin):
                                     (among other things) the URL to test.
         """
         target_domain = fuzzable_request.get_url().get_root_domain()
-        target_path = "/search?key=.%s" % target_domain
+        target_path = f"/search?key=.{target_domain}"
         check_url = self.XSSED_URL.url_join(target_path)
 
         try:

@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from typing import ClassVar
+
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.data.constants import severity
@@ -44,7 +46,7 @@ class xpath(AuditPlugin):
         "Cannot convert expression to a number",
         "Document Axis does not allow any context Location Steps",
         "Empty Path Expression",
-        "DOMXPath::" "Empty Relative Location Path",
+        ("DOMXPath::" "Empty Relative Location Path"),
         "Empty Union Expression",
         "Expected ')' in",
         "Expected node test or name specification after axis operator",
@@ -69,7 +71,7 @@ class xpath(AuditPlugin):
     )
     _multi_in = MultiIn(XPATH_PATTERNS)
 
-    XPATH_TEST_PAYLOADS = [
+    XPATH_TEST_PAYLOADS: ClassVar = [
         "d'z\"0",
         # http://www.owasp.org/index.php/Testing_for_XML_Injection
         "<!--",
@@ -108,7 +110,7 @@ class xpath(AuditPlugin):
         for xpath_error in xpath_error_list:
             if xpath_error not in mutant.get_original_response_body():
 
-                desc = "XPATH injection was found at: %s" % mutant.found_at()
+                desc = f"XPATH injection was found at: {mutant.found_at()}"
 
                 v = Vuln.from_mutant(
                     "XPATH injection vulnerability",

@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from typing import ClassVar
+
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
@@ -42,7 +44,7 @@ class user_dir(CrawlPlugin):
     COMMON_TAG = "common"
     EMAIL_USER_DESC = "username extracted from email"
     COMMON_USER_DESC = "common operating system username"
-    COMMON_USERS = [
+    COMMON_USERS: ClassVar = [
         "www-data",
         "www",
         "nobody",

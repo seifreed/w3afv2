@@ -85,7 +85,7 @@ def extract_result(body):
     if SHELL_IDENTIFIER_1 not in body or SHELL_IDENTIFIER_2 not in body:
         msg = (
             "Unable to execute remote command, result extraction"
-            ' failed. Response body was "%s".' % body
+            f' failed. Response body was "{body}".'
         )
         raise BaseFrameworkException(msg)
 
@@ -129,7 +129,7 @@ def _get_file_list(type_of_list, extension, force_extension=False):
         powered_by_header_list = kb.kb.raw_read("server_header", "powered_by_string")
 
         file_list = [x for x in os.listdir(path) if x.startswith(type_of_list)]
-        file_name = "%s.%s" % (type_of_list, extension)
+        file_name = f"{type_of_list}.{extension}"
 
         if file_name in file_list:
             file_list.remove(file_name)

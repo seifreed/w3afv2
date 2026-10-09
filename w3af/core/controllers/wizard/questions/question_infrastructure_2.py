@@ -77,7 +77,7 @@ class question_infrastructure_2(question):
             plugin_list.append("detect_transparent_proxy")
 
         if options_list[self._d3].get_value():
-            plugin_list.append("fingerprint_WAF")
+            plugin_list.append("fingerprint_waf")
 
         # Set the plugins to be run
         old_discovery = self.w3af_core.plugins.get_enabled_plugins("infrastructure")

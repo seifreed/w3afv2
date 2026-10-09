@@ -64,7 +64,10 @@ class rfi(AuditPlugin):
 
     RFI_ERRORS = (
         "php_network_getaddresses: getaddrinfo",
-        "failed to open stream: Connection refused in" "java.io.FileNotFoundException",
+        (
+            "failed to open stream: Connection refused in"
+            "java.io.FileNotFoundException"
+        ),
         "java.net.ConnectException",
         "java.net.UnknownHostException",
     )
@@ -147,7 +150,7 @@ class rfi(AuditPlugin):
         }
 
         # Get the one with the higher severity and report that one
-        for _, vulns_for_url_var in sorted_vulns.items():
+        for vulns_for_url_var in sorted_vulns.values():
 
             highest_severity = -1
             highest_severity_vuln = None
@@ -219,7 +222,7 @@ class rfi(AuditPlugin):
             is_listen_priv or is_target_priv
         ):
 
-            msg = "RFI using local web server for URL: %s" % freq.get_url()
+            msg = f"RFI using local web server for URL: {freq.get_url()}"
             om.out.debug(msg)
 
             try:
@@ -336,7 +339,7 @@ class rfi(AuditPlugin):
         if rfi_data.rfi_result in response:
             desc = (
                 "A remote file inclusion vulnerability that allows remote"
-                " code execution was found at: %s" % mutant.found_at()
+                f" code execution was found at: {mutant.found_at()}"
             )
 
             v = Vuln.from_mutant(
@@ -359,7 +362,7 @@ class rfi(AuditPlugin):
             # content was embedded but not executed
             desc = (
                 "A remote file inclusion vulnerability without code"
-                " execution was found at: %s" % mutant.found_at()
+                f" execution was found at: {mutant.found_at()}"
             )
 
             v = Vuln.from_mutant(
@@ -386,7 +389,7 @@ class rfi(AuditPlugin):
                     desc = (
                         "A potential remote file inclusion vulnerability"
                         " was identified by the means of application error"
-                        " messages at: %s" % mutant.found_at()
+                        f" messages at: {mutant.found_at()}"
                     )
 
                     v = Vuln.from_mutant(
@@ -530,7 +533,7 @@ class RFIWebHandler(http.server.BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(self.RESPONSE_BODY)
         except Exception as e:
-            om.out.debug('[RFIWebHandler] Exception: "%s".' % e)
+            om.out.debug(f'[RFIWebHandler] Exception: "{e}".')
         finally:
             # Clean up
             self.close_connection = 1

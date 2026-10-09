@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from typing import ClassVar
+
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.kb.info import Info
 
@@ -31,7 +33,7 @@ class oracle(GrepPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    OAS_TAGS = [
+    OAS_TAGS: ClassVar = [
         "<!-- Created by Oracle ",
     ]
 

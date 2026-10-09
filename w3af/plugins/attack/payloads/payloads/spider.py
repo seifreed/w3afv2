@@ -106,8 +106,8 @@ class spider(Payload):
 
         try:
             recursion_level = int(recursion_level)
-        except:
-            ValueError("recursion_level needs to be an integer.")
+        except (TypeError, ValueError) as exc:
+            raise ValueError("recursion_level needs to be an integer.") from exc
 
         self.result = {}
 

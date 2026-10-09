@@ -96,7 +96,7 @@ class dot_ds_store(CrawlPlugin):
             store = DsStore(response.get_raw_body())
             entries = store.get_file_entries()
         except Exception as e:
-            om.out.debug('Unexpected error while parsing DS_Store file: "%s"' % e)
+            om.out.debug(f'Unexpected error while parsing DS_Store file: "{e}"')
             return
 
         parsed_url_list = []

@@ -255,7 +255,7 @@ class text_file(OutputPlugin):
         """
         now = time.localtime(time.time())
         the_time = time.strftime("%c", now)
-        timestamp = "[ %s - Enabled plugins ] " % the_time
+        timestamp = f"[ {the_time} - Enabled plugins ] "
 
         to_print = ""
 

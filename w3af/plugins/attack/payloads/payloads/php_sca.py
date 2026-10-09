@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import tempfile
+from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
@@ -33,7 +34,7 @@ from w3af.plugins.attack.payloads.base_payload import Payload
 
 class php_sca(Payload):
 
-    KB_DATA = {
+    KB_DATA: ClassVar = {
         "XSS": {
             "kb_key": ("xss", "xss"),
             "severity": severity.MEDIUM,

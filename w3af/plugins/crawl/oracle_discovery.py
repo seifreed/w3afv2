@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
+from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
@@ -53,7 +54,7 @@ class oracle_discovery(CrawlPlugin):
         r"(Reports Servlet) [\w ]* ([\d\.]*?)",
     )
 
-    ORACLE_RE = [re.compile(regex) for regex in ORACLE_RE]
+    ORACLE_RE: ClassVar = [re.compile(regex) for regex in ORACLE_RE]
 
     @runonce(exc_class=RunOnce)
     def crawl(self, fuzzable_request, debugging_id):

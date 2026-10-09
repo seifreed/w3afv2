@@ -24,6 +24,7 @@ import itertools
 import re
 import zlib
 from collections import deque
+from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
@@ -45,7 +46,7 @@ class serialized_object(GrepPlugin):
 
     CACHE_MAX_SIZE = 100
 
-    SERIALIZED_OBJECT_RE = {
+    SERIALIZED_OBJECT_RE: ClassVar = {
         "PHP": [
             re.compile(r'^(a|O):\d{1,3}:({[sai]|")'),
         ]
@@ -144,7 +145,7 @@ class serialized_object(GrepPlugin):
             om.out.debug(
                 "An exception was found while trying to find a"
                 " serialized object in a parameter value. The exception"
-                ' is: "%s", and the parameter value is: "%r"' % args
+                ' is: "{}", and the parameter value is: "{!r}"'.format(*args)
             )
             return
 

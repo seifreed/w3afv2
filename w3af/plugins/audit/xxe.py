@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import itertools
+from typing import ClassVar
 
 from lxml import etree
 
@@ -41,16 +42,16 @@ class xxe(AuditPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    WINDOWS_FILES = [
+    WINDOWS_FILES: ClassVar = [
         "%SYSTEMDRIVE%\\boot.ini",
         "%WINDIR%\\win.ini",
     ]
 
-    LINUX_FILES = [
+    LINUX_FILES: ClassVar = [
         "/etc/passwd",
     ]
 
-    REMOTE_FILES = ["http://w3af.org/xxe.txt"]
+    REMOTE_FILES: ClassVar = ["http://w3af.org/xxe.txt"]
 
     # This is the only content stored in the https://w3af.org/xxe.txt file
     REMOTE_SUCCESS = "667067323"
@@ -58,27 +59,31 @@ class xxe(AuditPlugin):
     ENTITY_DEF = '<!DOCTYPE xxe_test [ <!ENTITY xxe_test SYSTEM "%s"> ]>'
     ENTITY = "&xxe_test;"
 
-    GENERIC_PAYLOADS = [
+    GENERIC_PAYLOADS: ClassVar = [
         # This is the most effective payload I've found until now, tested using
         # libxml (python wrapper, but should apply to all libxml versions).
         '<!DOCTYPE xxe_test [ <!ENTITY xxe_test SYSTEM "%s"> ]><x>&xxe_test;</x>',
-        '<?xml version="1.0" encoding="ISO-8859-1"?>'
-        '<!DOCTYPE xxe_test [ <!ENTITY xxe_test SYSTEM "%s"> ]><x>&xxe_test;</x>',
-        '<?xml version="1.0" encoding="ISO-8859-1"?>'
-        '<!DOCTYPE xxe_test [<!ELEMENT foo ANY><!ENTITY xxe_test SYSTEM "%s">]>'
-        "<foo>&xxe_test;</foo>",
+        (
+            '<?xml version="1.0" encoding="ISO-8859-1"?>'
+            '<!DOCTYPE xxe_test [ <!ENTITY xxe_test SYSTEM "%s"> ]><x>&xxe_test;</x>'
+        ),
+        (
+            '<?xml version="1.0" encoding="ISO-8859-1"?>'
+            '<!DOCTYPE xxe_test [<!ELEMENT foo ANY><!ENTITY xxe_test SYSTEM "%s">]>'
+            "<foo>&xxe_test;</foo>"
+        ),
     ]
 
-    LINUX_PAYLOADS = [
+    LINUX_PAYLOADS: ClassVar = [
         '<!DOCTYPE xxe_test [ <!ENTITY xxe_test SYSTEM "file://%s"> ]><x>&xxe_test;</x>',
     ]
 
-    WINDOWS_PAYLOADS = [
+    WINDOWS_PAYLOADS: ClassVar = [
         # Note that this one uses file:/// instead of file://
         '<!DOCTYPE xxe_test [ <!ENTITY xxe_test SYSTEM "file:///%s"> ]><x>&xxe_test;</x>',
     ]
 
-    XML_PARSER_ERRORS = [
+    XML_PARSER_ERRORS: ClassVar = [
         # PHP
         "xmlParseEntityDecl",
         "simplexml_load_string",
@@ -107,9 +112,11 @@ class xxe(AuditPlugin):
         "XML syntax error on line",
         "Error unmarshaling XML",
         "conflicts with field",
-        "illegal character code"
-        # .NET
-        "XML Parsing Error",
+        (
+            "illegal character code"
+            # .NET
+            "XML Parsing Error"
+        ),
         "SyntaxError",
         "no root element",
         "not well-formed",
@@ -138,10 +145,7 @@ class xxe(AuditPlugin):
         if "xml" in param_name.lower():
             return True
 
-        if "<" in param_value and ">" in param_value:
-            return True
-
-        return False
+        return bool("<" in param_value and ">" in param_value)
 
     def _create_payloads(self, param_name, original_value):
         """
@@ -377,8 +381,7 @@ class xxe(AuditPlugin):
         if self.REMOTE_SUCCESS in body:
             yield self.REMOTE_SUCCESS
 
-        for file_pattern_match in self.file_pattern_multi_in.query(body):
-            yield file_pattern_match
+        yield from self.file_pattern_multi_in.query(body)
 
     def get_long_desc(self):
         """

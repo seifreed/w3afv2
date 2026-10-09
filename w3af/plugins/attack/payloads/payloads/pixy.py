@@ -38,7 +38,7 @@ class pixy(Payload):
         )
         stdout_value = proc.communicate()[0]
         if "usage: check [options] file" not in stdout_value:
-            ValueError("Please specify the correct pixy location")
+            raise ValueError("Please specify the correct pixy location")
 
         #
         #    Get the source code!

@@ -32,7 +32,7 @@ from w3af.core.data.constants import severity
 from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
-from w3af.core.data.search_engines.bing import bing as bing
+from w3af.core.data.search_engines.bing import bing
 
 
 class shared_hosting(InfrastructurePlugin):
@@ -67,7 +67,7 @@ class shared_hosting(InfrastructurePlugin):
         if is_private_site(domain):
             msg = (
                 "shared_hosting plugin is not checking for subdomains for"
-                ' domain: "%s" because it is a private address.' % domain
+                f' domain: "{domain}" because it is a private address.'
             )
             om.out.debug(msg)
             return False
@@ -81,7 +81,7 @@ class shared_hosting(InfrastructurePlugin):
         try:
             addrinfo = socket.getaddrinfo(domain, 0)
         except:
-            om.out.error('Failed to resolve address: "%s"' % domain)
+            om.out.error(f'Failed to resolve address: "{domain}"')
             return []
 
         ip_address_list = [info[4][0] for info in addrinfo]
@@ -129,14 +129,14 @@ class shared_hosting(InfrastructurePlugin):
                     "The web application under test seems to be in a shared"
                     " hosting. This list of domains, and the domain of the "
                     " web application under test, all point to the same IP"
-                    " address (%s):\n" % ip_address
+                    f" address ({ip_address}):\n"
                 )
 
                 domain_list = kb.kb.raw_read(self, "domains")
 
                 for url in results:
                     domain = url.get_domain()
-                    desc += "- %s\n" % domain
+                    desc += f"- {domain}\n"
 
                     domain_list.append(domain)
 

@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os.path
 from itertools import repeat
+from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
@@ -48,9 +49,9 @@ class open_api(CrawlPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    FILENAMES = ["swagger.json", "openapi.json", "openapi.yaml"]
+    FILENAMES: ClassVar = ["swagger.json", "openapi.json", "openapi.yaml"]
 
-    DIRECTORIES = [
+    DIRECTORIES: ClassVar = [
         "/",
         "/api/",
         "/api/v2/",
@@ -195,7 +196,7 @@ class open_api(CrawlPlugin):
         if not OpenAPI.can_parse(http_response):
             return
 
-        om.out.debug("OpenAPI parser is about to parse %s" % spec_url)
+        om.out.debug(f"OpenAPI parser is about to parse {spec_url}")
 
         parser = OpenAPI(
             http_response,
@@ -209,7 +210,7 @@ class open_api(CrawlPlugin):
         self._send_spec_to_core(spec_url)
 
         om.out.debug(
-            "OpenAPI parser identified %s API calls" % len(parser.get_api_calls())
+            f"OpenAPI parser identified {len(parser.get_api_calls())} API calls"
         )
 
         for api_call in parser.get_api_calls():
@@ -241,9 +242,9 @@ class open_api(CrawlPlugin):
 
         om.out.debug(
             "The OpenAPI specification has operations which point"
-            " to a domain (%s) outside the defined target (%s)."
+            f" to a domain ({api_call_domain}) outside the defined target ({target_domain})."
             " Ignoring the operation to prevent scanning out of scope"
-            " targets." % (api_call_domain, target_domain)
+            " targets."
         )
         return False
 
@@ -357,7 +358,7 @@ class open_api(CrawlPlugin):
 
         for directory in self.DIRECTORIES:
             for filename in self.FILENAMES:
-                spec_url = base_url.url_join("%s%s" % (directory, filename))
+                spec_url = base_url.url_join(f"{directory}{filename}")
 
                 if not self._should_analyze(spec_url):
                     continue
@@ -424,20 +425,20 @@ class open_api(CrawlPlugin):
 
         self._first_run = False
 
-        url = URL("file://%s" % os.path.abspath(self._custom_spec_location))
+        url = URL(f"file://{os.path.abspath(self._custom_spec_location)}")
 
         ext = os.path.splitext(self._custom_spec_location)[1][1:].lower()
         if ext not in ("yaml", "json"):
             om.out.error(
                 "Skip loading custom API spec "
-                "because of unknown file extension: %s" % ext
+                f"because of unknown file extension: {ext}"
             )
             return
 
         with open(self._custom_spec_location, "r") as f:
             custom_spec_as_string = f.read()
 
-        headers = Headers([("content-type", "application/%s" % ext)])
+        headers = Headers([("content-type", f"application/{ext}")])
         http_response = HTTPResponse(
             200, custom_spec_as_string, headers, url, url, _id=1
         )

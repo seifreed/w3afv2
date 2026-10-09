@@ -222,7 +222,7 @@ class clamav(GrepPlugin):
             found = result["stream"][0] == "FOUND"
             return ScanResult(found, signature)
         except (IndexError, KeyError, TypeError):
-            om.out.debug("Invalid response from clamd: %s" % result)
+            om.out.debug(f"Invalid response from clamd: {result}")
 
     def set_options(self, options_list):
         self._clamd_socket = options_list["clamd_socket"].get_value()

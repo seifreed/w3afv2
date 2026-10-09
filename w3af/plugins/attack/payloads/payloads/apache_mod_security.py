@@ -48,13 +48,12 @@ class apache_mod_security(Payload):
                 ):
                     bin_location.append(parse_binary_location(self.shell.read(file)))
 
-        if bin_location == []:
-            if apache_config_dir:
-                for dir in apache_config_dir:
-                    for module in modules:
-                        dirmodule = self.shell.read(dir + module)
-                        if dirmodule:
-                            bin_location.append(parse_binary_location(dirmodule))
+        if bin_location == [] and apache_config_dir:
+            for dir in apache_config_dir:
+                for module in modules:
+                    dirmodule = self.shell.read(dir + module)
+                    if dirmodule:
+                        bin_location.append(parse_binary_location(dirmodule))
 
         bin = []
         for location in bin_location:

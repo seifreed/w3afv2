@@ -37,23 +37,6 @@ class cpu_info(Payload):
 
         return result
 
-    def api_win_read(self):
-        result = {}
-
-        def parse_cpu_cores(iis6log):
-            cores = re.search("(?<=m_dwNumberOfProcessors=)(.*)", iis6log)
-            if cores:
-                return cores.group(1)
-            else:
-                return ""
-
-        def parse_arch(iis6log):
-            arch = re.search("(?<=m_csPlatform=)(.*)", iis6log)
-            if arch:
-                return arch.group(1)
-            else:
-                return ""
-
     def run_read(self):
         api_result = self.api_read()
 

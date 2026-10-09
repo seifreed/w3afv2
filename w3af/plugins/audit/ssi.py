@@ -72,31 +72,31 @@ class ssi(AuditPlugin):
         :return: A string, see above.
         """
         # Generic
-        yield '<!--#exec cmd="echo -n %s;echo -n %s" -->' % get_seeds()
+        yield '<!--#exec cmd="echo -n {};echo -n {}" -->'.format(*get_seeds())
 
         # Perl SSI
         yield (
-            '<!--#set var="SEED_A" value="%s" -->'
+            '<!--#set var="SEED_A" value="{}" -->'
             '<!--#echo var="SEED_A" -->'
-            '<!--#set var="SEED_B" value="%s" -->'
-            '<!--#echo var="SEED_B" -->' % get_seeds()
+            '<!--#set var="SEED_B" value="{}" -->'
+            '<!--#echo var="SEED_B" -->'.format(*get_seeds())
         )
 
         # Smarty
         # http://www.smarty.net/docsv2/en/language.function.math.tpl
-        yield '{math equation="x * y" x=%s y=%s}' % get_seeds()
+        yield '{{math equation="x * y" x={} y={}}}'.format(*get_seeds())
 
         # Mako
         # http://docs.makotemplates.org/en/latest/syntax.html
-        yield "${%s * %s}" % get_seeds()
+        yield "${{{} * {}}}".format(*get_seeds())
 
         # Jinja2 and Twig
         # http://jinja.pocoo.org/docs/dev/templates/#math
         # http://twig.sensiolabs.org/doc/templates.html
-        yield "{{%s * %s}}" % get_seeds()
+        yield "{{{{{} * {}}}}}".format(*get_seeds())
 
         # Generic
-        yield "{%s * %s}" % get_seeds()
+        yield "{{{} * {}}}".format(*get_seeds())
 
     def _get_expected_results(self, mutant):
         """
@@ -109,7 +109,7 @@ class ssi(AuditPlugin):
         seed_a = int(seed_numbers[0])
         seed_b = int(seed_numbers[1])
 
-        return [str(seed_a * seed_b), "%s%s" % (seed_a, seed_b)]
+        return [str(seed_a * seed_b), f"{seed_a}{seed_b}"]
 
     def _analyze_result(self, mutant, response):
         """
@@ -173,7 +173,7 @@ class ssi(AuditPlugin):
         fuzzable_request_set = kb.kb.get_all_known_fuzzable_requests()
 
         debugging_id = rand_alnum(8)
-        om.out.debug("Starting stored SSI search (did=%s)" % debugging_id)
+        om.out.debug(f"Starting stored SSI search (did={debugging_id})")
 
         #
         # TODO
@@ -189,10 +189,10 @@ class ssi(AuditPlugin):
         #
         expected_strings = list(self._expected_mutant_dict.keys())
         args = (len(expected_strings), debugging_id)
-        om.out.debug("About to create MultiIn with %s keys (did=%s)" % args)
+        om.out.debug("About to create MultiIn with {} keys (did={})".format(*args))
 
         self._persistent_multi_in = MultiIn(expected_strings)
-        om.out.debug("Created stored SSI MultiIn (did=%s)" % debugging_id)
+        om.out.debug(f"Created stored SSI MultiIn (did={debugging_id})")
 
         self._send_mutants_in_threads(
             self._uri_opener.send_mutant,

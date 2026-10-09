@@ -22,10 +22,7 @@ class mysql_config_directory(Payload):
 
         def check_mysql_config_dir(mysql):
             my = self.shell.read(mysql + "my.cnf")
-            if my != "":
-                return True
-            else:
-                return False
+            return my != ""
 
         paths.append(parse_mysql_init(self.shell.read("/etc/init.d/mysql")))
         paths.append("/etc/mysql/")

@@ -85,13 +85,6 @@ class json_file(OutputPlugin):
         """
         self.output_file = os.path.expanduser(self.output_file)
 
-        try:
-            output_handler = open(self.output_file, "wb")
-        except OSError as ioe:
-            msg = 'Failed to open the output file for writing: "%s"'
-            om.out.error(msg % ioe)
-            return
-
         target_urls = [t.url_string for t in cf.cf.get("targets")]
 
         target_domain = "unknown"
@@ -113,30 +106,22 @@ class json_file(OutputPlugin):
 
         items = []
         for info in kb.kb.get_all_findings_iter():
-            try:
-                item = {
-                    "Severity": info.get_severity(),
-                    "Name": info.get_name(),
-                    "HTTP method": info.get_method(),
-                    "URL": str(info.get_url()),
-                    "Vulnerable parameter": info.get_token_name(),
-                    "POST data": base64.b64encode(info.get_mutant().get_data()),
-                    "Vulnerability IDs": info.get_id(),
-                    "CWE IDs": getattr(info, "cwe_ids", []),
-                    "WASC IDs": getattr(info, "wasc_ids", []),
-                    "Tags": getattr(info, "tags", []),
-                    "VulnDB ID": info.get_vulndb_id(),
-                    "Description": info.get_desc(),
-                }
-                items.append(item)
-            except Exception as e:
-                msg = (
-                    "An exception was raised while trying to write the "
-                    ' vulnerabilities to the output file. Exception: "%s"'
-                )
-                om.out.error(msg % e)
-                output_handler.close()
-                return
+            post_data = info.get_mutant().get_data().encode("utf-8")
+            item = {
+                "Severity": info.get_severity(),
+                "Name": info.get_name(),
+                "HTTP method": info.get_method(),
+                "URL": str(info.get_url()),
+                "Vulnerable parameter": info.get_token_name(),
+                "POST data": base64.b64encode(post_data).decode("ascii"),
+                "Vulnerability IDs": info.get_id(),
+                "CWE IDs": getattr(info, "cwe_ids", []),
+                "WASC IDs": getattr(info, "wasc_ids", []),
+                "Tags": getattr(info, "tags", []),
+                "VulnDB ID": info.get_vulndb_id(),
+                "Description": info.get_desc(),
+            }
+            items.append(item)
 
         res = {
             "w3af-version": get_w3af_version.get_w3af_version(),
@@ -152,9 +137,12 @@ class json_file(OutputPlugin):
             "items": items,
         }
 
-        json.dump(res, output_handler, indent=4)
-
-        output_handler.close()
+        try:
+            with open(self.output_file, "w", encoding="utf-8") as output_handler:
+                json.dump(res, output_handler, indent=4)
+        except OSError as ioe:
+            msg = 'Failed to open the output file for writing: "%s"'
+            om.out.error(msg % ioe)
 
     def get_long_desc(self):
         """

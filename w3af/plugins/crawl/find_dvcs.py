@@ -24,6 +24,7 @@ import os
 import sqlite3
 import struct
 import tempfile
+from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
@@ -54,7 +55,7 @@ class find_dvcs(CrawlPlugin):
     :author: Andres Riancho (andres@andresriancho.com)
     """
 
-    BAD_HTTP_CODES = {301, 302, 307}
+    BAD_HTTP_CODES: ClassVar = {301, 302, 307}
 
     def __init__(self):
         CrawlPlugin.__init__(self)
@@ -165,7 +166,9 @@ class find_dvcs(CrawlPlugin):
             #
             # Log in order to be able to improve the framework.
             args = (e, repo_get_files.__name__, repo_url)
-            om.out.debug('Got a "%s" exception while running "%s" on "%s"' % args)
+            om.out.debug(
+                'Got a "{}" exception while running "{}" on "{}"'.format(*args)
+            )
             return
 
         parsed_url_set = set()
@@ -469,10 +472,10 @@ class find_dvcs(CrawlPlugin):
             if not line:
                 continue
 
-            if line.startswith("/") or line.startswith("^"):
+            if line.startswith(("/", "^")):
                 line = line[1:]
 
-            if line.endswith("/") or line.endswith("$"):
+            if line.endswith(("/", "$")):
                 line = line[:-1]
 
             filenames.add(line)

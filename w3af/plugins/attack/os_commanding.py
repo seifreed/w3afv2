@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from typing import ClassVar
+
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
@@ -220,7 +222,7 @@ class os_commanding(AttackPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    EXPLOIT_STRATEGIES = [
+    EXPLOIT_STRATEGIES: ClassVar = [
         FullPathExploitStrategy,
         CmdsInPathExploitStrategy,
         BasicExploitStrategy,

@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from typing import ClassVar
+
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.csp.utils import site_protected_against_xss_by_csp
@@ -46,7 +48,7 @@ class xss(AuditPlugin):
     """
 
     # TODO: Reduce the number of payloads by concatenating similar/related ones
-    PAYLOADS = [
+    PAYLOADS: ClassVar = [
         # Start a new tag
         "<",
         # Escape HTML comments
@@ -67,9 +69,9 @@ class xss(AuditPlugin):
         # Escape HTML attribute values without string delimiters
         " =",
     ]
-    PAYLOADS = ["%s%s%s" % (RANDOMIZE, p, RANDOMIZE) for p in PAYLOADS]
+    PAYLOADS: ClassVar = [f"{RANDOMIZE}{p}{RANDOMIZE}" for p in PAYLOADS]
 
-    IGNORE_EXTENSIONS_FOR_PERSISTENT_XSS = set()
+    IGNORE_EXTENSIONS_FOR_PERSISTENT_XSS: ClassVar = set()
     IGNORE_EXTENSIONS_FOR_PERSISTENT_XSS.update(JAVASCRIPT)
     IGNORE_EXTENSIONS_FOR_PERSISTENT_XSS.update(CSS)
     IGNORE_EXTENSIONS_FOR_PERSISTENT_XSS.update(FLASH)
@@ -257,7 +259,7 @@ class xss(AuditPlugin):
         fuzzable_requests = kb.kb.get_all_known_fuzzable_requests()
 
         debugging_id = rand_alnum(8)
-        om.out.debug("Starting stored XSS search (did=%s)" % debugging_id)
+        om.out.debug(f"Starting stored XSS search (did={debugging_id})")
 
         self._send_mutants_in_threads(
             self._uri_opener.send_mutant,

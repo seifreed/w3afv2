@@ -57,7 +57,7 @@ class objects(GrepPlugin):
 
             i = Info("Browser plugin content", desc, response.id, self.get_name())
             i.set_url(url)
-            i.add_to_highlight("<%s" % tag.name)
+            i.add_to_highlight(f"<{tag.name}")
 
             self.kb_append_uniq(self, tag.name, i, "URL")
             # pylint: enable=E1101

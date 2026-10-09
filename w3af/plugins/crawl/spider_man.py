@@ -83,14 +83,14 @@ class spider_man(CrawlPlugin):
                 name="SpiderManProxyThread",
             )
         except ProxyException as proxy_exc:
-            om.out.error("%s" % proxy_exc)
+            om.out.error(f"{proxy_exc}")
 
         else:
             msg = (
-                "spider_man proxy is running on %s:%s.\nPlease configure "
+                f"spider_man proxy is running on {self._listen_address}:{self._listen_port}.\nPlease configure "
                 "your browser to use these proxy settings and navigate the "
                 "target site.\nTo exit spider_man plugin please navigate"
-                " to %s ." % (self._listen_address, self._listen_port, TERMINATE_URL)
+                f" to {TERMINATE_URL} ."
             )
             om.out.information(msg)
 
@@ -224,10 +224,7 @@ class LoggingHandler(ProxyHandler):
         """
         :see: https://github.com/andresriancho/w3af/issues/9135
         """
-        if http_request.get_uri() == TERMINATE_FAVICON_URL:
-            return True
-
-        return False
+        return http_request.get_uri() == TERMINATE_FAVICON_URL
 
     def _create_favicon_response(self, http_response):
         favicon = os.path.join(ROOT_PATH, "plugins/crawl/spider_man/favicon.ico")
@@ -250,10 +247,7 @@ class LoggingHandler(ProxyHandler):
         return http_response
 
     def _is_terminate_request(self, http_request):
-        if http_request.get_uri() == TERMINATE_URL:
-            return True
-
-        return False
+        return http_request.get_uri() == TERMINATE_URL
 
     def _terminate(self):
         om.out.information("The user terminated the spider_man session.")

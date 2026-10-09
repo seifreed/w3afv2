@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from typing import ClassVar
+
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.data.constants import severity
@@ -34,7 +36,7 @@ class preg_replace(AuditPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    PREG_PAYLOAD = [
+    PREG_PAYLOAD: ClassVar = [
         "a" + ")/" * 100,
     ]
     PREG_ERRORS = (

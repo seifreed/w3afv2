@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from typing import ClassVar
+
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
@@ -32,10 +34,22 @@ class strange_http_codes(GrepPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    COMMON_HTTP_CODES = {200, 301, 302, 303, 304, 308, 401, 403, 404, 500, 501}
+    COMMON_HTTP_CODES: ClassVar = {
+        200,
+        301,
+        302,
+        303,
+        304,
+        308,
+        401,
+        403,
+        404,
+        500,
+        501,
+    }
 
     # https://en.wikipedia.org/wiki/List_of_HTTP_status_codes#5xx_Server_errors
-    DOS_HTTP_CODES = {
+    DOS_HTTP_CODES: ClassVar = {
         502,
         503,
         504,

@@ -76,7 +76,7 @@ class dwsync_xml(CrawlPlugin):
         if "</dwsync>" not in response.get_body():
             return
 
-        om.out.debug("Parsing dwsync.xml file at %s" % dwsync_url)
+        om.out.debug(f"Parsing dwsync.xml file at {dwsync_url}")
 
         try:
             dom = xml.dom.minidom.parseString(response.get_body())

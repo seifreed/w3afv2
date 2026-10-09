@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from typing import ClassVar
+
 import w3af.core.data.constants.response_codes as http_constants
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
@@ -34,8 +36,8 @@ class htaccess_methods(AuditPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    AUTH_CODES = {http_constants.UNAUTHORIZED, http_constants.FORBIDDEN}
-    SUCCESS_CODES = {
+    AUTH_CODES: ClassVar = {http_constants.UNAUTHORIZED, http_constants.FORBIDDEN}
+    SUCCESS_CODES: ClassVar = {
         http_constants.FOUND,
         http_constants.MOVED_PERMANENTLY,
         http_constants.OK,

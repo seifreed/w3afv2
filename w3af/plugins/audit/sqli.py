@@ -214,7 +214,7 @@ class sqli(AuditPlugin):
 
         for match in self._multi_in.query(response.body):
             om.out.information(self.SQLI_MESSAGE % (match, response.id))
-            dbms_type = [x[1] for x in self.SQL_ERRORS_STR if x[0] == match][0]
+            dbms_type = next(x[1] for x in self.SQL_ERRORS_STR if x[0] == match)
             res.append((match, dbms_type))
 
         for match, _, regex_comp, dbms_type in self._multi_re.query(response.body):

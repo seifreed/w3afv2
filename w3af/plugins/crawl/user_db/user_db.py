@@ -36,31 +36,32 @@ def get_users_from_csv(ident):
     """
     assert ident in (APPLICATION, OS), "Invalid identification"
 
-    csv_db = os.path.join(DB_PATH, "%s.csv" % ident)
-    file_handler = open(csv_db, "rb")
-    reader = csv.reader(file_handler)
+    csv_db = os.path.join(DB_PATH, f"{ident}.csv")
+    with open(csv_db, newline="", encoding="utf-8") as file_handler:
+        reader = csv.reader(file_handler)
 
-    while True:
-        try:
-            csv_row = next(reader)
-        except StopIteration:
-            break
-        except csv.Error:
-            # line contains NULL byte, and other similar things.
-            # https://github.com/andresriancho/w3af/issues/1490
-            msg = 'user_dir: Ignoring data with CSV error at line "%s"'
-            om.out.debug(msg % reader.line_num)
-            continue
-
-        try:
-            desc, user = csv_row
-        except ValueError:
-            if not csv_row:
+        while True:
+            try:
+                csv_row = next(reader)
+            except StopIteration:
+                break
+            except csv.Error:
+                # line contains NULL byte, and other similar things.
+                # https://github.com/andresriancho/w3af/issues/1490
+                om.out.debug(
+                    f'user_dir: Ignoring data with CSV error at line "{reader.line_num}"'
+                )
                 continue
 
-            if csv_row[0].startswith("#"):
-                continue
+            try:
+                desc, user = csv_row
+            except ValueError:
+                if not csv_row:
+                    continue
 
-            om.out.debug('Invalid user_dir input: "%r"' % csv_row)
-        else:
-            yield desc, user
+                if csv_row[0].startswith("#"):
+                    continue
+
+                om.out.debug(f'Invalid user_dir input: "{csv_row!r}"')
+            else:
+                yield desc, user

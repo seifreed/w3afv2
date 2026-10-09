@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 import xml.dom.minidom
+from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
@@ -44,7 +45,7 @@ class ria_enumerator(CrawlPlugin):
     :author: Jon Rose ( jrose@owasp.org )
     """
 
-    FILE_TAG_ATTR = {
+    FILE_TAG_ATTR: ClassVar = {
         "crossdomain.xml": ("allow-access-from", "domain"),
         "clientaccesspolicy.xml": ("domain", "uri"),
     }
@@ -108,7 +109,7 @@ class ria_enumerator(CrawlPlugin):
 
         file_name = url.get_file_name()
 
-        om.out.debug("Checking response for %s in ria_enumerator." % response)
+        om.out.debug(f"Checking response for {response} in ria_enumerator.")
 
         self._analyze_gears_manifest(url, response, file_name)
         self._analyze_crossdomain_clientaccesspolicy(url, response, file_name)

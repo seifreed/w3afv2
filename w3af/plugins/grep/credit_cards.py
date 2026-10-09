@@ -88,7 +88,7 @@ class credit_cards(GrepPlugin):
         if not response.is_text_or_html():
             return
 
-        if not response.get_code() == 200:
+        if response.get_code() != 200:
             return
 
         clear_text_body = response.get_clear_text_body()

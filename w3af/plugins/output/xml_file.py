@@ -443,7 +443,7 @@ class xml_file(OutputPlugin):
             # Copy to the real output file
             report_file_name = os.path.expanduser(self._file_name)
 
-            cmd = "cp %s %s" % (tempfh.name, report_file_name)
+            cmd = f"cp {tempfh.name} {report_file_name}"
             subprocess.call(cmd, shell=True)
 
             om.out.debug(
@@ -451,7 +451,7 @@ class xml_file(OutputPlugin):
             )
 
             stat_info = os.stat(report_file_name)
-            om.out.debug("The XML output file size is %s bytes." % stat_info.st_size)
+            om.out.debug(f"The XML output file size is {stat_info.st_size} bytes.")
 
         finally:
             os.remove(tempfh.name)
@@ -598,7 +598,7 @@ class HTTPTransaction(CachedXMLNode):
         self._id = _id
 
     def get_cache_key(self):
-        return "http-transaction-%s.data" % self._id
+        return f"http-transaction-{self._id}.data"
 
     def to_string(self):
         """
@@ -847,11 +847,11 @@ ATTR_VALUE_ESCAPES = {
 }
 
 ATTR_VALUE_ESCAPES.update(
-    dict(
-        (chr(i), "&lt;character code=&quot;%04x&quot;/&gt;" % i)
+    {
+        chr(i): f"&lt;character code=&quot;{i:04x}&quot;/&gt;"
         for i in range(sys.maxunicode)
         if is_unicode_escape(i)
-    )
+    }
 )
 
 ATTR_VALUE_ESCAPES_IGNORE = {"\n", "\r"}
@@ -915,11 +915,11 @@ TEXT_VALUE_ESCAPES = {
 }
 
 TEXT_VALUE_ESCAPES.update(
-    dict(
-        (chr(i), '<character code="%04x"/>' % i)
+    {
+        chr(i): f'<character code="{i:04x}"/>'
         for i in range(sys.maxunicode)
         if is_unicode_escape(i)
-    )
+    }
 )
 
 TEXT_VALUE_ESCAPES_IGNORE = {"\n", "\r"}

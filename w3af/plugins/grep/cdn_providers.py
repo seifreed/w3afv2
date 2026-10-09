@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from typing import ClassVar
+
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
@@ -84,7 +86,7 @@ class cdn_providers(GrepPlugin):
     )
 
     # CDN domains stored in format ['required part of a domain', 'provider's name']
-    cdn_domains = [
+    cdn_domains: ClassVar = [
         [".akamai.net", "Akamai"],
         [".akamaized.net", "Akamai"],
         [".akamaiedge.net", "Akamai"],

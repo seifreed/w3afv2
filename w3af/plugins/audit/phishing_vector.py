@@ -66,7 +66,7 @@ class phishing_vector(AuditPlugin):
             debugging_id=debugging_id,
         )
 
-        om.out.debug("Finished audit.phishing_vector (did=%s)" % debugging_id)
+        om.out.debug(f"Finished audit.phishing_vector (did={debugging_id})")
 
     def _contains_payload(self, response):
         """

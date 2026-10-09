@@ -38,8 +38,7 @@ class running_vm(Payload):
         files.append("/proc/iomem")
         files.append("/proc/meminfo")
 
-        for file_ in files:
-            yield file_
+        yield from files
 
     def api_read(self):
         result = {}
@@ -88,11 +87,6 @@ class running_vm(Payload):
                 break
 
         return result
-
-    def api_win_read(self):
-        result = []
-        iis6log_content = self.shell.read("/windows/iis6.log")
-        # if 'VMWare'
 
     def run_read(self):
         api_result = self.api_read()

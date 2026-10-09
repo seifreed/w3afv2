@@ -138,10 +138,7 @@ class http_auth_detect(GrepPlugin):
         if "@" not in url.url_string:
             return False
 
-        if not self._auth_uri_regex.match(url.url_string):
-            return False
-
-        return True
+        return self._auth_uri_regex.match(url.url_string)
 
     def _get_realm(self, response):
         for key in response.get_headers():

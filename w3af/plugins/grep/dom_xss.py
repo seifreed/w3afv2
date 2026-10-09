@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
+from typing import ClassVar
 
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.constants import severity
@@ -44,7 +45,7 @@ class dom_xss(GrepPlugin):
         "window.execScript",
     )
 
-    JS_FUNCTION_CALLS = [
+    JS_FUNCTION_CALLS: ClassVar = [
         re.compile(js_f + r" *\((.*?)\)", re.IGNORECASE) for js_f in JS_FUNCTIONS
     ]
 

@@ -20,8 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from functools import cmp_to_key
-
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.constants import severity
@@ -91,7 +89,7 @@ class path_disclosure(GrepPlugin):
 
         # Sort by the longest match, this is needed for filtering out
         # some false positives. Please read the note below.
-        match_list.sort(key=cmp_to_key(longest_cmp))
+        match_list.sort(key=len, reverse=True)
 
         for match in match_list:
             # Avoid duplicated reports
@@ -159,10 +157,7 @@ class path_disclosure(GrepPlugin):
         # thus we run it last, hoping that at least one of the methods we
         # implemented above tags this match as a false positive and we don't
         # have to run the expensive method
-        if self._is_attr_value(match, response):
-            return True
-
-        return False
+        return bool(self._is_attr_value(match, response))
 
     def _is_attr_value(self, path_disclosure_string, response):
         r"""
@@ -291,7 +286,3 @@ class path_disclosure(GrepPlugin):
         The results are saved to the KB, and used by all the plugins that need
         to know the location of a file inside the remote web server.
         """
-
-
-def longest_cmp(a, b):
-    return cmp(len(b), len(a))

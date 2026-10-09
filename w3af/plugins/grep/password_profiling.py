@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from functools import cmp_to_key
+from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
@@ -40,9 +40,9 @@ class password_profiling(GrepPlugin):
     COMMON_WORDS = common_words
     COMMON_WORDS["unknown"] = COMMON_WORDS["en"]
 
-    BANNED_WORDS = {"forbidden", "browsing", "index"}
-    BANNED_STATUS = {500, 401, 403, 404}
-    ALLOWED_METHODS = {"POST", "GET"}
+    BANNED_WORDS: ClassVar = {"forbidden", "browsing", "index"}
+    BANNED_STATUS: ClassVar = {500, 401, 403, 404}
+    ALLOWED_METHODS: ClassVar = {"POST", "GET"}
 
     def __init__(self):
         GrepPlugin.__init__(self)
@@ -121,7 +121,7 @@ class password_profiling(GrepPlugin):
 
         # pylint: disable=E1103
         items = list(data.items())
-        items.sort(key=cmp_to_key(sort_func))
+        items.sort(key=lambda item: item[1], reverse=True)
 
         items = items[:1000]
 
@@ -177,10 +177,7 @@ class password_profiling(GrepPlugin):
         if lower_word in self.COMMON_WORDS[lang]:
             return True
 
-        if request.sent(word):
-            return True
-
-        return False
+        return bool(request.sent(word))
 
     def _run_plugins(self, response):
         """
@@ -221,7 +218,7 @@ class password_profiling(GrepPlugin):
 
         # pylint: disable=E1103
         items = list(profiling_data.items())
-        items.sort(key=cmp_to_key(sort_func))
+        items.sort(key=lambda item: item[1], reverse=True)
         items = items[:100]
 
         om.out.information("Password profiling TOP 100:")
@@ -246,7 +243,3 @@ class password_profiling(GrepPlugin):
         This plugin creates a list of possible passwords by reading responses
         and counting the most common words.
         """
-
-
-def sort_func(x_obj, y_obj):
-    return cmp(y_obj[1], x_obj[1])

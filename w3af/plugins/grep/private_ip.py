@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 import socket
+from typing import ClassVar
 
 from w3af.core.controllers.misc.get_local_ip import get_local_ip
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
@@ -45,7 +46,7 @@ class private_ip(GrepPlugin):
         r"(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){2}(?!\d)(?!\.)"
     )
 
-    RE_LIST = [re.compile(IP_RE)]
+    RE_LIST: ClassVar = [re.compile(IP_RE)]
 
     def __init__(self):
         GrepPlugin.__init__(self)
@@ -152,7 +153,7 @@ class private_ip(GrepPlugin):
                 # Some proxy servers will return errors that include headers
                 # in the body along with the client IP which we want to ignore
                 if re.search(
-                    "^.*X-Forwarded-For: .*%s" % ip_address,
+                    f"^.*X-Forwarded-For: .*{ip_address}",
                     response.get_body(),
                     re.MULTILINE,
                 ):

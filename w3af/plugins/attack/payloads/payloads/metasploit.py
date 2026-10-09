@@ -23,7 +23,7 @@ class metasploit(Payload):
         try:
             vd = get_virtual_daemon(self.shell.execute)
         except BaseFrameworkException as w3:
-            return "Error, %s" % w3
+            return f"Error, {w3}"
         else:
             vd.run(msf_args)
             return "Successfully started the virtual daemon."

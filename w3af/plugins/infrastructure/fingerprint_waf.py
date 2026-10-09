@@ -1,5 +1,5 @@
 """
-fingerprint_WAF.py
+fingerprint_waf.py
 
 Copyright 2006 Andres Riancho
 
@@ -32,7 +32,7 @@ from w3af.core.data.fuzzer.utils import rand_alpha
 from w3af.core.data.kb.info import Info
 
 
-class fingerprint_WAF(InfrastructurePlugin):
+class fingerprint_waf(InfrastructurePlugin):
     """
     Identify if a Web Application Firewall is present and if possible identify
     the vendor and version.
@@ -403,7 +403,7 @@ class fingerprint_WAF(InfrastructurePlugin):
         desc = desc % name
 
         if protected_by:
-            desc += ' The following is the WAF\'s version: "%s".' % protected_by
+            desc += f' The following is the WAF\'s version: "{protected_by}".'
 
         i = Info(
             "Web Application Firewall fingerprint", desc, response.id, self.get_name()

@@ -172,10 +172,7 @@ class phpinfo(CrawlPlugin):
         identified_os = identified_os.lower()
         # pylint: enable=E1103
 
-        if "windows" in identified_os:
-            return True
-
-        return False
+        return "windows" in identified_os
 
     def _check_and_analyze(self, domain_path, php_info_filename):
         """

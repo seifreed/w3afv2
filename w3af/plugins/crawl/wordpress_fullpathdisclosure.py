@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
+from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
@@ -36,7 +37,7 @@ class wordpress_fullpathdisclosure(CrawlPlugin):
     :author: Andres Tarantini ( atarantini@gmail.com )
     """
 
-    CHECK_PATHS = [
+    CHECK_PATHS: ClassVar = [
         "wp-content/plugins/akismet/akismet.php",
         "wp-content/plugins/hello.php",
     ]
@@ -88,13 +89,13 @@ class wordpress_fullpathdisclosure(CrawlPlugin):
         theme_paths = []
         response_body = wp_root_response.get_body()
 
-        theme_regexp = "%swp-content/themes/(.*)/style.css" % domain_path
+        theme_regexp = f"{domain_path}wp-content/themes/(.*)/style.css"
         theme = re.search(theme_regexp, response_body, re.IGNORECASE)
 
         if theme:
             theme_name = theme.group(1)
             for fname in ("header", "footer"):
-                path_fname = "wp-content/themes/%s/%s.php" % (theme_name, fname)
+                path_fname = f"wp-content/themes/{theme_name}/{fname}.php"
                 theme_paths.append(path_fname)
 
         return theme_paths

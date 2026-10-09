@@ -26,7 +26,7 @@ import re
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.constants import severity
 from w3af.core.data.kb.vuln import Vuln
-from w3af.plugins.grep.ssndata.ssnAreasGroups import areas_groups_map
+from w3af.plugins.grep.ssndata.ssn_areas_groups import areas_groups_map
 
 
 class ssn(GrepPlugin):
@@ -160,14 +160,13 @@ class ssn(GrepPlugin):
                 is_ssn = True
 
         # For big odds (odds between 11 and 99)
-        elif group in odd_four:
-            if group_number in itertools.chain(
-                odd_one, even_two, even_three, list(filter(le_group, odd_four))
-            ):
-                is_ssn = True
+        elif group in odd_four and group_number in itertools.chain(
+            odd_one, even_two, even_three, list(filter(le_group, odd_four))
+        ):
+            is_ssn = True
 
         if is_ssn:
-            return "%s-%s-%s" % (area_number, group_number, serial_number)
+            return f"{area_number}-{group_number}-{serial_number}"
 
         return None
 

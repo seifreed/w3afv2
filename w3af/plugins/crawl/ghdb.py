@@ -37,7 +37,7 @@ from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.search_engines.google import google as google
+from w3af.core.data.search_engines.google import google
 
 
 class ghdb(CrawlPlugin):
@@ -89,7 +89,7 @@ class ghdb(CrawlPlugin):
         google_hack_set = set(google_hack_list)
 
         for gh in google_hack_set:
-            search_term = "site:%s %s" % (domain, gh.search)
+            search_term = f"site:{domain} {gh.search}"
             try:
                 self._classic_worker(gh, search_term)
             except BaseFrameworkException as w3:

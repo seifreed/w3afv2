@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 from w3af.core.controllers.misc.is_private_site import is_private_site
 from w3af.core.ui.console.tables import table
 from w3af.plugins.attack.payloads.base_payload import Payload
@@ -23,7 +25,7 @@ class portscan(Payload):
         payload 127.0.0.1 8080,80
     """
 
-    DEFAULT_PORTS = ["21", "22", "25", "80", "443", "3306"]
+    DEFAULT_PORTS: ClassVar = ["21", "22", "25", "80", "443", "3306"]
 
     def api_is_open_port(self, target, ports):
         """
@@ -65,7 +67,7 @@ class portscan(Payload):
             port_list = port_list.split(",")
             port_list = [port.strip() for port in port_list]
             if not all(port.isdigit() for port in port_list):
-                ValueError("Target ports need to be integers")
+                raise ValueError("Target ports need to be integers")
 
         result = {}
 

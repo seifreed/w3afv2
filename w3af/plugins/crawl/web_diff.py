@@ -126,13 +126,13 @@ class web_diff(CrawlPlugin):
 
         exist = len(self._exist_remote)
         total = len(self._exist_remote) + len(self._not_exist_remote)
-        file_stats = "%s of %s" % (exist, total)
+        file_stats = f"{exist} of {total}"
         om.out.information("Match files: " + file_stats)
 
         if self._content:
             eq_content = len(self._eq_content)
             total = len(self._eq_content) + len(self._not_eq_content)
-            content_stats = "%s of %s" % (eq_content, total)
+            content_stats = f"{eq_content} of {total}"
             om.out.information("Match contents: " + content_stats)
 
     def _compare_dir(self, arg, directory, flist):
@@ -178,7 +178,7 @@ class web_diff(CrawlPlugin):
                         fr = FuzzableRequest(response.get_url())
                         self.output_queue.put(fr)
 
-                    path = "%s%s%s" % (directory, os.path.sep, fname)
+                    path = f"{directory}{os.path.sep}{fname}"
                     self._check_content(response, path)
                     self._exist_remote.append(url)
                 else:
@@ -188,22 +188,21 @@ class web_diff(CrawlPlugin):
         """
         Check if the contents match.
         """
-        if self._content:
-            if file_name.count("."):
-                extension = os.path.splitext(file_name)[1].replace(".", "")
+        if self._content and file_name.count("."):
+            extension = os.path.splitext(file_name)[1].replace(".", "")
 
-                if extension in self._ban_url:
-                    return
+            if extension in self._ban_url:
+                return
 
-                try:
-                    local_content = open(file_name, "r").read()
-                except:
-                    om.out.debug('Failed to open file: "%s".' % file_name)
+            try:
+                local_content = open(file_name, "r").read()
+            except:
+                om.out.debug(f'Failed to open file: "{file_name}".')
+            else:
+                if local_content == response.get_body():
+                    self._eq_content.append(response.get_url())
                 else:
-                    if local_content == response.get_body():
-                        self._eq_content.append(response.get_url())
-                    else:
-                        self._not_eq_content.append(response.get_url())
+                    self._not_eq_content.append(response.get_url())
 
     def get_options(self):
         """

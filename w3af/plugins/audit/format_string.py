@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from typing import ClassVar
+
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.data.constants import severity
 from w3af.core.data.fuzzer.fuzzer import create_mutants
@@ -33,8 +35,8 @@ class format_string(AuditPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    FORMAT_STRING_LENS = [1, 10, 25, 100]
-    FORMAT_STRINGS = [create_format_string(i) for i in FORMAT_STRING_LENS]
+    FORMAT_STRING_LENS: ClassVar = [1, 10, 25, 100]
+    FORMAT_STRINGS: ClassVar = [create_format_string(i) for i in FORMAT_STRING_LENS]
 
     ERROR_STRINGS = (
         # TODO: Add more error strings here

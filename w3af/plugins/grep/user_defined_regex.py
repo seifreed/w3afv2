@@ -127,7 +127,7 @@ class user_defined_regex(GrepPlugin):
         #
         self._regexlist_compiled = []
         regex_file_path = options_list["regex_file_path"].get_value()
-        if regex_file_path and not regex_file_path == "None":
+        if regex_file_path and regex_file_path != "None":
             self._regex_file_path = regex_file_path
 
             try:

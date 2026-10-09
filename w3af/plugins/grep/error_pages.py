@@ -48,8 +48,10 @@ class error_pages(GrepPlugin):
         "exceptions.ValueError",
         '<font face="Arial" size=2>Type mismatch: ',
         "[an error occurred while processing this directive]",
-        "<HTML><HEAD><TITLE>Error Occurred While Processing Request</TITLE>"
-        "</HEAD><BODY><HR><H3>Error Occurred While Processing Request</H3><P>",
+        (
+            "<HTML><HEAD><TITLE>Error Occurred While Processing Request</TITLE>"
+            "</HEAD><BODY><HR><H3>Error Occurred While Processing Request</H3><P>"
+        ),
         # VBScript
         "<p>Microsoft VBScript runtime </font>",
         "<font face=\"Arial\" size=2>error '800a000d'</font>",
@@ -64,8 +66,10 @@ class error_pages(GrepPlugin):
         # An error when ASP tries to include something and it fails
         "<p>Active Server Pages</font> <font face=\"Arial\" size=2>error 'ASP 0126'</font>",
         # ASPX
-        "<b> Description: </b>An unhandled exception occurred during the execution of the"
-        " current web request",
+        (
+            "<b> Description: </b>An unhandled exception occurred during the execution of the"
+            " current web request"
+        ),
         # Struts
         "] does not contain handler parameter named",
         # PHP
@@ -102,8 +106,10 @@ class error_pages(GrepPlugin):
         "<title>Error Occurred While Processing Request</title></head><body><p></p>",
         "<HTML><HEAD><TITLE>Error Occurred While Processing Request</TITLE></HEAD><BODY><HR><H3>",
         "<TR><TD><H4>Error Diagnostic Information</H4><P><P>",
-        '<li>Search the <a href="http://www.macromedia.com/support/coldfusion/" '
-        'target="new">Knowledge Base</a> to find a solution to your problem.</li>',
+        (
+            '<li>Search the <a href="http://www.macromedia.com/support/coldfusion/" '
+            'target="new">Knowledge Base</a> to find a solution to your problem.</li>'
+        ),
         # http://www.programacion.net/asp/articulo/kbr_execute/
         "Server.Execute Error",
         # IIS
