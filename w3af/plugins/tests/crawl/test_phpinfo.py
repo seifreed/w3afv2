@@ -20,78 +20,259 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
+import unittest
 from pathlib import Path
 from typing import ClassVar
 
+import w3af.core.data.kb.config as cf
+import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
+from w3af.core.data.dc.headers import Headers
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.url.http_response import HTTPResponse
+from w3af.plugins.crawl.phpinfo import (
+    ANALYSIS_FUNCTIONS,
+    PHP_INFO_FILES,
+    PHP_INFO_FILES_LOWERCASE,
+    phpinfo,
+)
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
+TARGET_URL = "http://httpretty/"
+PHPINFO_DIR = os.path.join(ROOT_PATH, "plugins", "tests", "crawl", "phpinfo")
 
-class TestPHPInfo516(PluginTest):
+RUN_CONFIG: dict = {"crawl": (PluginConfig("phpinfo"),)}
 
-    target_url = "http://httpretty/"
 
-    PHPINFO = os.path.join(
-        ROOT_PATH, "plugins", "tests", "crawl", "phpinfo", "phpinfo-5.1.6.html"
-    )
-
-    MOCK_RESPONSES: ClassVar[list] = [
+def phpinfo_site(phpinfo_file):
+    body = Path(os.path.join(PHPINFO_DIR, phpinfo_file)).read_text()
+    return [
+        MockResponse(TARGET_URL, body="index home page"),
+        MockResponse(TARGET_URL + "phpversion.php", body=body),
+        MockResponse(TARGET_URL + "info.php", body="Not a phpinfo page"),
         MockResponse(
-            "http://httpretty/", body="index home page", method="GET", status=200
-        ),
-        MockResponse(
-            "http://httpretty/phpversion.php",
-            body=Path(PHPINFO).read_text(),
-            method="GET",
-            status=200,
+            TARGET_URL + "x.php",
+            body='alt="PHP Logo" /></a><h1 class="p">PHP Version 5.1.6</h1>',
         ),
     ]
 
-    _run_config: ClassVar[dict] = {
-        "target": target_url,
-        "plugins": {"crawl": (PluginConfig("phpinfo"),)},
-    }
+
+class PHPInfoScanMixin:
+
+    target_url: str | None = TARGET_URL
+    EXPECTED_INFOS: ClassVar[set] = set()
 
     def test_phpinfo(self):
-        self._scan(self._run_config["target"], self._run_config["plugins"])
+        self._scan(self.target_url, RUN_CONFIG)
 
-        urls = self.kb.get_all_known_urls()
-        urls = [url.url_string for url in urls]
-
+        urls = [url.url_string for url in self.kb.get_all_known_urls()]
         self.assertIn(self.target_url + "phpversion.php", urls)
+        self.assertNotIn(self.target_url + "info.php", urls)
+        self.assertNotIn(self.target_url + "x.php", urls)
 
         infos = self.kb.get("phpinfo", "phpinfo")
-        self.assertTrue(len(infos) > 5, infos)
 
-        info_urls = [i.get_url().url_string for i in infos]
-        self.assertIn(self.target_url + "phpversion.php", info_urls)
+        info_urls = {i.get_url().url_string for i in infos}
+        self.assertEqual(info_urls, {self.target_url + "phpversion.php"})
 
         found_infos = {i.get_name() for i in infos}
+        self.assertEqual(found_infos, self.EXPECTED_INFOS)
 
-        expected_infos = {
-            "PHP register_globals: On",
-            "PHP expose_php: On",
-            "PHP session.hash_function:md5",
-            "phpinfo() file found",
+
+class TestPHPInfo516(PHPInfoScanMixin, PluginTest):
+
+    MOCK_RESPONSES: ClassVar[list] = phpinfo_site("phpinfo-5.1.6.html")
+
+    EXPECTED_INFOS: ClassVar[set] = {
+        "phpinfo() file found",
+        "PHP register_globals: On",
+        "PHP allow_url_fopen: On",
+        "PHP expose_php: On",
+        "PHP running with privileged user",
+        "PHP disable_functions weakness",
+        "PHP enable_dl: On",
+        "PHP high memory limit",
+        "PHP file_uploads: On",
+        "PHP magic_quotes_gpc: Off",
+        "PHP open_basedir:disabled",
+        "PHP session.hash_function:md5",
+        "PHP upload_tmp_dir is world readable",
+    }
+
+
+class TestPHPInfo4311(PHPInfoScanMixin, PluginTest):
+
+    MOCK_RESPONSES: ClassVar[list] = phpinfo_site("phpinfo-4.3.11.html")
+
+    EXPECTED_INFOS: ClassVar[set] = {
+        "phpinfo() file found",
+        "PHP register_globals: Off",
+        "PHP disable_functions weakness",
+        "PHP curl_file_support:not_fixed",
+        "PHP enable_dl: On",
+        "PHP high memory limit",
+        "PHP high POST max size",
+        "PHP upload_max_filesize:high",
+        "PHP file_uploads: On",
+        "PHP magic_quotes_gpc: On",
+        "PHP open_basedir:disabled",
+    }
+
+
+class TestPHPInfo513rc4dev(PHPInfoScanMixin, PluginTest):
+
+    MOCK_RESPONSES: ClassVar[list] = phpinfo_site("phpinfo-5.1.3-rc4dev.html")
+
+    EXPECTED_INFOS: ClassVar[set] = {
+        "phpinfo() file found",
+        "PHP register_globals: Off",
+        "PHP allow_url_fopen: On",
+        "PHP display_errors: On",
+        "PHP expose_php: On",
+        "PHP disable_functions weakness",
+        "PHP curl_file_support:not_fixed",
+        "PHP enable_dl: On",
+        "PHP high memory limit",
+        "PHP upload_tmp_dir is world readable",
+        "PHP file_uploads: On",
+        "PHP magic_quotes_gpc: On",
+        "PHP open_basedir:disabled",
+        "PHP session.hash_function:md5",
+    }
+
+
+class TestPHPInfo433(PHPInfoScanMixin, PluginTest):
+
+    MOCK_RESPONSES: ClassVar[list] = phpinfo_site("phpinfo-4.3.3.html")
+
+    EXPECTED_INFOS: ClassVar[set] = {
+        "phpinfo() file found",
+        "PHP register_globals: On",
+        "PHP allow_url_fopen: On",
+        "PHP display_errors: On",
+        "PHP expose_php: On",
+        "PHP running as low privileged user",
+        "PHP disable_functions weakness",
+        "PHP curl_file_support:not_fixed",
+        "PHP enable_dl: On",
+        "PHP high POST max size",
+        "PHP upload_tmp_dir is world readable",
+        "PHP file_uploads: On",
+        "PHP magic_quotes_gpc: On",
+        "PHP open_basedir:disabled",
+    }
+
+
+class TestPHPInfoFilenames(unittest.TestCase):
+
+    def setUp(self):
+        kb.kb.cleanup()
+        self.addCleanup(kb.kb.cleanup)
+        self.addCleanup(cf.cf.save, "target_os", cf.cf.get("target_os"))
+
+    def test_windows_fingerprint_uses_lowercase_names(self):
+        kb.kb.raw_write("fingerprint_os", "operating_system_str", "Windows")
+
+        self.assertEqual(phpinfo()._get_potential_phpinfos(), PHP_INFO_FILES_LOWERCASE)
+
+    def test_target_os_setting_is_used_without_fingerprint(self):
+        cf.cf.save("target_os", "unix")
+
+        self.assertEqual(phpinfo()._get_potential_phpinfos(), PHP_INFO_FILES)
+
+    def test_long_desc(self):
+        self.assertIn("PHP Info", phpinfo().get_long_desc())
+
+
+class TestPHPInfoAnalysis(unittest.TestCase):
+    """
+    Run every analysis function against minimal phpinfo() table rows.
+    """
+
+    def setUp(self):
+        kb.kb.cleanup()
+        self.addCleanup(kb.kb.cleanup)
+
+    def findings(self, *rows):
+        url = URL(TARGET_URL + "phpinfo.php")
+        body = "".join(rows)
+        headers = Headers([("Content-Type", "text/html")])
+        response = HTTPResponse(200, body, headers, url, url, _id=1)
+
+        for analysis_function in ANALYSIS_FUNCTIONS:
+            analysis_function(response)
+
+        return {i.get_name() for i in kb.kb.get("phpinfo", "phpinfo")}
+
+    def test_empty_page(self):
+        self.assertEqual(self.findings("nothing here"), set())
+
+    def test_enabled_settings(self):
+        rows = (
+            '<tr><td class="e">register_globals</td><td class="v">On</td></tr>',
+            '<tr><td class="e">allow_url_include</td><td class="v">On</td></tr>',
+            '<tr><td class="e">display_errors</td><td class="v">On</td></tr>',
+            '<tr><td class="e">User/Group </td><td class="v">www(1000)/1000</td></tr>',
+            '<tr><td class="e">cgi_force_redirect</td><td class="v">Off</td></tr>',
+            '<tr><td class="e">session.save_path</td><td class="v"><i>no value</i></td>',
+            '<tr><td class="e">session.use_trans</td><td class="v">On</td></tr>',
+            '<tr><td class="e">session.cookie_httponly</td><td class="v">Off</td>',
+            '<tr><td class="e">default_charset</td><td class="v">Off</td></tr>',
+            '<tr><td class="e">enable_dl</td><td class="v">Off</td></tr>',
+            '<tr><td class="e">post_max_size</td><td class="v">100M</td></tr>',
+            '<tr><td class="e">upload_max_filesize</td><td class="v">100M</td></tr>',
+            '<tr><td class="e">magic_quotes_gpc</td><td class="v">On</td></tr>',
+            '<tr><td class="e">open_basedir</td><td class="v">/var/www</td></tr>',
+            '<tr><td class="e">session.hash_function</td><td class="v">1</td></tr>',
+            '<h1 class="p">PHP Version 5.1.2</h1>',
+        )
+
+        self.assertEqual(
+            self.findings(*rows),
+            {
+                "PHP register_globals: On",
+                "PHP allow_url_include: On",
+                "PHP display_errors: On",
+                "PHP running as low privileged user",
+                "PHP cgi_force_redirect: Off",
+                "Word readable PHP session_save_path",
+                "PHP session_use_trans: On",
+                "PHP session.cookie_httponly: Off",
+                "PHP default_charset: Off",
+                "PHP enable_dl: Off",
+                "PHP high POST max size",
+                "PHP upload_max_filesize:high",
+                "PHP magic_quotes_gpc: On",
+                "PHP open_basedir:enabled",
+                "PHP session.hash_function:sha",
+                "PHP curl_file_support:not_fixed",
+            },
+        )
+
+    def test_secure_settings(self):
+        functions = ",".join(f"func{i}" for i in range(8))
+        rows = (
+            '<tr><td class="e">register_globals</td><td class="v">Off</td></tr>',
+            f'<tr><td class="e">disable_functions</td><td class="v">{functions}</td>',
+            '<tr><td class="e">cgi_force_redirect</td><td class="v">On</td></tr>',
+            '<tr><td class="e">memory_limit</td><td class="v">8M</td></tr>',
+            '<tr><td class="e">post_max_size</td><td class="v">8M</td></tr>',
+            '<tr><td class="e">upload_max_filesize</td><td class="v">2M</td></tr>',
+            '<h1 class="p">PHP Version 5.2.0</h1>',
+        )
+
+        self.assertEqual(self.findings(*rows), {"PHP register_globals: Off"})
+
+    def test_curl_file_support_by_version(self):
+        expected = {
+            "4.3.11": {"PHP curl_file_support:not_fixed"},
+            "4.4.5": set(),
+            "5.1.6": set(),
+            "6.0.0": set(),
+            "3.0.0": set(),
         }
 
-        for expected_info in expected_infos:
-            self.assertIn(expected_info, found_infos)
-
-
-class TestPHPInfo4311(TestPHPInfo516):
-    PHPINFO = os.path.join(
-        ROOT_PATH, "plugins", "tests", "crawl", "phpinfo", "phpinfo-4.3.11.html"
-    )
-
-
-class TestPHPInfo513rc4dev(TestPHPInfo516):
-    PHPINFO = os.path.join(
-        ROOT_PATH, "plugins", "tests", "crawl", "phpinfo", "phpinfo-5.1.3-rc4dev.html"
-    )
-
-
-class TestPHPInfo433(TestPHPInfo516):
-    PHPINFO = os.path.join(
-        ROOT_PATH, "plugins", "tests", "crawl", "phpinfo", "phpinfo-4.3.3.html"
-    )
+        for version, findings in expected.items():
+            kb.kb.cleanup()
+            row = f'<h1 class="p">PHP Version {version}</h1>'
+            self.assertEqual(self.findings(row), findings, version)

@@ -196,11 +196,6 @@ class payment_webhook_finder(CrawlPlugin):
         :return: A list of URL's that mutate the original url passed as parameter
         """
         url_string = url.url_string
-
-        if url_string.count("/") <= 1:
-            return
-
-        # Create the new path
         url_string = url_string[: url_string.rfind("/")]
 
         for dir_to_append in dirs_to_append:

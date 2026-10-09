@@ -51,10 +51,10 @@ class oracle_discovery(CrawlPlugin):
         # Example strings:
         # Reports Servlet Omgevingsvariabelen 9.0.4.2.0
         # Reports Servlet Variables de Entorno 9.0.4.0.33
-        r"(Reports Servlet) [\w ]* ([\d\.]*?)",
+        r"(Reports Servlet) [\w ]* ([\d\.]+)",
     )
 
-    ORACLE_RE: ClassVar = [re.compile(regex) for regex in ORACLE_RE_PATTERNS]
+    ORACLE_RE: ClassVar = [re.compile(regex, re.DOTALL) for regex in ORACLE_RE_PATTERNS]
 
     @runonce(exc_class=RunOnce)
     def crawl(self, fuzzable_request, debugging_id):
@@ -78,9 +78,7 @@ class oracle_discovery(CrawlPlugin):
         response = self.http_get_and_parse(url)
 
         for regex in self.ORACLE_RE:
-            # pylint: disable=E1101
-            mo = regex.search(response.get_body(), re.DOTALL)
-            # pylint: enable=E1101
+            mo = regex.search(response.get_body())
 
             if mo:
                 desc = '"%s" version "%s" was detected at "%s".'

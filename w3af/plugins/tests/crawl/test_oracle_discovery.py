@@ -21,16 +21,31 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import ClassVar
 
-from w3af.core.controllers.ci.moth import get_moth_http
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+from w3af.plugins.crawl.oracle_discovery import oracle_discovery
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
+
+PPE_PAGE = (
+    "<html><head><title>PPE is working</title></head>"
+    "<body>PPE version 1.3.4 is working.</body></html>"
+)
+
+REPORTS_PAGE = (
+    "<html><body>Reports Servlet Variables de Entorno 9.0.4.0.33</body></html>"
+)
 
 
 class TestOracleDiscovery(PluginTest):
 
-    base_url = get_moth_http()
+    target_url = "http://mock/"
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(target_url, "index"),
+        MockResponse(target_url + "portal/page", PPE_PAGE),
+        MockResponse(target_url + "reports/rwservlet/showenv", REPORTS_PAGE),
+    ]
 
     _run_config: ClassVar[dict] = {
-        "target": base_url,
+        "target": target_url,
         "plugins": {"crawl": (PluginConfig("oracle_discovery"),)},
     }
 
@@ -38,9 +53,28 @@ class TestOracleDiscovery(PluginTest):
         self._scan(self._run_config["target"], self._run_config["plugins"])
 
         infos = self.kb.get("oracle_discovery", "oracle_discovery")
-        self.assertEqual(len(infos), 1, infos)
+        descriptions = sorted(info.get_desc() for info in infos)
 
-        urls = self.kb.get_all_known_urls()
-        urls = [url.url_string for url in urls]
+        self.assertEqual(len(infos), 2, infos)
+        self.assertIn('"Ppe" version "1.3.4"', descriptions[0])
+        self.assertIn('"Reports Servlet" version "9.0.4.0.33"', descriptions[1])
 
-        self.assertIn(self.base_url + "portal/page", urls)
+        urls = [url.url_string for url in self.kb.get_all_known_urls()]
+
+        self.assertIn(self.target_url + "portal/page", urls)
+        self.assertIn(self.target_url + "reports/rwservlet/showenv", urls)
+
+    def test_long_desc(self):
+        self.assertIn("Oracle", oracle_discovery().get_long_desc())
+
+
+class TestOracleDiscoveryNotFound(PluginTest):
+
+    target_url = "http://mock/"
+
+    MOCK_RESPONSES: ClassVar[list] = [MockResponse(target_url, "index")]
+
+    def test_no_oracle_pages(self):
+        self._scan(self.target_url, {"crawl": (PluginConfig("oracle_discovery"),)})
+
+        self.assertEqual(self.kb.get("oracle_discovery", "oracle_discovery"), [])

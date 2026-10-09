@@ -835,7 +835,9 @@ class ExtendedUrllib:
         #    since we *never* want to return cached responses for POST
         #    requests.
         #
-        data = str(data)
+        if not isinstance(data, bytes):
+            data = str(data)
+
         host = uri.get_domain()
         timeout = self.get_timeout(host) if timeout is None else timeout
 

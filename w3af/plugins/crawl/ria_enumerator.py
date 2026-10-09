@@ -133,7 +133,7 @@ class ria_enumerator(CrawlPlugin):
         i = Info("Gears manifest resource", desc, response.id, self.get_name())
         i.set_url(url)
 
-        kb.kb.append(self, url, i)
+        kb.kb.append(self, "gears_manifest", i)
         om.out.information(i.get_desc())
 
         fr = FuzzableRequest.from_http_response(response)

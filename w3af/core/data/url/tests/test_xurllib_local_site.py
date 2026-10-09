@@ -45,6 +45,10 @@ class TestXUrllibLocalSite(unittest.TestCase):
         response = self.post_text("text=1%27")
         self.assertIn(SQL_ERROR, response.get_body())
 
+    def test_post_bytes_body(self):
+        response = self.post_text(b"text=1%27")
+        self.assertIn(SQL_ERROR, response.get_body())
+
     def test_post_form_body(self):
         form_params = FormParameters()
         form_params.add_field_by_attr_items([("name", "text"), ("type", "text")])

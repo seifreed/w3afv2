@@ -28,6 +28,10 @@ from w3af.core.data.constants import severity
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.vuln import Vuln
 
+# First PHP version of each major release where cURL honours safe_mode and
+# open_basedir
+CURL_FILE_SUPPORT_FIXED_VERSIONS = {4: (4, 4, 4), 5: (5, 1, 6)}
+
 
 def register_globals(response):
     regex_str = 'register_globals</td><td class="v">(On|Off)</td>'
@@ -200,53 +204,35 @@ def disable_functions(response):
 
 
 def curl_file_support(response):
-    regex_str = r'<h1 class="p">PHP Version (\d).(\d).(\d)</h1>'
+    regex_str = r'<h1 class="p">PHP Version (\d+)\.(\d+)\.(\d+)'
     curl_file_support_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
     if not curl_file_support_mo:
         return
 
-    php_major_ver = curl_file_support_mo.group(1)
-    php_minor_ver = curl_file_support_mo.group(2)
-    php_rev_ver = curl_file_support_mo.group(3)
+    current_ver = tuple(int(part) for part in curl_file_support_mo.groups())
+    fixed_ver = CURL_FILE_SUPPORT_FIXED_VERSIONS.get(current_ver[0])
 
-    current_ver = php_major_ver + "." + php_minor_ver + php_rev_ver
-    current_ver = float(current_ver)
-    php_major_ver = int(php_major_ver)
+    if fixed_ver is None or current_ver >= fixed_ver:
+        return
 
-    cv4check = 4.44
-    cv5check = 5.16
-    curl_vuln = 1
+    desc = (
+        "The phpinfo()::cURL::file_support has a security hole"
+        " present in this version of PHP allows the cURL"
+        " functions to bypass safe_mode and open_basedir"
+        " restrictions."
+    )
+    v = Vuln(
+        "PHP curl_file_support:not_fixed",
+        desc,
+        severity.MEDIUM,
+        response.id,
+        "phpinfo",
+    )
+    v.set_url(response.get_url())
 
-    if php_major_ver == 4:
-        if current_ver >= cv4check:
-            curl_vuln = 0
-    elif php_major_ver == 5:
-        if current_ver >= cv5check:
-            curl_vuln = 0
-    elif php_major_ver >= 6:
-        curl_vuln = 0
-    else:
-        curl_vuln = 0
-
-    if curl_vuln == 1:
-        desc = (
-            "The phpinfo()::cURL::file_support has a security hole"
-            " present in this version of PHP allows the cURL"
-            " functions to bypass safe_mode and open_basedir"
-            " restrictions."
-        )
-        v = Vuln(
-            "PHP curl_file_support:not_fixed",
-            desc,
-            severity.MEDIUM,
-            response.id,
-            "phpinfo",
-        )
-        v.set_url(response.get_url())
-
-        kb.kb.append("phpinfo", "phpinfo", v)
-        om.out.vulnerability(v.get_desc(), severity=v.get_severity())
+    kb.kb.append("phpinfo", "phpinfo", v)
+    om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
 
 def cgi_force_redirect(response):
@@ -540,10 +526,7 @@ def session_hash_function(response):
     if not session_hash_function_mo:
         return
 
-    if (
-        session_hash_function_mo.group(1) == 0
-        or session_hash_function_mo.group(1) != "no"
-    ):
+    if session_hash_function_mo.group(1) == "0":
         desc = "The phpinfo()::session.hash_function uses the insecure md5 algorithm."
         i = Info("PHP session.hash_function:md5", desc, response.id, "phpinfo")
     else:

@@ -21,54 +21,94 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 import re
+import tempfile
 import unittest
 from typing import ClassVar
 
-import pytest
-
 from w3af import ROOT_PATH
+from w3af.core.controllers.exceptions import RunOnce
+from w3af.core.controllers.threads.threadpool import Pool
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.misc.file_utils import days_since_file_update
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
-from w3af.plugins.crawl.pykto import Config, IsVulnerableHelper, NiktoTestParser
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+from w3af.plugins.crawl.pykto import (
+    Config,
+    IsVulnerableHelper,
+    NiktoTestParser,
+    pykto,
+)
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
+
+DB_PATH = os.path.join(
+    ROOT_PATH, "plugins", "tests", "crawl", "pykto", "scan_database.db"
+)
+
+
+def pykto_plugins(mutate_tests):
+    return {
+        "crawl": (
+            PluginConfig(
+                "pykto",
+                ("db_file", DB_PATH, PluginConfig.INPUT_FILE),
+                ("mutate_tests", mutate_tests, PluginConfig.BOOL),
+            ),
+        )
+    }
+
+
+def site_responses(*hidden_dirs):
+    responses = [
+        MockResponse("http://mock/w3af/", "index"),
+        MockResponse("http://mock/phpinfo.php", "<h1>PHP Version 5.1.6</h1>"),
+    ]
+
+    for hidden_dir in hidden_dirs:
+        url = f"http://mock{hidden_dir}"
+        responses.append(MockResponse(url, "secret", method="HEAD"))
+        responses.append(MockResponse(url, "secret"))
+
+    return responses
 
 
 class TestPykto(PluginTest):
 
-    base_url = "http://moth/w3af/"
-    DB_PATH = os.path.join(
-        ROOT_PATH, "plugins", "tests", "crawl", "pykto", "scan_database.db"
-    )
+    target_url = "http://mock/w3af/"
 
-    _run_configs: ClassVar[dict] = {
-        "cfg": {
-            "target": base_url,
-            "plugins": {
-                "crawl": (
-                    PluginConfig(
-                        "pykto", ("db_file", DB_PATH, PluginConfig.INPUT_FILE)
-                    ),
-                )
-            },
-        }
-    }
+    MOCK_RESPONSES: ClassVar[list] = site_responses("/hidden/")
 
-    @pytest.mark.ci_fails
     def test_basic_pykto(self):
-        cfg = self._run_configs["cfg"]
-        self._scan(cfg["target"], cfg["plugins"])
+        self._scan(self.target_url, pykto_plugins(False))
 
         vulns = self.kb.get("pykto", "vuln")
-        self.assertEqual(len(vulns), 2)
+        vuln_urls = {v.get_url().url_string for v in vulns}
+        self.assertEqual(vuln_urls, {"http://mock/phpinfo.php", "http://mock/hidden/"})
 
-        urls = self.kb.get_all_known_urls()
-        self.assertEqual(len(urls), 3)
+        urls = {u.url_string for u in self.kb.get_all_known_urls()}
+        self.assertEqual(urls, {self.target_url} | vuln_urls)
 
-        expected = ["http://moth/phpinfo.php", "http://moth/hidden/"]
-        vuln_urls = [v.get_url().url_string for v in vulns]
-        self.assertEqual(set(expected), set(vuln_urls))
+    def test_long_desc(self):
+        self.assertIn("nikto", pykto().get_long_desc())
+
+
+class TestPyktoMutateTests(PluginTest):
+
+    target_url = "http://mock/w3af/"
+
+    MOCK_RESPONSES: ClassVar[list] = site_responses("/hidden/", "/w3af/hidden/")
+
+    def test_mutate_tests_run_in_every_directory(self):
+        self._scan(self.target_url, pykto_plugins(True))
+
+        vuln_urls = {v.get_url().url_string for v in self.kb.get("pykto", "vuln")}
+        self.assertEqual(
+            vuln_urls,
+            {
+                "http://mock/phpinfo.php",
+                "http://mock/hidden/",
+                "http://mock/w3af/hidden/",
+            },
+        )
 
 
 class TestIsVulnerableHelper(unittest.TestCase):
@@ -152,28 +192,15 @@ class TestIsVulnerableHelper(unittest.TestCase):
         self.assertTrue(is_vuln.check(http_response))
 
 
-class TestNiktoTestParser(PluginTest):
-    def test_updated_scan_db(self):
-        pykto_inst = self.w3afcore.plugins.get_plugin_inst("crawl", "pykto")
+class TestNiktoTestParser(unittest.TestCase):
 
-        scan_db_file = pykto_inst._db_file
-        is_older = days_since_file_update(scan_db_file, 30)
-
-        msg = (
-            "The scan database file is too old. The following commands need"
-            " to be run in order to update it:\n"
-            "cd w3af/plugins/crawl/pykto/\n"
-            "python update_scan_db.py\n"
-            'git commit -m "Updating scan_database.db file." scan_database.db\n'
-            "git push\n"
-            "cd -"
-        )
-        self.assertFalse(is_older, msg)
+    def setUp(self):
+        self.pykto_inst = pykto()
 
     def test_not_too_many_ignores(self):
         config = Config(["/cgi-bin/"], [], [], [], [])
         url = URL("http://moth/")
-        pykto_inst = self.w3afcore.plugins.get_plugin_inst("crawl", "pykto")
+        pykto_inst = self.pykto_inst
         nikto_parser = NiktoTestParser(pykto_inst._db_file, config, url)
 
         # Go through all the lines
@@ -190,7 +217,7 @@ class TestNiktoTestParser(PluginTest):
         """
         config = Config(["/cgi-bin/"], [], [], [], [])
         url = URL("http://moth/")
-        pykto_inst = self.w3afcore.plugins.get_plugin_inst("crawl", "pykto")
+        pykto_inst = self.pykto_inst
         nikto_parser = NiktoTestParser(pykto_inst._db_file, config, url)
 
         line = (
@@ -227,7 +254,7 @@ class TestNiktoTestParser(PluginTest):
     def test_parse_db_line_junk(self):
         config = Config(["/cgi-bin/"], [], [], [], [])
         url = URL("http://moth/")
-        pykto_inst = self.w3afcore.plugins.get_plugin_inst("crawl", "pykto")
+        pykto_inst = self.pykto_inst
         nikto_parser = NiktoTestParser(pykto_inst._db_file, config, url)
 
         line = '"0","0","","/docs/JUNK(5)","GET","200"' ',"","","","","","",""'
@@ -243,7 +270,7 @@ class TestNiktoTestParser(PluginTest):
     def test_parse_db_line_no_vars(self):
         config = Config([], [], [], [], [])
         url = URL("http://moth/")
-        pykto_inst = self.w3afcore.plugins.get_plugin_inst("crawl", "pykto")
+        pykto_inst = self.pykto_inst
         nikto_parser = NiktoTestParser(pykto_inst._db_file, config, url)
 
         line = '"0","0","","/docs/","GET","200"' ',"","","","","","",""'
@@ -258,7 +285,7 @@ class TestNiktoTestParser(PluginTest):
     def test_parse_db_line_cgidirs(self):
         config = Config(["/cgi-bin/"], [], [], [], [])
         url = URL("http://moth/")
-        pykto_inst = self.w3afcore.plugins.get_plugin_inst("crawl", "pykto")
+        pykto_inst = self.pykto_inst
         nikto_parser = NiktoTestParser(pykto_inst._db_file, config, url)
 
         line = '"0","0","","@CGIDIRS","GET","200"' ',"","","","","","",""'
@@ -275,7 +302,7 @@ class TestNiktoTestParser(PluginTest):
 
         config = Config(["/cgi-bin/"], admin_dirs, [], [], [])
         url = URL("http://moth/")
-        pykto_inst = self.w3afcore.plugins.get_plugin_inst("crawl", "pykto")
+        pykto_inst = self.pykto_inst
         nikto_parser = NiktoTestParser(pykto_inst._db_file, config, url)
 
         line = '"0","0","","@ADMIN","GET","200"' ',"","","","","","",""'
@@ -291,7 +318,7 @@ class TestNiktoTestParser(PluginTest):
 
         config = Config([], admin_dirs, [], [], users)
         url = URL("http://moth/")
-        pykto_inst = self.w3afcore.plugins.get_plugin_inst("crawl", "pykto")
+        pykto_inst = self.pykto_inst
         nikto_parser = NiktoTestParser(pykto_inst._db_file, config, url)
 
         line = '"0","0","","@ADMIN@USERS","GET","200"' ',"","","","","","",""'
@@ -304,22 +331,54 @@ class TestNiktoTestParser(PluginTest):
             [nt.uri.get_path() for nt in nikto_tests],
         )
 
-    def test_parse_db_line_raw_bytes(self):
+    def test_parse_db_line_non_ascii(self):
         config = Config(["/cgi-bin/"], [], [], [], [])
         url = URL("http://moth/")
-        pykto_inst = self.w3afcore.plugins.get_plugin_inst("crawl", "pykto")
-        nikto_parser = NiktoTestParser(pykto_inst._db_file, config, url)
+        nikto_parser = NiktoTestParser(self.pykto_inst._db_file, config, url)
 
         line = (
             '"006251","0","1","/administraçao.php","GET","200","","",""'
             ',"","Admin login page/section found.","",""'
         )
-        try:
-            [_ for _ in nikto_parser._parse_db_line(line)]
-        except TypeError:
-            self.assertTrue(True)
-        else:
-            self.assertTrue(False)
+        nikto_tests = list(nikto_parser._parse_db_line(line))
+
+        self.assertEqual(len(nikto_tests), 1)
+        self.assertEqual(nikto_tests[0].message, "Admin login page/section found.")
+
+    def test_parse_db_line_ignores_invalid_lines(self):
+        config = Config([], [], [], [], [])
+        url = URL("http://moth/")
+        nikto_parser = NiktoTestParser(self.pykto_inst._db_file, config, url)
+
+        short_line = '"0","0","","/docs/","GET","200"'
+        space_line = '"0","0","","/a b/","GET","200","","","","","","",""'
+        bad_regex_line = '"0","0","","/docs/","GET","(unclosed","","","","","","",""'
+
+        for line in (short_line, space_line, bad_regex_line):
+            self.assertEqual(list(nikto_parser._parse_db_line(line)), [], line)
+
+        self.assertEqual(nikto_parser.ignored, [short_line, space_line])
+
+    def test_parse_db_line_regex_and_status_matchers(self):
+        config = Config([], [], [], [], [])
+        url = URL("http://moth/")
+        nikto_parser = NiktoTestParser(self.pykto_inst._db_file, config, url)
+
+        line = '"0","0","","/docs/","GET","Index of","302","","500","","Docs\r\n","",""'
+        (nikto_test,) = nikto_parser._parse_db_line(line)
+
+        self.assertEqual(nikto_test.match_1.pattern, "Index of")
+        self.assertEqual(nikto_test.match_1_or, 302)
+        self.assertEqual(nikto_test.fail_1, 500)
+        self.assertEqual(nikto_test.message, "Docs")
+
+    def test_missing_scan_database(self):
+        config = Config([], [], [], [], [])
+        with tempfile.TemporaryDirectory() as temp_dir:
+            missing_db = os.path.join(temp_dir, "missing.db")
+            nikto_parser = NiktoTestParser(missing_db, config, URL("http://moth/"))
+
+            self.assertEqual(list(nikto_parser.test_generator()), [])
 
     def test_parse_db_line_basic_w3af_scan_database(self):
         """
@@ -332,7 +391,7 @@ class TestNiktoTestParser(PluginTest):
         """
         config = Config([], [], [], [], [])
         url = URL("http://moth/")
-        pykto_inst = self.w3afcore.plugins.get_plugin_inst("crawl", "pykto")
+        pykto_inst = self.pykto_inst
         nikto_parser = NiktoTestParser(pykto_inst._extra_db_file, config, url)
 
         # Go through all the lines
@@ -358,3 +417,47 @@ class TestNiktoTestParser(PluginTest):
         self.assertEqual(nikto_test.message, "JBoss Seam Debug Page is available.")
         self.assertEqual(nikto_test.data, "")
         self.assertEqual(nikto_test.headers, "")
+
+
+class TestPyktoOptions(unittest.TestCase):
+
+    def test_set_options(self):
+        plugin = pykto()
+
+        options = plugin.get_options()
+        options["cgi_dirs"].set_value("/cgi/")
+        options["admin_dirs"].set_value("/administrator/")
+        options["nuke_dirs"].set_value("/nuke/")
+        options["db_file"].set_value(DB_PATH)
+        options["mutate_tests"].set_value(True)
+        plugin.set_options(options)
+
+        options = plugin.get_options()
+        self.assertEqual(options["cgi_dirs"].get_value(), ["/cgi/"])
+        self.assertEqual(options["admin_dirs"].get_value(), ["/administrator/"])
+        self.assertEqual(options["nuke_dirs"].get_value(), ["/nuke/"])
+        self.assertTrue(os.path.samefile(options["db_file"].get_value(), DB_PATH))
+        self.assertTrue(options["mutate_tests"].get_value())
+
+
+class TestPyktoRunOnce(unittest.TestCase):
+
+    def test_second_crawl_without_mutation_raises_run_once(self):
+        worker_pool = Pool(1, worker_names="PyktoWorker")
+        self.addCleanup(worker_pool.terminate_join)
+
+        with tempfile.NamedTemporaryFile("w", suffix=".db", delete=False) as empty_db:
+            empty_db.write("# no tests\n")
+        self.addCleanup(os.remove, empty_db.name)
+
+        plugin = pykto()
+        plugin.set_worker_pool(worker_pool)
+        options = plugin.get_options()
+        options["db_file"].set_value(empty_db.name)
+        options["extra_db_file"].set_value(empty_db.name)
+        plugin.set_options(options)
+
+        fuzzable_request = FuzzableRequest(URL("http://mock/w3af/"))
+        plugin.crawl(fuzzable_request, None)
+
+        self.assertRaises(RunOnce, plugin.crawl, fuzzable_request, None)
