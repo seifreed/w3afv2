@@ -120,46 +120,6 @@ def suggest(tree, part, skipList=()):
     return completions
 
 
-def formatParagraph(text, width):
-    lines = text.split("\n")
-    formatedLines = [formatParagraphLine(l, width) for l in lines]
-    result = []
-    for fl in formatedLines:
-        result.extend(fl)
-    return result
-
-
-def formatParagraphLine(text, width):
-    """
-    :return: array of rows
-    """
-    words = text.split()
-    tail = words
-    result = []
-    buf = ""
-
-    while len(tail):
-        curWord, tail = tail[0], tail[1:]
-        if len(buf) + len(curWord) + 1 > width:
-            if buf == "":
-                row = curWord
-                buf = ""
-            else:
-                row = buf
-                buf = curWord
-
-            row += " " * (width - len(row))
-            result.append(row)
-        else:
-            if len(buf):
-                buf += " "
-            buf += curWord
-
-    if len(buf):
-        result.append(buf + " " * (width - len(buf)))
-    return result
-
-
 def groupBy(array, fun):
     print(str(array))
     result = {}

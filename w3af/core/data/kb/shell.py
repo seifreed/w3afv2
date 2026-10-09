@@ -20,10 +20,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
+import logging
+
 from w3af.core.data.kb.exploit_result import ExploitResult
 from w3af.core.data.kb.vuln import Vuln
 from w3af.plugins.attack.payloads import payload_handler
+
+LOGGER = logging.getLogger(__name__)
 
 
 class Shell(ExploitResult):
@@ -190,7 +193,7 @@ class Shell(ExploitResult):
             return f'Unknown payload name: "{payload_name}"'
 
         if payload_name in payload_handler.runnable_payloads(self):
-            om.out.debug(f"Payload {payload_name} can be run. Starting execution.")
+            LOGGER.debug(f"Payload {payload_name} can be run. Starting execution.")
 
             # Note: The payloads are actually writing to om.out.console
             # so there is no need to get the result. If someone wants to

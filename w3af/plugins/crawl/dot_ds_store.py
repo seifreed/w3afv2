@@ -19,10 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-try:
-    from io import StringIO
-except ImportError:
-    from io import StringIO
+from io import BytesIO
 
 from ds_store import DSStore
 
@@ -159,18 +156,13 @@ class DsStore:
         """
         Open a .DS_Store file
         """
-        _input = StringIO(data)
-        self._store = DSStore.open(_input)
+        self._store = DSStore.open(BytesIO(data), "r")
 
     def get_file_entries(self):
         entries = set()
 
-        for data in self._store:
-            data = str(data)
-            entry = data.translate(None, "<>")
-            entry = entry.split(" ")
-
-            filename = entry[0]
+        for entry in self._store:
+            filename = entry.filename
             if filename in (".", ".."):
                 continue
 

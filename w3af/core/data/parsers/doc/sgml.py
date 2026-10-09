@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import io
+import logging
 import re
 import traceback
 import urllib.error
@@ -30,7 +31,6 @@ from typing import ClassVar
 
 from lxml import etree
 
-import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af.core.data.constants.encodings import DEFAULT_ENCODING
 from w3af.core.data.misc.encoding import smart_unicode
@@ -42,6 +42,8 @@ from w3af.core.data.parsers.utils.form_constants import EXCLUDE, INCLUDE
 # Errors that handling a single (potentially broken) tag might raise, they are
 # logged and the parser continues with the next tag
 TAG_HANDLING_ERRORS = (ValueError, TypeError, AttributeError, LookupError)
+
+LOGGER = logging.getLogger(__name__)
 
 
 class Tag:
@@ -174,8 +176,8 @@ class SGMLParser(BaseParser):
 
     def _handle_exception(self, where, ex):
         msg = 'An exception occurred while %s: "%s"'
-        om.out.error(msg % (where, ex))
-        om.out.error(f"Error traceback: {traceback.format_exc()}")
+        LOGGER.error(msg % (where, ex))
+        LOGGER.error(f"Error traceback: {traceback.format_exc()}")
 
     def start(self, tag):
         """
@@ -252,7 +254,7 @@ class SGMLParser(BaseParser):
             # of invalid / broken HTML
             #
             msg = 'Error occurred while parsing "%s", original exception: "%s"'
-            om.out.debug(msg % (http_resp.get_url(), xse))
+            LOGGER.debug(msg % (http_resp.get_url(), xse))
 
     def _parse_response_body_as_string(self, resp_body, errors="strict"):
         """
@@ -470,7 +472,7 @@ class SGMLParser(BaseParser):
                 # of the most noticeable is "d:url.html", where the
                 # developer uses a colon in the URL.
                 msg = 'Ignoring URL "%s" as it generated an invalid URL.'
-                om.out.debug(msg % url_path)
+                LOGGER.debug(msg % url_path)
             else:
                 # The url_join call already normalizes the URL, there is no
                 # need to call normalize again

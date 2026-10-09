@@ -1,5 +1,5 @@
 """
-tables.py
+console_tables.py
 
 Copyright 2008 Andres Riancho
 
@@ -21,8 +21,46 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.ui.console.io.console import terminal_width
-from w3af.core.ui.console.util import formatParagraph
+
+
+def format_paragraph_line(text, width):
+    """
+    :return: array of rows
+    """
+    words = text.split()
+    tail = words
+    result = []
+    buf = ""
+
+    while len(tail):
+        curWord, tail = tail[0], tail[1:]
+        if len(buf) + len(curWord) + 1 > width:
+            if buf == "":
+                row = curWord
+                buf = ""
+            else:
+                row = buf
+                buf = curWord
+
+            row += " " * (width - len(row))
+            result.append(row)
+        else:
+            if len(buf):
+                buf += " "
+            buf += curWord
+
+    if len(buf):
+        result.append(buf + " " * (width - len(buf)))
+    return result
+
+
+def format_paragraph(text, width):
+    lines = text.split("\n")
+    formatedLines = [format_paragraph_line(line, width) for line in lines]
+    result = []
+    for fl in formatedLines:
+        result.extend(fl)
+    return result
 
 
 class table:
@@ -42,12 +80,9 @@ class table:
         self._colsRange = list(range(self._colsNum))
         self._separator = "|"
 
-    def draw(self, termWidth=None, header=False, group=None, transf=None):
+    def draw(self, termWidth, header=False, group=None, transf=None):
         if len(self._rows) == 0:
             return
-
-        if termWidth is None:
-            termWidth = terminal_width()
 
         self._initRelWidthes(termWidth)
         self._justify()
@@ -144,7 +179,7 @@ class table:
         if len(row) == 0:
             self.draw_br()
             return
-        columns = [formatParagraph(col, w) for col, w in zip(row, self._widthes)]
+        columns = [format_paragraph(col, w) for col, w in zip(row, self._widthes)]
         emptyLines = [" " * w for w in self._widthes]
         maxHeight = max(list(map(len, columns)))
         columns = [

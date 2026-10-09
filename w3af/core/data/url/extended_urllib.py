@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import functools
 import http.client
+import logging
 import socket
 import threading
 import time
@@ -37,7 +38,6 @@ from http.client import BadStatusLine
 import OpenSSL
 
 # pylint: enable=E0401
-import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.fuzzer.utils import rand_alnum
@@ -78,6 +78,8 @@ from w3af.core.exceptions import (
 )
 
 from . import opener_settings
+
+LOGGER = logging.getLogger(__name__)
 
 
 class ExtendedUrllib:
@@ -208,7 +210,7 @@ class ExtendedUrllib:
         timeout = max(MIN_TIMEOUT, timeout)
 
         msg = "Updating socket timeout for %s from %.2f to %.2f seconds"
-        om.out.debug(msg % (host, self.get_timeout(host), timeout))
+        LOGGER.debug(msg % (host, self.get_timeout(host), timeout))
 
         self._host_timeout[host] = timeout
 
@@ -275,7 +277,7 @@ class ExtendedUrllib:
                 "Not enough samples collected (%s) to adjust timeout."
                 " Keeping the current value of %s seconds"
             )
-            om.out.debug(msg % (num_samples, self.get_timeout(host)))
+            LOGGER.debug(msg % (num_samples, self.get_timeout(host)))
         else:
             timeout = average_rtt * TIMEOUT_MULT_CONST
             self.set_timeout(timeout, host)
@@ -305,7 +307,7 @@ class ExtendedUrllib:
 
         msg = "Will increase timeout to %.2f seconds after HTTP socket error (did:%s)"
         args = (timeout, request.debugging_id)
-        om.out.debug(msg % args)
+        LOGGER.debug(msg % args)
 
         # Set new timeout
         self.set_timeout(timeout, host)
@@ -409,7 +411,7 @@ class ExtendedUrllib:
                 " error rate is at %s%%"
             )
             args = (error_sleep, request.url_object, request.debugging_id, error_rate)
-            om.out.debug(msg % args)
+            LOGGER.debug(msg % args)
 
             # The actual delay
             time.sleep(error_sleep)
@@ -882,7 +884,7 @@ class ExtendedUrllib:
                 " (id:%s, did:)"
             )
             args = (res.id, req.debugging_id)
-            om.out.debug(msg % args)
+            LOGGER.debug(msg % args)
             # I prefer to fetch the file, before this om.out.debug was a
             # "raise BaseFrameworkException", but this didn't make much sense
             return 0
@@ -896,7 +898,7 @@ class ExtendedUrllib:
             ' The value is: "%s" (id:%s, did:%s)'
         )
         args = (content_length, req.id, req.debugging_id)
-        om.out.error(msg % args)
+        LOGGER.error(msg % args)
         raise HTTPRequestException(msg, request=req)
 
     def __getattr__(self, method_name):
@@ -1103,7 +1105,7 @@ class ExtendedUrllib:
                 " %i%%)"
             )
 
-        om.out.debug(msg % (new_worker_count, error_rate))
+        LOGGER.debug(msg % (new_worker_count, error_rate))
 
     def _increase_worker_pool_size(self):
         w3af_core = self.get_w3af_core()
@@ -1119,10 +1121,10 @@ class ExtendedUrllib:
         if new_worker_count <= max_workers:
             worker_pool.set_worker_count(new_worker_count)
             msg = "Increased the worker pool size to %s (error rate: %i%%)"
-            om.out.debug(msg % (new_worker_count, error_rate))
+            LOGGER.debug(msg % (new_worker_count, error_rate))
         else:
             msg = "Not increasing the worker pool size since it exceeds the max: %s"
-            om.out.debug(msg % max_workers)
+            LOGGER.debug(msg % max_workers)
 
     def _should_increase_worker_pool(self):
         """
@@ -1203,7 +1205,7 @@ class ExtendedUrllib:
                 " Error handling was disabled for this request (did:%s)."
             )
             args = (req.get_method(), original_url, exception, req.debugging_id)
-            om.out.debug(msg % args)
+            LOGGER.debug(msg % args)
 
             error_str = get_exception_reason(exception) or str(exception)
             raise HTTPRequestException(error_str, request=req)
@@ -1276,7 +1278,7 @@ class ExtendedUrllib:
         flags %= args
 
         msg += flags
-        om.out.debug(msg)
+        LOGGER.debug(msg)
 
         # Clear the log of failed requests; this request is DONE!
         self._log_successful_response(http_resp)
@@ -1297,7 +1299,7 @@ class ExtendedUrllib:
         if req.retries_left > 0:
             msg = 'Re-sending request "%s" (did:%s) after initial exception: "%s"'
             args = (req, req.debugging_id, url_error)
-            om.out.debug(msg % args)
+            LOGGER.debug(msg % args)
 
             #
             # Before sending it again we update the timeout, which could have
@@ -1344,7 +1346,7 @@ class ExtendedUrllib:
         original_url = smart_unicode(original_url)
         args = (request.get_method(), original_url, exception, request.debugging_id)
 
-        om.out.debug(msg % args)
+        LOGGER.debug(msg % args)
 
         # Don't make a lot of noise on URLTimeoutError which is pretty common
         # and properly handled by this library
@@ -1358,7 +1360,7 @@ class ExtendedUrllib:
         )
         if not isinstance(exception, no_traceback_for):
             msg = "Traceback for this error: %s"
-            om.out.debug(msg % traceback.format_exc())
+            LOGGER.debug(msg % traceback.format_exc())
 
         # Now we save the error to self._last_responses for tracking and
         # statistics
@@ -1488,15 +1490,15 @@ class ExtendedUrllib:
             self.send(req, grep=False)
         except HTTPRequestException as e:
             msg = 'Remote URL %s is UNREACHABLE due to: "%s"'
-            om.out.debug(msg % (root_url, e))
+            LOGGER.debug(msg % (root_url, e))
             return False
         except (BaseFrameworkException, ScanMustStopException, OSError) as e:
             msg = 'Internal error makes URL %s UNREACHABLE due to: "%s"'
-            om.out.debug(msg % (root_url, e))
+            LOGGER.debug(msg % (root_url, e))
             return False
         else:
             msg = "Remote URL %s is reachable"
-            om.out.debug(msg % root_url)
+            LOGGER.debug(msg % root_url)
             return True
 
     def get_error_rate(self):
@@ -1524,7 +1526,7 @@ class ExtendedUrllib:
         :see: https://github.com/andresriancho/w3af/issues/8698
         """
         error_rate = self.get_error_rate()
-        om.out.debug(f"ExtendedUrllib error rate is at {int(error_rate)}%")
+        LOGGER.debug(f"ExtendedUrllib error rate is at {int(error_rate)}%")
 
     def _handle_error_count_exceeded(self, error):
         """
@@ -1556,7 +1558,7 @@ class ExtendedUrllib:
 
             e = ScanMustStopByUnknownReasonExc(msg % args, errs=last_errors)
 
-        om.out.debug(
+        LOGGER.debug(
             "The extended urllib will raise a scan must stop exception"
             " for each request after this message. The remote server is"
             " unreachable."
@@ -1593,7 +1595,7 @@ class ExtendedUrllib:
             except BaseFrameworkException as e:
                 msg = 'Evasion plugin "%s" failed to modify the request: "%s"'
                 args = (eplugin.get_name(), e)
-                om.out.error(msg % args)
+                LOGGER.error(msg % args)
 
         return request
 

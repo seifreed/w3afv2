@@ -20,9 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import textwrap
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.intrusion_tools.exec_method_helpers import os_detection_exec
 from w3af.core.controllers.payload_transfer.payload_transfer_factory import (
     payload_transfer_factory,
@@ -30,6 +30,8 @@ from w3af.core.controllers.payload_transfer.payload_transfer_factory import (
 from w3af.core.data.kb.decorators import download_debug, read_debug
 from w3af.core.data.kb.shell import Shell
 from w3af.core.exceptions import BaseFrameworkException
+
+LOGGER = logging.getLogger(__name__)
 
 
 class ExecShell(Shell):
@@ -155,10 +157,10 @@ class ExecShell(Shell):
             msg = "The file transfer will take %s seconds"
             handler = self._transfer_handler
             estimated_time = handler.estimate_transfer_time(len(file_content))
-            om.out.debug(msg % estimated_time)
+            LOGGER.debug(msg % estimated_time)
 
             self._transfer_handler.transfer(file_content, remote_filename)
-            om.out.debug("Finished file transfer.")
+            LOGGER.debug("Finished file transfer.")
 
             return "File upload was successful."
 
