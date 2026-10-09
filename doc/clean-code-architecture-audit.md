@@ -138,11 +138,9 @@ compara `str` con datos `bytes`, y el otro realiza una conexión HTTP real que n
 produce respuesta. Se mantienen registrados sin ocultarlos.
 
 `core.data.misc.io` también tiene 100% de cobertura (4 tests). La suite de
-multipart, mutants y plugins de subida obtuvo 23 éxitos y 20 fallos. Entre los
-fallos observados hay nombres de campos serializados como `b'file'` y llamadas
-HTTP reales sin respuesta. Aunque la extracción solo cambia ubicaciones e
-imports, no se comparó esta batería con el commit anterior y los fallos quedan
-pendientes de investigar.
+multipart, mutants y plugins de subida obtuvo 23 éxitos y 20 fallos antes del
+arreglo de serialización; varios fallos restantes son independientes de ese
+encoding y siguen pendientes.
 
 La causa de los nombres `b'file'` quedó reproducida: `smart_str` genera bytes,
 pero el encoder multipart construye un cuerpo `str`. El encoder ahora normaliza
@@ -152,6 +150,12 @@ omitida porque se lee como UTF-8). Al repetir la batería amplia tras el arreglo
 29 pasaron y 16 fallaron. Los fallos restantes incluyen fixtures binarias
 abiertas como texto, APIs privadas de urllib y llamadas HTTP que requieren
 servicios externos; no se ha comparado toda esa suite con un checkout anterior.
+
+Una batería adicional de encoding, headers, `HTTPResponse`, URL y multipart
+obtuvo 163 éxitos, 3 omitidos y 10 fallos (una prueba se excluyó). Los fallos
+observados en `HTTPResponse` terminan en la aserción que exige charset para un
+body `str`; no hay evidencia de que los cause el nuevo decode de bytes y tampoco
+se compararon con el commit anterior.
 
 ## Prioridades de refactor
 
