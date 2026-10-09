@@ -55,10 +55,6 @@ class ProxyException(BaseFrameworkException):
     """
 
 
-class OSDetectionException(BaseFrameworkException):
-    pass
-
-
 class NoVulnerabilityFoundException(BaseFrameworkException):
     pass
 

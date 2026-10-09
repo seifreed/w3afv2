@@ -753,3 +753,16 @@ cache pasan; el tercero depende de `w3af.org` y recibió HTTP 522 en vez del 404
 esperado, por lo que no es evidencia sobre la migración. La auditoría sube a
 **4.0/10**: se corrige una dependencia ascendente concreta, pero faltan muchas
 otras y las gates globales.
+
+## Avance: excepción de detección de SO en core
+
+`OSDetectionException` se define cuando no puede identificarse el sistema
+operativo remoto; la consumen `core.data.kb.read_shell`, intrusion tools, un
+plugin y la UI. Se trasladó de `controllers.exceptions` a `core.exceptions` y
+se migraron todos sus imports, sin alias antiguo.
+
+Diez tests de excepciones pasan con **100% de cobertura** y los tres tests de
+`ReadShell` pasan. Black, Ruff (`F401`, `I001`), compilación y diff check pasan;
+no quedan imports de la definición anterior. El score global sube a **4.1/10**:
+se elimina otro acoplamiento de datos a controllers, aunque aún queda amplia
+deuda de capas y las gates globales no están verdes.

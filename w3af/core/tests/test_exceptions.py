@@ -5,6 +5,7 @@ from w3af.core.exceptions import (
     BaseFrameworkException,
     BodyCutException,
     FileException,
+    OSDetectionException,
     ScanMustStopByKnownReasonExc,
     ScanMustStopByUnknownReasonExc,
     ScanMustStopByUserRequest,
@@ -25,6 +26,12 @@ class TestFrameworkExceptions(unittest.TestCase):
 
         self.assertIsInstance(exception, BaseFrameworkException)
         self.assertEqual(str(exception), "file operation failed")
+
+    def test_os_detection_exception_is_a_framework_exception(self):
+        exception = OSDetectionException("remote OS unknown")
+
+        self.assertIsInstance(exception, BaseFrameworkException)
+        self.assertEqual(str(exception), "remote OS unknown")
 
     def test_scan_stop_includes_logged_errors(self):
         exception = ScanMustStopException("stopped", ("first", "second"))

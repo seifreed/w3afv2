@@ -17,6 +17,10 @@ class FileException(BaseFrameworkException):
     """Raised when framework-managed file operations fail."""
 
 
+class OSDetectionException(BaseFrameworkException):
+    """Raised when the remote operating system cannot be identified."""
+
+
 class ScanMustStopException(Exception):
     """Signal that the current scan must stop."""
 

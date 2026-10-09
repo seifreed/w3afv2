@@ -27,12 +27,12 @@ import textwrap
 from multiprocessing.dummy import Process
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import OSDetectionException
 from w3af.core.controllers.intrusion_tools.readMethodHelpers import read_os_detection
 from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
 from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
 from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
 from w3af.core.data.kb.read_shell import ReadShell
+from w3af.core.exceptions import OSDetectionException
 from w3af.plugins.attack.db.sqlmap_wrapper import SQLMapWrapper, Target
 from w3af.plugins.attack.payloads.decorators.read_decorator import read_debug
 

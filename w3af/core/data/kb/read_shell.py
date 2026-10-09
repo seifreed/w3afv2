@@ -23,9 +23,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import textwrap
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import OSDetectionException
 from w3af.core.controllers.intrusion_tools.readMethodHelpers import read_os_detection
 from w3af.core.data.kb.shell import Shell
+from w3af.core.exceptions import OSDetectionException
 from w3af.plugins.attack.payloads.decorators.download_decorator import download_debug
 
 
