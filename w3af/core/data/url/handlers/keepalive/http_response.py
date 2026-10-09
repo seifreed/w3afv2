@@ -31,6 +31,10 @@ class HTTPResponse(http.client.HTTPResponse):
     def geturl(self):
         return self._url
 
+    @property
+    def connection(self):
+        return self._connection
+
     def get_encoding(self):
         return self._encoding
 

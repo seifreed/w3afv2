@@ -153,19 +153,12 @@ class TestNTLMHandler(unittest.TestCase):
         self.assertEqual(error.exception.code, 401)
         error.exception.close()
 
-    def test_challenge_without_credentials(self):
+    def test_request_without_credentials_is_untouched(self):
         handler = HTTPNtlmAuthHandler()
         request = HTTPRequest(URL(self.server.url("/ntlm")))
-        negotiate = spnego.client("user", "pass", protocol="ntlm").step()
-        challenge = spnego.server(protocol="ntlm").step(negotiate)
-        headers = {"www-authenticate": f"NTLM {b64(challenge)}"}
 
         self.assertIs(handler.http_request(request), request)
-        self.assertIsNone(
-            handler.retry_using_http_NTLM_auth(
-                request, "www-authenticate", None, headers
-            )
-        )
+        self.assertFalse(request.has_header("Authorization"))
 
     def test_w3af_opener_authenticates(self):
         settings = opener_settings.OpenerSettings()

@@ -204,6 +204,25 @@ class ConnectionManager:
 
         return None
 
+    def _take_preferred_connection(self, req):
+        """
+        :return: The connection the request asked to be sent on, when it is
+                 free; None otherwise.
+        """
+        conn = req.preferred_connection
+
+        with self._lock:
+            if conn not in self._free_conns:
+                return None
+
+            self._free_conns.remove(conn)
+            self._used_conns.add(conn)
+            conn.current_request_start = time.time()
+            conn.connection_manager_move_ts = time.time()
+
+        debug(f"Reusing preferred {conn} to use in {req}")
+        return conn
+
     def _pop_free_connection_if_unused(self):
         """
         :return: A free connection taken out of the pool when there are more
@@ -255,6 +274,10 @@ class ConnectionManager:
         """
         host_port = req.get_netloc()
         self.log_stats(host_port)
+
+        conn = self._take_preferred_connection(req)
+        if conn is not None:
+            return conn
 
         waited_time_for_conn = 0.0
 

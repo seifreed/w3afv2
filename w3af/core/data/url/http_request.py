@@ -75,6 +75,9 @@ class HTTPRequest(RequestMixIn, urllib.request.Request):
         self.retries_left = retries
         self.timeout = timeout
         self.new_connection = new_connection
+        # Connection-oriented auth (NTLM) must send its next message on the
+        # connection that received the challenge
+        self.preferred_connection = None
         self.follow_redirects = follow_redirects
         self.use_basic_auth = use_basic_auth
         self.use_proxy = use_proxy
