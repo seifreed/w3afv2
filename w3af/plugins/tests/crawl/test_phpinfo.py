@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
+from pathlib import Path
 from typing import ClassVar
 
 from w3af import ROOT_PATH
@@ -40,7 +41,7 @@ class TestPHPInfo516(PluginTest):
         ),
         MockResponse(
             "http://httpretty/phpversion.php",
-            body=open(PHPINFO).read(),
+            body=Path(PHPINFO).read_text(),
             method="GET",
             status=200,
         ),

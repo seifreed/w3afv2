@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import contextlib
 import csv
 import json
 import os
@@ -90,27 +91,26 @@ class TestCSVFile(PluginTest):
 
     def _from_csv_get_vulns(self):
         file_vulns = []
-        vuln_reader = csv.reader(
-            open(self.OUTPUT_FILE, "rb"),
-            delimiter=",",
-            quotechar="|",
-            quoting=csv.QUOTE_MINIMAL,
-        )
-
-        for severity, name, method, uri, var, post_data, _id, desc in vuln_reader:
-            mutant = create_mutant_from_params(method, uri, var, post_data)
-            v = Vuln.from_mutant(
-                name, desc, severity, json.loads(_id), "TestCase", mutant
+        with open(self.OUTPUT_FILE, "rb") as csv_fd:
+            vuln_reader = csv.reader(
+                csv_fd,
+                delimiter=",",
+                quotechar="|",
+                quoting=csv.QUOTE_MINIMAL,
             )
-            file_vulns.append(v)
+
+            for severity, name, method, uri, var, post_data, _id, desc in vuln_reader:
+                mutant = create_mutant_from_params(method, uri, var, post_data)
+                v = Vuln.from_mutant(
+                    name, desc, severity, json.loads(_id), "TestCase", mutant
+                )
+                file_vulns.append(v)
 
         return file_vulns
 
     def tearDown(self):
-        try:
+        with contextlib.suppress(OSError):
             os.remove(self.OUTPUT_FILE)
-        except:
-            pass
 
 
 def create_mutant_from_params(method, uri, var, post_data):

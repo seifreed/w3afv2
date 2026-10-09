@@ -19,8 +19,10 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import contextlib
 import os
 import re
+from pathlib import Path
 from typing import ClassVar
 
 import pytest
@@ -76,7 +78,7 @@ class TestTextFile(PluginTest):
         )
 
     def _analyze_output_file(self):
-        output_file_content = open(self.OUTPUT_HTTP_FILE).read()
+        output_file_content = Path(self.OUTPUT_HTTP_FILE).read_text()
 
         expected = ["Request 1", "Response 1", "=" * 40]
         not_expected = ["Request None"]
@@ -95,21 +97,20 @@ class TestTextFile(PluginTest):
         )
         vuln_re = re.compile(vuln_regex)
 
-        for line in open(self.OUTPUT_FILE):
-            mo = vuln_re.search(line)
+        with open(self.OUTPUT_FILE) as output_fd:
+            for line in output_fd:
+                mo = vuln_re.search(line)
 
-            if mo:
-                v = MockVuln("TestCase", None, "High", 1, "plugin")
-                v.set_url(URL(mo.group(1)))
-                v.set_method(mo.group(2))
+                if mo:
+                    v = MockVuln("TestCase", None, "High", 1, "plugin")
+                    v.set_url(URL(mo.group(1)))
+                    v.set_method(mo.group(2))
 
-                file_vulns.append(v)
+                    file_vulns.append(v)
 
         return file_vulns
 
     def tearDown(self):
         for f in (self.OUTPUT_FILE, self.OUTPUT_HTTP_FILE):
-            try:
+            with contextlib.suppress(OSError):
                 os.remove(f)
-            except:
-                pass

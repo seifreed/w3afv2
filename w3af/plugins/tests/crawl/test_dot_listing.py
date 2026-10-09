@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
+from pathlib import Path
 from typing import ClassVar
 
 from w3af import ROOT_PATH
@@ -38,11 +39,11 @@ class TestDotListing(PluginTest):
         }
     }
 
-    DOT_LISTING = open(
+    DOT_LISTING = Path(
         os.path.join(
             ROOT_PATH, "plugins", "tests", "crawl", "dot_listing", "listing_test_1.txt"
         )
-    ).read()
+    ).read_text()
 
     MOCK_RESPONSES: ClassVar[list] = [
         MockResponse("http://mock/.listing", DOT_LISTING),
@@ -83,7 +84,7 @@ class TestDotListing(PluginTest):
         for i in range(1, 4):
             file_name = file_name_fmt % i
             file_path = os.path.join(listing_files_path, file_name)
-            file_content = open(file_path).read()
+            file_content = Path(file_path).read_text()
             for user, group, filename in dot_listing_inst._extract_info_from_listing(
                 file_content
             ):

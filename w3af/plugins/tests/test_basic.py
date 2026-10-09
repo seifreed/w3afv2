@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 import unittest
+from pathlib import Path
 from typing import ClassVar
 
 import pytest
@@ -192,7 +193,7 @@ class TestBasic(unittest.TestCase):
             if os.path.isdir(joined_entry):
                 continue
 
-            plugin_code = open(joined_entry).read()
+            plugin_code = Path(joined_entry).read_text()
 
             if "kb.kb.append" in plugin_code:
                 msg = (

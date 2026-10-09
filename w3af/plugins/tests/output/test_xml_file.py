@@ -20,10 +20,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import base64
+import contextlib
 import io
 import os
 import os.path
 import unittest
+from pathlib import Path
 from typing import ClassVar
 from xml.etree import ElementTree
 
@@ -106,16 +108,13 @@ class TestXMLOutput(PluginTest):
             {v.get_plugin_name() for v in file_vulns},
         )
 
-        self.assertEqual(validate_xml(open(self.FILENAME).read(), self.XSD), "")
+        self.assertEqual(validate_xml(Path(self.FILENAME).read_text(), self.XSD), "")
 
     def tearDown(self):
         super().tearDown()
-        try:
+        with contextlib.suppress(OSError):
             os.remove(self.FILENAME)
-        except:
-            pass
-        finally:
-            self.kb.cleanup()
+        self.kb.cleanup()
 
     def test_error_null_byte(self):
         w3af_core = w3afCore()
@@ -259,7 +258,7 @@ class XMLParser:
 def get_vulns_from_xml(filename):
     xp = XMLParser()
     parser = etree.XMLParser(target=xp)
-    vulns = etree.fromstring(open(filename).read(), parser)
+    vulns = etree.fromstring(Path(filename).read_text(), parser)
     return vulns
 
 
@@ -294,7 +293,7 @@ class TestXMLOutputBinary(PluginTest):
     MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url="http://rpm-path-binary/",
-            body=open(TEST_FILE).read(),
+            body=Path(TEST_FILE).read_text(),
             content_type="text/plain",
             method="GET",
             status=200,
@@ -326,17 +325,14 @@ class TestXMLOutputBinary(PluginTest):
         try:
             tree = ElementTree.parse(self.FILENAME)
             tree.getroot()
-        except Exception as e:
+        except ElementTree.ParseError as e:
             self.assertTrue(False, f'Generated invalid XML: "{e}"')
 
     def tearDown(self):
         super().tearDown()
-        try:
+        with contextlib.suppress(OSError):
             os.remove(self.FILENAME)
-        except:
-            pass
-        finally:
-            self.kb.cleanup()
+        self.kb.cleanup()
 
 
 class TestXML0x0B(PluginTest):
@@ -350,7 +346,7 @@ class TestXML0x0B(PluginTest):
     MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url="http://0x0b-path-binary/",
-            body=open(TEST_FILE).read(),
+            body=Path(TEST_FILE).read_text(),
             content_type="text/plain",
             method="GET",
             status=200,
@@ -382,17 +378,14 @@ class TestXML0x0B(PluginTest):
         try:
             tree = ElementTree.parse(self.FILENAME)
             tree.getroot()
-        except Exception as e:
+        except ElementTree.ParseError as e:
             self.assertTrue(False, f'Generated invalid XML: "{e}"')
 
     def tearDown(self):
         super().tearDown()
-        try:
+        with contextlib.suppress(OSError):
             os.remove(self.FILENAME)
-        except:
-            pass
-        finally:
-            self.kb.cleanup()
+        self.kb.cleanup()
 
 
 class TestSpecialCharacterInURL(PluginTest):
@@ -434,17 +427,14 @@ class TestSpecialCharacterInURL(PluginTest):
         try:
             tree = ElementTree.parse(self.FILENAME)
             tree.getroot()
-        except Exception as e:
+        except ElementTree.ParseError as e:
             self.assertTrue(False, f'Generated invalid XML: "{e}"')
 
     def tearDown(self):
         super().tearDown()
-        try:
+        with contextlib.suppress(OSError):
             os.remove(self.FILENAME)
-        except:
-            pass
-        finally:
-            self.kb.cleanup()
+        self.kb.cleanup()
 
 
 class XMLNodeGeneratorTest(unittest.TestCase):

@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
+from pathlib import Path
 from typing import ClassVar
 
 import w3af.core.data.kb.knowledge_base as kb
@@ -103,11 +104,11 @@ class TestFindDVCS(PluginTest):
 
 class TestSVN(PluginTest):
 
-    WC_DB = open(
+    WC_DB = Path(
         os.path.join(
             ROOT_PATH, "plugins", "tests", "crawl", "find_dvcs", "sample-wc.db"
         )
-    ).read()
+    ).read_text()
 
     SECRET = "Secret contents here!"
 

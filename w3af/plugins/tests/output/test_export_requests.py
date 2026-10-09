@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import contextlib
 import os
 from typing import ClassVar
 
@@ -62,12 +63,11 @@ class TestExportRequests(PluginTest):
 
     def _get_fuzzable_requests_from_file(self):
         # Get the contents of the output file
-        for line in open("output-fr.b64"):
-            yield FuzzableRequest.from_base64(line)
+        with open("output-fr.b64") as fr_fd:
+            for line in fr_fd:
+                yield FuzzableRequest.from_base64(line)
 
     def tearDown(self):
         super().tearDown()
-        try:
+        with contextlib.suppress(OSError):
             os.remove("output-fr.b64")
-        except:
-            pass

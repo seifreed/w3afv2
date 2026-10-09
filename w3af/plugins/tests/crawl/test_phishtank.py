@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import csv
+from pathlib import Path
 
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.constants.severity import MEDIUM
@@ -44,31 +45,33 @@ class TestPhishtank(PluginTest):
         self.assertEqual(len(vulns), 0, vulns)
 
     def get_vulnerable_url(self):
-        pt_csv_reader = csv.reader(
-            open(phishtank.PHISHTANK_DB),
-            delimiter=" ",
-            quotechar="|",
-            quoting=csv.QUOTE_MINIMAL,
-        )
+        with open(phishtank.PHISHTANK_DB) as pt_fd:
+            pt_csv_reader = csv.reader(
+                pt_fd,
+                delimiter=" ",
+                quotechar="|",
+                quoting=csv.QUOTE_MINIMAL,
+            )
 
-        for phishing_url, phishtank_detail_url in pt_csv_reader:
-            return phishing_url
+            for phishing_url, phishtank_detail_url in pt_csv_reader:
+                return phishing_url
 
     def get_last_vulnerable_url(self):
-        pt_csv_reader = csv.reader(
-            open(phishtank.PHISHTANK_DB),
-            delimiter=" ",
-            quotechar="|",
-            quoting=csv.QUOTE_MINIMAL,
-        )
+        with open(phishtank.PHISHTANK_DB) as pt_fd:
+            pt_csv_reader = csv.reader(
+                pt_fd,
+                delimiter=" ",
+                quotechar="|",
+                quoting=csv.QUOTE_MINIMAL,
+            )
 
-        for phishing_url, phishtank_detail_url in pt_csv_reader:
-            pass
+            for phishing_url, phishtank_detail_url in pt_csv_reader:
+                pass
 
         return phishing_url
 
     def test_total_urls(self):
-        total_lines = len(open(phishtank.PHISHTANK_DB).read().split("\n"))
+        total_lines = len(Path(phishtank.PHISHTANK_DB).read_text().split("\n"))
         self.assertGreater(total_lines, 5000)
 
     def test_phishtank_match_url(self):

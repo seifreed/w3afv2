@@ -56,7 +56,7 @@ class BrowserThread(Process):
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:
                 s.connect(("127.0.0.1", self.proxy_port))
-            except:
+            except OSError:
                 time.sleep(0.5)
             else:
                 break
@@ -79,7 +79,7 @@ class BrowserThread(Process):
                 req = urllib.request.Request(url, payload)
                 try:
                     response = opener.open(req)
-                except Exception as ex:
+                except OSError as ex:
                     self.responses.append(str(ex))
                 else:
                     self.responses.append(response.read())
@@ -91,14 +91,14 @@ class BrowserThread(Process):
 
                 try:
                     response = opener.open(full_url)
-                except Exception as ex:
+                except OSError as ex:
                     self.responses.append(str(ex))
                 else:
                     self.responses.append(response.read())
 
         try:
             response = opener.open(TERMINATE_URL.url_string)
-        except Exception as ex:
+        except OSError as ex:
             self.responses.append(str(ex))
         else:
             self.responses.append(response.read())

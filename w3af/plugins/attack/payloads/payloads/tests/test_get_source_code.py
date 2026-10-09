@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import shutil
 import tempfile
+from pathlib import Path
 from typing import ClassVar
 
 import pytest
@@ -56,7 +57,7 @@ class test_get_source_code(PayloadTestHelper):
         self.assertEqual(expected_url, downloaded_url)
 
         downloaded_file_path = next(iter(result.items()))[1][1]
-        downloaded_file_content = open(downloaded_file_path).read()
+        downloaded_file_content = Path(downloaded_file_path).read_text()
         self.assertTrue(self.CONTENT in downloaded_file_content)
 
         shutil.rmtree(temp_dir)

@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import base64
+import binascii
 import json
 import os
 import pickle
@@ -28,6 +29,7 @@ import unittest
 import urllib.error
 import urllib.parse
 import urllib.request
+from pathlib import Path
 from typing import ClassVar
 
 from w3af.core.data.dc.cookie import Cookie
@@ -60,13 +62,13 @@ class TestDeserializePickle(PluginTest):
 
             try:
                 message = base64.b64decode(b64message)
-            except Exception as e:
+            except binascii.Error as e:
                 body = str(e)
                 return self.status, response_headers, body
 
             try:
                 pickle.loads(message)
-            except Exception as e:
+            except (pickle.UnpicklingError, EOFError, ValueError, TypeError) as e:
                 body = str(e)
                 return self.status, response_headers, body
 
@@ -101,7 +103,7 @@ class TestDeserializePickleNotBase64(PluginTest):
 
             try:
                 pickle.loads(message)
-            except Exception as e:
+            except (pickle.UnpicklingError, EOFError, ValueError, TypeError) as e:
                 body = str(e)
                 return self.status, response_headers, body
 
@@ -136,13 +138,13 @@ class TestShouldInjectIsCalled(PluginTest):
 
             try:
                 message = base64.b64decode(b64message)
-            except Exception as e:
+            except binascii.Error as e:
                 body = str(e)
                 return self.status, response_headers, body
 
             try:
                 pickle.loads(message)
-            except Exception as e:
+            except (pickle.UnpicklingError, EOFError, ValueError, TypeError) as e:
                 body = str(e)
                 return self.status, response_headers, body
 
@@ -290,7 +292,7 @@ class TestJSONPayloadIsValid(unittest.TestCase):
                     continue
 
                 if file_name.endswith(deserialization.PAYLOAD_EXTENSION):
-                    json_str = open(os.path.join(root, file_name)).read()
+                    json_str = Path(os.path.join(root, file_name)).read_text()
                     data = json.loads(json_str)
 
                     self.assertIn("1", data, file_name)
@@ -352,7 +354,7 @@ class TestExactDelay(unittest.TestCase):
                     continue
 
                 if file_name.endswith(deserialization.PAYLOAD_EXTENSION):
-                    json_str = open(os.path.join(root, file_name)).read()
+                    json_str = Path(os.path.join(root, file_name)).read_text()
                     payload = json.loads(json_str)
 
                     ed = B64DeserializationExactDelay(payload)
@@ -360,7 +362,7 @@ class TestExactDelay(unittest.TestCase):
                     try:
                         payload_1 = ed.get_string_for_delay(1)
                         payload_22 = ed.get_string_for_delay(22)
-                    except Exception as e:
+                    except (TypeError, ValueError, KeyError) as e:
                         msg = 'Raised exception "%s" on "%s"'
                         args = (e, file_name)
                         self.assertTrue(False, msg % args)

@@ -45,7 +45,7 @@ class ResponseSplittingMockResponse(MockResponse):
             header_name_2, header_value_2 = headers_to_inject.split(":")
             header_name_2 = header_name_2.strip()
             header_value_2 = header_value_2.strip()
-        except:
+        except (IndexError, ValueError):
             return self.status, response_headers, self.body
         else:
             response_headers[header_name_1] = header_value_1
@@ -100,7 +100,7 @@ class ResponseSplittingParameterModifiesResponseMockResponse(MockResponse):
             header_name_2, header_value_2 = headers_to_inject.split(":")
             header_name_2 = header_name_2.strip()
             header_value_2 = header_value_2.strip()
-        except:
+        except (IndexError, ValueError):
             return self.status, response_headers, self.body
         else:
             response_headers[header_name_1] = header_value_1
@@ -159,7 +159,7 @@ class ResponseSplittingHeaderMockResponse(MockResponse):
             header_name_2, header_value_2 = headers_to_inject.split(":")
             header_name_2 = header_name_2.strip()
             header_value_2 = header_value_2.strip()
-        except:
+        except (IndexError, ValueError):
             return self.status, response_headers, self.body
         else:
             response_headers[header_name_1] = header_value_1

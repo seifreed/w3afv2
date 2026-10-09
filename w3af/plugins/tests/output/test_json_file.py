@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import contextlib
 import json
 import os
 from typing import ClassVar
@@ -80,7 +81,8 @@ class TestJsonOutput(PluginTest):
         )
 
     def _from_json_get_vulns(self, filename):
-        json_data = json.load(open(filename, "r"))
+        with open(filename) as json_fd:
+            json_data = json.load(json_fd)
         vulns = []
 
         for finding in json_data["items"]:
@@ -93,9 +95,6 @@ class TestJsonOutput(PluginTest):
 
     def tearDown(self):
         super().tearDown()
-        try:
+        with contextlib.suppress(OSError):
             os.remove(self.FILENAME)
-        except:
-            pass
-        finally:
-            self.kb.cleanup()
+        self.kb.cleanup()

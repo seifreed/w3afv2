@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
+from pathlib import Path
 from typing import ClassVar
 
 from w3af import ROOT_PATH
@@ -37,9 +38,9 @@ class TestDSStore(PluginTest):
         }
     }
 
-    DS_STORE = open(
+    DS_STORE = Path(
         os.path.join(ROOT_PATH, "plugins/tests/crawl/ds_store/DS_Store")
-    ).read()
+    ).read_text()
 
     MOCK_RESPONSES: ClassVar[list] = [
         MockResponse("http://mock/.DS_Store", DS_STORE),

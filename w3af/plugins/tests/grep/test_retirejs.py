@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 import unittest
+from pathlib import Path
 from typing import ClassVar
 
 from w3af import ROOT_PATH
@@ -44,7 +45,7 @@ class TestRetireJSNotAnalyzeHTMLContentType(PluginTest):
         MockResponse("http://httpretty/", body=INDEX, method="GET", status=200),
         MockResponse(
             "http://httpretty/js/jquery.js",
-            body=open(JQUERY_VULN).read(),
+            body=Path(JQUERY_VULN).read_text(),
             method="GET",
             status=200,
             content_type="text/html",
@@ -99,7 +100,7 @@ class TestRetireJS(PluginTest):
         MockResponse("http://httpretty/", body=INDEX, method="GET", status=200),
         MockResponse(
             "http://httpretty/js/jquery.js",
-            body=open(JQUERY_VULN).read(),
+            body=Path(JQUERY_VULN).read_text(),
             method="GET",
             status=200,
             content_type="application/javascript",

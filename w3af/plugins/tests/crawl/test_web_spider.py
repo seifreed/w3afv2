@@ -24,6 +24,7 @@ import re
 import urllib.error
 import urllib.parse
 import urllib.request
+from pathlib import Path
 from typing import ClassVar
 from unittest import SkipTest
 
@@ -321,8 +322,8 @@ class TestRelativePathsIn404(PluginTest):
         ROOT_PATH, "plugins", "tests", "crawl", "web_spider", "5834"
     )
 
-    GALERIA_HTML = open(os.path.join(TEST_ROOT, "galeria-root.html")).read()
-    INDEX_HTML = open(os.path.join(TEST_ROOT, "index.html")).read()
+    GALERIA_HTML = Path(os.path.join(TEST_ROOT, "galeria-root.html")).read_text()
+    INDEX_HTML = Path(os.path.join(TEST_ROOT, "index.html")).read_text()
 
     MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(re.compile("http://mock/galeria/.*"), GALERIA_HTML),
@@ -371,7 +372,7 @@ class TestDeadLock(PluginTest):
         ROOT_PATH, "plugins", "tests", "crawl", "web_spider", "5834"
     )
 
-    INDEX_HTML = open(os.path.join(TEST_ROOT, "index.html")).read()
+    INDEX_HTML = Path(os.path.join(TEST_ROOT, "index.html")).read_text()
 
     MOCK_RESPONSES: ClassVar[list] = [
         MockResponse("http://mock/", INDEX_HTML),

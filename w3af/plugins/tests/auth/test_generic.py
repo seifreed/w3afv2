@@ -26,6 +26,10 @@ import pytest
 
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.url.exceptions import (
+    ConnectionPoolException,
+    HTTPRequestException,
+)
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
@@ -113,8 +117,8 @@ class TestGeneric(PluginTest):
         login_url = URL(self.demo_testfire + "login.aspx")
         try:
             res = uri_opener.GET(login_url)
-        except:
-            raise SkipTest("demo.testfire.net is unreachable!")
+        except (HTTPRequestException, ConnectionPoolException) as e:
+            raise SkipTest("demo.testfire.net is unreachable!") from e
         else:
             if not "Online Banking Login" in res.body:
                 raise SkipTest("demo.testfire.net has changed!")
