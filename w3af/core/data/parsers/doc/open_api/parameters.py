@@ -22,7 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import datetime
-import random
+import math
+from typing import ClassVar
 
 from bravado_core.operation import Operation
 
@@ -35,14 +36,22 @@ class OpenAPIParamResolutionException(Exception):
 
 class ParameterHandler:
 
-    DEFAULT_VALUES_BY_TYPE = {
+    DEFAULT_VALUES_BY_TYPE: ClassVar[dict[str, object]] = {
         "int64": 42,
         "int32": 42,
         "integer": 42,
         "float": 4.2,
         "double": 4.2,
         "date": datetime.date(2017, 0o6, 30),
-        "date-time": datetime.datetime(2017, 0o6, 30, 23, 59, 45),
+        "date-time": datetime.datetime(
+            2017,
+            0o6,
+            30,
+            23,
+            59,
+            45,
+            tzinfo=datetime.timezone.utc,
+        ),
         "boolean": True,
     }
 
@@ -309,9 +318,8 @@ class ParameterHandler:
 
         # This handles the case where the value is an enum and can only be selected
         # from a predefined option list
-        if "enum" in parameter_spec:
-            if parameter_spec["enum"]:
-                return parameter_spec["enum"][0]
+        if parameter_spec.get("enum"):
+            return parameter_spec["enum"][0]
 
         if parameter_type in ("integer", "float", "double", "int32", "int64"):
             _max = None
@@ -328,11 +336,12 @@ class ParameterHandler:
                 _max = _max if _max is not None else 56
                 _min = _min if _min is not None else 0
 
-                # We always want to generate the same number for the same range
-                r = random.Random()
-                r.seed(1)
+                if parameter_type in ("float", "double"):
+                    return (_min + _max) / 2
 
-                return r.randint(_min, _max)
+                _min = math.ceil(_min)
+                _max = math.floor(_max)
+                return (_min + _max) // 2
 
         default_value = self.DEFAULT_VALUES_BY_TYPE.get(parameter_type, None)
         if default_value is not None:
@@ -555,18 +564,6 @@ class ParameterHandler:
                 #  u'required': [u'name']}
                 param_spec = param_spec["schema"]
 
-        if "type" in param_spec:
-            if param_spec["type"] == "object":
-                # In this case the param_spec holds these values:
-                #
-                # {u'x-model': u'Pet Owner',
-                #  u'name': u'owner',
-                #  u'title': u'Pet Owner',
-                #  u'required': [u'name'],
-                #  u'type': u'object',
-                #  u'properties': '...'}
-                pass
-
         return param_spec
 
     def _create_object(self, param_spec):
@@ -613,10 +610,7 @@ class ParameterHandler:
         if ParameterHandler._is_header_with_default(parameter):
             return False
 
-        if not parameter.required and not optional:
-            return True
-
-        return False
+        return not parameter.required and not optional
 
     @staticmethod
     def _is_header_with_default(parameter):

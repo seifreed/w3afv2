@@ -855,3 +855,21 @@ para módulo y tests, Bandit sobre el módulo, compilación implícita por pytes
 `git diff --check` pasan. La auditoría sube a **4.6/10**: este flujo queda más
 correcto y verificable, pero el resto del proyecto aún tiene muchos hallazgos
 de arquitectura y de calidad, y faltan las gates globales.
+
+## Avance: generación numérica OpenAPI en Python 3.14
+
+Los límites `integer` de Swagger pueden llegar como `float` (`1.0`, `10.0`),
+lo que hacía fallar `random.randint` en Python 3.14. `ParameterHandler` ahora
+elige un valor central determinista; los límites enteros fraccionarios se
+ajustan con `ceil`/`floor`, y los tipos `float`/`double` reciben un valor
+decimal dentro del intervalo. Se retiró el RNG sembrado, se hizo explícito el
+`date-time` UTC y se limpiaron hallazgos Ruff locales. Los tests comparan
+payloads JSON y headers por su contenido, no por orden accidental de claves.
+
+`test_parameters.py` más `test_main.py` pasan (21 tests); Black, Ruff completo
+en los tres archivos y Bandit sobre `parameters.py` pasan. El paquete OpenAPI
+completo aún falla en 13 de 55 tests (42 pasan) y emite 667 warnings de
+deprecación de Bravado/jsonschema; destacan recursión de `MutableWrapper` y
+contratos antiguos en tests de requests. Score global: **4.7/10**; mejora la
+compatibilidad y verificabilidad de esta ruta, pero la integración completa,
+las gates globales y la deuda arquitectónica siguen pendientes.
