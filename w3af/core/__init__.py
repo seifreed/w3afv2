@@ -24,16 +24,7 @@ import logging
 
 
 #
-# Some magic for test runners to support i18n
-#
-def setUpPackage():
-    import builtins
-
-    builtins.__dict__["_"] = lambda x: x
-
-
-#
-# And more magic for removing some annoying scapy log messages
+# Silence noisy scapy IPv6 routing messages
 #
 class FilterScapy(logging.Filter):
     """A simple way to prevent messages from getting through."""
@@ -47,10 +38,3 @@ class FilterScapy(logging.Filter):
 
 logger = logging.getLogger("scapy.runtime")
 logger.addFilter(FilterScapy())
-
-#
-# Finally, a workaround for bug http://bugs.python.org/issue14308
-#
-import threading
-
-threading._DummyThread._Thread__stop = lambda x: 42
