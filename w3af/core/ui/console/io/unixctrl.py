@@ -25,7 +25,6 @@ import sys
 import termios
 import tty
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.ui.console.io.common import (
     KEY_DOWN,
     KEY_END,
@@ -38,18 +37,6 @@ from w3af.core.ui.console.io.common import (
 LONGEST_SEQUENCE = 5
 
 CSI = "\x1b["
-
-CSI_EL = CSI + "%iK"
-EL_FW = 0
-EL_BACK = 1
-EL_WHOLE = 2
-
-CSI_SCP = CSI + "s"
-CSI_RCP = CSI + "u"
-
-CSI_CUU = CSI + "%iA"
-CSI_CUD = CSI + "%iB"
-CSI_CUF = CSI + "%iC"
 CSI_CUB = CSI + "%iD"
 
 SEQ_PREFIX = "\x1b"
@@ -79,19 +66,12 @@ def set_raw_input_mode(raw):
     global old_settings
 
     if raw and old_settings is None:
-        fd = sys.stdin.fileno()
-        try:
-            old_settings = termios.tcgetattr(fd)
-            tty.setraw(sys.stdin.fileno())
-        except (termios.error, OSError, ValueError) as e:
-            om.out.console("termios error: " + str(e))
+        old_settings = termios.tcgetattr(input_fd)
+        tty.setraw(input_fd)
 
-    elif not (raw or old_settings is None):
-        try:
-            termios.tcsetattr(sys.stdin.fileno(), termios.TCSADRAIN, old_settings)
-            old_settings = None
-        except (termios.error, OSError, ValueError) as e:
-            om.out.console("termios error: " + str(e))
+    elif not raw and old_settings is not None:
+        termios.tcsetattr(input_fd, termios.TCSADRAIN, old_settings)
+        old_settings = None
 
 
 def normalizeSequence(sequence):
@@ -103,25 +83,9 @@ def normalizeSequence(sequence):
     return None
 
 
-def _moveDelta(delta, pos_code, neg_code):
-    if delta != 0:
-        code = delta > 0 and pos_code or neg_code
-        sys.stdout.write(code % abs(delta))
-
-
-def moveDelta(dx=1, dy=0):
-    _moveDelta(dx, CSI_CUF, CSI_CUB)
-    _moveDelta(dy, CSI_CUD, CSI_CUU)
-
-
 def moveBack(steps=1):
     if steps > 0:
         sys.stdout.write(CSI_CUB % steps)
-
-
-def moveForward(steps=1):
-    if steps > 0:
-        sys.stdout.write(CSI_CUF % steps)
 
 
 def clearScreen():

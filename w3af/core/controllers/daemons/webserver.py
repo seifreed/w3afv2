@@ -27,7 +27,6 @@ import os
 import select
 import socket
 import threading
-import time
 
 import w3af.core.controllers.output_manager as om
 
@@ -57,7 +56,8 @@ def _get_inst(ip, port):
 
 class HTTPServer(http.server.HTTPServer):
     """
-    Most of the behavior added here is included in
+    A single threaded HTTP server which serves the files in webroot and shuts
+    itself down when no request arrives within the poll interval.
     """
 
     def __init__(self, server_address, webroot, RequestHandlerClass):
@@ -85,78 +85,52 @@ class HTTPServer(http.server.HTTPServer):
             self.__is_shut_down.set()
 
     def handle_request(self, poll_interval=0.5):
-        """Handle one request, possibly blocking."""
-
-        fd_sets = select.select([self], [], [], poll_interval)
-        if not fd_sets[0]:
+        """
+        Handle one request, the server shuts down when no request arrives
+        within poll_interval seconds.
+        """
+        if not select.select([self], [], [], poll_interval)[0]:
             self.server_close()
             self.__shutdown_request = True
             return
 
-        try:
-            request, client_address = self.get_request()
-        except OSError:
-            return
+        self._handle_request_noblock()
 
-        if self.verify_request(request, client_address):
-            try:
-                self.process_request(request, client_address)
-            except Exception:
-                LOGGER.exception("Error processing request from %s", client_address)
-                self.close_request(request)
+    def handle_error(self, request, client_address):
+        LOGGER.exception("Error processing request from %s", client_address)
 
     def server_bind(self):
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         http.server.HTTPServer.server_bind(self)
 
     def get_port(self):
-        try:
-            return self.server_address[1]
-        except (AttributeError, IndexError, TypeError):
-            return None
-
-    def wait_for_start(self):
-        while self.get_port() is None:
-            time.sleep(0.5)
+        return self.server_address[1]
 
 
 class WebHandler(http.server.BaseHTTPRequestHandler):
 
     def do_GET(self):
-
         if self.path[1:].count("../") or self.path[1:].count("..\\"):
             self.send_error(403, "Yeah right...")
-        else:
-            try:
-                with open(
-                    self.server.webroot + os.path.sep + self.path[1:], "rb"
-                ) as requested_file:
-                    content = requested_file.read()
-            except OSError:
-                try:
-                    self.send_error(404, f"File Not Found: {self.path}")
-                except OSError as e:
-                    om.out.debug("[webserver] Exception: " + str(e))
-            else:
-                try:
-                    self.send_response(200)
-                    # This isn't nice, but this is NOT a complete web server
-                    # implementation it is only here to serve some files to
-                    # "victim" web servers
-                    content_type, _encoding = mimetypes.guess_type(self.path)
-                    if content_type is not None:
-                        self.send_header("Content-type", content_type)
-                    else:
-                        self.send_header("Content-type", "text/html")
-                    self.end_headers()
-                    self.wfile.write(content)
-                except OSError as e:
-                    om.out.debug("[webserver] Exception: " + str(e))
+            return
 
-            # Clean up
-            self.close_connection = 1
-            self.rfile.close()
-            self.wfile.close()
+        try:
+            with open(
+                self.server.webroot + os.path.sep + self.path[1:], "rb"
+            ) as requested_file:
+                content = requested_file.read()
+        except OSError:
+            self.send_error(404, f"File Not Found: {self.path}")
+            return
+
+        # This isn't nice, but this is NOT a complete web server
+        # implementation it is only here to serve some files to
+        # "victim" web servers
+        content_type, _encoding = mimetypes.guess_type(self.path)
+        self.send_response(200)
+        self.send_header("Content-type", content_type or "text/html")
+        self.end_headers()
+        self.wfile.write(content)
 
     def log_message(self, fmt, *args):
         """
@@ -189,23 +163,3 @@ def start_webserver(ip, port, webroot, handler=WebHandler):
         server_thread.start()
 
     return web_server
-
-
-def start_webserver_any_free_port(ip, webroot, handler=WebHandler):
-    """Create a http server daemon in any free port available.
-
-    :param ip: IP address where to bind
-    :param webroot: web server's root directory
-    :return: A local webserver instance and the port where it's listening
-    """
-    web_server = HTTPServer((ip, 0), webroot, handler)
-
-    # Start server!
-    server_thread = threading.Thread(target=web_server.serve_forever)
-    server_thread.name = "WebServer"
-    server_thread.daemon = True
-    server_thread.start()
-
-    web_server.wait_for_start()
-
-    return server_thread, web_server.get_port()

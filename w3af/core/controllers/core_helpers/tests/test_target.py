@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
+import shutil
+import tempfile
 import unittest
 
 import pytest
@@ -27,6 +29,8 @@ import pytest
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.core_helpers.target import CoreTarget
 from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.data.options.opt_factory import opt_factory
+from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.options.option_types import (
     BOOL,
     COMBO,
@@ -93,25 +97,111 @@ class TestTarget(unittest.TestCase):
         self.assertTrue(ctarget._verify_url(URL_KLASS("http://www.google.com:39/")))
 
     def test_verify_file_target(self):
+        target_file = self.write_target_file(
+            "http://127.0.0.1:8000/1\n"
+            "\n"
+            "# A comment line is ignored\n"
+            "http://127.0.0.1:8000/2\n"
+        )
+
+        ctarget = self.set_target(f"file://{target_file}")
+
+        self.assertEqual(
+            cf.cf.get("targets"),
+            [
+                URL_KLASS("http://127.0.0.1:8000/1"),
+                URL_KLASS("http://127.0.0.1:8000/2"),
+            ],
+        )
+        self.assertEqual(cf.cf.get("target_domains"), ["127.0.0.1"])
+        self.assertTrue(ctarget.has_valid_configuration())
+
+    def test_missing_target_file(self):
+        missing_file = os.path.join(self.make_temp_dir(), "missing.target")
+
+        with self.assertRaisesRegex(BaseFrameworkException, "Cannot open target"):
+            self.set_target(f"file://{missing_file}")
+
+    def test_invalid_url_inside_target_file(self):
+        target_file = self.write_target_file("http://\n")
+
+        with self.assertRaisesRegex(BaseFrameworkException, "is invalid"):
+            self.set_target(f"file://{target_file}")
+
+    def test_file_url_inside_target_file_is_rejected(self):
+        target_file = self.write_target_file("file:///etc/hosts\n")
+
+        with self.assertRaisesRegex(BaseFrameworkException, "Invalid format"):
+            self.set_target(f"file://{target_file}")
+
+    def test_more_than_one_target_domain(self):
+        with self.assertRaisesRegex(BaseFrameworkException, "more than one target"):
+            self.set_target("http://127.0.0.1:8000/,http://localhost:8000/")
+
+    def test_set_target_os_and_framework(self):
+        ctarget = CoreTarget()
+        options = ctarget.get_options()
+        options["target"].set_value("http://127.0.0.1:8000/")
+        options["target_os"].set_value("unix")
+        options["target_framework"].set_value("php")
+
+        ctarget.set_options(options)
+
+        self.assertEqual(cf.cf.get("target_os"), "unix")
+        self.assertEqual(cf.cf.get("target_framework"), "php")
+        self.assertEqual(ctarget.get_options()["target_os"].get_value_str(), "unix")
+
+    def test_unknown_target_os(self):
+        options = self.options_with("target_os", "solaris")
+
+        with self.assertRaisesRegex(BaseFrameworkException, "operating system"):
+            CoreTarget().set_options(options)
+
+    def test_unknown_target_framework(self):
+        options = self.options_with("target_framework", "cobol")
+
+        with self.assertRaisesRegex(BaseFrameworkException, "programming framework"):
+            CoreTarget().set_options(options)
+
+    def test_name_description_and_empty_configuration(self):
         ctarget = CoreTarget()
 
-        target_file = "/tmp/moth.target"
-        target = f"file://{target_file}"
+        self.assertEqual(ctarget.get_name(), "target_settings")
+        self.assertEqual(ctarget.get_desc(), "Configure target URLs")
+        self.assertFalse(ctarget.has_valid_configuration())
 
-        with open(target_file, "w") as target_file_handler:
-            target_file_handler.write("http://moth/1\n")
-            target_file_handler.write("http://moth/2\n")
+    def setUp(self):
+        CoreTarget().clear()
+        self.addCleanup(CoreTarget().clear)
 
+    def make_temp_dir(self):
+        temp_dir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, temp_dir)
+        return temp_dir
+
+    def write_target_file(self, content):
+        target_file = os.path.join(self.make_temp_dir(), "local.target")
+        with open(target_file, "w", encoding="utf-8") as target_file_handler:
+            target_file_handler.write(content)
+        return target_file
+
+    def set_target(self, target):
+        ctarget = CoreTarget()
         options = ctarget.get_options()
         options["target"].set_value(target)
         ctarget.set_options(options)
+        return ctarget
 
-        moth1 = URL_KLASS("http://moth/1")
-        moth2 = URL_KLASS("http://moth/2")
+    def options_with(self, combo_name, combo_value):
+        """
+        :return: The target options where the combo_name option only allows
+                 combo_value, as an option list built outside CoreTarget would
+        """
+        options = OptionList()
+        for option in CoreTarget().get_options():
+            if option.get_name() == combo_name:
+                option = opt_factory(combo_name, [combo_value], "", "combo")
+            options.add(option)
 
-        self.assertIn(moth1, cf.cf.get("targets"))
-        self.assertIn(moth2, cf.cf.get("targets"))
-
-    def tearDown(self):
-        if os.path.exists("/tmp/moth.target"):
-            os.unlink("/tmp/moth.target")
+        options["target"].set_value("http://127.0.0.1:8000/")
+        return options

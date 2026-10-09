@@ -25,6 +25,7 @@ import unittest
 from contextlib import redirect_stdout
 
 import w3af.core.data.kb.knowledge_base as kb
+from w3af.tests.helpers.home_dir import use_temporary_home
 
 ANSI_ESCAPE = re.compile(r"\x1b[^m]*m")
 
@@ -60,6 +61,7 @@ class ConsoleTestHelper(unittest.TestCase):
     OUTPUT_HTTP_FILE = "output-w3af-unittest-http.txt"
 
     def setUp(self):
+        use_temporary_home(self)
         kb.kb.cleanup()
         self._captured_stdout = CapturedStdout()
         self.enterContext(redirect_stdout(self._captured_stdout))

@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import importlib
 import os
 import sys
 from functools import partial
@@ -190,25 +189,6 @@ class CorePlugins:
 
         return unknown_plugins
 
-    def reload_modified_plugin(self, plugin_type, plugin_name):
-        """
-        When a plugin is modified using the plugin editor, all instances of it
-        inside the core have to be "reloaded" so, if the plugin code was changed
-        the core reflects that change.
-
-        :param plugin_type: The plugin type of the modified plugin 'audit',
-                            'crawl', etc.
-        :param plugin_name: The plugin name of the modified plugin 'xss',
-                            'sqli', etc
-        """
-        try:
-            amodule = sys.modules[f"w3af.plugins.{plugin_type}.{plugin_name}"]
-        except KeyError:
-            msg = "Tried to reload a plugin that was never imported! (%s.%s)"
-            om.out.debug(msg % (plugin_type, plugin_name))
-        else:
-            importlib.reload(amodule)
-
     def get_plugin_type_desc(self, plugin_type):
         """
         :param plugin_type: The type of plugin for which we want a description.
@@ -305,16 +285,7 @@ class CorePlugins:
                 plugin_inst = self.get_quick_instance(plugin_type, plugin_name)
 
                 for dep in plugin_inst.get_plugin_deps():
-
-                    try:
-                        dep_plugin_type, dep_plugin_name = dep.split(".")
-                    except ValueError:
-                        msg = (
-                            "Plugin dependencies must be indicated using"
-                            " plugin_type.plugin_name notation. This is"
-                            f" an error in {plugin_name}.get_plugin_deps()."
-                        )
-                        raise BaseFrameworkException(msg)
+                    dep_plugin_type, dep_plugin_name = dep.split(".")
 
                     if dep_plugin_name not in self._plugins_names_dict[dep_plugin_type]:
                         om.out.information(
@@ -346,17 +317,8 @@ class CorePlugins:
                         # dependencies are of different types
                         continue
 
-                    try:
-                        plugin_index = enabled_plugins.index(plugin_name)
-                        dependency_index = enabled_plugins.index(dep_name)
-                    except ValueError:
-                        # A very rare case which I was unable to reproduce since
-                        # it requires the enabled_plugins list to change
-                        # during our iteration
-                        #
-                        # ValueError: 'detect_reverse_proxy' is not in list
-                        # https://github.com/andresriancho/w3af/issues/11062
-                        continue
+                    plugin_index = enabled_plugins.index(plugin_name)
+                    dependency_index = enabled_plugins.index(dep_name)
 
                     if dependency_index < plugin_index:
                         # Everything is ok, the dependency is run before the

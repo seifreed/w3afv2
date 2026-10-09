@@ -19,39 +19,48 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import re
 from typing import ClassVar
 
-import pytest
+from w3af.plugins.tests.audit.vulnerable_responses import html_page, request_param
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+MX_URL = "http://mock/audit/MX_injection/"
+IMAP_ERROR = "Unexpected extra arguments to Select"
+
+
+def mxi(mock_response, request, uri, response_headers):
+    """A webmail which sends SELECT "<mailbox>" to the IMAP server."""
+    mailbox = request_param(request, "i")
+    if '"' in mailbox:
+        return html_page(response_headers, f"IMAP error: {IMAP_ERROR}")
+    return html_page(response_headers, f"Mailbox {mailbox} is empty")
+
+
+def known_error(mock_response, request, uri, response_headers):
+    return html_page(response_headers, f"The server is down: {IMAP_ERROR}")
 
 
 class TestMXInjection(PluginTest):
 
-    target_url = "http://moth/w3af/audit/MX_injection/mxi.php?i=f00"
+    target_url = f"{MX_URL}mxi.php?i=f00"
 
-    _run_configs: ClassVar[dict] = {
-        "cfg": {
-            "target": target_url,
-            "plugins": {
-                "audit": (PluginConfig("mx_injection"),),
-            },
-        }
-    }
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(re.compile(f"{MX_URL}mxi.php.*"), mxi),
+        MockResponse(re.compile(f"{MX_URL}known_error.php.*"), known_error),
+    ]
 
-    @pytest.mark.ci_fails
+    config: ClassVar[dict] = {"audit": (PluginConfig("mx_injection"),)}
+
     def test_found_mxi(self):
-        # Run the scan
-        cfg = self._run_configs["cfg"]
-        self._scan(cfg["target"], cfg["plugins"])
+        self._scan(self.target_url, self.config)
 
-        # Assert the general results
         vulns = self.kb.get("mx_injection", "mx_injection")
 
-        # Verify the specifics about the vulnerabilities
-        expected = [
-            ("mxi.php", "i"),
-        ]
-
         self.assertAllVulnNamesEqual("MX injection vulnerability", vulns)
-        self.assertExpectedVulnsFound(expected, vulns)
+        self.assertExpectedVulnsFound([("mxi.php", "i")], vulns)
+
+    def test_error_in_original_response_is_ignored(self):
+        self._scan(f"{MX_URL}known_error.php?i=f00", self.config)
+
+        self.assertEqual([], self.kb.get("mx_injection", "mx_injection"))

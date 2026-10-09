@@ -29,12 +29,33 @@ from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.data.kb.info import Info
 
+RANDOM_IPS = (
+    "1.2.3.4",
+    "5.6.7.8",
+    "9.8.7.6",
+    "1.2.1.2",
+    "1.0.0.1",
+    "60.60.60.60",
+    "44.44.44.44",
+    "11.22.33.44",
+    "11.22.33.11",
+    "7.99.7.99",
+    "87.78.87.78",
+)
+
 
 class detect_transparent_proxy(InfrastructurePlugin):
     """
     Find out if your ISP has a transparent proxy installed.
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
+
+    PROBE_ADDRESSES = tuple((ip_address, 80) for ip_address in RANDOM_IPS)
+    CONNECT_TIMEOUT = 5
+
+    def __init__(self, probe_addresses=PROBE_ADDRESSES):
+        InfrastructurePlugin.__init__(self)
+        self._probe_addresses = probe_addresses
 
     @runonce(exc_class=RunOnce)
     def discover(self, fuzzable_request, debugging_id):
@@ -43,7 +64,7 @@ class detect_transparent_proxy(InfrastructurePlugin):
         :param fuzzable_request: A fuzzable_request instance that contains
                                     (among other things) the URL to test.
         """
-        if self._is_proxyed_conn(fuzzable_request):
+        if self._is_proxyed_conn():
             desc = (
                 "Your ISP seems to have a transparent proxy installed,"
                 " this can influence scan results in unexpected ways."
@@ -57,35 +78,19 @@ class detect_transparent_proxy(InfrastructurePlugin):
         else:
             om.out.information("Your ISP has no transparent proxy.")
 
-    def _is_proxyed_conn(self, fuzzable_request):
+    def _is_proxyed_conn(self):
         """
-        Make a connection to a "random" IP to port 80 and make a request for the
-        URL we are interested in.
+        Connect to "random" addresses, which should not be listening.
 
-        :return: True if proxy is present.
+        :return: True if all the connections succeed, which means that a
+                 proxy is answering them.
         """
-        random_ips = [
-            "1.2.3.4",
-            "5.6.7.8",
-            "9.8.7.6",
-            "1.2.1.2",
-            "1.0.0.1",
-            "60.60.60.60",
-            "44.44.44.44",
-            "11.22.33.44",
-            "11.22.33.11",
-            "7.99.7.99",
-            "87.78.87.78",
-        ]
-
-        for ip_address in random_ips:
-            sock_obj = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        for address in self._probe_addresses:
             try:
-                sock_obj.connect((ip_address, 80))
+                with socket.create_connection(address, timeout=self.CONNECT_TIMEOUT):
+                    pass
             except OSError:
                 return False
-            else:
-                continue
 
         return True
 

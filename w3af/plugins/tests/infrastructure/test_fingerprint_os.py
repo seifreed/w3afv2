@@ -19,48 +19,85 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import re
 from typing import ClassVar
 
-import pytest
+from w3af.plugins.infrastructure.fingerprint_os import fingerprint_os
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+INDEX = (
+    "<html><body>"
+    '<a href="/w3af/index.html">index</a><a href="/w3af/about.html">about</a>'
+    "</body></html>"
+)
+PAGES = {
+    "/": INDEX,
+    "/w3af/index.html": "<html><body>The w3af index page</body></html>",
+    "/w3af/about.html": "<html><body>About w3af: a web scanner</body></html>",
+}
 
 
-class TestFingerprintOS(PluginTest):
+def site(path_separators):
+    """
+    :param path_separators: The path separators the web server accepts
+    :return: A MockResponse body serving PAGES
+    """
 
-    modsecurity_url = "http://modsecurity/w3af/index.html"
-    moth_url = "http://moth/w3af/index.html"
+    def respond(mock_response, request, uri, headers):
+        headers["Content-Type"] = "text/html"
+        path = request.path
 
-    _run_configs: ClassVar[dict] = {
-        "cfg": {
-            "target": None,
-            "plugins": {"infrastructure": (PluginConfig("fingerprint_os"),)},
-        }
+        for separator in path_separators:
+            path = path.replace(separator, "/")
+
+        if path in PAGES:
+            return 200, headers, PAGES[path]
+
+        return 404, headers, "Not found"
+
+    return respond
+
+
+class FingerprintOSTest(PluginTest):
+
+    target_url = "http://target/"
+
+    plugins: ClassVar[dict] = {
+        "infrastructure": (PluginConfig("fingerprint_os"),),
+        "crawl": (PluginConfig("web_spider"),),
     }
 
-    @pytest.mark.ci_fails
-    def test_moth(self):
-        """
-        Test the "default" configuration for Apache+PHP.
-        """
-        cfg = self._run_configs["cfg"]
-        self._scan(self.moth_url, cfg["plugins"])
+    def scan_os(self):
+        self._scan(self.target_url, self.plugins)
 
-        os_str = self.kb.raw_read("fingerprint_os", "operating_system_str")
+        infos = self.kb.get("fingerprint_os", "operating_system")
+        self.assertEqual(len(infos), 1, infos)
+        self.assertEqual(infos[0].get_name(), "Operating system")
 
-        self.assertEqual("unix", os_str)
+        return self.kb.raw_read("fingerprint_os", "operating_system_str")
 
-    @pytest.mark.ci_fails
-    def test_modsecurity(self):
-        """
-        Test a different configuration:
-            * Mod security enabled
-            * HTTP methods restricted
-            * No server header
-        """
-        cfg = self._run_configs["cfg"]
-        self._scan(self.modsecurity_url, cfg["plugins"])
 
-        os_str = self.kb.raw_read("fingerprint_os", "operating_system_str")
+class TestUnix(FingerprintOSTest):
 
-        self.assertEqual("unix", os_str)
+    MOCK_RESPONSES: ClassVar[list] = [MockResponse(re.compile(".*"), site(()))]
+
+    def test_unix(self):
+        self.assertEqual(self.scan_os(), "unix")
+
+
+class TestWindows(FingerprintOSTest):
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(re.compile(".*"), site(("%5C", "%5c", "\\")))
+    ]
+
+    def test_windows(self):
+        self.assertEqual(self.scan_os(), "windows")
+
+        backslash_requests = [
+            r for r in self.received_requests if "/w3af%5Cindex.html" in r.uri
+        ]
+        self.assertEqual(len(backslash_requests), 1, self.received_requests)
+
+    def test_long_description(self):
+        self.assertIn("Operating System", fingerprint_os().get_long_desc())

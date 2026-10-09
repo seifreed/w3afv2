@@ -91,15 +91,12 @@ class dwsync_xml(CrawlPlugin):
 
         for file_entry in dom.getElementsByTagName("file"):
             try:
-                _file = file_entry.getAttribute("name")
-                url = domain_path.url_join(_file)
-                parsed_url_list.add(url)
+                url = domain_path.url_join(file_entry.getAttribute("name"))
             except ValueError as ve:
                 msg = 'dwsync file had an invalid URL: "%s"'
                 om.out.debug(msg % ve)
-            except (IndexError, AttributeError) as e:
-                msg = 'Sitemap file had an invalid format: "%s"'
-                om.out.debug(msg % e)
+            else:
+                parsed_url_list.add(url)
 
         if parsed_url_list:
             desc = (

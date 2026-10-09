@@ -54,6 +54,10 @@ class grep(BaseConsumer):
     LOG_QUEUE_SIZES_EVERY = 25
     REPORT_GREP_STATS_EVERY = 25
 
+    # Seconds to wait for another thread which is reading the same HTTP
+    # request and response from disk
+    DESERIALIZATION_TIMEOUT = 20
+
     EXCLUDE_HEADERS_FOR_HASH = (
         "date",
         "expires",
@@ -217,8 +221,8 @@ class grep(BaseConsumer):
         event = self._request_response_processes.get(http_response_id, None)
         if event is not None:
             # Wait for the other thread to finish reading the request and
-            # response from disk. Timeout after 20 seconds as a safety measure
-            wait_result = event.wait(timeout=20)
+            # response from disk. Timeout as a safety measure
+            wait_result = event.wait(timeout=self.DESERIALIZATION_TIMEOUT)
             if not wait_result:
                 om.out.error(
                     "There was a timeout waiting for the"

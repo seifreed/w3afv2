@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import copy
+from collections import Counter
 from itertools import chain
 from math import log2
 
@@ -150,8 +151,7 @@ class csrf(AuditPlugin):
             return False
 
         # Ignore potential CSRF in text/css or javascript responses
-        content_type = orig_response.get_headers().get("content-type", None)
-        if content_type in ("text/css", "application/javascript"):
+        if orig_response.content_type in ("text/css", "application/javascript"):
             return False
 
         #
@@ -240,10 +240,9 @@ class csrf(AuditPlugin):
 
         entropy = 0
 
-        for x in range(256):
-            p_x = float(data.count(chr(x))) / len(data)
-            if p_x > 0:
-                entropy += -p_x * log2(p_x)
+        for count in Counter(data).values():
+            p_x = count / len(data)
+            entropy += -p_x * log2(p_x)
 
         return entropy
 

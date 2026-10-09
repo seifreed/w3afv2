@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import codecs
 import hashlib
 import os
 import re
@@ -33,6 +32,9 @@ from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.kb.info import Info
+from w3af.core.data.options.opt_factory import opt_factory
+from w3af.core.data.options.option_list import OptionList
+from w3af.core.data.options.option_types import INPUT_FILE
 from w3af.core.data.parsers.utils.safe_sax import (
     ContentHandler,
     XMLParseError,
@@ -47,19 +49,19 @@ class wordpress_fingerprint(CrawlPlugin):
     :author: Ryan Dewhurst ( ryandewhurst@gmail.com ) www.ethicalhack3r.co.uk
     """
 
+    DATA_PATH = os.path.join(ROOT_PATH, "plugins", "crawl", "wordpress_fingerprint")
+
     # Wordpress version unique data, file/data/version
-    WP_VERSIONS_XML = os.path.join(
-        ROOT_PATH, "plugins", "crawl", "wordpress_fingerprint", "wp_versions.xml"
-    )
+    WP_VERSIONS_XML = os.path.join(DATA_PATH, "wp_versions.xml")
+    RELEASE_DB = os.path.join(DATA_PATH, "release.db")
 
     def __init__(self):
         CrawlPlugin.__init__(self)
 
         # Internal variables
         self._exec = True
-        self._release_db = os.path.join(
-            ROOT_PATH, "plugins", "crawl", "wordpress_fingerprint", "release.db"
-        )
+        self._wp_versions_xml = self.WP_VERSIONS_XML
+        self._release_db = self.RELEASE_DB
 
     def crawl(self, fuzzable_request, debugging_id):
         """
@@ -121,7 +123,7 @@ class wordpress_fingerprint(CrawlPlugin):
 
             # md5sum the response body
             m = hashlib.md5(usedforsecurity=False)
-            m.update(response.get_body())
+            m.update(response.get_raw_body())
             remote_release_hash = m.hexdigest()
 
             release_db = self._release_db
@@ -242,7 +244,7 @@ class wordpress_fingerprint(CrawlPlugin):
             response = self._uri_opener.GET(test_url, cache=True)
 
             response_hash = hashlib.md5(
-                response.get_body(), usedforsecurity=False
+                response.get_raw_body(), usedforsecurity=False
             ).hexdigest()
 
             if response_hash == wp_fingerprint.hash:
@@ -280,13 +282,13 @@ class wordpress_fingerprint(CrawlPlugin):
         om.out.debug("Starting the wordpress fingerprint xml parsing. ")
 
         try:
-            with codecs.open(
-                self.WP_VERSIONS_XML, "r", "utf-8", errors="ignore"
+            with open(
+                self._wp_versions_xml, encoding="utf-8", errors="ignore"
             ) as wordpress_fp_fd:
                 parse_file(wordpress_fp_fd, wp_handler)
         except OSError as e:
             msg = 'Failed to open wordpress fingerprint database "%s": "%s".'
-            args = (self.WP_VERSIONS_XML, e)
+            args = (self._wp_versions_xml, e)
             raise BaseFrameworkException(msg % args) from e
         except XMLParseError as e:
             msg = 'XML parsing error in wordpress version DB, exception: "%s".'
@@ -295,6 +297,31 @@ class wordpress_fingerprint(CrawlPlugin):
         om.out.debug("Finished xml parsing. ")
 
         return wp_handler.fingerprints
+
+    def get_options(self):
+        """
+        :return: A list of option objects for this plugin.
+        """
+        ol = OptionList()
+
+        d = "XML database with the md5 hashes of static files of each version"
+        o = opt_factory("wp_versions_xml", self._wp_versions_xml, d, INPUT_FILE)
+        ol.add(o)
+
+        d = "Database with the md5 hashes of the WordPress release archives"
+        o = opt_factory("release_db", self._release_db, d, INPUT_FILE)
+        ol.add(o)
+
+        return ol
+
+    def set_options(self, options_list):
+        """
+        Set the fingerprint databases configured by the user.
+
+        :param options_list: A dictionary with the options for the plugin.
+        """
+        self._wp_versions_xml = options_list["wp_versions_xml"].get_value()
+        self._release_db = options_list["release_db"].get_value()
 
     def get_long_desc(self):
         """

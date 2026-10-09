@@ -22,7 +22,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal, relative_distance
+from w3af.core.controllers.misc.fuzzy_string_cmp import (
+    fuzzy_equal,
+    fuzzy_not_equal,
+    relative_distance,
+    upper_bound_similarity,
+)
 
 
 class TestFuzzyStringCompare(unittest.TestCase):
@@ -106,3 +111,18 @@ class TestFuzzyStringCompare(unittest.TestCase):
 
         # 0.9 is from fingerprint_404.py
         self.assertFalse(fuzzy_equal(nginx_404, itest, 0.9))
+
+    def test_fuzzy_not_equal(self):
+        self.assertTrue(fuzzy_not_equal("a", "b" * 100))
+        self.assertFalse(fuzzy_not_equal("a", "a"))
+
+    def test_upper_bound_similarity_is_symmetric(self):
+        self.assertEqual(upper_bound_similarity(1, 3), 0.5)
+        self.assertEqual(upper_bound_similarity(3, 1), 0.5)
+
+    def test_equal_strings_with_partial_threshold(self):
+        self.assertTrue(fuzzy_equal("same text", "same text", 0.5))
+
+    def test_empty_strings(self):
+        self.assertTrue(fuzzy_equal("", "", 0.5))
+        self.assertFalse(fuzzy_equal("", "text", 0.5))

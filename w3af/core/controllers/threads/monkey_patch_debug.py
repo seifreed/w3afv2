@@ -20,10 +20,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import multiprocessing
+import multiprocessing.util
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.threads import pool276, threadpool
+
+PATCHED_MODULES = (multiprocessing.util, threadpool, pool276)
+ORIGINAL_DEBUG = multiprocessing.util.debug
 
 
 def new_debug(msg, *args):
@@ -33,19 +36,10 @@ def new_debug(msg, *args):
 
 
 def monkey_patch_debug():
-    multiprocessing.util.original_debug = multiprocessing.util.debug
-    threadpool.original_debug = new_debug
-    pool276.original_debug = new_debug
-
-    multiprocessing.util.debug = new_debug
-    threadpool.debug = new_debug
-    pool276.debug = new_debug
+    for module in PATCHED_MODULES:
+        module.debug = new_debug
 
 
 def remove_monkey_patch_debug():
-    if not hasattr(multiprocessing.util, "original_debug"):
-        return
-
-    multiprocessing.util.debug = multiprocessing.util.original_debug
-    threadpool.debug = threadpool.original_debug
-    pool276.debug = pool276.original_debug
+    for module in PATCHED_MODULES:
+        module.debug = ORIGINAL_DEBUG

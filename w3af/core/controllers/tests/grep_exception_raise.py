@@ -1,7 +1,7 @@
 """
-test_which.py
+grep_exception_raise.py
 
-Copyright 2013 Andres Riancho
+Copyright 2026 w3af contributors
 
 This file is part of w3af, http://w3af.org/ .
 
@@ -20,14 +20,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
-
-from w3af.core.controllers.misc.which import which
+from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 
 
-class TestWhich(unittest.TestCase):
-    def test_which_simple(self):
-        python_executables = which("python")
+class GrepFailureError(Exception):
+    pass
 
-        for exec_name in python_executables:
-            self.assertTrue(exec_name.endswith("python"))
+
+class grep_exception_raise(GrepPlugin):
+    """
+    Test plugin which fails while analyzing every HTTP response.
+    """
+
+    def grep(self, fuzzable_request, response):
+        raise GrepFailureError("Test grep exception.")

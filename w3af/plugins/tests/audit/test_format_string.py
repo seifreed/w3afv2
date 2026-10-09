@@ -19,36 +19,57 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import re
 from typing import ClassVar
 
-import pytest
+from w3af.plugins.tests.audit.vulnerable_responses import html_page, request_param
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+FORMAT_URL = "http://mock/audit/format_string/"
+
+APACHE_500 = (
+    "<!DOCTYPE HTML PUBLIC>\n<html><head>\n"
+    "<title>500 Internal Server Error</title>\n"
+    "</head><body><h1>Internal Server Error</h1></body></html>"
+)
+
+
+def format_string(mock_response, request, uri, response_headers):
+    """A CGI which passes the id parameter as the printf format."""
+    if "%" in request_param(request, "id"):
+        response_headers["Content-Type"] = "text/html"
+        return 500, response_headers, APACHE_500
+    return html_page(response_headers, "Item 1")
+
+
+def always_failing(mock_response, request, uri, response_headers):
+    response_headers["Content-Type"] = "text/html"
+    return 500, response_headers, APACHE_500
 
 
 class TestFormatString(PluginTest):
 
-    target_url = "http://moth/w3af/audit/format_string/format_string.php"
+    target_url = f"{FORMAT_URL}format_string.php"
 
-    _run_configs: ClassVar[dict] = {
-        "cfg": {
-            "target": target_url + "?id=1",
-            "plugins": {
-                "audit": (PluginConfig("format_string"),),
-            },
-        }
-    }
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(re.compile(f"{target_url}.*"), format_string),
+        MockResponse(re.compile(f"{FORMAT_URL}broken.php.*"), always_failing),
+    ]
 
-    @pytest.mark.ci_fails
+    config: ClassVar[dict] = {"audit": (PluginConfig("format_string"),)}
+
     def test_found_format(self):
-        cfg = self._run_configs["cfg"]
-        self._scan(cfg["target"], cfg["plugins"])
+        self._scan(self.target_url + "?id=1", self.config)
 
         vulns = self.kb.get("format_string", "format_string")
         self.assertEqual(1, len(vulns))
 
-        # Now some tests around specific details of the found vuln
         vuln = vulns[0]
         self.assertEqual("Format string vulnerability", vuln.get_name())
         self.assertEqual(self.target_url, str(vuln.get_url()))
         self.assertEqual("id", vuln.get_token_name())
+
+    def test_error_in_original_response_is_ignored(self):
+        self._scan(f"{FORMAT_URL}broken.php?id=1", self.config)
+
+        self.assertEqual([], self.kb.get("format_string", "format_string"))

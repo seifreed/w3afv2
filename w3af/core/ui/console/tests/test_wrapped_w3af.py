@@ -26,15 +26,19 @@ import unittest
 
 from w3af.core.data.db.startup_cfg import StartUpConfig
 from w3af.core.data.misc.local_date import local_today
+from w3af.tests.helpers.home_dir import use_temporary_home
 
 
 class TestWrappedW3afConsole(unittest.TestCase):
+    def setUp(self):
+        # w3af_console inherits the temporary home through the environment
+        use_temporary_home(self)
+
     def test_wrapped_w3af(self):
         """
         Strange behaviour when wrapping w3af_console
         https://github.com/andresriancho/w3af/issues/1299
         """
-        # Just in case... we don't want to break other tests
         startup_cfg = StartUpConfig()
         startup_cfg.last_upd = local_today()
         startup_cfg.set_accepted_disclaimer(True)

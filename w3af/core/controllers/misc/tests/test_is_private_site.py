@@ -40,3 +40,10 @@ class TestIsPrivateSite(unittest.TestCase):
 
     def test_is_private_site_false_case02(self):
         self.assertFalse(is_private_site("www.w3af.org"))
+
+    def test_unresolvable_domain_is_private(self):
+        # RFC 6761 guarantees that .invalid names never resolve
+        self.assertTrue(is_private_site("w3af.invalid"))
+
+    def test_domain_resolving_to_private_address(self):
+        self.assertTrue(is_private_site("localhost"))

@@ -34,9 +34,6 @@ class GrepPlugin(Plugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self):
-        super().__init__()
-
     def grep_wrapper(self, fuzzable_request, response):
         """
         This method tries to find patterns on responses.
@@ -70,8 +67,7 @@ class GrepPlugin(Plugin):
         :param response: The HTTP response obj
         """
         raise NotImplementedError(
-            f'Plugin "{self.__class__.__name__}" must not implement required '
-            "method grep"
+            f'Plugin "{self.__class__.__name__}" must implement required method' " grep"
         )
 
     def get_type(self):

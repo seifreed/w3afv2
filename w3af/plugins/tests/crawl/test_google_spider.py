@@ -19,45 +19,89 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import json
 from typing import ClassVar
 
-import pytest
+from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.plugins.crawl.google_spider import google_spider
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
+from w3af.plugins.tests.search_engine_pages import (
+    GOOGLE_AJAX_SEARCH_URL_RE,
+    google_search_responses,
+)
 
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+# A public IP address target: deciding that it is not a private site does not
+# require any DNS query
+BASE_URL = "http://8.8.8.8/"
+
+EXPECTED_URLS = (
+    "es/education/",
+    "en/clients/",
+    "services/",
+    "research/",
+    "blog/",
+)
+
+PLUGINS = {
+    "crawl": (PluginConfig("google_spider", ("result_limit", 10, PluginConfig.INT)),)
+}
 
 
-@pytest.mark.fails
 class TestGoogleSpider(PluginTest):
 
-    base_url = "http://www.bonsai-sec.com/"
+    target_url = BASE_URL
 
-    _run_configs: ClassVar[dict] = {
-        "cfg": {
-            "target": base_url,
-            "plugins": {"crawl": (PluginConfig("google_spider"),)},
-        }
-    }
+    MOCK_RESPONSES: ClassVar[list] = [
+        *google_search_responses([f"{BASE_URL}{path}" for path in EXPECTED_URLS]),
+        *[
+            MockResponse(f"{BASE_URL}{path}", "Response body.")
+            for path in EXPECTED_URLS
+        ],
+        MockResponse(BASE_URL, "Index"),
+    ]
 
     def test_found_urls(self):
-        cfg = self._run_configs["cfg"]
-        self._scan(cfg["target"], cfg["plugins"])
+        self._scan(self.target_url, PLUGINS)
 
-        EXPECTED_URLS = (
-            "es/education/",
-            "en/clients/",
-            "es/",
-            "services/",
-            "research/",
-            "blog/",
-            "education/",
-            "es/research/",
-            "blog",
-            "es/clients/",
-        )
+        urls = {u.url_string for u in self.kb.get_all_known_urls()}
+        expected_urls = {BASE_URL} | {BASE_URL + path for path in EXPECTED_URLS}
 
-        urls = self.kb.get_all_known_urls()
+        self.assertEqual(urls, expected_urls)
 
-        self.assertEqual(
-            {str(u) for u in urls},
-            {(self.base_url + end) for end in EXPECTED_URLS},
-        )
+    def test_private_site_is_not_searched(self):
+        plugin = google_spider()
+
+        with self.assertRaises(BaseFrameworkException):
+            plugin.crawl(FuzzableRequest(URL("http://127.0.0.1/")), "debugging-id")
+
+    def test_long_description(self):
+        self.assertIn("site:domain.com", google_spider().get_long_desc())
+
+
+class TestGoogleSpiderEmptyResponseData(PluginTest):
+    """
+    Google answered the AJAX API search with a successful status but without
+    any responseData, the search results can not be extracted and the plugin
+    ignores the search.
+    """
+
+    target_url = BASE_URL
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(
+            GOOGLE_AJAX_SEARCH_URL_RE,
+            json.dumps(
+                {"responseData": None, "responseDetails": None, "responseStatus": 200}
+            ),
+            content_type="application/json",
+        ),
+        MockResponse(BASE_URL, "Index"),
+    ]
+
+    def test_no_urls_found(self):
+        self._scan(self.target_url, PLUGINS)
+
+        urls = {u.url_string for u in self.kb.get_all_known_urls()}
+        self.assertEqual(urls, {BASE_URL})

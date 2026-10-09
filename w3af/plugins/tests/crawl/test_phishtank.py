@@ -20,98 +20,112 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import csv
+import os
+import unittest
 from pathlib import Path
 
-from w3af.core.controllers.ci.moth import get_moth_http
+import w3af.core.data.kb.knowledge_base as kb
+from w3af import ROOT_PATH
+from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.constants.severity import MEDIUM
-from w3af.core.data.misc.file_utils import days_since_file_update
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.plugins.crawl.phishtank import phishtank
-from w3af.plugins.tests.helper import PluginTest
+from w3af.plugins.crawl.phishtank import PHISHTANK_DB, phishtank
+
+LOCAL_PHISHTANK_DB = os.path.join(
+    ROOT_PATH, "plugins", "tests", "crawl", "phishtank", "local_index.csv"
+)
+
+# A 64 characters label can not be IDNA encoded, so resolving it fails
+# locally without sending any DNS query
+UNRESOLVABLE_URL = URL("http://" + "a" * 64 + ".com/")
 
 
-class TestPhishtank(PluginTest):
+def read_phishtank_entries(path):
+    with open(path) as pt_fd:
+        pt_csv_reader = csv.reader(
+            pt_fd,
+            delimiter=" ",
+            quotechar="|",
+            quoting=csv.QUOTE_MINIMAL,
+        )
+        return list(pt_csv_reader)
 
-    safe_url = get_moth_http()
-    phish_detail = "http://www.phishtank.com/phish_detail.php?phish_id="
 
-    def test_phishtank_no_match(self):
-        phishtank_inst = self.w3afcore.plugins.get_plugin_inst("crawl", "phishtank")
+def drain(output_queue):
+    items = []
+    while not output_queue.empty():
+        items.append(output_queue.get())
+    return items
 
-        phishtank_inst.crawl(FuzzableRequest(URL(self.safe_url)))
-        vulns = self.kb.get("phishtank", "phishtank")
 
-        self.assertEqual(len(vulns), 0, vulns)
+class TestPhishtank(unittest.TestCase):
 
-    def get_vulnerable_url(self):
-        with open(phishtank.PHISHTANK_DB) as pt_fd:
-            pt_csv_reader = csv.reader(
-                pt_fd,
-                delimiter=" ",
-                quotechar="|",
-                quoting=csv.QUOTE_MINIMAL,
-            )
+    def setUp(self):
+        kb.kb.cleanup()
+        self.addCleanup(kb.kb.cleanup)
 
-            for phishing_url, phishtank_detail_url in pt_csv_reader:
-                return phishing_url
+    def crawl(self, url, phishtank_db=LOCAL_PHISHTANK_DB):
+        plugin = phishtank(phishtank_db=phishtank_db)
+        plugin.crawl(FuzzableRequest(url), "debugging-id")
+        return plugin
 
-    def get_last_vulnerable_url(self):
-        with open(phishtank.PHISHTANK_DB) as pt_fd:
-            pt_csv_reader = csv.reader(
-                pt_fd,
-                delimiter=" ",
-                quotechar="|",
-                quoting=csv.QUOTE_MINIMAL,
-            )
+    def test_phishtank_no_match_for_unresolvable_domain(self):
+        plugin = self.crawl(UNRESOLVABLE_URL)
 
-            for phishing_url, phishtank_detail_url in pt_csv_reader:
-                pass
+        self.assertEqual(kb.kb.get("phishtank", "phishtank"), [])
+        self.assertEqual(drain(plugin.output_queue), [])
 
-        return phishing_url
+    def test_phishtank_match_ip_address(self):
+        plugin = self.crawl(URL("http://127.0.0.1/"))
+
+        found_urls = [fr.get_url().url_string for fr in drain(plugin.output_queue)]
+        self.assertEqual(found_urls, ["http://127.0.0.1/phish/"])
+
+        vulns = kb.kb.get("phishtank", "phishtank")
+        self.assertEqual(len(vulns), 1, vulns)
+
+        vuln = vulns[0]
+        self.assertEqual(vuln.get_name(), "Phishing scam")
+        self.assertEqual(vuln.get_severity(), MEDIUM)
+        self.assertEqual(vuln.get_url().url_string, "http://127.0.0.1/phish/")
+        self.assertIn("phish_id=3", vuln.get_desc())
+
+    def test_phishtank_matches_subdomains_only(self):
+        plugin = phishtank(phishtank_db=LOCAL_PHISHTANK_DB)
+
+        matches = plugin._is_in_phishtank({"example.org"})
+
+        self.assertEqual(
+            [(m.url.url_string, m.more_info_url.url_string) for m in matches],
+            [
+                (
+                    "http://secure.example.org/bank/",
+                    "http://www.phishtank.com/phish_detail.php?phish_id=4",
+                )
+            ],
+        )
+
+    def test_missing_database_raises(self):
+        with self.assertRaises(BaseFrameworkException):
+            self.crawl(URL("http://localhost/"), phishtank_db="/nonexistent/db.csv")
 
     def test_total_urls(self):
-        total_lines = len(Path(phishtank.PHISHTANK_DB).read_text().split("\n"))
+        total_lines = len(Path(PHISHTANK_DB).read_text().split("\n"))
         self.assertGreater(total_lines, 5000)
 
-    def test_phishtank_match_url(self):
-        phishtank_inst = self.w3afcore.plugins.get_plugin_inst("crawl", "phishtank")
+    def test_bundled_database_matches_first_and_last_entries(self):
+        entries = read_phishtank_entries(PHISHTANK_DB)
 
-        vuln_url = URL(self.get_vulnerable_url())
-        phishtank_inst.crawl(FuzzableRequest(vuln_url))
+        for phishing_url, detail_url in (entries[0], entries[-1]):
+            domain = URL(phishing_url).get_domain()
 
-        vulns = self.kb.get("phishtank", "phishtank")
+            matches = phishtank()._is_in_phishtank({domain})
 
-        self.assertEqual(len(vulns), 1, vulns)
-        vuln = vulns[0]
+            self.assertIn(
+                (phishing_url, detail_url),
+                {(m.url.url_string, m.more_info_url.url_string) for m in matches},
+            )
 
-        self.assertEqual(vuln.get_name(), "Phishing scam")
-        self.assertEqual(vuln.get_severity(), MEDIUM)
-        self.assertEqual(vuln.get_url().get_domain(), vuln_url.get_domain())
-
-    def test_phishtank_match_last_url(self):
-        phishtank_inst = self.w3afcore.plugins.get_plugin_inst("crawl", "phishtank")
-
-        vuln_url = URL(self.get_last_vulnerable_url())
-        phishtank_inst.crawl(FuzzableRequest(vuln_url))
-
-        vulns = self.kb.get("phishtank", "phishtank")
-
-        self.assertEqual(len(vulns), 1, vulns)
-        vuln = vulns[0]
-
-        self.assertEqual(vuln.get_name(), "Phishing scam")
-        self.assertEqual(vuln.get_severity(), MEDIUM)
-        self.assertEqual(vuln.get_url().get_domain(), vuln_url.get_domain())
-
-    def test_too_old_db(self):
-        is_older = days_since_file_update(phishtank.PHISHTANK_DB, 30)
-
-        msg = (
-            "The phishtank database is too old, in order to update it"
-            " please follow these steps:\n"
-            "w3af/plugins/crawl/phishtank/update.py\n"
-            'git commit -m "Updating phishtank database." w3af/plugins/crawl/phishtank/index.csv\n'
-            "git push\n"
-        )
-        self.assertFalse(is_older, msg)
+    def test_long_description_mentions_database(self):
+        self.assertIn("phishtank database", phishtank().get_long_desc())

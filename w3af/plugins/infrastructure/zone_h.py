@@ -24,7 +24,7 @@ import re
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
-from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
+from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.data.constants import severity
@@ -40,6 +40,9 @@ class zone_h(InfrastructurePlugin):
     :author: Jordan Santarsieri ( jsantarsieri@cybsec.com )
     """
 
+    # Example URL: http://www.zone-h.org/archive/domain=cyprus-stones.com
+    ZONE_H_ARCHIVE_URL = "http://www.zone-h.org/archive/domain="
+
     @runonce(exc_class=RunOnce)
     def discover(self, fuzzable_request, debugging_id):
         """
@@ -50,22 +53,10 @@ class zone_h(InfrastructurePlugin):
                                     (among other things) the URL to test.
         """
         target_domain = fuzzable_request.get_url().get_root_domain()
+        zone_h_url = URL(self.ZONE_H_ARCHIVE_URL + target_domain)
 
-        # Example URL:
-        # http://www.zone-h.org/archive/domain=cyprus-stones.com
-
-        # TODO: Keep this URL updated!
-        zone_h_url_str = f"http://www.zone-h.org/archive/domain={target_domain}"
-        zone_h_url = URL(zone_h_url_str)
-
-        try:
-            response = self._uri_opener.GET(zone_h_url)
-        except BaseFrameworkException as e:
-            msg = "An exception was raised while running zone-h plugin."
-            msg += f' Exception: "{e}"'
-            om.out.debug(msg)
-        else:
-            self._parse_zone_h_result(response)
+        response = self._uri_opener.GET(zone_h_url)
+        self._parse_zone_h_result(response)
 
     def _parse_zone_h_result(self, response):
         """

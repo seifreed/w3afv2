@@ -35,12 +35,12 @@ from w3af.core.exceptions import (
     BaseFrameworkException,
     ScanMustStopException,
 )
-from w3af.core.ui.console.bug_report import bug_report_menu
+from w3af.core.ui.console.bug_report import bug_report_menu, create_github_reporter
 from w3af.core.ui.console.config import ConfigMenu
 from w3af.core.ui.console.exploit import exploit
 from w3af.core.ui.console.kb_menu import kbMenu
 from w3af.core.ui.console.menu import menu
-from w3af.core.ui.console.plugins import pluginsMenu
+from w3af.core.ui.console.plugins import DISABLED_OUTPUT_WARNING, pluginsMenu
 from w3af.core.ui.console.profiles import ProfilesMenu
 from w3af.core.ui.console.util import mapDict
 
@@ -65,8 +65,12 @@ class rootMenu(menu):
     # Wait at most 20 seconds for the core to start the scan
     MAX_WAIT_FOR_START = 20
 
-    def __init__(self, name, console, core, parent=None):
-        menu.__init__(self, name, console, core, parent)
+    def __init__(self, name, console, core, create_reporter=create_github_reporter):
+        """
+        :param create_reporter: Creates the bug reporter used by the
+                                bug-report menu, see bug_report_menu
+        """
+        menu.__init__(self, name, console, core)
         self._load_help("root")
 
         #   At first, there is no scan thread
@@ -80,7 +84,7 @@ class rootMenu(menu):
                 "misc-settings": (ConfigMenu, MiscSettings()),
                 "http-settings": (ConfigMenu, self._w3af.uri_opener.settings),
                 "profiles": ProfilesMenu,
-                "bug-report": bug_report_menu,
+                "bug-report": (bug_report_menu, create_reporter),
                 "exploit": exploit,
                 "kb": kbMenu,
             },
@@ -94,16 +98,10 @@ class rootMenu(menu):
         :return: None
         """
         # Check if the console output plugin is enabled or not, and warn.
-        output_plugins = self._w3af.plugins.get_enabled_plugins("output")
-        if "console" not in output_plugins and len(output_plugins) == 0:
-            msg = (
-                "\nWarning: You disabled the console output plugin. If you"
-                " start a new scan, the discovered vulnerabilities won't be"
-                " printed to the console, we advise you to enable at least"
-                " one output plugin in order to be able to actually see the"
-                " the scan output."
-            )
-            print(msg)
+        # Printed directly: with no output plugin the output manager would
+        # not show this warning anywhere
+        if not self._w3af.plugins.get_enabled_plugins("output"):
+            print(DISABLED_OUTPUT_WARNING)
 
         # Note that I'm NOT starting this in a new multiprocess Process
         # please note the multiprocessing.dummy , this is required because
@@ -115,7 +113,7 @@ class rootMenu(menu):
         self._scan_thread.start()
 
         # let the core thread start
-        scan_started = self.wait_for_start()
+        scan_started = self.wait_for_start(self._scan_thread)
         if not scan_started:
             om.out.console("The scan failed to start.")
             self._w3af.stop()
@@ -126,12 +124,20 @@ class rootMenu(menu):
         except KeyboardInterrupt:
             self.handle_scan_stop()
 
-    def wait_for_start(self):
+    def wait_for_start(self, scan_thread):
+        """
+        :return: True once the core is running. False if the scan thread
+                 finished without starting the scan (eg. invalid target) or
+                 the scan did not start in MAX_WAIT_FOR_START seconds.
+        """
         delay = 0.1
 
         for _ in range(int(self.MAX_WAIT_FOR_START / delay)):
             if self._w3af.status.is_running():
                 return True
+
+            if not scan_thread.is_alive():
+                return False
 
             time.sleep(delay)
 
@@ -204,11 +210,7 @@ class rootMenu(menu):
         try:
             while self._w3af.status.is_running() or self._w3af.status.is_paused():
 
-                try:
-                    read_ready, _, _ = select.select([sys.stdin], [], [], 0.5)
-                except OSError:
-                    continue
-
+                read_ready, _, _ = select.select([sys.stdin], [], [], 0.5)
                 if not read_ready:
                     continue
 

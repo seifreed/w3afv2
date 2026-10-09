@@ -21,12 +21,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import ClassVar
 
-import pytest
-
+from w3af.plugins.crawl.genexus_xml import genexus_xml
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
+RUN_PLUGINS = {"crawl": (PluginConfig("genexus_xml"),)}
 
-@pytest.mark.fails
+
 class TestGenexusXML(PluginTest):
 
     target_url = "http://httpretty-mock/"
@@ -114,3 +114,66 @@ class TestGenexusXML(PluginTest):
         urls = {u.url_string for u in urls}
 
         self.assertEqual(EXPECTED_URLS, urls)
+
+
+class TestGenexusXMLInvalidEntries(PluginTest):
+
+    target_url = "http://mock/"
+
+    DEVELOPER_MENU_XML = (
+        "<Objects>"
+        "<Object><ObjLink>//[</ObjLink></Object>"
+        "<Object><ObjLink></ObjLink></Object>"
+        "<Object><ObjLink><b>nested</b></ObjLink></Object>"
+        "<Object><ObjLink>valid.aspx</ObjLink></Object>"
+        "</Objects>"
+    )
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse("http://mock/", "Index"),
+        MockResponse(
+            "http://mock/execute.xml", "<ObjLink>gone.aspx</ObjLink>", status=404
+        ),
+        MockResponse("http://mock/DeveloperMenu.xml", DEVELOPER_MENU_XML),
+        MockResponse("http://mock/valid.aspx", "Exists"),
+    ]
+
+    def test_only_valid_links_are_followed(self):
+        self._scan(self.target_url, RUN_PLUGINS)
+
+        self.assertEqual(self.kb.get("genexus_xml", "execute.xml"), [])
+        self.assertEqual(len(self.kb.get("genexus_xml", "DeveloperMenu.xml")), 1)
+
+        urls = {u.url_string for u in self.kb.get_all_known_urls()}
+        self.assertEqual(
+            urls,
+            {
+                "http://mock/",
+                "http://mock/DeveloperMenu.xml",
+                "http://mock/valid.aspx",
+            },
+        )
+
+
+class TestGenexusXMLMalformed(PluginTest):
+
+    target_url = "http://mock/"
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse("http://mock/", "Index"),
+        MockResponse(
+            "http://mock/DeveloperMenu.xml", "<Objects><ObjLink>a.aspx</ObjLink>"
+        ),
+    ]
+
+    def test_malformed_xml_is_reported_without_links(self):
+        self._scan(self.target_url, RUN_PLUGINS)
+
+        self.assertEqual(self.kb.get("genexus_xml", "execute.xml"), [])
+        self.assertEqual(len(self.kb.get("genexus_xml", "DeveloperMenu.xml")), 1)
+
+        requested_paths = {request.path for request in self.received_requests}
+        self.assertNotIn("/a.aspx", requested_paths)
+
+    def test_long_description(self):
+        self.assertIn("execute.xml", genexus_xml().get_long_desc())

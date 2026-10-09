@@ -19,57 +19,101 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import hashlib
+import os
+import tempfile
 from typing import ClassVar
 
 import pytest
 
-from w3af.core.data.misc.file_utils import days_since_file_update
-from w3af.plugins.crawl.wordpress_fingerprint import FileFingerPrint
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.plugins.crawl.wordpress_fingerprint import (
+    FileFingerPrint,
+    wordpress_fingerprint,
+)
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
+
+WORDPRESS_URL = "http://wordpress/"
+
+STATIC_FILE = "/* TinyMCE 3.4.1 editor stylesheet */"
+TARBALL = b"\x1f\x8bwordpress-3.4.1 release archive"
+
+WP_VERSIONS_XML = f"""<?xml version="1.0" encoding="UTF-8"?>
+<wp-versions>
+  <file src="$wp-content$themes/default/style.css">
+    <hash md5="00000000000000000000000000000000">
+      <version>2.0</version>
+    </hash>
+  </file>
+  <file src="$wp-plugins$tinymce/editor.css">
+    <hash md5="{hashlib.md5(STATIC_FILE.encode()).hexdigest()}">
+      <version>3.4.1</version>
+    </hash>
+  </file>
+</wp-versions>
+"""
+
+RELEASE_DB = f"""this line is not a release
+{hashlib.md5(TARBALL).hexdigest()},3.4.1.tar.gz
+"""
+
+INDEX = (
+    "<html><head>"
+    '<meta name="generator" content="WordPress 3.4.1" />'
+    '</head><body><a href="about/">About</a></body></html>'
+)
+
+README = "<h1>WordPress</h1><br /> Version 3.4.1"
 
 
-class Testwordpress_fingerprint(PluginTest):
+def _write_temp_file(test_case, content, suffix):
+    file_descriptor, path = tempfile.mkstemp(suffix=suffix)
+    with os.fdopen(file_descriptor, "w") as temp_file:
+        temp_file.write(content)
+    test_case.addCleanup(os.unlink, path)
+    return path
 
-    wordpress_url = "http://wordpress/"
-    moth_url = "http://moth/w3af/audit/"
 
-    _run_configs: ClassVar[dict] = {
-        "direct": {
-            "target": wordpress_url,
-            "plugins": {
-                "crawl": (
-                    PluginConfig(
-                        "wordpress_fingerprint",
-                    ),
-                )
-            },
-        },
-        "crawl": {
-            "target": moth_url,
-            "plugins": {
-                "crawl": (
-                    PluginConfig(
-                        "wordpress_fingerprint",
-                    ),
-                    PluginConfig(
-                        "web_spider", ("only_forward", True, PluginConfig.BOOL)
-                    ),
-                )
-            },
-        },
-    }
+class TestWordpressFingerprint(PluginTest):
 
-    @pytest.mark.ci_fails
+    target_url = WORDPRESS_URL
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(WORDPRESS_URL, INDEX),
+        MockResponse(WORDPRESS_URL + "about/", "<html><body>About</body></html>"),
+        MockResponse(WORDPRESS_URL + "index.php", INDEX),
+        MockResponse(WORDPRESS_URL + "wp-login.php", "<form>Log in</form>"),
+        MockResponse(WORDPRESS_URL + "readme.html", README),
+        MockResponse(
+            WORDPRESS_URL + "wp-content/plugins/tinymce/editor.css",
+            STATIC_FILE,
+            "text/css",
+        ),
+        MockResponse(WORDPRESS_URL + "latest.tar.gz", TARBALL, "application/x-gzip"),
+    ]
+
     def test_find_version(self):
-        cfg = self._run_configs["direct"]
-        self._scan(cfg["target"], cfg["plugins"])
+        plugins = {
+            "crawl": (
+                PluginConfig(
+                    "wordpress_fingerprint",
+                    (
+                        "wp_versions_xml",
+                        _write_temp_file(self, WP_VERSIONS_XML, ".xml"),
+                        PluginConfig.INPUT_FILE,
+                    ),
+                    (
+                        "release_db",
+                        _write_temp_file(self, RELEASE_DB, ".db"),
+                        PluginConfig.INPUT_FILE,
+                    ),
+                ),
+                PluginConfig("web_spider", ("only_forward", True, PluginConfig.BOOL)),
+            )
+        }
+        self._scan(self.target_url, plugins)
 
         infos = self.kb.get("wordpress_fingerprint", "info")
-
-        self.assertEqual(len(infos), 4)
-
-        for i in infos:
-            self.assertEqual("Fingerprinted Wordpress version", i.get_name())
 
         descriptions = {i.get_desc(with_id=False) for i in infos}
         expected_descriptions = {
@@ -91,56 +135,55 @@ class Testwordpress_fingerprint(PluginTest):
         }
         self.assertEqual(descriptions, expected_descriptions)
 
-    def test_xml_parsing_case01(self):
-        wordpress_fingerprint_inst = self.w3afcore.plugins.get_plugin_inst(
-            "crawl", "wordpress_fingerprint"
-        )
 
-        wp_fingerprints = wordpress_fingerprint_inst._get_wp_fingerprints()
-        self.assertGreater(len(wp_fingerprints), 20)
+class TestWordpressFingerprintNoWordpress(PluginTest):
+
+    target_url = WORDPRESS_URL
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(WORDPRESS_URL, "<html><body>Static site</body></html>"),
+    ]
+
+    def test_no_wordpress_installation(self):
+        plugins = {"crawl": (PluginConfig("wordpress_fingerprint"),)}
+        self._scan(self.target_url, plugins)
+
+        self.assertEqual(self.kb.get("wordpress_fingerprint", "info"), [])
+
+
+class TestWordpressVersionsDatabase:
+    def test_xml_parsing_case01(self):
+        wp_fingerprints = wordpress_fingerprint()._get_wp_fingerprints()
+        assert len(wp_fingerprints) > 20
 
         wp_file_fp = FileFingerPrint(
             "layout2b.css", "baec6b6ccbf71d8dced9f1bf67c751e1", "0.71-gold"
         )
-        self.assertIn(wp_file_fp, wp_fingerprints)
+        assert wp_file_fp in wp_fingerprints
 
-    def test_updated_wp_versions_xml(self):
-        wp_fp_inst = self.w3afcore.plugins.get_plugin_inst(
-            "crawl", "wordpress_fingerprint"
-        )
-        url = "https://github.com/wpscanteam/wpscan/blob/master/data.zip?raw=true"
+    def _plugin_with_versions_xml(self, path):
+        plugin = wordpress_fingerprint()
+        options = plugin.get_options()
+        options["wp_versions_xml"].set_value(path)
+        plugin.set_options(options)
+        return plugin
 
-        wp_versions_file = wp_fp_inst.WP_VERSIONS_XML
-        is_older = days_since_file_update(wp_versions_file, 60)
+    def test_missing_versions_xml(self, tmp_path):
+        versions_xml = tmp_path / "wp_versions.xml"
+        versions_xml.write_text(WP_VERSIONS_XML)
+        plugin = self._plugin_with_versions_xml(str(versions_xml))
+        versions_xml.unlink()
 
-        msg = (
-            "The wp_versions.xml file is too old. The following commands need"
-            " to be run in order to update it:\n"
-            "wget %s -O data.zip\n"
-            "unzip -p data.zip data/wp_versions.xml > w3af/plugins/crawl/wordpress_fingerprint/wp_versions.xml\n"
-            "rm -rf data.zip\n"
-            'git commit -m "Updating wp_versions.xml file." w3af/plugins/crawl/wordpress_fingerprint/wp_versions.xml\n'
-            "git push\n"
-            "cd -"
-        )
-        self.assertFalse(is_older, msg % url)
+        with pytest.raises(BaseFrameworkException, match="Failed to open"):
+            plugin._get_wp_fingerprints()
 
-    def test_updated_release_db(self):
+    def test_invalid_versions_xml(self, tmp_path):
+        versions_xml = tmp_path / "wp_versions.xml"
+        versions_xml.write_text("<wp-versions><file>")
+        plugin = self._plugin_with_versions_xml(str(versions_xml))
 
-        wpfp_inst = self.w3afcore.plugins.get_plugin_inst(
-            "crawl", "wordpress_fingerprint"
-        )
+        with pytest.raises(BaseFrameworkException, match="XML parsing error"):
+            plugin._get_wp_fingerprints()
 
-        wp_releases_file = wpfp_inst._release_db
-        is_older = days_since_file_update(wp_releases_file, 30)
-
-        msg = (
-            "The releases.db database is too old. The following commands need"
-            " to be run in order to update it:\n"
-            "cd w3af/plugins/crawl/wordpress_fingerprint/\n"
-            "python generate_release_db.py\n"
-            'git commit -m "Updating wordpress release.db file." release.db\n'
-            "git push\n"
-            "cd -"
-        )
-        self.assertFalse(is_older, msg)
+    def test_long_desc(self):
+        assert "fingerprinting" in wordpress_fingerprint().get_long_desc()

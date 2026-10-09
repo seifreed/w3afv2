@@ -25,9 +25,14 @@ import sys
 import unittest
 
 from w3af.core.data.db.startup_cfg import StartUpConfig
+from w3af.tests.helpers.home_dir import use_temporary_home
 
 
 class TestW3afConsole(unittest.TestCase):
+    def setUp(self):
+        # w3af_console inherits the temporary home through the environment
+        use_temporary_home(self)
+
     def test_compiles(self):
         with open("w3af_console") as console_script:
             compile(console_script.read(), "w3af_console", "exec")

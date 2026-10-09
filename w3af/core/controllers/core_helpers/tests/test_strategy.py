@@ -19,116 +19,148 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import os
+import io
 import re
-import subprocess
-import sys
+import time
+import unittest
+from contextlib import redirect_stdout
+from urllib.parse import parse_qs, unquote_plus, urlsplit
 
 import pytest
 
-from w3af.core.controllers.ci.wavsep import get_wavsep_http
-from w3af.core.data.db.startup_cfg import StartUpConfig
-from w3af.core.environment import is_running_on_ci
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+import w3af.core.data.kb.config as cf
+import w3af.core.data.kb.knowledge_base as kb
+from w3af.core.controllers.misc.factory import factory
+from w3af.core.controllers.tests.grep_exception_raise import GrepFailureError
+from w3af.core.controllers.tests.local_http_server import LocalHTTPServer, Reply
+from w3af.core.controllers.tests.recording_output import start_recording_output
+from w3af.core.controllers.w3af_core import w3afCore
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.ui.console.console_ui import ConsoleUI
+from w3af.plugins.tests.helper import (
+    PluginConfig,
+    PluginTest,
+    create_target_option_list,
+)
 from w3af.tests.helpers.sqli_site import STRING_QS, SQLInjectionSite
 
-SCRIPT_PATH = "/tmp/script-1557.w3af"
-OUTPUT_PATH = "/tmp/1557-output-w3af.txt"
-TEST_SCRIPT_1557 = """\
-plugins
+XSS_INDEX = """<html><body>
+<a href="greeting.py?name=pablo">Greeting</a>
+<a href="search.py?text=w3af">Search</a>
+<a href="safe.py?id=1">Safe</a>
+</body></html>"""
 
-output console,text_file
-
-output config console
-set verbose False
-back
-
-output config text_file
-set output_file %s
-set verbose True
-back
-
-audit xss
-
-crawl web_spider
-crawl config web_spider
-set only_forward True
-back
-
-back
-target
-set target %swavsep/active/Reflected-XSS/RXSS-Detection-Evaluation-GET/
-back
-
-start
-
-exit
-"""
+VULN_STRING = "A Cross Site Scripting vulnerability was found at"
+URL_VULN_RE = re.compile(f'{VULN_STRING}: "(.*?)"')
 
 
-class TestStrategy(PluginTest):
+def query_value(path):
+    query = parse_qs(urlsplit(path).query, keep_blank_values=True)
+    return unquote_plus(next(iter(query.values()), [""])[0])
+
+
+def xss_site(method, path):
+    """
+    A web application which reflects the user input without encoding it in
+    two different HTML contexts.
+    """
+    page = urlsplit(path).path
+    value = query_value(path)
+
+    if page == "/":
+        return Reply(body=XSS_INDEX)
+    if page == "/greeting.py":
+        return Reply(body=f"<html><body>Hello {value}</body></html>")
+    if page == "/search.py":
+        return Reply(body=f'<html><body><input value="{value}"></body></html>')
+    if page == "/safe.py":
+        return Reply(body="<html><body>Nothing to see</body></html>")
+    return Reply(status=404, body="Not found")
+
+
+def endless_site(method, path):
+    """
+    Every page links to two new pages and takes a while to answer, crawling
+    this site never ends.
+    """
+    time.sleep(0.3)
+    page = urlsplit(path).path.strip("/")
+    number = int(page) if page.isdigit() else 0
+    links = "".join(f'<a href="/{number * 2 + i}">{i}</a>' for i in (1, 2))
+    return Reply(body=f"<html><body>{links}</body></html>")
+
+
+class LoginSite:
+    """
+    Every page greets the user after the login form was submitted. The pages
+    are slow, which keeps the crawl busy while the other consumers are idle.
+    """
+
+    def __init__(self):
+        self.logged_in = False
+
+    def __call__(self, method, path):
+        if method == "POST" and path == "/login":
+            self.logged_in = True
+
+        time.sleep(0.3)
+        greeting = "Welcome" if self.logged_in else "Please login"
+        links = "".join(f'<a href="/{page}">{page}</a>' for page in "abc")
+        return Reply(body=f"<html><body>{greeting} {links}</body></html>")
+
+
+class TestDeterministicResults(unittest.TestCase):
+    """
+    Pseudo-random number of vulnerabilities found in audit phase (xss)
+
+    https://github.com/andresriancho/w3af/issues/1557
+    """
+
     def setUp(self):
-        super().setUp()
+        kb.kb.cleanup()
+        self.site = LocalHTTPServer(xss_site).start()
+        self.addCleanup(self.site.close)
 
-        startup_cfg = StartUpConfig()
-        startup_cfg.accepted_disclaimer = True
-        startup_cfg.save()
+    def scan_commands(self):
+        return [
+            "plugins",
+            "audit xss",
+            "crawl web_spider",
+            "crawl config web_spider",
+            "set only_forward True",
+            "back",
+            "back",
+            "target",
+            f"set target {self.site.url('/')}",
+            "back",
+            "start",
+            "exit",
+        ]
 
-    def tearDown(self):
-        super().tearDown()
+    def found_vulnerable_urls(self):
+        console = ConsoleUI(commands=self.scan_commands(), do_upd=False)
+        output = io.StringIO()
 
-        if os.path.exists(SCRIPT_PATH):
-            os.unlink(SCRIPT_PATH)
+        with redirect_stdout(output):
+            console.sh()
 
-        # Add a return right below this line if you want the logs for debugging
-        if os.path.exists(OUTPUT_PATH):
-            os.unlink(OUTPUT_PATH)
+        return {
+            URL_VULN_RE.search(line).group(1)
+            for line in output.getvalue().splitlines()
+            if VULN_STRING in line
+        }
 
-    def test_1557_random_number_of_results(self):
-        """
-        Pseudo-random number of vulnerabilities found in audit phase (xss)
+    def test_1557_same_results_in_every_scan(self):
+        first_scan = self.found_vulnerable_urls()
+        kb.kb.cleanup()
+        second_scan = self.found_vulnerable_urls()
 
-        https://github.com/andresriancho/w3af/issues/1557
-        """
-        script = TEST_SCRIPT_1557 % (OUTPUT_PATH, get_wavsep_http())
-        with open(SCRIPT_PATH, "w") as script_file:
-            script_file.write(script)
-
-        python_executable = sys.executable
-
-        VULN_STRING = "A Cross Site Scripting vulnerability was found at"
-        URL_VULN_RE = re.compile(f'{VULN_STRING}: "(.*?)"')
-        all_previous_vulns = []
-
-        loops = 2 if is_running_on_ci() else 10
-
-        for i in range(loops):
-            print(f"Start run #{i}")
-            found_vulns = set()
-
-            p = subprocess.Popen(
-                [python_executable, "w3af_console", "-n", "-s", SCRIPT_PATH],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                stdin=subprocess.PIPE,
-                shell=False,
-                universal_newlines=True,
-            )
-
-            stdout, _stderr = p.communicate()
-            i_vuln_count = stdout.count(VULN_STRING)
-            print(f"{i_vuln_count} vulnerabilities found")
-
-            self.assertNotEqual(i_vuln_count, 0, stdout)
-
-            for line in stdout.split("\n"):
-                if VULN_STRING in line:
-                    found_vulns.add(URL_VULN_RE.search(line).group(1))
-
-            for previous_found in all_previous_vulns:
-                self.assertEqual(found_vulns, previous_found)
-
-            all_previous_vulns.append(found_vulns)
+        expected = {
+            self.site.url("/greeting.py"),
+            self.site.url("/search.py"),
+        }
+        self.assertEqual(first_scan, expected)
+        self.assertEqual(second_scan, first_scan)
 
 
 class TestSameFuzzableRequestSet(PluginTest):
@@ -148,3 +180,91 @@ class TestSameFuzzableRequestSet(PluginTest):
 
         self.assertEqual(id_before_fr, id_after_fr)
         self.assertEqual(id_before_ur, id_after_ur)
+
+
+class TestScanConsumers(unittest.TestCase):
+    """
+    Run complete scans with every consumer type enabled
+    """
+
+    def setUp(self):
+        kb.kb.cleanup()
+        self.max_scan_time = cf.cf.get("max_scan_time")
+        self.addCleanup(cf.cf.save, "max_scan_time", self.max_scan_time)
+
+        self.core = w3afCore()
+        self.addCleanup(self.core.quit)
+
+    def start_scan(self, responder, plugins):
+        server = LocalHTTPServer(responder).start()
+        self.addCleanup(server.close)
+
+        target_opts = create_target_option_list(URL(server.url("/")))
+        self.core.target.set_options(target_opts)
+
+        for plugin_type, plugin_names in plugins.items():
+            self.core.plugins.set_plugins(plugin_names, plugin_type)
+
+        if "generic" in plugins.get("auth", []):
+            self.configure_generic_auth(server.url)
+
+        self.core.plugins.init_plugins()
+        self.recorder = start_recording_output()
+
+    def configure_generic_auth(self, server_url):
+        options = self.core.plugins.get_plugin_inst("auth", "generic").get_options()
+        values = {
+            "username": "admin",
+            "password": "secret",
+            "username_field": "user",
+            "password_field": "pass",
+            "auth_url": server_url("/login"),
+            "check_url": server_url("/"),
+            "check_string": "Welcome",
+        }
+        for name, value in values.items():
+            options[name].set_value(value)
+        self.core.plugins.set_plugin_options("auth", "generic", options)
+
+    def add_grep_plugin(self, module_name):
+        plugin_inst = factory(module_name)
+        plugin_inst.set_url_opener(self.core.uri_opener)
+        plugin_inst.set_worker_pool(self.core.worker_pool)
+        self.core.plugins.plugins["grep"] = [plugin_inst]
+        self.core.plugins._plugins_names_dict["grep"] = [plugin_inst.get_name()]
+
+    def test_grep_auth_and_bruteforce_consumers(self):
+        cf.cf.save("max_scan_time", 0)
+
+        self.start_scan(
+            LoginSite(),
+            {
+                "crawl": ["web_spider"],
+                "auth": ["generic"],
+                "bruteforce": ["basic_auth"],
+            },
+        )
+        self.add_grep_plugin("w3af.core.controllers.tests.grep_exception_raise")
+
+        self.core.verify_environment()
+        self.core.start()
+
+        exceptions = self.core.exception_handler.get_all_exceptions()
+        self.assertTrue(exceptions)
+        self.assertEqual(
+            {e.get_exception_class() for e in exceptions},
+            {GrepFailureError.__name__},
+        )
+        self.assertEqual({e.phase for e in exceptions}, {"grep"})
+        self.assertEqual(kb.kb.get("authentication", "error"), [])
+
+    def test_scan_stops_at_max_scan_time(self):
+        cf.cf.save("max_scan_time", 0.02)
+
+        self.start_scan(endless_site, {"crawl": ["web_spider"]})
+
+        self.core.verify_environment()
+        self.core.start()
+
+        messages = " ".join(self.recorder.messages_of("information"))
+        self.assertIn("The scan has reached the maximum scan time of 0.02", messages)

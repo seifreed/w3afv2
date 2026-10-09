@@ -19,33 +19,61 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import re
 from typing import ClassVar
 
-import pytest
+from w3af.plugins.tests.audit.vulnerable_responses import html_page, request_param
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+LDAP_URL = "http://mock/audit/LDAP/"
+LDAP_ERROR = "LDAPException: Bad search filter"
+
+
+def has_balanced_parentheses(search_filter):
+    depth = 0
+    for char in search_filter:
+        depth += {"(": 1, ")": -1}.get(char, 0)
+        if depth < 0:
+            return False
+    return depth == 0
+
+
+def simple_ldap(mock_response, request, uri, response_headers):
+    """Concatenate the i parameter into an LDAP search filter."""
+    search_filter = f"(uid={request_param(request, 'i')})"
+    if has_balanced_parentheses(search_filter):
+        return html_page(response_headers, "No such user")
+    return html_page(response_headers, LDAP_ERROR)
+
+
+def known_error(mock_response, request, uri, response_headers):
+    """A page which always shows the LDAP error, injection or not."""
+    return html_page(response_headers, f"Maintenance: {LDAP_ERROR}")
 
 
 class TestLDAPI(PluginTest):
 
-    target_url = "http://moth/w3af/audit/LDAP/simple_ldap.php"
+    target_url = f"{LDAP_URL}simple_ldap.php"
 
-    _run_configs: ClassVar[dict] = {
-        "cfg": {
-            "target": target_url + "?i=xxx",
-            "plugins": {
-                "audit": (PluginConfig("ldapi"),),
-            },
-        }
-    }
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(re.compile(f"{target_url}.*"), simple_ldap),
+        MockResponse(re.compile(f"{LDAP_URL}known_error.php.*"), known_error),
+    ]
 
-    @pytest.mark.ci_fails
+    config: ClassVar[dict] = {"audit": (PluginConfig("ldapi"),)}
+
     def test_found_ldapi(self):
-        cfg = self._run_configs["cfg"]
-        self._scan(cfg["target"], cfg["plugins"])
+        self._scan(self.target_url + "?i=xxx", self.config)
+
         vulns = self.kb.get("ldapi", "ldapi")
         self.assertEqual(1, len(vulns))
-        # Now some tests around specific details of the found vuln
+
         vuln = vulns[0]
         self.assertEqual("LDAP injection vulnerability", vuln.get_name())
         self.assertEqual(self.target_url, str(vuln.get_url()))
+        self.assertEqual("i", vuln.get_token_name())
+
+    def test_error_in_original_response_is_ignored(self):
+        self._scan(f"{LDAP_URL}known_error.php?i=xxx", self.config)
+
+        self.assertEqual([], self.kb.get("ldapi", "ldapi"))

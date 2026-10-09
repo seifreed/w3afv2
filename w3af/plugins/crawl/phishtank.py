@@ -37,6 +37,8 @@ from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.quick_match.multi_in import MultiIn
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
+PHISHTANK_DB = os.path.join(ROOT_PATH, "plugins", "crawl", "phishtank", "index.csv")
+
 
 class phishtank(CrawlPlugin):
     """
@@ -47,10 +49,9 @@ class phishtank(CrawlPlugin):
     :author: Special thanks to http://www.phishtank.com/ !
     """
 
-    PHISHTANK_DB = os.path.join(ROOT_PATH, "plugins", "crawl", "phishtank", "index.csv")
-
-    def __init__(self):
+    def __init__(self, phishtank_db=PHISHTANK_DB):
         CrawlPlugin.__init__(self)
+        self._phishtank_db = phishtank_db
         self._multi_in = None
 
     @runonce(exc_class=RunOnce)
@@ -133,7 +134,7 @@ class phishtank(CrawlPlugin):
         om.out.debug("Starting the phishtank CSV parsing.")
 
         try:
-            with open(self.PHISHTANK_DB, "r") as phishtank_db_fd:
+            with open(self._phishtank_db) as phishtank_db_fd:
                 pt_csv_reader = csv.reader(
                     phishtank_db_fd,
                     delimiter=" ",
@@ -147,7 +148,7 @@ class phishtank(CrawlPlugin):
                         pt_matches.append(pt_match)
         except OSError as e:
             msg = 'Failed to open phishtank database: "%s", exception: "%s".'
-            raise BaseFrameworkException(msg % (self.PHISHTANK_DB, e)) from e
+            raise BaseFrameworkException(msg % (self._phishtank_db, e)) from e
 
         om.out.debug("Finished CSV parsing.")
 
@@ -159,18 +160,13 @@ class phishtank(CrawlPlugin):
         :return: A PhishTankMatch if url matches what we're looking for, None
                  if there is no match
         """
-        for query_result in self._multi_in.query(phishing_url):
+        for target_host in self._multi_in.query(phishing_url):
             phish_url = URL(phishing_url)
-            target_host_url = URL(query_result[0])
+            phish_domain = phish_url.get_domain()
 
-            if (
-                target_host_url.get_domain() == phish_url.get_domain()
-                or phish_url.get_domain().endswith("." + target_host_url.get_domain())
-            ):
-
+            if phish_domain == target_host or phish_domain.endswith("." + target_host):
                 phish_detail_url = URL(phishtank_detail_url)
-                ptm = PhishTankMatch(phish_url, phish_detail_url)
-                return ptm
+                return PhishTankMatch(phish_url, phish_detail_url)
 
         return None
 

@@ -161,3 +161,70 @@ class TestConsoleMenus(ConsoleTestHelper):
         )
         self.assertIn("No parameters expected", output)
         self.assertIn("Parameter missing", output)
+
+    def test_enable_and_disable_plugin_sets(self):
+        output = self._run(
+            [
+                "plugins",
+                "audit all",
+                "list audit enabled",
+                "audit !all",
+                "list audit enabled",
+                "audit xss,,sqli",
+                "audit !sqli,!os_commanding",
+                "list audit enabled",
+                "list audit disabled",
+                "list audit no_such_status",
+                "list",
+                "list no_such_type",
+                "back",
+                "exit",
+            ]
+        )
+        self.assertIn("No plugins have status enabled", output)
+        self.assertIn("No plugins have status no_such_status", output)
+        self.assertIn("xss", output)
+
+    def test_disabling_every_output_plugin_warns(self):
+        output = self._run(["plugins", "output !all", "output console", "exit"])
+        self.assertIn("Warning: You disabled the console output plugin.", output)
+
+    def test_plugin_config_requires_a_known_plugin(self):
+        output = self._run(
+            ["plugins", "audit config", "audit config no_such_plugin", "exit"]
+        )
+        self.assertIn("Plugin name is required", output)
+        self.assertIn("Unknown plugin: 'no_such_plugin'", output)
+
+    def test_plugin_config_menu_is_reused(self):
+        output = self._run(
+            [
+                "plugins",
+                "audit config xss",
+                "back",
+                "audit config xss",
+                "back",
+                "back",
+                "exit",
+            ]
+        )
+        self.assertEqual(output.count("w3af/plugins/audit/config:xss>>> "), 2)
+
+    def test_print_requires_a_variable(self):
+        output = self._run(["print", "exit"])
+        self.assertIn("Variable is expected", output)
+
+    def test_profiles_save_as_argument_errors(self):
+        output = self._run(
+            [
+                "profiles",
+                "save_as name bad-flag",
+                "save_as one two three",
+                "save_as invalid/name",
+                "back",
+                "exit",
+            ]
+        )
+        self.assertIn("Invalid profile save flag, please see the help:", output)
+        self.assertIn("Too many parameters, please see the help:", output)
+        self.assertNotIn("Profile saved.", output)

@@ -21,49 +21,73 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import ClassVar
 
-import pytest
-
+from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.data.url.extended_urllib import ExtendedUrllib
+from w3af.plugins.crawl.bing_spider import bing_spider
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
+from w3af.plugins.tests.search_engine_pages import bing_search_response
 
-BASE_URL = "http://www.bonsai-sec.com/"
+# A public IP address target: deciding that it is not a private site does not
+# require any DNS query
+BASE_URL = "http://8.8.8.8/"
+
+EXPECTED_URLS = (
+    "es/education/",
+    "en/clients/",
+    "services/",
+    "research/",
+    "blog/",
+)
 
 
-@pytest.mark.fails
 class TestBingSpider(PluginTest):
 
     target_url = BASE_URL
 
-    _run_configs: ClassVar[dict] = {
-        "cfg": {
-            "target": target_url,
-            "plugins": {"crawl": (PluginConfig("bing_spider"),)},
-        }
-    }
-    EXPECTED_URLS = (
-        "es/education/",
-        "en/clients/",
-        "es/",
-        "services/",
-        "research/",
-        "blog/",
-        "education/",
-        "es/research/",
-        "blog",
-        "es/clients/",
-        "",
-    )
-
     MOCK_RESPONSES: ClassVar[list] = [
-        MockResponse(f"{BASE_URL}{eu}", "Response body.") for eu in EXPECTED_URLS
+        bing_search_response([f"{BASE_URL}{path}" for path in EXPECTED_URLS]),
+        *[
+            MockResponse(f"{BASE_URL}{path}", "Response body.")
+            for path in EXPECTED_URLS
+        ],
+        MockResponse(BASE_URL, "Index"),
     ]
 
+    plugins: ClassVar[dict] = {
+        "crawl": (PluginConfig("bing_spider", ("result_limit", 10, PluginConfig.INT)),)
+    }
+
     def test_found_urls(self):
-        cfg = self._run_configs["cfg"]
-        self._scan(cfg["target"], cfg["plugins"])
+        self._scan(self.target_url, self.plugins)
 
-        urls = self.kb.get_all_known_urls()
+        urls = {u.url_string for u in self.kb.get_all_known_urls()}
+        expected_urls = {BASE_URL} | {BASE_URL + path for path in EXPECTED_URLS}
 
-        found_urls = ({str(u) for u in urls},)
-        expected_urls = {(self.target_url + end) for end in self.EXPECTED_URLS}
+        self.assertEqual(urls, expected_urls)
 
-        self.assertEqual(found_urls, expected_urls)
+        bing_queries = [r.uri for r in self.received_requests if "bing.com" in r.uri]
+        self.assertIn(
+            "http://www.bing.com/search?q=site%3A8.8.8.8&first=1&FORM=PERE",
+            bing_queries,
+        )
+
+    def test_private_site_is_not_searched(self):
+        plugin = bing_spider()
+
+        with self.assertRaises(BaseFrameworkException):
+            plugin.crawl(FuzzableRequest(URL("http://127.0.0.1/")), "debugging-id")
+
+    def test_failed_search_is_ignored(self):
+        uri_opener = ExtendedUrllib()
+        uri_opener.stop()
+
+        plugin = bing_spider()
+        plugin.set_url_opener(uri_opener)
+        plugin.crawl(FuzzableRequest(URL(BASE_URL)), "debugging-id")
+
+        self.assertTrue(plugin.output_queue.empty())
+
+    def test_long_description(self):
+        self.assertIn("site:domain.com", bing_spider().get_long_desc())

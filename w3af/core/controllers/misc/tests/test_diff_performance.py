@@ -23,83 +23,46 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 import time
 import unittest
-from functools import cmp_to_key
 from pathlib import Path
 
 from w3af import ROOT_PATH
-from w3af.core.controllers.misc.diff import chunked_diff, diff_dmp
+from w3af.core.controllers.misc.diff import chunked_diff
+
+LINES = 10000
+MAX_SECONDS = 30
+
+
+def growing_lines(changed_line=None):
+    return "".join(("B" if i == changed_line else "A") * i + "\n" for i in range(LINES))
 
 
 class TestDiffPerformance(unittest.TestCase):
 
     DATA = os.path.join(ROOT_PATH, "core", "controllers", "misc", "tests", "data")
-    FUNCTIONS = (chunked_diff, diff_dmp)
-    ROUNDS = 5
+
+    def assert_fast_diff(self, a, b):
+        start = time.monotonic()
+        result = chunked_diff(a, b)
+        self.assertLess(time.monotonic() - start, MAX_SECONDS)
+        return result
 
     def test_xml(self):
-        self._generic_runner(self._run_test_xml)
-
-    def test_diff_large_different_responses(self):
-        self._generic_runner(self._run_diff_large_different_responses)
-
-    def test_large_equal_responses(self):
-        self._generic_runner(self._run_large_equal_responses)
-
-    def _generic_runner(self, test_func):
-        result = {}
-
-        for func in self.FUNCTIONS:
-            start = time.time()
-
-            for _ in range(self.ROUNDS):
-                test_func(func)
-
-            spent = time.time() - start
-            result[func.__name__] = spent
-
-        self._print_result(result)
-
-    def _print_result(self, result):
-        results = list(result.items())
-        results.sort(key=cmp_to_key(lambda a, b: a[1] < b[1]))
-
-        print()
-
-        for func, spent in results:
-            print(f"{func}: {spent:.2f}")
-
-        print()
-
-    def _run_test_xml(self, diff):
         a = Path(self.DATA, "source.xml").read_text()
         b = Path(self.DATA, "target.xml").read_text()
 
-        diff(a, b)
+        a_unique, b_unique = self.assert_fast_diff(a, b)
 
-    def _run_diff_large_different_responses(self, diff):
-        large_file_1 = ""
-        large_file_2 = ""
-        _max = 10000
+        self.assertLess(len(a_unique), len(a))
+        self.assertLess(len(b_unique), len(b))
 
-        for i in range(_max):
-            large_file_1 += "A" * i
-            large_file_1 += "\n"
+    def test_diff_large_different_responses(self):
+        changed = LINES - 3
 
-        for i in range(_max):
-            if i == _max - 3:
-                large_file_2 += "B" * i
-            else:
-                large_file_2 += "A" * i
+        result = self.assert_fast_diff(growing_lines(), growing_lines(changed))
 
-            large_file_2 += "\n"
+        self.assertEqual(result, ("A" * changed, "B" * changed))
 
-        diff(large_file_1, large_file_2)
+    def test_large_equal_responses(self):
+        large_file = growing_lines()
 
-    def _run_large_equal_responses(self, diff):
-        large_file = ""
-
-        for i in range(10000):
-            large_file += "A" * i
-            large_file += "\n"
-
-        diff(large_file, large_file)
+        self.assertEqual(self.assert_fast_diff(large_file, large_file), ("", ""))

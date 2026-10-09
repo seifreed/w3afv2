@@ -33,6 +33,17 @@ from w3af.core.ui.console.menu import menu
 from w3af.core.ui.console.util import suggest
 
 
+def create_github_reporter():
+    """
+    :return: The GitHub issue reporter for the token configured by the user,
+             None when no token was configured.
+    """
+    oauth_token = get_oauth_token()
+    if oauth_token is None:
+        return None
+    return GithubIssues(oauth_token)
+
+
 class bug_report_menu(menu):
     """
     This menu is used to display bugs gathered by the exception handler during
@@ -41,8 +52,17 @@ class bug_report_menu(menu):
     :author: Andres Riancho (andres.riancho |at| gmail.com)
     """
 
-    def __init__(self, name, console, w3af_core, parent=None, **other):
+    def __init__(
+        self, name, console, w3af_core, parent, create_reporter=create_github_reporter
+    ):
+        """
+        :param create_reporter: Callable returning the object used to report
+                                bugs (with the login() and report_bug()
+                                methods of GithubIssues), or None when bugs
+                                can not be reported.
+        """
         menu.__init__(self, name, console, w3af_core, parent)
+        self._create_reporter = create_reporter
         self._load_help("bug-report")
 
     def _cmd_summary(self, params):
@@ -128,14 +148,13 @@ class bug_report_menu(menu):
         """
         Report one or more bugs to w3af's Github, submit data to server.
         """
-        oauth_token = get_oauth_token()
-        if oauth_token is None:
+        reporter = self._create_reporter()
+        if reporter is None:
             om.out.console(MISSING_CREDENTIAL_MSG)
             return
 
         try:
-            gh = GithubIssues(oauth_token)
-            gh.login()
+            reporter.login()
         except LoginFailed:
             msg = "Failed to contact github.com. Please try again later."
             om.out.console(msg)
@@ -147,7 +166,7 @@ class bug_report_menu(menu):
             plugins = edata.enabled_plugins
             summary = str(edata.exception)
 
-            ticket_id, ticket_url = gh.report_bug(
+            ticket_id, ticket_url = reporter.report_bug(
                 summary, desc, tback=traceback_str, plugins=plugins
             )
 

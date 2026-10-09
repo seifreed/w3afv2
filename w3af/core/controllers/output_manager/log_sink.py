@@ -66,7 +66,7 @@ class LogSink:
     def _add_to_queue(self, *args, **kwargs):
         try:
             self.om_queue.put((args, kwargs))
-        except OSError:
+        except (OSError, ValueError):
             print(
                 "LogSink queue communication lost." " Some log messages will be lost."
             )
