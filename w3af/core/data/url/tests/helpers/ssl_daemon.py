@@ -43,9 +43,8 @@ class RawSSLDaemon(UpperDaemon):
     UpperDaemon.
     """
 
-    def __init__(self, handler=UpperTCPHandler, ssl_version=ssl.PROTOCOL_TLSv1):
+    def __init__(self, handler=UpperTCPHandler):
         super().__init__(handler=handler)
-        self.ssl_version = ssl_version
 
     def run(self):
         self.server = socketserver.TCPServer(
@@ -55,13 +54,9 @@ class RawSSLDaemon(UpperDaemon):
         key_file = os.path.join(os.path.dirname(__file__), "unittest.key")
         cert_file = os.path.join(os.path.dirname(__file__), "unittest.crt")
 
-        self.server.socket = ssl.wrap_socket(
-            self.server.socket,
-            keyfile=key_file,
-            certfile=cert_file,
-            cert_reqs=ssl.CERT_NONE,
-            ssl_version=self.ssl_version,
-        )
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        context.load_cert_chain(certfile=cert_file, keyfile=key_file)
+        self.server.socket = context.wrap_socket(self.server.socket, server_side=True)
 
         self.server.server_bind()
         self.server.server_activate()
@@ -75,7 +70,6 @@ class SSLServer(threading.Thread):
         listen,
         port,
         certfile,
-        proto=ssl.PROTOCOL_TLSv1,
         http_response=HTTP_RESPONSE,
     ):
         threading.Thread.__init__(self)
@@ -85,7 +79,6 @@ class SSLServer(threading.Thread):
         self.listen = listen
         self.port = port
         self.cert = certfile
-        self.proto = proto
         self.http_response = http_response
 
         self.sock = socket.socket()
@@ -95,28 +88,16 @@ class SSLServer(threading.Thread):
         self.errors = []
 
     def accept(self):
-        self.sock = ssl.wrap_socket(
-            self.sock,
-            server_side=True,
-            certfile=self.cert,
-            cert_reqs=ssl.CERT_NONE,
-            ssl_version=self.proto,
-            do_handshake_on_connect=False,
-            suppress_ragged_eofs=True,
-        )
-
-        newsocket, fromaddr = self.sock.accept()
+        newsocket, _ = self.sock.accept()
 
         try:
             newsocket.do_handshake()
-        except:
-            # The ssl certificate might request a connection with
-            # SSL protocol v2 and that will "break" the handshake
+        except ssl.SSLError:
             newsocket.close()
 
         # print 'Connection from %s port %s, sending HTTP response' % fromaddr
         try:
-            newsocket.send(self.http_response)
+            newsocket.sendall(self.http_response.encode())
         except Exception as e:
             self.errors.append(e)
             # print 'Failed to send HTTP response to client: "%s"' % e
@@ -126,8 +107,21 @@ class SSLServer(threading.Thread):
 
     def run(self):
         self.should_stop = False
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        context.set_ciphers("DEFAULT:@SECLEVEL=0")
+        context.load_cert_chain(certfile=self.cert)
+        self.sock = context.wrap_socket(
+            self.sock,
+            server_side=True,
+            do_handshake_on_connect=False,
+            suppress_ragged_eofs=True,
+        )
         while not self.should_stop:
-            self.accept()
+            try:
+                self.accept()
+            except OSError:
+                if not self.should_stop:
+                    raise
 
     def stop(self):
         self.should_stop = True
@@ -138,7 +132,7 @@ class SSLServer(threading.Thread):
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.connect((self.listen, self.port))
             s.close()
-        except:
+        except OSError:
             pass
 
     def wait_for_start(self):

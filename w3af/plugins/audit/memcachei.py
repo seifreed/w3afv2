@@ -23,13 +23,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from collections import namedtuple
 from functools import partial
 
-from w3af.core.controllers.exceptions import HTTPRequestException
 from w3af.core.controllers.misc.diff import chunked_diff
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.data.constants import severity
 from w3af.core.data.fuzzer.fuzzer import create_mutants
 from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.url.exceptions import HTTPRequestException
 
 MemcacheInjection = namedtuple("MemcacheInjection", ["ok", "error_1", "error_2"])
 

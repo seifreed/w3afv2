@@ -39,12 +39,11 @@ from errno import (
 
 import OpenSSL
 
-from w3af.core.controllers.exceptions import HTTPRequestException
-from w3af.core.data.misc.number_generator import consecutive_number_generator
-from w3af.core.data.misc.iterables import unique_everseen_hash
 from w3af.core.data.constants.response_codes import NO_CONTENT
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.misc.encoding import PERCENT_ENCODE, smart_unicode
+from w3af.core.data.misc.iterables import unique_everseen_hash
+from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.data.misc.web_encodings import (
     HTML_ENCODING_FUNCTIONS,
     JSON_ENCODING_FUNCTIONS,
@@ -52,6 +51,7 @@ from w3af.core.data.misc.web_encodings import (
     generate_html_encoding_functions,
     generate_url_encoding_functions,
 )
+from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.handlers.keepalive import URLTimeoutError
 from w3af.core.data.url.HTTPResponse import HTTPResponse
 
@@ -403,7 +403,7 @@ def get_socket_exception_reason(error):
     if not isinstance(error, socket.error):
         return
 
-    if error[0] in KNOWN_SOCKET_ERRORS:
+    if error.errno in KNOWN_SOCKET_ERRORS:
         return str(error)
 
     return
@@ -428,13 +428,13 @@ def get_exception_reason(error):
             return get_socket_exception_reason(error)
 
     if isinstance(error, OpenSSL.SSL.SysCallError):
-        if error[0] in KNOWN_SOCKET_ERRORS:
-            return str(error[1])
+        if len(error.args) > 1 and error.args[0] in KNOWN_SOCKET_ERRORS:
+            return str(error.args[1])
 
     if isinstance(error, OpenSSL.SSL.ZeroReturnError):
         return "OpenSSL Error: OpenSSL.SSL.ZeroReturnError"
 
-    if isinstance(error, (ssl.SSLError, socket.sslerror)):
+    if isinstance(error, ssl.SSLError):
         socket_reason = get_socket_exception_reason(error)
         if socket_reason:
             return "SSL Error: %s" % socket_reason

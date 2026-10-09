@@ -27,8 +27,9 @@ import gobject
 import gtk
 
 from w3af import ROOT_PATH
-from w3af.core.controllers.exceptions import HTTPRequestException, ScanMustStopException
+from w3af.core.controllers.exceptions import ScanMustStopException
 from w3af.core.data.db.history import HistoryItem
+from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.ui.gui import entries, helpers
 from w3af.core.ui.gui.clusterGraph import distance_function_selector
 from w3af.core.ui.gui.payload_generators import create_generator_menu

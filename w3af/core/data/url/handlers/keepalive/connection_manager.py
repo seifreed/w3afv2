@@ -4,7 +4,7 @@ from functools import cmp_to_key
 import OpenSSL
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import ConnectionPoolException
+from w3af.core.data.url.exceptions import ConnectionPoolException
 from w3af.core.data.url.handlers.keepalive.utils import debug
 
 

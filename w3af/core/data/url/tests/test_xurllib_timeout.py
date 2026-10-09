@@ -26,7 +26,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from w3af.core.controllers.exceptions import HTTPRequestException, ScanMustStopException
+from w3af.core.controllers.exceptions import ScanMustStopException
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.constants import (
     DEFAULT_TIMEOUT,
@@ -36,6 +36,7 @@ from w3af.core.data.url.constants import (
     TIMEOUT_MULT_CONST,
     TIMEOUT_UPDATE_ELAPSED_MIN,
 )
+from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.data.url.handlers.keepalive.connection_manager import ConnectionManager
 from w3af.core.data.url.tests.helpers.ssl_daemon import RawSSLDaemon
@@ -71,7 +72,7 @@ class TestXUrllibTimeout(unittest.TestCase):
         try:
             self.uri_opener.GET(url)
         except HTTPRequestException as hre:
-            self.assertEqual(hre.message, "HTTP timeout error")
+            self.assertEqual(str(hre), "HTTP timeout error")
         except Exception as e:
             msg = 'Not expecting: "%s"'
             self.assertTrue(False, msg % e.__class__.__name__)
@@ -129,7 +130,7 @@ class TestXUrllibTimeout(unittest.TestCase):
                 self.uri_opener.GET(url)
             except HTTPRequestException as hre:
                 http_request_e += 1
-                self.assertEqual(hre.message, "HTTP timeout error")
+                self.assertEqual(str(hre), "HTTP timeout error")
             except ScanMustStopException:
                 scan_stop_e += 1
                 self.assertTrue(True)
@@ -250,10 +251,10 @@ class Ok200SmallDelayHandler(socketserver.BaseRequestHandler):
         self.data = self.request.recv(1024).strip()
         time.sleep(self.sleep)
         self.request.sendall(
-            "HTTP/1.0 200 Ok\r\n"
-            "Connection: Close\r\n"
-            "Content-Length: 3\r\n"
-            "\r\n" + self.body
+            b"HTTP/1.0 200 Ok\r\n"
+            b"Connection: Close\r\n"
+            b"Content-Length: 3\r\n"
+            b"\r\n" + self.body.encode()
         )
 
 
@@ -267,12 +268,12 @@ class Ok200SmallDelayWithLongTriggeredTimeoutHandler(socketserver.BaseRequestHan
         time.sleep(self.regular_sleep)
 
         # When /timeout is in the request, we sleep some extra seconds
-        if "/timeout" in self.data:
+        if b"/timeout" in self.data:
             time.sleep(self.long_sleep)
 
         self.request.sendall(
-            "HTTP/1.0 200 Ok\r\n"
-            "Connection: Close\r\n"
-            "Content-Length: 3\r\n"
-            "\r\n" + self.body
+            b"HTTP/1.0 200 Ok\r\n"
+            b"Connection: Close\r\n"
+            b"Content-Length: 3\r\n"
+            b"\r\n" + self.body.encode()
         )

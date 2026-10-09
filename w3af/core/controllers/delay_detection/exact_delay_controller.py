@@ -20,8 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 from w3af.core.controllers.delay_detection.exact_delay import ExactDelay
-from w3af.core.controllers.exceptions import HTTPRequestException
 from w3af.core.controllers.output_manager import out
+from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.helpers import new_no_content_resp
 
 

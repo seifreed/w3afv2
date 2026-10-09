@@ -29,12 +29,12 @@ import gtk
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.exceptions import (
     BaseFrameworkException,
-    HTTPRequestException,
     ScanMustStopException,
 )
 from w3af.core.data.constants import severity
 from w3af.core.data.db.history import HistoryItem
 from w3af.core.data.parsers.doc.http_request_parser import http_request_parser
+from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.visualization.string_representation import StringRepresentation
 from w3af.core.ui.gui import helpers
 from w3af.core.ui.gui.entries import (

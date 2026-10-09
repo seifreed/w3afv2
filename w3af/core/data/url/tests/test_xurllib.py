@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 import queue
 import socketserver
-import ssl
 import time
 import unittest
 from multiprocessing.dummy import Process
@@ -34,7 +33,6 @@ import pytest
 from w3af import ROOT_PATH
 from w3af.core.controllers.ci.moth import get_moth_http, get_moth_https
 from w3af.core.controllers.exceptions import (
-    HTTPRequestException,
     ScanMustStopByUserRequest,
     ScanMustStopException,
 )
@@ -44,6 +42,7 @@ from w3af.core.data.dc.headers import Headers
 from w3af.core.data.dc.urlencoded_form import URLEncodedForm
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.constants import MAX_ERROR_COUNT
+from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.data.url.HTTPResponse import DEFAULT_WAIT_TIME
 from w3af.core.data.url.tests.helpers.ssl_daemon import RawSSLDaemon, SSLServer
@@ -260,51 +259,16 @@ class TestXUrllib(unittest.TestCase):
         http_response = self.uri_opener.GET(url, cache=False)
         self.assertNotEqual(http_response.get_wait_time(), DEFAULT_WAIT_TIME)
 
-    def test_ssl_tls_1_0(self):
-        ssl_daemon = RawSSLDaemon(Ok200Handler, ssl_version=ssl.PROTOCOL_TLSv1)
+    def test_ssl_tls(self):
+        ssl_daemon = RawSSLDaemon(Ok200Handler)
         ssl_daemon.start()
         ssl_daemon.wait_for_start()
-
         port = ssl_daemon.get_port()
 
         url = URL("https://127.0.0.1:%s/" % port)
 
         resp = self.uri_opener.GET(url)
-        self.assertEqual(resp.get_body(), Ok200Handler.body)
-
-    def test_ssl_v23(self):
-        # https://bugs.kali.org/view.php?id=2160
-        if not hasattr(ssl, "PROTOCOL_SSLv23"):
-            return
-
-        ssl_daemon = RawSSLDaemon(Ok200Handler, ssl_version=ssl.PROTOCOL_SSLv23)
-        ssl_daemon.start()
-        ssl_daemon.wait_for_start()
-
-        port = ssl_daemon.get_port()
-
-        url = URL("https://127.0.0.1:%s/" % port)
-
-        resp = self.uri_opener.GET(url)
-        self.assertEqual(resp.get_body(), Ok200Handler.body)
-
-    def test_ssl_v3(self):
-        # https://bugs.kali.org/view.php?id=2160
-        if not hasattr(ssl, "PROTOCOL_SSLv3"):
-            return
-
-        # pylint: disable=E1101
-        ssl_daemon = RawSSLDaemon(Ok200Handler, ssl_version=ssl.PROTOCOL_SSLv3)
-        ssl_daemon.start()
-        ssl_daemon.wait_for_start()
-        # pylint: disable=E1101
-
-        port = ssl_daemon.get_port()
-
-        url = URL("https://127.0.0.1:%s/" % port)
-
-        resp = self.uri_opener.GET(url)
-        self.assertEqual(resp.get_body(), Ok200Handler.body)
+        self.assertEqual(resp.get_body(), Ok200Handler.body.encode())
 
     @pytest.mark.internet
     @pytest.mark.ci_fails
@@ -459,9 +423,7 @@ class TestXUrllib(unittest.TestCase):
         self.assertEqual(body, http_response.body)
         s.stop()
 
-        # This error is expected, it's generated when the xurllib negotiates
-        # the different SSL protocols with the server
-        self.assertEqual(set([e.strerror for e in s.errors]), {"Bad file descriptor"})
+        self.assertEqual(s.errors, [])
 
     def test_rate_limit_high(self):
         self.rate_limit_generic(500, 0.009, 0.4)
@@ -499,14 +461,14 @@ class TestXUrllib(unittest.TestCase):
 class EmptyTCPHandler(socketserver.BaseRequestHandler):
     def handle(self):
         self.data = self.request.recv(1024).strip()
-        self.request.sendall("")
+        self.request.sendall(b"")
 
 
 class TimeoutTCPHandler(socketserver.BaseRequestHandler):
     def handle(self):
         self.data = self.request.recv(1024).strip()
         time.sleep(60)
-        self.request.sendall("")
+        self.request.sendall(b"")
 
 
 class Ok200Handler(socketserver.BaseRequestHandler):
@@ -515,8 +477,8 @@ class Ok200Handler(socketserver.BaseRequestHandler):
     def handle(self):
         self.data = self.request.recv(1024).strip()
         self.request.sendall(
-            "HTTP/1.0 200 Ok\r\n"
-            "Connection: Close\r\n"
-            "Content-Length: 3\r\n"
-            "\r\n" + self.body
+            b"HTTP/1.0 200 Ok\r\n"
+            b"Connection: Close\r\n"
+            b"Content-Length: 3\r\n"
+            b"\r\n" + self.body.encode()
         )

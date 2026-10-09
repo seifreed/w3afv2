@@ -28,26 +28,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from w3af.core.exceptions import BaseFrameworkException
 
 
-class HTTPRequestException(BaseFrameworkException):
-    """
-    This exception should be raised when **one** HTTP request fails.
-    """
-
-    def __init__(self, message, request=None):
-        BaseFrameworkException.__init__(self, message)
-        self.request = request
-
-    def get_url(self):
-        if self.request is None:
-            return None
-
-        return self.request.get_full_url()
-
-
-class ConnectionPoolException(HTTPRequestException):
-    pass
-
-
 class RunOnce(Exception):
     """
     A small class that defines an exception to be raised by plugins that

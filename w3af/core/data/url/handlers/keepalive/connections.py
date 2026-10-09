@@ -31,7 +31,7 @@ import urllib.request
 
 import OpenSSL
 
-from w3af.core.controllers.exceptions import HTTPRequestException
+from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.openssl_wrapper.ssl_wrapper import wrap_socket
 
 from .http_response import HTTPResponse
@@ -255,8 +255,6 @@ class SSLNegotiatorConnection(http.client.HTTPSConnection, UniqueID):
         try:
             ssl_sock = wrap_socket(
                 sock,
-                keyfile=self.key_file,
-                certfile=self.cert_file,
                 ssl_version=protocol,
                 server_hostname=self.host,
                 timeout=self.timeout,
@@ -343,13 +341,9 @@ class HTTPSConnection(SSLNegotiatorConnection):
         self,
         host,
         port=None,
-        key_file=None,
-        cert_file=None,
         timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
     ):
-        SSLNegotiatorConnection.__init__(
-            self, host, port, key_file, cert_file, timeout=timeout
-        )
+        SSLNegotiatorConnection.__init__(self, host, port, timeout=timeout)
         self.is_fresh = True
         self.current_request_start = None
         self.connection_manager_move_ts = None

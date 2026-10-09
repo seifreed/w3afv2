@@ -84,14 +84,14 @@ class request:
         # SSL handling
         if useSSL:
             try:
-                s2 = ssl.wrap_socket(s)
+                context = ssl.create_default_context()
+                context.check_hostname = False
+                context.verify_mode = ssl.CERT_NONE
+                s = context.wrap_socket(s, server_hostname=HOST)
             except Exception as e:
                 msg = 'hmap SSL connection failed to %s:%s. Exception: "%s"'
                 args = (HOST, PORT, e)
                 raise BaseFrameworkException(msg % args)
-
-            s.recv = s2.read
-            s.send = s2.write
 
         s.settimeout(10)
 
@@ -141,11 +141,11 @@ class request:
             except KeyboardInterrupt as e:
                 raise e
 
-            except socket.sslerror as ssl_err:
+            except ssl.SSLError as ssl_err:
                 # When the remote server has no more data to send
                 # It simply closes the remote connection, which raises:
                 # (6, 'TLS/SSL connection has been closed')
-                if ssl_err[0] == 6:
+                if isinstance(ssl_err, ssl.SSLZeroReturnError):
                     return response(data)
 
                 msg = 'hmap found an SSL error while reading data from socket: "%s"'

@@ -14,8 +14,9 @@ license (basically they can't). So I'm choosing to use the original Apache
 License, Version 2.0 for this file.
 """
 
+import errno
+import io
 import select
-import socket
 import ssl
 import time
 
@@ -33,6 +34,35 @@ _openssl_cert_reqs = {
     CERT_OPTIONAL: OpenSSL.SSL.VERIFY_PEER,
     CERT_REQUIRED: OpenSSL.SSL.VERIFY_PEER | OpenSSL.SSL.VERIFY_FAIL_IF_NO_PEER_CERT,
 }
+
+
+class _SSLConnectionIO(io.RawIOBase):
+    def __init__(self, ssl_socket, mode):
+        super().__init__()
+        self.ssl_socket = ssl_socket
+        self.read_enabled = "r" in mode
+        self.write_enabled = "w" in mode
+
+    def readable(self):
+        return self.read_enabled
+
+    def writable(self):
+        return self.write_enabled
+
+    def readinto(self, buffer):
+        data = self.ssl_socket.recv(len(buffer))
+        buffer[: len(data)] = data
+        return len(data)
+
+    def write(self, buffer):
+        return self.ssl_socket.send(buffer)
+
+    def close(self):
+        if not self.closed:
+            try:
+                super().close()
+            finally:
+                self.ssl_socket.close()
 
 
 class SSLSocket:
@@ -80,18 +110,31 @@ class SSLSocket:
         except AttributeError:
             return getattr(self.sock, name)
 
-    def makefile(self, mode, bufsize):
+    def makefile(
+        self, mode="r", buffering=None, *, encoding=None, errors=None, newline=None
+    ):
         """
-        We need to use socket._fileobject Because SSL.Connection
-        doesn't have a 'dup'. Not exactly sure WHY this is, but
-        this is backed up by comments in socket.py and SSL/connection.c
-
-        Since httplib.HTTPSResponse/HTTPConnection depend on the
-        socket being duplicated when they close it, we refcount the
-        socket object and don't actually close until its count is 0.
+        Keep the TLS connection alive until the response file and socket close.
         """
         self.close_refcount += 1
-        return socket._fileobject(self, mode, bufsize, close=True)
+        raw = _SSLConnectionIO(self, mode)
+        buffer_size = (
+            io.DEFAULT_BUFFER_SIZE if buffering is None or buffering < 0 else buffering
+        )
+
+        if "r" in mode and "w" in mode:
+            file = io.BufferedRWPair(raw, raw, buffer_size)
+        elif "r" in mode:
+            file = raw if buffering == 0 else io.BufferedReader(raw, buffer_size)
+        elif "w" in mode:
+            file = raw if buffering == 0 else io.BufferedWriter(raw, buffer_size)
+        else:
+            raw.close()
+            raise ValueError("mode must include 'r' or 'w'")
+
+        if "b" in mode:
+            return file
+        return io.TextIOWrapper(file, encoding=encoding, errors=errors, newline=newline)
 
     def close(self):
         if self.closed:
@@ -103,8 +146,14 @@ class SSLSocket:
             try:
                 self.shutdown()
             except OpenSSL.SSL.Error as ssl_error:
-                message = str(ssl_error)
-                if not message:
+                if (
+                    isinstance(ssl_error, SysCallError)
+                    and ssl_error.args
+                    and (ssl_error.args[0] == errno.EPIPE)
+                ):
+                    # A remote close can make TLS shutdown write to a closed socket.
+                    pass
+                elif not str(ssl_error):
                     # We get here when the remote end already closed the
                     # connection. The shutdown() call to the OpenSSLConnection
                     # simply fails with an exception without a message
@@ -113,7 +162,6 @@ class SSLSocket:
                     # but will also be useful for other real-life cases
                     pass
                 else:
-                    # We don't know what's here, raise!
                     raise
 
             # Close doesn't seem to mind if the remote end already closed the
@@ -252,7 +300,7 @@ def wrap_socket(
 
     # SNI support
     if server_hostname is not None:
-        cnx.set_tlsext_host_name(server_hostname)
+        cnx.set_tlsext_host_name(server_hostname.encode("idna"))
 
     cnx.set_connect_state()
 

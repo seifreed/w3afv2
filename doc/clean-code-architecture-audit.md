@@ -446,3 +446,31 @@ que devolvió 522 en vez de 404. Mypy focal sigue fallando por dos errores
 transitivos en `core.data.__init__` y `core.__init__`. El score global permanece
 en **2.5/10**: se eliminaron más dependencias ascendentes de la capa de datos,
 pero la mayor parte de los acoplamientos y deuda global siguen pendientes.
+
+## Avance: excepciones HTTP en la capa URL
+
+`HTTPRequestException` y `ConnectionPoolException` describen fallos del
+transporte HTTP, pero vivían en `core.controllers.exceptions`; incluso la capa
+URL tenía que depender de controllers para lanzarlas. Ambas clases ahora viven
+en `core.data.url.exceptions`, todos los consumidores internos importan desde
+esa capa y se eliminaron las definiciones anteriores sin alias de
+compatibilidad. Los tres tests de contrato de las excepciones pasan con 100%
+de cobertura.
+
+Al validar el transporte en Python 3.14 también se reemplazó
+`socket._fileobject` por el protocolo público `io.RawIOBase` y sus buffers para
+que las respuestas HTTPS puedan leerse correctamente. El hostname SNI se
+codifica como IDNA para PyOpenSSL, y los fixtures TLS/HTTP usan APIs actuales y
+bytes explícitos. La validación focal de excepciones, servidor TLS, petición
+HTTPS local, cierre TLS y timeout HTTP suma **7 tests correctos**; `compileall`
+pasa en controllers y data/url. Se mantuvieron los pins actuales de mitmproxy,
+`aioquic==1.2.0` y `urwid==4.0.13`; `pip check` no detecta conflictos.
+
+Ruff sobre los árboles afectados encontró **1100 hallazgos**, mayoritariamente
+deuda preexistente en módulos no modificados; las gates de lint y tipos a nivel
+de proyecto continúan pendientes. Los imports de todos los archivos modificados
+pasan los checks focales `F401` e `I001`; Black pasa en los 31 archivos Python
+del cambio. El score global sube solo a **2.6/10**: se corrige una dependencia
+de capa clara y un borde obsoleto de Python, mientras
+siguen sin resolverse numerosos acoplamientos, módulos con responsabilidades
+mezcladas y deuda de calidad global.

@@ -23,13 +23,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import time
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import HTTPRequestException
 from w3af.core.controllers.misc.diff import chunked_diff
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal
 from w3af.core.data.constants import severity
 from w3af.core.data.fuzzer.utils import rand_number
 from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.misc.encoding import smart_str_ignore
+from w3af.core.data.url.exceptions import HTTPRequestException
 
 
 class BlindSqliResponseDiff:

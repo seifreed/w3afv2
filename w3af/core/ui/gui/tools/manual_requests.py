@@ -27,10 +27,10 @@ import gtk
 
 from w3af.core.controllers.exceptions import (
     BaseFrameworkException,
-    HTTPRequestException,
     ProxyException,
     ScanMustStopException,
 )
+from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.ui.gui import entries, helpers
 from w3af.core.ui.gui.reqResViewer import ReqResViewer
 from w3af.core.ui.gui.tools.helpers.threaded_impact import ThreadedURLImpact

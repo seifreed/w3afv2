@@ -39,10 +39,7 @@ from http.client import _is_illegal_header_value, _is_legal_header_name
 
 import OpenSSL
 
-from w3af.core.controllers.exceptions import (
-    ConnectionPoolException,
-    HTTPRequestException,
-)
+from w3af.core.data.url.exceptions import ConnectionPoolException, HTTPRequestException
 from w3af.core.exceptions import BaseFrameworkException
 
 from .connection_manager import ConnectionManager

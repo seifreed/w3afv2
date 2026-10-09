@@ -40,8 +40,6 @@ import OpenSSL
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.exceptions import (
-    ConnectionPoolException,
-    HTTPRequestException,
     ScanMustStopByKnownReasonExc,
     ScanMustStopByUnknownReasonExc,
     ScanMustStopByUserRequest,
@@ -68,6 +66,7 @@ from w3af.core.data.url.constants import (
     TIMEOUT_MULT_CONST,
     TIMEOUT_UPDATE_ELAPSED_MIN,
 )
+from w3af.core.data.url.exceptions import ConnectionPoolException, HTTPRequestException
 from w3af.core.data.url.get_average_rtt import GetAverageRTTForMutant
 from w3af.core.data.url.handlers.keepalive import URLTimeoutError
 from w3af.core.data.url.helpers import get_clean_body, get_exception_reason

@@ -42,12 +42,17 @@ class TestUpperDaemon(unittest.TestCase):
     def test_basic(self):
         sent = "abc"
 
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock = ssl.wrap_socket(sock)
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        context.check_hostname = False
+        context.verify_mode = ssl.CERT_NONE
+        sock = context.wrap_socket(
+            socket.socket(socket.AF_INET, socket.SOCK_STREAM),
+            server_hostname="localhost",
+        )
 
         sock.connect(("127.0.0.1", self.ssl_daemon.get_port()))
-        sock.sendall(sent)
+        sock.sendall(sent.encode())
 
         received = sock.recv(3)
 
-        self.assertEqual(received, sent.upper())
+        self.assertEqual(received.decode(), sent.upper())

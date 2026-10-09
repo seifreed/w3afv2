@@ -27,11 +27,11 @@ from unittest.mock import Mock, call, patch
 import pytest
 
 from w3af.core.controllers.exceptions import (
-    HTTPRequestException,
     ScanMustStopByKnownReasonExc,
 )
 from w3af.core.data.constants.file_patterns import FILE_PATTERNS
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.data.url.tests.helpers.upper_daemon import (
     ThreadingUpperDaemon,

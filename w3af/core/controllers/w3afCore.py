@@ -52,7 +52,6 @@ from w3af.core.controllers.core_helpers.strategy_observers.thread_state_observer
 from w3af.core.controllers.core_helpers.target import CoreTarget
 from w3af.core.controllers.exceptions import (
     BaseFrameworkException,
-    HTTPRequestException,
     ScanMustStopByUnknownReasonExc,
     ScanMustStopByUserRequest,
     ScanMustStopException,
@@ -65,7 +64,6 @@ from w3af.core.controllers.misc.home_dir import (
     get_home_dir,
     verify_dir_has_perm,
 )
-from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.controllers.misc.temp_dir import (
     TEMP_DIR,
     create_temp_dir,
@@ -83,7 +81,9 @@ from w3af.core.controllers.threads.monkey_patch_debug import (
 )
 from w3af.core.controllers.threads.threadpool import Pool
 from w3af.core.data.kb.knowledge_base import kb
+from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.data.parsers import parser_cache
+from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 
 NO_MEMORY_MSG = (
