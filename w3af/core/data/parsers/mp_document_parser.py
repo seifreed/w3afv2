@@ -37,7 +37,6 @@ import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.ci.detect import is_running_on_ci
 from w3af.core.controllers.output_manager import log_sink_factory
 from w3af.core.controllers.profiling import start_profiling_no_core
-from w3af.core.controllers.profiling.core_stats import core_profiling_is_enabled
 from w3af.core.controllers.profiling.cpu_usage import user_wants_cpu_profiling
 from w3af.core.controllers.profiling.memory_usage import user_wants_memory_profiling
 from w3af.core.controllers.profiling.pytracemalloc import user_wants_pytracemalloc
@@ -54,6 +53,7 @@ from w3af.core.data.parsers.ipc.serialization import (
 )
 from w3af.core.exceptions import ScanMustStopException
 from w3af.core.process import is_main_process
+from w3af.core.profiling import is_core_profiling_enabled
 
 # 128 MB
 DEFAULT_MEMORY_LIMIT = 128 * 1024 * 1024
@@ -81,7 +81,7 @@ class MultiProcessingDocumentParser:
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    DEBUG = core_profiling_is_enabled()
+    DEBUG = is_core_profiling_enabled()
     MAX_WORKERS = (
         2 if is_running_on_ci() else min(max(multiprocessing.cpu_count() // 2, 1), 2)
     )

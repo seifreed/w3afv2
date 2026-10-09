@@ -26,7 +26,6 @@ from concurrent.futures import TimeoutError
 
 # pylint: enable=E0401
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.profiling.core_stats import core_profiling_is_enabled
 from w3af.core.data.db.disk_set import DiskSet
 
 # pylint: disable=E0401
@@ -40,6 +39,7 @@ from w3af.core.data.parsers.utils.response_uniq_id import (
 )
 from w3af.core.exceptions import BaseFrameworkException, ScanMustStopException
 from w3af.core.process import is_main_process
+from w3af.core.profiling import is_core_profiling_enabled
 
 
 class ParserCache(CacheStats):
@@ -51,7 +51,7 @@ class ParserCache(CacheStats):
 
     CACHE_SIZE = 10
     MAX_CACHEABLE_BODY_LEN = 1024 * 1024
-    DEBUG = core_profiling_is_enabled()
+    DEBUG = is_core_profiling_enabled()
 
     def __init__(self):
         super().__init__()

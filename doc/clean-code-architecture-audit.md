@@ -676,3 +676,20 @@ compilación y `git diff --check` pasan en el cambio, y no quedan imports de la
 ruta anterior. La puntuación global pasa a **3.5/10**: otro servicio genérico
 sale de controllers, aunque siguen pendientes los acoplamientos restantes,
 fallos de integración de red y gates de calidad globales.
+
+## Avance: configuración de profiling dentro de core
+
+`core_profiling_is_enabled()` solo lee `W3AF_CORE_PROFILING`, pero vivía en
+`controllers.profiling` y lo importaban directamente los dos parsers de
+`core.data`. La política pasó a `core.profiling.is_core_profiling_enabled()`;
+`core_stats` conserva su decorator usando la nueva función y los parsers ya no
+dependen del paquete de controllers para esta configuración. Se mantuvo el
+contrato de conversión a entero: valores que representan numéricamente `1`,
+incluido `"01"`, activan profiling.
+
+Cinco tests de configuración real del entorno pasan con **100% de cobertura**;
+otros cinco tests de `parser_cache` pasan (el caso de timeout previamente
+inestable sigue excluido). Black, Ruff (`F401`, `I001`), compilación y
+`git diff --check` pasan en el cambio. La puntuación global pasa a **3.6/10**:
+se elimina otro acoplamiento ascendente, pero siguen pendientes muchos imports
+de controllers desde datos, las gates globales y deuda de tests/integración.

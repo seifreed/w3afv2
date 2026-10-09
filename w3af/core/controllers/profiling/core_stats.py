@@ -21,13 +21,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import json
-import os
 import sys
 import traceback
 from functools import partial
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.data.misc.number_generator import consecutive_number_generator
+from w3af.core.profiling import is_core_profiling_enabled
 
 from .utils import cancel_thread, dump_data_every_thread, get_filename_fmt
 
@@ -36,18 +36,9 @@ DELAY_MINUTES = 2
 SAVE_THREAD_PTR = []
 
 
-def core_profiling_is_enabled():
-    env_value = os.environ.get("W3AF_CORE_PROFILING", "0")
-
-    if env_value.isdigit() and int(env_value) == 1:
-        return True
-
-    return False
-
-
 def should_profile_core(wrapped):
     def inner(w3af_core):
-        if core_profiling_is_enabled():
+        if is_core_profiling_enabled():
             return wrapped(w3af_core)
 
     return inner
