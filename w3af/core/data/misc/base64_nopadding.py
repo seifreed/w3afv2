@@ -38,7 +38,7 @@ def decode_base64(data):
     missing_padding = len(data) % 4
     if missing_padding != 0:
         data += b"=" * (4 - missing_padding)
-    return base64.decodestring(data)
+    return base64.decodebytes(data)
 
 
 def is_base64(data):
@@ -69,12 +69,28 @@ def maybe_decode_base64(data):
     if len(data) < 16:
         return False, None
 
-    if not BASE64_RE.match(data):
+    if isinstance(data, bytes):
+        try:
+            text = data.decode("ascii")
+        except UnicodeDecodeError:
+            return False, None
+        raw = data
+    else:
+        text = data
+        try:
+            raw = data.encode("ascii")
+        except UnicodeEncodeError:
+            return False, None
+
+    if not BASE64_RE.match(text):
         return False, None
 
     try:
-        decoded_data = decode_base64(data)
+        decoded_data = decode_base64(raw)
     except binascii.Error:
         return False, None
+
+    if isinstance(data, str):
+        return True, decoded_data.decode("latin-1")
 
     return True, decoded_data

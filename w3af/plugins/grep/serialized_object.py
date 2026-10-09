@@ -34,7 +34,7 @@ from w3af.core.data.dc.factory import dc_from_hdrs_post
 from w3af.core.data.kb.info_set import InfoSet
 from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.misc.base64_nopadding import maybe_decode_base64
-from w3af.core.data.misc.encoding import smart_str_ignore
+from w3af.core.data.misc.encoding import smart_str_ignore, smart_unicode
 
 
 class serialized_object(GrepPlugin):
@@ -48,7 +48,7 @@ class serialized_object(GrepPlugin):
 
     SERIALIZED_OBJECT_RE: ClassVar = {
         "PHP": [
-            re.compile(r'^(a|O):\d{1,3}:({[sai]|")'),
+            re.compile(rb'^(a|O):\d{1,3}:({[sai]|")'),
         ]
     }
 
@@ -165,7 +165,7 @@ class serialized_object(GrepPlugin):
         v = Vuln("Serialized object", desc, severity.LOW, response.id, self.get_name())
 
         v.set_url(response.get_url())
-        v.add_to_highlight(parameter_value)
+        v.add_to_highlight(smart_unicode(parameter_value))
         v[SerializedObjectInfoSet.ITAG] = parameter_name
 
         self.kb_append_uniq_group(
