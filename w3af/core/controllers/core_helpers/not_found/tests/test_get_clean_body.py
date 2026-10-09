@@ -23,13 +23,20 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-from w3af.core.controllers.core_helpers.not_found.get_clean_body import get_clean_body
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.url.response_cleaner import get_clean_body
 
 
 class TestGetCleanBody(unittest.TestCase):
+    def test_non_text_response_is_returned_unchanged(self):
+        url = URL("http://w3af.org/image.png")
+        headers = Headers([("Content-Type", "image/png")])
+        body = "image body"
+        response = HTTPResponse(200, body, headers, url, url)
+
+        self.assertEqual(get_clean_body(response), body)
 
     def test_get_clean_body_14955(self):
         """

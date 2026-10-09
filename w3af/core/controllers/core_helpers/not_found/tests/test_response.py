@@ -22,10 +22,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-from w3af.core.controllers.core_helpers.not_found.response import FourOhFourResponse
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.url.not_found_response import FourOhFourResponse
 
 
 class TestFourOhFourResponse(unittest.TestCase):
@@ -66,6 +66,14 @@ class TestFourOhFourResponse(unittest.TestCase):
 
         self.assertEqual(normalized_path_0, normalized_path_1)
 
+    def test_normalize_path_without_extension(self):
+        url = URL("https://w3af.org/assets/file")
+
+        self.assertEqual(
+            FourOhFourResponse.normalize_path(url),
+            "https://w3af.org/assets/filename",
+        )
+
     def test_dict_transformations(self):
         url = URL("http://w3af.com")
         headers = Headers([("Content-Type", "text/html")])
@@ -81,6 +89,7 @@ class TestFourOhFourResponse(unittest.TestCase):
         clean_response_from_dict = FourOhFourResponse.from_dict(clean_response_dict)
 
         self.assertEqual(clean_response, clean_response_from_dict)
+        self.assertEqual(clean_response_from_dict.body, "")
 
     def test_msgpack_transformations(self):
         url = URL("http://w3af.com")
@@ -99,3 +108,10 @@ class TestFourOhFourResponse(unittest.TestCase):
         )
 
         self.assertEqual(clean_response, clean_response_from_msgpack)
+
+    def test_equality_and_repr(self):
+        response = FourOhFourResponse(clean_body="body", url="/", code=404)
+        different_response = FourOhFourResponse(clean_body="other", url="/", code=404)
+
+        self.assertNotEqual(response, different_response)
+        self.assertEqual(repr(response), "<FourOhFourResponse (url:/, code:404)>")

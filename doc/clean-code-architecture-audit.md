@@ -474,3 +474,28 @@ del cambio. El score global sube solo a **2.6/10**: se corrige una dependencia
 de capa clara y un borde obsoleto de Python, mientras
 siguen sin resolverse numerosos acoplamientos, módulos con responsabilidades
 mezcladas y deuda de calidad global.
+
+## Avance: modelo de respuesta 404 en la capa URL
+
+`FourOhFourResponse` es un valor serializable que normaliza URLs y conserva
+datos de respuestas HTTP, pero estaba definido dentro de los controladores de
+fingerprinting. `core.data.misc.response_cache_key` dependía de esa capa para
+crear sus claves. El modelo se movió a `core.data.url.not_found_response` y su
+limpiador específico a `core.data.url.response_cleaner`; fingerprinting,
+decorators, generación de 404 y caché importan ahora desde la capa de datos.
+Las definiciones anteriores se eliminaron, sin reexportaciones de
+compatibilidad.
+
+Los tests del modelo, del limpiador y del consumidor `disk_deque` suman **15
+pruebas correctas**, con **100% de cobertura** en los dos módulos movidos.
+Black, los checks focales `F401`/`I001`, `compileall` y `git diff --check`
+pasan. No quedan imports desde las rutas anteriores. La suite de
+`fingerprint_404` no pudo recopilarse: dos clases de test tienen constructores
+que no aceptan el `methodName` que les pasa `unittest`/pytest; la integración
+completa de fingerprinting queda por validar.
+
+La puntuación global pasa a **2.7/10**: se retiró una dependencia directa de
+controllers desde `core.data` y el objeto de respuesta 404 quedó junto a sus
+reglas de normalización/limpieza. Continúan pendientes los numerosos imports
+ascendentes restantes, la suite de fingerprinting y las gates globales de Ruff,
+mypy y Bandit.

@@ -23,9 +23,9 @@ import unittest
 
 import pytest
 
-from w3af.core.controllers.core_helpers.fingerprint_404 import FourOhFourResponse
 from w3af.core.controllers.misc.temp_dir import create_temp_dir
 from w3af.core.data.db.disk_deque import DiskDeque
+from w3af.core.data.url.not_found_response import FourOhFourResponse
 
 
 @pytest.mark.smoke

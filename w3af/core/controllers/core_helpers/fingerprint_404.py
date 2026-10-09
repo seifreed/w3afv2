@@ -32,12 +32,12 @@ from w3af.core.controllers.core_helpers.not_found.fuzzy_equal_for_diff import (
 from w3af.core.controllers.core_helpers.not_found.generate_404 import (
     send_request_generate_404,
 )
-from w3af.core.controllers.core_helpers.not_found.response import FourOhFourResponse
 from w3af.core.controllers.misc.diff import chunked_diff
 from w3af.core.controllers.misc.fuzzy_string_cmp import MAX_FUZZY_LENGTH, fuzzy_equal
 from w3af.core.data.db.cached_disk_dict import CachedDiskDict
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.url.helpers import is_no_content_response
+from w3af.core.data.url.not_found_response import FourOhFourResponse
 
 IS_EQUAL_RATIO = 0.90
 NOT_404_RESPONSE_CODES = (200, 500, 301, 302, 303, 307, 401)

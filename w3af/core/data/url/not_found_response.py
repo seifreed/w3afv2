@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import msgpack
 
-from w3af.core.controllers.core_helpers.not_found.get_clean_body import get_clean_body
+from w3af.core.data.url.response_cleaner import get_clean_body
 
 
 class FourOhFourResponse:

@@ -26,12 +26,12 @@ import time
 
 # pylint: enable=E0401
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.core_helpers.not_found.response import FourOhFourResponse
 from w3af.core.data.fuzzer.utils import rand_alnum
 
 # pylint: disable=E0401
 from w3af.core.data.misc.lru import LRUDict
 from w3af.core.data.misc.response_cache_key import ResponseCacheKeyCache, quick_hash
+from w3af.core.data.url.not_found_response import FourOhFourResponse
 
 
 class Decorator:

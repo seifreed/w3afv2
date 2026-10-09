@@ -22,13 +22,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import zlib
 
-# pylint: enable=E0401
-from w3af.core.controllers.core_helpers.not_found.response import FourOhFourResponse
 from w3af.core.data.misc.encoding import smart_str_ignore
 
 # pylint: disable=E0401
 from w3af.core.data.misc.lru import SynchronizedLRUDict
 from w3af.core.data.misc.xml_bones import get_xml_bones
+from w3af.core.data.url.not_found_response import FourOhFourResponse
 
 
 def get_response_cache_key(http_response, clean_response=None, headers=None):
