@@ -1,5 +1,3 @@
-#!/usr/bin/python2.5
-
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -49,8 +47,6 @@ __date__ = "2009-03-24"
 __all__ = ["ParseError", "parse", "tokens"]
 
 import re
-import sys
-from functools import cmp_to_key
 
 
 class Object:
@@ -214,18 +210,105 @@ opTypeNames = [
     (")", "RIGHT_PAREN"),
 ]
 
+# Token type codes, one per entry of the tokens table.
+END = 0
+NEWLINE = 1
+SEMICOLON = 2
+COMMA = 3
+ASSIGN = 4
+HOOK = 5
+COLON = 6
+CONDITIONAL = 7
+OR = 8
+AND = 9
+BITWISE_OR = 10
+BITWISE_XOR = 11
+BITWISE_AND = 12
+EQ = 13
+NE = 14
+STRICT_EQ = 15
+STRICT_NE = 16
+LT = 17
+LE = 18
+GE = 19
+GT = 20
+LSH = 21
+RSH = 22
+URSH = 23
+PLUS = 24
+MINUS = 25
+MUL = 26
+DIV = 27
+MOD = 28
+NOT = 29
+BITWISE_NOT = 30
+UNARY_PLUS = 31
+UNARY_MINUS = 32
+INCREMENT = 33
+DECREMENT = 34
+DOT = 35
+LEFT_BRACKET = 36
+RIGHT_BRACKET = 37
+LEFT_CURLY = 38
+RIGHT_CURLY = 39
+LEFT_PAREN = 40
+RIGHT_PAREN = 41
+SCRIPT = 42
+BLOCK = 43
+LABEL = 44
+FOR_IN = 45
+CALL = 46
+NEW_WITH_ARGS = 47
+INDEX = 48
+ARRAY_INIT = 49
+OBJECT_INIT = 50
+PROPERTY_INIT = 51
+GETTER = 52
+SETTER = 53
+GROUP = 54
+LIST = 55
+IDENTIFIER = 56
+NUMBER = 57
+STRING = 58
+REGEXP = 59
+BREAK = 60
+CASE = 61
+CATCH = 62
+CONST = 63
+CONTINUE = 64
+DEBUGGER = 65
+DEFAULT = 66
+DELETE = 67
+DO = 68
+ELSE = 69
+ENUM = 70
+FALSE = 71
+FINALLY = 72
+FOR = 73
+FUNCTION = 74
+IF = 75
+IN = 76
+INSTANCEOF = 77
+NEW = 78
+NULL = 79
+RETURN = 80
+SWITCH = 81
+THIS = 82
+THROW = 83
+TRUE = 84
+TRY = 85
+TYPEOF = 86
+VAR = 87
+VOID = 88
+WHILE = 89
+WITH = 90
+
 keywords = {}
 
-# Define const END, etc., based on the token names.  Also map name to index.
+# Map keyword text to its token type code and every token text to its index.
 for i, t in list(tokens.copy().items()):
     if re.match(r"^[a-z]", t):
-        const_name = t.upper()
         keywords[t] = i
-    elif re.match(r"^\W", t):
-        const_name = dict(opTypeNames)[t]
-    else:
-        const_name = t
-    globals()[const_name] = i
     tokens[t] = i
 
 assignOps = {}
@@ -242,7 +325,7 @@ for i, j in opTypeNames:
         continue
     if opRegExpSrc != "^":
         opRegExpSrc += "|^"
-    opRegExpSrc += re.sub(r"[?|^&(){}\[\]+\-*\/\.]", lambda x: "\\%s" % x.group(0), i)
+    opRegExpSrc += re.sub(r"[?|^&(){}\[\]+\-*\/\.]", lambda x: "\\" + x.group(0), i)
 opRegExp = re.compile(opRegExpSrc)
 
 # Convert opTypeNames to an actual dictionary now that we don't care about ordering
@@ -259,9 +342,7 @@ reRegExp = re.compile(r"^\/((?:\\.|\[(?:\\.|[^\]])*\]|[^\/])+)\/([gimy]*)")
 
 class SyntaxError_(ParseError):
     def __init__(self, message, filename, lineno):
-        ParseError.__init__(
-            self, "Syntax error: %s\n%s:%s" % (message, filename, lineno)
-        )
+        ParseError.__init__(self, f"Syntax error: {message}\n{filename}:{lineno}")
 
 
 class Tokenizer:
@@ -390,10 +471,10 @@ class Tokenizer:
                 op = match.group(0)
                 if op in assignOps and input__[len(op)] == "=":
                     token.type_ = ASSIGN
-                    token.assignOp = globals()[opTypeNames[op]]
+                    token.assignOp = tokens[op]
                     token.value = op
                     return match.group(0) + "="
-                token.type_ = globals()[opTypeNames[op]]
+                token.type_ = tokens[op]
                 if self.scanOperand and (token.type_ in (PLUS, MINUS)):
                     token.type_ += UNARY_PLUS - PLUS
                 token.assignOp = None
@@ -417,7 +498,7 @@ class Tokenizer:
     def unget(self):
         self.lookahead += 1
         if self.lookahead == 4:
-            raise "PANIC: too much lookahead!"
+            raise ParseError("PANIC: too much lookahead!")
         self.tokenIndex = (self.tokenIndex - 1) & 3
 
     def newSyntaxError(self, m):
@@ -448,7 +529,7 @@ def Script(t, x):
 
 class Node(list):
 
-    def __init__(self, t, type_=None, args=[]):
+    def __init__(self, t, type_=None, args=()):
         list.__init__(self)
 
         token = t.token
@@ -472,7 +553,7 @@ class Node(list):
     type = property(lambda self: tokenstr(self.type_))
 
     # Always use push to add operands to an expression, to update start and end.
-    def append(self, kid, numbers=[]):
+    def append(self, kid):
         if kid:
             if hasattr(self, "start") and kid.start < self.start:
                 self.start = kid.start
@@ -483,7 +564,7 @@ class Node(list):
     indentLevel = 0
 
     def __str__(self):
-        a = list((str(i), v) for i, v in enumerate(self))
+        a = [(str(i), v) for i, v in enumerate(self)]
         for attr in dir(self):
             if attr[0] == "_":
                 continue
@@ -511,15 +592,15 @@ class Node(list):
                 a.append((attr, getattr(self, attr)))
         if len(self):
             a.append(("length", len(self)))
-        a.sort(key=cmp_to_key(lambda a, b: cmp(a[0], b[0])))
+        a.sort(key=lambda item: item[0])
         INDENTATION = "    "
         Node.indentLevel += 1
         n = Node.indentLevel
-        s = "{\n%stype: %s" % ((INDENTATION * n), tokenstr(self.type_))
+        s = f"{{\n{INDENTATION * n}type: {tokenstr(self.type_)}"
         for i, value in a:
-            s += ",\n%s%s: " % ((INDENTATION * n), i)
+            s += f",\n{INDENTATION * n}{i}: "
             if i == "value" and self.type_ == REGEXP:
-                s += "/%s/%s" % (value["regexp"], value["modifiers"])
+                s += f"/{value['regexp']}/{value['modifiers']}"
             elif value is None:
                 s += "null"
             elif value is False:
@@ -532,7 +613,7 @@ class Node(list):
                 s += str(value)
         Node.indentLevel -= 1
         n = Node.indentLevel
-        s += "\n%s}" % (INDENTATION * n)
+        s += f"\n{INDENTATION * n}}}"
         return s
 
     __repr__ = __str__
@@ -902,103 +983,101 @@ def ParenExpression(t, x):
 
 
 opPrecedence = {
-    "SEMICOLON": 0,
-    "COMMA": 1,
-    "ASSIGN": 2,
-    "HOOK": 2,
-    "COLON": 2,
+    SEMICOLON: 0,
+    COMMA: 1,
+    ASSIGN: 2,
+    HOOK: 2,
+    COLON: 2,
     # The above all have to have the same precedence, see bug 330975.
-    "OR": 4,
-    "AND": 5,
-    "BITWISE_OR": 6,
-    "BITWISE_XOR": 7,
-    "BITWISE_AND": 8,
-    "EQ": 9,
-    "NE": 9,
-    "STRICT_EQ": 9,
-    "STRICT_NE": 9,
-    "LT": 10,
-    "LE": 10,
-    "GE": 10,
-    "GT": 10,
-    "IN": 10,
-    "INSTANCEOF": 10,
-    "LSH": 11,
-    "RSH": 11,
-    "URSH": 11,
-    "PLUS": 12,
-    "MINUS": 12,
-    "MUL": 13,
-    "DIV": 13,
-    "MOD": 13,
-    "DELETE": 14,
-    "VOID": 14,
-    "TYPEOF": 14,
-    # "PRE_INCREMENT": 14, "PRE_DECREMENT": 14,
-    "NOT": 14,
-    "BITWISE_NOT": 14,
-    "UNARY_PLUS": 14,
-    "UNARY_MINUS": 14,
-    "INCREMENT": 15,
-    "DECREMENT": 15,  # postfix
-    "NEW": 16,
-    "DOT": 17,
+    OR: 4,
+    AND: 5,
+    BITWISE_OR: 6,
+    BITWISE_XOR: 7,
+    BITWISE_AND: 8,
+    EQ: 9,
+    NE: 9,
+    STRICT_EQ: 9,
+    STRICT_NE: 9,
+    LT: 10,
+    LE: 10,
+    GE: 10,
+    GT: 10,
+    IN: 10,
+    INSTANCEOF: 10,
+    LSH: 11,
+    RSH: 11,
+    URSH: 11,
+    PLUS: 12,
+    MINUS: 12,
+    MUL: 13,
+    DIV: 13,
+    MOD: 13,
+    DELETE: 14,
+    VOID: 14,
+    TYPEOF: 14,
+    # PRE_INCREMENT: 14, "PRE_DECREMENT": 14,
+    NOT: 14,
+    BITWISE_NOT: 14,
+    UNARY_PLUS: 14,
+    UNARY_MINUS: 14,
+    INCREMENT: 15,
+    DECREMENT: 15,  # postfix
+    NEW: 16,
+    DOT: 17,
 }
 
-# Map operator type code to precedence
-for i in opPrecedence.copy():
-    opPrecedence[globals()[i]] = opPrecedence[i]
+
+def precedence(type_):
+    """Return the binding power of an operator type, lowest for non-operators."""
+    return opPrecedence.get(type_, -1)
+
 
 opArity = {
-    "COMMA": -2,
-    "ASSIGN": 2,
-    "HOOK": 3,
-    "OR": 2,
-    "AND": 2,
-    "BITWISE_OR": 2,
-    "BITWISE_XOR": 2,
-    "BITWISE_AND": 2,
-    "EQ": 2,
-    "NE": 2,
-    "STRICT_EQ": 2,
-    "STRICT_NE": 2,
-    "LT": 2,
-    "LE": 2,
-    "GE": 2,
-    "GT": 2,
-    "IN": 2,
-    "INSTANCEOF": 2,
-    "LSH": 2,
-    "RSH": 2,
-    "URSH": 2,
-    "PLUS": 2,
-    "MINUS": 2,
-    "MUL": 2,
-    "DIV": 2,
-    "MOD": 2,
-    "DELETE": 1,
-    "VOID": 1,
-    "TYPEOF": 1,
-    # "PRE_INCREMENT": 1, "PRE_DECREMENT": 1,
-    "NOT": 1,
-    "BITWISE_NOT": 1,
-    "UNARY_PLUS": 1,
-    "UNARY_MINUS": 1,
-    "INCREMENT": 1,
-    "DECREMENT": 1,  # postfix
-    "NEW": 1,
-    "NEW_WITH_ARGS": 2,
-    "DOT": 2,
-    "INDEX": 2,
-    "CALL": 2,
-    "ARRAY_INIT": 1,
-    "OBJECT_INIT": 1,
-    "GROUP": 1,
+    COMMA: -2,
+    ASSIGN: 2,
+    HOOK: 3,
+    OR: 2,
+    AND: 2,
+    BITWISE_OR: 2,
+    BITWISE_XOR: 2,
+    BITWISE_AND: 2,
+    EQ: 2,
+    NE: 2,
+    STRICT_EQ: 2,
+    STRICT_NE: 2,
+    LT: 2,
+    LE: 2,
+    GE: 2,
+    GT: 2,
+    IN: 2,
+    INSTANCEOF: 2,
+    LSH: 2,
+    RSH: 2,
+    URSH: 2,
+    PLUS: 2,
+    MINUS: 2,
+    MUL: 2,
+    DIV: 2,
+    MOD: 2,
+    DELETE: 1,
+    VOID: 1,
+    TYPEOF: 1,
+    # PRE_INCREMENT: 1, "PRE_DECREMENT": 1,
+    NOT: 1,
+    BITWISE_NOT: 1,
+    UNARY_PLUS: 1,
+    UNARY_MINUS: 1,
+    INCREMENT: 1,
+    DECREMENT: 1,  # postfix
+    NEW: 1,
+    NEW_WITH_ARGS: 2,
+    DOT: 2,
+    INDEX: 2,
+    CALL: 2,
+    ARRAY_INIT: 1,
+    OBJECT_INIT: 1,
+    GROUP: 1,
 }
-
-# Map operator type code to arity.
-for i in opArity.copy():
-    opArity[globals()[i]] = opArity[i]
 
 
 def Expression(t, x, stop=None):
@@ -1060,9 +1139,7 @@ def Expression(t, x, stop=None):
                 if t.scanOperand:
                     raise BreakOutOfLoops
                 while (
-                    operators
-                    and opPrecedence.get(operators[-1].type_, None)
-                    > opPrecedence.get(tt)
+                    operators and precedence(operators[-1].type_) > precedence(tt)
                 ) or (tt == COLON and operators and operators[-1].type_ == ASSIGN):
                     reduce_()
                 if tt == COLON:
@@ -1109,23 +1186,21 @@ def Expression(t, x, stop=None):
             ):
                 # We're treating comma as left-associative so reduce can fold
                 # left-heavy COMMA trees into a single array.
-                if tt == IN:
-                    # An in operator should not be parsed if we're parsing the
-                    # head of a for (...) loop, unless it is in the then part of
-                    # a conditional expression, or parenthesized somehow.
-                    if (
-                        x.inForLoopInit
-                        and not x.hookLevel
-                        and not x.bracketLevel
-                        and not x.curlyLevel
-                        and not x.parenLevel
-                    ):
-                        raise BreakOutOfLoops
+                # An in operator should not be parsed if we're parsing the
+                # head of a for (...) loop, unless it is in the then part of
+                # a conditional expression, or parenthesized somehow.
+                if (
+                    tt == IN
+                    and x.inForLoopInit
+                    and not x.hookLevel
+                    and not x.bracketLevel
+                    and not x.curlyLevel
+                    and not x.parenLevel
+                ):
+                    raise BreakOutOfLoops
                 if t.scanOperand:
                     raise BreakOutOfLoops
-                while operators and opPrecedence.get(
-                    operators[-1].type_
-                ) >= opPrecedence.get(tt):
+                while operators and precedence(operators[-1].type_) >= precedence(tt):
                     reduce_()
                 if tt == DOT:
                     t.mustMatch(IDENTIFIER)
@@ -1161,9 +1236,9 @@ def Expression(t, x, stop=None):
 
                     # Use >, not >=, so postfix has higher precedence than
                     # prefix.
-                    while operators and opPrecedence.get(
-                        operators[-1].type_, None
-                    ) > opPrecedence.get(tt):
+                    while operators and precedence(operators[-1].type_) > precedence(
+                        tt
+                    ):
                         reduce_()
                     n = Node(t, tt, [operands.pop()])
                     n.postfix = True
@@ -1269,9 +1344,8 @@ def Expression(t, x, stop=None):
                     operators.append(Node(t, GROUP))
                     x.parenLevel += 1
                 else:
-                    while (
-                        operators
-                        and opPrecedence.get(operators[-1].type_) > opPrecedence[NEW]
+                    while operators and precedence(operators[-1].type_) > precedence(
+                        NEW
                     ):
                         reduce_()
 
@@ -1360,7 +1434,3 @@ def parse(source, filename=None, starting_line_number=1):
     if not t.done:
         raise t.newSyntaxError("Syntax error")
     return n
-
-
-if __name__ == "__main__":
-    print(str(parse(open(sys.argv[1]).read(), sys.argv[1])))

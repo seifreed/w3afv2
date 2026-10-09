@@ -20,7 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from .jsparser import parse
+from typing import ClassVar
+
+from .jsparser import ParseError, parse
 
 
 class StringExtractor:
@@ -46,22 +48,26 @@ class StringExtractor:
     :see: https://github.com/andresriancho/w3af/issues/2104
     """
 
-    CHILD_ATTRS = ["thenPart", "elsePart", "expression", "body", "initializer"]
+    CHILD_ATTRS: ClassVar[tuple[str, ...]] = (
+        "thenPart",
+        "elsePart",
+        "expression",
+        "body",
+        "initializer",
+    )
 
     def __init__(self, js_source):
         self.js_strings = set()
 
         try:
             root = parse(js_source)
-        except Exception:
-            pass
-        else:
-            self.visit(root)
+        except ParseError:
+            return
+        self.visit(root)
 
     def visit(self, root):
-        call = lambda n: getattr(self, "visit_%s" % n.type.lower(), self.noop)(n)
-
-        call(root)
+        visitor = getattr(self, f"visit_{root.type.lower()}", self.noop)
+        visitor(root)
 
         self.visit_children(root)
 
