@@ -26,11 +26,15 @@ import urllib.parse
 import urllib.request
 from unittest.mock import Mock, _Call, patch
 
+from w3af.core.data.db.history import HistoryItem
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url import opener_settings
 from w3af.core.data.url.handlers.cache import CacheHandler
+from w3af.core.data.url.handlers.cache_backend.db import SQLCachedResponse
+from w3af.core.data.url.handlers.cache_backend.utils import gen_hash
 from w3af.core.data.url.http_request import HTTPRequest
+from w3af.core.data.url.http_response import HTTPResponse
 
 
 class TestCacheHandler(unittest.TestCase):
@@ -80,6 +84,24 @@ class TestCacheHandler(unittest.TestCase):
         self.assertEqual(cached_response.read(), response.read())
         self.assertEqual(Headers(list(cached_response.info().items())), response.info())
         self.assertEqual(cached_response.geturl(), response.geturl())
+
+    def test_cached_response_keeps_headers(self):
+        url = URL("http://www.w3af.org/")
+        request = HTTPRequest(url, cache=True)
+        CacheHandler()
+
+        headers = Headers([("Content-Type", "text/html")])
+        response = HTTPResponse(200, "<html/>", headers, url, url, msg="OK")
+        response.set_id(1)
+        response.set_alias(gen_hash(request))
+
+        history = HistoryItem()
+        history.request = request
+        history.response = response
+        history.save()
+
+        cached_response = SQLCachedResponse(request)
+        self.assertEqual(cached_response.info()["Content-Type"], "text/html")
 
     def test_no_cache(self):
         url = URL("http://www.w3af.org")

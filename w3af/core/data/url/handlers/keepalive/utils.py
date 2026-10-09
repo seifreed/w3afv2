@@ -12,6 +12,16 @@ def to_utf8_raw(unicode_or_str):
     return unicode_or_str
 
 
+def request_body_bytes(data):
+    """
+    :return: The bytes to send on the wire for a request body which might be
+             bytes, a string or a data container (form, JSON, etc.)
+    """
+    if isinstance(data, bytes):
+        return data
+    return to_utf8_raw(str(data))
+
+
 def debug(msg):
     if KA_DEBUG:
         LOGGER.debug("[keepalive] %s", msg)

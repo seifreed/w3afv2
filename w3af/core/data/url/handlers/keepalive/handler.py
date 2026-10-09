@@ -53,7 +53,7 @@ from .connections import (
     ProxyHTTPConnection,
     ProxyHTTPSConnection,
 )
-from .utils import debug, error, to_utf8_raw
+from .utils import debug, error, request_body_bytes, to_utf8_raw
 
 DEFAULT_CONTENT_TYPE = "application/x-www-form-urlencoded"
 
@@ -355,7 +355,7 @@ class KeepAliveHandler:
 
         data = req.get_data()
         if data is not None:
-            data = str(data)
+            data = request_body_bytes(data)
 
             if not req.has_header("Content-type"):
                 conn.putheader("Content-type", DEFAULT_CONTENT_TYPE)
