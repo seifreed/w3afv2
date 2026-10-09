@@ -38,7 +38,10 @@ class ThreadStateObserver(StrategyObserver):
     """
 
     ANALYZE_EVERY = 30
+    POLL_INTERVAL = 2.0
     STACK_TRACE_MIN_TIME = 120
+    MIN_RUNNING_TIME_TO_LOG = 10
+    MAX_ARGUMENT_LENGTH = 80
     DISCOVER_WORKER_RE = re.compile(
         "<bound method CrawlInfrastructure._discover_worker"
         r" of <CrawlInfrastructure\(CrawlInfraController,"
@@ -48,64 +51,33 @@ class ThreadStateObserver(StrategyObserver):
     def __init__(self):
         super().__init__()
 
-        self.should_stop = False
-
-        self.audit_thread = None
-        self.grep_thread = None
-        self.crawl_infra_thread = None
-        self.worker_thread = None
-
-        self._audit_lock = threading.RLock()
-        self._grep_lock = threading.RLock()
-        self._crawl_infra_lock = threading.RLock()
-        self._worker_thread_lock = threading.RLock()
+        self._stop = threading.Event()
+        self._threads_lock = threading.Lock()
+        self._threads = {}
 
     def end(self):
-        self.should_stop = True
+        self._stop.set()
 
-        if self.crawl_infra_thread is not None:
-            self.crawl_infra_thread.join()
+        with self._threads_lock:
+            threads = list(self._threads.values())
 
-        if self.audit_thread is not None:
-            self.audit_thread.join()
-
-        if self.grep_thread is not None:
-            self.grep_thread.join()
-
-        if self.worker_thread is not None:
-            self.worker_thread.join()
+        for thread in threads:
+            thread.join()
 
     def crawl(self, consumer, *args):
         """
-        Log the thread state for crawl infra plugins
+        Log the thread state for crawl infra plugins and the core worker pool
 
         :param consumer: A crawl consumer instance
         :param args: Fuzzable requests that we don't care about
         :return: None, everything is written to disk
         """
-        if self.crawl_infra_thread is not None and self.worker_thread is not None:
-            return
-
-        with self._crawl_infra_lock:
-            if self.crawl_infra_thread is None:
-
-                pool = consumer.get_pool()
-                self.crawl_infra_thread = threading.Thread(
-                    target=self.thread_worker,
-                    args=(pool, "CrawlInfraWorker"),
-                    name="CrawlInfraPoolStateObserver",
-                )
-                self.crawl_infra_thread.start()
-
-        with self._worker_thread_lock:
-            if self.worker_thread is None:
-                pool = consumer._w3af_core.worker_pool
-                self.worker_thread = threading.Thread(
-                    target=self.thread_worker,
-                    args=(pool, "Worker"),
-                    name="WorkerPoolStateObserver",
-                )
-                self.worker_thread.start()
+        self._observe_pool_once(
+            "CrawlInfraPoolStateObserver", consumer.get_pool, "CrawlInfraWorker"
+        )
+        self._observe_pool_once(
+            "WorkerPoolStateObserver", lambda: consumer._w3af_core.worker_pool, "Worker"
+        )
 
     def audit(self, consumer, *args):
         """
@@ -115,20 +87,9 @@ class ThreadStateObserver(StrategyObserver):
         :param args: Fuzzable requests that we don't care about
         :return: None, everything is written to disk
         """
-        if self.audit_thread is not None:
-            return
-
-        with self._audit_lock:
-            if self.audit_thread is not None:
-                return
-
-            pool = consumer.get_pool()
-            self.audit_thread = threading.Thread(
-                target=self.thread_worker,
-                args=(pool, "AuditorWorker"),
-                name="AuditPoolStateObserver",
-            )
-            self.audit_thread.start()
+        self._observe_pool_once(
+            "AuditPoolStateObserver", consumer.get_pool, "AuditorWorker"
+        )
 
     def grep(self, consumer, *args):
         """
@@ -138,57 +99,52 @@ class ThreadStateObserver(StrategyObserver):
         :param args: Fuzzable requests that we don't care about
         :return: None, everything is written to disk
         """
-        if self.grep_thread is not None:
-            return
+        self._observe_pool_once(
+            "GrepPoolStateObserver", consumer.get_pool, "GrepWorker"
+        )
 
-        with self._grep_lock:
-            if self.grep_thread is not None:
+    def _observe_pool_once(self, thread_name, get_pool, worker_name):
+        """
+        Start a thread which logs the state of the pool, unless it was already
+        started by a previous call.
+        """
+        with self._threads_lock:
+            if thread_name in self._threads:
                 return
 
-            pool = consumer.get_pool()
-            self.grep_thread = threading.Thread(
+            thread = threading.Thread(
                 target=self.thread_worker,
-                args=(pool, "GrepWorker"),
-                name="GrepPoolStateObserver",
+                args=(get_pool(), worker_name),
+                name=thread_name,
             )
-            self.grep_thread.start()
+            self._threads[thread_name] = thread
+            thread.start()
 
     def thread_worker(self, pool, name):
-        last_call = 0
+        """
+        Log the pool state every ANALYZE_EVERY seconds until end() is called,
+        which makes the thread finish in at most POLL_INTERVAL seconds.
+        """
+        last_call = 0.0
 
-        while not self.should_stop:
-            #
-            # The logic below makes sure that on average we wait 1 second (2/2)
-            # for the thread to join() when end() is called, and also that we
-            # print the stats to the log every ~30 seconds.
-            #
-            time.sleep(2)
-
+        while not self._stop.is_set():
             current_time = time.time()
-            if (current_time - last_call) < self.ANALYZE_EVERY:
-                continue
 
-            last_call = current_time
+            if (current_time - last_call) >= self.ANALYZE_EVERY:
+                last_call = current_time
+                self.log_pool_state(pool, name)
 
-            #
-            # Now the real deal
-            #
-            if pool is None:
-                self.write_to_log(
-                    f"The {name} consumer finished all tasks and closed the pool."
-                )
-                self.write_to_log(f"100% of {name} workers are idle.")
-                break
+            self._stop.wait(self.POLL_INTERVAL)
 
-            inspect_data = pool.inspect_threads()
-            inspect_data = self.add_thread_stack(inspect_data)
-            self.inspect_data_to_log(pool, inspect_data)
+    def log_pool_state(self, pool, name):
+        inspect_data = self.add_thread_stack(pool.inspect_threads())
+        self.inspect_data_to_log(pool, inspect_data)
 
-            internal_thread_data = pool.get_internal_thread_state()
-            self.internal_thread_data_to_log(pool, name, internal_thread_data)
+        internal_thread_data = pool.get_internal_thread_state()
+        self.internal_thread_data_to_log(name, internal_thread_data)
 
-            pool_queue_sizes = pool.get_pool_queue_sizes()
-            self.pool_queue_sizes_to_log(pool, name, pool_queue_sizes)
+        pool_queue_sizes = pool.get_pool_queue_sizes()
+        self.pool_queue_sizes_to_log(name, pool_queue_sizes)
 
     def add_thread_stack(self, inspect_data):
         """
@@ -197,20 +153,11 @@ class ThreadStateObserver(StrategyObserver):
         know exactly what function the thread is running *now*, including the
         whole traceback.
         """
-        #
-        #   Define which workers we want to inspect
-        #
-        workers_to_inspect = []
-
-        for worker_state in inspect_data:
-            if worker_state["idle"] or worker_state["start_time"] is None:
-                continue
-
-            spent = time.time() - worker_state["start_time"]
-            if spent < self.STACK_TRACE_MIN_TIME:
-                continue
-
-            workers_to_inspect.append(worker_state["worker_id"])
+        workers_to_inspect = {
+            worker_state["worker_id"]
+            for worker_state in inspect_data
+            if self._has_been_running_for(worker_state, self.STACK_TRACE_MIN_TIME)
+        }
 
         #
         #   If there is nothing to do, just return to reduce the performance
@@ -219,44 +166,47 @@ class ThreadStateObserver(StrategyObserver):
         if not workers_to_inspect:
             return inspect_data
 
-        #
-        #   Find the workers in the thread list
-        #
-        for thread_id, frame in list(sys._current_frames().items()):
-            thread = self.get_thread_from_thread_id(thread_id)
+        threads_by_id = {thread.ident: thread for thread in threading.enumerate()}
 
-            if thread is None:
-                continue
+        for thread_id, frame in list(sys._current_frames().items()):
+            thread = threads_by_id.get(thread_id)
 
             if not hasattr(thread, "get_state"):
                 continue
 
-            state = thread.get_state()
-            worker_id = state["worker_id"]
+            worker_id = thread.get_state()["worker_id"]
 
             if worker_id not in workers_to_inspect:
                 continue
 
-            trace = []
-            for filename, lineno, name, line in traceback.extract_stack(frame):
-                trace.append(f"{filename}:{lineno} @ {name}()")
+            trace = [
+                f"{filename}:{lineno} @ {name}()"
+                for filename, lineno, name, _ in traceback.extract_stack(frame)
+            ]
+            trace = ", ".join(trace[-10:])
 
-            trace = trace[-10:]
-            trace = ", ".join(trace)
-
-            # Now save the trace to the inspect_data
             for worker_state in inspect_data:
                 if worker_state["worker_id"] == worker_id:
                     worker_state["trace"] = trace
 
         return inspect_data
 
-    def get_thread_from_thread_id(self, thread_id):
-        for thread in threading.enumerate():
-            if thread.ident == thread_id:
-                return thread
+    @staticmethod
+    def _running_time(worker_state):
+        """
+        :return: The seconds the worker has been running its current job, None
+                 for idle workers.
+        """
+        if worker_state["idle"] or worker_state["start_time"] is None:
+            return None
 
-    def pool_queue_sizes_to_log(self, pool, name, pool_queue_sizes):
+        return time.time() - worker_state["start_time"]
+
+    def _has_been_running_for(self, worker_state, min_time):
+        running_time = self._running_time(worker_state)
+        return running_time is not None and running_time >= min_time
+
+    def pool_queue_sizes_to_log(self, name, pool_queue_sizes):
         inqueue_size = pool_queue_sizes.get("inqueue_size", None)
         outqueue_size = pool_queue_sizes.get("outqueue_size", None)
 
@@ -265,7 +215,7 @@ class ThreadStateObserver(StrategyObserver):
 
         self.write_to_log(msg % args)
 
-    def internal_thread_data_to_log(self, pool, name, internal_thread_data):
+    def internal_thread_data_to_log(self, name, internal_thread_data):
         worker_handler = internal_thread_data["worker_handler"]
         task_handler = internal_thread_data["task_handler"]
         result_handler = internal_thread_data["result_handler"]
@@ -299,80 +249,17 @@ class ThreadStateObserver(StrategyObserver):
             self.write_to_log(f"No pool workers at {name}.")
             return
 
-        #
-        #   Write the detailed information
-        #
-        idle_workers = []
+        idle_workers = [
+            worker_state for worker_state in inspect_data if worker_state["idle"]
+        ]
 
+        #
+        #   Write the detailed information. Save us some disk space and
+        #   sanity, only log worker state if it has been running for a while
+        #
         for worker_state in inspect_data:
-            if worker_state["idle"]:
-                idle_workers.append(worker_state)
-                continue
-
-            if worker_state["start_time"] is None:
-                continue
-
-            spent = time.time() - worker_state["start_time"]
-
-            # Save us some disk space and sanity, only log worker state if it has
-            # been running for at least 10 seconds
-            if spent < 10:
-                continue
-
-            parts = []
-            for arg in worker_state["args"]:
-                try:
-                    arg_repr = repr(arg)
-                except UnicodeEncodeError:
-                    arg_str = smart_unicode(arg)
-                else:
-                    arg_str = smart_unicode(arg_repr)
-
-                if len(arg_str) > 80:
-                    arg_str = arg_str[:80] + "...'"
-
-                parts.append(arg_str)
-
-            args_str = ", ".join(parts)
-
-            short_kwargs = {}
-            for key, value in worker_state["kwargs"].items():
-                try:
-                    value_repr = repr(value)
-                except UnicodeEncodeError:
-                    value_str = smart_unicode(value)
-                else:
-                    value_str = smart_unicode(value_repr)
-
-                if len(value_str) > 80:
-                    value_str = value_str[:80] + "...'"
-
-                short_kwargs[key] = value_str
-
-            kwargs_str = smart_unicode(short_kwargs)
-
-            func_name = smart_unicode(worker_state["func_name"])
-            func_name = self.clean_function_name(func_name)
-
-            message = (
-                "Worker with ID %s(%s) has been running job %s for %.2f seconds."
-                " The job is: %s(%s, kwargs=%s)"
-            )
-            message %= (
-                worker_state["name"],
-                worker_state["worker_id"],
-                worker_state["job"],
-                spent,
-                func_name,
-                args_str,
-                kwargs_str,
-            )
-
-            trace = worker_state.get("trace", None)
-            if trace is not None:
-                message += f". Function call tree: {trace}"
-
-            self.write_to_log(message)
+            if self._has_been_running_for(worker_state, self.MIN_RUNNING_TIME_TO_LOG):
+                self.write_to_log(self._running_worker_message(worker_state))
 
         #
         #   Write the idle workers all together at the end, this makes
@@ -383,18 +270,48 @@ class ThreadStateObserver(StrategyObserver):
             message %= (worker_state["name"], worker_state["worker_id"])
             self.write_to_log(message)
 
-        #
-        #   Write some stats
-        #
-        total_workers = len(inspect_data)
-        idle_workers = 0.0
-
-        for worker_state in inspect_data:
-            if worker_state["idle"]:
-                idle_workers += 1
-
-        idle_perc = (idle_workers / total_workers) * 100
+        idle_perc = len(idle_workers) / len(inspect_data) * 100
         self.write_to_log(f"{int(idle_perc)}% of {name} workers are idle.")
+
+    def _running_worker_message(self, worker_state):
+        args_str = ", ".join(self._short_repr(arg) for arg in worker_state["args"])
+
+        short_kwargs = {
+            key: self._short_repr(value)
+            for key, value in worker_state["kwargs"].items()
+        }
+        kwargs_str = smart_unicode(short_kwargs)
+
+        func_name = smart_unicode(worker_state["func_name"])
+        func_name = self.clean_function_name(func_name)
+
+        message = (
+            "Worker with ID %s(%s) has been running job %s for %.2f seconds."
+            " The job is: %s(%s, kwargs=%s)"
+        )
+        message %= (
+            worker_state["name"],
+            worker_state["worker_id"],
+            worker_state["job"],
+            self._running_time(worker_state),
+            func_name,
+            args_str,
+            kwargs_str,
+        )
+
+        trace = worker_state.get("trace", None)
+        if trace is not None:
+            message += f". Function call tree: {trace}"
+
+        return message
+
+    def _short_repr(self, value):
+        value_str = smart_unicode(repr(value))
+
+        if len(value_str) > self.MAX_ARGUMENT_LENGTH:
+            value_str = value_str[: self.MAX_ARGUMENT_LENGTH] + "...'"
+
+        return value_str
 
     def write_to_log(self, message):
         om.out.debug(message)
