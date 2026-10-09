@@ -51,7 +51,7 @@ class php_eggs(InfrastructurePlugin):
     ]
 
     # Empty EGG_DB array, will be filled with external data
-    EGG_DB: ClassVar = {}
+    EGG_DB: ClassVar[dict[str, dict[str, str]]] = {}
 
     def __init__(self):
         InfrastructurePlugin.__init__(self)

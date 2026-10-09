@@ -723,7 +723,7 @@ def fake_content_length(url):
 
 
 # TODO: put this global declaration somewhere easier to find....
-fingerprint = {
+fingerprint: dict[str, dict] = {
     "LEXICAL": {},
     "SYNTACTIC": {},
     "SEMANTIC": {},
