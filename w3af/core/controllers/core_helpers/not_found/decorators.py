@@ -20,33 +20,23 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import functools
 import threading
 import time
 
-# pylint: enable=E0401
 import w3af.core.controllers.output_manager as om
 from w3af.core.data.fuzzer.utils import rand_alnum
-
-# pylint: disable=E0401
-from w3af.core.data.misc.lru import LRUDict
+from w3af.core.data.misc.lru import SynchronizedLRUDict
 from w3af.core.data.misc.response_cache_key import ResponseCacheKeyCache, quick_hash
 from w3af.core.data.url.not_found_response import FourOhFourResponse
 
 
-class Decorator:
-    def __get__(self, instance, instancetype):
-        # https://stackoverflow.com/questions/5469956/python-decorator-self-is-mixed-up
-        return functools.partial(self.__call__, instance)
-
-    def __call__(self, *args, **kwargs):
-        raise NotImplementedError
-
-
-class LRUCache404(Decorator):
+class LRUCache404:
     """
-    This decorator caches the 404 responses to reduce CPU usage and,
-    in some cases, HTTP requests being sent.
+    Wraps a function(http_response, query) which detects 404 responses and
+    caches its results to reduce CPU usage and, in some cases, HTTP requests
+    being sent.
+
+    Each instance has its own cache, create one for each 404 database.
     """
 
     MAX_IN_MEMORY_RESULTS = 5000
@@ -55,40 +45,28 @@ class LRUCache404(Decorator):
     def __init__(self, _function):
         self._function = _function
 
-        # The performance impact of storing many items in the cached
-        # (in memory) part of the CachedDiskDict is low. The keys for
-        # this cache are hashes and the values are booleans
-        #
-        # Using the LRUDict instead of SynchronizedLRUDict because this decorator
-        # is run wrapped around PreventMultipleThreads, and also because we're
-        # consuming it in a way where thread-generated race condition errors can
-        # be ignored (they do not generate a big impact)
-        #
-        # LRUDict is faster than SynchronizedLRUDict because there are no locks
-        self._is_404_by_url_lru = LRUDict(capacity=self.MAX_IN_MEMORY_RESULTS)
-        self._is_404_by_body_lru = LRUDict(capacity=self.MAX_IN_MEMORY_RESULTS)
+        # The performance impact of storing many items in memory is low: the
+        # keys for these caches are hashes and the values are booleans. The
+        # caches are shared by all the threads running is_404() on different
+        # paths, so they need to be synchronized.
+        self._is_404_by_url_lru = SynchronizedLRUDict(
+            capacity=self.MAX_IN_MEMORY_RESULTS
+        )
+        self._is_404_by_body_lru = SynchronizedLRUDict(
+            capacity=self.MAX_IN_MEMORY_RESULTS
+        )
 
         self._stats_from_cache = 0.0
         self._stats_total = 0.0
 
         self._response_cache_key_cache = ResponseCacheKeyCache()
 
-    def __call__(self, *args, **kwargs):
-        http_response = args[1]
-        query = args[2]
-
+    def __call__(self, http_response, query):
         self._stats_total += 1
         self._log_stats(http_response)
 
         url_cache_key = self.get_url_cache_key(http_response)
-
-        try:
-            result = self._is_404_by_url_lru.get(url_cache_key, None)
-        except (AttributeError, AssertionError, KeyError) as _:
-            # This is a rare race conditions which happens when another
-            # thread modifies the cache and changes the __first item in
-            # the cache.
-            result = None
+        result = self._is_404_by_url_lru.get(url_cache_key, None)
 
         if result is not None:
             self._log_success(http_response, result, "URL")
@@ -97,38 +75,18 @@ class LRUCache404(Decorator):
         body_cache_key = self._response_cache_key_cache.get_response_cache_key(
             http_response, clean_response=query
         )
-
-        try:
-            result = self._is_404_by_body_lru.get(body_cache_key, None)
-        except (AttributeError, AssertionError, KeyError) as _:
-            # This is a rare race conditions which happens when another
-            # thread modifies the cache and changes the __first item in
-            # the cache.
-            result = None
+        result = self._is_404_by_body_lru.get(body_cache_key, None)
 
         if result is not None:
             self._log_success(http_response, result, "body")
             return result
 
         # Run the real is_404 function
-        result = self._function(*args, **kwargs)
+        result = self._function(http_response, query)
 
         # Save the result to both caches
-        try:
-            self._is_404_by_body_lru[body_cache_key] = result
-        except (AttributeError, AssertionError, KeyError) as _:
-            # This is a rare race conditions which happens when another
-            # thread modifies the cache and changes the __first item in
-            # the cache.
-            pass
-
-        try:
-            self._is_404_by_url_lru[url_cache_key] = result
-        except (AttributeError, AssertionError, KeyError) as _:
-            # This is a rare race conditions which happens when another
-            # thread modifies the cache and changes the __first item in
-            # the cache.
-            pass
+        self._is_404_by_body_lru[body_cache_key] = result
+        self._is_404_by_url_lru[url_cache_key] = result
 
         return result
 
@@ -168,12 +126,12 @@ class LRUCache404(Decorator):
         return quick_hash(http_response.get_uri().url_string)
 
 
-class PreventMultipleThreads(Decorator):
+class PreventMultipleThreads:
     """
-    This decorator tracks executions of is_404(), if one of those executions
-    is running with parameter X, and new one call is made to is_404() with the
-    same parameter (*), then the decorator forces the second caller to wait until
-    the first execution is completed.
+    Wraps a function(http_response) and tracks executions of is_404(), if one
+    of those executions is running with parameter X, and new one call is made
+    to is_404() with the same parameter (*), then the wrapper forces the second
+    caller to wait until the first execution is completed.
 
     (*) The way we compare parameters for is_404() here is not by string equals,
         we normalize the paths of each HTTP response and then compare them.
@@ -184,7 +142,7 @@ class PreventMultipleThreads(Decorator):
 
     The second execution will then run, query the cache, and get the result.
 
-    Without this decorator two executions would run, consume CPU, in some cases
+    Without this wrapper two executions would run, consume CPU, in some cases
     send HTTP requests, and finally both were going to write the same result
     to the cache.
 
@@ -201,15 +159,13 @@ class PreventMultipleThreads(Decorator):
     """
 
     # in seconds
-    TIMEOUT = 240
+    TIMEOUT = 240.0
 
     def __init__(self, _function):
         self._function = _function
         self._404_call_events = {}
 
-    def __call__(self, *args, **kwargs):
-        http_response = args[1]
-
+    def __call__(self, http_response):
         call_key = self.get_call_key(http_response)
 
         event = self._404_call_events.get(call_key, None)
@@ -224,7 +180,7 @@ class PreventMultipleThreads(Decorator):
             self._404_call_events[call_key] = event
 
             try:
-                return self._function(*args, **kwargs)
+                return self._function(http_response)
             finally:
                 event.set()
                 self._404_call_events.pop(call_key, None)
@@ -268,7 +224,7 @@ class PreventMultipleThreads(Decorator):
             else:
                 # All right! is_404 function call is complete, now let's call
                 # it again to obtain the result from the cache
-                return self._function(*args, **kwargs)
+                return self._function(http_response)
 
     def get_call_key(self, http_response):
         return FourOhFourResponse.normalize_path(http_response.get_uri())
