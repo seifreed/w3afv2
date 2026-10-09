@@ -23,13 +23,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import copy
 import hashlib
 import http.client
+import logging
 import re
 import threading
 import urllib.error
 import urllib.parse
 import urllib.request
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.data.constants.encodings import DEFAULT_ENCODING
 from w3af.core.data.db.disk_item import DiskItem
 from w3af.core.data.dc.headers import Headers
@@ -52,6 +52,7 @@ CHARSET_META_RE = re.compile(
     r'<meta.*?content=".*?charset=\s*?([\w-]+)".*?>', re.IGNORECASE
 )
 DEFAULT_WAIT_TIME = 0.2
+LOGGER = logging.getLogger(__name__)
 
 
 class HTTPResponse(DiskItem):
@@ -517,7 +518,7 @@ class HTTPResponse(DiskItem):
                 )
             except AttributeError:
                 msg = 'Invalid Content-Type value "%s" sent in HTTP response.'
-                om.out.debug(msg % (content_type_hvalue,))
+                LOGGER.debug(msg, content_type_hvalue)
             else:
                 content_type = self._content_type
 
@@ -695,7 +696,7 @@ class HTTPResponse(DiskItem):
                     "The remote web server failed to send the CONTENT_TYPE"
                     " header in HTTP response with id %s"
                 )
-                om.out.debug(msg % self.id)
+                LOGGER.debug(msg, self.id)
 
         elif not self.is_text_or_html():
             # Not text, save as it is.
@@ -718,7 +719,7 @@ class HTTPResponse(DiskItem):
                     f"Charset LookupError: unknown charset: {charset}; "
                     f"ignored and set to default: {DEFAULT_CHARSET}"
                 )
-                om.out.debug(msg)
+                LOGGER.debug(msg)
 
                 # Forcing it to use the default
                 charset = DEFAULT_CHARSET

@@ -1221,3 +1221,19 @@ errores en siete módulos importados o stubs ausentes; no se atribuyen a la
 migración de logs. La suite emite 747 deprecations desde `bravado-core` y
 `jsonschema`. Score global provisional: **5.1/10**; quedan 14 dependencias
 directas y las gates globales sin resolver.
+
+## Avance: HTTPResponse sin controllers
+
+`HTTPResponse` sustituye su import de `output_manager` por el logger estándar
+para sus tres diagnósticos de Content-Type y charset. Se conserva el nivel y el
+contenido relevante de los mensajes, y las dependencias directas de producción
+`core.data -> controllers` bajan de 14 a 13. Una regresión comprueba que el caso
+de body sin `Content-Type` se registra y conserva el body original.
+
+Verificación: **84 pruebas pasan y 1 se omite** en las suites de HTTPResponse,
+limpieza de bodies y parsers SGML/HTML. Black y Bandit focalizados pasan. Ruff
+focalizado solo señala los nombres de módulo heredados `HTTPResponse.py` y
+`test_HTTPResponse.py`; mypy no encuentra errores propios en HTTPResponse,
+pero detecta errores transitivos en módulos importados. Score global
+provisional: **5.2/10**; quedan 13 dependencias directas y las gates globales
+sin resolver.

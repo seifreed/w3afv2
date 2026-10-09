@@ -61,6 +61,14 @@ class TestHTTPResponse(unittest.TestCase):
         self.assertEqual(response.get_body(), "café")
         self.assertEqual(response.get_charset(), "utf-8")
 
+    def test_missing_content_type_is_logged(self):
+        response = self.create_resp(Headers(), b"body")
+
+        with self.assertLogs("w3af.core.data.url.HTTPResponse", level="DEBUG") as logs:
+            self.assertEqual(response.get_body(), b"body")
+
+        self.assertIn("failed to send the CONTENT_TYPE", logs.output[0])
+
     def test_binary_bytes_body_is_preserved(self):
         url = URL("http://w3af.com")
         headers = Headers([("Content-Type", "application/octet-stream")])
