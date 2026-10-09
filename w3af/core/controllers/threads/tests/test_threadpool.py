@@ -53,7 +53,7 @@ class TestWorkerPool(unittest.TestCase):
             self.assertEqual(str(te), "1 Boom!")
             # pylint: disable=E1101
             self.assertIn(
-                "raise TypeError('%s Boom!' % foo)", te.original_traceback_string
+                'raise TypeError(f"{foo} Boom!")', te.original_traceback_string
             )
 
     def test_terminate_join_after_tasks(self):
@@ -161,7 +161,7 @@ class TestWorkerPool(unittest.TestCase):
 
     def test_change_number_of_workers_requirement(self):
         worker_pool = Pool(processes=2, worker_names="WorkerThread")
-        self.assertRaises(AssertionError, worker_pool.set_worker_count, 3)
+        self.assertRaises(RuntimeError, worker_pool.set_worker_count, 3)
 
     def test_worker_stats_idle(self):
         worker_pool = Pool(processes=1, worker_names="WorkerThread")

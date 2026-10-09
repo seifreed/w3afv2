@@ -72,6 +72,9 @@ class BasePayloadTransfer:
             md5sum_res = self._exec_method("md5sum " + remote_filename)
             hash_ = md5sum_res.split(" ")[0]
 
+            if isinstance(file_content, str):
+                file_content = file_content.encode("latin-1")
+
             m = hashlib.md5(usedforsecurity=False)
             m.update(file_content)
             return hash_ == m.hexdigest()

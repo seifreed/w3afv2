@@ -63,7 +63,7 @@ class TestBaseConsumer(unittest.TestCase):
 
         exception_data = self.bc.out_queue.get()
 
-        self.assertTrue(exception_data.traceback is not None)
+        self.assertTrue(exception_data.traceback_str is not None)
         self.assertEqual(exception_data.phase, "audit")
         self.assertEqual(exception_data.plugin, "sqli")
         self.assertEqual(exception_data.exception, raised)

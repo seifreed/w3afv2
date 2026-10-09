@@ -52,6 +52,15 @@ class TestThreadStateObserver(unittest.TestCase):
         time.sleep(0.3)
 
         worker_states = worker_pool.inspect_threads()
+
+        # inspect_data_to_log only writes the detailed line for workers that
+        # have been running for at least 10 seconds. Backdate the running
+        # worker's start time so the detailed line is produced without the test
+        # having to wait that long.
+        for worker_state in worker_states:
+            if not worker_state["idle"]:
+                worker_state["start_time"] = time.time() - 11
+
         tso.inspect_data_to_log(worker_pool, worker_states)
 
         self.assertEqual(len(messages), 2, messages)
