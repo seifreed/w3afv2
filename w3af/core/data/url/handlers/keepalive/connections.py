@@ -142,23 +142,19 @@ class ProxyHTTPConnection(_HTTPConnection):
     def proxy_setup(self, url):
         # request is called before connect, so can interpret url and get
         # real host/port to be used to make CONNECT request to proxy
-        proto, rest = urllib.parse.splittype(url)
-        if proto is None:
+        split_url = urllib.parse.urlsplit(url)
+        if not split_url.scheme:
             raise ValueError(f"Unknown URL type: {url}")
 
-        # get host and port
-        host_port, rest = urllib.parse.splithost(rest)
-        host, port = urllib.parse.splitport(host_port)
-        self._real_host = host
+        self._real_host = split_url.hostname
 
-        # if port is not defined try to get from proto
-        if port is None:
+        if split_url.port is None:
             try:
-                self._real_port = self._ports[proto]
+                self._real_port = self._ports[split_url.scheme]
             except KeyError:
                 raise ValueError(f"Unknown protocol for: {url}")
         else:
-            self._real_port = int(port)
+            self._real_port = split_url.port
 
     def connect(self):
         super().connect()
@@ -193,7 +189,7 @@ class ProxyHTTPConnection(_HTTPConnection):
         while True:
             # should not use directly fp probably
             line = response.fp.readline()
-            if line == "\r\n":
+            if line in (b"\r\n", b""):
                 break
 
 
