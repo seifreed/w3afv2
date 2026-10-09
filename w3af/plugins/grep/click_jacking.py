@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from typing import ClassVar
+
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.csp.utils import retrieve_csp_policies
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
@@ -37,7 +39,7 @@ class click_jacking(GrepPlugin):
     """
 
     MAX_SAMPLES = 25
-    DO_NOT_FRAME = {301, 302, 303, 307, 400, 403, 404, 500}
+    DO_NOT_FRAME: ClassVar = {301, 302, 303, 307, 400, 403, 404, 500}
 
     def __init__(self):
         GrepPlugin.__init__(self)

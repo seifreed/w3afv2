@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from typing import ClassVar
+
 from w3af.core.controllers.delay_detection.exact_delay import ExactDelay
 from w3af.core.controllers.delay_detection.exact_delay_controller import (
     ExactDelayController,
@@ -53,7 +55,7 @@ class shell_shock(AuditPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    DELAY_TESTS = [
+    DELAY_TESTS: ClassVar = [
         PingDelay("() { test; }; ping -c %s 127.0.0.1"),
         ExactDelay("() { test; }; sleep %s"),
     ]

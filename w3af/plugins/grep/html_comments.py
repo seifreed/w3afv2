@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
+from typing import ClassVar
 
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
@@ -39,7 +40,7 @@ class html_comments(GrepPlugin):
 
     HTML_RE = re.compile("<[a-zA-Z]+ .*?>.*?</[a-zA-Z]+>")
 
-    HTML_FALSE_POSITIVES = {
+    HTML_FALSE_POSITIVES: ClassVar = {
         "[if IE]",
         "[if !IE]",
         "[if IE 7 ]",

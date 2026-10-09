@@ -24,6 +24,7 @@ import os
 import sqlite3
 import struct
 import tempfile
+from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
@@ -54,7 +55,7 @@ class find_dvcs(CrawlPlugin):
     :author: Andres Riancho (andres@andresriancho.com)
     """
 
-    BAD_HTTP_CODES = {301, 302, 307}
+    BAD_HTTP_CODES: ClassVar = {301, 302, 307}
 
     def __init__(self):
         CrawlPlugin.__init__(self)

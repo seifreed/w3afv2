@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from typing import ClassVar
+
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import RunOnce
@@ -39,14 +41,14 @@ class allowed_methods(InfrastructurePlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    BAD_CODES = {
+    BAD_CODES: ClassVar = {
         response_codes.UNAUTHORIZED,
         response_codes.NOT_IMPLEMENTED,
         response_codes.METHOD_NOT_ALLOWED,
         response_codes.FORBIDDEN,
     }
 
-    DAV_METHODS = {
+    DAV_METHODS: ClassVar = {
         "DELETE",
         "PROPFIND",
         "PROPPATCH",
@@ -57,9 +59,9 @@ class allowed_methods(InfrastructurePlugin):
         "MKCOL",
     }
 
-    COMMON_METHODS = {"OPTIONS", "GET", "HEAD", "POST", "TRACE", "PUT"}
+    COMMON_METHODS: ClassVar = {"OPTIONS", "GET", "HEAD", "POST", "TRACE", "PUT"}
 
-    UNCOMMON_METHODS = {
+    UNCOMMON_METHODS: ClassVar = {
         "*",
         "SUBSCRIPTIONS",
         "NOTIFY",
@@ -73,7 +75,7 @@ class allowed_methods(InfrastructurePlugin):
     }
 
     # Methods taken from http://www.w3.org/Protocols/HTTP/Methods.html
-    PROPOSED_METHODS = {
+    PROPOSED_METHODS: ClassVar = {
         "CHECKOUT",
         "SHOWMETHOD",
         "LINK",
@@ -85,7 +87,7 @@ class allowed_methods(InfrastructurePlugin):
         "REPLY",
     }
 
-    EXTRA_METHODS = {
+    EXTRA_METHODS: ClassVar = {
         "CONNECT",
         "RMDIR",
         "MKDIR",
@@ -97,7 +99,7 @@ class allowed_methods(InfrastructurePlugin):
         "INVALID",
     }
 
-    VERSION_CONTROL = {
+    VERSION_CONTROL: ClassVar = {
         "VERSION_CONTROL",
         "CHECKIN",
         "UNCHECKOUT",

@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from typing import ClassVar
+
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
@@ -35,7 +37,7 @@ class dot_net_errors(InfrastructurePlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    SPECIAL_CHARS = ["|", "~"]
+    SPECIAL_CHARS: ClassVar = ["|", "~"]
 
     RUNTIME_ERROR = "<h2> <i>Runtime Error</i> </h2></span>"
     REMOTE_MACHINE = (

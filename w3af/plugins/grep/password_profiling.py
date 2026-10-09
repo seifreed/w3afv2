@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from typing import ClassVar
+
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
@@ -38,9 +40,9 @@ class password_profiling(GrepPlugin):
     COMMON_WORDS = common_words
     COMMON_WORDS["unknown"] = COMMON_WORDS["en"]
 
-    BANNED_WORDS = {"forbidden", "browsing", "index"}
-    BANNED_STATUS = {500, 401, 403, 404}
-    ALLOWED_METHODS = {"POST", "GET"}
+    BANNED_WORDS: ClassVar = {"forbidden", "browsing", "index"}
+    BANNED_STATUS: ClassVar = {500, 401, 403, 404}
+    ALLOWED_METHODS: ClassVar = {"POST", "GET"}
 
     def __init__(self):
         GrepPlugin.__init__(self)

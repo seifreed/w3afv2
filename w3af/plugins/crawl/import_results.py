@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import base64
 import os
+from typing import ClassVar
 
 from lxml import etree
 from lxml.etree import XMLSyntaxError
@@ -195,7 +196,7 @@ class BurpParser:
           works with http and 80.
     """
 
-    requests = []
+    requests: ClassVar = []
     parsing_request = False
     current_is_base64 = False
 

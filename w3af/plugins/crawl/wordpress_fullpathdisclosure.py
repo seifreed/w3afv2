@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
+from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
@@ -36,7 +37,7 @@ class wordpress_fullpathdisclosure(CrawlPlugin):
     :author: Andres Tarantini ( atarantini@gmail.com )
     """
 
-    CHECK_PATHS = [
+    CHECK_PATHS: ClassVar = [
         "wp-content/plugins/akismet/akismet.php",
         "wp-content/plugins/hello.php",
     ]

@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from typing import ClassVar
+
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.data.constants import severity
@@ -69,7 +71,7 @@ class xpath(AuditPlugin):
     )
     _multi_in = MultiIn(XPATH_PATTERNS)
 
-    XPATH_TEST_PAYLOADS = [
+    XPATH_TEST_PAYLOADS: ClassVar = [
         "d'z\"0",
         # http://www.owasp.org/index.php/Testing_for_XML_Injection
         "<!--",

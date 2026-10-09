@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os.path
 from itertools import repeat
+from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
@@ -48,9 +49,9 @@ class open_api(CrawlPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    FILENAMES = ["swagger.json", "openapi.json", "openapi.yaml"]
+    FILENAMES: ClassVar = ["swagger.json", "openapi.json", "openapi.yaml"]
 
-    DIRECTORIES = [
+    DIRECTORIES: ClassVar = [
         "/",
         "/api/",
         "/api/v2/",

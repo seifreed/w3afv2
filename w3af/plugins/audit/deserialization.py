@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import base64
 import json
 import os
+from typing import ClassVar
 
 from w3af import ROOT_PATH
 from w3af.core.controllers.delay_detection.exact_delay import ExactDelay
@@ -56,7 +57,7 @@ class deserialization(AuditPlugin):
 
     PAYLOADS = os.path.join(ROOT_PATH, "plugins/audit/deserialization/")
     PAYLOAD_EXTENSION = ".json"
-    IS_LANG_FUNCTION_MAP = {
+    IS_LANG_FUNCTION_MAP: ClassVar = {
         "java": is_java_serialized_data,
         "net": is_net_serialized_data,
         "node": is_nodejs_serialized_data,

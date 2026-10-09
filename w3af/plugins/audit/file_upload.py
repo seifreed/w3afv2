@@ -24,6 +24,7 @@ import os
 from collections import deque
 from itertools import repeat
 from threading import RLock
+from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
@@ -57,7 +58,7 @@ class file_upload(AuditPlugin):
 
     MAX_BRUTEFORCE_FINDS = 250
 
-    UPLOAD_PATHS = [
+    UPLOAD_PATHS: ClassVar = [
         "uploads",
         "upload",
         "up",

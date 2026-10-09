@@ -25,6 +25,7 @@ import json
 import os.path
 from collections import namedtuple
 from itertools import repeat
+from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
@@ -42,7 +43,7 @@ class php_eggs(InfrastructurePlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    PHP_EGGS = [
+    PHP_EGGS: ClassVar = [
         ("?=PHPB8B5F2A0-3C92-11d3-A3A9-4C7B08C10000", "PHP Credits"),
         ("?=PHPE9568F34-D428-11d2-A769-00AA001ACF42", "PHP Logo"),
         ("?=PHPE9568F35-D428-11d2-A769-00AA001ACF42", "Zend Logo"),
@@ -50,7 +51,7 @@ class php_eggs(InfrastructurePlugin):
     ]
 
     # Empty EGG_DB array, will be filled with external data
-    EGG_DB = {}
+    EGG_DB: ClassVar = {}
 
     def __init__(self):
         InfrastructurePlugin.__init__(self)

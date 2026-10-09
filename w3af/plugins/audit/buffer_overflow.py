@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 from itertools import repeat
+from typing import ClassVar
 
 from tblib.decorators import Error
 
@@ -58,7 +59,9 @@ class buffer_overflow(AuditPlugin):
     # TODO: if lengths = [ 65 , 257 , 513 , 1025, 2049, 4097, 8000 ]
     # then i get a BadStatusLine exception from urllib2, is seems to be an
     # internal error. Tested against tomcat 5.5.7
-    BUFFER_TESTS = ["A" * payload_len for payload_len in [65, 257, 513, 1025, 2049]]
+    BUFFER_TESTS: ClassVar = [
+        "A" * payload_len for payload_len in [65, 257, 513, 1025, 2049]
+    ]
 
     def __init__(self):
         """

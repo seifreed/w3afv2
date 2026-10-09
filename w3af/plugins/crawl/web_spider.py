@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import itertools
 import re
+from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.constants.response_codes as http_constants
@@ -52,7 +53,7 @@ class web_spider(CrawlPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    UNAUTH_FORBID = {http_constants.UNAUTHORIZED, http_constants.FORBIDDEN}
+    UNAUTH_FORBID: ClassVar = {http_constants.UNAUTHORIZED, http_constants.FORBIDDEN}
 
     def __init__(self):
         CrawlPlugin.__init__(self)

@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import sys
 from errno import ENOSPC
 from functools import wraps
+from typing import ClassVar
 
 from termcolor import colored
 
@@ -60,7 +61,7 @@ class console(OutputPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    SEVERITY_COLOR = {
+    SEVERITY_COLOR: ClassVar = {
         HIGH: "red",
         MEDIUM: "yellow",
         LOW: "blue",

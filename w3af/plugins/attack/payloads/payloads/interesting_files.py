@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 from w3af.core.ui.console.tables import table
 from w3af.plugins.attack.payloads.base_payload import Payload
 
@@ -7,7 +9,7 @@ class interesting_files(Payload):
     Search for interesting files in all known directories.
     """
 
-    KNOWN_FALSE_POSITIVES = {
+    KNOWN_FALSE_POSITIVES: ClassVar = {
         "/bin/pwd",
     }
 

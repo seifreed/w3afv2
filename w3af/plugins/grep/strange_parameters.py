@@ -24,6 +24,7 @@ import re
 import urllib.error
 import urllib.parse
 import urllib.request
+from typing import ClassVar
 
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
@@ -44,7 +45,7 @@ class strange_parameters(GrepPlugin):
 
     STRANGE_RE_CHARS = re.compile(r"([a-zA-Z0-9. ]+)")
 
-    STRANGE_RE_LIST = [re.compile(r"\w+\(.*?\)")]
+    STRANGE_RE_LIST: ClassVar = [re.compile(r"\w+\(.*?\)")]
 
     SQL_RE = re.compile(
         r"(SELECT .*? FROM|" r"INSERT INTO .*? VALUES|" r"UPDATE .*? SET .*? WHERE)",

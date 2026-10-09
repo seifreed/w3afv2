@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from typing import ClassVar
+
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
@@ -50,7 +52,7 @@ class meta_tags(GrepPlugin):
     demonstrate to Google that you're the site owner. So there is probably a
     Sitemaps account for the site, if you haven't found it already.
     """
-    INTERESTING_WORDS = {
+    INTERESTING_WORDS: ClassVar = {
         "user": None,
         "pass": None,
         "microsoft": None,
