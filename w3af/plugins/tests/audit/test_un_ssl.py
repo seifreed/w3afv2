@@ -19,9 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import re
 from typing import ClassVar
-
-import httpretty
 
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
@@ -47,10 +46,6 @@ class TestUnSSL(PluginTest):
         }
     }
 
-    def setUp(self):
-        super().setUp()
-        self._register_httpretty_uri("https", "httpretty", 443)
-
     def test_found_unssl(self):
         cfg = self._run_configs["cfg"]
         self._scan(cfg["target"], cfg["plugins"])
@@ -65,12 +60,15 @@ class TestUnSSL(PluginTest):
 
 
 class TestNotFoundUnSSL(PluginTest):
-    """
-    Needed to create a different class since we don't want to use the
-    MOCK_RESPONSES framework.
-    """
 
     target_url = "http://httpretty/"
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(re.compile(r"http://httpretty/$"), "This is NOT SECURE"),
+        MockResponse(
+            re.compile(r"https://httpretty/$"), "The banking application is here."
+        ),
+    ]
 
     _run_configs: ClassVar[dict] = {
         "cfg": {
@@ -81,16 +79,7 @@ class TestNotFoundUnSSL(PluginTest):
         }
     }
 
-    @httpretty.activate
     def test_not_found_unssl(self):
-        httpretty.register_uri(
-            httpretty.GET, self.target_url, body="This is NOT SECURE"
-        )
-
-        httpretty.register_uri(
-            httpretty.GET, "https://httpretty/", body="The banking application is here."
-        )
-
         cfg = self._run_configs["cfg"]
         self._scan(cfg["target"], cfg["plugins"])
 
