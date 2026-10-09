@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import email.parser
 import http.client
 import io
 
@@ -89,7 +90,8 @@ class CachedResponse(io.StringIO):
     def headers(self):
         if not self._headers:
             headerbuf = self._get_from_response(CachedResponse.PART_HEADER)
-            self._headers = http.client.HTTPMessage(io.StringIO(headerbuf))
+            header_parser = email.parser.Parser(_class=http.client.HTTPMessage)
+            self._headers = header_parser.parsestr(headerbuf, headersonly=True)
         return self._headers
 
     def geturl(self):

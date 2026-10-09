@@ -355,7 +355,7 @@ class KeepAliveHandler:
 
         data = req.get_data()
         if data is not None:
-            data = str(data)
+            data = request_body_bytes(data)
 
             if not req.has_header("Content-type"):
                 conn.putheader("Content-type", DEFAULT_CONTENT_TYPE)
@@ -468,3 +468,12 @@ class HTTPSHandler(KeepAliveHandler, urllib.request.HTTPSHandler):
             )
         else:
             return HTTPSConnection(request.host, timeout=request.get_timeout())
+
+
+def request_body_bytes(data):
+    """
+    :return: The request body as the bytes which are sent to the wire
+    """
+    if isinstance(data, bytes):
+        return data
+    return str(data).encode("utf-8")

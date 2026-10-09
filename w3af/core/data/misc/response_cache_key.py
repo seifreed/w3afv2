@@ -66,11 +66,11 @@ def get_response_cache_key(http_response, clean_response=None, headers=None):
     #
     # Calculate the hash using all the captured information
     #
-    key = "".join(
+    key = b"".join(
         [
-            str(http_response.get_code()),
+            smart_str_ignore(str(http_response.get_code())),
             smart_str_ignore(normalized_path),
-            str(headers),
+            smart_str_ignore(str(headers)),
             smart_str_ignore(body),
         ]
     )
