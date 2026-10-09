@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import base64
+import binascii
 import os
 import tempfile
 import zlib
@@ -90,6 +91,9 @@ class InputFileOption(BaseOption):
                  string. This allows us to keep profiles which are
                  self-contained in that state.
         """
+        if not self._value:
+            return self._value
+
         #
         #   First we handle base64://
         #
@@ -131,7 +135,7 @@ class InputFileOption(BaseOption):
             except zlib.error:
                 msg = "The self contained file raised a zlib decoding error"
                 raise BaseFrameworkException(msg)
-            except TypeError:
+            except (binascii.Error, TypeError, ValueError):
                 msg = "The self contained file raised a base64 decode error"
                 raise BaseFrameworkException(msg)
 
@@ -197,18 +201,15 @@ class InputFileOption(BaseOption):
         return False
 
     def create_tempfile(self, encoded_data):
-        _file = tempfile.NamedTemporaryFile(
+        data = self.decode_b64_data(encoded_data)
+        with tempfile.NamedTemporaryFile(
             mode="w+b",
             suffix=self.DATA_SUFFIX,
             prefix=self.DATA_PREFIX,
             delete=False,
             dir=get_temp_dir(),
-        )
-
-        data = self.decode_b64_data(encoded_data)
-
-        _file.write(data)
-        _file.close()
+        ) as _file:
+            _file.write(data)
 
         return _file.name
 
@@ -221,9 +222,9 @@ class InputFileOption(BaseOption):
                              the base64:// specification at the beginning.
         :return: The decoded data
         """
-        encoded_data = encoded_data[len(self.DATA_PROTO) :]
-        encoded_data = base64.b64decode(encoded_data)
-        return encoded_data.decode("zlib")
+        encoded_data = "".join(encoded_data[len(self.DATA_PROTO) :].split())
+        encoded_data = base64.b64decode(encoded_data, validate=True)
+        return zlib.decompress(encoded_data)
 
     def encode_b64_data(self, filename):
         """
@@ -233,5 +234,7 @@ class InputFileOption(BaseOption):
         :return: Encoded data which can be decoded using decode_b64_data, this
                  output is usually stored in a profile.
         """
-        data = base64.b64encode(open(filename).read().encode("zlib")).strip()
-        return "%s%s" % (self.DATA_PROTO, data)
+        with open(filename, "rb") as input_file:
+            compressed_data = zlib.compress(input_file.read())
+        encoded_data = base64.b64encode(compressed_data).decode("ascii")
+        return "%s%s" % (self.DATA_PROTO, encoded_data)

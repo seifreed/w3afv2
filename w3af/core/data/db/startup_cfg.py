@@ -134,7 +134,7 @@ class StartUpConfig:
                 config.set(startsection, key, defaults[key])
 
         # Read from file
-        config.read(self._start_cfg_file)
+        config.read(self._start_cfg_file, encoding="utf-8")
 
         auto_upd = self._get_bool_val("auto-update")
         accepted_disclaimer = self._get_bool_val("accepted-disclaimer")
@@ -172,7 +172,7 @@ class StartUpConfig:
         """
         Saves current values to cfg file
         """
-        with open(self._start_cfg_file, "wb") as configfile:
+        with open(self._start_cfg_file, "w", encoding="utf-8") as configfile:
             self._config.write(configfile)
 
     ### PROPERTIES #

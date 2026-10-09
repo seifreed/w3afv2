@@ -549,3 +549,25 @@ afectados. La suite de `startup_cfg` sigue teniendo fallos preexistentes de
 pasa a **3.0/10**: se reduce un acoplamiento ascendente de `core.data` y se
 desacopla la configuración de rutas, pero quedan numerosas dependencias entre
 capas y gates globales sin resolver.
+
+## Avance: formatos persistidos compatibles con Python 3.14
+
+`StartUpConfig` ya lee y escribe `startup.conf` como texto UTF-8, el contrato
+esperado por `ConfigParser`. `InputFileOption` ahora comprime y descomprime
+bytes mediante `zlib`, codifica Base64 a texto ASCII y abre los ficheros en
+modo binario. La decodificación valida Base64 antes de crear el temporal,
+aceptando whitespace de los perfiles antiguos, evita dejar un fichero abierto
+ante datos inválidos y traduce los errores de formato a
+`BaseFrameworkException`. El valor vacío también se conserva al serializar
+perfiles, en lugar de convertirse accidentalmente en el directorio actual.
+
+Las suites focales de configuración y opciones pasan (**17 tests**) y Black,
+Ruff (`F401`, `I001`), compilación con `SyntaxWarning` como error y
+`git diff --check` pasan. La cobertura de `input_file_option.py` queda en 95%;
+las ramas restantes validan permisos de lectura y no se forzaron con mocks.
+La validación de consola de perfiles mantiene fallos preexistentes: varias
+aserciones esperan `str` frente a salida `bytes`, el test autocontenido busca
+un temporal después de que `quit()` borre el directorio, y el test de proceso
+externo requiere `retire`. La puntuación global permanece en **3.0/10**: se
+corrigen APIs retiradas y se verifican contratos de datos, pero la deuda de
+capas, cobertura completa y gates globales sigue abierta.
