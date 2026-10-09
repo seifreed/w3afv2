@@ -929,3 +929,14 @@ esperado; además, `httpretty` emite warnings de `datetime.utcnow`. No se atribu
 al cambio de tipos. La anotación elimina errores repetidos de asignación en
 subclases, pero Mypy global, la integración de plugins y las gates del proyecto
 siguen pendientes. Score global: **4.9/10**.
+
+## Avance: resolución de imports vendorizados en Mypy
+
+Mypy no encontraba los imports absolutos `lib.*` del sqlmap integrado porque su
+raíz no estaba en la ruta de módulos. `mypy.ini` declara esa raíz y activa
+`explicit_package_bases`, sin excluir archivos ni silenciar diagnósticos. El
+comando de proyecto `mypy .` pasa de 2170 errores en 596 archivos a 1010 en 353;
+los errores restantes ahora apuntan a problemas concretos del código, tipos y
+dependencias del repositorio, incluidos componentes de GUI ausentes. Las gates
+globales siguen fallando, así que el avance mejora el diagnóstico, no acredita
+la calidad completa. Score global: **4.9/10**.
