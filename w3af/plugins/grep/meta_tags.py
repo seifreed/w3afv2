@@ -53,15 +53,19 @@ class meta_tags(GrepPlugin):
     Sitemaps account for the site, if you haven't found it already.
     """
     INTERESTING_WORDS: ClassVar = {
-        "user": None,
-        "pass": None,
-        "microsoft": None,
-        "visual": None,
-        "linux": None,
-        "source": None,
-        "author": None,
-        "release": None,
-        "version": None,
+        **dict.fromkeys(
+            (
+                "user",
+                "pass",
+                "microsoft",
+                "visual",
+                "linux",
+                "source",
+                "author",
+                "release",
+                "version",
+            )
+        ),
         "verify-v1": "Google Sitemap",
     }
 

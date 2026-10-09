@@ -522,7 +522,8 @@ class Info(dict):
             # Ensuring that all of them are actually integers
             error_msg = "All request/response ids have to be integers."
             for i in _id:
-                assert isinstance(i, int), error_msg
+                if not isinstance(i, int):
+                    raise TypeError(error_msg)
             _id.sort()
             self._id = _id
         elif isinstance(_id, int):

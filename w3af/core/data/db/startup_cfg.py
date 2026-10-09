@@ -86,6 +86,11 @@ class StartUpConfig:
     def get_skip_dependencies_check(self):
         return self._skip_dependencies_check
 
+    def set_skip_dependencies_check(self, skip):
+        self._skip_dependencies_check = skip
+        value = "true" if skip else "false"
+        self._config.set(self._start_section, "skip-dependencies-check", value)
+
     def get_accepted_disclaimer(self):
         return self._accepted_disclaimer
 
@@ -188,3 +193,6 @@ class StartUpConfig:
     last_commit_id = property(get_last_commit_id, set_last_commit_id)
     accepted_disclaimer = property(get_accepted_disclaimer, set_accepted_disclaimer)
     last_upd = property(get_last_upd, set_last_upd)
+    skip_dependencies_check = property(
+        get_skip_dependencies_check, set_skip_dependencies_check
+    )

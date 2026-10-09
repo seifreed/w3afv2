@@ -20,8 +20,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import io
 import unittest
-from unittest.mock import patch
+from contextlib import redirect_stdout
+
+from w3af.core.data.db.startup_cfg import StartUpConfig
 
 from ..dependency_check import dependency_check
 from ..pip_dependency import PIPDependency
@@ -32,14 +35,30 @@ from ..platforms.ubuntu1204 import Ubuntu1204
 
 class TestDependencyCheck(unittest.TestCase):
 
-    DEPE_MODULE = "w3af.core.controllers.dependency_check.dependency_check"
-    CURR_PLATFORM = f"{DEPE_MODULE}.get_current_platform"
     MISSING_DEP_CMD = "pip install rumbamanager==3.2.1"
 
     def setUp(self):
         self.fake_rumba_dependency = PIPDependency(
             "rumbamanager", "rumbamanager", "3.2.1"
         )
+
+    def _force_dependency_check(self):
+        """
+        dependency_check() returns early when the user disabled the check in
+        their startup config, so force it on for the duration of the test and
+        restore the previous value afterwards.
+        """
+        startup_cfg = StartUpConfig()
+        previous_skip = startup_cfg.get_skip_dependencies_check()
+        startup_cfg.set_skip_dependencies_check(False)
+        startup_cfg.save()
+
+        def restore():
+            restored = StartUpConfig()
+            restored.set_skip_dependencies_check(previous_skip)
+            restored.save()
+
+        self.addCleanup(restore)
 
     def test_works_at_this_workstation(self):
         """
@@ -53,37 +72,37 @@ class TestDependencyCheck(unittest.TestCase):
         Test that the dependency check works for core + default platform when
         the dependencies are met.
         """
-        with patch(self.CURR_PLATFORM) as mock_curr_plat:
-            mock_curr_plat.return_value = DefaultPlatform()
-            must_exit = dependency_check(dependency_set=CORE, exit_on_failure=False)
-            self.assertFalse(must_exit)
+        must_exit = dependency_check(
+            dependency_set=CORE, exit_on_failure=False, platform=DefaultPlatform()
+        )
+        self.assertFalse(must_exit)
 
     def test_default_platform_core_missing_deps(self):
         """
         Test that the dependency check works for core + default platform when
         there are missing PIP core dependencies.
         """
-        with patch(self.CURR_PLATFORM) as mock_curr_plat, patch(
-            "sys.stdout"
-        ) as stdout_mock:
-            default = DefaultPlatform()
-            default.PIP_PACKAGES = default.PIP_PACKAGES.copy()
-            default.PIP_PACKAGES[CORE] = default.PIP_PACKAGES[CORE][:]
-            default.PIP_PACKAGES[CORE].append(self.fake_rumba_dependency)
+        self._force_dependency_check()
 
-            mock_curr_plat.return_value = default
+        default = DefaultPlatform()
+        default.PIP_PACKAGES = default.PIP_PACKAGES.copy()
+        default.PIP_PACKAGES[CORE] = default.PIP_PACKAGES[CORE][:]
+        default.PIP_PACKAGES[CORE].append(self.fake_rumba_dependency)
 
-            must_exit = dependency_check(dependency_set=CORE, exit_on_failure=False)
-            self.assertTrue(must_exit)
+        console_output = io.StringIO()
+        with redirect_stdout(console_output):
+            must_exit = dependency_check(
+                dependency_set=CORE, exit_on_failure=False, platform=default
+            )
 
-            all_stdout = "".join(k[1][0] for k in stdout_mock.method_calls)
-            self.assertIn(self.MISSING_DEP_CMD, all_stdout)
+        self.assertTrue(must_exit)
+        self.assertIn(self.MISSING_DEP_CMD, console_output.getvalue())
 
     def test_ubuntu1204_core(self):
         """
         Test that the dependency check works for core + ubuntu1204
         """
-        with patch(self.CURR_PLATFORM) as mock_curr_plat:
-            mock_curr_plat.return_value = Ubuntu1204()
-            must_exit = dependency_check(dependency_set=CORE, exit_on_failure=False)
-            self.assertFalse(must_exit)
+        must_exit = dependency_check(
+            dependency_set=CORE, exit_on_failure=False, platform=Ubuntu1204()
+        )
+        self.assertFalse(must_exit)

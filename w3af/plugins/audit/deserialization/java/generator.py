@@ -1,8 +1,8 @@
 import base64
 import difflib
 import json
-import shlex
-import subprocess
+
+from w3af.core.controllers.misc.external_process import run_process
 
 # java -jar ysoserial-0.0.6-SNAPSHOT-all.jar -h
 PAYLOADS = [
@@ -39,11 +39,15 @@ PAYLOADS = [
 
 SLEEP_SAMPLES = {1: ["1", "3"], 2: ["22", "77"]}
 
-COMMAND = 'java -jar ysoserial-0.0.6-SNAPSHOT-all.jar %s "sleep %s"'
+YSOSERIAL_JAR = "ysoserial-0.0.6-SNAPSHOT-all.jar"
 
 
 def get_payload_bin(payload, seconds):
-    return subprocess.check_output(shlex.split(COMMAND % (payload, seconds)))
+    command = ["java", "-jar", YSOSERIAL_JAR, payload, f"sleep {seconds}"]
+    result = run_process(command, text=False)
+    if result.returncode != 0:
+        raise RuntimeError(f"ysoserial failed for {payload}: {result.stderr!r}")
+    return result.stdout
 
 
 def get_payload_bin_for_command_len(payload, command_len):

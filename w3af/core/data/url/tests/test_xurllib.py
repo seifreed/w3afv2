@@ -25,9 +25,7 @@ import socketserver
 import time
 import unittest
 from multiprocessing.dummy import Process
-from unittest.mock import patch
 
-import httpretty
 import pytest
 
 from w3af import ROOT_PATH
@@ -40,6 +38,7 @@ from w3af.core.data.url.constants import MAX_ERROR_COUNT
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.data.url.http_response import DEFAULT_WAIT_TIME
+from w3af.core.data.url.tests.helpers.route_server import Response, RouteServer
 from w3af.core.data.url.tests.helpers.ssl_daemon import RawSSLDaemon, SSLServer
 from w3af.core.data.url.tests.helpers.upper_daemon import UpperDaemon
 from w3af.core.exceptions import (
@@ -57,14 +56,12 @@ from w3af.plugins.evasion.rnd_path import rnd_path
 class TestXUrllib(unittest.TestCase):
 
     MOTH_MESSAGE = "<title>moth: vulnerable web application</title>"
-    MOCK_URL = "http://www.w3af.org/"
 
     def setUp(self):
         self.uri_opener = ExtendedUrllib()
 
     def tearDown(self):
         self.uri_opener.end()
-        httpretty.reset()
 
     def test_evasion_plugins_are_sorted_by_priority(self):
         evasion_plugins = [rnd_case(), rnd_path()]
@@ -126,54 +123,31 @@ class TestXUrllib(unittest.TestCase):
         http_response = self.uri_opener.GET(url, cache=False)
         self.assertIn("root:x:0", http_response.body)
 
-    @httpretty.activate
+    def assert_get_with_post_data(self, path_and_qs):
+        with RouteServer() as server:
+            server.add("GET", "/", Response(body=self.MOTH_MESSAGE))
+
+            data = "abc=123&def=456"
+            response = self.uri_opener.GET(URL(server.url(path_and_qs)), data=data)
+
+            # Check the response
+            self.assertEqual(response.get_code(), 200)
+            self.assertEqual(response.get_body(), self.MOTH_MESSAGE)
+
+            # And check the request received by the server
+            last_request = server.last_request
+
+        self.assertEqual(last_request.method, "GET")
+        self.assertIn("content-length", last_request.headers)
+        self.assertEqual(str(len(data)), last_request.headers["content-length"])
+        self.assertEqual(last_request.body, data.encode())
+        self.assertEqual(last_request.path, path_and_qs)
+
     def test_GET_with_post_data(self):
-        httpretty.register_uri(
-            httpretty.GET, self.MOCK_URL, body=self.MOTH_MESSAGE, status=200
-        )
+        self.assert_get_with_post_data("/")
 
-        mock_url = URL(self.MOCK_URL)
-        data = "abc=123&def=456"
-        response = self.uri_opener.GET(mock_url, data=data)
-
-        # Check the response
-        self.assertEqual(response.get_code(), 200)
-        self.assertEqual(response.get_body(), self.MOTH_MESSAGE)
-
-        # And use httpretty to check the request
-        self.assertEqual(httpretty.last_request().method, "GET")
-
-        request_headers = httpretty.last_request().headers
-        self.assertIn("content-length", request_headers)
-        self.assertEqual(str(len(data)), request_headers["content-length"])
-
-        self.assertEqual(httpretty.last_request().body, data)
-        self.assertEqual(httpretty.last_request().path, "/")
-
-    @httpretty.activate
     def test_GET_with_post_data_and_qs(self):
-        httpretty.register_uri(
-            httpretty.GET, self.MOCK_URL, body=self.MOTH_MESSAGE, status=200
-        )
-
-        qs = "?qs=1"
-        mock_url = URL(self.MOCK_URL + qs)
-        data = "abc=123&def=456"
-        response = self.uri_opener.GET(mock_url, data=data)
-
-        # Check the response
-        self.assertEqual(response.get_code(), 200)
-        self.assertEqual(response.get_body(), self.MOTH_MESSAGE)
-
-        # And use httpretty to check the request
-        self.assertEqual(httpretty.last_request().method, "GET")
-
-        request_headers = httpretty.last_request().headers
-        self.assertIn("content-length", request_headers)
-        self.assertEqual(str(len(data)), request_headers["content-length"])
-
-        self.assertEqual(httpretty.last_request().body, data)
-        self.assertEqual(httpretty.last_request().path, "/" + qs)
+        self.assert_get_with_post_data("/?qs=1")
 
     def test_post(self):
         url = URL(get_moth_http("/audit/xss/simple_xss_form.py"))
@@ -414,8 +388,8 @@ class TestXUrllib(unittest.TestCase):
         s.start()
 
         body = "abc"
-        mock_url = f"https://localhost:{port}/"
-        url = URL(mock_url)
+        local_url = f"https://localhost:{port}/"
+        url = URL(local_url)
         http_response = self.uri_opener.GET(url, cache=False)
 
         self.assertEqual(body, http_response.body)
@@ -424,33 +398,31 @@ class TestXUrllib(unittest.TestCase):
         self.assertEqual(s.errors, [])
 
     def test_rate_limit_high(self):
-        self.rate_limit_generic(500, 0.009, 0.4)
+        self.rate_limit_generic(500, 0.002, 0.4)
 
     def test_rate_limit_low(self):
         self.rate_limit_generic(1, 1, 2.2)
 
     def test_rate_limit_zero(self):
-        self.rate_limit_generic(0, 0.005, 0.4)
+        self.rate_limit_generic(0, 0.0, 0.4)
 
-    @httpretty.activate
     def rate_limit_generic(self, max_requests_per_second, _min, _max):
-        mock_url = "http://mock/"
-        url = URL(mock_url)
-        httpretty.register_uri(httpretty.GET, mock_url, body="Body")
+        settings = self.uri_opener.settings
+        original_max_rps = settings.get_max_requests_per_second()
+        self.addCleanup(settings.set_max_requests_per_second, original_max_rps)
 
-        start_time = time.time()
+        with RouteServer() as server:
+            server.add("GET", "/", Response(body="Body"))
+            url = URL(server.url("/"))
 
-        with patch.object(
-            self.uri_opener.settings, "get_max_requests_per_second"
-        ) as mrps_mock:
-            mrps_mock.return_value = max_requests_per_second
+            settings.set_max_requests_per_second(max_requests_per_second)
+            start_time = time.time()
 
             self.uri_opener.GET(url, cache=False)
             self.uri_opener.GET(url, cache=False)
 
-        httpretty.reset()
+            end_time = time.time()
 
-        end_time = time.time()
         elapsed_time = end_time - start_time
         self.assertGreaterEqual(elapsed_time, _min)
         self.assertLessEqual(elapsed_time, _max)

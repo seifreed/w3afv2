@@ -90,7 +90,7 @@ class LocalSMTPServer(socketserver.ThreadingTCPServer):
 
     daemon_threads = True
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(("127.0.0.1", 0), SMTPRequestHandler)
         self.inbox: list[ReceivedMail] = []
         self._thread = threading.Thread(target=self.serve_forever, daemon=True)

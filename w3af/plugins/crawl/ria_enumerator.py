@@ -21,9 +21,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
-import xml.dom.minidom
 from typing import ClassVar
 from xml.parsers.expat import ExpatError
+
+from defusedxml import DefusedXmlException, minidom
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
@@ -145,8 +146,8 @@ class ria_enumerator(CrawlPlugin):
             return
 
         try:
-            dom = xml.dom.minidom.parseString(response.get_body())
-        except ExpatError:
+            dom = minidom.parseString(response.get_body())
+        except (ExpatError, DefusedXmlException):
             # Report this, it may be interesting for the final user
             # not a vulnerability per-se... but... it's information after all
             if (

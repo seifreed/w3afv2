@@ -38,6 +38,7 @@ class TestWrappedW3afConsole(unittest.TestCase):
         startup_cfg = StartUpConfig()
         startup_cfg.last_upd = local_today()
         startup_cfg.set_accepted_disclaimer(True)
+        startup_cfg.skip_dependencies_check = True
         startup_cfg.save()
 
         # The easy way to do this was to simply pass 'python' to Popen

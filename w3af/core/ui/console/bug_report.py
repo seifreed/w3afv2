@@ -22,11 +22,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.easy_contribution.github_issues import (
+    MISSING_CREDENTIAL_MSG,
     OAUTH_AUTH_FAILED,
-    OAUTH_TOKEN,
     GithubIssues,
     LoginFailed,
     OAuthTokenInvalid,
+    get_oauth_token,
 )
 from w3af.core.ui.console.menu import menu
 from w3af.core.ui.console.util import suggest
@@ -127,8 +128,13 @@ class bug_report_menu(menu):
         """
         Report one or more bugs to w3af's Github, submit data to server.
         """
+        oauth_token = get_oauth_token()
+        if oauth_token is None:
+            om.out.console(MISSING_CREDENTIAL_MSG)
+            return
+
         try:
-            gh = GithubIssues(OAUTH_TOKEN)
+            gh = GithubIssues(oauth_token)
             gh.login()
         except LoginFailed:
             msg = "Failed to contact github.com. Please try again later."

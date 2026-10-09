@@ -23,16 +23,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import itertools
 import unittest
-from os import listdir as orig_listdir
-from unittest.mock import patch
 
 import pytest
 
 from w3af.core.controllers.core_helpers.plugins import CorePlugins
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.w3af_core import w3afCore
-
-TEST_PLUGIN_NAME = "failing_spider"
 
 
 class TestPluginRegistryStructure(unittest.TestCase):
@@ -59,16 +55,11 @@ class TestW3afCorePlugins(unittest.TestCase):
     def setUp(self):
         super().setUp()
 
-        self.listdir_patch = patch("os.listdir")
-        self.listdir_mock = self.listdir_patch.start()
-        self.listdir_mock.side_effect = listdir_remove_fs
-
         self.core = w3afCore()
 
     def tearDown(self):
         super().tearDown()
 
-        self.listdir_patch.stop()
         self.core.worker_pool.terminate_join()
 
     def test_get_plugin_types(self):
@@ -342,29 +333,3 @@ class TestW3afCorePlugins(unittest.TestCase):
             all_plugins = self.core.plugins.get_plugin_list(plugin_type)
             self.assertEqual(set(enabled_plugins), set(all_plugins))
             self.assertEqual(len(enabled_plugins), len(all_plugins))
-
-
-def listdir_remove_fs(query_dir):
-    """
-    Many builds, such as [0], fail because we're running multiple tests at the
-    same time; and some of those tests write new/test plugins to disk. I've
-    tried to modify those tests to avoid writing the file... but it was almost
-    impossible and too hacky solution.
-
-    This simple function replaces the "os.listdir" command, returning a list of
-    the files in the the query_dir, removing 'failing_spider' plugin name from
-    the list.
-
-    [0] https://circleci.com/gh/andresriancho/w3af/801
-
-    :param query_dir: The directory to query
-    :return: A list without 'failing_spider'
-    """
-    original = orig_listdir(query_dir)
-    result = []
-
-    for fname in original:
-        if TEST_PLUGIN_NAME not in fname:
-            result.append(fname)
-
-    return result

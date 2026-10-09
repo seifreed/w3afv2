@@ -21,24 +21,30 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 import re
-import sys
 import unittest
-from unittest.mock import MagicMock
+from contextlib import redirect_stdout
 
 import w3af.core.data.kb.knowledge_base as kb
 
+ANSI_ESCAPE = re.compile(r"\x1b[^m]*m")
 
-class mock_stdout:
+
+class CapturedStdout:
+    """
+    Text stream which keeps every console line written to it, without the
+    ANSI color escape sequences.
+    """
+
     def __init__(self):
         self.messages = []
 
     def write(self, msg):
-        ansi_escape = re.compile(r"\x1b[^m]*m")
-        msg = ansi_escape.sub("", msg)
+        msg = ANSI_ESCAPE.sub("", msg)
 
         self.messages.extend(msg.split("\n\r"))
 
-    flush = MagicMock()
+    def flush(self):
+        return None
 
     def clear(self):
         self.messages = []
@@ -55,12 +61,11 @@ class ConsoleTestHelper(unittest.TestCase):
 
     def setUp(self):
         kb.kb.cleanup()
-        self.mock_sys()
+        self._captured_stdout = CapturedStdout()
+        self.enterContext(redirect_stdout(self._captured_stdout))
 
     def tearDown(self):
-        # sys.exit.assert_called_once_with(0)
-        self.restore_sys()
-        self._mock_stdout.clear()
+        self._captured_stdout.clear()
 
         #
         # I want to make sure that we don't have *any hidden* exceptions
@@ -78,26 +83,12 @@ class ConsoleTestHelper(unittest.TestCase):
             if os.path.exists(fname):
                 os.remove(fname)
 
-    def mock_sys(self):
-        # backup
-        self.old_stdout = sys.stdout
-        self.old_exit = sys.exit
-
-        # assign new
-        self._mock_stdout = mock_stdout()
-        sys.stdout = self._mock_stdout
-        sys.exit = MagicMock()
-
-    def restore_sys(self):
-        sys.stdout = self.old_stdout
-        sys.exit = self.old_exit
-
     def clear_stdout_messages(self):
-        self._mock_stdout.clear()
+        self._captured_stdout.clear()
 
     def startswith_expected_in_output(self, expected):
         for line in expected:
-            for sys_line in self._mock_stdout.messages:
+            for sys_line in self._captured_stdout.messages:
                 if sys_line.startswith(line):
                     break
             else:
@@ -106,14 +97,14 @@ class ConsoleTestHelper(unittest.TestCase):
 
     def all_expected_in_output(self, expected):
         for line in expected:
-            if line not in self._mock_stdout.messages:
+            if line not in self._captured_stdout.messages:
                 return False, self.generate_msg(line)
         return True, "OK"
 
     def all_expected_substring_in_output(self, expected):
         for e_substring in expected:
 
-            for output_line in self._mock_stdout.messages:
+            for output_line in self._captured_stdout.messages:
                 if e_substring in output_line:
                     break
 
@@ -122,7 +113,7 @@ class ConsoleTestHelper(unittest.TestCase):
         return True, "OK"
 
     def error_in_output(self, errors):
-        for line in self._mock_stdout.messages:
+        for line in self._captured_stdout.messages:
             for error_str in errors:
                 if error_str in line:
                     return True
@@ -131,4 +122,4 @@ class ConsoleTestHelper(unittest.TestCase):
 
     def generate_msg(self, line):
         msg = '"%s" was not found in:\n%s'
-        return msg % (line, "".join(self._mock_stdout.messages))
+        return msg % (line, "".join(self._captured_stdout.messages))

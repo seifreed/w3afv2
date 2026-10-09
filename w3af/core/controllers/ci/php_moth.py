@@ -20,9 +20,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import os
+import tempfile
 from pathlib import Path
 
-HTTP_PHP_MOTH = "/tmp/php-moth.txt"
+HTTP_PHP_MOTH = os.path.join(tempfile.gettempdir(), "php-moth.txt")
 DEFAULT_PHP_MOTH = "php_moth-fallback:80"
 
 

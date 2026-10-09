@@ -20,9 +20,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import os
+import tempfile
 from pathlib import Path
 
-HTTP_MCIR = "/tmp/mcir.txt"
+HTTP_MCIR = os.path.join(tempfile.gettempdir(), "mcir.txt")
 DEFAULT_MCIR = "mcir-fallback:80"
 
 

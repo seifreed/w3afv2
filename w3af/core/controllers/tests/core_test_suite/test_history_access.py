@@ -19,7 +19,6 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.controllers.tests.core_test_suite.test_pause_stop import CountTestMixin
 from w3af.core.data.db.history import HistoryItem
 
@@ -36,12 +35,10 @@ class TestHistoryAccess(CountTestMixin):
         self.count_plugin.loops = 1
         self.w3afcore.start()
 
+        target_url = self.server.url("/")
+
         history_item = HistoryItem()
         self.assertTrue(history_item.load(1))
         self.assertEqual(history_item.id, 1)
-        self.assertEqual(
-            history_item.get_request().get_uri().url_string, get_moth_http()
-        )
-        self.assertEqual(
-            history_item.get_response().get_uri().url_string, get_moth_http()
-        )
+        self.assertEqual(history_item.get_request().get_uri().url_string, target_url)
+        self.assertEqual(history_item.get_response().get_uri().url_string, target_url)

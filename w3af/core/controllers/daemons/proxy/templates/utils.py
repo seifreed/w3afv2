@@ -1,6 +1,6 @@
 import os
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from w3af import ROOT_PATH
 
@@ -14,7 +14,10 @@ def render(template_name, context):
     :return: compiled template string
     """
     path = os.path.join(ROOT_PATH, "core/controllers/daemons/proxy/templates")
-    env = Environment(loader=FileSystemLoader(path))
+    env = Environment(
+        loader=FileSystemLoader(path),
+        autoescape=select_autoescape(["html", "htm", "xml"]),
+    )
 
     template = env.get_template(template_name)
     return template.render(context)

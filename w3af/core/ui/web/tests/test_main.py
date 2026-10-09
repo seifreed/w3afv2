@@ -18,109 +18,24 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import contextlib
-import hashlib
-import http.client
-import io
-import logging
-import os
-import shutil
-import signal
-import socket
 import ssl
 import sys
-import tempfile
-import threading
-import time
-import unittest
 import webbrowser
 
-from w3af.core.ui.api.tests.utils.api_unittest import AUTHORIZATION, PASSWORD
+from w3af.core.ui.api.tests.utils.server_harness import (
+    PASSWORD_HASH,
+    InterruptingClient,
+    ServerMainTestCase,
+    free_port,
+)
 from w3af.core.ui.api.utils.digital_certificate import SSLCertificate
-from w3af.core.ui.web.main import app, build_parser, main, ui_url
+from w3af.core.ui.web.main import build_parser, main, ui_url
 
-HOME_DIR_VARIABLE = "W3AF_HOME_DIR"
-PASSWORD_HASH = hashlib.sha512(PASSWORD.encode()).hexdigest()
-STARTUP_SECONDS = 30
 NO_OP_BROWSER = "w3af-test-browser"
 
 
-def free_port():
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as probe:
-        probe.bind(("127.0.0.1", 0))
-        return probe.getsockname()[1]
-
-
-class UIClient(threading.Thread):
-    """
-    Request the web UI once the server answers, then interrupt the server the
-    same way CTRL+C does.
-    """
-
-    def __init__(self, port, context=None):
-        super().__init__(daemon=True)
-        self.port = port
-        self.context = context
-        self.body = None
-
-    def run(self):
-        deadline = time.monotonic() + STARTUP_SECONDS
-        try:
-            while self.body is None and time.monotonic() < deadline:
-                self.body = self.fetch()
-        finally:
-            signal.raise_signal(signal.SIGINT)
-
-    def connection(self):
-        if self.context is None:
-            return http.client.HTTPConnection("127.0.0.1", self.port, timeout=5)
-        return http.client.HTTPSConnection(
-            "127.0.0.1", self.port, timeout=5, context=self.context
-        )
-
-    def fetch(self):
-        connection = self.connection()
-        try:
-            connection.request(
-                "GET", "/ui/", headers={"Authorization": f"Basic {AUTHORIZATION}"}
-            )
-            return connection.getresponse().read().decode("utf-8")
-        except OSError:
-            time.sleep(0.1)
-            return None
-        finally:
-            connection.close()
-
-
-class WebMainTest(unittest.TestCase):
-    def setUp(self):
-        self.config = dict(app.config)
-        self.root_level = logging.getLogger().level
-        self.previous_home = os.environ.get(HOME_DIR_VARIABLE)
-        self.home = tempfile.mkdtemp(prefix="w3af-home-")
-        os.environ[HOME_DIR_VARIABLE] = self.home
-
-    def tearDown(self):
-        app.config.clear()
-        app.config.update(self.config)
-        logging.getLogger().setLevel(self.root_level)
-        if self.previous_home is None:
-            os.environ.pop(HOME_DIR_VARIABLE)
-        else:
-            os.environ[HOME_DIR_VARIABLE] = self.previous_home
-        shutil.rmtree(self.home)
-
-    def run_main(self, *argv):
-        output = io.StringIO()
-        with contextlib.redirect_stdout(output):
-            exit_code = main(list(argv))
-        return exit_code, output.getvalue()
-
-    def serve_once(self, client, *argv):
-        client.start()
-        exit_code, output = self.run_main(*argv)
-        client.join(STARTUP_SECONDS)
-        return exit_code, output
+class WebMainTest(ServerMainTestCase):
+    entry_point = staticmethod(main)
 
     def test_build_parser_adds_browser_option(self):
         parser = build_parser()
@@ -149,7 +64,7 @@ class WebMainTest(unittest.TestCase):
         port = free_port()
         url = f"http://127.0.0.1:{port}/ui/"
 
-        client = UIClient(port)
+        client = InterruptingClient(port, "/ui/")
         exit_code, output = self.serve_once(
             client,
             f"127.0.0.1:{port}",
@@ -172,7 +87,9 @@ class WebMainTest(unittest.TestCase):
         url = f"https://127.0.0.1:{port}/ui/"
         cert_path, _ = SSLCertificate().get_cert_key("127.0.0.1")
 
-        client = UIClient(port, ssl.create_default_context(cafile=cert_path))
+        client = InterruptingClient(
+            port, "/ui/", ssl.create_default_context(cafile=cert_path)
+        )
         exit_code, output = self.serve_once(
             client, f"127.0.0.1:{port}", "-p", PASSWORD_HASH
         )

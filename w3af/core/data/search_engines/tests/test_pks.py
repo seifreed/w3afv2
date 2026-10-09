@@ -20,9 +20,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import threading
 import unittest
-
-import httpretty
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import parse_qs, urlparse
 
 from w3af.core.data.search_engines.pks import pks
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
@@ -53,18 +54,50 @@ pub  1024D/<a href="/pks/lookup?op=get&amp;search=0x3608ED24EB0B8821">EB0B8821</
 """
 
 
+class PKSLookupHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        request = urlparse(self.path)
+        query = parse_qs(request.query)
+        expected_query = {"op": ["index"], "search": ["bonsai-sec.com"]}
+
+        if request.path != "/pks/lookup" or query != expected_query:
+            self.send_error(404)
+            return
+
+        body = BODY.encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def log_message(self, format, *args):
+        return
+
+
 class TestPKS(unittest.TestCase):
 
     def setUp(self):
         create_temp_dir()
-        self.pks_se = pks(ExtendedUrllib())
+        self.server = ThreadingHTTPServer(("127.0.0.1", 0), PKSLookupHandler)
+        self.server_thread = threading.Thread(
+            target=self.server.serve_forever, daemon=True
+        )
+        self.server_thread.start()
 
-    @httpretty.activate
+        port = self.server.server_address[1]
+        lookup_url = f"http://127.0.0.1:{port}/pks/lookup"
+        self.uri_opener = ExtendedUrllib()
+        self.pks_se = pks(self.uri_opener, lookup_url=lookup_url)
+
+    def tearDown(self):
+        self.uri_opener.end()
+        self.server.shutdown()
+        self.server.server_close()
+        self.server_thread.join()
+
     def test_get_result(self):
         domain = "bonsai-sec.com"
-        url = f"http://pgp.mit.edu:11371/pks/lookup?op=index&search={domain}"
-
-        httpretty.register_uri(httpretty.GET, url, body=BODY)
 
         with self.assertLogs(
             "w3af.core.data.search_engines.pks", level="DEBUG"

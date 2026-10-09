@@ -123,7 +123,7 @@ class xxe(AuditPlugin):
     ]
 
     MAX_XML_PARAM_MUTANTS = 5
-    TOKEN_XXE = "__TOKEN_XXE1__"
+    XXE_MARKER = "__XXE_MARKER1__"
 
     file_pattern_multi_in = MultiIn(FILE_PATTERNS)
     parser_errors_multi_in = MultiIn(XML_PARSER_ERRORS)
@@ -206,11 +206,13 @@ class xxe(AuditPlugin):
                 continue
 
             tag_orig = tag.text
-            tag.text = self.TOKEN_XXE
+            tag.text = self.XXE_MARKER
 
             for file_name in itertools.chain(self.WINDOWS_FILES, self.LINUX_FILES):
                 dtd = self.ENTITY_DEF % file_name
-                xml_body = etree.tostring(xml_root).replace(self.TOKEN_XXE, self.ENTITY)
+                xml_body = etree.tostring(xml_root).replace(
+                    self.XXE_MARKER, self.ENTITY
+                )
                 yield dtd + xml_body
 
             # Restore the original value to inject in the next parameter

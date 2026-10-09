@@ -22,11 +22,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import gc
 import os
-import pickle
 import sys
 import tempfile
 import threading
 
+from w3af.core.data.misc.serialize import dump
 from w3af.core.profiling import is_tracemalloc_enabled
 
 if is_tracemalloc_enabled():
@@ -78,7 +78,7 @@ def dump_tracemalloc():
 
     output_file = PROFILING_OUTPUT_FMT % get_filename_fmt()
     with open(output_file, "wb") as fp:
-        pickle.dump(snapshot, fp, 2)
+        dump(snapshot, fp, 2)
 
     # Make sure the snapshot goes away
     snapshot = None

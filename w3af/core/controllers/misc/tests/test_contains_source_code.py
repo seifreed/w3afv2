@@ -204,7 +204,8 @@ class TestContainsSourceCode(unittest.TestCase):
 
     def test_code_false_positive_image(self):
         no_source = self.create_response(
-            Path(self.TEST_FILE).read_text(), content_type="image/jpeg"
+            Path(self.TEST_FILE).read_bytes().decode("latin-1"),
+            content_type="image/jpeg",
         )
         match, _lang = contains_source_code(no_source)
         self.assertEqual(match, None)

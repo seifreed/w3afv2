@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import hashlib
+import os
 import socket
 import ssl
 import time
@@ -52,19 +53,19 @@ OAUTH_AUTH_FAILED = """Failed to authenticate with github.com , please try\
 
 TICKET_URL_FMT = "https://github.com/andresriancho/w3af/issues/%s"
 
-#
-# There is no way to report issues to github in an anonymous way, so the second
-# best thing I could find was to create a user and get an oauth token for it.
-# This user will act as a "proxy" for w3af users that don't want to enter their
-# github credentials in the bug report window.
-#
-# Token generation after logging in with 1d3df9903ad, scopes: "repo".
-#       https://github.com/settings/tokens/new
-#
-# Password stored in lastpass. The token should never expire.
-#
-OAUTH_TOKEN = "bab698f08a4fd15931c4aa44ae399666552ef9e5"
-OAUTH_TOKEN = OAUTH_TOKEN[::-1]
+GITHUB_CREDENTIAL_ENV_VAR = "W3AF_GITHUB_OAUTH_TOKEN"
+MISSING_CREDENTIAL_MSG = (
+    f"Reporting bugs to GitHub requires a personal access token in the"
+    f" {GITHUB_CREDENTIAL_ENV_VAR} environment variable."
+)
+
+
+def get_oauth_token():
+    """
+    :return: The GitHub token used to report bugs, or None when the user did
+             not configure one.
+    """
+    return os.environ.get(GITHUB_CREDENTIAL_ENV_VAR) or None
 
 
 class OAuthTokenInvalid(Exception):
@@ -103,7 +104,7 @@ class GithubIssues:
             try:
                 [i for i in self.gh.get_user().get_repos()]
             except BadCredentialsException:
-                # The OAUTH_TOKEN and/or user provided credentials are incorrect
+                # The token and/or user provided credentials are incorrect
                 if self.using_oauth:
                     raise OAuthTokenInvalid("Invalid OAuth token")
                 else:
@@ -158,7 +159,7 @@ class GithubIssues:
                 bug_summary = tback.split("\n")[-2]
             else:
                 # Failed... lets generate something random!
-                m = hashlib.md5()
+                m = hashlib.md5(usedforsecurity=False)
                 m.update(time.ctime())
                 bug_summary = m.hexdigest()
 

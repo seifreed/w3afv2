@@ -1,7 +1,7 @@
 import os
-import subprocess
 
 from w3af.core.controllers.console_tables import table
+from w3af.core.controllers.misc.external_process import run_process
 from w3af.plugins.attack.payloads.base_payload import Payload
 
 
@@ -30,13 +30,7 @@ class pixy(Payload):
         pixy_full = os.path.join(pixy_path, "run-all.pl")
 
         #    Run the command and check its working
-        proc = subprocess.Popen(
-            pixy_full,
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        stdout_value = proc.communicate()[0]
+        stdout_value = run_process([pixy_full]).stdout
         if "usage: check [options] file" not in stdout_value:
             raise ValueError("Please specify the correct pixy location")
 
@@ -83,14 +77,7 @@ class pixy(Payload):
                 full_path = os.path.join(path, item)
 
                 if os.path.isfile(full_path):
-                    pixy_full_with_target = pixy_full + " " + full_path
-                    proc = subprocess.Popen(
-                        pixy_full_with_target,
-                        shell=True,
-                        stdout=subprocess.PIPE,
-                        stderr=subprocess.PIPE,
-                    )
-                    stdout_value = proc.communicate()[0]
+                    stdout_value = run_process([pixy_full, full_path]).stdout
 
                     extract_info(stdout_value)
 

@@ -20,9 +20,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import os
+import tempfile
 from pathlib import Path
 
-HTTP_SQLMAP_TESTENV = "/tmp/sqlmap-testenv.txt"
+HTTP_SQLMAP_TESTENV = os.path.join(tempfile.gettempdir(), "sqlmap-testenv.txt")
 DEFAULT_SQLMAP_TESTENV = "sqlmap-testenv-fallback:80"
 
 

@@ -21,9 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os.path
-import xml.etree.ElementTree as ET
 from string import Template
-from xml.dom.minidom import *
+
+from defusedxml import ElementTree as ET
 
 from w3af import ROOT_PATH
 
@@ -127,13 +127,6 @@ class HelpContainer:
             self._cat2Subj[cat] = d
 
         d.append(subj)
-
-    def get_categories(self):
-        return list(self._subj2Gat.keys())
-
-    def add_help(self, table, cat=""):
-        for subj in table:
-            self.add_help_entry(subj, table[subj], cat)
 
     def get_help(self, subj):
         if subj not in self._table:

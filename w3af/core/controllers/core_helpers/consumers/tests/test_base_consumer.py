@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
-from unittest.mock import Mock
 
 from w3af.core.controllers.core_helpers.consumers.base_consumer import BaseConsumer
 from w3af.core.controllers.w3af_core import w3afCore
@@ -28,15 +27,35 @@ from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
+class TeardownCountingConsumer(BaseConsumer):
+    """
+    A consumer with no plugins whose teardown only counts how many times the
+    consumer loop asked for it.
+    """
+
+    def __init__(self, w3af_core):
+        super().__init__([], w3af_core, "TestConsumer")
+        self.teardown_calls = 0
+
+    def _teardown(self):
+        self.teardown_calls += 1
+
+
 class TestBaseConsumer(unittest.TestCase):
 
     def setUp(self):
-        self.bc = BaseConsumer([], w3afCore(), "TestConsumer")
+        self.core = w3afCore()
+        self.bc = TeardownCountingConsumer(self.core)
+
+    def tearDown(self):
+        self.core.worker_pool.terminate_join()
 
     def test_handle_exception(self):
         url = URL("http://moth/")
         fr = FuzzableRequest(url)
+
         raised = ValueError()
+
         try:
             raise raised
         except ValueError as e:
@@ -44,25 +63,20 @@ class TestBaseConsumer(unittest.TestCase):
 
         exception_data = self.bc.out_queue.get()
 
-        self.assertTrue(exception_data.traceback is not None)
+        self.assertTrue(exception_data.traceback_str is not None)
         self.assertEqual(exception_data.phase, "audit")
         self.assertEqual(exception_data.plugin, "sqli")
         self.assertEqual(exception_data.exception, raised)
 
     def test_terminate(self):
         self.bc.start()
-
-        self.bc._teardown = Mock()
-
         self.bc.terminate()
 
-        self.assertEqual(self.bc._teardown.call_count, 1)
+        self.assertEqual(self.bc.teardown_calls, 1)
 
     def test_terminate_terminate(self):
         self.bc.start()
-
-        self.bc._teardown = Mock()
-
+        self.bc.terminate()
         self.bc.terminate()
 
-        self.assertEqual(self.bc._teardown.call_count, 1)
+        self.assertEqual(self.bc.teardown_calls, 1)
