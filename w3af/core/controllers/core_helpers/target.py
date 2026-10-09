@@ -208,16 +208,6 @@ class CoreTarget(Configurable):
             )
             raise BaseFrameworkException(msg % ", ".join(domain_list))
 
-        # This doesn't seem to be possible with the current framework design,
-        # since we need "empty" targets to be an option for profiles
-        #
-        # if len(domain_list) == 0:
-        #    msg = ('There is something wrong with the configured target URLs,'
-        #           ' w3af was unable to extract at least one domain name from'
-        #           ' the user configured setting: "%s"')
-        #    configured_target_urls = options_list['target'].get_value()
-        #    raise BaseFrameworkException(msg % configured_target_urls)
-
         # Save in the config, the target URLs, this may be useful for some
         # plugins
         cf.cf.save("targets", target_urls)

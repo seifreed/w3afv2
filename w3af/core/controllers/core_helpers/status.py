@@ -254,9 +254,6 @@ class CoreStatus:
 
         return dc.has_finished()
 
-    def get_crawl_current_fr(self):
-        return self.get_current_fuzzable_request("crawl")
-
     def get_crawl_eta(self):
         if not self.has_started():
             return None
@@ -337,9 +334,6 @@ class CoreStatus:
         ac = self._w3af_core.strategy.get_audit_consumer()
         return 0 if ac is None else ac.in_queue.get_processed_tasks()
 
-    def get_audit_current_fr(self):
-        return self.get_current_fuzzable_request("audit")
-
     def has_finished_audit(self):
         ac = self._w3af_core.strategy.get_audit_consumer()
 
@@ -365,7 +359,7 @@ class CoreStatus:
         )
 
     def get_core_worker_pool_queue_size(self):
-        return self._w3af_core.worker_pool.in_queue.qsize()
+        return self._w3af_core.worker_pool.in_qsize()
 
     def log_calculate_eta(
         self, eta, input_speed, output_speed, queue_size, _type, adjustment
@@ -541,11 +535,6 @@ class CoreStatus:
         eta = self.epoch_eta_to_string(eta_seconds)
         progress = self.get_progress_percentage(eta=eta_seconds)
 
-        try:
-            rpm = self.get_rpm()
-        except RuntimeError:
-            rpm = 0
-
         data = {
             "status": self.get_simplified_status(),
             "is_paused": self.is_paused(),
@@ -584,7 +573,7 @@ class CoreStatus:
                 "grep": self.epoch_eta_to_string(self.get_grep_eta()),
                 "all": eta,
             },
-            "rpm": rpm,
+            "rpm": self.get_rpm(),
             "sent_request_count": self.get_sent_request_count(),
             "progress": progress,
         }
@@ -789,7 +778,7 @@ class CoreStatus:
 
         audit_after_crawl = 0.0
         if audit_eta > crawl_eta:
-            audit_after_crawl = audit_eta = crawl_eta
+            audit_after_crawl = audit_eta - crawl_eta
 
         grep_after_crawl_audit = 0.0
         if grep_eta >= audit_eta:
