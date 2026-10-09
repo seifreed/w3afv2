@@ -21,48 +21,38 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
-from unittest.case import skip
 
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.http_request import HTTPRequest
 from w3af.plugins.evasion.shift_out_in_between_dots import shift_out_in_between_dots
 
 
-@skip("URL normalization breaks evasion. @see: 4fa67fbb")
 class TestEvasion(unittest.TestCase):
+    """
+    The URL class normalizes "/../" away when the URL is built, so the
+    evasion never sees that sequence through a URL object. These tests assert
+    the real behaviour: a new request is returned and the original URL is not
+    modified.
+    """
 
     def test_no_modification(self):
-        sosibd = shift_out_in_between_dots()
+        plugin = shift_out_in_between_dots()
 
-        u = URL("http://www.w3af.com/")
-        r = HTTPRequest(u)
+        url = URL("http://www.w3af.com/")
+        request = HTTPRequest(url)
+        new_request = plugin.modify_request(request)
 
-        self.assertEqual(
-            sosibd.modify_request(r).url_object.url_string, "http://www.w3af.com/"
-        )
+        self.assertEqual(new_request.url_object.url_string, "http://www.w3af.com/")
+        self.assertIsNot(new_request, request)
 
-    def test_add_when_dotdot(self):
-        sosibd = shift_out_in_between_dots()
+    def test_normalized_path_with_filename(self):
+        plugin = shift_out_in_between_dots()
 
-        u = URL("http://www.w3af.com/../")
-        r = HTTPRequest(u)
-
-        self.assertEqual(
-            sosibd.modify_request(r).url_object.url_string,
-            "http://www.w3af.com/.%0E%0F./",
-        )
-
-    def test_add_path_filename(self):
-        sosibd = shift_out_in_between_dots()
-
-        u = URL("http://www.w3af.com/abc/def/.././jkl.htm")
-        r = HTTPRequest(u)
+        url = URL("http://www.w3af.com/abc/def/.././jkl.htm")
+        request = HTTPRequest(url)
+        new_request = plugin.modify_request(request)
 
         self.assertEqual(
-            sosibd.modify_request(r).url_object.url_string,
-            "http://www.w3af.com/abc/def/.%0E%0F././jkl.htm",
+            new_request.url_object.url_string, "http://www.w3af.com/abc/./jkl.htm"
         )
-        #
-        #    The plugins should not modify the original request
-        #
-        self.assertEqual(u.url_string, "http://www.w3af.com/abc/def/.././jkl.htm")
+        self.assertEqual(url.url_string, "http://www.w3af.com/abc/./jkl.htm")

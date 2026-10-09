@@ -53,14 +53,8 @@ class rnd_param(EvasionPlugin):
         # Mangle the postdata
         data = request.get_data()
         if data:
-            data = smart_unicode(data)
-            try:
-                # Only mangle the postdata if it is a url encoded string
-                post_data = parse_qs(data)
-            except (ValueError, TypeError, AttributeError):
-                pass
-            else:
-                data = str(self._mutate(post_data))
+            post_data = parse_qs(smart_unicode(data))
+            data = str(self._mutate(post_data))
 
         new_req = request.copy()
         new_req.set_uri(new_url)
