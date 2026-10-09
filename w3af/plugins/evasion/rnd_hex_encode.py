@@ -24,7 +24,6 @@ from secrets import randbelow
 
 from w3af.core.controllers.plugins.evasion_plugin import EvasionPlugin
 from w3af.core.data.misc.encoding import smart_unicode
-from w3af.core.data.parsers.doc.url import parse_qs
 
 
 class rnd_hex_encode(EvasionPlugin):
@@ -52,15 +51,7 @@ class rnd_hex_encode(EvasionPlugin):
         # Mangle the postdata
         data = request.get_data()
         if data:
-            data = smart_unicode(data)
-
-            try:
-                # Only mangle the postdata if it is a url encoded string
-                parse_qs(data)
-            except (ValueError, TypeError, AttributeError):
-                pass
-            else:
-                data = self._mutate(data)
+            data = self._mutate(smart_unicode(data))
 
         new_req = request.copy()
         new_req.set_uri(new_url)

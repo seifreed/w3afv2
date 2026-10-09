@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import http.cookies
 import unittest
 
 from w3af.core.data.parsers.doc.cookie_parser import parse_cookie
@@ -33,3 +34,9 @@ class TestParseCookie(unittest.TestCase):
     def test_with_path(self):
         cookie = parse_cookie("abc=def; path=/x")
         self.assertEqual(cookie["abc"]["path"], "/x")
+
+    def test_invalid_cookie_raises(self):
+        self.assertRaises(http.cookies.CookieError, parse_cookie, 'a"b=1')
+
+    def test_empty_value_is_not_invalid(self):
+        self.assertEqual(len(parse_cookie("")), 0)

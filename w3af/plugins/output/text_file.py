@@ -36,7 +36,6 @@ from w3af.core.data.options.output_file_option import DEV_NULL
 
 REQUEST_HEADER_FMT = "=" * 40 + "Request %s - %s " + "=" * 40 + "\n"
 RESPONSE_HEADER_FMT = "\n" + "=" * 40 + "Response %s - %s " + "=" * 39 + "\n"
-LONG_LOG_FMT = "[%s - %s - %s] "
 SHORT_LOG_FMT = "[%s - %s] "
 
 
@@ -77,11 +76,6 @@ class text_file(OutputPlugin):
         # File handlers
         self._log = None
         self._http = None
-
-        # XXX Only set '_show_caller' to True for debugging purposes. It
-        # causes the execution of potentially slow code that handles
-        # with introspection.
-        self._show_caller = False
 
     def _init(self):
 
@@ -172,7 +166,7 @@ class text_file(OutputPlugin):
         # This will escape the string using \x00-style escapes, which is much
         # better than just printing null bytes (or any other non-printable char)
         # to the file
-        return repr(string_to_clean)[1:-1]
+        return repr(str(string_to_clean))[1:-1]
 
     def write(self, message, log_type, new_line=True, flush=False):
         """
@@ -185,8 +179,7 @@ class text_file(OutputPlugin):
         if not self._initialized:
             self._init()
 
-        to_print = str(message)
-        to_print = self._clean_string_for_file(to_print)
+        to_print = self._clean_string_for_file(message)
 
         if new_line:
             to_print += "\n"
@@ -194,10 +187,7 @@ class text_file(OutputPlugin):
         now = time.localtime(time.time())
         the_time = time.strftime("%c", now)
 
-        if self._show_caller:
-            timestamp = LONG_LOG_FMT % (the_time, log_type, self.get_caller())
-        else:
-            timestamp = SHORT_LOG_FMT % (the_time, log_type)
+        timestamp = SHORT_LOG_FMT % (the_time, log_type)
 
         self._write_to_file(timestamp + to_print, flush=flush)
 

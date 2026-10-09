@@ -27,7 +27,6 @@ from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.auth_session_plugin import AuthSessionPlugin
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
-from w3af.core.data.url.exceptions import HTTPRequestException
 
 # Credentials are supplied by the user through the plugin options.
 UNCONFIGURED = ""
@@ -79,21 +78,16 @@ class generic(AuthSessionPlugin):
             {self.username_field: self.username, self.password_field: self.password}
         )
 
-        try:
-            http_response = self._uri_opener.POST(
-                self.auth_url,
-                data=data,
-                grep=False,
-                cache=False,
-                follow_redirects=True,
-                debugging_id=self._debugging_id,
-            )
-        except HTTPRequestException as e:
-            self._handle_authentication_failure()
-
-            msg = "Failed to login to the application because of exception: %s"
-            self._log_debug(msg % e)
-            return False
+        # Request errors are converted into a 204 response by the URL opener
+        # proxy (UrlOpenerProxy), so they surface as a failed login below.
+        http_response = self._uri_opener.POST(
+            self.auth_url,
+            data=data,
+            grep=False,
+            cache=False,
+            follow_redirects=True,
+            debugging_id=self._debugging_id,
+        )
 
         self._log_http_response(http_response)
 

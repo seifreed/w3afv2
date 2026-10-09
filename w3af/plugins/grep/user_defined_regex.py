@@ -22,6 +22,7 @@ import os
 import re
 
 import w3af.core.controllers.output_manager as om
+import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
@@ -84,9 +85,12 @@ class user_defined_regex(GrepPlugin):
                     # which evaluates to false
                     # but an info object is not the same as None
                     if not info_inst is None:
-                        ids = info_inst.get_id()
-                        ids.append(response.id)
-                        info_inst.set_id(ids)
+                        # The knowledge base stores a copy of the finding,
+                        # so the new response id has to be saved with update()
+                        updated_info = Info.from_info(info_inst)
+                        updated_info.set_id(info_inst.get_id() + [response.id])
+                        kb.kb.update(info_inst, updated_info)
+                        info_inst = updated_info
                     else:
                         str_match = match_object.group(0)
                         if len(str_match) > 20:
@@ -130,12 +134,10 @@ class user_defined_regex(GrepPlugin):
         if regex_file_path and regex_file_path != "None":
             self._regex_file_path = regex_file_path
 
-            try:
-                with open(self._regex_file_path) as regex_fh:
-                    regex_lines = regex_fh.readlines()
-            except OSError as e:
-                msg = 'Unable to open file "%s", error: "%s".'
-                raise BaseFrameworkException(msg % (self._regex_file_path, e)) from e
+            # The INPUT_FILE option already validated that the file exists
+            # and is readable.
+            with open(self._regex_file_path) as regex_fh:
+                regex_lines = regex_fh.readlines()
 
             for regex in regex_lines:
                 current_regex = regex.strip()

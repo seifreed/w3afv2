@@ -130,17 +130,16 @@ class cross_domain_js(GrepPlugin):
         Handle user configuration parameters.
         :return: None
         """
-        secure_js_file = options_list["secure_js_file"].get_value()
-        self._load_secure_js_file(secure_js_file)
+        self._secure_js_file = options_list["secure_js_file"].get_value()
+        self._load_secure_js_file(self._secure_js_file)
 
     def _load_secure_js_file(self, secure_js_file):
         """
-        Loads the configuration file containing the domains
+        Loads the configuration file containing the domains. When no file is
+        configured the plugin is disabled (grep() returns early).
         """
-        if not secure_js_file:
-            return
-
-        if secure_js_file == "None":
+        if not secure_js_file or secure_js_file == "None":
+            self._secure_domain_multi_in = None
             return
 
         secure_js_domains = set()

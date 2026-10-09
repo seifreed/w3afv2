@@ -25,7 +25,7 @@ import urllib.parse
 import urllib.request
 
 from w3af.core.controllers.plugins.evasion_plugin import EvasionPlugin
-from w3af.core.data.parsers.doc.url import parse_qs
+from w3af.core.data.misc.encoding import smart_unicode
 
 
 class full_width_encode(EvasionPlugin):
@@ -51,14 +51,7 @@ class full_width_encode(EvasionPlugin):
         # Now we mangle the postdata
         data = request.get_data()
         if data:
-            try:
-                # Only mangle the postdata if it is a url encoded string
-                parse_qs(data)
-            except (ValueError, TypeError, AttributeError):
-                pass
-            else:
-                # We get here only if the parsing was successful
-                data = self._mutate(data)
+            data = self._mutate(smart_unicode(data))
 
         # Finally, we set all the mutants to the request in order to return it
         new_url = request.url_object.copy()
