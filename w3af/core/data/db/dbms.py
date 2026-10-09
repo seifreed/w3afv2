@@ -71,10 +71,8 @@ def verify_started(meth):
     def inner_verify_started(self, *args, **kwds):
         msg = "No calls to SQLiteDBMS can be made after stop()."
 
+        # The executor thread only finishes after receiving the poison pill
         if self.sql_executor.get_received_poison_pill():
-            raise RuntimeError(msg)
-
-        if not self.sql_executor.is_alive():
             raise RuntimeError(msg)
 
         return meth(self, *args, **kwds)

@@ -19,6 +19,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
+import shutil
+import tempfile
 import unittest
 from datetime import timedelta
 
@@ -103,3 +105,29 @@ class TestStartUpConfig(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             scfg.last_commit_id = 1234
+
+    def test_skip_dependencies_check_is_persisted(self):
+        for skip in (True, False):
+            scfg = StartUpConfig(self.CFG_FILE)
+            scfg.skip_dependencies_check = skip
+            scfg.save()
+
+            self.assertIs(StartUpConfig(self.CFG_FILE).skip_dependencies_check, skip)
+
+    def test_default_file_lives_in_the_home_directory(self):
+        home = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, home)
+
+        previous = os.environ.get("W3AF_HOME_DIR")
+        os.environ["W3AF_HOME_DIR"] = home
+        if previous is None:
+            self.addCleanup(os.environ.pop, "W3AF_HOME_DIR")
+        else:
+            self.addCleanup(os.environ.__setitem__, "W3AF_HOME_DIR", previous)
+
+        scfg = StartUpConfig()
+        scfg.accepted_disclaimer = True
+        scfg.save()
+
+        self.assertTrue(os.path.exists(os.path.join(home, "startup.conf")))
+        self.assertTrue(StartUpConfig().accepted_disclaimer)

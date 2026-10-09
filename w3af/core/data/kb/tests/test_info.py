@@ -351,6 +351,7 @@ class TestInfo(unittest.TestCase):
 
         self.assertRaises(TypeError, i.set_desc, 1234)
         self.assertRaises(TypeError, i.set_id, "1")
+        self.assertRaises(TypeError, i.set_id, [1, "2"])
         self.assertRaises(TypeError, i.add_to_highlight, 1234)
         self.assertRaises(ValueError, i.set_vulndb_id, 123456789)
 

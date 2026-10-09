@@ -21,9 +21,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import io
+from xml.sax.handler import ContentHandler, ErrorHandler
 
 from defusedxml import DefusedXmlException
 from defusedxml import sax as defused_sax
+
+# ContentHandler is re-exported: event handlers for the hardened parser below
+# subclass the standard library one and override only the events they need
+__all__ = ["ContentHandler", "XMLParseError", "parse_file", "parse_string"]
 
 
 class XMLParseError(ValueError):
@@ -31,59 +36,7 @@ class XMLParseError(ValueError):
     features such as entity expansion or external references."""
 
 
-class ContentHandler:
-    """
-    Base class for SAX event handlers driven by the hardened parser below.
-    Subclasses override only the events they care about.
-    """
-
-    def setDocumentLocator(self, locator):
-        pass
-
-    def startDocument(self):
-        pass
-
-    def endDocument(self):
-        pass
-
-    def startPrefixMapping(self, prefix, uri):
-        pass
-
-    def endPrefixMapping(self, prefix):
-        pass
-
-    def startElement(self, name, attrs):
-        pass
-
-    def endElement(self, name):
-        pass
-
-    def startElementNS(self, name, qname, attrs):
-        pass
-
-    def endElementNS(self, name, qname):
-        pass
-
-    def characters(self, content):
-        pass
-
-    def ignorableWhitespace(self, whitespace):
-        pass
-
-    def processingInstruction(self, target, data):
-        pass
-
-    def skippedEntity(self, name):
-        pass
-
-
-class _RaisingErrorHandler:
-    def warning(self, exception):
-        pass
-
-    def error(self, exception):
-        raise XMLParseError(str(exception)) from exception
-
+class _RaisingErrorHandler(ErrorHandler):
     def fatalError(self, exception):
         raise XMLParseError(str(exception)) from exception
 
