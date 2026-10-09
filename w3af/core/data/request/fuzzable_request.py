@@ -21,11 +21,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import base64
+import logging
 from collections.abc import Iterable
 from itertools import chain
 from urllib.parse import quote, quote_plus, unquote
 
-import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af.core.data.db.disk_item import DiskItem
 from w3af.core.data.dc.cookie import Cookie
@@ -45,6 +45,8 @@ TRANS_TABLE = str.maketrans("", "", DELETE_CHARS)
 
 
 TYPE_ERROR = "FuzzableRequest __init__ parameter %s needs to be of %s type"
+
+LOGGER = logging.getLogger(__name__)
 
 
 class FuzzableRequest(RequestMixIn, DiskItem):
@@ -496,7 +498,7 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         else:
             fmt = '[FuzzableRequest error] set_cookie received: "%s": "%s".'
             error_str = fmt % (type(cookie), repr(cookie))
-            om.out.error(error_str)
+            LOGGER.error(error_str)
             raise BaseFrameworkException(error_str)
 
     def get_url(self):
