@@ -18,9 +18,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import os
+import tempfile
 import unittest
-from unittest.mock import Mock, patch
 
+from w3af.core.data.db.startup_cfg import StartUpConfig
 from w3af.core.ui.console.console_ui import ConsoleUI
 
 
@@ -29,22 +31,46 @@ class TestAcceptDisclaimer(unittest.TestCase):
     def setUp(self):
         self.console_ui = ConsoleUI(do_upd=False)
 
-    class dummy_true(Mock):
-        accepted_disclaimer = True
+        temp_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(temp_dir.cleanup)
+        self.cfg_file = os.path.join(temp_dir.name, "startup.conf")
+        self.questions = []
 
-    class dummy_false(Mock):
-        accepted_disclaimer = False
+    def answer(self, response):
+        def ask_user(question):
+            self.questions.append(question)
+            return response
 
-    @patch("w3af.core.ui.console.console_ui.StartUpConfig", new_callable=dummy_false)
-    @patch("__builtin__.raw_input", return_value="")
-    def test_not_saved_not_accepted(self, mocked_startup_cfg, mocked_input):
-        self.assertFalse(self.console_ui.accept_disclaimer())
+        return ask_user
 
-    @patch("w3af.core.ui.console.console_ui.StartUpConfig", new_callable=dummy_false)
-    @patch("__builtin__.raw_input", return_value="y")
-    def test_not_saved_accepted(self, mocked_startup_cfg, mocked_input):
-        self.assertTrue(self.console_ui.accept_disclaimer())
+    def saved_decision(self):
+        return StartUpConfig(self.cfg_file).accepted_disclaimer
 
-    @patch("w3af.core.ui.console.console_ui.StartUpConfig", new_callable=dummy_true)
-    def test_saved(self, mocked_startup_cfg):
-        self.assertTrue(self.console_ui.accept_disclaimer())
+    def test_not_saved_not_accepted(self):
+        accepted = self.console_ui.accept_disclaimer(
+            StartUpConfig(self.cfg_file), self.answer("")
+        )
+
+        self.assertFalse(accepted)
+        self.assertEqual(len(self.questions), 1)
+        self.assertFalse(self.saved_decision())
+
+    def test_not_saved_accepted(self):
+        accepted = self.console_ui.accept_disclaimer(
+            StartUpConfig(self.cfg_file), self.answer("y")
+        )
+
+        self.assertTrue(accepted)
+        self.assertTrue(self.saved_decision())
+
+    def test_saved(self):
+        startup_cfg = StartUpConfig(self.cfg_file)
+        startup_cfg.accepted_disclaimer = True
+        startup_cfg.save()
+
+        accepted = self.console_ui.accept_disclaimer(
+            StartUpConfig(self.cfg_file), self.answer("")
+        )
+
+        self.assertTrue(accepted)
+        self.assertEqual(self.questions, [])

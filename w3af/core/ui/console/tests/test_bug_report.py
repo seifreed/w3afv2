@@ -108,7 +108,7 @@ class TestConsoleBugReport(ConsoleTestHelper):
         self.console.sh()
 
         caught_exceptions = self.console._w3af.exception_handler.get_all_exceptions()
-        self.assertEqual(len(caught_exceptions), 1, self._mock_stdout.messages)
+        self.assertEqual(len(caught_exceptions), 1, self._captured_stdout.messages)
 
         assert_result, msg = self.startswith_expected_in_output(expected)
         self.assertTrue(assert_result, msg)
@@ -122,7 +122,7 @@ class TestConsoleBugReport(ConsoleTestHelper):
 
         # Close issue from github
         issue_id_re = re.compile(r"https://github.com/andresriancho/w3af/issues/(\d*)")
-        for line in self._mock_stdout.messages:
+        for line in self._captured_stdout.messages:
             mo = issue_id_re.search(line)
             if mo is not None:
                 issue_id = mo.group(1)
