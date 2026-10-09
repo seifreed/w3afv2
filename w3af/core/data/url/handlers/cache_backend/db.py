@@ -20,15 +20,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import sqlite3
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.data.db.history import HistoryItem
 from w3af.core.data.url.handlers.cache_backend.cached_response import CachedResponse
 from w3af.core.data.url.handlers.cache_backend.utils import gen_hash
 from w3af.core.data.url.HTTPResponse import HTTPResponse
 from w3af.core.exceptions import ScanMustStopException
 from w3af.core.filesystem import create_temp_dir
+
+LOGGER = logging.getLogger(__name__)
 
 
 class SQLCachedResponse(CachedResponse):
@@ -98,7 +100,7 @@ class SQLCachedResponse(CachedResponse):
                 ' database: "%s". The request/response that generated'
                 " the error is: %s %s %s"
             )
-            om.out.error(msg % args)
+            LOGGER.error(msg, *args)
             raise Exception(msg % args)
 
     @staticmethod

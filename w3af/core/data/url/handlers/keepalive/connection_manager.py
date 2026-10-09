@@ -1,11 +1,13 @@
+import logging
 import time
 from functools import cmp_to_key
 
 import OpenSSL
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.data.url.exceptions import ConnectionPoolException
 from w3af.core.data.url.handlers.keepalive.utils import debug
+
+LOGGER = logging.getLogger(__name__)
 
 
 class ConnectionManager:
@@ -123,7 +125,7 @@ class ConnectionManager:
             return
 
         stats = self.get_connection_pool_stats(host_port)
-        om.out.debug(stats)
+        LOGGER.debug(stats)
 
         # Connection in use time stats
         def sort_by_time(c1, c2):
@@ -148,11 +150,11 @@ class ConnectionManager:
 
         if connection_info:
             connection_info = " ".join(connection_info)
-            om.out.debug("Connections with more in use time: %s" % connection_info)
+            LOGGER.debug("Connections with more in use time: %s", connection_info)
             return
 
         if not top_offenders:
-            om.out.debug(
+            LOGGER.debug(
                 "There are no connections marked as in use in the"
                 " connection pool at this time"
             )
@@ -165,7 +167,7 @@ class ConnectionManager:
             " in_use but still inactive. The in_use connections are: %s"
             % without_request_start
         )
-        om.out.debug(msg)
+        LOGGER.debug(msg)
 
     def get_free_connection_to_close(self):
         """
@@ -230,7 +232,7 @@ class ConnectionManager:
             return
 
         msg = "Waited %.2fs for a connection to be available in the pool"
-        om.out.debug(msg % waited_time_for_conn)
+        LOGGER.debug(msg, waited_time_for_conn)
 
     def get_available_connection(self, req, conn_factory):
         """
@@ -394,7 +396,7 @@ class ConnectionManager:
                 )
                 args = (conn, self.FORCEFULLY_CLOSE_CONN_TIME)
 
-                om.out.debug(reason % args)
+                LOGGER.debug(reason, *args)
 
                 # This does a conn.close() and removes from self._used_conns
                 self.remove_connection(conn, reason=reason)
@@ -417,7 +419,7 @@ class ConnectionManager:
                 )
                 args = (conn, self.FORCEFULLY_CLOSE_CONN_TIME)
 
-                om.out.debug(reason % args)
+                LOGGER.debug(reason, *args)
 
                 # This does a conn.close() and removes from self._used_conns
                 self.remove_connection(conn, reason=reason)

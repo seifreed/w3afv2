@@ -1152,3 +1152,19 @@ CacheStats pasa con 100% de cobertura. Black, Ruff y Bandit focalizados pasan.
 El conjunto RTT arrastra 12 warnings de `httpretty` por `datetime.utcnow()`.
 Score global: **4.9/10**; quedan 27 imports directos de producción y las gates
 globales pendientes.
+
+## Avance: handlers de URL sin output_manager
+
+Los handlers de blacklist, keepalive y caché ya usan `logging` estándar para
+diagnósticos; desaparecen seis imports directos de controllers y el total de
+producción `core.data -> controllers` baja de 27 a 21. Se eliminó además
+`cert_auth.py`: la propia implementación indicaba que no se usaba y no hay
+referencias en el código del proyecto.
+
+Verificación: pasan 16 pruebas locales de blacklist, keepalive y caché; se
+excluyeron tres casos que dependen de hosts externos no disponibles. Black y
+Bandit focalizados pasan. Ruff aún encuentra 23 problemas existentes en los
+handlers (incluido un `cmp` indefinido en estadísticas de conexión), sin
+supresiones. Cuatro pruebas emiten warnings deprecados de `httpretty`. Score
+global: **4.9/10**; las gates globales y 21 dependencias directas siguen
+pendientes.

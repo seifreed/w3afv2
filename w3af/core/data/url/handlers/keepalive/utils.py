@@ -1,8 +1,8 @@
+import logging
 import os
 
-import w3af.core.controllers.output_manager as om
-
 KA_DEBUG = os.environ.get("KA_DEBUG", "0") == "1"
+LOGGER = logging.getLogger(__name__)
 
 
 def to_utf8_raw(unicode_or_str):
@@ -14,11 +14,9 @@ def to_utf8_raw(unicode_or_str):
 
 def debug(msg):
     if KA_DEBUG:
-        msg = "[keepalive] %s" % msg
-        om.out.debug(msg)
+        LOGGER.debug("[keepalive] %s", msg)
 
 
 def error(msg):
     if KA_DEBUG:
-        msg = "[keepalive] %s" % msg
-        om.out.error(msg)
+        LOGGER.error("[keepalive] %s", msg)

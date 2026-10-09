@@ -22,12 +22,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import email.parser
 import io
+import logging
 import urllib.request
 import urllib.response
 
-import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af.core.data.url.helpers import new_no_content_resp
+
+LOGGER = logging.getLogger(__name__)
 
 
 class BlacklistHandler(urllib.request.BaseHandler):
@@ -82,7 +84,7 @@ class BlacklistHandler(urllib.request.BaseHandler):
             " engine is NOT sending the HTTP request and is instead"
             " returning an empty response to the plugin."
         )
-        om.out.debug(msg % uri)
+        LOGGER.debug(msg, uri)
 
         # Return a 204 response
         no_content = new_no_content_resp(req.url_object)
