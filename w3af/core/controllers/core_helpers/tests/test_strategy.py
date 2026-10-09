@@ -26,10 +26,10 @@ import sys
 
 import pytest
 
-from w3af.core.controllers.ci.detect import is_running_on_ci
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.controllers.ci.wavsep import get_wavsep_http
 from w3af.core.data.db.startup_cfg import StartUpConfig
+from w3af.core.environment import is_running_on_ci
 from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 SCRIPT_PATH = "/tmp/script-1557.w3af"

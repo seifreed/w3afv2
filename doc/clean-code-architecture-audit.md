@@ -693,3 +693,17 @@ inestable sigue excluido). Black, Ruff (`F401`, `I001`), compilación y
 `git diff --check` pasan en el cambio. La puntuación global pasa a **3.6/10**:
 se elimina otro acoplamiento ascendente, pero siguen pendientes muchos imports
 de controllers desde datos, las gates globales y deuda de tests/integración.
+
+## Avance: detección de CI compartida en core
+
+`is_running_on_ci()` es una lectura pura de `CIRCLECI`, sin estado ni servicios
+de controllers, pero `mp_document_parser` la importaba desde `controllers.ci`.
+La función pasó a `core.environment`; el parser, el decorator `only_ci` y su
+test de estrategia usan ahora esa ubicación. Dos tests ejercitan valores
+presentes/ausentes del entorno y el contrato exacto (`"true"` solamente), con
+100% de cobertura del módulo.
+
+Black, Ruff focal, compilación y `git diff --check` pasan; no quedan imports de
+`controllers.ci.detect`. La puntuación global sube a **3.7/10**: se retira
+otro servicio ambiental de controllers, aunque la mayor parte de los
+acoplamientos entre capas y las gates globales permanecen.

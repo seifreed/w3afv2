@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from functools import wraps
 
-from w3af.core.controllers.ci.detect import is_running_on_ci
+from w3af.core.environment import is_running_on_ci
 
 
 def only_ci(decorated_func):
