@@ -25,13 +25,12 @@ import re
 import tempfile
 import time
 import unittest
-import urllib.error
-import urllib.parse
-import urllib.request
 from functools import wraps
+from typing import ClassVar
 
 import httpretty
 import pytest
+import requests
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
@@ -67,10 +66,9 @@ class PluginTest(unittest.TestCase):
     Keep tests as ordinary unittest methods so pytest can discover them.
     """
 
-    MOCK_RESPONSES = []
-    runconfig = {}
+    MOCK_RESPONSES: ClassVar[list["MockResponse"]] = []
     kb = kb.kb
-    target_url = None
+    target_url: str | None = None
     base_path = None
 
     def setUp(self):
@@ -85,15 +83,20 @@ class PluginTest(unittest.TestCase):
             httpretty.reset()
             httpretty.enable()
 
+            if self.target_url is None:
+                raise ValueError(
+                    "When using MOCK_RESPONSES you need to set the"
+                    " target_url attribute to a valid URL."
+                )
+
             try:
                 url = URL(self.target_url)
-            except ValueError as ve:
-                msg = (
+            except ValueError as error:
+                raise ValueError(
                     "When using MOCK_RESPONSES you need to set the"
                     " target_url attribute to a valid URL, exception was:"
-                    ' "%s".'
-                )
-                raise Exception(msg % ve)
+                    f' "{error}".'
+                ) from error
 
             domain = url.get_domain()
             proto = url.get_protocol()
@@ -102,14 +105,15 @@ class PluginTest(unittest.TestCase):
             self._register_httpretty_uri(proto, domain, port)
 
     def _register_httpretty_uri(self, proto, domain, port):
-        assert isinstance(port, int), "Port needs to be an integer"
+        if not isinstance(port, int):
+            raise TypeError("Port needs to be an integer")
 
         if (port == 80 and proto == "http") or (port == 443 and proto == "https"):
-            re_str = "%s://%s/(.*)" % (proto, domain)
+            re_str = f"{proto}://{domain}/(.*)"
         else:
-            re_str = "%s://%s:%s/(.*)" % (proto, domain, port)
+            re_str = f"{proto}://{domain}:{port}/(.*)"
 
-        all_methods = set(mock_resp.method for mock_resp in self.MOCK_RESPONSES)
+        all_methods = {mock_resp.method for mock_resp in self.MOCK_RESPONSES}
 
         for http_method in all_methods:
             httpretty.register_uri(
@@ -205,13 +209,12 @@ class PluginTest(unittest.TestCase):
         if match is not None:
             self.request_callback_match += 1
 
-            fmt = (uri, match)
-            om.out.debug("[request_callback] URI %s matched %s" % fmt)
+            om.out.debug(f"[request_callback] URI {uri} matched {match}")
 
             return match.get_response(http_request, uri, headers)
 
         else:
-            om.out.debug("[request_callback] URI %s will return 404" % uri)
+            om.out.debug(f"[request_callback] URI {uri} will return 404")
             return MockResponse.get_404(http_request, uri, headers)
 
     @retry(tries=3, delay=0.5, backoff=2)
@@ -220,22 +223,18 @@ class PluginTest(unittest.TestCase):
 
         for target in target_list:
             try:
-                response = urllib.request.urlopen(target.url_string)
-                response.read()
-            except urllib.error.URLError as e:
-                if hasattr(e, "code"):
-                    # pylint: disable=E1101
-                    if e.code in (404, 403, 401):
-                        continue
-                    else:
-                        no_code = "Unexpected code %s" % e.code
-                        self.assertTrue(False, msg % (target, no_code))
-                    # pylint: enable=E1101
-
-                self.assertTrue(False, msg % (target, e.reason))
-
-            except Exception as e:
-                self.assertTrue(False, msg % (target, e))
+                response = requests.get(target.url_string, timeout=10)
+                if response.status_code >= 400 and response.status_code not in (
+                    401,
+                    403,
+                    404,
+                ):
+                    self.assertTrue(
+                        False,
+                        msg % (target, f"Unexpected code {response.status_code}"),
+                    )
+            except requests.RequestException as error:
+                self.assertTrue(False, msg % (target, error))
 
     def _scan(
         self,
@@ -418,7 +417,7 @@ class PluginTest(unittest.TestCase):
         """
         :return: The test agent for easier log grep
         """
-        return "Mozilla/4.0 (compatible; w3af.org; TestCase: %s)" % self.id()
+        return f"Mozilla/4.0 (compatible; w3af.org; TestCase: {self.id()})"
 
     def _formatMessage(self, msg, standardMsg):
         """Honour the longMessage attribute when generating failure messages.
@@ -432,7 +431,7 @@ class PluginTest(unittest.TestCase):
               message
         """
         if msg:
-            data = "%s:\n%s" % (standardMsg, pprint.pformat(msg))
+            data = f"{standardMsg}:\n{pprint.pformat(msg)}"
             return data.replace("\\n", "\n")
 
         return standardMsg
@@ -453,8 +452,8 @@ class PluginTest(unittest.TestCase):
         # workstation
         output_dir = os.environ.get("CIRCLE_ARTIFACTS", tempfile.gettempdir())
         rnd = rand_alnum(6)
-        text_output = os.path.join(output_dir, "output-%s.txt" % rnd)
-        http_output = os.path.join(output_dir, "output-http-%s.txt" % rnd)
+        text_output = os.path.join(output_dir, f"output-{rnd}.txt")
+        http_output = os.path.join(output_dir, f"output-http-{rnd}.txt")
 
         text_file_inst = self.w3afcore.plugins.get_plugin_inst(ptype, pname)
 
@@ -463,7 +462,7 @@ class PluginTest(unittest.TestCase):
         default_opts["http_output_file"].set_value(http_output)
         default_opts["verbose"].set_value(True)
 
-        print("Logging to %s" % text_output)
+        print(f"Logging to {text_output}")
 
         self.w3afcore.plugins.set_plugin_options(ptype, pname, default_opts)
 
@@ -624,20 +623,24 @@ class MockResponse:
         if headers is not None:
             self.headers.update(headers)
 
-        assert method in self.KNOWN_METHODS, self.NO_MOCK
-        assert isinstance(url, (str, RE_COMPILE_TYPE))
+        if method not in self.KNOWN_METHODS:
+            raise ValueError(self.NO_MOCK)
+
+        if not isinstance(url, (str, RE_COMPILE_TYPE)):
+            raise TypeError("MockResponse URL must be a string or compiled pattern")
 
         if isinstance(url, str):
             url = URL(url)
-            assert url.get_domain(), "Need to specify the MockResponse domain"
+            if not url.get_domain():
+                raise ValueError("Need to specify the MockResponse domain")
 
     def __repr__(self):
         if isinstance(self.url, RE_COMPILE_TYPE):
-            match = 're:"%s"' % self.url.pattern
+            match = f're:"{self.url.pattern}"'
         else:
             match = self.url
 
-        return "<MockResponse (%s|%s)>" % (match, self.status)
+        return f"<MockResponse ({match}|{self.status})>"
 
     @staticmethod
     def get_404(http_request, uri, headers):
@@ -668,10 +671,7 @@ class MockResponse:
         if self.method != http_request.command:
             return False
 
-        if not self.url_matches(uri):
-            return False
-
-        return True
+        return self.url_matches(uri)
 
     def url_matches(self, request_uri):
         """
@@ -691,10 +691,7 @@ class MockResponse:
             if response_domain != request_domain:
                 return False
 
-            if request_path != response_path:
-                return False
-
-            return True
+            return request_path == response_path
 
         elif isinstance(self.url, RE_COMPILE_TYPE):
             if self.url.match(request_uri):

@@ -912,3 +912,20 @@ Bravado/jsonschema. Mypy dirigido reporta 26 errores heredados en 19 archivos
 importados. Score global: **4.9/10**; esta área vuelve a estar verificada, pero
 persisten los warnings y la deuda de calidad, arquitectura y gates globales del
 resto del proyecto.
+
+## Avance: tipos del helper de plugins
+
+`PluginTest.target_url` ahora expresa que las subclases deben proporcionar una
+URL antes de registrar respuestas HTTP; las respuestas compartidas se anotan
+como atributo de clase y se elimina un atributo `runconfig` sin lectores. La
+verificación global de Mypy baja de 2294 errores en 648 archivos a 2170 en 596
+archivos. El helper pasa Black, Ruff y Bandit de forma aislada. Los pins de
+`aioquic==1.2.0` y `urwid==4.0.13`, requeridos por el commit fijado de mitmproxy,
+se mantienen intactos.
+
+La suite dirigida de .NET obtiene 1 éxito y 1 fallo: el escaneo intenta conectar
+a `4.4.4.2:80` fuera de `httpretty`, por lo que no encuentra el hallazgo
+esperado; además, `httpretty` emite warnings de `datetime.utcnow`. No se atribuye
+al cambio de tipos. La anotación elimina errores repetidos de asignación en
+subclases, pero Mypy global, la integración de plugins y las gates del proyecto
+siguen pendientes. Score global: **4.9/10**.
