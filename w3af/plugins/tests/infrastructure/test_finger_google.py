@@ -56,6 +56,7 @@ class TestFingerGoogle(PluginTest):
             MIRROR_URL,
             "<html><body>"
             '<a href="mailto:andres@w3af.org">Andres</a>'
+            '<a href="mailto:mirror@w3af.org">Mirror</a>'
             '<a href="mailto:x3d@example.org">x3d</a>'
             "</body></html>",
         ),
@@ -85,10 +86,15 @@ class TestFingerGoogle(PluginTest):
 
         self.assertEqual(
             self.found_accounts(),
-            {("andres@w3af.org", "andres"), ("info@w3af.org", "info")},
+            {
+                ("andres@w3af.org", "andres"),
+                ("info@w3af.org", "info"),
+                ("mirror@w3af.org", "mirror"),
+            },
         )
 
         emails = self.kb.get("emails", "emails")
+        self.assertEqual(len(emails), 3, emails)
         self.assertEqual({e.get_name() for e in emails}, {"Email account"})
         self.assertEqual(
             {e.get_url().url_string for e in emails},

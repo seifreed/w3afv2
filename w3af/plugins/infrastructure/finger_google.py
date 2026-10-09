@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import threading
+
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
 from w3af.core.controllers.misc.decorators import runonce
@@ -42,7 +44,8 @@ class finger_google(InfrastructurePlugin):
         InfrastructurePlugin.__init__(self)
 
         # Internal variables
-        self._accounts = []
+        self._accounts = set()
+        self._accounts_lock = threading.Lock()
         self._google = None
         self._domain = None
         self._domain_root = None
@@ -129,9 +132,7 @@ class finger_google(InfrastructurePlugin):
         # Search for email addresses
         #
         for mail in document_parser.get_emails(self._domain_root):
-            if mail not in self._accounts:
-                self._accounts.append(mail)
-
+            if self._register_account(mail):
                 desc = 'The mail account: "%s" was found at: "%s".'
                 desc %= (mail, response.get_uri())
 
@@ -142,6 +143,15 @@ class finger_google(InfrastructurePlugin):
                 i["url_list"] = {response.get_uri()}
 
                 self.kb_append("emails", "emails", i)
+
+    def _register_account(self, mail):
+        """
+        :return: True when the mail account was not found before
+        """
+        with self._accounts_lock:
+            is_new = mail not in self._accounts
+            self._accounts.add(mail)
+            return is_new
 
     def get_options(self):
         """
