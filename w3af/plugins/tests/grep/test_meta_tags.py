@@ -61,11 +61,11 @@ class TestMetaTags(PluginTest):
         self.assertEqual(2, len(vulns))
 
         self.assertEqual(
-            set([severity.INFORMATION] * 2), set([v.get_severity() for v in vulns])
+            set([severity.INFORMATION] * 2), {v.get_severity() for v in vulns}
         )
 
         self.assertEqual(
-            set(["Interesting META tag"] * 2), set([v.get_name() for v in vulns])
+            set(["Interesting META tag"] * 2), {v.get_name() for v in vulns}
         )
 
         joined_desc = "".join([v.get_desc() for v in vulns])

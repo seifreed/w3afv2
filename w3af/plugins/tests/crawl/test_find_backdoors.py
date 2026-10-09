@@ -37,7 +37,7 @@ run_configs = {
 
 class TestFindBackdoor(PluginTest):
     domain = "httpretty-mock"
-    target_url = "http://%s/" % domain
+    target_url = f"http://{domain}/"
 
     MOCK_RESPONSES = [
         MockResponse("http://httpretty-mock/", "Hello world"),
@@ -65,7 +65,7 @@ class TestFalsePositiveFindBackdoor2017_1(PluginTest):
     """
 
     domain = "httpretty-mock"
-    target_url = "http://%s/" % domain
+    target_url = f"http://{domain}/"
 
     APACHE_403 = get_apache_403("/foobar", domain)
 
@@ -82,7 +82,7 @@ class TestFalsePositiveFindBackdoor2017_1(PluginTest):
 
 class TestFalsePositiveFindBackdoor2017_2(PluginTest):
     domain = "httpretty-mock"
-    target_url = "http://%s/" % domain
+    target_url = f"http://{domain}/"
 
     APACHE_403 = get_apache_403("/forbidden/foobar", domain)
 

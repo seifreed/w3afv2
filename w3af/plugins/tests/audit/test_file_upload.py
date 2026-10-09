@@ -91,7 +91,7 @@ class TestFileUpload(PluginTest):
         self.assertTrue(all(v.get_name() == "Insecure file upload" for v in fu_vulns))
 
         EXPECTED_FILES = {"uploader.php", "uploader.534"}
-        found_files = set(v.get_url().get_file_name() for v in fu_vulns)
+        found_files = {v.get_url().get_file_name() for v in fu_vulns}
         self.assertEqual(EXPECTED_FILES, found_files)
 
 

@@ -62,8 +62,8 @@ class BrowserThread(Process):
                 break
 
         proxy_cfg = {
-            "http": "http://127.0.0.1:%s/" % self.proxy_port,
-            "https": "http://127.0.0.1:%s/" % self.proxy_port,
+            "http": f"http://127.0.0.1:{self.proxy_port}/",
+            "https": f"http://127.0.0.1:{self.proxy_port}/",
         }
         proxy_support = urllib.request.ProxyHandler(proxy_cfg)
         opener = urllib.request.build_opener(proxy_support)

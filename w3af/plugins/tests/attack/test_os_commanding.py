@@ -75,7 +75,7 @@ class TestOSCommandingShell(ExecExploitTest):
 
             exploit_result = plugin.exploit(vuln_to_exploit_id)
 
-            msg = "Exploitation failed with strategy %s." % strategy
+            msg = f"Exploitation failed with strategy {strategy}."
             self.assertGreaterEqual(len(exploit_result), 1, msg)
 
             #

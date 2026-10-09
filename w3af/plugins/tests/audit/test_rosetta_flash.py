@@ -42,7 +42,7 @@ class TestRosettaFlash(PluginTest):
             except KeyError:
                 callback = "default"
 
-            body = "%s({})" % callback
+            body = f"{callback}({{}})"
             response_headers["Content-Type"] = "application/javascript"
 
             return self.status, response_headers, body
@@ -89,7 +89,7 @@ class TestRosettaFlashFixed(PluginTest):
             #
             # Here is the fix! Note the /**/
             #
-            body = "/**/%s({})" % callback
+            body = f"/**/{callback}({{}})"
             response_headers["Content-Type"] = "application/javascript"
 
             return self.status, response_headers, body

@@ -50,7 +50,7 @@ class TestOpenAPIFindAllEndpointsWithAuth(PluginTest):
                         "open_api",
                         (
                             "query_string_auth",
-                            "api_key=%s" % API_KEY,
+                            f"api_key={API_KEY}",
                             PluginConfig.QUERY_STRING,
                         ),
                     ),
@@ -61,7 +61,7 @@ class TestOpenAPIFindAllEndpointsWithAuth(PluginTest):
 
     MOCK_RESPONSES = [
         MockResponse(
-            "http://w3af.org/swagger.json?api_key=%s" % API_KEY,
+            f"http://w3af.org/swagger.json?api_key={API_KEY}",
             IntParamQueryString().get_specification(),
             content_type="application/json",
         )
@@ -159,7 +159,7 @@ class TestOpenAPINestedModelSpec(PluginTest):
                 "crawl": (
                     PluginConfig(
                         "open_api",
-                        ("header_auth", "Basic: %s" % BEARER, PluginConfig.HEADER),
+                        ("header_auth", f"Basic: {BEARER}", PluginConfig.HEADER),
                     ),
                 ),
                 "audit": (PluginConfig("sqli"),),
@@ -404,7 +404,7 @@ class TestOpenAPIFuzzURLParts(PluginTest):
                 "crawl": (
                     PluginConfig(
                         "open_api",
-                        ("header_auth", "X-API-Key: %s" % api_key, PluginConfig.HEADER),
+                        ("header_auth", f"X-API-Key: {api_key}", PluginConfig.HEADER),
                     ),
                 ),
                 "audit": (PluginConfig("sqli"),),

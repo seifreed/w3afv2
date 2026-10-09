@@ -91,18 +91,18 @@ class TestXMLOutput(PluginTest):
         self.assertEqual(len(kb_vulns), 1, kb_vulns)
 
         self.assertEqual(
-            set(sorted([v.get_url() for v in kb_vulns])),
-            set(sorted([v.get_url() for v in file_vulns])),
+            {v.get_url() for v in kb_vulns},
+            {v.get_url() for v in file_vulns},
         )
 
         self.assertEqual(
-            set(sorted([v.get_name() for v in kb_vulns])),
-            set(sorted([v.get_name() for v in file_vulns])),
+            {v.get_name() for v in kb_vulns},
+            {v.get_name() for v in file_vulns},
         )
 
         self.assertEqual(
-            set(sorted([v.get_plugin_name() for v in kb_vulns])),
-            set(sorted([v.get_plugin_name() for v in file_vulns])),
+            {v.get_plugin_name() for v in kb_vulns},
+            {v.get_plugin_name() for v in file_vulns},
         )
 
         self.assertEqual(validate_xml(open(self.FILENAME).read(), self.XSD), "")
@@ -326,7 +326,7 @@ class TestXMLOutputBinary(PluginTest):
             tree = ElementTree.parse(self.FILENAME)
             tree.getroot()
         except Exception as e:
-            self.assertTrue(False, 'Generated invalid XML: "%s"' % e)
+            self.assertTrue(False, f'Generated invalid XML: "{e}"')
 
     def tearDown(self):
         super().tearDown()
@@ -382,7 +382,7 @@ class TestXML0x0B(PluginTest):
             tree = ElementTree.parse(self.FILENAME)
             tree.getroot()
         except Exception as e:
-            self.assertTrue(False, 'Generated invalid XML: "%s"' % e)
+            self.assertTrue(False, f'Generated invalid XML: "{e}"')
 
     def tearDown(self):
         super().tearDown()
@@ -434,7 +434,7 @@ class TestSpecialCharacterInURL(PluginTest):
             tree = ElementTree.parse(self.FILENAME)
             tree.getroot()
         except Exception as e:
-            self.assertTrue(False, 'Generated invalid XML: "%s"' % e)
+            self.assertTrue(False, f'Generated invalid XML: "{e}"')
 
     def tearDown(self):
         super().tearDown()

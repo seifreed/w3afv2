@@ -19,8 +19,9 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import pytest
 from unittest import SkipTest
+
+import pytest
 
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.parsers.doc.url import URL
@@ -120,7 +121,7 @@ class TestGeneric(PluginTest):
         self._scan(self.demo_testfire_net["target"], self.demo_testfire_net["plugins"])
 
         urls = self.kb.get_all_known_urls()
-        url_strings = set(str(u) for u in urls)
+        url_strings = {str(u) for u in urls}
 
         self.assertTrue(self.demo_testfire + "queryxpath.aspx" in url_strings)
         self.assertTrue(self.demo_testfire + "queryxpath.aspx.cs" in url_strings)

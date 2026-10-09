@@ -44,6 +44,6 @@ class TestURLFuzzer(PluginTest):
         urls = self.kb.get_all_known_urls()
 
         self.assertEqual(
-            set(str(u) for u in urls),
-            set((self.base_url + end) for end in expected_urls),
+            {str(u) for u in urls},
+            {(self.base_url + end) for end in expected_urls},
         )

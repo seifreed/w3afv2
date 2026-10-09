@@ -75,7 +75,7 @@ class TestEmailReport(PluginTest):
 
         class DummySMTP:
             def __init__(self):
-                smtp = self
+                pass
 
             def login(self, username, password):
                 self.username = username

@@ -50,11 +50,11 @@ class TestWordpressEnumerateUsers(PluginTest):
 
         infos = self.kb.get("wordpress_enumerate_users", "users")
 
-        EXPECTED = set(["admin", "andres"])
+        EXPECTED = {"admin", "andres"}
 
         self.assertEqual(len(infos), len(EXPECTED), infos)
 
         user_re = re.compile('WordPress user "(.*?)" found')
-        enum_users = set([user_re.match(i.get_desc()).group(1) for i in infos])
+        enum_users = {user_re.match(i.get_desc()).group(1) for i in infos}
 
         self.assertEqual(enum_users, EXPECTED)

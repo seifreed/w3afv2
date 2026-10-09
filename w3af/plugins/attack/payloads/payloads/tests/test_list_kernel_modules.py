@@ -29,7 +29,7 @@ from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
 
 class test_list_kernel_modules(PayloadTestHelper):
 
-    EXPECTED_RESULT = set(["ext2", "lp", "snd", "parport_pc", "vesafb"])
+    EXPECTED_RESULT = {"ext2", "lp", "snd", "parport_pc", "vesafb"}
 
     @pytest.mark.ci_fails
     def test_list_kernel_modules(self):

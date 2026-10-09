@@ -58,8 +58,8 @@ class TestArchiveDotOrg(PluginTest):
             "project-history",
         )
 
-        expected_set = set((self.archive_url + end) for end in EXPECTED_URLS)
-        urls_as_strings = set([u.url_string for u in urls])
+        expected_set = {(self.archive_url + end) for end in EXPECTED_URLS}
+        urls_as_strings = {u.url_string for u in urls}
 
         msg = "Got the following URLs %s and expected %s."
         msg = msg % (urls_as_strings, expected_set)

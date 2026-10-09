@@ -52,7 +52,7 @@ class TestXPATH(PluginTest):
         self.assertEqual(expected_vuln_number, len(vulns), vulns)
 
         vtitle = "XPATH injection vulnerability"
-        all_titles = all([vtitle == vuln.get_name() for vuln in vulns])
+        all_titles = all(vtitle == vuln.get_name() for vuln in vulns)
         self.assertTrue(all_titles, vulns)
 
         # Verify the specifics about the vulnerabilities

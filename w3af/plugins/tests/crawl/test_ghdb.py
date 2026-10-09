@@ -59,8 +59,6 @@ class TestGHDB(PluginTest):
     @pytest.mark.ci_fails
     def test_ghdb_match(self):
 
-        call_count = 0
-
         def generate_google_result(*args):
             global call_count
             call_count += 1

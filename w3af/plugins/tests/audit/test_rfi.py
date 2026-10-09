@@ -144,8 +144,8 @@ class TestRFI(PluginTest):
         server_thread.daemon = True
         server_thread.start()
 
-        foobar_url = "http://localhost:%s/foobar" % port
-        spameggs_url = "http://localhost:%s/spameggs" % port
+        foobar_url = f"http://localhost:{port}/foobar"
+        spameggs_url = f"http://localhost:{port}/spameggs"
 
         response_foobar = urllib.request.urlopen(foobar_url).read()
         response_spameggs = urllib.request.urlopen(spameggs_url).read()

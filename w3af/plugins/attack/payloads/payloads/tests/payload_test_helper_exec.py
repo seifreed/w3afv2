@@ -56,7 +56,7 @@ class PayloadTestHelperExec(PluginTest):
         return vuln, vuln_to_exploit_id
 
     def _get_shell(self):
-        vuln, vuln_to_exploit_id = self._scan_wrapper()
+        _vuln, vuln_to_exploit_id = self._scan_wrapper()
 
         plugin = self.w3afcore.plugins.get_plugin_inst("attack", "rfi")
 

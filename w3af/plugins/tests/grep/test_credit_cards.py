@@ -80,7 +80,7 @@ class TestCreditCards(unittest.TestCase):
             "_c3E6E547C-BFB7-4897-86EA-882A04BDE274_kDF867BE9-DEC5-0FFF-6629-127552370B17",
         )
         for card in invalid_cards:
-            body = '<A href="#123">%s</A>' % card
+            body = f'<A href="#123">{card}</A>'
             url = URL("http://www.w3af.com/")
             headers = Headers([("content-type", "text/html")])
             response = HTTPResponse(200, body, headers, url, url, _id=1)

@@ -64,7 +64,7 @@ class TestPHPInfo516(PluginTest):
         info_urls = [i.get_url().url_string for i in infos]
         self.assertIn(self.target_url + "phpversion.php", info_urls)
 
-        found_infos = set([i.get_name() for i in infos])
+        found_infos = {i.get_name() for i in infos}
 
         expected_infos = {
             "PHP register_globals: On",

@@ -70,7 +70,7 @@ class TestURLInSession(unittest.TestCase):
 
     def test_url_session_in_body(self):
         url = "http://www.w3af.com/?JSESSIONID=231badb19b93e44f47da1bd64a8147f2"
-        body = 'abc <a href="%s">def</a> footer' % url
+        body = f'abc <a href="{url}">def</a> footer'
         url = URL("http://www.w3af.com/")
         headers = Headers([("content-type", "text/html")])
         request = FuzzableRequest(url, method="GET")
@@ -86,7 +86,7 @@ class TestURLInSession(unittest.TestCase):
 
     def test_url_session_in_body_and_url(self):
         url = "http://www.w3af.com/?JSESSIONID=231badb19b93e44f47da1bd64a8147f2"
-        body = 'abc <a href="%s">def</a> footer' % url
+        body = f'abc <a href="{url}">def</a> footer'
         url = URL(url)
         headers = Headers([("content-type", "text/html")])
         request = FuzzableRequest(url, method="GET")

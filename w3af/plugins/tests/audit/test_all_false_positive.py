@@ -19,8 +19,9 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import pytest
 from unittest import SkipTest
+
+import pytest
 
 from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
@@ -58,7 +59,7 @@ class TestAllFP(PluginTest):
 
             infos = [str(i) for i in self.kb.get_all_findings()]
 
-            msg_i = 'audit.%s found a vulnerability in "%s"' % (
+            msg_i = 'audit.{} found a vulnerability in "{}"'.format(
                 audit_plugin,
                 ",".join(infos),
             )

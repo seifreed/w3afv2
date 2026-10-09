@@ -66,8 +66,8 @@ class TestWordnet(PluginTest):
         frs = kb.kb.get_all_known_fuzzable_requests()
 
         self.assertEqual(
-            set(fr.get_uri().url_string for fr in frs),
-            set((self.target_url + end) for end in expected_urls),
+            {fr.get_uri().url_string for fr in frs},
+            {(self.target_url + end) for end in expected_urls},
         )
 
     def test_search_wordnet(self):

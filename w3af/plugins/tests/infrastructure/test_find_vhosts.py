@@ -47,7 +47,7 @@ class TestFindVhosts(PluginTest):
         upper_daemon.wait_for_start()
 
         port = upper_daemon.get_port()
-        target_url = "http://127.0.0.1:%s/" % port
+        target_url = f"http://127.0.0.1:{port}/"
 
         cfg = self._run_configs["cfg"]
         self._scan(target_url, cfg["plugins"])

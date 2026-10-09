@@ -90,7 +90,7 @@ class TestSerializedObject(unittest.TestCase):
         self.assertEqual(len(kb.kb.get("serialized_object", "serialized_object")), 1)
 
     def test_php_serialized_objects_cookies(self):
-        cookie_value = "state=%s" % base64.b64encode(SERIALIZED_PHP_OBJECTS[0])
+        cookie_value = f"state={base64.b64encode(SERIALIZED_PHP_OBJECTS[0])}"
         headers = Headers([("Cookie", cookie_value)])
         request = FuzzableRequest(self.url, headers=headers)
 
@@ -99,7 +99,7 @@ class TestSerializedObject(unittest.TestCase):
         self.assertEqual(len(kb.kb.get("serialized_object", "serialized_object")), 1)
 
     def test_php_serialized_objects_post_data(self):
-        post_data = "obj=%s" % base64.b64encode(SERIALIZED_PHP_OBJECTS[1])
+        post_data = f"obj={base64.b64encode(SERIALIZED_PHP_OBJECTS[1])}"
         headers = Headers([("Content-Type", "application/x-www-form-urlencoded")])
 
         form = URLEncodedForm.from_postdata(headers, post_data)
@@ -111,7 +111,7 @@ class TestSerializedObject(unittest.TestCase):
 
     def test_not_php_serialized_objects(self):
         # Note that I'm sending the serialized object in reverse string order
-        post_data = "obj=%s" % base64.b64encode(SERIALIZED_PHP_OBJECTS[1][::-1])
+        post_data = f"obj={base64.b64encode(SERIALIZED_PHP_OBJECTS[1][::-1])}"
         headers = Headers([("Content-Type", "application/x-www-form-urlencoded")])
 
         form = URLEncodedForm.from_postdata(headers, post_data)
@@ -123,7 +123,7 @@ class TestSerializedObject(unittest.TestCase):
 
     def test_mutated_request(self):
         # Note that I'm sending the serialized object in reverse string order
-        post_data = "test=1&obj=%s" % base64.b64encode(SERIALIZED_PHP_OBJECTS[1])
+        post_data = f"test=1&obj={base64.b64encode(SERIALIZED_PHP_OBJECTS[1])}"
         headers = Headers([("Content-Type", "application/x-www-form-urlencoded")])
 
         form = URLEncodedForm.from_postdata(headers, post_data)
@@ -155,8 +155,8 @@ class TestSerializedObjectIntegration(PluginTest):
 
     html = (
         '<form action="/form" method="GET">'
-        '<input type="hidden" name="viewstate" value="%s">'
-        "</form>" % base64.b64encode(SERIALIZED_PHP_OBJECTS[0])
+        f'<input type="hidden" name="viewstate" value="{base64.b64encode(SERIALIZED_PHP_OBJECTS[0])}">'
+        "</form>"
     )
 
     MOCK_RESPONSES = [
@@ -172,9 +172,11 @@ class TestSerializedObjectIntegration(PluginTest):
         expected_vulns = {
             (
                 "Serialized object",
-                "A total of 1 HTTP requests contained a serialized object"
-                ' in the parameter with name "viewstate". The first ten'
-                " matching URLs are:\n - http://mock/form\n",
+                (
+                    "A total of 1 HTTP requests contained a serialized object"
+                    ' in the parameter with name "viewstate". The first ten'
+                    " matching URLs are:\n - http://mock/form\n"
+                ),
             )
         }
 

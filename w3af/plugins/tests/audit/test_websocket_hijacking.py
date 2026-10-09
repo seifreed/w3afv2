@@ -123,10 +123,7 @@ class OriginMatchBugTest(WebSocketTest):
     class OriginMatchBugMock(MockResponse):
         def matches(self, http_request, uri, response_headers):
             origin = http_request.headers.get("origin", "")
-            if origin.startswith(OriginMatchBugTest.target_url):
-                return True
-
-            return False
+            return bool(origin.startswith(OriginMatchBugTest.target_url))
 
     MOCK_RESPONSES = [
         OriginMatchBugMock(
@@ -150,10 +147,7 @@ class OriginMatchTest(WebSocketTest):
     class OriginMatchMock(MockResponse):
         def matches(self, http_request, uri, response_headers):
             origin = http_request.headers.get("origin", "")
-            if origin == OriginMatchBugTest.target_url:
-                return True
-
-            return False
+            return origin == OriginMatchBugTest.target_url
 
     MOCK_RESPONSES = [
         OriginMatchMock(
@@ -177,10 +171,7 @@ class BasicAuthWebSocketTest(WebSocketTest):
     class BasicAuthMock(MockResponse):
         def matches(self, http_request, uri, response_headers):
             authorization = http_request.headers.get("authorization", "")
-            if authorization:
-                return True
-
-            return False
+            return bool(authorization)
 
     MOCK_RESPONSES = [
         BasicAuthMock(

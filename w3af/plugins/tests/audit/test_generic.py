@@ -111,7 +111,7 @@ class TestGenericSQLInjection(PluginTest):
         def get_response(self, http_request, uri, response_headers):
             uri = urllib.parse.unquote(uri)
 
-            if uri.endswith("1/0") or uri.endswith(sqli.SQLI_STRINGS[0]):
+            if uri.endswith(("1/0", sqli.SQLI_STRINGS[0])):
                 body = "PostgreSQL query failed:"
             else:
                 body = "Sunny outside"

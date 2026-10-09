@@ -45,10 +45,7 @@ class TestXST(PluginTest):
 
         self.assertEqual(
             all(
-                [
-                    "Cross site tracing vulnerability" == vuln.get_name()
-                    for vuln in vulns
-                ]
+                "Cross site tracing vulnerability" == vuln.get_name() for vuln in vulns
             ),
             True,
         )

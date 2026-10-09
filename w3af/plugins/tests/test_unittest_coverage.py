@@ -73,7 +73,7 @@ class TestUnittestCoverage(unittest.TestCase):
                 missing.append(plugin)
 
         if missing:
-            msg = "The following %s plugins dont have unittests: %s" % (
+            msg = "The following {} plugins dont have unittests: {}".format(
                 plugin_type,
                 ", ".join(sorted(missing)),
             )
@@ -82,5 +82,5 @@ class TestUnittestCoverage(unittest.TestCase):
     def _has_test(self, plugin_type, plugin_name):
         tests = os.listdir(os.path.join(TEST_PATH, plugin_type))
 
-        fname = "test_%s.py" % plugin_name
+        fname = f"test_{plugin_name}.py"
         return fname in tests

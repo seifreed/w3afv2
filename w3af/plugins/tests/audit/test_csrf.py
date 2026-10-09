@@ -75,8 +75,8 @@ class TestCSRF(PluginTest):
         # Assert the general results
         vulns = self.kb.get("csrf", "csrf")
 
-        self.assertEqual(set(expected), set([v.get_url().get_path() for v in vulns]))
-        self.assertTrue(all(["CSRF vulnerability" == v.get_name() for v in vulns]))
+        self.assertEqual(set(expected), {v.get_url().get_path() for v in vulns})
+        self.assertTrue(all("CSRF vulnerability" == v.get_name() for v in vulns))
 
     def test_resp_is_equal(self):
         url = URL("http://www.w3af.com/")

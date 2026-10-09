@@ -22,9 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 import unittest
+from unittest import SkipTest
 
 from lxml import etree
-from unittest import SkipTest
 
 from w3af import ROOT_PATH
 

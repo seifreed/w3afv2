@@ -35,7 +35,7 @@ class test_uptime(PayloadTestHelper):
     }
 
     def test_uptime(self):
-        result = exec_payload(self.shell, "uptime", use_api=True)
+        exec_payload(self.shell, "uptime", use_api=True)
 
         for key in self.EXPECTED_RESULT:
             for time_unit in self.EXPECTED_RESULT[key]:

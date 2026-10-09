@@ -79,7 +79,7 @@ class TestStrangeHeaders(unittest.TestCase):
         for _ in range(5):
             self.plugin.grep(request, resp_positive)
 
-        spent = time.time() - start
+        time.time() - start
         # print('Profiling run in %s seconds' % spent)
 
     def test_strange_headers_no_group(self):

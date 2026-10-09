@@ -34,7 +34,7 @@ class TestUDP(PayloadTestHelper):
         result = exec_payload(self.shell, "udp", use_api=True)
 
         local_addresses = []
-        for key, conn_data in result.items():
+        for conn_data in result.values():
             local_addresses.append(conn_data["local_address"])
 
         self.assertEqual(self.EXPECTED_RESULT, set(local_addresses))

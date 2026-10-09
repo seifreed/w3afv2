@@ -187,7 +187,7 @@ class TestShouldInject(unittest.TestCase):
 
     def test_should_not_inject_qs_with_b64(self):
         b64data = base64.b64encode("just some random b64 data here")
-        self.url = URL("http://moth/?id=%s" % b64data)
+        self.url = URL(f"http://moth/?id={b64data}")
         freq = FuzzableRequest(self.url)
 
         mutant = QSMutant.create_mutants(
@@ -198,7 +198,7 @@ class TestShouldInject(unittest.TestCase):
 
     def test_should_inject_qs_with_b64_pickle(self):
         b64data = base64.b64encode(pickle.dumps({"data": "here", "cookie": "A" * 16}))
-        self.url = URL("http://moth/?id=%s" % b64data)
+        self.url = URL(f"http://moth/?id={b64data}")
         freq = FuzzableRequest(self.url)
 
         mutant = QSMutant.create_mutants(
@@ -209,7 +209,7 @@ class TestShouldInject(unittest.TestCase):
 
     def test_should_not_inject_qs_with_b64_pickle_java(self):
         b64data = base64.b64encode(pickle.dumps(1))
-        self.url = URL("http://moth/?id=%s" % b64data)
+        self.url = URL(f"http://moth/?id={b64data}")
         freq = FuzzableRequest(self.url)
 
         mutant = QSMutant.create_mutants(
@@ -220,7 +220,7 @@ class TestShouldInject(unittest.TestCase):
 
     def test_should_inject_qs_with_pickle(self):
         pickle_data = pickle.dumps(1)
-        self.url = URL("http://moth/?id=%s" % pickle_data)
+        self.url = URL(f"http://moth/?id={pickle_data}")
         freq = FuzzableRequest(self.url)
 
         mutant = QSMutant.create_mutants(
@@ -252,7 +252,7 @@ class TestShouldInject(unittest.TestCase):
         b64data = base64.b64encode(pickle.dumps({"data": "here", "cookie": "A" * 16}))
 
         url = URL("http://moth/")
-        cookie = Cookie("foo=%s" % b64data)
+        cookie = Cookie(f"foo={b64data}")
         freq = FuzzableRequest(url, cookie=cookie)
 
         mutant = CookieMutant.create_mutants(
@@ -262,7 +262,7 @@ class TestShouldInject(unittest.TestCase):
         self.assertTrue(self.plugin._should_inject(mutant, "python"))
 
     def test_should_not_inject_random_binary(self):
-        self.url = URL("http://moth/?id=%s" % "\x00\x01\x02")
+        self.url = URL("http://moth/?id={}".format("\x00\x01\x02"))
         freq = FuzzableRequest(self.url)
 
         mutant = QSMutant.create_mutants(

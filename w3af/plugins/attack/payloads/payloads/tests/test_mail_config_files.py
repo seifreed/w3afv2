@@ -29,7 +29,7 @@ from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
 
 class test_mail_config_files(PayloadTestHelper):
 
-    EXPECTED_RESULT = set(["/etc/postfix/main.cf", "/etc/postfix/master.cf"])
+    EXPECTED_RESULT = {"/etc/postfix/main.cf", "/etc/postfix/master.cf"}
 
     @pytest.mark.ci_fails
     def test_mail_config_files(self):

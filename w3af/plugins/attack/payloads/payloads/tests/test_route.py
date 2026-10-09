@@ -67,12 +67,8 @@ class test_route(PayloadTestHelper):
             self.assertEqual(mask.count("."), 3)
 
             self.assertTrue(
-                iface.startswith("eth")
-                or iface.startswith("wlan")
-                or iface.startswith("ppp")
-                or iface.startswith("vbox")
-                or iface.startswith("lxcbr")
-                or iface.startswith("docker")
-                or iface.startswith("lo"),
+                iface.startswith(
+                    ("eth", "wlan", "ppp", "vbox", "lxcbr", "docker", "lo")
+                ),
                 iface,
             )

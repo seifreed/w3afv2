@@ -36,7 +36,7 @@ def fill_kb_with_cgi_urls(target_url, add_url):
     :return: None
     """
     for i in range(payment_webhook_finder.MIN_URL_COUNT_FOR_EXTENSION_FILTER + 1):
-        url_str = "%s%s.cgi" % (target_url, i)
+        url_str = f"{target_url}{i}.cgi"
         url = URL(url_str)
         add_url(url)
 

@@ -76,7 +76,7 @@ class TestVulnersDB(PluginTest):
 
         self.assertEqual(names, expected_names)
 
-        vuln = [i for i in vulns if i.get_name() == "CVE-2012-2531"][0]
+        vuln = next(i for i in vulns if i.get_name() == "CVE-2012-2531")
 
         self.assertEqual(vuln.get_name(), "CVE-2012-2531")
         self.assertEqual(vuln.get_url().url_string, "http://httpretty/")

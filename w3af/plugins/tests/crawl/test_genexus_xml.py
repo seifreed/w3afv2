@@ -109,6 +109,6 @@ class TestGenexusXML(PluginTest):
             "http://httpretty-mock/DeveloperMenu.xml",
             "http://httpretty-mock/",
         }
-        urls = set([u.url_string for u in urls])
+        urls = {u.url_string for u in urls}
 
         self.assertEqual(EXPECTED_URLS, urls)

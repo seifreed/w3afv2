@@ -73,7 +73,7 @@ class TestCORSOriginScan(PluginTest):
         self.assertEqual([v.get_name() for v in vulns], EXPECTED_NAMES)
 
         self.assertTrue(
-            all([v.get_url().url_string.startswith(self.target_url) for v in vulns])
+            all(v.get_url().url_string.startswith(self.target_url) for v in vulns)
         )
 
 
@@ -170,7 +170,7 @@ class TestCORSOrigin(PluginTest):
         vulns = self.kb.get("cors_origin", "cors_origin")
 
         self.assertEqual(len(vulns), 2)
-        vuln_names = set([v.get_name() for v in vulns])
+        vuln_names = {v.get_name() for v in vulns}
         expected_vuln_names = {
             "Sensitive CORS methods enabled",
             "Uncommon CORS methods enabled",
@@ -202,7 +202,7 @@ class TestCORSOrigin(PluginTest):
             self.assertEqual(len(vulns), 1)
             v = vulns[0]
 
-            msg = "Failure on run #%s" % i
+            msg = f"Failure on run #{i}"
             self.assertEqual(v.get_name(), "Sensitive CORS methods enabled", msg)
 
     def test_universal_allow_not(self):

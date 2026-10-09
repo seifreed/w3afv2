@@ -219,7 +219,7 @@ class TestXXEInParameter(PluginTest):
         "</note>"
     )
 
-    target_url = "http://mock/xxe.simple?xml=%s" % XML_NOTE
+    target_url = f"http://mock/xxe.simple?xml={XML_NOTE}"
 
     class XXEMockResponse(MockResponse):
         def get_response(self, http_request, uri, response_headers):

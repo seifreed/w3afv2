@@ -52,16 +52,14 @@ class TestDav(PluginTest):
 
         EXPECTED_NAMES = set(["Insecure DAV configuration"] * 2)
 
-        self.assertEqual(EXPECTED_NAMES, set([v.get_name() for v in vulns]))
+        self.assertEqual(EXPECTED_NAMES, {v.get_name() for v in vulns})
 
-        self.assertEqual(set(["PUT", "PROPFIND"]), set([v.get_method() for v in vulns]))
+        self.assertEqual({"PUT", "PROPFIND"}, {v.get_method() for v in vulns})
 
         self.assertTrue(
             all(
-                [
-                    self.target_vuln_all == str(v.get_url().get_domain_path())
-                    for v in vulns
-                ]
+                self.target_vuln_all == str(v.get_url().get_domain_path())
+                for v in vulns
             )
         )
 
@@ -79,10 +77,10 @@ class TestDav(PluginTest):
         self.assertEqual(len(vulns), 2, vulns)
 
         iname = "DAV incorrect configuration"
-        info_no_privs = [i for i in vulns if i.get_name() == iname][0]
+        info_no_privs = next(i for i in vulns if i.get_name() == iname)
 
         vname = "Insecure DAV configuration"
-        vuln_propfind = [v for v in vulns if v.get_name() == vname][0]
+        vuln_propfind = next(v for v in vulns if v.get_name() == vname)
 
         info_url = str(info_no_privs.get_url().get_domain_path())
         vuln_url = str(vuln_propfind.get_url().get_domain_path())

@@ -50,11 +50,11 @@ class test_get_source_code(PayloadTestHelper):
 
         self.assertEqual(len(list(self.EXPECTED_RESULT.keys())), 1)
 
-        expected_url = list(self.EXPECTED_RESULT.keys())[0]
-        downloaded_url = list(result.items())[0][0].url_string
+        expected_url = next(iter(self.EXPECTED_RESULT.keys()))
+        downloaded_url = next(iter(result.items()))[0].url_string
         self.assertEqual(expected_url, downloaded_url)
 
-        downloaded_file_path = list(result.items())[0][1][1]
+        downloaded_file_path = next(iter(result.items()))[1][1]
         downloaded_file_content = open(downloaded_file_path).read()
         self.assertTrue(self.CONTENT in downloaded_file_content)
 

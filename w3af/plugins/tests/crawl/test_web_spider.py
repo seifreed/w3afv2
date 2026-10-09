@@ -67,14 +67,14 @@ class TestWebSpider(PluginTest):
 
         # Add the webroot to the list of expected files
         expected_files.append("")
-        expected_urls = set(
+        expected_urls = {
             URL(base_directory).url_join(end).url_string for end in expected_files
-        )
+        }
 
         # pylint: disable=E1101
         # Pylint fails to detect the object types that come out of the KB
         urls = self.kb.get_all_known_urls()
-        found_urls = set(str(u).decode("utf-8") for u in urls)
+        found_urls = {str(u).decode("utf-8") for u in urls}
 
         self.assertEqual(found_urls, expected_urls)
 
@@ -232,10 +232,10 @@ class TestWebSpider(PluginTest):
 
         urls = self.kb.get_all_known_urls()
 
-        found = set(
+        found = {
             str(u) for u in urls if inner_pages in str(u) and str(u).endswith(".php")
-        )
-        expected = set((self.wivet + inner_pages + end) for end in EXPECTED_URLS)
+        }
+        expected = {(self.wivet + inner_pages + end) for end in EXPECTED_URLS}
 
         self.assertEqual(found, expected)
 
@@ -335,14 +335,14 @@ class TestRelativePathsIn404(PluginTest):
 
         # Define the expected/desired output
         expected_files = ["", "/galeria/", "/i18n/setlang/", "/reserva/resumen/"]
-        expected_urls = set(
+        expected_urls = {
             URL(self.target_url).url_join(end).url_string for end in expected_files
-        )
+        }
 
         # pylint: disable=E1101
         # Pylint fails to detect the object types that come out of the KB
         urls = self.kb.get_all_known_urls()
-        found_urls = set(str(u).decode("utf-8") for u in urls)
+        found_urls = {str(u).decode("utf-8") for u in urls}
 
         self.assertEqual(found_urls, expected_urls)
 
@@ -422,14 +422,14 @@ class TestFormExclusions(PluginTest):
 
         # Define the expected/desired output
         expected_files = ["", "/in/"]
-        expected_urls = set(
+        expected_urls = {
             URL(self.target_url).url_join(end).url_string for end in expected_files
-        )
+        }
 
         # pylint: disable=E1101
         # Pylint fails to detect the object types that come out of the KB
         urls = self.kb.get_all_known_urls()
-        found_urls = set(str(u).decode("utf-8") for u in urls)
+        found_urls = {str(u).decode("utf-8") for u in urls}
 
         self.assertEqual(found_urls, expected_urls)
 

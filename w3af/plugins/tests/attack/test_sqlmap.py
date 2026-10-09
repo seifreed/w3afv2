@@ -58,7 +58,7 @@ class TestSQLMapShell(ReadExploitTest):
         # Assert the general results
         vulns = self.kb.get("sqli", "sqli")
         self.assertEqual(1, len(vulns), vulns)
-        self.assertTrue(all(["SQL injection" == v.get_name() for v in vulns]))
+        self.assertTrue(all("SQL injection" == v.get_name() for v in vulns))
 
         # Verify the specifics about the vulnerabilities
         EXPECTED = [("get_int.php", "id")]
@@ -70,9 +70,9 @@ class TestSQLMapShell(ReadExploitTest):
 
         self.assertEqual(set(EXPECTED), set(found_vulns))
 
-        vuln_to_exploit_id = [
+        vuln_to_exploit_id = next(
             v.get_id() for v in vulns if v.get_url().get_file_name() == EXPECTED[0][0]
-        ][0]
+        )
 
         self._exploit_vuln(vuln_to_exploit_id, "sqlmap")
 

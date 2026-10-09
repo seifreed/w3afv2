@@ -60,7 +60,7 @@ class TestBingSpider(PluginTest):
 
         urls = self.kb.get_all_known_urls()
 
-        found_urls = (set(str(u) for u in urls),)
-        expected_urls = set((self.target_url + end) for end in self.EXPECTED_URLS)
+        found_urls = ({str(u) for u in urls},)
+        expected_urls = {(self.target_url + end) for end in self.EXPECTED_URLS}
 
         self.assertEqual(found_urls, expected_urls)

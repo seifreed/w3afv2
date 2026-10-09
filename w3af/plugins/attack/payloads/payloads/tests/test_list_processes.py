@@ -31,13 +31,13 @@ from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
 @pytest.mark.ci_fails
 class test_list_processes(PayloadTestHelper):
 
-    EXPECTED_RESULT = set(["/sbin/getty -8 38400 tty4", "cron"])
+    EXPECTED_RESULT = {"/sbin/getty -8 38400 tty4", "cron"}
 
     def test_list_processes(self):
         result = exec_payload(self.shell, "list_processes", args=(2000,), use_api=True)
 
         cmds = []
-        for _, pid_data in result.items():
+        for pid_data in result.values():
             cmds.append(pid_data["cmd"])
 
         for expected in self.EXPECTED_RESULT:

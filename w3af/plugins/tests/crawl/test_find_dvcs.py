@@ -64,8 +64,8 @@ class TestFindDVCS(PluginTest):
 
         for repo in self.KNOWN_REPOS:
 
-            vulns_for_repo = self.kb.get("find_dvcs", "%s repository" % repo)
-            self.assertEqual(len(vulns_for_repo), 1, "Failed at %s" % repo)
+            vulns_for_repo = self.kb.get("find_dvcs", f"{repo} repository")
+            self.assertEqual(len(vulns_for_repo), 1, f"Failed at {repo}")
 
             vuln_repo = vulns_for_repo[0]
 

@@ -60,12 +60,12 @@ class TestCrossDomainJS(PluginTest):
         self.assertEqual(2, len(info_sets), info_sets)
 
         self.assertEqual(
-            set([i.get_attribute("domain") for i in info_sets]),
+            {i.get_attribute("domain") for i in info_sets},
             {"moth", "www.w3af.org"},
         )
 
         self.assertEqual(
-            set([i.get_name() for i in info_sets]), {"Cross-domain javascript source"}
+            {i.get_name() for i in info_sets}, {"Cross-domain javascript source"}
         )
 
         all_files = {

@@ -33,7 +33,7 @@ class TestShellHandler(unittest.TestCase):
         shells = get_shell_code("php", self.TEST_CMD)
 
         self.assertEqual(len(shells), 2)
-        php_shell_code, lang, shellcode_generator = shells[0]
+        php_shell_code, lang, _shellcode_generator = shells[0]
 
         self.assertEqual(lang, "php")
         self.assertIn("echo ", php_shell_code)
@@ -42,7 +42,7 @@ class TestShellHandler(unittest.TestCase):
         shells = get_shell_code("php", self.TEST_CMD, True)
 
         self.assertEqual(len(shells), 1)
-        php_shell_code, lang, shellcode_generator = shells[0]
+        php_shell_code, lang, _shellcode_generator = shells[0]
 
         self.assertEqual(lang, "php")
         self.assertIn("echo ", php_shell_code)
@@ -51,7 +51,7 @@ class TestShellHandler(unittest.TestCase):
         shells = get_shell_code("", self.TEST_CMD)
 
         self.assertEqual(len(shells), 2)
-        php_shell_code, lang, shellcode_generator = shells[0]
+        php_shell_code, lang, _shellcode_generator = shells[0]
 
         self.assertEqual(lang, "php")
         self.assertIn("echo ", php_shell_code)
@@ -60,7 +60,7 @@ class TestShellHandler(unittest.TestCase):
         shells = get_shell_code("123456", self.TEST_CMD)
 
         self.assertEqual(len(shells), 2)
-        php_shell_code, lang, shellcode_generator = shells[0]
+        php_shell_code, lang, _shellcode_generator = shells[0]
 
         self.assertEqual(lang, "php")
         self.assertIn("echo ", php_shell_code)

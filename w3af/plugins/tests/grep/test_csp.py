@@ -55,17 +55,19 @@ class TestCSP(PluginTest):
             "Directive 'default-src' allows all sources.",
             # ---These vulns are isolated
             "Directive 'script-src' allows all javascript sources.",
-            "Directive 'script-src' is defined but no directive"
-            " 'script-nonce' is defined to protect javascript"
-            " resources.",
+            (
+                "Directive 'script-src' is defined but no directive"
+                " 'script-nonce' is defined to protect javascript"
+                " resources."
+            ),
             "Directive 'object-src' allows all plugin sources.",
             "Some directives are misspelled: def-src, sript-src",
         ]
 
-        vuln_descs = set([v.get_desc(with_id=False) for v in vulns])
+        vuln_descs = {v.get_desc(with_id=False) for v in vulns}
         self.assertEqual(set(EXPECTED), vuln_descs)
         self.assertAllVulnNamesEqual("CSP vulnerability", vulns)
 
         NOT_IN_FILENAME = "csp_without_error.html"
-        vuln_fnames = set([v.get_url().get_file_name() for v in vulns])
+        vuln_fnames = {v.get_url().get_file_name() for v in vulns}
         self.assertNotIn(NOT_IN_FILENAME, vuln_fnames)

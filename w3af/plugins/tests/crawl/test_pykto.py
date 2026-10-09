@@ -217,7 +217,7 @@ class TestNiktoTestParser(PluginTest):
         self.assertEqual(nikto_test.headers, "")
 
         generator = nikto_parser.test_generator()
-        cart32_test_from_db = [i for (i,) in generator if i.id == "000003"][0]
+        cart32_test_from_db = next(i for (i,) in generator if i.id == "000003")
 
         self.assertEqual(cart32_test_from_db.uri, nikto_test.uri)
         self.assertEqual(cart32_test_from_db.match_1, nikto_test.match_1)

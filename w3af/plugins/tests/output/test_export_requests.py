@@ -57,9 +57,7 @@ class TestExportRequests(PluginTest):
 
         self.assertTrue(os.path.exists("output-fr.b64"))
 
-        self.assertEqual(
-            set(sorted(freq)), set(sorted(self._get_fuzzable_requests_from_file()))
-        )
+        self.assertEqual(set(freq), set(self._get_fuzzable_requests_from_file()))
 
     def _get_fuzzable_requests_from_file(self):
         # Get the contents of the output file

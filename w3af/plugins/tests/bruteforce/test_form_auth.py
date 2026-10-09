@@ -224,7 +224,7 @@ class TestFormAuthFailedLoginMatchWithStaticLargeResponse(GenericFormAuthTest):
         klass = TestFormAuthFailedLoginMatchWithStaticLargeResponse
 
         if username == "admin" and password == "admin":
-            body = "%s\n%s\n%s" % (
+            body = "{}\n{}\n{}".format(
                 klass.HEADER,
                 'Success, redirecting to the home page... <a href="/home">home<a>',
                 klass.FOOTER,
@@ -291,15 +291,15 @@ class TestFormAuthFailedLoginMatchWithLargeRandomFailedResponse(GenericFormAuthT
         klass = TestFormAuthFailedLoginMatchWithLargeRandomFailedResponse
 
         if username == "admin" and password == "admin":
-            body = "%s\n%s\n%s" % (
+            body = "{}\n{}\n{}".format(
                 klass.HEADER,
                 'Success, redirecting to the home page... <a href="/home">home<a>',
                 klass.FOOTER,
             )
         else:
-            body = "%s\n%s\n%s" % (
+            body = "{}\n{}\n{}".format(
                 klass.HEADER,
-                "Invalid username / password %s" % random.randint(1, 10000),
+                f"Invalid username / password {random.randint(1, 10000)}",
                 klass.FOOTER,
             )
 
@@ -369,9 +369,9 @@ class TestFormAuthFailedLoginMatchWithLargeRandomFailedResponseShortSuccess(
         if username == "admin" and password == "admin":
             body = "Success, redirecting"
         else:
-            body = "%s\n%s\n%s" % (
+            body = "{}\n{}\n{}".format(
                 klass.HEADER,
-                "Invalid username / password %s" % random.randint(1, 10000),
+                f"Invalid username / password {random.randint(1, 10000)}",
                 klass.FOOTER,
             )
 
@@ -439,9 +439,9 @@ class TestFormAuthFailedLoginMatchWithCAPTCHA(GenericFormAuthTest):
 
         klass = TestFormAuthFailedLoginMatchWithLargeRandomFailedResponse
 
-        body = "%s\n%s\n%s" % (
+        body = "{}\n{}\n{}".format(
             klass.HEADER,
-            "Invalid username / password %s" % random.randint(1, 10000),
+            f"Invalid username / password {random.randint(1, 10000)}",
             klass.FOOTER,
         )
 
@@ -450,9 +450,9 @@ class TestFormAuthFailedLoginMatchWithCAPTCHA(GenericFormAuthTest):
             captcha_count += 1
 
             if captcha_count > 2:
-                body = "%s\n%s\n%s" % (
+                body = "{}\n{}\n{}".format(
                     klass.HEADER,
-                    "Now you need to complete a CAPTCHA %s" % random.randint(1, 10000),
+                    f"Now you need to complete a CAPTCHA {random.randint(1, 10000)}",
                     klass.FOOTER,
                 )
             else:

@@ -162,7 +162,7 @@ class TestImportResults(PluginTest):
             "http://127.0.0.1:8000/audit/xss/simple_xss_form.py",
             "http://127.0.0.1:8000/core/file_upload/upload.py",
         }
-        post_urls = set([fr.get_uri().url_string for fr in post_frs])
+        post_urls = {fr.get_uri().url_string for fr in post_frs}
 
         self.assertEqual(expected_post_urls, post_urls)
 
@@ -229,7 +229,7 @@ class TestImportResults(PluginTest):
             "http://127.0.0.1:8000/audit/xss/simple_xss_form.py",
             "http://127.0.0.1:8000/core/file_upload/upload.py",
         }
-        post_urls = set([fr.get_uri().url_string for fr in post_frs])
+        post_urls = {fr.get_uri().url_string for fr in post_frs}
 
         self.assertEqual(expected_post_urls, post_urls)
 

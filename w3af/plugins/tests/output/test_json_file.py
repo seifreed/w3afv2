@@ -61,21 +61,21 @@ class TestJsonOutput(PluginTest):
         self.assertEqual(len(kb_vulns), 1, kb_vulns)
 
         self.assertEqual(
-            set(sorted([v.get_url() for v in kb_vulns])),
-            set(sorted([v.get_url() for v in file_vulns])),
-            set(sorted([v.get_url() for v in kb_vulns])),
+            {v.get_url() for v in kb_vulns},
+            {v.get_url() for v in file_vulns},
+            {v.get_url() for v in kb_vulns},
         )
 
         self.assertEqual(
-            set(sorted([v.get_name() for v in kb_vulns])),
-            set(sorted([v.get_name() for v in file_vulns])),
-            set(sorted([v.get_name() for v in kb_vulns])),
+            {v.get_name() for v in kb_vulns},
+            {v.get_name() for v in file_vulns},
+            {v.get_name() for v in kb_vulns},
         )
 
         self.assertEqual(
-            set(sorted([v.get_plugin_name() for v in kb_vulns])),
-            set(sorted([v.get_plugin_name() for v in file_vulns])),
-            set(sorted([v.get_plugin_name() for v in kb_vulns])),
+            {v.get_plugin_name() for v in kb_vulns},
+            {v.get_plugin_name() for v in file_vulns},
+            {v.get_plugin_name() for v in kb_vulns},
         )
 
     def _from_json_get_vulns(self, filename):
