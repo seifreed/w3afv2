@@ -24,15 +24,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import json
 import logging
 
-from yaml import load
+from yaml import YAMLError, load
 
 try:
-    from yaml import CDumper as Dumper
     from yaml import CLoader as Loader
 except ImportError:
     from yaml import Loader
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.data.parsers.doc.open_api.parameters import ParameterHandler
 from w3af.core.data.parsers.doc.open_api.relaxed_spec import RelaxedSpec
 
@@ -48,6 +46,8 @@ SILENCE = (
 for to_silence in SILENCE:
     logger = logging.getLogger(to_silence)
     logger.setLevel(logging.ERROR)
+
+LOGGER = logging.getLogger(__name__)
 
 
 class SpecificationHandler:
@@ -133,7 +133,7 @@ class SpecificationHandler:
         config = {"use_models": False, "use_spec_url_for_base_path": False}
 
         if not self.validate_swagger_spec:
-            om.out.debug("Open API spec validation disabled")
+            LOGGER.debug("Open API spec validation disabled")
             config.update(
                 {
                     "validate_swagger_spec": False,
@@ -158,7 +158,7 @@ class SpecificationHandler:
             )
             args = (self.http_response.get_url(), e)
 
-            om.out.debug(msg % args)
+            LOGGER.debug(msg, *args)
             self.append_parsing_error(msg % args)
 
             return None
@@ -201,7 +201,7 @@ class SpecificationHandler:
         :param spec_dict: The dict, as received from the wire.
         :return: A new (potentially unchanged) spec_dict
         """
-        info = spec_dict.get("info", dict())
+        info = spec_dict.get("info", {})
         version = info.get("version", None)
 
         if version is not None:
@@ -219,8 +219,8 @@ class SpecificationHandler:
         :param spec_dict: The dict, as received from the wire.
         :return: A new (potentially unchanged) spec_dict
         """
-        info = spec_dict.get("info", dict())
-        license = info.get("license", dict())
+        info = spec_dict.get("info", {})
+        license = info.get("license", {})
         name = license.get("name", None)
 
         if name is not None:
@@ -247,7 +247,7 @@ class SpecificationHandler:
 
             try:
                 spec_dict = load(self.http_response.body, Loader=Loader)
-            except Exception:
+            except YAMLError:
                 #
                 # Oops! We should never reach here because is_valid_json_or_yaml
                 # checks that we have a JSON or YAML object, but well... just in
@@ -256,7 +256,7 @@ class SpecificationHandler:
                 msg = "The OpenAPI specification at %s is not in JSON or YAML format"
                 args = (self.http_response.get_url(),)
 
-                om.out.error(msg % args)
+                LOGGER.error(msg, *args)
                 self.append_parsing_error(msg % args)
 
                 return None

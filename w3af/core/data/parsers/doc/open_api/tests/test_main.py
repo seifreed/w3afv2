@@ -83,7 +83,12 @@ class TestOpenAPIMain(unittest.TestCase):
         self.assertTrue(OpenAPI.can_parse(response))
 
         parser = OpenAPI(response)
-        parser.parse()
+        with self.assertLogs(
+            "w3af.core.data.parsers.doc.open_api.specification", level="DEBUG"
+        ) as logs:
+            parser.parse()
+
+        self.assertIn("Open API spec validation disabled", logs.output[0])
         api_calls = parser.get_api_calls()
 
         json_headers = Headers([("Content-Type", "application/json")])

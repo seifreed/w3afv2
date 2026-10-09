@@ -21,16 +21,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import json
+import logging
 
-from yaml import load
+from yaml import YAMLError, load
 
 try:
-    from yaml import CDumper as Dumper
     from yaml import CLoader as Loader
 except ImportError:
     from yaml import Loader
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.data.parsers.doc.baseparser import BaseParser
 
 #
@@ -42,6 +41,8 @@ from w3af.core.data.parsers.doc.open_api.operation_mp import build_params_monkey
 from w3af.core.data.parsers.doc.open_api.requests import RequestFactory
 from w3af.core.data.parsers.doc.open_api.specification import SpecificationHandler
 from w3af.core.traceback_utils import get_exception_location, get_traceback
+
+LOGGER = logging.getLogger(__name__)
 
 _ = build_params_monkey_patch
 
@@ -132,13 +133,10 @@ class OpenAPI(BaseParser):
 
             try:
                 spec_dict = load(http_resp.body, Loader=Loader)
-            except:
-                pass
+            except YAMLError:
+                spec_dict = None
 
-        if isinstance(spec_dict, dict):
-            return True
-
-        return False
+        return isinstance(spec_dict, dict)
 
     @staticmethod
     def looks_like_json_or_yaml(http_resp):
@@ -180,12 +178,9 @@ class OpenAPI(BaseParser):
             return False
 
         # Only parse if they are valid json or yaml docs
-        if not OpenAPI.is_valid_json_or_yaml(http_resp):
-            return False
-
         # It seems that this is an openapi doc, but we can't never be 100%
         # sure until we really parse it in OpenAPI.parse()
-        return True
+        return OpenAPI.is_valid_json_or_yaml(http_resp)
 
     def parse(self):
         """
@@ -229,7 +224,7 @@ class OpenAPI(BaseParser):
 
                 args = (spec_url, e, path, filename, _function, line)
 
-                om.out.error(msg % args)
+                LOGGER.error(msg, *args)
             else:
                 if not self._should_audit(fuzzable_request):
                     continue
@@ -244,10 +239,7 @@ class OpenAPI(BaseParser):
         :param fuzzable_request: The fuzzable request with a call to the REST API
         :return: True if we should scan this fuzzable request
         """
-        if fuzzable_request.get_method().upper() == "DELETE":
-            return False
-
-        return True
+        return fuzzable_request.get_method().upper() != "DELETE"
 
     def get_api_calls(self):
         """

@@ -1203,3 +1203,21 @@ Black, Ruff y Bandit focalizados pasan sin supresiones. Mypy del módulo no
 reporta errores propios, pero encuentra dos errores en `core.data` y `core` al
 seguir imports. Score global provisional: **5.0/10**; quedan 17 dependencias
 directas, cobertura global no demostrada al 100% y gates globales fallidas.
+
+## Avance: parser OpenAPI sin controllers
+
+Los módulos `main`, `requests` y `specification` del parser OpenAPI sustituyen
+sus seis diagnósticos con `output_manager` por `logging` estándar; los imports
+directos de producción `core.data -> controllers` bajan de 17 a 14. La prueba de
+parseo real confirma el mensaje de configuración desde el logger del parser.
+También se acotó el manejo de YAML a `YAMLError`, eliminando un `except` desnudo
+que descartaba errores ajenos al parser. Las transformaciones mantienen los
+requests, errores registrados y decisiones de parsing.
+
+Verificación: **55 pruebas OpenAPI pasan**; Black y Bandit focalizados pasan.
+Ruff focal deja dos catches amplios preexistentes para tolerar fallos aislados
+de operaciones/especificaciones, sin supresiones. Mypy dirigido reporta diez
+errores en siete módulos importados o stubs ausentes; no se atribuyen a la
+migración de logs. La suite emite 747 deprecations desde `bravado-core` y
+`jsonschema`. Score global provisional: **5.1/10**; quedan 14 dependencias
+directas y las gates globales sin resolver.

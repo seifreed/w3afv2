@@ -21,9 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import re
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.data.dc.factory import dc_from_content_type_and_raw_params
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.dc.json_container import JSONContainer
@@ -33,6 +33,8 @@ from w3af.core.data.dc.urlencoded_form import URLEncodedForm
 from w3af.core.data.parsers.doc.open_api.construct_request import construct_request
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
+
+LOGGER = logging.getLogger(__name__)
 
 
 class RequestFactory:
@@ -102,9 +104,10 @@ class RequestFactory:
             parameter = self.parameters[parameter_name]
             if parameter.location == "header":
                 parameter_headers.add(parameter.name)
-                om.out.debug(
-                    "Found a parameter header for %s endpoint: %s"
-                    % (self.operation.path_name, parameter.name)
+                LOGGER.debug(
+                    "Found a parameter header for %s endpoint: %s",
+                    self.operation.path_name,
+                    parameter.name,
                 )
 
         return list(parameter_headers)
@@ -151,7 +154,7 @@ class RequestFactory:
         return construct_request(self.operation, request_options={}, **parameters)
 
     def _get_filled_parameters(self):
-        return dict((name, value.fill) for (name, value) in self.parameters.items())
+        return {name: value.fill for name, value in self.parameters.items()}
 
     def get_method(self):
         """
@@ -295,7 +298,7 @@ class RequestFactory:
         # Create the data container
         dc = dc_from_content_type_and_raw_params(content_type, parameters)
         if dc is None:
-            om.out.error("No data container for content type '%s'" % content_type)
+            LOGGER.error("No data container for content type '%s'", content_type)
             return None
 
         dc.set_header("Content-Type", content_type)
