@@ -29,9 +29,9 @@ from functools import wraps
 from tempfile import NamedTemporaryFile
 from unicodedata import category
 
-import jinja2
 import lz4.frame
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
+from markupsafe import Markup
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
@@ -642,10 +642,14 @@ class HTTPTransaction(CachedXMLNode):
         request, response = req_history.load_from_file(self._id)
 
         data = request.get_data() or ""
-        b64_encoded_request_body = base64.encodestring(smart_str_ignore(data))
+        b64_encoded_request_body = base64.encodebytes(smart_str_ignore(data)).decode(
+            "ascii"
+        )
 
         body = response.get_body() or ""
-        b64_encoded_response_body = base64.encodestring(smart_str_ignore(body))
+        b64_encoded_response_body = base64.encodebytes(smart_str_ignore(body)).decode(
+            "ascii"
+        )
 
         context = {
             "id": self._id,
@@ -896,7 +900,7 @@ def jinja2_attr_value_escape_filter(value):
         else:
             retval += letter
 
-    return jinja2.Markup(retval)
+    return Markup(retval)
 
 
 TEXT_VALUE_ESCAPES = {
@@ -960,4 +964,4 @@ def jinja2_text_value_escape_filter(value):
         else:
             retval += letter
 
-    return jinja2.Markup(retval)
+    return Markup(retval)
