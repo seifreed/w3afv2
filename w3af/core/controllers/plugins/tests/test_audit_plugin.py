@@ -22,18 +22,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import pytest
-
-from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.kb.knowledge_base import kb
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.tests.helpers.upper_daemon import UpperDaemon
 from w3af.core.data.url.tests.test_xurllib import TimeoutTCPHandler
+from w3af.tests.helpers.sqli_site import STRING_QS, SQLInjectionSite
 
 
-@pytest.mark.moth
 class TestAuditPlugin(unittest.TestCase):
 
     def setUp(self):
@@ -47,7 +44,8 @@ class TestAuditPlugin(unittest.TestCase):
     def test_audit_return_vulns(self):
         plugin_inst = self.w3af.plugins.get_plugin_inst("audit", "sqli")
 
-        target_url = get_moth_http("/audit/sql_injection/where_string_single_qs.py")
+        site = SQLInjectionSite.serve_for(self)
+        target_url = site.url + STRING_QS
         uri = URL(target_url + "?uname=pablo")
         freq = FuzzableRequest(uri)
 
@@ -56,8 +54,8 @@ class TestAuditPlugin(unittest.TestCase):
         self.assertEqual(len(vulns), 1, vulns)
 
         vuln = vulns[0]
-        self.assertEqual("syntax error", vuln["error"])
-        self.assertEqual("Unknown database", vuln["db"])
+        self.assertEqual("You have an error in your SQL syntax;", vuln["error"])
+        self.assertEqual("MySQL database", vuln["db"])
         self.assertEqual(target_url, str(vuln.get_url()))
 
         self.assertEqual(plugin_inst._store_kb_vulns, False)

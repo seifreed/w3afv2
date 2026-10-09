@@ -19,10 +19,41 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from typing import ClassVar
+from urllib.parse import parse_qs, urlsplit
 
-from w3af.core.controllers.ci.moth import get_moth_http
+from w3af.core.controllers.tests.local_http_server import LocalHTTPServer, Reply
 from w3af.plugins.tests.helper import PluginConfig, PluginTest
+
+EVENT_VALIDATION = "bar+spam"
+FORM_ACTIONS = ("/search", "/comment")
+
+INDEX_BODY = "<html><body>{}</body></html>".format(
+    "".join(
+        f'<form action="{action}" method="GET">'
+        f'<input name="foo" value="{EVENT_VALIDATION}" type="hidden">'
+        '<input name="eggs" type="text">'
+        '<input type="submit" value="Send">'
+        "</form>"
+        for action in FORM_ACTIONS
+    )
+)
+
+
+def encoding_spaces_site(method: str, path: str) -> Reply:
+    """
+    Reflect the "eggs" parameter only when the hidden "foo" value arrives
+    untouched, like a .NET EVENTVALIDATION field does.
+    """
+    parts = urlsplit(path)
+    if parts.path not in FORM_ACTIONS:
+        return Reply(body=INDEX_BODY)
+
+    params = parse_qs(parts.query, keep_blank_values=True)
+    if params.get("foo") != [EVENT_VALIDATION]:
+        return Reply(body="<html><body>Invalid event validation</body></html>")
+
+    eggs = params.get("eggs", [""])[0]
+    return Reply(body=f"<html><body>You said: {eggs}</body></html>")
 
 
 class TestSpecialChars(PluginTest):
@@ -45,27 +76,21 @@ class TestSpecialChars(PluginTest):
     verify that everything works as expected) can be found at test_form.py
     """
 
-    target_url = get_moth_http("/core/encoding_spaces/")
-
-    _run_configs: ClassVar[dict] = {
-        "cfg": {
-            "target": target_url,
-            "plugins": {
-                "audit": (PluginConfig("xss"),),
-                "crawl": (
-                    PluginConfig(
-                        "web_spider",
-                        ("only_forward", True, PluginConfig.BOOL),
-                    ),
-                ),
-            },
-        }
-    }
-
     def test_special_chars(self):
-        cfg = self._run_configs["cfg"]
+        site = LocalHTTPServer(encoding_spaces_site).start()
+        self.addCleanup(site.close)
 
-        self._scan(cfg["target"], cfg["plugins"])
+        plugins = {
+            "audit": (PluginConfig("xss"),),
+            "crawl": (
+                PluginConfig(
+                    "web_spider",
+                    ("only_forward", True, PluginConfig.BOOL),
+                ),
+            ),
+        }
+
+        self._scan(site.url("/"), plugins)
 
         xss_vulns = self.kb.get("xss", "xss")
         self.assertEqual(len(xss_vulns), 2, xss_vulns)
