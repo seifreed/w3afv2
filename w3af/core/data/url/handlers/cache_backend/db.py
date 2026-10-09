@@ -56,7 +56,7 @@ class SQLCachedResponse(CachedResponse):
         elif part == CachedResponse.PART_TIME:
             res = hist.time
         else:
-            raise ValueError("Unexpected value for param 'part': %s" % part)
+            raise ValueError(f"Unexpected value for param 'part': {part}")
 
         return res
 
@@ -82,7 +82,7 @@ class SQLCachedResponse(CachedResponse):
         try:
             hi.save()
         except sqlite3.Error as e:
-            msg = 'A sqlite3 error was raised: "%s".' % e
+            msg = f'A sqlite3 error was raised: "{e}".'
 
             if "disk" in str(e).lower():
                 msg += " Please check if your disk is full."

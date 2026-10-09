@@ -62,7 +62,7 @@ class URLEncodedForm(Form):
     @classmethod
     def from_postdata(cls, headers, post_data):
         if not URLEncodedForm.content_type_matches(headers):
-            raise ValueError("Request is not %s." % URLEncodedForm.ENCODING)
+            raise ValueError(f"Request is not {URLEncodedForm.ENCODING}.")
 
         if not URLEncodedForm.can_parse(post_data):
             raise ValueError("Failed to parse post_data as Form.")
@@ -88,7 +88,7 @@ class URLEncodedForm(Form):
         :see: Unittest in test_form.py
         :return: string representation of the Form object.
         """
-        d = dict()
+        d = {}
         d.update(list(self.items()))
 
         for key in d:

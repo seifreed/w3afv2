@@ -49,7 +49,7 @@ def htmldecode(text, use_repr=False):
         # in unichr, that's why I need to have a try/except
         try:
             if entity.startswith("#x"):
-                return chr(int(entity[2:], 16))
+                return chr(int(entity.removeprefix("#x"), 16))
 
             elif entity.startswith("#"):
                 return chr(int(entity[1:]))

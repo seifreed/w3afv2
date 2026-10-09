@@ -29,7 +29,6 @@ import urllib.request
 import warnings
 from multiprocessing import get_context
 from pathlib import Path
-
 from unittest import SkipTest
 
 from w3af.core.data.dc.query_string import QueryString
@@ -1072,10 +1071,10 @@ class TestURLParser(unittest.TestCase):
     #
     def test_memoized(self):
         u = URL("http://www.w3af.com/")
-        self.assertEqual(u._cache, dict())
+        self.assertEqual(u._cache, {})
 
         url = u.uri2url()
-        self.assertNotEqual(u._cache, dict())
+        self.assertNotEqual(u._cache, {})
         self.assertIn(url, list(u._cache.values()))
 
         second_url = u.uri2url()

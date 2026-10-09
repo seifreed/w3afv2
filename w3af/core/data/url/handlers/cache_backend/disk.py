@@ -42,10 +42,10 @@ class DiskCachedResponse(CachedResponse):
 
     def _get_from_response(self, part):
         if part not in self.PARTS_MAPPING:
-            raise ValueError("Unexpected value for param 'part': %s" % part)
+            raise ValueError(f"Unexpected value for param 'part': {part}")
         ext = self.PARTS_MAPPING[part]
         file = os.path.join(
-            DiskCachedResponse._get_cache_location(), "%s.%s" % (self._hash_id, ext)
+            DiskCachedResponse._get_cache_location(), f"{self._hash_id}.{ext}"
         )
         with open(file, "r") as f:
             content = f.read()

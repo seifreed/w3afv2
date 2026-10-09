@@ -125,7 +125,7 @@ class JSONContainer(DataContainer):
         return json_complex_str(self._json)
 
     def __repr__(self):
-        return "<JSONContainer (token: %s)>" % self.get_token()
+        return f"<JSONContainer (token: {self.get_token()})>"
 
     def token_filter(self, token_path, token_value):
         """
@@ -167,11 +167,8 @@ class JSONContainer(DataContainer):
         if self.get_token() is not None:
             # I want to show the token variable and value in the output
             token = self.get_token()
-            dt_str = "%s=%s" % (
-                filter_non_printable(token.get_name()),
-                filter_non_printable(token.get_value()),
-            )
-            return "...%s..." % dt_str[: self.MAX_PRINTABLE - 6]
+            dt_str = f"{filter_non_printable(token.get_name())}={filter_non_printable(token.get_value())}"
+            return f"...{dt_str[: self.MAX_PRINTABLE - 6]}..."
         else:
             # I'll simply show the first N parameter and values until the
             # MAX_PRINTABLE is achieved

@@ -28,8 +28,8 @@ import urllib.request
 import pytest
 
 from w3af.core.controllers.ci.moth import get_moth_http
-from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.data.constants.response_codes import NOT_FOUND
+from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url import opener_settings
 from w3af.core.data.url.http_request import HTTPRequest

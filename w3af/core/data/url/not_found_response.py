@@ -162,7 +162,7 @@ class FourOhFourResponse:
 
         extension = url.get_extension()
         if extension:
-            filename = "filename.%s" % extension
+            filename = f"filename.{extension}"
         else:
             filename = "filename"
 
@@ -170,4 +170,4 @@ class FourOhFourResponse:
         return url.url_string
 
     def __repr__(self):
-        return "<FourOhFourResponse (url:%s, code:%s)>" % (self.url, self.code)
+        return f"<FourOhFourResponse (url:{self.url}, code:{self.code})>"

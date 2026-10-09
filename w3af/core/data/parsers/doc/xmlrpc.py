@@ -116,13 +116,10 @@ class XmlRpcWriteHandler(ContentHandler):
             self._inside_fuzzable = True
             self._fuzzable_index += 1
 
-        self.fuzzed_xml_string += "<%s" % name
+        self.fuzzed_xml_string += f"<{name}"
 
         for attr_name in attrs.getNames():
-            self.fuzzed_xml_string += ' %s="%s"' % (
-                attr_name,
-                attrs.getValue(attr_name),
-            )
+            self.fuzzed_xml_string += f' {attr_name}="{attrs.getValue(attr_name)}"'
 
         self.fuzzed_xml_string += ">"
 
@@ -147,7 +144,7 @@ class XmlRpcWriteHandler(ContentHandler):
 
     def endElement(self, name):
         self._inside_fuzzable = False
-        self.fuzzed_xml_string += "</%s>" % name
+        self.fuzzed_xml_string += f"</{name}>"
 
 
 def parse_xmlrpc(xml_string):

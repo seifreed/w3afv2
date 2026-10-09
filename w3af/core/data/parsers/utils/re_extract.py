@@ -138,7 +138,7 @@ class ReExtract(BaseParser):
             else:
                 url_lower = url.url_string.lower()
 
-                if url_lower.startswith("http://") or url_lower.startswith("https://"):
+                if url_lower.startswith(("http://", "https://")):
                     self._re_urls.add(url)
 
     def _filter_false_urls(self, potential_url_mo):

@@ -82,7 +82,7 @@ class TestXUrllibDelayOnError(unittest.TestCase):
         self.uri_opener._should_stop_scan = lambda x: False
         self.uri_opener._rate_limit = lambda: True
 
-        url = URL("http://127.0.0.1:%s/" % port)
+        url = URL(f"http://127.0.0.1:{port}/")
         http_exception_count = 0
         loops = 100
 
@@ -142,7 +142,7 @@ class TestXUrllibDelayOnError(unittest.TestCase):
 
             # The log was cleared, all values should be False
             self.assertTrue(
-                all([not v for v in list(self.uri_opener._sleep_log.values())])
+                all(not v for v in list(self.uri_opener._sleep_log.values()))
             )
 
     def test_error_handling_disable_per_request(self):
@@ -156,7 +156,7 @@ class TestXUrllibDelayOnError(unittest.TestCase):
         self.uri_opener.clear_timeout()
         self.uri_opener._retry = Mock()
 
-        url = URL("http://127.0.0.1:%s/" % port)
+        url = URL(f"http://127.0.0.1:{port}/")
 
         try:
             self.uri_opener.GET(url, error_handling=False)
@@ -180,7 +180,7 @@ class TestXUrllibDelayOnError(unittest.TestCase):
         # Don't rate limit
         self.uri_opener._rate_limit = lambda: True
 
-        url = URL("http://127.0.0.1:%s/" % port)
+        url = URL(f"http://127.0.0.1:{port}/")
         http_exception_count = 0
         loops = 100
 
@@ -247,7 +247,7 @@ class TestXUrllibErrorHandling(PluginTest):
         upper_daemon.wait_for_start()
 
         port = upper_daemon.get_port()
-        target_url = "http://127.0.0.1:%s/" % port
+        target_url = f"http://127.0.0.1:{port}/"
 
         # Make sure we don't clear the attribute we want to assert
         self.w3afcore.uri_opener.clear = Mock()
@@ -329,7 +329,7 @@ class MultipleTimeoutsTCPHandler(socketserver.BaseRequestHandler):
 
         # Handling of the vulnerability mock
         elif "etc%2Fpasswd" in header:
-            body = "Header %s Footer" % FILE_PATTERNS[0]
+            body = f"Header {FILE_PATTERNS[0]} Footer"
             self.request.sendall(self.RESPONSE % (len(body), body))
 
         elif " / " in header:

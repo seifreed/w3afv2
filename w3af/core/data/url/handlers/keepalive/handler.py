@@ -65,7 +65,7 @@ class URLTimeoutError(urllib.error.URLError):
     def __str__(self):
         default_timeout = socket.getdefaulttimeout()
         if default_timeout is not None:
-            return "HTTP timeout error after %s seconds" % default_timeout
+            return f"HTTP timeout error after {default_timeout} seconds"
         else:
             return "HTTP timeout error"
 
@@ -118,7 +118,7 @@ class KeepAliveHandler:
         This request is now closed and that the connection is ready for another
         request
         """
-        debug("Add %s to free-to-use connection list" % connection)
+        debug(f"Add {connection} to free-to-use connection list")
         self._cm.free_connection(connection)
 
     def _remove_connection(self, conn):
@@ -195,7 +195,7 @@ class KeepAliveHandler:
 
         except Exception as e:
             # We better discard this connection, we don't even know what happen!
-            reason = 'unexpected exception "%s"' % e
+            reason = f'unexpected exception "{e}"'
             self._cm.remove_connection(conn, reason=reason)
             raise
 
@@ -223,7 +223,7 @@ class KeepAliveHandler:
             raise HTTPRequestException("The HTTP connection died")
         except Exception as e:
             # We better discard this connection, we don't even know what happen!
-            reason = 'unexpected exception while reading "%s"' % e
+            reason = f'unexpected exception while reading "{e}"'
             self._cm.remove_connection(conn, reason=reason)
             raise
 
@@ -303,7 +303,7 @@ class KeepAliveHandler:
             msg = 'Unexpected exception "%s" - closing %s to %s)'
             error(msg % (e, conn, host))
 
-            self._cm.remove_connection(conn, reason="unexpected %s" % e)
+            self._cm.remove_connection(conn, reason=f"unexpected {e}")
             raise
 
         if resp is None or resp.version == 9:
@@ -317,7 +317,7 @@ class KeepAliveHandler:
 
             resp = None
         else:
-            debug("Re-using %s to %s" % (conn, host))
+            debug(f"Re-using {conn} to {host}")
             resp._multiread = None
 
         return resp

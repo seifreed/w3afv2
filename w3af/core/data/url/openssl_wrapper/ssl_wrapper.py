@@ -253,9 +253,9 @@ class OpenSSLReformattedError(Exception):
 
     def __str__(self):
         try:
-            return "*:%s:%s (glob)" % (self.e.args[0][0][1], self.e.args[0][0][2])
+            return f"*:{self.e.args[0][0][1]}:{self.e.args[0][0][2]} (glob)"
         except Exception:
-            return "%s" % self.e
+            return str(self.e)
 
 
 def wrap_socket(
@@ -294,7 +294,7 @@ def wrap_socket(
         try:
             ctx.load_verify_locations(ca_certs, None)
         except OpenSSL.SSL.Error as e:
-            raise ssl.SSLError("Bad ca_certs: %r" % ca_certs, e)
+            raise ssl.SSLError(f"Bad ca_certs: {ca_certs!r}", e)
 
     cnx = OpenSSL.SSL.Connection(ctx, sock)
 

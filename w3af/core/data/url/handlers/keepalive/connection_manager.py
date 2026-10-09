@@ -99,7 +99,7 @@ class ConnectionManager:
 
         # Log
         args = (bad_conn, new_conn)
-        debug("Replaced broken %s with the new %s" % args)
+        debug("Replaced broken {} with the new {}".format(*args))
 
         return new_conn
 
@@ -143,7 +143,7 @@ class ConnectionManager:
                 continue
 
             args = (conn.id, spent)
-            connection_info.append("(%s, %.2f sec)" % args)
+            connection_info.append("({}, {:.2f} sec)".format(*args))
 
         if connection_info:
             connection_info = " ".join(connection_info)
@@ -161,8 +161,7 @@ class ConnectionManager:
         msg = (
             "Connections with more in use time: No connections marked"
             " as in_use have started to send the first byte. They are"
-            " in_use but still inactive. The in_use connections are: %s"
-            % without_request_start
+            f" in_use but still inactive. The in_use connections are: {without_request_start}"
         )
         LOGGER.debug(msg)
 
@@ -207,7 +206,7 @@ class ConnectionManager:
 
         :return: An HTTP connection
         """
-        debug("Creating a new HTTPConnection for request %s" % req)
+        debug(f"Creating a new HTTPConnection for request {req}")
 
         # Create a new connection
         conn = conn_factory(req)
@@ -427,8 +426,7 @@ class ConnectionManager:
 
     def iter_all_connections(self):
         for conns in (self._free_conns, self._used_conns):
-            for conn in conns.copy():
-                yield conn
+            yield from conns.copy()
 
     def get_all_free_for_host_port(self, host_port):
         """

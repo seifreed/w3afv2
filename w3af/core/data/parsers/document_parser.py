@@ -65,7 +65,7 @@ class DocumentParser:
                 break
 
         if self._parser is None:
-            msg = 'There is no parser for "%s".' % http_resp.get_url()
+            msg = f'There is no parser for "{http_resp.get_url()}".'
             raise BaseFrameworkException(msg)
 
     @staticmethod
@@ -149,8 +149,7 @@ class DocumentParser:
         :param tags: The tag filter
         :return: Yield tags which match the filter
         """
-        for i in self._parser.get_tags_by_filter(tags, yield_text=yield_text):
-            yield i
+        yield from self._parser.get_tags_by_filter(tags, yield_text=yield_text)
 
     def get_clear_text_body(self):
         """
@@ -170,7 +169,7 @@ class DocumentParser:
         else:
             klass = None
 
-        return '<%s DocumentParser for "%s">' % (klass, self._response_repr)
+        return f'<{klass} DocumentParser for "{self._response_repr}">'
 
     __str__ = __repr__
 

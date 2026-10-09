@@ -20,10 +20,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
+from unittest import SkipTest
 
 import httpretty
 import pytest
-from unittest import SkipTest
 
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.parsers.doc.url import URL
@@ -96,7 +96,7 @@ class TestXUrllibIntegration(unittest.TestCase):
         self.uri_opener.GET(url_sends_cookie, cache=False)
 
         self.assertEqual(len([c for c in self.uri_opener.get_cookies()]), 1)
-        cookie = [c for c in self.uri_opener.get_cookies()][0]
+        cookie = next(iter(self.uri_opener.get_cookies()))
         self.assertEqual("127.0.0.1", cookie.domain)
 
 

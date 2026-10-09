@@ -85,7 +85,7 @@ class XmlRpcContainer(KeyValueContainer):
 
     @staticmethod
     def is_xmlrpc(post_data):
-        return all([stop in post_data.lower() for stop in XMLRPC_WORDS])
+        return all(stop in post_data.lower() for stop in XMLRPC_WORDS)
 
     @staticmethod
     def content_type_matches(headers):

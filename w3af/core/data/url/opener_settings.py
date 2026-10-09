@@ -311,7 +311,7 @@ class OpenerSettings(Configurable):
         cfg.save("proxy_address", ip)
         cfg.save("proxy_port", port)
 
-        proxy_url = "http://%s:%s" % (ip, port)
+        proxy_url = f"http://{ip}:{port}"
         proxy_map = {"http": proxy_url}
         self._proxy_handler = urllib.request.ProxyHandler(proxy_map)
 

@@ -109,9 +109,7 @@ class HTTPResponse(http.client.HTTPResponse):
             return s
 
         if self.length is not None:
-            if amt > self.length:
-                # clip the read to the "end of response"
-                amt = self.length
+            amt = min(amt, self.length)
 
         # we do not use _safe_read() here because this may be a .will_close
         # connection, and the user is reading more bytes than will be provided

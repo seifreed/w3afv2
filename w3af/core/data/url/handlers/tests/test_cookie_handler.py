@@ -187,7 +187,7 @@ class TestCookieHandler(unittest.TestCase):
             received_cookie_value = request.headers.get("cookie", None)
 
             if received_cookie_value is not None:
-                return 200, headers, "Cookie %s received" % received_cookie_value
+                return 200, headers, f"Cookie {received_cookie_value} received"
             else:
                 return 200, headers, "Cookie not sent"
 

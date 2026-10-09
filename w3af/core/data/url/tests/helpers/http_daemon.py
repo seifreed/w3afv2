@@ -35,11 +35,7 @@ class LoggedRequest:
         self.request_body = request_body
 
     def __repr__(self):
-        return "<LoggedRequest %s %s %s>" % (
-            self.command,
-            self.path,
-            self.request_version,
-        )
+        return f"<LoggedRequest {self.command} {self.path} {self.request_version}>"
 
 
 class ServerHandler(http.server.SimpleHTTPRequestHandler):

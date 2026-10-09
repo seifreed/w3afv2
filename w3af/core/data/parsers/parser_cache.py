@@ -198,7 +198,7 @@ class ParserCache(CacheStats):
                 self.add_to_blacklist(hash_string)
 
                 # Act just like when there is no parser
-                msg = 'Reached timeout parsing "%s".' % http_response.get_url()
+                msg = f'Reached timeout parsing "{http_response.get_url()}".'
                 raise BaseFrameworkException(msg)
             except MemoryError:
                 # We failed to get a parser for this HTTP response, we better
@@ -207,16 +207,14 @@ class ParserCache(CacheStats):
                 self.add_to_blacklist(hash_string)
 
                 # Act just like when there is no parser
-                msg = (
-                    'Reached memory usage limit parsing "%s".' % http_response.get_url()
-                )
+                msg = f'Reached memory usage limit parsing "{http_response.get_url()}".'
                 raise BaseFrameworkException(msg)
             except ScanMustStopException as e:
                 msg = "The document parser is in an invalid state! %s"
                 raise ScanMustStopException(msg % e)
             except Exception:
                 # Act just like when there is no parser
-                msg = 'There is no parser for "%s".' % http_response.get_url()
+                msg = f'There is no parser for "{http_response.get_url()}".'
                 raise BaseFrameworkException(msg)
             else:
                 save_to_cache = self.should_cache(http_response) and cache
@@ -262,7 +260,7 @@ class ParserCache(CacheStats):
             body_lower = http_response.get_body().lower()
 
             for tag in tags:
-                lt_tag = "<%s" % tag
+                lt_tag = f"<{tag}"
                 if lt_tag in body_lower:
                     break
             else:
@@ -286,7 +284,7 @@ class ParserCache(CacheStats):
             self._log_return_empty(http_response, "No parser available")
             return []
 
-        args = "%r%r" % (tags, yield_text)
+        args = f"{tags!r}{yield_text!r}"
         hash_string = get_body_unique_id(http_response, prepend=args)
 
         if hash_string in self._parser_blacklist:

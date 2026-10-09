@@ -67,12 +67,10 @@ class Headers(NonRepeatKeyValueContainer):
         """
         :return: A dictionary with lower-case key-headers and un-modified values
         """
-        return dict([(k.lower(), v) for k, v in self.items()])
+        return {k.lower(): v for k, v in self.items()}
 
     def clean_values(self, init_val):
-        if isinstance(init_val, NonRepeatKeyValueContainer) or isinstance(
-            init_val, dict
-        ):
+        if isinstance(init_val, (NonRepeatKeyValueContainer, dict)):
             return init_val
 
         cleaned_vals = []
@@ -121,7 +119,7 @@ class Headers(NonRepeatKeyValueContainer):
         :return: True if the header name exists in this headers set
         """
         value, stored_header_name = self.iget(header_name)
-        return True if value is not None else False
+        return value is not None
 
     def getheaders(self, header_name):
         """

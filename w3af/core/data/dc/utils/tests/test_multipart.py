@@ -38,7 +38,7 @@ class TestMultipartEncode(unittest.TestCase):
 
     def test_encode_bytes_as_text(self):
         _, encoded = multipart_encode(
-            [(b"name", "café".encode("utf-8"))],
+            [(b"name", "café".encode())],
             {},
             boundary="fakeboundary",
         )

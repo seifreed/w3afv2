@@ -49,7 +49,7 @@ class UniqueID:
 
     def __repr__(self):
         # Only makes sense when DEBUG is True
-        return "<KeepAliveHTTPConnection %s - Request #%s>" % (self.id, self.req_count)
+        return f"<KeepAliveHTTPConnection {self.id} - Request #{self.req_count}>"
 
     def __str__(self):
         # Only makes sense when DEBUG is True
@@ -57,7 +57,7 @@ class UniqueID:
             None if self.timeout is socket._GLOBAL_DEFAULT_TIMEOUT else self.timeout
         )
         args = (self.__class__.__name__, self.id, self.req_count, timeout)
-        return "<%s(id:%s, req_count:%s, timeout:%s)>" % args
+        return "<{}(id:{}, req_count:{}, timeout:{})>".format(*args)
 
 
 class _HTTPConnection(http.client.HTTPConnection, UniqueID):
@@ -66,7 +66,7 @@ class _HTTPConnection(http.client.HTTPConnection, UniqueID):
         UniqueID.__init__(self)
         http.client.HTTPConnection.__init__(self, host, port, timeout=timeout)
         self.is_fresh = True
-        self.host_port = "%s:%s" % (self.host, self.port)
+        self.host_port = f"{self.host}:{self.port}"
 
     def connect(self):
         """
@@ -143,7 +143,7 @@ class ProxyHTTPConnection(_HTTPConnection):
         # real host/port to be used to make CONNECT request to proxy
         proto, rest = urllib.parse.splittype(url)
         if proto is None:
-            raise ValueError("Unknown URL type: %s" % url)
+            raise ValueError(f"Unknown URL type: {url}")
 
         # get host and port
         host_port, rest = urllib.parse.splithost(rest)
@@ -155,7 +155,7 @@ class ProxyHTTPConnection(_HTTPConnection):
             try:
                 self._real_port = self._ports[proto]
             except KeyError:
-                raise ValueError("Unknown protocol for: %s" % url)
+                raise ValueError(f"Unknown protocol for: {url}")
         else:
             self._real_port = int(port)
 
@@ -165,7 +165,7 @@ class ProxyHTTPConnection(_HTTPConnection):
         # send proxy CONNECT request
         new_line = "\r\n"
         host_port = "%s:%d" % (self._real_host, self._real_port)
-        self.send("CONNECT %s HTTP/1.1%s" % (host_port, new_line))
+        self.send(f"CONNECT {host_port} HTTP/1.1{new_line}")
 
         connect_headers = {
             "Proxy-Connection": "keep-alive",
@@ -174,7 +174,7 @@ class ProxyHTTPConnection(_HTTPConnection):
         }
 
         for header_name, header_value in list(connect_headers.items()):
-            self.send("%s: %s%s" % (header_name, header_value, new_line))
+            self.send(f"{header_name}: {header_value}{new_line}")
 
         self.send(new_line)
 
@@ -220,7 +220,7 @@ class SSLNegotiatorConnection(http.client.HTTPSConnection, UniqueID):
     def __init__(self, *args, **kwargs):
         UniqueID.__init__(self)
         http.client.HTTPSConnection.__init__(self, *args, **kwargs)
-        self.host_port = "%s:%s" % (self.host, self.port)
+        self.host_port = f"{self.host}:{self.port}"
 
     def connect(self):
         """
@@ -274,7 +274,7 @@ class SSLNegotiatorConnection(http.client.HTTPSConnection, UniqueID):
             sock.close()
 
         else:
-            debug("Successful connection using protocol %s" % protocol)
+            debug(f"Successful connection using protocol {protocol}")
             self.sock = ssl_sock
 
             with _protocols_lock:

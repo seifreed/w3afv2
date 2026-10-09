@@ -192,7 +192,7 @@ class TestSGMLParser(unittest.TestCase):
                 il = s.islower()
             else:
                 il = all(k.islower() for k in s)
-            assert il, "'%s' is not lowered-case" % s
+            assert il, f"'{s}' is not lowered-case"
             return il
 
         def start_wrapper(orig_start, tag):
@@ -287,7 +287,7 @@ class TestSGMLParser(unittest.TestCase):
         raise SkipTest("Not sure why this one is failing :S")
 
         for lang_desc, (body, encoding) in TEST_RESPONSES.items():
-            encoding_header = "text/html; charset=%s" % encoding
+            encoding_header = f"text/html; charset={encoding}"
             headers = Headers([("Content-Type", encoding_header)])
 
             encoded_body = body.encode(encoding)
@@ -313,7 +313,7 @@ class TestSGMLParser(unittest.TestCase):
         sample_encodings.extend(["", "utf-8"])
 
         for encoding in sample_encodings:
-            encoding_header = "text/html; charset=%s" % encoding
+            encoding_header = f"text/html; charset={encoding}"
             headers = Headers([("Content-Type", encoding_header)])
 
             r = build_http_response(self.url, body, headers)

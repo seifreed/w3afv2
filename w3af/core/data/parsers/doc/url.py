@@ -117,7 +117,7 @@ def parse_qsl(qs, keep_blank_values=0, strict_parsing=0, encoding=DEFAULT_ENCODI
         nv = name_value.split("=", 1)
         if len(nv) != 2:
             if strict_parsing:
-                raise ValueError("bad query field: %r" % name_value)
+                raise ValueError(f"bad query field: {name_value!r}")
             # Handle case of a control-name with no equal sign
             if keep_blank_values:
                 nv.append("")
@@ -162,7 +162,7 @@ def parse_qs(qstr, ignore_exc=True, encoding=DEFAULT_ENCODING):
                     odict[name] = [value]
         except Exception:
             if not ignore_exc:
-                raise BaseFrameworkException('Error while parsing "%r"' % qstr)
+                raise BaseFrameworkException(f'Error while parsing "{qstr!r}"')
         else:
 
             qs.update(odict.items())
@@ -186,16 +186,14 @@ class URL(DiskItem):
     SET_DOMAIN_RE = re.compile("[a-z0-9-.]+([a-z0-9-]+)*$")
 
     __slots__ = (
-        # URL attributes
-        "_querystr",
-        "_fragment",
-        "_scheme",
-        "_netloc",
-        "_path",
-        "_params",
-        # Internals
         "_cache",
         "_encoding",
+        "_fragment",
+        "_netloc",
+        "_params",
+        "_path",
+        "_querystr",
+        "_scheme",
     )
 
     def __init__(self, data, encoding=DEFAULT_ENCODING):
@@ -220,7 +218,7 @@ class URL(DiskItem):
         self._encoding = encoding
 
         if not isinstance(data, str):
-            raise ValueError("Can not build a URL from %s." % type(data))
+            raise ValueError(f"Can not build a URL from {type(data)}.")
 
         # Verify that the encoding is a valid one. If we don't do it here,
         # things might get crazy afterwards.
@@ -252,7 +250,7 @@ class URL(DiskItem):
 
         if not self.netloc and self.scheme != "file":
             # The URL is invalid, we don't have a netloc!
-            raise ValueError('Invalid URL "%s"' % data)
+            raise ValueError(f'Invalid URL "{data}"')
 
         self.normalize_url()
 
@@ -572,7 +570,7 @@ class URL(DiskItem):
         :return: Returns the domain name for the url.
         """
         if not self.SET_DOMAIN_RE.match(new_domain):
-            raise ValueError("'%s' is an invalid domain" % new_domain)
+            raise ValueError(f"'{new_domain}' is an invalid domain")
 
         domain = self.netloc.split(":")[0]
         self.netloc = self.netloc.replace(domain, new_domain)
@@ -657,7 +655,7 @@ class URL(DiskItem):
 
         extract = TLDExtract(suffix_list_urls=(), fallback_to_snapshot=True)
         extract_result = extract(self.get_domain())
-        return "%s.%s" % (extract_result.domain, extract_result.suffix)
+        return f"{extract_result.domain}.{extract_result.suffix}"
 
     def get_domain_path(self):
         """
@@ -784,7 +782,7 @@ class URL(DiskItem):
             qs = "?" + str(self.querystring)
             self_str = self_str[:qs_start_index]
 
-        return "%s%s" % (urllib.parse.quote(self_str, safe=self.SAFE_CHARS), qs)
+        return f"{urllib.parse.quote(self_str, safe=self.SAFE_CHARS)}{qs}"
 
     def get_directories(self):
         """
@@ -895,7 +893,7 @@ class URL(DiskItem):
         :return: A string representation of myself for debugging
 
         """
-        return '<URL for "%s">' % (self,)
+        return f'<URL for "{self}">'
 
     def __contains__(self, s):
         """

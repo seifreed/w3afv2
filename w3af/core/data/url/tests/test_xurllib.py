@@ -213,7 +213,7 @@ class TestXUrllib(unittest.TestCase):
 
         port = upper_daemon.get_port()
 
-        url = URL("http://127.0.0.1:%s/" % port)
+        url = URL(f"http://127.0.0.1:{port}/")
 
         try:
             self.uri_opener.GET(url)
@@ -231,7 +231,7 @@ class TestXUrllib(unittest.TestCase):
 
         self.uri_opener.settings.set_max_http_retries(0)
 
-        url = URL("http://127.0.0.1:%s/" % port)
+        url = URL(f"http://127.0.0.1:{port}/")
         http_request_e = 0
         scan_must_stop_e = 0
 
@@ -265,7 +265,7 @@ class TestXUrllib(unittest.TestCase):
         ssl_daemon.wait_for_start()
         port = ssl_daemon.get_port()
 
-        url = URL("https://127.0.0.1:%s/" % port)
+        url = URL(f"https://127.0.0.1:{port}/")
 
         resp = self.uri_opener.GET(url)
         self.assertEqual(resp.get_body(), Ok200Handler.body.encode())
@@ -290,7 +290,7 @@ class TestXUrllib(unittest.TestCase):
 
         # Note that here I'm using httpS <<---- "S" and that I've started an
         # HTTP server. We should get an exception
-        url = URL("https://127.0.0.1:%s/" % port)
+        url = URL(f"https://127.0.0.1:{port}/")
 
         self.assertRaises(HTTPRequestException, self.uri_opener.GET, url)
 
@@ -304,7 +304,7 @@ class TestXUrllib(unittest.TestCase):
         # Note that here I'm using httpS <<---- "S" and that I'm connecting to
         # the net location (host:port) of an HTTP server.
         http_url = URL(get_moth_http())
-        test_url = URL("https://%s" % http_url.get_net_location())
+        test_url = URL(f"https://{http_url.get_net_location()}")
 
         self.uri_opener.settings.set_max_http_retries(0)
 
@@ -416,7 +416,7 @@ class TestXUrllib(unittest.TestCase):
         s.start()
 
         body = "abc"
-        mock_url = "https://localhost:%s/" % port
+        mock_url = f"https://localhost:{port}/"
         url = URL(mock_url)
         http_response = self.uri_opener.GET(url, cache=False)
 

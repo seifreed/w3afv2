@@ -47,7 +47,7 @@ class AbstractNtlmAuthHandler(urllib.request.BaseHandler):
                 user = f"{domain}\\{username}" if domain else username
                 context = spnego.client(user, pw, protocol="ntlm")
                 token = base64.b64encode(context.step()).decode("ascii")
-                auth = "NTLM %s" % token
+                auth = f"NTLM {token}"
                 request.add_unredirected_header(self.auth_header, auth)
         return request
 
@@ -107,7 +107,7 @@ class AbstractNtlmAuthHandler(urllib.request.BaseHandler):
                 # Invalid protocol
                 return None
             else:
-                auth = "NTLM %s" % response
+                auth = f"NTLM {response}"
                 request.add_unredirected_header(self.auth_header, auth)
                 return self.parent.open(request, timeout=request.timeout)
         else:

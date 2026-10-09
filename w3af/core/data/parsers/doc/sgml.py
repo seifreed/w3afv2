@@ -62,11 +62,7 @@ class Tag:
         )
 
     def __str__(self):
-        return "<Tag (name:%s, attrib:%s, text:%s)" % (
-            self.name,
-            self.attrib,
-            self.text,
-        )
+        return f"<Tag (name:{self.name}, attrib:{self.attrib}, text:{self.text})"
 
     __repr__ = __str__
 
@@ -168,7 +164,7 @@ class SGMLParser(BaseParser):
     def _handle_exception(self, where, ex):
         msg = 'An exception occurred while %s: "%s"'
         om.out.error(msg % (where, ex))
-        om.out.error("Error traceback: %s" % traceback.format_exc())
+        om.out.error(f"Error traceback: {traceback.format_exc()}")
 
     def start(self, tag):
         """
@@ -179,7 +175,7 @@ class SGMLParser(BaseParser):
         tag_name = tag.tag
 
         # Call start_tag handler method
-        handler = "_handle_%s_tag_start" % tag_name
+        handler = f"_handle_{tag_name}_tag_start"
 
         try:
             method = getattr(self, handler)
@@ -189,7 +185,7 @@ class SGMLParser(BaseParser):
             try:
                 method(tag, tag_name, attrs)
             except Exception as ex:
-                self._handle_exception("parsing %s tag" % tag_name, ex)
+                self._handle_exception(f"parsing {tag_name} tag", ex)
 
         try:
             if tag_name in self.TAGS_WITH_URLS:
@@ -212,7 +208,7 @@ class SGMLParser(BaseParser):
         """
         # Call handler method if exists
         try:
-            method = getattr(self, "_handle_%s_tag_end" % tag.tag)
+            method = getattr(self, f"_handle_{tag.tag}_tag_end")
         except AttributeError:
             return
         else:
@@ -425,7 +421,7 @@ class SGMLParser(BaseParser):
         if self.EMAIL_RE.match(email):
             return email
         else:
-            raise ValueError('Invalid email address "%s"' % email)
+            raise ValueError(f'Invalid email address "{email}"')
 
     def _filter_ref(self, attr):
         """

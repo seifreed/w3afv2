@@ -813,7 +813,7 @@ class ExtendedUrllib:
         if not isinstance(uri, URL):
             raise TypeError(
                 "The uri parameter of ExtendedUrllib.POST() must"
-                " be of url.URL type. Got %s instead." % type(uri)
+                f" be of url.URL type. Got {type(uri)} instead."
             )
 
         if not isinstance(headers, Headers):
@@ -973,7 +973,7 @@ class ExtendedUrllib:
             return uri_opener.send(req, grep=grep)
 
         method_partial = functools.partial(any_method, self, method_name)
-        method_partial.__doc__ = "Send %s HTTP request" % method_name
+        method_partial.__doc__ = f"Send {method_name} HTTP request"
         return method_partial
 
     def _track_rtt(self, http_response, debugging_id):
@@ -1251,7 +1251,7 @@ class ExtendedUrllib:
         else:
             printable_data = urllib.parse.unquote_plus(rdata)
             if len(rdata) > 75:
-                printable_data = "%s..." % printable_data[:75]
+                printable_data = f"{printable_data[:75]}..."
                 printable_data = printable_data.replace("\n", " ")
                 printable_data = printable_data.replace("\r", " ")
 

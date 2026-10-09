@@ -437,7 +437,7 @@ def get_exception_reason(error):
     if isinstance(error, ssl.SSLError):
         socket_reason = get_socket_exception_reason(error)
         if socket_reason:
-            return "SSL Error: %s" % socket_reason
+            return f"SSL Error: {socket_reason}"
 
     if isinstance(error, socket.error):
         return get_socket_exception_reason(error)
@@ -446,7 +446,7 @@ def get_exception_reason(error):
         return error.value
 
     if isinstance(error, http.client.BadStatusLine):
-        return "Bad HTTP response status line: %s" % error.line
+        return f"Bad HTTP response status line: {error.line}"
 
     if isinstance(error, http.client.HTTPException):
         #
@@ -459,7 +459,7 @@ def get_exception_reason(error):
         #
         #    TODO: Maybe we're being TOO generic in this isinstance?
         #
-        return "%s: %s" % (error.__class__.__name__, error.args)
+        return f"{error.__class__.__name__}: {error.args}"
 
     # Unknown reason
     return None

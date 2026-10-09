@@ -208,4 +208,4 @@ class FormIDMatcher:
         return cls(action, inputs, attributes, hosted_at_url, method)
 
     def __str__(self):
-        return "<FormIDMatcher: %s>" % self.__dict__
+        return f"<FormIDMatcher: {self.__dict__}>"

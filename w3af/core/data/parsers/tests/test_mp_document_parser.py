@@ -26,9 +26,8 @@ import random
 import time
 import unittest
 from concurrent.futures import TimeoutError
-from unittest.mock import PropertyMock, patch
-
 from unittest import SkipTest
+from unittest.mock import PropertyMock, patch
 
 from w3af import ROOT_PATH
 from w3af.core.data.dc.headers import Headers

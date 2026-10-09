@@ -105,7 +105,10 @@ def get_temp_file(_type):
     """
     create_temp_dir()
     temp = tempfile.NamedTemporaryFile(
-        prefix="w3af-%s-" % _type, suffix=".pebble", delete=False, dir=get_temp_dir()
+        prefix=f"w3af-{_type}-",
+        suffix=".pebble",
+        delete=False,
+        dir=get_temp_dir(),
     )
     return temp
 

@@ -76,7 +76,7 @@ def http_response_parser(head, postdata):
     try:
         code = int(code)
     except ValueError:
-        raise BaseFrameworkException("Invalid HTTP response code %s" % code)
+        raise BaseFrameworkException(f"Invalid HTTP response code {code}")
 
     check_version_syntax(version)
 

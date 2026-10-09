@@ -70,7 +70,7 @@ class Cookie(KeyValueContainer):
         for token in self.iter_tokens():
             ks = self._sanitize(str(token.get_name()))
             vs = self._sanitize(str(token.get_value()))
-            cookie_pairs.append("%s=%s" % (ks, vs))
+            cookie_pairs.append(f"{ks}={vs}")
 
         return "; ".join(cookie_pairs)
 

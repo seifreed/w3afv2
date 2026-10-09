@@ -14,10 +14,10 @@ def main():
     :return: None, we write the file to data/huge.html
     """
     output = open(OUTPUT_FILE, "w")
-    write = lambda s: output.write("%s\n" % s)
+    write = lambda s: output.write(f"{s}\n")
 
     write("<html>")
-    write("<title>%s</title>" % SOME_TEXT)
+    write(f"<title>{SOME_TEXT}</title>")
 
     write("<body>")
 
@@ -31,14 +31,14 @@ def main():
 
         write("<p>")
         write(SOME_TEXT)
-        write('<a href="/%s">%s</a>' % (i, SOME_TEXT))
+        write(f'<a href="/{i}">{SOME_TEXT}</a>')
         write("</p>")
 
         write("<div>")
-        write('<a href="/%s">%s</a>' % (i, SOME_TEXT))
+        write(f'<a href="/{i}">{SOME_TEXT}</a>')
         write(SOME_TEXT)
-        write('<form action="/%s" method="POST">' % i)
-        write('<input type="text" name="abc-%s">' % i)
+        write(f'<form action="/{i}" method="POST">')
+        write(f'<input type="text" name="abc-{i}">')
         write("</form>")
         write("</div>")
 
@@ -47,16 +47,16 @@ def main():
     #
     for i in range(5000):
         write("<div>")
-        write('<img src="/img-%s" />' % i)
-        write('<a href="mailto:andres%s@test.com">%s</a>' % (i, SOME_TEXT))
+        write(f'<img src="/img-{i}" />')
+        write(f'<a href="mailto:andres{i}@test.com">{SOME_TEXT}</a>')
         write("</div>")
 
     #
     #   Deep
     #
     for i in range(5000):
-        write('<div id="id-%s">' % i)
-        write('<a href="/deep-div-%s">%s</a>' % (i, SOME_TEXT))
+        write(f'<div id="id-{i}">')
+        write(f'<a href="/deep-div-{i}">{SOME_TEXT}</a>')
 
     for i in range(5000):
         write("<p>")
