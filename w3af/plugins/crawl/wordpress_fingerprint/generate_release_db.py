@@ -40,25 +40,24 @@ DEBUG = 0
 errors = 0
 counter = 0
 
-release_db = open("release.db", "w")
+with open("release.db", "w") as release_db:
+    for i, version in enumerate(extracted_links):
+        version_md5_url = release_md5_fmt % version
+        try:
+            version_md5 = urllib.request.urlopen(version_md5_url).read().strip()
+        except KeyboardInterrupt:
+            break
+        except OSError:
+            errors += 1
+            if DEBUG:
+                print(f"{version_md5_url} is a 404")
+        else:
+            if i % 15 == 0:
+                print(f"[{i}/{len(extracted_links)}] {version_md5} {version}")
+            release_db.write(f"{version_md5},{version}\n")
 
-for i, version in enumerate(extracted_links):
-    version_md5_url = release_md5_fmt % version
-    try:
-        version_md5 = urllib.request.urlopen(version_md5_url).read().strip()
-    except KeyboardInterrupt:
-        break
-    except OSError:
-        errors += 1
-        if DEBUG:
-            print(f"{version_md5_url} is a 404")
+        if errors > 10:
+            print("Found too many errors. Potential scrapping error. Stopping.")
+            break
     else:
-        if i % 15 == 0:
-            print(f"[{i}/{len(extracted_links)}] {version_md5} {version}")
-        release_db.write(f"{version_md5},{version}\n")
-
-    if errors > 10:
-        print("Found too many errors. Potential scrapping error. Stopping.")
-        break
-else:
-    print("Success.")
+        print("Success.")

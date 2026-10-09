@@ -127,25 +127,27 @@ class phishtank(CrawlPlugin):
 
         :return: A list with the sites to match against the phishtank db
         """
-        try:
-            phishtank_db_fd = open(self.PHISHTANK_DB, "r")
-        except OSError as e:
-            msg = 'Failed to open phishtank database: "%s", exception: "%s".'
-            raise BaseFrameworkException(msg % (self.PHISHTANK_DB, e)) from e
-
         pt_matches = []
         self._multi_in = MultiIn(to_check)
 
         om.out.debug("Starting the phishtank CSV parsing.")
 
-        pt_csv_reader = csv.reader(
-            phishtank_db_fd, delimiter=" ", quotechar="|", quoting=csv.QUOTE_MINIMAL
-        )
+        try:
+            with open(self.PHISHTANK_DB, "r") as phishtank_db_fd:
+                pt_csv_reader = csv.reader(
+                    phishtank_db_fd,
+                    delimiter=" ",
+                    quotechar="|",
+                    quoting=csv.QUOTE_MINIMAL,
+                )
 
-        for phishing_url, phishtank_detail_url in pt_csv_reader:
-            pt_match = self._url_matches(phishing_url, phishtank_detail_url)
-            if pt_match:
-                pt_matches.append(pt_match)
+                for phishing_url, phishtank_detail_url in pt_csv_reader:
+                    pt_match = self._url_matches(phishing_url, phishtank_detail_url)
+                    if pt_match:
+                        pt_matches.append(pt_match)
+        except OSError as e:
+            msg = 'Failed to open phishtank database: "%s", exception: "%s".'
+            raise BaseFrameworkException(msg % (self.PHISHTANK_DB, e)) from e
 
         om.out.debug("Finished CSV parsing.")
 

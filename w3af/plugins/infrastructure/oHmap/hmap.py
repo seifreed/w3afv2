@@ -1062,33 +1062,30 @@ def testServer(ssl, server, port, matchCount, generateFP, threads):
     # Read the fingerprint db
     known_servers = []
     for f in glob.glob(fingerprintDir + "*"):
-        ksf = open(f)
+        with open(f) as ksf:
+            signature_source = ksf.read()
+        ### FIXME: This eval is awful, I should change it to pickle.
         try:
-            ### FIXME: This eval is awful, I should change it to pickle.
-            ks = eval(ksf.read())
+            ks = eval(signature_source)
         except (SyntaxError, ValueError, TypeError, NameError) as exc:
             raise BaseFrameworkException(
                 'The signature file "' + f + '" has an invalid syntax.'
             ) from exc
-        else:
-            known_servers.append(ks)
-            ksf.close()
+        known_servers.append(ks)
 
     # Generate the fingerprint file
     if generateFP:
         for i in range(10):
             try:
-                fd = open("hmap-fingerprint-" + server + "-" + str(i), "w")
+                with open("hmap-fingerprint-" + server + "-" + str(i), "w") as fd:
+                    import pprint
+
+                    pprint.PrettyPrinter(stream=fd).pprint(fp)
             except OSError as e:
                 raise BaseFrameworkException(
                     "Cannot open fingerprint file. Error:" + str(e)
                 ) from e
-            else:
-                import pprint
-
-                pprint.PrettyPrinter(stream=fd).pprint(fp)
-                fd.close()
-                break
+            break
 
     # Compare
     scores = find_most_similar(known_servers, fp)

@@ -73,9 +73,8 @@ class php_eggs(InfrastructurePlugin):
         Read a JSON file. File handling for reading a JSON file
         :return: Raw JSON data.
         """
-        json_data = open(jsonfile)
-        file_data = json.load(json_data)
-        json_data.close()
+        with open(jsonfile) as json_data:
+            file_data = json.load(json_data)
         return file_data
 
     def fill_egg_array(self, json_egg_data):

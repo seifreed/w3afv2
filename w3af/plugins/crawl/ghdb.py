@@ -138,13 +138,14 @@ class ghdb(CrawlPlugin):
                  objects.
         """
         try:
-            ghdb_fd = open(self._ghdb_file)
+            with open(self._ghdb_file) as ghdb_fd:
+                ghdb_content = ghdb_fd.read()
         except OSError as e:
             msg = 'Failed to open ghdb file: "%s", error: "%s".'
             raise BaseFrameworkException(msg % (self._ghdb_file, e)) from e
 
         try:
-            dom = xml.dom.minidom.parseString(ghdb_fd.read())
+            dom = xml.dom.minidom.parseString(ghdb_content)
         except ExpatError as e:
             msg = 'Failed to parse XML file: "%s", error: "%s".'
             raise BaseFrameworkException(msg % (self._ghdb_file, e)) from e

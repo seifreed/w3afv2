@@ -123,7 +123,10 @@ class wordpress_fingerprint(CrawlPlugin):
 
             release_db = self._release_db
 
-            for line in open(release_db):
+            with open(release_db) as release_db_fh:
+                release_db_lines = release_db_fh.readlines()
+
+            for line in release_db_lines:
                 try:
                     line = line.strip()
                     release_db_hash, release_db_name = line.split(",")
@@ -268,22 +271,20 @@ class wordpress_fingerprint(CrawlPlugin):
         """
         :return: Parse the XML and return a list of fingerprints.
         """
-        try:
-            wordpress_fp_fd = codecs.open(
-                self.WP_VERSIONS_XML, "r", "utf-8", errors="ignore"
-            )
-        except OSError as e:
-            msg = 'Failed to open wordpress fingerprint database "%s": "%s".'
-            args = (self.WP_VERSIONS_XML, e)
-            raise BaseFrameworkException(msg % args) from e
-
         parser = make_parser()
         wp_handler = WPVersionsHandler()
         parser.setContentHandler(wp_handler)
         om.out.debug("Starting the wordpress fingerprint xml parsing. ")
 
         try:
-            parser.parse(wordpress_fp_fd)
+            with codecs.open(
+                self.WP_VERSIONS_XML, "r", "utf-8", errors="ignore"
+            ) as wordpress_fp_fd:
+                parser.parse(wordpress_fp_fd)
+        except OSError as e:
+            msg = 'Failed to open wordpress fingerprint database "%s": "%s".'
+            args = (self.WP_VERSIONS_XML, e)
+            raise BaseFrameworkException(msg % args) from e
         except SAXException as e:
             msg = 'XML parsing error in wordpress version DB, exception: "%s".'
             raise BaseFrameworkException(msg % e) from e

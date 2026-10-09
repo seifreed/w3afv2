@@ -129,7 +129,10 @@ class dir_file_bruter(CrawlPlugin):
         :yields: (String with the directory or file name,
                   URL object with the dir or file name)
         """
-        for line in open(file_name):
+        with open(file_name) as file_fh:
+            lines = file_fh.readlines()
+
+        for line in lines:
             line = line.strip()
 
             # ignore comments and empty lines

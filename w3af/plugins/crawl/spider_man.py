@@ -249,9 +249,12 @@ class LoggingHandler(ProxyHandler):
             )
         )
 
+        with open(favicon, "rb") as favicon_fh:
+            favicon_data = favicon_fh.read()
+
         http_response = HTTPResponse(
             200,
-            open(favicon, "rb").read(),
+            favicon_data,
             headers,
             http_response.get_uri(),
             http_response.get_uri(),

@@ -361,13 +361,13 @@ class find_dvcs(CrawlPlugin):
         """
         filenames = set()
 
-        temp_db = tempfile.NamedTemporaryFile(
+        with tempfile.NamedTemporaryFile(
             prefix="w3af-find-dvcs-", suffix="-wc.db", delete=False, dir=get_temp_dir()
-        )
+        ) as temp_db:
+            pass
 
-        temp_db_fh = open(temp_db.name, "w")
-        temp_db_fh.write(body)
-        temp_db_fh.close()
+        with open(temp_db.name, "w") as temp_db_fh:
+            temp_db_fh.write(body)
 
         query = (
             "SELECT local_relpath, "

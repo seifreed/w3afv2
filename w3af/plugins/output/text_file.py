@@ -41,6 +41,22 @@ LONG_LOG_FMT = "[%s - %s - %s] "
 SHORT_LOG_FMT = "[%s - %s] "
 
 
+def _open_report_file(file_name, mode, description):
+    """
+    Open a report file whose handle outlives this call (it is written to for
+    the duration of the scan and closed when the plugin stops), so a context
+    manager is not applicable here.
+
+    :return: The open file handle.
+    """
+    try:
+        return open(file_name, mode)
+    except OSError as io:
+        msg = 'Can\'t open %s "%s" for writing, error: %s.'
+        args = (description, os.path.abspath(file_name), io.strerror)
+        raise BaseFrameworkException(msg % args) from io
+
+
 class text_file(OutputPlugin):
     """
     Prints all messages to a text file.
@@ -75,25 +91,15 @@ class text_file(OutputPlugin):
         self._output_file_name = os.path.expanduser(self._output_file_name)
         self._http_file_name = os.path.expanduser(self._http_file_name)
 
-        try:
-            self._log = open(self._output_file_name, "w")
-        except OSError as io:
-            msg = 'Can\'t open report file "%s" for writing, error: %s.'
-            args = (os.path.abspath(self._output_file_name), io.strerror)
-            raise BaseFrameworkException(msg % args) from io
+        self._log = _open_report_file(self._output_file_name, "w", "report file")
 
         if self._http_file_name == DEV_NULL:
             # The user wants to ignore output to this file
             return
 
-        try:
-            # Images aren't ascii, so this file that logs every request/response,
-            # will be binary.
-            self._http = open(self._http_file_name, "wb")
-        except OSError as io:
-            msg = 'Can\'t open HTTP report file "%s" for writing, error: %s.'
-            args = (os.path.abspath(self._http_file_name), io.strerror)
-            raise BaseFrameworkException(msg % args) from io
+        # Images aren't ascii, so this file that logs every request/response,
+        # will be binary.
+        self._http = _open_report_file(self._http_file_name, "wb", "HTTP report file")
 
     def _write_to_file(self, msg, flush=False):
         """

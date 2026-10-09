@@ -30,20 +30,20 @@ class rootkit_hunter(Payload):
         #    Rootkit Hunter Shell Script by Michael Boelen
         #
         #    TODO: Find a way to keep the DB updated!
-        for fname in open(
-            os.path.join(
-                ROOT_PATH,
-                "plugins",
-                "attack",
-                "payloads",
-                "payloads",
-                "rootkit_hunter",
-                "rootkit_hunter_files.db",
-            )
-        ):
-            fname = fname.strip()
-            if fname and not fname.startswith("#"):
-                yield fname
+        db_path = os.path.join(
+            ROOT_PATH,
+            "plugins",
+            "attack",
+            "payloads",
+            "payloads",
+            "rootkit_hunter",
+            "rootkit_hunter_files.db",
+        )
+        with open(db_path) as db_fh:
+            for fname in db_fh:
+                fname = fname.strip()
+                if fname and not fname.startswith("#"):
+                    yield fname
 
     def _check_kernel_modules(self):
         # Known bad Linux kernel modules

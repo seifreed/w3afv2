@@ -127,30 +127,24 @@ def convert_xml_to_csv():
 
     :return: None, we store in CSV_DB_FILE
     """
+    # According to different sources, xml.sax knows how to handle encoding, so
+    # it will simply decode using the header:
+    #
+    # <?xml version="1.0" encoding="utf-8"?>
     try:
-        # According to different sources, xml.sax knows how to handle
-        # encoding, so it will simply decode using the header:
-        #
-        # <?xml version="1.0" encoding="utf-8"?>
-        phishtank_db_fd = open(XML_DB_FILE, "r")
+        with open(XML_DB_FILE, "r") as phishtank_db_fd, open(
+            CSV_DB_FILE, "w"
+        ) as output_csv_file:
+            pt_handler = PhishTankHandler(output_csv_file)
+            parser = etree.HTMLParser(recover=True, target=pt_handler)
+
+            print("Starting the phishtank XML conversion.")
+
+            etree.parse(phishtank_db_fd, parser)
     except OSError as e:
-        msg = 'Failed to open XML phishtank database: "%s", exception: "%s".'
-        sys.exit(msg % (XML_DB_FILE, e))
-
-    try:
-        output_csv_file = open(CSV_DB_FILE, "w")
-    except OSError as e:
-        msg = 'Failed to open CSV phishtank database: "%s", exception: "%s".'
-        sys.exit(msg % (CSV_DB_FILE, e))
-
-    pt_handler = PhishTankHandler(output_csv_file)
-    parser = etree.HTMLParser(recover=True, target=pt_handler)
-
-    print("Starting the phishtank XML conversion.")
-
-    try:
-        etree.parse(phishtank_db_fd, parser)
-    except (etree.LxmlError, OSError) as e:
+        msg = 'Failed to open the phishtank database files, exception: "%s".'
+        sys.exit(msg % e)
+    except etree.LxmlError as e:
         msg = 'XML parsing error in phishtank DB, exception: "%s".'
         sys.exit(msg % e)
 

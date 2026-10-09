@@ -301,9 +301,8 @@ class rfi(AttackPlugin):
             filename = rand_alnum()
             filepath = os.path.join(get_home_dir(), "webroot", filename)
             try:
-                file_handler = open(filepath, "w")
-                file_handler.write(file_content)
-                file_handler.close()
+                with open(filepath, "w") as file_handler:
+                    file_handler.write(file_content)
             except OSError as exc:
                 raise BaseFrameworkException(
                     "Could not create file in webroot."

@@ -143,7 +143,8 @@ def main(payloads):
             "2": {"payload": base64.b64encode(p2), "offsets": o2},
         }
 
-        open(f"{payload}.json", "w").write(json.dumps(payload_json, indent=4))
+        with open(f"{payload}.json", "w") as json_fh:
+            json_fh.write(json.dumps(payload_json, indent=4))
         print(f"Successfully created {payload}.json")
         print("\n\n\n")
 

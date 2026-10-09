@@ -414,23 +414,20 @@ class xml_file(OutputPlugin):
         #   * If w3af is killed in the middle of writing the XML report,
         #     the report file will still be valid -- if xml_file.flush() was
         #     run successfully at least once
-        tempfh = NamedTemporaryFile(
+        with NamedTemporaryFile(
             delete=False, prefix="w3af-xml-output", suffix=".xml"
-        )
+        ) as tempfh:
+            om.out.debug(
+                "[xml_file.flush()] write_context_to_file() created"
+                " template.stream and NamedTemporaryFile"
+            )
 
-        om.out.debug(
-            "[xml_file.flush()] write_context_to_file() created"
-            " template.stream and NamedTemporaryFile"
-        )
-
-        try:
-            # Write each report section to the temp file
+            # Write each report section to the temp file. Closing the temp file
+            # (done when leaving this with block) flushes all the content.
             for report_section in report_stream:
                 tempfh.write(report_section.encode(DEFAULT_ENCODING))
 
-            # Close the temp file so all the content is flushed
-            tempfh.close()
-
+        try:
             om.out.debug(
                 "[xml_file.flush()] write_context_to_file() starting to"
                 " copy temp file to destination"
@@ -506,7 +503,8 @@ class FindingsCache:
         filename = self.get_filename_from_uniq_id(uniq_id)
 
         try:
-            node = lz4.frame.decompress(open(filename, "rb").read())
+            with open(filename, "rb") as cache_fh:
+                node = lz4.frame.decompress(cache_fh.read())
         except (OSError, RuntimeError):
             return None
 
@@ -515,7 +513,8 @@ class FindingsCache:
     def save_finding_to_cache(self, uniq_id, node):
         filename = self.get_filename_from_uniq_id(uniq_id)
         node = node.encode("utf-8")
-        open(filename, "wb").write(lz4.frame.compress(node))
+        with open(filename, "wb") as cache_fh:
+            cache_fh.write(lz4.frame.compress(node))
 
     def evict_from_cache(self, uniq_id):
         filename = self.get_filename_from_uniq_id(uniq_id)
@@ -567,7 +566,8 @@ class CachedXMLNode(XMLNode):
         filename = self.get_filename()
 
         try:
-            node = lz4.frame.decompress(open(filename, "rb").read())
+            with open(filename, "rb") as cache_fh:
+                node = lz4.frame.decompress(cache_fh.read())
         except (OSError, RuntimeError):
             return None
 
@@ -576,7 +576,8 @@ class CachedXMLNode(XMLNode):
     def save_node_to_cache(self, node):
         filename = self.get_filename()
         node = node.encode("utf-8")
-        open(filename, "wb").write(lz4.frame.compress(node))
+        with open(filename, "wb") as cache_fh:
+            cache_fh.write(lz4.frame.compress(node))
 
 
 class HTTPTransaction(CachedXMLNode):

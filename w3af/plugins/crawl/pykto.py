@@ -409,13 +409,14 @@ class NiktoTestParser:
                   The parsed parameters from the scan database line)
         """
         try:
-            db_file = codecs.open(self.filename, "r", "utf-8")
+            with codecs.open(self.filename, "r", "utf-8") as db_file:
+                db_lines = db_file.readlines()
         except OSError as e:
             msg = 'Failed to open the scan database. Exception: "%s".'
             om.out.error(msg % e)
             return
 
-        for line in db_file:
+        for line in db_lines:
 
             if self._is_comment(line):
                 continue
