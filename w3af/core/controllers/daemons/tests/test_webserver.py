@@ -72,7 +72,7 @@ class TestWebserver(unittest.TestCase):
         self._create_file()
 
         url = f"http://{self.IP}:{self.PORT}/foofile.txt"
-        response_body = urllib.request.urlopen(url).read()
+        response_body = urllib.request.urlopen(url).read().decode("utf-8")
 
         self.assertEqual(response_body, self.TESTSTRING)
 
@@ -81,6 +81,6 @@ class TestWebserver(unittest.TestCase):
         _, port = start_webserver_any_free_port(self.IP, self.tempdir)
 
         url = f"http://{self.IP}:{port}/foofile.txt"
-        response_body = urllib.request.urlopen(url).read()
+        response_body = urllib.request.urlopen(url).read().decode("utf-8")
 
         self.assertEqual(response_body, self.TESTSTRING)
