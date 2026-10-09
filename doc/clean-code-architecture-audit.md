@@ -313,3 +313,28 @@ fixture Unicode mal codificada. La migración no altera esos flujos y no se
 atribuyen sus fallos al cambio. La nota global se mantiene en **2.5/10**; aún
 quedan imports de `controllers` en KB, responsabilidades mezcladas y gates
 globales pendientes.
+
+## Avance: KB sin infraestructura de tests en el modelo
+
+`Info.set_name()` ya no consulta `sys.argv`, importa clases de tests ni escribe
+`missing-vulndb.txt`; mantiene únicamente la asignación de VulnDB desde el
+catálogo. La prueba anterior usaba regex sobre todo el código, exigía que cada
+alias del catálogo apareciera en plugins y confundía nombres de `Info` con
+vulnerabilidades. Se sustituyó por un recorrido AST de llamadas literales a
+`Vuln`, y sus nombres se comprueban contra `VULNS`. Los IDs dinámicos de
+Vulners y los nombres `Vuln` calculados no quedan demostrados por esa prueba y
+siguen siendo una limitación explícita de cobertura estática.
+
+`InfoSet` conserva ahora el orden de primera aparición al deduplicar URLs/URIs.
+Se corrigió el separador de `Info.get_desc()` para descripciones que terminan
+en saltos de línea y el test usa un carácter Unicode real. La batería de
+constantes de vulnerabilidades, `Info`, `Vuln`, `InfoSet` y `knowledge_base`
+obtuvo **106 pruebas correctas**, con dos warnings de `ldap3/pyasn1`. Black
+global pasa (1968 archivos) y Ruff pasa en los módulos modificados.
+
+Bandit focal aún reporta dos `assert` heredados y `autoescape=False` en Jinja;
+no se suprimieron. Mypy focal sigue fallando por imports transitivos sin stubs,
+símbolos privados de `multiprocessing` y nombres indefinidos en paquetes
+existentes. No se ejecutó `pip-audit`. El score global sigue en **2.5/10**:
+la KB reduce acoplamientos de test/infraestructura, pero aún contiene otros
+imports de `controllers` y responsabilidades concentradas.

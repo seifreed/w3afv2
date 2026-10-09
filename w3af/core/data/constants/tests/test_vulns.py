@@ -20,127 +20,90 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import os
-import re
+import ast
 import unittest
+from pathlib import Path
 
-import pytest
 from vulndb import DBVuln
 
-from w3af import ROOT_PATH
-from w3af.core.controllers.ci.constants import ARTIFACTS_DIR
 from w3af.core.data.constants.vulns import VULNS
 
 
 class TestVulnsConstants(unittest.TestCase):
 
-    LOCATION = os.path.join(ROOT_PATH, "core", "data", "constants", "vulns.py")
-
-    def get_all_vulnerability_names(self):
-        # Just skip the entire license header
-        vulns_file = open(self.LOCATION)
-        for _ in range(21):
-            vulns_file.readline()
-
-        return re.findall("['\"](.*?)['\"] ?:", vulns_file.read())
-
     def test_vulnerability_names_unique(self):
-        dups = []
-        vuln_names = self.get_all_vulnerability_names()
+        source_path = Path(__file__).resolve().parents[1] / "vulns.py"
+        module = ast.parse(source_path.read_text(encoding="utf-8"))
+        registry = next(
+            node.value
+            for node in module.body
+            if isinstance(node, ast.Assign)
+            and any(
+                isinstance(target, ast.Name) and target.id == "VULNS"
+                for target in node.targets
+            )
+        )
+        names = [key.value for key in registry.keys if isinstance(key, ast.Constant)]
 
-        for name in vuln_names:
-            if vuln_names.count(name) > 1 and name not in dups:
-                dups.append(name)
+        self.assertEqual(len(names), len(set(names)))
 
-        self.assertEqual(dups, [])
-
-    def get_all_plugins_source(self):
-        plugins_path = os.path.join(ROOT_PATH, "plugins")
-        vuln_template_path = os.path.join(
-            ROOT_PATH, "core", "data", "kb", "vuln_templates"
+    def get_plugin_sources(self):
+        package_root = Path(__file__).resolve().parents[3]
+        source_roots = (
+            (package_root / "plugins", {"test", "tests", "payloads"}),
+            (package_root / "core" / "data" / "kb" / "vuln_templates", {"tests"}),
         )
 
-        all_plugin_sources = ""
-        for dir_name, subdir_list, file_list in os.walk(plugins_path):
+        for source_root, excluded_directories in source_roots:
+            for path in source_root.rglob("*.py"):
+                relative_parts = path.relative_to(source_root).parts
+                if path.name.startswith("test_"):
+                    continue
+                if excluded_directories.intersection(relative_parts[:-1]):
+                    continue
+                if relative_parts[:3] == ("attack", "db", "sqlmap"):
+                    continue
+                yield path
 
-            if dir_name in ("test", "tests"):
-                continue
+    def test_literal_vulnerability_names_are_registered(self):
+        unregistered = set()
 
-            for fname in file_list:
-                if not fname.endswith(".py"):
+        for path in self.get_plugin_sources():
+            tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.Call):
                     continue
 
-                if fname.startswith("test_"):
+                if isinstance(node.func, ast.Name):
+                    function_name = node.func.id
+                elif isinstance(node.func, ast.Attribute):
+                    function_name = node.func.attr
+                else:
                     continue
 
-                if fname == "__init__.py":
+                if function_name != "Vuln":
                     continue
 
-                full_path = os.path.join(plugins_path, dir_name, fname)
+                name = (
+                    node.args[0]
+                    if node.args
+                    else next(
+                        (
+                            keyword.value
+                            for keyword in node.keywords
+                            if keyword.arg == "name"
+                        ),
+                        None,
+                    )
+                )
+                if (
+                    isinstance(name, ast.Constant)
+                    and isinstance(name.value, str)
+                    and name.value not in VULNS
+                ):
+                    unregistered.add((name.value, str(path), node.lineno))
 
-                ignores = {"/attack/db/sqlmap/", "/attack/payloads/", "/plugins/tests/"}
-
-                should_continue = False
-                for ignore in ignores:
-                    if ignore in full_path:
-                        should_continue = True
-                        break
-
-                if should_continue:
-                    continue
-
-                all_plugin_sources += open(full_path).read()
-
-        for dir_name, subdir_list, file_list in os.walk(vuln_template_path):
-
-            for fname in file_list:
-                if not fname.endswith(".py"):
-                    continue
-
-                if fname.startswith("test_"):
-                    continue
-
-                if fname == "__init__.py":
-                    continue
-
-                full_path = os.path.join(vuln_template_path, dir_name, fname)
-                all_plugin_sources += open(full_path).read()
-
-        return all_plugin_sources
-
-    def test_all_vulnerability_names_from_db_are_used(self):
-        vuln_names = list(VULNS.keys())
-        all_plugin_sources = self.get_all_plugins_source()
-        missing_ignore = {
-            "TestCase",
-            "Target redirect",
-            "Blind SQL injection vulnerability",
-        }
-
-        for vuln_name in vuln_names:
-            if vuln_name in missing_ignore:
-                continue
-
-            msg = '"%s" not in plugin sources' % vuln_name
-            self.assertIn(vuln_name, all_plugin_sources, msg)
-
-    def test_all_vulnerability_names_from_source_in_db(self):
-        vuln_names = list(VULNS.keys())
-        vuln_names_re = " (Info|Vuln)\\([\"'](.*?)[\"'] ?,.*?\\)"
-        all_plugin_sources = self.get_all_plugins_source()
-        vuln_names_in_source = re.findall(vuln_names_re, all_plugin_sources, re.DOTALL)
-
-        extracted = []
-        not_in_db = []
-
-        for _type, vuln_title in vuln_names_in_source:
-            extracted.append(vuln_title)
-
-            if vuln_title not in vuln_names and vuln_title not in not_in_db:
-                not_in_db.append(vuln_title)
-
-        self.assertEqual(not_in_db, [])
-        self.assertGreater(len(extracted), 120, extracted)
+        self.assertEqual([], sorted(unregistered))
 
     def test_vulns_dict_points_to_existing_vulndb_data_id(self):
         invalid = []
@@ -152,40 +115,3 @@ class TestVulnsConstants(unittest.TestCase):
                 invalid.append((vuln_name, _id))
 
         self.assertEqual(invalid, [])
-
-    @pytest.mark.ci_ignore
-    def test_vuln_updated(self):
-        """
-        Each time we call Info.set_name during a test (and only during tests,
-        not run when the user is running w3af) we check if the name of the
-        vulnerability being set is actually in the vuln.py database or not,
-        if it's not we append it to a file called /tmp/missing-vulndb.txt
-
-        This test asserts that the file:
-            * Doesn't exist
-            * Is empty
-            * Fail if not
-
-        Since we want to run this test at the end, we tag it as ci_fails for the
-        main running to ignore it, but then we run it manually from circle.yml
-        """
-        missing = os.path.join(ARTIFACTS_DIR, "missing-vulndb.txt")
-
-        if not os.path.exists(missing):
-            # Perfect!
-            return
-
-        missing_list = []
-        for line in open(missing):
-            line = line.strip()
-
-            if not line:
-                continue
-
-            missing_list.append(line)
-
-        missing_list = list(set(missing_list))
-        missing_list.sort()
-
-        self.maxDiff = None
-        self.assertEqual(missing_list, [])

@@ -20,16 +20,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import os
 import uuid
 
 from vulndb import DBVuln
 
 import w3af.core.data.kb.config as cf
-from w3af.core.controllers.ci.constants import ARTIFACTS_DIR
-from w3af.core.controllers.tests.running_tests import is_running_tests
 from w3af.core.data.constants.severity import INFORMATION
-from w3af.core.data.constants.vulns import VULNS, is_valid_name
+from w3af.core.data.constants.vulns import VULNS
 from w3af.core.data.fuzzer.mutants.empty_mutant import EmptyMutant
 from w3af.core.data.fuzzer.mutants.mutant import Mutant
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
@@ -220,25 +217,6 @@ class Info(dict):
             # kwargs, so we're going to try to get that id via VULNS
             self.set_vulndb_id(VULNS.get(name, None))
 
-        #
-        #   This section is only here for helping me debug / unittest the
-        #   names used in the framework. See test_vulns.py for more info.
-        #
-        if not is_running_tests():
-            return
-
-        from w3af.core.data.kb.tests.test_info import MockInfo
-        from w3af.core.data.kb.tests.test_vuln import MockVuln
-
-        if isinstance(self, (MockVuln, MockInfo)):
-            return
-
-        if not is_valid_name(name):
-            missing = os.path.join(ARTIFACTS_DIR, "missing-vulndb.txt")
-            missing = open(missing, "a")
-            missing.write("%s\n" % name)
-            missing.close()
-
     def get_name(self):
         return self._name
 
@@ -400,19 +378,20 @@ class Info(dict):
             return self._desc
 
         if self._desc[-1] != "\n" and not self._desc.strip().endswith("."):
-            self._desc += ". "
+            self._desc += "."
 
         # One request OR more than one request
         desc_to_return = self._desc
+        separator = "" if desc_to_return.endswith("\n") else " "
         if len(self._id) > 1:
             id_range = self._convert_to_range_wrapper(self._id)
 
-            desc_to_return += " This %s was found in the requests" % what
-            desc_to_return += " with ids %s." % id_range
+            desc_to_return += separator + f"This {what} was found in the requests"
+            desc_to_return += f" with ids {id_range}."
 
         elif len(self._id) == 1:
-            desc_to_return += " This %s was found in the request" % what
-            desc_to_return += " with id %s." % self._id[0]
+            desc_to_return += separator + f"This {what} was found in the request"
+            desc_to_return += f" with id {self._id[0]}."
 
         return desc_to_return
 
@@ -451,17 +430,17 @@ class Info(dict):
             is_new_seq = num != last + 1
             if is_new_seq:  # End of sequence
                 if dist:  # multi-elems sequence
-                    res.append("%s to %s" % (first, last))
+                    res.append(f"{first} to {last}")
                 else:  # one-elem sequence
                     res.append(first)
                 if is_last_in_seq(num):
-                    res.append("and" + " %s" % num)
+                    res.append(f"and {num}")
                     break
                 dist = 0
                 first = num
             else:
                 if is_last_in_seq(num):
-                    res.append("%s to %s" % (first, num))
+                    res.append(f"{first} to {num}")
                     break
                 dist += 1
             last = num
@@ -473,7 +452,7 @@ class Info(dict):
         return self._desc
 
     def __repr__(self):
-        return '<info object for issue: "%s">' % self._desc
+        return f'<info object for issue: "{self._desc}">'
 
     def get_uniq_id(self):
         """

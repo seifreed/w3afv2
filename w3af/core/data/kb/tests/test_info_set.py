@@ -211,7 +211,7 @@ class TestInfoSet(unittest.TestCase):
         i2.set_url(URL("http://w3af.org/2"))
 
         tiset = TemplatedInfoSetPrintUri([i1, i2])
-        expected = " - http://w3af.org/2\n - http://w3af.org/1\n"
+        expected = " - http://w3af.org/1\n - http://w3af.org/2\n"
         self.assertEqual(tiset.get_desc(), expected)
 
     def test_get_desc_template_special_chars_unicode(self):
@@ -219,10 +219,10 @@ class TestInfoSet(unittest.TestCase):
         i1.set_url(URL("http://w3af.org/1"))
 
         i2 = MockInfo()
-        i2.set_url(URL("http://w3af.org/2\xc3\xb6"))
+        i2.set_url(URL("http://w3af.org/2\u00f6"))
 
         tiset = TemplatedInfoSetPrintUri([i1, i2])
-        expected = " - http://w3af.org/1\n - http://w3af.org/2ö\n"
+        expected = " - http://w3af.org/1\n - http://w3af.org/2\u00f6\n"
         self.assertEqual(tiset.get_desc(), expected)
 
 

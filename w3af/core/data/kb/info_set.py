@@ -190,7 +190,7 @@ class InfoSet:
         all_urls = []
         for info in self.infos:
             all_urls.append(info.get_url())
-        return list(set(all_urls))
+        return list(dict.fromkeys(all_urls))
 
     def get_uris(self):
         """
@@ -199,7 +199,7 @@ class InfoSet:
         all_urls = []
         for info in self.infos:
             all_urls.append(info.get_uri())
-        return list(set(all_urls))
+        return list(dict.fromkeys(all_urls))
 
     def get_mutant(self):
         """
