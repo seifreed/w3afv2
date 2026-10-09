@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import threading
-import weakref
 
 import git
 from git.util import RemoteProgress
@@ -30,6 +29,7 @@ from w3af.core.controllers.auto_update.utils import (
     get_current_branch,
     get_latest_commit,
     repo_has_conflicts,
+    weak_callable,
 )
 from w3af.core.controllers.misc.decorators import retry
 
@@ -50,6 +50,7 @@ class GitClient:
     )
 
     def __init__(self, path):
+        self._path = path
         self._actionlock = threading.RLock()
         self._repo = git.Repo(path)
         self._progress = GitRemoteProgress()
@@ -69,11 +70,11 @@ class GitClient:
     def pull(self):
         with self._actionlock:
             try:
-                latest_before_pull = get_latest_commit()
+                latest_before_pull = get_latest_commit(self._path)
 
                 self._repo.remotes.origin.pull(progress=self._progress)
 
-                after_pull = get_latest_commit()
+                after_pull = get_latest_commit(self._path)
 
             # The developers at the mailing list were unable to tell me
             # if the pull() would raise an exception on merge conflicts
@@ -86,7 +87,7 @@ class GitClient:
                 raise GitClientError(msg % e)
             else:
                 self.handle_conflicts(latest_before_pull)
-                changelog = ChangeLog(latest_before_pull, after_pull)
+                changelog = ChangeLog(latest_before_pull, after_pull, self._path)
                 return changelog
 
     # @retry(tries=2, delay=0.5, backoff=2)
@@ -107,7 +108,7 @@ class GitClient:
         :param reset_commit_id: The commit id to reset to
         @raise GitClientError: To let the user know that the update failed
         """
-        if repo_has_conflicts():
+        if repo_has_conflicts(self._path):
             self.reset_to_previous_state(reset_commit_id)
             raise GitClientError(
                 "A merge conflict was generated while trying"
@@ -130,7 +131,7 @@ class GitClient:
         # Get the latest changes from the remote end
         self.fetch()
 
-        branch_origin = "origin/%s" % get_current_branch()
+        branch_origin = "origin/%s" % get_current_branch(self._path)
         all_refs = self._repo.remotes.origin.refs
         origin_master = [ref for ref in all_refs if ref.name == branch_origin][0]
 
@@ -140,7 +141,7 @@ class GitClient:
         """
         :return: The ID for the latest commit in the LOCAL repo.
         """
-        branch_name = get_current_branch()
+        branch_name = get_current_branch(self._path)
         repo_refs = self._repo.refs
         origin_master = [ref for ref in repo_refs if ref.name == branch_name][0]
 
@@ -166,11 +167,15 @@ class GitRemoteProgress(RemoteProgress):
     bound task.
     """
 
-    observers = []
+    def __init__(self):
+        super().__init__()
+        self._observers = []
 
     def add_observer(self, observer):
-        self.observers.append(weakref.proxy(observer))
+        self._observers.append(weak_callable(observer))
 
     def update(self, op_code, cur_count, max_count=None, message=""):
-        for observer in self.observers:
-            observer(op_code, cur_count, max_count, message)
+        for observer_ref in self._observers:
+            observer = observer_ref()
+            if observer is not None:
+                observer(op_code, cur_count, max_count, message)

@@ -19,12 +19,15 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import weakref
 from datetime import date
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.auto_update.git_client import GitClient, GitClientError
-from w3af.core.controllers.auto_update.utils import get_commit_id_date, to_short_id
+from w3af.core.controllers.auto_update.utils import (
+    get_commit_id_date,
+    to_short_id,
+    weak_callable,
+)
 from w3af.core.controllers.misc.home_dir import W3AF_LOCAL_PATH
 from w3af.core.data.db.startup_cfg import StartUpConfig
 
@@ -75,13 +78,14 @@ class VersionMgr:
     HEAD = "HEAD"
     BACK = "BACK"
 
-    def __init__(self, localpath=W3AF_LOCAL_PATH, log=None):
+    def __init__(self, localpath=W3AF_LOCAL_PATH, log=None, start_cfg=None):
         """
         w3af version manager class. Handles the logic concerning the
         automatic update/commit process of the code.
 
         :param localpath: Working directory
         :param log: Default output function
+        :param start_cfg: StartUpConfig holding the update preferences
         """
         self._localpath = localpath
         self._client = GitClient(localpath)
@@ -93,7 +97,7 @@ class VersionMgr:
         # Set default events
         self.register_default_events(log)
         # Startup configuration
-        self._start_cfg = StartUpConfig()
+        self._start_cfg = start_cfg if start_cfg is not None else StartUpConfig()
 
     def _client_progress(self, op_code, cur_count, max_count, message):
         """
@@ -198,9 +202,9 @@ class VersionMgr:
                 msg
                 % (
                     short_local_head_id,
-                    get_commit_id_date(local_head_id),
+                    get_commit_id_date(local_head_id, self._localpath),
                     short_remote_head_id,
-                    get_commit_id_date(remote_head_id),
+                    get_commit_id_date(remote_head_id, self._localpath),
                 )
             )
 
@@ -264,16 +268,20 @@ class VersionMgr:
         Register the caller to `event` so when it takes place call its `func`
         with `msg` as param.
         """
-        self._reg_funcs[event] = (weakref.proxy(func), msg)
+        self._reg_funcs[event] = (weak_callable(func), msg)
 
     def _notify(self, event, msg=""):
         """
         Call registered function for event. If `msg` is not empty use it.
         """
         observer_data = self._reg_funcs.get(event, None)
-        if observer_data is not None:
-            f, _msg = observer_data
-            f(msg or _msg)
+        if observer_data is None:
+            return
+
+        func_ref, default_msg = observer_data
+        func = func_ref()
+        if func is not None:
+            func(msg or default_msg)
 
     def _added_new_dependencies(self, changelog):
         """

@@ -19,43 +19,88 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import subprocess
+import os
+import tempfile
 import unittest
 
 import git
 
+from w3af.core.controllers.auto_update.tests.local_git_repo import (
+    commit_file,
+    init_repo,
+    write_file,
+)
 from w3af.core.controllers.auto_update.utils import (
+    DETACHED_HEAD,
+    get_commit_id_date,
     get_current_branch,
     get_latest_commit,
+    get_latest_commit_date,
+    is_dirty_repo,
     is_git_repo,
+    repo_has_conflicts,
+    to_short_id,
 )
 
 
 class TestGitUtils(unittest.TestCase):
 
+    def setUp(self):
+        self._tmp_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp_dir.cleanup)
+
+        self.repo_path = os.path.join(self._tmp_dir.name, "repo")
+        self.not_repo_path = os.path.join(self._tmp_dir.name, "plain")
+        os.mkdir(self.not_repo_path)
+
+        self.repo = init_repo(self.repo_path)
+        self.first_id = commit_file(self.repo, "a.txt", "1", "First")
+        self.second_id = commit_file(self.repo, "a.txt", "2", "Second")
+
+    def test_to_short_id(self):
+        self.assertEqual(to_short_id(self.first_id), self.first_id[:10])
+
     def test_is_git_repo(self):
-        self.assertTrue(is_git_repo("."))
+        self.assertTrue(is_git_repo(self.repo_path))
 
     def test_is_git_repo_negative(self):
-        self.assertFalse(is_git_repo("/etc/"))
+        self.assertFalse(is_git_repo(self.not_repo_path))
+
+    def test_is_dirty_repo(self):
+        self.assertFalse(is_dirty_repo(self.repo_path))
+
+        write_file(self.repo, "a.txt", "dirty")
+
+        self.assertTrue(is_dirty_repo(self.repo_path))
+
+    def test_is_dirty_repo_negative(self):
+        self.assertFalse(is_dirty_repo(self.not_repo_path))
 
     def test_get_latest_commit(self):
-        latest_commit = get_latest_commit()
-
-        self.assertEqual(len(latest_commit), 40)
-        self.assertIsInstance(latest_commit, str)
+        self.assertEqual(get_latest_commit(self.repo_path), self.second_id)
 
     def test_get_latest_commit_negative(self):
-        self.assertRaises(git.exc.InvalidGitRepositoryError, get_latest_commit, "/etc/")
+        self.assertRaises(
+            git.exc.InvalidGitRepositoryError, get_latest_commit, self.not_repo_path
+        )
+
+    def test_get_commit_id_date(self):
+        expected = get_latest_commit_date(self.repo_path)
+
+        self.assertEqual(get_commit_id_date(self.second_id, self.repo_path), expected)
+
+    def test_get_commit_id_date_unknown_commit(self):
+        self.assertIsNone(get_commit_id_date(self.first_id, self.repo_path))
 
     def test_get_current_branch(self):
-        # For some strange reason jenkins creates a branch called
-        # jenkins-<job name> during the build, which makes this test FAIL
-        # if we don't take that into account
+        self.repo.create_head("feature-x").checkout()
 
-        current_branch = get_current_branch()
+        self.assertEqual(get_current_branch(self.repo_path), "feature-x")
 
-        branches = subprocess.check_output(["git", "branch"]).splitlines()
-        parsed_branch = [l.strip()[2:] for l in branches if l.startswith("*")][0]
+    def test_get_current_branch_detached_head(self):
+        self.repo.git.checkout(self.first_id)
 
-        self.assertEqual(current_branch, parsed_branch)
+        self.assertEqual(get_current_branch(self.repo_path), DETACHED_HEAD)
+
+    def test_repo_has_no_conflicts(self):
+        self.assertFalse(repo_has_conflicts(self.repo_path))

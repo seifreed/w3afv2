@@ -19,13 +19,25 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import inspect
 import time
+import weakref
 
 import git
 
 from w3af.core.controllers.misc.home_dir import W3AF_LOCAL_PATH
 
 DETACHED_HEAD = "detached HEAD"
+
+
+def weak_callable(func):
+    """
+    :return: A weak reference to func. Bound methods are referenced through
+             WeakMethod so the reference lives as long as their instance.
+    """
+    if inspect.ismethod(func):
+        return weakref.WeakMethod(func)
+    return weakref.ref(func)
 
 
 def to_short_id(commit_id):

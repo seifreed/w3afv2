@@ -19,70 +19,111 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import subprocess
+import os
+import shutil
+import tempfile
 import unittest
-from unittest.mock import MagicMock
 
-from unittest import SkipTest
-
-from w3af.core.controllers.auto_update.git_client import GitClient
-from w3af.core.controllers.auto_update.utils import get_current_branch
-from w3af.core.controllers.misc.home_dir import W3AF_LOCAL_PATH
+from w3af.core.controllers.auto_update.changelog import ChangeLog
+from w3af.core.controllers.auto_update.git_client import (
+    GitClient,
+    GitClientError,
+    GitRemoteProgress,
+)
+from w3af.core.controllers.auto_update.tests.local_git_repo import (
+    CallRecorder,
+    clone_repo,
+    commit_file,
+    init_repo,
+)
 
 
 class TestGitClient(unittest.TestCase):
 
-    def test_get_URL(self):
-        client = GitClient(W3AF_LOCAL_PATH)
+    def setUp(self):
+        self._tmp_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp_dir.cleanup)
 
-        # https://github.com/andresriancho/w3af/ provides a list of all the
-        # URLs which can be used to clone the repo
-        REPO_URLS = (
-            "git@github.com:andresriancho/w3af.git",
-            "https://github.com/andresriancho/w3af.git",
-            "git://github.com/andresriancho/w3af.git",
+        self.upstream = init_repo(os.path.join(self._tmp_dir.name, "upstream"))
+        self.first_id = commit_file(self.upstream, "a.txt", "1", "First")
+        self.second_id = commit_file(self.upstream, "a.txt", "2", "Second")
+
+        self.local = clone_repo(
+            self.upstream, os.path.join(self._tmp_dir.name, "local")
         )
+        self.client = GitClient(self.local.working_tree_dir)
 
-        self.assertIn(client.URL, REPO_URLS)
+    def test_url_is_origin_remote(self):
+        self.assertEqual(self.client.URL, self.upstream.working_tree_dir)
 
     def test_get_local_head_id(self):
-        client = GitClient(W3AF_LOCAL_PATH)
-        local_head = client.get_local_head_id()
+        self.assertEqual(self.client.get_local_head_id(), self.second_id)
 
-        self.assertEqual(len(local_head), 40)
-        self.assertIsInstance(local_head, str)
+    def test_get_remote_head_id_fetches_new_commits(self):
+        third_id = commit_file(self.upstream, "a.txt", "3", "Third")
 
-        # Get the ID using an alternative way for double checking
-        proc = subprocess.Popen(["git", "log", "-n", "1"], stdout=subprocess.PIPE)
-        commit_id_line = proc.stdout.readline()
-        commit_id_line = commit_id_line.strip()
-        _, commit_id = commit_id_line.split(" ")
+        self.assertEqual(self.client.get_remote_head_id(), third_id)
+        self.assertEqual(self.client.get_local_head_id(), self.second_id)
 
-        self.assertEqual(local_head, commit_id)
+    def test_get_parent_for_revision(self):
+        parents = self.client.get_parent_for_revision(self.second_id)
 
-    def test_get_remote_head_id(self):
-        # For some strange reason jenkins creates a branch called
-        # jenkins-<job name> during the build, which makes this test FAIL
-        # if we don't take that into account
-        if get_current_branch().startswith("jenkins-"):
-            raise SkipTest("Workaround for Jenkins Git plugin wierdness.")
+        self.assertEqual(parents, [self.first_id])
 
-        client = GitClient(W3AF_LOCAL_PATH)
-        # I don't really want to wait for the local repo to update itself
-        # using "git fetch", so I simply put this as a mock
-        client.fetch = MagicMock()
+    def test_reset_to_previous_state(self):
+        self.client.reset_to_previous_state(self.first_id)
 
-        remote_head = client.get_remote_head_id()
-        client.fetch.assert_called_once_with()
+        self.assertEqual(self.local.head.commit.hexsha, self.first_id)
+        self.assertFalse(self.local.is_dirty())
 
-        self.assertEqual(len(remote_head), 40)
-        self.assertIsInstance(remote_head, str)
+    def test_pull_returns_changelog_between_heads(self):
+        third_id = commit_file(self.upstream, "a.txt", "3", "Third")
 
-        # Get the ID using an alternative way for double checking
-        branch = "refs/remotes/origin/%s" % get_current_branch()
-        proc = subprocess.Popen(["git", "for-each-ref", branch], stdout=subprocess.PIPE)
-        commit_id_line = proc.stdout.readline()
-        commit_id_line = commit_id_line.strip()
-        commit_id, _ = commit_id_line.split(" ")
+        changelog = self.client.pull()
 
-        self.assertEqual(remote_head, commit_id)
+        self.assertIsInstance(changelog, ChangeLog)
+        self.assertEqual(changelog.start, self.second_id)
+        self.assertEqual(changelog.end, third_id)
+        self.assertEqual(self.local.head.commit.hexsha, third_id)
+
+    def test_fetch_from_missing_remote_raises(self):
+        shutil.rmtree(self.upstream.working_tree_dir)
+
+        self.assertRaises(GitClientError, self.client.fetch)
+
+
+class TestGitRemoteProgress(unittest.TestCase):
+
+    def test_update_notifies_live_observers(self):
+        recorder = CallRecorder()
+        progress = GitRemoteProgress()
+        progress.add_observer(recorder)
+
+        progress.update(1, 2, 3, "message")
+
+        self.assertEqual(recorder.calls, [(1, 2, 3, "message")])
+
+    def test_update_notifies_bound_method_observers(self):
+        recorder = CallRecorder()
+        progress = GitRemoteProgress()
+        progress.add_observer(recorder.__call__)
+
+        progress.update(1, 2)
+
+        self.assertEqual(recorder.calls, [(1, 2, None, "")])
+
+    def test_update_skips_collected_observers(self):
+        recorder = CallRecorder()
+        progress = GitRemoteProgress()
+        progress.add_observer(recorder)
+        del recorder
+
+        progress.update(1, 2)
+
+    def test_observers_are_not_shared_between_instances(self):
+        recorder = CallRecorder()
+        GitRemoteProgress().add_observer(recorder)
+
+        GitRemoteProgress().update(1, 2)
+
+        self.assertEqual(recorder.calls, [])

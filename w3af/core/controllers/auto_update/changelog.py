@@ -99,16 +99,17 @@ class ChangeLog:
     Easy access to all changes performed between two commits in a branch.
     """
 
-    def __init__(self, start, end):
+    def __init__(self, start, end, path=W3AF_LOCAL_PATH):
         self.start = start
         self.end = end
+        self._path = path
 
     def get_changes(self):
         changes = []
 
         crange = "%s..%s" % (self.start, self.end)
 
-        for git_commit in git.Repo(W3AF_LOCAL_PATH).iter_commits(crange):
+        for git_commit in git.Repo(self._path).iter_commits(crange):
             commit = Commit(git_commit)
 
             diff = git_commit.parents[0].diff(git_commit)

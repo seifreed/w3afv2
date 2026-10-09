@@ -21,77 +21,104 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import datetime
 import gc
+import os
+import tempfile
 import unittest
-from unittest.mock import MagicMock
-
-import pytest
+import weakref
 
 from w3af.core.controllers.auto_update.changelog import ChangeLog
 from w3af.core.controllers.auto_update.git_client import GitClient
+from w3af.core.controllers.auto_update.tests.local_git_repo import (
+    CallRecorder,
+    clone_repo,
+    commit_file,
+    init_repo,
+)
 from w3af.core.controllers.auto_update.version_manager import VersionMgr
-from w3af.core.controllers.misc.home_dir import W3AF_LOCAL_PATH
 from w3af.core.data.db.startup_cfg import StartUpConfig
+
+
+def days_ago(days):
+    today = datetime.datetime.now().astimezone().date()
+    return today - datetime.timedelta(days=days)
 
 
 class TestVersionMgr(unittest.TestCase):
 
     def setUp(self):
-        """
-        Given that pytest test isolation is "incompatible" with w3af's
-        kb, cf, etc. objects, and the tests written here are overwriting
-        some classes that are loaded into sys.modules and then used in other
-        code sections -and tests-, I need to clean the mess after I finish.
+        self._tmp_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp_dir.cleanup)
 
-        @see: http://mousebender.wordpress.com/2006/12/07/test-isolation-in-nose/
+        self.upstream = init_repo(self._path("upstream"))
+        commit_file(self.upstream, "requirements.py", "deps = []", "Add deps")
+        self.base_id = commit_file(self.upstream, "a.txt", "1", "Add a.txt")
 
-        I haven't been able to fix this issue... so I'm skipping these two
-        tests!
-        """
-        self.vmgr = VersionMgr(W3AF_LOCAL_PATH, MagicMock(return_value=None))
+        self.local = clone_repo(self.upstream, self._path("local"))
+
+        self.start_cfg = StartUpConfig(self._path("startup.conf"))
+        self.log = CallRecorder()
+        self.vmgr = VersionMgr(
+            self.local.working_tree_dir, self.log, start_cfg=self.start_cfg
+        )
+
+        self.on_update_check = CallRecorder()
+        self.on_already_latest = CallRecorder()
+        self.on_update = CallRecorder()
+        self.on_added_dep = CallRecorder()
+        self.vmgr.register(VersionMgr.ON_UPDATE_CHECK, self.on_update_check, None)
+        self.vmgr.register(VersionMgr.ON_ALREADY_LATEST, self.on_already_latest, None)
+        self.vmgr.register(VersionMgr.ON_UPDATE, self.on_update, None)
+        self.vmgr.register(VersionMgr.ON_UPDATE_ADDED_DEP, self.on_added_dep, "dep")
+
+    def _path(self, name):
+        return os.path.join(self._tmp_dir.name, name)
+
+    def _schedule_daily_update(self, last_update_days_ago):
+        self.start_cfg._autoupd = True
+        self.start_cfg._freq = StartUpConfig.FREQ_DAILY
+        self.start_cfg._lastupd = days_ago(last_update_days_ago)
 
     def test_no_need_update(self):
-        vmgr = self.vmgr
-        vmgr._start_cfg = StartUpConfig()
-        vmgr._start_cfg._autoupd = False
+        self.start_cfg._autoupd = False
 
-        # Test no auto-update
-        self.assertFalse(vmgr._has_to_update())
+        self.assertFalse(self.vmgr._has_to_update())
 
     def test_has_to_update(self):
         """
         Test [D]aily, [W]eekly and [M]onthly auto-update
         """
-        SC = StartUpConfig
-        vmgr = self.vmgr
-
         for freq, diffdays in (
-            (SC.FREQ_DAILY, 1),
-            (SC.FREQ_WEEKLY, 8),
-            (SC.FREQ_MONTHLY, 34),
+            (StartUpConfig.FREQ_DAILY, 1),
+            (StartUpConfig.FREQ_WEEKLY, 8),
+            (StartUpConfig.FREQ_MONTHLY, 34),
         ):
+            self.start_cfg._autoupd = True
+            self.start_cfg._freq = freq
+            self.start_cfg._lastupd = days_ago(diffdays)
 
-            vmgr._start_cfg = start_cfg = StartUpConfig()
-            start_cfg._autoupd = True
-            start_cfg._freq = freq
+            self.assertTrue(self.vmgr._has_to_update())
 
-            last_upd = datetime.date.today() - datetime.timedelta(days=diffdays)
-            start_cfg._lastupd = last_upd
+    def test_has_not_to_update_within_frequency(self):
+        for freq, diffdays in (
+            (StartUpConfig.FREQ_DAILY, 0),
+            (StartUpConfig.FREQ_WEEKLY, 6),
+            (StartUpConfig.FREQ_MONTHLY, 29),
+        ):
+            self.start_cfg._autoupd = True
+            self.start_cfg._freq = freq
+            self.start_cfg._lastupd = days_ago(diffdays)
 
-            self.assertTrue(vmgr._has_to_update())
+            self.assertFalse(self.vmgr._has_to_update())
 
     def test_added_new_dependencies(self):
-        start = "cb751e941bfa2063ebcef711642ed5d22ff9db87"
-        end = "9c5f5614412dce67ac13411e1eebd754b4c6fb6a"
-
-        changelog = ChangeLog(start, end)
+        end = commit_file(self.upstream, "requirements.py", "deps = [1]", "Bump")
+        changelog = ChangeLog(self.base_id, end, self.upstream.working_tree_dir)
 
         self.assertTrue(self.vmgr._added_new_dependencies(changelog))
 
     def test_not_added_new_dependencies(self):
-        start = "479f30c95873c3e4f8370ceb91f8aeb74794d047"
-        end = "87924241bf70c2321bc9f567e3d2ce62ee264fee"
-
-        changelog = ChangeLog(start, end)
+        end = commit_file(self.upstream, "a.txt", "2", "Change a.txt")
+        changelog = ChangeLog(self.base_id, end, self.upstream.working_tree_dir)
 
         self.assertFalse(self.vmgr._added_new_dependencies(changelog))
 
@@ -100,122 +127,86 @@ class TestVersionMgr(unittest.TestCase):
         Test that we don't perform any extra steps if the local installation
         was already updated today.
         """
-        self.vmgr._start_cfg = start_cfg = StartUpConfig()
-        start_cfg._autoupd = True
-        start_cfg._freq = StartUpConfig.FREQ_DAILY
+        self._schedule_daily_update(last_update_days_ago=0)
 
-        last_upd = datetime.date.today() - datetime.timedelta(days=0)
-        start_cfg._lastupd = last_upd
+        self.assertIsNone(self.vmgr.update())
 
-        on_update_check_mock = MagicMock()
-        on_already_latest_mock = MagicMock()
-        on_update_mock = MagicMock()
+        self.assertEqual(self.on_update_check.calls, [])
+        self.assertEqual(self.on_already_latest.calls, [])
+        self.assertEqual(self.on_update.calls, [])
 
-        self.vmgr.register(VersionMgr.ON_UPDATE_CHECK, on_update_check_mock, None)
-        self.vmgr.register(VersionMgr.ON_ALREADY_LATEST, on_already_latest_mock, None)
-        self.vmgr.register(VersionMgr.ON_UPDATE, on_update_mock, None)
-
-        self.vmgr.update()
-
-        self.assertEqual(on_update_check_mock.call_count, 0)
-        self.assertEqual(on_already_latest_mock.call_count, 0)
-        self.assertEqual(on_update_mock.call_count, 0)
-
-    @pytest.mark.ci_fails
     def test_update_required_not_forced(self):
         """
         Test that we check if we're on the latest version if the latest
         local installation update was 3 days ago and the frequency is set to
-        daily.
-
-        The local repository is in the latest version (git pull is run before)
-
-        In CircleCI this fails with the following message:
-            You asked to pull from the remote 'origin', but did not specify
-            a branch. Because this is not the default configured remote
-            for your current branch, you must specify a branch on the command
-            line.
+        daily. The local repository is already in the latest version.
         """
-        git_client = GitClient(".")
-        git_client.pull()
+        self._schedule_daily_update(last_update_days_ago=3)
 
-        self.vmgr._start_cfg = start_cfg = StartUpConfig()
-        start_cfg._autoupd = True
-        start_cfg._freq = StartUpConfig.FREQ_DAILY
+        self.assertIsNone(self.vmgr.update())
 
-        last_upd = datetime.date.today() - datetime.timedelta(days=3)
-        start_cfg._lastupd = last_upd
+        self.assertEqual(len(self.on_update_check.calls), 1)
+        self.assertEqual(len(self.on_already_latest.calls), 1)
+        self.assertEqual(self.on_update.calls, [])
+        self.assertEqual(self.start_cfg.last_upd, days_ago(0))
 
-        on_update_check_mock = MagicMock()
-        on_already_latest_mock = MagicMock()
-        on_update_mock = MagicMock()
-
-        self.vmgr.register(VersionMgr.ON_UPDATE_CHECK, on_update_check_mock, None)
-        self.vmgr.register(VersionMgr.ON_ALREADY_LATEST, on_already_latest_mock, None)
-        self.vmgr.register(VersionMgr.ON_UPDATE, on_update_mock, None)
-
-        self.vmgr.update()
-
-        self.assertEqual(on_update_check_mock.call_count, 1)
-        self.assertEqual(on_already_latest_mock.call_count, 1)
-        self.assertEqual(on_update_mock.call_count, 0)
-
-    @pytest.mark.ci_fails
     def test_update_required_outdated_not_forced(self):
         """
-        Test that we check if we're on the latest version if the latest
-        local installation update was 3 days ago and the frequency is set to
-        daily.
-
-        The local repository is NOT in the latest version. A 'git reset --hard'
-        is run at the beginning of this test to reset the repo to a revision
-        before the latest one.
-
-        *****   WARNING     *****
-        *****   WARNING     *****
-
-        YOU DON'T WANT TO RUN THIS TEST WITH OTHERS SINCE IT WILL BREAK THEM!
-
-        *****   WARNING     *****
-        *****   WARNING     *****
+        Test that an outdated local repository is updated to the remote head
+        when the user confirms the update.
         """
-        try:
-            git_client = GitClient(".")
-            head_id = git_client.get_local_head_id()
-            one_before_head = git_client.get_parent_for_revision(head_id)
-            git_client.reset_to_previous_state(one_before_head)
+        added_dep_id = commit_file(
+            self.upstream, "requirements.py", "deps = [1]", "Bump deps"
+        )
+        self._schedule_daily_update(last_update_days_ago=3)
+        confirm = CallRecorder(return_value=True)
+        self.vmgr.callback_onupdate_confirm = confirm
 
-            self.vmgr._start_cfg = start_cfg = StartUpConfig()
-            start_cfg._autoupd = True
-            start_cfg._freq = StartUpConfig.FREQ_DAILY
+        changelog, start, end = self.vmgr.update()
 
-            last_upd = datetime.date.today() - datetime.timedelta(days=3)
-            start_cfg._lastupd = last_upd
+        self.assertEqual((start, end), (self.base_id, added_dep_id))
+        self.assertEqual((changelog.start, changelog.end), (start, end))
+        self.assertEqual(self.local.head.commit.hexsha, added_dep_id)
+        self.assertEqual(len(confirm.calls), 1)
+        self.assertEqual(len(self.on_update_check.calls), 1)
+        self.assertEqual(self.on_already_latest.calls, [])
+        self.assertEqual(len(self.on_update.calls), 1)
+        self.assertEqual(self.on_added_dep.calls, [("dep",)])
+        self.assertEqual(self.start_cfg.last_commit_id, added_dep_id)
 
-            on_update_check_mock = MagicMock()
-            on_already_latest_mock = MagicMock()
-            on_update_mock = MagicMock()
+    def test_update_rejected_by_user(self):
+        commit_file(self.upstream, "a.txt", "2", "Change a.txt")
+        self.vmgr.callback_onupdate_confirm = CallRecorder(return_value=False)
 
-            self.vmgr.register(VersionMgr.ON_UPDATE_CHECK, on_update_check_mock, None)
-            self.vmgr.register(
-                VersionMgr.ON_ALREADY_LATEST, on_already_latest_mock, None
-            )
-            self.vmgr.register(VersionMgr.ON_UPDATE, on_update_mock, None)
+        self.assertIsNone(self.vmgr.update(force=True))
 
-            self.vmgr.callback_onupdate_confirm = MagicMock(
-                side_effect=[
-                    True,
-                ]
-            )
+        self.assertEqual(self.on_update.calls, [])
+        self.assertEqual(self.local.head.commit.hexsha, self.base_id)
 
-            self.vmgr.update()
+    def test_update_after_reset_to_previous_state(self):
+        client = GitClient(self.local.working_tree_dir)
+        parent_id = client.get_parent_for_revision(client.get_local_head_id())[0]
+        client.reset_to_previous_state(parent_id)
+        self.vmgr.callback_onupdate_confirm = CallRecorder(return_value=True)
 
-            self.assertEqual(on_update_check_mock.call_count, 1)
-            self.assertEqual(on_already_latest_mock.call_count, 0)
-            self.assertEqual(on_update_mock.call_count, 1)
-        finally:
-            git_client.pull()
+        changelog, start, end = self.vmgr.update(force=True)
+
+        self.assertEqual((start, end), (parent_id, self.base_id))
+        self.assertEqual(self.on_added_dep.calls, [])
+        self.assertIn("Add a.txt", str(changelog))
 
     def test_no_cycle_refs(self):
-        vmgr = VersionMgr(W3AF_LOCAL_PATH, MagicMock(return_value=None))
-        self.assertEqual(len(gc.get_referrers(vmgr)), 1)
+        """
+        Without reference cycles the VersionMgr is released by reference
+        counting alone, so it must die while the cycle collector is off.
+        """
+        gc.disable()
+        self.addCleanup(gc.enable)
+
+        vmgr = VersionMgr(
+            self.local.working_tree_dir, self.log, start_cfg=self.start_cfg
+        )
+        vmgr_ref = weakref.ref(vmgr)
+        del vmgr
+
+        self.assertIsNone(vmgr_ref())
