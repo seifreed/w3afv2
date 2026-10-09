@@ -26,6 +26,7 @@ import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.mangle_plugin import ManglePlugin
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.misc.encoding import smart_str_ignore, smart_unicode
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 
@@ -56,8 +57,13 @@ class sed(ManglePlugin):
         :return: A mangled version of the request.
         """
         data = request.get_data()
-        for regex, string in self._manglers["q"]["b"]:
-            data = regex.sub(string, data)
+        body_manglers = self._manglers["q"]["b"]
+
+        if data and body_manglers:
+            text = smart_unicode(data)
+            for regex, string in body_manglers:
+                text = regex.sub(string, text)
+            data = smart_str_ignore(text)
 
         header_string = str(request.get_headers())
 
@@ -128,23 +134,10 @@ class sed(ManglePlugin):
             msg = "The user specified expression is invalid."
             raise BaseFrameworkException(msg)
 
+        # The regular expression above only matches "q"/"s" followed by "b"/"h"
+        # so there is no need to validate those two letters again here.
         for exp in found_expressions:
             req_res, body_header, regex_str, target_str = exp
-
-            if req_res not in ("q", "s"):
-                msg = (
-                    'The first letter of the sed expression should be "q"'
-                    ' for indicating request or "s" for response, got "%s"'
-                    " instead."
-                )
-                raise BaseFrameworkException(msg % req_res)
-
-            if body_header not in ("b", "h"):
-                msg = (
-                    'The second letter of the expression should be "b"'
-                    ' for body or "h" for header, got "%s" instead.'
-                )
-                raise BaseFrameworkException(msg % body_header)
 
             try:
                 regex = re.compile(regex_str)
