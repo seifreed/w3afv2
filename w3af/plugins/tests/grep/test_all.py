@@ -28,7 +28,7 @@ from itertools import repeat
 from unittest.mock import patch
 
 from w3af import ROOT_PATH
-from w3af.core.controllers.w3afCore import w3afCore
+from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest

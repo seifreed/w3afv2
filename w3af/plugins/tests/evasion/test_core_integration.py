@@ -26,7 +26,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from w3af.core.controllers.ci.moth import get_moth_http
-from w3af.core.controllers.w3afCore import w3afCore
+from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.parsers.doc.url import URL
 from w3af.plugins.tests.helper import create_target_option_list
 

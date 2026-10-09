@@ -21,8 +21,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-from github import Github
 import pytest
+from github import Github
 
 from w3af.core.controllers.easy_contribution.github_issues import (
     OAUTH_TOKEN,

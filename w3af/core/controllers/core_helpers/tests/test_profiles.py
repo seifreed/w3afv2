@@ -29,7 +29,7 @@ import pytest
 
 from w3af import ROOT_PATH
 from w3af.core.controllers.exceptions import BaseFrameworkException
-from w3af.core.controllers.w3afCore import w3afCore
+from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.profile.profile import profile
 
 

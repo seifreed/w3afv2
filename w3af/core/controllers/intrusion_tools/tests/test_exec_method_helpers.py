@@ -24,7 +24,7 @@ import unittest
 from unittest.mock import MagicMock
 
 from w3af.core.controllers.exceptions import BaseFrameworkException
-from w3af.core.controllers.intrusion_tools.execMethodHelpers import (
+from w3af.core.controllers.intrusion_tools.exec_method_helpers import (
     get_remote_temp_file,
     os_detection_exec,
 )

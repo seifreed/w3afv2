@@ -1,5 +1,5 @@
 """
-delayedExecutionFactory.py
+delayed_execution_factory.py
 
 Copyright 2006 Andres Riancho
 
@@ -21,9 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 from w3af.core.controllers.exceptions import BaseFrameworkException
-from w3af.core.controllers.intrusion_tools.atHandler import atHandler
-from w3af.core.controllers.intrusion_tools.crontabHandler import crontabHandler
-from w3af.core.controllers.intrusion_tools.execMethodHelpers import os_detection_exec
+from w3af.core.controllers.intrusion_tools.at_handler import atHandler
+from w3af.core.controllers.intrusion_tools.crontab_handler import crontabHandler
+from w3af.core.controllers.intrusion_tools.exec_method_helpers import os_detection_exec
 
 
 class delayedExecutionFactory:

@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 import unittest
 from functools import cmp_to_key
-
 from unittest import SkipTest
 
 from w3af.core.controllers.sca.sca import CodeSyntaxError, PhpSCA, Scope

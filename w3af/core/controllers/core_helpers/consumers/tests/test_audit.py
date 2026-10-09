@@ -26,7 +26,7 @@ import httpretty
 
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.consumers.audit import audit
-from w3af.core.controllers.w3afCore import w3afCore
+from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.exceptions import ScanMustStopException

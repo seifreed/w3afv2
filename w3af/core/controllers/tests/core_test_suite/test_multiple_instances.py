@@ -25,7 +25,7 @@ from multiprocessing.dummy import DummyProcess
 
 import pytest
 
-from w3af.core.controllers.w3afCore import w3afCore
+from w3af.core.controllers.w3af_core import w3afCore
 
 
 def start_w3af_core(exception_handler):

@@ -25,7 +25,7 @@ import os
 import pytest
 
 from w3af.core.controllers.misc.factory import factory
-from w3af.core.controllers.w3afCore import w3afCore
+from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.options.option_list import OptionList
 
 

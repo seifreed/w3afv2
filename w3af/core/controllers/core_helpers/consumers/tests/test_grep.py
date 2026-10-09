@@ -25,7 +25,7 @@ import unittest
 import w3af.core.data.kb.config as cf
 from w3af import ROOT_PATH
 from w3af.core.controllers.core_helpers.consumers.grep import grep
-from w3af.core.controllers.w3afCore import w3afCore
+from w3af.core.controllers.w3af_core import w3afCore
 from w3af.plugins.grep.code_disclosure import code_disclosure
 from w3af.tests.helpers.parse_http_log import iter_http_request_responses
 

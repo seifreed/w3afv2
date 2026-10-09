@@ -23,7 +23,7 @@ import unittest
 from unittest.mock import patch
 
 from w3af.core.controllers.profiling.took_helper import TookLine
-from w3af.core.controllers.w3afCore import w3afCore
+from w3af.core.controllers.w3af_core import w3afCore
 
 
 class TestTookHelper(unittest.TestCase):

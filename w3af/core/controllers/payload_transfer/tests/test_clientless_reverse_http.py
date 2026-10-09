@@ -25,7 +25,7 @@ import tempfile
 import unittest
 
 import w3af.core.data.kb.config as cf
-from w3af.core.controllers.extrusion_scanning.extrusionScanner import extrusionScanner
+from w3af.core.controllers.extrusion_scanning.extrusion_scanner import extrusionScanner
 from w3af.core.controllers.misc.get_unused_port import get_unused_port
 from w3af.core.controllers.payload_transfer.clientless_reverse_http import (
     ClientlessReverseHTTP,

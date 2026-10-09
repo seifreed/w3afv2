@@ -1,5 +1,5 @@
 """
-vdFactory.py
+vd_factory.py
 
 Copyright 2006 Andres Riancho
 
@@ -22,9 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.exceptions import BaseFrameworkException
-from w3af.core.controllers.intrusion_tools.execMethodHelpers import os_detection_exec
-from w3af.core.controllers.vdaemon.lnxVd import lnxVd
-from w3af.core.controllers.vdaemon.winVd import winVd
+from w3af.core.controllers.intrusion_tools.exec_method_helpers import os_detection_exec
+from w3af.core.controllers.vdaemon.lnx_vd import lnxVd
+from w3af.core.controllers.vdaemon.win_vd import winVd
 
 
 def get_virtual_daemon(exec_method):

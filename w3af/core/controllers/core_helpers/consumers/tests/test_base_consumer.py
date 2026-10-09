@@ -23,7 +23,7 @@ import unittest
 from unittest.mock import Mock
 
 from w3af.core.controllers.core_helpers.consumers.base_consumer import BaseConsumer
-from w3af.core.controllers.w3afCore import w3afCore
+from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 

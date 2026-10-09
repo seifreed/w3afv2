@@ -26,7 +26,7 @@ import pytest
 
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.controllers.misc.factory import factory
-from w3af.core.controllers.w3afCore import w3afCore
+from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.exceptions import (
     ScanMustStopByUnknownReasonExc,
@@ -79,7 +79,7 @@ class TestCoreExceptions(unittest.TestCase):
         """
         self.exception_plugin.exception_to_raise = ScanMustStopException
 
-        with patch("w3af.core.controllers.w3afCore.om.out") as om_mock:
+        with patch("w3af.core.controllers.w3af_core.om.out") as om_mock:
             self.w3afcore.start()
 
             error = (
@@ -101,7 +101,7 @@ class TestCoreExceptions(unittest.TestCase):
         """
         self.exception_plugin.exception_to_raise = ScanMustStopByUserRequest
 
-        with patch("w3af.core.controllers.w3afCore.om.out") as om_mock:
+        with patch("w3af.core.controllers.w3af_core.om.out") as om_mock:
             self.w3afcore.start()
 
             message = "Test exception."

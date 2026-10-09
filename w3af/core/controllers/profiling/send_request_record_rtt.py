@@ -43,7 +43,7 @@ if __name__ == "__main__":
         print("Target URL is missing")
         print()
         print(
-            "python w3af/core/controllers/profiling/send-request-record-rtt.py http://target.com/?rtt-measurement="
+            "python w3af/core/controllers/profiling/send_request_record_rtt.py http://target.com/?rtt-measurement="
         )
         print()
         sys.exit(1)
@@ -52,7 +52,7 @@ if __name__ == "__main__":
         print("Target URL requires a query string parameter")
         print()
         print(
-            "python w3af/core/controllers/profiling/send-request-record-rtt.py http://target.com/?rtt-measurement="
+            "python w3af/core/controllers/profiling/send_request_record_rtt.py http://target.com/?rtt-measurement="
         )
         print()
         sys.exit(1)

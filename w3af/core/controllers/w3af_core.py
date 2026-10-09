@@ -1,5 +1,5 @@
 """
-w3afCore.py
+w3af_core.py
 
 Copyright 2006 Andres Riancho
 

@@ -29,7 +29,7 @@ import pytest
 
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.controllers.core_helpers.strategy import CoreStrategy
-from w3af.core.controllers.w3afCore import w3afCore
+from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.kb.knowledge_base import kb
 from w3af.core.exceptions import ScanMustStopException
 

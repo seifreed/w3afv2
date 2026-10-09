@@ -25,7 +25,7 @@ import unittest
 import pytest
 
 from w3af.core.controllers.ci.moth import get_moth_http
-from w3af.core.controllers.w3afCore import w3afCore
+from w3af.core.controllers.w3af_core import w3afCore
 
 
 class TestMangleHandler(unittest.TestCase):

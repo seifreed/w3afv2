@@ -1,5 +1,5 @@
 """
-lnxVd.py
+lnx_vd.py
 
 Copyright 2006 Andres Riancho
 
@@ -24,7 +24,7 @@ import time
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.exceptions import BaseFrameworkException
-from w3af.core.controllers.intrusion_tools.crontabHandler import crontabHandler
+from w3af.core.controllers.intrusion_tools.crontab_handler import crontabHandler
 from w3af.core.controllers.vdaemon.vdaemon import vdaemon
 
 

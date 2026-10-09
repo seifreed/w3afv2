@@ -32,7 +32,7 @@ from lxml import etree
 import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.controllers.ci.moth import get_moth_http
-from w3af.core.controllers.w3afCore import w3afCore
+from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.constants import severity
 from w3af.core.data.db.history import HistoryItem
 from w3af.core.data.db.url_tree import URLTree

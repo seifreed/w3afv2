@@ -24,8 +24,8 @@ from functools import cmp_to_key
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.exceptions import BaseFrameworkException
-from w3af.core.controllers.extrusion_scanning.extrusionScanner import extrusionScanner
-from w3af.core.controllers.intrusion_tools.execMethodHelpers import os_detection_exec
+from w3af.core.controllers.extrusion_scanning.extrusion_scanner import extrusionScanner
+from w3af.core.controllers.intrusion_tools.exec_method_helpers import os_detection_exec
 from w3af.core.controllers.payload_transfer.clientless_reverse_http import (
     ClientlessReverseHTTP,
 )

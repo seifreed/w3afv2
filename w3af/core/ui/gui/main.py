@@ -42,7 +42,7 @@ from w3af.core.controllers.exception_handling.helpers import (
 )
 from w3af.core.controllers.misc.get_w3af_version import get_w3af_version
 from w3af.core.controllers.misc_settings import MiscSettings
-from w3af.core.controllers.w3afCore import w3afCore
+from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.exceptions import (
     BaseFrameworkException,
     ScanMustStopByUserRequest,

@@ -1,5 +1,5 @@
 """
-AESSocket.py
+aes_socket.py
 
 Copyright 2006 Andres Riancho
 

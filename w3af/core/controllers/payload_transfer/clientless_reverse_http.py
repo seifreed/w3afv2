@@ -24,7 +24,9 @@ import os
 
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.daemons import webserver
-from w3af.core.controllers.intrusion_tools.execMethodHelpers import get_remote_temp_file
+from w3af.core.controllers.intrusion_tools.exec_method_helpers import (
+    get_remote_temp_file,
+)
 from w3af.core.controllers.payload_transfer.base_payload_transfer import (
     BasePayloadTransfer,
 )

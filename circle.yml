@@ -114,7 +114,7 @@ deployment:
           pwd: extras/docker/
 
       - docker push andresriancho/w3af:latest
-      - w3af/core/controllers/ci/circleci/trigger-w3af-api-build.py
+      - w3af/core/controllers/ci/circleci/trigger_w3af_api_build.py
 
   staging:
     branch: develop
@@ -143,4 +143,4 @@ deployment:
       - ./docker-build.sh develop:
           pwd: extras/docker/
 
-      - w3af/core/controllers/ci/circleci/trigger-w3af-api-build.py
+      - w3af/core/controllers/ci/circleci/trigger_w3af_api_build.py

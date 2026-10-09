@@ -25,8 +25,8 @@ from itertools import chain
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
-from w3af.core.data.misc.iterables import unique_everseen
 from w3af.core.controllers.misc.make_leet import make_leet
+from w3af.core.data.misc.iterables import unique_everseen
 
 
 class PasswordBruteforcer:

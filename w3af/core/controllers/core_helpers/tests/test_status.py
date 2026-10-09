@@ -29,7 +29,7 @@ from w3af.core.controllers.core_helpers.status import (
     STOPPED,
     CoreStatus,
 )
-from w3af.core.controllers.w3afCore import w3afCore
+from w3af.core.controllers.w3af_core import w3afCore
 
 
 class TestStatus(unittest.TestCase):

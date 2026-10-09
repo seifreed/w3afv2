@@ -26,7 +26,7 @@ import unittest
 import pytest
 
 import w3af.core.data.kb.config as cf
-from w3af.core.controllers.extrusion_scanning.extrusionScanner import extrusionScanner
+from w3af.core.controllers.extrusion_scanning.extrusion_scanner import extrusionScanner
 from w3af.plugins.tests.helper import onlyroot
 
 

@@ -1,5 +1,5 @@
 """
-w3afAgentServer.py
+w3af_agent_server.py
 
 Copyright 2006 Andres Riancho
 

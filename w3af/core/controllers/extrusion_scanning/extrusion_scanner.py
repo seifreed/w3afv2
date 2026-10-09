@@ -1,5 +1,5 @@
 """
-extrusionScanner.py
+extrusion_scanner.py
 
 Copyright 2006 Andres Riancho
 
@@ -31,10 +31,10 @@ import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.controllers.exceptions import BaseFrameworkException
-from w3af.core.controllers.extrusion_scanning.server.extrusionServer import (
+from w3af.core.controllers.extrusion_scanning.server.extrusion_server import (
     extrusionServer,
 )
-from w3af.core.controllers.intrusion_tools.execMethodHelpers import (
+from w3af.core.controllers.intrusion_tools.exec_method_helpers import (
     get_remote_temp_file,
     os_detection_exec,
 )
@@ -255,7 +255,7 @@ class extrusionScanner:
                 "controllers",
                 "extrusion_scanning",
                 "client",
-                "extrusionClient.py",
+                "extrusion_client.py",
             )
             fileContent = open(filename).read()
             extension = "py"

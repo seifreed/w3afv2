@@ -31,7 +31,7 @@ from termcolor import colored
 try:
     import w3af.core.controllers.output_manager as om
     import w3af.core.ui.console.io.console as term
-    from w3af.core.controllers.w3afCore import w3afCore
+    from w3af.core.controllers.w3af_core import w3afCore
     from w3af.core.data.constants.disclaimer import DISCLAIMER
     from w3af.core.data.db.startup_cfg import StartUpConfig
     from w3af.core.exceptions import (

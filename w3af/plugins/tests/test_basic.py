@@ -35,7 +35,7 @@ from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.controllers.plugins.mangle_plugin import ManglePlugin
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
-from w3af.core.controllers.w3afCore import w3afCore
+from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.options.option_types import (
     BOOL,
     COMBO,

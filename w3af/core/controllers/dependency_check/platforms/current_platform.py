@@ -26,7 +26,7 @@ from .debian76 import Debian76
 from .debian78 import Debian78
 from .debian80 import Debian80
 from .default import DefaultPlatform
-from .elementaryOS02 import ElementaryOS02
+from .elementary_os02 import ElementaryOS02
 from .fedora import Fedora
 from .kali import Kali
 from .kali2 import Kali2

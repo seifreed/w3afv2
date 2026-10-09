@@ -29,7 +29,9 @@ import time
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.exceptions import BaseFrameworkException
-from w3af.core.controllers.intrusion_tools.execMethodHelpers import get_remote_temp_file
+from w3af.core.controllers.intrusion_tools.exec_method_helpers import (
+    get_remote_temp_file,
+)
 from w3af.core.controllers.payload_transfer.payload_transfer_factory import (
     payload_transfer_factory,
 )

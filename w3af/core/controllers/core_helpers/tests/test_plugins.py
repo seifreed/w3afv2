@@ -30,7 +30,7 @@ import pytest
 
 from w3af.core.controllers.core_helpers.plugins import CorePlugins
 from w3af.core.controllers.exceptions import BaseFrameworkException
-from w3af.core.controllers.w3afCore import w3afCore
+from w3af.core.controllers.w3af_core import w3afCore
 
 TEST_PLUGIN_NAME = "failing_spider"
 

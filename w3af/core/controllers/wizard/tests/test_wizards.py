@@ -26,7 +26,7 @@ import pytest
 
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.misc.factory import factory
-from w3af.core.controllers.w3afCore import w3afCore
+from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.options.bool_option import BoolOption
 from w3af.core.data.parsers.doc.url import URL
 

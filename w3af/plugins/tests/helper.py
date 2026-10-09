@@ -37,7 +37,7 @@ import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.misc.decorators import retry
 from w3af.core.controllers.misc.home_dir import W3AF_LOCAL_PATH
 from w3af.core.controllers.misc_settings import MiscSettings
-from w3af.core.controllers.w3afCore import w3afCore
+from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.kb.info_set import InfoSet
 from w3af.core.data.kb.read_shell import ReadShell

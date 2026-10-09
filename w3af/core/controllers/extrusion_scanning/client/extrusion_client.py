@@ -1,5 +1,5 @@
 """
-extrusionClient.py
+extrusion_client.py
 
 Copyright 2006 Andres Riancho
 

@@ -33,7 +33,7 @@ from w3af.core.controllers.core_helpers.exception_handler import (
     ExceptionHandler,
 )
 from w3af.core.controllers.core_helpers.status import CoreStatus
-from w3af.core.controllers.w3afCore import w3afCore
+from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.dc.generic.kv_container import KeyValueContainer
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.url import URL

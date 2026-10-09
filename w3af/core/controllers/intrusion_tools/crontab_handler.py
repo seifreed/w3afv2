@@ -1,5 +1,5 @@
 """
-crontabHandler.py
+crontab_handler.py
 
 Copyright 2006 Andres Riancho
 
@@ -22,8 +22,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.exceptions import BaseFrameworkException
-from w3af.core.controllers.intrusion_tools.delayedExecution import delayedExecution
-from w3af.core.controllers.intrusion_tools.execMethodHelpers import get_remote_temp_file
+from w3af.core.controllers.intrusion_tools.delayed_execution import delayedExecution
+from w3af.core.controllers.intrusion_tools.exec_method_helpers import (
+    get_remote_temp_file,
+)
 
 
 class crontabHandler(delayedExecution):

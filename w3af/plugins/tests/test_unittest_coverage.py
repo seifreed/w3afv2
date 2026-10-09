@@ -25,7 +25,7 @@ import unittest
 import pytest
 
 from w3af import ROOT_PATH
-from w3af.core.controllers.w3afCore import w3afCore
+from w3af.core.controllers.w3af_core import w3afCore
 
 TEST_PATH = os.path.join(ROOT_PATH, "plugins", "tests")
 

@@ -1,5 +1,5 @@
 """
-elementaryOS02.py
+elementary_os02.py
 
 Copyright 2014 Andres Riancho
 

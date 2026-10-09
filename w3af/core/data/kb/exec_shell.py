@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import textwrap
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.intrusion_tools.execMethodHelpers import os_detection_exec
+from w3af.core.controllers.intrusion_tools.exec_method_helpers import os_detection_exec
 from w3af.core.controllers.payload_transfer.payload_transfer_factory import (
     payload_transfer_factory,
 )

@@ -32,7 +32,7 @@ from tblib.decorators import Error
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.output_manager import log_sink_factory
 from w3af.core.controllers.threads.decorators import apply_with_return_error
-from w3af.core.controllers.w3afCore import w3afCore
+from w3af.core.controllers.w3af_core import w3afCore
 from w3af.plugins.output.console import console
 from w3af.plugins.output.text_file import text_file
 
