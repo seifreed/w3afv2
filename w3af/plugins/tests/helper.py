@@ -618,6 +618,8 @@ class MockResponse:
         "OPTIONS",
         "CONNECT",
         "TRACE",
+        "PROPFIND",
+        "SEARCH",
     )
 
     def __init__(
