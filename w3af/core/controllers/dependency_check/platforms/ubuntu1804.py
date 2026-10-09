@@ -20,7 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from ..requirements import CORE, GUI
+from typing import ClassVar
+
+from ..requirements import CORE
 from .system_info import distribution_matches
 from .ubuntu1604 import Ubuntu1604
 
@@ -32,10 +34,7 @@ class Ubuntu1804(Ubuntu1604):
     CORE_SYSTEM_PACKAGES_18.remove("libssl-dev")
     CORE_SYSTEM_PACKAGES_18.append("libssl1.0-dev")
 
-    GUI_SYSTEM_PACKAGEs_18 = Ubuntu1604.GUI_SYSTEM_PACKAGES[:]
-    GUI_SYSTEM_PACKAGEs_18.remove("libssl-dev")
-    GUI_SYSTEM_PACKAGEs_18.append("libssl1.0-dev")
-    SYSTEM_PACKAGES = {CORE: CORE_SYSTEM_PACKAGES_18, GUI: GUI_SYSTEM_PACKAGEs_18}
+    SYSTEM_PACKAGES: ClassVar[dict[int, list[str]]] = {CORE: CORE_SYSTEM_PACKAGES_18}
 
     def __init__(self):
         super().__init__()

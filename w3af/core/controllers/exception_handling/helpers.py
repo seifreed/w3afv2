@@ -22,15 +22,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import copy
 import io
-import os
 import platform
 import pprint
 import sys
-import tempfile
 from itertools import chain
 
 from w3af.core.controllers.misc.get_w3af_version import get_w3af_version
-from w3af.core.data.fuzzer.utils import rand_alnum
 
 
 def pprint_plugins(w3af_core):
@@ -53,10 +50,6 @@ def pprint_plugins(w3af_core):
     return plugins.getvalue()
 
 
-def gettempdir():
-    return tempfile.gettempdir()
-
-
 def get_platform_dist():
     """
     :return: A human-readable operating system name and release.
@@ -75,45 +68,14 @@ def get_platform_dist():
 
 
 def get_versions():
-    try:
-        import gtk
-    except ImportError:
-        gtk_version = "No GTK module installed"
-        pygtk_version = "No GTK module installed"
-    else:
-        gtk_version = ".".join(str(x) for x in gtk.gtk_version)
-        pygtk_version = ".".join(str(x) for x in gtk.pygtk_version)
-
-    # String containing the versions for python, gtk and pygtk
-    versions = (
-        "  Python version: %s\n"
-        "  Platform: %s\n"
-        "  GTK version: %s\n"
-        "  PyGTK version: %s\n"
-        "  w3af version:\n    %s"
-    )
-
+    """
+    :return: A string containing the python, platform and w3af versions
+    """
     w3af_version = "\n    ".join(get_w3af_version().split("\n"))
+    python_version = sys.version.replace("\n", "")
 
-    versions = versions % (
-        sys.version.replace("\n", ""),
-        get_platform_dist(),
-        gtk_version,
-        pygtk_version,
-        w3af_version,
+    return (
+        f"  Python version: {python_version}\n"
+        f"  Platform: {get_platform_dist()}\n"
+        f"  w3af version:\n    {w3af_version}"
     )
-
-    return versions
-
-
-def create_crash_file(exception):
-    filename = f"w3af-crash-{rand_alnum(5)}.txt"
-    filename = os.path.join(gettempdir(), filename)
-    with open(filename, "w") as crash_dump:
-        crash_dump.write(
-            "Submit this bug here:"
-            " https://github.com/andresriancho/w3af/issues/new \n"
-        )
-        crash_dump.write(get_versions())
-        crash_dump.write(exception)
-    return filename

@@ -1,7 +1,7 @@
 Running w3af
 ============
 
-``w3af`` has two user interfaces, the console user interface and the graphical
+``w3af`` has two user interfaces, the console user interface and the web
 user interface. This user guide will focus on the console user interface where
 it's easier to explain the framework's features. To fire up the console UI
 execute:
@@ -131,23 +131,17 @@ of its internals.
 It is also flexible enough to be tuned by experts that know what they want and
 need to change internal configuration parameters to fulfill their tasks.
 
-Running w3af with GTK user interface
-------------------------------------
+Running w3af with the web user interface
+----------------------------------------
 
-The framework has also a graphical user interface that you can start by executing:
+The framework also has a web user interface that you can start by executing:
 
 .. code-block:: none
 
     $ ./w3af_gui
 
-The graphical user interface allows you to perform all the actions that the
-framework offers and features a much easier and faster way to start a scan and
-analyze the results.
-
-.. note::
-
-   The GUI has different third party dependencies and might require you to
-   install extra OS and python packages.
+The command starts a local web service and opens the user interface in your
+browser, see :doc:`web-ui` for the details.
 
 Plugin configuration
 --------------------

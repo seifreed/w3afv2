@@ -75,12 +75,12 @@ Contents
    report-a-bug
    contribute
 
-GUI documentation
------------------
+Web user interface documentation
+--------------------------------
 .. toctree::
    :maxdepth: 3
 
-   gui/index
+   web-ui
 
 REST API documentation
 ----------------------

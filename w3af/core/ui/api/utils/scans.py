@@ -20,36 +20,42 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import os
-from tempfile import tempdir
-from uuid import uuid4
+import tempfile
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.ui.api.db.master import SCANS
+from w3af.core.ui.api.db.master import SCANS, ScanInfo
+
+PROFILE_EXTENSION = ".pw3af"
+PROFILE_ENCODING = "utf-8"
+
+logger = logging.getLogger(__name__)
 
 
-def get_scan_info_from_id(scan_id):
+def get_scan_info_from_id(scan_id: int) -> ScanInfo | None:
     return SCANS.get(scan_id, None)
 
 
-def get_new_scan_id():
-    return len(list(SCANS.keys()))
+def get_new_scan_id() -> int:
+    return len(SCANS)
 
 
-def create_temp_profile(scan_profile):
+def create_temp_profile(scan_profile: str) -> tuple[str, str]:
     """
     Writes the scan_profile to a file
 
     :param scan_profile: The contents of a profile configuration
     :return: The scan profile file name and the directory where it was created
     """
-    scan_profile_file = os.path.join(tempdir, "%s.pw3af" % uuid4())
-    open(scan_profile_file, "w").write(scan_profile)
+    descriptor, scan_profile_file = tempfile.mkstemp(suffix=PROFILE_EXTENSION)
+    with os.fdopen(descriptor, "w", encoding=PROFILE_ENCODING) as profile_file:
+        profile_file.write(scan_profile)
 
-    return scan_profile_file, tempdir
+    return scan_profile_file, os.path.dirname(scan_profile_file)
 
 
-def remove_temp_profile(scan_profile_file_name):
+def remove_temp_profile(scan_profile_file_name: str) -> None:
     """
     Remove temp profile after using
     :param scan_profile_file_name: path to the temp profile
@@ -58,10 +64,10 @@ def remove_temp_profile(scan_profile_file_name):
     try:
         os.remove(scan_profile_file_name)
     except OSError:
-        pass
+        logger.debug("Temporary profile %s was already removed", scan_profile_file_name)
 
 
-def start_scan_helper(scan_info):
+def start_scan_helper(scan_info: ScanInfo) -> None:
     """
     Start scan from scan_info
 
@@ -81,18 +87,10 @@ def start_scan_helper(scan_info):
         w3af_core.verify_environment()
         w3af_core.start()
     except Exception as e:
+        logger.exception("The scan finished with an unhandled exception")
         scan_info.exception = e
-        try:
-            w3af_core.stop()
-        except AttributeError:
-            # Reduce some exceptions found during interpreter shutdown
-            pass
+        w3af_core.stop()
 
     finally:
         scan_info.finished = True
-
-        try:
-            os.unlink(scan_info.profile_path)
-        except (OSError, AttributeError) as _:
-            # Reduce some exceptions found during interpreter shutdown
-            pass
+        remove_temp_profile(scan_info.profile_path)

@@ -115,11 +115,7 @@ class CoreStatus:
                 if status_str:
                     status_str += "\n"
 
-                status_str += "Auditing {} using {}.{}".format(
-                    audit_fr,
-                    "audit",
-                    audit_plugin,
-                )
+                status_str += f"Auditing {audit_fr} using audit.{audit_plugin}"
 
             status_str = status_str.replace("\x00", "")
             return status_str
@@ -157,6 +153,13 @@ class CoreStatus:
 
     def is_paused(self):
         return self._paused
+
+    def has_started(self):
+        """
+        :return: True once start() was called, the run time, ETA and progress
+                 can only be calculated after that
+        """
+        return self._start_time_epoch is not None
 
     def get_run_time(self):
         """
@@ -607,7 +610,7 @@ class CoreStatus:
         if not self.has_finished_audit():
             return True
 
-        return bool(not self.has_finished_grep())
+        return not self.has_finished_grep()
 
     def get_crawl_adjustment_ratio(self):
         """

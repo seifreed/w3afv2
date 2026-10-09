@@ -57,9 +57,8 @@ and isolated environment that won't affect your operating system python packages
 All the packages installed using the ``/tmp/w3af_dependency_install.sh`` script
 will be stored inside the ``venv`` directory and won't affect your system packages.
 
-Installation of the GUI dependencies inside a ``virtualenv`` requires the
-Python 3.14 dependencies from the project manifest and the system GUI libraries
-provided by your operating system:
+The web user interface uses the same Python 3.14 dependencies from the
+project manifest:
 
 .. code-block:: console
 

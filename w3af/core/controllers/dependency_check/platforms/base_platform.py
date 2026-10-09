@@ -20,8 +20,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from typing import Any, ClassVar
+
+from w3af.core.controllers.dependency_check.pip_dependency import PIPDependency
+
 from ..external.retirejs import retirejs_is_installed
-from ..requirements import CORE, CORE_PIP_PACKAGES, GUI, GUI_PIP_PACKAGES
+from ..requirements import CORE, CORE_PIP_PACKAGES
 
 
 class Platform:
@@ -30,9 +34,9 @@ class Platform:
     checks.
     """
 
-    PIP_PACKAGES = {CORE: CORE_PIP_PACKAGES, GUI: GUI_PIP_PACKAGES}
+    PIP_PACKAGES: ClassVar[dict[int, list[PIPDependency]]] = {CORE: CORE_PIP_PACKAGES}
 
-    SYSTEM_PACKAGES = {CORE: [], GUI: []}
+    SYSTEM_PACKAGES: ClassVar[dict[int, list[str]]] = {CORE: []}
 
     @staticmethod
     def is_current_platform():
@@ -62,4 +66,4 @@ class Platform:
 
         return ["npm install -g retire@2.0.3", "npm update -g retire"]
 
-    EXTERNAL_COMMAND_HANDLERS = [retirejs_handler]
+    EXTERNAL_COMMAND_HANDLERS: ClassVar[list[Any]] = [retirejs_handler]

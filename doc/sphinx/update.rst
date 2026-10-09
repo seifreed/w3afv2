@@ -31,7 +31,7 @@ The auto-update feature is enabled by default and its configuration can be chang
 
 The feature can be completely disabled by setting the ``auto-update`` section to ``false``; and the update frequency has ``D``, ``W`` and ``M`` (daily, weekly and monthly) as valid values.
 
-It is also possible to force the update to take place, or not, by simply giving the ``w3af_console`` or ``w3af_gui`` scripts the desired option:
+It is also possible to force the update to take place, or not, by simply giving the ``w3af_console`` script the desired option:
 ``--force-update`` or ``--no-update``.
 
 Branches

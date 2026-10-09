@@ -22,13 +22,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import subprocess
 import sys
+from typing import ClassVar
 
+from w3af.core.controllers.dependency_check.pip_dependency import PIPDependency
 from w3af.core.controllers.dependency_check.platforms.base_platform import Platform
 from w3af.core.controllers.dependency_check.requirements import (
     CORE,
     CORE_PIP_PACKAGES,
-    GUI,
-    GUI_PIP_EXTRAS,
 )
 
 TWO_PYTHON_MSG = """\
@@ -59,7 +59,7 @@ class MacOSX(Platform):
     # packages
     #
     # Python port includes the dev headers
-    CORE_SYSTEM_PACKAGES = [
+    CORE_SYSTEM_PACKAGES: ClassVar[list[str]] = [
         "py314-pip",
         "python314",
         "autoconf",
@@ -68,17 +68,13 @@ class MacOSX(Platform):
         "libffi",
     ]
 
-    GUI_SYSTEM_PACKAGES = CORE_SYSTEM_PACKAGES[:]
-    GUI_SYSTEM_PACKAGES.extend(["graphviz"])
-
-    SYSTEM_PACKAGES = {CORE: CORE_SYSTEM_PACKAGES, GUI: GUI_SYSTEM_PACKAGES}
+    SYSTEM_PACKAGES: ClassVar[dict[int, list[str]]] = {CORE: CORE_SYSTEM_PACKAGES}
 
     MAC_CORE_PIP_PACKAGES = CORE_PIP_PACKAGES[:]
 
-    MAC_GUI_PIP_PACKAGES = MAC_CORE_PIP_PACKAGES[:]
-    MAC_GUI_PIP_PACKAGES.extend(GUI_PIP_EXTRAS)
-
-    PIP_PACKAGES = {CORE: MAC_CORE_PIP_PACKAGES, GUI: MAC_GUI_PIP_PACKAGES}
+    PIP_PACKAGES: ClassVar[dict[int, list[PIPDependency]]] = {
+        CORE: MAC_CORE_PIP_PACKAGES
+    }
 
     @staticmethod
     def is_current_platform():

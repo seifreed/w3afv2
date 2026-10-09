@@ -58,8 +58,17 @@ def get_traffic_details(scan_id, traffic_id):
         return
 
     data = {
-        "request": b64encode(details.request.dump()),
-        "response": b64encode(details.response.dump()),
+        "request": encode_message(details.request.dump()),
+        "response": encode_message(details.response.dump()),
     }
 
     return jsonify(data)
+
+
+def encode_message(message: str | bytes) -> str:
+    """
+    :return: The HTTP message encoded as base64 text, ready to be sent as JSON
+    """
+    if isinstance(message, str):
+        message = message.encode("utf-8", errors="surrogateescape")
+    return b64encode(message).decode("ascii")
