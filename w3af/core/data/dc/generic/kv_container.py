@@ -93,12 +93,6 @@ class KeyValueContainer(DataContainer, OrderedDict):
         """
         return urlencode(self, encoding=self.encoding)
 
-    def __unicode__(self):
-        """
-        Return unicode representation
-        """
-        return self._to_str_with_separators("=", "&", errors="percent_encode")
-
     def iter_setters(self):
         """
         :yield: Tuples containing:
@@ -117,7 +111,7 @@ class KeyValueContainer(DataContainer, OrderedDict):
                     yield k, ele, token_path, partial(v.__setitem__, idx)
         # pylint: enable=E1133
 
-    def _to_str_with_separators(self, key_val_sep, pair_sep, errors="strict"):
+    def _to_str_with_separators(self, key_val_sep, pair_sep):
         """
         :return: Join all the values stored in this data container using the
                  specified separators.
@@ -127,7 +121,7 @@ class KeyValueContainer(DataContainer, OrderedDict):
         # pylint: disable=E1133
         for key, value_list in list(self.items()):
             for value in value_list:
-                value = smart_unicode(value, encoding=UTF8, errors=errors)
+                value = smart_unicode(value, encoding=UTF8)
                 to_app = f"{key}{key_val_sep}{value}"
                 lst.append(to_app)
         # pylint: enable=E1133

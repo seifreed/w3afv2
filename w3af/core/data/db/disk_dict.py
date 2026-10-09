@@ -67,18 +67,6 @@ class DiskDict:
 
         return result_list
 
-    def iterkeys(self):
-        pickled_keys = self.db.select(f"SELECT key FROM {self.table_name}")
-
-        for r in pickled_keys:
-            yield pickle.loads(r[0])
-
-    def iteritems(self):
-        pickled_keys = self.db.select(f"SELECT key, value FROM {self.table_name}")
-
-        for r in pickled_keys:
-            yield pickle.loads(r[0]), pickle.loads(r[1])
-
     def __contains__(self, key):
         """
         :return: True if the value is in keys

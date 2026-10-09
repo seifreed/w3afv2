@@ -286,7 +286,5 @@ class DiskList:
         r = self.db.select_one(query)
         return r[0]
 
-    def __unicode__(self):
+    def __str__(self):
         return "<DiskList [{}]>".format(", ".join([str(i) for i in self]))
-
-    __str__ = __unicode__

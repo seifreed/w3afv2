@@ -116,15 +116,6 @@ class TestDiskDict(unittest.TestCase):
 
         self.assertEqual(len(disk_dict), items_to_add)
 
-    def test_iterkeys(self):
-        disk_dict = DiskDict()
-
-        disk_dict["a"] = "abc"
-        disk_dict["b"] = "abc"
-        disk_dict["c"] = "abc"
-
-        self.assertEqual(set(disk_dict.keys()), {"a", "b", "c"})
-
     def test_remove_table(self):
         disk_dict = DiskDict()
         table_name = disk_dict.table_name

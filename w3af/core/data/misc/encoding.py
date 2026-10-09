@@ -124,23 +124,7 @@ def smart_unicode(
                 except UnicodeDecodeError:
                     s = s.decode(encoding, "ignore")
     else:
-        if hasattr(s, "__unicode__"):
-            try:
-                # Read the pyar thread "__unicode__ deberia tomar los mismos
-                # parametros que unicode() ?" to better understand why I can't
-                # pass encoding and errors parameters here:
-                s = _unicode(s)
-            except UnicodeDecodeError:
-                # And why I'm doing it here:
-                s = _str(s)
-                s = smart_unicode(
-                    s, encoding=encoding, errors=errors, on_error_guess=on_error_guess
-                )
-        else:
-            s = _str(s)
-            s = smart_unicode(
-                s, encoding=encoding, errors=errors, on_error_guess=on_error_guess
-            )
+        s = _str(s)
 
     return s
 

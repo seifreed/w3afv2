@@ -72,9 +72,6 @@ class DataToken:
     def __str__(self):
         return smart_unicode(self._value, errors="ignore")
 
-    def __unicode__(self):
-        return str(self._value)
-
     def __eq__(self, other):
         if isinstance(other, DataToken):
             return (

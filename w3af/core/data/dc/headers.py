@@ -197,12 +197,3 @@ class Headers(NonRepeatKeyValueContainer):
             header_str_unicode += "\r\n"
 
         return header_str_unicode
-
-    def __unicode__(self):
-        """
-        :see: __str__ documentation.
-        """
-        headers_unicode = self._to_str_with_separators(": ", "\r\n")
-        if headers_unicode:
-            headers_unicode += "\r\n"
-        return headers_unicode

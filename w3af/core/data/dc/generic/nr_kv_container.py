@@ -123,12 +123,6 @@ class NonRepeatKeyValueContainer(DataContainer, OrderedDict):
         """
         return urlencode(self, encoding=self.encoding)
 
-    def __unicode__(self):
-        """
-        Return unicode representation
-        """
-        return self._to_str_with_separators("=", "&")
-
     def get_short_printable_repr(self):
         """
         :return: A string with a short printable representation of self

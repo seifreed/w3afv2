@@ -69,7 +69,5 @@ class DiskSet(DiskList):
     def append(self, *args):
         raise RuntimeError("Not a valid DiskSet method.")
 
-    def __unicode__(self):
+    def __str__(self):
         return "<DiskSet [{}]>".format(", ".join([str(i) for i in self]))
-
-    __str__ = __unicode__
