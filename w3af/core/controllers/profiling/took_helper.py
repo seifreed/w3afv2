@@ -88,7 +88,7 @@ class TookLine:
         #
         #   Prepare the user provided data
         #
-        method_params = dict() if self._method_params is None else self._method_params
+        method_params = {} if self._method_params is None else self._method_params
 
         # If debugging_id was defined then we add it to the parameters
         if self._debugging_id:

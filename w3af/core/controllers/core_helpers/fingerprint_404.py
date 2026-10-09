@@ -111,16 +111,10 @@ class Fingerprint404:
         if self._is_404_basic(http_response, domain_path):
             return True
 
-        if self._is_404_complex(http_response):
-            return True
-
-        return False
+        return bool(self._is_404_complex(http_response))
 
     def _is_never_404(self, domain_path):
-        if domain_path in cf.cf.get("never_404"):
-            return True
-
-        return False
+        return domain_path in cf.cf.get("never_404")
 
     def _is_404_basic(self, http_response, domain_path):
         """
@@ -173,10 +167,7 @@ class Fingerprint404:
         #
         # The following iff fixes the race condition
         #
-        if is_no_content_response(http_response):
-            return True
-
-        return False
+        return bool(is_no_content_response(http_response))
 
     @PreventMultipleThreads
     def _is_404_complex(self, http_response):

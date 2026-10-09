@@ -219,7 +219,7 @@ class CoreTarget(Configurable):
         # Save in the config, the target URLs, this may be useful for some
         # plugins
         cf.cf.save("targets", target_urls)
-        cf.cf.save("target_domains", list(set([u.get_domain() for u in target_urls])))
+        cf.cf.save("target_domains", list({u.get_domain() for u in target_urls}))
         cf.cf.save("baseURLs", [i.base_url() for i in target_urls])
 
         # Advanced target selection

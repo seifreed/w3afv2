@@ -36,7 +36,7 @@ def get_virtual_daemon(exec_method):
     try:
         os = os_detection_exec(exec_method)
     except BaseFrameworkException as w3:
-        raise w3
+        raise
     else:
         if os == "windows":
             om.out.debug("Identified remote OS as Windows, returning winVd object.")

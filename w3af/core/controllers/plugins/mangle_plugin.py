@@ -71,10 +71,7 @@ class ManglePlugin(Plugin):
         """
         This function is called when sorting mangle plugins.
         """
-        if self.get_priority() > other.get_priority():
-            return True
-        else:
-            return False
+        return self.get_priority() > other.get_priority()
 
     def __lt__(self, other):
         """
@@ -86,10 +83,7 @@ class ManglePlugin(Plugin):
         """
         This function is called when sorting mangle plugins.
         """
-        if self.get_priority() == other.get_priority():
-            return True
-        else:
-            return False
+        return self.get_priority() == other.get_priority()
 
     def get_priority(self):
         """

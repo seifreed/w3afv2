@@ -138,7 +138,7 @@ class TestContainsSourceCode(unittest.TestCase):
             " alert-block <% } %>",
             content_type="application/javascript",
         )
-        match, lang = contains_source_code(source)
+        match, _lang = contains_source_code(source)
         self.assertEqual(match, None)
 
     def test_code_false_positive_ruby_02(self):
@@ -148,7 +148,7 @@ class TestContainsSourceCode(unittest.TestCase):
             ' ga("send',
             content_type="application/javascript",
         )
-        match, lang = contains_source_code(source)
+        match, _lang = contains_source_code(source)
         self.assertEqual(match, None)
 
     def test_code_false_positive_ruby_03(self):
@@ -158,7 +158,7 @@ class TestContainsSourceCode(unittest.TestCase):
             ' ga("send',
             content_type="application/javascript",
         )
-        match, lang = contains_source_code(source)
+        match, _lang = contains_source_code(source)
         self.assertEqual(match, None)
 
     def test_code_false_positive_ruby_04(self):
@@ -171,7 +171,7 @@ class TestContainsSourceCode(unittest.TestCase):
             ' <a href="/seo-hosting/"> def </a>end',
             content_type="application/javascript",
         )
-        match, lang = contains_source_code(source)
+        match, _lang = contains_source_code(source)
         self.assertEqual(match, None)
 
     def test_code_false_positive_java_01(self):
@@ -190,7 +190,7 @@ class TestContainsSourceCode(unittest.TestCase):
                                       """,
             content_type="application/javascript",
         )
-        match, lang = contains_source_code(source)
+        match, _lang = contains_source_code(source)
         self.assertEqual(match, None)
 
     def test_code_false_positive_java_02(self):
@@ -198,12 +198,12 @@ class TestContainsSourceCode(unittest.TestCase):
                  public class Person{
                  }
                  """)
-        match, lang = contains_source_code(source)
+        match, _lang = contains_source_code(source)
         self.assertEqual(match, None)
 
     def test_code_false_positive_image(self):
         no_source = self.create_response(
             open(self.TEST_FILE).read(), content_type="image/jpeg"
         )
-        match, lang = contains_source_code(no_source)
+        match, _lang = contains_source_code(no_source)
         self.assertEqual(match, None)

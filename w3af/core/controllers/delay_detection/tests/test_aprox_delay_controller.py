@@ -123,5 +123,5 @@ class TestAproxDelayController(unittest.TestCase):
             mutant.set_token(("id", 0))
 
             ed = AproxDelayController(mutant, delay_obj, mock_uri_opener)
-            controlled, responses = ed.delay_is_controlled()
+            controlled, _responses = ed.delay_is_controlled()
             self.assertEqual(expected_result, controlled, delays)

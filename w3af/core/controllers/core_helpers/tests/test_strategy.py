@@ -114,7 +114,7 @@ class TestStrategy(PluginTest):
                 universal_newlines=True,
             )
 
-            stdout, stderr = p.communicate()
+            stdout, _stderr = p.communicate()
             i_vuln_count = stdout.count(VULN_STRING)
             print(f"{i_vuln_count} vulnerabilities found")
 

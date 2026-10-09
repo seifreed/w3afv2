@@ -58,4 +58,4 @@ class question_target_2(question):
         """
         This is the last question of the wizard, there is no next one.
         """
-        return None
+        return

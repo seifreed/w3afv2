@@ -259,6 +259,6 @@ class w3afAgentManager(Process):
                     om.out.console(msg % p)
                     return p
 
-            raise e
+            raise
         else:
             return inbound_port

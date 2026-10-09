@@ -26,7 +26,7 @@ def get_connection_pool_wait_data(scan_log_filename, scan):
 
 
 def get_time_waited_by_workers(scan_log_filename, scan):
-    connection_pool_waits, connection_pool_timestamps = get_connection_pool_wait_data(
+    connection_pool_waits, _connection_pool_timestamps = get_connection_pool_wait_data(
         scan_log_filename, scan
     )
 

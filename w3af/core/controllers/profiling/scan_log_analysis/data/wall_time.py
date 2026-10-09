@@ -31,7 +31,7 @@ def show_generic_spent_time(scan, name, must_have):
 
 def get_plugin_time(scan_log_filename, scan):
     scan.seek(0)
-    spent_time_by_plugin = dict()
+    spent_time_by_plugin = {}
 
     for line in scan:
         if "took" not in line:
@@ -69,9 +69,9 @@ def get_plugin_time(scan_log_filename, scan):
         spent_time_dict = dict(spent_time_items)
 
         # round
-        spent_time_dict = dict(
-            (plugin_name, round(took)) for plugin_name, took in spent_time_dict.items()
-        )
+        spent_time_dict = {
+            plugin_name: round(took) for plugin_name, took in spent_time_dict.items()
+        }
 
         title = "Top10 wall time used by %s plugins (seconds)"
         output.append(ListOutputItem(title % plugin_type, spent_time_dict))

@@ -137,7 +137,4 @@ def is_false_positive(http_response, match, detected_langs):
         if char in string.printable:
             printable += 1
 
-    if (printable / len(match_str)) < ratio:
-        return True
-
-    return False
+    return printable / len(match_str) < ratio

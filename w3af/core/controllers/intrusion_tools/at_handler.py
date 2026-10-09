@@ -44,10 +44,7 @@ class atHandler(delayedExecution):
         om.out.debug("[atHandler] Verifying if the remote user can run the at command.")
         res = self._exec("at")
 
-        if "Access is denied" in res:
-            return False
-        else:
-            return True
+        return "Access is denied" not in res
 
     def add_to_schedule(self, command_to_exec):
         """

@@ -110,9 +110,9 @@ class PhpSCA:
         self._parselock = threading.RLock()
         # Define scope
         scope = Scope(self._global_pnode, parent_scope=None)
-        scope._builtins = dict(
-            (uv, VariableDef(uv, -1, scope)) for uv in VariableDef.USER_VARS
-        )
+        scope._builtins = {
+            uv: VariableDef(uv, -1, scope) for uv in VariableDef.USER_VARS
+        }
         self._scopes = [scope]
         # FuncCall nodes
         self._functions = []
@@ -274,8 +274,7 @@ class NodeRep:
                 if type(val) is list:
                     for el in val:
                         el._parent_node = node
-                        for ele in NodeRep.parse(el, currlevel + 1, maxlevel):
-                            yield ele
+                        yield from NodeRep.parse(el, currlevel + 1, maxlevel)
 
     @property
     def lineno(self):

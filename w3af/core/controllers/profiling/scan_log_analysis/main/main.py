@@ -178,7 +178,7 @@ def generate_json_output(scan_log_filename, scan, json_filename):
         print('Failed to open {} for writing: "{}"'.format(*e))
         sys.exit(1)
 
-    output_data = dict()
+    output_data = {}
     print("Generating JSON output...")
 
     for _function in get_json_functions():

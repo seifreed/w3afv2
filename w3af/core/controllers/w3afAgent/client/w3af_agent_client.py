@@ -10,7 +10,7 @@ import time
 
 def is_routable(address):
     # Splitting the address in its 4 components.
-    first, second, junk1, junk2 = address.split(".")
+    first, second, _junk1, _junk2 = address.split(".")
     # Testing the address against the given intervals.
     if (
         first in ["10", "127"]
@@ -207,7 +207,9 @@ class w3afAgentClient(threading.Thread):
         # connect to hosts on local networks.
         # Getting info on the physical interface of the server.
 
-        hostname, aliaslist, ipaddrlist = socket.gethostbyname_ex(socket.gethostname())
+        _hostname, _aliaslist, ipaddrlist = socket.gethostbyname_ex(
+            socket.gethostname()
+        )
 
         # Finding the internet address of the server. If none is found, the first ip is choosed
 
@@ -271,7 +273,7 @@ class ConnectionManager(threading.Thread):
             # Here I listen for data on all the connections I have and if I get anything I
             # parse the request, after parsing I create a new SocksHandler that will
             # manage all the SOCKS protocol
-            ready_to_read, ready_to_write, in_error = select.select(
+            ready_to_read, _ready_to_write, in_error = select.select(
                 self._connections, [], []
             )
 
@@ -456,7 +458,7 @@ class SocksHandler(threading.Thread):
             except OSError:
                 # A "connection reset by peer" here means the client has closed
                 # the connection.
-                exception, value, traceback = sys.exc_info()
+                _exception, value, _traceback = sys.exc_info()
                 if value[0] == ERR_CONNECTION_RESET_BY_PEER:
                     raise Client_Connection_Closed(
                         (
@@ -547,7 +549,7 @@ class SocksHandler(threading.Thread):
             # client, so we don't need to answer. Any other socket
             # exception forces us to try to answer to the client.
             except OSError:
-                exception, value, traceback = sys.exc_info()
+                _exception, value, _traceback = sys.exc_info()
                 if value[0] == ERR_CONNECTION_RESET_BY_PEER:
                     raise Client_Connection_Closed(
                         (
@@ -681,7 +683,7 @@ class SocksHandler(threading.Thread):
                             raise Connection_Closed
             # If one peer closes its conenction, we have finished our work.
             except OSError:
-                exception, value, traceback = sys.exc_info()
+                _exception, value, _traceback = sys.exc_info()
                 if value[0] == ERR_CONNECTION_RESET_BY_PEER:
                     raise Connection_Closed
                 raise

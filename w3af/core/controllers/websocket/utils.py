@@ -165,10 +165,7 @@ def is_successful_upgrade(upgrade_response):
     sec_websocket_accept_value, _ = headers.iget("Sec-WebSocket-Accept", None)
 
     # Relaxed check
-    if upgrade_value and connection_value and sec_websocket_accept_value:
-        return True
-
-    return False
+    return bool(upgrade_value and connection_value and sec_websocket_accept_value)
 
 
 class WebSocketProtocolException(BaseFrameworkException):

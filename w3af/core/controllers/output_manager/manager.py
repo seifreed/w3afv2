@@ -49,7 +49,7 @@ def start_thread_on_demand(func):
 
     @wraps(func)
     def od_wrapper(*args, **kwds):
-        import w3af.core.controllers.output_manager as output_manager
+        from w3af.core.controllers import output_manager
 
         manager = output_manager.manager
         if manager.is_alive():
@@ -300,10 +300,7 @@ class OutputManager(Process):
             return True
 
         time_diff = time.time() - self._last_output_flush
-        if time_diff >= self.FLUSH_TIMEOUT:
-            return True
-
-        return False
+        return time_diff >= self.FLUSH_TIMEOUT
 
     def update_last_output_flush(self):
         self._last_output_flush = time.time()

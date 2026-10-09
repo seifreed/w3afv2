@@ -360,10 +360,7 @@ class CoreStrategy:
 
         # Get the scan time and compare with the max
         scan_time = self._w3af_core.status.get_run_time()
-        if scan_time > max_scan_time:
-            return True
-
-        return False
+        return scan_time > max_scan_time
 
     def _route_one_fuzzable_request_batch(
         self, _input, output, finished, consumer_forced_end

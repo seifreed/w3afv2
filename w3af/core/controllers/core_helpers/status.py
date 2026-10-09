@@ -607,10 +607,7 @@ class CoreStatus:
         if not self.has_finished_audit():
             return True
 
-        if not self.has_finished_grep():
-            return True
-
-        return False
+        return bool(not self.has_finished_grep())
 
     def get_crawl_adjustment_ratio(self):
         """

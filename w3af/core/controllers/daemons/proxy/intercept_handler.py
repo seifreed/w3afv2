@@ -145,7 +145,4 @@ class InterceptProxyHandler(ProxyHandler):
         if self.parent_process.what_not_to_trap.search(url_string):
             return False
 
-        if not self.parent_process.what_to_trap.search(url_string):
-            return False
-
-        return True
+        return self.parent_process.what_to_trap.search(url_string) is not None

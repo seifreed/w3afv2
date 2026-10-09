@@ -52,10 +52,7 @@ def provides_cors_features(freq, url_opener, debugging_id):
         freq.get_url(), headers=headers, debugging_id=debugging_id
     )
     ac_value = retrieve_cors_header(response, ACCESS_CONTROL_ALLOW_ORIGIN)
-    if ac_value is not None:
-        return True
-
-    return False
+    return ac_value is not None
 
 
 def retrieve_cors_header(response, key):

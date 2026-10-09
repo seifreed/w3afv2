@@ -310,8 +310,8 @@ class Test404FuzzyStringMatch(unittest.TestCase):
         """
 
         def tokenized_set(str_a, str_b, ratio):
-            set_a = set(hash(x) for x in str_a.split(" "))
-            set_b = set(hash(x) for x in str_b.split(" "))
+            set_a = {hash(x) for x in str_a.split(" ")}
+            set_b = {hash(x) for x in str_b.split(" ")}
             maxl = max(len(set_a), len(set_b))
             return (len(set_a.intersection(set_b)) / maxl) > ratio
 
@@ -343,8 +343,8 @@ class Test404FuzzyStringMatch(unittest.TestCase):
         """
 
         def tokenized_set(str_a, str_b, ratio):
-            set_a = set(x for x in str_a.split(" ") if len(x) > 12)
-            set_b = set(x for x in str_b.split(" ") if len(x) > 12)
+            set_a = {x for x in str_a.split(" ") if len(x) > 12}
+            set_b = {x for x in str_b.split(" ") if len(x) > 12}
             maxl = max(len(set_a), len(set_b))
 
             intersect = set_a.intersection(set_b)
@@ -363,8 +363,8 @@ class Test404FuzzyStringMatch(unittest.TestCase):
         """
 
         def tokenized_set(str_a, str_b, ratio):
-            set_a = set(x for x in str_a.split(" ") if len(x) < 12)
-            set_b = set(x for x in str_b.split(" ") if len(x) < 12)
+            set_a = {x for x in str_a.split(" ") if len(x) < 12}
+            set_b = {x for x in str_b.split(" ") if len(x) < 12}
             maxl = max(len(set_a), len(set_b))
 
             intersect = set_a.intersection(set_b)

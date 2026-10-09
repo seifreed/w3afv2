@@ -84,7 +84,7 @@ class GithubIssues:
         self._user_or_token = user_or_token
         self._password = password
         self.gh = None
-        self.using_oauth = True if password is None else False
+        self.using_oauth = password is None
 
     def login(self):
         try:

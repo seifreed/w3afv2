@@ -5,7 +5,7 @@ class KeyValueOutput:
     def __init__(self, _function, title, values=None):
         self.function = _function
         self.title = title
-        self.values = values if values is not None else dict()
+        self.values = values if values is not None else {}
 
     def set_title(self, title):
         self.title = title
@@ -76,4 +76,4 @@ class ListOutputItem(KeyValueOutput):
     def __init__(self, title, values=None):
         super().__init__(None, title, values)
         self.title = title
-        self.values = values if values is not None else dict()
+        self.values = values if values is not None else {}

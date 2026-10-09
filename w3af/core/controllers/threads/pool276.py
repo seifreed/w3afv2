@@ -84,7 +84,7 @@ class MaybeEncodingError(Exception):
         return f"Error sending result: '{self.value}'. Reason: '{self.exc}'"
 
     def __repr__(self):
-        return f"<MaybeEncodingError: {str(self)}>"
+        return f"<MaybeEncodingError: {self!s}>"
 
 
 class DetailedMaybeEncodingError(MaybeEncodingError):
@@ -212,7 +212,7 @@ class Pool:
         if processes < 1:
             raise ValueError("Number of processes must be at least 1")
 
-        if initializer is not None and not hasattr(initializer, "__call__"):
+        if initializer is not None and not callable(initializer):
             raise TypeError("initializer must be a callable")
 
         self._processes = processes
@@ -285,7 +285,7 @@ class Pool:
         }
 
     def get_pool_queue_sizes(self):
-        result = dict()
+        result = {}
 
         if self._inqueue is not None:
             result["inqueue_size"] = self._inqueue.qsize()

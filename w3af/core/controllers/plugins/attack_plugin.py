@@ -91,7 +91,7 @@ class AttackPlugin(Plugin, ResponseCutMixin):
             if not isinstance(vuln_to_exploit, list):
                 raise TypeError(error_msg % type(vuln_to_exploit))
 
-            if not all([isinstance(_id, int) for _id in vuln_to_exploit]):
+            if not all(isinstance(_id, int) for _id in vuln_to_exploit):
                 raise TypeError(error_msg % type(vuln_to_exploit))
 
         vulns = self.get_exploitable_vulns()

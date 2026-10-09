@@ -51,20 +51,18 @@ class grep(BaseConsumer):
     LOG_QUEUE_SIZES_EVERY = 25
     REPORT_GREP_STATS_EVERY = 25
 
-    EXCLUDE_HEADERS_FOR_HASH = tuple(
-        [
-            "date",
-            "expires",
-            "last-modified",
-            "etag",
-            "x-request-id",
-            "x-content-duration",
-            "x-execution-time",
-            "x-requestid",
-            "content-length",
-            "cf-ray",
-            "set-cookie",
-        ]
+    EXCLUDE_HEADERS_FOR_HASH = (
+        "date",
+        "expires",
+        "last-modified",
+        "etag",
+        "x-request-id",
+        "x-content-duration",
+        "x-execution-time",
+        "x-requestid",
+        "content-length",
+        "cf-ray",
+        "set-cookie",
     )
 
     def __init__(self, grep_plugins, w3af_core):
@@ -103,13 +101,13 @@ class grep(BaseConsumer):
         self._target_domains = None
         self._log_queue_sizes_calls = 0
 
-        self._consumer_plugin_dict = dict(
-            (plugin.get_name(), plugin) for plugin in self._consumer_plugins
-        )
+        self._consumer_plugin_dict = {
+            plugin.get_name(): plugin for plugin in self._consumer_plugins
+        }
         self._first_plugin_name = list(self._consumer_plugin_dict.keys())[0]
 
         self._request_response_lru = SynchronizedLRUDict(thread_pool_size * 3)
-        self._request_response_processes = dict()
+        self._request_response_processes = {}
         self._response_cache_key_cache = ResponseCacheKeyCache()
 
         self._should_grep_stats = {
@@ -156,8 +154,8 @@ class grep(BaseConsumer):
             args = (spent_time, plugin.get_name())
             om.out.debug(msg % args)
 
-        self._consumer_plugins = dict()
-        self._consumer_plugin_dict = dict()
+        self._consumer_plugins = {}
+        self._consumer_plugin_dict = {}
         self._response_cache_key_cache.clear_cache()
 
         om.out.debug("Finished Grep consumer _teardown()")

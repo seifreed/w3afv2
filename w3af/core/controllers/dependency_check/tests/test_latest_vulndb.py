@@ -44,7 +44,7 @@ class TestLatestVulnDB(unittest.TestCase):
         all_dists = get_distributions("all", pkg, get_highest_installed(pkg))
 
         for dist, active in all_dists:
-            project_name, versions = pypi.query_versions_pypi(dist.project_name)
+            _project_name, versions = pypi.query_versions_pypi(dist.project_name)
 
             if versions:
                 # PyPI returns them in chronological order,

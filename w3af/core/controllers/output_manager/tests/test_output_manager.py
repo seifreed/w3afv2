@@ -120,7 +120,7 @@ class TestOutputManager(unittest.TestCase):
             plugin.end()
 
             with open(http_log_path, "rb") as http_log:
-                self.assertEqual(http_log.read(), "header: café".encode("utf-8"))
+                self.assertEqual(http_log.read(), "header: café".encode())
 
     def test_error_handling(self):
         w3af_core = w3afCore()

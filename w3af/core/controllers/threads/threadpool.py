@@ -183,7 +183,7 @@ def add_traceback_string(_exception):
     :param _exception: The exception instance where to add the new attribute
     :return: None
     """
-    except_type, except_class, tb = sys.exc_info()
+    _except_type, _except_class, tb = sys.exc_info()
 
     tb = traceback.format_exception(type(_exception), _exception, tb)
     _exception.original_traceback_string = "".join(tb)
@@ -380,7 +380,7 @@ class Pool(ThreadPool):
         if processes < 1:
             raise ValueError("Number of processes must be at least 1")
 
-        if initializer is not None and not hasattr(initializer, "__call__"):
+        if initializer is not None and not callable(initializer):
             raise TypeError("initializer must be a callable")
 
         self._processes = processes

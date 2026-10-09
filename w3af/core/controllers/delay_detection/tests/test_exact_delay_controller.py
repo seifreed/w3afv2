@@ -88,7 +88,7 @@ class TestExactDelay(unittest.TestCase):
             mutant.set_token(("id", 0))
 
             ed = ExactDelayController(mutant, delay_obj, urllib)
-            controlled, responses = ed.delay_is_controlled()
+            controlled, _responses = ed.delay_is_controlled()
             self.assertEqual(expected_result, controlled, delays)
 
     def test_delay_controlled_random(self):
@@ -106,7 +106,7 @@ class TestExactDelay(unittest.TestCase):
             mutant.set_token(("id", 0))
 
             ed = ExactDelayController(mutant, delay_obj, urllib)
-            controlled, responses = ed.delay_is_controlled()
+            controlled, _responses = ed.delay_is_controlled()
 
             # This is where we change from test_delay_controlled, the basic
             # idea is that we'll allow false negatives but no false positives

@@ -60,7 +60,7 @@ def draw_should_grep(scan_log_filename, scan):
     last_data = should_grep_data[-1]
     total = sum(v for k, v in last_data.items())
     total = float(total)
-    data_percent = dict((k, round((v / total) * 100)) for k, v in last_data.items())
+    data_percent = {k: round((v / total) * 100) for k, v in last_data.items()}
     print(f"    Latest should_grep() percentages: {data_percent!r}")
     print()
 
@@ -87,7 +87,7 @@ def draw_should_grep(scan_log_filename, scan):
                 key_slice.append(0)
                 continue
 
-            data_percent = dict((k, (v / total) * 100) for k, v in data_point.items())
+            data_percent = {k: (v / total) * 100 for k, v in data_point.items()}
             key_slice.append(data_percent[key])
 
         fig.plot(should_grep_timestamps, key_slice, label=key)

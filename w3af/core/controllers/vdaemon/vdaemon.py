@@ -107,7 +107,7 @@ class vdaemon:
             executable_file_name = self._generate_exe(payload, msfpayload_parameters)
         except Exception as e:
             raise BaseFrameworkException(
-                f'Failed to create the payload file, error: "{str(e)}".'
+                f'Failed to create the payload file, error: "{e!s}".'
             )
 
         try:

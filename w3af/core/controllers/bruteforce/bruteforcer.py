@@ -69,8 +69,7 @@ class PasswordBruteforcer:
         yield self._url.get_root_domain()
 
         if self.use_profiling:
-            for pwd in get_profiling_results(self.profiling_number):
-                yield pwd
+            yield from get_profiling_results(self.profiling_number)
 
     def _read_pwd_file(self):
         for line in open(self.passwd_file):

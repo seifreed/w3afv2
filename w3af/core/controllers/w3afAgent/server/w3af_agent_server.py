@@ -87,7 +87,7 @@ class ConnectionManager(Process):
         # loop !
         while self._keep_running:
             try:
-                newsock, address = self.sock.accept()
+                newsock, _address = self.sock.accept()
             except KeyboardInterrupt:
                 om.out.console("Exiting.")
                 break
@@ -220,7 +220,7 @@ class TCPRelay(Process):
     def run(self):
         while self._keep_running:
             try:
-                sock_cli, address = self.sock.accept()
+                sock_cli, _address = self.sock.accept()
             except OSError:
                 # This catches socket timeouts
                 pass

@@ -129,7 +129,7 @@ class crontabHandler(delayedExecution):
                 wait_time = 60 - int(sec)
 
             minute = int(minute) + delta
-            hour, minute, am_pm = self._fix_time(hour, minute)
+            hour, minute, _am_pm = self._fix_time(hour, minute)
 
             res_line = (
                 f"{minute} {hour} {day_number} {month} {week_day} {command_to_exec}"

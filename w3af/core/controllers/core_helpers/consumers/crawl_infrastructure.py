@@ -242,7 +242,7 @@ class CrawlInfrastructure(BaseConsumer):
 
     @task_decorator
     def _plugin_finished_cb(self, function_id, result):
-        (plugin, fuzzable_request), plugin_result = result
+        (plugin, _fuzzable_request), _plugin_result = result
         if not self._running:
             return
 
@@ -380,7 +380,7 @@ class CrawlInfrastructure(BaseConsumer):
         # Now I simply print the list that I have after the filter.
         om.out.information("The list of fuzzable requests is:")
 
-        tmp_fr = [f"- {str(fr)}" for fr in all_known_fuzzable_requests]
+        tmp_fr = [f"- {fr!s}" for fr in all_known_fuzzable_requests]
         tmp_fr.sort()
         list(map(om.out.information, tmp_fr))
 

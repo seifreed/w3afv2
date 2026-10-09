@@ -45,10 +45,10 @@ class LogSink:
     def __init__(self, om_queue):
         super().__init__()
         self.om_queue = om_queue
-        self.METHODS = dict(
-            (method, functools.partial(self._add_to_queue, method))
+        self.METHODS = {
+            method: functools.partial(self._add_to_queue, method)
             for method in self.ALLOWED_METHODS
-        )
+        }
 
     def report_finding(self, info_inst):
         """

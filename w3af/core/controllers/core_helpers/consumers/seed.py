@@ -102,7 +102,7 @@ class seed(Process):
                 response = self._w3af_core.uri_opener.GET(url, cache=True)
             except ScanMustStopException as w3:
                 om.out.error("The target server is unreachable. Stopping.")
-                raise w3
+                raise
             except HTTPRequestException as hre:
                 msg = 'The target URL: "%s" is unreachable. Exception: "%s".'
                 om.out.error(msg % (url, hre))

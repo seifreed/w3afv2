@@ -49,7 +49,4 @@ def retirejs_is_installed():
     if len(version_split) != 3:
         return False
 
-    if not version.startswith(SUPPORTED_RETIREJS):
-        return False
-
-    return True
+    return version.startswith(SUPPORTED_RETIREJS)

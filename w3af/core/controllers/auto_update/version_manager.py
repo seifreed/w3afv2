@@ -316,10 +316,11 @@ class VersionMgr:
             freq = startcfg.freq
             diff_days = max((date.today() - startcfg.last_upd).days, 0)
 
-            if (
-                (freq == StartUpConfig.FREQ_DAILY and diff_days > 0)
-                or (freq == StartUpConfig.FREQ_WEEKLY and diff_days > 6)
-                or (freq == StartUpConfig.FREQ_MONTHLY and diff_days > 29)
-            ):
-                return True
-            return False
+            return bool(
+                freq == StartUpConfig.FREQ_DAILY
+                and diff_days > 0
+                or freq == StartUpConfig.FREQ_WEEKLY
+                and diff_days > 6
+                or freq == StartUpConfig.FREQ_MONTHLY
+                and diff_days > 29
+            )

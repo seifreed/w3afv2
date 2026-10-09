@@ -137,7 +137,7 @@ class WebHandler(http.server.BaseHTTPRequestHandler):
                     # This isn't nice, but this is NOT a complete web server
                     # implementation it is only here to serve some files to
                     # "victim" web servers
-                    content_type, encoding = mimetypes.guess_type(self.path)
+                    content_type, _encoding = mimetypes.guess_type(self.path)
                     if content_type is not None:
                         self.send_header("Content-type", content_type)
                     else:
