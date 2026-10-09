@@ -354,9 +354,10 @@ class KeepAliveHandler:
             conn.putheader("Connection", "keep-alive")
 
         data = req.get_data()
-        if data is not None:
-            data = str(data)
+        if data is not None and not isinstance(data, bytes):
+            data = str(data).encode("utf-8")
 
+        if data is not None:
             if not req.has_header("Content-type"):
                 conn.putheader("Content-type", DEFAULT_CONTENT_TYPE)
 

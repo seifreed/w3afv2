@@ -89,7 +89,9 @@ class CachedResponse(io.StringIO):
     def headers(self):
         if not self._headers:
             headerbuf = self._get_from_response(CachedResponse.PART_HEADER)
-            self._headers = http.client.HTTPMessage(io.StringIO(headerbuf))
+            self._headers = http.client.parse_headers(
+                io.BytesIO(headerbuf.encode("utf-8"))
+            )
         return self._headers
 
     def geturl(self):
