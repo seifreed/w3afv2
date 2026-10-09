@@ -31,6 +31,7 @@ from w3af.core.data.constants.cookies import COOKIE_FINGERPRINT
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
 from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.misc.encoding import smart_unicode
 from w3af.core.data.parsers.doc.cookie_parser import COOKIE_HEADERS, parse_cookie
 
 COOKIE_KEYS = "cookie_keys"
@@ -232,7 +233,7 @@ class analyze_cookies(GrepPlugin):
             return
 
         # Pre-calculate to avoid CPU usage
-        request_dump = request.dump()
+        request_dump = smart_unicode(request.dump())
 
         for info_set in kb.kb.get(self, "cookies"):
             for info in info_set.infos:

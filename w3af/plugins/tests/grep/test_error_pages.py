@@ -24,21 +24,29 @@ from typing import ClassVar
 import pytest
 
 import w3af.core.data.kb.knowledge_base as kb
-from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.constants import severity
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.plugins.grep.error_pages import error_pages
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 
 @pytest.mark.ci_ready
 @pytest.mark.smoke
 class TestErrorPages(PluginTest):
 
-    target_url = get_moth_http("/grep/error_pages/index.html")
+    target_url = "http://mock/grep/error_pages/index.html"
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(
+            target_url,
+            body=error_pages.ERROR_PAGES[0],
+            method="GET",
+            status=200,
+        ),
+    ]
 
     _run_configs: ClassVar[dict] = {
         "cfg": {

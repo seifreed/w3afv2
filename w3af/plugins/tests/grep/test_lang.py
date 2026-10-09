@@ -19,53 +19,56 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from typing import ClassVar
+import unittest
 
-from w3af.core.controllers.ci.moth import get_moth_http
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+import w3af.core.data.kb.knowledge_base as kb
+from w3af.core.data.dc.headers import Headers
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.data.url.http_response import HTTPResponse
+from w3af.core.filesystem import create_temp_dir
+from w3af.plugins.grep.lang import lang
+
+ENGLISH_TEXT = (
+    "The quick brown fox jumps over the lazy dog while the sun is shining and"
+    " the birds are singing in the trees near the river where children play"
+    " every afternoon during the warm summer days of this wonderful year."
+)
+
+SPANISH_TEXT = (
+    "El rapido zorro marron salta sobre el perro perezoso mientras el sol"
+    " brilla y los pajaros cantan en los arboles cerca del rio donde los"
+    " ninos juegan todas las tardes durante los calidos dias de verano de"
+    " este maravilloso anio."
+)
 
 
-class TestLang(PluginTest):
+class TestLang(unittest.TestCase):
 
-    langs_url = get_moth_http("/grep/lang/%s.html")
+    def setUp(self):
+        create_temp_dir()
+        kb.kb.cleanup()
+        self.plugin = lang()
+        self.url = URL("http://www.w3af.com/")
+        self.request = FuzzableRequest(self.url)
 
-    _run_configs: ClassVar[dict] = {
-        "direct": {
-            "target": None,
-            "plugins": {
-                "grep": (PluginConfig("lang"),),
-            },
-        },
-        "crawl": {
-            "target": get_moth_http("/grep/"),
-            "plugins": {
-                "grep": (PluginConfig("lang"),),
-                "crawl": (
-                    PluginConfig(
-                        "web_spider", ("only_forward", True, PluginConfig.BOOL)
-                    ),
-                ),
-            },
-        },
-    }
+    def tearDown(self):
+        kb.kb.cleanup()
 
-    def test_id_es(self):
-        cfg = self._run_configs["direct"]
-        self._scan(self.langs_url % "es", cfg["plugins"])
-
-        lang = self.kb.raw_read("lang", "lang")
-        self.assertEqual("es", lang)
+    def _grep(self, text, content_type="text/html"):
+        body = f"<html><body><p>{text}</p></body></html>"
+        headers = Headers([("content-type", content_type)])
+        response = HTTPResponse(200, body, headers, self.url, self.url, _id=1)
+        self.plugin.grep(self.request, response)
 
     def test_id_en(self):
-        cfg = self._run_configs["direct"]
-        self._scan(self.langs_url % "en", cfg["plugins"])
+        self._grep(ENGLISH_TEXT)
+        self.assertEqual("en", kb.kb.raw_read("lang", "lang"))
 
-        lang = self.kb.raw_read("lang", "lang")
-        self.assertEqual("en", lang)
+    def test_id_es(self):
+        self._grep(SPANISH_TEXT)
+        self.assertEqual("es", kb.kb.raw_read("lang", "lang"))
 
-    def test_id_en_crawl(self):
-        cfg = self._run_configs["crawl"]
-        self._scan(self.langs_url % "en", cfg["plugins"])
-
-        lang = self.kb.raw_read("lang", "lang")
-        self.assertEqual("en", lang)
+    def test_not_text_is_ignored(self):
+        self._grep(ENGLISH_TEXT, content_type="image/png")
+        self.assertEqual([], kb.kb.raw_read("lang", "lang"))

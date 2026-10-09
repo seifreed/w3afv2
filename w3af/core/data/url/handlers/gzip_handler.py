@@ -25,7 +25,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import zlib
-from io import StringIO
+from io import BytesIO
 
 from w3af.core.data.url.handlers.cache import SQLCachedResponse
 
@@ -61,7 +61,7 @@ class HTTPGzipProcessor(urllib.request.BaseHandler):
         return response
 
     def _gzip_0(self, body):
-        return gzip.GzipFile(fileobj=StringIO(body)).read()
+        return gzip.GzipFile(fileobj=BytesIO(body)).read()
 
     def _zlib_0(self, body):
         # RFC 1950

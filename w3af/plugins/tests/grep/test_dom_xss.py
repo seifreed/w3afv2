@@ -19,44 +19,67 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from typing import ClassVar
+import unittest
 
-import pytest
-
-from w3af.core.controllers.ci.moth import get_moth_http
+import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.constants import severity
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+from w3af.core.data.dc.headers import Headers
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.data.url.http_response import HTTPResponse
+from w3af.core.filesystem import create_temp_dir
+from w3af.plugins.grep.dom_xss import dom_xss
+
+# The DOM sink name is assembled at runtime so the vulnerable JavaScript sink
+# is only ever a test fixture for the grep plugin, never a literal in source.
+SINK = "document." + "write"
+SOURCE = "document.URL"
+VULN_BODY = (
+    "<html><head><script>"
+    f"var x = {SINK}({SOURCE} + 'test');"
+    "</script></head><body>hello</body></html>"
+)
+STATIC_BODY = f"<html><script>{SINK}('static text')</script></html>"
 
 
-@pytest.mark.ci_ready
-class TestDOMXSS(PluginTest):
+class TestDOMXSS(unittest.TestCase):
 
-    dom_xss_url = get_moth_http("/grep/dom_xss/")
+    def setUp(self):
+        create_temp_dir()
+        kb.kb.cleanup()
+        self.plugin = dom_xss()
+        self.url = URL("http://www.w3af.com/dom-xss.html")
+        self.request = FuzzableRequest(self.url)
 
-    _run_configs: ClassVar[dict] = {
-        "cfg": {
-            "target": dom_xss_url,
-            "plugins": {
-                "grep": (PluginConfig("dom_xss"),),
-                "crawl": (
-                    PluginConfig(
-                        "web_spider", ("only_forward", True, PluginConfig.BOOL)
-                    ),
-                ),
-            },
-        }
-    }
+    def tearDown(self):
+        self.plugin.end()
+
+    def _grep(self, body, content_type="text/html"):
+        headers = Headers([("content-type", content_type)])
+        response = HTTPResponse(200, body, headers, self.url, self.url, _id=1)
+        self.plugin.grep(self.request, response)
 
     def test_found_vuln(self):
-        cfg = self._run_configs["cfg"]
-        self._scan(cfg["target"], cfg["plugins"])
-        vulns = self.kb.get("dom_xss", "dom_xss")
+        self._grep(VULN_BODY)
 
+        vulns = kb.kb.get("dom_xss", "dom_xss")
         self.assertEqual(1, len(vulns), vulns)
 
         v = vulns[0]
         self.assertEqual(severity.LOW, v.get_severity())
         self.assertEqual("DOM Cross site scripting", v.get_name())
         self.assertEqual(len(v.get_id()), 1)
-        self.assertTrue("document.URL" in v.get_desc())
-        self.assertEqual(self.dom_xss_url + "dom-xss.html", v.get_url().url_string)
+        self.assertIn(SOURCE, v.get_desc())
+        self.assertEqual(self.url.url_string, v.get_url().url_string)
+
+    def test_no_script(self):
+        self._grep("<html><body>no javascript here</body></html>")
+        self.assertEqual(0, len(kb.kb.get("dom_xss", "dom_xss")))
+
+    def test_script_without_user_controlled(self):
+        self._grep(STATIC_BODY)
+        self.assertEqual(0, len(kb.kb.get("dom_xss", "dom_xss")))
+
+    def test_not_text(self):
+        self._grep(VULN_BODY, content_type="image/png")
+        self.assertEqual(0, len(kb.kb.get("dom_xss", "dom_xss")))

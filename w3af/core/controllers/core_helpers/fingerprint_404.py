@@ -111,10 +111,19 @@ class Fingerprint404:
         if self._is_404_basic(http_response, domain_path):
             return True
 
+        if self._uri_opener is None:
+            # Without an HTTP opener we can not run the active 404 detection
+            # (it needs to send requests to the server) so we rely only on the
+            # basic checks performed above and treat the response as not a 404.
+            return False
+
         return bool(self._is_404_complex(http_response))
 
     def _is_never_404(self, domain_path):
-        return domain_path in cf.cf.get("never_404")
+        never_404 = cf.cf.get("never_404")
+        if never_404 is None:
+            return False
+        return domain_path in never_404
 
     def _is_404_basic(self, http_response, domain_path):
         """
@@ -128,7 +137,8 @@ class Fingerprint404:
         #
         # First we handle the user configured exceptions:
         #
-        if domain_path in cf.cf.get("always_404"):
+        always_404 = cf.cf.get("always_404")
+        if always_404 is not None and domain_path in always_404:
             return True
 
         #

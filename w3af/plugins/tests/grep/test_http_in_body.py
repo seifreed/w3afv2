@@ -19,51 +19,66 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from typing import ClassVar
+import unittest
 
-from w3af.core.controllers.ci.moth import get_moth_http
+import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.constants import severity
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+from w3af.core.data.dc.headers import Headers
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.data.url.http_response import HTTPResponse
+from w3af.core.filesystem import create_temp_dir
+from w3af.plugins.grep.http_in_body import http_in_body
 
 
-class TestHttpInBody(PluginTest):
+class TestHttpInBody(unittest.TestCase):
 
-    target_url = get_moth_http("/grep/http_in_body/")
+    def setUp(self):
+        create_temp_dir()
+        kb.kb.cleanup()
+        self.plugin = http_in_body()
+        self.url = URL("http://www.w3af.com/")
+        self.request = FuzzableRequest(self.url)
 
-    _run_configs: ClassVar[dict] = {
-        "cfg": {
-            "target": target_url,
-            "plugins": {
-                "grep": (PluginConfig("http_in_body"),),
-                "crawl": (
-                    PluginConfig(
-                        "web_spider", ("only_forward", True, PluginConfig.BOOL)
-                    ),
-                ),
-            },
-        }
-    }
+    def tearDown(self):
+        self.plugin.end()
 
-    def test_found_vuln(self):
-        cfg = self._run_configs["cfg"]
-        self._scan(cfg["target"], cfg["plugins"])
+    def _grep(self, body, code=200, content_type="text/html"):
+        headers = Headers([("content-type", content_type)])
+        response = HTTPResponse(code, body, headers, self.url, self.url, _id=1)
+        self.plugin.grep(self.request, response)
 
-        infos = self.kb.get("http_in_body", "request")
+    def test_found_request(self):
+        self._grep("A debug trace: GET /index.html HTTP/1.0 was logged here")
+
+        infos = kb.kb.get("http_in_body", "request")
         self.assertEqual(1, len(infos), infos)
-
         info = infos[0]
-        self.assertEqual(
-            get_moth_http("/grep/http_in_body/http_request.html"), str(info.get_url())
-        )
         self.assertEqual(severity.INFORMATION, info.get_severity())
         self.assertEqual("HTTP Request in HTTP body", info.get_name())
 
-        infos = self.kb.get("http_in_body", "response")
-        self.assertEqual(1, len(infos), infos)
+    def test_found_response(self):
+        self._grep("The upstream said HTTP/1.1 200 OK in the body")
 
+        infos = kb.kb.get("http_in_body", "response")
+        self.assertEqual(1, len(infos), infos)
         info = infos[0]
-        self.assertEqual(
-            get_moth_http("/grep/http_in_body/http_response.html"), str(info.get_url())
-        )
-        self.assertEqual(severity.INFORMATION, info.get_severity())
         self.assertEqual("HTTP Response in HTTP body", info.get_name())
+
+    def test_no_http_in_body(self):
+        self._grep("<html><body>regular content</body></html>")
+        self.assertEqual(0, len(kb.kb.get("http_in_body", "request")))
+        self.assertEqual(0, len(kb.kb.get("http_in_body", "response")))
+
+    def test_501_is_skipped(self):
+        self._grep("<h2>HTTP/1.1 501 Not Implemented</h2>", code=501)
+        self.assertEqual(0, len(kb.kb.get("http_in_body", "response")))
+
+    def test_not_text(self):
+        self._grep("GET /index.html HTTP/1.0", content_type="image/png")
+        self.assertEqual(0, len(kb.kb.get("http_in_body", "request")))
+
+    def test_end_reporting(self):
+        self._grep("A debug trace: GET /index.html HTTP/1.0 was logged here")
+        self.plugin.end()
+        self.assertEqual(1, len(kb.kb.get("http_in_body", "request")))

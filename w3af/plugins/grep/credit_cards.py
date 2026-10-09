@@ -49,7 +49,7 @@ def passes_luhn_check(value):
     for idx in [i for i in range(len(arr)) if i % 2]:
         d = arr[idx] * 2
         if d > 9:
-            d = d / 10 + d % 10
+            d = d // 10 + d % 10
         arr[idx] = d
 
     sm = sum(arr)

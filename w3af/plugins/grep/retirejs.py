@@ -158,6 +158,12 @@ class retirejs(GrepPlugin):
 
         :return: None
         """
+        if not self._batch:
+            return
+
+        if not self._retirejs_is_installed():
+            return
+
         self._analyze_batch(self._batch)
         self._remove_batch(self._batch)
         self._batch = []
@@ -241,6 +247,13 @@ class retirejs(GrepPlugin):
                 msg = "Unexpected retire.js exit code. Disabling grep.retirejs plugin."
                 om.out.error(msg)
                 return False
+            except OSError:
+                msg = (
+                    "The retire.js command line tool is not installed."
+                    " Disabling grep.retirejs plugin."
+                )
+                om.out.error(msg)
+                return False
 
         with open(retire_version_fd.name) as version_out:
             current_retire_version = version_out.read()
@@ -257,7 +270,7 @@ class retirejs(GrepPlugin):
         with tempfile.NamedTemporaryFile(
             prefix="retirejs-check-", suffix=".js", delete=False, dir=get_temp_dir()
         ) as check_file:
-            check_file.write("")
+            check_file.write(b"")
 
         with tempfile.NamedTemporaryFile(
             prefix="retirejs-output-", suffix=".json", delete=False, dir=get_temp_dir()
@@ -267,9 +280,19 @@ class retirejs(GrepPlugin):
         args = (output_file.name, check_file.name)
         cmd = self.RETIRE_CMD % args
 
-        process = subprocess.Popen(
-            shlex.split(cmd), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
-        )
+        try:
+            process = subprocess.Popen(
+                shlex.split(cmd), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+            )
+        except OSError:
+            self._remove_file(output_file.name)
+            self._remove_file(check_file.name)
+            msg = (
+                "The retire.js command line tool is not installed."
+                " Disabling grep.retirejs plugin."
+            )
+            om.out.error(msg)
+            return False
 
         process.wait()
 
