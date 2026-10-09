@@ -160,20 +160,14 @@ class ProxyHTTPConnection(_HTTPConnection):
         super().connect()
 
         # send proxy CONNECT request
-        new_line = "\r\n"
         host_port = f"{self._real_host}:{self._real_port:d}"
-        self.send(f"CONNECT {host_port} HTTP/1.1{new_line}")
-
-        connect_headers = {
-            "Proxy-Connection": "keep-alive",
-            "Connection": "keep-alive",
-            "Host": host_port,
-        }
-
-        for header_name, header_value in list(connect_headers.items()):
-            self.send(f"{header_name}: {header_value}{new_line}")
-
-        self.send(new_line)
+        connect_lines = [
+            f"CONNECT {host_port} HTTP/1.1",
+            "Proxy-Connection: keep-alive",
+            "Connection: keep-alive",
+            f"Host: {host_port}",
+        ]
+        self.send(("\r\n".join(connect_lines) + "\r\n\r\n").encode("ascii"))
 
         # expect a HTTP/1.0 200 Connection established
         response = self.response_class(self.sock, method=self._method)
