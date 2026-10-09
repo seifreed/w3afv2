@@ -65,7 +65,7 @@ class portscan(Payload):
             port_list = port_list.split(",")
             port_list = [port.strip() for port in port_list]
             if not all(port.isdigit() for port in port_list):
-                ValueError("Target ports need to be integers")
+                raise ValueError("Target ports need to be integers")
 
         result = {}
 

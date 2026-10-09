@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 from collections import deque
-from functools import cmp_to_key
 from itertools import repeat
 from threading import RLock
 
@@ -366,11 +365,8 @@ class file_upload(AuditPlugin):
         #
         #   http://target/some/path/with/depth/uploads/{filename}
         #
-        def sort_by_len(a, b):
-            return cmp(len(b.url_string), len(a.url_string))
-
         domain_path_list = list(domain_path_set)
-        domain_path_list.sort(key=cmp_to_key(sort_by_len))
+        domain_path_list.sort(key=lambda url: len(url.url_string), reverse=True)
 
         for url in domain_path_list:
             for common_path in self.UPLOAD_PATHS:

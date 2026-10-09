@@ -52,7 +52,7 @@ ntlm_auth_url =
 verbose = False
 use_colors = True
 
-[infrastructure.fingerprint_WAF]
+[infrastructure.fingerprint_waf]
 
 [infrastructure.detect_transparent_proxy]
 
@@ -94,7 +94,7 @@ use_colors = True
 
 [infrastructure.finger_pks]
 
-[infrastructure.fingerprint_WAF]
+[infrastructure.fingerprint_waf]
 
 [infrastructure.allowed_methods]
 run_once = True

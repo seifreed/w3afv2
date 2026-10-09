@@ -20,8 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from functools import cmp_to_key
-
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
@@ -121,7 +119,7 @@ class password_profiling(GrepPlugin):
 
         # pylint: disable=E1103
         items = list(data.items())
-        items.sort(key=cmp_to_key(sort_func))
+        items.sort(key=lambda item: item[1], reverse=True)
 
         items = items[:1000]
 
@@ -221,7 +219,7 @@ class password_profiling(GrepPlugin):
 
         # pylint: disable=E1103
         items = list(profiling_data.items())
-        items.sort(key=cmp_to_key(sort_func))
+        items.sort(key=lambda item: item[1], reverse=True)
         items = items[:100]
 
         om.out.information("Password profiling TOP 100:")
@@ -246,7 +244,3 @@ class password_profiling(GrepPlugin):
         This plugin creates a list of possible passwords by reading responses
         and counting the most common words.
         """
-
-
-def sort_func(x_obj, y_obj):
-    return cmp(y_obj[1], x_obj[1])

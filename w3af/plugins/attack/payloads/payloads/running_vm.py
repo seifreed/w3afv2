@@ -89,11 +89,6 @@ class running_vm(Payload):
 
         return result
 
-    def api_win_read(self):
-        result = []
-        iis6log_content = self.shell.read("/windows/iis6.log")
-        # if 'VMWare'
-
     def run_read(self):
         api_result = self.api_read()
 

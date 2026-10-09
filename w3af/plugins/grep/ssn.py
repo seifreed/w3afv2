@@ -26,7 +26,7 @@ import re
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.constants import severity
 from w3af.core.data.kb.vuln import Vuln
-from w3af.plugins.grep.ssndata.ssnAreasGroups import areas_groups_map
+from w3af.plugins.grep.ssndata.ssn_areas_groups import areas_groups_map
 
 
 class ssn(GrepPlugin):

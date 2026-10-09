@@ -28,7 +28,6 @@ import socket
 import ssl
 import sys
 import time
-from functools import cmp_to_key
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
@@ -828,7 +827,7 @@ def winnow_ordered_list(ordered_list):
         # print 'ordered_list too small to look at'
         return
 
-    ordered_list.sort(key=cmp_to_key(lambda a, b: cmp(len(a), len(b))))
+    ordered_list.sort(key=len)
     # print 'sorted order', ordered_list
 
     index = 0
@@ -1085,7 +1084,6 @@ def testServer(ssl, server, port, matchCount, generateFP, threads):
             else:
                 import pprint
 
-                pp = pprint.PrettyPrinter(indent=4)
                 pprint.PrettyPrinter(stream=fd).pprint(fp)
                 fd.close()
                 break
@@ -1093,16 +1091,7 @@ def testServer(ssl, server, port, matchCount, generateFP, threads):
     # Compare
     scores = find_most_similar(known_servers, fp)
 
-    def score_cmp(score1, score2):
-        server1, (matches1, mismatches1, unknowns1) = score1
-        server2, (matches2, mismatches2, unknowns2) = score2
-
-        if -cmp(matches1, matches2) != 0:
-            return -cmp(matches1, matches2)
-
-        return cmp(server1, server2)
-
-    scores.sort(key=cmp_to_key(score_cmp))
+    scores.sort(key=lambda score: (-score[1][0], score[0]["LEXICAL"]["SERVER_NAME"]))
 
     res = []
     for server, (matches, mismatches, unknowns) in scores[:MATCH_COUNT]:

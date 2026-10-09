@@ -119,7 +119,7 @@ extensive = False
 
 [grep.file_upload]
 
-[infrastructure.fingerprint_WAF]
+[infrastructure.fingerprint_waf]
 
 [grep.error_500]
 

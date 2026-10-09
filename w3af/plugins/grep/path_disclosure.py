@@ -20,8 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from functools import cmp_to_key
-
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.constants import severity
@@ -91,7 +89,7 @@ class path_disclosure(GrepPlugin):
 
         # Sort by the longest match, this is needed for filtering out
         # some false positives. Please read the note below.
-        match_list.sort(key=cmp_to_key(longest_cmp))
+        match_list.sort(key=len, reverse=True)
 
         for match in match_list:
             # Avoid duplicated reports
@@ -291,7 +289,3 @@ class path_disclosure(GrepPlugin):
         The results are saved to the KB, and used by all the plugins that need
         to know the location of a file inside the remote web server.
         """
-
-
-def longest_cmp(a, b):
-    return cmp(len(b), len(a))

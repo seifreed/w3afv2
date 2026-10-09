@@ -59,23 +59,13 @@ class export_requests(OutputPlugin):
         filename = os.path.expanduser(self.output_file)
 
         try:
-            out_file = open(filename, "w")
+            with open(filename, "w", encoding="utf-8") as out_file:
+                out_file.writelines(
+                    fr.to_base64().decode("ascii") + "\n" for fr in fuzzable_request_set
+                )
         except OSError as ioe:
             msg = 'Failed to open the output file for writing: "%s"'
             om.out.error(msg % ioe)
-            return
-
-        try:
-            out_file.writelines(fr.to_base64() + "\n" for fr in fuzzable_request_set)
-
-        except Exception as e:
-            msg = (
-                "An exception was raised while trying to export fuzzable"
-                ' requests to the output file: "%s".' % e
-            )
-            om.out.error(msg)
-        finally:
-            out_file.close()
 
     def set_options(self, option_list):
         """
