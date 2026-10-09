@@ -32,6 +32,7 @@ import pytest
 import requests
 
 import w3af.core.controllers.output_manager as om
+import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.misc.decorators import retry
 from w3af.core.controllers.misc.home_dir import W3AF_LOCAL_PATH
@@ -557,6 +558,17 @@ def onlyroot(meth):
             raise unittest.SkipTest("This test requires root privileges.")
 
     return pytest.mark.root(test_inner_onlyroot)
+
+
+def configure_never_404(test_case, *urls):
+    """
+    Configure the never_404 scanner setting with the domain path of each URL,
+    so the 404 detection treats them as existing resources, and restore the
+    previous value when the test finishes.
+    """
+    previous = cf.cf.get("never_404")
+    test_case.addCleanup(cf.cf.save, "never_404", previous)
+    cf.cf.save("never_404", [url.get_domain_path() for url in urls])
 
 
 def create_target_option_list(*target):

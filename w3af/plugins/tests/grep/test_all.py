@@ -24,9 +24,7 @@ import cProfile
 import os
 import random
 import unittest
-from itertools import repeat
 from pathlib import Path
-from unittest.mock import patch
 
 from w3af import ROOT_PATH
 from w3af.core.controllers.w3af_core import w3afCore
@@ -34,6 +32,7 @@ from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
+from w3af.plugins.tests.helper import configure_never_404
 
 
 class test_all(unittest.TestCase):
@@ -43,20 +42,14 @@ class test_all(unittest.TestCase):
     def setUp(self):
         self.url_str = "http://moth/"
         self.url_inst = URL(self.url_str)
+        configure_never_404(self, self.url_inst)
 
         self._w3af = w3afCore()
         self._plugins = []
         for pname in self._w3af.plugins.get_plugin_list("grep"):
             self._plugins.append(self._w3af.plugins.get_plugin_inst("grep", pname))
 
-    # TODO: Is there a nicer way to do this? If I add a new grep plugin I won't
-    #       remember about adding the patch...
-    @patch("w3af.plugins.grep.motw.is_404", side_effect=repeat(False))
-    @patch("w3af.plugins.grep.password_profiling.is_404", side_effect=repeat(False))
-    @patch("w3af.plugins.grep.meta_tags.is_404", side_effect=repeat(False))
-    @patch("w3af.plugins.grep.lang.is_404", side_effect=repeat(False))
-    @patch("w3af.plugins.grep.code_disclosure.is_404", side_effect=repeat(False))
-    def test_image_with_image_content_type(self, *args):
+    def test_image_with_image_content_type(self):
         """
         Verify that our plugins don't break when we send them an image.
         """
@@ -73,14 +66,7 @@ class test_all(unittest.TestCase):
         for pinst in self._plugins:
             pinst.grep(request, response)
 
-    # TODO: Is there a nicer way to do this? If I add a new grep plugin I won't
-    #       remember about adding the patch...
-    @patch("w3af.plugins.grep.motw.is_404", side_effect=repeat(False))
-    @patch("w3af.plugins.grep.password_profiling.is_404", side_effect=repeat(False))
-    @patch("w3af.plugins.grep.meta_tags.is_404", side_effect=repeat(False))
-    @patch("w3af.plugins.grep.lang.is_404", side_effect=repeat(False))
-    @patch("w3af.plugins.grep.code_disclosure.is_404", side_effect=repeat(False))
-    def test_image_with_text_html_content_type(self, *args):
+    def test_image_with_text_html_content_type(self):
         """
         Verify that our plugins don't break when we send them an image with
         a text/html content type.
@@ -119,14 +105,7 @@ class test_all(unittest.TestCase):
 
             plugin.end()
 
-    # TODO: Is there a nicer way to do this? If I add a new grep plugin I won't
-    #       remember about adding the patch...
-    @patch("w3af.plugins.grep.motw.is_404", side_effect=repeat(False))
-    @patch("w3af.plugins.grep.password_profiling.is_404", side_effect=repeat(False))
-    @patch("w3af.plugins.grep.meta_tags.is_404", side_effect=repeat(False))
-    @patch("w3af.plugins.grep.lang.is_404", side_effect=repeat(False))
-    @patch("w3af.plugins.grep.code_disclosure.is_404", side_effect=repeat(False))
-    def test_all_grep_plugins(self, *args):
+    def test_all_grep_plugins(self):
         """
         Run a set of 5 html files through all grep plugins.
 

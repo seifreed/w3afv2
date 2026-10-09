@@ -21,8 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
-from itertools import repeat
-from unittest.mock import patch
 
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
@@ -30,6 +28,7 @@ from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.plugins.grep.meta_generator import meta_generator
+from w3af.plugins.tests.helper import configure_never_404
 
 
 class TestMetaGenerator(unittest.TestCase):
@@ -39,6 +38,7 @@ class TestMetaGenerator(unittest.TestCase):
 
         self.plugin = meta_generator()
         self.url = URL("http://www.w3af.com/")
+        configure_never_404(self, self.url)
 
     def _generate_response(self, body):
         headers = Headers([("content-type", "text/html")])
@@ -48,8 +48,7 @@ class TestMetaGenerator(unittest.TestCase):
     def tearDown(self):
         self.plugin.end()
 
-    @patch("w3af.plugins.grep.meta_generator.is_404", side_effect=repeat(False))
-    def test_detects_meta_tags_with_generator(self, *args):
+    def test_detects_meta_tags_with_generator(self):
         request = FuzzableRequest(self.url)
         response = self._generate_response(
             '<meta name="generator" content="wordpress 1.2.3">'
@@ -71,8 +70,7 @@ class TestMetaGenerator(unittest.TestCase):
         )
         self.assertEqual(info_set.get_desc(), expected_desc)
 
-    @patch("w3af.plugins.grep.meta_generator.is_404", side_effect=repeat(False))
-    def test_groups_findings(self, *args):
+    def test_groups_findings(self):
         request = FuzzableRequest(self.url)
 
         response_1 = self._generate_response(
@@ -108,8 +106,7 @@ class TestMetaGenerator(unittest.TestCase):
 
         self.assertEqual(descs, {expected_desc_1, expected_desc_2})
 
-    @patch("w3af.plugins.grep.meta_generator.is_404", side_effect=repeat(False))
-    def test_avoid_false_positive_0(self, *args):
+    def test_avoid_false_positive_0(self):
         request = FuzzableRequest(self.url)
         response = self._generate_response(
             '<meta name="not-a-generator" content="wordpress 1.2.3">'
@@ -121,8 +118,7 @@ class TestMetaGenerator(unittest.TestCase):
 
         self.assertEqual(len(info_sets), 0)
 
-    @patch("w3af.plugins.grep.meta_generator.is_404", side_effect=repeat(False))
-    def test_avoid_false_positive_1(self, *args):
+    def test_avoid_false_positive_1(self):
         request = FuzzableRequest(self.url)
         response = self._generate_response('<meta name="generator">')
 
@@ -132,8 +128,7 @@ class TestMetaGenerator(unittest.TestCase):
 
         self.assertEqual(len(info_sets), 0)
 
-    @patch("w3af.plugins.grep.meta_generator.is_404", side_effect=repeat(False))
-    def test_avoid_false_positive_2(self, *args):
+    def test_avoid_false_positive_2(self):
         request = FuzzableRequest(self.url)
         response = self._generate_response('<meta name="generator" name="">')
 
