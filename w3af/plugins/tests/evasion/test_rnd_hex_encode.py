@@ -67,3 +67,14 @@ class TestEvasion(unittest.TestCase):
         r = HTTPRequest(u, data="a=b")
         modified_pdata = rhe.modify_request(r).get_data()
         self.assertIn(modified_pdata, ["a=b", "%61=b", "a=%62", "%61=%62"])
+
+    def test_mutate_encodes_some_characters(self):
+        rhe = rnd_hex_encode()
+
+        # Each mutable character is hex encoded with probability 1/2, so over a
+        # long run of identical characters at least one is encoded (the chance
+        # of none being encoded is 2 ** -200).
+        mutated = rhe._mutate("a" * 200)
+
+        self.assertIn("%61", mutated)
+        self.assertEqual(mutated.replace("%61", "a"), "a" * 200)
