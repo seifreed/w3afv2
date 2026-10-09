@@ -54,13 +54,13 @@ class SuSE(Platform):
     @staticmethod
     def os_package_is_installed(package_name):
         not_installed = "is not installed"
-        installed = "Status: install ok installed"
 
         try:
             p = subprocess.Popen(
                 ["rpm", "-q", package_name],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
+                text=True,
             )
         except OSError:
             # We're not on a suse based system

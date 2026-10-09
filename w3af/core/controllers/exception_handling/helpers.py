@@ -109,14 +109,11 @@ def get_versions():
 def create_crash_file(exception):
     filename = f"w3af-crash-{rand_alnum(5)}.txt"
     filename = os.path.join(gettempdir(), filename)
-    crash_dump = open(filename, "w")
-    crash_dump.write(
-        _(
+    with open(filename, "w") as crash_dump:
+        crash_dump.write(
             "Submit this bug here:"
             " https://github.com/andresriancho/w3af/issues/new \n"
         )
-    )
-    crash_dump.write(get_versions())
-    crash_dump.write(exception)
-    crash_dump.close()
+        crash_dump.write(get_versions())
+        crash_dump.write(exception)
     return filename

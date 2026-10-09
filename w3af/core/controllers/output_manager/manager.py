@@ -49,8 +49,9 @@ def start_thread_on_demand(func):
 
     @wraps(func)
     def od_wrapper(*args, **kwds):
-        from w3af.core.controllers.output_manager import manager
+        import w3af.core.controllers.output_manager as output_manager
 
+        manager = output_manager.manager
         if manager.is_alive():
             return func(*args, **kwds)
 

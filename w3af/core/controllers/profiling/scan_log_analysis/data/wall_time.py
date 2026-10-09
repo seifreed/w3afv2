@@ -1,5 +1,5 @@
 import re
-from functools import cmp_to_key
+from operator import itemgetter
 
 from utils.output import KeyValueOutput, ListOutput, ListOutputItem
 from utils.utils import epoch_to_string
@@ -60,14 +60,11 @@ def get_plugin_time(scan_log_filename, scan):
 
     output = ListOutput("plugin_wall_clock_stats")
 
-    def sort_by_value(a, b):
-        return cmp(b[1], a[1])
-
     for plugin_type in spent_time_by_plugin:
         spent_time_by_plugin_one_type = spent_time_by_plugin[plugin_type]
 
         spent_time_items = list(spent_time_by_plugin_one_type.items())
-        spent_time_items.sort(key=cmp_to_key(sort_by_value))
+        spent_time_items.sort(key=itemgetter(1), reverse=True)
         spent_time_items = spent_time_items[:15]
         spent_time_dict = dict(spent_time_items)
 

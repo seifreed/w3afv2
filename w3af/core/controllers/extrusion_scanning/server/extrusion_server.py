@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import time
-from functools import cmp_to_key
+from operator import itemgetter
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
@@ -73,7 +73,7 @@ class extrusionServer:
         from scapy.all import sniff
 
         try:
-            p = sniff(filter="port 53", iface=self._iface, timeout=0.3)
+            sniff(filter="port 53", iface=self._iface, timeout=0.3)
         except Exception:
             return False
         else:
@@ -169,11 +169,8 @@ class extrusionServer:
 
         # Now get the one that has more probability of being the one... and
         # report the list of ports
-        def sortfunc(x, y):
-            return cmp(x[1], y[1])
-
         items = list(possible_hosts.items())
-        items.sort(key=cmp_to_key(sortfunc))
+        items.sort(key=itemgetter(1))
 
         # Now I report the ports for the hosts with more connections
         i = 0

@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 
 import argparse
+import importlib.util
 import sys
 
-try:
-    import plotille
-except ImportError:
+if importlib.util.find_spec("plotille") is None:
     print("Missing dependency, please run:\n    pip install plotille")
     sys.exit(1)
 

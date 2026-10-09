@@ -67,8 +67,6 @@ class question_infrastructure_1(question):
         for o in options_list:
             ol_copy.add(o)
 
-        # Get the "Target URL" and change it back to "target" so the core can understand it
-        o1 = ol_copy["target"]
         ol_copy.add(o2)
         ol_copy.add(o3)
 

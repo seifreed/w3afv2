@@ -1,8 +1,4 @@
-from functools import cmp_to_key
-
-
-def sort_by_value(a, b):
-    return cmp(b[1], a[1])
+from operator import itemgetter
 
 
 class KeyValueOutput:
@@ -25,7 +21,7 @@ class KeyValueOutput:
 
         if isinstance(self.values, dict):
             values_list = list(self.values.items())
-            values_list.sort(key=cmp_to_key(sort_by_value))
+            values_list.sort(key=itemgetter(1), reverse=True)
 
             for key, value in values_list:
                 if isinstance(value, list):

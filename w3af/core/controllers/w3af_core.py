@@ -264,15 +264,10 @@ class w3afCore:
             if os_err.errno == errno.ENOMEM:
                 print(NO_MEMORY_MSG)
                 om.out.error(NO_MEMORY_MSG)
-            else:
-                raise
-
-        except OSError as io_err:
-            error_id, error_msg = io_err.args
 
             # https://github.com/andresriancho/w3af/issues/9653
             # IOError: [Errno 28] No space left on device
-            if error_id == errno.ENOSPC:
+            elif os_err.errno == errno.ENOSPC:
                 msg = (
                     "The w3af scan will stop because the file system"
                     ' is running low on free space. Check the "%s" directory'

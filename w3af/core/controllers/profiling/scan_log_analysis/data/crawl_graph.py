@@ -1,5 +1,4 @@
 import re
-from functools import cmp_to_key
 
 from utils.utils import get_path
 
@@ -25,11 +24,8 @@ def generate_crawl_graph(scan_log_filename, scan):
     if not data:
         print("No web_spider data found!")
 
-    def sort_by_len(a, b):
-        return cmp(len(a), len(b))
-
     referers = list(data.keys())
-    referers.sort(key=cmp_to_key(sort_by_len))
+    referers.sort(key=len)
 
     print()
     print("web_spider crawling data (source -> new link)")
@@ -38,7 +34,7 @@ def generate_crawl_graph(scan_log_filename, scan):
 
     for referer in referers:
         new_links = data[referer]
-        new_links.sort(key=cmp_to_key(sort_by_len))
+        new_links.sort(key=len)
         for new_link in new_links:
             if referer is previous_referer:
                 spaces = " " * len(f"{previous_referer} -> ")

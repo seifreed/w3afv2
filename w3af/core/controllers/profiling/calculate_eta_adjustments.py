@@ -281,12 +281,9 @@ def create_eta_table(scan):
                 calculated_eta.adjustment_known,
                 calculated_eta.adjustment_unknown,
                 calculated_eta.adjustment_average,
-                #'%.2f' % adj_known,
-                #'%.2f' % adj_unknown,
-                #'%.2f' % recalculated_eta,
-                "TBD",
-                "TBD",
-                "TBD",
+                f"{adj_known:.2f}",
+                f"{adj_unknown:.2f}",
+                f"{recalculated_eta:.2f}",
             ]
 
             table_data.append(data)

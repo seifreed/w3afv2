@@ -20,8 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from functools import cmp_to_key
-
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.extrusion_scanning.extrusion_scanner import extrusionScanner
@@ -98,10 +96,7 @@ class payload_transfer_factory:
                 to_test.append(reverse)
 
             # Test the fastest first and return the fastest one...
-            def sort_function(x, y):
-                return cmp(y.get_speed(), x.get_speed())
-
-            to_test.sort(key=cmp_to_key(sort_function))
+            to_test.sort(key=lambda method: method.get_speed(), reverse=True)
 
         for method in to_test:
 

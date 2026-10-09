@@ -1,7 +1,7 @@
 import plotille
 from utils.graph import num_formatter
 from utils.output import KeyValueOutput
-from utils.utils import get_first_timestamp, get_last_timestamp, get_line_epoch
+from utils.utils import get_first_timestamp, get_line_epoch
 
 PARSER_TIMEOUT = "[timeout] The parser took more than"
 PARSER_MEMORY_LIMIT = "The parser exceeded the memory usage limit of"
@@ -62,8 +62,6 @@ def draw_parser_errors(scan_log_filename, scan):
     ) = get_parser_errors_data(scan_log_filename, scan)
 
     first_timestamp = get_first_timestamp(scan)
-    last_timestamp = get_last_timestamp(scan)
-    spent_epoch = last_timestamp - first_timestamp
     timeout_errors_timestamps = [
         ts - first_timestamp for ts in timeout_errors_timestamps
     ]

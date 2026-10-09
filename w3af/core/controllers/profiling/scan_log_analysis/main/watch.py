@@ -3,7 +3,7 @@ import time
 
 from utils.utils import clear_screen
 
-from .main import *
+from . import main as analysis_functions
 
 
 def watch(scan_log_filename, scan, function_name):
@@ -12,7 +12,7 @@ def watch(scan_log_filename, scan, function_name):
     while True:
         try:
             # Hack me here
-            output = globals()[function_name](scan_log_filename, scan)
+            output = getattr(analysis_functions, function_name)(scan_log_filename, scan)
         except KeyboardInterrupt:
             sys.exit(0)
         except Exception as e:

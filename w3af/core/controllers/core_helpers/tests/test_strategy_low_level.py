@@ -34,6 +34,10 @@ from w3af.core.data.kb.knowledge_base import kb
 from w3af.core.exceptions import ScanMustStopException
 
 
+class RouterFailureError(Exception):
+    pass
+
+
 @pytest.mark.moth
 class TestStrategy(unittest.TestCase):
 
@@ -116,11 +120,11 @@ class TestStrategy(unittest.TestCase):
         core.scan_start_hook()
 
         strategy = CoreStrategy(core)
-        strategy._fuzzable_request_router = Mock(side_effect=Exception)
+        strategy._fuzzable_request_router = Mock(side_effect=RouterFailureError)
 
         strategy.terminate = Mock(wraps=strategy.terminate)
 
-        self.assertRaises(Exception, strategy.start)
+        self.assertRaises(RouterFailureError, strategy.start)
 
         # Now test that those threads are being terminated
         self.assertEqual(strategy.terminate.called, True)

@@ -61,12 +61,10 @@ class test_questions:
         """
         Ahhh, nose's magic of test generators :D
         """
-        orig = question_inst.get_question_title()
         question_inst.set_question_title("New")
         new = question_inst.get_question_title()
         assert "New" == new
 
-        orig = question_inst.get_question_string()
         question_inst.set_question_string("New")
         new = question_inst.get_question_string()
         assert "New" == new

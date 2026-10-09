@@ -55,6 +55,7 @@ class question_target_2(question):
         return ol
 
     def get_next_question_id(self, options_list):
-
-        internet = options_list["internet"].get_value()
-        # FIXME: Do something with this value
+        """
+        This is the last question of the wizard, there is no next one.
+        """
+        return None

@@ -59,7 +59,7 @@ class EchoLinux(BasePayloadTransfer):
         :return: An estimated transfer time for a file with the specified size.
         """
         before = time.time()
-        res = self._exec_method("echo w3af")
+        self._exec_method("echo w3af")
         after = time.time()
 
         # Estimate the time...

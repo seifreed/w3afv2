@@ -1,5 +1,5 @@
 import re
-from functools import cmp_to_key
+from operator import itemgetter
 
 from utils.output import ListOutput, ListOutputItem
 from utils.utils import get_path
@@ -64,11 +64,8 @@ def get_total_http_requests(scan_log_filename, scan):
     from_cache = f"{cached_responses / total * 100:.2f}%"
     output.append(ListOutputItem("HTTP responses from cache", from_cache))
 
-    def by_value(a, b):
-        return cmp(b[1], a[1])
-
     count_list = list(count.items())
-    count_list.sort(key=cmp_to_key(by_value))
+    count_list.sort(key=itemgetter(1), reverse=True)
 
     responses_by_code = {}
 
@@ -78,7 +75,7 @@ def get_total_http_requests(scan_log_filename, scan):
     output.append(ListOutputItem("HTTP responses by code", responses_by_code))
 
     methods_list = list(methods.items())
-    methods_list.sort(key=cmp_to_key(by_value))
+    methods_list.sort(key=itemgetter(1), reverse=True)
 
     requests_by_method = {}
 
@@ -91,7 +88,7 @@ def get_total_http_requests(scan_log_filename, scan):
     output.append(ListOutputItem("HTTP request method analysis", requests_by_method))
 
     urls_list = list(urls.items())
-    urls_list.sort(key=cmp_to_key(by_value))
+    urls_list.sort(key=itemgetter(1), reverse=True)
     urls_list = urls_list[:10]
 
     urls_with_more_requests = {}

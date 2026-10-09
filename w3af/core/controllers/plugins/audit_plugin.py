@@ -80,7 +80,7 @@ class AuditPlugin(Plugin):
                 new_vulnerabilities = self._newly_found_vulns
                 self._newly_found_vulns = []
 
-                return new_vulnerabilities
+            return new_vulnerabilities
 
     def _audit_return_vulns_in_caller(self):
         """

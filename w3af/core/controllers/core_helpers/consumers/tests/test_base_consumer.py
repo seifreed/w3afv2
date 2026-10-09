@@ -36,8 +36,9 @@ class TestBaseConsumer(unittest.TestCase):
     def test_handle_exception(self):
         url = URL("http://moth/")
         fr = FuzzableRequest(url)
+        raised = Exception()
         try:
-            raise Exception()
+            raise raised
         except Exception as e:
             self.bc.handle_exception("audit", "sqli", fr, e)
 
@@ -46,7 +47,7 @@ class TestBaseConsumer(unittest.TestCase):
         self.assertTrue(exception_data.traceback is not None)
         self.assertEqual(exception_data.phase, "audit")
         self.assertEqual(exception_data.plugin, "sqli")
-        self.assertEqual(exception_data.exception, e)
+        self.assertEqual(exception_data.exception, raised)
 
     def test_terminate(self):
         self.bc.start()

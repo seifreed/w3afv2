@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 import unittest
-from functools import cmp_to_key
 from unittest import SkipTest
 
 from w3af.core.controllers.sca.sca import CodeSyntaxError, PhpSCA, Scope
@@ -118,7 +117,7 @@ class TestPHPSCA(unittest.TestCase):
         """
         analyzer = PhpSCA(code)
         vars = analyzer.get_vars(usr_controlled=False)
-        vars.sort(key=cmp_to_key(lambda x, y: cmp(x.lineno, y.lineno)))
+        vars.sort(key=lambda var: var.lineno)
         x1deps, x2deps, x3deps, ydeps, y2deps, zdeps = [
             [vd.name for vd in v.deps()] for v in vars
         ]
