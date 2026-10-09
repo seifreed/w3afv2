@@ -52,6 +52,12 @@ class TestExceptionHandler(unittest.TestCase):
         self.status.set_running_plugin("phase", "plugin")
         self.status.set_current_fuzzable_request("phase", "http://www.w3af.org/")
 
+    def test_get_scan_id_returns_a_memoized_hex_identifier(self):
+        scan_id = self.exception_handler.get_scan_id()
+
+        self.assertRegex(scan_id, r"^[0-9a-f]{10}$")
+        self.assertEqual(self.exception_handler.get_scan_id(), scan_id)
+
     @pytest.mark.smoke
     def test_handle_one(self):
 
@@ -207,6 +213,17 @@ class FakeStatus(CoreStatus):
 
 
 class TestExceptionData(unittest.TestCase):
+
+    def test_requires_exception_instance(self):
+        with self.assertRaisesRegex(TypeError, "e must be an Exception"):
+            ExceptionData(None, None, None, "")
+
+    def test_requires_core_status_instance(self):
+        with self.assertRaisesRegex(
+            TypeError,
+            "current_status must be a CoreStatus",
+        ):
+            ExceptionData(None, ValueError(), None, "")
 
     def get_fuzzable_request(self):
         headers = Headers([("Hello", "World")])

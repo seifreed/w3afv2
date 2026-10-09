@@ -821,3 +821,21 @@ expectativas de rutas/líneas; además muestra 203 warnings deprecados de
 pero impiden declarar verdes esas suites. Score global: **4.4/10**; se elimina
 otra dependencia ascendente, mientras permanecen los acoplamientos restantes
 y las gates globales.
+
+## Avance: ID de excepción compatible y explícito
+
+`ExceptionHandler.get_scan_id()` fallaba en Python 3.14 al pasar `str` a
+`hashlib.md5`; además generaba el valor con `random`, que Bandit marca como
+fuente no criptográfica. Se sustituyó por `secrets.token_hex(5)`, manteniendo
+el formato opaco de diez caracteres hexadecimales y la memoización por
+instancia. `ExceptionData` ya valida sus dos argumentos con excepciones
+explícitas en vez de `assert`, cuya ejecución desaparecía con optimización.
+
+La prueba de `get_scan_id` reproduce primero el `TypeError` y luego verifica
+formato y estabilidad. Pasa junto con los cinco tests de `ExceptionData` (6
+tests), Black, Ruff de imports, compilación y Bandit sobre el módulo. La suite
+completa de `ExceptionHandler` sigue teniendo tests incompatibles con la ruta
+completa que se guarda en `filename` (esperan solo el basename); ese contrato
+queda pendiente de resolver por separado. Score global: **4.5/10**; mejora la
+compatibilidad Python 3.14 y elimina generación débil/validaciones removibles,
+pero las gates y la deuda global siguen abiertas.

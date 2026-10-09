@@ -20,9 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import hashlib
 import os
-import random
+import secrets
 import tempfile
 import threading
 import traceback
@@ -273,11 +272,8 @@ class ExceptionHandler:
                  Note that this will NOT leak any personal information to our
                  systems.
         """
-        if not self._scan_id:
-            hash_data = str(random.randint(1, 50000000) * random.randint(1, 50000000))
-
-            m = hashlib.md5(hash_data)
-            self._scan_id = m.hexdigest()[:10]
+        if self._scan_id is None:
+            self._scan_id = secrets.token_hex(5)
 
         return self._scan_id
 
@@ -293,8 +289,10 @@ class ExceptionData:
                          be serialized to be sent to the main thread, it is
                          impossible to keep the traceback
         """
-        assert isinstance(e, Exception)
-        assert isinstance(current_status, CoreStatus)
+        if not isinstance(e, Exception):
+            raise TypeError("e must be an Exception")
+        if not isinstance(current_status, CoreStatus):
+            raise TypeError("current_status must be a CoreStatus")
 
         self.traceback = None
         self.traceback_str = None
