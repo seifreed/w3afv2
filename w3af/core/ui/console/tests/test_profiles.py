@@ -224,9 +224,11 @@ class TestProfilesConsoleUI(ConsoleTestHelper):
         not so important. The important thing is that the user was seeing the
         old setting instead of the new.
         """
-        # We want to get the prompt, not a disclaimer message
+        # We want to get the prompt, not a disclaimer message, and the spawned
+        # w3af_console must start regardless of this machine's dependencies.
         startup_cfg = StartUpConfig()
         startup_cfg.accepted_disclaimer = True
+        startup_cfg.skip_dependencies_check = True
         startup_cfg.save()
 
         # Load an existing profile, modify msf_location and save it as unittest

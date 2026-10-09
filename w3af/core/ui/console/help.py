@@ -128,13 +128,6 @@ class HelpContainer:
 
         d.append(subj)
 
-    def get_categories(self):
-        return list(self._subj2Gat.keys())
-
-    def add_help(self, table, cat=""):
-        for subj in table:
-            self.add_help_entry(subj, table[subj], cat)
-
     def get_help(self, subj):
         if subj not in self._table:
             return (None, None)

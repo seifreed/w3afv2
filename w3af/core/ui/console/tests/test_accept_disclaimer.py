@@ -18,33 +18,55 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import io
+import os
+import sys
+import tempfile
 import unittest
-from unittest.mock import Mock, patch
+from contextlib import redirect_stdout
 
+from w3af.core.data.db.startup_cfg import StartUpConfig
 from w3af.core.ui.console.console_ui import ConsoleUI
 
 
 class TestAcceptDisclaimer(unittest.TestCase):
-
     def setUp(self):
-        self.console_ui = ConsoleUI(do_upd=False)
+        fd, self._cfg_path = tempfile.mkstemp(suffix=".conf")
+        os.close(fd)
+        self.startup_cfg = StartUpConfig(cfg_file=self._cfg_path)
+        self.console_ui = ConsoleUI(do_upd=False, startup_cfg=self.startup_cfg)
+        self._old_stdin = sys.stdin
 
-    class dummy_true(Mock):
-        accepted_disclaimer = True
+    def tearDown(self):
+        sys.stdin = self._old_stdin
+        os.remove(self._cfg_path)
 
-    class dummy_false(Mock):
-        accepted_disclaimer = False
+    def _answer_disclaimer(self, answer):
+        sys.stdin = io.StringIO(answer)
+        output = io.StringIO()
+        with redirect_stdout(output):
+            return self.console_ui.accept_disclaimer()
 
-    @patch("w3af.core.ui.console.console_ui.StartUpConfig", new_callable=dummy_false)
-    @patch("__builtin__.raw_input", return_value="")
-    def test_not_saved_not_accepted(self, mocked_startup_cfg, mocked_input):
-        self.assertFalse(self.console_ui.accept_disclaimer())
+    def test_not_saved_not_accepted(self):
+        self.startup_cfg.set_accepted_disclaimer(False)
+        self.assertFalse(self._answer_disclaimer("\n"))
 
-    @patch("w3af.core.ui.console.console_ui.StartUpConfig", new_callable=dummy_false)
-    @patch("__builtin__.raw_input", return_value="y")
-    def test_not_saved_accepted(self, mocked_startup_cfg, mocked_input):
-        self.assertTrue(self.console_ui.accept_disclaimer())
+    def test_not_saved_accepted(self):
+        self.startup_cfg.set_accepted_disclaimer(False)
+        self.assertTrue(self._answer_disclaimer("y\n"))
 
-    @patch("w3af.core.ui.console.console_ui.StartUpConfig", new_callable=dummy_true)
-    def test_saved(self, mocked_startup_cfg):
+        # The acceptance is persisted so the question is not asked again
+        reloaded = StartUpConfig(cfg_file=self._cfg_path)
+        self.assertTrue(reloaded.accepted_disclaimer)
+
+    def test_accepted_full_word(self):
+        self.startup_cfg.set_accepted_disclaimer(False)
+        self.assertTrue(self._answer_disclaimer("yes\n"))
+
+    def test_not_accepted_on_eof(self):
+        self.startup_cfg.set_accepted_disclaimer(False)
+        self.assertFalse(self._answer_disclaimer(""))
+
+    def test_saved(self):
+        self.startup_cfg.set_accepted_disclaimer(True)
         self.assertTrue(self.console_ui.accept_disclaimer())

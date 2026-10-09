@@ -23,22 +23,22 @@ import os
 import re
 import sys
 import unittest
-from unittest.mock import MagicMock
 
 import w3af.core.data.kb.knowledge_base as kb
 
+ANSI_ESCAPE = re.compile(r"\x1b[^m]*m")
 
-class mock_stdout:
+
+class CapturedStdout:
     def __init__(self):
         self.messages = []
 
     def write(self, msg):
-        ansi_escape = re.compile(r"\x1b[^m]*m")
-        msg = ansi_escape.sub("", msg)
-
+        msg = ANSI_ESCAPE.sub("", msg)
         self.messages.extend(msg.split("\n\r"))
 
-    flush = MagicMock()
+    def flush(self):
+        pass
 
     def clear(self):
         self.messages = []
@@ -55,10 +55,9 @@ class ConsoleTestHelper(unittest.TestCase):
 
     def setUp(self):
         kb.kb.cleanup()
-        self.mock_sys()
+        self.capture_sys()
 
     def tearDown(self):
-        # sys.exit.assert_called_once_with(0)
         self.restore_sys()
         self._mock_stdout.clear()
 
@@ -78,15 +77,19 @@ class ConsoleTestHelper(unittest.TestCase):
             if os.path.exists(fname):
                 os.remove(fname)
 
-    def mock_sys(self):
+    def capture_sys(self):
         # backup
         self.old_stdout = sys.stdout
         self.old_exit = sys.exit
+        self.exit_calls = []
 
         # assign new
-        self._mock_stdout = mock_stdout()
+        self._mock_stdout = CapturedStdout()
         sys.stdout = self._mock_stdout
-        sys.exit = MagicMock()
+        sys.exit = self._record_exit
+
+    def _record_exit(self, status=0):
+        self.exit_calls.append(status)
 
     def restore_sys(self):
         sys.stdout = self.old_stdout

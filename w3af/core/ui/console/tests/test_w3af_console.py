@@ -33,9 +33,12 @@ class TestW3afConsole(unittest.TestCase):
             compile(console_script.read(), "w3af_console", "exec")
 
     def test_get_prompt(self):
-        # We want to get the prompt, not a disclaimer message
+        # We want to get the prompt, not a disclaimer message, and we must not
+        # depend on this machine's third-party dependencies being installed:
+        # skip-dependencies-check makes w3af_console start deterministically.
         startup_cfg = StartUpConfig()
         startup_cfg.accepted_disclaimer = True
+        startup_cfg.skip_dependencies_check = True
         startup_cfg.save()
 
         # The easy way to do this was to simply pass 'python' to Popen

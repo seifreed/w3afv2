@@ -80,16 +80,6 @@ def splitPath(path, sep="/"):
     return path[:sepIdx], path[sepIdx + 1 :]
 
 
-def removePrefix(s, prefix="!"):
-    """
-    If the string starts from the prefix, the prefix is removed.
-    """
-    if s.startswith(prefix):
-        return s[len(prefix) :]
-    else:
-        return s
-
-
 def suggest(tree, part, skipList=()):
     """
     The basic autocompletion logic.
@@ -118,19 +108,3 @@ def suggest(tree, part, skipList=()):
             completions = [(theOption[0], theOption[1] + " ")]
 
     return completions
-
-
-def groupBy(array, fun):
-    print(str(array))
-    result = {}
-    for a in array:
-        tag = fun(a)
-        if tag not in result:
-            dest = result[tag]
-        else:
-            dest = []
-            result[tag] = dest
-
-        dest.append(a)
-
-    return result

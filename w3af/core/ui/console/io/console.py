@@ -128,10 +128,6 @@ def terminal_size():
     return int(cr[1]), int(cr[0])
 
 
-def terminal_width():
-    return terminal_size()[0]
-
-
 try:
     from w3af.core.ui.console.io.unixctrl import *
 except ImportError:
