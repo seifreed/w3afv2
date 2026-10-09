@@ -140,7 +140,7 @@ class strange_headers(GrepPlugin):
 
         :return: None, all results are saved in the kb.
         """
-        if not 300 < response.get_code() < 310:
+        if 300 < response.get_code() < 310:
             return
 
         headers = response.get_headers()

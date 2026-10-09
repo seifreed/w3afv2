@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from collections import Counter
+
 from pdfminer.psexceptions import PSException
 
 from w3af.core.data.parsers.doc.pdf import pdf_to_text
@@ -72,11 +74,6 @@ class pdf(BasePwdProfilingPlugin):
             ):
                 return None
             else:
-                res = {}
-                for w in words:
-                    if w in res:
-                        res[w] += 1
-                    else:
-                        res[w] = 1
+                res = Counter(words)
 
         return res

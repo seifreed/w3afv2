@@ -114,17 +114,11 @@ class ssn(GrepPlugin):
 
         Source of information: wikipedia and socialsecurity.gov
         """
-        try:
-            area_number = int(potential_ssn.group(2))
-            group_number = int(potential_ssn.group(4))
-            serial_number = int(potential_ssn.group(5))
-        except (ValueError, TypeError, AttributeError):
-            return False
-
-        if not group_number:
-            return False
-        if not serial_number:
-            return False
+        # ssn_regex guarantees these groups are digits, and its (?!00) and
+        # (?!0000) lookaheads already reject zero group and serial numbers.
+        area_number = int(potential_ssn.group(2))
+        group_number = int(potential_ssn.group(4))
+        serial_number = int(potential_ssn.group(5))
 
         group = areas_groups_map.get(area_number)
         if not group:
