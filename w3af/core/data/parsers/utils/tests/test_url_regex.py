@@ -72,7 +72,7 @@ class TestRelativeURLRegex(unittest.TestCase):
         matches = RELATIVE_URL_RE.findall("/abc.html")
         self.assertEqual(matches[0][0], "/abc.html")
 
-    @unittest.SkipTest
+    @unittest.skip("RELATIVE_URL_RE matches more than the relative URL")
     def test_starts_without_slash(self):
         #
         # TODO: This is a bug!

@@ -26,7 +26,7 @@ class AbstractNtlmAuthHandler(urllib.request.BaseHandler):
     urllib handler for NTLM authentication.
     """
 
-    auth_header = None
+    auth_header: str | None = None
 
     def __init__(self, password_mgr=None):
         if password_mgr is None:

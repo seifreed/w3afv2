@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
-import resource
 import time
 import unittest
 from pathlib import Path
@@ -39,8 +38,6 @@ from w3af.core.data.url.http_response import HTTPResponse
 
 class TestHTMLParserPerformance(unittest.TestCase):
 
-    MEMORY_DUMP = "manual-analysis-%s.dump"
-
     HTML_FILE = os.path.join(
         ROOT_PATH, "core", "data", "context", "tests", "samples", "django-500.html"
     )
@@ -53,47 +50,11 @@ class TestHTMLParserPerformance(unittest.TestCase):
         url = URL("http://www.w3af.org/")
         response = HTTPResponse(200, body, headers, url, url, charset="utf-8")
 
-        # self.measure_memory(1)
-
         for _ in range(40):
             p = HTMLParser(response)
             p.parse()
-            # parsers.append(p)
-
-        # Clear any reference to the parser
-        # del p
-        # parsers = []
-
-        # self.measure_memory(2)
 
         time.sleep(360)
-
-    def measure_memory(self, _id):
-        # pylint: disable=E0401
-        from meliae import loader, scanner
-
-        # pylint: enable=E0401
-        scanner.dump_all_objects(self.MEMORY_DUMP % _id)
-
-        om = loader.load(self.MEMORY_DUMP % _id)
-        om.remove_expensive_references()
-        summary = om.summarize()
-
-        print(summary)
-
-        # print('runsnakemem %s' % self.MEMORY_DUMP)
-
-        usage = resource.getrusage(resource.RUSAGE_SELF)
-        print(("maximum resident set size", usage.ru_maxrss))
-        print(("shared memory size", usage.ru_ixrss))
-        print(("unshared memory size", usage.ru_idrss))
-        print(("unshared stack size", usage.ru_isrss))
-
-        import psutil
-
-        self_pid = psutil.Process()
-        # pylint: disable=E1101
-        print(self_pid.memory_info())
 
 
 def test():

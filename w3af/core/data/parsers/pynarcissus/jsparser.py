@@ -61,115 +61,111 @@ class ParseError(Error_):
     pass
 
 
-tokens = dict(
-    enumerate(
-        (
-            # End of source.
-            "END",
-            # Operators and punctuators. Some pair-wise order matters, e.g. (+, -)
-            # and (UNARY_PLUS, UNARY_MINUS).
-            "\n",
-            ";",
-            ",",
-            "=",
-            "?",
-            ":",
-            "CONDITIONAL",
-            "||",
-            "&&",
-            "|",
-            "^",
-            "&",
-            "==",
-            "!=",
-            "===",
-            "!==",
-            "<",
-            "<=",
-            ">=",
-            ">",
-            "<<",
-            ">>",
-            ">>>",
-            "+",
-            "-",
-            "*",
-            "/",
-            "%",
-            "!",
-            "~",
-            "UNARY_PLUS",
-            "UNARY_MINUS",
-            "++",
-            "--",
-            ".",
-            "[",
-            "]",
-            "{",
-            "}",
-            "(",
-            ")",
-            # Nonterminal tree node type codes.
-            "SCRIPT",
-            "BLOCK",
-            "LABEL",
-            "FOR_IN",
-            "CALL",
-            "NEW_WITH_ARGS",
-            "INDEX",
-            "ARRAY_INIT",
-            "OBJECT_INIT",
-            "PROPERTY_INIT",
-            "GETTER",
-            "SETTER",
-            "GROUP",
-            "LIST",
-            # Terminals.
-            "IDENTIFIER",
-            "NUMBER",
-            "STRING",
-            "REGEXP",
-            # Keywords.
-            "break",
-            "case",
-            "catch",
-            "const",
-            "continue",
-            "debugger",
-            "default",
-            "delete",
-            "do",
-            "else",
-            "enum",
-            "false",
-            "finally",
-            "for",
-            "function",
-            "if",
-            "in",
-            "instanceof",
-            "new",
-            "null",
-            "return",
-            "switch",
-            "this",
-            "throw",
-            "true",
-            "try",
-            "typeof",
-            "var",
-            "void",
-            "while",
-            "with",
-        )
-    )
+TOKEN_NAMES = (
+    # End of source.
+    "END",
+    # Operators and punctuators. Some pair-wise order matters, e.g. (+, -)
+    # and (UNARY_PLUS, UNARY_MINUS).
+    "\n",
+    ";",
+    ",",
+    "=",
+    "?",
+    ":",
+    "CONDITIONAL",
+    "||",
+    "&&",
+    "|",
+    "^",
+    "&",
+    "==",
+    "!=",
+    "===",
+    "!==",
+    "<",
+    "<=",
+    ">=",
+    ">",
+    "<<",
+    ">>",
+    ">>>",
+    "+",
+    "-",
+    "*",
+    "/",
+    "%",
+    "!",
+    "~",
+    "UNARY_PLUS",
+    "UNARY_MINUS",
+    "++",
+    "--",
+    ".",
+    "[",
+    "]",
+    "{",
+    "}",
+    "(",
+    ")",
+    # Nonterminal tree node type codes.
+    "SCRIPT",
+    "BLOCK",
+    "LABEL",
+    "FOR_IN",
+    "CALL",
+    "NEW_WITH_ARGS",
+    "INDEX",
+    "ARRAY_INIT",
+    "OBJECT_INIT",
+    "PROPERTY_INIT",
+    "GETTER",
+    "SETTER",
+    "GROUP",
+    "LIST",
+    # Terminals.
+    "IDENTIFIER",
+    "NUMBER",
+    "STRING",
+    "REGEXP",
+    # Keywords.
+    "break",
+    "case",
+    "catch",
+    "const",
+    "continue",
+    "debugger",
+    "default",
+    "delete",
+    "do",
+    "else",
+    "enum",
+    "false",
+    "finally",
+    "for",
+    "function",
+    "if",
+    "in",
+    "instanceof",
+    "new",
+    "null",
+    "return",
+    "switch",
+    "this",
+    "throw",
+    "true",
+    "try",
+    "typeof",
+    "var",
+    "void",
+    "while",
+    "with",
 )
 
 # Operator and punctuator mapping from token to tree node type name.
 # NB: superstring tokens (e.g., ++) must come before their substring token
 # counterparts (+ in the example), so that the opRegExp regular expression
 # synthesized from this list makes the longest possible match.
-opTypeNames = [
+OP_TYPE_NAME_PAIRS = [
     ("\n", "NEWLINE"),
     (";", "SEMICOLON"),
     (",", "COMMA"),
@@ -303,33 +299,40 @@ VOID = 88
 WHILE = 89
 WITH = 90
 
-keywords = {}
+# Map every token type code to its text and every token text to its code.
+tokens: dict[int | str, int | str] = {}
+keywords: dict[str, int] = {}
 
-# Map keyword text to its token type code and every token text to its index.
-for i, t in list(tokens.copy().items()):
-    if re.match(r"^[a-z]", t):
-        keywords[t] = i
-    tokens[t] = i
+for token_code, token_text in enumerate(TOKEN_NAMES):
+    if re.match(r"^[a-z]", token_text):
+        keywords[token_text] = token_code
+    tokens[token_code] = token_text
+    tokens[token_text] = token_code
 
-assignOps = {}
+# Map assignment operators to their token type codes and their position.
+assignOps: dict[int | str, int | str] = {}
 
-# Map assignment operators to their indexes in the tokens array.
-for i, t in enumerate(["|", "^", "&", "<<", ">>", ">>>", "+", "-", "*", "/", "%"]):
-    assignOps[t] = tokens[t]
-    assignOps[i] = t
+for op_index, op_text in enumerate(
+    ["|", "^", "&", "<<", ">>", ">>>", "+", "-", "*", "/", "%"]
+):
+    assignOps[op_text] = tokens[op_text]
+    assignOps[op_index] = op_text
+
+
+def _escape_operator(match):
+    return "\\" + match.group(0)
+
 
 # Build a regexp that recognizes operators and punctuators (except newline).
-opRegExpSrc = "^"
-for i, j in opTypeNames:
-    if i == "\n":
-        continue
-    if opRegExpSrc != "^":
-        opRegExpSrc += "|^"
-    opRegExpSrc += re.sub(r"[?|^&(){}\[\]+\-*\/\.]", lambda x: "\\" + x.group(0), i)
-opRegExp = re.compile(opRegExpSrc)
+opRegExp = re.compile(
+    "|".join(
+        "^" + re.sub(r"[?|^&(){}\[\]+\-*\/\.]", _escape_operator, symbol)
+        for symbol, _name in OP_TYPE_NAME_PAIRS
+        if symbol != "\n"
+    )
+)
 
-# Convert opTypeNames to an actual dictionary now that we don't care about ordering
-opTypeNames = dict(opTypeNames)
+opTypeNames = dict(OP_TYPE_NAME_PAIRS)
 
 # A regexp to match floating point literals (but not integer literals).
 fpRegExp = re.compile(
