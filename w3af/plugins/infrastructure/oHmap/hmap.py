@@ -256,7 +256,8 @@ class response:
         return 0
 
     def header_data(self, name):
-        assert self.has_header(name)
+        if not self.has_header(name):
+            raise KeyError(name)
         for h in self.headers:
             if h.startswith(name):
                 return h.split(": ", 1)[-1]

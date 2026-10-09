@@ -424,7 +424,8 @@ class CoreStrategy:
                         " FuzzableRequest."
                     )
                     msg = fmt % (url_producer, type(fuzzable_request_inst))
-                    assert isinstance(fuzzable_request_inst, FuzzableRequest), msg
+                    if not isinstance(fuzzable_request_inst, FuzzableRequest):
+                        raise TypeError(msg)
 
                     for url_consumer in output:
                         url_consumer.in_queue_put(fuzzable_request_inst)

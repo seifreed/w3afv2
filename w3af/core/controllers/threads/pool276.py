@@ -107,7 +107,8 @@ def worker(inqueue, outqueue, initializer=None, initargs=(), maxtasks=None):
     WARNING: w3af doesn't use this worker anymore!
              See the worker class in threadpool.py
     """
-    assert maxtasks is None or (type(maxtasks) == int and maxtasks > 0)
+    if maxtasks is not None and not (isinstance(maxtasks, int) and maxtasks > 0):
+        raise ValueError("maxtasks must be None or a positive integer")
     put = outqueue.put
     get = inqueue.get
     if hasattr(inqueue, "_writer"):
@@ -354,21 +355,24 @@ class Pool:
         """
         Equivalent of `apply()` builtin
         """
-        assert self._state == RUN
+        if self._state != RUN:
+            raise RuntimeError("Pool is not running")
         return self.apply_async(func, args, kwds).get()
 
     def map(self, func, iterable, chunksize=None):
         """
         Equivalent of `map()` builtin
         """
-        assert self._state == RUN
+        if self._state != RUN:
+            raise RuntimeError("Pool is not running")
         return self.map_async(func, iterable, chunksize).get()
 
     def imap(self, func, iterable, chunksize=1):
         """
         Equivalent of `itertools.imap()` -- can be MUCH slower than `Pool.map()`
         """
-        assert self._state == RUN
+        if self._state != RUN:
+            raise RuntimeError("Pool is not running")
         if chunksize == 1:
             result = IMapIterator(self._cache)
             self._taskqueue.put(
@@ -379,7 +383,8 @@ class Pool:
             )
             return result
         else:
-            assert chunksize > 1
+            if chunksize <= 1:
+                raise ValueError("chunksize must be greater than 1")
             task_batches = Pool._get_tasks(func, iterable, chunksize)
             result = IMapIterator(self._cache)
             self._taskqueue.put(
@@ -397,7 +402,8 @@ class Pool:
         """
         Like `imap()` method but ordering of results is arbitrary
         """
-        assert self._state == RUN
+        if self._state != RUN:
+            raise RuntimeError("Pool is not running")
         if chunksize == 1:
             result = IMapUnorderedIterator(self._cache)
             self._taskqueue.put(
@@ -408,7 +414,8 @@ class Pool:
             )
             return result
         else:
-            assert chunksize > 1
+            if chunksize <= 1:
+                raise ValueError("chunksize must be greater than 1")
             task_batches = Pool._get_tasks(func, iterable, chunksize)
             result = IMapUnorderedIterator(self._cache)
             self._taskqueue.put(
@@ -426,7 +433,8 @@ class Pool:
         """
         Asynchronous equivalent of `apply()` builtin
         """
-        assert self._state == RUN
+        if self._state != RUN:
+            raise RuntimeError("Pool is not running")
         result = ApplyResult(self._cache, callback)
         task = (result._job, None, func, args, kwds or {})
         self._taskqueue.put(([task], None))
@@ -436,7 +444,8 @@ class Pool:
         """
         Asynchronous equivalent of `map()` builtin
         """
-        assert self._state == RUN
+        if self._state != RUN:
+            raise RuntimeError("Pool is not running")
         if not hasattr(iterable, "__len__"):
             iterable = list(iterable)
 
@@ -543,7 +552,8 @@ class Pool:
                 return
 
             if thread._state:
-                assert thread._state == TERMINATE
+                if thread._state != TERMINATE:
+                    raise RuntimeError("Worker handler must be terminating")
                 debug("result handler found thread._state=TERMINATE")
                 break
 
@@ -630,7 +640,8 @@ class Pool:
 
     def join(self):
         debug("joining pool")
-        assert self._state in (CLOSE, TERMINATE)
+        if self._state not in (CLOSE, TERMINATE):
+            raise RuntimeError("Pool must be closing or terminating")
         self._worker_handler.join()
         self._task_handler.join()
         self._result_handler.join()
@@ -670,7 +681,8 @@ class Pool:
         debug("helping task handler/workers to finish")
         cls._help_stuff_finish(inqueue, task_handler, len(pool))
 
-        assert result_handler.is_alive() or len(cache) == 0
+        if not result_handler.is_alive() and len(cache) != 0:
+            raise RuntimeError("Result handler died with pending results")
 
         result_handler._state = TERMINATE
         outqueue.put(None)  # sentinel
@@ -726,7 +738,8 @@ class ApplyResult:
         return self._ready
 
     def successful(self):
-        assert self._ready
+        if not self._ready:
+            raise RuntimeError("Result is not ready")
         return self._success
 
     def wait(self, timeout=None):
