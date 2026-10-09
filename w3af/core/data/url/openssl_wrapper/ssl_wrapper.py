@@ -178,7 +178,7 @@ class SSLSocket:
             # should be done on this socket
             return ""
         except OpenSSL.SSL.WantReadError:
-            rd, wd, ed = select.select([self.sock], [], [], self.sock.gettimeout())
+            rd, _wd, _ed = select.select([self.sock], [], [], self.sock.gettimeout())
             if not rd:
                 # empty string signalling that the other side has closed the
                 # connection or that some kind of error happen and no more reads
@@ -254,7 +254,7 @@ class OpenSSLReformattedError(Exception):
     def __str__(self):
         try:
             return f"*:{self.e.args[0][0][1]}:{self.e.args[0][0][2]} (glob)"
-        except Exception:
+        except (IndexError, KeyError, TypeError):
             return str(self.e)
 
 
@@ -325,7 +325,7 @@ def wrap_socket(
             cnx.do_handshake()
             break
         except OpenSSL.SSL.WantReadError:
-            in_fds, out_fds, err_fds = select.select(
+            in_fds, _out_fds, _err_fds = select.select(
                 [
                     sock,
                 ],

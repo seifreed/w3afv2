@@ -176,10 +176,7 @@ class HTTP30XHandler(urllib.request.HTTPRedirectHandler):
         if code in GET_HEAD_CODES and method in GET_HEAD:
             return True
 
-        if code in POST_CODES and method == POST:
-            return True
-
-        return False
+        return code in POST_CODES and method == POST
 
     def http_response(self, request, response):
         """

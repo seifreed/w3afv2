@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import socketserver
 import time
 import unittest
+from typing import ClassVar
 from unittest.mock import Mock, call, patch
 
 import pytest
@@ -93,9 +94,6 @@ class TestXUrllibDelayOnError(unittest.TestCase):
                     self.uri_opener.GET(url, cache=False)
                 except HTTPRequestException:
                     http_exception_count += 1
-                except Exception as e:
-                    msg = 'Not expecting: "%s"'
-                    self.assertTrue(False, msg % e.__class__.__name__)
                 else:
                     self.assertTrue(False, "Expecting HTTPRequestException")
 
@@ -192,9 +190,6 @@ class TestXUrllibDelayOnError(unittest.TestCase):
                 http_exception_count += 1
             except ScanMustStopByKnownReasonExc:
                 break
-            except Exception as e:
-                msg = 'Not expecting: "%s"'
-                self.assertTrue(False, msg % e.__class__.__name__)
             else:
                 self.assertTrue(False, "Expecting an exception")
 
@@ -222,7 +217,7 @@ class TestXUrllibErrorHandling(PluginTest):
     :see: https://github.com/andresriancho/w3af/issues/8698
     """
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": None,
             "plugins": {

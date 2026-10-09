@@ -99,11 +99,9 @@ class BlacklistHandler(urllib.request.BaseHandler):
         if uri.uri2url() in self._blacklist_urls:
             return True
 
-        if self._compiled_ignore_re is not None:
-            if self._compiled_ignore_re.match(uri.url_string):
-                return True
-
-        return False
+        return self._compiled_ignore_re is not None and bool(
+            self._compiled_ignore_re.match(uri.url_string)
+        )
 
 
 def http_response_to_httplib(no_content):

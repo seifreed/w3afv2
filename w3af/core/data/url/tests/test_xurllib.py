@@ -43,6 +43,7 @@ from w3af.core.data.url.http_response import DEFAULT_WAIT_TIME
 from w3af.core.data.url.tests.helpers.ssl_daemon import RawSSLDaemon, SSLServer
 from w3af.core.data.url.tests.helpers.upper_daemon import UpperDaemon
 from w3af.core.exceptions import (
+    BaseFrameworkException,
     ScanMustStopByUserRequest,
     ScanMustStopException,
 )
@@ -243,9 +244,6 @@ class TestXUrllib(unittest.TestCase):
             except ScanMustStopException:
                 scan_must_stop_e += 1
                 break
-            except Exception as e:
-                msg = 'Not expecting "%s".'
-                self.assertTrue(False, msg % e.__class__.__name__)
 
         self.assertEqual(scan_must_stop_e, 1)
         self.assertEqual(http_request_e, 9)
@@ -332,7 +330,7 @@ class TestXUrllib(unittest.TestCase):
             try:
                 http_response = uri_opener.GET(url)
                 output.put(http_response)
-            except Exception:
+            except (BaseFrameworkException, ScanMustStopException):
                 output.put(None)
 
         th = Process(target=send, args=(self.uri_opener, output))
@@ -350,7 +348,7 @@ class TestXUrllib(unittest.TestCase):
             try:
                 http_response = uri_opener.GET(url)
                 output.put(http_response)
-            except Exception:
+            except (BaseFrameworkException, ScanMustStopException):
                 output.put(None)
 
         th = Process(target=send, args=(self.uri_opener, output))

@@ -28,6 +28,7 @@ import threading
 import urllib.error
 import urllib.parse
 import urllib.request
+from typing import ClassVar
 
 import OpenSSL
 
@@ -97,7 +98,7 @@ def create_connection(
     host, port = address
     err = None
     for res in socket.getaddrinfo(host, port, 0, socket.SOCK_STREAM):
-        af, socktype, proto, canonname, sa = res
+        af, socktype, proto, _canonname, sa = res
         sock = None
         try:
             sock = socket.socket(af, socktype, proto)
@@ -131,7 +132,7 @@ class ProxyHTTPConnection(_HTTPConnection):
     This class is used to provide HTTPS CONNECT support.
     """
 
-    _ports = {"http": 80, "https": 443}
+    _ports: ClassVar[dict[str, int]] = {"http": 80, "https": 443}
 
     def __init__(self, host, port=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
         _HTTPConnection.__init__(self, host, port, timeout=timeout)
@@ -164,7 +165,7 @@ class ProxyHTTPConnection(_HTTPConnection):
 
         # send proxy CONNECT request
         new_line = "\r\n"
-        host_port = "%s:%d" % (self._real_host, self._real_port)
+        host_port = f"{self._real_host}:{self._real_port:d}"
         self.send(f"CONNECT {host_port} HTTP/1.1{new_line}")
 
         connect_headers = {
@@ -180,13 +181,13 @@ class ProxyHTTPConnection(_HTTPConnection):
 
         # expect a HTTP/1.0 200 Connection established
         response = self.response_class(self.sock, method=self._method)
-        version, code, message = response._read_status()
+        _version, code, message = response._read_status()
 
         # probably here we can handle auth requests...
         if code != 200:
             # proxy returned and error, abort connection, and raise exception
             self.close()
-            raise OSError("Proxy connection failed: %d %s" % (code, message.strip()))
+            raise OSError(f"Proxy connection failed: {code:d} {message.strip()}")
 
         # eat up header block from proxy....
         while True:
@@ -266,7 +267,7 @@ class SSLNegotiatorConnection(http.client.HTTPSConnection, UniqueID):
             # Always close the tcp/ip connection on error
             sock.close()
 
-        except Exception as e:
+        except (OSError, ValueError, OpenSSL.SSL.Error) as e:
             msg = "Unexpected exception occurred with protocol %s: '%s'"
             debug(msg % (protocol, e))
 

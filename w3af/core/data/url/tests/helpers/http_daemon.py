@@ -24,6 +24,7 @@ import http.server
 import socketserver
 import threading
 import time
+from typing import ClassVar
 
 
 class LoggedRequest:
@@ -40,7 +41,7 @@ class LoggedRequest:
 
 class ServerHandler(http.server.SimpleHTTPRequestHandler):
 
-    requests = []
+    requests: ClassVar[list] = []
 
     def do_GET(self):
         """Serve a GET request."""

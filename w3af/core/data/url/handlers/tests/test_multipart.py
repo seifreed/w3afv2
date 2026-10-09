@@ -78,10 +78,11 @@ class TestMultipartPostUpload(unittest.TestCase):
 
     def test_file_upload(self):
         temp = tempfile.mkstemp(suffix=".tmp")
-        os.write(temp[0], "file content")
+        os.write(temp[0], b"file content")
+        os.close(temp[0])
 
-        _file = open(temp[1], "rb")
-        self.upload_file(_file)
+        with open(temp[1], "rb") as _file:
+            self.upload_file(_file)
 
     def test_stringio_upload(self):
         _file = NamedStringIO("file content", name="test.txt")

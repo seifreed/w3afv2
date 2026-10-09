@@ -151,13 +151,14 @@ class OpenerSettings(Configurable):
             return
 
         try:
-            f = open(headers_file, "r")
-        except:
+            with open(headers_file) as f:
+                lines = f.readlines()
+        except OSError as e:
             msg = 'Unable to open headers file: "%s"'
-            raise BaseFrameworkException(msg % headers_file)
+            raise BaseFrameworkException(msg % headers_file) from e
 
         header_list = []
-        for line in f:
+        for line in lines:
             header_name = line.split(":")[0]
             header_value = ":".join(line.split(":")[1:])
             header_value = header_value.strip()
@@ -353,7 +354,7 @@ class OpenerSettings(Configurable):
 
     def get_basic_auth(self):
         basic_auth_domain = cfg.get("basic_auth_domain")
-        scheme, domain, path, x1, x2, x3 = urllib.parse.urlparse(basic_auth_domain)
+        scheme, domain, _path, _x1, _x2, _x3 = urllib.parse.urlparse(basic_auth_domain)
 
         fmt = "%s://%s:%s@%s/"
 

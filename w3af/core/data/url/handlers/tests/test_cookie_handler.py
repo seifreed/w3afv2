@@ -106,9 +106,8 @@ class TestCookieHandler(unittest.TestCase):
 
         # Remove all the indent and save the cookiejar
         cj_contents = self.COOKIEJAR.replace(" " * 8, "")
-        tmp_file = tempfile.NamedTemporaryFile(delete=False)
-        tmp_file.write(cj_contents)
-        tmp_file.close()
+        with tempfile.NamedTemporaryFile("w", delete=False) as tmp_file:
+            tmp_file.write(cj_contents)
 
         cj = http.cookiejar.MozillaCookieJar()
         cj.load(tmp_file.name, ignore_discard=True, ignore_expires=True)

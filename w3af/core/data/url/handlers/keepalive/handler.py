@@ -39,7 +39,7 @@ from http.client import _is_illegal_header_value, _is_legal_header_name
 
 import OpenSSL
 
-from w3af.core.data.url.exceptions import ConnectionPoolException, HTTPRequestException
+from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.exceptions import BaseFrameworkException
 
 from .connection_manager import ConnectionManager
@@ -134,14 +134,9 @@ class KeepAliveHandler:
 
         conn_factory = self.get_connection
 
-        try:
-            conn = self._cm.get_available_connection(req, conn_factory)
-        except ConnectionPoolException:
-            # When `self._cm.get_available_connection(host, conn_factory)` does
-            # not return a conn, it will raise this exception. So we either get
-            # here and `raise`, or we have a connection and something else
-            # failed and we get to the other error handlers.
-            raise
+        # When `self._cm.get_available_connection(host, conn_factory)` does
+        # not return a conn, it raises ConnectionPoolException to the caller.
+        conn = self._cm.get_available_connection(req, conn_factory)
 
         try:
             if conn.is_fresh:
@@ -362,7 +357,7 @@ class KeepAliveHandler:
                 conn.putheader("Content-type", DEFAULT_CONTENT_TYPE)
 
             if not req.has_header("Content-length"):
-                conn.putheader("Content-length", "%d" % len(data))
+                conn.putheader("Content-length", str(len(data)))
 
         # Add headers
         header_dict = dict(self.parent.addheaders)
@@ -447,12 +442,12 @@ class HTTPSHandler(KeepAliveHandler, urllib.request.HTTPSHandler):
         self._proxy = proxy
         try:
             host, port = self._proxy.split(":")
-        except:
+        except ValueError as e:
             msg = (
                 "The proxy you are specifying (%s) is invalid! The expected"
                 " format is <ip_address>:<port> is expected."
             )
-            raise BaseFrameworkException(msg % proxy)
+            raise BaseFrameworkException(msg % proxy) from e
         else:
             if not host or not port:
                 self._proxy = None

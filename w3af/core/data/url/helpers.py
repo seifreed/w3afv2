@@ -111,10 +111,7 @@ def is_no_content_response(http_response):
     if http_response.get_msg() != NO_CONTENT_MSG:
         return False
 
-    if http_response.get_headers() != Headers():
-        return False
-
-    return True
+    return http_response.get_headers() == Headers()
 
 
 def apply_multi_escape_table(_input, max_len=None, max_count=None):
@@ -146,13 +143,11 @@ def apply_multi_escape_table(_input, max_len=None, max_count=None):
     for escaped_input in unique_everseen_hash(inner_iter):
 
         # Filter output by max_len
-        if max_len is not None:
-            if len(escaped_input) > max_len:
-                continue
+        if max_len is not None and len(escaped_input) > max_len:
+            continue
 
-        if max_count is not None:
-            if max_count <= returned:
-                break
+        if max_count is not None and max_count <= returned:
+            break
 
         returned += 1
         yield escaped_input
@@ -421,15 +416,17 @@ def get_exception_reason(error):
 
     # Exceptions may be of type httplib.HTTPException or socket.error
     # We're interested on handling them in different ways
-    if isinstance(error, urllib.error.URLError):
-        reason_err = error.reason
+    if isinstance(error, urllib.error.URLError) and isinstance(
+        error.reason, socket.error
+    ):
+        return get_socket_exception_reason(error)
 
-        if isinstance(reason_err, socket.error):
-            return get_socket_exception_reason(error)
-
-    if isinstance(error, OpenSSL.SSL.SysCallError):
-        if len(error.args) > 1 and error.args[0] in KNOWN_SOCKET_ERRORS:
-            return str(error.args[1])
+    if (
+        isinstance(error, OpenSSL.SSL.SysCallError)
+        and len(error.args) > 1
+        and error.args[0] in KNOWN_SOCKET_ERRORS
+    ):
+        return str(error.args[1])
 
     if isinstance(error, OpenSSL.SSL.ZeroReturnError):
         return "OpenSSL Error: OpenSSL.SSL.ZeroReturnError"

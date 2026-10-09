@@ -73,9 +73,6 @@ class TestXUrllibTimeout(unittest.TestCase):
             self.uri_opener.GET(url)
         except HTTPRequestException as hre:
             self.assertEqual(str(hre), "HTTP timeout error")
-        except Exception as e:
-            msg = 'Not expecting: "%s"'
-            self.assertTrue(False, msg % e.__class__.__name__)
         else:
             self.assertTrue(False, "Expected HTTPRequestException.")
 
@@ -135,9 +132,6 @@ class TestXUrllibTimeout(unittest.TestCase):
                 scan_stop_e += 1
                 self.assertTrue(True)
                 break
-            except Exception as e:
-                msg = 'Not expecting: "%s"'
-                self.assertTrue(False, msg % e.__class__.__name__)
             else:
                 self.assertTrue(False, "Expecting timeout")
         else:
@@ -174,14 +168,10 @@ class TestXUrllibTimeout(unittest.TestCase):
         time.sleep(TIMEOUT_UPDATE_ELAPSED_MIN + 1)
 
         for _ in range(TIMEOUT_ADJUST_LIMIT * 3):
-            try:
-                self.uri_opener.GET(url)
-            except Exception:
-                raise
-            else:
-                sent_requests += 1
-                if self.uri_opener.set_timeout.call_count:
-                    break
+            self.uri_opener.GET(url)
+            sent_requests += 1
+            if self.uri_opener.set_timeout.call_count:
+                break
 
         self.assertEqual(self.uri_opener.set_timeout.call_count, 1)
 
@@ -240,7 +230,7 @@ class TestXUrllibTimeout(unittest.TestCase):
 
         # When timeout is not specified and the server returns in more
         # than the expected time, an exception is raised
-        self.assertRaises(Exception, self.uri_opener.GET, timeout_url)
+        self.assertRaises(HTTPRequestException, self.uri_opener.GET, timeout_url)
 
 
 class Ok200SmallDelayHandler(socketserver.BaseRequestHandler):
