@@ -35,7 +35,7 @@ from w3af.core.exceptions import (
     BaseFrameworkException,
     ScanMustStopException,
 )
-from w3af.core.ui.console.bug_report import bug_report_menu
+from w3af.core.ui.console.bug_report import bug_report_menu, create_github_reporter
 from w3af.core.ui.console.config import ConfigMenu
 from w3af.core.ui.console.exploit import exploit
 from w3af.core.ui.console.kb_menu import kbMenu
@@ -65,8 +65,12 @@ class rootMenu(menu):
     # Wait at most 20 seconds for the core to start the scan
     MAX_WAIT_FOR_START = 20
 
-    def __init__(self, name, console, core, parent=None):
-        menu.__init__(self, name, console, core, parent)
+    def __init__(self, name, console, core, create_reporter=create_github_reporter):
+        """
+        :param create_reporter: Creates the bug reporter used by the
+                                bug-report menu, see bug_report_menu
+        """
+        menu.__init__(self, name, console, core)
         self._load_help("root")
 
         #   At first, there is no scan thread
@@ -80,7 +84,7 @@ class rootMenu(menu):
                 "misc-settings": (ConfigMenu, MiscSettings()),
                 "http-settings": (ConfigMenu, self._w3af.uri_opener.settings),
                 "profiles": ProfilesMenu,
-                "bug-report": bug_report_menu,
+                "bug-report": (bug_report_menu, create_reporter),
                 "exploit": exploit,
                 "kb": kbMenu,
             },

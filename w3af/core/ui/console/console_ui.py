@@ -41,6 +41,7 @@ from w3af.core.exceptions import (
     ScanMustStopException,
 )
 from w3af.core.ui.console.auto_update.auto_update import ConsoleUIUpdater
+from w3af.core.ui.console.bug_report import create_github_reporter
 from w3af.core.ui.console.history import historyTable
 from w3af.core.ui.console.root_menu import rootMenu
 from w3af.core.ui.console.util import commonPrefix
@@ -54,7 +55,16 @@ class ConsoleUI:
     :author: Alexander Berezhnoy (alexander.berezhnoy |at| gmail.com)
     """
 
-    def __init__(self, commands=None, do_upd=None):
+    def __init__(
+        self, commands=None, do_upd=None, create_reporter=create_github_reporter
+    ):
+        """
+        :param commands: Commands to run before reading the user's input
+        :param do_upd: Force (True) or skip (False) the update check
+        :param create_reporter: Creates the bug reporter used by the
+                                bug-report menu
+        """
+        self._create_reporter = create_reporter
         if commands is None:
             commands = []
         self._commands = commands
@@ -133,7 +143,7 @@ class ConsoleUI:
         Main cycle
         """
         try:
-            self._context = rootMenu(name, self, self._w3af)
+            self._context = rootMenu(name, self, self._w3af, self._create_reporter)
 
             self._showPrompt()
             self._active = True
