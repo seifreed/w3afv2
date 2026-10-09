@@ -19,9 +19,9 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import re
+import urllib.parse
 from typing import ClassVar
-
-import pytest
 
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.info_set import InfoSet
@@ -29,16 +29,55 @@ from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.plugins.audit.cors_origin import cors_origin
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
+
+CORS_URL = "http://mock/w3af/audit/cors/"
+
+CORS_INDEX = """
+<a href="echo-origin.py">Echo origin</a>
+<a href="echo-origin-2.py">Echo origin again</a>
+<a href="no-cors.py">No CORS</a>
+"""
+
+
+def echo_origin(mock_response, request, uri, response_headers):
+    """Reflect the request Origin header into Access-Control-Allow-Origin."""
+    response_headers["Content-Type"] = "text/html"
+    origin = request.headers.get("Origin")
+    if origin is not None:
+        response_headers["Access-Control-Allow-Origin"] = origin
+    return 200, response_headers, "<html>CORS enabled</html>"
+
+
+def no_cors(mock_response, request, uri, response_headers):
+    response_headers["Content-Type"] = "text/html"
+    return 200, response_headers, "<html>No CORS here</html>"
+
+
+CORS_PAGES = {
+    "echo-origin.py": echo_origin,
+    "echo-origin-2.py": echo_origin,
+    "no-cors.py": no_cors,
+}
+
+
+def cors_site(mock_response, request, uri, response_headers):
+    page = urllib.parse.urlsplit(request.uri).path.rsplit("/", 1)[-1]
+    responder = CORS_PAGES.get(page)
+    if responder is None:
+        response_headers["Content-Type"] = "text/html"
+        return 200, response_headers, CORS_INDEX
+    return responder(mock_response, request, uri, response_headers)
 
 
 class TestCORSOriginScan(PluginTest):
 
-    # Test scripts host/port and web context root
-    target_url = "http://moth/w3af/audit/cors/"
+    target_url = CORS_URL
+    originator = "http://mock/"
 
-    # Originator for tests cases
-    originator = "http://moth/"
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(re.compile(f"{re.escape(CORS_URL)}.*"), cors_site)
+    ]
 
     _run_configs: ClassVar[dict] = {
         "cfg": {
@@ -60,19 +99,21 @@ class TestCORSOriginScan(PluginTest):
         }
     }
 
-    @pytest.mark.ci_fails
     def test_scan(self):
         cfg = self._run_configs["cfg"]
         self._scan(cfg["target"], cfg["plugins"])
+
         vulns = self.kb.get("cors_origin", "cors_origin")
-        self.assertEqual(2, len(vulns), vulns)
 
-        EXPECTED_NAMES = [
-            "Insecure Access-Control-Allow-Origin",
-            "Insecure Access-Control-Allow-Origin",
-        ]
+        self.assertAllVulnNamesEqual("Insecure Access-Control-Allow-Origin", vulns)
 
-        self.assertEqual([v.get_name() for v in vulns], EXPECTED_NAMES)
+        reported_urls = {
+            info.get_url().url_string for info_set in vulns for info in info_set.infos
+        }
+        self.assertEqual(
+            reported_urls,
+            {f"{CORS_URL}echo-origin.py", f"{CORS_URL}echo-origin-2.py"},
+        )
 
         self.assertTrue(
             all(v.get_url().url_string.startswith(self.target_url) for v in vulns)
