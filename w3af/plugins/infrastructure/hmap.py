@@ -58,39 +58,19 @@ class hmap(InfrastructurePlugin):
         om.out.information(msg)
 
         url = fuzzable_request.get_url()
-        protocol = url.get_protocol()
-        server = url.get_domain()
-        port = url.get_port()
-        ssl = False
-
-        if protocol == "https":
-            ssl = True
 
         try:
             results = upstream_hmap.testServer(
-                ssl, server, port, 1, self._gen_fp, self._threads
+                url.get_protocol() == "https",
+                url.get_domain(),
+                url.get_port(),
+                1,
+                self._gen_fp,
+                self._threads,
             )
         except BaseFrameworkException as w3:
             msg = 'A BaseFrameworkException occurred while running hmap: "%s"'
             om.out.error(msg % w3)
-            return
-        except (
-            OSError,
-            ValueError,
-            TypeError,
-            AttributeError,
-            KeyError,
-            IndexError,
-            RuntimeError,
-        ) as e:
-            msg = 'An unhandled exception occurred while running hmap: "%s"'
-            om.out.error(msg % e)
-            return
-
-        #
-        #   Found any results?
-        #
-        if not len(results):
             return
 
         server = results[0]

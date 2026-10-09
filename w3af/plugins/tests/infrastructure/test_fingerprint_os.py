@@ -94,9 +94,7 @@ class TestWindows(FingerprintOSTest):
     def test_windows(self):
         self.assertEqual(self.scan_os(), "windows")
 
-        backslash_requests = [
-            r for r in self.received_requests if "/w3af%5Cindex.html" in r.uri
-        ]
+        backslash_requests = [r for r in self.received_requests if "/w3af%5C" in r.uri]
         self.assertEqual(len(backslash_requests), 1, self.received_requests)
 
     def test_long_description(self):

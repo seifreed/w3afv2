@@ -24,13 +24,14 @@ import unittest
 from typing import ClassVar
 
 import pytest
+from scapy.error import Scapy_Exception
 
 import w3af.core.data.kb.knowledge_base as kb
 import w3af.plugins.infrastructure.http_vs_https_dist as hvshsdist
 from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.plugins.tests.helper import PluginConfig, PluginTest, onlyroot
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 from w3af.plugins.tests.text_file_log import TextFileLog
 
 DIFFERENT_ROUTES_DESC = (
@@ -43,7 +44,11 @@ DIFFERENT_ROUTES_DESC = (
 
 
 def can_run_traceroute():
-    return hvshsdist.http_vs_https_dist()._has_permission()
+    try:
+        hvshsdist._traceroute("127.0.0.1", 80)
+    except (OSError, Scapy_Exception):
+        return False
+    return True
 
 
 class test_http_vs_https_dist(unittest.TestCase):
@@ -149,43 +154,81 @@ class test_http_vs_https_dist(unittest.TestCase):
             log.contains("error", "The port '80' is not open on target host.tld")
         )
 
+    def test_report_both_ports_unreachable(self):
+        http_trace = copy.deepcopy(self.tracedict)
+        http_trace["localhost"][5] = ("207.46.47.14", False)
+        https_trace = copy.deepcopy(http_trace)
+        log = self._attach_log()
+
+        with log.attached_to_output_manager():
+            self.plugininst.report_routes("host.tld", 80, 443, http_trace, https_trace)
+
+        self.assertEqual(self._reported_infos(), [])
+        self.assertTrue(
+            log.contains("error", "The port '443' is not open on target host.tld")
+        )
+        self.assertTrue(
+            log.contains("error", "The port '80' is not open on target host.tld")
+        )
+
+    def test_report_without_traces(self):
+        self.plugininst.report_routes("localhost", 80, 443, {}, {})
+
+        self.assertEqual(self._reported_infos(), [])
+
     def test_discover_runonce(self):
         """Discovery routine must be executed only once. Upcoming calls should
         fail"""
-        fuzz_req = FuzzableRequest(URL("https://host.tld/"))
+        fuzz_req = FuzzableRequest(URL("https://unresolvable.invalid/"))
 
         self.plugininst.discover(fuzz_req, None)
         self.assertRaises(RunOnce, self.plugininst.discover, fuzz_req, None)
 
-    @pytest.mark.skipif(
-        can_run_traceroute(), reason="this user is allowed to run traceroute"
-    )
-    def test_not_root_user(self):
+    def test_traceroute_failure_is_reported(self):
         log = self._attach_log()
+        fuzz_req = FuzzableRequest(URL("https://unresolvable.invalid/"))
 
         with log.attached_to_output_manager():
-            self.plugininst.discover(FuzzableRequest(URL("https://host.tld/")), None)
+            self.plugininst.discover(fuzz_req, None)
 
+        with self.assertRaises((OSError, Scapy_Exception)) as traceroute_error:
+            hvshsdist._traceroute("unresolvable.invalid", 443)
+
+        expected = hvshsdist.TRACEROUTE_ERROR_MSG % traceroute_error.exception
         self.assertEqual(self._reported_infos(), [])
-        self.assertTrue(log.contains("error", hvshsdist.PERM_ERROR_MSG))
+        self.assertTrue(log.contains("error", expected))
+
+    def test_options_round_trip(self):
+        options = self.plugininst.get_options()
+        options["httpPort"].set_value(8080)
+        options["httpsPort"].set_value(8443)
+
+        self.plugininst.set_options(options)
+
+        ports = self.plugininst.get_target_ports(URL("http://host.tld/"))
+        self.assertEqual(ports, (8080, 8443))
+
+    def test_long_desc_mentions_privileges(self):
+        self.assertIn("privileges", self.plugininst.get_long_desc())
 
 
+@pytest.mark.skipif(
+    not can_run_traceroute(), reason="this user can not send raw packets"
+)
 class TestHTTPvsHTTPS(PluginTest):
+    """
+    Trace the routes to the loopback interface, where both the HTTP and HTTPS
+    ports answer with a TCP reset, while the canned server answers the HTTP
+    requests sent to the target.
+    """
 
-    base_url = "http://moth/"
+    target_url = "http://127.0.0.1/"
 
-    _run_configs: ClassVar[dict] = {
-        "cfg": {
-            "target": base_url,
-            "plugins": {"infrastructure": (PluginConfig("http_vs_https_dist"),)},
-        }
-    }
+    MOCK_RESPONSES: ClassVar[list] = [MockResponse(target_url, "Hello world")]
 
-    @onlyroot
-    @pytest.mark.ci_fails
     def test_trace(self):
-        cfg = self._run_configs["cfg"]
-        self._scan(cfg["target"], cfg["plugins"])
+        plugins = {"infrastructure": (PluginConfig("http_vs_https_dist"),)}
+        self._scan(self.target_url, plugins)
 
         infos = self.kb.get("http_vs_https_dist", "http_vs_https_dist")
 

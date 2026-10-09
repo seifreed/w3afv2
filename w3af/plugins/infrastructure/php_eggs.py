@@ -209,81 +209,68 @@ class php_eggs(InfrastructurePlugin):
         Analyzes the eggs and tries to deduce a PHP version number
         (which is then saved to the kb).
         """
-        if not query_results:
+        desc_hashes = {}
+
+        for query_result in query_results:
+            body = query_result.http_response.get_body()
+            desc_hashes[query_result.egg_desc] = md5_hash(body)
+
+        hash_set = set(desc_hashes.values())
+
+        matching_versions = [
+            version
+            for version, version_hashes in self.EGG_DB.items()
+            if hash_set.issubset(version_hashes.values())
+        ]
+
+        if matching_versions:
+            self._report_php_version(matching_versions, query_results)
             return
+
+        msg = (
+            "The PHP version could not be identified using PHP eggs,"
+            " please send this signature and the PHP version to the"
+            " w3af project develop mailing list. Signature:"
+            " EGG_DB['%s'] = %r\n"
+        )
+        msg = msg % (self._php_version_from_powered_by(), desc_hashes)
+        om.out.information(msg)
+
+    def _report_php_version(self, matching_versions, query_results):
+        if len(matching_versions) > 1:
+            desc = (
+                "A PHP easter egg was found that matches several"
+                " different versions of PHP. The PHP framework"
+                " version running on the remote server was"
+                " identified as one of the following:\n- %s"
+            )
         else:
-            desc_hashes = {}
+            desc = (
+                "The PHP framework version running on the remote"
+                " server was identified as:\n- %s"
+            )
 
-            for query_result in query_results:
-                body = query_result.http_response.get_body()
-                hash_str = md5_hash(body)
-                desc_hashes[query_result.egg_desc] = hash_str
+        desc %= "\n- ".join(matching_versions)
 
-            hash_set = set(desc_hashes.values())
+        response_ids = [r.http_response.get_id() for r in query_results]
 
-            found = False
-            matching_versions = []
-            for version in self.EGG_DB:
-                version_hashes = set(self.EGG_DB[version].values())
+        i = Info("Fingerprinted PHP version", desc, response_ids, self.get_name())
+        i["version"] = matching_versions
 
-                if len(hash_set) == len(hash_set.intersection(version_hashes)):
-                    matching_versions.append(version)
-                    found = True
+        kb.kb.append(self, "version", i)
+        om.out.information(i.get_desc())
 
-            if matching_versions:
+    def _php_version_from_powered_by(self):
+        """
+        :return: The PHP version sent in the X-Powered-By headers which the
+                 server_header plugin saved, or "unknown"
+        """
+        for powered_by in kb.kb.raw_read("server_header", "powered_by_string"):
+            name, _, version = powered_by.partition("/")
+            if "php" in name.lower() and version:
+                return version
 
-                if len(matching_versions) > 1:
-                    desc = (
-                        "A PHP easter egg was found that matches several"
-                        " different versions of PHP. The PHP framework"
-                        " version running on the remote server was"
-                        " identified as one of the following:\n- %s"
-                    )
-                else:
-                    desc = (
-                        "The PHP framework version running on the remote"
-                        " server was identified as:\n- %s"
-                    )
-
-                versions = "\n- ".join(matching_versions)
-                desc %= versions
-
-                response_ids = [r.http_response.get_id() for r in query_results]
-
-                i = Info(
-                    "Fingerprinted PHP version", desc, response_ids, self.get_name()
-                )
-                i["version"] = matching_versions
-
-                kb.kb.append(self, "version", i)
-                om.out.information(i.get_desc())
-
-            if not found:
-                version = "unknown"
-                powered_by_headers = kb.kb.raw_read(
-                    "server_header", "powered_by_string"
-                )
-                for v in powered_by_headers:
-                    if not isinstance(v, str):
-                        continue
-
-                    if "php" not in v.lower():
-                        continue
-
-                    try:
-                        version = v.split("/")[1]
-                        break
-                    except IndexError:
-                        pass
-
-                msg = (
-                    "The PHP version could not be identified using PHP eggs,"
-                    " please send this signature and the PHP version to the"
-                    " w3af project develop mailing list. Signature:"
-                    " EGG_DB['%s'] = %r\n"
-                )
-                msg = msg % (version, desc_hashes)
-                om.out.information(msg)
+        return "unknown"
 
     def get_options(self):
         """

@@ -176,7 +176,7 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         headers.update(request.unredirected_hdrs)
         headers = Headers(list(headers.items()))
 
-        post_data = request.get_data() or ""
+        post_data = smart_unicode(request.get_data() or "")
 
         return cls.from_parts(
             request.url_object,

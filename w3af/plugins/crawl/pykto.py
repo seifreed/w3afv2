@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import codecs
 import itertools
 import os.path
 import re
@@ -30,7 +29,7 @@ import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
-from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
+from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.constants import severity
@@ -41,7 +40,6 @@ from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.options.option_types import BOOL, INPUT_FILE, LIST
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.url.exceptions import HTTPRequestException
 
 
 class pykto(CrawlPlugin):
@@ -158,9 +156,8 @@ class pykto(CrawlPlugin):
 
     def _send_and_check(self, nikto_test):
         """
-        This method sends the request to the server.
-
-        :return: True if the requested URI responded as expected.
+        Send the request to the server and report the URI when it responds
+        as the nikto test expects.
         """
         #
         #    Small performance improvement. If all we want to know is if the
@@ -169,25 +166,13 @@ class pykto(CrawlPlugin):
         #    performance improvement.
         #
         if nikto_test.is_vulnerable.checks_only_response_code():
-            try:
-                http_response = self._uri_opener.HEAD(nikto_test.uri)
-            except HTTPRequestException:
+            http_response = self._uri_opener.HEAD(nikto_test.uri)
+
+            if not nikto_test.is_vulnerable.check(http_response):
                 return
-            else:
-                if not nikto_test.is_vulnerable.check(http_response):
-                    return False
 
         function_ptr = getattr(self._uri_opener, nikto_test.method)
-
-        try:
-            http_response = function_ptr(nikto_test.uri)
-        except BaseFrameworkException as e:
-            msg = (
-                'An exception was raised while requesting "%s", the error'
-                ' message is: "%s".'
-            )
-            om.out.error(msg % (nikto_test.uri, e))
-            return False
+        http_response = function_ptr(nikto_test.uri)
 
         if nikto_test.is_vulnerable.check(http_response) and not is_404(http_response):
 
@@ -382,9 +367,6 @@ class IsVulnerableHelper:
 
         return is_vuln
 
-    def __eq__(self, other):
-        return True
-
 
 class NiktoTestParser:
     """
@@ -409,7 +391,7 @@ class NiktoTestParser:
                   The parsed parameters from the scan database line)
         """
         try:
-            with codecs.open(self.filename, "r", "utf-8") as db_file:
+            with open(self.filename, encoding="utf-8") as db_file:
                 db_lines = db_file.readlines()
         except OSError as e:
             msg = 'Failed to open the scan database. Exception: "%s".'
@@ -434,17 +416,12 @@ class NiktoTestParser:
 
     def _is_comment(self, line):
         """
-        The simplest method ever.
+        Test lines start with a double quote, everything else (comments,
+        blank lines) is ignored.
 
         :return: Returns if a line is a comment or not.
         """
-        if line.startswith('"'):
-            return False
-
-        if line.startswith("#"):
-            return True
-
-        return True
+        return not line.startswith('"')
 
     def _parse_db_line(self, line):
         """
@@ -491,9 +468,6 @@ class NiktoTestParser:
                  response matched (match_1, match_1_or, match_1_and, fail_1,
                  fail_2).
         """
-        if not isinstance(line, str):
-            raise TypeError("Database information needs to be sent as unicode.")
-
         line = line.strip()
         splitted_line = line.split('","')
 

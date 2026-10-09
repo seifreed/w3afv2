@@ -25,10 +25,9 @@ import re
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
-from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
+from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
-from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.kb.info import Info
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
@@ -43,12 +42,6 @@ class frontpage_version(InfrastructurePlugin):
     ADMIN_URL_RE = re.compile('FPAdminScriptUrl="(.*?)"', re.IGNORECASE)
     AUTHOR_URL_RE = re.compile('FPAuthorScriptUrl="(.*?)"', re.IGNORECASE)
 
-    def __init__(self):
-        InfrastructurePlugin.__init__(self)
-
-        # Internal variables
-        self._analyzed_dirs = ScalableBloomFilter()
-
     @runonce(exc_class=RunOnce)
     def discover(self, fuzzable_request, debugging_id):
         """
@@ -59,30 +52,15 @@ class frontpage_version(InfrastructurePlugin):
                                     (among other things) the URL to test.
         """
         for domain_path in fuzzable_request.get_url().get_directories():
-
-            if domain_path in self._analyzed_dirs:
-                continue
-
-            # Save the domain_path so I know I'm not working in vane
-            self._analyzed_dirs.add(domain_path)
-
-            # Request the file
             frontpage_info_url = domain_path.url_join("_vti_inf.html")
-            try:
-                response = self._uri_opener.GET(frontpage_info_url, cache=True)
-            except BaseFrameworkException as w3:
-                fmt = (
-                    'Failed to GET Frontpage Server _vti_inf.html file: "%s". '
-                    'Exception: "%s".'
-                )
-                om.out.debug(fmt % (frontpage_info_url, w3))
-            else:
-                # Check if it's a Frontpage Info file
-                if not is_404(response):
-                    fr = FuzzableRequest(response.get_uri())
-                    self.output_queue.put(fr)
+            response = self._uri_opener.GET(frontpage_info_url, cache=True)
 
-                    self._analyze_response(response)
+            # Check if it's a Frontpage Info file
+            if not is_404(response):
+                fr = FuzzableRequest(response.get_uri())
+                self.output_queue.put(fr)
+
+                self._analyze_response(response)
 
     def _analyze_response(self, response):
         """
@@ -97,8 +75,6 @@ class frontpage_version(InfrastructurePlugin):
         author_mo = self.AUTHOR_URL_RE.search(response.get_body())
 
         if version_mo and admin_mo and author_mo:
-            self._exec = False
-
             desc = (
                 "The FrontPage Configuration Information file was found"
                 ' at: "%s" and the version of FrontPage Server Extensions'

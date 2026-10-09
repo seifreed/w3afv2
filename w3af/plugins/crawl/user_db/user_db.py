@@ -30,14 +30,14 @@ APPLICATION = "applications"
 DB_PATH = os.path.dirname(os.path.realpath(__file__))
 
 
-def get_users_from_csv(ident):
+def get_users_from_csv(ident, db_path=DB_PATH):
     """
     :return: A list of users from the user dir database.
     """
     if ident not in (APPLICATION, OS):
         raise ValueError("Invalid identification")
 
-    csv_db = os.path.join(DB_PATH, f"{ident}.csv")
+    csv_db = os.path.join(db_path, f"{ident}.csv")
     with open(csv_db, newline="", encoding="utf-8") as file_handler:
         reader = csv.reader(file_handler)
 

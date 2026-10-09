@@ -30,7 +30,11 @@ import pytest
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.misc.encoding import ESCAPED_CHAR, smart_unicode
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.url.http_response import DEFAULT_CHARSET, HTTPResponse
+from w3af.core.data.url.http_response import (
+    DEFAULT_CHARSET,
+    HTTPResponse,
+    merge_repeated_headers,
+)
 
 TEST_RESPONSES = {
     "hebrew": ("ולהכיר טוב יותר את המוסכמות, האופי", "Windows-1255"),
@@ -60,6 +64,17 @@ class TestHTTPResponse(unittest.TestCase):
         response = self.create_resp(headers, "café".encode())
         self.assertEqual(response.get_body(), "café")
         self.assertEqual(response.get_charset(), "utf-8")
+
+    def test_contains_text_body(self):
+        self.assertIn("od", self.resp)
+        self.assertNotIn("xyz", self.resp)
+
+    def test_contains_binary_body(self):
+        headers = Headers([("Content-Type", "application/json")])
+        response = self.create_resp(headers, b'{"entries": []}')
+
+        self.assertIn('"entries":', response)
+        self.assertNotIn("missing", response)
 
     def test_missing_content_type_is_logged(self):
         response = self.create_resp(Headers(), b"body")
@@ -322,4 +337,24 @@ class TestHTTPResponse(unittest.TestCase):
         header_dump = resp.dump_headers(exclude_headers={})
         self.assertEqual(
             header_dump, "Content-Type: text/html\r\nDate: 2019-02-02 10:11:12 am\r\n"
+        )
+
+
+class TestMergeRepeatedHeaders(unittest.TestCase):
+    def test_repeated_header_values_are_joined(self):
+        header_items = [
+            ("Date", "Fri, 09 Oct 2026 20:55:51 GMT"),
+            ("Content-Type", "text/html"),
+            ("Date", "Fri, 09 Oct 2026 20:55:52 GMT"),
+        ]
+
+        self.assertEqual(
+            merge_repeated_headers(header_items),
+            [
+                (
+                    "Date",
+                    "Fri, 09 Oct 2026 20:55:51 GMT, Fri, 09 Oct 2026 20:55:52 GMT",
+                ),
+                ("Content-Type", "text/html"),
+            ],
         )

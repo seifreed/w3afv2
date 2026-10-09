@@ -163,16 +163,12 @@ class phpinfo(CrawlPlugin):
         return PHP_INFO_FILES
 
     def _should_use_lowercase_db(self):
-        # pylint: disable=E1103
         identified_os = kb.kb.raw_read("fingerprint_os", "operating_system_str")
 
         if not isinstance(identified_os, str):
             identified_os = cf.cf.get("target_os")
 
-        identified_os = identified_os.lower()
-        # pylint: enable=E1103
-
-        return "windows" in identified_os
+        return "windows" in identified_os.lower()
 
     def _check_and_analyze(self, domain_path, php_info_filename):
         """
@@ -187,8 +183,8 @@ class phpinfo(CrawlPlugin):
             return
 
         # Check if it is a phpinfo file
-        php_version = self.PHP_VERSION_RE.search(response.get_body(), re.IGNORECASE)
-        sysinfo = self.SYSTEM_RE.search(response.get_body(), re.IGNORECASE)
+        php_version = self.PHP_VERSION_RE.search(response.get_body())
+        sysinfo = self.SYSTEM_RE.search(response.get_body())
 
         if not php_version:
             return

@@ -29,11 +29,7 @@ import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.controllers.daemons.proxy import Proxy, ProxyHandler
 from w3af.core.controllers.daemons.proxy.templates.utils import render
-from w3af.core.controllers.exceptions import (
-    BaseFrameworkException,
-    ProxyException,
-    RunOnce,
-)
+from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.constants import ports
@@ -75,30 +71,25 @@ class spider_man(CrawlPlugin):
         :param fuzzable_request: A fuzzable_request instance that contains
                                    (among other things) the URL to test.
         """
-        # Create the proxy server
-        try:
-            self._proxy = LoggingProxy(
-                self._listen_address,
-                self._listen_port,
-                self._uri_opener,
-                handler_klass=LoggingHandler,
-                plugin=self,
-                target_domain=fuzzable_request.get_url().get_domain(),
-                name="SpiderManProxyThread",
-            )
-        except ProxyException as proxy_exc:
-            om.out.error(f"{proxy_exc}")
+        self._proxy = LoggingProxy(
+            self._listen_address,
+            self._listen_port,
+            self._uri_opener,
+            handler_klass=LoggingHandler,
+            plugin=self,
+            target_domain=fuzzable_request.get_url().get_domain(),
+            name="SpiderManProxyThread",
+        )
 
-        else:
-            msg = (
-                f"spider_man proxy is running on {self._listen_address}:{self._listen_port}.\nPlease configure "
-                "your browser to use these proxy settings and navigate the "
-                "target site.\nTo exit spider_man plugin please navigate"
-                f" to {TERMINATE_URL} ."
-            )
-            om.out.information(msg)
+        msg = (
+            f"spider_man proxy is running on {self._listen_address}:"
+            f"{self._listen_port}.\nPlease configure your browser to use these"
+            " proxy settings and navigate the target site.\nTo exit spider_man"
+            f" plugin please navigate to {TERMINATE_URL} ."
+        )
+        om.out.information(msg)
 
-            self._proxy.run()
+        self._proxy.run()
 
     def send_fuzzable_request_to_core(self, freq):
         self.output_queue.put(freq)
@@ -185,10 +176,7 @@ class LoggingHandler(ProxyHandler):
         msg = "[spider_man] Handling request: %s %s"
         om.out.debug(msg % (http_request.get_method(), uri))
 
-        if uri.get_domain() == self.parent_process.target_domain:
-            grep = True
-        else:
-            grep = False
+        grep = uri.get_domain() == self.parent_process.target_domain
 
         try:
             if self._is_terminate_favicon(http_request):
@@ -218,7 +206,7 @@ class LoggingHandler(ProxyHandler):
 
         # Useful logging
         headers = http_response.get_headers()
-        cookie_value, _ = headers.iget("cookie", None)
+        cookie_value, _ = headers.iget("set-cookie", None)
         if cookie_value is not None:
             msg = (
                 "The remote web application sent the following"

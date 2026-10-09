@@ -19,8 +19,10 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import unittest
 from typing import ClassVar
 
+import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.parsers.doc.url import URL
 from w3af.plugins.crawl.payment_webhook_finder import payment_webhook_finder
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
@@ -109,3 +111,21 @@ class TestPaymentWebHookFinderPOST(PluginTest):
         urls = [url.url_string for url in urls]
 
         self.assertIn(self.target_url + "cgi-bin/paymentsuccessful.cgi", urls)
+
+
+class TestPaymentWebHookFinderExtensions(unittest.TestCase):
+
+    def setUp(self):
+        kb.kb.cleanup()
+        self.addCleanup(kb.kb.cleanup)
+
+    def test_all_extensions_for_small_sites(self):
+        plugin = payment_webhook_finder()
+
+        self.assertEqual(plugin._get_extensions_for_fuzzing(), plugin._exts)
+
+    def test_extensions_filtered_by_site_extensions(self):
+        fill_kb_with_cgi_urls("http://httpretty/", kb.kb.add_url)
+        plugin = payment_webhook_finder()
+
+        self.assertEqual(plugin._get_extensions_for_fuzzing(), {"cgi"})

@@ -1,5 +1,5 @@
 """
-test_sitemap_reader.py
+test_sitemap_xml.py
 
 Copyright 2012 Andres Riancho
 
@@ -21,36 +21,92 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import ClassVar
 
-import pytest
+from w3af.core.data.parsers.doc.url import URL
+from w3af.plugins.crawl.sitemap_xml import sitemap_xml
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+TARGET_URL = "http://mock/"
+SITEMAP_URL = TARGET_URL + "sitemap.xml"
+
+SITEMAP = """<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>http://mock/hidden/</loc></url>
+  <url><loc></loc></url>
+  <url><loc>http://[::1</loc></url>
+</urlset>
+"""
+
+RUN_CONFIG: dict = {"crawl": (PluginConfig("sitemap_xml"),)}
+
+
+def known_urls(kb):
+    return {url.url_string for url in kb.get_all_known_urls()}
 
 
 class TestSitemap(PluginTest):
 
-    target_url = "http://moth/"
+    target_url = TARGET_URL
 
-    _run_configs: ClassVar[dict] = {
-        "cfg": {
-            "target": target_url,
-            "plugins": {"crawl": (PluginConfig("sitemap_xml"),)},
-        }
-    }
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(TARGET_URL, "index"),
+        MockResponse(SITEMAP_URL, SITEMAP, content_type="text/xml"),
+        MockResponse(TARGET_URL + "hidden/", "hidden"),
+    ]
 
-    @pytest.mark.ci_fails
     def test_sitemap(self):
-        cfg = self._run_configs["cfg"]
-        self._scan(cfg["target"], cfg["plugins"])
+        self._scan(self.target_url, RUN_CONFIG)
 
-        urls = self.kb.get_all_known_urls()
+        self.assertEqual(
+            known_urls(self.kb), {TARGET_URL, SITEMAP_URL, TARGET_URL + "hidden/"}
+        )
 
-        self.assertEqual(len(urls), 3, urls)
+    def test_long_desc(self):
+        self.assertIn("sitemap.xml", sitemap_xml().get_long_desc())
 
-        hidden_url = "http://moth/hidden/"
 
-        for url in urls:
-            if url.url_string == hidden_url:
-                self.assertTrue(True)
-                break
-        else:
-            self.assertTrue(False)
+class TestSitemapNotXML(PluginTest):
+
+    target_url = TARGET_URL
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(TARGET_URL, "index"),
+        MockResponse(SITEMAP_URL, "plain text without the closing tag"),
+    ]
+
+    def test_ignores_response_without_urlset(self):
+        self._scan(self.target_url, RUN_CONFIG)
+
+        self.assertEqual(known_urls(self.kb), {TARGET_URL})
+
+
+class TestSitemapNotFound(PluginTest):
+
+    target_url = TARGET_URL
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(TARGET_URL, "index"),
+        MockResponse(SITEMAP_URL, "Not found </urlset>", status=404),
+    ]
+
+    def test_ignores_404_response(self):
+        self._scan(self.target_url, RUN_CONFIG)
+
+        self.assertEqual(known_urls(self.kb), {TARGET_URL})
+
+
+class TestSitemapInvalidXML(PluginTest):
+
+    target_url = TARGET_URL
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(TARGET_URL, "index"),
+        MockResponse(
+            SITEMAP_URL, "<urlset><loc>broken</urlset>", content_type="text/xml"
+        ),
+    ]
+
+    def test_sends_sitemap_but_ignores_broken_xml(self):
+        self._scan(self.target_url, RUN_CONFIG)
+
+        self.assertEqual(known_urls(self.kb), {TARGET_URL, SITEMAP_URL})
+        self.assertNotIn(URL(TARGET_URL + "broken"), self.kb.get_all_known_urls())

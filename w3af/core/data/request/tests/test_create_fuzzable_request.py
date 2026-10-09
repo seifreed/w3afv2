@@ -241,3 +241,17 @@ class TestCreateFuzzableRequestRequest(unittest.TestCase):
         self.assertEqual(fr.get_method(), "GET")
         self.assertIsInstance(fr, FuzzableRequest)
         self.assertIsInstance(fr.get_raw_data(), KeyValueContainer)
+
+
+class TestFuzzableRequestFromHTTPRequest(unittest.TestCase):
+
+    def test_bytes_post_data(self):
+        url = URL("http://www.w3af.com/")
+        headers = [("Content-Type", "application/x-www-form-urlencoded")]
+        request = HTTPRequest(url, data=b"text=abc", headers=headers, method="POST")
+
+        fr = FuzzableRequest.from_http_request(request)
+
+        self.assertEqual(fr.get_method(), "POST")
+        self.assertIsInstance(fr.get_raw_data(), URLEncodedForm)
+        self.assertEqual(fr.get_raw_data()["text"], ["abc"])

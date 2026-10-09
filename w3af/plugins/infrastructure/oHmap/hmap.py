@@ -23,12 +23,13 @@
 import ast
 import glob
 import os
+import pprint
 import re
-import select
 import socket
 import ssl
-import sys
 import time
+from collections import namedtuple
+from itertools import pairwise
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
@@ -36,14 +37,25 @@ from w3af import ROOT_PATH
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.threads.threadpool import Pool
 
+KNOWN_SERVERS_DIR = os.path.join(
+    ROOT_PATH, "plugins", "infrastructure", "oHmap", "known.servers"
+)
+SOCKET_TIMEOUT = 10
+SUBMIT_TRIES = 3
+NO_RESPONSE_CODES = ("NO_RESPONSE_CODE", "NO_RESPONSE")
+STATUS_LINE_RE = re.compile(r"^HTTP/1\.[01] [0-9]{3} [A-Z]{,10}")
+RESPONSE_LINE_RE = re.compile("(HTTP/1\\.[01]) ([0-9]{3}) ([^\r\n]*)")
+
+Target = namedtuple("Target", ["host", "port", "use_ssl"])
+
 
 class request:
     """
     Collect elements needed to send a Request to an HTTP server
     """
 
-    def __init__(self, url, method="GET", local_uri="/", version="1.0"):
-        self.url = url
+    def __init__(self, target, method="GET", local_uri="/", version="1.0"):
+        self.target = target
         self.method = method
         self.local_uri = local_uri
         self.version = version
@@ -66,115 +78,50 @@ class request:
         )
 
     def get_connection(self):
-        HOST = self.url
+        host, port = self.target.host, self.target.port
 
-        # Create the connection
         try:
-            si = socket.getaddrinfo(HOST, PORT)
-            if si[0][0] == 10:
-                s = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
-            else:
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.connect((HOST, PORT))
+            s = socket.create_connection((host, port), timeout=SOCKET_TIMEOUT)
         except OSError as e:
             msg = 'hmap connection failed to %s:%s. Exception: "%s"'
-            args = (HOST, PORT, e)
-            raise BaseFrameworkException(msg % args) from e
+            raise BaseFrameworkException(msg % (host, port, e)) from e
 
-        # SSL handling
-        if useSSL:
-            try:
-                context = ssl.create_default_context()
-                context.check_hostname = False
-                context.verify_mode = ssl.CERT_NONE
-                s = context.wrap_socket(s, server_hostname=HOST)
-            except (ssl.SSLError, OSError) as e:
-                msg = 'hmap SSL connection failed to %s:%s. Exception: "%s"'
-                args = (HOST, PORT, e)
-                raise BaseFrameworkException(msg % args) from e
+        if not self.target.use_ssl:
+            return s
 
-        s.settimeout(10)
+        context = ssl.create_default_context()
+        context.check_hostname = False
+        context.verify_mode = ssl.CERT_NONE
 
-        return s
+        try:
+            return context.wrap_socket(s, server_hostname=host)
+        except OSError as e:
+            s.close()
+            msg = 'hmap SSL connection failed to %s:%s. Exception: "%s"'
+            raise BaseFrameworkException(msg % (host, port, e)) from e
 
     def submit(self):
         om.out.debug("hmap is sending: " + str(self))
 
-        tries = 3
         wait_time = 1
 
-        while tries != 0:
+        for _ in range(SUBMIT_TRIES):
             s = self.get_connection()
 
-            data = b""
-
-            # Send the "HTTP request" to the socket
             try:
                 s.send(str(self).encode("utf-8"))
+                data = read_until_closed(s)
             except OSError as e:
-                om.out.debug(f'hmap failed to send data to socket: "{e}"')
-
-                # Try again
-                tries -= 1
-                time.sleep(wait_time)
-                wait_time *= 2
-                s.close()
-
-                continue
-
-            # Receive the HTTP response from the server
-            try:
-                while True:
-                    readable, _, _ = select.select([s], [], [], 10)
-                    if not readable:
-                        break
-
-                    # s_read will always be "s", since it is the only socket we have
-                    s_read = readable[0]
-                    temp = s_read.recv(1)
-
-                    if not temp:
-                        break
-
-                    # we were able to read from the socket, append and try again
-                    data += temp
-            except KeyboardInterrupt:
-                raise
-
-            except ssl.SSLError as ssl_err:
-                # When the remote server has no more data to send
-                # It simply closes the remote connection, which raises:
-                # (6, 'TLS/SSL connection has been closed')
-                if isinstance(ssl_err, ssl.SSLZeroReturnError):
-                    return response(data.decode("latin-1"))
-
-                msg = 'hmap found an SSL error while reading data from socket: "%s"'
-                om.out.debug(msg % ssl_err)
-
-                # Try again
-                tries -= 1
-                time.sleep(wait_time)
-                wait_time *= 2
-                s.close()
-
-                continue
-
-            except OSError as e:
-                msg = 'hmap found an exception while reading data from socket: "%s"'
+                msg = 'hmap failed to exchange data with the server: "%s"'
                 om.out.debug(msg % e)
 
-                # Try again.
-                tries -= 1
+                # Try again
                 time.sleep(wait_time)
                 wait_time *= 2
-                s.close()
-
                 continue
-
             finally:
                 s.close()
 
-            # Success!
             msg = f'hmap received: "{repr(data)[1:-1][:40]}..."'
             om.out.debug(msg)
             return response(data.decode("latin-1"))
@@ -184,6 +131,29 @@ class request:
 
     def add_header(self, name, data):
         self.headers.append([name, data])
+
+
+def read_until_closed(s):
+    """
+    :return: The bytes received until the server closes the connection, or
+             until it stops sending data for SOCKET_TIMEOUT seconds.
+    :raise OSError: When the connection fails before receiving any data
+    """
+    data = b""
+
+    try:
+        while chunk := s.recv(4096):
+            data += chunk
+    except OSError as e:
+        # Servers which reject a request before reading all of it, because
+        # it has too many headers for example, reset the connection after
+        # sending the response. Others wait for the announced request body.
+        if not data and not isinstance(e, TimeoutError):
+            raise
+
+        om.out.debug(f'hmap stopped reading from the server: "{e}"')
+
+    return data
 
 
 ######################################################################
@@ -204,29 +174,24 @@ class response:
             self.response_text = "NONE"
             return
 
-        if not re.search(r"^HTTP/1\.[01] [0-9]{3} [A-Z]{,10}", text):
+        if not STATUS_LINE_RE.search(text):
             self.response_code = "NO_RESPONSE_CODE"  # HTTP/0.9 like
             self.response_text = "NONE"
             self.body = text
             return
 
-        # really parse it
+        # Responses which have a "\r" before the first "\r\n" are split by "\n"
         crlf_index = text.find("\r\n")
-        cr_index = text.find("\r")
-        line_splitter = "\r\n"
-
-        # TODO: is this sufficient???
-        if crlf_index == -1 or cr_index < crlf_index:
-            line_splitter = "\n"
+        line_splitter = "\r\n" if text.find("\r") == crlf_index != -1 else "\n"
 
         response_lines = text.split(line_splitter)
         self.response_line = response_lines[0]
-        response_line_match = re.search("(HTTP/1\\.[01]) ([0-9]{3}) ([^\r\n]*)", text)
+        response_line_match = RESPONSE_LINE_RE.search(text)
         self.response_code, self.response_text = response_line_match.groups()[1:]
 
-        blank_index = response_lines[:].index("")
-        if blank_index == -1:
-            blank_index = len(response_lines)
+        blank_index = len(response_lines)
+        if "" in response_lines:
+            blank_index = response_lines.index("")
 
         self.headers = response_lines[1:blank_index]
         # NOTE: !! actually don't need or want body to be split but don't
@@ -236,43 +201,23 @@ class response:
     def return_code(self):
         return self.response_code, self.response_text
 
-    def describe(self):
-        print("-" * 70)
-        print("RESPONSE LINE:")
-        if hasattr(self, "response_line"):
-            print(self.response_line)
-        print("-" * 70)
-        print("HEADERS:")
-        if hasattr(self, "headers"):
-            print(self.headers)
-        print("-" * 70)
-        print("BODY:")
-        if hasattr(self, "body"):
-            print(self.body)
-
-    def has_header(self, name):
-        for h in self.headers:
-            if h.startswith(name):
-                return 1
-        return 0
-
     def header_data(self, name):
-        if not self.has_header(name):
-            raise KeyError(name)
+        """
+        :return: The value of the first header which starts with name, matched
+                 case-insensitively, or None when there is no such header.
+        """
+        prefix = name.lower()
+
         for h in self.headers:
-            if h.startswith(name):
+            if h.lower().startswith(prefix):
                 return h.split(": ", 1)[-1]
 
+        return None
+
     def header_names(self):
-        result = []
-        for h in self.headers:
-            name = h.split(":", 1)[0]
-            result.append(name)
-        return result
+        return [h.split(":", 1)[0] for h in self.headers]
 
     def servername(self):
-        if not self.has_header("Server"):
-            return None
         return self.header_data("Server")
 
 
@@ -280,51 +225,23 @@ class response:
 # Functions for probing server and collecting characteristics
 
 
-def get_fingerprint(url, threads):
+def get_fingerprint(target, threads):
+    for characteristics in fingerprint.values():
+        characteristics.clear()
+
     pool = Pool(
         worker_names="HMap", maxtasksperchild=2, processes=threads, max_queued_tasks=5
     )
 
-    def logging_decorator(test, url):
-        om.out.debug(f"[hmap] Starting test {test.__name__}")
+    try:
+        results = [pool.apply_async(func=probe, args=(target,)) for probe in PROBES]
 
-        try:
-            result = test(url)
-        except Exception as e:
-            args = (test.__name__, e)
-            om.out.debug('[hmap] Test {} raised an exception: "{}"'.format(*args))
-            raise
-        else:
-            om.out.debug(f"[hmap] Test {test.__name__} finished successfully")
-            return result
-
-    tests = {
-        basic_get,
-        basic_options,
-        unknown_method,
-        unauthorized_activity,
-        nonexistant_object,
-        malformed_method_line,
-        long_url_ranges,
-        long_default_ranges,
-        many_header_ranges,
-        large_header_ranges,
-        unavailable_accept,
-        fake_content_length,
-    }
-
-    for test in tests:
-        pool.apply_async(
-            func=logging_decorator,
-            args=(
-                test,
-                url,
-            ),
-        )
-
-    pool.close()
-    pool.join()
-    pool.terminate()
+        # Raise the exceptions found by the probes, if any
+        for result in results:
+            result.get()
+    finally:
+        pool.close()
+        pool.join()
 
     fingerprint["SYNTACTIC"]["HEADER_ORDER"] = winnow_ordered_list(
         fingerprint["SYNTACTIC"]["HEADER_ORDER"]
@@ -337,25 +254,25 @@ def get_fingerprint(url, threads):
 # Many tests are just "randomly" designed out of thin air
 # but many come from reading the RFC and looking for things
 # that implementors may have varied in implementations.
-def basic_get(url):
-    req = request(url)
+def basic_get(target):
+    req = request(target)
     res = req.submit()
     get_characteristics("basic_get", res)
 
 
-def basic_options(url):
-    req = request(url, method="OPTIONS")
+def basic_options(target):
+    req = request(target, method="OPTIONS")
     res = req.submit()
     get_characteristics("basic_options", res)
 
 
-def unknown_method(url):
-    req = request(url, method="QWERTY")
+def unknown_method(target):
+    req = request(target, method="QWERTY")
     res = req.submit()
     get_characteristics("unknown_method", res)
 
 
-def unauthorized_activity(url):
+def unauthorized_activity(target):
 
     # Removed the DELETE method so we don't remove a whole site without wanting to :)
     unauthorized_activities = (
@@ -375,13 +292,13 @@ def unauthorized_activity(url):
         "SEARCH",
     )
     for ua in unauthorized_activities:
-        req = request(url, method=ua)
+        req = request(target, method=ua)
         res = req.submit()
         get_characteristics("unauthorized_activity", res)
 
 
-def nonexistant_object(url):
-    req = request(url, local_uri="/asdfg.hjkl")
+def nonexistant_object(target):
+    req = request(target, local_uri="/asdfg.hjkl")
     res = req.submit()
     get_characteristics("nonexistant_object", res)
 
@@ -400,7 +317,7 @@ def nonexistant_object(url):
 #   - uppercase/lowercase
 
 
-def malformed_method_line(url):
+def malformed_method_line(target):
     malformed_methods = (
         "GET",  # 0 TODO: repeat all these with HEAD and OTHER
         "GET /",  # 1
@@ -460,10 +377,10 @@ def malformed_method_line(url):
         #      'HEAD http://some.host.com/ HTTP/1.0',
         #      'HEAD hTTP://some.host.com/ HTTP/1.0',
         #      'HEAD http://some.host.com HTTP/1.0',
-        f"HEAD {url} HTTP/1.0",
+        f"HEAD {target.host} HTTP/1.0",
         #'HEAD hTTP://$url/ HTTP/1.0',
         #'HEAD http://$url HTTP/1.0',
-        f"HEAD {url}",
+        f"HEAD {target.host}",
         "HEAD http:// HTTP/1.0",
         "HEAD http:/ HTTP/1.0",
         "HEAD http: HTTP/1.0",
@@ -539,53 +456,55 @@ def malformed_method_line(url):
     )
 
     # print len(malformed_methods)
-    for index, mm in zip(list(range(len(malformed_methods))), malformed_methods):
-        req = request(url)
+
+    for index, mm in enumerate(malformed_methods):
+        req = request(target)
         req.adhoc_method_line = mm
         res = req.submit()
         get_characteristics("MALFORMED_" + ("000" + str(index))[-3:], res)
 
 
-def large_binary_searcher(url, large_helper, largest, guesses=None):
-    if guesses is None:
-        guesses = []
-    ranges = [(x, large_helper(url, x)) for x in [1] + guesses + [largest]]
+def large_binary_searcher(target, large_helper, largest, guesses=()):
+    ranges = [(x, large_helper(target, x)) for x in [1, *guesses, largest]]
 
     while True:
         halfways = find_halfways(ranges)
         if not halfways:
             break
         for hw in halfways:
-            ranges.append((hw, large_helper(url, hw)))
+            ranges.append((hw, large_helper(target, hw)))
         ranges.sort()
 
-    ranges = minimize_ranges(ranges)
+    return minimize_ranges(ranges)
 
-    return ranges
+
+def group_ranges(ranges):
+    """
+    :param ranges: (size, response code) tuples, sorted by size
+    :return: Lists with the consecutive ranges which share the response code
+    """
+    grouped_ranges = []
+    for r in ranges:
+        if grouped_ranges and r[1] == grouped_ranges[-1][-1][1]:
+            grouped_ranges[-1].append(r)
+        else:
+            grouped_ranges.append([r])
+
+    return grouped_ranges
 
 
 def find_halfways(ranges):
     # assumes they are sorted
-    grouped_ranges = []
-    for r in ranges:
-        if len(grouped_ranges) == 0:
-            grouped_ranges.append([r])
-            continue
-        if r[1] == grouped_ranges[-1][-1][1]:
-            grouped_ranges[-1].append(r)
-            continue
-        grouped_ranges.append([r])
+    grouped_ranges = group_ranges(ranges)
 
     halfways = []
-    for i in range(len(grouped_ranges) - 1):
-        largest_previous = grouped_ranges[i][-1]
-        smallest_next = grouped_ranges[i + 1][0]
+    for previous_group, next_group in pairwise(grouped_ranges):
+        largest_previous = previous_group[-1]
+        smallest_next = next_group[0]
 
         if (smallest_next[0] - largest_previous[0]) == 1:
             continue
-        hw = ((smallest_next[0] - largest_previous[0]) / 2) + largest_previous[0]
-        if VERBOSE:
-            print((largest_previous, hw, smallest_next))
+        hw = ((smallest_next[0] - largest_previous[0]) // 2) + largest_previous[0]
         halfways.append(hw)
 
     return halfways
@@ -593,19 +512,8 @@ def find_halfways(ranges):
 
 def minimize_ranges(ranges):
     # assumes they are sorted
-    # TODO: this is the same code as above just copied!!!
-    grouped_ranges = []
-    for r in ranges:
-        if len(grouped_ranges) == 0:
-            grouped_ranges.append([r])
-            continue
-        if r[1] == grouped_ranges[-1][-1][1]:
-            grouped_ranges[-1].append(r)
-            continue
-        grouped_ranges.append([r])
-
     minimized = []
-    for gr in grouped_ranges:
+    for gr in group_ranges(ranges):
         minimized.append(gr[0])
         if len(gr) > 1:
             minimized.append(gr[-1])
@@ -617,19 +525,14 @@ def minimize_ranges(ranges):
 # TODO: remember that header size et all are configurable in apache
 
 
-def long_url_helper(url, size):
-    # long_name = 'a'*size
-    req = request(url, local_uri=("/" + ("a" * size)))
+def long_url_helper(target, size):
+    req = request(target, local_uri=("/" + ("a" * size)))
     res = req.submit()
     get_characteristics("LONG_URL_RANGES", res)
     return res.response_code
 
 
-# TODO: note that don't call get_characteristics
-#      since don't have a response to deal with here
-
-
-def long_url_ranges(url):
+def long_url_ranges(target):
     # TODO: base these on "best guess" of what talking to
     #      e.g. if think it's apache 1.3.9 then use those to avoid
     #      so many long requests
@@ -652,24 +555,26 @@ def long_url_ranges(url):
         8176,
         8177,
     ]
-    ranges = large_binary_searcher(url, long_url_helper, 10000, guesses=initial_guesses)
+    ranges = large_binary_searcher(
+        target, long_url_helper, 10000, guesses=initial_guesses
+    )
     add_characteristic("SEMANTIC", "LONG_URL_RANGES", ranges)
 
 
-def long_default_helper(url, size):
-    req = request(url, local_uri=("/" * size))
+def long_default_helper(target, size):
+    req = request(target, local_uri=("/" * size))
     res = req.submit()
     get_characteristics("LONG_DEFAULT_RANGES", res)
     return res.response_code
 
 
-def long_default_ranges(url):
-    ranges = large_binary_searcher(url, long_default_helper, 10000)
+def long_default_ranges(target):
+    ranges = large_binary_searcher(target, long_default_helper, 10000)
     add_characteristic("SEMANTIC", "LONG_DEFAULT_RANGES", ranges)
 
 
-def many_header_helper(url, size):
-    req = request(url)
+def many_header_helper(target, size):
+    req = request(target)
 
     for i in range(size):
         req.add_header(
@@ -682,54 +587,77 @@ def many_header_helper(url, size):
     return res.response_code
 
 
-def many_header_ranges(url):
+def many_header_ranges(target):
     initial_guesses = [99, 100, 228, 229]
     ranges = large_binary_searcher(
-        url, many_header_helper, 10000, guesses=initial_guesses
+        target, many_header_helper, 10000, guesses=initial_guesses
     )
     add_characteristic("SEMANTIC", "MANY_HEADER_RANGES", ranges)
 
 
-def large_header_helper(url, size):
-    req = request(url)
+def large_header_helper(target, size):
+    req = request(target)
     req.add_header("LARGE_HEADER", "a" * size)
     res = req.submit()
     get_characteristics("LARGE_HEADER_RANGES", res)
     return res.response_code
 
 
-def large_header_ranges(url):
+def large_header_ranges(target):
     initial_guesses = [
         8176,
         8177,
     ]
     ranges = large_binary_searcher(
-        url, large_header_helper, 10000, guesses=initial_guesses
+        target, large_header_helper, 10000, guesses=initial_guesses
     )
     add_characteristic("SEMANTIC", "LARGE_HEADER_RANGES", ranges)
 
 
-def unavailable_accept(url):
-    req = request(url)
+def unavailable_accept(target):
+    req = request(target)
     req.add_header("Accept", "qwer/asdf")
     res = req.submit()
     get_characteristics("unavailable_accept", res)
 
 
-def fake_content_length(url):
-    req = request(url)
+def fake_content_length(target):
+    req = request(target)
     req.add_header("Content-Length", "1000000000")
     req.body = "qwerasdfzxcv"
     res = req.submit()
     get_characteristics("fake_content_length", res)
 
 
-# TODO: put this global declaration somewhere easier to find....
+PROBES = (
+    basic_get,
+    basic_options,
+    unknown_method,
+    unauthorized_activity,
+    nonexistant_object,
+    malformed_method_line,
+    long_url_ranges,
+    long_default_ranges,
+    many_header_ranges,
+    large_header_ranges,
+    unavailable_accept,
+    fake_content_length,
+)
+
+# The characteristics of the server which is being fingerprinted
 fingerprint: dict[str, dict] = {
     "LEXICAL": {},
     "SYNTACTIC": {},
     "SEMANTIC": {},
 }
+
+# (header name, characteristic) of the headers whose values are compared
+ORDERED_HEADERS = (
+    ("Allow", "ALLOW_ORDER"),
+    ("Public", "PUBLIC_ORDER"),
+    ("Vary", "VARY_ORDER"),
+    ("ETag", "ETag"),
+)
 
 
 def add_characteristic(category, name, value, data_type=None):
@@ -744,54 +672,33 @@ def add_characteristic(category, name, value, data_type=None):
     if fingerprint[category][name] == value:
         return
     # create or add to list as necessary
-    if not isinstance(fingerprint[category][name], type([])):
+    if not isinstance(fingerprint[category][name], list):
         fingerprint[category][name] = [fingerprint[category][name], value]
     elif value not in fingerprint[category][name]:
         fingerprint[category][name].append(value)
 
 
 def get_characteristics(test_name, res):
-    if VERBOSE:
-        print(("processing", test_name))
-
     response_code, response_text = res.return_code()
-    claimed_servername = res.servername()
+    has_response_code = response_code not in NO_RESPONSE_CODES
 
-    if response_code not in ["NO_RESPONSE_CODE", "NO_RESPONSE"]:
+    if has_response_code:
         add_characteristic("LEXICAL", response_code, response_text)
-        add_characteristic("LEXICAL", "SERVER_NAME", claimed_servername)
+        add_characteristic("LEXICAL", "SERVER_NAME", res.servername())
 
     if test_name.endswith("RANGES"):
         return  # only need the code and text
 
-    if res.has_header("Allow"):
-        data = res.header_data("Allow")
-        add_characteristic("SYNTACTIC", "ALLOW_ORDER", data)
-
-    if res.has_header("Public"):
-        data = res.header_data("Public")
-        add_characteristic("SYNTACTIC", "PUBLIC_ORDER", data)
-
-    if res.has_header("Vary"):
-        data = res.header_data("Vary")
-        add_characteristic("SYNTACTIC", "VARY_ORDER", data)
+    for header_name, characteristic in ORDERED_HEADERS:
+        data = res.header_data(header_name)
+        if data is not None:
+            add_characteristic("SYNTACTIC", characteristic, data)
 
     if test_name.startswith("MALFORMED_"):
         add_characteristic("SEMANTIC", test_name, response_code)
 
-    if response_code not in ["NO_RESPONSE_CODE", "NO_RESPONSE"]:
-        header_names = res.header_names()
-        add_characteristic("SYNTACTIC", "HEADER_ORDER", header_names, data_type="LIST")
-    else:
-        ### Added by APR to solve a wierd exception....
-        add_characteristic("SYNTACTIC", "HEADER_ORDER", [], data_type="LIST")
-
-    if res.has_header("ETag"):
-        data = res.header_data("ETag")
-        add_characteristic("SYNTACTIC", "ETag", data)
-    elif res.has_header("Etag"):
-        data = res.header_data("Etag")
-        add_characteristic("SYNTACTIC", "ETag", data)
+    header_names = res.header_names() if has_response_code else []
+    add_characteristic("SYNTACTIC", "HEADER_ORDER", header_names, data_type="LIST")
 
 
 # 'HEADER_ORDER': [   [   'Date',
@@ -807,295 +714,175 @@ def get_characteristics(test_name, res):
 #                        'Content-Length',
 #                        'Allow',
 #                        'Connection'],
-#                    [   'Date',
-#                        'Server',
-#                        'Allow',
-#                        'Connection'],
-#                    ['Date', 'Server', 'Connection'],
-#                    [   'Date',
-#                        'Server',
-#                        'Connection',
-#                        'Transfer-Encoding'],
-#                    [   'Date',
-#                        'Server',
-#                        'Alternates',
-#                        'Vary',
-#                        'TCN',
-#                        'Connection']],
+#                    ['Date', 'Server', 'Connection']],
 # clean up redundancies in lists of lists
 
 
 def winnow_ordered_list(ordered_list):
-    # print ordered_list
     if len(ordered_list) < 2:
-        # print 'ordered_list too small to look at'
-        return
+        return ordered_list
 
     ordered_list.sort(key=len)
-    # print 'sorted order', ordered_list
 
-    index = 0
     result = []
-    for index, elem in zip(list(range(len(ordered_list) - 1)), ordered_list):
-        is_ok = 1
-        for other in ordered_list[index + 1 :]:
-            if is_partial_ordered_sublist(elem, other):
-                # print elem,'is sublist of', other
-                is_ok = 0
-                break
-        if is_ok:
+    for index, elem in enumerate(ordered_list[:-1]):
+        if not any(
+            is_partial_ordered_sublist(elem, other)
+            for other in ordered_list[index + 1 :]
+        ):
             result.append(elem)
     result.append(ordered_list[-1])
-    # print result
     return result
 
 
 def is_partial_ordered_sublist(small, large):
     if len(small) > len(large):
-        return 0
-    if small == large:
-        return 1
-    presort = []
+        return False
+
     try:
-        presort = [large.index(x) for x in small]
+        positions = [large.index(x) for x in small]
     except ValueError:
-        return 0
-    postsort = sorted(presort[:])
-    # print presort, postsort
-    if -1 in presort or presort != postsort:
-        return 0
-    return 1
+        return False
+
+    return positions == sorted(positions)
 
 
 ######################################################################
 # Functions for comparing to known profiles
 #
 
+LEXICAL_CODES = (
+    "200",
+    "207",
+    "301",
+    "302",
+    "400",
+    "401",
+    "403",
+    "404",
+    "405",
+    "406",
+    "411",
+    "413",
+    "414",
+    "500",
+    "501",
+)
+
+SEMANTIC_NAMES = (
+    *("MALFORMED_" + ("000" + str(num))[-3:] for num in range(105)),
+    "LONG_URL_RANGES",
+    "LONG_DEFAULT_RANGES",
+)
+
 
 def find_most_similar(known_servers, subject):
+    """
+    :return: [server, (matches, mismatches, unknowns)] for each known server
+    """
+    return [[server, compare_fingerprints(server, subject)] for server in known_servers]
 
-    scores = []
 
-    # TODO: make each of these it's own function....
+def compare_fingerprints(server, subject):
+    matches = 0
+    mismatches = 0
+    unknowns = 0
 
-    for server in known_servers:
-        matches = 0
-        mismatches = 0
-        unknowns = 0
+    # LEXICAL
+    for code in LEXICAL_CODES:
+        known_server_text = server["LEXICAL"].get(code, "")
+        subject_server_text = subject["LEXICAL"].get(code, "")
 
-        # LEXICAL
-        codes = (
-            "200",
-            "207",
-            "301",
-            "302",
-            "400",
-            "401",
-            "403",
-            "404",
-            "405",
-            "406",
-            "411",
-            "413",
-            "414",
-            "500",
-            "501",
-        )
-        for code in codes:
-            known_server_text = ""
-            subject_server_text = ""
-            if code in server["LEXICAL"]:
-                known_server_text = server["LEXICAL"][code]
-            if code in subject["LEXICAL"]:
-                subject_server_text = subject["LEXICAL"][code]
-
-            if known_server_text == "" or subject_server_text == "":
-                unknowns += 1
-            elif known_server_text == subject_server_text:
-                matches += 1
-            else:
-                mismatches += 1
-
-        # SYNTACTIC
-        # allow order
-        known_server_allows = ""
-        subject_server_allows = ""
-        if "ALLOW_ORDER" in server["SYNTACTIC"]:
-            known_server_allows = server["SYNTACTIC"]["ALLOW_ORDER"]
-        if "ALLOW_ORDER" in subject["SYNTACTIC"]:
-            subject_server_allows = subject["SYNTACTIC"]["ALLOW_ORDER"]
-
-        if known_server_allows and subject_server_allows:
-            if known_server_allows == subject_server_allows:
-                matches += 1
-            else:
-                mismatches += 1
-        else:
+        if known_server_text == "" or subject_server_text == "":
             unknowns += 1
-
-        ## etag match
-        # check if server has ETag and subject has ETag
-        #   if either not then unknonw
-        # if subject matches server by regex
-        #   matches += 1
-        # else
-        #   mismatches += 1
-
-        # SEMANTIC
-        # malformed_???
-        for num in range(105):
-            malformed = "MALFORMED_" + ("000" + str(num))[-3:]
-            known_server_mal = server["SEMANTIC"][malformed]
-            subject_server_mal = subject["SEMANTIC"][malformed]
-
-            if known_server_mal == subject_server_mal:
-                matches += 1
-            else:
-                mismatches += 1
-
-        # long ranges
-        known_server_long_url = server["SEMANTIC"]["LONG_URL_RANGES"]
-        subject_server_long_url = subject["SEMANTIC"]["LONG_URL_RANGES"]
-        if known_server_long_url == subject_server_long_url:
+        elif known_server_text == subject_server_text:
             matches += 1
-            # print 'LONG_URL_RANGES match', server['LEXICAL']['SERVER_NAME']
-            # print known_server_long_url
         else:
             mismatches += 1
 
-        # long default "/" ranges
-        known_server_long_default = server["SEMANTIC"]["LONG_DEFAULT_RANGES"]
-        subject_server_long_default = subject["SEMANTIC"]["LONG_DEFAULT_RANGES"]
-        if known_server_long_default == subject_server_long_default:
-            matches += 1
-            # print 'LONG_URL_DEFAULT_RANGES match', server['LEXICAL']['SERVER_NAME']
-            # print known_server_long_default
-        else:
-            mismatches += 1
+    # SYNTACTIC
+    # allow order
+    known_server_allows = server["SYNTACTIC"].get("ALLOW_ORDER", "")
+    subject_server_allows = subject["SYNTACTIC"].get("ALLOW_ORDER", "")
 
-        # unique header exists
-        # e.g. X-Pad, etc - or just do ALL known headers....
-
-        scores.append([server, (matches, mismatches, unknowns)])
-
-    return scores
-
-
-# [a,b,c,e,f] and [a,c,d,f,g] are both ordered the same.....
-# -1/0/1 = no/maybe/yes
-# TODO: get this working....
-
-
-def partial_same_order(list1, list2):
-    common = {}
-    # print 'comparing lists: ',list1,list2
-    for x in list1 + list2:
-        if x not in common:
-            common[x] = 0
-        common[x] += 1
-    common_items = {}
-    # common_items = [common_items[k] = v for k,v in common if v == 2]
-    for k, v in common:
-        if v == 2:
-            common[k] = v
-    common1 = []  # is there a simple way??
-    common2 = []
-    for i in list1:
-        if i in common_items:
-            common1.append(i)
-    for i in list2:
-        if i in common_items:
-            common2.append(i)
-
-    # print common1,common2
-    if common1 == []:
-        return 0
-    elif common1 == common2:
-        return 1
+    if not (known_server_allows and subject_server_allows):
+        unknowns += 1
+    elif known_server_allows == subject_server_allows:
+        matches += 1
     else:
-        return -1
+        mismatches += 1
+
+    # SEMANTIC
+    # malformed method lines, long URL and long default "/" ranges
+    for name in SEMANTIC_NAMES:
+        if server["SEMANTIC"][name] == subject["SEMANTIC"].get(name):
+            matches += 1
+        else:
+            mismatches += 1
+
+    return matches, mismatches, unknowns
 
 
-def usage():
-    print("""
-hmap is a web server fingerprinter.
+def load_known_servers(fingerprint_dir):
+    """
+    :return: The fingerprints of the known servers, read from the files which
+             ship with w3af and contain Python literal data.
+    """
+    known_servers = []
 
-hmap [-hpgn] {url | filename}
+    for f in sorted(glob.glob(os.path.join(fingerprint_dir, "*"))):
+        with open(f) as ksf:
+            signature_source = ksf.read()
 
-e.g.
-   hmap http://localhost:82
+        try:
+            known_servers.append(ast.literal_eval(signature_source))
+        except (SyntaxError, ValueError) as exc:
+            raise BaseFrameworkException(
+                'The signature file "' + f + '" has an invalid syntax.'
+            ) from exc
 
-   hmap -p www.somehost.net.80
+    return known_servers
 
--h         this info...
--n         show this many of the top possible matches
--p         run with a prefetched file
--g         gather only (don't do comparison)
--c         show this many closest matches
-""")
-    sys.exit()
+
+def write_fingerprint_file(fp, server):
+    """
+    Write the fingerprint to a file in the current directory, so the user can
+    send it to the w3af developers.
+
+    :return: The name of the fingerprint file
+    """
+    filename = f"hmap-fingerprint-{server}-0"
+
+    try:
+        with open(filename, "w") as fd:
+            pprint.PrettyPrinter(stream=fd).pprint(fp)
+    except OSError as e:
+        raise BaseFrameworkException(
+            "Cannot open fingerprint file. Error:" + str(e)
+        ) from e
+
+    return filename
 
 
 ######################################################################
 # This was added by Andres Riancho to make hmap work inside w3af
 # it is a "copy" of the "main" with a lot of default parameters :P
-VERBOSE = 0
-PORT = 80
-useSSL = False
 
 
-def testServer(ssl, server, port, matchCount, generateFP, threads):
-    global VERBOSE
-    global PORT
-    global useSSL
-    VERBOSE = 0
-    PORT = port
-    useSSL = ssl
+def testServer(use_ssl, server, port, matchCount, generateFP, threads):
+    fp = get_fingerprint(Target(server, port, use_ssl), threads)
+    known_servers = load_known_servers(KNOWN_SERVERS_DIR)
 
-    MATCH_COUNT = matchCount
-    fingerprintDir = os.path.join(
-        ROOT_PATH, "plugins", "infrastructure", "oHmap", "known.servers/"
+    if generateFP:
+        write_fingerprint_file(fp, server)
+
+    scores = find_most_similar(known_servers, fp)
+    # Some known servers have a list of names, compare them as strings
+    scores.sort(
+        key=lambda score: (-score[1][0], str(score[0]["LEXICAL"]["SERVER_NAME"]))
     )
 
-    # Get the fingerprint
-    target_url = server
-    fp = get_fingerprint(target_url, threads)
-
-    # Read the fingerprint db
-    known_servers = []
-    for f in glob.glob(fingerprintDir + "*"):
-        with open(f) as ksf:
-            signature_source = ksf.read()
-        # Fingerprint files ship with w3af and contain Python literal data.
-        try:
-            ks = ast.literal_eval(signature_source)
-        except (SyntaxError, ValueError, TypeError, NameError) as exc:
-            raise BaseFrameworkException(
-                'The signature file "' + f + '" has an invalid syntax.'
-            ) from exc
-        known_servers.append(ks)
-
-    # Generate the fingerprint file
-    if generateFP:
-        for i in range(10):
-            try:
-                with open("hmap-fingerprint-" + server + "-" + str(i), "w") as fd:
-                    import pprint
-
-                    pprint.PrettyPrinter(stream=fd).pprint(fp)
-            except OSError as e:
-                raise BaseFrameworkException(
-                    "Cannot open fingerprint file. Error:" + str(e)
-                ) from e
-            break
-
-    # Compare
-    scores = find_most_similar(known_servers, fp)
-
-    scores.sort(key=lambda score: (-score[1][0], score[0]["LEXICAL"]["SERVER_NAME"]))
-
-    res = []
-    for server_entry, (matches, mismatches, unknowns) in scores[:MATCH_COUNT]:
-        res.append(server_entry["LEXICAL"]["SERVER_NAME"])
-
-    return res
+    return [
+        server_entry["LEXICAL"]["SERVER_NAME"]
+        for server_entry, _ in scores[:matchCount]
+    ]

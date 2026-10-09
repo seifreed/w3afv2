@@ -20,8 +20,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
+import unittest
 from typing import ClassVar
 
+from w3af.plugins.infrastructure.jetleak import jetleak
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 
@@ -94,3 +96,27 @@ class TestNoJetLeak(PluginTest):
         vulns = self.kb.get("jetleak", "jetleak")
 
         self.assertEqual(len(vulns), 0, vulns)
+
+
+class TestJettyBadRequest(PluginTest):
+
+    target_url = "http://httpretty/"
+
+    class BadRequestMockResponse(MockResponse):
+        def get_response(self, http_request, uri, response_headers):
+            return 400, response_headers, "Bad request", "Bad Request"
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        BadRequestMockResponse(re.compile(".*"), body=None, method="GET")
+    ]
+
+    def test_bad_request_without_jetleak_reason(self):
+        plugins = {"infrastructure": (PluginConfig("jetleak"),)}
+        self._scan(self.target_url, plugins)
+
+        self.assertEqual(self.kb.get("jetleak", "jetleak"), [])
+
+
+class TestJetLeakDescription(unittest.TestCase):
+    def test_long_desc_names_the_cve(self):
+        self.assertIn("CVE-2015-2080", jetleak().get_long_desc())

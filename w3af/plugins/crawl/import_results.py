@@ -21,8 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import base64
-import os
-from typing import ClassVar
 
 from lxml import etree
 from lxml.etree import XMLSyntaxError
@@ -73,9 +71,6 @@ class import_results(CrawlPlugin):
         if not self._input_base64:
             return
 
-        if not os.path.isfile(self._input_base64):
-            return
-
         try:
             with open(self._input_base64, "rb") as file_handler:
                 lines = file_handler.readlines()
@@ -87,17 +82,13 @@ class import_results(CrawlPlugin):
         for line in lines:
             line = line.strip()
 
-            # Support empty lines
-            if not line:
-                continue
-
-            # Support comments
-            if line.startswith("#"):
+            # Support empty lines and comments
+            if not line or line.startswith(b"#"):
                 continue
 
             try:
                 fuzzable_request = FuzzableRequest.from_base64(line)
-            except ValueError:
+            except (ValueError, BaseFrameworkException):
                 om.out.debug(f'Invalid import_results input: "{line!r}"')
             else:
                 self.output_queue.put(fuzzable_request)
@@ -109,12 +100,9 @@ class import_results(CrawlPlugin):
         if not self._input_burp:
             return
 
-        if not os.path.isfile(self._input_burp):
-            return
-
         try:
             fuzzable_request_list = self._objs_from_burp_log(self._input_burp)
-        except BaseFrameworkException as e:
+        except (OSError, BaseFrameworkException) as e:
             msg = (
                 "An error was found while trying to read the Burp log"
                 ' file (%s): "%s".'
@@ -128,12 +116,13 @@ class import_results(CrawlPlugin):
         """
         Read a burp log (XML) and extract the information.
         """
-        xp = BurpParser()
-        parser = etree.XMLParser(target=xp, resolve_entities=False)
+        parser = etree.XMLParser(target=BurpParser(), resolve_entities=False)
+
+        with open(burp_file, "rb") as burp_fh:
+            burp_log = burp_fh.read()
 
         try:
-            with open(burp_file) as burp_fh:
-                requests = etree.fromstring(burp_fh.read(), parser)
+            return etree.fromstring(burp_log, parser)
         except XMLSyntaxError as xse:
             msg = (
                 "The Burp input file is not a valid XML document. The"
@@ -141,8 +130,6 @@ class import_results(CrawlPlugin):
             )
             om.out.error(msg % xse)
             return []
-
-        return requests
 
     def get_options(self):
         """
@@ -194,54 +181,54 @@ class import_results(CrawlPlugin):
 
 class BurpParser:
     """
-    TODO: Support protocol (http|https) and port extraction. Now it only
-          works with http and 80.
-    """
+    lxml parser target which builds a FuzzableRequest from each <request> in
+    a Burp log, for example:
 
-    requests: ClassVar[list] = []
-    parsing_request = False
-    current_is_base64 = False
-
-    def start(self, tag, attrib):
-        """
         <request base64="true"><![CDATA[R0VUI...4zDQoNCg==]]></request>
 
-        or
+    or
 
         <request base64="false"><![CDATA[GET /w3af/ HTTP/1.1
         Host: moth
         ...
         ]]></request>
-        """
-        if tag == "request":
-            self.parsing_request = True
 
-            if not "base64" in attrib:
-                # Invalid file?
-                return
+    TODO: Support protocol (http|https) and port extraction. Now it only
+          works with http and 80.
+    """
 
-            use_base64 = attrib["base64"]
-            if use_base64.lower() == "true":
-                self.current_is_base64 = True
-            else:
-                self.current_is_base64 = False
+    def __init__(self):
+        self.requests = []
+        self._request_chunks = None
+        self._is_base64 = False
+
+    def start(self, tag, attrib):
+        if tag != "request":
+            return
+
+        self._request_chunks = []
+        self._is_base64 = attrib.get("base64", "false").lower() == "true"
 
     def data(self, data):
-        if self.parsing_request:
-            if not self.current_is_base64:
-                request_text = data
-                head, postdata = request_text.split("\n\n", 1)
-            else:
-                request_text_b64 = data
-                request_text = base64.b64decode(request_text_b64)
-                head, postdata = request_text.split("\r\n\r\n", 1)
-
-            fuzzable_request = http_request_parser(head, postdata)
-            self.requests.append(fuzzable_request)
+        if self._request_chunks is not None:
+            self._request_chunks.append(data)
 
     def end(self, tag):
-        if tag == "request":
-            self.parsing_request = False
+        if tag != "request":
+            return
+
+        request_text = "".join(self._request_chunks)
+        self._request_chunks = None
+        self.requests.append(self._parse_request(request_text))
+
+    def _parse_request(self, request_text):
+        if self._is_base64:
+            request_text = base64.b64decode(request_text).decode("utf-8")
+            head, _, postdata = request_text.partition("\r\n\r\n")
+        else:
+            head, _, postdata = request_text.partition("\n\n")
+
+        return http_request_parser(head, postdata)
 
     def close(self):
         return self.requests
