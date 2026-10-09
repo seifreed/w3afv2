@@ -58,7 +58,8 @@ class IntegrationTest(unittest.TestCase):
 
         for _file in os.listdir(tempdir):
             if fnmatch.fnmatch(_file, "w3af-crash*.txt"):
-                crash = open(os.path.join(tempdir, _file)).read()
+                with open(os.path.join(tempdir, _file)) as crash_file:
+                    crash = crash_file.read()
 
                 # https://circleci.com/gh/andresriancho/w3af/2041
                 if "failing_spider" in crash:

@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import pprint
 
 import w3af.core.controllers.output_manager as om
@@ -28,6 +29,8 @@ from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.ui.console.help import HelpContainer, helpMainRepository
 from w3af.core.ui.console.history import history
 from w3af.core.ui.console.util import splitPath, suggest
+
+LOGGER = logging.getLogger(__name__)
 
 
 class menu:
@@ -86,11 +89,9 @@ class menu:
             self._handlers[cmd[5:]] = getattr(self, cmd)
 
         for cmd in list(self._handlers.keys()):
-            try:
-                pHandler = getattr(self, "_para_" + cmd)
+            pHandler = getattr(self, "_para_" + cmd, None)
+            if pHandler is not None:
                 self._paramHandlers[cmd] = pHandler
-            except:
-                pass
 
     def _load_help(self, name, vars=None):
         helpMainRepository.load_help(name, self._help, vars)
@@ -118,12 +119,12 @@ class menu:
                 result += suggest(self.get_children(), part)
             return result
         else:
-            try:
-                # delegate to the children
-                subMenu = self.get_children()[first]
-                return subMenu.suggest_commands(rest, True)
-            except:
+            children = self.get_children()
+            if children is None or first not in children:
                 return []
+
+            # delegate to the children
+            return children[first].suggest_commands(rest, True)
 
     def suggest_params(self, command, params, part):
         if command in self._paramHandlers:
@@ -149,10 +150,7 @@ class menu:
         return self._children
 
     def get_handler(self, command):
-        try:
-            return self._handlers[command]
-        except:
-            return None
+        return self._handlers.get(command)
 
     def set_child_call(self, true_false):
         """
@@ -220,7 +218,8 @@ class menu:
         eval_variable = " ".join(params)
         try:
             res = eval(eval_variable, small_globals, small_locals)
-        except:
+        except Exception:
+            LOGGER.debug("Failed to evaluate %r", eval_variable, exc_info=True)
             om.out.console("Unknown variable.")
         else:
             pp = pprint.PrettyPrinter(indent=4)

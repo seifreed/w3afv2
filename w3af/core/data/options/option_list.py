@@ -82,7 +82,7 @@ class OptionList:
         """
         try:
             item_name = int(item_name)
-        except:
+        except (TypeError, ValueError):
             # A string
             for o in self._internal_opt_list:
                 if o.get_name() == item_name:

@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import copy
+import logging
 import sys
 import textwrap
 
@@ -29,6 +30,8 @@ from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.ui.console.config import ConfigMenu
 from w3af.core.ui.console.menu import menu
 from w3af.core.ui.console.util import suggest
+
+LOGGER = logging.getLogger(__name__)
 
 
 class pluginsMenu(menu):
@@ -79,19 +82,10 @@ class pluginsMenu(menu):
             return self._cmd_list(tokens)
         return menu.execute(self, tokens)
 
-    #    def _cmd_config(self, params):
-    #        try:
-    #            type = params[0]
-    #            subMenu = self._children[type]
-    #        except:
-    #            self._cmd_help(['config'])
-    #        else:
-    #            subMenu._list(params[1:])
     def _cmd_list(self, params):
         try:
-            type = params[0]
-            subMenu = self._children[type]
-        except:
+            subMenu = self._children[params[0]]
+        except (IndexError, KeyError):
             self._cmd_help(["list"])
         else:
             subMenu._list(params[1:])
@@ -121,6 +115,7 @@ class pluginsTypeMenu(menu):
                     self._name, p
                 ).get_options()
             except Exception as e:
+                LOGGER.debug("Failed to read plugin options", exc_info=True)
                 om.out.error(f'Error while reading plugin options: "{e}"')
                 sys.exit(-8)
             else:

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import http.client
 import sys
 import time
 import urllib.error
@@ -34,7 +35,7 @@ def is_online(url, match_string):
         content = urllib.request.urlopen(url).read()
     except urllib.error.HTTPError as e:
         content = e.read()
-    except Exception as e:
+    except (OSError, http.client.HTTPException) as e:
         print(f"{url} is offline ({e.__class__.__name__})")
         return False
 

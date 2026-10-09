@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import contextlib
 import os
 import threading
 import urllib.error
@@ -27,7 +28,10 @@ import urllib.request
 
 from w3af.core.data.url.tests.helpers.http_daemon import HTTPDaemon
 from w3af.core.ui.tests.gui import GUI_TEST_ROOT_PATH
-from w3af.core.ui.tests.wrappers.xpresser_unittest import XpresserUnittest
+from w3af.core.ui.tests.wrappers.xpresser_unittest import (
+    ImageNotFound,
+    XpresserUnittest,
+)
 
 
 class TestProxy(XpresserUnittest):
@@ -69,14 +73,12 @@ class TestProxy(XpresserUnittest):
 
         def ui_clicker():
             # Click on the proxy button that will forward the request
-            try:
+            with contextlib.suppress(ImageNotFound):
                 self.find("GET_http")
                 self.click("send-request")
                 self.find("200_OK")
                 self.click("next_request")
                 self.find("empty_intercept")
-            except:
-                pass
 
         t = threading.Thread(target=ui_clicker)
         t.start()

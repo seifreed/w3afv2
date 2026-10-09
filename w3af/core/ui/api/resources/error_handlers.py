@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import sys
 import traceback
 from os.path import basename
@@ -28,6 +29,8 @@ from flask import jsonify
 
 from w3af.core.ui.api import app
 from w3af.core.ui.api.utils.auth import requires_auth
+
+LOGGER = logging.getLogger(__name__)
 
 
 @app.errorhandler(404)
@@ -75,6 +78,7 @@ def error_500_handler(error):
         )
     except Exception as e:
         # I don't want to fail in the exception handler
+        LOGGER.debug("Failed to build the error response", exc_info=True)
         response = jsonify(
             {
                 "code": 500,

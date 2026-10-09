@@ -9,16 +9,17 @@ def read_response(filename, _id):
     recording = False
     output = ""
 
-    for line in open(filename):
-        if line.startswith("=" * 40 + f"Response {_id} "):
-            recording = True
-            continue
+    with open(filename) as log_file:
+        for line in log_file:
+            if line.startswith("=" * 40 + f"Response {_id} "):
+                recording = True
+                continue
 
-        if recording and line.startswith("=" * 80):
-            break
+            if recording and line.startswith("=" * 80):
+                break
 
-        if recording:
-            output += line
+            if recording:
+                output += line
 
     return output
 
@@ -34,4 +35,5 @@ if __name__ == "__main__":
     for _id in ids:
         print(f"Processing response {_id}")
         response = read_response(filename, _id)
-        open(f"response-{_id}.txt", "w").write(response)
+        with open(f"response-{_id}.txt", "w") as response_file:
+            response_file.write(response)

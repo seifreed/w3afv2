@@ -42,6 +42,6 @@ class FloatOption(BaseOption):
     def validate(self, value):
         try:
             return float(value)
-        except Exception:
+        except (TypeError, ValueError, OverflowError) as e:
             msg = "Invalid float configured by user."
-            raise BaseFrameworkException(msg)
+            raise BaseFrameworkException(msg) from e

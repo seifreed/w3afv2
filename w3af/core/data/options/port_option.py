@@ -40,15 +40,13 @@ class PortOption(BaseOption):
         self._value = self.validate(value)
 
     def validate(self, value):
+        msg = "Invalid port specified, it needs to be a number between 1 and 65535."
         try:
             port = int(value)
-            assert port > 0
-            assert port < 65536
-        except:
-            msg = (
-                "Invalid port specified, it needs to be a number between"
-                " 1 and 65535."
-            )
+        except (TypeError, ValueError, OverflowError) as e:
+            raise BaseFrameworkException(msg) from e
+
+        if not 0 < port < 65536:
             raise BaseFrameworkException(msg)
-        else:
-            return port
+
+        return port

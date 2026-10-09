@@ -42,9 +42,9 @@ class PositiveIntegerOption(BaseOption):
     def validate(self, value):
         try:
             int_value = int(value)
-        except:
+        except (TypeError, ValueError, OverflowError) as e:
             msg = f'Invalid integer option value "{value}".'
-            raise BaseFrameworkException(msg)
+            raise BaseFrameworkException(msg) from e
         else:
             if int_value < 0:
                 msg = f'Expected a positive integer, got "{int_value}".'

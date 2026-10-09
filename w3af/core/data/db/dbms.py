@@ -212,10 +212,10 @@ class SQLiteDBMS:
             raise ValueError("create_table requires column names and types")
 
         if not isinstance(columns, list):
-            raise ValueError("create_table requires column names and types in a list")
+            raise TypeError("create_table requires column names and types in a list")
 
         if not isinstance(constraints, tuple):
-            raise ValueError("constraints requires constraints in a tuple")
+            raise TypeError("constraints requires constraints in a tuple")
 
         # Create the table
         query = f"CREATE TABLE {name} ("
@@ -340,11 +340,7 @@ class SQLiteExecutor(Process):
         return future
 
     def _select_handler(self, query, parameters):
-        result = self.cursor.execute(query, parameters)
-        result_lst = []
-        for row in result:
-            result_lst.append(row)
-        return result_lst
+        return list(self.cursor.execute(query, parameters))
 
     def commit(self):
         future = Future()
@@ -489,6 +485,7 @@ class SQLiteExecutor(Process):
                 future.set_exception(dbe)
 
             except Exception as e:
+                LOGGER.debug("Unhandled exception in DB worker thread", exc_info=True)
                 dbe = DBException(str(e))
                 future.set_exception(dbe)
 

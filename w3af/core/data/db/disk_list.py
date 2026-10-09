@@ -141,7 +141,7 @@ class DiskList:
                     "Complex classes like %s need to inherit from DiskItem"
                     " to be stored."
                 )
-                raise Exception(msg % type(obj))
+                raise TypeError(msg % type(obj))
 
             if isinstance(value, DiskItem):
                 value = self._get_attr_values_as_builtin(value)
@@ -250,13 +250,11 @@ class DiskList:
             index_ = len(self) + int(key) + 1
 
         query = f"SELECT pickle FROM {self.table_name} WHERE index_ = ?"
-        try:
-            r = self.db.select_one(query, (index_,))
-            obj = self._load(r[0])
-        except:
+        r = self.db.select_one(query, (index_,))
+        if r is None:
             raise IndexError("list index out of range")
-        else:
-            return obj
+
+        return self._load(r[0])
 
     def _slice_list(self, slice_inst):
         assert self._state == OPEN

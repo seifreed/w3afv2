@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import os
 import random
 import shlex
@@ -27,6 +28,8 @@ import sys
 import traceback
 
 from termcolor import colored
+
+LOGGER = logging.getLogger(__name__)
 
 try:
     import w3af.core.controllers.output_manager as om
@@ -163,6 +166,7 @@ class ConsoleUI:
                     c = term.getch()
                     self._handleKey(c)
                 except Exception as e:
+                    LOGGER.debug("Unhandled console input error", exc_info=True)
                     om.out.console(str(e))
 
             term.set_raw_input_mode(False)
@@ -233,7 +237,7 @@ class ConsoleUI:
             else:
                 self._paste(key)
         except Exception:
-            # TODO
+            LOGGER.debug("Unhandled error in key handler", exc_info=True)
             traceback.print_exc()
 
     def _backOrExit(self):
@@ -498,8 +502,8 @@ class ConsoleUI:
         messages_file = os.path.join(
             os.path.dirname(os.path.realpath(__file__)), "exitmessages.txt"
         )
-        f = open(messages_file, "r")
-        lines = f.readlines()
+        with open(messages_file) as messages:
+            lines = messages.readlines()
         idx = random.randrange(len(lines))
         line = lines[idx]
         return "\n" + line

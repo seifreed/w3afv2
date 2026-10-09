@@ -47,6 +47,6 @@ class QueryStringOption(BaseOption):
 
         try:
             return parse_qs(value)
-        except Exception:
+        except Exception as e:
             msg = "Invalid query string configured by user."
-            raise BaseFrameworkException(msg)
+            raise BaseFrameworkException(msg) from e

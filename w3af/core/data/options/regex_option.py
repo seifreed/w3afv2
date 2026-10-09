@@ -44,11 +44,11 @@ class RegexOption(BaseOption):
     def validate(self, value):
         try:
             re.compile(value)
-        except Exception as e:
+        except (re.error, TypeError) as e:
             msg = (
                 'The regular expression "%s" is invalid, the compilation'
                 ' error was: "%s".'
             )
-            raise BaseFrameworkException(msg % (value, e))
+            raise BaseFrameworkException(msg % (value, e)) from e
         else:
             return value

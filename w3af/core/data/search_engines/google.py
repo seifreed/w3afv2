@@ -161,7 +161,7 @@ class GoogleAPISearch:
     def _do_GET(self, url, with_rand_ua=True):
         if not isinstance(url, URL):
             msg = "The url parameter of a _do_GET must be of url.URL type."
-            raise ValueError(msg)
+            raise TypeError(msg)
 
         if with_rand_ua:
             random_ua = get_random_user_agent()
@@ -229,7 +229,7 @@ class GAjaxSearch(GoogleAPISearch):
                 resp = self._do_GET(google_url_instance)
             except Exception as e:
                 msg = 'Failed to GET google.com AJAX API: "%s"'
-                raise BaseFrameworkException(msg % e)
+                raise BaseFrameworkException(msg % e) from e
 
             try:
                 # Parse the response. Convert the json string into a py dict.
@@ -430,7 +430,7 @@ class GoogleResult:
                 "The url __init__ parameter of a GoogleResult object must"
                 " be of url.URL type."
             )
-            raise ValueError(msg)
+            raise TypeError(msg)
 
         self.URL = url
 

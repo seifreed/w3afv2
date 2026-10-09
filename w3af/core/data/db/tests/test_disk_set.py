@@ -90,7 +90,7 @@ class TestDiskSet(unittest.TestCase):
         self.assertEqual(len(ds), 2)
 
         # This forces an internal change in the URL object
-        qsr2.get_url().url_string
+        _ = qsr2.get_url().url_string
         self.assertIn(qsr2, ds)
 
     def test_update(self):

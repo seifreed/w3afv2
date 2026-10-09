@@ -105,7 +105,7 @@ class InputFileOption(BaseOption):
                     'An exception occurred while encoding "%s" for storing'
                     ' into the profile: "%s"'
                 )
-                raise BaseFrameworkException(msg % (self._value, e))
+                raise BaseFrameworkException(msg % (self._value, e)) from e
 
         #
         #   Then the other options

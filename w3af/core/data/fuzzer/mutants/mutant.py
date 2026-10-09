@@ -174,8 +174,8 @@ class Mutant(DiskItem):
         )
 
         if token is not None:
-            msg += ' The modified parameter was "{}".'.format(
-                smart_str_ignore(token.get_name())
+            msg += (
+                f' The modified parameter was "{smart_str_ignore(token.get_name())}".'
             )
 
         return msg
@@ -214,7 +214,7 @@ class Mutant(DiskItem):
                 "mutant_cls parameter needs to be one of the known mutant"
                 " classes, not %s."
             )
-            raise ValueError(msg % mutant_cls)
+            raise TypeError(msg % mutant_cls)
 
         result = []
 
@@ -236,9 +236,11 @@ class Mutant(DiskItem):
 
                 # Only fuzz the specified parameters (if any)
                 # or fuzz all of them (the fuzzable_param_list == [] case)
-                if fuzzable_param_list != []:
-                    if not token.get_name() in fuzzable_param_list:
-                        continue
+                if (
+                    fuzzable_param_list != []
+                    and token.get_name() not in fuzzable_param_list
+                ):
+                    continue
 
                 # Ok, now we have a data container with the mutant string,
                 # but it's possible that all the other fields of the data

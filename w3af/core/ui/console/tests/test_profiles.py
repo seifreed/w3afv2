@@ -92,8 +92,11 @@ class TestProfilesConsoleUI(ConsoleTestHelper):
         self.assertTrue(assert_result, msg)
 
     def test_load_profile_by_filepath(self):
-        tmp_profile = tempfile.NamedTemporaryFile(suffix=".pw3af")
-        commands_to_run = ["profiles", "help", "use " + tmp_profile.name, "exit"]
+        with tempfile.NamedTemporaryFile(suffix=".pw3af") as tmp_profile:
+            self._load_profile_by_filepath(tmp_profile.name)
+
+    def _load_profile_by_filepath(self, profile_path):
+        commands_to_run = ["profiles", "help", "use " + profile_path, "exit"]
 
         expected = (
             "The plugins configured by the scan profile have been enabled",

@@ -46,6 +46,6 @@ class HeaderOption(BaseOption):
 
         try:
             return Headers.from_string(value)
-        except Exception:
+        except Exception as e:
             msg = "Invalid HTTP header configured by user."
-            raise BaseFrameworkException(msg)
+            raise BaseFrameworkException(msg) from e

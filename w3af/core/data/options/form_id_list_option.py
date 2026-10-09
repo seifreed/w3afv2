@@ -47,4 +47,4 @@ class FormIDListOption(BaseOption):
             return FormIDMatcherList(value)
         except Exception as e:
             msg = f"Invalid form ID list configured by user, error: {e}."
-            raise BaseFrameworkException(msg)
+            raise BaseFrameworkException(msg) from e

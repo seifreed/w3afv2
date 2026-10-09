@@ -79,8 +79,8 @@ class TestOptionFactory(unittest.TestCase):
             IP: [("127.0.0.1", "127.0.0.1"), (None, None)],
         }
 
-        for _type in data:
-            for user_value, parsed_value in data[_type]:
+        for _type, values in data.items():
+            for user_value, parsed_value in values:
                 opt = opt_factory("name", user_value, "desc", _type, "help", "tab1")
 
                 self.assertEqual(opt.get_name(), "name")
@@ -122,8 +122,8 @@ class TestOptionFactory(unittest.TestCase):
             PORT: ["65536"],
         }
 
-        for _type in data:
-            for fake_value in data[_type]:
+        for _type, fake_values in data.items():
+            for fake_value in fake_values:
                 err = "%s for an option of type %s should raise an exception."
                 try:
                     opt_factory("name", fake_value, "desc", _type)

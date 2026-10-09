@@ -54,7 +54,7 @@ class RESTAPIOutput(OutputPlugin):
         # and (ab)used by the framework
         #
         # https://github.com/andresriancho/w3af/issues/11214
-        self.log = shelve.open(self.get_db_backend(), protocol=2)
+        self.log = shelve.DbfilenameShelf(self.get_db_backend(), protocol=2)
 
     def get_db_backend(self):
         if self._db_backend is None:
@@ -67,11 +67,7 @@ class RESTAPIOutput(OutputPlugin):
         return self._db_backend
 
     def cleanup(self):
-        try:
-            self.log.close()
-        except:
-            # Just in case we call cleanup twice on the same shelve
-            pass
+        self.log.close()
 
         if os.path.exists(self._db_backend):
             os.unlink(self._db_backend)

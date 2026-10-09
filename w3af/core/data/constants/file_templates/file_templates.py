@@ -34,7 +34,8 @@ def get_file_from_template(extension):
 
     template_file = os.path.join(TEMPLATE_DIR, f"template.{extension}")
     if os.path.exists(template_file):
-        file_content = open(template_file).read()
+        with open(template_file) as template_fh:
+            file_content = template_fh.read()
         success = True
     else:
         file_content = rand_alnum(64)

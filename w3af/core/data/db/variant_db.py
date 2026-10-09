@@ -146,12 +146,11 @@ class VariantDB:
                 self._log_return_false(fuzzable_request, "seen_exactly_the_same")
                 return False
 
-            if self._has_form(fuzzable_request):
-                if not self._need_more_variants_for_form(fuzzable_request):
-                    self._log_return_false(
-                        fuzzable_request, "need_more_variants_for_form"
-                    )
-                    return False
+            if self._has_form(
+                fuzzable_request
+            ) and not self._need_more_variants_for_form(fuzzable_request):
+                self._log_return_false(fuzzable_request, "need_more_variants_for_form")
+                return False
 
             if not self._need_more_variants_for_uri(fuzzable_request):
                 self._log_return_false(fuzzable_request, "need_more_variants_for_uri")

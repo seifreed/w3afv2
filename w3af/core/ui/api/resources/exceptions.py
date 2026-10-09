@@ -122,8 +122,8 @@ def exception_creator(scan_id):
     current_status.set_current_fuzzable_request("phase", "http://www.w3af.org/")
 
     try:
-        raise Exception("unittest")
-    except Exception as exception:
+        raise RuntimeError("unittest")
+    except RuntimeError as exception:
         exec_info = sys.exc_info()
         enabled_plugins = ""
 

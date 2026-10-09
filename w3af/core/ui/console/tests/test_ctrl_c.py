@@ -39,11 +39,17 @@ class TestHandleCtrlC(unittest.TestCase):
     SCRIPT = f"{ROOT_PATH}/core/ui/console/tests/data/spider_long.w3af"
 
     def prepare_script(self):
-        fhandler = tempfile.NamedTemporaryFile(
-            prefix="spider_long-", suffix=".w3af", dir=tempfile.tempdir, delete=False
-        )
-        fhandler.write(open(self.SCRIPT).read() % {"moth": get_moth_http()})
-        fhandler.close()
+        with open(self.SCRIPT) as script_template:
+            script = script_template.read() % {"moth": get_moth_http()}
+
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            prefix="spider_long-",
+            suffix=".w3af",
+            dir=tempfile.tempdir,
+            delete=False,
+        ) as fhandler:
+            fhandler.write(script)
         return fhandler.name
 
     def test_scan_ctrl_c(self):

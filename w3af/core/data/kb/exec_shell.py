@@ -105,13 +105,11 @@ class ExecShell(Shell):
             return "Remote file does not exist."
         else:
             try:
-                fh = open(local_filename, "w")
-            except:
+                with open(local_filename, "w") as fh:
+                    fh.write(remote_content)
+            except OSError:
                 return "Failed to open local file for writing."
-            else:
-                fh.write(remote_content)
-                fh.close()
-                return "Success."
+            return "Success."
 
     def upload(self, local_filename, remote_filename):
         """
@@ -125,14 +123,13 @@ class ExecShell(Shell):
         :return: The message to show to the user.
         """
         try:
-            fh = open(local_filename, "r")
-        except:
+            with open(local_filename) as fh:
+                file_content = fh.read()
+        except OSError:
             return "Failed to open local file for reading."
-        else:
-            file_content = fh.read()
-            fh.close()
-            self.write(remote_filename, file_content)
-            return "Success."
+
+        self.write(remote_filename, file_content)
+        return "Success."
 
     def write(self, remote_filename, file_content):
         """

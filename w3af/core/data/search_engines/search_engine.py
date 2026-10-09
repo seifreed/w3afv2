@@ -67,7 +67,7 @@ class SearchEngine:
                     f'search_engines.SearchEngine.search(): "{e!s}"'
                 )
                 LOGGER.error(msg)
-                raise BaseFrameworkException(msg)
+                raise BaseFrameworkException(msg) from e
             else:
                 len_before = len(result)
                 result.update(list(search_results))

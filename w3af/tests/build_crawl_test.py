@@ -74,51 +74,15 @@ def _main():
         elif opt in ("-o", "--output"):
             output = arg
 
-    try:
-        pages = int(pages)
-        assert pages >= 1
-    except:
-        print("Error in --pages parameter")
-        print()
-        print(USAGE)
-        sys.exit(1)
+    pages = _parse_number(pages, int, 1, "--pages")
+    parameters_per_page = _parse_number(
+        parameters_per_page, float, 0, "--parameters-per-page", exclusive=True
+    )
+    forms = _parse_number(forms, float, 0, "--forms", exclusive=True)
+    form_params = _parse_number(form_params, float, 1, "--form-params")
 
-    try:
-        parameters_per_page = float(parameters_per_page)
-        assert parameters_per_page > 0
-    except:
-        print("Error in --parameters-per-page parameter")
-        print()
-        print(USAGE)
-        sys.exit(1)
-
-    try:
-        forms = float(forms)
-        assert forms > 0
-    except:
-        print("Error in --forms parameter")
-        print()
-        print(USAGE)
-        sys.exit(1)
-
-    try:
-        form_params = float(form_params)
-        assert form_params >= 1
-    except:
-        print("Error in --form-params parameter")
-        print()
-        print(USAGE)
-        sys.exit(1)
-
-    try:
-        assert output is not None
-        assert os.path.exists(output)
-        assert os.path.isdir(output)
-    except:
-        print("Error in --output parameter")
-        print()
-        print(USAGE)
-        sys.exit(1)
+    if output is None or not os.path.isdir(output):
+        _usage_error("--output")
 
     generate_site(pages, parameters_per_page, forms, form_params, output)
     sys.exit(0)
@@ -206,6 +170,25 @@ def get_query_string_for_page(page_num, parameters_per_page):
     return "&".join(query_string)
 
 
+def _usage_error(parameter_name):
+    print(f"Error in {parameter_name} parameter")
+    print()
+    print(USAGE)
+    sys.exit(1)
+
+
+def _parse_number(value, number_type, minimum, parameter_name, exclusive=False):
+    try:
+        number = number_type(value)
+    except (TypeError, ValueError):
+        _usage_error(parameter_name)
+
+    if number < minimum or (exclusive and number == minimum):
+        _usage_error(parameter_name)
+
+    return number
+
+
 def generate_index_html(output):
     page_path = generate_page_path(0)
     page_filename = generate_page_filename(0)
@@ -214,7 +197,8 @@ def generate_index_html(output):
 
     index_html = render_index_html(href)
 
-    open(os.path.join(output, "index.html"), "w").write(index_html)
+    with open(os.path.join(output, "index.html"), "w") as index_file:
+        index_file.write(index_html)
 
 
 def get_probabilistic_count(count):
@@ -294,7 +278,8 @@ def generate_site(pages, parameters_per_page, forms, form_params, output):
             generated_forms.append(Form(action, params))
 
         page_content = render(title, hrefs, generated_forms)
-        open(output_file, "w").write(page_content)
+        with open(output_file, "w") as page_file:
+            page_file.write(page_content)
 
 
 if __name__ == "__main__":

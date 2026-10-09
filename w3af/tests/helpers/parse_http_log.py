@@ -38,36 +38,37 @@ def iter_http_request_responses(filename):
 
     _id = 1
 
-    for line in open(filename):
-        if line.startswith(REQUEST_START):
-            inside_request = True
-            continue
+    with open(filename) as log_file:
+        for line in log_file:
+            if line.startswith(REQUEST_START):
+                inside_request = True
+                continue
 
-        if line.startswith(REQUEST_END):
-            inside_request = False
-            inside_response = True
-            continue
+            if line.startswith(REQUEST_END):
+                inside_request = False
+                inside_response = True
+                continue
 
-        if line.startswith(RESPONSE_END):
-            inside_response = False
+            if line.startswith(RESPONSE_END):
+                inside_response = False
 
-            request = raw_http_request_parser(request_str)
-            response = raw_http_response_parser(response_str)
+                request = raw_http_request_parser(request_str)
+                response = raw_http_response_parser(response_str)
 
-            response.set_uri(request.get_uri())
-            response.set_id(_id)
+                response.set_uri(request.get_uri())
+                response.set_id(_id)
 
-            _id += 1
+                _id += 1
 
-            request_str = ""
-            response_str = ""
+                request_str = ""
+                response_str = ""
 
-            yield request, response
+                yield request, response
 
-            continue
+                continue
 
-        if inside_request:
-            request_str += line
+            if inside_request:
+                request_str += line
 
-        if inside_response:
-            response_str += line
+            if inside_response:
+                response_str += line

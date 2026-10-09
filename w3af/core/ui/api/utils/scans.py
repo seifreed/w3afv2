@@ -20,12 +20,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import os
 from tempfile import tempdir
 from uuid import uuid4
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.ui.api.db.master import SCANS
+
+LOGGER = logging.getLogger(__name__)
 
 
 def get_scan_info_from_id(scan_id):
@@ -44,7 +47,8 @@ def create_temp_profile(scan_profile):
     :return: The scan profile file name and the directory where it was created
     """
     scan_profile_file = os.path.join(tempdir, f"{uuid4()}.pw3af")
-    open(scan_profile_file, "w").write(scan_profile)
+    with open(scan_profile_file, "w") as profile_file:
+        profile_file.write(scan_profile)
 
     return scan_profile_file, tempdir
 
@@ -81,6 +85,7 @@ def start_scan_helper(scan_info):
         w3af_core.verify_environment()
         w3af_core.start()
     except Exception as e:
+        LOGGER.debug("Scan finished with an exception", exc_info=True)
         scan_info.exception = e
         try:
             w3af_core.stop()

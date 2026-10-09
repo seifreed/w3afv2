@@ -42,9 +42,12 @@ class table:
         self._colsRange = list(range(self._colsNum))
         self._separator = "|"
 
-    def draw(self, termWidth=terminal_width(), header=False, group=None, transf=None):
+    def draw(self, termWidth=None, header=False, group=None, transf=None):
         if len(self._rows) == 0:
             return
+
+        if termWidth is None:
+            termWidth = terminal_width()
 
         self._initRelWidthes(termWidth)
         self._justify()
