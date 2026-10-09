@@ -19,16 +19,14 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import os
+import hashlib
 import pickle
 import unittest
 from random import choice
 
 import msgpack
 import pytest
-from unittest import SkipTest
 
-from w3af import ROOT_PATH
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.misc.encoding import ESCAPED_CHAR, smart_unicode
 from w3af.core.data.parsers.doc.url import URL
@@ -54,11 +52,31 @@ class TestHTTPResponse(unittest.TestCase):
         return HTTPResponse(200, body, headers, url, url)
 
     def test_unicode_body_no_charset(self):
-        """
-        A charset *must* be passed as arg when creating a new
-        HTTPResponse; otherwise expect an error.
-        """
-        self.assertRaises(AssertionError, self.resp.get_body)
+        self.assertEqual(self.resp.get_body(), "body")
+        self.assertEqual(self.resp.get_charset(), DEFAULT_CHARSET)
+
+    def test_bytes_body_decodes_with_content_type_charset(self):
+        headers = Headers([("Content-Type", "text/html; charset=utf-8")])
+        response = self.create_resp(headers, "café".encode())
+        self.assertEqual(response.get_body(), "café")
+        self.assertEqual(response.get_charset(), "utf-8")
+
+    def test_binary_bytes_body_is_preserved(self):
+        url = URL("http://w3af.com")
+        headers = Headers([("Content-Type", "application/octet-stream")])
+        body = b"\x00\xff"
+        response = HTTPResponse(200, body, headers, url, url, binary_response=True)
+        self.assertEqual(response.get_body(), body)
+        self.assertEqual(response.get_raw_body(), body)
+        self.assertEqual(response.get_body_hash(), hashlib.sha256(body).hexdigest())
+        restored = HTTPResponse.from_dict(response.to_dict())
+        self.assertEqual(restored.get_body(), body)
+        self.assertEqual(restored.get_raw_body(), body)
+
+    def test_dump_decodes_bytes_for_text_output(self):
+        headers = Headers([("Content-Type", "text/html; charset=utf-8")])
+        response = self.create_resp(headers, "café".encode())
+        self.assertIn("\r\n\r\ncafé", response.dump())
 
     def test_raw_read_is_none(self):
         """
@@ -89,8 +107,8 @@ class TestHTTPResponse(unittest.TestCase):
             self.assertEqual(
                 True,
                 resp.is_text_or_html(),
-                "MIME type '%s' wasn't recognized as a valid '%s' type"
-                % (mimetype, HTTPResponse.DOC_TYPE_TEXT_OR_HTML),
+                f"MIME type '{mimetype}' wasn't recognized as a valid "
+                f"'{HTTPResponse.DOC_TYPE_TEXT_OR_HTML}' type",
             )
 
         # PDF
@@ -118,20 +136,20 @@ class TestHTTPResponse(unittest.TestCase):
             self.assertEqual(
                 True,
                 resp.is_image(),
-                "MIME type '%s' wasn't recognized as a valid '%s' type"
-                % (mimetype, HTTPResponse.DOC_TYPE_IMAGE),
+                f"MIME type '{mimetype}' wasn't recognized as a valid "
+                f"'{HTTPResponse.DOC_TYPE_IMAGE}' type",
             )
 
     def test_parse_response_with_charset_in_both_headers(self):
         # Ensure that the responses' bodies are correctly decoded (charset in
         # both the http and html). Only http charset is expected to be used.
         for body, charset in list(TEST_RESPONSES.values()):
-            hvalue = "text/html; charset=%s" % charset
+            hvalue = f"text/html; charset={charset}"
             body = (
                 '<meta http-equiv=Content-Type content="text/html;'
                 'charset=utf-16"/>' + body
             )
-            htmlbody = "%s" % body.encode(charset)
+            htmlbody = body.encode(charset)
             resp = self.create_resp(Headers([("Content-Type", hvalue)]), htmlbody)
             self.assertEqual(body, resp.get_body())
 
@@ -141,9 +159,9 @@ class TestHTTPResponse(unittest.TestCase):
         for body, charset in list(TEST_RESPONSES.values()):
             body = (
                 '<meta http-equiv=Content-Type content="text/html;'
-                "charset=%s/>" % charset
+                f'charset={charset}"/>'
             )
-            htmlbody = "%s" % body.encode(charset)
+            htmlbody = body.encode(charset)
             resp = self.create_resp(Headers(), htmlbody)
             self.assertEqual(body, resp.body)
 
@@ -166,7 +184,7 @@ class TestHTTPResponse(unittest.TestCase):
         for body, charset in list(TEST_RESPONSES.values()):
             html = body.encode(charset)
             headers = Headers(
-                [("Content-Type", "text/xml; charset=%s" % choice(("XXX", "utf-8")))]
+                [("Content-Type", f"text/xml; charset={choice(('XXX', 'utf-8'))}")]
             )
             resp = self.create_resp(headers, html)
             self.assertEqual(
@@ -251,7 +269,7 @@ class TestHTTPResponse(unittest.TestCase):
         resp = HTTPResponse(200, "", headers, url, url)
 
         # '\xc3\xb3' is o-tilde in utf-8
-        expected_dump = "HTTP/1.1 200 OK\r\nContent-Type: \xc3\xb3\r\n"
+        expected_dump = b"HTTP/1.1 200 OK\r\nContent-Type: \xc3\xb3\r\n"
 
         self.assertEqual(resp.dump_response_head(), expected_dump)
 
@@ -268,35 +286,6 @@ class TestHTTPResponse(unittest.TestCase):
 
         self.assertEqual(resp.dump_response_head(), expected_dump)
 
-    def test_http_response_with_binary_no_escape(self):
-
-        raise SkipTest("See: https://github.com/andresriancho/w3af/issues/15741")
-
-        # This test reproduces issue
-        # https://github.com/andresriancho/w3af/issues/15741
-        CONTENT_TYPES = ["application/binary", "image/jpeg", "binary", "text/html"]
-        TEST_FILE = os.path.join(
-            ROOT_PATH,
-            "core",
-            "controllers",
-            "misc",
-            "tests",
-            "data",
-            "code-detect-false-positive.jpg",
-        )
-
-        body = open(TEST_FILE).read()
-
-        # Note: This is failing when the body contains binary, the content-type
-        # is text/html, and the HTTPResponse object trusts the content-type
-        # received from the wire.
-        for content_type in CONTENT_TYPES:
-            headers = Headers([("Content-Type", content_type)])
-            resp = self.create_resp(headers, body)
-
-            msg = "Incorrect escape with %s!" % content_type
-            self.assertNotIn("\\xff\\xd8", resp.body, msg)
-
     def test_http_response_get_hash(self):
         html = "<html>hello world</html>"
         headers = Headers(
@@ -304,7 +293,13 @@ class TestHTTPResponse(unittest.TestCase):
         )
         resp = self.create_resp(headers, html)
 
-        self.assertEqual(resp.get_hash(), "803813234089059747495951793")
+        expected = hashlib.sha256(
+            resp.dump_response_head() + html.encode(DEFAULT_CHARSET)
+        ).hexdigest()
+        self.assertEqual(resp.get_hash(), expected)
+        self.assertEqual(
+            resp.get_body_hash(), hashlib.sha256(html.encode()).hexdigest()
+        )
 
     def test_dump_headers_exclude(self):
         html = "<html>hello world</html>"

@@ -157,6 +157,41 @@ observados en `HTTPResponse` terminan en la aserción que exige charset para un
 body `str`; no hay evidencia de que los cause el nuevo decode de bytes y tampoco
 se compararon con el commit anterior.
 
+La continuación corrigió el contrato de `HTTPResponse` para aceptar cuerpos
+`bytes` de `http.client`, decodificar texto según charset de cabecera o meta y
+preservar cuerpos binarios, incluidos los bytes crudos al deserializar. También
+se corrigió la búsqueda de charset: `re.IGNORECASE` se pasaba como posición de
+búsqueda en vez de como bandera. Los hashes de cuerpo/respuesta ahora se
+calculan de forma estable sobre bytes SHA-256; la búsqueda de callers estáticos
+no encontró consumidores de `HTTPResponse.get_hash()` ni `get_body_hash()` en
+el repositorio.
+
+La suite focalizada de respuesta, encoding e histórico obtuvo **40 éxitos y 1
+omitido**. La batería ampliada de encoding, headers, `HTTPResponse`, parser URL
+y multipart obtuvo **177 éxitos, 2 omitidos y 1 test excluido** (fixture binaria
+que el test intenta abrir como UTF-8). Se eliminó el test permanentemente
+omitido de `HTTPResponse` cuyo cuerpo no llegaba a ejecutarse. Black global
+vuelve a pasar (1967 archivos). Bandit en los dos módulos de producción
+modificados no reporta hallazgos; Ruff focal detecta solo los dos nombres de
+módulo CamelCase (`HTTPResponse.py`, `test_HTTPResponse.py`), convención que se
+mantiene para no romper imports establecidos. La última ejecución global de
+`ruff check --statistics .` informa **5776 hallazgos**. Mypy, Bandit global y
+pip-audit no se ejecutaron en esta continuación.
+
+Una batería exploratoria de consumidores (`FuzzableRequest`, medición RTT,
+plantillas, XML y proxy) obtuvo **12 éxitos y 38 fallos, con 2 warnings**. Los
+fallos visibles incluyen APIs incompatibles con Python 3.14 (`collections.Iterable`,
+`string.translate`, retorno de `__str__` como bytes y base64 de texto),
+concatenación de bytes/texto, apertura UTF-8 de una plantilla binaria y errores
+de integración del proxy con mitmproxy/servicios externos. No se comparó esta
+batería contra un checkout limpio, así que no se atribuyen los fallos al cambio
+de `smart_str`; deben tratarse como defectos o riesgos sin resolver.
+
+La nota global se mantiene en **2.5/10**: esta reparación cierra defectos
+concretos de Python 3 en `HTTPResponse`, pero no reduce los acoplamientos de
+capas, los módulos concentrados ni los fallos globales de calidad descritos
+arriba.
+
 ## Prioridades de refactor
 
 1. Establecer límites de capas y una regla automatizada que impida imports desde

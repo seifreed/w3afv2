@@ -21,13 +21,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import copy
+import hashlib
 import http.client
 import re
 import threading
 import urllib.error
 import urllib.parse
 import urllib.request
-import zlib
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.data.constants.encodings import DEFAULT_ENCODING
@@ -47,8 +47,10 @@ SP = " "
 CONTENT_TYPE = "content-type"
 STATUS_LINE = "HTTP/1.1 %s %s" + CRLF
 
-CHARSET_EXTRACT_RE = re.compile(r"charset=\s*?([\w-]+)")
-CHARSET_META_RE = re.compile(r'<meta.*?content=".*?charset=\s*?([\w-]+)".*?>')
+CHARSET_EXTRACT_RE = re.compile(r"charset=\s*?([\w-]+)", re.IGNORECASE)
+CHARSET_META_RE = re.compile(
+    r'<meta.*?content=".*?charset=\s*?([\w-]+)".*?>', re.IGNORECASE
+)
 DEFAULT_WAIT_TIME = 0.2
 
 
@@ -102,7 +104,7 @@ class HTTPResponse(DiskItem):
     ):
         """
         :param code: HTTP code
-        :param read: HTTP body text; typically a string
+        :param read: HTTP body bytes from the wire or already-decoded text
         :param headers: HTTP headers, typically a dict or a httplib.HTTPMessage
         :param geturl: URL object instance
         :param original_url: URL object instance
@@ -112,35 +114,39 @@ class HTTPResponse(DiskItem):
         :param alias: Alias for the response, this contains a hash that helps
                       the backend sqlite find http_responses faster by indexing
                       by this attr.
-        :param charset: Response's encoding; obligatory when `read` is unicode
+        :param charset: Response encoding, inferred when omitted
         """
         if not isinstance(geturl, URL):
-            msg = "Invalid type %s for HTTPResponse ctor param geturl."
-            raise TypeError(msg % type(geturl))
+            raise TypeError(
+                f"Invalid type {type(geturl)} for HTTPResponse ctor param geturl."
+            )
 
         if not isinstance(original_url, URL):
-            msg = "Invalid type %s for HTTPResponse ctor param original_url."
-            raise TypeError(msg % type(original_url))
+            raise TypeError(
+                f"Invalid type {type(original_url)} for HTTPResponse ctor param original_url."
+            )
 
         if not isinstance(headers, Headers):
-            msg = "Invalid type %s for HTTPResponse ctor param headers."
-            raise TypeError(msg % type(headers))
-
-        if not isinstance(read, str):
             raise TypeError(
-                "Invalid type %s for HTTPResponse ctor param read." % type(read)
+                f"Invalid type {type(headers)} for HTTPResponse ctor param headers."
+            )
+
+        if not isinstance(read, (str, bytes)):
+            raise TypeError(
+                f"Invalid type {type(read)} for HTTPResponse ctor param read."
             )
 
         self._charset = charset
         self._headers = None
 
-        if set_body and isinstance(read, str):
+        if set_body:
             # We use this case for deserialization via from_dict()
             #
             # The goal is to prevent the body to be analyzed for charset data
             # once again, since it was already done during to_dict() in the
             # get_body() call.
-            self._body = self._raw_body = read
+            self._body = read
+            self._raw_body = read if isinstance(read, bytes) else None
         else:
             self._body = None
             self._raw_body = read
@@ -320,13 +326,12 @@ class HTTPResponse(DiskItem):
         )
 
     def __repr__(self):
-        vals = {
-            "code": self.get_code(),
-            "url": str(self.get_url()),
-            "id": self.id and " | id:%s" % self.id or "",
-            "fcache": self._from_cache and " | fcache:True" or "",
-        }
-        return "<HTTPResponse | %(code)s | %(url)s%(id)s%(fcache)s>" % vals
+        response_id = f" | id:{self.id}" if self.id else ""
+        cache_marker = " | fcache:True" if self._from_cache else ""
+        return (
+            f"<HTTPResponse | {self.get_code()} | {self.get_url()}"
+            f"{response_id}{cache_marker}>"
+        )
 
     def set_id(self, _id):
         self.id = _id
@@ -347,12 +352,12 @@ class HTTPResponse(DiskItem):
         return self._code
 
     @staticmethod
-    def _quick_hash(text):
-        return "%s%s" % (hash(text), zlib.adler32(text))
+    def _hash_bytes(text):
+        return hashlib.sha256(text).hexdigest()
 
     def get_body_hash(self):
         body = smart_str_ignore(self.get_body())
-        return self._quick_hash(body)
+        return self._hash_bytes(body)
 
     def get_hash(self, exclude_headers=None):
         exclude_headers = [] or exclude_headers
@@ -360,10 +365,9 @@ class HTTPResponse(DiskItem):
         headers = self.dump_response_head(exclude_headers=exclude_headers)
         body = smart_str_ignore(self.get_body())
 
-        args = (headers, body)
-        dump = "%s%s" % args
+        dump = headers + body
 
-        return self._quick_hash(dump)
+        return self._hash_bytes(dump)
 
     def get_body(self):
         if self._body is not None:
@@ -380,11 +384,11 @@ class HTTPResponse(DiskItem):
 
     def set_body(self, body):
         """
-        Setter for body.
+        Set the response body as bytes or text.
 
-        @body: A string that represents the body of the HTTP response
+        :param body: The body of the HTTP response
         """
-        if not isinstance(body, str):
+        if not isinstance(body, (str, bytes)):
             msg = "Invalid type %s for set_body parameter body."
             raise TypeError(msg % type(body))
 
@@ -420,7 +424,7 @@ class HTTPResponse(DiskItem):
         if self._raw_body is not None:
             return len(self._raw_body)
 
-        value, stored_header_name = self._headers.iget("content-length")
+        value, _ = self._headers.iget("content-length")
         if value is not None:
             return value
 
@@ -483,7 +487,6 @@ class HTTPResponse(DiskItem):
     def get_headers(self):
         if self._headers is None:
             self.headers = self._info
-            assert self._headers is not None
         return self._headers
 
     def set_headers(self, headers):
@@ -512,7 +515,7 @@ class HTTPResponse(DiskItem):
                 self._content_type = (
                     content_type_hvalue.split(";", 1)[0].strip().lower()
                 )
-            except:
+            except AttributeError:
                 msg = 'Invalid Content-Type value "%s" sent in HTTP response.'
                 om.out.debug(msg % (content_type_hvalue,))
             else:
@@ -669,17 +672,23 @@ class HTTPResponse(DiskItem):
         headers = self.get_headers()
         content_type, _ = headers.iget(CONTENT_TYPE, None)
 
-        # Only try to decode <str> strings. Skip <unicode> strings
-        if type(raw_body) is str:
+        if isinstance(raw_body, str):
             _body = raw_body
-            assert charset is not None, (
-                "HTTPResponse objects containing "
-                "unicode body must have an associated "
-                "charset"
-            )
+            charset = charset or self.guess_charset(raw_body, headers)
         elif content_type is None:
-            _body = raw_body
-            charset = DEFAULT_CHARSET
+            body_text = (
+                raw_body.decode(DEFAULT_CHARSET, "ignore")
+                if isinstance(raw_body, bytes)
+                else raw_body
+            )
+            if CHARSET_META_RE.search(body_text):
+                charset = self.guess_charset(raw_body, headers)
+                _body = smart_unicode(
+                    raw_body, charset, errors=ESCAPED_CHAR, on_error_guess=False
+                )
+            else:
+                _body = raw_body
+                charset = charset or DEFAULT_CHARSET
 
             if _body:
                 msg = (
@@ -706,8 +715,8 @@ class HTTPResponse(DiskItem):
             except LookupError:
                 # Warn about a buggy charset
                 msg = (
-                    "Charset LookupError: unknown charset: %s; "
-                    "ignored and set to default: %s" % (charset, DEFAULT_CHARSET)
+                    f"Charset LookupError: unknown charset: {charset}; "
+                    f"ignored and set to default: {DEFAULT_CHARSET}"
                 )
                 om.out.debug(msg)
 
@@ -722,13 +731,18 @@ class HTTPResponse(DiskItem):
     def guess_charset(self, raw_body, headers):
         # Start with the headers
         content_type, _ = headers.iget(CONTENT_TYPE, None)
-        charset_mo = CHARSET_EXTRACT_RE.search(content_type, re.IGNORECASE)
+        charset_mo = CHARSET_EXTRACT_RE.search(content_type or "")
         if charset_mo:
             # Seems like the response's headers contain a charset
             charset = charset_mo.groups()[0].lower().strip()
         else:
             # Continue with the body's meta tag
-            charset_mo = CHARSET_META_RE.search(raw_body, re.IGNORECASE)
+            body_text = (
+                raw_body.decode(DEFAULT_CHARSET, "ignore")
+                if isinstance(raw_body, bytes)
+                else raw_body
+            )
+            charset_mo = CHARSET_META_RE.search(body_text)
             if charset_mo:
                 charset = charset_mo.groups()[0].lower().strip()
             else:
@@ -749,7 +763,6 @@ class HTTPResponse(DiskItem):
     def doc_type(self):
         if self._doc_type is None:
             self.headers = self._info
-            assert self._doc_type is not None
         return self._doc_type
 
     def is_text_or_html(self):
@@ -789,7 +802,7 @@ class HTTPResponse(DiskItem):
         status_line = self.get_status_line()
         dumped_headers = self.dump_headers(exclude_headers=exclude_headers)
 
-        dump_head = "%s%s" % (status_line, dumped_headers)
+        dump_head = f"{status_line}{dumped_headers}"
 
         if isinstance(dump_head, str):
             dump_head = dump_head.encode(self.charset, "replace")
@@ -801,13 +814,12 @@ class HTTPResponse(DiskItem):
         Return a DETAILED str representation of this HTTP response object.
         """
         body = self.body
+        encoding = self.charset or DEFAULT_CHARSET
+        if isinstance(body, bytes):
+            body = body.decode(encoding, errors="replace")
 
-        # Images, pdf and binary responses in general are never decoded
-        # to unicode
-        if isinstance(body, str):
-            body = body.encode(self.charset, "replace")
-
-        return "%s%s%s" % (self.dump_response_head(), CRLF, body)
+        head = self.dump_response_head().decode(encoding, errors="replace")
+        return f"{head}{CRLF}{body}"
 
     def dump_headers(self, exclude_headers=None):
         """
@@ -818,7 +830,7 @@ class HTTPResponse(DiskItem):
         if self.headers:
             return (
                 CRLF.join(
-                    "%s: %s" % (h, hv)
+                    f"{h}: {hv}"
                     for (h, hv) in list(self.headers.items())
                     if h.lower() not in exclude_headers
                 )
@@ -867,10 +879,7 @@ class HTTPResponse(DiskItem):
         original_domain = self.get_url().get_domain()
         redirect_domain = redirect_destination.get_domain()
 
-        if original_domain != redirect_domain:
-            return True
-
-        return False
+        return original_domain != redirect_domain
 
     def copy(self):
         return copy.deepcopy(self)

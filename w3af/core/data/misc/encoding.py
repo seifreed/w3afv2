@@ -77,7 +77,7 @@ def _percent_encode(encodingexc):
     st = encodingexc.start
     en = encodingexc.end
 
-    return ("%s" % (urllib.parse.quote(encodingexc.object[st:en].encode("utf8")),), en)
+    return (urllib.parse.quote(encodingexc.object[st:en].encode("utf8")), en)
 
 
 codecs.register_error(ESCAPED_CHAR, _return_escaped_char)
@@ -160,8 +160,7 @@ def smart_str(
     if _isinstance(s, _unicode):
         return s.encode(encoding, errors)
 
-    # Already a byte-string, nothing to do here
-    if _isinstance(s, _str):
+    if _isinstance(s, bytes):
         return s
 
     # Handling objects is hard! Each implements __str__ in a different way

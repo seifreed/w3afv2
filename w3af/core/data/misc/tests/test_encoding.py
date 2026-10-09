@@ -26,6 +26,7 @@ from w3af.core.data.misc.encoding import (
     ESCAPED_CHAR,
     HTML_ENCODE,
     is_known_encoding,
+    smart_str,
     smart_unicode,
 )
 
@@ -43,7 +44,7 @@ class TestEncoding(unittest.TestCase):
         self.assertEqual(decoded, "")
 
     def test_escaped_char_no_error(self):
-        decoded = "ábc".encode("utf-8").decode("utf-8", errors=ESCAPED_CHAR)
+        decoded = "ábc".encode().decode("utf-8", errors=ESCAPED_CHAR)
         self.assertEqual(decoded, "ábc")
 
     def test_escaped_char_error_escape_char(self):
@@ -58,4 +59,8 @@ class TestEncoding(unittest.TestCase):
         self.assertEqual(smart_unicode("á"), "á")
 
     def test_smart_unicode_decodes_bytes(self):
-        self.assertEqual(smart_unicode("á".encode("utf-8")), "á")
+        self.assertEqual(smart_unicode("á".encode()), "á")
+
+    def test_smart_str_preserves_bytes(self):
+        value = b"\x00\xff"
+        self.assertIs(smart_str(value), value)
