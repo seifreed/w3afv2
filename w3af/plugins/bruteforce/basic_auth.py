@@ -25,7 +25,6 @@ import time
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.misc.epoch_to_string import epoch_to_string
 from w3af.core.controllers.plugins.bruteforce_plugin import BruteforcePlugin
 from w3af.core.data.constants import severity
@@ -107,17 +106,11 @@ class basic_auth(BruteforcePlugin):
 
         fr = FuzzableRequest(url, headers=headers, method="GET")
 
-        try:
-            response = self._uri_opener.send_mutant(
-                fr, cache=False, grep=False, debugging_id=debugging_id
-            )
-        except BaseFrameworkException as w3:
-            msg = (
-                "Exception raised while brute-forcing basic authentication,"
-                ' error message: "%s".'
-            )
-            om.out.debug(msg % w3)
-            return
+        # The url opener proxy turns any request error into a 204 response, so
+        # send_mutant does not raise.
+        response = self._uri_opener.send_mutant(
+            fr, cache=False, grep=False, debugging_id=debugging_id
+        )
 
         if response.get_code() == 401:
             return

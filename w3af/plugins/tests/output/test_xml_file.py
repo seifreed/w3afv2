@@ -24,7 +24,11 @@ import contextlib
 import io
 import os
 import os.path
+import re
+import tempfile
+import time
 import unittest
+import urllib.parse
 from pathlib import Path
 from typing import ClassVar
 from xml.etree import ElementTree
@@ -34,7 +38,6 @@ from lxml import etree
 
 import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
-from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.constants import severity
 from w3af.core.data.db.history import HistoryItem
@@ -42,6 +45,7 @@ from w3af.core.data.db.url_tree import URLTree
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.tests.test_vuln import MockVuln
 from w3af.core.data.kb.vuln import Vuln
+from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.options.option_types import OUTPUT_FILE
@@ -57,15 +61,36 @@ from w3af.plugins.output.xml_file import (
     ScanInfo,
     ScanStatus,
     jinja2_attr_value_escape_filter,
+    took,
     xml_file,
 )
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 
+def _sql_injectable_page(mock, http_request, uri, headers):
+    """
+    Answers like a page which concatenates the id parameter into a
+    PostgreSQL query: quotes break the query and show the database error.
+    """
+    headers.update({"Content-Type": "text/html"})
+    query = urllib.parse.unquote(urllib.parse.urlsplit(uri).query)
+    if "'" in query or '"' in query:
+        error = "PostgreSQL query failed: ERROR: syntax error at or near quote"
+        return 200, headers, f"<html><body>{error}</body></html>"
+    return 200, headers, "<html><body>Item 3</body></html>"
+
+
 @pytest.mark.smoke
 class TestXMLOutput(PluginTest):
 
-    target_url = get_moth_http("/audit/sql_injection/where_integer_qs.py")
+    target_url = "http://sqli-target/where_integer_qs.py"
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(
+            re.compile(r"http://sqli-target/where_integer_qs\.py.*"),
+            body=_sql_injectable_page,
+        ),
+    ]
 
     FILENAME = "output-unittest.xml"
     XSD = os.path.join(ROOT_PATH, "plugins", "output", "xml_file", "report.xsd")
@@ -108,7 +133,7 @@ class TestXMLOutput(PluginTest):
             {v.get_plugin_name() for v in file_vulns},
         )
 
-        self.assertEqual(validate_xml(Path(self.FILENAME).read_text(), self.XSD), "")
+        self.assertEqual(validate_xml(Path(self.FILENAME).read_bytes(), self.XSD), "")
 
     def tearDown(self):
         super().tearDown()
@@ -237,12 +262,14 @@ class XMLParser:
 
             data = "".join(self._data_parts)
 
-            data_decoded = base64.b64decode(data)
+            data_decoded = base64.b64decode(data).decode("utf-8")
             assert "syntax error" in data_decoded, data_decoded
             assert "near" in data_decoded, data_decoded
 
-            self._inside_body = False
             self._data_parts = []
+
+        if tag == "body":
+            self._inside_body = False
 
         if tag == "http-response":
             self._inside_response = False
@@ -258,7 +285,7 @@ class XMLParser:
 def get_vulns_from_xml(filename):
     xp = XMLParser()
     parser = etree.XMLParser(target=xp)
-    vulns = etree.fromstring(Path(filename).read_text(), parser)
+    vulns = etree.fromstring(Path(filename).read_bytes(), parser)
     return vulns
 
 
@@ -271,7 +298,7 @@ def validate_xml(content, schema_content):
     """
     xml_schema_doc = etree.parse(schema_content)
     xml_schema = etree.XMLSchema(xml_schema_doc)
-    xml = etree.parse(io.StringIO(content))
+    xml = etree.parse(io.BytesIO(content))
 
     # Validate the content against the schema.
     try:
@@ -293,7 +320,7 @@ class TestXMLOutputBinary(PluginTest):
     MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url="http://rpm-path-binary/",
-            body=Path(TEST_FILE).read_text(),
+            body=Path(TEST_FILE).read_bytes(),
             content_type="text/plain",
             method="GET",
             status=200,
@@ -346,7 +373,7 @@ class TestXML0x0B(PluginTest):
     MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url="http://0x0b-path-binary/",
-            body=Path(TEST_FILE).read_text(),
+            body=Path(TEST_FILE).read_bytes(),
             content_type="text/plain",
             method="GET",
             status=200,
@@ -594,27 +621,28 @@ class TestScanInfo(XMLNodeGeneratorTest):
             '            <plugin name="sqli">\n'
             "            </plugin>\n"
             "    </audit>\n"
-            "    <infrastructure>\n"
-            "    </infrastructure>\n"
+            "    <auth>\n"
+            "    </auth>\n"
             "    <bruteforce>\n"
             "    </bruteforce>\n"
-            "    <grep>\n"
-            "    </grep>\n"
-            "    <evasion>\n"
-            "    </evasion>\n"
-            "    <output>\n"
-            "    </output>\n"
-            "    <mangle>\n"
-            "    </mangle>\n"
             "    <crawl>\n"
             '            <plugin name="web_spider">\n'
             '                        <config parameter="only_forward" value="False"/>\n'
             '                        <config parameter="follow_regex" value=".*"/>\n'
             '                        <config parameter="ignore_regex" value=""/>\n'
+            '                        <config parameter="ignore_extensions" value=""/>\n'
             "            </plugin>\n"
             "    </crawl>\n"
-            "    <auth>\n"
-            "    </auth>\n"
+            "    <evasion>\n"
+            "    </evasion>\n"
+            "    <grep>\n"
+            "    </grep>\n"
+            "    <infrastructure>\n"
+            "    </infrastructure>\n"
+            "    <mangle>\n"
+            "    </mangle>\n"
+            "    <output>\n"
+            "    </output>\n"
             "</scan-info>"
         )
 
@@ -626,6 +654,9 @@ class TestScanStatus(XMLNodeGeneratorTest):
     def setUp(self):
         kb.kb.cleanup()
         create_temp_dir()
+        # The request counter is global, previous tests in this process
+        # would otherwise change the rpm and sent request count
+        consecutive_number_generator.reset()
 
     def tearDown(self):
         remove_temp_dir()
@@ -693,10 +724,10 @@ class TestScanStatus(XMLNodeGeneratorTest):
             "    </queues>\n"
             "\n"
             "    <eta>\n"
-            "        <crawl>0 seconds.</crawl>\n"
-            "        <audit>0 seconds.</audit>\n"
-            "        <grep>0 seconds.</grep>\n"
-            "        <all>0 seconds.</all>\n"
+            "        <crawl>0 seconds</crawl>\n"
+            "        <audit>0 seconds</audit>\n"
+            "        <grep>0 seconds</grep>\n"
+            "        <all>0 seconds</all>\n"
             "    </eta>\n"
             "\n"
             "    <rpm>0</rpm>\n"
@@ -705,15 +736,15 @@ class TestScanStatus(XMLNodeGeneratorTest):
             "\n"
             "    <total-urls>150</total-urls>\n"
             "    <known-urls>    \n"
-            '    <node url="http://w3af.org">\n'
-            "                        \n"
-            '        <node url="foo">\n'
+            '    <node url="http://w3af.org" exists="1">\n'
+            "                                        \n"
+            '        <node url="123.txt" exists="1" />        \n'
+            '        <node url="foo" exists="1">\n'
             "                                            \n"
-            '            <node url="bar" />                            \n'
-            '            <node url="abc.html" />\n'
+            '            <node url="abc.html" exists="1" />                            \n'
+            '            <node url="bar" exists="1" />\n'
             "                        \n"
-            "        </node>                        \n"
-            '        <node url="123.txt" />\n'
+            "        </node>\n"
             "                    \n"
             "    </node>\n"
             "    </known-urls>\n"
@@ -1084,3 +1115,59 @@ class TestAttrValueEscapeFilter(unittest.TestCase):
 
         self.assertIsInstance(result, str)
         self.assertEqual(result, "é")
+
+    def test_new_lines_are_not_escaped(self):
+        self.assertEqual(jinja2_attr_value_escape_filter("a\r\nb<"), "a\r\nb&lt;")
+
+    def test_non_string_values_are_returned_unchanged(self):
+        self.assertEqual(jinja2_attr_value_escape_filter(42), 42)
+
+
+class TestXMLFileEdgeCases(unittest.TestCase):
+    def setUp(self):
+        kb.kb.cleanup()
+        create_temp_dir()
+        CachedXMLNode.create_cache_path()
+        FindingsCache.create_cache_path()
+        HistoryItem().init()
+
+        self.output_dir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        remove_temp_dir()
+        HistoryItem().clear()
+        kb.kb.cleanup()
+
+    def test_took_returns_the_result_of_slow_functions(self):
+        @took
+        def slow(value):
+            time.sleep(0.6)
+            return value * 2
+
+        self.assertEqual(slow(21), 42)
+
+    def test_flush_before_scan_start_writes_nothing(self):
+        output_file = os.path.join(self.output_dir, "report.xml")
+
+        plugin = xml_file()
+        plugin.set_w3af_core(w3afCore())
+        options = plugin.get_options()
+        options["output_file"].set_value(output_file)
+        plugin.set_options(options)
+
+        plugin.flush()
+
+        self.assertFalse(os.path.exists(output_file))
+        self.assertIn("output_file", plugin.get_long_desc())
+
+    def test_cached_node_requires_a_cache_key(self):
+        node = CachedXMLNode(xml_file()._get_jinja2_env())
+        self.assertRaises(NotImplementedError, node.get_cache_key)
+
+    def test_finding_with_missing_http_transaction(self):
+        vuln = MockVuln(_id=4242)
+
+        xml = Finding(xml_file()._get_jinja2_env(), vuln).to_string()
+
+        self.assertIn("<vulnerability", xml)
+        self.assertIn("<http-transactions>\n    </http-transactions>", xml)

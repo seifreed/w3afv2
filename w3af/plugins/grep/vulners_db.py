@@ -35,9 +35,9 @@ from w3af.core.data.misc.cvss import cvss_to_severity
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.options.option_types import STRING
+from w3af.core.data.options.option_types import URL as URL_OPTION
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.quick_match.multi_re import MultiRE
-from w3af.core.data.url.exceptions import HTTPRequestException
 
 
 class vulners_db(GrepPlugin):
@@ -64,17 +64,23 @@ class vulners_db(GrepPlugin):
     :author: Vulners.com Team: Kir Ermakov (isox@vulners.com)
     """
 
+    VULNERS_RULES_URL = URL(
+        "https://raw.githubusercontent.com/vulnersCom/detect-rules/master/rules.json"
+    )
+    VULNERS_API_URL = URL("https://vulners.com/")
+    BULLETIN_FIELDS = ("title", "description", "cvss")
+    CHECK_TYPES = ("software", "cpe")
+
     def __init__(self):
         GrepPlugin.__init__(self)
 
-        # Vulners rules JSON url
-        self._vulners_rules_url = URL(
-            "https://raw.githubusercontent.com/vulnersCom/detect-rules/master/rules.json"
-        )
+        # User configured settings
+        self._vulners_rules_url = self.VULNERS_RULES_URL
+        self._vulners_api_url = self.VULNERS_API_URL
+        self._vulners_api_key = ""
 
         # Vulners shared objects
         self._vulners_api = None
-        self._vulners_api_key = ""
         self.rules_table = None
         self.rules_updated = False
 
@@ -122,34 +128,32 @@ class vulners_db(GrepPlugin):
         # Here we will store unique vulnerability map
         vulnerabilities_summary = {}
 
-        for match, _, regex_comp, software_list in self._multi_re.query(raw_response):
+        for match, _, _, software_list in self._multi_re.query(raw_response):
             detected_version = match.group(1)
 
             for software_name in software_list:
                 matched_rule = self.rules_table[software_name]
 
-                vulnerabilities_map = self.check_vulners(
-                    software_name=matched_rule["alias"].encode(),
+                bulletins = self.check_vulners(
+                    software_name=matched_rule["alias"],
                     software_version=detected_version,
-                    check_type=matched_rule["type"].encode(),
+                    check_type=matched_rule["type"],
                 )
 
-                flattened_vulnerability_list = [
-                    item
-                    for sublist in list(vulnerabilities_map.values())
-                    for item in sublist
-                ]
-                for bulletin in flattened_vulnerability_list:
-                    if bulletin["id"] not in vulnerabilities_summary:
-                        vulnerabilities_summary[bulletin["id"]] = bulletin
+                for bulletin in bulletins:
+                    vulnerabilities_summary.setdefault(bulletin["id"], bulletin)
 
         # Now add KB's for found vulnerabilities
-        for bulletin in list(vulnerabilities_summary.values()):
+        for bulletin in vulnerabilities_summary.values():
+            summary = (
+                bulletin.get("description")
+                or bulletin.get("title")
+                or "no description available"
+            )
 
             v = Vuln(
                 name=bulletin["id"],
-                desc=bulletin["description"]
-                or bulletin.get("sourceData", bulletin["title"]),
+                desc=f"Vulners bulletin {bulletin['id']}: {summary}",
                 severity=cvss_to_severity(bulletin.get("cvss", {}).get("score", 0)),
                 response_ids=response.id,
                 plugin_name=self.get_name(),
@@ -178,15 +182,11 @@ class vulners_db(GrepPlugin):
         """
         # w3af grep plugins shouldn't (by definition) perform HTTP requests
         # But in this case we're breaking that general rule to retrieve the
-        # DB at the beginning of the scan
-        try:
-            http_response = self._uri_opener.GET(
-                self._vulners_rules_url, binary_response=True, respect_size_limit=False
-            )
-        except HTTPRequestException as e:
-            msg = 'Failed to download Vulners regex rules table: "%s"'
-            om.out.error(msg % e)
-            return
+        # DB at the beginning of the scan. Network errors are returned by the
+        # url opener proxy as a 204 response.
+        http_response = self._uri_opener.GET(
+            self._vulners_rules_url, binary_response=True, respect_size_limit=False
+        )
 
         if http_response.get_code() != 200:
             msg = (
@@ -216,61 +216,55 @@ class vulners_db(GrepPlugin):
 
     def setup_vulners_api(self):
         try:
-            self._vulners_api = vulners.Vulners(api_key=self._vulners_api_key or None)
-        except (
-            vulners.VulnersError,
-            vulners.VulnersApiError,
-            ValueError,
-            TypeError,
-        ) as e:
-            # If API key is wrong or API key is not a string it will raise exception
+            self._vulners_api = vulners.Vulners(
+                api_key=self._vulners_api_key or None,
+                base_url=self._vulners_api_url.url_string,
+            )
+        except vulners.VulnersError as e:
+            # The Vulners API requires an API key
             msg = 'Failed to initialize Vulners API: "%s"'
             om.out.error(msg % e)
-            return
 
     def check_vulners(self, software_name, software_version, check_type):
-        if not software_name:
-            return {}
+        """
+        :return: The list of Vulners bulletins which affect the software
+        """
+        if not software_name or not software_version:
+            return []
 
-        if not software_version:
-            return {}
+        if check_type not in self.CHECK_TYPES:
+            return []
 
-        cached_result = self._vulnerability_cache.get(
-            (software_name, software_version, check_type)
-        )
-        if cached_result:
-            return cached_result
+        cache_key = (software_name, software_version, check_type)
+        if cache_key in self._vulnerability_cache:
+            return self._vulnerability_cache[cache_key]
 
         args = (software_name, software_version, check_type)
         om.out.debug("Detected {} version {} (check type: {})".format(*args))
 
-        vulnerabilities = {}
+        if check_type == "cpe":
+            software = f"{software_name}:{software_version}"
+        else:
+            software = {"product": software_name, "version": software_version}
 
-        # Ask Vulners about vulnerabilities
-        #
-        # We will do it in try-except mode to work properly with potential network
-        # connectivity problem or in case Vulners is down.
+        # Ask Vulners about vulnerabilities, the API might be down or rate
+        # limit us, so errors are not fatal.
         try:
-            if check_type == "software":
-                vulnerabilities = self._vulners_api.softwareVulnerabilities(
-                    software_name, software_version
-                )
-            elif check_type == "cpe":
-                cpe_string = f"{software_name}:{software_version}"
-                vulnerabilities = self._vulners_api.cpeVulnerabilities(
-                    cpe_string.encode()
-                )
-        except (vulners.VulnersError, vulners.VulnersApiError) as e:
+            results = self._vulners_api.audit.software(
+                [software], fields=list(self.BULLETIN_FIELDS)
+            )
+        except vulners.VulnersError as e:
             msg = 'Failed to make Vulners API request: "%s"'
             om.out.error(msg % e)
-            # Return empty dict not to stop here.
-            # Maybe next time API will answer correctly.
-            return {}
+            # Don't cache, maybe next time API will answer correctly.
+            return []
 
-        # If call was OK cache the data and return results
-        self._vulnerability_cache[(software_name, software_version, check_type)] = (
-            vulnerabilities
-        )
+        vulnerabilities = [
+            bulletin
+            for result in results
+            for bulletin in result.get("vulnerabilities", [])
+        ]
+        self._vulnerability_cache[cache_key] = vulnerabilities
         return vulnerabilities
 
     def get_options(self):
@@ -285,6 +279,15 @@ class vulners_db(GrepPlugin):
         )
         o = opt_factory("vulners_api_key", self._vulners_api_key, d, STRING)
         ol.add(o)
+
+        d = "Vulners API base URL"
+        o = opt_factory("vulners_api_url", self._vulners_api_url, d, URL_OPTION)
+        ol.add(o)
+
+        d = "URL to download the Vulners software detection rules from"
+        o = opt_factory("vulners_rules_url", self._vulners_rules_url, d, URL_OPTION)
+        ol.add(o)
+
         return ol
 
     def set_options(self, options_list):
@@ -295,6 +298,8 @@ class vulners_db(GrepPlugin):
         :return: No value is returned.
         """
         self._vulners_api_key = options_list["vulners_api_key"].get_value()
+        self._vulners_api_url = options_list["vulners_api_url"].get_value()
+        self._vulners_rules_url = options_list["vulners_rules_url"].get_value()
 
     def get_long_desc(self):
         """
@@ -304,12 +309,9 @@ class vulners_db(GrepPlugin):
         This plugin extracts software banners and checks vulnerabilities online
         at vulners.com database.
         
-        By default the grep plugin uses anonymous Vulners API entry point
-        (rate-limited to ~10 rps), it is possible to get a free API key at
-        https://vulners.com/ to avoid rate limits.
-        
-        Configure the API key using the vulners_api_key user-configured
-        parameter.
+        The Vulners API requires an API key, get a free one at
+        https://vulners.com/ and configure it using the vulners_api_key
+        user-configured parameter. Without it the plugin is disabled.
         """
 
 

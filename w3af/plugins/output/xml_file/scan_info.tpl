@@ -1,5 +1,5 @@
 <scan-info target="{{ scan_target | escape_attr }}">
-    {% for plugin_type in enabled_plugins %}
+    {% for plugin_type in enabled_plugins | sort %}
     <{{ plugin_type }}>
         {% for plugin_name in enabled_plugins[plugin_type] %}
             <plugin name="{{ plugin_name }}">
