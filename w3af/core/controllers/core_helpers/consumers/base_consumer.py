@@ -28,7 +28,7 @@ from multiprocessing.dummy import Process
 from queue import Empty
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.core_helpers.consumers.constants import POISON_PILL
+from w3af.core.constants import POISON_PILL
 from w3af.core.controllers.core_helpers.exception_handler import ExceptionData
 from w3af.core.controllers.core_helpers.status import CoreStatus
 from w3af.core.controllers.exception_handling.helpers import pprint_plugins

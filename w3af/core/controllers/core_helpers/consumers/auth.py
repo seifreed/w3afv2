@@ -23,11 +23,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import queue
 
 import w3af.core.controllers.output_manager as om
+from w3af.core.constants import POISON_PILL
 from w3af.core.controllers.profiling.took_helper import TookLine
 from w3af.core.data.fuzzer.utils import rand_alnum
 
 from .base_consumer import BaseConsumer, task_decorator
-from .constants import FORCE_LOGIN, POISON_PILL
+from .constants import FORCE_LOGIN
 
 
 class auth(BaseConsumer):

@@ -28,10 +28,10 @@ from multiprocessing import TimeoutError
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
+from w3af.core.constants import POISON_PILL
 from w3af.core.controllers.core_helpers.consumers.audit import audit
 from w3af.core.controllers.core_helpers.consumers.auth import auth
 from w3af.core.controllers.core_helpers.consumers.bruteforce import bruteforce
-from w3af.core.controllers.core_helpers.consumers.constants import POISON_PILL
 from w3af.core.controllers.core_helpers.consumers.crawl_infrastructure import (
     CrawlInfrastructure,
 )

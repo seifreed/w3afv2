@@ -26,11 +26,11 @@ import time
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
+from w3af.core.constants import POISON_PILL
 from w3af.core.controllers.core_helpers.consumers.base_consumer import (
     BaseConsumer,
     task_decorator,
 )
-from w3af.core.controllers.core_helpers.consumers.constants import POISON_PILL
 from w3af.core.controllers.exceptions import (
     BaseFrameworkException,
     RunOnce,

@@ -30,7 +30,7 @@ from functools import wraps
 from multiprocessing.dummy import Process
 
 from w3af import ROOT_PATH
-from w3af.core.controllers.core_helpers.consumers.constants import POISON_PILL
+from w3af.core.constants import POISON_PILL
 from w3af.core.controllers.misc.factory import factory
 from w3af.core.controllers.threads.silent_joinable_queue import SilentJoinableQueue
 from w3af.core.controllers.threads.threadpool import Pool

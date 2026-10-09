@@ -18,7 +18,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from w3af.core.controllers.core_helpers.consumers.constants import POISON_PILL
+from w3af.core.constants import POISON_PILL
 
 from .log_sink import LogSink
 from .manager import OutputManager

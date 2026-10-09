@@ -977,3 +977,18 @@ pasa 108 tests y `BaseContext` alcanza 100% de cobertura; Black, Ruff y Bandit
 de producción pasan en el subsistema. Mypy global baja de 918 errores en 311
 archivos a 897 en 308. Score global: **4.9/10**; las gates y los problemas
 arquitectónicos del resto del proyecto siguen pendientes.
+
+## Avance: sentinel compartido entre capas
+
+`POISON_PILL` ya vive en `w3af.core.constants`, que pueden importar tanto los
+controladores como la cola de datos sin invertir la dirección de dependencias.
+Todos sus consumidores se migraron y se eliminó la definición del módulo
+específico de consumers; `FORCE_LOGIN` permanece allí porque solo pertenece al
+protocolo de autenticación. Las referencias directas `core.data -> controllers`
+bajan de 61 a 60 en una comparación con el commit anterior. Las 10 pruebas de
+`OrderedCachedQueue` pasan con 100% de cobertura del nuevo módulo común; los
+tests de output manager también pasan. La suite combinada de consumers/output
+manager tuvo 3 fallos (expectativa de teardown, traceback y resolución del host
+`fallback`); no se ha demostrado que los cause este cambio. Black e imports
+Ruff pasan en los archivos modificados; Mypy global permanece en 897 errores.
+Score global: **4.9/10**.
