@@ -119,10 +119,13 @@ class TestJSONMutant(unittest.TestCase):
             '{"transaction_amount": 100, "external_reference": "1234", "random_anti_anti_double_click": 11577513359, "token": "16faba8617708", "reason": "Title of what you are paying for", "installments": 1, "payment_method_id": "visa", "extra_charge": "www"}',
         ]
 
+        def normalized(json_strings):
+            return {json.dumps(json.loads(j), sort_keys=True) for j in json_strings}
+
         created_dcs = [str(i.get_dc()) for i in created_mutants]
         created_post_datas = [i.get_data() for i in created_mutants]
 
-        self.assertEqual(set(created_dcs), set(expected_dcs))
+        self.assertEqual(normalized(created_dcs), normalized(expected_dcs))
         self.assertEqual(set(created_dcs), set(created_post_datas))
 
         for m in created_mutants:

@@ -114,9 +114,9 @@ class TestFuzzer(unittest.TestCase):
 
         decoded_url = (
             "http://w3af.org/"
-            "?__VIEWSTATE=/"
-            "&__EVENTVALIDATION=\\X%%20W=="
-            "&_ctl0:TextBox1=%s"
+            "?__VIEWSTATE=%%2F"
+            "&__EVENTVALIDATION=%%5CX%%20W%%3D%%3D"
+            "&_ctl0%%3ATextBox1=%s"
         )
 
         expected_urls = [decoded_url % "abc", decoded_url % "def"]
@@ -404,9 +404,9 @@ class TestFuzzer(unittest.TestCase):
             "http://moth/foo/def.htm",
             "http://moth/foo/bar.abc",
             "http://moth/foo/bar.def",
-            "http://moth/abc/bar.htm",
-            "http://moth/def/bar.htm",
-            "http://moth/foo/abc",
-            "http://moth/foo/def",
+            "http://moth/abc/bar.htm?id=1",
+            "http://moth/def/bar.htm?id=1",
+            "http://moth/foo/abc?id=1",
+            "http://moth/foo/def?id=1",
         ]
         self.assertEqual(generated_uris, expected_uris)

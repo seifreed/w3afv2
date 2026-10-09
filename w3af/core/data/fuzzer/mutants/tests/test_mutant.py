@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import copy
 import unittest
 from typing import ClassVar
-from unittest.mock import patch
 
 from w3af.core.data.constants.file_templates.file_templates import (
     get_file_from_template,
@@ -35,7 +34,7 @@ from w3af.core.data.dc.utils.multipart import encode_as_multipart, get_boundary
 from w3af.core.data.dc.utils.token import DataToken
 from w3af.core.data.fuzzer.mutants.mutant import Mutant
 from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
-from w3af.core.data.misc.io import NamedStringIO
+from w3af.core.data.misc.io import NamedStringIO, is_file_like
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.utils.form_params import FormParameters
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
@@ -190,18 +189,24 @@ class TestMutant(unittest.TestCase):
         form = MultipartContainer(form_params)
         freq = FuzzableRequest(self.url, post_data=form)
 
-        ph = "w3af.core.data.constants.file_templates.file_templates.rand_alpha"
-
-        with patch(ph) as mock_rand_alpha:
-            mock_rand_alpha.return_value = "upload"
-            generated_mutants = PostDataMutant.create_mutants(
-                freq, self.payloads, [], False, self.fuzzer_config
-            )
+        generated_mutants = PostDataMutant.create_mutants(
+            freq, self.payloads, [], False, self.fuzzer_config
+        )
 
         self.assertEqual(len(generated_mutants), 6, generated_mutants)
 
+        uploaded_names = {
+            value.name
+            for mutant in generated_mutants
+            for value in mutant.get_dc()["image"]
+            if is_file_like(value)
+        }
+        self.assertEqual(len(uploaded_names), 1, uploaded_names)
+        uploaded_name = uploaded_names.pop()
+        self.assertRegex(uploaded_name, r"^[a-zA-Z]{7}\.gif$")
+
         _, gif_file_content, _ = get_file_from_template("gif")
-        gif_named_stringio = NamedStringIO(gif_file_content, "upload.gif")
+        gif_named_stringio = NamedStringIO(gif_file_content, uploaded_name)
 
         expected_forms = []
 
@@ -268,7 +273,7 @@ class TestMutant(unittest.TestCase):
         self.assertEqual(str_file.name[-4:], ".gif")
         self.assertEqual(gif_file_content, str_file)
 
-        self.assertIn('name="image"; filename="upload.gif"', generated_data[0])
+        self.assertIn(f'name="image"; filename="{uploaded_name}"', generated_data[0])
 
     def test_mutant_creation_append(self):
         qs = QueryString(self.SIMPLE_KV)

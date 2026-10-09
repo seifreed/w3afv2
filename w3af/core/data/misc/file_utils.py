@@ -59,10 +59,15 @@ def get_days_since_last_update(path):
     cmd_str = f"git log -1 --format=%cd {path}"
     cmd = shlex.split(cmd_str)
 
+    not_tracked = f'"{path}" is not tracked by this repository.'
+
     try:
         date_str = git.execute(command=cmd, with_extended_output=False)
     except GitCommandError:
-        raise ValueError(f'"{path}" is not in tracked by this repository.')
+        raise ValueError(not_tracked)
+
+    if not date_str:
+        raise ValueError(not_tracked)
 
     # The date_str is in the following format: Sat Jun 21 10:20:31 2014 -0300
     last_commit_time = datetime.strptime(date_str, "%a %b %d %H:%M:%S %Y %z")

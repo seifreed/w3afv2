@@ -151,15 +151,15 @@ class FormIDMatcher:
         """
         data = {}
 
-        for unmodified in ["inputs", "attributes", "method"]:
-            if self.__dict__[unmodified] is not None:
-                data[unmodified] = self.__dict__[unmodified]
-
         if self.action is not None:
             data["action"] = self.action.pattern
 
         if self.hosted_at_url is not None:
             data["hosted_at_url"] = self.hosted_at_url.pattern
+
+        for unmodified in ["inputs", "attributes", "method"]:
+            if self.__dict__[unmodified] is not None:
+                data[unmodified] = self.__dict__[unmodified]
 
         return data
 
