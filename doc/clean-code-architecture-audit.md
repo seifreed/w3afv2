@@ -295,3 +295,21 @@ Se acordó conservar los pins de mitmproxy, `aioquic==1.2.0` y
 `urwid==4.0.13`; no se modificó el fichero de dependencias. La puntuación
 global permanece en **2.5/10**: estos arreglos mejoran compatibilidad y
 comportamiento, pero no reducen aún los acoplamientos principales de capas.
+
+## Avance: utilidad de presentación fuera de controllers
+
+`human_number` era una función pura definida en `core.controllers.misc` e
+importada por `core.data.kb.InfoSet` como filtro de plantilla. Se movió a
+`core.data.misc`, se actualizó el único consumidor de producción y se eliminó
+el módulo anterior sin dejar un alias de compatibilidad. El filtro conserva el
+contrato para 1–10 y los números fuera del rango siguen produciendo `KeyError`.
+La cobertura del módulo nuevo es 100%; el test de integración de la plantilla
+y los tests unitarios suman **3 pruebas y 12 subcasos correctos**. Black global
+pasa (1968 archivos) y Ruff pasa en los dos módulos de producción y sus tests.
+
+La suite completa preexistente de `test_info_set.py` se ejecutó antes del
+cambio: 16 pasaron y dos fallaron por orden no determinista de URLs y una
+fixture Unicode mal codificada. La migración no altera esos flujos y no se
+atribuyen sus fallos al cambio. La nota global se mantiene en **2.5/10**; aún
+quedan imports de `controllers` en KB, responsabilidades mezcladas y gates
+globales pendientes.

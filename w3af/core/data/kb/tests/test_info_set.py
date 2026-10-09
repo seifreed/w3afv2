@@ -58,6 +58,12 @@ class TestInfoSet(unittest.TestCase):
         tiset = TemplatedInfoSet([i])
         self.assertEqual(tiset.get_desc(), "Foos and bars 1")
 
+    def test_get_desc_template_human_number_filter(self):
+        iset = InfoSet([MockInfo()])
+        iset.TEMPLATE = "{{ 2|human_number }}"
+
+        self.assertEqual(iset.get_desc(), "two")
+
     def test_get_desc_template_info_attr_access(self):
         value = "Yuuup!"
 

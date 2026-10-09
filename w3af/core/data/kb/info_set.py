@@ -27,10 +27,10 @@ import uuid
 from jinja2 import Environment, StrictUndefined
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.misc.human_number import human_number
 from w3af.core.data.fuzzer.mutants.empty_mutant import EmptyMutant
 from w3af.core.data.kb.info import Info
 from w3af.core.data.misc.encoding import smart_str, smart_unicode
+from w3af.core.data.misc.human_number import human_number
 
 
 def sample_count(value):
@@ -105,7 +105,7 @@ class InfoSet:
             if not isinstance(info, Info):
                 raise TypeError(
                     "info_instances list items must be Info sub"
-                    '-classes, found "%r" instead' % info
+                    f'-classes, found "{info!r}" instead'
                 )
 
         self.infos = info_instances
@@ -426,7 +426,4 @@ class InfoSet:
         return not self.__eq__(other)
 
     def __repr__(self):
-        return '<info_set instance for: "%s" - len: %s>' % (
-            self.get_name(),
-            len(self.infos),
-        )
+        return f'<info_set instance for: "{self.get_name()}" - len: {len(self.infos)}>'

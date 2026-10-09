@@ -21,11 +21,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 
-def human_number(number):
-    """
-    Very limited, but works for our case where we just need numbers from 1 to 10
-    :return:
-    """
+def human_number(number: int) -> str:
+    """Return the English word for a number from one to ten."""
     return {
         1: "one",
         2: "two",
