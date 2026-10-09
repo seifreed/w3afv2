@@ -1,7 +1,5 @@
 """
-monkey_patch_debug.py
-
-Copyright 2019 Andres Riancho
+test_silent_joinable_queue.py
 
 This file is part of w3af, http://w3af.org/ .
 
@@ -20,26 +18,22 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import multiprocessing.util
+import multiprocessing
+import unittest
 
-import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.threads import pool276, threadpool
-
-PATCHED_MODULES = (multiprocessing.util, threadpool, pool276)
-ORIGINAL_DEBUG = multiprocessing.util.debug
+from w3af.core.controllers.threads.silent_joinable_queue import SilentJoinableQueue
 
 
-def new_debug(msg, *args):
-    om_msg = msg % args
-    om_msg = f"[threadpool] {om_msg}"
-    om.out.debug(om_msg)
+class TestSilentJoinableQueue(unittest.TestCase):
 
+    def test_ignores_broken_pipes_and_works_as_a_joinable_queue(self):
+        work_queue = SilentJoinableQueue(ctx=multiprocessing.get_context())
+        self.addCleanup(work_queue.join_thread)
+        self.addCleanup(work_queue.close)
 
-def monkey_patch_debug():
-    for module in PATCHED_MODULES:
-        module.debug = new_debug
+        self.assertTrue(work_queue._ignore_epipe)
 
-
-def remove_monkey_patch_debug():
-    for module in PATCHED_MODULES:
-        module.debug = ORIGINAL_DEBUG
+        work_queue.put("message")
+        self.assertEqual(work_queue.get(timeout=10), "message")
+        work_queue.task_done()
+        work_queue.join()
