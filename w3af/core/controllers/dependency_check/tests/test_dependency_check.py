@@ -20,8 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import io
 import unittest
-from unittest.mock import patch
+from contextlib import redirect_stdout
 
 from ..dependency_check import dependency_check
 from ..pip_dependency import PIPDependency
@@ -32,8 +33,6 @@ from ..platforms.ubuntu1204 import Ubuntu1204
 
 class TestDependencyCheck(unittest.TestCase):
 
-    DEPE_MODULE = "w3af.core.controllers.dependency_check.dependency_check"
-    CURR_PLATFORM = f"{DEPE_MODULE}.get_current_platform"
     MISSING_DEP_CMD = "pip install rumbamanager==3.2.1"
 
     def setUp(self):
@@ -53,37 +52,35 @@ class TestDependencyCheck(unittest.TestCase):
         Test that the dependency check works for core + default platform when
         the dependencies are met.
         """
-        with patch(self.CURR_PLATFORM) as mock_curr_plat:
-            mock_curr_plat.return_value = DefaultPlatform()
-            must_exit = dependency_check(dependency_set=CORE, exit_on_failure=False)
-            self.assertFalse(must_exit)
+        must_exit = dependency_check(
+            dependency_set=CORE, exit_on_failure=False, platform=DefaultPlatform()
+        )
+        self.assertFalse(must_exit)
 
     def test_default_platform_core_missing_deps(self):
         """
         Test that the dependency check works for core + default platform when
         there are missing PIP core dependencies.
         """
-        with patch(self.CURR_PLATFORM) as mock_curr_plat, patch(
-            "sys.stdout"
-        ) as stdout_mock:
-            default = DefaultPlatform()
-            default.PIP_PACKAGES = default.PIP_PACKAGES.copy()
-            default.PIP_PACKAGES[CORE] = default.PIP_PACKAGES[CORE][:]
-            default.PIP_PACKAGES[CORE].append(self.fake_rumba_dependency)
+        default = DefaultPlatform()
+        default.PIP_PACKAGES = default.PIP_PACKAGES.copy()
+        default.PIP_PACKAGES[CORE] = default.PIP_PACKAGES[CORE][:]
+        default.PIP_PACKAGES[CORE].append(self.fake_rumba_dependency)
 
-            mock_curr_plat.return_value = default
+        console_output = io.StringIO()
+        with redirect_stdout(console_output):
+            must_exit = dependency_check(
+                dependency_set=CORE, exit_on_failure=False, platform=default
+            )
 
-            must_exit = dependency_check(dependency_set=CORE, exit_on_failure=False)
-            self.assertTrue(must_exit)
-
-            all_stdout = "".join(k[1][0] for k in stdout_mock.method_calls)
-            self.assertIn(self.MISSING_DEP_CMD, all_stdout)
+        self.assertTrue(must_exit)
+        self.assertIn(self.MISSING_DEP_CMD, console_output.getvalue())
 
     def test_ubuntu1204_core(self):
         """
         Test that the dependency check works for core + ubuntu1204
         """
-        with patch(self.CURR_PLATFORM) as mock_curr_plat:
-            mock_curr_plat.return_value = Ubuntu1204()
-            must_exit = dependency_check(dependency_set=CORE, exit_on_failure=False)
-            self.assertFalse(must_exit)
+        must_exit = dependency_check(
+            dependency_set=CORE, exit_on_failure=False, platform=Ubuntu1204()
+        )
+        self.assertFalse(must_exit)
