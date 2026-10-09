@@ -20,28 +20,20 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import random
 import unittest
 from typing import ClassVar
-from unittest.mock import MagicMock, Mock
 
 from w3af.core.controllers.delay_detection.aprox_delay import AproxDelay
 from w3af.core.controllers.delay_detection.aprox_delay_controller import (
     AproxDelayController,
 )
+from w3af.core.controllers.delay_detection.tests.scripted_uri_opener import (
+    ScriptedUriOpener,
+    scripted_wait_times,
+)
 from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
-
-
-def generate_delays(wanted_delays, rand_range=(0, 0)):
-    for delay_secs in wanted_delays:
-        delay_secs += random.randint(*rand_range) / 10.0
-
-        mock_response = Mock()
-        mock_response.get_wait_time = Mock(return_value=delay_secs)
-
-        yield mock_response
 
 
 class TestAproxDelayController(unittest.TestCase):
@@ -112,9 +104,9 @@ class TestAproxDelayController(unittest.TestCase):
 
         for expected_result, delays in self.TEST_SUITE:
 
-            mock_uri_opener = Mock()
-            side_effect = generate_delays(delays)
-            mock_uri_opener.send_mutant = MagicMock(side_effect=side_effect)
+            uri_opener = ScriptedUriOpener(
+                scripted_wait_times(delays), cache_average_rtt=False
+            )
             delay_obj = AproxDelay("%s9!", "1", 10)
 
             url = URL("http://moth/?id=1")
@@ -123,6 +115,6 @@ class TestAproxDelayController(unittest.TestCase):
             mutant.set_dc(url.querystring)
             mutant.set_token(("id", 0))
 
-            ed = AproxDelayController(mutant, delay_obj, mock_uri_opener)
+            ed = AproxDelayController(mutant, delay_obj, uri_opener)
             controlled, _responses = ed.delay_is_controlled()
             self.assertEqual(expected_result, controlled, delays)

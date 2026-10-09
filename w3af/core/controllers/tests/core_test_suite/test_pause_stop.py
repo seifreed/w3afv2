@@ -20,21 +20,25 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import pprint
+import signal
+import threading
 import time
 import unittest
 from multiprocessing.dummy import Process
-from unittest.mock import MagicMock
 
 import pytest
 
-from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.controllers.misc.factory import factory
+from w3af.core.controllers.tests.local_http_server import LocalHTTPServer, Reply
 from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.parsers.doc.url import URL
 from w3af.plugins.tests.helper import create_target_option_list
 
 
-@pytest.mark.moth
+def static_page(method, path):
+    return Reply(body="<html><body>Hello world</body></html>")
+
+
 class CountTestMixin(unittest.TestCase):
     PLUGIN = "w3af.core.controllers.tests.count"
 
@@ -44,9 +48,10 @@ class CountTestMixin(unittest.TestCase):
         the count.py plugin in memory, without copying it to any plugins
         directory since that would generate issues with other tests.
         """
+        self.server = LocalHTTPServer(static_page).start()
         self.w3afcore = w3afCore()
 
-        target_opts = create_target_option_list(URL(get_moth_http()))
+        target_opts = create_target_option_list(URL(self.server.url("/")))
         self.w3afcore.target.set_options(target_opts)
 
         plugin_inst = factory(self.PLUGIN)
@@ -63,6 +68,7 @@ class CountTestMixin(unittest.TestCase):
 
     def tearDown(self):
         self.w3afcore.quit()
+        self.server.close()
 
 
 class TestW3afCorePause(CountTestMixin):
@@ -171,28 +177,22 @@ class TestW3afCorePause(CountTestMixin):
         # self.assertEqual(len(alive_threads), 0, nice_repr(alive_threads))
 
 
-class StopCtrlCTest(unittest.TestCase):
+class StopCtrlCTest(CountTestMixin):
 
     def test_stop_by_keyboardinterrupt(self):
         """
-        Verify that the Ctrl+C stops the scan.
+        Verify that the Ctrl+C stops the scan: a real SIGINT is delivered to
+        the process while the count plugin is still sending HTTP requests.
         """
-        # pylint: disable=E0202
-        w3afcore = w3afCore()
+        ctrl_c = threading.Timer(2, signal.raise_signal, args=(signal.SIGINT,))
+        ctrl_c.start()
+        self.addCleanup(ctrl_c.cancel)
 
-        mock_call = MagicMock(side_effect=KeyboardInterrupt())
-        w3afcore.status.set_current_fuzzable_request = mock_call
+        self.assertRaises(KeyboardInterrupt, self.w3afcore.start)
 
-        target_opts = create_target_option_list(URL(get_moth_http()))
-        w3afcore.target.set_options(target_opts)
+        self.w3afcore.stop()
 
-        w3afcore.plugins.set_plugins(["web_spider"], "crawl")
-        # w3afcore.plugins.set_plugins(['console'], 'output')
-
-        # Verify env and start the scan
-        w3afcore.plugins.init_plugins()
-        w3afcore.verify_environment()
-        w3afcore.start()
+        self.assertGreater(self.count_plugin.count, 0)
 
 
 def nice_repr(alive_threads):

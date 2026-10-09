@@ -19,13 +19,13 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import re
 import unittest
-from unittest.mock import call, patch
-
-import httpretty
 
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.consumers.audit import audit
+from w3af.core.controllers.tests.local_http_server import LocalHTTPServer, Reply
+from w3af.core.controllers.tests.recording_output import start_recording_output
 from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
@@ -33,32 +33,31 @@ from w3af.core.exceptions import ScanMustStopException
 from w3af.plugins.audit.xss import xss
 
 
+def hello_world(method, path):
+    return Reply(body="hello world")
+
+
 class TestAuditConsumer(unittest.TestCase):
+    def setUp(self):
+        self.server = LocalHTTPServer(hello_world).start()
 
     def tearDown(self):
+        self.server.close()
         kb.kb.cleanup()
 
-    @httpretty.activate
     def test_teardown_with_must_stop_exception(self):
         w3af_core = w3afCore()
+        recorder = start_recording_output()
 
         xss_instance = xss()
         xss_instance.set_url_opener(w3af_core.uri_opener)
         xss_instance.set_worker_pool(w3af_core.worker_pool)
 
         audit_plugins = [xss_instance]
-
         audit_consumer = audit(audit_plugins, w3af_core)
         audit_consumer.start()
 
-        url = "http://w3af.org/?id=1"
-
-        httpretty.register_uri(
-            httpretty.GET, url, body="hello world", content_type="application/html"
-        )
-
-        url = URL(url)
-        fr = FuzzableRequest(url)
+        fr = FuzzableRequest(URL(self.server.url("/?id=1")))
 
         # This will trigger a few HTTP requests to the target URL which will
         # also initialize all the xss plugin internals to be able to run end()
@@ -69,18 +68,21 @@ class TestAuditConsumer(unittest.TestCase):
         # Now that xss.audit() was called, we want to simulate network errors
         # that will put the uri opener in a state where it always answers with
         # ScanMustStopException
-        w3af_core.uri_opener._stop_exception = ScanMustStopException("mock")
+        w3af_core.uri_opener._stop_exception = ScanMustStopException("stop")
 
         # And now we just call terminate() which injects the poison pill and will
         # call teardown, which should call xss.end(), which should try to send HTTP
         # requests, which will raise a ScanMustStopException
-        with patch(
-            "w3af.core.controllers.core_helpers.consumers.audit.om.out"
-        ) as om_mock:
-            audit_consumer.terminate()
+        audit_consumer.terminate()
 
-            msg = (
-                "Spent 0.00 seconds running xss.end() until a scan must"
-                " stop exception was raised."
-            )
-            self.assertIn(call.debug(msg), om_mock.mock_calls)
+        expected = re.compile(
+            r"Spent \d+\.\d\d seconds running xss\.end\(\) until a scan must"
+            r" stop exception was raised"
+        )
+        debug_messages = recorder.messages_of("debug")
+        self.assertTrue(
+            any(expected.match(message) for message in debug_messages),
+            debug_messages,
+        )
+
+        w3af_core.worker_pool.terminate_join()

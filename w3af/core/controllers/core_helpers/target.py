@@ -143,44 +143,46 @@ class CoreTarget(Configurable):
                 target_urls.append(target_url)
 
             else:
+                local_path = urllib.request.url2pathname(
+                    urllib.parse.urlparse(target_url.url_string).path
+                )
                 try:
-                    f = urllib.request.urlopen(target_url.url_string)
+                    with open(local_path, encoding="utf-8") as target_file:
+                        file_lines = target_file.readlines()
                 except (OSError, ValueError) as e:
                     msg = 'Cannot open target file: "%s"'
                     raise BaseFrameworkException(msg % target_url) from e
-                else:
-                    for line in f:
-                        target_in_file = line.strip()
 
-                        # Empty lines are allowed
-                        if not target_in_file:
-                            continue
+                for line in file_lines:
+                    target_in_file = line.strip()
 
-                        # Comments starting with # are allowed too
-                        if target_in_file.startswith("#"):
-                            continue
+                    # Empty lines are allowed
+                    if not target_in_file:
+                        continue
 
-                        try:
-                            target_in_file_inst = URL(target_in_file)
-                        except ValueError as ve:
-                            # The URLs specified inside the file might be
-                            # invalid, and the pieces of code which consume
-                            # this method only handle BaseFrameworkException
-                            #
-                            # https://github.com/andresriancho/w3af/issues/12006
-                            #
-                            msg = (
-                                'The target URL "%s" specified inside the'
-                                ' target file "%s" is invalid: "%s"'
-                            )
-                            args = (target_in_file, target_url, ve)
-                            raise BaseFrameworkException(msg % args)
+                    # Comments starting with # are allowed too
+                    if target_in_file.startswith("#"):
+                        continue
 
-                        # Some more validation before we're done...
-                        self._verify_url(target_in_file_inst, file_target=False)
-                        target_urls.append(target_in_file_inst)
+                    try:
+                        target_in_file_inst = URL(target_in_file)
+                    except ValueError as ve:
+                        # The URLs specified inside the file might be
+                        # invalid, and the pieces of code which consume
+                        # this method only handle BaseFrameworkException
+                        #
+                        # https://github.com/andresriancho/w3af/issues/12006
+                        #
+                        msg = (
+                            'The target URL "%s" specified inside the'
+                            ' target file "%s" is invalid: "%s"'
+                        )
+                        args = (target_in_file, target_url, ve)
+                        raise BaseFrameworkException(msg % args)
 
-                    f.close()
+                    # Some more validation before we're done...
+                    self._verify_url(target_in_file_inst, file_target=False)
+                    target_urls.append(target_in_file_inst)
 
         return target_urls
 

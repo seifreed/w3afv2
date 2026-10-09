@@ -26,10 +26,9 @@ import random
 import re
 import unittest
 
-import httpretty
-
 from w3af.core.controllers.core_helpers.fingerprint_404 import Fingerprint404
 from w3af.core.controllers.misc.fuzzy_string_cmp import MAX_FUZZY_LENGTH
+from w3af.core.controllers.tests.local_http_server import LocalHTTPServer, Reply
 from w3af.core.data.db.dbms import clear_default_temp_db_instance
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.url import URL
@@ -38,12 +37,20 @@ from w3af.core.data.url.http_response import HTTPResponse
 
 
 class Generic404Test(unittest.TestCase):
+    """
+    Every test runs against a real HTTP server listening on 127.0.0.1, which
+    answers all requests (including the ones sent by Fingerprint404 to learn
+    how the site's 404 pages look like) using respond().
+    """
+
+    def respond(self, method, path):
+        raise NotImplementedError
 
     def get_body(self, unique_parts):
-        # Do not increase this 50 too much, it will exceed the xurllib max
-        # HTTP response body length
+        # Do not increase this 30 too much, it will exceed the xurllib max
+        # HTTP response body length (max_file_size)
         parts = [re.__doc__, random.__doc__, unittest.__doc__]
-        parts = parts * 50
+        parts = parts * 30
 
         parts.extend(unique_parts)
 
@@ -53,12 +60,14 @@ class Generic404Test(unittest.TestCase):
 
         body = "\n".join(parts)
 
-        # filename = str(abs(hash(''.join(parts)))) + '-hash.txt'
-        # file(filename, 'w').write(body)
-
         return body
 
+    def target_url(self, path):
+        return URL(self.server.url(path))
+
     def setUp(self):
+        self.server = LocalHTTPServer(self.respond).start()
+
         self.urllib = ExtendedUrllib()
 
         self.fingerprint_404 = Fingerprint404()
@@ -66,22 +75,21 @@ class Generic404Test(unittest.TestCase):
 
     def tearDown(self):
         self.urllib.end()
+        self.server.close()
         clear_default_temp_db_instance()
 
 
 class Test404Detection(Generic404Test):
 
-    @httpretty.activate
+    def respond(self, method, path):
+        return Reply(status=404, body="404 found")
+
     def test_issue_3234(self):
         #
         # is_404 can not handle URLs with : in path #3234
         # https://github.com/andresriancho/w3af/issues/3234
         #
-        httpretty.register_uri(
-            httpretty.GET, re.compile("w3af.com/(.*)"), body="404 found", status=404
-        )
-
-        url = URL("http://w3af.com/d:a")
+        url = self.target_url("/d:a")
         resp = HTTPResponse(200, "body", Headers(), url, url)
 
         self.assertFalse(self.fingerprint_404.is_404(resp))
@@ -89,42 +97,38 @@ class Test404Detection(Generic404Test):
 
 class Test404FalseNegative(Generic404Test):
 
-    @httpretty.activate
+    SERVER_ERROR = (
+        "500 error that does NOT\n"
+        "look like one\n"
+        "because we want to reproduce the bug\n"
+    )
+
+    NOT_FOUND = (
+        "This is a 404\n"
+        "but it does NOT look like one\n"
+        "because we want to reproduce the bug\n"
+    )
+
+    def respond(self, method, path):
+        if path.startswith("/foo/"):
+            return Reply(status=500, body=self.SERVER_ERROR)
+
+        return Reply(status=404, body=self.NOT_FOUND)
+
     def test_false_negative_with_500(self):
-        server_error = (
-            "500 error that does NOT\n"
-            "look like one\n"
-            "because we want to reproduce the bug\n"
-        )
-
-        not_found = (
-            "This is a 404\n"
-            "but it does NOT look like one\n"
-            "because we want to reproduce the bug\n"
-        )
-
-        httpretty.register_uri(
-            httpretty.GET,
-            re.compile("w3af.com/foo/(.*)"),
-            body=server_error,
-            status=500,
-        )
-
-        httpretty.register_uri(
-            httpretty.GET, re.compile("w3af.com/(.*)"), body=not_found, status=404
-        )
-
-        foo_url = URL("http://w3af.com/foo/phpinfo.php")
+        foo_url = self.target_url("/foo/phpinfo.php")
         headers = Headers([("Content-Type", "text/html")])
-        server_error_resp = HTTPResponse(500, server_error, headers, foo_url, foo_url)
+        server_error_resp = HTTPResponse(
+            500, self.SERVER_ERROR, headers, foo_url, foo_url
+        )
 
         self.assertTrue(self.fingerprint_404.is_404(server_error_resp))
 
 
 class Test404FalsePositiveLargeResponsesRandomShort(Generic404Test):
 
-    def request_callback(self, request, uri, headers):
-        return 200, headers, self.get_random_unique_parts_body()
+    def respond(self, method, path):
+        return Reply(body=self.get_random_unique_parts_body())
 
     def get_random_unique_parts_body(self):
         unique_parts = [
@@ -134,21 +138,8 @@ class Test404FalsePositiveLargeResponsesRandomShort(Generic404Test):
         ]
         return self.get_body(unique_parts)
 
-    @httpretty.activate
     def test_page_found_with_large_response_random(self):
-
-        httpretty.register_uri(
-            httpretty.GET,
-            re.compile("w3af.com/(.*)"),
-            body=self.request_callback,
-            status=200,
-        )
-
-        # FIXME: There is an interference issue between unittests, if the same
-        #        URL is used for multiple unittests, the test will fail. This
-        #        is most likely a cache I'm not clearing in tearDown, but I
-        #        was unable to find the root cause.
-        success_url = URL("http://w3af.com/fid2/")
+        success_url = self.target_url("/fid2/")
 
         unique_parts = [
             "Welcome to our site",
@@ -160,21 +151,8 @@ class Test404FalsePositiveLargeResponsesRandomShort(Generic404Test):
         success_200 = HTTPResponse(200, body, headers, success_url, success_url)
         self.assertFalse(self.fingerprint_404.is_404(success_200))
 
-    @httpretty.activate
     def test_page_marked_as_404_with_large_response_random(self):
-
-        httpretty.register_uri(
-            httpretty.GET,
-            re.compile("w3af.com/(.*)"),
-            body=self.request_callback,
-            status=200,
-        )
-
-        # FIXME: There is an interference issue between unittests, if the same
-        #        URL is used for multiple unittests, the test will fail. This
-        #        is most likely a cache I'm not clearing in tearDown, but I
-        #        was unable to find the root cause.
-        not_found_url = URL("http://w3af.com/dnliw9a/")
+        not_found_url = self.target_url("/dnliw9a/")
 
         body = self.get_random_unique_parts_body()
 
@@ -185,13 +163,13 @@ class Test404FalsePositiveLargeResponsesRandomShort(Generic404Test):
 
 class Test404With1ByteRandomShort(Generic404Test):
 
-    def __init__(self):
-        super().__init__()
+    def setUp(self):
         self.application_server_ids = [1, 2, 2]
         self.application_server_idx = 0
+        super().setUp()
 
-    def request_callback(self, request, uri, headers):
-        return 200, headers, self.get_short_body()
+    def respond(self, method, path):
+        return Reply(body=self.get_short_body())
 
     def get_short_body(self):
         app_server_num = self.application_server_ids[self.application_server_idx]
@@ -205,21 +183,8 @@ class Test404With1ByteRandomShort(Generic404Test):
 
         return "\n".join(parts)
 
-    @httpretty.activate
     def test_1byte_short_not_404(self):
-
-        httpretty.register_uri(
-            httpretty.GET,
-            re.compile("w3af.com/(.*)"),
-            body=self.request_callback,
-            status=200,
-        )
-
-        # FIXME: There is an interference issue between unittests, if the same
-        #        URL is used for multiple unittests, the test will fail. This
-        #        is most likely a cache I'm not clearing in tearDown, but I
-        #        was unable to find the root cause.
-        success_url = URL("http://w3af.com/search/feed/CVS/Entries")
+        success_url = self.target_url("/search/feed/CVS/Entries")
 
         body = self.get_short_body()
         headers = Headers([("Content-Type", "text/html")])
@@ -229,13 +194,13 @@ class Test404With1ByteRandomShort(Generic404Test):
 
 class Test404With1ByteRandomLarge(Generic404Test):
 
-    def __init__(self):
-        super().__init__()
+    def setUp(self):
         self.application_server_ids = [1, 2, 2]
         self.application_server_idx = 0
+        super().setUp()
 
-    def request_callback(self, request, uri, headers):
-        return 200, headers, self.get_short_body()
+    def respond(self, method, path):
+        return Reply(body=self.get_short_body())
 
     def get_short_body(self):
         app_server_num = self.application_server_ids[self.application_server_idx]
@@ -255,42 +220,16 @@ class Test404With1ByteRandomLarge(Generic404Test):
 
         return "\n".join(parts)
 
-    @httpretty.activate
     def test_1byte_large_is_404(self):
-
-        httpretty.register_uri(
-            httpretty.GET,
-            re.compile("w3af.com/(.*)"),
-            body=self.request_callback,
-            status=200,
-        )
-
-        # FIXME: There is an interference issue between unittests, if the same
-        #        URL is used for multiple unittests, the test will fail. This
-        #        is most likely a cache I'm not clearing in tearDown, but I
-        #        was unable to find the root cause.
-        not_found_url = URL("http://w3af.com/search/feed/SVN/Entries")
+        not_found_url = self.target_url("/search/feed/SVN/Entries")
 
         body = self.get_short_body()
         headers = Headers([("Content-Type", "text/html")])
         not_found = HTTPResponse(200, body, headers, not_found_url, not_found_url)
         self.assertTrue(self.fingerprint_404.is_404(not_found))
 
-    @httpretty.activate
     def test_1byte_large_is_200(self):
-
-        httpretty.register_uri(
-            httpretty.GET,
-            re.compile("w3af.com/(.*)"),
-            body=self.request_callback,
-            status=200,
-        )
-
-        # FIXME: There is an interference issue between unittests, if the same
-        #        URL is used for multiple unittests, the test will fail. This
-        #        is most likely a cache I'm not clearing in tearDown, but I
-        #        was unable to find the root cause.
-        success_url = URL("http://w3af.com/search/feed/.bzr/.ignore")
+        success_url = self.target_url("/search/feed/.bzr/.ignore")
 
         body = "I exist, that is a fact"
         headers = Headers([("Content-Type", "text/html")])
@@ -299,28 +238,16 @@ class Test404With1ByteRandomLarge(Generic404Test):
 
 
 class Test404FalsePositiveLargeResponsesEqual404s(Generic404Test):
-    def request_callback(self, request, uri, headers):
-        return 200, headers, self.get_body_with_unique_params()
+
+    def respond(self, method, path):
+        return Reply(body=self.get_body_with_unique_params())
 
     def get_body_with_unique_params(self):
         unique_parts = ["The request failed", "Come back later"]
         return self.get_body(unique_parts)
 
-    @httpretty.activate
     def test_page_not_found_with_large_response(self):
-
-        httpretty.register_uri(
-            httpretty.GET,
-            re.compile("w3af.com/(.*)"),
-            body=self.request_callback,
-            status=200,
-        )
-
-        # FIXME: There is an interference issue between unittests, if the same
-        #        URL is used for multiple unittests, the test will fail. This
-        #        is most likely a cache I'm not clearing in tearDown, but I
-        #        was unable to find the root cause.
-        success_url = URL("http://w3af.com/fiaasxd322/")
+        success_url = self.target_url("/fiaasxd322/")
 
         unique_parts = [
             "Welcome to our site",
@@ -332,21 +259,8 @@ class Test404FalsePositiveLargeResponsesEqual404s(Generic404Test):
         success_200 = HTTPResponse(200, body, headers, success_url, success_url)
         self.assertFalse(self.fingerprint_404.is_404(success_200))
 
-    @httpretty.activate
     def test_page_marked_as_404_with_large_response(self):
-
-        httpretty.register_uri(
-            httpretty.GET,
-            re.compile("w3af.com/(.*)"),
-            body=self.request_callback,
-            status=200,
-        )
-
-        # FIXME: There is an interference issue between unittests, if the same
-        #        URL is used for multiple unittests, the test will fail. This
-        #        is most likely a cache I'm not clearing in tearDown, but I
-        #        was unable to find the root cause.
-        not_found_url = URL("http://w3af.com/nfklu/")
+        not_found_url = self.target_url("/nfklu/")
 
         body = self.get_body_with_unique_params()
 
@@ -358,28 +272,13 @@ class Test404FalsePositiveLargeResponsesEqual404s(Generic404Test):
 class Test404FalsePositiveLargeResponsesWithCSRFToken(Generic404Test):
 
     def generate_csrf_token(self):
-        return os.urandom(64).encode("hex")
+        return os.urandom(64).hex()
 
-    def request_callback(self, request, uri, headers):
-        unique_parts = [self.generate_csrf_token()]
-        body = self.get_body(unique_parts)
-        return 200, headers, body
+    def respond(self, method, path):
+        return Reply(body=self.get_body([self.generate_csrf_token()]))
 
-    @httpretty.activate
     def test_is_404_with_csrf_token(self):
-
-        httpretty.register_uri(
-            httpretty.GET,
-            re.compile("w3af.com/(.*)"),
-            body=self.request_callback,
-            status=200,
-        )
-
-        # FIXME: There is an interference issue between unittests, if the same
-        #        URL is used for multiple unittests, the test will fail. This
-        #        is most likely a cache I'm not clearing in tearDown, but I
-        #        was unable to find the root cause.
-        not_found_url = URL("http://w3af.com/xfi/")
+        not_found_url = self.target_url("/xfi/")
 
         unique_parts = [self.generate_csrf_token()]
         body = self.get_body(unique_parts)
@@ -388,21 +287,8 @@ class Test404FalsePositiveLargeResponsesWithCSRFToken(Generic404Test):
 
         self.assertTrue(self.fingerprint_404.is_404(not_found_404))
 
-    @httpretty.activate
     def test_exists_with_csrf_token_in_404_page(self):
-
-        httpretty.register_uri(
-            httpretty.GET,
-            re.compile("w3af.com/(.*)"),
-            body=self.request_callback,
-            status=200,
-        )
-
-        # FIXME: There is an interference issue between unittests, if the same
-        #        URL is used for multiple unittests, the test will fail. This
-        #        is most likely a cache I'm not clearing in tearDown, but I
-        #        was unable to find the root cause.
-        success_url = URL("http://w3af.com/fenix/")
+        success_url = self.target_url("/fenix/")
 
         body = "I do exist, completely different from the 404 page"
         headers = Headers([("Content-Type", "text/html")])
@@ -414,33 +300,18 @@ class Test404FalsePositiveLargeResponsesWithCSRFToken(Generic404Test):
 class Test404FalsePositiveLargeResponsesWithCSRFTokenPartiallyEqual(Generic404Test):
 
     def generate_csrf_token(self):
-        part_1 = os.urandom(32).encode("hex")
-        part_2 = os.urandom(32).encode("hex")
+        part_1 = os.urandom(32).hex()
+        part_2 = os.urandom(32).hex()
 
         shared = "aabbccdd112233"
 
         return part_1 + shared + part_2
 
-    def request_callback(self, request, uri, headers):
-        unique_parts = [self.generate_csrf_token()]
-        body = self.get_body(unique_parts)
-        return 200, headers, body
+    def respond(self, method, path):
+        return Reply(body=self.get_body([self.generate_csrf_token()]))
 
-    @httpretty.activate
     def test_false_positive(self):
-
-        httpretty.register_uri(
-            httpretty.GET,
-            re.compile("w3af.com/(.*)"),
-            body=self.request_callback,
-            status=200,
-        )
-
-        # FIXME: There is an interference issue between unittests, if the same
-        #        URL is used for multiple unittests, the test will fail. This
-        #        is most likely a cache I'm not clearing in tearDown, but I
-        #        was unable to find the root cause.
-        success_url = URL("http://w3af.com/321x/")
+        success_url = self.target_url("/321x/")
 
         unique_parts = [self.generate_csrf_token()]
         body = self.get_body(unique_parts)
@@ -489,128 +360,63 @@ class GenericIgnoredPartTest(Generic404Test):
         "Note written: 11-Dec-2018"
     )
 
-    def request_callback(self, request, uri, headers):
-
-        if "/path1/path2/" in uri:
+    def respond(self, method, path):
+        if "/path1/path2/" in path:
             body = self.ALL_SAME_BODY
-        elif "/path1/" in uri:
+        elif "/path1/" in path:
             body = "The second path controls the HTTP response body"
         else:
             raise RuntimeError("Should never reach this.")
 
-        return 200, headers, body
+        return Reply(body=body)
+
+    def assert_ignored_part_is_not_404(self, path):
+        # This is the URL we found during crawling and want to know if is_404()
+        query_url = self.target_url(path)
+        headers = Headers([("Content-Type", "text/html")])
+        success_200 = HTTPResponse(
+            200, self.ALL_SAME_BODY, headers, query_url, query_url
+        )
+
+        self.assertFalse(self.fingerprint_404.is_404(success_200))
 
 
 class Test404HandleIgnoredFilename(GenericIgnoredPartTest):
 
     @unittest.skip("See: IGNORED_PATH_PARTS_DOC")
-    @httpretty.activate
     def test_handle_ignored_filename(self):
-
-        httpretty.register_uri(
-            httpretty.GET,
-            re.compile("w3af.com/(.*)"),
-            body=self.request_callback,
-            status=200,
-        )
-
-        # This is the URL we found during crawling and want to know if is_404()
-        query_url = URL("http://w3af.com/path1/path2/xyz123")
-        headers = Headers([("Content-Type", "text/html")])
-        success_200 = HTTPResponse(
-            200, self.ALL_SAME_BODY, headers, query_url, query_url
-        )
-
-        self.assertFalse(self.fingerprint_404.is_404(success_200))
+        self.assert_ignored_part_is_not_404("/path1/path2/xyz123")
 
 
 class Test404HandleIgnoredPath(GenericIgnoredPartTest):
 
     @unittest.skip("See: IGNORED_PATH_PARTS_DOC")
-    @httpretty.activate
     def test_handle_ignored_path(self):
-
-        httpretty.register_uri(
-            httpretty.GET,
-            re.compile("w3af.com/(.*)"),
-            body=self.request_callback,
-            status=200,
-        )
-
-        # This is the URL we found during crawling and want to know if is_404()
-        query_url = URL("http://w3af.com/path1/path2/path3/")
-        headers = Headers([("Content-Type", "text/html")])
-        success_200 = HTTPResponse(
-            200, self.ALL_SAME_BODY, headers, query_url, query_url
-        )
-
-        self.assertFalse(self.fingerprint_404.is_404(success_200))
+        self.assert_ignored_part_is_not_404("/path1/path2/path3/")
 
 
 class Test404HandleIgnoredPathAndFilename(GenericIgnoredPartTest):
 
     @unittest.skip("See: IGNORED_PATH_PARTS_DOC")
-    @httpretty.activate
     def test_handle_ignored_path(self):
-
-        httpretty.register_uri(
-            httpretty.GET,
-            re.compile("w3af.com/(.*)"),
-            body=self.request_callback,
-            status=200,
-        )
-
-        # This is the URL we found during crawling and want to know if is_404()
-        query_url = URL("http://w3af.com/path1/path2/path3/xyz123")
-        headers = Headers([("Content-Type", "text/html")])
-        success_200 = HTTPResponse(
-            200, self.ALL_SAME_BODY, headers, query_url, query_url
-        )
-
-        self.assertFalse(self.fingerprint_404.is_404(success_200))
+        self.assert_ignored_part_is_not_404("/path1/path2/path3/xyz123")
 
 
 class Test404HandleIgnoredPathDeep(GenericIgnoredPartTest):
 
     @unittest.skip("See: IGNORED_PATH_PARTS_DOC")
-    @httpretty.activate
     def test_handle_ignored_path(self):
-
-        httpretty.register_uri(
-            httpretty.GET,
-            re.compile("w3af.com/(.*)"),
-            body=self.request_callback,
-            status=200,
-        )
-
-        # This is the URL we found during crawling and want to know if is_404()
-        query_url = URL("http://w3af.com/path1/path2/path3/path4/path5/")
-        headers = Headers([("Content-Type", "text/html")])
-        success_200 = HTTPResponse(
-            200, self.ALL_SAME_BODY, headers, query_url, query_url
-        )
-
-        self.assertFalse(self.fingerprint_404.is_404(success_200))
+        self.assert_ignored_part_is_not_404("/path1/path2/path3/path4/path5/")
 
 
 class Test404HandleAllIs404(GenericIgnoredPartTest):
 
-    def request_callback(self, request, uri, headers):
-        body = self.ALL_SAME_BODY
-        return 200, headers, body
+    def respond(self, method, path):
+        return Reply(body=self.ALL_SAME_BODY)
 
-    @httpretty.activate
     def test_handle_really_a_404(self):
-
-        httpretty.register_uri(
-            httpretty.GET,
-            re.compile("w3af.com/(.*)"),
-            body=self.request_callback,
-            status=200,
-        )
-
         # This is the URL we found during crawling and want to know if is_404()
-        query_url = URL("http://w3af.com/path1/path2/")
+        query_url = self.target_url("/path1/path2/")
         headers = Headers([("Content-Type", "text/html")])
         success_200 = HTTPResponse(
             200, self.ALL_SAME_BODY, headers, query_url, query_url

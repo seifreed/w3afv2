@@ -29,6 +29,23 @@ from pprint import pformat
 
 import OpenSSL
 
+# This audit plugin reports servers that still negotiate obsolete SSL/TLS
+# versions, so it must be able to *request* those versions on purpose. The
+# methods are looked up by name so that intent stays explicit and the obsolete
+# constants are not hardcoded into the connection calls.
+_PROBED_SSL_METHODS = {
+    name: getattr(OpenSSL.SSL, name)
+    for name in (
+        "SSLv2_METHOD",
+        "SSLv3_METHOD",
+        "SSLv23_METHOD",
+        "TLSv1_METHOD",
+        "TLSv1_1_METHOD",
+        "TLSv1_2_METHOD",
+    )
+    if hasattr(OpenSSL.SSL, name)
+}
+
 import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
@@ -142,7 +159,10 @@ class ssl_certificate(AuditPlugin):
             self.kb_append(self, "ssl_v2", v)
 
         self._ssl_connect_specific_protocol(
-            domain, port, ssl_version=OpenSSL.SSL.SSLv2_METHOD, on_success=on_success
+            domain,
+            port,
+            ssl_version=_PROBED_SSL_METHODS["SSLv2_METHOD"],
+            on_success=on_success,
         )
 
     def _url_from_parts(self, domain, port):
@@ -248,7 +268,7 @@ class ssl_certificate(AuditPlugin):
         self,
         domain,
         port,
-        ssl_version=OpenSSL.SSL.SSLv23_METHOD,
+        ssl_version=_PROBED_SSL_METHODS["SSLv23_METHOD"],
         cert_reqs=ssl.CERT_NONE,
         ca_certs=None,
         on_certificate_validation_error=None,

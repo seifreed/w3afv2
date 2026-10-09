@@ -19,16 +19,17 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import queue
 import unittest
-from unittest.mock import patch
 
+from w3af.core.controllers.output_manager.log_sink import LogSink
 from w3af.core.controllers.profiling.took_helper import TookLine
 from w3af.core.controllers.w3af_core import w3afCore
 
 
 class TestTookHelper(unittest.TestCase):
-    def test_took_simple(self):
-        w3af_core = w3afCore()
+    def send_took_line(self, w3af_core):
+        messages = queue.Queue()
 
         took_line = TookLine(
             w3af_core,
@@ -36,43 +37,32 @@ class TestTookHelper(unittest.TestCase):
             "method_name",
             debugging_id="ML7aEYsa",
             method_params={"test": "yes"},
+            log_sink=LogSink(messages),
         )
+        took_line.send()
 
-        with patch("w3af.core.controllers.profiling.took_helper.om.out") as om_mock:
-            took_line.send()
+        (method, sent_message), _kwargs = messages.get(timeout=1)
+        self.assertEqual(method, "debug")
+        self.assertTrue(messages.empty())
+        return sent_message
 
-            self.assertEqual(om_mock.debug.call_count, 1)
-            sent_message = om_mock.debug.call_args[0][0]
+    def test_took_simple(self):
+        sent_message = self.send_took_line(w3afCore())
 
-            self.assertRegex(
-                sent_message,
-                r'plugin_name.method_name\(test="yes",did="ML7aEYsa"\)'
-                r" took .*? seconds to run \(.*? seconds / .*?% consuming CPU cycles\)",
-            )
+        self.assertRegex(
+            sent_message,
+            r'^plugin_name.method_name\(test="yes",did="ML7aEYsa"\)'
+            r" took \d+\.\d{2}s to run$",
+        )
 
     def test_took_with_rtt(self):
-        debugging_id = "ML7aEYsa"
-
         w3af_core = w3afCore()
-        w3af_core.uri_opener._rtt_sum_debugging_id[debugging_id] = 1.8
+        w3af_core.uri_opener._rtt_sum_debugging_id["ML7aEYsa"] = 1.8
 
-        took_line = TookLine(
-            w3af_core,
-            "plugin_name",
-            "method_name",
-            debugging_id="ML7aEYsa",
-            method_params={"test": "yes"},
+        sent_message = self.send_took_line(w3af_core)
+
+        self.assertRegex(
+            sent_message,
+            r'^plugin_name.method_name\(test="yes",did="ML7aEYsa"\)'
+            r" took \d+\.\d{2}s to run \(1.80s \d+% sending HTTP requests\)$",
         )
-
-        with patch("w3af.core.controllers.profiling.took_helper.om.out") as om_mock:
-            took_line.send()
-
-            self.assertEqual(om_mock.debug.call_count, 1)
-            sent_message = om_mock.debug.call_args[0][0]
-
-            self.assertRegex(
-                sent_message,
-                r'plugin_name.method_name\(test="yes",did="ML7aEYsa"\)'
-                r" took .*? seconds to run \(1.80 seconds / .*?% sending HTTP requests,"
-                r" .*? seconds / .*?% consuming CPU cycles\)",
-            )

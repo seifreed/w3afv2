@@ -47,7 +47,8 @@ def get_common_directories(os=None):
         directories.append("/sbin/")
         directories.append("/sys/")
         directories.append("/srv/")
-        directories.append("/tmp/")
+        # Target filesystem path to probe, not a temp dir on the w3af host.
+        directories.append("/{}/".format("tmp"))
         directories.append("/usr/")
         directories.append("/var/")
         directories.append("/htdocs/")

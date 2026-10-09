@@ -27,7 +27,6 @@ import time
 import unittest
 from concurrent.futures import TimeoutError
 from unittest import SkipTest
-from unittest.mock import PropertyMock, patch
 
 from w3af import ROOT_PATH
 from w3af.core.data.dc.headers import Headers
@@ -82,46 +81,37 @@ class TestMPDocumentParser(unittest.TestCase):
         Test to verify fix for https://github.com/andresriancho/w3af/issues/6723
         "w3af running long time more than 24h"
         """
-        mmpdp = "w3af.core.data.parsers.mp_document_parser.%s"
-        kmpdp = mmpdp % "MultiProcessingDocumentParser.%s"
-        modp = "w3af.core.data.parsers.document_parser.%s"
+        self.mpdoc.stop_workers()
+        self.mpdoc = MultiProcessingDocumentParser(
+            parser_timeout=1,
+            max_workers=1,
+            parsers=(DelayedParser, HTMLParser),
+        )
 
-        with patch(
-            kmpdp % "PARSER_TIMEOUT", new_callable=PropertyMock
-        ) as timeout_mock, patch(
-            kmpdp % "MAX_WORKERS", new_callable=PropertyMock
-        ) as max_workers_mock, patch(
-            modp % "DocumentParser.PARSERS", new_callable=PropertyMock
-        ) as parsers_mock:
+        #
+        #   Test the timeout
+        #
+        html = "<html>DelayedParser!</html>"
+        http_resp = _build_http_response(html, "text/html")
 
-            #
-            #   Test the timeout
-            #
-            html = "<html>DelayedParser!</html>"
-            http_resp = _build_http_response(html, "text/html")
+        try:
+            self.mpdoc.get_document_parser_for(http_resp)
+        except TimeoutError as toe:
+            self._is_timeout_exception_message(toe, http_resp)
+        else:
+            self.assertTrue(False)
 
-            timeout_mock.return_value = 1
-            max_workers_mock.return_value = 1
-            parsers_mock.return_value = [DelayedParser, HTMLParser]
+        #
+        #   We now want to make sure that after we kill the process the Pool
+        #   creates a new process for handling our tasks
+        #
+        #   https://github.com/andresriancho/w3af/issues/9713
+        #
+        html = "<html>foo-</html>"
+        http_resp = _build_http_response(html, "text/html")
 
-            try:
-                self.mpdoc.get_document_parser_for(http_resp)
-            except TimeoutError as toe:
-                self._is_timeout_exception_message(toe, http_resp)
-            else:
-                self.assertTrue(False)
-
-            #
-            #   We now want to make sure that after we kill the process the Pool
-            #   creates a new process for handling our tasks
-            #
-            #   https://github.com/andresriancho/w3af/issues/9713
-            #
-            html = "<html>foo-</html>"
-            http_resp = _build_http_response(html, "text/html")
-
-            doc_parser = self.mpdoc.get_document_parser_for(http_resp)
-            self.assertIsInstance(doc_parser._parser, HTMLParser)
+        doc_parser = self.mpdoc.get_document_parser_for(http_resp)
+        self.assertIsInstance(doc_parser._parser, HTMLParser)
 
     def test_many_parsers_timing_out(self):
         """
@@ -131,63 +121,53 @@ class TestMPDocumentParser(unittest.TestCase):
 
         Want to test how well the the parser recovers from many timeouts.
         """
-        mmpdp = "w3af.core.data.parsers.mp_document_parser.%s"
-        kmpdp = mmpdp % "MultiProcessingDocumentParser.%s"
-        modp = "w3af.core.data.parsers.document_parser.%s"
+        self.mpdoc.stop_workers()
+        self.mpdoc = MultiProcessingDocumentParser(
+            parser_timeout=1,
+            max_workers=5,
+            parsers=(DelayedParser, HTMLParser),
+        )
 
-        with patch(
-            kmpdp % "PARSER_TIMEOUT", new_callable=PropertyMock
-        ) as timeout_mock, patch(
-            kmpdp % "MAX_WORKERS", new_callable=PropertyMock
-        ) as max_workers_mock, patch(
-            modp % "DocumentParser.PARSERS", new_callable=PropertyMock
-        ) as parsers_mock:
+        # Prepare the HTTP responses
+        html_trigger_delay = "<html>DelayedParser!</html>%s"
+        html_ok = "<html>foo-</html>%s"
 
-            # Prepare the HTTP responses
-            html_trigger_delay = "<html>DelayedParser!</html>%s"
-            html_ok = "<html>foo-</html>%s"
+        ITERATIONS = 25
 
-            # Mocks
-            timeout_mock.return_value = 1
-            max_workers_mock.return_value = 5
-            parsers_mock.return_value = [DelayedParser, HTMLParser]
+        #
+        # Lets timeout many sequentially
+        #
+        for i in range(ITERATIONS):
+            http_resp = _build_http_response(html_trigger_delay % i, "text/html")
 
-            ITERATIONS = 25
+            try:
+                self.mpdoc.get_document_parser_for(http_resp)
+            except TimeoutError as toe:
+                self._is_timeout_exception_message(toe, http_resp)
+            else:
+                self.assertTrue(False)
 
-            #
-            # Lets timeout many sequentially
-            #
-            for i in range(ITERATIONS):
-                http_resp = _build_http_response(html_trigger_delay % i, "text/html")
+        #
+        # Lets timeout randomly
+        #
+        for i in range(ITERATIONS):
+            html = random.choice([html_trigger_delay, html_ok])
+            http_resp = _build_http_response(html % i, "text/html")
 
-                try:
-                    self.mpdoc.get_document_parser_for(http_resp)
-                except TimeoutError as toe:
-                    self._is_timeout_exception_message(toe, http_resp)
-                else:
-                    self.assertTrue(False)
-
-            #
-            # Lets timeout randomly
-            #
-            for i in range(ITERATIONS):
-                html = random.choice([html_trigger_delay, html_ok])
-                http_resp = _build_http_response(html % i, "text/html")
-
-                try:
-                    parser = self.mpdoc.get_document_parser_for(http_resp)
-                except TimeoutError as toe:
-                    self._is_timeout_exception_message(toe, http_resp)
-                else:
-                    self.assertIsInstance(parser._parser, HTMLParser)
-
-            #
-            # Lets parse things we know should work
-            #
-            for i in range(ITERATIONS):
-                http_resp = _build_http_response(html_ok % i, "text/html")
+            try:
                 parser = self.mpdoc.get_document_parser_for(http_resp)
+            except TimeoutError as toe:
+                self._is_timeout_exception_message(toe, http_resp)
+            else:
                 self.assertIsInstance(parser._parser, HTMLParser)
+
+        #
+        # Lets parse things we know should work
+        #
+        for i in range(ITERATIONS):
+            http_resp = _build_http_response(html_ok % i, "text/html")
+            parser = self.mpdoc.get_document_parser_for(http_resp)
+            self.assertIsInstance(parser._parser, HTMLParser)
 
     def test_parser_with_large_attr_killed_when_sending_to_queue(self):
         """
@@ -210,107 +190,88 @@ class TestMPDocumentParser(unittest.TestCase):
             " to force a specific state."
         )
 
-        mmpdp = "w3af.core.data.parsers.mp_document_parser.%s"
-        kmpdp = mmpdp % "MultiProcessingDocumentParser.%s"
-        modp = "w3af.core.data.parsers.document_parser.%s"
+        self.mpdoc.stop_workers()
+        self.mpdoc = MultiProcessingDocumentParser(
+            parser_timeout=1,
+            max_workers=5,
+            parsers=(HugeClassAttrValueParser, HTMLParser),
+        )
 
-        with patch(
-            kmpdp % "PARSER_TIMEOUT", new_callable=PropertyMock
-        ) as timeout_mock, patch(
-            kmpdp % "MAX_WORKERS", new_callable=PropertyMock
-        ) as max_workers_mock, patch(
-            modp % "DocumentParser.PARSERS", new_callable=PropertyMock
-        ) as parsers_mock:
+        # Prepare the HTTP responses
+        html_trigger_delay = "<html>HugeClassAttrValueParser!</html>%s"
+        html_ok = "<html>foo-</html>%s"
 
-            # Prepare the HTTP responses
-            html_trigger_delay = "<html>HugeClassAttrValueParser!</html>%s"
-            html_ok = "<html>foo-</html>%s"
+        ITERATIONS = 10
 
-            # Mocks
-            timeout_mock.return_value = 1
-            max_workers_mock.return_value = 5
-            parsers_mock.return_value = [HugeClassAttrValueParser, HTMLParser]
+        #
+        # Lets timeout many sequentially
+        #
+        for i in range(ITERATIONS):
+            http_resp = _build_http_response(html_trigger_delay % i, "text/html")
 
-            ITERATIONS = 10
+            try:
+                self.mpdoc.get_document_parser_for(http_resp)
+            except TimeoutError as toe:
+                self._is_timeout_exception_message(toe, http_resp)
+            else:
+                self.assertTrue(False)
 
-            #
-            # Lets timeout many sequentially
-            #
-            for i in range(ITERATIONS):
-                http_resp = _build_http_response(html_trigger_delay % i, "text/html")
+        #
+        # Lets timeout randomly
+        #
+        for i in range(ITERATIONS):
+            html = random.choice([html_trigger_delay, html_ok])
+            http_resp = _build_http_response(html % i, "text/html")
 
-                try:
-                    self.mpdoc.get_document_parser_for(http_resp)
-                except TimeoutError as toe:
-                    self._is_timeout_exception_message(toe, http_resp)
-                else:
-                    self.assertTrue(False)
-
-            #
-            # Lets timeout randomly
-            #
-            for i in range(ITERATIONS):
-                html = random.choice([html_trigger_delay, html_ok])
-                http_resp = _build_http_response(html % i, "text/html")
-
-                try:
-                    parser = self.mpdoc.get_document_parser_for(http_resp)
-                except TimeoutError as toe:
-                    self._is_timeout_exception_message(toe, http_resp)
-                else:
-                    self.assertIsInstance(parser._parser, HTMLParser)
-
-            #
-            # Lets parse things we know should work
-            #
-            for i in range(ITERATIONS):
-                http_resp = _build_http_response(html_ok % i, "text/html")
+            try:
                 parser = self.mpdoc.get_document_parser_for(http_resp)
+            except TimeoutError as toe:
+                self._is_timeout_exception_message(toe, http_resp)
+            else:
                 self.assertIsInstance(parser._parser, HTMLParser)
+
+        #
+        # Lets parse things we know should work
+        #
+        for i in range(ITERATIONS):
+            http_resp = _build_http_response(html_ok % i, "text/html")
+            parser = self.mpdoc.get_document_parser_for(http_resp)
+            self.assertIsInstance(parser._parser, HTMLParser)
 
     def test_parser_memory_usage_exceeded(self):
         """
         This makes sure that we stop parsing a document that exceeds our memory
         usage limits.
         """
-        mmpdp = "w3af.core.data.parsers.mp_document_parser.%s"
-        kmpdp = mmpdp % "MultiProcessingDocumentParser.%s"
-        modp = "w3af.core.data.parsers.document_parser.%s"
+        self.mpdoc.stop_workers()
+        self.mpdoc = MultiProcessingDocumentParser(
+            memory_limit=150000,
+            max_workers=1,
+            parsers=(UseMemoryParser, HTMLParser),
+        )
 
-        with patch(
-            kmpdp % "MEMORY_LIMIT", new_callable=PropertyMock
-        ) as memory_mock, patch(
-            kmpdp % "MAX_WORKERS", new_callable=PropertyMock
-        ) as max_workers_mock, patch(
-            modp % "DocumentParser.PARSERS", new_callable=PropertyMock
-        ) as parsers_mock:
+        #
+        #   Test the memory usage
+        #
+        html = "<html>UseMemoryParser!</html>"
+        http_resp = _build_http_response(html, "text/html")
 
-            #
-            #   Test the memory usage
-            #
-            html = "<html>UseMemoryParser!</html>"
-            http_resp = _build_http_response(html, "text/html")
+        try:
+            self.mpdoc.get_document_parser_for(http_resp)
+        except MemoryError as me:
+            self.assertIn("OOM issues", str(me))
+        else:
+            self.assertTrue(False)
 
-            memory_mock.return_value = 150000
-            max_workers_mock.return_value = 1
-            parsers_mock.return_value = [UseMemoryParser, HTMLParser]
+        #
+        # We now want to make sure that after we stop because of a memory issue
+        # the process the Pool continues handling tasks as expected
+        #
+        html = "<html>foo-</html>"
+        http_resp = _build_http_response(html, "text/html")
 
-            try:
-                self.mpdoc.get_document_parser_for(http_resp)
-            except MemoryError as me:
-                self.assertIn("OOM issues", str(me))
-            else:
-                self.assertTrue(False)
-
-            #
-            # We now want to make sure that after we stop because of a memory issue
-            # the process the Pool continues handling tasks as expected
-            #
-            html = "<html>foo-</html>"
-            http_resp = _build_http_response(html, "text/html")
-
-            doc_parser = self.mpdoc.get_document_parser_for(http_resp)
-            self.assertIsInstance(doc_parser._parser, HTMLParser)
+        doc_parser = self.mpdoc.get_document_parser_for(http_resp)
+        self.assertIsInstance(doc_parser._parser, HTMLParser)
 
     def _is_timeout_exception_message(self, toe, http_resp):
         msg = (
@@ -319,7 +280,7 @@ class TestMPDocumentParser(unittest.TestCase):
         )
 
         error = msg % (
-            MultiProcessingDocumentParser.PARSER_TIMEOUT,
+            self.mpdoc.parser_timeout,
             http_resp.get_url(),
         )
 

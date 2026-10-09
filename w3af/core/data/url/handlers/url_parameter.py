@@ -53,7 +53,7 @@ class URLParameterHandler(urllib.request.BaseHandler):
             data=req.get_data(),
             headers=req.get_headers(),
             origin_req_host=req.origin_req_host,
-            unverifiable=req.is_unverifiable(),
+            unverifiable=req.unverifiable,
             retries=req.retries_left,
             cookies=req.cookies,
             cache=req.get_from_cache,

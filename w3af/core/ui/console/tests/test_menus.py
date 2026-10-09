@@ -32,7 +32,7 @@ class TestConsoleMenus(ConsoleTestHelper):
     def _run(self, commands):
         self.console = ConsoleUI(commands=commands, do_upd=False)
         self.console.sh()
-        return "".join(self._mock_stdout.messages)
+        return "".join(self._captured_stdout.messages)
 
     def test_help_and_keys_and_print(self):
         output = self._run(

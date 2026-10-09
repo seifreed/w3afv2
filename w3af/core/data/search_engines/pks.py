@@ -31,6 +31,8 @@ from w3af.core.exceptions import BaseFrameworkException
 
 LOGGER = logging.getLogger(__name__)
 
+MIT_PKS_LOOKUP_URL = "http://pgp.mit.edu:11371/pks/lookup"
+
 
 class pks(SearchEngine):
     """
@@ -39,9 +41,10 @@ class pks(SearchEngine):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self, uri_opener):
+    def __init__(self, uri_opener, lookup_url=MIT_PKS_LOOKUP_URL):
         SearchEngine.__init__(self)
         self._uri_opener = uri_opener
+        self._lookup_url = lookup_url
 
     def search(self, hostname):
         """
@@ -68,7 +71,7 @@ class pks(SearchEngine):
         This method is based from the pks.py file from the massive enumeration
         toolset, coded by pdp and released under GPL v2.
         """
-        url = URL("http://pgp.mit.edu:11371/pks/lookup")
+        url = URL(self._lookup_url)
         url.querystring = [("op", ["index"]), ("search", [query])]
 
         try:

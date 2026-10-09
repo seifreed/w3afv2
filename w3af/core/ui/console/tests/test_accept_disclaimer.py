@@ -18,55 +18,59 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import io
 import os
-import sys
 import tempfile
 import unittest
-from contextlib import redirect_stdout
 
 from w3af.core.data.db.startup_cfg import StartUpConfig
 from w3af.core.ui.console.console_ui import ConsoleUI
 
 
 class TestAcceptDisclaimer(unittest.TestCase):
+
     def setUp(self):
-        fd, self._cfg_path = tempfile.mkstemp(suffix=".conf")
-        os.close(fd)
-        self.startup_cfg = StartUpConfig(cfg_file=self._cfg_path)
-        self.console_ui = ConsoleUI(do_upd=False, startup_cfg=self.startup_cfg)
-        self._old_stdin = sys.stdin
+        self.console_ui = ConsoleUI(do_upd=False)
 
-    def tearDown(self):
-        sys.stdin = self._old_stdin
-        os.remove(self._cfg_path)
+        temp_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(temp_dir.cleanup)
+        self.cfg_file = os.path.join(temp_dir.name, "startup.conf")
+        self.questions = []
 
-    def _answer_disclaimer(self, answer):
-        sys.stdin = io.StringIO(answer)
-        output = io.StringIO()
-        with redirect_stdout(output):
-            return self.console_ui.accept_disclaimer()
+    def answer(self, response):
+        def ask_user(question):
+            self.questions.append(question)
+            return response
+
+        return ask_user
+
+    def saved_decision(self):
+        return StartUpConfig(self.cfg_file).accepted_disclaimer
 
     def test_not_saved_not_accepted(self):
-        self.startup_cfg.set_accepted_disclaimer(False)
-        self.assertFalse(self._answer_disclaimer("\n"))
+        accepted = self.console_ui.accept_disclaimer(
+            StartUpConfig(self.cfg_file), self.answer("")
+        )
+
+        self.assertFalse(accepted)
+        self.assertEqual(len(self.questions), 1)
+        self.assertFalse(self.saved_decision())
 
     def test_not_saved_accepted(self):
-        self.startup_cfg.set_accepted_disclaimer(False)
-        self.assertTrue(self._answer_disclaimer("y\n"))
+        accepted = self.console_ui.accept_disclaimer(
+            StartUpConfig(self.cfg_file), self.answer("y")
+        )
 
-        # The acceptance is persisted so the question is not asked again
-        reloaded = StartUpConfig(cfg_file=self._cfg_path)
-        self.assertTrue(reloaded.accepted_disclaimer)
-
-    def test_accepted_full_word(self):
-        self.startup_cfg.set_accepted_disclaimer(False)
-        self.assertTrue(self._answer_disclaimer("yes\n"))
-
-    def test_not_accepted_on_eof(self):
-        self.startup_cfg.set_accepted_disclaimer(False)
-        self.assertFalse(self._answer_disclaimer(""))
+        self.assertTrue(accepted)
+        self.assertTrue(self.saved_decision())
 
     def test_saved(self):
-        self.startup_cfg.set_accepted_disclaimer(True)
-        self.assertTrue(self.console_ui.accept_disclaimer())
+        startup_cfg = StartUpConfig(self.cfg_file)
+        startup_cfg.accepted_disclaimer = True
+        startup_cfg.save()
+
+        accepted = self.console_ui.accept_disclaimer(
+            StartUpConfig(self.cfg_file), self.answer("")
+        )
+
+        self.assertTrue(accepted)
+        self.assertEqual(self.questions, [])

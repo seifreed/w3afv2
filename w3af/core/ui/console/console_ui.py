@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import logging
 import os
-import random
+import secrets
 import shlex
 import sys
 import traceback
@@ -59,11 +59,10 @@ class ConsoleUI:
     :author: Alexander Berezhnoy (alexander.berezhnoy |at| gmail.com)
     """
 
-    def __init__(self, commands=None, parent=None, do_upd=None, startup_cfg=None):
+    def __init__(self, commands=None, parent=None, do_upd=None):
         if commands is None:
             commands = []
         self._commands = commands
-        self._startup_cfg = startup_cfg if startup_cfg is not None else StartUpConfig()
         # the line which is being typed
         self._line = []
         # cursor position
@@ -109,13 +108,18 @@ class ConsoleUI:
         self._context = parent._context
         self._w3af = parent._w3af
 
-    def accept_disclaimer(self):
+    def accept_disclaimer(self, startup_cfg=None, ask_user=input):
         """
+        :param startup_cfg: Where the user's decision is persisted, defaults to
+                            the user's StartUpConfig
+        :param ask_user: Callable that shows the question and returns the
+                         user's answer
         :return: True/False depending on the user's answer to our disclaimer.
                  Please note that in w3af_console we'll stop if the user does
                  not accept the disclaimer.
         """
-        startup_cfg = self._startup_cfg
+        if startup_cfg is None:
+            startup_cfg = StartUpConfig()
 
         if startup_cfg.accepted_disclaimer:
             return True
@@ -123,7 +127,7 @@ class ConsoleUI:
         QUESTION = "Do you accept the terms and conditions? [N|y] "
         msg = DISCLAIMER + "\n\n" + QUESTION
         try:
-            user_response = input(msg)
+            user_response = ask_user(msg)
         except (KeyboardInterrupt, EOFError):
             print()
             user_response = ""
@@ -501,6 +505,6 @@ class ConsoleUI:
         )
         with open(messages_file) as messages:
             lines = messages.readlines()
-        idx = random.randrange(len(lines))
+        idx = secrets.randbelow(len(lines))
         line = lines[idx]
         return "\n" + line

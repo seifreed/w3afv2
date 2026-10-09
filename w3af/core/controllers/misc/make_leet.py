@@ -56,6 +56,4 @@ def make_leet(original_string):
             )
         )
 
-    leeted_pass = list(set(leeted_pass))
-
-    return leeted_pass
+    return list(dict.fromkeys(leeted_pass))

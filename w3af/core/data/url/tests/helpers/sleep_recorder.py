@@ -1,7 +1,7 @@
 """
-exploit_all.py
+sleep_recorder.py
 
-Copyright 2006 Andres Riancho
+Copyright 2026 w3af contributors
 
 This file is part of w3af, http://w3af.org/ .
 
@@ -20,14 +20,24 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import threading
 
-def exploit_all():
-    """
-    This function creates an instance of every attack plugin, then orders it
-    using the returning value of the get_root_probability method and finnaly
-    runs every one of them until a vulnerability is successfully exploited.
 
-    :return: True if a vuln was successfully exploited.
+class SleepRecorder:
     """
-    # FIXME: Why is this empty ?!
-    return False
+    Sleep implementation for ExtendedUrllib(sleep=...) that records the
+    requested delays and returns immediately.
+    """
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._delays: list[float] = []
+
+    def __call__(self, seconds: float) -> None:
+        with self._lock:
+            self._delays.append(seconds)
+
+    @property
+    def delays(self) -> list[float]:
+        with self._lock:
+            return list(self._delays)

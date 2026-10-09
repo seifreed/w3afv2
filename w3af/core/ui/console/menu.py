@@ -28,7 +28,11 @@ import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.ui.console.help import HelpContainer, helpMainRepository
 from w3af.core.ui.console.history import history
-from w3af.core.ui.console.util import splitPath, suggest
+from w3af.core.ui.console.util import (
+    evaluate_console_expression,
+    splitPath,
+    suggest,
+)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -217,7 +221,9 @@ class menu:
 
         eval_variable = " ".join(params)
         try:
-            res = eval(eval_variable, small_globals, small_locals)
+            res = evaluate_console_expression(
+                eval_variable, small_globals, small_locals
+            )
         except Exception:
             LOGGER.debug("Failed to evaluate %r", eval_variable, exc_info=True)
             om.out.console("Unknown variable.")

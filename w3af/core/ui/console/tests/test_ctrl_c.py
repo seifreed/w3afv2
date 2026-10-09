@@ -42,7 +42,7 @@ class TestScanControl(ConsoleTestHelper):
 
     def _output(self):
         om.manager.process_all_messages()
-        return "".join(self._mock_stdout.messages)
+        return "".join(self._captured_stdout.messages)
 
     def test_handle_scan_stop_reports_and_stops(self):
         self.menu.handle_scan_stop()

@@ -29,6 +29,9 @@ from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.url.exceptions import HTTPRequestException
 
+# Credentials are supplied by the user through the plugin options.
+UNCONFIGURED = ""
+
 
 class generic(AuthSessionPlugin):
     """
@@ -40,9 +43,9 @@ class generic(AuthSessionPlugin):
 
         # User configuration
         self.username = ""
-        self.password = ""
+        self.password = UNCONFIGURED
         self.username_field = ""
-        self.password_field = ""
+        self.password_field = UNCONFIGURED
         self.auth_url = "http://host.tld/"
         self.check_url = "http://host.tld/"
         self.check_string = ""

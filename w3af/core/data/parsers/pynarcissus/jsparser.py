@@ -46,6 +46,7 @@ __author_email__ = "jtolds@xnet5.com"
 __date__ = "2009-03-24"
 __all__ = ["ParseError", "parse", "tokens"]
 
+import ast
 import re
 
 
@@ -443,7 +444,7 @@ class Tokenizer:
             match = re.match(r"^0[xX][\da-fA-F]+|^0[0-7]*|^\d+", input__)
             if match:
                 token.type_ = NUMBER
-                token.value = eval(match.group(0))
+                token.value = ast.literal_eval(match.group(0))
                 return match.group(0)
 
             match = re.match(r"^[$_\w]+", input__)  # FIXME no ES3 unicode
@@ -456,7 +457,7 @@ class Tokenizer:
             match = re.match(r'^"(?:\\.|[^"])*"|^\'(?:\\.|[^\'])*\'', input__)
             if match:
                 token.type_ = STRING
-                token.value = eval(match.group(0))
+                token.value = ast.literal_eval(match.group(0))
                 return match.group(0)
 
             if self.scanOperand:

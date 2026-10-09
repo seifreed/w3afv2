@@ -95,10 +95,10 @@ class TestScanRunConsoleUI(ConsoleTestHelper):
 
         finished = [
             line
-            for line in self._mock_stdout.messages
+            for line in self._captured_stdout.messages
             if line.startswith("Scan finished")
         ]
-        self.assertEqual(len(finished), 2, self._mock_stdout.messages)
+        self.assertEqual(len(finished), 2, self._captured_stdout.messages)
 
         found_errors = self.error_in_output(["No such file or directory", "Exception"])
         self.assertFalse(found_errors)

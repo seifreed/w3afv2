@@ -102,7 +102,7 @@ class TestConsoleCompletion(ConsoleTestHelper):
         option_name = next(iter(config._opt_dict))
         config._cmd_help([option_name])
         om.manager.process_all_messages()
-        self.assertTrue(self._mock_stdout.messages)
+        self.assertTrue(self._captured_stdout.messages)
 
     def test_plugins_para_list(self):
         plugins = self.root.get_children()["plugins"]

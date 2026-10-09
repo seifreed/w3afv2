@@ -316,8 +316,8 @@ class TestProfilesConsoleUI(ConsoleTestHelper):
 
         self._assert_exists(self.get_profile_name())
 
-        # Clean the mocked stdout
-        self._mock_stdout.clear()
+        # Clean the captured stdout
+        self._captured_stdout.clear()
 
         # Load the settings
         commands_to_run = [

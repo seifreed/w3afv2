@@ -164,11 +164,11 @@ class ParserCache(CacheStats):
             # There is one subprocess already processing this http response
             # body, the best thing to do here is to make this thread wait
             # until that process has finished
-            wait_result = parser_finished.wait(timeout=mp_doc_parser.PARSER_TIMEOUT)
+            wait_result = parser_finished.wait(timeout=mp_doc_parser.parser_timeout)
             if not wait_result:
                 # Act just like when there is no parser
                 msg = 'There is no parser for "%s". Waited more than %s sec.'
-                args = (http_response.get_url(), mp_doc_parser.PARSER_TIMEOUT)
+                args = (http_response.get_url(), mp_doc_parser.parser_timeout)
                 raise BaseFrameworkException(msg % args)
 
         # metric increase
@@ -296,7 +296,7 @@ class ParserCache(CacheStats):
             # There is one subprocess already processing this http response
             # body, the best thing to do here is to make this thread wait
             # until that process has finished
-            wait_result = parser_finished.wait(timeout=mp_doc_parser.PARSER_TIMEOUT)
+            wait_result = parser_finished.wait(timeout=mp_doc_parser.parser_timeout)
             if not wait_result:
                 # Act just like when there is no parser
                 self._log_return_empty(http_response, "Timeout waiting for response")

@@ -21,136 +21,141 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
-import socket
+import socketserver
 import time
 import unittest
-import urllib.error
-import urllib.parse
 import urllib.request
-from unittest.mock import MagicMock, Mock
 
 import psutil
-import pytest
 
-from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.handlers.keepalive import (
     ConnectionManager,
     HTTPHandler,
-    HTTPResponse,
     HTTPSHandler,
-    KeepAliveHandler,
     URLTimeoutError,
 )
 from w3af.core.data.url.http_request import HTTPRequest
+from w3af.core.data.url.tests.helpers.route_server import (
+    RecordedRequest,
+    Response,
+    RouteServer,
+)
+from w3af.core.data.url.tests.helpers.upper_daemon import UpperDaemon
+
+UNUSED_URL = "http://127.0.0.1:8080/"
+SLOW_RESPONSE_SECONDS = 2
+REQUEST_TIMEOUT_SECONDS = 0.3
 
 
-@pytest.mark.moth
+def slow_response(_request: RecordedRequest) -> Response:
+    time.sleep(SLOW_RESPONSE_SECONDS)
+    return Response(body="Too late")
+
+
+class CloseAfterResponseHandler(socketserver.BaseRequestHandler):
+    """
+    Answers like a keep-alive server but closes the socket right away, which
+    leaves the client side socket in CLOSE_WAIT.
+    """
+
+    def handle(self):
+        self.request.recv(1024)
+        self.request.sendall(
+            b"HTTP/1.1 200 Ok\r\n"
+            b"Content-Type: text/plain\r\n"
+            b"Content-Length: 3\r\n"
+            b"\r\nabc"
+        )
+
+
+def connections_to_port(port):
+    return [
+        conn
+        for conn in psutil.Process(os.getpid()).net_connections(kind="tcp")
+        if conn.raddr and conn.raddr.port == port
+    ]
+
+
 class TestKeepalive(unittest.TestCase):
 
     def setUp(self):
-        # The handler
-        self.kahdler = KeepAliveHandler()
-        self.kahdler._curr_check_failures = 1  # Only one timeout in-a-row
-        # Host name
-        self.host = "host"
-        # The connection
-        self.conn = Mock()
-        self.conn.is_fresh = 1
-        self.conn.getresponse = "blah"
-        # The request obj mock
-        self.req = Mock()
+        self.server = RouteServer()
+        self.server.add(
+            "GET", "/close", Response(body="bye", headers=[("Connection", "close")])
+        )
+        self.server.add("GET", "/keep", Response(body="hello"))
+        self.server.add("GET", "/slow", slow_response)
+        self.server.start()
+
+    def tearDown(self):
+        self.server.stop()
 
     def test_get_and_remove_conn(self):
         """
         Each requested connection must be closed by calling 'remove_connection'
         when the server doesn't support persistent HTTP Connections
         """
-        kah = self.kahdler
-        host = self.host
-        conn = self.conn
-        req = self.req
+        handler = HTTPHandler()
+        opener = urllib.request.build_opener(handler)
+        request = HTTPRequest(URL(self.server.url("/close")))
 
-        req.host = host
-        req.get_full_url = MagicMock(return_value="test_full_url")
+        response = opener.open(request)
 
-        # Override KeepAliveHandler._start_transaction
-        kah._start_transaction = MagicMock(return_value=None)
+        self.assertEqual(response.read(), b"bye")
+        self.assertTrue(response.will_close)
+        self.assertEqual(handler._cm.get_connections_total(), 0)
 
-        conn_factory = kah.get_connection
+    def test_keep_alive_conn_is_freed(self):
+        handler = HTTPHandler()
+        opener = urllib.request.build_opener(handler)
+        request = HTTPRequest(URL(self.server.url("/keep")))
 
-        # Mock conn's getresponse()
-        resp = HTTPResponse(socket.socket())
-        resp.will_close = True
-        resp.read = MagicMock(return_value="Response body")
-        conn.getresponse = MagicMock(return_value=resp)
+        response = opener.open(request)
+        response.read()
 
-        # The connection mgr
-        conn_mgr_mock = Mock()
-        conn_mgr_mock.get_available_connection = MagicMock(return_value=conn)
-        conn_mgr_mock.remove_connection = MagicMock(return_value=None)
-
-        # Replace with mocked out ConnMgr.
-        kah._cm = conn_mgr_mock
-        kah.do_open_keepalive(req)
-
-        ## Verify ##
-        kah._start_transaction.assert_called_once_with(conn, req)
-        conn_mgr_mock.get_available_connection.assert_called_once_with(
-            req, conn_factory
-        )
-        conn_mgr_mock.remove_connection.assert_called_once_with(
-            conn, reason="will close"
-        )
+        self.assertFalse(response.will_close)
+        self.assertEqual(len(handler._cm._used_conns), 0)
+        self.assertEqual(len(handler._cm._free_conns), 1)
+        handler.close_all()
 
     def test_timeout(self):
         """
-        Ensure that kah raises 'URLTimeoutError' when timeouts occur and raises
-        'ScanMustStopException' when the timeout limit is reached.
+        Ensure that kah raises 'URLTimeoutError' when timeouts occur and the
+        connection that timed out is removed from the pool.
         """
-        kah = self.kahdler
-        host = self.host
-        conn = self.conn
-        req = self.req
-
-        req.get_host = MagicMock(side_effect=[host, host])
-
-        # Override KeepAliveHandler._start_transaction - raises timeout
-        kah._start_transaction = MagicMock(side_effect=TimeoutError())
-
-        # The connection mgr
-        conn_mgr = Mock()
-        conn_mgr.get_available_connection = MagicMock(return_value=conn)
-        conn_mgr.remove_connection = MagicMock(return_value=None)
-
-        # Replace with mocked out ConnMgr
-        kah._cm = conn_mgr
+        handler = HTTPHandler()
+        opener = urllib.request.build_opener(handler)
+        url = URL(self.server.url("/slow"))
 
         # We raise URLTimeoutError each time the connection timeouts, the
         # keepalive handler doesn't take any decisions like
         # ScanMustStopByKnownReasonExc, which is the job of the extended urllib
-        self.assertRaises(URLTimeoutError, kah.do_open_keepalive, req)
-        self.assertRaises(URLTimeoutError, kah.do_open_keepalive, req)
+        for _ in range(2):
+            self.assertRaises(
+                URLTimeoutError,
+                opener.open,
+                HTTPRequest(url),
+                None,
+                REQUEST_TIMEOUT_SECONDS,
+            )
+            self.assertEqual(handler._cm.get_connections_total(), 0)
 
-        self.assertEqual(len(conn_mgr.get_available_connection.call_args_list), 2)
-        self.assertEqual(len(conn_mgr.remove_connection.call_args_list), 3)
+        self.assertEqual(len(self.server.requests), 2)
 
     def test_free_connection(self):
         """
         Ensure that conns are returned back to the pool when requests are
         closed.
         """
-        kah = self.kahdler
-        conn = self.conn
+        handler = HTTPHandler()
+        request = HTTPRequest(URL(UNUSED_URL))
+        conn = handler._cm.get_available_connection(request, handler.get_connection)
 
-        # The connection mgr
-        conn_mgr = Mock()
-        conn_mgr.free_connection = MagicMock()
+        handler._request_closed(conn)
 
-        kah._cm = conn_mgr
-        kah._request_closed(conn)
-
-        conn_mgr.free_connection.assert_called_once_with(conn)
+        self.assertIn(conn, handler._cm._free_conns)
+        self.assertNotIn(conn, handler._cm._used_conns)
 
     def test_single_conn_mgr(self):
         """
@@ -163,33 +168,34 @@ class TestKeepalive(unittest.TestCase):
         self.assertIsNot(conn_mgr_http, conn_mgr_https)
 
     def test_close_all_established_sockets(self):
-        self.close_all_sockets(0)
+        self.close_all_sockets(self.server.url("/keep"), self.server.port)
 
     def test_close_all_close_wait_sockets(self):
-        # Give the socket time to move to close_wait
-        self.close_all_sockets(20)
+        daemon = UpperDaemon(CloseAfterResponseHandler)
+        daemon.start()
+        daemon.wait_for_start()
+        port = daemon.get_port()
 
-    def close_all_sockets(self, wait):
+        # Give the socket time to move to close_wait
+        self.close_all_sockets(f"http://127.0.0.1:{port}/", port, wait=1)
+
+    def close_all_sockets(self, url, port, wait=0):
         keep_alive_http = HTTPHandler()
 
         uri_opener = urllib.request.build_opener(keep_alive_http)
 
-        request = HTTPRequest(URL(get_moth_http()))
+        request = HTTPRequest(URL(url))
         response = uri_opener.open(request)
         response.read()
 
         time.sleep(wait)
 
-        # pylint: disable=E1101
-        pid = os.getpid()
-        p = psutil.Process(pid)
-        connections_before = p.get_connections()
+        connections_before = connections_to_port(port)
 
         keep_alive_http.close_all()
 
         time.sleep(1)
-        connections_after = p.get_connections()
-        # pylint: enable=E1101
+        connections_after = connections_to_port(port)
 
         self.assertLess(len(connections_after), len(connections_before))
 
@@ -198,26 +204,19 @@ class TestConnectionMgr(unittest.TestCase):
 
     def setUp(self):
         self.cm = ConnectionManager()
-        self.request = Mock()
+        self.conn_factory = HTTPHandler().get_connection
+        self.request = HTTPRequest(URL(UNUSED_URL))
 
     def test_get_available_conn_reuse(self):
         # We don't need a new HTTPConnection for each request
-        self.request.new_connection = False
-        self.request.host = "w3af.org"
-        self.request.get_netloc = lambda: "w3af.org"
+        self.request.set_new_connection(False)
 
         self.cm.MAX_CONNECTIONS = 1  # Only a single connection
         self.assertEqual(0, len(self.cm._used_conns))
         self.assertEqual(0, len(self.cm._free_conns))
 
         # Get connection
-        def conn_factory(request):
-            mock = Mock()
-            mock.host = request.host
-            mock.host_port = request.host
-            return mock
-
-        conn_1 = self.cm.get_available_connection(self.request, conn_factory)
+        conn_1 = self.cm.get_available_connection(self.request, self.conn_factory)
         self.assertEqual(1, len(self.cm._used_conns))
         self.assertEqual(0, len(self.cm._free_conns))
 
@@ -228,20 +227,19 @@ class TestConnectionMgr(unittest.TestCase):
 
         # Ask for a conn again, since we don't need a new connection, it should
         # return one from the pool
-        conn_2 = self.cm.get_available_connection(self.request, conn_factory)
+        conn_2 = self.cm.get_available_connection(self.request, self.conn_factory)
         self.assertIs(conn_2, conn_1)
 
     def test_get_available_conn_new_connection_requested(self):
         # We want a new HTTPConnection for each request
-        self.request.new_connection = True
+        self.request.set_new_connection(True)
 
         self.cm.MAX_CONNECTIONS = 2
         self.assertEqual(0, len(self.cm._used_conns))
         self.assertEqual(0, len(self.cm._free_conns))
 
         # Get connection
-        cf = lambda h: Mock()
-        conn_1 = self.cm.get_available_connection(self.request, cf)
+        conn_1 = self.cm.get_available_connection(self.request, self.conn_factory)
         self.assertEqual(1, len(self.cm._used_conns))
         self.assertEqual(0, len(self.cm._free_conns))
 
@@ -251,18 +249,17 @@ class TestConnectionMgr(unittest.TestCase):
         self.assertEqual(1, len(self.cm._free_conns))
 
         # Ask for another connection, it should return a new one
-        conn_2 = self.cm.get_available_connection(self.request, cf)
+        conn_2 = self.cm.get_available_connection(self.request, self.conn_factory)
         self.assertIsNot(conn_1, conn_2)
 
     def test_replace_conn(self):
-        cf = lambda h: Mock()
-        bad_conn = Mock()
-        self.cm.replace_connection(bad_conn, self.request, cf)
-        bad_conn = self.cm.get_available_connection(self.request, cf)
+        bad_conn = self.conn_factory(self.request)
+        self.cm.replace_connection(bad_conn, self.request, self.conn_factory)
+        bad_conn = self.cm.get_available_connection(self.request, self.conn_factory)
         old_len = self.cm.get_connections_total()
 
         # Replace bad with a new one
-        new_conn = self.cm.replace_connection(bad_conn, self.request, cf)
+        new_conn = self.cm.replace_connection(bad_conn, self.request, self.conn_factory)
 
         # Must be different conn objects
         self.assertNotEqual(bad_conn, new_conn)
@@ -273,7 +270,7 @@ class TestConnectionMgr(unittest.TestCase):
     def test_remove_conn(self):
         self.assertEqual(self.cm.get_connections_total(), 0)
 
-        conn = self.cm.get_available_connection(self.request, lambda h: Mock())
+        conn = self.cm.get_available_connection(self.request, self.conn_factory)
         self.assertEqual(self.cm.get_connections_total(), 1)
 
         self.cm.remove_connection(conn, reason="unittest")

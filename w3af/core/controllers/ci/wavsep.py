@@ -20,9 +20,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import os
+import tempfile
 from pathlib import Path
 
-HTTP_WAVSEP = "/tmp/wavsep.txt"
+HTTP_WAVSEP = os.path.join(tempfile.gettempdir(), "wavsep.txt")
 DEFAULT_WAVSEP = "wavsep-fallback:80"
 
 

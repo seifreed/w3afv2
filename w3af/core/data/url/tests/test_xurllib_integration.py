@@ -21,13 +21,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import httpretty
 import pytest
 
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.data.url.opener_settings import OpenerSettings
+from w3af.core.data.url.tests.helpers.route_server import Response, RouteServer
 
 
 @pytest.mark.moth
@@ -102,7 +102,6 @@ class TestXUrllibIntegration(unittest.TestCase):
 class TestUpperCaseHeaders(unittest.TestCase):
 
     @unittest.skip("urllib lower-cases header names before sending them")
-    @httpretty.activate
     def test_headers_upper_case(self):
         """
         This unittest is skipped here, but shouldn't be removed, it is a reminder
@@ -112,14 +111,20 @@ class TestUpperCaseHeaders(unittest.TestCase):
         This gives w3af a modified view of the reality, we never see what was
         really sent to us.
         """
-        url = "http://w3af.org/"
+        with RouteServer() as server:
+            server.add(
+                "GET",
+                "/",
+                Response(
+                    body="hello world",
+                    headers=[("Content-Type", "application/html")],
+                ),
+            )
 
-        httpretty.register_uri(
-            httpretty.GET, url, body="hello world", content_type="application/html"
-        )
+            uri_opener = ExtendedUrllib()
+            res = uri_opener.GET(URL(server.url("/")), cache=False)
+            uri_opener.end()
 
-        uri_opener = ExtendedUrllib()
-        res = uri_opener.GET(URL(url), cache=False)
         headers = res.get_headers()
         content_encoding = headers.get("Content-Type", "")
 

@@ -27,7 +27,7 @@ import urllib.parse
 import urllib.request
 
 from w3af.core.data.fuzzer.mutants.urlparts_mutant import (
-    TOKEN,
+    URL_PART_KEY,
     URLPartsContainer,
     URLPartsMutant,
 )
@@ -54,7 +54,7 @@ class FileNameMutant(URLPartsMutant):
         # Please note that this double encoding is needed if we want to work
         # with mod_rewrite
         encoded = urllib.parse.quote_plus(
-            self._url_parts_dc[TOKEN].get_value(), self._safe_encode_chars
+            self._url_parts_dc[URL_PART_KEY].get_value(), self._safe_encode_chars
         )
         if self._double_encoding:
             encoded = urllib.parse.quote_plus(encoded, safe=self._safe_encode_chars)

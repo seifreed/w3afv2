@@ -40,7 +40,13 @@ class TimeStamp:
 
 class TookLine:
     def __init__(
-        self, w3af_core, plugin_name, method_name, debugging_id=None, method_params=None
+        self,
+        w3af_core,
+        plugin_name,
+        method_name,
+        debugging_id=None,
+        method_params=None,
+        log_sink=None,
     ):
         """
         Write the "took X seconds" line to the debug log
@@ -52,12 +58,14 @@ class TookLine:
         :param method_params: Optional parameters sent to the plugin.method().
                               This should be a dict with parameter names as keys
                               and strings as values.
+        :param log_sink: Where the debug line is written, defaults to om.out
         """
         self._w3af_core = w3af_core
         self._plugin_name = plugin_name
         self._method_name = method_name
         self._method_params = method_params
         self._debugging_id = debugging_id
+        self._log_sink = log_sink
         self._start = None
         self._end = None
 
@@ -148,4 +156,5 @@ class TookLine:
         if parentheses_data:
             msg += " ({})".format(", ".join(parentheses_data))
 
-        om.out.debug(msg)
+        log_sink = om.out if self._log_sink is None else self._log_sink
+        log_sink.debug(msg)

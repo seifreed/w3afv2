@@ -23,15 +23,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 Utility to HTTP GET from wordpress.org and generate a DB with the archives/md5sums
 """
 import re
-import urllib.error
-import urllib.parse
-import urllib.request
+
+import requests
 
 release_re = r" \(<a href='https://wordpress.org/wordpress-(.*?).md5'>md5</a>"
 release_md5_fmt = "https://wordpress.org/wordpress-%s.md5"
+DOWNLOAD_TIMEOUT = 60
 
-response = urllib.request.urlopen("https://wordpress.org/download/release-archive/")
-extracted_links = re.findall(release_re, response.read())
+response = requests.get(
+    "https://wordpress.org/download/release-archive/", timeout=DOWNLOAD_TIMEOUT
+)
+extracted_links = re.findall(release_re, response.text)
 
 if len(extracted_links) < 500:
     print("Error, extracted less than 500 links from the release archive URL.")
@@ -44,10 +46,12 @@ with open("release.db", "w") as release_db:
     for i, version in enumerate(extracted_links):
         version_md5_url = release_md5_fmt % version
         try:
-            version_md5 = urllib.request.urlopen(version_md5_url).read().strip()
+            md5_response = requests.get(version_md5_url, timeout=DOWNLOAD_TIMEOUT)
+            md5_response.raise_for_status()
+            version_md5 = md5_response.text.strip()
         except KeyboardInterrupt:
             break
-        except OSError:
+        except requests.RequestException:
             errors += 1
             if DEBUG:
                 print(f"{version_md5_url} is a 404")

@@ -33,6 +33,7 @@ import msgpack
 
 from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.db.exceptions import DBException
+from w3af.core.data.db.sql_identifier import require_safe_identifier
 from w3af.core.data.db.where_helper import WhereHelper
 from w3af.core.data.url.http_request import HTTPRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -179,7 +180,8 @@ class HistoryItem:
         order_data = order_data or []
         result = []
 
-        sql = "SELECT * FROM " + self._DATA_TABLE
+        select_all = "SELECT * FROM %s"
+        sql = select_all % self._DATA_TABLE
         where = WhereHelper(search_data)
         sql += where.sql()
 
@@ -379,8 +381,8 @@ class HistoryItem:
         if _id is None:
             _id = self.id
 
-        sql = "DELETE FROM " + self._DATA_TABLE + " WHERE id = ? "
-        self._db.execute(sql, (_id,))
+        sql = "DELETE FROM %s WHERE id = ? "
+        self._db.execute(sql % self._DATA_TABLE, (_id,))
 
         fname = self._get_trace_filename_for_id(_id)
 
@@ -397,9 +399,9 @@ class HistoryItem:
         if _id is None:
             _id = self.id
 
-        sql = "SELECT * FROM " + self._DATA_TABLE + " WHERE id = ? "
+        sql = "SELECT * FROM %s WHERE id = ? "
         try:
-            row = self._db.select_one(sql, (_id,))
+            row = self._db.select_one(sql % self._DATA_TABLE, (_id,))
         except DBException as dbe:
             msg = (
                 'An unexpected error occurred while searching for id "%s"'
@@ -471,23 +473,23 @@ class HistoryItem:
 
         if not self.id:
             sql = (
-                f"INSERT INTO {self._DATA_TABLE} "
+                "INSERT INTO %s "
                 "(id, url, code, tag, mark, info, time, msg, content_type, "
                 "charset, method, response_size, codef, alias, has_qs) "
                 "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
             )
-            self._db.execute(sql, values)
+            self._db.execute(sql % self._DATA_TABLE, values)
             self.id = self.response.get_id()
         else:
             values.append(self.id)
             sql = (
-                f"UPDATE {self._DATA_TABLE}"
+                "UPDATE %s"
                 " SET id = ?, url = ?, code = ?, tag = ?, mark = ?,"
                 " info = ?, time = ?, msg = ?, content_type = ?,"
                 " charset = ?, method = ?, response_size = ?, codef = ?,"
                 " alias = ?, has_qs = ? WHERE id = ?"
             )
-            self._db.execute(sql, values)
+            self._db.execute(sql % self._DATA_TABLE, values)
 
         #
         # Save raw data to file
@@ -708,7 +710,8 @@ class HistoryItem:
 
     def _update_field(self, name, value):
         """Update custom field in DB."""
-        sql = f"UPDATE {self._DATA_TABLE} SET {name} = ? WHERE id = ?"
+        sql = "UPDATE %s SET %s = ? WHERE id = ?"
+        sql %= (self._DATA_TABLE, require_safe_identifier(name))
         self._db.execute(sql, (value, self.id))
 
     def update_tag(self, value, force_db=False):
