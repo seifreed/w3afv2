@@ -29,7 +29,7 @@ from tblib.decorators import Error
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
-from w3af.core.controllers.configurable import Configurable
+from w3af.core.configurable import Configurable
 from w3af.core.controllers.threads.decorators import apply_with_return_error
 from w3af.core.controllers.threads.threadpool import return_args
 from w3af.core.data.kb.info_set import InfoSet

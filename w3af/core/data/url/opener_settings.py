@@ -26,7 +26,7 @@ import urllib.parse
 import urllib.request
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.configurable import Configurable
+from w3af.core.configurable import Configurable
 from w3af.core.data.kb.config import cf as cfg
 from w3af.core.data.misc.cookie_jar import ImprovedMozillaCookieJar
 from w3af.core.data.options.opt_factory import opt_factory

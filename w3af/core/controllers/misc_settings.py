@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from vulndb import DBVuln
 
 import w3af.core.data.kb.config as cf
-from w3af.core.controllers.configurable import Configurable
+from w3af.core.configurable import Configurable
 from w3af.core.controllers.misc.get_local_ip import get_local_ip
 from w3af.core.controllers.misc.get_net_iface import get_net_iface
 from w3af.core.data.db.variant_db import (

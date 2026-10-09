@@ -783,3 +783,21 @@ tres tests de `ReadShell` pasan, al igual que Ruff completo para el helper y
 test, Black, Ruff de imports de callers, compilación y diff check. Score global:
 **4.2/10**; reduce otro import ascendente de datos, pero el resto del proyecto y
 las gates globales aún requieren trabajo.
+
+## Avance: contrato configurable en core
+
+`Configurable` no tenía dependencias de infraestructura, pero vivía en
+`controllers` y era heredada por `OpenerSettings` y `BaseTemplate` en
+`core.data`. Se trasladó a `core.configurable` y se actualizaron sus cinco
+consumidores sin alias de compatibilidad. Cuatro tests ejercitan sus métodos y
+errores contractuales con **100% de cobertura**; los tests seleccionados de los
+consumidores pasan (7 tests).
+
+Black, Ruff completo para el nuevo módulo y test, Ruff de imports en los siete
+archivos tocados, compilación y `git diff --check` pasan. Dos tests completos de
+consumidores quedan pendientes por fallos ajenos a este cambio: una expectativa
+de tipo de opción ya obsoleta y lectura de `file://` como bytes. Mypy enfocado
+sigue encontrando el error preexistente de `_DummyThread` en `core/__init__.py`.
+La puntuación global sube a **4.3/10**: otra dependencia de datos hacia
+controladores se elimina, pero quedan numerosos acoplamientos y gates globales
+sin resolver.
