@@ -22,27 +22,28 @@ def extract(log_file, http_request_id):
     request = ""
     response = ""
 
-    for line in open(log_file):
+    with open(log_file) as log_fh:
+        for line in log_fh:
 
-        request_header = f"{spacer}Request {http_request_id} - "
-        if line.startswith(request_header):
-            inside_request = True
-            continue
+            request_header = f"{spacer}Request {http_request_id} - "
+            if line.startswith(request_header):
+                inside_request = True
+                continue
 
-        request_header = f"{spacer}Response {http_request_id} - "
-        if line.startswith(request_header):
-            inside_request = False
-            inside_response = True
-            continue
+            request_header = f"{spacer}Response {http_request_id} - "
+            if line.startswith(request_header):
+                inside_request = False
+                inside_response = True
+                continue
 
-        if line.startswith(end_header) and inside_response:
-            break
+            if line.startswith(end_header) and inside_response:
+                break
 
-        if inside_request:
-            request += line
+            if inside_request:
+                request += line
 
-        if inside_response:
-            response += line
+            if inside_response:
+                response += line
 
     return request, response
 
@@ -50,12 +51,14 @@ def extract(log_file, http_request_id):
 def main(args):
     try:
         request, response = extract(args.log_file, args.id)
-    except Exception as e:
+    except OSError as e:
         print(e)
         sys.exit(1)
 
-    open(f"{args.id}.request", "w").write(request)
-    open(f"{args.id}.response", "w").write(response)
+    with open(f"{args.id}.request", "w") as request_fh:
+        request_fh.write(request)
+    with open(f"{args.id}.response", "w") as response_fh:
+        response_fh.write(response)
 
 
 if __name__ == "__main__":

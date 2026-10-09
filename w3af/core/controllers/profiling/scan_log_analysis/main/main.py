@@ -1,70 +1,119 @@
 import json
 import sys
 
-from data.bruteforce import get_bruteforce_data
-from data.consumer_join_times import get_consumer_join_times
-from data.crawling_stats import get_crawling_stats
-from data.dbms_queue_size_exceeded import get_dbms_queue_size_exceeded
-from data.errors import get_errors
-from data.file_sizes import get_file_sizes
-from data.freeze_locations import get_freeze_locations
-from data.http_errors import get_http_errors
-from data.http_requests import get_total_http_requests
-from data.known_problems import get_known_problems
-from data.not_found_requests import get_not_found_requests
-from data.scan_finished_in import get_scan_finished_in
-from data.wall_time import (
+from w3af.core.controllers.profiling.scan_log_analysis.data.bruteforce import (
+    get_bruteforce_data,
+)
+from w3af.core.controllers.profiling.scan_log_analysis.data.consumer_join_times import (
+    get_consumer_join_times,
+)
+from w3af.core.controllers.profiling.scan_log_analysis.data.crawling_stats import (
+    get_crawling_stats,
+)
+from w3af.core.controllers.profiling.scan_log_analysis.data.dbms_queue_size_exceeded import (
+    get_dbms_queue_size_exceeded,
+)
+from w3af.core.controllers.profiling.scan_log_analysis.data.errors import get_errors
+from w3af.core.controllers.profiling.scan_log_analysis.data.file_sizes import (
+    get_file_sizes,
+)
+from w3af.core.controllers.profiling.scan_log_analysis.data.freeze_locations import (
+    get_freeze_locations,
+)
+from w3af.core.controllers.profiling.scan_log_analysis.data.http_errors import (
+    get_http_errors,
+)
+from w3af.core.controllers.profiling.scan_log_analysis.data.http_requests import (
+    get_total_http_requests,
+)
+from w3af.core.controllers.profiling.scan_log_analysis.data.known_problems import (
+    get_known_problems,
+)
+from w3af.core.controllers.profiling.scan_log_analysis.data.not_found_requests import (
+    get_not_found_requests,
+)
+from w3af.core.controllers.profiling.scan_log_analysis.data.scan_finished_in import (
+    get_scan_finished_in,
+)
+from w3af.core.controllers.profiling.scan_log_analysis.data.wall_time import (
     get_audit_time,
     get_discovery_time,
     get_grep_time,
     get_output_time,
     get_plugin_time,
 )
-from graphs.active_threads import draw_active_threads, get_active_threads_data
-from graphs.audit_queue_size import draw_queue_size_audit, get_queue_size_audit_data
-from graphs.connection_pool_wait import (
+from w3af.core.controllers.profiling.scan_log_analysis.graphs.active_threads import (
+    draw_active_threads,
+    get_active_threads_data,
+)
+from w3af.core.controllers.profiling.scan_log_analysis.graphs.audit_queue_size import (
+    draw_queue_size_audit,
+    get_queue_size_audit_data,
+)
+from w3af.core.controllers.profiling.scan_log_analysis.graphs.connection_pool_wait import (
     draw_connection_pool_wait,
     get_connection_pool_wait_data,
     get_time_waited_by_workers,
 )
-from graphs.consumer_pool_size import (
+from w3af.core.controllers.profiling.scan_log_analysis.graphs.consumer_pool_size import (
     draw_consumer_pool_size,
     get_consumer_pool_size_data,
 )
-from graphs.crawl_queue_size import draw_queue_size_crawl, get_queue_size_crawl_data
-from graphs.grep_queue_size import draw_queue_size_grep, get_queue_size_grep_data
-from graphs.http_requests_over_time import (
+from w3af.core.controllers.profiling.scan_log_analysis.graphs.crawl_queue_size import (
+    draw_queue_size_crawl,
+    get_queue_size_crawl_data,
+)
+from w3af.core.controllers.profiling.scan_log_analysis.graphs.grep_queue_size import (
+    draw_queue_size_grep,
+    get_queue_size_grep_data,
+)
+from w3af.core.controllers.profiling.scan_log_analysis.graphs.http_requests_over_time import (
     draw_http_requests_over_time,
     get_http_requests_over_time_data,
 )
-from graphs.not_found_cache_rate import (
+from w3af.core.controllers.profiling.scan_log_analysis.graphs.not_found_cache_rate import (
     draw_not_found_cache_rate_over_time,
     get_not_found_cache_rate_data,
 )
-from graphs.not_found_requests import (
+from w3af.core.controllers.profiling.scan_log_analysis.graphs.not_found_requests import (
     draw_not_found_requests_over_time,
     get_not_found_requests_over_time_data,
 )
-from graphs.parser_errors import (
+from w3af.core.controllers.profiling.scan_log_analysis.graphs.parser_errors import (
     draw_parser_errors,
     get_parser_errors_data,
     get_parser_errors_summary,
 )
-from graphs.parser_memory_limit import (
+from w3af.core.controllers.profiling.scan_log_analysis.graphs.parser_memory_limit import (
     draw_parser_process_memory_limit,
     get_parser_process_memory_limit_data,
     get_parser_process_memory_limit_summary,
 )
-from graphs.rtt import draw_rtt, get_rtt_data
-from graphs.rtt_histogram import draw_rtt_histogram, get_rtt_histogram_data
-from graphs.should_grep_stats import draw_should_grep, get_should_grep_data
-from graphs.timeout import draw_timeout, get_timeout_data
-from graphs.urllib_error_rate import (
+from w3af.core.controllers.profiling.scan_log_analysis.graphs.rtt import (
+    draw_rtt,
+    get_rtt_data,
+)
+from w3af.core.controllers.profiling.scan_log_analysis.graphs.rtt_histogram import (
+    draw_rtt_histogram,
+    get_rtt_histogram_data,
+)
+from w3af.core.controllers.profiling.scan_log_analysis.graphs.should_grep_stats import (
+    draw_should_grep,
+    get_should_grep_data,
+)
+from w3af.core.controllers.profiling.scan_log_analysis.graphs.timeout import (
+    draw_timeout,
+    get_timeout_data,
+)
+from w3af.core.controllers.profiling.scan_log_analysis.graphs.urllib_error_rate import (
     draw_extended_urllib_error_rate,
     get_error_rate_data,
     get_error_rate_summary,
 )
-from graphs.worker_pool_size import draw_worker_pool_size, get_worker_pool_size_data
+from w3af.core.controllers.profiling.scan_log_analysis.graphs.worker_pool_size import (
+    draw_worker_pool_size,
+    get_worker_pool_size_data,
+)
 
 
 def get_console_functions():
@@ -172,12 +221,6 @@ def generate_console_output(scan_log_filename, scan):
 
 
 def generate_json_output(scan_log_filename, scan, json_filename):
-    try:
-        output_fp = open(json_filename, "w")
-    except Exception as e:
-        print('Failed to open {} for writing: "{}"'.format(*e))
-        sys.exit(1)
-
     output_data = {}
     print("Generating JSON output...")
 
@@ -196,4 +239,9 @@ def generate_json_output(scan_log_filename, scan, json_filename):
             key = _function.__name__.replace("get_", "")
             output_data[key] = function_output
 
-    json.dump(output_data, output_fp, indent=4, sort_keys=True)
+    try:
+        with open(json_filename, "w") as output_fp:
+            json.dump(output_data, output_fp, indent=4, sort_keys=True)
+    except OSError as e:
+        print('Failed to open {} for writing: "{}"'.format(*e))
+        sys.exit(1)

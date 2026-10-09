@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
+
 import w3af.core.controllers.output_manager as om
 
 from .core_stats import start_core_profiling, stop_core_profiling
@@ -53,6 +55,7 @@ def stop_profiling(w3af_core):
         stop_profiling_no_core()
     except Exception as e:
         om.out.debug(f'Call to stop_profiling() failed with: "{e}"')
+        logging.getLogger(__name__).debug("stop_profiling() failed", exc_info=True)
 
 
 def stop_profiling_no_core():

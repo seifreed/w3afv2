@@ -1,8 +1,11 @@
 import re
 from operator import itemgetter
 
-from utils.output import ListOutput, ListOutputItem
-from utils.utils import get_path
+from w3af.core.controllers.profiling.scan_log_analysis.utils.output import (
+    ListOutput,
+    ListOutputItem,
+)
+from w3af.core.controllers.profiling.scan_log_analysis.utils.utils import get_path
 
 HTTP_METHOD_URL_RE = re.compile(
     r'\] (.*?) (.*?) (with data: ".*?" )?returned HTTP code'

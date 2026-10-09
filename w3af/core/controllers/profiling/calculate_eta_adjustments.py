@@ -19,12 +19,11 @@ sys.path.append(ROOT_PATH)
 
 from w3af.core.controllers.core_helpers.status import Adjustment, CoreStatus
 
-from .scan_log_analysis import (
+from .scan_log_analysis.graphs.progress_delta import (
     CRAWL_INFRA_FINISHED,
     JOIN_TIMES,
-    get_first_timestamp,
-    get_line_epoch,
 )
+from .scan_log_analysis.utils.utils import get_first_timestamp, get_line_epoch
 
 HELP = """\
 Usage: ./calculate_eta_adjustments.py <scan.log>
@@ -302,10 +301,9 @@ if __name__ == "__main__":
     parser.add_argument("scan_log", action="store")
     parsed_args = parser.parse_args()
 
-    try:
-        scan = open(parsed_args.scan_log)
-    except:
+    if not os.path.isfile(parsed_args.scan_log):
         print("The scan log file does not exist!")
         sys.exit(2)
 
-    create_eta_table(scan)
+    with open(parsed_args.scan_log) as scan:
+        create_eta_table(scan)

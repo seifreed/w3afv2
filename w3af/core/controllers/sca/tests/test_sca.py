@@ -35,7 +35,7 @@ class TestPHPSCA(unittest.TestCase):
         for temp_file in ("parser.out", "parsetab.py", "parsetab.pyc"):
             try:
                 os.remove(temp_file)
-            except:
+            except OSError:
                 pass
 
     def test_vars(self):

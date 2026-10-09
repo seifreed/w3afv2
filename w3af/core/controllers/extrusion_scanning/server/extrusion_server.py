@@ -61,7 +61,7 @@ class extrusionServer:
                 self._iface = cf_iface
             else:
                 msg = "Failed to bind extrusionServer to an interface."
-                raise Exception(msg)
+                raise BaseFrameworkException(msg)
 
     def can_sniff(self):
         """
@@ -74,7 +74,7 @@ class extrusionServer:
 
         try:
             sniff(filter="port 53", iface=self._iface, timeout=0.3)
-        except Exception:
+        except OSError:
             return False
         else:
             return True
@@ -210,19 +210,17 @@ class extrusionServer:
                 and p[TCP].dport in self._tcp_ports
                 and p[IP].src == self._host
                 and p[TCP].flags == 0x2
+                and (p[IP].src, p[TCP].dport, "TCP") not in good_ports
             ):
-
-                if (p[IP].src, p[TCP].dport, "TCP") not in good_ports:
-                    good_ports.append((p[IP].src, p[TCP].dport, "TCP"))
+                good_ports.append((p[IP].src, p[TCP].dport, "TCP"))
 
             if (
                 p[UDP] is not None
                 and p[UDP].dport in self._udp_ports
                 and p[IP].src == self._host
+                and (p[IP].src, p[UDP].dport, "UDP") not in good_ports
             ):
-
-                if (p[IP].src, p[UDP].dport, "UDP") not in good_ports:
-                    good_ports.append((p[IP].src, p[UDP].dport, "UDP"))
+                good_ports.append((p[IP].src, p[UDP].dport, "UDP"))
 
         return good_ports
 

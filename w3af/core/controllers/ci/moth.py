@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from pathlib import Path
+
 FMT = "/tmp/moth-%s.txt"
 HTTP_ADDRESS_FILE = FMT % "http"
 HTTPS_ADDRESS_FILE = FMT % "https"
@@ -41,12 +43,12 @@ def whereis_moth():
              know which ports are going to be free for the server to bind.
     """
     try:
-        moth = open(HTTP_ADDRESS_FILE).read().strip()
+        moth = Path(HTTP_ADDRESS_FILE).read_text().strip()
     except OSError:
         moth = None
 
     try:
-        moths = open(HTTPS_ADDRESS_FILE).read().strip()
+        moths = Path(HTTPS_ADDRESS_FILE).read_text().strip()
     except OSError:
         moths = None
 

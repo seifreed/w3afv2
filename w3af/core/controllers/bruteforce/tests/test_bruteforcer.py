@@ -102,13 +102,10 @@ class TestUserPasswordBruteforcer(unittest.TestCase):
         ]
 
         combo_filename = os.path.join(self.temp_dir, "combo.txt")
-        combo_fd = open(combo_filename, "w")
-
-        combo_fd.writelines(
-            f"{user}:{password}\n" for user, password in expected_combinations
-        )
-
-        combo_fd.close()
+        with open(combo_filename, "w") as combo_fd:
+            combo_fd.writelines(
+                f"{user}:{password}\n" for user, password in expected_combinations
+            )
 
         url = URL("http://www.w3af.org/")
 

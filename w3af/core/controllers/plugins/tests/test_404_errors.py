@@ -71,11 +71,11 @@ class Test404Errors(unittest.TestCase):
 
         with patch("w3af.plugins.grep.meta_tags.is_404") as is_404_mock:
             msg = "Foos and bars"
-            is_404_mock.side_effect = Exception(msg)
+            is_404_mock.side_effect = RuntimeError(msg)
 
             try:
                 self.plugin.grep_wrapper(request, resp)
-            except Exception as e:
+            except RuntimeError as e:
                 self.assertEqual(str(e), msg)
             else:
                 self.assertTrue(False, "Expected exception, success found!")

@@ -9,7 +9,8 @@ import requests
 
 def log(message):
     print(message)
-    open("rtt.log", "a").write(message + "\n")
+    with open("rtt.log", "a") as rtt_log:
+        rtt_log.write(message + "\n")
 
 
 def send_forever(target):
@@ -39,7 +40,7 @@ def send_forever(target):
 if __name__ == "__main__":
     try:
         target = sys.argv[1]
-    except:
+    except IndexError:
         print("Target URL is missing")
         print()
         print(

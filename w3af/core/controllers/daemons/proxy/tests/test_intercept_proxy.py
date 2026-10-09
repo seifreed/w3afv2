@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import queue
 import threading
 import time
@@ -34,6 +35,8 @@ from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.controllers.daemons.proxy import InterceptProxy
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.filesystem import create_temp_dir
+
+LOGGER = logging.getLogger(__name__)
 
 
 @pytest.mark.moth
@@ -157,6 +160,7 @@ class TestInterceptProxy(unittest.TestCase):
             except KeyboardInterrupt as k:
                 exceptions.put(k)
             except Exception as e:
+                LOGGER.debug("Proxied test request failed", exc_info=True)
                 exceptions.put(e)
             else:
                 results.put(response)

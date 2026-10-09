@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import queue
 import sys
 import threading
@@ -36,6 +37,8 @@ from w3af.core.data.fuzzer.utils import rand_alnum
 from .pool276 import RUN, ThreadPool, create_detailed_pickling_error, mapstar
 
 __all__ = ["Pool", "one_to_many", "return_args"]
+
+LOGGER = logging.getLogger(__name__)
 
 
 class one_to_many:
@@ -75,8 +78,8 @@ class return_args:
 
 class DaemonProcess(Process):
 
-    def __init__(self, group=None, target=None, name=None, args=(), kwargs={}):
-        super().__init__(group, target, name, args, kwargs)
+    def __init__(self, group=None, target=None, name=None, args=(), kwargs=None):
+        super().__init__(group, target, name, args, kwargs or {})
         self.daemon = True
         self.worker = target
         self.name = name
@@ -286,6 +289,7 @@ class Worker:
             try:
                 result = (True, func(*args, **kwds))
             except Exception as e:
+                LOGGER.debug("Worker task raised an exception", exc_info=True)
                 add_traceback_string(e)
                 result = (False, e)
 
@@ -299,6 +303,7 @@ class Worker:
             try:
                 put((job, i, result))
             except Exception as e:
+                LOGGER.debug("Failed to send worker task result", exc_info=True)
                 wrapped = create_detailed_pickling_error(e, result[1])
                 put((job, i, (False, wrapped)))
             finally:

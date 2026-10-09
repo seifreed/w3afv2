@@ -190,9 +190,8 @@ class AttackPlugin(Plugin, ResponseCutMixin):
 
         for vuln in self.get_exploitable_vulns():
 
-            if vuln_to_exploit is not None:
-                if vuln_to_exploit != vuln.get_id():
-                    continue
+            if vuln_to_exploit is not None and vuln_to_exploit != vuln.get_id():
+                continue
 
             #
             #   A couple of minor verifications before continuing to exploit a

@@ -30,15 +30,17 @@ class LogSink:
     by the output manager => output plugins.
     """
 
-    ALLOWED_METHODS = {
-        "debug",
-        "information",
-        "error",
-        "vulnerability",
-        "console",
-        "log_http",
-        "log_crash",
-    }
+    ALLOWED_METHODS = frozenset(
+        {
+            "debug",
+            "information",
+            "error",
+            "vulnerability",
+            "console",
+            "log_http",
+            "log_crash",
+        }
+    )
 
     METHODS = None
 

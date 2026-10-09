@@ -41,44 +41,42 @@ def generate_helper_script(
 
     script_path = os.path.join(temp_dir, SCRIPT_NAME)
 
-    script_file = open(script_path, "w")
-    script_file.write("#!/bin/bash\n")
+    with open(script_path, "w") as script_file:
+        script_file.write("#!/bin/bash\n")
 
-    #
-    #    Report the missing system packages
-    #
-    if os_packages:
-        missing_pkgs = " ".join(os_packages)
-        script_file.write(f"{pkg_manager_cmd} {missing_pkgs}\n")
+        #
+        #    Report the missing system packages
+        #
+        if os_packages:
+            missing_pkgs = " ".join(os_packages)
+            script_file.write(f"{pkg_manager_cmd} {missing_pkgs}\n")
 
-    #
-    #    Report all missing python modules
-    #
-    if failed_deps:
-        script_file.write("\n")
+        #
+        #    Report all missing python modules
+        #
+        if failed_deps:
+            script_file.write("\n")
 
-        if running_in_virtualenv():
-            script_file.write("# Run without sudo to install inside venv\n")
+            if running_in_virtualenv():
+                script_file.write("# Run without sudo to install inside venv\n")
 
-        not_git_pkgs = [fdep for fdep in failed_deps if not fdep.is_git]
-        git_pkgs = [fdep.git_src for fdep in failed_deps if fdep.is_git]
+            not_git_pkgs = [fdep for fdep in failed_deps if not fdep.is_git]
+            git_pkgs = [fdep.git_src for fdep in failed_deps if fdep.is_git]
 
-        if not_git_pkgs:
-            cmd = generate_pip_install_non_git(pip_cmd, not_git_pkgs)
-            script_file.write(f"{cmd}\n")
+            if not_git_pkgs:
+                cmd = generate_pip_install_non_git(pip_cmd, not_git_pkgs)
+                script_file.write(f"{cmd}\n")
 
-        if git_pkgs:
             for missing_git_pkg in git_pkgs:
                 cmd = generate_pip_install_git(pip_cmd, missing_git_pkg)
                 script_file.write(f"{cmd}\n")
 
-    for cmd in external_commands:
-        script_file.write(f"{cmd}\n")
+        for cmd in external_commands:
+            script_file.write(f"{cmd}\n")
 
     # Make it executable
     os.chmod(script_path, 0o755)
 
-    script_file.close()
     return script_path
 
 

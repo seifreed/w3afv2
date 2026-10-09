@@ -20,13 +20,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from pathlib import Path
+
 HTTP_PHP_MOTH = "/tmp/php-moth.txt"
 DEFAULT_PHP_MOTH = "php_moth-fallback:80"
 
 
 def get_php_moth_http(path="/"):
     try:
-        php_moth_netloc = open(HTTP_PHP_MOTH).read().strip()
+        php_moth_netloc = Path(HTTP_PHP_MOTH).read_text().strip()
     except OSError:
         php_moth_netloc = DEFAULT_PHP_MOTH
 

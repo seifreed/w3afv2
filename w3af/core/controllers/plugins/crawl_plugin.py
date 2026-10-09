@@ -92,7 +92,7 @@ class CrawlPlugin(Plugin):
         fr = FuzzableRequest(url, method="GET")
 
         on_success = kwargs.pop("on_success", None)
-        http_response = self._uri_opener.send_mutant(fr, cache=True, *args, **kwargs)
+        http_response = self._uri_opener.send_mutant(fr, *args, cache=True, **kwargs)
 
         # The 204 check is because of Plugin.handle_url_error()
         if not is_404(http_response) and http_response.get_code() != 204:
@@ -116,7 +116,7 @@ class CrawlPlugin(Plugin):
         fr = FuzzableRequest(url, method="GET")
 
         on_success = kwargs.pop("on_success", None)
-        http_response = self._uri_opener.send_mutant(fr, cache=True, *args, **kwargs)
+        http_response = self._uri_opener.send_mutant(fr, *args, cache=True, **kwargs)
 
         if on_success is not None:
             on_success(http_response, url, *args)

@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import random
 import unittest
+from typing import ClassVar
 from unittest.mock import MagicMock, Mock
 
 from w3af.core.controllers.delay_detection.aprox_delay import AproxDelay
@@ -45,7 +46,7 @@ def generate_delays(wanted_delays, rand_range=(0, 0)):
 
 class TestAproxDelayController(unittest.TestCase):
 
-    TEST_SUITE = [
+    TEST_SUITE: ClassVar[list] = [
         # Basic, very easy to pass
         #    The first three 0.1 are for getting the original delay
         #

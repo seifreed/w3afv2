@@ -113,7 +113,7 @@ class crontabHandler(delayedExecution):
         try:
             # date +"%d-%m-%H:%M:%S-%u"
             day_number, month, hour, week_day = remoteDate.split("-")
-        except:
+        except ValueError:
             raise BaseFrameworkException(
                 "The date command of the remote server returned an unknown format."
             )

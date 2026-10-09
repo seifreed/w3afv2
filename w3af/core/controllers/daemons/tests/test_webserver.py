@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import contextlib
 import os
 import tempfile
 import unittest
@@ -44,11 +45,8 @@ class TestWebserver(unittest.TestCase):
         self.tempdir = tempfile.gettempdir()
 
         for port in range(self.PORT, self.PORT + 15):
-            try:
+            with contextlib.suppress(OSError):
                 self.server = start_webserver(self.IP, port, self.tempdir)
-            except:
-                pass
-            else:
                 self.PORT = port
                 break
 
@@ -62,9 +60,8 @@ class TestWebserver(unittest.TestCase):
 
     def _create_file(self):
         # Create a file and request it
-        test_fh = open(os.path.join(self.tempdir, "foofile.txt"), "w")
-        test_fh.write(self.TESTSTRING)
-        test_fh.close()
+        with open(os.path.join(self.tempdir, "foofile.txt"), "w") as test_fh:
+            test_fh.write(self.TESTSTRING)
 
     def test_is_down(self):
         # pylint: disable=E1103

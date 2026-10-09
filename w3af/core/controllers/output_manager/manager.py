@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import multiprocessing
 import os
 import queue
@@ -34,6 +35,8 @@ from w3af.core.constants import POISON_PILL
 from w3af.core.controllers.misc.factory import factory
 from w3af.core.controllers.threads.silent_joinable_queue import SilentJoinableQueue
 from w3af.core.controllers.threads.threadpool import Pool
+
+LOGGER = logging.getLogger(__name__)
 
 
 def start_thread_on_demand(func):
@@ -253,6 +256,7 @@ class OutputManager(Process):
         try:
             o_plugin.flush()
         except Exception as exception:
+            LOGGER.debug("Output plugin flush() failed", exc_info=True)
             self._handle_output_plugin_exception(o_plugin, exception)
         finally:
             o_plugin.is_running_flush = False
@@ -343,19 +347,18 @@ class OutputManager(Process):
         #
         # We want all plugin instances to get the chance to run their .end()
         # and we also don't want to ignore exceptions
-        exc_info = None
+        first_exception = None
 
         for o_plugin in self._output_plugin_instances:
             try:
                 o_plugin.end()
-            except:
-                exc_info = sys.exc_info()
-                continue
+            except Exception as exception:
+                LOGGER.debug("Output plugin end() failed", exc_info=True)
+                if first_exception is None:
+                    first_exception = exception
 
-        if exc_info:
-            # pylint: disable=E0702
-            raise exc_info
-            # pylint: enable=E0702
+        if first_exception is not None:
+            raise first_exception
 
         # This is a neat trick which basically removes all plugin references
         # from memory. Those plugins might have pointers to memory parts that
@@ -427,6 +430,7 @@ class OutputManager(Process):
                 opl_func_ptr = getattr(o_plugin, action_name)
                 opl_func_ptr(*args, **kwds)
             except Exception as exception:
+                LOGGER.debug("Output plugin action failed", exc_info=True)
                 self._handle_output_plugin_exception(o_plugin, exception)
 
     def set_output_plugin_inst(self, output_plugin_inst):

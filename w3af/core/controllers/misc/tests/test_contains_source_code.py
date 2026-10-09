@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 import unittest
+from pathlib import Path
 
 from w3af import ROOT_PATH
 from w3af.core.controllers.misc.contains_source_code import (
@@ -203,7 +204,7 @@ class TestContainsSourceCode(unittest.TestCase):
 
     def test_code_false_positive_image(self):
         no_source = self.create_response(
-            open(self.TEST_FILE).read(), content_type="image/jpeg"
+            Path(self.TEST_FILE).read_text(), content_type="image/jpeg"
         )
         match, _lang = contains_source_code(no_source)
         self.assertEqual(match, None)

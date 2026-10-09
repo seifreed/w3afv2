@@ -2,8 +2,13 @@ import json
 import re
 
 import plotille
-from utils.graph import num_formatter
-from utils.utils import get_first_timestamp, get_last_timestamp, get_line_epoch
+
+from w3af.core.controllers.profiling.scan_log_analysis.utils.graph import num_formatter
+from w3af.core.controllers.profiling.scan_log_analysis.utils.utils import (
+    get_first_timestamp,
+    get_last_timestamp,
+    get_line_epoch,
+)
 
 SHOULD_GREP_STATS = re.compile("Grep consumer should_grep\\(\\) stats: (.*)$")
 
@@ -26,7 +31,7 @@ def get_should_grep_data(scan_log_filename, scan):
 
         try:
             stats_dict = to_dict(match.group(1))
-        except:
+        except json.JSONDecodeError:
             print(f"Warning: {match.group(1)} is not valid JSON")
             continue
         else:

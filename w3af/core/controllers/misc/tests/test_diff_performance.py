@@ -24,6 +24,7 @@ import os
 import time
 import unittest
 from functools import cmp_to_key
+from pathlib import Path
 
 from w3af import ROOT_PATH
 from w3af.core.controllers.misc.diff import chunked_diff, diff_dmp
@@ -32,7 +33,7 @@ from w3af.core.controllers.misc.diff import chunked_diff, diff_dmp
 class TestDiffPerformance(unittest.TestCase):
 
     DATA = os.path.join(ROOT_PATH, "core", "controllers", "misc", "tests", "data")
-    FUNCTIONS = [chunked_diff, diff_dmp]
+    FUNCTIONS = (chunked_diff, diff_dmp)
     ROUNDS = 5
 
     def test_xml(self):
@@ -70,8 +71,8 @@ class TestDiffPerformance(unittest.TestCase):
         print()
 
     def _run_test_xml(self, diff):
-        a = open(os.path.join(self.DATA, "source.xml")).read()
-        b = open(os.path.join(self.DATA, "target.xml")).read()
+        a = Path(self.DATA, "source.xml").read_text()
+        b = Path(self.DATA, "target.xml").read_text()
 
         diff(a, b)
 

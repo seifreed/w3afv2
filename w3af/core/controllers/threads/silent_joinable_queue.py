@@ -1,6 +1,9 @@
 import errno
+import logging
 import sys
 from multiprocessing.queues import JoinableQueue, _sentinel, debug, info
+
+LOGGER = logging.getLogger(__name__)
 
 
 class SilentJoinableQueue(JoinableQueue):
@@ -56,9 +59,11 @@ class SilentJoinableQueue(JoinableQueue):
                     # Should be catching the same as errno.EPIPE below
                     return
                 except Exception as e:
+                    LOGGER.debug("Queue feeder failed to send", exc_info=True)
                     if getattr(e, "errno", 0) == errno.EPIPE:
                         return
         except Exception as e:
+            LOGGER.debug("Queue feeder thread failed", exc_info=True)
             # Since this runs in a daemon thread the resources it uses
             # may be become unusable while the process is cleaning up.
             # We ignore errors which happen after the process has
@@ -71,7 +76,7 @@ class SilentJoinableQueue(JoinableQueue):
 
                     traceback.print_exc()
             except Exception:
-                pass
+                LOGGER.debug("Failed to report queue feeder error", exc_info=True)
 
 
 # monkey-patch

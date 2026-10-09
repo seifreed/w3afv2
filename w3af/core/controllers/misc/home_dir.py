@@ -130,8 +130,6 @@ def verify_dir_has_perm(path, perm, levels=0):
             dirs.remove(".git")
 
         for file_path in (os.path.join(root, f) for f in dirs + files):
-            if os.path.exists(file_path):
-                if not os.access(file_path, perm):
-                    # print('No permissions for "%s".' % file_path)
-                    return False
+            if os.path.exists(file_path) and not os.access(file_path, perm):
+                return False
     return True

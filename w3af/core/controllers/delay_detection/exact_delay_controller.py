@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.core.controllers.delay_detection.exact_delay import ExactDelay
 from w3af.core.controllers.output_manager import out
 from w3af.core.data.url.exceptions import HTTPRequestException
@@ -47,7 +49,7 @@ class ExactDelayController:
     # you'll only get slower scans when there is a vulnerability, which is not
     # the most common case
     #
-    DELAY_SECONDS = [8, 4, 9, 5, 14]
+    DELAY_SECONDS: ClassVar[list] = [8, 4, 9, 5, 14]
 
     def __init__(self, mutant, delay_obj, uri_opener):
         """

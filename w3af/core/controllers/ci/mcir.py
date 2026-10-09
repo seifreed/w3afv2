@@ -20,13 +20,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from pathlib import Path
+
 HTTP_MCIR = "/tmp/mcir.txt"
 DEFAULT_MCIR = "mcir-fallback:80"
 
 
 def get_mcir_http(path="/"):
     try:
-        mcir_netloc = open(HTTP_MCIR).read().strip()
+        mcir_netloc = Path(HTTP_MCIR).read_text().strip()
     except OSError:
         mcir_netloc = DEFAULT_MCIR
 

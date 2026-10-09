@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import itertools
 import sys
 import threading
+from typing import ClassVar
 
 from phply import phpast, phplex, phpparse
 from ply import yacc
@@ -249,7 +250,7 @@ class NodeRep:
         # AST node that originated this 'NodeRep' representation
         self._ast_node = ast_node
 
-    def _get_parent_nodes(self, startnode, nodetys=[phpast.Node]):
+    def _get_parent_nodes(self, startnode, nodetys=(phpast.Node,)):
         """
         Yields parent nodes of type `type`.
 
@@ -461,14 +462,14 @@ class FuncCall(NodeRep):
     """
 
     # Potentially Vulnerable Functions Database
-    PVFDB = {
+    PVFDB: ClassVar[dict] = {
         "OS_COMMANDING": ("system", "exec", "shell_exec"),
         "XSS": ("echo", "print", "printf", "header"),
         "FILE_INCLUDE": ("include", "require"),
         "FILE_DISCLOSURE": ("file_get_contents", "file", "fread", "finfo_file"),
     }
     # Securing Functions Database
-    SFDB = {
+    SFDB: ClassVar[dict] = {
         "OS_COMMANDING": ("escapeshellarg", "escapeshellcmd"),
         "XSS": ("htmlentities", "htmlspecialchars"),
         "SQL": (
@@ -592,7 +593,7 @@ class FuncCall(NodeRep):
 
 class Scope:
 
-    def __init__(self, ast_node, parent_scope=None, builtins={}):
+    def __init__(self, ast_node, parent_scope=None, builtins=None):
         """
         :param ast_node: AST node that originated this scope
         :param parent_scope: Parent scope
@@ -601,7 +602,7 @@ class Scope:
         # AST node that defines this scope
         self._ast_node = ast_node
         self._parent_scope = parent_scope
-        self._builtins = builtins
+        self._builtins = builtins if builtins is not None else {}
         self._vars = {}
 
     def add_var(self, newvar):
@@ -642,19 +643,21 @@ class Param:
         """
         vardef = None
 
-        for node in NodeRep.parse(node):
+        for child in NodeRep.parse(node):
 
-            if type(node) is phpast.Variable:
-                varname = node.name
+            if type(child) is phpast.Variable:
+                varname = child.name
                 scopevar = scope.get_var(varname)
-                vardef = VariableDef(varname + "__$temp_anon_var$_", node.lineno, scope)
-                vardef.var_node = node
+                vardef = VariableDef(
+                    varname + "__$temp_anon_var$_", child.lineno, scope
+                )
+                vardef.var_node = child
                 vardef.parent = scopevar
                 break
 
-            elif type(node) is phpast.FunctionCall:
-                vardef = VariableDef(node.name + "_funvar", node.lineno, scope)
-                fc = FuncCall(node.name, node.lineno, node, scope)
+            elif type(child) is phpast.FunctionCall:
+                vardef = VariableDef(child.name + "_funvar", child.lineno, scope)
+                fc = FuncCall(child.name, child.lineno, child, scope)
 
                 # TODO: So far we only work with the first parameter.
                 # IMPROVE THIS!!!

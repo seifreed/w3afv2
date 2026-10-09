@@ -20,13 +20,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from pathlib import Path
+
 HTTP_SQLMAP_TESTENV = "/tmp/sqlmap-testenv.txt"
 DEFAULT_SQLMAP_TESTENV = "sqlmap-testenv-fallback:80"
 
 
 def get_sqlmap_testenv_http(path="/"):
     try:
-        sqlmap_testenv_netloc = open(HTTP_SQLMAP_TESTENV).read().strip()
+        sqlmap_testenv_netloc = Path(HTTP_SQLMAP_TESTENV).read_text().strip()
     except OSError:
         sqlmap_testenv_netloc = DEFAULT_SQLMAP_TESTENV
 

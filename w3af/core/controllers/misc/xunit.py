@@ -53,10 +53,12 @@ class XunitGen:
 
         stats = self._stats
         xml_chunks = [
-            '<?xml version="1.0" encoding="UTF-8"?>'
-            f'<testsuite name="w3aftestscripts" tests="{stats["total"]:d}" '
-            f'errors="{stats["error"]:d}" failures="{stats["fail"]:d}" '
-            f'skip="{stats["skip"]:d}">'
+            (
+                '<?xml version="1.0" encoding="UTF-8"?>'
+                f'<testsuite name="w3aftestscripts" tests="{stats["total"]:d}" '
+                f'errors="{stats["error"]:d}" failures="{stats["fail"]:d}" '
+                f'skip="{stats["skip"]:d}">'
+            )
         ]
         xml_chunks.append("".join(self.results))
         xml_chunks.append("</testsuite>")

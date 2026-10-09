@@ -22,8 +22,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 
+import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.daemons import webserver
+from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.intrusion_tools.exec_method_helpers import (
     get_remote_temp_file,
 )
@@ -69,7 +71,8 @@ class ClientlessReverseHTTP(BasePayloadTransfer):
                     return self.transfer(
                         "test_string\n", get_remote_temp_file(self._exec_method)
                     )
-                except:
+                except (OSError, BaseFrameworkException) as exc:
+                    om.out.debug(f"Transfer method {fetcher} failed: {exc}")
                     continue
 
         return False
@@ -97,9 +100,8 @@ class ClientlessReverseHTTP(BasePayloadTransfer):
         # Create the file
         filename = rand_alpha(10)
         file_path = get_temp_dir() + os.path.sep + filename
-        f = open(file_path, "w")
-        f.write(data_str)
-        f.close()
+        with open(file_path, "w") as f:
+            f.write(data_str)
 
         # Start a web server on the inbound port and create the file that
         # will be fetched by the compromised host

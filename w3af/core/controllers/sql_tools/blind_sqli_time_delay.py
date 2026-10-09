@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from typing import ClassVar
+
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.delay_detection.exact_delay import ExactDelay
 from w3af.core.controllers.delay_detection.exact_delay_controller import (
@@ -38,7 +40,7 @@ class BlindSQLTimeDelay:
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    DELAYS = [
+    DELAYS: ClassVar[list] = [
         # MSSQL
         ExactDelay("1;waitfor delay '0:0:%s'--"),
         ExactDelay("1);waitfor delay '0:0:%s'--"),

@@ -3,8 +3,9 @@ if __name__ == "__main__":
 
     res = "file_dump = '"
 
-    for i in open(sys.argv[1]).read():
-        res += "\\x" + hex(ord(i))[2:].zfill(2)
+    with open(sys.argv[1]) as dump_file:
+        for i in dump_file.read():
+            res += "\\x" + hex(ord(i))[2:].zfill(2)
 
     res += "'"
     print(res)

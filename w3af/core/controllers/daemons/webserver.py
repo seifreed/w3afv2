@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import http.server
+import logging
 import mimetypes
 import os
 import select
@@ -30,8 +31,10 @@ import time
 
 import w3af.core.controllers.output_manager as om
 
+LOGGER = logging.getLogger(__name__)
+
 # Created servers
-_servers = {}
+_servers: dict[tuple[str, int], object] = {}
 
 
 def is_running(ip, port):
@@ -99,7 +102,7 @@ class HTTPServer(http.server.HTTPServer):
             try:
                 self.process_request(request, client_address)
             except Exception:
-                self.handle_error(request, client_address)
+                LOGGER.exception("Error processing request from %s", client_address)
                 self.close_request(request)
 
     def server_bind(self):
@@ -109,7 +112,7 @@ class HTTPServer(http.server.HTTPServer):
     def get_port(self):
         try:
             return self.server_address[1]
-        except:
+        except (AttributeError, IndexError, TypeError):
             return None
 
     def wait_for_start(self):
@@ -125,11 +128,14 @@ class WebHandler(http.server.BaseHTTPRequestHandler):
             self.send_error(403, "Yeah right...")
         else:
             try:
-                f = open(self.server.webroot + os.path.sep + self.path[1:])
+                with open(
+                    self.server.webroot + os.path.sep + self.path[1:], "rb"
+                ) as requested_file:
+                    content = requested_file.read()
             except OSError:
                 try:
                     self.send_error(404, f"File Not Found: {self.path}")
-                except Exception as e:
+                except OSError as e:
                     om.out.debug("[webserver] Exception: " + str(e))
             else:
                 try:
@@ -143,11 +149,9 @@ class WebHandler(http.server.BaseHTTPRequestHandler):
                     else:
                         self.send_header("Content-type", "text/html")
                     self.end_headers()
-                    self.wfile.write(f.read())
-                except Exception as e:
+                    self.wfile.write(content)
+                except OSError as e:
                     om.out.debug("[webserver] Exception: " + str(e))
-
-                f.close()
 
             # Clean up
             self.close_connection = 1

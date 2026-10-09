@@ -61,8 +61,7 @@ class PasswordBruteforcer:
             yield pwd
 
             if self.l337_p4sswd:
-                for pwd in unique_everseen(make_leet(pwd)):
-                    yield pwd
+                yield from unique_everseen(make_leet(pwd))
 
     def _special_passwords(self):
         yield self._url.get_domain()
@@ -72,8 +71,9 @@ class PasswordBruteforcer:
             yield from get_profiling_results(self.profiling_number)
 
     def _read_pwd_file(self):
-        for line in open(self.passwd_file):
-            yield line.strip()
+        with open(self.passwd_file) as passwd_fh:
+            for line in passwd_fh:
+                yield line.strip()
 
 
 class UserPasswordBruteforcer:
@@ -140,9 +140,9 @@ class UserPasswordBruteforcer:
                 yield user, pwd
 
     def _user_from_file(self):
-        for line in open(self.users_file):
-            user = line.strip()
-            yield user
+        with open(self.users_file) as users_fh:
+            for line in users_fh:
+                yield line.strip()
 
     def _special_users(self):
         """
@@ -175,13 +175,14 @@ class UserPasswordBruteforcer:
         if not self.combo_file:
             return
 
-        for line in open(self.combo_file):
-            try:
-                user, passwd = line.strip().split(self.combo_separator)
-            except ValueError:
-                om.out.debug(f'Invalid combo entry: "{line}"')
-            else:
-                yield user, passwd
+        with open(self.combo_file) as combo_fh:
+            for line in combo_fh:
+                try:
+                    user, passwd = line.strip().split(self.combo_separator)
+                except ValueError:
+                    om.out.debug(f'Invalid combo entry: "{line}"')
+                else:
+                    yield user, passwd
 
 
 def get_profiling_results(max_items=50):

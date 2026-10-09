@@ -53,10 +53,9 @@ class ExceptionHandler:
     """
 
     MAX_EXCEPTIONS_PER_PLUGIN = 3
-    NO_HANDLING = (
+    NO_HANDLING: tuple[type[BaseException], ...] = (
         MemoryError,
         OSError,
-        IOError,
         ScanMustStopByUnknownReasonExc,
         ScanMustStopException,
         ScanMustStopByUserRequest,
@@ -64,9 +63,7 @@ class ExceptionHandler:
     )
 
     if DEBUG:
-        NO_HANDLING = list(NO_HANDLING)
-        NO_HANDLING.append(Exception)
-        NO_HANDLING = tuple(NO_HANDLING)
+        NO_HANDLING = (*NO_HANDLING, Exception)
 
     def __init__(self):
         self._exception_data = []

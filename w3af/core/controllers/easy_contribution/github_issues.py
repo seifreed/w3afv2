@@ -79,6 +79,10 @@ class LoginFailed(Exception):
     pass
 
 
+class NotLoggedIn(Exception):
+    pass
+
+
 class GithubIssues:
     def __init__(self, user_or_token, password=None):
         self._user_or_token = user_or_token
@@ -120,7 +124,7 @@ class GithubIssues:
         email=None,
     ):
         if self.gh is None:
-            raise Exception("Please login before reporting a bug.")
+            raise NotLoggedIn("Please login before reporting a bug.")
 
         summary, desc = self._build_summary_and_desc(
             summary, userdesc, tback, fname, plugins, autogen, email

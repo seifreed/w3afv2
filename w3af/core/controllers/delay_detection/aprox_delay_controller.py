@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.core.controllers.delay_detection.aprox_delay import AproxDelay
 
 LINEARLY = 1
@@ -58,7 +60,7 @@ class AproxDelayController:
 
     DELAY_DIFF_MULT = 4.0
 
-    DELAY_SETTINGS = {
+    DELAY_SETTINGS: ClassVar[dict] = {
         LINEARLY: [1, 10, 100, 500],
         EXPONENTIALLY: [1, 2, 3, 4, 5, 6, 7, 8],
     }

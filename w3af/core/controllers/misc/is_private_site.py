@@ -48,5 +48,5 @@ def is_private_site(domain_or_ip_address):
 def matches_private_ip(ip_address):
     try:
         return ipaddress.ip_address(ip_address).is_private
-    except:
+    except ValueError:
         return False

@@ -56,8 +56,8 @@ class extrusionScanner:
         self,
         exec_method,
         forceReRun=False,
-        tcpPortList=[25, 80, 53, 1433, 8080],
-        udpPortList=[53, 69, 139, 1025],
+        tcpPortList=(25, 80, 53, 1433, 8080),
+        udpPortList=(53, 69, 139, 1025),
     ):
         """
         :param exec_method: The exec_method used to execute commands on the
@@ -100,7 +100,7 @@ class extrusionScanner:
                 serversocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             serversocket.bind(("", port))
             serversocket.listen(5)
-        except:
+        except OSError:
             return False
         else:
             serversocket.close()
@@ -229,7 +229,7 @@ class extrusionScanner:
     def can_scan(self):
         try:
             self._selectExtrusionClient()
-        except:
+        except BaseFrameworkException:
             return False
         else:
             return True
@@ -257,7 +257,8 @@ class extrusionScanner:
                 "client",
                 "extrusion_client.py",
             )
-            fileContent = open(filename).read()
+            with open(filename) as file_handle:
+                fileContent = file_handle.read()
             extension = "py"
             interpreter = "python"
         else:
@@ -271,7 +272,9 @@ class extrusionScanner:
 
         local_address = cf.cf.get("local_ip_address")
         if local_address is None:
-            raise Exception("Invalid environment: no local address found in cf.")
+            raise BaseFrameworkException(
+                "Invalid environment: no local address found in cf."
+            )
 
         cmd_fmt = "%s %s %s %s %s"
         cmd = cmd_fmt % (

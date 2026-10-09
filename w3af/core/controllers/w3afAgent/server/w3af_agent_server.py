@@ -25,6 +25,7 @@ import socket
 import sys
 import threading
 from multiprocessing.dummy import Process
+from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.exceptions import BaseFrameworkException
@@ -59,8 +60,8 @@ class ConnectionManager(Process):
         try:
             s.connect((self._ip_address, self._port))
             s.close()
-        except:
-            pass
+        except OSError as e:
+            om.out.debug(f"[w3afAgentServer] Error while stopping: {e}")
 
         for conn in self._connections:
             conn.close()
@@ -79,7 +80,7 @@ class ConnectionManager(Process):
             self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             self.sock.bind((self._ip_address, self._port))
             self.sock.listen(5)
-        except Exception as e:
+        except OSError as e:
             msg = f"[w3afAgentServer] Failed to bind to {self._ip_address}:{self._port}"
             msg += f'. Error: "{e}".'
             raise BaseFrameworkException(msg)
@@ -126,7 +127,7 @@ class ConnectionManager(Process):
 
 
 class PipeThread(Process):
-    pipes = []
+    pipes: ClassVar[list] = []
 
     def __init__(self, source, sink):
         Process.__init__(self)
@@ -149,7 +150,7 @@ class PipeThread(Process):
         try:
             self.source.close()
             self.sink.close()
-        except:
+        except OSError:
             pass
 
     def run(self):
@@ -159,7 +160,7 @@ class PipeThread(Process):
                 if not data:
                     break
                 self.sink.send(data)
-            except:
+            except OSError:
                 break
 
         PipeThread.pipes.remove(self)
@@ -184,7 +185,7 @@ class TCPRelay(Process):
 
         try:
             self.sock.bind((self._ip_address, self._port))
-        except:
+        except OSError:
             raise BaseFrameworkException(
                 "Port ("
                 + self._ip_address
@@ -209,7 +210,7 @@ class TCPRelay(Process):
         try:
             s.connect(("localhost", self._port))
             s.close()
-        except:
+        except OSError:
             pass
 
         for pipe in self._pipes:
@@ -233,7 +234,7 @@ class TCPRelay(Process):
                 except KeyboardInterrupt:
                     om.out.information("Exiting.")
                     break
-                except:
+                except BaseFrameworkException:
                     om.out.debug(
                         "[TCPRelay] Connection manager has no active connections."
                     )

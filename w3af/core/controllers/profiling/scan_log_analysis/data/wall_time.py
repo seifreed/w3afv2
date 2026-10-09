@@ -1,8 +1,14 @@
 import re
 from operator import itemgetter
 
-from utils.output import KeyValueOutput, ListOutput, ListOutputItem
-from utils.utils import epoch_to_string
+from w3af.core.controllers.profiling.scan_log_analysis.utils.output import (
+    KeyValueOutput,
+    ListOutput,
+    ListOutputItem,
+)
+from w3af.core.controllers.profiling.scan_log_analysis.utils.utils import (
+    epoch_to_string,
+)
 
 SCAN_TOOK_RE = re.compile(r"took (\d*\.\d\d)s to run")
 PLUGIN_TOOK_RE = re.compile(
@@ -60,9 +66,7 @@ def get_plugin_time(scan_log_filename, scan):
 
     output = ListOutput("plugin_wall_clock_stats")
 
-    for plugin_type in spent_time_by_plugin:
-        spent_time_by_plugin_one_type = spent_time_by_plugin[plugin_type]
-
+    for plugin_type, spent_time_by_plugin_one_type in spent_time_by_plugin.items():
         spent_time_items = list(spent_time_by_plugin_one_type.items())
         spent_time_items.sort(key=itemgetter(1), reverse=True)
         spent_time_items = spent_time_items[:15]

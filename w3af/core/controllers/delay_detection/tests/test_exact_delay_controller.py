@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import random
 import unittest
+from typing import ClassVar
 from unittest.mock import MagicMock, Mock
 
 from w3af.core.controllers.delay_detection.exact_delay import ExactDelay
@@ -49,7 +50,7 @@ class TestExactDelay(unittest.TestCase):
     # Reminder for samples taken at ExactDelayController
     # DELAY_SECONDS = [8, 4, 9, 5, 14]
 
-    TEST_SUITE = [
+    TEST_SUITE: ClassVar[list] = [
         # Basic, very easy to pass
         #
         # The three 0.1 are the calls to get_average_rtt_for_mutant
