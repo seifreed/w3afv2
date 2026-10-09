@@ -28,10 +28,29 @@ from unittest.mock import patch
 
 import pytest
 
+from w3af.core.controllers.core_helpers.plugins import CorePlugins
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.w3afCore import w3afCore
 
 TEST_PLUGIN_NAME = "failing_spider"
+
+
+class TestPluginRegistryStructure(unittest.TestCase):
+
+    def test_registries_follow_plugin_package_types(self):
+        core_plugins = CorePlugins(None)
+        plugin_types = set(core_plugins.get_plugin_types())
+
+        self.assertEqual(set(core_plugins.plugins), plugin_types)
+        self.assertEqual(set(core_plugins.get_all_enabled_plugins()), plugin_types)
+        self.assertEqual(
+            set(core_plugins.get_all_plugin_options()), plugin_types | {"attack"}
+        )
+
+    def test_plugin_types_omit_cache_directories(self):
+        plugin_types = CorePlugins(None).get_plugin_types()
+
+        self.assertNotIn("__pycache__", plugin_types)
 
 
 @pytest.mark.smoke

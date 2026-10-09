@@ -48,45 +48,11 @@ class CorePlugins:
         Init some internal variables; this method is called when the whole
         process starts, and when the user loads a new profile.
         """
-        # A dict with plugin types as keys and a list of plugin names as values
-        self._plugins_names_dict = {
-            "audit": [],
-            "grep": [],
-            "bruteforce": [],
-            "crawl": [],
-            "evasion": [],
-            "mangle": [],
-            "output": [],
-            "auth": [],
-            "infrastructure": [],
-        }
-
-        self._plugins_options = {
-            "audit": {},
-            "grep": {},
-            "bruteforce": {},
-            "crawl": {},
-            "evasion": {},
-            "mangle": {},
-            "output": {},
-            "attack": {},
-            "auth": {},
-            "infrastructure": {},
-        }
-
-        # A dict with plugin types as keys and a list of plugin instances as
-        # values
-        self.plugins = {
-            "audit": [],
-            "grep": [],
-            "bruteforce": [],
-            "crawl": [],
-            "evasion": [],
-            "mangle": [],
-            "output": [],
-            "auth": [],
-            "infrastructure": [],
-        }
+        plugin_types = self.get_plugin_types()
+        self._plugins_names_dict = {plugin_type: [] for plugin_type in plugin_types}
+        self._plugins_options = {plugin_type: {} for plugin_type in plugin_types}
+        self._plugins_options["attack"] = {}
+        self.plugins = {plugin_type: [] for plugin_type in plugin_types}
 
         # After we zero all options and enabled plugins we need to call
         # init_plugins again
@@ -188,7 +154,7 @@ class CorePlugins:
                  that might reference deprecated plugins.
         """
         # Validate the input...
-        plugin_names = list(set(plugin_names))
+        plugin_names = list(dict.fromkeys(plugin_names))
         known_plugin_names = self.get_plugin_list(plugin_type)
         unknown_plugins = []
 
@@ -262,22 +228,18 @@ class CorePlugins:
         :return: A list with all plugin types.
         """
 
-        def rem_from_list(ele, lst):
-            try:
-                lst.remove(ele)
-            except:
-                pass
-
-        plugin_types = [x for x in os.listdir(os.path.join(ROOT_PATH, "plugins"))]
-        # Now we filter to show only the directories
+        plugin_root = os.path.join(ROOT_PATH, "plugins")
+        plugin_types = os.listdir(plugin_root)
         plugin_types = [
             d
             for d in plugin_types
-            if os.path.isdir(os.path.join(ROOT_PATH, "plugins", d))
+            if os.path.isfile(os.path.join(plugin_root, d, "__init__.py"))
         ]
-        rem_from_list("attack", plugin_types)
-        rem_from_list("tests", plugin_types)
-        rem_from_list(".git", plugin_types)
+        plugin_types = [
+            plugin_type
+            for plugin_type in plugin_types
+            if plugin_type not in {"attack", "tests"}
+        ]
         return plugin_types
 
     def get_plugin_list(self, plugin_type):
@@ -346,7 +308,7 @@ class CorePlugins:
 
                     try:
                         dep_plugin_type, dep_plugin_name = dep.split(".")
-                    except:
+                    except ValueError:
                         msg = (
                             "Plugin dependencies must be indicated using"
                             " plugin_type.plugin_name notation. This is"

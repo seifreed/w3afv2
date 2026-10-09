@@ -48,6 +48,8 @@ from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.data.url.HTTPResponse import DEFAULT_WAIT_TIME
 from w3af.core.data.url.tests.helpers.ssl_daemon import RawSSLDaemon, SSLServer
 from w3af.core.data.url.tests.helpers.upper_daemon import UpperDaemon
+from w3af.plugins.evasion.rnd_case import rnd_case
+from w3af.plugins.evasion.rnd_path import rnd_path
 
 
 @pytest.mark.moth
@@ -63,6 +65,16 @@ class TestXUrllib(unittest.TestCase):
     def tearDown(self):
         self.uri_opener.end()
         httpretty.reset()
+
+    def test_evasion_plugins_are_sorted_by_priority(self):
+        evasion_plugins = [rnd_case(), rnd_path()]
+
+        self.uri_opener.set_evasion_plugins(evasion_plugins)
+
+        priorities = [
+            plugin.get_priority() for plugin in self.uri_opener._evasion_plugins
+        ]
+        self.assertEqual(priorities, [0, 25])
 
     def test_basic(self):
         url = URL(get_moth_http())
@@ -356,7 +368,7 @@ class TestXUrllib(unittest.TestCase):
             try:
                 http_response = uri_opener.GET(url)
                 output.put(http_response)
-            except:
+            except Exception:
                 output.put(None)
 
         th = Process(target=send, args=(self.uri_opener, output))
@@ -374,7 +386,7 @@ class TestXUrllib(unittest.TestCase):
             try:
                 http_response = uri_opener.GET(url)
                 output.put(http_response)
-            except:
+            except Exception:
                 output.put(None)
 
         th = Process(target=send, args=(self.uri_opener, output))

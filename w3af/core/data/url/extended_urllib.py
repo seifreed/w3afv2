@@ -32,7 +32,6 @@ import urllib.request
 import uuid
 from collections import deque
 from contextlib import contextmanager
-from functools import cmp_to_key
 from http.client import BadStatusLine
 
 import OpenSSL
@@ -1591,11 +1590,7 @@ class ExtendedUrllib:
         self._grep_queue_put = grep_queue_put
 
     def set_evasion_plugins(self, evasion_plugins):
-        # I'm sorting evasion plugins based on priority
-        def sort_func(x, y):
-            return cmp(x.get_priority(), y.get_priority())
-
-        evasion_plugins.sort(key=cmp_to_key(sort_func))
+        evasion_plugins.sort(key=lambda plugin: plugin.get_priority())
 
         # Save the info
         self._evasion_plugins = evasion_plugins
