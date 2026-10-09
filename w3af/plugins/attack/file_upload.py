@@ -24,10 +24,10 @@ import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
 from w3af.core.data.fuzzer.utils import rand_alpha
-from w3af.core.data.kb.exec_shell import ExecShell
 from w3af.core.data.misc.io import NamedStringIO
 from w3af.plugins.attack.payloads import shell_handler
 from w3af.plugins.attack.payloads.decorators.exec_decorator import exec_debug
+from w3af.plugins.attack.shells import ExecShell
 
 
 class file_upload(AttackPlugin):

@@ -36,27 +36,6 @@ LAYERS = (
 W3AF_PACKAGE = Path(__file__).resolve().parents[1]
 REPO_ROOT = W3AF_PACKAGE.parent
 
-# Known, still-pending cross-layer dependencies. Each entry is a
-# (module, imported_module) pair that the decoupling effort has not inverted
-# yet. The test fails both when a NEW violation appears and when one of these
-# entries no longer exists, so the list can only shrink over time.
-KNOWN_DEBT = frozenset(
-    {
-        # ExecShell orchestrates remote command execution and payload transfer,
-        # which currently live in the controllers layer.
-        (
-            "w3af.core.data.kb.exec_shell",
-            "w3af.core.controllers.intrusion_tools.exec_method_helpers",
-        ),
-        (
-            "w3af.core.data.kb.exec_shell",
-            "w3af.core.controllers.payload_transfer.payload_transfer_factory",
-        ),
-        # Shell runs attack payloads through the plugins payload handler.
-        ("w3af.core.data.kb.shell", "w3af.plugins.attack.payloads"),
-    }
-)
-
 
 def layer_of(module_name):
     for prefix, index in LAYERS:
@@ -129,31 +108,16 @@ def collect_violations():
 
 
 class TestArchitectureLayers(unittest.TestCase):
-    def test_no_unexpected_cross_layer_imports(self):
+    def test_no_cross_layer_imports(self):
         violations = collect_violations()
 
-        new_violations = violations - KNOWN_DEBT
         self.assertEqual(
-            new_violations,
+            violations,
             set(),
-            "New Clean Architecture layering violations (an inner layer imports "
-            "an outer one):\n"
+            "Clean Architecture layering violations (an inner layer imports an "
+            "outer one):\n"
             + "\n".join(
-                f"  {module} -> {target}" for module, target in sorted(new_violations)
-            ),
-        )
-
-    def test_known_debt_is_not_stale(self):
-        violations = collect_violations()
-
-        resolved = KNOWN_DEBT - violations
-        self.assertEqual(
-            resolved,
-            set(),
-            "These entries no longer violate the layering and must be removed "
-            "from KNOWN_DEBT:\n"
-            + "\n".join(
-                f"  {module} -> {target}" for module, target in sorted(resolved)
+                f"  {module} -> {target}" for module, target in sorted(violations)
             ),
         )
 

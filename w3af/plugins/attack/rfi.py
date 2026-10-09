@@ -31,14 +31,13 @@ from w3af.core.controllers.misc.get_local_ip import get_local_ip
 from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
 from w3af.core.data.constants import ports
 from w3af.core.data.fuzzer.utils import rand_alnum
-from w3af.core.data.kb.exec_shell import ExecShell
-from w3af.core.data.kb.shell import Shell
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.paths import get_home_dir
 from w3af.plugins.attack.payloads import shell_handler
 from w3af.plugins.attack.payloads.decorators.exec_decorator import exec_debug
+from w3af.plugins.attack.shells import ExecShell, Shell
 
 NO_SUCCESS = 0
 SUCCESS_COMPLETE = 1
