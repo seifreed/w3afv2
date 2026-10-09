@@ -28,6 +28,7 @@ modifications are:
 """
 
 import http.client
+import re
 import socket
 import threading
 import time
@@ -35,7 +36,6 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from email.base64mime import header_encode
-from http.client import _is_illegal_header_value, _is_legal_header_name
 
 import OpenSSL
 
@@ -43,6 +43,10 @@ from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.exceptions import BaseFrameworkException
 
 from .connection_manager import ConnectionManager
+
+# Same header validation rules http.client.putheader() enforces (RFC 7230)
+LEGAL_HEADER_NAME_RE = re.compile(rb"[^:\s][^:\r\n]*")
+ILLEGAL_HEADER_VALUE_RE = re.compile(rb"\n(?![ \t])|\r(?![ \t\n])")
 from .connections import (
     HTTPConnection,
     HTTPSConnection,
@@ -402,10 +406,10 @@ class KeepAliveHandler:
                 # TL;DR: we use RFC2047 encoding here, knowing that it will only
                 #        work in 1% of the remote servers, but it is our best bet
                 #
-                if not _is_legal_header_name(k):
+                if not LEGAL_HEADER_NAME_RE.fullmatch(k):
                     k = header_encode(k, charset="utf-8", keep_eols=True)
 
-                if _is_illegal_header_value(v):
+                if ILLEGAL_HEADER_VALUE_RE.search(v):
                     v = header_encode(v, charset="utf-8", keep_eols=True)
 
                 conn.putheader(k, v)

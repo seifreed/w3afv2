@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
-from unittest import SkipTest
 
 import httpretty
 import pytest
@@ -102,7 +101,7 @@ class TestXUrllibIntegration(unittest.TestCase):
 
 class TestUpperCaseHeaders(unittest.TestCase):
 
-    @SkipTest
+    @unittest.skip("urllib lower-cases header names before sending them")
     @httpretty.activate
     def test_headers_upper_case(self):
         """
