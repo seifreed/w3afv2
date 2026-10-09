@@ -27,7 +27,6 @@ from functools import partial
 from itertools import combinations
 from pathlib import Path
 from random import choice
-from unittest import SkipTest
 
 import pytest
 
@@ -141,7 +140,6 @@ class TestSGMLParser(unittest.TestCase):
         self.assertFalse(p._inside_form)
         self.assertFalse(p._inside_select)
         self.assertFalse(p._inside_text_area)
-        self.assertFalse(p._inside_script)
 
         self.assertEqual(set(), p._tag_and_url)
         self.assertEqual([], p._forms)
@@ -286,15 +284,14 @@ class TestSGMLParser(unittest.TestCase):
         self.assertEqual(clear_text, calculated_clear_text)
 
     def test_get_clear_text_body_encodings(self):
-
-        raise SkipTest("Not sure why this one is failing :S")
-
         for body, encoding in TEST_RESPONSES.values():
             encoding_header = f"text/html; charset={encoding}"
             headers = Headers([("Content-Type", encoding_header)])
 
+            # The charset must come from the header, build_http_response
+            # would force utf-8
             encoded_body = body.encode(encoding)
-            r = build_http_response(self.url, encoded_body, headers)
+            r = HTTPResponse(200, encoded_body, headers, self.url, self.url)
 
             p = SGMLParser(r)
             p.parse()
@@ -380,3 +377,74 @@ class TestTagsByFilter(unittest.TestCase):
         tag_names = [tag.name for tag in tags]
 
         self.assertEqual(tag_names, ["html", "body", "a", "div"])
+
+
+class FailingHandlersParser(SGMLParser):
+    """
+    Every tag handler raises, the parser must log and keep going.
+    """
+
+    def _handle_meta_tag_start(self, tag, tag_name, attrs):
+        raise ValueError("meta handler")
+
+    def _find_references(self, tag, tag_name, attrs):
+        raise TypeError("references")
+
+    def _find_emails(self, tag, tag_name, attrs):
+        raise LookupError("emails")
+
+
+class TestSGMLParserEdgeCases(unittest.TestCase):
+
+    url = URL("http://w3af.com/")
+
+    def parse(self, body, parser_class=SGMLParser):
+        parser = parser_class(build_http_response(self.url, body))
+        parser.parse()
+        return parser
+
+    def test_tag_str(self):
+        tag = Tag("a", {"href": "/x"}, "text")
+
+        self.assertEqual(str(tag), "<Tag (name:a, attrib:{'href': '/x'}, text:text)")
+
+    def test_handler_errors_are_logged(self):
+        body = '<html><meta name="x"><a href="mailto:a@w3af.com">x</a></html>'
+
+        with self.assertLogs("w3af.core.data.parsers.doc.sgml", "ERROR") as logs:
+            parser = self.parse(body, FailingHandlersParser)
+
+        output = "\n".join(logs.output)
+        self.assertIn("parsing meta tag", output)
+        self.assertIn("extracting references", output)
+        self.assertIn("finding emails", output)
+        self.assertEqual(parser.get_references(), ([], []))
+
+    def test_comments_inside_scripts_are_ignored(self):
+        body = "<html><script><!-- code(); --></script><!-- visible --></html>"
+
+        self.assertEqual(set(self.parse(body).get_comments()), {" visible "})
+
+    def test_body_that_can_not_be_encoded(self):
+        with self.assertLogs("w3af.core.data.parsers.doc.sgml", "DEBUG") as logs:
+            parser = self.parse("\ud800")
+
+        self.assertIn("Error occurred while parsing", logs.output[-1])
+        self.assertEqual(parser.get_references(), ([], []))
+
+    def test_get_tags_by_filter_empty_body(self):
+        parser = SGMLParser(build_http_response(self.url, ""))
+
+        self.assertEqual(list(parser.get_tags_by_filter(("a",))), [])
+
+    def test_invalid_mailto(self):
+        body = '<a href="mailto:not-an-email@">x</a><a href="mailto:ok@w3af.com">y</a>'
+
+        self.assertEqual(self.parse(body).get_emails(), {"ok@w3af.com"})
+
+    def test_invalid_base_href_keeps_the_response_url(self):
+        body = '<html><base href="javascript:"><a href="/x">x</a></html>'
+
+        parsed, _ = self.parse(body).get_references()
+
+        self.assertEqual(parsed, [URL("http://w3af.com/x")])

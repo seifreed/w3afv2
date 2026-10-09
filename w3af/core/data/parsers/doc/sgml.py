@@ -154,7 +154,6 @@ class SGMLParser(BaseParser):
         self._inside_form = False
         self._inside_select = False
         self._inside_text_area = False
-        self._inside_script = False
 
         self._tag_and_url = set()
         self._forms = []
@@ -228,11 +227,8 @@ class SGMLParser(BaseParser):
             return method(tag)
 
     def comment(self, elem):
-        if self._inside_script:
-            # This handles the case where we have:
-            # <script><!-- code(); --></script>
-            return
-
+        # lxml's HTML parser keeps <script> contents as raw text, so comments
+        # such as <script><!-- code(); --></script> never reach this method
         if elem.text is not None:
             self._comments_in_doc.append(smart_unicode(elem.text))
 
@@ -615,15 +611,6 @@ class SGMLParser(BaseParser):
 
     def _handle_form_tag_end(self, tag):
         self._inside_form = False
-
-    def _handle_script_tag_start(self, tag, tag_name, attrs):
-        self._inside_script = True
-
-    def _handle_script_tag_end(self, tag):
-        self._inside_script = False
-
-    def _handle_select_tag_start(self, tag, tag_name, attrs):
-        self._inside_select = True
 
     def _handle_select_tag_end(self, tag):
         self._inside_select = False

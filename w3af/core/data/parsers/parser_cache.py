@@ -59,9 +59,14 @@ class ParserCache(CacheStats):
     MAX_CACHEABLE_BODY_LEN = 1024 * 1024
     DEBUG = is_core_profiling_enabled()
 
-    def __init__(self):
+    def __init__(self, mp_parser=mp_doc_parser):
+        """
+        :param mp_parser: The MultiProcessingDocumentParser that parses the
+                          responses which are not in the cache
+        """
         super().__init__()
 
+        self._mp_parser = mp_parser
         self._cache = SynchronizedLRUDict(self.CACHE_SIZE)
         self._can_parse_cache = SynchronizedLRUDict(self.CACHE_SIZE * 10)
         self._parser_finished_events = {}
@@ -75,7 +80,7 @@ class ParserCache(CacheStats):
         LOGGER.debug("Called clear() on ParserCache")
 
         # Stop any workers
-        mp_doc_parser.stop_workers()
+        self._mp_parser.stop_workers()
 
         # Make sure the parsers clear all resources
         for parser in self._cache.values():
@@ -164,11 +169,11 @@ class ParserCache(CacheStats):
             # There is one subprocess already processing this http response
             # body, the best thing to do here is to make this thread wait
             # until that process has finished
-            wait_result = parser_finished.wait(timeout=mp_doc_parser.PARSER_TIMEOUT)
+            wait_result = parser_finished.wait(timeout=self._mp_parser.parser_timeout)
             if not wait_result:
                 # Act just like when there is no parser
                 msg = 'There is no parser for "%s". Waited more than %s sec.'
-                args = (http_response.get_url(), mp_doc_parser.PARSER_TIMEOUT)
+                args = (http_response.get_url(), self._mp_parser.parser_timeout)
                 raise BaseFrameworkException(msg % args)
 
         # metric increase
@@ -187,7 +192,7 @@ class ParserCache(CacheStats):
             self._parser_finished_events[hash_string] = event
 
             try:
-                parser = mp_doc_parser.get_document_parser_for(http_response)
+                parser = self._mp_parser.get_document_parser_for(http_response)
             except TimeoutError:
                 # We failed to get a parser for this HTTP response, we better
                 # ban this HTTP response so we don't waste more CPU cycles trying
@@ -296,7 +301,7 @@ class ParserCache(CacheStats):
             # There is one subprocess already processing this http response
             # body, the best thing to do here is to make this thread wait
             # until that process has finished
-            wait_result = parser_finished.wait(timeout=mp_doc_parser.PARSER_TIMEOUT)
+            wait_result = parser_finished.wait(timeout=self._mp_parser.parser_timeout)
             if not wait_result:
                 # Act just like when there is no parser
                 self._log_return_empty(http_response, "Timeout waiting for response")
@@ -318,29 +323,9 @@ class ParserCache(CacheStats):
             self._parser_finished_events[hash_string] = event
 
             try:
-                tags = mp_doc_parser.get_tags_by_filter(
+                tags = self._mp_parser.get_tags_by_filter(
                     http_response, tags, yield_text=yield_text
                 )
-            except TimeoutError:
-                # We failed to get a parser for this HTTP response, we better
-                # ban this HTTP response so we don't waste more CPU cycles trying
-                # to parse it over and over.
-                self.add_to_blacklist(hash_string)
-
-                # Act just like when there is no parser
-                self._log_return_empty(
-                    http_response, "Timeout waiting for get_tags_by_filter()"
-                )
-                return []
-            except MemoryError:
-                # We failed to get a parser for this HTTP response, we better
-                # ban this HTTP response so we don't waste more CPU cycles or
-                # memory trying to parse it over and over.
-                self.add_to_blacklist(hash_string)
-
-                # Act just like when there is no parser
-                self._log_return_empty(http_response, "Reached memory usage limit")
-                return []
             except ScanMustStopException as e:
                 msg = "The document parser is in an invalid state! %s"
                 raise ScanMustStopException(msg % e)

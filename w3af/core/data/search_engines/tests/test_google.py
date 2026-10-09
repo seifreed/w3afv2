@@ -20,188 +20,229 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import random
-import re
+import json
 import unittest
-from typing import ClassVar
+import urllib.parse
 
-import pytest
-
+from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.search_engines.google import (
+    FINISHED_BAD,
     FINISHED_OK,
     IS_NEW,
     GAjaxSearch,
     GMobileSearch,
-    GoogleAPISearch,
+    GoogleResult,
     GStandardSearch,
     google,
 )
-from w3af.core.data.url.extended_urllib import ExtendedUrllib
+from w3af.core.data.search_engines.tests.fixture_proxy import (
+    DROP_CONNECTION,
+    FixtureProxy,
+)
 from w3af.core.data.url.http_response import HTTPResponse
 
-GOOGLE_MSG = (
-    "This test fails randomly based on Google's anti automation"
-    " protection, if it fails you should run it again in a couple of"
-    " minutes. Many consecutive failures show that our code is NOT"
-    " working anymore."
-)
-URL_REGEX = re.compile(
-    "((http|ftp|https)://([\\w:@\\-\\./]*?)/[^ \n\r\t\"'<>]*)", re.UNICODE
-)
+SORRY = "Our systems have detected unusual traffic from your network"
+PAGES_WITH_MORE_RESULTS = 2
 
 
-@pytest.mark.internet
-@pytest.mark.fails
-class TestGoogle(unittest.TestCase):
-    """
-    This unittest verifies that the Google class works. Remember that this class
-    internally calls GAjaxSearch, GStandardSearch, GMobileSearch in order to
-    avoid being blocked by Google's anti-automation.
+def ajax_page(query, start, size):
+    if query == "ajax-broken-json":
+        return "this is not json"
 
-    @see: test_GMobileSearch, test_GStandardSearch, test_GAjaxSearch below for
-          tests on these particular search implementations.
-    """
+    if query == "ajax-denied":
+        return json.dumps({"responseStatus": 403, "responseDetails": "quota"})
 
-    def setUp(self):
-        self.query, self.limit = random.choice(
-            [("big bang theory", 20), ("two and half man", 20), ("doctor house", 20)]
-        )
-        opener = ExtendedUrllib()
-        self.gse = google(opener)
-
-    def test_get_links_results_len(self):
-        results = self.gse.get_n_results(self.query, self.limit)
-
-        self.assertEqual(len(results), self.limit)
-
-        # Results need to be from at least three different domains, this is an
-        # easy way to verify that the REGEX is working as expected
-        self.assertTrue(len({r.URL.get_domain() for r in results}) >= 3, results)
-
-        # URLs should be unique
-        self.assertTrue(len(results) == len({r.URL for r in results}))
-
-    def test_page_body(self):
-        responses = self.gse.get_n_result_pages(self.query, self.limit)
-
-        #
-        # Verify that responses' body contains at least one word in query
-        #
-        words = self.query.split()
-
-        for resp in responses:
-            found = False
-            html_text = resp.get_body()
-            for word in words:
-                if word in html_text:
-                    found = True
-                    break
-            self.assertTrue(found)
+    results = [{"url": f"http://ajax-{start + i}.com/"} for i in range(size)]
+    return json.dumps({"responseStatus": 200, "responseData": {"results": results}})
 
 
-class BaseGoogleAPISearch(unittest.TestCase):
-    """
-    @see: test_GMobileSearch, test_GStandardSearch, test_GAjaxSearch below for
-          tests on these particular search implementations.
+def html_page(prefix, start, next_page_str):
+    links = [
+        f"http://{prefix}-{start}.com/",
+        f"https://{prefix}-{start}-secure.com/",
+        f"ftp://{prefix}-{start}-files.com/",
+        f"{prefix}-{start}-no-protocol.com/",
+        "",
+    ]
+    items = "".join(
+        f'<h3 class="r"><a href="/url?q={urllib.parse.quote_plus(link)}&amp;sa=U">r</a></h3>'
+        for link in links
+    )
+    more = next_page_str if start // 10 < PAGES_WITH_MORE_RESULTS else ""
+    return f"<html><body>{items}{more}</body></html>"
 
-    This base class is not intended to be collected by pytest.
-    """
 
-    GoogleApiSearcher: ClassVar[type[GoogleAPISearch] | None] = None
+def google_responder(url):
+    query = dict(urllib.parse.parse_qsl(url.query))
+    q = query["q"]
 
-    COUNT = 10
+    if q in ("drop", "ajax-drop"):
+        return DROP_CONNECTION
+
+    if url.netloc == "ajax.googleapis.com":
+        return ajax_page(q, int(query["start"]), int(query["rsz"]))
+
+    if q == "sorry":
+        return f"<html><body>{SORRY}</body></html>"
+
+    if url.path == "/xhtml":
+        return html_page("mobile", int(query["start"]), GMobileSearch.NEXT_PAGE_STR)
+
+    return html_page("standard", int(query["start"]), GStandardSearch.NEXT_PAGE_STR)
+
+
+class GoogleProxyTest(unittest.TestCase):
 
     def setUp(self):
-        self.opener = ExtendedUrllib()
+        self.proxy = FixtureProxy(google_responder)
+        self.proxy.__enter__()
+        self.addCleanup(self.proxy.__exit__, None, None, None)
 
-    def tearDown(self):
-        self.opener.end()
+        self.uri_opener = self.proxy.opener()
+        self.addCleanup(self.uri_opener.end)
 
-    @pytest.mark.fails
-    def test_len_link_results(self):
-        if self.GoogleApiSearcher is None:
-            return
+    def urls(self, results):
+        return [r.URL.url_string for r in results]
 
-        keywords = ["pink", "red", "blue"]
-        random.shuffle(keywords)
-        query = " ".join(keywords)
-        start = 0
-        # pylint: disable=E1102
-        # E1102: self.GoogleApiSearcher is not callable
-        searcher = self.GoogleApiSearcher(self.opener, query, start, self.COUNT)
 
-        self.assertEqual(searcher.status, IS_NEW)
+class TestGoogle(GoogleProxyTest):
 
-        # This actually does the search
-        _ = searcher.links
+    def test_ajax_results_are_enough(self):
+        results = google(self.uri_opener).get_n_results("w3af", 10)
 
-        self.assertEqual(searcher.status, FINISHED_OK, GOOGLE_MSG)
-
-        link_list = "\n".join(str(r) for r in searcher.links)
-        msg = "Got less results than expected, %s is less than %s:\n%s"
-        msg = msg % (len(searcher.links), self.COUNT, link_list)
-        self.assertGreaterEqual(len(searcher.links), self.COUNT, msg)
-
-        for link in searcher.links:
-            self.assertTrue(
-                URL_REGEX.match(link.URL.url_string) is not None, link.URL.url_string
-            )
-
-        for page in searcher.pages:
-            self.assertTrue(isinstance(page, HTTPResponse))
-
-        # Check that the links are related to my search
-        related = 0
-        for link in searcher.links:
-            for key in keywords:
-                if key in link.URL.url_string.lower():
-                    related += 1
-
-        self.assertTrue(related > 5, related)
-
-    @pytest.mark.fails
-    def test_links_results_domain(self):
-        if self.GoogleApiSearcher is None:
-            return
-
-        domain = "www.bonsai-sec.com"
-        query = f"site:{domain}"
-        start = 0
-        # pylint: disable=E1102
-        # E1102: self.GoogleApiSearcher is not callable
-        searcher = self.GoogleApiSearcher(self.opener, query, start, self.COUNT)
-
-        self.assertEqual(searcher.status, IS_NEW)
-
-        # This actually does the search
-        _ = searcher.links
-
-        self.assertEqual(searcher.status, FINISHED_OK, GOOGLE_MSG)
-
-        msg = "Got less results than expected:\n{}".format(
-            "\n".join(str(r) for r in searcher.links)
+        self.assertEqual(
+            self.urls(results), [f"http://ajax-{i}.com/" for i in range(10)]
         )
-        self.assertEqual(len(searcher.links), self.COUNT, msg)
+        self.assertEqual(
+            {r.netloc for r in self.proxy.requests}, {"ajax.googleapis.com"}
+        )
 
-        for link in searcher.links:
-            link_domain = link.URL.get_domain()
-            msg = f"Current link domain is '{link_domain}'. Expected: '{domain}'"
-            self.assertEqual(link_domain, domain, msg)
+    def test_falls_back_to_mobile_and_standard_search(self):
+        results = google(self.uri_opener).search("ajax-denied", 0, count=10)
+
+        self.assertEqual(
+            self.urls(results),
+            [
+                "http://mobile-0.com/",
+                "https://mobile-0-secure.com/",
+                "ftp://mobile-0-files.com/",
+                "http://mobile-0-no-protocol.com/",
+                "http://standard-4.com/",
+                "https://standard-4-secure.com/",
+                "ftp://standard-4-files.com/",
+                "http://standard-4-no-protocol.com/",
+            ],
+        )
+
+    def test_page_search(self):
+        pages = google(self.uri_opener).page_search("w3af", 0, 30)
+
+        self.assertEqual(len(pages), PAGES_WITH_MORE_RESULTS + 1)
+        self.assertTrue(all(isinstance(p, HTTPResponse) for p in pages))
+        self.assertEqual(
+            [
+                dict(urllib.parse.parse_qsl(r.query))["start"]
+                for r in self.proxy.requests
+            ],
+            ["0", "10", "20"],
+        )
+
+    def test_get_n_result_pages(self):
+        pages = google(self.uri_opener).get_n_result_pages("w3af", 20)
+
+        self.assertEqual(len(pages), 2)
 
 
-@pytest.mark.internet
-@pytest.mark.fails
-class TestGAjaxSearch(BaseGoogleAPISearch):
-    GoogleApiSearcher = GAjaxSearch
+class TestGAjaxSearch(GoogleProxyTest):
+
+    def search(self, query, start=0, count=10):
+        return GAjaxSearch(self.uri_opener, query, start, count)
+
+    def test_links(self):
+        searcher = self.search("w3af", 0, 20)
+        self.assertEqual(searcher.status, IS_NEW)
+
+        self.assertEqual(
+            self.urls(searcher.links), [f"http://ajax-{i}.com/" for i in range(20)]
+        )
+        self.assertEqual(searcher.status, FINISHED_OK)
+        self.assertEqual(len(searcher.pages), 3)
+        self.assertEqual(
+            [self.proxy.query(i)["rsz"] for i in range(3)], ["8", "8", "4"]
+        )
+
+    def test_start_index_is_capped(self):
+        searcher = self.search("w3af", 60, 100)
+
+        self.assertEqual(
+            self.urls(searcher.links),
+            [
+                "http://ajax-60.com/",
+                "http://ajax-61.com/",
+                "http://ajax-62.com/",
+                "http://ajax-63.com/",
+            ],
+        )
+
+    def test_failures_finish_bad(self):
+        for query in ("ajax-broken-json", "ajax-denied", "ajax-drop"):
+            searcher = self.search(query)
+
+            self.assertEqual(searcher.links, [])
+            self.assertEqual(searcher.status, FINISHED_BAD)
+
+    def test_do_get_requires_url(self):
+        searcher = self.search("w3af")
+
+        self.assertRaises(TypeError, searcher._do_GET, "http://w3af.org/")
 
 
-@pytest.mark.internet
-@pytest.mark.fails
-class TestGMobileSearch(BaseGoogleAPISearch):
-    GoogleApiSearcher = GMobileSearch
+class TestGStandardSearch(GoogleProxyTest):
+
+    def test_links_and_pages(self):
+        searcher = GStandardSearch(self.uri_opener, "w3af", 0, 6)
+
+        links = searcher.links
+
+        self.assertEqual(
+            self.urls(links),
+            [
+                "http://standard-0.com/",
+                "https://standard-0-secure.com/",
+                "ftp://standard-0-files.com/",
+                "http://standard-0-no-protocol.com/",
+            ],
+        )
+        self.assertEqual(len(searcher.pages), 1)
+        self.assertEqual(self.proxy.requests[0].path, "/search")
+
+    def test_sorry_page(self):
+        searcher = GStandardSearch(self.uri_opener, "sorry", 0, 10)
+
+        self.assertEqual(searcher.links, [])
+        self.assertEqual(searcher.status, FINISHED_BAD)
 
 
-@pytest.mark.internet
-@pytest.mark.fails
-class TestGStandardSearch(BaseGoogleAPISearch):
-    GoogleApiSearcher = GStandardSearch
+class TestGMobileSearch(GoogleProxyTest):
+
+    def test_links_follow_next_pages(self):
+        searcher = GMobileSearch(self.uri_opener, "w3af", 0, 100)
+
+        self.assertEqual(len(searcher.pages), PAGES_WITH_MORE_RESULTS + 1)
+        self.assertEqual(len(searcher.links), 4 * (PAGES_WITH_MORE_RESULTS + 1))
+        self.assertEqual({r.path for r in self.proxy.requests}, {"/xhtml"})
+
+    def test_sorry_page(self):
+        searcher = GMobileSearch(self.uri_opener, "sorry", 0, 10)
+
+        self.assertEqual(searcher.links, [])
+        self.assertEqual(searcher.status, FINISHED_BAD)
+
+
+class TestGoogleResult(unittest.TestCase):
+
+    def test_requires_url(self):
+        self.assertRaises(TypeError, GoogleResult, "http://w3af.org/")
+
+    def test_str(self):
+        self.assertEqual(str(GoogleResult(URL("http://w3af.org/"))), "http://w3af.org/")

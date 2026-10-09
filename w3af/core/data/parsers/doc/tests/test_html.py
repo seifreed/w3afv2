@@ -42,6 +42,7 @@ from w3af.core.data.parsers.utils.form_params import (
     DEFAULT_FORM_ENCODING,
     FormParameters,
 )
+from w3af.core.data.url.http_response import HTTPResponse
 
 
 class RaiseHTMLParser(HTMLParser):
@@ -513,3 +514,45 @@ class TestHTMLParser(unittest.TestCase):
         r = build_http_response(self.url, body, headers=headers)
         p = RaiseHTMLParser(r)
         p.parse()
+
+
+class TestHTMLParserContentTypes(unittest.TestCase):
+
+    url = URL("http://w3af.com")
+
+    def can_parse(self, content_type):
+        headers = Headers([("content-type", content_type)] if content_type else [])
+        response = HTTPResponse(200, "<html></html>", headers, self.url, self.url)
+        return HTMLParser.can_parse(response)
+
+    def test_accepted(self):
+        for content_type in (
+            "",
+            "text/html",
+            "application/xhtml+xml",
+            "text/plain",
+            "message/rfc822",
+        ):
+            self.assertTrue(self.can_parse(content_type), content_type)
+
+    def test_rejected(self):
+        for content_type in (
+            "texthtml",
+            "text/vnd.wap.wml",
+            "application/json",
+            "image/png",
+            "video/mp4",
+        ):
+            self.assertFalse(self.can_parse(content_type), content_type)
+
+
+class TestHTMLParserTextarea(unittest.TestCase):
+
+    url = URL("http://w3af.com")
+
+    def test_empty_named_textarea_is_ignored(self):
+        body = '<form action="/x"><textarea name="comment"></textarea></form>'
+        parser = HTMLParser(build_http_response(self.url, body))
+        parser.parse()
+
+        self.assertEqual(dict(parser.get_forms()[0]), {})

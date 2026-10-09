@@ -27,6 +27,7 @@ from w3af.core.data.parsers.doc.http_request_parser import (
     check_uri_syntax,
     check_version_syntax,
     http_request_parser,
+    raw_http_request_parser,
 )
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.exceptions import BaseFrameworkException
@@ -121,3 +122,35 @@ class TestHttpRequestParser(unittest.TestCase):
         self.assertEqual(check_uri_syntax("http://abc/def.html"), "http://abc/def.html")
 
         self.assertRaises(BaseFrameworkException, check_uri_syntax, "ABCDEF")
+
+    def test_check_uri_syntax_uses_the_host_and_default_path(self):
+        self.assertEqual(check_uri_syntax("", "w3af.org"), "http://w3af.org/")
+
+    def test_raw_request(self):
+        raw = "GET /a?b=1 HTTP/1.1\r\nHost: w3af.org\r\n\r\n"
+
+        fr = raw_http_request_parser(raw)
+
+        self.assertEqual(fr.get_uri().url_string, "http://w3af.org/a?b=1")
+        self.assertEqual(fr.get_method(), "GET")
+
+    def test_empty_head(self):
+        self.assertRaises(BaseFrameworkException, http_request_parser, "\n\n", "")
+
+    def test_uri_with_spaces(self):
+        head = "GET http://w3af.org/hello world.html HTTP/1.0\n"
+
+        fr = http_request_parser(head, "")
+
+        self.assertEqual(fr.get_url().get_path(), "/hello world.html")
+
+    def test_header_without_separator(self):
+        head = "GET http://w3af.org/ HTTP/1.0\nBrokenHeader\n"
+
+        with self.assertRaisesRegex(BaseFrameworkException, "BrokenHeader"):
+            http_request_parser(head, "")
+
+    def test_invalid_uri(self):
+        head = "GET http://[w3af/ HTTP/1.0\n"
+
+        self.assertRaises(BaseFrameworkException, http_request_parser, head, "")

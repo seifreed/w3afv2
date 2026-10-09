@@ -23,22 +23,18 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import json
 import logging
-from typing import TYPE_CHECKING
 
 from bravado_core.exception import SwaggerError
 from jsonschema.exceptions import SchemaError, ValidationError
 from swagger_spec_validator.common import SwaggerValidationError
-from yaml import YAMLError, load
-
-if TYPE_CHECKING:
-    from yaml import CLoader as Loader
-else:
-    try:
-        from yaml import CLoader as Loader
-    except ImportError:
-        from yaml import Loader
+from yaml import SafeLoader, YAMLError, load
 
 from w3af.core.data.parsers.doc.open_api.parameters import ParameterHandler
+
+# Open API specifications are downloaded from the scan target, so they must be
+# loaded with a safe loader: yaml.Loader / yaml.CLoader instantiate arbitrary
+# Python objects from tags such as "!!python/object/apply".
+SPEC_LOADER = SafeLoader
 from w3af.core.data.parsers.doc.open_api.relaxed_spec import RelaxedSpec
 
 # Errors raised by bravado-core and our own code while processing a malformed
@@ -76,9 +72,6 @@ class SpecificationHandler:
         self.spec = None
         self.validate_swagger_spec = validate_swagger_spec
         self._parsing_errors = []
-
-    def get_http_response(self):
-        return self.http_response
 
     def get_parsing_errors(self):
         """
@@ -266,7 +259,7 @@ class SpecificationHandler:
             # JSON. Let's parse the Yaml data!
 
             try:
-                spec_dict = load(self.http_response.body, Loader=Loader)
+                spec_dict = load(self.http_response.body, Loader=SPEC_LOADER)
             except YAMLError:
                 #
                 # Oops! We should never reach here because is_valid_json_or_yaml

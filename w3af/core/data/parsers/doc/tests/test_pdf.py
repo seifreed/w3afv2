@@ -64,3 +64,18 @@ class TestPDF(unittest.TestCase):
         self.assertEqual(parsed, [])
         self.assertEqual(re_refs, [URL("http://moth/pdf/")])
         self.assertEqual(parser.get_clear_text_body().strip(), "http://moth/pdf/")
+
+    def test_can_parse(self):
+        def response(body, content_type="application/pdf"):
+            headers = Headers([("Content-Type", content_type)])
+            return HTTPResponse(
+                200, body, headers, URL("http://moth/"), URL("http://moth/")
+            )
+
+        pdf = Path(self.LINKS_SAMPLE).read_bytes()
+
+        self.assertTrue(PDFParser.can_parse(response(pdf)))
+        self.assertTrue(PDFParser.can_parse(response(pdf, "application/x-pdf")))
+        self.assertFalse(PDFParser.can_parse(response(pdf, "text/html")))
+        self.assertFalse(PDFParser.can_parse(response(b"")))
+        self.assertFalse(PDFParser.can_parse(response(b"%PDF-1.4 truncated")))

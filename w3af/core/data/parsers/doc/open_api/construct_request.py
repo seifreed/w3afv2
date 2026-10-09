@@ -24,12 +24,11 @@ from bravado_core.exception import SwaggerMappingError
 from bravado_core.param import marshal_param
 
 
-def construct_request(operation, request_options, **op_kwargs):
+def construct_request(operation, **op_kwargs):
     """
     Construct the outgoing request dict.
 
     :type operation: :class:`bravado_core.operation.Operation`
-    :param request_options: _request_options passed into the operation invocation.
     :param op_kwargs: parameter name/value pairs to passed to the invocation of the operation.
 
     :return: request in dict form
@@ -40,16 +39,8 @@ def construct_request(operation, request_options, **op_kwargs):
         "method": str(operation.http_method.upper()),
         "url": url,
         "params": {},  # filled in downstream
-        "headers": request_options.get("headers", {}),
+        "headers": {},
     }
-    # Adds Accept header to request for msgpack response if specified
-    if request_options.get("use_msgpack", False):
-        request["headers"]["Accept"] = "application/msgpack"
-
-    # Copy over optional request options
-    for request_option in ("connect_timeout", "timeout"):
-        if request_option in request_options:
-            request[request_option] = request_options[request_option]
 
     construct_params(operation, request, op_kwargs)
 
@@ -79,17 +70,7 @@ def construct_params(operation, request, op_kwargs):
 
     # Check required params and non-required params with a 'default' value
     for remaining_param in current_params.values():
-        if (
-            remaining_param.location == "header"
-            and remaining_param.name in request["headers"]
-        ):
-            marshal_param(
-                remaining_param, request["headers"][remaining_param.name], request
-            )
-        else:
-            if remaining_param.required:
-                raise SwaggerMappingError(
-                    f"{remaining_param.name} is a required parameter"
-                )
-            if not remaining_param.required and remaining_param.has_default():
-                marshal_param(remaining_param, None, request)
+        if remaining_param.required:
+            raise SwaggerMappingError(f"{remaining_param.name} is a required parameter")
+        if remaining_param.has_default():
+            marshal_param(remaining_param, None, request)

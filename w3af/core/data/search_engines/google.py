@@ -132,8 +132,8 @@ class GoogleAPISearch:
         self._uri_opener = uri_opener
         # list of HTTPResponse objects
         self._pages = []
-        # list of URLs
-        self._links = []
+        # list of URLs, extracted from the pages the first time they are read
+        self._links = None
 
     @property
     def status(self):
@@ -153,7 +153,7 @@ class GoogleAPISearch:
 
     @property
     def links(self):
-        if self._status == IS_NEW:
+        if self._links is None:
             self._links = self._extract_links(self.pages)
 
         return self._links

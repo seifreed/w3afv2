@@ -22,6 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import datetime
+import os
+import tempfile
 import unittest
 
 from w3af.core.data.dc.headers import Headers
@@ -660,3 +662,36 @@ class TestSpecification(unittest.TestCase):
         # Make sure that the original operation doesn't get updated
         # after set_operation_params() call
         self.assertNotEqual(operation, updated_operation)
+
+
+class TestSpecificationLoading(unittest.TestCase):
+
+    @staticmethod
+    def handler_for(body):
+        return SpecificationHandler(TestSpecification.generate_response(body))
+
+    def test_invalid_yaml_is_reported(self):
+        handler = self.handler_for("swagger: [unclosed")
+
+        self.assertEqual(list(handler.get_api_information()), [])
+        self.assertEqual(len(handler.get_parsing_errors()), 1)
+        self.assertIn("not in JSON or YAML format", handler.get_parsing_errors()[0])
+
+    def test_yaml_python_tags_are_not_executed(self):
+        marker = os.path.join(tempfile.mkdtemp(), "created-by-yaml")
+        self.addCleanup(os.rmdir, os.path.dirname(marker))
+
+        body = f"swagger: '2.0'\npaths: !!python/object/apply:os.mkdir ['{marker}']\n"
+        handler = self.handler_for(body)
+
+        self.assertEqual(list(handler.get_api_information()), [])
+        self.assertFalse(os.path.exists(marker))
+        self.assertEqual(len(handler.get_parsing_errors()), 1)
+
+    def test_missing_version_information_is_added(self):
+        handler = self.handler_for("info:\n  title: no versions\npaths: {}\n")
+
+        self.assertEqual(list(handler.get_api_information()), [])
+        self.assertEqual(handler.spec.spec_dict["swagger"], "2.0")
+        self.assertEqual(handler.spec.spec_dict["info"]["version"], "1.0.0")
+        self.assertEqual(handler.get_parsing_errors(), [])

@@ -22,17 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import json
 import logging
-from typing import TYPE_CHECKING
 
 from yaml import YAMLError, load
-
-if TYPE_CHECKING:
-    from yaml import CLoader as Loader
-else:
-    try:
-        from yaml import CLoader as Loader
-    except ImportError:
-        from yaml import Loader
 
 from w3af.core.data.parsers.doc.baseparser import BaseParser
 
@@ -44,6 +35,7 @@ from w3af.core.data.parsers.doc.baseparser import BaseParser
 from w3af.core.data.parsers.doc.open_api.operation_mp import build_params_monkey_patch
 from w3af.core.data.parsers.doc.open_api.requests import RequestFactory
 from w3af.core.data.parsers.doc.open_api.specification import (
+    SPEC_LOADER,
     SPEC_PROCESSING_ERRORS,
     SpecificationHandler,
 )
@@ -68,18 +60,6 @@ class OpenAPI(BaseParser):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    CONTENT_TYPES = (
-        "application/json",
-        "text/yaml",
-        "text/x-yaml",
-        "application/yaml",
-        "application/x-yaml",
-        "application/octet-stream",
-        "application/vnd.oai.openapi",
-        "application/vnd.oai.openapi+json",
-        "application/vnd.oai.openapi;version=2.0",
-    )
-
     KEYWORDS = ("consumes", "produces", "swagger", "openapi", "paths")
 
     def __init__(
@@ -101,18 +81,6 @@ class OpenAPI(BaseParser):
         self.validate_swagger_spec = validate_swagger_spec
         self.discover_fuzzable_headers = discover_fuzzable_headers
         self.discover_fuzzable_url_parts = discover_fuzzable_url_parts
-
-    @staticmethod
-    def content_type_match(http_resp):
-        """
-        :param http_resp: The HTTP response we want to parse
-        :return: True if we know how to parse this content type
-        """
-        for _type in OpenAPI.CONTENT_TYPES:
-            if _type in http_resp.content_type:
-                return True
-
-        return False
 
     @staticmethod
     def matches_any_keyword(http_resp):
@@ -139,7 +107,7 @@ class OpenAPI(BaseParser):
         except ValueError:
 
             try:
-                spec_dict = load(http_resp.body, Loader=Loader)
+                spec_dict = load(http_resp.body, Loader=SPEC_LOADER)
             except YAMLError:
                 spec_dict = None
 
@@ -162,17 +130,9 @@ class OpenAPI(BaseParser):
         :return: True if it seems that the HTTP response contains an Open API spec
         """
         #
-        # In the past we had this check:
-        #
-        # if not OpenAPI.content_type_match(http_resp):
-        #     return False
-        #
-        # But real-life testing showed that it was too restrictive. Some web
-        # servers and frameworks did not return the "expected" content-types
-        # which triggered bugs in can_parse()
-        #
-        # Had to replace it with two other checks, which is worse in performance,
-        # more permissive, but should fix the bug
+        # The content-type is not checked: real-life testing showed that web
+        # servers and frameworks often do not return the "expected" one. The
+        # checks below are slower but more permissive.
         #
         if http_resp.is_image():
             return False

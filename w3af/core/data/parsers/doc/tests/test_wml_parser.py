@@ -66,3 +66,56 @@ class TestWMLParser(unittest.TestCase):
         # TODO: Shouldn't this be the other way around?!
         self.assertEqual(len(parsed), 0)
         self.assertEqual("http://www.w3af.com/index.aspx", re[0].url_string)
+
+    def parse(self, body):
+        response = HTTPResponse(200, body, Headers(), self.url, self.url)
+        parser = WMLParser(response)
+        parser.parse()
+        return parser
+
+    def test_can_parse(self):
+        wml = Headers([("content-type", "text/vnd.wap.wml")])
+        document = (
+            '<?xml version="1.0"?>'
+            '<!DOCTYPE wml PUBLIC "-//WAPFORUM//DTD WML 1.1//EN">'
+        )
+
+        def response(body, headers):
+            return HTTPResponse(200, body, headers, self.url, self.url)
+
+        self.assertTrue(WMLParser.can_parse(response(document, wml)))
+        self.assertFalse(WMLParser.can_parse(response("<wml></wml>", wml)))
+        self.assertFalse(WMLParser.can_parse(response(document, Headers())))
+
+    def test_go_without_href_posts_to_the_current_url(self):
+        forms = self.parse('<go><postfield name="a" value="1"/></go>').get_forms()
+
+        self.assertEqual(forms[0].get_action(), self.url)
+        self.assertEqual(forms[0].get_method(), "GET")
+
+    def test_go_with_invalid_href_posts_to_the_current_url(self):
+        body = '<go href="javascript:"><setvar name="a"/></go>'
+        forms = self.parse(body).get_forms()
+
+        self.assertEqual(forms[0].get_action(), self.url)
+        self.assertIn("a", forms[0])
+
+    def test_fields_outside_go_are_ignored(self):
+        parser = self.parse(
+            '<input name="lost"/><select name="s"><option value="1"/></select>'
+        )
+
+        self.assertEqual(parser.get_forms(), [])
+
+    def test_select_options(self):
+        body = (
+            '<go href="post.php">'
+            '<select name="color"><option value="red"/><option value="blue"/>'
+            "</select>"
+            '<select><option value="ignored"/></select>'
+            "</go>"
+        )
+
+        form = self.parse(body).get_forms()[0]
+
+        self.assertEqual(dict(form), {"color": ["red", "blue"]})

@@ -147,7 +147,24 @@ class MultiProcessingDocumentParser:
     # The feature was tested in test_pebble_limit_memory_usage.py
     MEMORY_LIMIT = get_memory_limit()
 
-    def __init__(self):
+    def __init__(
+        self,
+        parser_timeout=PARSER_TIMEOUT,
+        max_workers=MAX_WORKERS,
+        memory_limit=MEMORY_LIMIT,
+        parsers=DocumentParser.PARSERS,
+    ):
+        """
+        :param parser_timeout: Seconds a worker may spend on one document
+        :param max_workers: Number of worker processes in the pool
+        :param memory_limit: Bytes each worker may allocate on top of the
+                             memory it uses when it starts
+        :param parsers: Parser classes tried, in order, for each document
+        """
+        self.parser_timeout = parser_timeout
+        self.max_workers = max_workers
+        self.memory_limit = memory_limit
+        self.parsers = parsers
         self._pool = None
         self._start_lock = threading.RLock()
 
@@ -164,10 +181,10 @@ class MultiProcessingDocumentParser:
                     _LOG_QUEUE_PROVIDER() if _LOG_QUEUE_PROVIDER is not None else None
                 )
                 self._pool = ProcessPool(
-                    self.MAX_WORKERS,
+                    self.max_workers,
                     max_tasks=20,
                     initializer=init_worker,
-                    initargs=(_WORKER_INITIALIZER, log_queue, self.MEMORY_LIMIT),
+                    initargs=(_WORKER_INITIALIZER, log_queue, self.memory_limit),
                 )
 
         return self._pool
@@ -199,12 +216,12 @@ class MultiProcessingDocumentParser:
 
         filename = write_http_response_to_temp_file(http_response)
 
-        apply_args = (process_document_parser, filename, self.DEBUG)
+        apply_args = (process_document_parser, filename, self.DEBUG, self.parsers)
 
         # Push the task to the workers
         try:
             future = self._pool.schedule(
-                apply_with_return_error, args=(apply_args,), timeout=self.PARSER_TIMEOUT
+                apply_with_return_error, args=(apply_args,), timeout=self.parser_timeout
             )
         except RuntimeError as rte:
             # Remove the temp file used to send data to the process
@@ -227,7 +244,7 @@ class MultiProcessingDocumentParser:
                 "[timeout] The parser took more than %s seconds"
                 ' to complete parsing of "%s", killed it!'
             )
-            args = (self.PARSER_TIMEOUT, http_response.get_url())
+            args = (self.parser_timeout, http_response.get_url())
             raise TimeoutError(msg % args)
         except ProcessExpired:
             # We reach here when the process died because of an error, we
@@ -253,7 +270,7 @@ class MultiProcessingDocumentParser:
                     ' while trying to parse "%s". The parser was stopped in'
                     " order to prevent OOM issues."
                 )
-                args = (self.MEMORY_LIMIT, http_response.get_url())
+                args = (self.memory_limit, http_response.get_url())
                 LOGGER.debug(msg % args)
                 raise ParserMemoryLimitError(msg % args)
 
@@ -298,6 +315,7 @@ class MultiProcessingDocumentParser:
             tags,
             yield_text,
             self.DEBUG,
+            self.parsers,
         )
 
         #
@@ -305,7 +323,7 @@ class MultiProcessingDocumentParser:
         #
         try:
             future = self._pool.schedule(
-                apply_with_return_error, args=(apply_args,), timeout=self.PARSER_TIMEOUT
+                apply_with_return_error, args=(apply_args,), timeout=self.parser_timeout
             )
         except RuntimeError as rte:
             # Remove the temp file used to send data to the process
@@ -342,7 +360,7 @@ class MultiProcessingDocumentParser:
                     ' while trying to parse "%s". The parser was stopped in'
                     " order to prevent OOM issues."
                 )
-                args = (self.MEMORY_LIMIT, http_response.get_url())
+                args = (self.memory_limit, http_response.get_url())
                 LOGGER.debug(msg % args)
 
             return []
@@ -359,14 +377,14 @@ def raise_parsing_error(process_result):
     raise DocumentParsingError(str(error)) from error
 
 
-def process_get_tags_by_filter(filename, tags, yield_text, debug):
+def process_get_tags_by_filter(filename, tags, yield_text, debug, parsers):
     """
-    Simple wrapper to get the current process id and store it in a shared object
-    so we can kill the process if needed.
+    Parse the HTTP response stored in filename and write the tags matching the
+    filter to a temp file.
     """
     http_resp = load_http_response_from_temp_file(filename)
 
-    document_parser = DocumentParser(http_resp)
+    document_parser = DocumentParser(http_resp, parsers)
     parser = document_parser.get_parser()
 
     # Not all parsers have tags
@@ -387,10 +405,10 @@ def process_get_tags_by_filter(filename, tags, yield_text, debug):
     return result_filename
 
 
-def process_document_parser(filename, debug):
+def process_document_parser(filename, debug, parsers):
     """
-    Simple wrapper to get the current process id and store it in a shared object
-    so we can kill the process if needed.
+    Parse the HTTP response stored in filename and write the resulting
+    DocumentParser to a temp file.
     """
     http_resp = load_http_response_from_temp_file(filename)
     pid = multiprocessing.current_process().pid
@@ -402,7 +420,7 @@ def process_document_parser(filename, debug):
 
     try:
         # Parse
-        document_parser = DocumentParser(http_resp)
+        document_parser = DocumentParser(http_resp, parsers)
     except Exception as e:
         if debug:
             msg = (
@@ -446,7 +464,10 @@ def init_worker(worker_initializer, log_queue, mem_limit):
     limit_memory_usage(mem_limit)
 
 
-def limit_memory_usage(mem_limit):
+RLIMIT_AS = getattr(resource, "RLIMIT_AS", None)
+
+
+def limit_memory_usage(mem_limit, rlimit=RLIMIT_AS):
     """
     Set the soft memory limit for the worker process.
 
@@ -473,8 +494,7 @@ def limit_memory_usage(mem_limit):
         RLIMIT_MEMLOCK The maximum number of bytes of memory that may
         be locked into RAM
     """
-    # This works on Linux only (for now)
-    if not hasattr(resource, "RLIMIT_AS"):
+    if rlimit is None:
         print(
             "w3af was unable to limit the memory usage of parser processes."
             " This feature is only supported in Linux OS, create an issue"
@@ -491,21 +511,10 @@ def limit_memory_usage(mem_limit):
     # New processes are created in the pool after 20 jobs (max_tasks=20) so
     # that should take care of cycling processes with different real memory
     # limits
-    try:
-        p = psutil.Process()
-    except (psutil.NoSuchProcess, psutil.ZombieProcess) as e:
-        error = (
-            'Failed to limit parser process memory usage: "%s". The scan'
-            " will continue but in some scenarios the HTTP response"
-            " parsers might use a large amount of memory."
-        )
-        LOGGER.error(error % e)
-        return
+    real_memory_limit = psutil.Process().memory_info().vms + mem_limit
 
-    real_memory_limit = p.memory_info().vms + mem_limit
-
-    _soft, hard = resource.getrlimit(resource.RLIMIT_AS)
-    resource.setrlimit(resource.RLIMIT_AS, (real_memory_limit, hard))
+    _soft, hard = resource.getrlimit(rlimit)
+    resource.setrlimit(rlimit, (real_memory_limit, hard))
 
     limit_mb = real_memory_limit / 1024 / 1024
     msg = "Using RLIMIT_AS memory usage limit %s MB for new pool process"

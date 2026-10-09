@@ -783,13 +783,26 @@ class TestOpenAPIMain(unittest.TestCase):
         http_resp = self.generate_response("{}", "application/yaml")
         self.assertFalse(OpenAPI.can_parse(http_resp))
 
-    def test_content_type_match_true(self):
-        http_resp = self.generate_response("{}")
-        self.assertTrue(OpenAPI.content_type_match(http_resp))
+    def test_can_parse_image(self):
+        http_resp = self.generate_response('{"swagger": "2.0"}', "image/png")
+        self.assertFalse(OpenAPI.can_parse(http_resp))
 
-    def test_content_type_match_false(self):
-        http_resp = self.generate_response("", "image/jpeg")
-        self.assertFalse(OpenAPI.content_type_match(http_resp))
+    def test_can_parse_text_without_key_value_pairs(self):
+        http_resp = self.generate_response("swagger paths and nothing else")
+        self.assertFalse(OpenAPI.can_parse(http_resp))
+
+    def test_can_parse_json_without_keywords(self):
+        http_resp = self.generate_response('{"name": "not an api"}')
+        self.assertFalse(OpenAPI.can_parse(http_resp))
+
+    def test_get_parsing_errors(self):
+        parser = OpenAPI(self.generate_response("swagger: [unclosed"))
+        self.assertEqual(parser.get_parsing_errors(), [])
+
+        parser.parse()
+
+        self.assertEqual(parser.get_api_calls(), [])
+        self.assertEqual(len(parser.get_parsing_errors()), 1)
 
     def test_matches_any_keyword_true(self):
         http_resp = self.generate_response('{"consumes": "application/json"}')
