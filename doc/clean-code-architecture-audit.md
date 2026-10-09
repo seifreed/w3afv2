@@ -1274,3 +1274,17 @@ porque el host `fallback` configurado no resuelve y Moth no está disponible;
 por ello no validan el flujo de explotación en esta máquina. Score global
 provisional: **5.4/10**; siguen pendientes dependencias de plugins, deudas
 locales de calidad y las gates globales.
+
+## Avance: eliminar duplicación en ExecShell
+
+`ExecShell` ya no redefine `_print_runnable_payloads()`: hereda la
+implementación idéntica de `Shell`, y se elimina su import directo de
+`payload_handler`. Los imports directos de producción `core.data -> plugins`
+bajan de dos a uno. La dependencia funcional restante está en `Shell._payload`
+y sigue siendo una infracción pendiente, no una frontera resuelta.
+
+Verificación: **8 pruebas pasan** en las suites de decoradores y shells;
+Black y Bandit focalizados pasan. Ruff conserva seis hallazgos existentes en
+`exec_shell.py` sobre manejo de archivos y formato de cadenas. El score global
+se mantiene en **5.4/10** mientras siga pendiente la inversión de dependencia
+del flujo de ejecución de payloads.

@@ -30,7 +30,6 @@ from w3af.core.controllers.payload_transfer.payload_transfer_factory import (
 from w3af.core.data.kb.decorators import download_debug, read_debug
 from w3af.core.data.kb.shell import Shell
 from w3af.core.exceptions import BaseFrameworkException
-from w3af.plugins.attack.payloads import payload_handler
 
 
 class ExecShell(Shell):
@@ -281,16 +280,6 @@ class ExecShell(Shell):
         exists, or maybe some other, more complex, thing.
         """
         return True
-
-    def _print_runnable_payloads(self):
-        """
-        Print the payloads that can be run using this exploit.
-
-        :return: A list with all runnable payloads.
-        """
-        payloads = payload_handler.runnable_payloads(self)
-        payloads.sort()
-        return "\n".join(payloads)
 
     def end(self):
         """
