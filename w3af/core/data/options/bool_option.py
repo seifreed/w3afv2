@@ -49,7 +49,7 @@ class BoolOption(BaseOption):
         elif value.lower() == "false":
             validated_value = False
         else:
-            msg = 'Invalid boolean option value "%s".' % value
+            msg = f'Invalid boolean option value "{value}".'
             raise BaseFrameworkException(msg)
 
         return validated_value

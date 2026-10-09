@@ -36,7 +36,7 @@ class TestScalablePerformance(unittest.TestCase):
 
         for i in range(20000):
             data = (i, i)
-            data in f
+            self.assertIn(data, f)
 
     def test_disk_set(self):
         ds = DiskSet()
@@ -47,4 +47,4 @@ class TestScalablePerformance(unittest.TestCase):
 
         for i in range(20000):
             data = (i, i)
-            data in ds
+            self.assertIn(data, ds)

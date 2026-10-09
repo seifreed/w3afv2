@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import copy
+import logging
 import sys
 import textwrap
 
@@ -29,6 +30,8 @@ from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.ui.console.config import ConfigMenu
 from w3af.core.ui.console.menu import menu
 from w3af.core.ui.console.util import suggest
+
+LOGGER = logging.getLogger(__name__)
 
 
 class pluginsMenu(menu):
@@ -79,19 +82,10 @@ class pluginsMenu(menu):
             return self._cmd_list(tokens)
         return menu.execute(self, tokens)
 
-    #    def _cmd_config(self, params):
-    #        try:
-    #            type = params[0]
-    #            subMenu = self._children[type]
-    #        except:
-    #            self._cmd_help(['config'])
-    #        else:
-    #            subMenu._list(params[1:])
     def _cmd_list(self, params):
         try:
-            type = params[0]
-            subMenu = self._children[type]
-        except:
+            subMenu = self._children[params[0]]
+        except (IndexError, KeyError):
             self._cmd_help(["list"])
         else:
             subMenu._list(params[1:])
@@ -121,7 +115,8 @@ class pluginsTypeMenu(menu):
                     self._name, p
                 ).get_options()
             except Exception as e:
-                om.out.error('Error while reading plugin options: "%s"' % e)
+                LOGGER.debug("Failed to read plugin options", exc_info=True)
+                om.out.error(f'Error while reading plugin options: "{e}"')
                 sys.exit(-8)
             else:
                 self._plugins[p] = len(options)
@@ -146,7 +141,7 @@ class pluginsTypeMenu(menu):
 
     def execute(self, tokens):
         if len(tokens) > 0:
-            command, params = tokens[0], tokens[1:]
+            command, _params = tokens[0], tokens[1:]
             # print "command: " + command + "; " + str(self.get_commands())
             if command in self.get_commands():
                 return menu.execute(self, tokens)
@@ -168,7 +163,7 @@ class pluginsTypeMenu(menu):
                 disabling = False
 
             if plugin != "all" and plugin not in self._plugins:
-                raise BaseFrameworkException("Unknown plugin: '%s'" % plugin)
+                raise BaseFrameworkException(f"Unknown plugin: '{plugin}'")
 
             if disabling:
                 if plugin == "all":
@@ -210,7 +205,7 @@ class pluginsTypeMenu(menu):
 
         plugin_name = params[0]
         if plugin_name not in self._plugins:
-            raise BaseFrameworkException("Unknown plugin: '%s'" % plugin_name)
+            raise BaseFrameworkException(f"Unknown plugin: '{plugin_name}'")
 
         plugin = self._w3af.plugins.get_plugin_inst(self._name, plugin_name)
         long_desc = plugin.get_long_desc()
@@ -269,7 +264,7 @@ class pluginsTypeMenu(menu):
         name = params[0]
 
         if name not in self._plugins:
-            raise BaseFrameworkException("Unknown plugin: '%s'" % name)
+            raise BaseFrameworkException(f"Unknown plugin: '{name}'")
 
         if name in self._configs:
             config = self._configs[name]

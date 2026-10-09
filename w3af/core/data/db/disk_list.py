@@ -67,7 +67,7 @@ class DiskList:
         """
         self.db = get_default_temp_db_instance()
 
-        prefix = "" if table_prefix is None else ("%s_" % table_prefix)
+        prefix = "" if table_prefix is None else (f"{table_prefix}_")
         self.table_name = "disk_list_" + prefix + rand_alpha(30)
 
         self.dump = dump
@@ -141,7 +141,7 @@ class DiskList:
                     "Complex classes like %s need to inherit from DiskItem"
                     " to be stored."
                 )
-                raise Exception(msg % type(obj))
+                raise TypeError(msg % type(obj))
 
             if isinstance(value, DiskItem):
                 value = self._get_attr_values_as_builtin(value)
@@ -151,16 +151,10 @@ class DiskList:
         return result
 
     def _is_builtin(self, value):
-        if type(value).__name__ in builtins.__dict__ or value is None:
-            return True
-
-        return False
+        return bool(type(value).__name__ in builtins.__dict__ or value is None)
 
     def _can_handle_attr(self, value):
-        if self._is_builtin(value) or isinstance(value, DiskItem):
-            return True
-
-        return False
+        return bool(self._is_builtin(value) or isinstance(value, DiskItem))
 
     def __contains__(self, value):
         """
@@ -172,7 +166,7 @@ class DiskList:
         # Adding the "limit 1" to the query makes it faster, as it won't
         # have to scan through all the table/index, it just stops on the
         # first match.
-        query = "SELECT count(*) FROM %s WHERE eq_attrs=? LIMIT 1" % self.table_name
+        query = f"SELECT count(*) FROM {self.table_name} WHERE eq_attrs=? LIMIT 1"
         r = self.db.select_one(query, t)
         return bool(r[0])
 
@@ -187,12 +181,12 @@ class DiskList:
         eq_attrs = self._get_eq_attrs_values(value)
         t = (eq_attrs, pickled_obj)
 
-        query = "INSERT INTO %s VALUES (NULL, ?, ?)" % self.table_name
+        query = f"INSERT INTO {self.table_name} VALUES (NULL, ?, ?)"
         self.db.execute(query, t)
 
     def clear(self):
         assert self._state == OPEN
-        self.db.execute("DELETE FROM %s WHERE 1=1" % self.table_name)
+        self.db.execute(f"DELETE FROM {self.table_name} WHERE 1=1")
 
     def extend(self, value_list):
         """
@@ -211,7 +205,7 @@ class DiskList:
         # TODO: How do I make the __iter__ thread safe?
         # How do I avoid loading all items in memory?
         objects = []
-        results = self.db.select("SELECT pickle FROM %s" % self.table_name)
+        results = self.db.select(f"SELECT pickle FROM {self.table_name}")
 
         for r in results:
             obj = self._load(r[0])
@@ -224,7 +218,7 @@ class DiskList:
         assert self._state == OPEN
 
         # TODO: How do I make the __iter__ thread safe?
-        results = self.db.select("SELECT pickle FROM %s" % self.table_name)
+        results = self.db.select(f"SELECT pickle FROM {self.table_name}")
         for r in results:
             obj = self._load(r[0])
             yield obj
@@ -255,14 +249,12 @@ class DiskList:
             # statement and is not very nice in terms of performance
             index_ = len(self) + int(key) + 1
 
-        query = "SELECT pickle FROM %s WHERE index_ = ?" % self.table_name
-        try:
-            r = self.db.select_one(query, (index_,))
-            obj = self._load(r[0])
-        except:
+        query = f"SELECT pickle FROM {self.table_name} WHERE index_ = ?"
+        r = self.db.select_one(query, (index_,))
+        if r is None:
             raise IndexError("list index out of range")
-        else:
-            return obj
+
+        return self._load(r[0])
 
     def _slice_list(self, slice_inst):
         assert self._state == OPEN
@@ -290,11 +282,11 @@ class DiskList:
     def __len__(self):
         assert self._state == OPEN
 
-        query = "SELECT count(*) FROM %s" % self.table_name
+        query = f"SELECT count(*) FROM {self.table_name}"
         r = self.db.select_one(query)
         return r[0]
 
     def __unicode__(self):
-        return "<DiskList [%s]>" % ", ".join([str(i) for i in self])
+        return "<DiskList [{}]>".format(", ".join([str(i) for i in self]))
 
     __str__ = __unicode__

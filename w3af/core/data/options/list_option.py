@@ -68,7 +68,7 @@ class ListOption(BaseOption):
         if value.startswith("[") or value.endswith("]"):
             raise BaseFrameworkException(
                 "Invalid list specified, use of [...] is not"
-                " supported. %s" % self.VALID_EXAMPLES
+                f" supported. {self.VALID_EXAMPLES}"
             )
 
         # Add the "," at the end to make parsing easier
@@ -76,10 +76,7 @@ class ListOption(BaseOption):
 
         mo = self.LST_VALIDATION_RE.match(temp_value)
 
-        try:
-            matched_str = mo.group(0)
-            assert matched_str == temp_value
-        except Exception:
+        if mo is None or mo.group(0) != temp_value:
             msg = 'Invalid list specified in user configuration: "%s". %s'
             args = (value, self.VALID_EXAMPLES)
             raise BaseFrameworkException(msg % args)

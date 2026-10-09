@@ -45,16 +45,14 @@ class KBApiTest(APIUnitTest):
         # Name filter
         #
         response = self.app.get(
-            "/scans/%s/kb/?name=SQL%%20Injection" % scan_id, headers=self.HEADERS
+            f"/scans/{scan_id}/kb/?name=SQL%20Injection", headers=self.HEADERS
         )
         self.assertEqual(response.status_code, 200, response.data)
 
         vuln_items = json.loads(response.data)["items"]
         self.assertEqual(4, len(vuln_items), vuln_items)
 
-        response = self.app.get(
-            "/scans/%s/kb/?name=Foo" % scan_id, headers=self.HEADERS
-        )
+        response = self.app.get(f"/scans/{scan_id}/kb/?name=Foo", headers=self.HEADERS)
         self.assertEqual(response.status_code, 200, response.data)
 
         vuln_items = json.loads(response.data)["items"]
@@ -65,7 +63,7 @@ class KBApiTest(APIUnitTest):
         #
         extra_args = (scan_id, target_url)
         response = self.app.get(
-            "/scans/%s/kb/?url=%s" % extra_args, headers=self.HEADERS
+            "/scans/{}/kb/?url={}".format(*extra_args), headers=self.HEADERS
         )
         self.assertEqual(response.status_code, 200, response.data)
 
@@ -73,7 +71,7 @@ class KBApiTest(APIUnitTest):
         self.assertEqual(4, len(vuln_items))
 
         response = self.app.get(
-            "/scans/%s/kb/?url=http://google.com/" % scan_id, headers=self.HEADERS
+            f"/scans/{scan_id}/kb/?url=http://google.com/", headers=self.HEADERS
         )
         self.assertEqual(response.status_code, 200, response.data)
 

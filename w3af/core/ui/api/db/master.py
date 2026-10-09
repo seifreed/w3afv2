@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #       store one scan
 #
 # Store integer IDs as keys and ScanInfo instances as values
-SCANS = {}
+SCANS: dict[int, "ScanInfo"] = {}
 
 
 class ScanInfo:

@@ -122,7 +122,7 @@ def terminal_size():
         # env vars or finally defaults
         try:
             cr = (os.environ["LINES"], os.environ["COLUMNS"])
-        except:
+        except KeyError:
             cr = (25, 80)
     # reverse rows, cols
     return int(cr[1]), int(cr[0])
@@ -134,15 +134,14 @@ def terminal_width():
 
 try:
     from w3af.core.ui.console.io.unixctrl import *
-except Exception as e:
+except ImportError:
     # We aren't on unix !
     try:
         from w3af.core.ui.console.io.winctrl import *
-    except Exception as a:
-        print(str(e + "\n" + a))
+    except ImportError as windows_error:
         # We arent on windows nor unix
         raise BaseFrameworkException(
-            "w3af support for OS X isn't available yet! Please contribute."
-        )
+            "w3af console terminal support isn't available for this platform."
+        ) from windows_error
 
 # extKeys = [KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT]

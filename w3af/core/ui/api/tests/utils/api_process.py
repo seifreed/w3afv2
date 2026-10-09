@@ -41,7 +41,6 @@ def start_api():
         * URL
     """
     port = get_unused_port()
-    dev_null = open(os.devnull, "w")
 
     w3af_api_path = os.path.abspath(os.path.join(ROOT_PATH, ".."))
     python_executable = sys.executable
@@ -51,19 +50,19 @@ def start_api():
         python_executable,
         "w3af_api",
         "-p",
-        sha512(api_auth[1]).hexdigest(),
-        "127.0.0.1:%s" % port,
+        sha512(api_auth[1].encode()).hexdigest(),
+        f"127.0.0.1:{port}",
     ]
 
     process = subprocess.Popen(
         cmd,
-        stdout=dev_null,
+        stdout=subprocess.DEVNULL,
         stderr=subprocess.STDOUT,
-        preexec_fn=os.setsid,
+        start_new_session=True,
         cwd=w3af_api_path,
     )
 
-    api_url = "https://127.0.0.1:%s" % port
+    api_url = f"https://127.0.0.1:{port}"
 
     # Now we wait until the API is ready to answer requests
     for i in range(75):
@@ -71,13 +70,13 @@ def start_api():
 
         try:
             response = requests.get(api_url, auth=api_auth, verify=False)
-        except:
+        except requests.exceptions.RequestException:
             if process.pid is None and i > 25:
                 raise RuntimeError("Failed to start the REST API service")
         else:
             if response.status_code in (200, 404, 401):
                 break
     else:
-        raise RuntimeError("Timed out waiting for REST API service at %s" % api_url)
+        raise RuntimeError(f"Timed out waiting for REST API service at {api_url}")
 
     return process, port, api_url, api_auth

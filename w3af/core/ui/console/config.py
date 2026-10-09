@@ -108,7 +108,7 @@ class ConfigMenu(menu):
             return
 
         if params[0] not in self._options:
-            raise BaseFrameworkException('Unknown option: "%s".' % params[0])
+            raise BaseFrameworkException(f'Unknown option: "{params[0]}".')
 
         name = params[0]
         value = " ".join(params[1:])
@@ -204,8 +204,8 @@ class ConfigMenu(menu):
                 if opt.get_help():
                     om.out.console("")
                     om.out.console(opt.get_help())
-                om.out.console("Type: %s" % opt.get_type())
-                om.out.console('Current value is: "%s"' % opt.get_default_value())
+                om.out.console(f"Type: {opt.get_type()}")
+                om.out.console(f'Current value is: "{opt.get_default_value()}"')
                 return
 
         menu._cmd_help(self, params)

@@ -22,12 +22,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 class WhereHelper:
     """Simple WHERE condition maker."""
 
-    conditions = {}
-    _values = []
-
-    def __init__(self, conditions={}):
+    def __init__(self, conditions=None):
         """Construct object."""
+        if conditions is None:
+            conditions = {}
         self.conditions = conditions
+        self._values = []
 
     def values(self):
         """Return values for prep.statements."""

@@ -133,7 +133,7 @@ def finding_to_json(finding, scan_id, finding_id, detailed=False):
     :param detailed: Show extra info
     :return: A dict with the finding information
     """
-    summary = {"id": finding_id, "href": "/scans/%s/kb/%s" % (scan_id, finding_id)}
+    summary = {"id": finding_id, "href": f"/scans/{scan_id}/kb/{finding_id}"}
 
     if detailed:
         # Get all the data from w3af
@@ -143,7 +143,7 @@ def finding_to_json(finding, scan_id, finding_id, detailed=False):
         traffic_hrefs = []
         for response_id in summary["response_ids"]:
             args = (scan_id, response_id)
-            traffic_href = "/scans/%s/traffic/%s" % args
+            traffic_href = "/scans/{}/traffic/{}".format(*args)
             traffic_hrefs.append(traffic_href)
 
         summary["traffic_hrefs"] = traffic_hrefs

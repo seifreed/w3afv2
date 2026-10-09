@@ -116,11 +116,11 @@ class BaseTemplate(Configurable):
 
         except RuntimeError as rte:
             # https://github.com/andresriancho/w3af/issues/4310
-            raise ValueError("%s" % rte)
+            raise ValueError(f"{rte}")
 
         except KeyError as ke:
             # https://github.com/andresriancho/w3af/issues/4310
-            raise ValueError('The vulnerable parameter "%s" was not found' % ke)
+            raise ValueError(f'The vulnerable parameter "{ke}" was not found')
 
     def store_in_kb(self):
         """

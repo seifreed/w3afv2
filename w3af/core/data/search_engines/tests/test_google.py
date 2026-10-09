@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import random
 import re
 import unittest
+from typing import ClassVar
 
 import pytest
 
@@ -31,6 +32,7 @@ from w3af.core.data.search_engines.google import (
     IS_NEW,
     GAjaxSearch,
     GMobileSearch,
+    GoogleAPISearch,
     GStandardSearch,
     google,
 )
@@ -74,10 +76,10 @@ class TestGoogle(unittest.TestCase):
 
         # Results need to be from at least three different domains, this is an
         # easy way to verify that the REGEX is working as expected
-        self.assertTrue(len(set([r.URL.get_domain() for r in results])) >= 3, results)
+        self.assertTrue(len({r.URL.get_domain() for r in results}) >= 3, results)
 
         # URLs should be unique
-        self.assertTrue(len(results) == len(set([r.URL for r in results])))
+        self.assertTrue(len(results) == len({r.URL for r in results}))
 
     def test_page_body(self):
         responses = self.gse.get_n_result_pages(self.query, self.limit)
@@ -105,7 +107,7 @@ class BaseGoogleAPISearch(unittest.TestCase):
     This base class is not intended to be collected by pytest.
     """
 
-    GoogleApiSearcher = None
+    GoogleApiSearcher: ClassVar[type[GoogleAPISearch] | None] = None
 
     COUNT = 10
 
@@ -131,7 +133,7 @@ class BaseGoogleAPISearch(unittest.TestCase):
         self.assertEqual(searcher.status, IS_NEW)
 
         # This actually does the search
-        searcher.links
+        _ = searcher.links
 
         self.assertEqual(searcher.status, FINISHED_OK, GOOGLE_MSG)
 
@@ -163,7 +165,7 @@ class BaseGoogleAPISearch(unittest.TestCase):
             return
 
         domain = "www.bonsai-sec.com"
-        query = "site:%s" % domain
+        query = f"site:{domain}"
         start = 0
         # pylint: disable=E1102
         # E1102: self.GoogleApiSearcher is not callable
@@ -172,18 +174,18 @@ class BaseGoogleAPISearch(unittest.TestCase):
         self.assertEqual(searcher.status, IS_NEW)
 
         # This actually does the search
-        searcher.links
+        _ = searcher.links
 
         self.assertEqual(searcher.status, FINISHED_OK, GOOGLE_MSG)
 
-        msg = "Got less results than expected:\n%s" % "\n".join(
-            str(r) for r in searcher.links
+        msg = "Got less results than expected:\n{}".format(
+            "\n".join(str(r) for r in searcher.links)
         )
         self.assertEqual(len(searcher.links), self.COUNT, msg)
 
         for link in searcher.links:
             link_domain = link.URL.get_domain()
-            msg = "Current link domain is '%s'. Expected: '%s'" % (link_domain, domain)
+            msg = f"Current link domain is '{link_domain}'. Expected: '{domain}'"
             self.assertEqual(link_domain, domain, msg)
 
 

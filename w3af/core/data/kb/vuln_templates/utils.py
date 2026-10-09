@@ -45,7 +45,7 @@ def get_all_templates():
 
         # Please read help(__import__) to understand why I have to set
         # fromlist to something that's not empty.
-        module_name = "w3af.core.data.kb.vuln_templates.%s" % fname
+        module_name = f"w3af.core.data.kb.vuln_templates.{fname}"
         module = __import__(
             module_name,
             fromlist=[
@@ -69,13 +69,11 @@ def get_all_templates():
 
 
 def get_template_by_name(name):
-    templates = get_all_templates()
-    try:
-        template = [t for t in templates if t.get_short_name() == name][0]
-    except IndexError:
-        raise Exception('Unknown template name "%s".' % name)
-    else:
-        return template
+    for template in get_all_templates():
+        if template.get_short_name() == name:
+            return template
+
+    raise ValueError(f'Unknown template name "{name}".')
 
 
 def get_template_names():

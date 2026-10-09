@@ -70,6 +70,6 @@ class DiskSet(DiskList):
         raise RuntimeError("Not a valid DiskSet method.")
 
     def __unicode__(self):
-        return "<DiskSet [%s]>" % ", ".join([str(i) for i in self])
+        return "<DiskSet [{}]>".format(", ".join([str(i) for i in self]))
 
     __str__ = __unicode__

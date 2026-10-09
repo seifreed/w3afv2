@@ -61,12 +61,10 @@ class bug_report_menu(menu):
             return
 
         table = [("ID", "Phase", "Plugin", "Exception"), ()]
-        eid = 0
-        for edata in all_edata:
+        for eid, edata in enumerate(all_edata):
             if edata.phase == ptype or ptype == "all":
                 table_line = (str(eid), edata.phase, edata.plugin, str(edata.exception))
                 table.append(table_line)
-            eid += 1
 
         self._console.draw_table(table)
 

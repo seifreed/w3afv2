@@ -19,13 +19,15 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.plugins.tests.helper import PluginTest
 from w3af.tests.vuln_sites.utils.scan_vulnerable_site import TestScanVulnerableSite
 
 
 class TestDemoTestFireNet(TestScanVulnerableSite, PluginTest):
     target_url = "http://demo.testfire.net/"
-    EXPECTED_VULNS = {
+    EXPECTED_VULNS: ClassVar[set[tuple]] = {
         ("CSRF vulnerability", "/search.aspx", None),
         ("SQL injection", "/bank/login.aspx", "uid"),
         ("Cross site scripting vulnerability", "/comment.aspx", "name"),

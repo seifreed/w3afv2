@@ -152,7 +152,7 @@ class TestHistoryItem(unittest.TestCase):
         body = "<html>" + LOREM * 20
 
         for i in range(1, force_compression_count):
-            request = HTTPRequest(url, data="a=%s" % i)
+            request = HTTPRequest(url, data=f"a={i}")
 
             response = HTTPResponse(200, body, headers, url, url, charset="UTF-8")
             response.set_id(i)
@@ -169,7 +169,7 @@ class TestHistoryItem(unittest.TestCase):
         self.assertFalse(os.path.exists(compressed_file_temp))
 
         expected_files = [
-            "%s.trace" % i for i in range(1, HistoryItem._COMPRESSED_FILE_BATCH + 1)
+            f"{i}.trace" for i in range(1, HistoryItem._COMPRESSED_FILE_BATCH + 1)
         ]
 
         _zip = zipfile.ZipFile(compressed_file, mode="r")
@@ -225,9 +225,7 @@ class TestHistoryItem(unittest.TestCase):
         clear_result = h1.clear()
 
         self.assertTrue(clear_result)
-        self.assertFalse(
-            os.path.exists(h1._session_dir), "%s exists." % h1._session_dir
-        )
+        self.assertFalse(os.path.exists(h1._session_dir), f"{h1._session_dir} exists.")
 
         # Changed the meaning of clear a little bit... now it simply removes
         # all rows from the table, not the table itself

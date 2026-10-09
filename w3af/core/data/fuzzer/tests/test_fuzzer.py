@@ -47,14 +47,15 @@ class TestFuzzer(unittest.TestCase):
         self.cf_backup = Config(cf_singleton)
 
     def tearDown(self):
-        cf_singleton = self.cf_backup
+        cf_singleton.clear()
+        cf_singleton.update(self.cf_backup)
 
     def assertAllInstance(self, items, _type):
         for item in items:
             self.assertIsInstance(item, _type)
 
     def assertAllHaveTokens(self, items):
-        self.assertTrue(all([m.get_token() is not None for m in items]))
+        self.assertTrue(all(m.get_token() is not None for m in items))
 
     def test_simple(self):
         cf_singleton.save("fuzzable_headers", [])
@@ -354,7 +355,7 @@ class TestFuzzer(unittest.TestCase):
             "http://www.w3af.com/?id=def",
             "http://www.w3af.com/?id=3",
         }
-        created_uris = set([i.get_uri().url_string for i in mutants])
+        created_uris = {i.get_uri().url_string for i in mutants}
         self.assertEqual(expected_uris, created_uris)
 
         expected_dcs = {
@@ -366,7 +367,7 @@ class TestFuzzer(unittest.TestCase):
             "username=John8212&address=def",
         }
 
-        created_dcs = set([str(i.get_dc()) for i in mutants])
+        created_dcs = {str(i.get_dc()) for i in mutants}
         self.assertEqual(created_dcs, expected_dcs)
 
     def test_urlparts_no_path(self):

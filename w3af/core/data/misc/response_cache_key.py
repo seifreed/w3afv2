@@ -99,15 +99,12 @@ def _should_use_xml_bones(http_response):
         return False
 
     # Check that it actually has tags
-    if http_response.get_body().count("<") < 20:
-        return False
-
-    return True
+    return http_response.get_body().count("<") >= 20
 
 
 def quick_hash(text):
     text = smart_str_ignore(text)
-    return "%s%s" % (hash(text), zlib.adler32(text))
+    return f"{hash(text)}{zlib.adler32(text)}"
 
 
 class ResponseCacheKeyCache:
@@ -132,7 +129,7 @@ class ResponseCacheKeyCache:
         else:
             body = http_response.body
 
-        cache_key = "%s%s" % (smart_str_ignore(body), headers)
+        cache_key = f"{smart_str_ignore(body)}{headers}"
         cache_key = quick_hash(cache_key)
 
         result = self._cache.get(cache_key, None)

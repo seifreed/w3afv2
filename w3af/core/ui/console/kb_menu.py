@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
+
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import BaseFrameworkException
@@ -30,6 +32,8 @@ from w3af.core.data.kb.vuln_templates.utils import (
 from w3af.core.ui.console.config import ConfigMenu
 from w3af.core.ui.console.menu import menu
 from w3af.core.ui.console.util import suggest
+
+LOGGER = logging.getLogger(__name__)
 
 
 class kbMenu(menu):
@@ -80,7 +84,7 @@ class kbMenu(menu):
                     desc = self.__getters[p]
                     self._list_objects(desc[1:], desc[0]())
                 else:
-                    om.out.console("Type %s is unknown" % p)
+                    om.out.console(f"Type {p} is unknown")
         else:
             om.out.console("Parameter type is missing, see the help:")
             self._cmd_help(["list"])
@@ -104,7 +108,7 @@ class kbMenu(menu):
 
         template_name = params[0]
         if template_name not in get_template_names():
-            om.out.console("Type %s is unknown" % template_name)
+            om.out.console(f"Type {template_name} is unknown")
             return
 
         # Now we use the fact that templates are configurable just like
@@ -138,12 +142,13 @@ class StoreOnBackConfigMenu(ConfigMenu):
         try:
             self._configurable.store_in_kb()
         except Exception as e:
+            LOGGER.debug("Failed to store vulnerability in KB", exc_info=True)
             msg = (
                 'Failed to store "%s" in the knowledge base because of a'
                 ' configuration error at: "%s".'
             )
             om.out.console(msg % (vuln_name, e))
         else:
-            om.out.console('Stored "%s" in the knowledge base.' % vuln_name)
+            om.out.console(f'Stored "{vuln_name}" in the knowledge base.')
 
         return self._console.back

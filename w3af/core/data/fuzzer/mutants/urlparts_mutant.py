@@ -97,8 +97,7 @@ class URLPartsMutant(Mutant):
             encoded = urllib.parse.quote_plus(encoded, safe=self._safe_encode_chars)
 
         domain_path.set_path(
-            "%s%s%s"
-            % (self._url_parts_dc.url_start, encoded, self._url_parts_dc.url_end)
+            f"{self._url_parts_dc.url_start}{encoded}{self._url_parts_dc.url_end}"
         )
         return domain_path
 
@@ -114,11 +113,7 @@ class URLPartsMutant(Mutant):
         if self._double_encoding:
             encoded = urllib.parse.quote_plus(encoded, safe=self._safe_encode_chars)
 
-        path = "%s%s%s" % (
-            self._url_parts_dc.url_start,
-            encoded,
-            self._url_parts_dc.url_end,
-        )
+        path = f"{self._url_parts_dc.url_start}{encoded}{self._url_parts_dc.url_end}"
         modified_uri = self._freq.get_uri().copy()
         modified_uri.path = path
         return modified_uri
@@ -173,7 +168,6 @@ class URLPartsMutant(Mutant):
         forced_parts,
     ):
         res = []
-        path_sep = "/"
         for idx, part in enumerate(forced_parts):
             p_chunk, is_variable = part
 

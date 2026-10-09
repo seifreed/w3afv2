@@ -26,6 +26,7 @@ import logging
 import pickle
 import threading
 from collections.abc import Iterable
+from typing import ClassVar
 
 from w3af.core.data.constants.severity import HIGH, INFORMATION, LOW, MEDIUM
 from w3af.core.data.db.dbms import get_default_persistent_db_instance
@@ -89,7 +90,7 @@ class BasicKnowledgeBase:
                  parameter.
         """
         if not isinstance(info_inst, Info):
-            raise ValueError("append_uniq requires an info object as parameter.")
+            raise TypeError("append_uniq requires an info object as parameter.")
 
         filter_function = self.FILTERS.get(filter_by, None)
 
@@ -335,8 +336,7 @@ class BasicKnowledgeBase:
         """
         klass = (Info, InfoSet, Vuln)
 
-        for finding in self.get_all_entries_of_class_iter(klass, exclude_ids):
-            yield finding
+        yield from self.get_all_entries_of_class_iter(klass, exclude_ids)
 
     def get_all_uniq_ids_iter(self):
         """
@@ -467,7 +467,7 @@ class DBKnowledgeBase(BasicKnowledgeBase):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    COLUMNS = [
+    COLUMNS: ClassVar[list[tuple[str, str]]] = [
         ("location_a", "TEXT"),
         ("location_b", "TEXT"),
         ("uniq_id", "TEXT"),
@@ -517,7 +517,7 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         with self._kb_lock:
             self.db.execute(query % self.table_name, params)
             cache = self._reached_max_info_instances_cache
-            for key in cache.keys():
+            for key in cache:
                 if key[:2] == (location_a, location_b):
                     del cache[key]
 
@@ -600,7 +600,7 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         pickled_obj = cpickle_dumps(value)
         t = (location_a, location_b, uniq_id, pickled_obj)
 
-        query = "INSERT INTO %s VALUES (?, ?, ?, ?)" % self.table_name
+        query = f"INSERT INTO {self.table_name} VALUES (?, ?, ?, ?)"
         self.db.execute(query, t)
         self._notify_observers(
             self.APPEND, location_a, location_b, value, ignore_type=ignore_type
@@ -622,12 +622,7 @@ class DBKnowledgeBase(BasicKnowledgeBase):
 
         :return: Returns the data that was saved by another plugin.
         """
-        result_lst = []
-
-        for obj in self.get_iter(location_a, location_b, check_types=check_types):
-            result_lst.append(obj)
-
-        return result_lst
+        return list(self.get_iter(location_a, location_b, check_types=check_types))
 
     @requires_setup
     def get_iter(self, location_a, location_b, check_types=True):
@@ -757,12 +752,7 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         :return: A list of all objects where class in klass that are saved in the
                  kb.
         """
-        result_lst = []
-
-        for entry in self.get_all_entries_of_class_iter(klass, exclude_ids=exclude_ids):
-            result_lst.append(entry)
-
-        return result_lst
+        return list(self.get_all_entries_of_class_iter(klass, exclude_ids=exclude_ids))
 
     @requires_setup
     def get_all_entries_of_class_iter(self, klass, exclude_ids=()):
@@ -854,7 +844,7 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         Cleanup internal data.
         """
         with self._kb_lock:
-            self.db.execute("DELETE FROM %s WHERE 1=1" % self.table_name)
+            self.db.execute(f"DELETE FROM {self.table_name} WHERE 1=1")
             self._reached_max_info_instances_cache.clear()
 
             # Remove the old, create new.

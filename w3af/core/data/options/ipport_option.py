@@ -43,26 +43,26 @@ class IPPortOption(BaseOption):
     def validate(self, value):
         try:
             ip, port = value.split(":")
-        except Exception:
+        except (AttributeError, ValueError) as e:
             msg = (
                 "Invalid IP and port specification, the correct format is"
                 " <ip-address>:<port> , for example:  127.0.0.1:8080."
             )
+            raise BaseFrameworkException(msg) from e
+
+        if not is_ip_address(ip):
+            msg = f'Invalid IP address specified ("{ip}")'
             raise BaseFrameworkException(msg)
-        else:
-            if not is_ip_address(ip):
-                msg = 'Invalid IP address specified ("%s")' % ip
-                raise BaseFrameworkException(msg)
 
-            try:
-                port = int(port)
-                assert port > 0
-                assert port < 65536
-            except:
-                msg = (
-                    "Invalid port specified, it needs to be a number between"
-                    " 1 and 65535."
-                )
-                raise BaseFrameworkException(msg)
+        port_msg = (
+            "Invalid port specified, it needs to be a number between 1 and 65535."
+        )
+        try:
+            port_number = int(port)
+        except (TypeError, ValueError, OverflowError) as e:
+            raise BaseFrameworkException(port_msg) from e
 
-            return value
+        if not 0 < port_number < 65536:
+            raise BaseFrameworkException(port_msg)
+
+        return value

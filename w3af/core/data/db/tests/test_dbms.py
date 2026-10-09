@@ -115,7 +115,7 @@ class TestDBMS(unittest.TestCase):
 
         for i in range(10000):
             result = db.execute(
-                "UPDATE TEST SET data = ? WHERE id = ?", ("%s" % i, 1)
+                "UPDATE TEST SET data = ? WHERE id = ?", (f"{i}", 1)
             ).result()
             self.assertEqual(result.rowcount, 1)
 

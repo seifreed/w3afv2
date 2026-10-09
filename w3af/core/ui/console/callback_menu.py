@@ -1,5 +1,5 @@
 """
-callbackMenu.py
+callback_menu.py
 
 Copyright 2008 Andres Riancho
 

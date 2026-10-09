@@ -479,7 +479,7 @@ class TestKnowledgeBase(unittest.TestCase):
         original_shell = Shell(MockVuln(), core.uri_opener, core.worker_pool)
 
         kb.append("a", "b", original_shell)
-        unpickled_shell = list(kb.get_all_shells(core))[0]
+        unpickled_shell = next(iter(kb.get_all_shells(core)))
 
         self.assertEqual(original_shell, unpickled_shell)
         self.assertEqual(unpickled_shell.worker_pool, core.worker_pool)

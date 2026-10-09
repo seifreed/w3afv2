@@ -164,7 +164,7 @@ class TestFileContentMutant(unittest.TestCase):
         noop = "1" * len(boundary)
 
         expected_data = [encode_as_multipart(f, boundary) for f in expected_forms]
-        expected_data = set([s.replace(boundary, noop) for s in expected_data])
+        expected_data = {s.replace(boundary, noop) for s in expected_data}
 
         generated_forms = [m.get_dc() for m in generated_mutants]
         generated_data = [str(f).replace(f.boundary, noop) for f in generated_forms]

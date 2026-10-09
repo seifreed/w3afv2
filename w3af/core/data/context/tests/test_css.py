@@ -52,7 +52,7 @@ class TestCSSStyle(ContextTest):
 
     def test_payload_in_selector(self):
         payload = "PAYLOAD:("
-        css_code = "%s {background-color:lightgray}" % payload
+        css_code = f"{payload} {{background-color:lightgray}}"
         contexts = get_css_context(css_code, payload)
 
         self.assertEqual(len(contexts), 1, contexts)
@@ -63,7 +63,7 @@ class TestCSSStyle(ContextTest):
 
     def test_payload_in_property(self):
         payload = "PAYLOAD:("
-        css_code = "body {%s:lightgray}" % payload
+        css_code = f"body {{{payload}:lightgray}}"
         contexts = get_css_context(css_code, payload)
 
         self.assertEqual(len(contexts), 1, contexts)
@@ -74,7 +74,7 @@ class TestCSSStyle(ContextTest):
 
     def test_payload_in_value(self):
         payload = "PAYLOAD:("
-        css_code = "body {background-color:%s}" % payload
+        css_code = f"body {{background-color:{payload}}}"
         contexts = get_css_context(css_code, payload)
 
         self.assertEqual(len(contexts), 1, contexts)
@@ -86,7 +86,7 @@ class TestCSSStyle(ContextTest):
     def test_payload_value_double_quote_no_break(self):
         # Double quote missing
         payload = "PAYLOAD:("
-        css_code = 'font-family: Georgia, "Times New Roman %s";' % payload
+        css_code = f'font-family: Georgia, "Times New Roman {payload}";'
         contexts = get_css_context(css_code, payload)
 
         self.assertEqual(len(contexts), 1, contexts)
@@ -97,7 +97,7 @@ class TestCSSStyle(ContextTest):
 
     def test_payload_value_double_quote_break(self):
         payload = 'PAYLOAD:("'
-        css_code = 'font-family: Georgia, "Times New Roman %s";' % payload
+        css_code = f'font-family: Georgia, "Times New Roman {payload}";'
         contexts = get_css_context(css_code, payload)
 
         self.assertEqual(len(contexts), 1, contexts)
@@ -108,7 +108,7 @@ class TestCSSStyle(ContextTest):
 
     def test_payload_value_single_quote(self):
         payload = "PAYLOAD:('"
-        css_code = "background: url('%s')" % payload
+        css_code = f"background: url('{payload}')"
         contexts = get_css_context(css_code, payload)
 
         self.assertEqual(len(contexts), 1, contexts)

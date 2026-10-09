@@ -31,8 +31,8 @@ from w3af.core.data.parsers.doc.url import URL
 
 class GenericFilterTest(unittest.TestCase):
 
-    CAPACITY = None
-    ERROR_RATE = None
+    CAPACITY: int | None = None
+    ERROR_RATE: float | None = None
     filter = None
 
     def setUp(self):
@@ -81,17 +81,17 @@ class GenericFilterTest(unittest.TestCase):
     @only_if_subclass
     def test_bloom_url_objects(self):
         for i in range(self.CAPACITY):
-            url_num = URL("http://moth/index%s.html" % i)
+            url_num = URL(f"http://moth/index{i}.html")
             self.filter.add(url_num)
 
         self.assertIn(url_num, self.filter)
 
         for i in string.ascii_letters:
-            url_char = URL("http://moth/index%s.html" % i)
+            url_char = URL(f"http://moth/index{i}.html")
             self.assertNotIn(url_char, self.filter)
 
         for i in range(self.CAPACITY, self.CAPACITY * 2):
-            url_char = URL("http://moth/index%s.html" % i)
+            url_char = URL(f"http://moth/index{i}.html")
             self.assertNotIn(url_char, self.filter)
 
     @only_if_subclass

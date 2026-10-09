@@ -133,7 +133,7 @@ class TestURLPartsMutant(unittest.TestCase):
             "http://www.w3af.com/foo/http%253A%252F%252F127.0.0.1%253A8015%252Ftest%252F",
         ]
 
-        generated_urls = set([m.get_url().url_string for m in generated_mutants])
+        generated_urls = {m.get_url().url_string for m in generated_mutants}
 
         self.assertEqual(set(expected_urls), generated_urls)
 
@@ -154,7 +154,7 @@ class TestURLPartsMutant(unittest.TestCase):
             "http://www.w3af.com/static/foo/bar.def",
         ]
 
-        generated_urls = set([m.get_url().url_string for m in generated_mutants])
+        generated_urls = {m.get_url().url_string for m in generated_mutants}
 
         self.assertEqual(set(expected_urls), generated_urls)
 
@@ -175,6 +175,6 @@ class TestURLPartsMutant(unittest.TestCase):
             "http://www.w3af.com/static/foo/bar.def?foo=bar",
         ]
 
-        generated_uris = set([m.get_uri().url_string for m in generated_mutants])
+        generated_uris = {m.get_uri().url_string for m in generated_mutants}
 
         self.assertEqual(set(expected_uris), generated_uris)

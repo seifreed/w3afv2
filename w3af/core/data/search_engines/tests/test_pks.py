@@ -62,7 +62,7 @@ class TestPKS(unittest.TestCase):
     @httpretty.activate
     def test_get_result(self):
         domain = "bonsai-sec.com"
-        url = "http://pgp.mit.edu:11371/pks/lookup?op=index&search=%s" % domain
+        url = f"http://pgp.mit.edu:11371/pks/lookup?op=index&search={domain}"
 
         httpretty.register_uri(httpretty.GET, url, body=BODY)
 
@@ -75,4 +75,4 @@ class TestPKS(unittest.TestCase):
         self.assertIn("returned 2 results", logs.output[0])
 
         expected = {"lucas"}
-        self.assertTrue(set([r.username for r in result]).issuperset(expected), result)
+        self.assertTrue({r.username for r in result}.issuperset(expected), result)

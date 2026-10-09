@@ -22,12 +22,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 import time
-from http.cookiejar import (
-    Cookie,
-    LoadError,
-    MozillaCookieJar,
-    _warn_unhandled_exception,
-)
+import traceback
+import warnings
+from http.cookiejar import Cookie, LoadError, MozillaCookieJar
+
+
+def _warn_unhandled_exception():
+    warnings.warn(f"http.cookiejar bug!\n{traceback.format_exc()}", stacklevel=2)
 
 
 class ImprovedMozillaCookieJar(MozillaCookieJar):
@@ -132,8 +133,8 @@ class ImprovedMozillaCookieJar(MozillaCookieJar):
 
         except OSError:
             raise
-        except Exception:
+        except Exception as e:
             _warn_unhandled_exception()
             raise LoadError(
-                "invalid Netscape format cookies file %r: %r" % (filename, line)
-            )
+                f"invalid Netscape format cookies file {filename!r}: {line!r}"
+            ) from e

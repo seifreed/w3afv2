@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import io
 import unittest
 
 from w3af.core.data.dc.multipart_container import MultipartContainer
@@ -157,20 +158,20 @@ class TestPostDataMutant(unittest.TestCase):
             URL("http://www.w3af.com/upload"), post_data=form, method="POST"
         )
 
-        payloads = [open(__file__)]
-        created_mutants = PostDataMutant.create_mutants(
-            freq,
-            payloads,
-            [
-                "file_upload",
-            ],
-            False,
-            self.fuzzer_config,
-        )
+        with open(__file__) as payload_file:
+            created_mutants = PostDataMutant.create_mutants(
+                freq,
+                [payload_file],
+                [
+                    "file_upload",
+                ],
+                False,
+                self.fuzzer_config,
+            )
 
-        self.assertEqual(len(created_mutants), 1, created_mutants)
+            self.assertEqual(len(created_mutants), 1, created_mutants)
 
-        mutant = created_mutants[0]
+            mutant = created_mutants[0]
 
-        self.assertIsInstance(mutant.get_token().get_value(), file)
-        self.assertEqual(mutant.get_dc()["username"][0], "default")
+            self.assertIsInstance(mutant.get_token().get_value(), io.TextIOWrapper)
+            self.assertEqual(mutant.get_dc()["username"][0], "default")

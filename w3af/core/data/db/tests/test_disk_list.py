@@ -153,9 +153,7 @@ class TestDiskList(unittest.TestCase):
         dl.append(1)
         dl.append([3, 2, 1])
 
-        values = []
-        for i in dl:
-            values.append(i)
+        values = list(dl)
 
         self.assertEqual(values[0], "a")
         self.assertEqual(values[1], 1)
@@ -231,9 +229,7 @@ class TestDiskList(unittest.TestCase):
         dl.append("def")
         dl.append("aaa")
 
-        sorted_dl = []
-        for i in dl.ordered_iter():
-            sorted_dl.append(i)
+        sorted_dl = list(dl.ordered_iter())
 
         self.assertEqual(["aaa", "abc", "def"], sorted_dl)
 
@@ -243,9 +239,7 @@ class TestDiskList(unittest.TestCase):
         dl.append(2)
         dl.append(3)
 
-        reverse_iter_res = []
-        for i in reversed(dl):
-            reverse_iter_res.append(i)
+        reverse_iter_res = list(reversed(dl))
 
         self.assertEqual(reverse_iter_res, [3, 2, 1])
 

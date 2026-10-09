@@ -21,10 +21,9 @@ def _sqlite3_inserts():
 
 
 def _shelve_inserts():
-    d = shelve.open("debug.shelf")
-    for i in range(1000000):
-        d[str(i)] = str(i * 2)
-    d.close()
+    with shelve.open("debug.shelf") as d:
+        for i in range(1000000):
+            d[str(i)] = str(i * 2)
 
 
 def measure(what, func):
@@ -33,7 +32,7 @@ def measure(what, func):
     func()
     end = time.time()
 
-    print("%s took %s seconds" % (what, end - start))
+    print(f"{what} took {end - start} seconds")
 
 
 if __name__ == "__main__":

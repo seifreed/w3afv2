@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import os
 import random
 import shlex
@@ -27,6 +28,8 @@ import sys
 import traceback
 
 from termcolor import colored
+
+LOGGER = logging.getLogger(__name__)
 
 try:
     import w3af.core.controllers.output_manager as om
@@ -40,9 +43,9 @@ try:
     )
     from w3af.core.ui.console import tables
     from w3af.core.ui.console.auto_update.auto_update import ConsoleUIUpdater
-    from w3af.core.ui.console.callbackMenu import callbackMenu
+    from w3af.core.ui.console.callback_menu import callbackMenu
     from w3af.core.ui.console.history import historyTable
-    from w3af.core.ui.console.rootMenu import rootMenu
+    from w3af.core.ui.console.root_menu import rootMenu
     from w3af.core.ui.console.util import commonPrefix
 except KeyboardInterrupt:
     sys.exit(0)
@@ -56,7 +59,9 @@ class ConsoleUI:
     :author: Alexander Berezhnoy (alexander.berezhnoy |at| gmail.com)
     """
 
-    def __init__(self, commands=[], parent=None, do_upd=None):
+    def __init__(self, commands=None, parent=None, do_upd=None):
+        if commands is None:
+            commands = []
         self._commands = commands
         # the line which is being typed
         self._line = []
@@ -161,6 +166,7 @@ class ConsoleUI:
                     c = term.getch()
                     self._handleKey(c)
                 except Exception as e:
+                    LOGGER.debug("Unhandled console input error", exc_info=True)
                     om.out.console(str(e))
 
             term.set_raw_input_mode(False)
@@ -231,7 +237,7 @@ class ConsoleUI:
             else:
                 self._paste(key)
         except Exception:
-            # TODO
+            LOGGER.debug("Unhandled error in key handler", exc_info=True)
             traceback.print_exc()
 
     def _backOrExit(self):
@@ -496,8 +502,8 @@ class ConsoleUI:
         messages_file = os.path.join(
             os.path.dirname(os.path.realpath(__file__)), "exitmessages.txt"
         )
-        f = open(messages_file, "r")
-        lines = f.readlines()
+        with open(messages_file) as messages:
+            lines = messages.readlines()
         idx = random.randrange(len(lines))
         line = lines[idx]
         return "\n" + line

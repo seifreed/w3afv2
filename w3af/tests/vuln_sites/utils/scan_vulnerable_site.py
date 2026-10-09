@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 import pytest
 
 from w3af.plugins.tests.helper import PluginConfig
@@ -30,9 +32,9 @@ from w3af.plugins.tests.helper import PluginConfig
 @pytest.mark.ci_fails
 class TestScanVulnerableSite:
 
-    target_url = None
+    target_url: str | None = None
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "plugins": {
                 "crawl": (
@@ -46,9 +48,7 @@ class TestScanVulnerableSite:
         }
     }
 
-    EXPECTED_URLS = {}
-
-    EXPECTED_VULNS = {()}
+    EXPECTED_VULNS: ClassVar[set[tuple]] = {()}
 
     def test_scan_vulnerable_site(self):
         if self.target_url is None:
@@ -57,5 +57,4 @@ class TestScanVulnerableSite:
         cfg = self._run_configs["cfg"]
         self._scan(self.target_url, cfg["plugins"])
 
-        # self.assertAllURLsFound(self.EXPECTED_URLS)
         self.assertMostExpectedVulnsFound(self.EXPECTED_VULNS)

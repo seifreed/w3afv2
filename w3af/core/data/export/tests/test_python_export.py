@@ -22,11 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import compiler
-
 from w3af.core.data.export.python_export import python_export
 
-EXPECTED_SIMPLE = """import urllib2
+EXPECTED_SIMPLE = """import urllib.request
 
 url = "http://www.w3af.org/"
 data = None
@@ -35,41 +33,41 @@ headers = {
     "Foo" : "bar"
 }
 
-request = urllib2.Request(url, data, headers)
-response = urllib2.urlopen(request)
+request = urllib.request.Request(url, data, headers)
+response = urllib.request.urlopen(request)
 response_body = response.read()
-print response_body
+print(response_body)
 """
 
-EXPECTED_POST = """import urllib2
+EXPECTED_POST = """import urllib.request
 
 url = "http://www.w3af.org/"
-data = "a=1"
+data = "a=1".encode()
 headers = {
     "Host" : "www.w3af.org",
     "Content-Type" : "application/x-www-form-urlencoded"
 }
 
-request = urllib2.Request(url, data, headers)
-response = urllib2.urlopen(request)
+request = urllib.request.Request(url, data, headers)
+response = urllib.request.urlopen(request)
 response_body = response.read()
-print response_body
+print(response_body)
 """
 
-EXPECTED_POST_REPEATED = """import urllib2
+EXPECTED_POST_REPEATED = """import urllib.request
 
 url = "http://www.w3af.org/"
-data = "a=1&a=2"
+data = "a=1&a=2".encode()
 headers = {
     "Host" : "www.w3af.org",
     "Content-Type" : "application/x-www-form-urlencoded",
     "Foo" : "spam, eggs"
 }
 
-request = urllib2.Request(url, data, headers)
-response = urllib2.urlopen(request)
+request = urllib.request.Request(url, data, headers)
+response = urllib.request.urlopen(request)
 response_body = response.read()
-print response_body
+print(response_body)
 """
 
 
@@ -83,7 +81,7 @@ class TestPythonExport(unittest.TestCase):
             "\n"
         )
         python_code = python_export(http_request)
-        self.assertTrue(compiler.compile(python_code, "python_export.tmp", "exec"))
+        self.assertTrue(compile(python_code, "python_export.tmp", "exec"))
         self.assertEqual(python_code, EXPECTED_SIMPLE)
 
     def test_export_POST(self):
@@ -96,7 +94,7 @@ class TestPythonExport(unittest.TestCase):
             "a=1"
         )
         python_code = python_export(http_request)
-        self.assertTrue(compiler.compile(python_code, "python_export.tmp", "exec"))
+        self.assertTrue(compile(python_code, "python_export.tmp", "exec"))
         self.assertEqual(python_code, EXPECTED_POST)
 
     def test_export_POST_repeated(self):
@@ -111,7 +109,7 @@ class TestPythonExport(unittest.TestCase):
             "a=1&a=2"
         )
         python_code = python_export(http_request)
-        self.assertTrue(compiler.compile(python_code, "python_export.tmp", "exec"))
+        self.assertTrue(compile(python_code, "python_export.tmp", "exec"))
         self.assertEqual(python_code, EXPECTED_POST_REPEATED)
 
     def test_export_inject(self):
@@ -126,6 +124,6 @@ class TestPythonExport(unittest.TestCase):
             'a=1&a=2"3'
         )
         python_code = python_export(http_request)
-        self.assertTrue(compiler.compile(python_code, "python_export.tmp", "exec"))
+        self.assertTrue(compile(python_code, "python_export.tmp", "exec"))
         self.assertIn("a=1&a=2%223", python_code)
         self.assertIn('sp\\"am', python_code)

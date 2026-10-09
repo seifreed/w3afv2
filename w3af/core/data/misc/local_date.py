@@ -1,7 +1,7 @@
 """
-test_mask_password.py
+local_date.py
 
-Copyright 2019 Andres Riancho
+Copyright 2026 w3af contributors
 
 This file is part of w3af, http://w3af.org/ .
 
@@ -20,16 +20,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import unittest
-
-from w3af.core.data.misc.mask_password import mask_password_string
+from datetime import UTC, date, datetime
 
 
-class TestMaskPassword(unittest.TestCase):
-    def test_mask_long_password(self):
-        self.assertEqual(
-            mask_password_string("this-is-long"), "thi{}".format("*" * len("s-is-long"))
-        )
-
-    def test_mask_short_password(self):
-        self.assertEqual(mask_password_string("sho"), "***")
+def local_today() -> date:
+    """
+    :return: The current date in the local timezone of this host.
+    """
+    return datetime.now(UTC).astimezone().date()

@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.plugins.tests.helper import PluginTest
 from w3af.tests.vuln_sites.utils.scan_vulnerable_site import TestScanVulnerableSite
 
@@ -26,7 +28,7 @@ from w3af.tests.vuln_sites.utils.scan_vulnerable_site import TestScanVulnerableS
 class TestScanPHPVulnwebCom(TestScanVulnerableSite, PluginTest):
 
     target_url = "http://testphp.vulnweb.com/"
-    EXPECTED_VULNS = {
+    EXPECTED_VULNS: ClassVar[set[tuple]] = {
         ("Uncommon query string parameter", "/showimage.php", None),
         ("SQL injection", "/listproducts.php", "cat"),
         ("Browser plugin content", "/signup.php", None),

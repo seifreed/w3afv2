@@ -45,4 +45,4 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(template.get_short_name(), "dav")
 
     def test_get_template_by_name_fail(self):
-        self.assertRaises(Exception, get_template_by_name, "foobar")
+        self.assertRaises(ValueError, get_template_by_name, "foobar")

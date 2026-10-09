@@ -20,9 +20,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 import unittest
-from datetime import date, timedelta
+from datetime import timedelta
 
 from w3af.core.data.db.startup_cfg import StartUpConfig
+from w3af.core.data.misc.local_date import local_today
 from w3af.core.paths import get_home_dir
 
 
@@ -31,15 +32,13 @@ class TestStartUpConfig(unittest.TestCase):
     CFG_FILE = os.path.join(get_home_dir(), "unittest-startup.conf")
 
     def tearDown(self):
-        try:
+        if os.path.exists(self.CFG_FILE):
             os.unlink(self.CFG_FILE)
-        except:
-            pass
 
     def test_save(self):
         scfg = StartUpConfig(self.CFG_FILE)
 
-        scfg.last_upd = date.today()
+        scfg.last_upd = local_today()
         scfg.accepted_disclaimer = True
         scfg.last_commit_id = "3f4808082c1943f964669af1a1c94245bab09c61"
         scfg.save()
@@ -51,7 +50,7 @@ class TestStartUpConfig(unittest.TestCase):
         """
         scfg = StartUpConfig("foo.conf")
 
-        self.assertEqual(scfg.last_upd, date.today() - timedelta(days=31))
+        self.assertEqual(scfg.last_upd, local_today() - timedelta(days=31))
         self.assertEqual(scfg.accepted_disclaimer, False)
         self.assertEqual(scfg.last_commit_id, "")
         self.assertEqual(scfg.freq, "D")
@@ -62,14 +61,14 @@ class TestStartUpConfig(unittest.TestCase):
         """
         # Save
         scfg = StartUpConfig(self.CFG_FILE)
-        scfg.last_upd = date.today()
+        scfg.last_upd = local_today()
         scfg.accepted_disclaimer = True
         scfg.last_commit_id = "3f4808082c1943f964669af1a1c94245bab09c61"
         scfg.save()
 
         # Load
         scfg = StartUpConfig(self.CFG_FILE)
-        self.assertEqual(scfg.last_upd, date.today())
+        self.assertEqual(scfg.last_upd, local_today())
         self.assertEqual(scfg.accepted_disclaimer, True)
         self.assertEqual(
             scfg.last_commit_id, "3f4808082c1943f964669af1a1c94245bab09c61"

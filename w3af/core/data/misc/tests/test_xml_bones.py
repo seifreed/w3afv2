@@ -42,13 +42,13 @@ class TestXMLBones(unittest.TestCase):
 
     def test_extra_large_1(self):
         self.assertEqual(
-            get_xml_bones("<xml>%s</xml>" % ("A" * 30,)), "htmlbodyxml40xmlbodyhtml"
+            get_xml_bones("<xml>{}</xml>".format("A" * 30)), "htmlbodyxml40xmlbodyhtml"
         )
 
     def test_extra_large_2(self):
         # Just adding one more char to the end
         self.assertEqual(
-            get_xml_bones("<xml>%s</xml>" % ("A" * 41,)), "htmlbodyxml40xmlbodyhtml"
+            get_xml_bones("<xml>{}</xml>".format("A" * 41)), "htmlbodyxml40xmlbodyhtml"
         )
 
     def test_attr(self):

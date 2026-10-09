@@ -46,12 +46,12 @@ class test_bing(unittest.TestCase):
         results = self.bing_se.get_n_results(self.query, self.limit)
 
         # I want to get real results
-        domains = set([r.URL.get_domain() for r in results])
+        domains = {r.URL.get_domain() for r in results}
         self.assertGreater(len(domains), 3, results)
 
         # URLs should be unique
         urls = [r.URL for r in results]
         repeated_urls = [u for u in urls if urls.count(u) > 1]
         self.assertEqual(
-            len(repeated_urls), 0, "These are the repeated URLs: %s" % repeated_urls
+            len(repeated_urls), 0, f"These are the repeated URLs: {repeated_urls}"
         )

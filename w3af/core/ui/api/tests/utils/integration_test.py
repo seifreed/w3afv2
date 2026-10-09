@@ -58,7 +58,8 @@ class IntegrationTest(unittest.TestCase):
 
         for _file in os.listdir(tempdir):
             if fnmatch.fnmatch(_file, "w3af-crash*.txt"):
-                crash = open(os.path.join(tempdir, _file)).read()
+                with open(os.path.join(tempdir, _file)) as crash_file:
+                    crash = crash_file.read()
 
                 # https://circleci.com/gh/andresriancho/w3af/2041
                 if "failing_spider" in crash:
@@ -77,7 +78,7 @@ class IntegrationTest(unittest.TestCase):
             time.sleep(0.5)
 
             response = requests.get(
-                "%s/scans/" % self.api_url, auth=self.api_auth, verify=False
+                f"{self.api_url}/scans/", auth=self.api_auth, verify=False
             )
 
             self.assertEqual(response.status_code, 200, response.text)
@@ -95,7 +96,7 @@ class IntegrationTest(unittest.TestCase):
             time.sleep(0.5)
 
             response = requests.get(
-                "%s/scans/" % self.api_url, auth=self.api_auth, verify=False
+                f"{self.api_url}/scans/", auth=self.api_auth, verify=False
             )
             self.assertEqual(response.status_code, 200, response.text)
             if response.json()["items"][0]["status"] != "Running":
@@ -109,16 +110,16 @@ class IntegrationTest(unittest.TestCase):
                  the scan log information available in the REST API (if any)
         """
         response = requests.get(
-            "%s/scans/" % self.api_url, auth=self.api_auth, verify=False
+            f"{self.api_url}/scans/", auth=self.api_auth, verify=False
         )
         scan_id = response.json()["items"][0]["id"]
 
         response = requests.get(
-            "%s/scans/%s/log" % (self.api_url, scan_id),
+            f"{self.api_url}/scans/{scan_id}/log",
             auth=self.api_auth,
             verify=False,
         )
         scan_log = "\n".join([m["message"] for m in response.json()["entries"]])
 
         self.maxDiff = None
-        return "Assertion failed! The scan log contains:\n\n%s" % scan_log
+        return f"Assertion failed! The scan log contains:\n\n{scan_log}"

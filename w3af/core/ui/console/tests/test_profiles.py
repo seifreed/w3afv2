@@ -68,7 +68,7 @@ class TestProfilesConsoleUI(ConsoleTestHelper):
         try:
             profile(profile_name)
         except BaseFrameworkException as error:
-            pytest.fail("The %s profile does NOT exist: %s" % (profile_name, error))
+            pytest.fail(f"The {profile_name} profile does NOT exist: {error}")
 
     def _assert_equal(self, profile_name_a, profile_name_b):
         p1 = profile(profile_name_a, workdir=".")
@@ -92,8 +92,11 @@ class TestProfilesConsoleUI(ConsoleTestHelper):
         self.assertTrue(assert_result, msg)
 
     def test_load_profile_by_filepath(self):
-        tmp_profile = tempfile.NamedTemporaryFile(suffix=".pw3af")
-        commands_to_run = ["profiles", "help", "use " + tmp_profile.name, "exit"]
+        with tempfile.NamedTemporaryFile(suffix=".pw3af") as tmp_profile:
+            self._load_profile_by_filepath(tmp_profile.name)
+
+    def _load_profile_by_filepath(self, profile_path):
+        commands_to_run = ["profiles", "help", "use " + profile_path, "exit"]
 
         expected = (
             "The plugins configured by the scan profile have been enabled",
@@ -122,7 +125,7 @@ class TestProfilesConsoleUI(ConsoleTestHelper):
         commands_to_run = [
             "profiles",
             "use OWASP_TOP10",
-            "save_as %s" % self.get_profile_name(),
+            f"save_as {self.get_profile_name()}",
             "exit",
         ]
 
@@ -141,7 +144,7 @@ class TestProfilesConsoleUI(ConsoleTestHelper):
         commands_to_run = [
             "profiles",
             "use OWASP_TOP10",
-            "save_as %s self-contained" % self.get_profile_name(),
+            f"save_as {self.get_profile_name()} self-contained",
             "exit",
         ]
 
@@ -180,10 +183,10 @@ class TestProfilesConsoleUI(ConsoleTestHelper):
         commands_to_run = [
             "profiles",
             "use OWASP_TOP10",
-            "save_as %s self-contained" % self.get_profile_name(),
+            f"save_as {self.get_profile_name()} self-contained",
             "back",
             "profiles",
-            "use %s" % self.get_profile_name(),
+            f"use {self.get_profile_name()}",
             "back",
             "plugins audit config ssl_certificate",
             "view",
@@ -235,7 +238,7 @@ class TestProfilesConsoleUI(ConsoleTestHelper):
             "set msf_location /tmp/",
             "back",
             "profiles",
-            "save_as %s" % self.get_profile_name(),
+            f"save_as {self.get_profile_name()}",
             "exit",
         ]
 
@@ -266,7 +269,7 @@ class TestProfilesConsoleUI(ConsoleTestHelper):
         # should see /tmp/ as the value for msf_location
         commands_to_run = [
             "profiles",
-            "use %s" % self.get_profile_name(),
+            f"use {self.get_profile_name()}",
             "back",
             "misc-settings",
             "view",
@@ -276,7 +279,7 @@ class TestProfilesConsoleUI(ConsoleTestHelper):
 
         expected_output = "/tmp"
 
-        stdout, stderr = p.communicate("\r".join(commands_to_run) + "\r")
+        stdout, _stderr = p.communicate("\r".join(commands_to_run) + "\r")
 
         msg = 'Failed to find "%s" in "%s" using "%s" as python executable.'
         msg = msg % (expected_output, stdout, python_executable)
@@ -297,7 +300,7 @@ class TestProfilesConsoleUI(ConsoleTestHelper):
         # Save the settings
         commands_to_run = [
             "misc-settings set msf_location /etc/",
-            "profiles save_as %s" % self.get_profile_name(),
+            f"profiles save_as {self.get_profile_name()}",
             "exit",
         ]
 
@@ -317,7 +320,7 @@ class TestProfilesConsoleUI(ConsoleTestHelper):
         # Load the settings
         commands_to_run = [
             "profiles",
-            "use %s" % self.get_profile_name(),
+            f"use {self.get_profile_name()}",
             "back",
             "misc-settings view",
             "exit",

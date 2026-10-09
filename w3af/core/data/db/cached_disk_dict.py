@@ -46,7 +46,7 @@ class CachedDiskDict:
 
         self._max_in_memory = max_in_memory
         self._disk_dict = DiskDict(table_prefix=table_prefix)
-        self._in_memory = dict()
+        self._in_memory = {}
         self._access_count = Counter()
 
     def cleanup(self):
@@ -54,10 +54,10 @@ class CachedDiskDict:
 
     def _get_table_prefix(self, table_prefix):
         if table_prefix is None:
-            table_prefix = "cached_disk_dict_%s" % rand_alpha(16)
+            table_prefix = f"cached_disk_dict_{rand_alpha(16)}"
         else:
             args = (table_prefix, rand_alpha(16))
-            table_prefix = "cached_disk_dict_%s_%s" % args
+            table_prefix = "cached_disk_dict_{}_{}".format(*args)
 
         return table_prefix
 

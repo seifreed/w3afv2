@@ -105,7 +105,7 @@ class InputFileOption(BaseOption):
                     'An exception occurred while encoding "%s" for storing'
                     ' into the profile: "%s"'
                 )
-                raise BaseFrameworkException(msg % (self._value, e))
+                raise BaseFrameworkException(msg % (self._value, e)) from e
 
         #
         #   Then the other options
@@ -195,10 +195,9 @@ class InputFileOption(BaseOption):
         :return: True if the filename matches the pattern used to decode
                  base64:// data
         """
-        if filename.endswith(self.DATA_SUFFIX) and self.DATA_PREFIX in filename:
-            return True
-
-        return False
+        return bool(
+            filename.endswith(self.DATA_SUFFIX) and self.DATA_PREFIX in filename
+        )
 
     def create_tempfile(self, encoded_data):
         data = self.decode_b64_data(encoded_data)
@@ -237,4 +236,4 @@ class InputFileOption(BaseOption):
         with open(filename, "rb") as input_file:
             compressed_data = zlib.compress(input_file.read())
         encoded_data = base64.b64encode(compressed_data).decode("ascii")
-        return "%s%s" % (self.DATA_PROTO, encoded_data)
+        return f"{self.DATA_PROTO}{encoded_data}"

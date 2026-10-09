@@ -1,5 +1,5 @@
-from concurrent.futures import ThreadPoolExecutor
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 
 from w3af.core.data.misc.number_generator import NumberGenerator
 

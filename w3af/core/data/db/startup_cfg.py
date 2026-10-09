@@ -21,8 +21,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import configparser
 import os
-from datetime import date, datetime, timedelta
+from datetime import UTC, datetime, timedelta
+from typing import ClassVar
 
+from w3af.core.data.misc.local_date import local_today
 from w3af.core.paths import get_home_dir
 
 
@@ -40,7 +42,7 @@ class StartUpConfig:
     FREQ_WEEKLY = "W"  # [W]eekly
     FREQ_MONTHLY = "M"  # [M]onthly
     # DEFAULT VALUES
-    DEFAULTS = {
+    DEFAULTS: ClassVar[dict[str, str]] = {
         "auto-update": "true",
         "frequency": "D",
         "last-update": "None",
@@ -100,7 +102,7 @@ class StartUpConfig:
 
     def set_last_commit_id(self, commit_id):
         if not isinstance(commit_id, str):
-            raise TypeError("Expected string got %s instead." % type(commit_id))
+            raise TypeError(f"Expected string got {type(commit_id)} instead.")
 
         self._last_commit_id = commit_id
         self._config.set(self._start_section, "last-commit", self._last_commit_id)
@@ -151,10 +153,14 @@ class StartUpConfig:
         lastupdstr = config.get(startsection, "last-update", raw=True).upper()
         # Try to parse it
         try:
-            lastupd = datetime.strptime(lastupdstr, self.ISO_DATE_FMT).date()
-        except:
+            lastupd = (
+                datetime.strptime(lastupdstr, self.ISO_DATE_FMT)
+                .replace(tzinfo=UTC)
+                .date()
+            )
+        except ValueError:
             # Provide default value that enforces the update to happen
-            lastupd = date.today() - timedelta(days=31)
+            lastupd = local_today() - timedelta(days=31)
         try:
             lastrev = config.get(startsection, "last-commit")
         except TypeError:

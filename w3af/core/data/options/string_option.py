@@ -42,6 +42,6 @@ class StringOption(BaseOption):
     def validate(self, value):
         try:
             return str(value)
-        except Exception:
-            msg = 'Invalid string option value "%s".' % value
-            raise BaseFrameworkException(msg)
+        except Exception as e:
+            msg = f'Invalid string option value "{value}".'
+            raise BaseFrameworkException(msg) from e

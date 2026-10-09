@@ -1,3 +1,5 @@
+import reprlib
+
 from w3af.core.data.db.disk_dict import DiskDict
 
 
@@ -93,18 +95,9 @@ class DiskDeque:
     def __len__(self):
         return self.right - self.left
 
-    def __cmp__(self, other):
-        if type(self) != type(other):
-            return cmp(type(self), type(other))
-        return cmp(list(self), list(other))
-
-    def __repr__(self, _track=[]):
-        if id(self) in _track:
-            return "..."
-        _track.append(id(self))
-        r = "deque(%r)" % (list(self),)
-        _track.remove(id(self))
-        return r
+    @reprlib.recursive_repr("...")
+    def __repr__(self):
+        return f"deque({list(self)!r})"
 
     def __getstate__(self):
         return tuple(self)
@@ -118,7 +111,7 @@ class DiskDeque:
     def __copy__(self):
         return self.__class__(self)
 
-    def __deepcopy__(self, memo={}):
+    def __deepcopy__(self, memo):
         from copy import deepcopy
 
         result = self.__class__()

@@ -36,4 +36,4 @@ class TestRandomUserAgent(unittest.TestCase):
                 if estr in rnd_ua:
                     return
 
-        self.assertTrue(False, "Failed to find %s" % (EXPECTED,))
+        self.assertTrue(False, f"Failed to find {EXPECTED}")

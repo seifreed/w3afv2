@@ -59,7 +59,7 @@ dependencies:
     - python -m pytest --collect-only --doctest-modules -q -m "not ci_fails and not fails and not ci_ignore" w3af
 
     # Might need more waiting for the docker-compose up command to finish
-    - w3af/tests/waitfor-test-dependencies.py
+    - w3af/tests/waitfor_test_dependencies.py
 
   post:
     - pip --version

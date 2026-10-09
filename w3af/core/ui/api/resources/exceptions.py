@@ -92,7 +92,7 @@ def exception_to_json(exception_data, scan_id, exception_id, detailed=False):
     """
     summary = {
         "id": exception_id,
-        "href": "/scans/%s/exceptions/%s" % (scan_id, exception_id),
+        "href": f"/scans/{scan_id}/exceptions/{exception_id}",
     }
 
     # Get all the data from w3af
@@ -122,8 +122,8 @@ def exception_creator(scan_id):
     current_status.set_current_fuzzable_request("phase", "http://www.w3af.org/")
 
     try:
-        raise Exception("unittest")
-    except Exception as exception:
+        raise RuntimeError("unittest")
+    except RuntimeError as exception:
         exec_info = sys.exc_info()
         enabled_plugins = ""
 

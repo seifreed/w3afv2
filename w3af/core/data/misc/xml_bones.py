@@ -79,13 +79,13 @@ class BoneCollector:
 
         for attr, value in attrib.items():
             args = (attr, round_N(len(value)))
-            self.bones.append("%s%s" % args)
+            self.bones.append("{}{}".format(*args))
 
     def end(self, tag):
         self.bones.append(tag)
 
     def data(self, data):
-        self.bones.append("%s" % round_N(len(data)))
+        self.bones.append(f"{round_N(len(data))}")
 
     def comment(self, text):
         pass
