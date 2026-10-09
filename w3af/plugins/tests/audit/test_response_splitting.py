@@ -23,7 +23,7 @@ import re
 import urllib.error
 import urllib.parse
 import urllib.request
-from email.header import decode_header
+from email.header import decode_header, make_header
 from typing import ClassVar
 
 import pytest
@@ -33,6 +33,7 @@ from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 class ResponseSplittingMockResponse(MockResponse):
     def get_response(self, http_request, uri, response_headers):
+        response_headers.update(self.headers)
         uri = urllib.parse.unquote(uri)
         headers_to_inject = uri[uri.find("=") + 1 :]
         header_name_1 = "somevalue"
@@ -87,6 +88,7 @@ class TestResponseSplitting(PluginTest):
 
 class ResponseSplittingParameterModifiesResponseMockResponse(MockResponse):
     def get_response(self, http_request, uri, response_headers):
+        response_headers.update(self.headers)
         uri = urllib.parse.unquote(uri)
         headers_to_inject = uri[uri.find("=") + 1 :]
 
@@ -146,8 +148,9 @@ class TestResponseSplittingParameterModifiesResponse(PluginTest):
 
 class ResponseSplittingHeaderMockResponse(MockResponse):
     def get_response(self, http_request, uri, response_headers):
+        response_headers.update(self.headers)
         referer = http_request.headers.get("Referer") or ""
-        headers_to_inject = decode_header(referer)[0][0]
+        headers_to_inject = str(make_header(decode_header(referer)))
 
         header_name_1 = "somevalue"
 
@@ -174,7 +177,7 @@ class TestResponseSplittingHeader(PluginTest):
     MOCK_RESPONSES: ClassVar[list] = [
         ResponseSplittingHeaderMockResponse(
             target_url_re, body="", method="GET", status=200
-        )
+        ),
     ]
     _run_configs: ClassVar[dict] = {
         "cfg": {
@@ -198,3 +201,31 @@ class TestResponseSplittingHeader(PluginTest):
         self.assertEqual("Response splitting vulnerability", vuln.get_name())
         self.assertEqual("http://w3af.org/", str(vuln.get_url()))
         self.assertEqual("referer", vuln.get_token_name())
+
+
+def partial_header_injection(mock_response, request, uri, response_headers):
+    """Only the injected header name reaches the response, with a fixed value."""
+    response_headers["Content-Type"] = "text/html"
+    if "vulnerable073b" in urllib.parse.unquote(uri):
+        response_headers["vulnerable073b"] = "sanitized"
+    return 200, response_headers, "<html></html>"
+
+
+class TestResponseSplittingPartialInjection(PluginTest):
+
+    target_url = "http://w3af.org/?header="
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(
+            re.compile(r"http://w3af\.org/\?header=.*"), partial_header_injection
+        )
+    ]
+
+    def test_partial_injection_is_reported_as_info(self):
+        self._scan(self.target_url, {"audit": (PluginConfig("response_splitting"),)})
+
+        infos = self.kb.get("response_splitting", "response_splitting")
+
+        self.assertEqual(1, len(infos), infos)
+        self.assertEqual("Parameter modifies response headers", infos[0].get_name())
+        self.assertEqual("header", infos[0].get_token_name())

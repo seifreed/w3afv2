@@ -35,6 +35,7 @@ class TestGenericOnly(PluginTest):
 
     class GenericErrorMockResponse(MockResponse):
         def get_response(self, http_request, uri, response_headers):
+            response_headers["Content-Type"] = "text/html"
             uri = urllib.parse.unquote(uri)
 
             if uri.endswith("1/0"):
@@ -59,7 +60,7 @@ class TestGenericOnly(PluginTest):
         # Now some tests around specific details of the found vuln
         vuln = vulns[0]
         self.assertEqual("Unhandled error in web application", vuln.get_name())
-        self.assertEqual("http://mock/?id=1/0", str(vuln.get_uri()))
+        self.assertEqual("http://mock/?id=1%2F0", str(vuln.get_uri()))
         self.assertEqual(vuln.get_mutant().get_token_name(), "id")
 
 
@@ -69,6 +70,7 @@ class TestGenericExtensive(PluginTest):
 
     class GenericErrorMockResponse(MockResponse):
         def get_response(self, http_request, uri, response_headers):
+            response_headers["Content-Type"] = "text/html"
             uri = urllib.parse.unquote(uri)
 
             if uri.endswith("Infinity"):
@@ -110,6 +112,7 @@ class TestGenericSQLInjection(PluginTest):
 
     class SQLIMockResponse(MockResponse):
         def get_response(self, http_request, uri, response_headers):
+            response_headers["Content-Type"] = "text/html"
             uri = urllib.parse.unquote(uri)
 
             if uri.endswith(("1/0", sqli.SQLI_STRINGS[0])):

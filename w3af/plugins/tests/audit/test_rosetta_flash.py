@@ -110,3 +110,38 @@ class TestRosettaFlashFixed(PluginTest):
         vulns = self.kb.get("rosetta_flash", "rosetta_flash")
 
         self.assertEqual(0, len(vulns), vulns)
+
+
+def html_callback(mock_response, request, uri, response_headers):
+    """Reflect the callback at the start of an HTML page."""
+    callback = URL(uri).get_querystring().get("callback", ["default"])[0]
+    response_headers["Content-Type"] = "text/html"
+    return 200, response_headers, f"{callback}({{}})"
+
+
+def untyped_callback(mock_response, request, uri, response_headers):
+    """Reflect the callback without telling the content type."""
+    callback = URL(uri).get_querystring().get("callback", ["default"])[0]
+    return 200, response_headers, f"{callback}({{}})"
+
+
+class TestRosettaFlashOnlyInScriptResponses(PluginTest):
+
+    target_url = "http://mock/jsonp?callback="
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(re.compile(r"http://mock/jsonp\?.*"), html_callback),
+        MockResponse(re.compile(r"http://mock/untyped\?.*"), untyped_callback),
+    ]
+
+    def test_html_response_is_not_audited(self):
+        self._scan(self.target_url, CONFIG)
+
+        self.assertEqual([], self.kb.get("rosetta_flash", "rosetta_flash"))
+        self.assertFalse(any("CWSA7000" in r.uri for r in self.received_requests))
+
+    def test_response_without_content_type_is_not_audited(self):
+        self._scan("http://mock/untyped?callback=", CONFIG)
+
+        self.assertEqual([], self.kb.get("rosetta_flash", "rosetta_flash"))
+        self.assertFalse(any("CWSA7000" in r.uri for r in self.received_requests))

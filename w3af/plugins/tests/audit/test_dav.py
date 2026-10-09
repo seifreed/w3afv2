@@ -19,81 +19,146 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import re
+import urllib.parse
 from typing import ClassVar
 
-import pytest
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+PROPFIND_LISTING = (
+    '<?xml version="1.0"?>'
+    '<a:multistatus xmlns:a="DAV:"><a:response>'
+    "<D:href>/index.html</D:href></a:response></a:multistatus>"
+)
+
+CONFIG = {"audit": (PluginConfig("dav"),)}
 
 
-class TestDav(PluginTest):
+class DavStore:
+    """Files uploaded through the HTTP PUT method."""
 
-    target_vuln_all = "http://moth/w3af/audit/dav/write-all/"
-    target_no_privs = "http://moth/w3af/audit/dav/no-privileges/"
-    target_safe_all = "http://moth/w3af/audit/eval/"
+    def __init__(self):
+        self.files = {}
 
-    _run_configs: ClassVar[dict] = {
-        "cfg": {
-            "target": None,
-            "plugins": {
-                "audit": (
-                    PluginConfig(
-                        "dav",
-                    ),
-                ),
-            },
-        },
-    }
 
-    @pytest.mark.ci_fails
-    def test_found_all_dav(self):
-        cfg = self._run_configs["cfg"]
-        self._scan(self.target_vuln_all, cfg["plugins"])
+def propfind_responder(mock_response, request, uri, response_headers):
+    response_headers["Content-Type"] = "application/xml"
+    return 207, response_headers, PROPFIND_LISTING
+
+
+class WritableDirResponder(MockResponse):
+    """A directory where PUT uploads a file that GET then serves."""
+
+    def __init__(self, url, store):
+        super().__init__(url, body="", method="PUT", status=201)
+        self.store = store
+
+    def get_response(self, http_request, uri, response_headers):
+        path = urllib.parse.urlsplit(uri).path
+        self.store.files[path] = http_request.body.decode("utf-8")
+        response_headers.update(self.headers)
+        return 201, response_headers, ""
+
+
+class ServeUploadedResponder(MockResponse):
+    """Serves the files uploaded to the writable directory."""
+
+    def __init__(self, url, store):
+        super().__init__(url, body="", method="GET", status=200)
+        self.store = store
+
+    def get_response(self, http_request, uri, response_headers):
+        path = urllib.parse.urlsplit(uri).path
+        content = self.store.files.get(path)
+        response_headers.update(self.headers)
+        if content is None:
+            return MockResponse.get_404(http_request, uri, response_headers)
+        return 200, response_headers, content
+
+
+class TestDavWritable(PluginTest):
+
+    target_url = "http://mock/webdav/writable/"
+    store = DavStore()
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        WritableDirResponder(re.compile(r"http://mock/webdav/writable/\w+$"), store),
+        ServeUploadedResponder(re.compile(r"http://mock/webdav/writable/\w+$"), store),
+        MockResponse(
+            re.compile(r"http://mock/webdav/writable/$"),
+            propfind_responder,
+            method="PROPFIND",
+        ),
+    ]
+
+    def setUp(self):
+        super().setUp()
+        self.store.files.clear()
+
+    def test_found_writable_and_propfind(self):
+        self._scan(self.target_url, CONFIG)
 
         vulns = self.kb.get("dav", "dav")
 
-        EXPECTED_NAMES = set(["Insecure DAV configuration"] * 2)
-
-        self.assertEqual(EXPECTED_NAMES, {v.get_name() for v in vulns})
-
-        self.assertEqual({"PUT", "PROPFIND"}, {v.get_method() for v in vulns})
-
-        self.assertTrue(
-            all(
-                self.target_vuln_all == str(v.get_url().get_domain_path())
-                for v in vulns
-            )
+        self.assertEqual(
+            {"Publicly writable directory", "Insecure DAV configuration"},
+            {v.get_name() for v in vulns},
         )
+        self.assertEqual({"PUT", "PROPFIND"}, {v.get_method() for v in vulns})
+        self.assertEqual(1, len(self.store.files))
 
-    @pytest.mark.ci_fails
+
+class TestDavNoPrivileges(PluginTest):
+    """
+    DAV is configured but the directory doesn't have the file-system
+    permissions to allow the Apache process to write to it.
+    """
+
+    target_url = "http://mock/webdav/no-privileges/"
+
+    def put_forbidden(self, mock_response, request, uri, response_headers):
+        response_headers["Content-Type"] = "text/html"
+        return 403, response_headers, "<html>Forbidden</html>"
+
+    def setUp(self):
+        self.MOCK_RESPONSES = [
+            MockResponse(
+                re.compile(r"http://mock/webdav/no-privileges/\w+$"),
+                self.put_forbidden,
+                method="PUT",
+            ),
+            MockResponse(
+                re.compile(r"http://mock/webdav/no-privileges/$"),
+                propfind_responder,
+                method="PROPFIND",
+            ),
+        ]
+        super().setUp()
+
     def test_no_privileges(self):
-        """
-        DAV is configured but the directory doesn't have the file-system permissions
-        to allow the Apache process to write to it.
-        """
-        cfg = self._run_configs["cfg"]
-        self._scan(self.target_no_privs, cfg["plugins"])
+        self._scan(self.target_url, CONFIG)
 
         vulns = self.kb.get("dav", "dav")
 
-        self.assertEqual(len(vulns), 2, vulns)
+        names = {v.get_name() for v in vulns}
+        self.assertIn("DAV incorrect configuration", names)
+        self.assertIn("Insecure DAV configuration", names)
 
-        iname = "DAV incorrect configuration"
-        info_no_privs = next(i for i in vulns if i.get_name() == iname)
 
-        vname = "Insecure DAV configuration"
-        vuln_propfind = next(v for v in vulns if v.get_name() == vname)
+class TestDavNotVulnerable(PluginTest):
 
-        info_url = str(info_no_privs.get_url().get_domain_path())
-        vuln_url = str(vuln_propfind.get_url().get_domain_path())
+    target_url = "http://mock/webdav/safe/"
 
-        self.assertEqual(self.target_no_privs, info_url)
-        self.assertEqual(self.target_no_privs, vuln_url)
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(
+            re.compile(r"http://mock/webdav/safe/\w+$"),
+            body="Method not supported",
+            method="PUT",
+            status=403,
+        ),
+    ]
 
-    @pytest.mark.ci_fails
     def test_not_found_dav(self):
-        cfg = self._run_configs["cfg"]
-        self._scan(self.target_safe_all, cfg["plugins"])
+        self._scan(self.target_url, CONFIG)
 
-        vulns = self.kb.get("dav", "dav")
-        self.assertEqual(0, len(vulns))
+        self.assertEqual(0, len(self.kb.get("dav", "dav")))

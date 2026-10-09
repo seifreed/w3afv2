@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import codecs
+
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.data.constants import severity
@@ -57,9 +59,7 @@ class rfd(AuditPlugin):
             ct = ct.split(";")[0]
 
         if cd is not None:
-            cd = orig_headers["content-disposition"]
-            # we have the header, but is it was set correctly?
-
+            # we have the header, but was it set correctly?
             if "filename" in cd.lower():
                 # yes filename exists
                 om.out.debug(
@@ -112,7 +112,7 @@ class rfd(AuditPlugin):
 
         for mutant in mutants:
             response = self._uri_opener.send_mutant(mutant)
-            body = response.body.decode("unicode-escape")
+            body = codecs.decode(response.get_body(), "unicode_escape")
             if response.get_code() != 200:
                 # no need to seek reflection if it is not OK
                 continue

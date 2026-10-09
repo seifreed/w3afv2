@@ -19,9 +19,12 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from w3af.core.controllers.ci.moth import get_moth_http
+import re
+import urllib.parse
+from typing import ClassVar
+
 from w3af.core.controllers.ci.wavsep import get_wavsep_http
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 CONFIG = {
     "audit": (PluginConfig("lfi"),),
@@ -29,17 +32,72 @@ CONFIG = {
 }
 
 
+LFI_URL = "http://mock/audit/local_file_read/"
+
+ETC_PASSWD = (
+    "root:x:0:0:root:/root:/bin/bash\n"
+    "daemon:x:1:1:daemon:/usr/sbin:/bin/sh\n"
+    "www-data:x:33:33:www-data:/var/www:/bin/sh\n"
+)
+
+LFI_INDEX = """
+<a href="local_file_read.py?file=section.txt">Read</a>
+<a href="local_file_read_full_path.py?file=/var/www/section.txt">Read full path</a>
+<a href="safe_file_read.py?file=section.txt">Safe read</a>
+"""
+
+
+def read_file(value):
+    """Emulate opening `value` and returning its content, without sanitising."""
+    normalized = value.split("\x00")[0]
+    if normalized.endswith("etc/passwd"):
+        return ETC_PASSWD
+    return "This is the content of the section.txt file"
+
+
+def lfi_page(mock_response, request, uri, response_headers):
+    value = urllib.parse.parse_qs(urllib.parse.urlsplit(request.uri).query).get(
+        "file", [""]
+    )[0]
+    response_headers["Content-Type"] = "text/html"
+    return 200, response_headers, read_file(value)
+
+
+def safe_file_read(mock_response, request, uri, response_headers):
+    """Only serves files from a fixed directory, path traversal is stripped."""
+    response_headers["Content-Type"] = "text/html"
+    return 200, response_headers, "This is the content of the section.txt file"
+
+
+LFI_PAGES = {
+    "local_file_read.py": lfi_page,
+    "local_file_read_full_path.py": lfi_page,
+    "safe_file_read.py": safe_file_read,
+}
+
+
+def lfi_site(mock_response, request, uri, response_headers):
+    page = urllib.parse.urlsplit(request.uri).path.rsplit("/", 1)[-1]
+    responder = LFI_PAGES.get(page)
+    if responder is None:
+        response_headers["Content-Type"] = "text/html"
+        return 200, response_headers, LFI_INDEX
+    return responder(mock_response, request, uri, response_headers)
+
+
 class TestLFI(PluginTest):
 
-    target_url = get_moth_http("/audit/local_file_read/")
+    target_url = LFI_URL
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(re.compile(f"{re.escape(LFI_URL)}.*"), lfi_site)
+    ]
 
     def test_found_lfi(self):
         self._scan(self.target_url, CONFIG)
 
-        # Assert the general results
         vulns = self.kb.get("lfi", "lfi")
 
-        # Verify the specifics about the vulnerabilities
         expected = [
             ("local_file_read.py", "file"),
             ("local_file_read_full_path.py", "file"),

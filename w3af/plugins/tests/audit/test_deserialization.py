@@ -23,12 +23,11 @@ import base64
 import binascii
 import json
 import os
-import pickle
+import pickletools
 import re
+import time
 import unittest
-import urllib.error
 import urllib.parse
-import urllib.request
 from pathlib import Path
 from typing import ClassVar
 
@@ -42,124 +41,137 @@ from w3af.core.data.parsers.utils.form_params import FormParameters
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.plugins.audit.deserialization import (
     B64DeserializationExactDelay,
+    DeserializationExactDelay,
     deserialization,
 )
+from w3af.plugins.tests.audit.vulnerable_responses import html_page, request_param
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 test_config = {
     "audit": (PluginConfig("deserialization"),),
 }
 
+DESERIALIZE_URL = "http://mock/deserialize"
+
+SERIALIZED_INT = "I1\n."
+SERIALIZED_DICT = (
+    "(dp0\nS'data'\np1\nS'here'\np2\nsS'cookie'\np3\nS'AAAAAAAAAAAAAAAA'\np4\ns."
+)
+
+
+def emulate_deserialization(data):
+    """
+    Emulate the side effects of deserializing data without running any code:
+    the opcodes are disassembled and the only callable honoured is time.sleep,
+    which is the one the w3af payloads use.
+
+    :raise ValueError: When data is not a valid serialized object
+    """
+    opcodes = [(opcode.name, arg) for opcode, arg, _ in pickletools.genops(data)]
+    if ("GLOBAL", "time sleep") in opcodes:
+        seconds = next(arg for name, arg in opcodes if name == "INT")
+        time.sleep(seconds)
+
+
+def deserialize_response(response_headers, message):
+    try:
+        emulate_deserialization(message)
+    except ValueError as error:
+        return html_page(response_headers, str(error))
+    return html_page(response_headers, "Message received")
+
+
+def b64_site(mock_response, request, uri, response_headers):
+    """Deserialize the base64 decoded message parameter."""
+    try:
+        message = base64.b64decode(request_param(request, "message"))
+    except binascii.Error as error:
+        return html_page(response_headers, str(error))
+    return deserialize_response(response_headers, message)
+
+
+def raw_site(mock_response, request, uri, response_headers):
+    """Deserialize the message parameter."""
+    message = request_param(request, "message").encode("latin-1")
+    return deserialize_response(response_headers, message)
+
+
+def b64(data):
+    return base64.b64encode(data.encode("latin-1")).decode("ascii")
+
 
 class TestDeserializePickle(PluginTest):
 
-    target_url = "http://mock/deserialize?message="
-
-    class DeserializeMockResponse(MockResponse):
-        def get_response(self, http_request, uri, response_headers):
-            uri = urllib.parse.unquote(uri)
-            b64message = uri[uri.find("=") + 1 :]
-
-            try:
-                message = base64.b64decode(b64message)
-            except binascii.Error as e:
-                body = str(e)
-                return self.status, response_headers, body
-
-            try:
-                pickle.loads(message)
-            except (pickle.UnpicklingError, EOFError, ValueError, TypeError) as e:
-                body = str(e)
-                return self.status, response_headers, body
-
-            body = "Message received"
-            return self.status, response_headers, body
+    target_url = f"{DESERIALIZE_URL}?message="
 
     MOCK_RESPONSES: ClassVar[list] = [
-        DeserializeMockResponse(re.compile(".*"), body=None, method="GET", status=200)
+        MockResponse(re.compile(f"{DESERIALIZE_URL}.*"), b64_site),
     ]
 
     def test_found_deserialization_in_pickle(self):
         self._scan(self.target_url, test_config)
+
         vulns = self.kb.get("deserialization", "deserialization")
 
         self.assertEqual(1, len(vulns), vulns)
 
-        # Now some tests around specific details of the found vuln
         vuln = vulns[0]
-
         self.assertEqual("message", vuln.get_token_name())
         self.assertEqual("Insecure deserialization", vuln.get_name())
 
 
 class TestDeserializePickleNotBase64(PluginTest):
 
-    target_url = "http://mock/deserialize?message="
-
-    class DeserializeMockResponse(MockResponse):
-        def get_response(self, http_request, uri, response_headers):
-            uri = urllib.parse.unquote(uri)
-            message = uri[uri.find("=") + 1 :]
-
-            try:
-                pickle.loads(message)
-            except (pickle.UnpicklingError, EOFError, ValueError, TypeError) as e:
-                body = str(e)
-                return self.status, response_headers, body
-
-            body = "Message received"
-            return self.status, response_headers, body
+    target_url = f"{DESERIALIZE_URL}?message="
 
     MOCK_RESPONSES: ClassVar[list] = [
-        DeserializeMockResponse(re.compile(".*"), body=None, method="GET", status=200)
+        MockResponse(re.compile(f"{DESERIALIZE_URL}.*"), raw_site),
     ]
 
     def test_found_deserialization_in_pickle(self):
         self._scan(self.target_url, test_config)
+
         vulns = self.kb.get("deserialization", "deserialization")
 
         self.assertEqual(1, len(vulns), vulns)
 
-        # Now some tests around specific details of the found vuln
         vuln = vulns[0]
-
         self.assertEqual("message", vuln.get_token_name())
         self.assertEqual("Insecure deserialization", vuln.get_name())
 
 
 class TestShouldInjectIsCalled(PluginTest):
 
-    target_url = "http://mock/deserialize?message=this-disables-injection"
-
-    class DeserializeMockResponse(MockResponse):
-        def get_response(self, http_request, uri, response_headers):
-            uri = urllib.parse.unquote(uri)
-            b64message = uri[uri.find("=") + 1 :]
-
-            try:
-                message = base64.b64decode(b64message)
-            except binascii.Error as e:
-                body = str(e)
-                return self.status, response_headers, body
-
-            try:
-                pickle.loads(message)
-            except (pickle.UnpicklingError, EOFError, ValueError, TypeError) as e:
-                body = str(e)
-                return self.status, response_headers, body
-
-            body = "Message received"
-            return self.status, response_headers, body
+    target_url = f"{DESERIALIZE_URL}?message=this-disables-injection"
 
     MOCK_RESPONSES: ClassVar[list] = [
-        DeserializeMockResponse(re.compile(".*"), body=None, method="GET", status=200)
+        MockResponse(re.compile(f"{DESERIALIZE_URL}.*"), b64_site),
     ]
 
     def test_found_deserialization_in_pickle(self):
         self._scan(self.target_url, test_config)
+
         vulns = self.kb.get("deserialization", "deserialization")
 
         self.assertEqual(0, len(vulns), vulns)
+
+
+class TestRawExactDelay(unittest.TestCase):
+    def test_get_payload_sets_the_delay_digits(self):
+        payload = {
+            "1": {
+                "payload": base64.b64encode(b"ctime\nsleep\n(I1\ntR.").decode(),
+                "offsets": [14],
+            },
+            "2": {
+                "payload": base64.b64encode(b"ctime\nsleep\n(I22\ntR.").decode(),
+                "offsets": [14],
+            },
+        }
+        delay = DeserializationExactDelay(payload)
+
+        self.assertEqual("ctime\nsleep\n(I7\ntR.", delay.get_string_for_delay(7))
+        self.assertEqual("ctime\nsleep\n(I35\ntR.", delay.get_string_for_delay(35))
 
 
 class TestShouldInject(unittest.TestCase):
@@ -189,7 +201,7 @@ class TestShouldInject(unittest.TestCase):
         self.assertFalse(self.plugin._should_inject(mutant, "python"))
 
     def test_should_not_inject_qs_with_b64(self):
-        b64data = base64.b64encode("just some random b64 data here")
+        b64data = b64("just some random b64 data here")
         self.url = URL(f"http://moth/?id={b64data}")
         freq = FuzzableRequest(self.url)
 
@@ -200,7 +212,7 @@ class TestShouldInject(unittest.TestCase):
         self.assertFalse(self.plugin._should_inject(mutant, "python"))
 
     def test_should_inject_qs_with_b64_pickle(self):
-        b64data = base64.b64encode(pickle.dumps({"data": "here", "cookie": "A" * 16}))
+        b64data = b64(SERIALIZED_DICT)
         self.url = URL(f"http://moth/?id={b64data}")
         freq = FuzzableRequest(self.url)
 
@@ -211,7 +223,7 @@ class TestShouldInject(unittest.TestCase):
         self.assertTrue(self.plugin._should_inject(mutant, "python"))
 
     def test_should_not_inject_qs_with_b64_pickle_java(self):
-        b64data = base64.b64encode(pickle.dumps(1))
+        b64data = b64(SERIALIZED_INT)
         self.url = URL(f"http://moth/?id={b64data}")
         freq = FuzzableRequest(self.url)
 
@@ -222,7 +234,7 @@ class TestShouldInject(unittest.TestCase):
         self.assertFalse(self.plugin._should_inject(mutant, "java"))
 
     def test_should_inject_qs_with_pickle(self):
-        pickle_data = pickle.dumps(1)
+        pickle_data = urllib.parse.quote(SERIALIZED_INT)
         self.url = URL(f"http://moth/?id={pickle_data}")
         freq = FuzzableRequest(self.url)
 
@@ -252,7 +264,7 @@ class TestShouldInject(unittest.TestCase):
         self.assertTrue(self.plugin._should_inject(m, "python"))
 
     def test_should_inject_cookie_value(self):
-        b64data = base64.b64encode(pickle.dumps({"data": "here", "cookie": "A" * 16}))
+        b64data = b64(SERIALIZED_DICT)
 
         url = URL("http://moth/")
         cookie = Cookie(f"foo={b64data}")

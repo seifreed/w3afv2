@@ -69,7 +69,7 @@ class rosetta_flash(AuditPlugin):
 
         # Only check JSONP endpoints, other "reflections" like XSS are checked
         # in xss.py , have different severity, exploits, etc.
-        if "javascript" not in content_type or "text/plain" not in content_type:
+        if "javascript" not in content_type and "text/plain" not in content_type:
             return
 
         # Note that we're only creating QS mutants, since that's a requirement

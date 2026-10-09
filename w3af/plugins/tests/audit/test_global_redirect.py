@@ -19,10 +19,11 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import re
+import urllib.parse
 from typing import ClassVar
 from unittest import TestCase
 
-from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.http_response import HTTPResponse
@@ -42,9 +43,96 @@ SCAN_CONFIG = {
 }
 
 
+REDIRECT_URL = "http://redirect-site/audit/global_redirect/"
+
+GLOBAL_REDIRECT_INDEX = """
+<a href="redirect-302.py?url=/home">302</a>
+<a href="redirect-header-302.py?url=/home">header 302</a>
+<a href="redirect-302-filtered.py?url=/home">filtered 302</a>
+<a href="redirect-javascript.py?url=/home">javascript</a>
+<a href="redirect-meta.py?url=/home">meta</a>
+<a href="redirect-safe.py?url=/home">safe</a>
+"""
+
+
+def _redirect_target(request):
+    return urllib.parse.parse_qs(urllib.parse.urlsplit(request.uri).query).get(
+        "url", [""]
+    )[0]
+
+
+def redirect_302(mock_response, request, uri, response_headers):
+    target = _redirect_target(request)
+    response_headers["Content-Type"] = "text/html"
+    response_headers["Location"] = target
+    return 302, response_headers, ""
+
+
+def redirect_header_302(mock_response, request, uri, response_headers):
+    target = _redirect_target(request)
+    response_headers["Content-Type"] = "text/html"
+    response_headers["URI"] = target
+    return 302, response_headers, ""
+
+
+def redirect_302_filtered(mock_response, request, uri, response_headers):
+    """Only redirects to absolute http(s) URLs, local paths are kept."""
+    target = _redirect_target(request)
+    response_headers["Content-Type"] = "text/html"
+    if target.startswith(("http://", "https://", "//")):
+        response_headers["Location"] = target
+        return 302, response_headers, ""
+    return 200, response_headers, "<html>Staying here</html>"
+
+
+def redirect_javascript(mock_response, request, uri, response_headers):
+    target = _redirect_target(request)
+    response_headers["Content-Type"] = "text/html"
+    body = f'<html><body><script>window.location = "{target}";</script></body></html>'
+    return 200, response_headers, body
+
+
+def redirect_meta(mock_response, request, uri, response_headers):
+    target = _redirect_target(request)
+    response_headers["Content-Type"] = "text/html"
+    body = (
+        '<html><head><meta http-equiv="refresh" content="0; URL='
+        f'{target}"></head><body>Redirecting</body></html>'
+    )
+    return 200, response_headers, body
+
+
+def redirect_safe(mock_response, request, uri, response_headers):
+    response_headers["Content-Type"] = "text/html"
+    return 200, response_headers, "<html>Nothing to see here</html>"
+
+
+GLOBAL_REDIRECT_PAGES = {
+    "redirect-302.py": redirect_302,
+    "redirect-header-302.py": redirect_header_302,
+    "redirect-302-filtered.py": redirect_302_filtered,
+    "redirect-javascript.py": redirect_javascript,
+    "redirect-meta.py": redirect_meta,
+    "redirect-safe.py": redirect_safe,
+}
+
+
+def global_redirect_site(mock_response, request, uri, response_headers):
+    page = urllib.parse.urlsplit(request.uri).path.rsplit("/", 1)[-1]
+    responder = GLOBAL_REDIRECT_PAGES.get(page)
+    if responder is None:
+        response_headers["Content-Type"] = "text/html"
+        return 200, response_headers, GLOBAL_REDIRECT_INDEX
+    return responder(mock_response, request, uri, response_headers)
+
+
 class TestGlobalRedirect(PluginTest):
 
-    target_url = get_moth_http("/audit/global_redirect/")
+    target_url = REDIRECT_URL
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(re.compile(f"{re.escape(REDIRECT_URL)}.*"), global_redirect_site)
+    ]
 
     def test_found_redirect(self):
         cfg = SCAN_CONFIG["cfg"]
@@ -55,7 +143,6 @@ class TestGlobalRedirect(PluginTest):
 
         self.assertAllVulnNamesEqual("Insecure redirection", vulns)
 
-        # Verify the specifics about the vulnerabilities
         EXPECTED = [
             ("redirect-javascript.py", "url"),
             ("redirect-meta.py", "url"),
