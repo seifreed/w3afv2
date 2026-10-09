@@ -76,6 +76,13 @@ vendorizado requieren una revisión separada antes de cerrar la puntuación.
   sombreado que impedía deserializar valores de la KB.
 - La caché del límite de `InfoSet` conserva ahora una copia del grupo y cumple
   el tipo de retorno documentado en `append_uniq_group`.
+- El parseo de query strings ya no mezcla `bytes` con separadores `str`, y la
+  decodificación porcentual respeta el encoding solicitado. Esto recupera
+  parámetros que Python 3.14 descartaba tras un `TypeError` ocultado.
+- La normalización conserva la barra raíz para URL `file:///...`; los tests
+  usan archivos temporales y la API actual de `multiprocessing`.
+- `cleanup()` y `clear()` invalidan las entradas de la caché de `InfoSet` bajo
+  el lock del KB, evitando que datos cacheados sobrevivan al borrado.
 
 ## Revisión actualizada
 
@@ -84,12 +91,14 @@ La puntuación global permanece en **2.5/10** (Clean Code 3/10, Clean Architectu
 `core.data` todavía importa ampliamente desde `controllers`; los gates globales
 no se han completado y quedan defectos funcionales abiertos.
 
-En las suites DB/KB/headers revisadas: **110 pasaron, 4 fallaron y 1 fue omitida**.
-Los fallos que permanecen son `HistoryItem.test_find` (filtro `has_qs`), una
-prueba de concurrencia de `InfoSet` y dos fixtures de mutants RFI. La prueba de
-identidad del `InfoSet` tras alcanzar el máximo ya pasa.
-Los warnings de dependencias siguen visibles. Las pruebas focalizadas para
-`Headers`, `DataToken`, IDs de Shell y la migración de excepciones pasan.
+En las suites integradas de URL, DB, histórico y KB: **203 pasaron, 3 fueron
+omitidas y no hubo fallos**. El archivo URL pasa con 113 pruebas y 2 omitidas;
+las pruebas de caché, query strings, shell IDs y RFI también pasan en conjunto.
+Persisten dos warnings de dependencias `ldap3/pyasn1`; no se suprimieron.
+
+Esta verificación no cubre el repositorio entero. Siguen pendientes las gates
+globales de Ruff/mypy/Bandit/pip-audit, la cobertura completa y las pruebas que
+requieren el ejecutable externo `retire`.
 
 ## Prioridades de refactor
 

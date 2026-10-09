@@ -75,7 +75,7 @@ def memoized(meth):
     return cache_wrapper
 
 
-def parse_qsl(qs, keep_blank_values=0, strict_parsing=0):
+def parse_qsl(qs, keep_blank_values=0, strict_parsing=0, encoding=DEFAULT_ENCODING):
     """This was a slightly modified version of the function with the same name
     that is defined in urlparse.py . I modified it, and then reverted the patch
     to have different handling of '+':
@@ -105,6 +105,8 @@ def parse_qsl(qs, keep_blank_values=0, strict_parsing=0):
         false (the default), errors are silently ignored. If true,
         errors raise a ValueError exception.
 
+    encoding: Character encoding used to decode percent-encoded octets.
+
     Returns a list, as G-d intended.
     """
     pairs = [s2 for s1 in qs.split("&") for s2 in s1.split(";")]
@@ -122,8 +124,12 @@ def parse_qsl(qs, keep_blank_values=0, strict_parsing=0):
             else:
                 continue
         if len(nv[1]) or keep_blank_values:
-            name = urllib.parse.unquote(nv[0].replace("+", " "))
-            value = urllib.parse.unquote(nv[1].replace("+", " "))
+            name = urllib.parse.unquote(
+                nv[0].replace("+", " "), encoding=encoding, errors="ignore"
+            )
+            value = urllib.parse.unquote(
+                nv[1].replace("+", " "), encoding=encoding, errors="ignore"
+            )
             r.append((name, value))
 
     return r
@@ -142,14 +148,13 @@ def parse_qs(qstr, ignore_exc=True, encoding=DEFAULT_ENCODING):
     qs = QueryString(encoding=encoding)
 
     if qstr:
-        # convert to string if unicode
-        if isinstance(qstr, str):
-            qstr = qstr.encode(encoding, "ignore")
-
         try:
             odict = OrderedDict()
             for name, value in parse_qsl(
-                qstr, keep_blank_values=True, strict_parsing=False
+                qstr,
+                keep_blank_values=True,
+                strict_parsing=False,
+                encoding=encoding,
             ):
                 if name in odict:
                     odict[name].append(value)
@@ -160,13 +165,7 @@ def parse_qs(qstr, ignore_exc=True, encoding=DEFAULT_ENCODING):
                 raise BaseFrameworkException('Error while parsing "%r"' % qstr)
         else:
 
-            def decode(item):
-                return (
-                    item[0].decode(encoding, "ignore"),
-                    [e.decode(encoding, "ignore") for e in item[1]],
-                )
-
-            qs.update(decode(item) for item in list(odict.items()))
+            qs.update(odict.items())
 
     return qs
 
@@ -490,7 +489,10 @@ class URL(DiskItem):
             else:
                 if tokens:
                     tokens.pop()
-        self.path = "/".join(tokens) + ("/" if trailer_slash else "")
+        normalized_path = "/".join(tokens)
+        if trailer_slash and normalized_path:
+            normalized_path += "/"
+        self.path = "/" + normalized_path
 
         #
         # Put everything together, do NOT use urlparse.urljoin here or you'll
@@ -653,7 +655,7 @@ class URL(DiskItem):
         if is_ip_address(self.netloc):
             return self.netloc
 
-        extract = TLDExtract(suffix_list_url=False, fallback_to_snapshot=True)
+        extract = TLDExtract(suffix_list_urls=(), fallback_to_snapshot=True)
         extract_result = extract(self.get_domain())
         return "%s.%s" % (extract_result.domain, extract_result.suffix)
 
@@ -765,9 +767,9 @@ class URL(DiskItem):
         :return: A URL that represents the current URL without URL
                  encoded characters.
         """
-        unquoted_url = urllib.parse.unquote(str(self))
         enc = self._encoding
-        return URL(unquoted_url.decode(enc, "ignore"), enc)
+        unquoted_url = urllib.parse.unquote(str(self), encoding=enc, errors="ignore")
+        return URL(unquoted_url, enc)
 
     def url_encode(self):
         """

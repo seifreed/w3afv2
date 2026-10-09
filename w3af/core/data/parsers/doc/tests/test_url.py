@@ -21,18 +21,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import pickle
+import tempfile
 import unittest
 import urllib.error
 import urllib.parse
 import urllib.request
 import warnings
-from multiprocessing.queues import SimpleQueue
+from multiprocessing import get_context
+from pathlib import Path
 
 from unittest import SkipTest
 
 from w3af.core.data.dc.query_string import QueryString
 from w3af.core.data.dc.urlencoded_form import URLEncodedForm
-from w3af.core.data.misc.encoding import smart_str
 from w3af.core.data.parsers.doc.url import URL, parse_qs
 
 # Be strict on unicode warnings
@@ -509,12 +510,12 @@ class TestURLParser(unittest.TestCase):
     def test_str_special_encoding_filename(self):
         self.assertEqual(
             str(URL("http://w3af.com/indéx.html", "latin1")),
-            "http://w3af.com/indéx.html".encode("latin1"),
+            "http://w3af.com/indéx.html",
         )
 
     def test_str_special_encoding_query_string(self):
         url = URL("http://w3af.com/a/b/é.php?x=á")
-        self.assertEqual(str(url), "http://w3af.com/a/b/é.php?x=á")
+        self.assertEqual(str(url), "http://w3af.com/a/b/é.php?x=%C3%A1")
 
     def test_str_special_encoding_query_string_urlencoded(self):
         msg = (
@@ -549,7 +550,7 @@ class TestURLParser(unittest.TestCase):
 
     def test_unicode_special_encoding_query_string(self):
         url = URL("http://w3af.com/a/b/é.php?x=á")
-        self.assertEqual(str(url), "http://w3af.com/a/b/é.php?x=á")
+        self.assertEqual(str(url), "http://w3af.com/a/b/é.php?x=%C3%A1")
 
     #
     #    all_but_scheme
@@ -880,7 +881,9 @@ class TestURLParser(unittest.TestCase):
 
         u = URL("https://w3af.com/xyz/def.html?file=/etc/passwd")
         u.set_file_name("abc.pdf")
-        self.assertEqual(u.url_string, "https://w3af.com/xyz/abc.pdf?file=/etc/passwd")
+        self.assertEqual(
+            u.url_string, "https://w3af.com/xyz/abc.pdf?file=%2Fetc%2Fpasswd"
+        )
 
         u = URL("https://w3af.com/")
         u.set_file_name("abc.pdf")
@@ -945,18 +948,14 @@ class TestURLParser(unittest.TestCase):
 
     def test_get_path_qs_string(self):
         u = URL("https://domain/konto/insättning?amount=1&method=abc")
-        self.assertEqual(
-            smart_str(u.get_path_qs()), "/konto/insättning?amount=1&method=abc"
-        )
+        self.assertEqual(u.get_path_qs(), "/konto/insättning?amount=1&method=abc")
 
         u = URL("https://domain/konto/insättning;x=1?amount=1&method=abc")
-        self.assertEqual(
-            smart_str(u.get_path_qs()), "/konto/insättning;x=1?amount=1&method=abc"
-        )
+        self.assertEqual(u.get_path_qs(), "/konto/insättning;x=1?amount=1&method=abc")
 
         u = URL("https://domain/konto/insättning;insättning=1?amount=1&method=abc")
         self.assertEqual(
-            smart_str(u.get_path_qs()),
+            u.get_path_qs(),
             "/konto/insättning;insättning=1?amount=1&method=abc",
         )
 
@@ -1060,8 +1059,13 @@ class TestURLParser(unittest.TestCase):
         self.assertTrue(bool(URL("http://www.w3af.com")))
 
     def test_file_url_full_path(self):
-        u = URL("file:///etc/passwd")
-        self.assertIn("root", urllib.request.urlopen(u.url_string).read())
+        with tempfile.TemporaryDirectory() as directory:
+            file_path = Path(directory) / "content.txt"
+            file_path.write_text("local file", encoding="utf-8")
+            url = URL(file_path.as_uri())
+
+            with urllib.request.urlopen(url.url_string) as response:
+                self.assertEqual(response.read(), b"local file")
 
     #
     #   Test memoize
@@ -1102,7 +1106,7 @@ class TestURLParser(unittest.TestCase):
         """
         https://github.com/andresriancho/w3af/issues/8748
         """
-        sq = SimpleQueue()
+        sq = get_context().SimpleQueue()
         u1 = URL("http://www.w3af.com/")
         sq.put(u1)
         u2 = sq.get()

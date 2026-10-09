@@ -63,7 +63,7 @@ class TestHistoryItem(unittest.TestCase):
         tag_value = rand_alnum(10)
 
         for i in range(500):
-            request = HTTPRequest(url, data="a=1")
+            request = HTTPRequest(url)
             code = 200
             if i == find_id:
                 code = 302

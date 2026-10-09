@@ -513,7 +513,12 @@ class DBKnowledgeBase(BasicKnowledgeBase):
 
         query = "DELETE FROM %s WHERE location_a = ? and location_b = ?"
         params = (location_a, location_b)
-        self.db.execute(query % self.table_name, params)
+        with self._kb_lock:
+            self.db.execute(query % self.table_name, params)
+            cache = self._reached_max_info_instances_cache
+            for key in cache.keys():
+                if key[:2] == (location_a, location_b):
+                    del cache[key]
 
     @requires_setup
     def raw_write(self, location_a, location_b, value):
@@ -847,16 +852,18 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         """
         Cleanup internal data.
         """
-        self.db.execute("DELETE FROM %s WHERE 1=1" % self.table_name)
+        with self._kb_lock:
+            self.db.execute("DELETE FROM %s WHERE 1=1" % self.table_name)
+            self._reached_max_info_instances_cache.clear()
 
-        # Remove the old, create new.
-        old_urls = self.urls
-        self.urls = DiskSet(table_prefix="kb_urls")
-        old_urls.cleanup()
+            # Remove the old, create new.
+            old_urls = self.urls
+            self.urls = DiskSet(table_prefix="kb_urls")
+            old_urls.cleanup()
 
-        old_fuzzable_requests = self.fuzzable_requests
-        self.fuzzable_requests = DiskSet(table_prefix="kb_fuzzable_requests")
-        old_fuzzable_requests.cleanup()
+            old_fuzzable_requests = self.fuzzable_requests
+            self.fuzzable_requests = DiskSet(table_prefix="kb_fuzzable_requests")
+            old_fuzzable_requests.cleanup()
 
         self.observers.clear()
 
