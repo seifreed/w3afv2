@@ -1240,7 +1240,9 @@ class ExtendedUrllib:
             msg %= args
 
         else:
-            printable_data = urllib.parse.unquote_plus(rdata)
+            printable_data = urllib.parse.unquote_plus(
+                smart_unicode(rdata, errors="replace")
+            )
             if len(rdata) > 75:
                 printable_data = f"{printable_data[:75]}..."
                 printable_data = printable_data.replace("\n", " ")
