@@ -86,7 +86,7 @@ class ProxyHandler:
         # for us, which is great, but we need to change the content-encoding
         # for the response in order to match the decoded body and avoid the
         # HTTP client using the proxy from failing
-        headers["content-encoding"] = ["identity"]
+        headers["content-encoding"] = "identity"
 
         return http.Response.make(response.get_code(), body, headers)
 
