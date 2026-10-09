@@ -27,15 +27,15 @@ import zipfile
 import pytest
 
 import w3af.core.data.kb.knowledge_base as kb
-from w3af.core.data.db.exceptions import DBException
-from w3af.core.controllers.misc.temp_dir import create_temp_dir, remove_temp_dir
 from w3af.core.data.db.dbms import get_default_temp_db_instance
+from w3af.core.data.db.exceptions import DBException
 from w3af.core.data.db.history import HistoryItem
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.HTTPRequest import HTTPRequest
 from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.filesystem import create_temp_dir, remove_temp_dir
 from w3af.plugins.tests.helper import LOREM
 
 

@@ -28,7 +28,6 @@ import subprocess
 import tempfile
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.misc.temp_dir import get_temp_dir
 from w3af.core.controllers.misc.which import which
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
@@ -39,6 +38,7 @@ from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.options.option_types import URL as URL_OPTION
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.filesystem import get_temp_dir
 
 
 class retirejs(GrepPlugin):

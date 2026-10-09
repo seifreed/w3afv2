@@ -28,9 +28,9 @@ import pytest
 from w3af.core.controllers.core_helpers.tests.test_profiles import (
     assertProfileOptionsPreserved,
 )
-from w3af.core.controllers.misc.temp_dir import create_temp_dir, remove_temp_dir
 from w3af.core.data.db.startup_cfg import StartUpConfig
 from w3af.core.data.profile.profile import profile
+from w3af.core.filesystem import create_temp_dir, remove_temp_dir
 from w3af.core.ui.console.console_ui import ConsoleUI
 from w3af.core.ui.console.tests.helper import ConsoleTestHelper
 

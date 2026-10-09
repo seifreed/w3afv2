@@ -24,9 +24,9 @@ import unittest
 
 import pytest
 
-from w3af.core.controllers.misc.temp_dir import create_temp_dir
 from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.db.disk_dict import DiskDict
+from w3af.core.filesystem import create_temp_dir
 
 
 @pytest.mark.smoke

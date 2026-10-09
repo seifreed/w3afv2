@@ -25,14 +25,14 @@ import unittest
 
 import pytest
 
+import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.bruteforce.bruteforcer import (
     PasswordBruteforcer,
     UserPasswordBruteforcer,
     get_profiling_results,
 )
-from w3af.core.controllers.misc.temp_dir import create_temp_dir
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.filesystem import create_temp_dir
 
 
 class TestPasswordBruteforcer(unittest.TestCase):

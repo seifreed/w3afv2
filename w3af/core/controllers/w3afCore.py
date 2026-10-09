@@ -63,11 +63,6 @@ from w3af.core.controllers.misc.home_dir import (
     create_home_dir,
     verify_dir_has_perm,
 )
-from w3af.core.controllers.misc.temp_dir import (
-    TEMP_DIR,
-    create_temp_dir,
-    remove_temp_dir,
-)
 from w3af.core.controllers.output_manager import (
     fresh_output_manager_inst,
     log_sink_factory,
@@ -84,6 +79,11 @@ from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.data.parsers import parser_cache
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
+from w3af.core.filesystem import (
+    TEMP_DIR,
+    create_temp_dir,
+    remove_temp_dir,
+)
 from w3af.core.paths import get_home_dir
 
 NO_MEMORY_MSG = (

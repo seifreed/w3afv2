@@ -27,10 +27,10 @@ import tempfile
 import zlib
 
 from w3af import ROOT_PATH
-from w3af.core.controllers.misc.temp_dir import get_temp_dir
 from w3af.core.data.options.baseoption import BaseOption
 from w3af.core.data.options.option_types import INPUT_FILE
 from w3af.core.exceptions import BaseFrameworkException
+from w3af.core.filesystem import get_temp_dir
 
 ROOT_PATH_VAR = "%ROOT_PATH%"
 

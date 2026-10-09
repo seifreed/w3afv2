@@ -1,5 +1,5 @@
 """
-temp_dir.py
+filesystem.py
 
 Copyright 2009 Andres Riancho
 
@@ -31,27 +31,20 @@ TEMP_DIR = os.path.join(get_home_dir(), "tmp", str(os.getpid()))
 
 
 def get_temp_dir():
-    """
-    :return: The path where we should create the dir.
-    """
+    """Return the process-specific directory used for temporary data."""
     return TEMP_DIR
 
 
 def create_temp_dir():
-    """
-    Create the temp directory for w3af to work inside.
-
-    :return: A string that contains the temp directory to use,
-             in Linux: "~/.w3af/tmp/<pid>"
-    """
+    """Create the process-specific temporary directory with user-only access."""
     complete_dir = get_temp_dir()
     if not os.path.exists(complete_dir):
         try:
             os.makedirs(complete_dir)
-        except OSError as ose:
-            # I don't care if someone already created it in a different thread,
-            # but if we have any other exception, we raise!
-            if ose.errno != errno.EEXIST:
+        except OSError as error:
+            # Concurrent starts can create the same directory.
+            # https://circleci.com/gh/andresriancho/w3af/1347
+            if error.errno != errno.EEXIST:
                 raise
 
         os.chmod(complete_dir, stat.S_IRWXU)
@@ -59,7 +52,5 @@ def create_temp_dir():
 
 
 def remove_temp_dir(ignore_errors=False):
-    """
-    Remove the temp directory.
-    """
+    """Remove the process-specific temporary directory."""
     shutil.rmtree(get_temp_dir(), ignore_errors=ignore_errors)

@@ -24,9 +24,9 @@ import unittest
 
 import httpretty
 
-from w3af.core.controllers.misc.temp_dir import create_temp_dir
 from w3af.core.data.search_engines.pks import pks
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
+from w3af.core.filesystem import create_temp_dir
 
 #
 # Good idea to update this every now and then using:

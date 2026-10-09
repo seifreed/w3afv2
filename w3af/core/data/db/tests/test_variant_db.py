@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-from w3af.core.controllers.misc.temp_dir import create_temp_dir
 from w3af.core.controllers.misc_settings import MiscSettings
 from w3af.core.data.db.clean_dc import (
     FILENAME_PLACEHOLDER,
@@ -43,6 +42,7 @@ from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.utils.form_params import FormParameters
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.filesystem import create_temp_dir
 
 
 def fr(url):

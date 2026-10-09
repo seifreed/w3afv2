@@ -24,7 +24,7 @@ import os
 import string
 from random import choice
 
-from w3af.core.controllers.misc.temp_dir import get_temp_dir
+from w3af.core.filesystem import get_temp_dir
 
 
 class GenericBloomFilter:

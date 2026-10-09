@@ -32,8 +32,8 @@ import pytest
 
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.controllers.daemons.proxy import InterceptProxy
-from w3af.core.controllers.misc.temp_dir import create_temp_dir
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
+from w3af.core.filesystem import create_temp_dir
 
 
 @pytest.mark.moth

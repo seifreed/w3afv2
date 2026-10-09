@@ -26,13 +26,12 @@ import os.path
 import unittest
 from xml.etree import ElementTree
 
-from lxml import etree
 import pytest
+from lxml import etree
 
 import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.controllers.ci.moth import get_moth_http
-from w3af.core.controllers.misc.temp_dir import create_temp_dir, remove_temp_dir
 from w3af.core.controllers.w3afCore import w3afCore
 from w3af.core.data.constants import severity
 from w3af.core.data.db.history import HistoryItem
@@ -46,6 +45,7 @@ from w3af.core.data.options.option_types import OUTPUT_FILE
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.HTTPRequest import HTTPRequest
 from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.filesystem import create_temp_dir, remove_temp_dir
 from w3af.plugins.output.xml_file import (
     CachedXMLNode,
     Finding,

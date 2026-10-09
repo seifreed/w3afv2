@@ -593,3 +593,24 @@ opciones que ya no están en el resultado guardado, ejecución CLI que requiere
 **3.1/10**: mejora un contrato compartido de infraestructura y datos, pero
 persisten los acoplamientos entre capas, las gates globales y cobertura
 incompleta.
+
+## Avance: filesystem compartido fuera de controllers
+
+`get_temp_dir`, `create_temp_dir` y `remove_temp_dir` describen infraestructura
+de filesystem y eran consumidas directamente por `core.data`, plugins y tests.
+Se trasladaron sin cambiar su comportamiento a `core.filesystem`, junto con
+`TEMP_DIR`, y se actualizaron todos los imports; no queda un alias en
+`controllers.misc.temp_dir`.
+
+Black, Ruff (`F401`, `I001`) y compilación pasan en los 46 archivos Python
+afectados. La suite de `InputFileOption` pasa (**14 tests**). En una ejecución
+combinada, esa suite vuelve a pasar pero `mangle.sed` falla en tres casos por
+llamar `HTTPRequest.add_data`, método ausente en la implementación actual; el
+cambio solo actualizó su import. La suite de DB/cache quedó bloqueada durante la
+finalización de workers `SQLiteExecutor` y se interrumpió; por tanto no se
+considera validada. `git diff --check` queda limpio.
+
+La puntuación global pasa a **3.2/10**: se elimina otra dependencia ascendente
+de controllers desde datos e infraestructura compartida, pero siguen
+pendientes los numerosos acoplamientos restantes, cobertura completa y gates
+globales.
