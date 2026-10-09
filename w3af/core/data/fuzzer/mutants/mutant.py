@@ -143,7 +143,7 @@ class Mutant(DiskItem):
     def __getattr__(self, name):
         if name.startswith("__"):
             raise AttributeError(
-                "%s instance has no attribute '%s'" % (self.__class__.__name__, name)
+                f"{self.__class__.__name__} instance has no attribute '{name}'"
             )
         return getattr(self._freq, name)
 
@@ -174,8 +174,8 @@ class Mutant(DiskItem):
         )
 
         if token is not None:
-            msg += ' The modified parameter was "%s".' % smart_str_ignore(
-                token.get_name()
+            msg += ' The modified parameter was "{}".'.format(
+                smart_str_ignore(token.get_name())
             )
 
         return msg
@@ -236,7 +236,7 @@ class Mutant(DiskItem):
 
                 # Only fuzz the specified parameters (if any)
                 # or fuzz all of them (the fuzzable_param_list == [] case)
-                if not fuzzable_param_list == []:
+                if fuzzable_param_list != []:
                     if not token.get_name() in fuzzable_param_list:
                         continue
 
@@ -261,7 +261,7 @@ class Mutant(DiskItem):
                         raise RuntimeError(msg % type(payload))
 
                     original_value = token.get_original_value()
-                    token.set_value("%s%s" % (original_value, payload))
+                    token.set_value(f"{original_value}{payload}")
                 else:
                     token.set_value(payload)
 

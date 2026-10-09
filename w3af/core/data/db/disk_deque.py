@@ -98,11 +98,13 @@ class DiskDeque:
             return cmp(type(self), type(other))
         return cmp(list(self), list(other))
 
-    def __repr__(self, _track=[]):
+    def __repr__(self, _track=None):
+        if _track is None:
+            _track = []
         if id(self) in _track:
             return "..."
         _track.append(id(self))
-        r = "deque(%r)" % (list(self),)
+        r = f"deque({list(self)!r})"
         _track.remove(id(self))
         return r
 
@@ -118,9 +120,11 @@ class DiskDeque:
     def __copy__(self):
         return self.__class__(self)
 
-    def __deepcopy__(self, memo={}):
+    def __deepcopy__(self, memo=None):
         from copy import deepcopy
 
+        if memo is None:
+            memo = {}
         result = self.__class__()
         memo[id(self)] = result
         result.__init__(deepcopy(tuple(self), memo))

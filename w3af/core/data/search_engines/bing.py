@@ -112,7 +112,7 @@ class BingResult:
         self.URL = url
 
     def __repr__(self):
-        return "<bing result %s>" % self.URL
+        return f"<bing result {self.URL}>"
 
     def __eq__(self, other):
         return self.URL == other.URL

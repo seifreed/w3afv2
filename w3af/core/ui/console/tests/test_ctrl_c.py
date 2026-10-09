@@ -36,7 +36,7 @@ from w3af.core.controllers.ci.moth import get_moth_http
 @pytest.mark.fails
 class TestHandleCtrlC(unittest.TestCase):
 
-    SCRIPT = "%s/core/ui/console/tests/data/spider_long.w3af" % ROOT_PATH
+    SCRIPT = f"{ROOT_PATH}/core/ui/console/tests/data/spider_long.w3af"
 
     def prepare_script(self):
         fhandler = tempfile.NamedTemporaryFile(

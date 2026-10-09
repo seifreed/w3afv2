@@ -54,13 +54,13 @@ def get_days_since_last_update(path):
              returned.
     """
     git = Git(".")
-    cmd_str = "git log -1 --format=%%cd %s" % path
+    cmd_str = f"git log -1 --format=%cd {path}"
     cmd = shlex.split(cmd_str)
 
     try:
         date_str = git.execute(command=cmd, with_extended_output=False)
     except GitCommandError:
-        raise ValueError('"%s" is not in tracked by this repository.' % path)
+        raise ValueError(f'"{path}" is not in tracked by this repository.')
 
     # The date_str is in the following format: Sat Jun 21 10:20:31 2014 -0300
     # We need to parse it, and then do some date math to return the result

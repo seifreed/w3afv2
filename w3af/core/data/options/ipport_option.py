@@ -51,7 +51,7 @@ class IPPortOption(BaseOption):
             raise BaseFrameworkException(msg)
         else:
             if not is_ip_address(ip):
-                msg = 'Invalid IP address specified ("%s")' % ip
+                msg = f'Invalid IP address specified ("{ip}")'
                 raise BaseFrameworkException(msg)
 
             try:

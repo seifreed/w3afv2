@@ -23,8 +23,8 @@ import os
 import re
 import shutil
 
-from github import Github
 import pytest
+from github import Github
 
 from w3af import ROOT_PATH
 from w3af.core.controllers.ci.moth import get_moth_http
@@ -88,7 +88,7 @@ class TestConsoleBugReport(ConsoleTestHelper):
             "grep path_disclosure",
             "back",
             "target",
-            "set target %s" % (target),
+            f"set target {target}",
             "back",
             "start",
             "bug-report",

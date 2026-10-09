@@ -11,7 +11,7 @@ from jinja2 import Template
 USAGE = """\
 Usage:
 
-    ./build-crawl-test.py --pages=200 --parameters-per-page=0.3 --forms=0.1 --form-params=3 --output=site/
+    ./build_crawl_test.py --pages=200 --parameters-per-page=0.3 --forms=0.1 --form-params=3 --output=site/
 
 Description:
 
@@ -54,7 +54,7 @@ def _main():
         "output=",
     ]
 
-    options, remainder = getopt.getopt(sys.argv[1:], "p:q:f:g:o", long_params)
+    options, _remainder = getopt.getopt(sys.argv[1:], "p:q:f:g:o", long_params)
 
     pages = None
     parameters_per_page = None
@@ -175,7 +175,7 @@ def generate_page_filename(page_num):
 
 
 def generate_parameter_name(page_num, form_num, param_num):
-    param_id = "%s-%s-%s" % (page_num, form_num, param_num)
+    param_id = f"{page_num}-{form_num}-{param_num}"
     return generate_identifier(param_id, "PARAMETER")
 
 
@@ -201,7 +201,7 @@ def get_query_string_for_page(page_num, parameters_per_page):
         param_name = generate_parameter_name(page_num, qs_num, qs_num)
         param_value = "1"
 
-        query_string.append("%s=%s" % (param_name, param_value))
+        query_string.append(f"{param_name}={param_value}")
 
     return "&".join(query_string)
 

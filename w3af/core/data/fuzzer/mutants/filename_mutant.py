@@ -60,8 +60,7 @@ class FileNameMutant(URLPartsMutant):
             encoded = urllib.parse.quote_plus(encoded, safe=self._safe_encode_chars)
 
         domain_path.set_file_name(
-            "%s%s%s"
-            % (self._url_parts_dc.url_start, encoded, self._url_parts_dc.url_end)
+            f"{self._url_parts_dc.url_start}{encoded}{self._url_parts_dc.url_end}"
         )
         return domain_path
 

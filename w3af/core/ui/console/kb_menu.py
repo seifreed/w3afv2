@@ -80,7 +80,7 @@ class kbMenu(menu):
                     desc = self.__getters[p]
                     self._list_objects(desc[1:], desc[0]())
                 else:
-                    om.out.console("Type %s is unknown" % p)
+                    om.out.console(f"Type {p} is unknown")
         else:
             om.out.console("Parameter type is missing, see the help:")
             self._cmd_help(["list"])
@@ -104,7 +104,7 @@ class kbMenu(menu):
 
         template_name = params[0]
         if template_name not in get_template_names():
-            om.out.console("Type %s is unknown" % template_name)
+            om.out.console(f"Type {template_name} is unknown")
             return
 
         # Now we use the fact that templates are configurable just like
@@ -144,6 +144,6 @@ class StoreOnBackConfigMenu(ConfigMenu):
             )
             om.out.console(msg % (vuln_name, e))
         else:
-            om.out.console('Stored "%s" in the knowledge base.' % vuln_name)
+            om.out.console(f'Stored "{vuln_name}" in the knowledge base.')
 
         return self._console.back

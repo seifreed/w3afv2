@@ -82,7 +82,7 @@ def run_simple(
     if os.environ.get("WERKZEUG_RUN_MAIN") != "true":
         display_hostname = hostname != "*" and hostname or "localhost"
         if ":" in display_hostname:
-            display_hostname = "[%s]" % display_hostname
+            display_hostname = f"[{display_hostname}]"
         quit_msg = "(Press CTRL+C to quit)"
         _log(
             "info",

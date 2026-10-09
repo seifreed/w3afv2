@@ -90,7 +90,7 @@ def removePrefix(s, prefix="!"):
         return s
 
 
-def suggest(tree, part, skipList=[]):
+def suggest(tree, part, skipList=None):
     """
     The basic autocompletion logic.
     :param tree: dict of list to take possible completions from.
@@ -101,11 +101,11 @@ def suggest(tree, part, skipList=[]):
         (currently, only lengths of p's are used).
     :author: Alexander Berezhnoy (alexander.berezhnoy |at| gmail.com)
     """
+    if skipList is None:
+        skipList = []
     try:
         list = list(tree.keys())
-        dir = True
     except:
-        dir = False
         list = tree
 
     #    skipList = []

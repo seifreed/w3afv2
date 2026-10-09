@@ -121,7 +121,7 @@ class pluginsTypeMenu(menu):
                     self._name, p
                 ).get_options()
             except Exception as e:
-                om.out.error('Error while reading plugin options: "%s"' % e)
+                om.out.error(f'Error while reading plugin options: "{e}"')
                 sys.exit(-8)
             else:
                 self._plugins[p] = len(options)
@@ -146,7 +146,7 @@ class pluginsTypeMenu(menu):
 
     def execute(self, tokens):
         if len(tokens) > 0:
-            command, params = tokens[0], tokens[1:]
+            command, _params = tokens[0], tokens[1:]
             # print "command: " + command + "; " + str(self.get_commands())
             if command in self.get_commands():
                 return menu.execute(self, tokens)
@@ -168,7 +168,7 @@ class pluginsTypeMenu(menu):
                 disabling = False
 
             if plugin != "all" and plugin not in self._plugins:
-                raise BaseFrameworkException("Unknown plugin: '%s'" % plugin)
+                raise BaseFrameworkException(f"Unknown plugin: '{plugin}'")
 
             if disabling:
                 if plugin == "all":
@@ -210,7 +210,7 @@ class pluginsTypeMenu(menu):
 
         plugin_name = params[0]
         if plugin_name not in self._plugins:
-            raise BaseFrameworkException("Unknown plugin: '%s'" % plugin_name)
+            raise BaseFrameworkException(f"Unknown plugin: '{plugin_name}'")
 
         plugin = self._w3af.plugins.get_plugin_inst(self._name, plugin_name)
         long_desc = plugin.get_long_desc()
@@ -269,7 +269,7 @@ class pluginsTypeMenu(menu):
         name = params[0]
 
         if name not in self._plugins:
-            raise BaseFrameworkException("Unknown plugin: '%s'" % name)
+            raise BaseFrameworkException(f"Unknown plugin: '{name}'")
 
         if name in self._configs:
             config = self._configs[name]

@@ -43,5 +43,5 @@ class StringOption(BaseOption):
         try:
             return str(value)
         except Exception:
-            msg = 'Invalid string option value "%s".' % value
+            msg = f'Invalid string option value "{value}".'
             raise BaseFrameworkException(msg)

@@ -34,7 +34,7 @@ class TestW3afConsole(unittest.TestCase):
         try:
             compiler.compile(open("w3af_console").read(), "/tmp/foo.tmp", "exec")
         except SyntaxError as se:
-            self.assertTrue(False, 'Error in w3af_console code "%s"' % se)
+            self.assertTrue(False, f'Error in w3af_console code "{se}"')
 
     def test_get_prompt(self):
         # We want to get the prompt, not a disclaimer message
@@ -59,7 +59,7 @@ class TestW3afConsole(unittest.TestCase):
 
         expected_prompt = "w3af>>>"
 
-        stdout, stderr = p.communicate("exit\r\n")
+        stdout, _stderr = p.communicate("exit\r\n")
 
         msg = 'Failed to find "%s" in "%s" using "%s" as python executable.'
         msg = msg % (expected_prompt, stdout, python_executable)

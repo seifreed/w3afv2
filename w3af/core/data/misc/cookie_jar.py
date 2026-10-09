@@ -135,5 +135,5 @@ class ImprovedMozillaCookieJar(MozillaCookieJar):
         except Exception:
             _warn_unhandled_exception()
             raise LoadError(
-                "invalid Netscape format cookies file %r: %r" % (filename, line)
+                f"invalid Netscape format cookies file {filename!r}: {line!r}"
             )

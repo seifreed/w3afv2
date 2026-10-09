@@ -148,8 +148,8 @@ def process_cmd_args_config(app):
         except:
             file.close(args.config_file)
             raise ArgumentTypeError(
-                "Error loading config file %s. Please check"
-                " it exists and is a valid YAML file." % args.config_file.name
+                f"Error loading config file {args.config_file.name}. Please check"
+                " it exists and is a valid YAML file."
             )
 
         for k in yaml_conf:
@@ -160,7 +160,7 @@ def process_cmd_args_config(app):
                     "Error: you appear to have specified"
                     " options in the config file and on the"
                     " command line. Please resolve any"
-                    " conflicting options and try again: %s" % k
+                    f" conflicting options and try again: {k}"
                 )
             else:
                 # Flask contains a number of built-in server options that can

@@ -45,7 +45,7 @@ class IPOption(BaseOption):
             return None
 
         if not is_ip_address(value):
-            msg = 'Invalid IP address specified ("%s")' % value
+            msg = f'Invalid IP address specified ("{value}")'
             raise BaseFrameworkException(msg)
 
         return value

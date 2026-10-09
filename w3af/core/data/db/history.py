@@ -222,7 +222,7 @@ class HistoryItem:
         self.response_size = int(row[11])
 
     def _get_trace_filename_for_id(self, _id):
-        return os.path.join(self._session_dir, "%s.%s" % (_id, self._EXTENSION))
+        return os.path.join(self._session_dir, f"{_id}.{self._EXTENSION}")
 
     def _load_from_trace_file(self, _id):
         """
@@ -235,7 +235,7 @@ class HistoryItem:
         file_name = self._get_trace_filename_for_id(_id)
 
         if not os.path.exists(file_name):
-            raise TraceReadException("Trace file %s does not exist" % file_name)
+            raise TraceReadException(f"Trace file {file_name} does not exist")
 
         # The file exists, but the contents might not be all on-disk yet
         serialized_req_res = open(file_name, "rb").read()
@@ -247,7 +247,7 @@ class HistoryItem:
         except ValueError:
             # ValueError: Extra data. returned when msgpack finds invalid
             # data in the file
-            raise TraceReadException("Failed to load %s" % serialized_req_res)
+            raise TraceReadException(f"Failed to load {serialized_req_res}")
 
         try:
             request_dict, response_dict, canary = data
@@ -255,13 +255,13 @@ class HistoryItem:
             # https://github.com/andresriancho/w3af/issues/1101
             # 'NoneType' object is not iterable
             raise TraceReadException(
-                "Not all components found in %s" % serialized_req_res
+                f"Not all components found in {serialized_req_res}"
             )
 
         if not canary == self._MSGPACK_CANARY:
             # read failed, most likely because the file write is not
             # complete but for some reason it was a valid msgpack file
-            raise TraceReadException("Invalid canary in %s" % serialized_req_res)
+            raise TraceReadException(f"Invalid canary in {serialized_req_res}")
 
         request = HTTPRequest.from_dict(request_dict)
         response = HTTPResponse.from_dict(response_dict)
@@ -333,7 +333,7 @@ class HistoryItem:
             if os.path.exists(file_name):
                 return self._load_from_trace_file_concurrent(_id)
 
-            raise TraceReadException("No zip nor trace file for ID %s" % _id)
+            raise TraceReadException(f"No zip nor trace file for ID {_id}")
 
     def _load_from_zip(self, _id):
         files = os.listdir(self.get_session_dir())
@@ -345,7 +345,7 @@ class HistoryItem:
             if start <= _id <= end:
                 return self._load_from_zip_file(_id, zip_file)
 
-        raise TraceReadException("No zip file contains %s" % _id)
+        raise TraceReadException(f"No zip file contains {_id}")
 
     def _load_from_zip_file(self, _id, zip_file):
         try:
@@ -360,7 +360,7 @@ class HistoryItem:
             raise TraceReadException(msg % args)
 
         try:
-            serialized_req_res = _zip.read("%s.%s" % (_id, self._EXTENSION))
+            serialized_req_res = _zip.read(f"{_id}.{self._EXTENSION}")
         except KeyError:
             # We get here when the zip file doesn't contain the trace file
             msg = "Zip file %s does not contain ID %s"
@@ -469,21 +469,21 @@ class HistoryItem:
 
         if not self.id:
             sql = (
-                "INSERT INTO %s "
+                f"INSERT INTO {self._DATA_TABLE} "
                 "(id, url, code, tag, mark, info, time, msg, content_type, "
                 "charset, method, response_size, codef, alias, has_qs) "
-                "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)" % self._DATA_TABLE
+                "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
             )
             self._db.execute(sql, values)
             self.id = self.response.get_id()
         else:
             values.append(self.id)
             sql = (
-                "UPDATE %s"
+                f"UPDATE {self._DATA_TABLE}"
                 " SET id = ?, url = ?, code = ?, tag = ?, mark = ?,"
                 " info = ?, time = ?, msg = ?, content_type = ?,"
                 " charset = ?, method = ?, response_size = ?, codef = ?,"
-                " alias = ?, has_qs = ? WHERE id = ?" % self._DATA_TABLE
+                " alias = ?, has_qs = ? WHERE id = ?"
             )
             self._db.execute(sql, values)
 
@@ -506,7 +506,7 @@ class HistoryItem:
             # from the first and add directories until reaching the last one
             #
             # https://github.com/andresriancho/w3af/issues/9022
-            path, fname = os.path.split(path_fname)
+            path, _fname = os.path.split(path_fname)
             split_path = path.split("/")
 
             for i in range(len(split_path) + 1):
@@ -624,24 +624,20 @@ class HistoryItem:
         session_dir = self._session_dir
         trace_range = range(pending_compression.start, pending_compression.end + 1)
 
-        files = ["%s.%s" % (i, HistoryItem._EXTENSION) for i in trace_range]
+        files = [f"{i}.{HistoryItem._EXTENSION}" for i in trace_range]
         files = [os.path.join(session_dir, filename) for filename in files]
 
         #
         # Target zip filename
         #
-        compressed_filename = "%s-%s.%s" % (
-            pending_compression.start,
-            pending_compression.end,
-            self._COMPRESSED_EXTENSION,
-        )
+        compressed_filename = f"{pending_compression.start}-{pending_compression.end}.{self._COMPRESSED_EXTENSION}"
         compressed_filename = os.path.join(session_dir, compressed_filename)
 
         # To prevent race conditions between a thread that is writing the zip
         # file and another thread that is attempting to read from it, we first
         # write the contents of the zip file to a .tmp file, and when all the
         # contents have been written and flushed, rename the file to a zip file
-        compressed_filename_temp = "%s.%s" % (compressed_filename, self._TMP_EXTENSION)
+        compressed_filename_temp = f"{compressed_filename}.{self._TMP_EXTENSION}"
 
         #
         # I run some tests with tarfile to check if tar + gzip or tar + bzip2
@@ -676,7 +672,7 @@ class HistoryItem:
             try:
                 _zip.write(
                     filename=filename,
-                    arcname="%s.%s" % (get_trace_id(filename), self._EXTENSION),
+                    arcname=f"{get_trace_id(filename)}.{self._EXTENSION}",
                 )
             except OSError:
                 # The file might not exist
@@ -714,7 +710,7 @@ class HistoryItem:
 
     def _update_field(self, name, value):
         """Update custom field in DB."""
-        sql = "UPDATE %s SET %s = ? WHERE id = ?" % (self._DATA_TABLE, name)
+        sql = f"UPDATE {self._DATA_TABLE} SET {name} = ? WHERE id = ?"
         self._db.execute(sql, (value, self.id))
 
     def update_tag(self, value, force_db=False):
@@ -749,7 +745,7 @@ class HistoryItem:
         return True
 
     def __repr__(self):
-        return "<HistoryItem %s %s>" % (self.method, self.url)
+        return f"<HistoryItem {self.method} {self.url}>"
 
 
 def get_trace_id(trace_file):

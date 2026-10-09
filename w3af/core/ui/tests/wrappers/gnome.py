@@ -59,7 +59,7 @@ class Gnome(XVFBServer):
     def start_sync(self):
         # Kill all previously running instances of "gnome"
         # TODO: This is a little bit rough, huh?
-        subprocess.getoutput("pkill -f %s" % self.XINITRC)
+        subprocess.getoutput(f"pkill -f {self.XINITRC}")
 
         assert os.path.exists(self.XINITRC), "gnome.xinitrc is required."
 

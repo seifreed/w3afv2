@@ -87,7 +87,7 @@ def create_mutants(
         else:
             count_data[mutant.get_mutant_type()] = 1
 
-    count_summary = ", ".join(["%s: %s" % (i, j) for i, j in list(count_data.items())])
+    count_summary = ", ".join([f"{i}: {j}" for i, j in list(count_data.items())])
     LOGGER.debug(msg % (len(result), freq, count_summary))
 
     #
@@ -109,7 +109,7 @@ def create_mutants(
     if orig_resp is not None and result:
 
         headers = orig_resp.get_headers()
-        etag, etag_header_name = headers.iget("ETag", None)
+        etag, _etag_header_name = headers.iget("ETag", None)
 
         for m in result:
             m.set_original_response_body(orig_resp.get_body())

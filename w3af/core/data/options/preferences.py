@@ -57,10 +57,7 @@ class Preferences:
     def has_option(self, section, option):
         """If the given section exists, and contains the given option, return
         True; otherwise return False."""
-        if section in self.options and option in self.options[section]:
-            return True
-        else:
-            return False
+        return bool(section in self.options and option in self.options[section])
 
     def get(self, section, option):
         """Get an option value for the named section."""

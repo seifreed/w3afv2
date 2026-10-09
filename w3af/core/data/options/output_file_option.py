@@ -82,13 +82,12 @@ class OutputFileOption(BaseOption):
             )
             raise BaseFrameworkException(msg % value)
 
-        if os.path.exists(value):
-            if not os.access(value, os.W_OK):
-                msg = (
-                    'Invalid file option "%s", the user does not have'
-                    " enough permissions to write to the file."
-                )
-                raise BaseFrameworkException(msg % value)
+        if os.path.exists(value) and not os.access(value, os.W_OK):
+            msg = (
+                'Invalid file option "%s", the user does not have'
+                " enough permissions to write to the file."
+            )
+            raise BaseFrameworkException(msg % value)
 
         # Please note the following:
         #     >>> os.path.abspath(os.path.dirname(''))

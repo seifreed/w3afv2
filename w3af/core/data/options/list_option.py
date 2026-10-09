@@ -68,7 +68,7 @@ class ListOption(BaseOption):
         if value.startswith("[") or value.endswith("]"):
             raise BaseFrameworkException(
                 "Invalid list specified, use of [...] is not"
-                " supported. %s" % self.VALID_EXAMPLES
+                f" supported. {self.VALID_EXAMPLES}"
             )
 
         # Add the "," at the end to make parsing easier

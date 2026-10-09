@@ -57,7 +57,7 @@ def is_pickled_data(data):
         return True
 
     # which usually ends with these characters
-    return data.endswith("\n.") or data.endswith("\ns.")
+    return data.endswith(("\n.", "\ns."))
 
 
 def is_java_serialized_data(data):

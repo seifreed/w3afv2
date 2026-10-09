@@ -44,15 +44,15 @@ class URLTest(APIUnitTest):
         #
         # Get all the URLs that the scanner found
         #
-        response = self.app.get("/scans/%s/urls/" % scan_id, headers=self.HEADERS)
+        response = self.app.get(f"/scans/{scan_id}/urls/", headers=self.HEADERS)
         self.assertEqual(response.status_code, 200, response.data)
 
         url_items = json.loads(response.data)["items"]
 
         expected_urls = [
             target_url,
-            "%s/where_integer_qs.py" % target_url[:-1],
-            "%s/where_string_single_qs.py" % target_url[:-1],
-            "%s/where_integer_form.py" % target_url[:-1],
+            f"{target_url[:-1]}/where_integer_qs.py",
+            f"{target_url[:-1]}/where_string_single_qs.py",
+            f"{target_url[:-1]}/where_integer_form.py",
         ]
         self.assertEqual(set(url_items), set(expected_urls))

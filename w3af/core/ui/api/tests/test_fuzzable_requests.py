@@ -55,7 +55,7 @@ class FuzzableRequestsTest(APIUnitTest):
         # Get all the URLs that the scanner found
         #
         response = self.app.get(
-            "/scans/%s/fuzzable-requests/" % scan_id, headers=self.HEADERS
+            f"/scans/{scan_id}/fuzzable-requests/", headers=self.HEADERS
         )
         self.assertEqual(response.status_code, 200, response.data)
 

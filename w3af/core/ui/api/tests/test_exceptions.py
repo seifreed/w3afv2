@@ -39,13 +39,13 @@ class ScanExceptionResourceTest(APIUnitTest):
 
         # Create an exception in the w3af scan
         response = self.app.post(
-            "/scans/%s/exceptions/" % scan_id, headers=self.HEADERS, data="{}"
+            f"/scans/{scan_id}/exceptions/", headers=self.HEADERS, data="{}"
         )
 
         self.assertEqual(response.status_code, 201)
 
         # And now query it using the REST API
-        response = self.app.get("/scans/%s/exceptions/" % scan_id, headers=self.HEADERS)
+        response = self.app.get(f"/scans/{scan_id}/exceptions/", headers=self.HEADERS)
 
         exceptions = json.loads(response.data)["items"]
         self.assertEqual(len(exceptions), 1)
@@ -65,8 +65,6 @@ class ScanExceptionResourceTest(APIUnitTest):
         }
         self.assertEqual(exception, expected_summary)
 
-        response = self.app.get(
-            "/scans/%s/exceptions/0" % scan_id, headers=self.HEADERS
-        )
+        response = self.app.get(f"/scans/{scan_id}/exceptions/0", headers=self.HEADERS)
 
         self.assertIn("traceback", json.loads(response.data))

@@ -92,7 +92,7 @@ def exception_to_json(exception_data, scan_id, exception_id, detailed=False):
     """
     summary = {
         "id": exception_id,
-        "href": "/scans/%s/exceptions/%s" % (scan_id, exception_id),
+        "href": f"/scans/{scan_id}/exceptions/{exception_id}",
     }
 
     # Get all the data from w3af

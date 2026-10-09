@@ -60,7 +60,7 @@ class TestProxy(XpresserUnittest):
 
     def test_basic_forwarding(self):
         port = self.http_daemon.get_port()
-        http_response = self.opener.open("http://127.0.0.1:%s/foo" % port).read()
+        http_response = self.opener.open(f"http://127.0.0.1:{port}/foo").read()
         self.assertEqual("ABCDEF\n", http_response)
 
     def test_intercept(self):
@@ -82,7 +82,7 @@ class TestProxy(XpresserUnittest):
         t.start()
 
         port = self.http_daemon.get_port()
-        http_response = self.opener.open("http://127.0.0.1:%s/foo" % port).read()
+        http_response = self.opener.open(f"http://127.0.0.1:{port}/foo").read()
         self.assertEqual("ABCDEF\n", http_response)
 
         t.join()

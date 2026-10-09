@@ -136,7 +136,7 @@ class TestFuzzyRequestEditor(XpresserUnittest):
         #    Send the request to our server using the GUI
         #
         self.double_click("localhost")
-        self.type("127.0.0.1:%s" % self.http_daemon.get_port(), False)
+        self.type(f"127.0.0.1:{self.http_daemon.get_port()}", False)
 
         self.click("play")
 
@@ -157,7 +157,7 @@ class TestFuzzyRequestEditor(XpresserUnittest):
 
         for i, daemon_request in enumerate(self.http_daemon.requests):
 
-            self.assertEqual("/%s" % i, daemon_request.path)
+            self.assertEqual(f"/{i}", daemon_request.path)
             self.assertEqual(parsed_request.get_method(), daemon_request.command)
 
             for header_name, header_value in parsed_request.get_headers().items():
@@ -177,7 +177,7 @@ class TestFuzzyRequestEditor(XpresserUnittest):
         #    Send the request to our server using the GUI
         #
         self.double_click("localhost")
-        self.type("127.0.0.1:%s" % self.http_daemon.get_port(), False)
+        self.type(f"127.0.0.1:{self.http_daemon.get_port()}", False)
 
         # Move to the beginning
         self.type(
@@ -237,7 +237,7 @@ class TestFuzzyRequestEditor(XpresserUnittest):
 
         for i, daemon_request in enumerate(self.http_daemon.requests):
 
-            self.assertEqual("/%s" % i, daemon_request.path)
+            self.assertEqual(f"/{i}", daemon_request.path)
             self.assertEqual("POST", daemon_request.command)
 
             for header_name, header_value in parsed_request.get_headers().items():

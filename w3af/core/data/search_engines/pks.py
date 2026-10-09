@@ -102,12 +102,11 @@ class pks(SearchEngine):
                     account = email.split("@")[0]
                     domain = email.split("@")[1]
 
-                    if domain == query:
-                        if account not in accounts:
-                            accounts.append(account)
+                    if domain == query and account not in accounts:
+                        accounts.append(account)
 
-                            pksr = PKSResult(name, account, domain, response.id)
-                            results.append(pksr)
+                        pksr = PKSResult(name, account, domain, response.id)
+                        results.append(pksr)
 
         return results
 
@@ -120,4 +119,4 @@ class PKSResult:
         self.id = _id
 
     def __repr__(self):
-        return "<PKSResult: %s@%s>" % (self.name, self.domain)
+        return f"<PKSResult: {self.name}@{self.domain}>"

@@ -47,5 +47,5 @@ class URLOption(BaseOption):
         try:
             return URL(value)
         except Exception as e:
-            msg = "Invalid URL configured by user, error: %s." % e
+            msg = f"Invalid URL configured by user, error: {e}."
             raise BaseFrameworkException(msg)

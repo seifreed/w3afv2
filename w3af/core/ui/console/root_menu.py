@@ -1,5 +1,5 @@
 """
-rootMenu.py
+root_menu.py
 
 Copyright 2008 Andres Riancho
 
@@ -37,7 +37,7 @@ from w3af.core.exceptions import (
 from w3af.core.ui.console.bug_report import bug_report_menu
 from w3af.core.ui.console.config import ConfigMenu
 from w3af.core.ui.console.exploit import exploit
-from w3af.core.ui.console.kbMenu import kbMenu
+from w3af.core.ui.console.kb_menu import kbMenu
 from w3af.core.ui.console.menu import menu
 from w3af.core.ui.console.plugins import pluginsMenu
 from w3af.core.ui.console.profiles import ProfilesMenu

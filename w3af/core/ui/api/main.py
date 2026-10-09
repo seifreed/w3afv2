@@ -35,7 +35,7 @@ def main():
     try:
         args = process_cmd_args_config(app)
     except argparse.ArgumentTypeError as ate:
-        print("%s" % ate)
+        print(f"{ate}")
         return 1
 
     # And finally start the app:
@@ -61,7 +61,7 @@ def main():
                 ssl_context=cert_key,
             )
     except OSError as se:
-        print("Failed to start REST API server: %s" % se.strerror)
+        print(f"Failed to start REST API server: {se.strerror}")
         return 1
 
     return 0

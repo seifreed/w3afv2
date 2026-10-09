@@ -135,7 +135,7 @@ class TestManualRequests(XpresserUnittest):
         #    Send the request to our server using the GUI
         #
         self.double_click("localhost")
-        self.type("127.0.0.1:%s" % self.http_daemon.get_port(), False)
+        self.type(f"127.0.0.1:{self.http_daemon.get_port()}", False)
 
         self.click("send")
 
@@ -173,7 +173,7 @@ class TestManualRequests(XpresserUnittest):
         #    Send the request to our server using the GUI
         #
         self.double_click("localhost")
-        self.type("127.0.0.1:%s" % self.http_daemon.get_port(), False)
+        self.type(f"127.0.0.1:{self.http_daemon.get_port()}", False)
 
         # Move to the beginning
         self.type(

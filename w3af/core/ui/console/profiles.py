@@ -37,7 +37,7 @@ class ProfilesMenu(menu):
     def __init__(self, name, console, w3af, parent=None):
         menu.__init__(self, name, console, w3af, parent)
         self._profiles = {}
-        instance_list, invalid_profiles = w3af.profiles.get_profile_list()
+        instance_list, _invalid_profiles = w3af.profiles.get_profile_list()
         for _profile in instance_list:
             self._profiles[_profile.get_name()] = _profile
         self._load_help("profiles")
@@ -117,7 +117,7 @@ class ProfilesMenu(menu):
         try:
             Profile.is_valid_profile_name(profile_name)
         except BaseFrameworkException as bfe:
-            om.out.console("%s" % bfe)
+            om.out.console(f"{bfe}")
             return
 
         description = "Profile generated using the console UI."

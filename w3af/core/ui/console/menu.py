@@ -184,7 +184,7 @@ class menu:
             finally:
                 child.set_child_call(False)
 
-        raise BaseFrameworkException("Unknown command '%s'" % command)
+        raise BaseFrameworkException(f"Unknown command '{command}'")
 
     def _cmd_back(self, tokens):
         return self._console.back
@@ -200,7 +200,7 @@ class menu:
             subj = params[0]
             short, full = self._help.get_help(subj)
             if short is None:
-                raise BaseFrameworkException("No help for '%s'" % subj)
+                raise BaseFrameworkException(f"No help for '{subj}'")
 
             om.out.console(short)
             if full:

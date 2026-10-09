@@ -163,7 +163,7 @@ def get_expected_vuln_names():
 
 def get_expected_vuln_urls(target_url):
     return [
-        "%swhere_integer_qs.py" % target_url,
-        "%swhere_string_single_qs.py" % target_url,
-        "%swhere_integer_form.py" % target_url,
+        f"{target_url}where_integer_qs.py",
+        f"{target_url}where_string_single_qs.py",
+        f"{target_url}where_integer_form.py",
     ]

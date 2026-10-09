@@ -335,8 +335,7 @@ class BasicKnowledgeBase:
         """
         klass = (Info, InfoSet, Vuln)
 
-        for finding in self.get_all_entries_of_class_iter(klass, exclude_ids):
-            yield finding
+        yield from self.get_all_entries_of_class_iter(klass, exclude_ids)
 
     def get_all_uniq_ids_iter(self):
         """
@@ -517,7 +516,7 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         with self._kb_lock:
             self.db.execute(query % self.table_name, params)
             cache = self._reached_max_info_instances_cache
-            for key in cache.keys():
+            for key in cache:
                 if key[:2] == (location_a, location_b):
                     del cache[key]
 
@@ -600,7 +599,7 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         pickled_obj = cpickle_dumps(value)
         t = (location_a, location_b, uniq_id, pickled_obj)
 
-        query = "INSERT INTO %s VALUES (?, ?, ?, ?)" % self.table_name
+        query = f"INSERT INTO {self.table_name} VALUES (?, ?, ?, ?)"
         self.db.execute(query, t)
         self._notify_observers(
             self.APPEND, location_a, location_b, value, ignore_type=ignore_type
@@ -854,7 +853,7 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         Cleanup internal data.
         """
         with self._kb_lock:
-            self.db.execute("DELETE FROM %s WHERE 1=1" % self.table_name)
+            self.db.execute(f"DELETE FROM {self.table_name} WHERE 1=1")
             self._reached_max_info_instances_cache.clear()
 
             # Remove the old, create new.

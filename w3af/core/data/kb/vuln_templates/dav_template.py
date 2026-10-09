@@ -45,7 +45,7 @@ class DAVTemplate(BaseTemplate):
         """
         ol = OptionList()
 
-        d = "Vulnerability name (eg. %s)" % self.get_vulnerability_name()
+        d = f"Vulnerability name (eg. {self.get_vulnerability_name()})"
         o = opt_factory("name", self.name, d, "string")
         ol.add(o)
 

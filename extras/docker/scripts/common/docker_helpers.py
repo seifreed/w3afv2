@@ -23,14 +23,14 @@ def start_container(tag, command=DOCKER_RUN):
     """
 
     if tag is not None:
-        docker_run = command + ":%s" % tag
+        docker_run = command + f":{tag}"
     else:
         docker_run = command + ":latest"
 
     try:
         container_id = subprocess.check_output(docker_run, shell=True)
     except subprocess.CalledProcessError, cpe:
-        print('w3af container failed to start: "%s"' % cpe)
+        print(f'w3af container failed to start: "{cpe}"')
         sys.exit(1)
     else:
         # Let the container start the ssh daemon
@@ -43,9 +43,9 @@ def stop_container(container_id):
     Stop a running w3af container
     """
     try:
-        subprocess.check_output("docker stop %s" % container_id, shell=True)
+        subprocess.check_output(f"docker stop {container_id}", shell=True)
     except subprocess.CalledProcessError, cpe:
-        print('w3af container failed to stop: "%s"' % cpe)
+        print(f'w3af container failed to stop: "{cpe}"')
         sys.exit(1)
 
 
@@ -69,10 +69,10 @@ def connect_to_container(container_id, cmd, extra_ssh_flags=()):
     """
     try:
         cont_data = subprocess.check_output(
-            "docker inspect %s" % container_id, shell=True
+            f"docker inspect {container_id}", shell=True
         )
     except subprocess.CalledProcessError:
-        print("Failed to inspect container with id %s" % container_id)
+        print(f"Failed to inspect container with id {container_id}")
         sys.exit(1)
 
     try:
@@ -115,7 +115,7 @@ def connect_to_container(container_id, cmd, extra_ssh_flags=()):
 
 def check_root():
     # if not root...kick out
-    if not os.geteuid() == 0:
+    if os.geteuid() != 0:
         sys.exit("Only root can run this script")
 
 

@@ -44,7 +44,7 @@ class MultiIn:
             [[str_N, objN],]
         """
         self._keywords_or_assoc = keywords_or_assoc
-        self._translator = dict()
+        self._translator = {}
         self._keyword_tree = self._build()
 
     def _build(self):
@@ -57,7 +57,7 @@ class MultiIn:
                 keyword = keyword.encode(DEFAULT_ENCODING)
 
                 if keyword in self._translator:
-                    raise ValueError('Duplicated keyword "%s"' % keyword)
+                    raise ValueError(f'Duplicated keyword "{keyword}"')
 
                 self._translator[keyword] = item[1:]
 

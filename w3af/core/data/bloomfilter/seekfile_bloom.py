@@ -43,12 +43,10 @@ class FileSeekBloomFilter(GenericBloomFilter):
         self.capacity = capacity
         self.stored_items = 0
 
-        self.num_hashes = int(math.ceil(math.log(1.0 / error_rate, 2.0)))
-        bits_per_hash = int(
-            math.ceil(
-                (2.0 * capacity * abs(math.log(error_rate)))
-                / (self.num_hashes * (math.log(2) ** 2))
-            )
+        self.num_hashes = math.ceil(math.log2(1.0 / error_rate))
+        bits_per_hash = math.ceil(
+            (2.0 * capacity * abs(math.log(error_rate)))
+            / (self.num_hashes * (math.log(2) ** 2))
         )
 
         self.num_bits = self.num_hashes * bits_per_hash

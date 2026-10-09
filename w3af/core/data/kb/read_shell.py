@@ -138,7 +138,7 @@ class ReadShell(Shell):
             return self.download(remote_filename, local_filename)
 
         elif return_err:
-            return 'Command "%s" not found. Please type "help".' % command
+            return f'Command "{command}" not found. Please type "help".'
 
         return
 

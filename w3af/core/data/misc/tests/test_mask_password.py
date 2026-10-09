@@ -28,7 +28,7 @@ from w3af.core.data.misc.mask_password import mask_password_string
 class TestMaskPassword(unittest.TestCase):
     def test_mask_long_password(self):
         self.assertEqual(
-            mask_password_string("this-is-long"), "thi%s" % ("*" * len("s-is-long"),)
+            mask_password_string("this-is-long"), "thi{}".format("*" * len("s-is-long"))
         )
 
     def test_mask_short_password(self):

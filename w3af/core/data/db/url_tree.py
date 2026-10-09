@@ -29,7 +29,7 @@ class OrderedIterDefaultDict(defaultdict):
             yield k, self[k]
 
     def __repr__(self):
-        _repr = dict()
+        _repr = {}
         for k, v in self.items():
             _repr[k] = v
         return repr(_repr)
@@ -52,7 +52,7 @@ class URLNode:
         self.is_leaf = 1 if is_leaf else 0
 
     def __str__(self):
-        return '<URLNode (path:"%s", is_leaf:%s)>' % (self.path, self.is_leaf)
+        return f'<URLNode (path:"{self.path}", is_leaf:{self.is_leaf})>'
 
     def __repr__(self):
         return str(self)
@@ -101,8 +101,7 @@ class URLTree:
                 n.set_is_leaf(True)
 
     def iteritems(self):
-        for k, v in self.tree.items():
-            yield k, v
+        yield from self.tree.items()
 
     def _url_to_tree_nodes(self, url):
         """
@@ -116,7 +115,7 @@ class URLTree:
         """
         tree_path = []
 
-        protocol_domain = "%s://%s" % (url.get_protocol(), url.get_net_location())
+        protocol_domain = f"{url.get_protocol()}://{url.get_net_location()}"
         tree_path.append(protocol_domain)
 
         path = url.get_path()

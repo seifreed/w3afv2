@@ -64,7 +64,7 @@ class SearchEngine:
             except Exception as e:
                 msg = (
                     "An unhandled exception was found in "
-                    'search_engines.SearchEngine.search(): "%s"' % str(e)
+                    f'search_engines.SearchEngine.search(): "{e!s}"'
                 )
                 LOGGER.error(msg)
                 raise BaseFrameworkException(msg)

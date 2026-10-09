@@ -129,7 +129,7 @@ class Shell(ExploitResult):
             response = self.specific_user_input(command, params)
 
             if response is None:
-                return 'Command "%s" not found. Please type "help".' % command
+                return f'Command "{command}" not found. Please type "help".'
             else:
                 return response
 
@@ -172,14 +172,13 @@ class Shell(ExploitResult):
         #
         #    Handle payload desc xyz
         #
-        if len(parameters) == 2:
-            if parameters[0] == "desc":
-                payload_name = parameters[1]
+        if len(parameters) == 2 and parameters[0] == "desc":
+            payload_name = parameters[1]
 
-                if payload_name not in payload_handler.get_payload_list():
-                    return 'Unknown payload name: "%s"' % payload_name
+            if payload_name not in payload_handler.get_payload_list():
+                return f'Unknown payload name: "{payload_name}"'
 
-                return payload_handler.get_payload_desc(payload_name)
+            return payload_handler.get_payload_desc(payload_name)
 
         #
         #    Handle payload xyz
@@ -188,10 +187,10 @@ class Shell(ExploitResult):
         parameters = parameters[1:]
 
         if payload_name not in payload_handler.get_payload_list():
-            return 'Unknown payload name: "%s"' % payload_name
+            return f'Unknown payload name: "{payload_name}"'
 
         if payload_name in payload_handler.runnable_payloads(self):
-            om.out.debug("Payload %s can be run. Starting execution." % payload_name)
+            om.out.debug(f"Payload {payload_name} can be run. Starting execution.")
 
             # Note: The payloads are actually writing to om.out.console
             # so there is no need to get the result. If someone wants to
@@ -280,7 +279,7 @@ class Shell(ExploitResult):
         """
         if name.startswith("__"):
             raise AttributeError(
-                "%s instance has no attribute '%s'" % (self.__class__.__name__, name)
+                f"{self.__class__.__name__} instance has no attribute '{name}'"
             )
         return getattr(self._vuln, name)
 

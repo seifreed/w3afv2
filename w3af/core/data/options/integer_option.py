@@ -43,5 +43,5 @@ class IntegerOption(BaseOption):
         try:
             return int(value)
         except:
-            msg = 'Invalid integer option value "%s".' % value
+            msg = f'Invalid integer option value "{value}".'
             raise BaseFrameworkException(msg)

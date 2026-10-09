@@ -150,7 +150,7 @@ class ExecShell(Shell):
                 ptf = payload_transfer_factory(self.execute)
                 self._transfer_handler = ptf.get_transfer_handler()
             except BaseFrameworkException as e:
-                return "%s" % e
+                return f"{e}"
 
         if not self._transfer_handler.can_transfer():
             return "Failed to transfer, the transfer handler failed."
@@ -215,7 +215,7 @@ class ExecShell(Shell):
             return self.execute(" ".join(parameters))
 
         else:
-            return 'Command "%s" not found. Please type "help".' % command
+            return f'Command "{command}" not found. Please type "help".'
 
     def get_unlink_command(self):
         """

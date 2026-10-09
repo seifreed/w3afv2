@@ -43,11 +43,11 @@ class PositiveIntegerOption(BaseOption):
         try:
             int_value = int(value)
         except:
-            msg = 'Invalid integer option value "%s".' % value
+            msg = f'Invalid integer option value "{value}".'
             raise BaseFrameworkException(msg)
         else:
             if int_value < 0:
-                msg = 'Expected a positive integer, got "%s".' % int_value
+                msg = f'Expected a positive integer, got "{int_value}".'
                 raise BaseFrameworkException(msg)
 
             return int_value

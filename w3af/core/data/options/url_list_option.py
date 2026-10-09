@@ -41,7 +41,7 @@ class URLListOption(ListOption):
             try:
                 res.append(URL(input_url))
             except Exception as e:
-                msg = "Invalid URL configured by user, error: %s." % e
+                msg = f"Invalid URL configured by user, error: {e}."
                 raise BaseFrameworkException(msg)
 
         return res

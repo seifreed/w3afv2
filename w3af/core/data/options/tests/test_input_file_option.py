@@ -51,7 +51,7 @@ class TestInputFileOption(unittest.TestCase):
         remove_temp_dir()
 
     def test_valid_base64_data(self):
-        value = "%s%s" % (
+        value = "{}{}".format(
             InputFileOption.DATA_PROTO,
             base64.b64encode(zlib.compress(b"xyz")).decode("ascii"),
         )
@@ -74,7 +74,7 @@ class TestInputFileOption(unittest.TestCase):
         content = bytes(range(256))
         encoded_data = base64.b64encode(zlib.compress(content)).decode("ascii")
         wrapped_data = "\n".join(textwrap.wrap(encoded_data, 76))
-        value = "%s%s" % (InputFileOption.DATA_PROTO, wrapped_data)
+        value = f"{InputFileOption.DATA_PROTO}{wrapped_data}"
         opt = opt_factory("name", value, "desc", INPUT_FILE, "help", "tab")
         try:
             with open(opt.get_value(), "rb") as input_file:
@@ -83,7 +83,7 @@ class TestInputFileOption(unittest.TestCase):
             os.unlink(opt.get_value())
 
     def test_invalid_base64_data(self):
-        value = "%s%s" % (InputFileOption.DATA_PROTO, "x")
+        value = "{}{}".format(InputFileOption.DATA_PROTO, "x")
         self.assertRaises(
             BaseFrameworkException,
             opt_factory,
@@ -96,7 +96,7 @@ class TestInputFileOption(unittest.TestCase):
         )
 
     def test_invalid_compressed_data(self):
-        value = "%s%s" % (
+        value = "{}{}".format(
             InputFileOption.DATA_PROTO,
             base64.b64encode(b"not compressed data").decode("ascii"),
         )

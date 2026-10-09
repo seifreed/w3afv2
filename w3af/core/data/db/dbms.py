@@ -191,14 +191,14 @@ class SQLiteDBMS:
         return self.filename
 
     def drop_table(self, name):
-        query = "DROP TABLE %s" % name
+        query = f"DROP TABLE {name}"
         return self.execute(query, commit=True)
 
     def clear_table(self, name):
         """
         Remove all rows from a table.
         """
-        query = "DELETE FROM %s WHERE 1=1" % name
+        query = f"DELETE FROM {name} WHERE 1=1"
         return self.execute(query, commit=True)
 
     def create_table(self, name, columns, pk_columns=(), constraints=()):
@@ -218,22 +218,22 @@ class SQLiteDBMS:
             raise ValueError("constraints requires constraints in a tuple")
 
         # Create the table
-        query = "CREATE TABLE %s (" % name
+        query = f"CREATE TABLE {name} ("
 
         all_columns = []
         for column_data in columns:
             column_name, column_type = column_data
-            all_columns.append("%s %s" % (column_name, column_type))
+            all_columns.append(f"{column_name} {column_type}")
 
         query += ", ".join(all_columns)
 
         # Finally the PK and constraints
         if pk_columns:
-            query += ", PRIMARY KEY (%s)" % ",".join(pk_columns)
+            query += ", PRIMARY KEY ({})".format(",".join(pk_columns))
 
         if constraints:
             for c in constraints:
-                query += ", CONSTRAINT %s" % c
+                query += f", CONSTRAINT {c}"
 
         query += ")"
 
@@ -253,7 +253,9 @@ class SQLiteDBMS:
         :param table: The table from which you want to create an index from
         :param columns: A list of column names.
         """
-        query = "CREATE INDEX %s_index ON %s( %s )" % (table, table, ",".join(columns))
+        query = "CREATE INDEX {}_index ON {}( {} )".format(
+            table, table, ",".join(columns)
+        )
 
         return self.execute(query, commit=True)
 
@@ -399,8 +401,8 @@ class SQLiteExecutor(Process):
         else:
             conn = sqlite3.connect(self.filename, check_same_thread=True)
 
-        conn.execute("PRAGMA journal_mode = %s" % self.journal_mode)
-        conn.execute("PRAGMA cache_size = %s" % self.cache_size)
+        conn.execute(f"PRAGMA journal_mode = {self.journal_mode}")
+        conn.execute(f"PRAGMA cache_size = {self.cache_size}")
         conn.text_factory = str
         self.conn = conn
 
@@ -503,7 +505,7 @@ def clear_default_temp_db_instance():
     if temp_default_db is not None:
         temp_default_db.close()
         temp_default_db = None
-        os.unlink("%s/main.db" % get_temp_dir())
+        os.unlink(f"{get_temp_dir()}/main.db")
 
 
 def get_default_temp_db_instance():
@@ -511,7 +513,7 @@ def get_default_temp_db_instance():
 
     if temp_default_db is None:
         create_temp_dir()
-        temp_default_db = SQLiteDBMS("%s/main.db" % get_temp_dir())
+        temp_default_db = SQLiteDBMS(f"{get_temp_dir()}/main.db")
 
     return temp_default_db
 

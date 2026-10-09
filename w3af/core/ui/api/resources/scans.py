@@ -69,7 +69,7 @@ def start_scan():
     # REST API is an MVP and we can only run one scan at the time (for now)
     #
     scan_infos = list(SCANS.values())
-    if not all([si is None for si in scan_infos]):
+    if not all(si is None for si in scan_infos):
         abort(
             400,
             "This version of the REST API does not support"
@@ -101,7 +101,7 @@ def start_scan():
         try:
             URL(target_url)
         except ValueError:
-            abort(400, 'Invalid URL: "%s"' % target_url)
+            abort(400, f'Invalid URL: "{target_url}"')
 
     target_options = w3af_core.target.get_options()
     target_option = target_options["target"]
@@ -129,7 +129,7 @@ def start_scan():
     t.start()
 
     return (
-        jsonify({"message": "Success", "id": scan_id, "href": "/scans/%s" % scan_id}),
+        jsonify({"message": "Success", "id": scan_id, "href": f"/scans/{scan_id}"}),
         201,
     )
 
@@ -152,12 +152,12 @@ def list_scans():
 
         target_urls = scan_info.target_urls
         status = scan_info.w3af_core.status.get_simplified_status()
-        errors = True if scan_info.exception is not None else False
+        errors = scan_info.exception is not None
 
         data.append(
             {
                 "id": scan_id,
-                "href": "/scans/%s" % scan_id,
+                "href": f"/scans/{scan_id}",
                 "target_urls": target_urls,
                 "status": status,
                 "errors": errors,

@@ -57,7 +57,7 @@ def error_500_handler(error):
 
     try:
         # Extract the filename and line number where the exception was raised
-        exc_type, exc_value, exc_traceback = sys.exc_info()
+        _exc_type, _exc_value, exc_traceback = sys.exc_info()
         filepath = traceback.extract_tb(exc_traceback)[-1][0]
         filename = basename(filepath)
         lineno, function_name = get_last_call_info(exc_traceback)

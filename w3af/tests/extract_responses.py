@@ -1,7 +1,7 @@
 import sys
 
 USAGE = """\
-python extract-responses.py <log-file> <response-id> [<response-id>]
+python extract_responses.py <log-file> <response-id> [<response-id>]
 """
 
 
@@ -10,7 +10,7 @@ def read_response(filename, _id):
     output = ""
 
     for line in open(filename):
-        if line.startswith("=" * 40 + "Response %s " % _id):
+        if line.startswith("=" * 40 + f"Response {_id} "):
             recording = True
             continue
 
@@ -32,6 +32,6 @@ if __name__ == "__main__":
     ids = sys.argv[2:]
 
     for _id in ids:
-        print("Processing response %s" % _id)
+        print(f"Processing response {_id}")
         response = read_response(filename, _id)
-        open("response-%s.txt" % _id, "w").write(response)
+        open(f"response-{_id}.txt", "w").write(response)

@@ -27,8 +27,8 @@ from unittest.mock import Mock
 
 from w3af.core.controllers.threads.threadpool import Pool
 from w3af.core.controllers.w3afCore import w3afCore
-from w3af.core.data.db.exceptions import DBException
 from w3af.core.data.db.dbms import get_default_persistent_db_instance
+from w3af.core.data.db.exceptions import DBException
 from w3af.core.data.dc.query_string import QueryString
 from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
 from w3af.core.data.kb.info_set import InfoSet
@@ -479,7 +479,7 @@ class TestKnowledgeBase(unittest.TestCase):
         original_shell = Shell(MockVuln(), core.uri_opener, core.worker_pool)
 
         kb.append("a", "b", original_shell)
-        unpickled_shell = list(kb.get_all_shells(core))[0]
+        unpickled_shell = next(iter(kb.get_all_shells(core)))
 
         self.assertEqual(original_shell, unpickled_shell)
         self.assertEqual(unpickled_shell.worker_pool, core.worker_pool)

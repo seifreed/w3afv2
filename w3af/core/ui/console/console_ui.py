@@ -40,9 +40,9 @@ try:
     )
     from w3af.core.ui.console import tables
     from w3af.core.ui.console.auto_update.auto_update import ConsoleUIUpdater
-    from w3af.core.ui.console.callbackMenu import callbackMenu
+    from w3af.core.ui.console.callback_menu import callbackMenu
     from w3af.core.ui.console.history import historyTable
-    from w3af.core.ui.console.rootMenu import rootMenu
+    from w3af.core.ui.console.root_menu import rootMenu
     from w3af.core.ui.console.util import commonPrefix
 except KeyboardInterrupt:
     sys.exit(0)
@@ -56,7 +56,9 @@ class ConsoleUI:
     :author: Alexander Berezhnoy (alexander.berezhnoy |at| gmail.com)
     """
 
-    def __init__(self, commands=[], parent=None, do_upd=None):
+    def __init__(self, commands=None, parent=None, do_upd=None):
+        if commands is None:
+            commands = []
         self._commands = commands
         # the line which is being typed
         self._line = []

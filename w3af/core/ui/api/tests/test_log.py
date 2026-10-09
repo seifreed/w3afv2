@@ -47,14 +47,14 @@ class ApiScanLogTest(APIUnitTest):
         #
         # Get the scan log paginating by "page"
         #
-        response = self.app.get("/scans/%s/log" % scan_id, headers=self.HEADERS)
+        response = self.app.get(f"/scans/{scan_id}/log", headers=self.HEADERS)
         self.assertEqual(response.status_code, 200, response.data)
 
         log_data_page_0 = json.loads(response.data)
         entries = log_data_page_0["entries"]
         self.assertEqual(len(entries), 200, entries)
         self.assertEqual(log_data_page_0["next"], 1)
-        self.assertEqual(log_data_page_0["next_url"], "/scans/%s/log?page=1" % scan_id)
+        self.assertEqual(log_data_page_0["next_url"], f"/scans/{scan_id}/log?page=1")
 
         zero_entry = log_data_page_0["entries"][0]
         self.assertEqual(zero_entry["message"], "Called w3afCore.start()")
@@ -63,7 +63,7 @@ class ApiScanLogTest(APIUnitTest):
         self.assertIsInstance(zero_entry["id"], int)
         self.assertIsNotNone(zero_entry["time"])
 
-        response = self.app.get("/scans/%s/log?page=1" % scan_id, headers=self.HEADERS)
+        response = self.app.get(f"/scans/{scan_id}/log?page=1", headers=self.HEADERS)
         self.assertEqual(response.status_code, 200, response.data)
 
         self.assertNotEqual(
@@ -73,14 +73,14 @@ class ApiScanLogTest(APIUnitTest):
         #
         # Get the scan log paginating by "id"
         #
-        response = self.app.get("/scans/%s/log?id=0" % scan_id, headers=self.HEADERS)
+        response = self.app.get(f"/scans/{scan_id}/log?id=0", headers=self.HEADERS)
         self.assertEqual(response.status_code, 200, response.data)
 
         log_data_page_0 = json.loads(response.data)
         entries = log_data_page_0["entries"]
         self.assertEqual(len(entries), 200, entries)
         self.assertEqual(log_data_page_0["next"], 200)
-        self.assertEqual(log_data_page_0["next_url"], "/scans/%s/log?id=200" % scan_id)
+        self.assertEqual(log_data_page_0["next_url"], f"/scans/{scan_id}/log?id=200")
 
         zero_entry = log_data_page_0["entries"][0]
         self.assertEqual(zero_entry["message"], "Called w3afCore.start()")
@@ -89,7 +89,7 @@ class ApiScanLogTest(APIUnitTest):
         self.assertEqual(zero_entry["id"], 0)
         self.assertIsNotNone(zero_entry["time"])
 
-        response = self.app.get("/scans/%s/log?id=200" % scan_id, headers=self.HEADERS)
+        response = self.app.get(f"/scans/{scan_id}/log?id=200", headers=self.HEADERS)
         self.assertEqual(response.status_code, 200, response.data)
 
         self.assertNotEqual(

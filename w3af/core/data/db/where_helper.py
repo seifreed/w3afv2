@@ -25,8 +25,10 @@ class WhereHelper:
     conditions = {}
     _values = []
 
-    def __init__(self, conditions={}):
+    def __init__(self, conditions=None):
         """Construct object."""
+        if conditions is None:
+            conditions = {}
         self.conditions = conditions
 
     def values(self):

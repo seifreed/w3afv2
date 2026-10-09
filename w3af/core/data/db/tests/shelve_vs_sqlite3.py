@@ -33,7 +33,7 @@ def measure(what, func):
     func()
     end = time.time()
 
-    print("%s took %s seconds" % (what, end - start))
+    print(f"{what} took {end - start} seconds")
 
 
 if __name__ == "__main__":

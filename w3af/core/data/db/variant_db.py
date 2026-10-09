@@ -190,7 +190,7 @@ class VariantDB:
             max_variants_type = "path"
 
         if count >= max_variants:
-            _type = "need_more_variants_for_uri(%s)" % max_variants_type
+            _type = f"need_more_variants_for_uri({max_variants_type})"
             self._log_return_false(fuzzable_request, _type)
             return False
 
@@ -212,10 +212,7 @@ class VariantDB:
 
     def _has_form(self, fuzzable_request):
         raw_data = fuzzable_request.get_raw_data()
-        if raw_data and len(raw_data.get_param_names()) >= 2:
-            return True
-
-        return False
+        return bool(raw_data and len(raw_data.get_param_names()) >= 2)
 
     def _need_more_variants_for_form(self, fuzzable_request):
         #

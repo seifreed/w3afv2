@@ -129,7 +129,7 @@ class profile:
                         # Any errors simply break name detection
                         continue
                     else:
-                        if "%s%s" % (name, self.EXTENSION) == profile_name:
+                        if f"{name}{self.EXTENSION}" == profile_name:
                             return profile_path_file
 
         msg = 'The profile "%s" wasn\'t found.'
@@ -207,7 +207,7 @@ class profile:
             shutil.copyfile(self.profile_file_name, new_profile_path_name)
         except Exception as e:
             msg = "An exception occurred while copying the profile. Exception:"
-            msg += ' "%s".' % e
+            msg += f' "{e}".'
             raise BaseFrameworkException(msg % e)
         else:
             # Now I have to change the data inside the copied profile, to
@@ -232,7 +232,7 @@ class profile:
             if already_enabled_plugin not in plugin_names:
                 # The plugin was disabled!
                 # I should remove the section from the config
-                section = "%s.%s" % (plugin_type, already_enabled_plugin)
+                section = f"{plugin_type}.{already_enabled_plugin}"
                 self._config.remove_section(section)
 
         # Now enable the plugins that the user wants to run
@@ -267,7 +267,7 @@ class profile:
         :param options: an OptionList
         :return: None
         """
-        section = "%s.%s" % (plugin_type, plugin_name)
+        section = f"{plugin_type}.{plugin_name}"
         if section not in self._config.sections():
             self._config.add_section(section)
 

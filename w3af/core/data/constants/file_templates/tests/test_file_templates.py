@@ -36,7 +36,7 @@ class TestFileTemplates(unittest.TestCase):
         self.assertTrue(file_name.endswith(".gif"), file_name)
 
     def test_get_file_from_template_false(self):
-        success, file_content, file_name = get_file_from_template("swf")
+        success, _file_content, file_name = get_file_from_template("swf")
 
         self.assertFalse(success)
         self.assertTrue(file_name.endswith(".swf"), file_name)
