@@ -25,7 +25,7 @@ def gen_hash(request):
         safe_str(req.get_data() or ""),
     )
 
-    return hashlib.md5(the_str).hexdigest()
+    return hashlib.sha256(the_str.encode("utf-8")).hexdigest()
 
 
 def safe_str(obj):

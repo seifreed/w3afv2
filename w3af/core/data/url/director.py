@@ -1,4 +1,5 @@
 import socket
+from urllib.parse import urlsplit
 from urllib.request import (
     HTTPDefaultErrorHandler,
     HTTPErrorProcessor,
@@ -28,7 +29,7 @@ class CustomOpenerDirector(OpenerDirector):
 
         # This is what I want to remove and the reason to override
         # req.timeout = timeout
-        protocol = req.get_type()
+        protocol = urlsplit(req.get_full_url()).scheme
 
         # pre-process request
         meth_name = protocol + "_request"

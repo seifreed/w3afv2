@@ -26,7 +26,8 @@ import time
 
 # pylint: enable=E0401
 import w3af.core.controllers.output_manager as om
-from w3af.core.data.misc.encoding import smart_str_ignore
+from w3af.core.data.constants.encodings import DEFAULT_ENCODING
+from w3af.core.data.misc.encoding import smart_unicode
 
 # pylint: disable=E0401
 from w3af.core.data.misc.lru import SynchronizedLRUDict
@@ -53,11 +54,12 @@ class GetAverageRTTForMutant:
         headers = mutant.get_all_headers()
 
         cache_key_parts = [method, uri, data, headers]
-        cache_key_str = "".join([smart_str_ignore(i) for i in cache_key_parts])
+        digest = hashlib.sha256()
+        for part in cache_key_parts:
+            digest.update(smart_unicode(part, errors="ignore").encode(DEFAULT_ENCODING))
+            digest.update(b"\0")
 
-        m = hashlib.md5()
-        m.update(cache_key_str)
-        return m.hexdigest()
+        return digest.hexdigest()
 
     def get_average_rtt_for_mutant(self, mutant, count=3, debugging_id=None):
         """
@@ -72,7 +74,8 @@ class GetAverageRTTForMutant:
         :param debugging_id: Unique ID used for logging
         :return: A float representing the seconds it took to get the response
         """
-        assert count >= 3, "Count must be greater or equal than 3."
+        if count < 3:
+            raise ValueError("Count must be greater or equal than 3.")
 
         #
         # First we try to get the data from the cache

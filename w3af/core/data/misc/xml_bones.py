@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from io import StringIO
+from io import BytesIO
 
 from lxml import etree
 
@@ -61,7 +61,7 @@ def get_xml_bones(document):
     )
 
     document = smart_str_ignore(document, encoding=DEFAULT_ENCODING)
-    etree.parse(StringIO(document), parser)
+    etree.parse(BytesIO(document), parser)
 
     # pylint: disable=E1101
     return "".join(parser.target.bones)
@@ -92,55 +92,3 @@ class BoneCollector:
 
     def close(self):
         return None
-
-
-def get_xml_bones_iterparse(document, _round_N=round_N):
-    """
-    This is the iterparse version of get_xml_bones()
-
-    Reading some documents on lxml performance it felt like a good idea to
-    implement it using iterparse... measured... and this is actually slower
-
-    Leaving here as a reference and reminder that get_xml_bones() can not
-    be improved this way.
-
-    :param document: An XML document as a string
-    :return: The bones of the XML document, which is commonly used as an input
-             for a hash function, which is then used as a key for an LRU.
-    """
-    if not document:
-        return ""
-
-    output = []
-    append = output.append
-
-    document = smart_str_ignore(document, encoding=DEFAULT_ENCODING)
-    document_io = StringIO(document)
-    events = {"start", "end"}
-
-    context = etree.iterparse(
-        document_io,
-        events=events,
-        remove_comments=True,
-        remove_pis=True,
-        html=True,
-        recover=True,
-        encoding=DEFAULT_ENCODING,
-        huge_tree=False,
-        resolve_entities=False,
-    )
-
-    for event, elem in context:
-        if event == "start":
-            append(elem.tag)
-
-            for attr, value in elem.attrib.items():
-                append("%s%s" % (attr, _round_N(len(value))))
-
-            if elem.text is not None:
-                append("%s" % _round_N(len(elem.text)))
-
-        else:
-            append("/%s" % elem.tag)
-
-    return "".join(output)

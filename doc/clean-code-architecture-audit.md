@@ -238,6 +238,31 @@ capas ni hacen pasar las gates globales.
    silenciar reglas. Revisar por separado dependencias, código vendorizado y
    compatibilidad multiplataforma.
 
+## Avance: transporte HTTP y Python 3.14
+
+Se adaptaron las rutas de request, keep-alive, lectura de respuestas, redirects,
+gzip y caché a las APIs actuales de `urllib`, `http.client` y `email.message`:
+los cuerpos y buffers HTTP son bytes, las cabeceras repetidas usan `get_all`,
+las conexiones ya no pasan el parámetro retirado `strict`, y el cache fingerprint
+usa SHA-256 sobre UTF-8. También se corrigieron la clave RTT ambigua, el parser
+XML para entradas bytes y una API de urllib retirada en el director.
+
+Validación focal: **29 pruebas pasan**; se excluyeron dos pruebas de sockets
+keep-alive que dependen del host externo `fallback`. Black global pasa (1967
+archivos) y Bandit focal en los módulos de producción tocados pasa. `ruff check .`
+falla con **5738 hallazgos**; mypy global continúa fallando en imports y tipos,
+incluido sqlmap vendorizado. `bandit -r .` recorrió solo el 61% tras 1:26 y se
+interrumpió porque también escanea `venv`; no se considera gate global verificada.
+`pip-audit` informa `nltk 3.10.3` (`PYSEC-2026-3740`) y no puede auditar la
+instalación local `mitmproxy 13.0.0.dev0`. Los pins acordados de mitmproxy,
+`aioquic` y `urwid` se mantienen sin cambios.
+
+El test de cache que espera HTTP 404 recibió HTTP 522 del host remoto durante la
+ejecución; no se atribuye a este cambio. `httpretty` emite warnings por usar
+`datetime.utcnow()`. La puntuación global sigue en **2.5/10**: este avance
+recupera rutas de transporte concretas, pero no corrige la deuda arquitectónica
+ni los gates globales.
+
 La auditoría es deliberadamente iterativa: se actualizarán notas y hallazgos
 con cada avance verificado. No se afirmará una nota 10 mientras queden
 dependencias de capa, gates fallidas o flujos críticos sin pruebas.

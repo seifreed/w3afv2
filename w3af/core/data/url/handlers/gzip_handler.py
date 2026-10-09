@@ -84,7 +84,7 @@ class HTTPGzipProcessor(urllib.request.BaseHandler):
         for decompression_method in self._decompression_methods:
             try:
                 decompressed_body = decompression_method(body)
-            except:
+            except (OSError, EOFError, zlib.error):
                 continue
             else:
                 break
@@ -111,7 +111,7 @@ class HTTPGzipProcessor(urllib.request.BaseHandler):
         :return: True if the HTTP response contains headers that indicate the
                  content is compressed and this handler should decompress it
         """
-        for enc_hdr in response.info().getheaders("Content-encoding"):
+        for enc_hdr in response.info().get_all("Content-encoding", []):
             if "gzip" in enc_hdr:
                 return True
 

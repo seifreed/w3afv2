@@ -1,10 +1,5 @@
 import http.client
 
-try:
-    from io import StringIO
-except ImportError:
-    from io import StringIO
-
 from w3af.core.data.constants.response_codes import NO_CONTENT
 from w3af.core.data.kb.config import cf
 
@@ -49,13 +44,11 @@ class HTTPResponse(http.client.HTTPResponse):
     # Both readline and readlines have been stolen with almost no
     # modification from socket.py
 
-    def __init__(self, sock, debuglevel=0, strict=0, method=None):
-        http.client.HTTPResponse.__init__(
-            self, sock, debuglevel, strict=strict, method=method
-        )
+    def __init__(self, sock, debuglevel=0, method=None):
+        http.client.HTTPResponse.__init__(self, sock, debuglevel, method=method)
         self.fileno = sock.fileno
         self.code = None
-        self._rbuf = ""
+        self._rbuf = b""
         self._rbufsize = 8096
         self._handler = None  # inserted by the handler later
         self._host = None  # (same)
@@ -92,15 +85,15 @@ class HTTPResponse(http.client.HTTPResponse):
         fetched, and throw an exception in case it is too big.
         """
         if self.fp is None:
-            return ""
+            return b""
 
         max_file_size = cf.get("max_file_size") or None
-        if max_file_size:
+        if max_file_size and self.length is not None:
             if self.length > max_file_size:
                 self.status = NO_CONTENT
                 self.reason = "No Content"  # Reason-Phrase
                 self.close()
-                return ""
+                return b""
 
         if self.chunked:
             return self._read_chunked(amt)
@@ -165,10 +158,10 @@ class HTTPResponse(http.client.HTTPResponse):
             self.length = None
             self.chunked = 0
             self.will_close = 1
-            self.msg = http.client.HTTPMessage(StringIO())
+            self.msg = http.client.HTTPMessage()
             return
 
-        self.msg = http.client.HTTPMessage(self.fp, 0)
+        self.msg = http.client.parse_headers(self.fp)
         if self.debuglevel > 0:
             for hdr in self.msg.headers:
                 print("header:", hdr, end=" ")
@@ -177,7 +170,7 @@ class HTTPResponse(http.client.HTTPResponse):
         self.msg.fp = None
 
         # are we using the chunked-style of transfer encoding?
-        tr_enc = self.msg.getheader("transfer-encoding")
+        tr_enc = self.msg.get("transfer-encoding")
         if tr_enc and tr_enc.lower() == "chunked":
             self.chunked = 1
             self.chunk_left = None
@@ -228,7 +221,7 @@ class HTTPResponse(http.client.HTTPResponse):
 
         :return: The content length (as integer)
         """
-        length = self.msg.getheader("content-length")
+        length = self.msg.get("content-length")
 
         if length is None:
             # This is a response where there is no content-length header,
@@ -283,17 +276,17 @@ class HTTPResponse(http.client.HTTPResponse):
                 return s
         else:
             s = self._rbuf + self._multiread
-            self._rbuf = ""
+            self._rbuf = b""
             return s
 
     def readline(self, limit=-1):
-        i = self._rbuf.find("\n")
+        i = self._rbuf.find(b"\n")
 
         while i < 0 and not (0 < limit <= len(self._rbuf)):
             new = self._raw_read(self._rbufsize)
             if not new:
                 break
-            i = new.find("\n")
+            i = new.find(b"\n")
             if i >= 0:
                 i += len(self._rbuf)
             self._rbuf = self._rbuf + new
@@ -335,14 +328,14 @@ class HTTPResponse(http.client.HTTPResponse):
         Overriding to add "max" support
         http://tools.ietf.org/id/draft-thomson-hybi-http-timeout-01.html#p-max
         """
-        keep_alive = self.msg.getheader("keep-alive")
+        keep_alive = self.msg.get("keep-alive")
 
         if keep_alive and keep_alive.lower().endswith("max=1"):
             # We close right before the "max" deadline
             debug("will_close = True due to max=1")
             return True
 
-        conn = self.msg.getheader("connection")
+        conn = self.msg.get("connection")
 
         # Is the remote end saying we need to keep the connection open?
         if conn and "keep-alive" in conn.lower():
@@ -361,7 +354,7 @@ class HTTPResponse(http.client.HTTPResponse):
             return False
 
         # Proxy-Connection is a netscape hack.
-        pconn = self.msg.getheader("proxy-connection")
+        pconn = self.msg.get("proxy-connection")
         if pconn and "keep-alive" in pconn.lower():
             return False
 

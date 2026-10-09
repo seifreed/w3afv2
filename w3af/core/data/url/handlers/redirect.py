@@ -70,7 +70,7 @@ class HTTP30XHandler(urllib.request.HTTPRedirectHandler):
         new_request = HTTPRequest(
             new_url_obj,
             headers=new_headers,
-            origin_req_host=request.get_origin_req_host(),
+            origin_req_host=request.origin_req_host,
             method=method,
             timeout=request.timeout,
             unverifiable=True,
@@ -99,9 +99,9 @@ class HTTP30XHandler(urllib.request.HTTPRedirectHandler):
         # (so probably same goes for URI). Use first header
         #
         if LOCATION in headers:
-            new_url_raw = headers.getheaders(LOCATION)[0]
+            new_url_raw = headers.get_all(LOCATION)[0]
         elif URI in headers:
-            new_url_raw = headers.getheaders(URI)[0]
+            new_url_raw = headers.get_all(URI)[0]
         else:
             # There is no location or uri headers
             # Return the original response and continue

@@ -85,6 +85,9 @@ class HTTPRequest(RequestMixIn, urllib.request.Request):
         if self.method is None:
             self.method = "POST" if data else "GET"
 
+        if isinstance(data, str):
+            data = data.encode("utf-8")
+
         if isinstance(headers, Headers):
             headers.tokens_to_value()
 
@@ -95,6 +98,8 @@ class HTTPRequest(RequestMixIn, urllib.request.Request):
             self, url.url_encode(), data, headers, origin_req_host, unverifiable
         )
         RequestMixIn.__init__(self)
+        self._original_url = self.get_full_url()
+        self._original_url_object = url
 
     def __eq__(self, other):
         return (
@@ -145,6 +150,9 @@ class HTTPRequest(RequestMixIn, urllib.request.Request):
 
     def set_uri(self, url_object):
         self.url_object = url_object
+        self.full_url = url_object.url_encode()
+        self._original_url = self.full_url
+        self._original_url_object = url_object
 
     def get_headers(self):
         headers = Headers(list(self.headers.items()))

@@ -71,7 +71,7 @@ class TestKeepalive(unittest.TestCase):
         conn = self.conn
         req = self.req
 
-        req.get_host = MagicMock(return_value=host)
+        req.host = host
         req.get_full_url = MagicMock(return_value="test_full_url")
 
         # Override KeepAliveHandler._start_transaction
@@ -203,7 +203,7 @@ class TestConnectionMgr(unittest.TestCase):
     def test_get_available_conn_reuse(self):
         # We don't need a new HTTPConnection for each request
         self.request.new_connection = False
-        self.request.get_host = lambda: "w3af.org"
+        self.request.host = "w3af.org"
         self.request.get_netloc = lambda: "w3af.org"
 
         self.cm.MAX_CONNECTIONS = 1  # Only a single connection
@@ -213,8 +213,8 @@ class TestConnectionMgr(unittest.TestCase):
         # Get connection
         def conn_factory(request):
             mock = Mock()
-            mock.host = request.get_host()
-            mock.host_port = request.get_host()
+            mock.host = request.host
+            mock.host_port = request.host
             return mock
 
         conn_1 = self.cm.get_available_connection(self.request, conn_factory)

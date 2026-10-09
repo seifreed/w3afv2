@@ -48,6 +48,11 @@ class TestHTTPRequest(unittest.TestCase):
 
         self.assertEqual(req.get_data(), request_data)
 
+    def test_text_data_is_encoded_as_utf8(self):
+        req = HTTPRequest(URL("http://www.w3af.com"), data="café")
+
+        self.assertEqual(req.get_data(), "café".encode())
+
     def test_to_from_dict(self):
         headers = Headers([("Host", "www.w3af.com")])
         req = HTTPRequest(URL("http://www.w3af.com/"), data="spameggs", headers=headers)

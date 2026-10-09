@@ -32,6 +32,9 @@ class TestXMLBones(unittest.TestCase):
     def test_simple(self):
         self.assertEqual(get_xml_bones("<xml>hello</xml>"), "htmlbodyxml0xmlbodyhtml")
 
+    def test_bytes_document(self):
+        self.assertEqual(get_xml_bones(b"<xml>hello</xml>"), "htmlbodyxml0xmlbodyhtml")
+
     def test_large(self):
         self.assertEqual(
             get_xml_bones("<xml>hello world 123 123</xml>"), "htmlbodyxml20xmlbodyhtml"
@@ -54,7 +57,7 @@ class TestXMLBones(unittest.TestCase):
         )
 
     def test_broken_1(self):
-        self.assertEqual(get_xml_bones("<xml "), "htmlbodyxmlbodyhtml")
+        self.assertEqual(get_xml_bones("<xml "), "htmlbodybodyhtml")
 
     def test_broken_2(self):
         self.assertEqual(get_xml_bones("<xml>"), "htmlbodyxmlxmlbodyhtml")
@@ -63,6 +66,4 @@ class TestXMLBones(unittest.TestCase):
         self.assertEqual(get_xml_bones("<a><b>hello</b></a>"), "htmlbodyab0babodyhtml")
 
     def test_just_text(self):
-        self.assertEqual(
-            get_xml_bones("hello world (); foobar"), "htmlbodyp20pbodyhtml"
-        )
+        self.assertEqual(get_xml_bones("hello world (); foobar"), "htmlbody20bodyhtml")

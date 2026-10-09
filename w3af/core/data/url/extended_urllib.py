@@ -1049,10 +1049,11 @@ class ExtendedUrllib:
         # Sanitize the URL
         self.assert_allowed_proto(req)
 
-        # Evasion
+        original_url = req._original_url
+        original_url_inst = req._original_url_object
         req = self._evasion(req)
-        original_url = req._Request__original
-        original_url_inst = req.url_object
+        req._original_url = original_url
+        req._original_url_object = original_url_inst
 
         try:
             res = self._opener.open(req)
@@ -1226,7 +1227,7 @@ class ExtendedUrllib:
         self._handle_worker_pool_size()
 
         # Then retry!
-        req._Request__original = original_url
+        req._original_url = original_url
         return self._retry(req, grep, exception)
 
     def _handle_send_success(self, req, res, grep, original_url, original_url_inst):
@@ -1310,7 +1311,7 @@ class ExtendedUrllib:
             # Before sending it again we update the timeout, which could have
             # changed because of the error we just found
             #
-            host = req.get_host()
+            host = req.host
             req.set_timeout(self.get_timeout(host))
 
             #
