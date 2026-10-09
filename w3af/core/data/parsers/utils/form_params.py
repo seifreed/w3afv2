@@ -21,13 +21,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import copy
+import logging
 import operator
-import random
 from collections import OrderedDict
 from functools import reduce
 from types import NoneType
+from typing import ClassVar
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.data.constants.encodings import DEFAULT_ENCODING
 from w3af.core.data.dc.utils.multipart import is_file_like
 from w3af.core.data.parsers.doc.url import URL
@@ -55,6 +55,8 @@ from w3af.core.data.parsers.utils.form_fields import (
 )
 from w3af.core.data.parsers.utils.form_id import FormID
 
+LOGGER = logging.getLogger(__name__)
+
 
 class FormParameters(OrderedDict):
     """
@@ -80,21 +82,24 @@ class FormParameters(OrderedDict):
     # Max
     TOP_VARIANTS = 15
     MAX_VARIANTS_TOTAL = 10**9
-    SEED = 1
 
-    AVOID_FILLING_FORM_TYPES = {
+    AVOID_FILLING_FORM_TYPES: ClassVar[set[str]] = {
         INPUT_TYPE_CHECKBOX,
         INPUT_TYPE_RADIO,
         INPUT_TYPE_SELECT,
     }
 
-    OPTION_MATRIX_FORM_TYPES = {
+    OPTION_MATRIX_FORM_TYPES: ClassVar[set[str]] = {
         INPUT_TYPE_CHECKBOX,
         INPUT_TYPE_RADIO,
         INPUT_TYPE_SELECT,
     }
 
-    AVOID_STR_DUPLICATES = {INPUT_TYPE_CHECKBOX, INPUT_TYPE_RADIO, INPUT_TYPE_SELECT}
+    AVOID_STR_DUPLICATES: ClassVar[set[str]] = {
+        INPUT_TYPE_CHECKBOX,
+        INPUT_TYPE_RADIO,
+        INPUT_TYPE_SELECT,
+    }
 
     def __init__(
         self,
@@ -118,9 +123,7 @@ class FormParameters(OrderedDict):
         :param attributes: The form tag attributes as seen in the HTML
         :param hosted_at_url: The URL where the form appeared
         """
-        # pylint: disable=E1002
         super().__init__(init_vals)
-        # pylint: enable=E1002
 
         # Form parameter meta-data
         self.meta = meta if meta is not None else {}
@@ -227,7 +230,7 @@ class FormParameters(OrderedDict):
         if autocomplete is None:
             autocomplete = "on"
 
-        self._autocomplete = False if autocomplete.lower() == "off" else True
+        self._autocomplete = autocomplete.lower() != "off"
 
     def get_method(self):
         """
@@ -251,10 +254,7 @@ class FormParameters(OrderedDict):
 
         :return: True if we should send the params in the post-data
         """
-        if self.get_method().upper() in ("POST", "PUT", "PATCH"):
-            return True
-
-        return False
+        return self.get_method().upper() in ("POST", "PUT", "PATCH")
 
     def get_file_name(self, pname, default=None):
         """
@@ -280,7 +280,7 @@ class FormParameters(OrderedDict):
         form_field_list = self.meta.get(parameter_name)
 
         if form_field_list is None:
-            raise KeyError('Parameter "%s" not found in form' % parameter_name)
+            raise KeyError(f'Parameter "{parameter_name}" not found in form')
 
         for form_field in form_field_list:
             if isinstance(form_field, FileFormField):
@@ -300,12 +300,10 @@ class FormParameters(OrderedDict):
                 if isinstance(v, FileFormField):
                     file_keys.add(k)
 
-        # pylint: disable=E1133
         for k, v_lst in list(self.items()):
             for v in v_lst:
                 if is_file_like(v):
                     file_keys.add(k)
-        # pylint: enable=E1133
 
         return list(file_keys)
 
@@ -316,10 +314,8 @@ class FormParameters(OrderedDict):
         form_fields = self.meta.setdefault(form_field.name, [])
         form_fields.append(form_field)
 
-        # pylint: disable=E1101
         form_values = self.setdefault(form_field.name, [])
         form_values.append(form_field.value or "")
-        # pylint: enable=E1101
 
     def add_field_by_attr_items(self, attr_items):
         """
@@ -376,7 +372,7 @@ class FormParameters(OrderedDict):
         input_value = get_value_by_key(attributes, "value") or ""
 
         autocomplete = get_value_by_key(attributes, "autocomplete") or ""
-        autocomplete = False if autocomplete.lower() == "off" else True
+        autocomplete = autocomplete.lower() != "off"
 
         should_add_new = True
 
@@ -457,7 +453,7 @@ class FormParameters(OrderedDict):
           'b'   - bottom values
         """
         if mode not in (MODE_ALL, MODE_TB, MODE_TMB, MODE_T, MODE_B):
-            raise ValueError('Invalid variants mode: "%s"' % mode)
+            raise ValueError(f'Invalid variants mode: "{mode}"')
 
         yield self
 
@@ -468,6 +464,11 @@ class FormParameters(OrderedDict):
             return
 
         matrix = self.get_option_matrix()
+
+        if mode == MODE_TMB:
+            for row, vector in enumerate(matrix):
+                if len(vector) > 3:
+                    matrix[row] = [vector[0], vector[len(vector) // 2], vector[-1]]
 
         # Build self variant based on `sample_path`
         for sample_path in self._get_sample_paths(mode, matrix):
@@ -511,50 +512,26 @@ class FormParameters(OrderedDict):
 
             variants_total = self._get_variants_count(matrix, mode)
 
-            # Combinatoric explosion. We only want TOP_VARIANTS paths top.
-            # Create random sample. We ensure that random sample is unique
-            # matrix by using `SEED` in the random generation
+            # Spread the bounded sample across the capped combination space.
             if variants_total > self.TOP_VARIANTS:
-                # Inform user
                 msg = (
                     "w3af found an HTML form that has several"
                     " checkbox, radio and select input tags inside."
                     " Testing all combinations of those values would"
-                    " take too much time, the framework will only"
-                    " test %s randomly distributed variants."
+                    " take too much time, the framework will only test"
+                    " %s evenly distributed variants."
                 )
-                om.out.debug(msg % self.TOP_VARIANTS)
+                LOGGER.debug(msg, self.TOP_VARIANTS)
 
-                # Init random object. Set our seed so we get the same variants
-                # in two runs. This is important for users because they expect
-                # the tool to find the same vulnerabilities in two consecutive
-                # scans!
-                rand = random.Random()
-                rand.seed(self.SEED)
-
+                # shortcut: caps at 1e9 paths; raise if larger forms need coverage.
                 variants_total = min(variants_total, self.MAX_VARIANTS_TOTAL)
 
-                for _ in range(self.TOP_VARIANTS):
-                    path = rand.randint(0, variants_total)
+                for index in range(self.TOP_VARIANTS):
+                    path = (2 * index + 1) * variants_total // (2 * self.TOP_VARIANTS)
                     yield self._decode_path(path, matrix)
 
             # Less than TOP_VARIANTS elems in matrix
             else:
-                # Compress matrix dimensions to (N x Mc) where 1 <= Mc <=3
-                if mode == MODE_TMB:
-                    for row, vector in enumerate(matrix):
-                        # Create new 3-length vector
-                        if len(vector) > 3:
-                            new_vector = [
-                                vector[0],
-                                vector[len(vector) / 2],
-                                vector[-1],
-                            ]
-                            matrix[row] = new_vector
-
-                    # New variants total
-                    variants_total = self._get_variants_count(matrix, mode)
-
                 # Now get all paths!
                 for path in range(variants_total):
                     decoded_path = self._decode_path(path, matrix)
@@ -583,7 +560,7 @@ class FormParameters(OrderedDict):
 
         for i in range(len(matrix) - 1):
             base = get_count(i)
-            decoded_path.append(remainder / base)
+            decoded_path.append(remainder // base)
             remainder = remainder % base
 
         # Restore state, pop out [1]
@@ -640,17 +617,13 @@ class FormParameters(OrderedDict):
     def __repr__(self):
         items = []
 
-        # pylint: disable=E1133
         for key, value_list in self.items():
             for value in value_list:
-                kv = "'%s': '%s'" % (key, value)
+                kv = f"'{key}': '{value}'"
                 items.append(kv)
-        # pylint: enable=E1133
 
         data = ", ".join(items)
-
-        args = (self._method, self._action, data)
-        return "<FormParams (%s %s {%s})>" % args
+        return f"<FormParams ({self._method} {self._action} {{{data}}})>"
 
     def get_parameter_type_count(self):
         passwd = text = other = 0
@@ -674,24 +647,18 @@ class FormParameters(OrderedDict):
         """
         :return: True if this is a login form.
         """
-        text, passwd, other = self.get_parameter_type_count()
+        text, passwd, _ = self.get_parameter_type_count()
 
         # Classic login form
-        if text == 1 and passwd == 1 or text == 0 and passwd == 1:
-            return True
-
-        return False
+        return (text == 1 or text == 0) and passwd == 1
 
     def is_registration_form(self):
         """
         :return: True if this is a registration form, a text input (user) and
                  two password fields (passwd and confirmation)
         """
-        text, passwd, other = self.get_parameter_type_count()
-        if passwd == 2 and text >= 1:
-            return True
-
-        return False
+        text, passwd, _ = self.get_parameter_type_count()
+        return passwd == 2 and text >= 1
 
     def is_password_change_form(self):
         """
@@ -700,8 +667,5 @@ class FormParameters(OrderedDict):
                     * New password
                     * Confirm
         """
-        text, passwd, other = self.get_parameter_type_count()
-        if passwd == 3:
-            return True
-
-        return False
+        _, passwd, _ = self.get_parameter_type_count()
+        return passwd == 3

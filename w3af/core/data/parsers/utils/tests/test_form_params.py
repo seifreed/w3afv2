@@ -24,6 +24,7 @@ import pickle
 import time
 import unittest
 
+from w3af.core.data.misc.io import NamedStringIO
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.utils.form_constants import (
     INPUT_TYPE_RADIO,
@@ -116,6 +117,99 @@ class TestFormParams(unittest.TestCase):
 
         self.assertIs(f.get_form_encoding(), DEFAULT_FORM_ENCODING)
 
+    def test_multipart_encoding_depends_on_method(self):
+        form = FormParameters()
+        form.set_form_encoding("multipart/form-data")
+        self.assertEqual(form.get_form_encoding(), DEFAULT_FORM_ENCODING)
+        self.assertFalse(form.has_post_data())
+
+        form.set_method("POST")
+        form.set_form_encoding("multipart/form-data")
+        self.assertEqual(form.get_form_encoding(), "multipart/form-data")
+
+    def test_autocomplete_accepts_boolean_and_html_values(self):
+        form = FormParameters()
+
+        for value, expected in ((False, False), (True, True), (None, True)):
+            form.set_autocomplete(value)
+            self.assertIs(form.get_autocomplete(), expected)
+
+        form.set_autocomplete("off")
+        self.assertFalse(form.get_autocomplete())
+        form.set_autocomplete("ON")
+        self.assertTrue(form.get_autocomplete())
+
+    def test_file_metadata_and_file_variables(self):
+        form = FormParameters()
+        form.add_field_by_attrs(
+            {"name": "upload", "type": "file", "filename": "report.txt"}
+        )
+        form.add_field_by_attrs({"name": "description", "type": "text"})
+        form["stream"] = [NamedStringIO("file contents", "upload.txt")]
+
+        self.assertEqual(form.get_file_name("upload"), "report.txt")
+        self.assertEqual(form.get_file_name("description", "default"), "default")
+        self.assertEqual(form.get_file_name("missing", "default"), "default")
+        self.assertTrue(form.set_file_name("upload", "updated.txt"))
+        self.assertEqual(form.get_file_name("upload"), "updated.txt")
+        self.assertFalse(form.set_file_name("description", "ignored.txt"))
+        self.assertEqual(set(form.get_file_vars()), {"upload", "stream"})
+        with self.assertRaises(KeyError):
+            form.set_file_name("missing", "missing.txt")
+
+    def test_field_name_alias_and_missing_name(self):
+        form = FormParameters()
+        self.assertIsNone(form.add_field_by_attrs({"type": "text"}))
+        form.add_field_by_attr_items((("id", "username"), ("type", "text")))
+
+        self.assertEqual(form.get_parameter_type("username"), "text")
+        self.assertEqual(form.get_parameter_type("missing", "unknown"), "unknown")
+
+    def test_empty_form_variants_and_invalid_mode(self):
+        form = FormParameters()
+        self.assertEqual(list(form.get_variants()), [form])
+        with self.assertRaises(ValueError):
+            list(form.get_variants(mode="invalid"))
+
+    def test_variant_counts_by_mode(self):
+        form = FormParameters()
+        matrix = [["one", "two"]]
+
+        self.assertEqual(form._get_variants_count(matrix, MODE_T), 1)
+        self.assertEqual(form._get_variants_count(matrix, MODE_B), 1)
+        self.assertEqual(form._get_variants_count(matrix, MODE_TB), 2)
+
+    def test_form_type_counts_and_classification(self):
+        login_form = create_form_params_helper(
+            [
+                {"name": "username", "type": "text"},
+                {"name": "password", "type": "password"},
+                {"name": "token", "type": "hidden"},
+            ]
+        )
+        self.assertEqual(login_form.get_parameter_type_count(), (1, 1, 1))
+        self.assertTrue(login_form.is_login_form())
+        self.assertFalse(login_form.is_registration_form())
+        self.assertFalse(login_form.is_password_change_form())
+
+        registration_form = create_form_params_helper(
+            [
+                {"name": "username", "type": "text"},
+                {"name": "password", "type": "password"},
+                {"name": "confirmation", "type": "password"},
+            ]
+        )
+        self.assertTrue(registration_form.is_registration_form())
+
+        password_change_form = create_form_params_helper(
+            [
+                {"name": "old_password", "type": "password"},
+                {"name": "new_password", "type": "password"},
+                {"name": "confirmation", "type": "password"},
+            ]
+        )
+        self.assertTrue(password_change_form.is_password_change_form())
+
     def test_new_form(self):
         """
         Create new forms and test internal structure
@@ -133,11 +227,9 @@ class TestFormParams(unittest.TestCase):
                 form_input_type = new_form.get_parameter_type(elem_name)
                 self.assertEqual(form_input_type, elem_type)
 
-                # pylint: disable=E1133
                 for value in values:
                     if elem_type == INPUT_TYPE_SELECT:
                         self.assertIn(value, elem["values"])
-                # pylint: enable=E1133
 
     def test_variants_do_not_modify_original(self):
         bigform_data = form_with_radio + form_select_misc
@@ -145,7 +237,7 @@ class TestFormParams(unittest.TestCase):
         orig_items = list(form.items())
 
         # Generate the variants
-        variants = [v for v in form.get_variants(mode=MODE_TMB)]
+        list(form.get_variants(mode=MODE_TMB))
 
         self.assertEqual(orig_items, list(form.items()))
 
@@ -153,7 +245,7 @@ class TestFormParams(unittest.TestCase):
         # 'top-middle-bottom' mode variants
         def filter_tmb(values):
             if len(values) > 3:
-                values = (values[0], values[len(values) / 2], values[-1])
+                values = (values[0], values[len(values) // 2], values[-1])
             return values
 
         bigform_data = form_with_radio + form_select_misc
@@ -177,7 +269,6 @@ class TestFormParams(unittest.TestCase):
             variants_set.add(repr(form_variant))
 
         # Ensure we actually got the expected number of variants
-        f = FormParameters()
         self.assertEqual(len(variants), total_variants + 1)
 
         # Variants shouldn't appear duplicated
@@ -197,27 +288,12 @@ class TestFormParams(unittest.TestCase):
         new_bigform = create_form_params_helper(bigform_data)
         # total_variants = 2 * 3 * 3 * 3
         variants_set = set()
-        variants = [v for v in new_bigform.get_variants(mode=MODE_TMB)]
+        with self.assertLogs(
+            "w3af.core.data.parsers.utils.form_params", level="DEBUG"
+        ) as logs:
+            variants = [v for v in new_bigform.get_variants(mode=MODE_TMB)]
 
-        # Please note that this depends completely in form.SEED AND
-        # form.TOP_VARIANTS
-        RANDOM_PICKS = {
-            1: ("volvo", "black", "d", "female"),
-            2: ("volvo", "blue", "i", "male"),
-            3: ("volvo", "blue", "f", "female"),
-            4: ("volvo", "black", "g", "female"),
-            5: ("volvo", "black", "m", "male"),
-            6: ("volvo", "black", "l", "male"),
-            7: ("volvo", "blue", "b", "female"),
-            8: ("volvo", "blue", "e", "female"),
-            9: ("volvo", "black", "c", "male"),
-            10: ("volvo", "black", "a", "female"),
-            11: ("volvo", "blue", "e", "male"),
-            12: ("volvo", "black", "j", "male"),
-            13: ("volvo", "blue", "c", "male"),
-            14: ("volvo", "black", "a", "male"),
-            15: ("volvo", "black", "i", "female"),
-        }
+        self.assertIn("15 evenly distributed variants", logs.output[0])
 
         for i, form_variant in enumerate(variants):
 
@@ -226,13 +302,10 @@ class TestFormParams(unittest.TestCase):
                 self.assertIs(new_bigform, form_variant)
                 continue
 
-            option = []
             for name, values in list(clean_data.items()):
-                form_value = form_variant[name][0]
-                option.append(form_value)
-
-            current_option = RANDOM_PICKS[i]
-            self.assertEqual(tuple(option), current_option)
+                if len(values) > 3:
+                    values = (values[0], values[len(values) // 2], values[-1])
+                self.assertIn(form_variant[name][0], values)
 
             variants_set.add(repr(form_variant))
 
@@ -314,13 +387,13 @@ class TestFormParams(unittest.TestCase):
             form_params.append(
                 {
                     "type": "select",
-                    "name": "cars_%s" % i,
+                    "name": f"cars_{i}",
                     "values": (
-                        "volvo_%s" % i,
-                        "saab_%s" % i,
-                        "jeep_%s" % i,
-                        "chevy_%s" % i,
-                        "fiat_%s" % i,
+                        f"volvo_{i}",
+                        f"saab_{i}",
+                        f"jeep_{i}",
+                        f"chevy_{i}",
+                        f"fiat_{i}",
                     ),
                 }
             )
@@ -347,14 +420,14 @@ class TestFormParams(unittest.TestCase):
     def test_same_variants_generation(self):
         # Combinatoric explosion (mode=MODE_ALL): total_variants = 250 > 150
         #
-        # Therefore will be used random variants generation. We should get the
-        # same every time we call `form.get_variants`
+        # The bounded variant sample should be stable across repeated calls.
         new_form = create_form_params_helper(
             form_with_radio + form_select_cars + form_select_misc
         )
-        get_all_variants = lambda: set(
-            repr(fv) for fv in new_form.get_variants(mode=MODE_ALL)
-        )
+
+        def get_all_variants():
+            return {repr(variant) for variant in new_form.get_variants(mode=MODE_ALL)}
+
         variants = get_all_variants()
         for i in range(10):
             self.assertEqual(variants, get_all_variants())

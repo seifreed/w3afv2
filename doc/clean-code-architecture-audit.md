@@ -1183,3 +1183,23 @@ existente. Black y Bandit focalizados pasan. Ruff focal informa nueve hallazgos
 heredados en estos módulos; no se añadieron supresiones. Las pruebas Google
 marcadas como dependientes de Internet no se ejecutaron. Score global:
 **4.9/10**; siguen pendientes 18 dependencias directas y las gates globales.
+
+## Avance: FormParameters compatible y desacoplado
+
+`FormParameters` sustituye su import de `output_manager` por `logging`; los
+imports directos de producción `core.data -> controllers` bajan de 18 a 17.
+El generador conserva un límite reproducible de variantes, pero ahora elige
+índices válidos y únicos distribuidos a lo largo del espacio acotado por
+`MAX_VARIANTS_TOTAL`; en modo TMB aplica top/medio/fondo también cuando el
+formulario supera el límite. Se corrigieron las divisiones de índices
+incompatibles con Python 3 y se añadieron pruebas sin mocks para esos casos y
+para las ramas de metadatos de archivos,
+autocomplete y clasificación de formularios. El fixture HTML se lee como bytes
+y el test declara su modo de variantes, evitando depender de la configuración
+global de la UI.
+
+Verificación: **77 pruebas pasan y `form_params.py` alcanza 100% de cobertura**.
+Black, Ruff y Bandit focalizados pasan sin supresiones. Mypy del módulo no
+reporta errores propios, pero encuentra dos errores en `core.data` y `core` al
+seguir imports. Score global provisional: **5.0/10**; quedan 17 dependencias
+directas, cobertura global no demostrada al 100% y gates globales fallidas.

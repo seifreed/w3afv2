@@ -23,12 +23,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 import unittest
+from typing import ClassVar
 
-import w3af.core.data.kb.config as cf
 from w3af import ROOT_PATH
 from w3af.core.data.parsers.doc.html import HTMLParser
 from w3af.core.data.parsers.doc.tests.test_sgml import build_http_response
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.parsers.utils.form_constants import MODE_TMB
 
 
 class RaiseHTMLParser(HTMLParser):
@@ -49,37 +50,37 @@ class TestComplexHTMLForm(unittest.TestCase):
         "complex-form.html",
     )
 
-    EXPECTED_PARAMS = [
-        "ctl00$cphHuvud$passlangd",
-        "ctl00$cphHuvud$visabokade",
-        "ctl00$ucLogin$txtAnvnamn",
-        "ctl00$cphHuvud$hdnMaxdgr",
-        "ctl00$cphHuvud$ibnNo",
-        "__EVENTVALIDATION",
+    EXPECTED_PARAMS: ClassVar[list[str]] = [
+        "__VIEWSTATE",
+        "__VIEWSTATEGENERATOR",
         "__PREVIOUSPAGE",
-        "ctl00$cphHuvud$passslut",
-        "ctl00$cphHuvud$hdnDatediff",
+        "__EVENTVALIDATION",
+        "ctl00$ucLogin$txtAnvnamn",
+        "ctl00$ucLogin$txtLosen",
+        "ctl00$ucLogin$btnLoggain",
+        "ctl00$cphHuvud$btnSok1",
+        "ctl00$cphHuvud$btnSokObj1",
+        "ctl00$cphHuvud$ListaGrundschema",
+        "ctl00$cphHuvud$bnMarkeraAlla",
         "ctl00$cphHuvud$bnAvmarkeraAlla",
         "ctl00$cphHuvud$ListaObjurval",
-        "ctl00$cphHuvud$passstart",
-        "__VIEWSTATEGENERATOR",
-        "ctl00$cphHuvud$txtTdat",
-        "ctl00$ucLogin$btnLoggain",
-        "ctl00$cphHuvud$txtFdat",
         "ctl00$cphHuvud$grundschemanamn",
-        "ctl00$cphHuvud$ibnSv",
-        "ctl00$cphHuvud$visalediga",
-        "ctl00$cphHuvud$ListaGrundschema",
-        "ctl00$cphHuvud$btnSok2",
-        "ctl00$cphHuvud$btnSok1",
-        "__VIEWSTATE",
-        "ctl00$cphHuvud$bnMarkeraAlla",
-        "ctl00$cphHuvud$sortera",
         "ctl00$cphHuvud$soktyp",
+        "ctl00$cphHuvud$visalediga",
+        "ctl00$cphHuvud$passstart",
+        "ctl00$cphHuvud$passslut",
+        "ctl00$cphHuvud$passlangd",
+        "ctl00$cphHuvud$visabokade",
+        "ctl00$cphHuvud$sortera",
+        "ctl00$cphHuvud$hdnDatediff",
+        "ctl00$cphHuvud$txtFdat",
+        "ctl00$cphHuvud$txtTdat",
+        "ctl00$cphHuvud$hdnMaxdgr",
+        "ctl00$cphHuvud$btnSok2",
         "ctl00$cphHuvud$btnSokObj2",
-        "ctl00$cphHuvud$btnSokObj1",
+        "ctl00$cphHuvud$ibnSv",
+        "ctl00$cphHuvud$ibnNo",
         "ctl00$cphHuvud$ibnEn",
-        "ctl00$ucLogin$txtLosen",
         "ctl00$cphHuvud$ibnIs",
     ]
 
@@ -88,18 +89,17 @@ class TestComplexHTMLForm(unittest.TestCase):
         Reported by one of our partners. The issue seems to be that there are
         too many variants being generated.
         """
-        body = open(self.COMPLEX_FORM).read()
+        with open(self.COMPLEX_FORM, "rb") as form_file:
+            body = form_file.read()
         resp = build_http_response(self.url, body)
         p = RaiseHTMLParser(resp)
         p.parse()
 
-        mode = cf.cf.get("form_fuzzing_mode")
-
         form_params = p.forms[0]
         self.assertEqual(
-            len([fv for fv in form_params.get_variants(mode)]),
+            len([fv for fv in form_params.get_variants(MODE_TMB)]),
             form_params.TOP_VARIANTS + 1,
         )
 
         self.assertEqual(len(list(form_params.meta.keys())), 31)
-        self.assertEqual(list(form_params.meta.keys()), self.EXPECTED_PARAMS)
+        self.assertEqual(list(form_params.meta), self.EXPECTED_PARAMS)
