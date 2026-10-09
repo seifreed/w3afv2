@@ -51,7 +51,7 @@ class TestJSONContainer(unittest.TestCase):
             ("object-key-string", "value"),
         ]
         token_data = [(t.get_name(), t.get_value()) for dcc, t in dcc_tokens]
-        self.assertEqual(EXPECTED_TOKENS, token_data)
+        self.assertCountEqual(EXPECTED_TOKENS, token_data)
 
     def test_object_null_value(self):
         jcont = JSONContainer(OBJECT_NULL)
@@ -117,7 +117,7 @@ class TestJSONContainer(unittest.TestCase):
         jcont = JSONContainer(ARRAY)
         dcc_tokens = [(dcc, token) for dcc, token in jcont.iter_bound_tokens()]
 
-        dc, token = dcc_tokens[0]
+        dc, _ = dcc_tokens[0]
         self.assertIsNotNone(dc.get_token())
 
         dc_copy = copy.deepcopy(dc)

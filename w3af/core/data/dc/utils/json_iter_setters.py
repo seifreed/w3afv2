@@ -37,8 +37,7 @@ TO_WRAP_OBJS = (int, float, str, type(None))
 def json_iter_setters(arbitrary_python_obj):
     marbitrary_python_obj = to_mutable(arbitrary_python_obj)
 
-    for k, v, s in _json_iter_setters(marbitrary_python_obj):
-        yield k, v, s
+    yield from _json_iter_setters(marbitrary_python_obj)
 
 
 def to_mutable(arbitrary_python_obj):
@@ -55,9 +54,7 @@ def to_mutable(arbitrary_python_obj):
     if isinstance(arbitrary_python_obj, TO_WRAP_OBJS):
         return MutableWrapper(arbitrary_python_obj)
 
-    elif isinstance(arbitrary_python_obj, MutableWrapper) or isinstance(
-        arbitrary_python_obj, DataToken
-    ):
+    elif isinstance(arbitrary_python_obj, (MutableWrapper, DataToken)):
         value = to_mutable(arbitrary_python_obj.get_value())
         arbitrary_python_obj.set_value(value)
         return arbitrary_python_obj
@@ -75,15 +72,12 @@ def to_mutable(arbitrary_python_obj):
         return arbitrary_python_obj
 
     raise RuntimeError(
-        "Unexpected data type in JSON iter setter: %r" % arbitrary_python_obj
+        f"Unexpected data type in JSON iter setter: {arbitrary_python_obj!r}"
     )
 
 
 class MutableWrapper:
-    """
-    Wrapper around string, int and float which allows me to provide a setter
-    around them. The
-    """
+    """Wrap scalar JSON values so setters can update them in place."""
 
     def __init__(self, wrapped_obj):
         self._wrapped_obj = wrapped_obj
@@ -95,13 +89,8 @@ class MutableWrapper:
         self._wrapped_obj = new_value
 
     def __getattr__(self, attr):
-        # see if this object has attr
-        # NOTE do not use hasattr, it goes into infinite recursion
-        if attr in self.__dict__:
-            # this object has it
-            return getattr(self, attr)
-        # proxy to the wrapped object
-        return getattr(self._wrapped_obj, attr)
+        wrapped_obj = object.__getattribute__(self, "_wrapped_obj")
+        return getattr(wrapped_obj, attr)
 
 
 def _json_iter_setters(marbitrary_python_obj, key_names=None):
@@ -118,14 +107,14 @@ def _json_iter_setters(marbitrary_python_obj, key_names=None):
             key_names.append(KEY_STRING)
             yield "-".join(key_names), value, marbitrary_python_obj.set_value
 
-        elif isinstance(value, (int, float)):
-            key_names = key_names[:]
-            key_names.append(KEY_NUMBER)
-            yield "-".join(key_names), value, marbitrary_python_obj.set_value
-
         elif isinstance(value, bool):
             key_names = key_names[:]
             key_names.append(KEY_BOOLEAN)
+            yield "-".join(key_names), value, marbitrary_python_obj.set_value
+
+        elif isinstance(value, (int, float)):
+            key_names = key_names[:]
+            key_names.append(KEY_NUMBER)
             yield "-".join(key_names), value, marbitrary_python_obj.set_value
 
         elif value is None:
@@ -134,7 +123,7 @@ def _json_iter_setters(marbitrary_python_obj, key_names=None):
             yield "-".join(key_names), value, marbitrary_python_obj.set_value
 
         elif isinstance(value, DataToken):
-            for k, v, s in _json_iter_setters(value, key_names=key_names):
+            for k, v, s in _json_iter_setters(value.get_value(), key_names=key_names):
                 yield k, v, s
         else:
             for k, v, s in _json_iter_setters(value, key_names=key_names):
@@ -161,7 +150,7 @@ def _json_iter_setters(marbitrary_python_obj, key_names=None):
 
 def json_complex_str(arbitrary_json):
     def encode_complex(obj):
-        if isinstance(obj, DataToken) or isinstance(obj, MutableWrapper):
+        if isinstance(obj, (DataToken, MutableWrapper)):
             return obj.get_value()
 
         raise TypeError(repr(obj) + " is not JSON serializable")

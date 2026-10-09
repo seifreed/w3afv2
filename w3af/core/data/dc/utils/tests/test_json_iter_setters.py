@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import copy
 import json
 import unittest
 
@@ -40,6 +41,7 @@ from w3af.core.data.dc.utils.json_iter_setters import (
     json_complex_str,
     json_iter_setters,
 )
+from w3af.core.data.dc.utils.token import DataToken
 
 
 class TestJSONIterSetters(unittest.TestCase):
@@ -47,6 +49,39 @@ class TestJSONIterSetters(unittest.TestCase):
     def test_mutable_json(self):
         json = JSONContainer.get_mutable_json(ARRAY)
         self.assertIsInstance(json, MutableWrapper)
+
+    def test_mutable_wrapper_can_be_deepcopied(self):
+        wrapper = MutableWrapper("value")
+
+        copied_wrapper = copy.deepcopy(wrapper)
+
+        self.assertIsNot(copied_wrapper, wrapper)
+        self.assertEqual(copied_wrapper.get_value(), "value")
+
+    def test_boolean_values_have_boolean_tokens(self):
+        setters = list(json_iter_setters({"enabled": True}))
+
+        self.assertEqual(
+            [("object-enabled-boolean", True)],
+            [(name, value) for name, value, _ in setters],
+        )
+
+    def test_data_token_wrapped_in_mutable_wrapper_keeps_its_setter(self):
+        token = DataToken("field", "before", ("field",))
+        wrapper = MutableWrapper(token)
+        setters = list(json_iter_setters(wrapper))
+
+        self.assertEqual(len(setters), 1)
+        self.assertEqual(setters[0][1], "before")
+        setters[0][2]("after")
+        self.assertEqual(token.get_value().get_value(), "after")
+
+    def test_invalid_json_value_raises(self):
+        with self.assertRaises(RuntimeError):
+            list(json_iter_setters(object()))
+
+        with self.assertRaises(TypeError):
+            json_complex_str(object())
 
     def test_int(self):
         json_data = JSONContainer.get_mutable_json(NUMBER)
@@ -85,7 +120,7 @@ class TestJSONIterSetters(unittest.TestCase):
         self.assertEqual(len(jis), 3)
 
         k, v, s = jis[0]
-        self.assertEqual(k, "-".join([KEY_ARRAY, "0", KEY_STRING]))
+        self.assertEqual(k, f"{KEY_ARRAY}-0-{KEY_STRING}")
         self.assertEqual(v, "abc")
         self.assertTrue(callable(s))
 
@@ -94,7 +129,7 @@ class TestJSONIterSetters(unittest.TestCase):
         self.assertEqual(json_complex_str(json_data), payload_array)
 
         k, v, s = jis[1]
-        self.assertEqual(k, "-".join([KEY_ARRAY, "1", KEY_NUMBER]))
+        self.assertEqual(k, f"{KEY_ARRAY}-1-{KEY_NUMBER}")
         self.assertEqual(v, 3)
         self.assertTrue(callable(s))
 
@@ -103,7 +138,7 @@ class TestJSONIterSetters(unittest.TestCase):
         self.assertEqual(json_complex_str(json_data), payload_array)
 
         k, v, s = jis[2]
-        self.assertEqual(k, "-".join([KEY_ARRAY, "2", KEY_NUMBER]))
+        self.assertEqual(k, f"{KEY_ARRAY}-2-{KEY_NUMBER}")
         self.assertEqual(v, 2.1)
         self.assertTrue(callable(s))
 
@@ -117,8 +152,8 @@ class TestJSONIterSetters(unittest.TestCase):
 
         self.assertEqual(len(jis), 2)
 
-        first_key = "-".join([KEY_OBJECT, "key", KEY_STRING])
-        k, v, s = [(k, v, s) for (k, v, s) in jis if k == first_key][0]
+        first_key = f"{KEY_OBJECT}-key-{KEY_STRING}"
+        k, v, s = next((k, v, s) for k, v, s in jis if k == first_key)
         self.assertEqual(k, first_key)
         self.assertEqual(v, "value")
         self.assertTrue(callable(s))
@@ -129,8 +164,8 @@ class TestJSONIterSetters(unittest.TestCase):
             json.loads(json_complex_str(json_data)), json.loads(payload_object)
         )
 
-        second_key = "-".join([KEY_OBJECT, "second_key", KEY_STRING])
-        k, v, s = [(k, v, s) for (k, v, s) in jis if k == second_key][0]
+        second_key = f"{KEY_OBJECT}-second_key-{KEY_STRING}"
+        k, v, s = next((k, v, s) for k, v, s in jis if k == second_key)
         self.assertEqual(k, second_key)
         self.assertEqual(v, "second_value")
         self.assertTrue(callable(s))

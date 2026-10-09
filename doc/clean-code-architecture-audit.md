@@ -873,3 +873,22 @@ deprecación de Bravado/jsonschema; destacan recursión de `MutableWrapper` y
 contratos antiguos en tests de requests. Score global: **4.7/10**; mejora la
 compatibilidad y verificabilidad de esta ruta, pero la integración completa,
 las gates globales y la deuda arquitectónica siguen pendientes.
+
+## Avance: copias profundas y setters de JSON
+
+`MutableWrapper.__getattr__` entraba en recursión durante `copy.deepcopy`: al
+reconstruir la instancia, Python consulta atributos especiales antes de
+restaurar `_wrapped_obj`. El acceso al atributo interno ahora evita el proxy y
+la regresión reproduce tanto la copia aislada como el fuzzing OpenAPI. La misma
+ruta reveló que los booleanos se clasificaban como números (`bool` hereda de
+`int`) y que un `DataToken` envuelto perdía el setter; ambas rutas quedaron
+cubiertas y corregidas. Se eliminaron también pequeños hallazgos Ruff locales.
+
+Las pruebas de `json_iter_setters` y `JSONContainer` pasan (22 tests) con 100%
+de cobertura de `json_iter_setters.py`; Black y Ruff pasan, y Bandit no reporta
+hallazgos en el módulo de producción. OpenAPI queda en 43/55 tests, con 12
+fallos restantes en `test_requests`/`test_specification` y 667 warnings de
+Bravado/jsonschema. Mypy dirigido sigue heredando dos errores de
+`w3af.core` (`_` no definido y `_DummyThread.__stop`). Score global: **4.8/10**;
+se corrige un bloqueo real del fuzzing y se completa esta unidad, pero siguen
+pendientes la integración OpenAPI, las gates globales y la deuda arquitectónica.
