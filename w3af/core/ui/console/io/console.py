@@ -20,9 +20,52 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import importlib
+import os
+import sys
+
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import BaseFrameworkException
-from w3af.core.ui.console.io.common import KEY_BACKSPACE
+from w3af.core.ui.console.io.common import (
+    KEY_BACKSPACE,
+    KEY_DOWN,
+    KEY_LEFT,
+    KEY_RIGHT,
+    KEY_UP,
+)
+
+# The terminal control functions depend on the platform: termios on unix,
+# msvcrt on Windows
+_platform = importlib.import_module(
+    "w3af.core.ui.console.io.winctrl"
+    if sys.platform == "win32"
+    else "w3af.core.ui.console.io.unixctrl"
+)
+read = _platform.read
+set_raw_input_mode = _platform.set_raw_input_mode
+normalizeSequence = _platform.normalizeSequence
+moveBack = _platform.moveBack
+clearScreen = _platform.clearScreen
+SEQ_PREFIX = _platform.SEQ_PREFIX
+LONGEST_SEQUENCE = _platform.LONGEST_SEQUENCE
+
+__all__ = [
+    "KEY_BACKSPACE",
+    "KEY_DOWN",
+    "KEY_LEFT",
+    "KEY_RIGHT",
+    "KEY_UP",
+    "bell",
+    "clearScreen",
+    "getch",
+    "moveBack",
+    "set_raw_input_mode",
+    "terminal_size",
+    "write",
+    "writeln",
+]
+
+DEFAULT_TERMINAL_SIZE = (80, 25)
+STANDARD_FDS = (0, 1, 2)
 
 CTRL_CODES = list(range(1, 27))
 CTRL_CODES.remove(9)
@@ -62,11 +105,6 @@ def bell():
 
 
 @sync_with_om
-def backspace():
-    sys.stdout.write(KEY_BACKSPACE)
-
-
-@sync_with_om
 def getch(buf=None):
     try:
         ch = read(1)
@@ -93,51 +131,21 @@ def getch(buf=None):
     return result
 
 
-def ioctl_GWINSZ(fd):  # TABULATION FUNCTIONS
-    try:  # Discover terminal width
-        import fcntl
-        import struct
-        import termios
-
-        cr = struct.unpack("hh", fcntl.ioctl(fd, termios.TIOCGWINSZ, "1234"))
-    except (AttributeError, ImportError, OSError):
-        return None
-    return cr
-
-
-def terminal_size():
-    ### decide on *some* terminal size
-    # try open fds
-    cr = ioctl_GWINSZ(0) or ioctl_GWINSZ(1) or ioctl_GWINSZ(2)
-    if not cr:
-        # ...then ctty
+def terminal_size(fds=STANDARD_FDS):
+    """
+    :param fds: The file descriptors to query, the first terminal wins
+    :return: The (columns, rows) of the terminal, read from the first of fds
+             which is a terminal, then from the COLUMNS and LINES environment
+             variables, or a default size.
+    """
+    for fd in fds:
         try:
-            fd = os.open(os.ctermid(), os.O_RDONLY)
-            cr = ioctl_GWINSZ(fd)
-            os.close(fd)
+            size = os.get_terminal_size(fd)
         except OSError:
-            pass
+            continue
+        return size.columns, size.lines
 
-    if not cr:
-        # env vars or finally defaults
-        try:
-            cr = (os.environ["LINES"], os.environ["COLUMNS"])
-        except KeyError:
-            cr = (25, 80)
-    # reverse rows, cols
-    return int(cr[1]), int(cr[0])
-
-
-try:
-    from w3af.core.ui.console.io.unixctrl import *
-except ImportError:
-    # We aren't on unix !
     try:
-        from w3af.core.ui.console.io.winctrl import *
-    except ImportError as windows_error:
-        # We arent on windows nor unix
-        raise BaseFrameworkException(
-            "w3af console terminal support isn't available for this platform."
-        ) from windows_error
-
-# extKeys = [KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT]
+        return int(os.environ["COLUMNS"]), int(os.environ["LINES"])
+    except KeyError:
+        return DEFAULT_TERMINAL_SIZE

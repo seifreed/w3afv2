@@ -210,11 +210,7 @@ class rootMenu(menu):
         try:
             while self._w3af.status.is_running() or self._w3af.status.is_paused():
 
-                try:
-                    read_ready, _, _ = select.select([sys.stdin], [], [], 0.5)
-                except OSError:
-                    continue
-
+                read_ready, _, _ = select.select([sys.stdin], [], [], 0.5)
                 if not read_ready:
                     continue
 
