@@ -26,9 +26,6 @@ from unittest.mock import Mock, call, patch
 
 import pytest
 
-from w3af.core.controllers.exceptions import (
-    ScanMustStopByKnownReasonExc,
-)
 from w3af.core.data.constants.file_patterns import FILE_PATTERNS
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.exceptions import HTTPRequestException
@@ -38,6 +35,9 @@ from w3af.core.data.url.tests.helpers.upper_daemon import (
     UpperDaemon,
 )
 from w3af.core.data.url.tests.test_xurllib import EmptyTCPHandler, TimeoutTCPHandler
+from w3af.core.exceptions import (
+    ScanMustStopByKnownReasonExc,
+)
 from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 TIMEOUT_SECS = 1

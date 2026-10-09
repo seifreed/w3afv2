@@ -27,9 +27,6 @@ import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import (
     ExploitFailedException,
     NoVulnerabilityFoundException,
-    ScanMustStopByUnknownReasonExc,
-    ScanMustStopByUserRequest,
-    ScanMustStopException,
 )
 from w3af.core.controllers.plugins.plugin import Plugin
 from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
@@ -37,6 +34,11 @@ from w3af.core.data.misc.response_cut import ResponseCutMixin
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.exceptions import HTTPRequestException
+from w3af.core.exceptions import (
+    ScanMustStopByUnknownReasonExc,
+    ScanMustStopByUserRequest,
+    ScanMustStopException,
+)
 
 
 class AttackPlugin(Plugin, ResponseCutMixin):

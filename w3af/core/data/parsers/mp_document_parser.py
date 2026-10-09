@@ -35,7 +35,6 @@ from tblib.decorators import Error
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.ci.detect import is_running_on_ci
-from w3af.core.controllers.exceptions import ScanMustStopException
 from w3af.core.controllers.output_manager import log_sink_factory
 from w3af.core.controllers.profiling import start_profiling_no_core
 from w3af.core.controllers.profiling.core_stats import core_profiling_is_enabled
@@ -54,6 +53,7 @@ from w3af.core.data.parsers.ipc.serialization import (
     write_object_to_temp_file,
     write_tags_to_temp_file,
 )
+from w3af.core.exceptions import ScanMustStopException
 
 # 128 MB
 DEFAULT_MEMORY_LIMIT = 128 * 1024 * 1024

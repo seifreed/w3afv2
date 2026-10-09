@@ -28,12 +28,12 @@ from multiprocessing.dummy import Process
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.ui.console.io.console as term
-from w3af.core.controllers.exceptions import (
+from w3af.core.controllers.misc.get_w3af_version import get_w3af_version
+from w3af.core.controllers.misc_settings import MiscSettings
+from w3af.core.exceptions import (
     BaseFrameworkException,
     ScanMustStopException,
 )
-from w3af.core.controllers.misc.get_w3af_version import get_w3af_version
-from w3af.core.controllers.misc_settings import MiscSettings
 from w3af.core.ui.console.bug_report import bug_report_menu
 from w3af.core.ui.console.config import ConfigMenu
 from w3af.core.ui.console.exploit import exploit

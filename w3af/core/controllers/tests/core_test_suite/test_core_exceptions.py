@@ -25,14 +25,14 @@ from unittest.mock import call, patch
 import pytest
 
 from w3af.core.controllers.ci.moth import get_moth_http
-from w3af.core.controllers.exceptions import (
+from w3af.core.controllers.misc.factory import factory
+from w3af.core.controllers.w3afCore import w3afCore
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.exceptions import (
     ScanMustStopByUnknownReasonExc,
     ScanMustStopByUserRequest,
     ScanMustStopException,
 )
-from w3af.core.controllers.misc.factory import factory
-from w3af.core.controllers.w3afCore import w3afCore
-from w3af.core.data.parsers.doc.url import URL
 from w3af.plugins.tests.helper import create_target_option_list
 
 

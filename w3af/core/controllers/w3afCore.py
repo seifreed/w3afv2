@@ -50,12 +50,6 @@ from w3af.core.controllers.core_helpers.strategy_observers.thread_state_observer
     ThreadStateObserver,
 )
 from w3af.core.controllers.core_helpers.target import CoreTarget
-from w3af.core.controllers.exceptions import (
-    BaseFrameworkException,
-    ScanMustStopByUnknownReasonExc,
-    ScanMustStopByUserRequest,
-    ScanMustStopException,
-)
 from w3af.core.controllers.misc.dns_cache import enable_dns_cache
 from w3af.core.controllers.misc.epoch_to_string import epoch_to_string
 from w3af.core.controllers.misc.get_w3af_version import get_w3af_version_minimal
@@ -79,6 +73,12 @@ from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.data.parsers import parser_cache
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
+from w3af.core.exceptions import (
+    BaseFrameworkException,
+    ScanMustStopByUnknownReasonExc,
+    ScanMustStopByUserRequest,
+    ScanMustStopException,
+)
 from w3af.core.filesystem import (
     TEMP_DIR,
     create_temp_dir,

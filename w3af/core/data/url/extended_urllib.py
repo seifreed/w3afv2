@@ -39,11 +39,6 @@ import OpenSSL
 # pylint: enable=E0401
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
-from w3af.core.controllers.exceptions import (
-    ScanMustStopByKnownReasonExc,
-    ScanMustStopByUnknownReasonExc,
-    ScanMustStopByUserRequest,
-)
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.misc.encoding import smart_unicode
@@ -74,7 +69,12 @@ from w3af.core.data.url.HTTPRequest import HTTPRequest
 from w3af.core.data.url.HTTPResponse import HTTPResponse
 from w3af.core.data.url.response_meta import SUCCESS, ResponseMeta
 from w3af.core.data.user_agent.random_user_agent import get_random_user_agent
-from w3af.core.exceptions import BaseFrameworkException
+from w3af.core.exceptions import (
+    BaseFrameworkException,
+    ScanMustStopByKnownReasonExc,
+    ScanMustStopByUnknownReasonExc,
+    ScanMustStopByUserRequest,
+)
 
 from . import opener_settings
 

@@ -38,13 +38,13 @@ from w3af.core.controllers.core_helpers.consumers.crawl_infrastructure import (
 from w3af.core.controllers.core_helpers.consumers.grep import grep
 from w3af.core.controllers.core_helpers.consumers.seed import seed
 from w3af.core.controllers.core_helpers.exception_handler import ExceptionData
-from w3af.core.controllers.exceptions import (
-    ScanMustStopByUserRequest,
-    ScanMustStopException,
-)
 from w3af.core.data.kb.info import Info
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.extended_urllib import MAX_ERROR_COUNT
+from w3af.core.exceptions import (
+    ScanMustStopByUserRequest,
+    ScanMustStopException,
+)
 
 
 class CoreStrategy:

@@ -26,7 +26,6 @@ from unittest.mock import Mock
 
 import pytest
 
-from w3af.core.controllers.exceptions import ScanMustStopException
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.constants import (
     DEFAULT_TIMEOUT,
@@ -42,6 +41,7 @@ from w3af.core.data.url.handlers.keepalive.connection_manager import ConnectionM
 from w3af.core.data.url.tests.helpers.ssl_daemon import RawSSLDaemon
 from w3af.core.data.url.tests.helpers.upper_daemon import UpperDaemon
 from w3af.core.data.url.tests.test_xurllib import TimeoutTCPHandler
+from w3af.core.exceptions import ScanMustStopException
 
 
 @pytest.mark.moth

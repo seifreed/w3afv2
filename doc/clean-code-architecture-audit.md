@@ -638,3 +638,25 @@ La puntuación global pasa a **3.3/10**: desaparece una dependencia directa de
 `data` hacia `controllers` y se corrige una API de Python retirada, pero aún
 quedan muchos imports ascendentes, errores de gates fuera de este ámbito y
 cobertura global incompleta.
+
+## Avance: excepciones de parada en la capa core
+
+La familia `ScanMustStop*` expresa el contrato de cancelación que comparten el
+transporte HTTP, la caché de parsers, el core, plugins y las interfaces; estaba
+definida en `controllers.exceptions`, lo que obligaba a `core.data` a importar
+hacia arriba. Se trasladaron las cinco excepciones a `core.exceptions` y se
+migraron los imports de producción y tests sin reexportar el módulo anterior.
+Los mensajes y jerarquía se conservan.
+
+Ocho tests sin mocks ejercitan el contrato de excepciones con `urllib.request`
+y clases reales; `core.exceptions` queda con 100% de cobertura. Black, Ruff
+(`F401`, `I001`), compilación y `git diff --check` pasan en el cambio. Las
+pruebas de red de `xurllib` tienen cinco fallos ligados a resultados variables
+de socket/SSL en Python 3.14; `parser_cache` tiene un fallo donde el timeout
+esperado no se activa. La Ruff completa de los 31 archivos tocados todavía
+reporta 278 findings de reglas fuera del orden/formato de imports, y mypy y
+gates globales siguen pendientes.
+
+La puntuación global pasa a **3.4/10**: se elimina una dependencia ascendente
+real desde `core.data` y se centraliza un contrato transversal, pero las
+dependencias restantes y la deuda de calidad global impiden una nota mayor.

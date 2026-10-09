@@ -26,12 +26,12 @@ from functools import wraps
 
 from termcolor import colored
 
-from w3af.core.controllers.exceptions import ScanMustStopByKnownReasonExc
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
 from w3af.core.data.constants.severity import HIGH, INFORMATION, LOW, MEDIUM
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.options.option_types import BOOL
+from w3af.core.exceptions import ScanMustStopByKnownReasonExc
 
 ERROR = "Error"
 

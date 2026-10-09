@@ -34,7 +34,6 @@ from w3af.core.controllers.core_helpers.consumers.constants import POISON_PILL
 from w3af.core.controllers.exceptions import (
     BaseFrameworkException,
     RunOnce,
-    ScanMustStopException,
 )
 from w3af.core.controllers.profiling.took_helper import TookLine
 from w3af.core.controllers.threads.threadpool import return_args
@@ -43,6 +42,7 @@ from w3af.core.data.db.variant_db import VariantDB
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.misc.ordered_cached_queue import OrderedCachedQueue
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.exceptions import ScanMustStopException
 
 
 class CrawlInfrastructure(BaseConsumer):

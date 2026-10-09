@@ -26,9 +26,6 @@ from concurrent.futures import TimeoutError
 
 # pylint: enable=E0401
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import (
-    ScanMustStopException,
-)
 from w3af.core.controllers.profiling.core_stats import core_profiling_is_enabled
 from w3af.core.controllers.threads.is_main_process import is_main_process
 from w3af.core.data.db.disk_set import DiskSet
@@ -42,7 +39,7 @@ from w3af.core.data.parsers.utils.response_uniq_id import (
     get_body_unique_id,
     get_response_unique_id,
 )
-from w3af.core.exceptions import BaseFrameworkException
+from w3af.core.exceptions import BaseFrameworkException, ScanMustStopException
 
 
 class ParserCache(CacheStats):
