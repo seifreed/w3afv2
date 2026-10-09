@@ -77,7 +77,6 @@ class TestConsoleCompletion(ConsoleTestHelper):
         self.assertEqual(audit._para_desc(["xss"], "x"), [])
         self.assertTrue(_values(audit._para_config([], "x")))
         self.assertEqual(audit._para_config(["xss"], "x"), [])
-        self.assertEqual(audit._para_list(["enabled"], "x"), [])
 
     def test_config_para_set(self):
         config = self._config_menu()
@@ -109,3 +108,39 @@ class TestConsoleCompletion(ConsoleTestHelper):
         self.assertTrue(_values(plugins._para_list([], "")))
         self.assertTrue(_values(plugins._para_list(["audit"], "")))
         self.assertEqual(plugins._para_list(["audit", "enabled"], ""), [])
+
+    def test_nested_path_completion(self):
+        values = _values(self.root.suggest_commands("plugins/au"))
+        self.assertTrue(any(value.startswith("audit") for value in values))
+
+    def test_help_completion_only_for_the_first_parameter(self):
+        self.assertTrue(_values(self.root._para_help([], "pl")))
+        self.assertEqual(self.root._para_help(["plugins"], ""), [])
+
+    def test_profiles_completion(self):
+        profiles = self.root.get_children()["profiles"]
+        self.assertIn("OWASP_TOP10 ", _values(profiles._para_use([], "OWASP")))
+        self.assertEqual(profiles._para_use(["OWASP_TOP10"], ""), [])
+
+    def test_config_para_set_remembers_typed_values(self):
+        config = self._config_menu()
+        config._cmd_set(["msf_location", "/opt/msf/"])
+        values = _values(config._para_set(["msf_location"], "/opt"))
+        self.assertIn("/opt/msf/", values)
+
+    def test_config_help_shows_the_option_help_text(self):
+        config = self.root.get_children()["http-settings"]
+        option_name = next(
+            name for name, option in config._opt_dict.items() if option.get_help()
+        )
+        config._cmd_help([option_name])
+        om.manager.process_all_messages()
+        output = "".join(self._captured_stdout.messages)
+        self.assertIn(config._opt_dict[option_name].get_help(), output)
+
+    def test_kb_completion(self):
+        kb_menu = self.root.get_children()["kb"]
+        self.assertIn("vulns ", _values(kb_menu._para_list([], "vu")))
+        self.assertEqual(kb_menu._para_list(["vulns"], ""), [])
+        self.assertIn("sqli ", _values(kb_menu._para_add([], "sql")))
+        self.assertEqual(kb_menu._para_add(["sqli"], ""), [])

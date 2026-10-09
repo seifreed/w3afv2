@@ -18,10 +18,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import threading
+import time
+
 import w3af.core.controllers.output_manager as om
 from w3af.core.ui.console.console_ui import ConsoleUI
 from w3af.core.ui.console.root_menu import rootMenu, stdin_is_terminal
 from w3af.core.ui.console.tests.helper import ConsoleTestHelper
+
+ROOT_WAIT_SECONDS = rootMenu.MAX_WAIT_FOR_START
 
 
 class TestScanControl(ConsoleTestHelper):
@@ -86,8 +91,44 @@ class TestScanControl(ConsoleTestHelper):
         self.assertTrue(self._output().strip())
 
     def test_wait_for_start_times_out(self):
+        # The scan thread is alive but the core never reaches "running"
+        release = threading.Event()
+        scan_thread = threading.Thread(target=release.wait)
+        scan_thread.start()
+        self.addCleanup(scan_thread.join)
+        self.addCleanup(release.set)
+
         self.menu.MAX_WAIT_FOR_START = 0.2
-        self.assertFalse(self.menu.wait_for_start())
+        self.assertFalse(self.menu.wait_for_start(scan_thread))
+
+    def test_wait_for_start_stops_when_the_scan_thread_ends(self):
+        scan_thread = threading.Thread(target=lambda: None)
+        scan_thread.start()
+        scan_thread.join()
+
+        started = time.monotonic()
+        self.assertFalse(self.menu.wait_for_start(scan_thread))
+        self.assertLess(time.monotonic() - started, 1)
+
+    def _run_console(self, commands):
+        console = ConsoleUI(commands=commands, do_upd=False)
+        started = time.monotonic()
+        console.sh()
+        return "".join(self._captured_stdout.messages), time.monotonic() - started
+
+    def test_start_without_target_fails_fast(self):
+        output, elapsed = self._run_console(["start", "exit"])
+        self.assertIn("The scan failed to start.", output)
+        self.assertLess(elapsed, ROOT_WAIT_SECONDS)
+
+    def test_start_without_output_plugins_warns(self):
+        output, _ = self._run_console(
+            ["plugins", "output !all", "back", "start", "exit"]
+        )
+        # Once from the plugins menu, once more when the scan is started
+        self.assertEqual(
+            output.count("Warning: You disabled the console output plugin."), 2
+        )
 
     def test_stdin_is_terminal_under_pytest(self):
         # pytest captures stdin, so it is not a terminal
