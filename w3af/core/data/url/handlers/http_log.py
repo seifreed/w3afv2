@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import urllib.request
 from collections.abc import Callable
 
-from w3af.core.data.url.HTTPRequest import HTTPRequest
-from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.url.http_request import HTTPRequest
+from w3af.core.data.url.http_response import HTTPResponse
 
 
 class HTTPLogHandler(urllib.request.BaseHandler):

@@ -25,7 +25,7 @@ import urllib.parse
 import urllib.request
 
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.url.HTTPRequest import HTTPRequest
+from w3af.core.data.url.http_request import HTTPRequest
 
 GET_HEAD_CODES = {301, 302, 303, 307}
 GET_HEAD = {"GET", "HEAD"}

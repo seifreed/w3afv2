@@ -51,7 +51,7 @@ def load_http_response_from_temp_file(filename, remove=True):
     :return: An HTTP response instance
     """
     # Importing here to prevent import cycle
-    from w3af.core.data.url.HTTPResponse import HTTPResponse
+    from w3af.core.data.url.http_response import HTTPResponse
 
     try:
         data = msgpack.load(open(filename, "rb"), raw=False)

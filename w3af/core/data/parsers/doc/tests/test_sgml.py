@@ -36,8 +36,8 @@ from w3af.core.data.parsers.doc.sgml import SGMLParser, Tag
 from w3af.core.data.parsers.doc.tests.data.constants import *
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.exceptions import ParserException
-from w3af.core.data.url.HTTPResponse import HTTPResponse
-from w3af.core.data.url.tests.test_HTTPResponse import TEST_RESPONSES
+from w3af.core.data.url.http_response import HTTPResponse
+from w3af.core.data.url.tests.test_http_response import TEST_RESPONSES
 
 
 def build_http_response(url, body_content, headers=Headers()):

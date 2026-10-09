@@ -53,7 +53,7 @@ from w3af.core.data.misc.web_encodings import (
 )
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.handlers.keepalive import URLTimeoutError
-from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.url.http_response import HTTPResponse
 
 # Known reason errors. See errno module for more info on these errors
 EUNKNSERV = -2  # Name or service not known error

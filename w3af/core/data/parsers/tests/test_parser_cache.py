@@ -27,7 +27,7 @@ from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.parser_cache import ParserCache
 from w3af.core.data.parsers.tests.test_document_parser import _build_http_response
 from w3af.core.data.parsers.utils.response_uniq_id import get_response_unique_id
-from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.exceptions import BaseFrameworkException
 
 

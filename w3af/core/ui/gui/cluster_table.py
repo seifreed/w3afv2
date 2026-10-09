@@ -27,7 +27,7 @@ import gtk
 # The clustering stuff
 from cluster import HierarchicalClustering
 
-from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.ui.gui import entries, helpers
 
 

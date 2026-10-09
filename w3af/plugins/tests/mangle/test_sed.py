@@ -24,8 +24,8 @@ import unittest
 
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.url.HTTPRequest import HTTPRequest
-from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.url.http_request import HTTPRequest
+from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.filesystem import create_temp_dir
 from w3af.plugins.mangle.sed import sed
 

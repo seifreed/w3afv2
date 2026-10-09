@@ -33,8 +33,8 @@ import msgpack
 from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.db.exceptions import DBException
 from w3af.core.data.db.where_helper import WhereHelper
-from w3af.core.data.url.HTTPRequest import HTTPRequest
-from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.url.http_request import HTTPRequest
+from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.filesystem import get_temp_dir
 
 LOGGER = logging.getLogger(__name__)

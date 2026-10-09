@@ -33,7 +33,7 @@ from w3af.core.data.parsers.document_parser import (
     DocumentParser,
     document_parser_factory,
 )
-from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.exceptions import BaseFrameworkException
 
 

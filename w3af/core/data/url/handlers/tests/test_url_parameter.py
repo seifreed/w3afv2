@@ -26,7 +26,7 @@ import httpretty
 
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url import opener_settings
-from w3af.core.data.url.HTTPRequest import HTTPRequest
+from w3af.core.data.url.http_request import HTTPRequest
 
 
 class TestURLParameterHandler(unittest.TestCase):

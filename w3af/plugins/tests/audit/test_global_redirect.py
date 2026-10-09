@@ -24,7 +24,7 @@ from unittest import TestCase
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.url.http_response import HTTPResponse
 from w3af.plugins.audit.global_redirect import global_redirect
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 

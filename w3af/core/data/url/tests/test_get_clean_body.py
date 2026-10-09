@@ -35,7 +35,7 @@ from w3af.core.data.url.helpers import (
     get_clean_body,
     get_clean_body_impl,
 )
-from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.url.http_response import HTTPResponse
 
 
 class TestGetCleanBody(unittest.TestCase):

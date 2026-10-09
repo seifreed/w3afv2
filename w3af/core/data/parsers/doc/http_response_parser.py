@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.http_request_parser import check_version_syntax
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.exceptions import BaseFrameworkException
 
 SUPPORTED_VERSIONS = {"1.0", "1.1"}

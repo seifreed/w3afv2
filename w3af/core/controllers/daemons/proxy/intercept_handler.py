@@ -26,7 +26,7 @@ from w3af.core.controllers.daemons.proxy import ProxyHandler
 from w3af.core.controllers.daemons.proxy.templates.utils import render
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.http_request_parser import http_request_parser
-from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.url.http_response import HTTPResponse
 
 
 class InterceptProxyHandler(ProxyHandler):

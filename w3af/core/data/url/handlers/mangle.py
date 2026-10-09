@@ -26,7 +26,7 @@ import urllib.request
 
 from w3af.core.data.url.handlers.keepalive import HTTPResponse as kaHTTPResponse
 from w3af.core.data.url.handlers.http_log import HTTPLogHandler
-from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.url.http_response import HTTPResponse
 
 
 class MangleHandler(urllib.request.BaseHandler):

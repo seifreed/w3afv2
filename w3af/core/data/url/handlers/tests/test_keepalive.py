@@ -42,7 +42,7 @@ from w3af.core.data.url.handlers.keepalive import (
     KeepAliveHandler,
     URLTimeoutError,
 )
-from w3af.core.data.url.HTTPRequest import HTTPRequest
+from w3af.core.data.url.http_request import HTTPRequest
 
 
 @pytest.mark.moth

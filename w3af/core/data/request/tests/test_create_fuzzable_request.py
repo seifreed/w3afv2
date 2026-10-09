@@ -36,7 +36,7 @@ from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.utils.form_params import FormParameters
 from w3af.core.data.request.factory import create_fuzzable_request_from_request
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
-from w3af.core.data.url.HTTPRequest import HTTPRequest
+from w3af.core.data.url.http_request import HTTPRequest
 
 
 @pytest.mark.smoke

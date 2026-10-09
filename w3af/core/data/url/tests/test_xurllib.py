@@ -39,7 +39,7 @@ from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.constants import MAX_ERROR_COUNT
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
-from w3af.core.data.url.HTTPResponse import DEFAULT_WAIT_TIME
+from w3af.core.data.url.http_response import DEFAULT_WAIT_TIME
 from w3af.core.data.url.tests.helpers.ssl_daemon import RawSSLDaemon, SSLServer
 from w3af.core.data.url.tests.helpers.upper_daemon import UpperDaemon
 from w3af.core.exceptions import (

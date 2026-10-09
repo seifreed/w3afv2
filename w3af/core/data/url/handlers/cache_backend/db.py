@@ -26,7 +26,7 @@ import sqlite3
 from w3af.core.data.db.history import HistoryItem
 from w3af.core.data.url.handlers.cache_backend.cached_response import CachedResponse
 from w3af.core.data.url.handlers.cache_backend.utils import gen_hash
-from w3af.core.data.url.HTTPResponse import HTTPResponse
+from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.exceptions import ScanMustStopException
 from w3af.core.filesystem import create_temp_dir
 
