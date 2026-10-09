@@ -992,3 +992,18 @@ manager tuvo 3 fallos (expectativa de teardown, traceback y resolución del host
 `fallback`); no se ha demostrado que los cause este cambio. Black e imports
 Ruff pasan en los archivos modificados; Mypy global permanece en 897 errores.
 Score global: **4.9/10**.
+
+## Avance: SmartQueue sin dependencia de controllers
+
+`SmartQueue`, usada solo en tests y descrita como herramienta de diagnóstico,
+reemplazó las llamadas a `output_manager` por el logger estándar. Sus
+operaciones de cola conservan el mismo comportamiento, y `__getattr__` ya no
+tiene una rama inalcanzable que se reenviaba a sí misma. La tasa de consumo de
+las pruebas decía “60 RPM” pero exigía más de 69; la fórmula y los tests hermanos
+confirman 60, así que ahora se comprueba con tolerancia de 10 RPM. El grupo de
+tests `SmartQueue`/`CachedQueue`/`OrderedCachedQueue` pasó 21 pruebas; la suite
+propia de `SmartQueue` alcanza 100% de cobertura (9 tests). Black, Ruff y Bandit
+de producción pasan en el módulo, sin imports de `controllers`; las referencias
+directas `core.data -> controllers` bajan de 60 a 58. Mypy global sigue en 897
+errores, y el dirigido hereda dos errores del paquete `core`. Score global:
+**4.9/10**.

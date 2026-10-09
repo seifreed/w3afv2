@@ -20,8 +20,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import queue
 import time
+
+LOGGER = logging.getLogger(__name__)
 
 
 class QueueSpeedMeasurement:
@@ -118,17 +121,15 @@ class SmartQueue(QueueSpeedMeasurement):
             return data
 
         timestamp, item = data
-        import w3af.core.controllers.output_manager as om
-
-        msg = "Item waited %.2f seconds to get out of the %s queue. Items in queue: %s / %s"
         block_time = time.time() - timestamp
-        args = (
+        LOGGER.debug(
+            "Item waited %.2f seconds to get out of the %s queue. "
+            "Items in queue: %s / %s",
             round(block_time, 2),
             self.get_name(),
             self.q.qsize(),
             self.q.maxsize,
         )
-        om.out.debug(msg % args)
 
         self._item_left_queue()
         return item
@@ -144,39 +145,35 @@ class SmartQueue(QueueSpeedMeasurement):
         #
         block_start_time = None
 
-        import w3af.core.controllers.output_manager as om
-
         if self.q.full() and block:
             #
             #   If you see maxsize messages like this at the end of your scan
             #   log and the scan has freezed, then you need to report a bug!
             #
-            msg = (
+            LOGGER.debug(
                 "Thread will block waiting for Queue.put() to have space in"
-                " the %s queue. (maxsize=%s, timeout=%s)"
+                " the %s queue. (maxsize=%s, timeout=%s)",
+                self.get_name(),
+                self.q.maxsize,
+                timeout,
             )
-            args = (self.get_name(), self.q.maxsize, timeout)
-            om.out.debug(msg % args)
             block_start_time = time.time()
 
         timestamp = time.time()
 
         put_res = self.q.put((timestamp, item), block=block, timeout=timeout)
         if block_start_time is not None:
-            msg = (
+            LOGGER.debug(
                 "Thread blocked %.2f seconds waiting for Queue.put() to"
                 " have space in the %s queue. The queue's maxsize is"
-                " %s."
+                " %s.",
+                round(time.time() - block_start_time, 2),
+                self.get_name(),
+                self.q.maxsize,
             )
-            block_time = time.time() - block_start_time
-            args = (round(block_time, 2), self.get_name(), self.q.maxsize)
-            om.out.debug(msg % args)
 
         self._item_added_to_queue()
         return put_res
 
     def __getattr__(self, attr):
-        if attr in self.__dict__:
-            return getattr(self, attr)
-
         return getattr(self.q, attr)

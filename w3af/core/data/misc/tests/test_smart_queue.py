@@ -21,10 +21,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import queue
+import threading
 import time
 import unittest
 
-from w3af.core.data.misc.smart_queue import SmartQueue
+from w3af.core.data.misc.smart_queue import QueueSpeedMeasurement, SmartQueue
 
 
 class TestSmarterQueue(unittest.TestCase):
@@ -50,8 +51,7 @@ class TestSmarterQueue(unittest.TestCase):
             # 60 RPM
             time.sleep(1)
 
-        self.assertGreater(q.get_output_rpm(), 69)
-        self.assertLess(q.get_output_rpm(), 80)
+        self.assertAlmostEqual(q.get_output_rpm(), 60, delta=10)
         self.assertEqual(q.qsize(), 0)
 
     def test_no_data(self):
@@ -60,6 +60,29 @@ class TestSmarterQueue(unittest.TestCase):
         for _ in range(10):
             self.assertEqual(0.0, q.get_input_rpm())
             self.assertEqual(0.0, q.get_output_rpm())
+
+    def test_clear(self):
+        q = SmartQueue()
+        q.put("item")
+        q.get()
+
+        q.clear()
+
+        self.assertEqual(q.get_input_rpm(), 0.0)
+        self.assertEqual(q.get_output_rpm(), 0.0)
+
+    def test_calculate_rpm_for_single_and_same_time_samples(self):
+        measurement = QueueSpeedMeasurement()
+        timestamp = time.time()
+
+        self.assertEqual(measurement._calculate_rpm([timestamp]), 0.1)
+        self.assertEqual(measurement._calculate_rpm([timestamp, timestamp]), 6000)
+
+    def test_get_preserves_raw_none_entries(self):
+        q = SmartQueue()
+        q.q.put(None)
+
+        self.assertIsNone(q.get())
 
     def test_many_items(self):
         q = SmartQueue()
@@ -104,8 +127,7 @@ class TestSmarterQueue(unittest.TestCase):
         for _ in range(10):
             self.assertRaises(queue.Empty, q.get_nowait)
 
-        self.assertGreater(q.get_output_rpm(), 69)
-        self.assertLess(q.get_output_rpm(), 80)
+        self.assertAlmostEqual(q.get_output_rpm(), 60, delta=10)
         self.assertEqual(q.qsize(), 0)
 
     def test_wrapper(self):
@@ -119,3 +141,23 @@ class TestSmarterQueue(unittest.TestCase):
         q.get()
 
         self.assertEqual(q.qsize(), 0)
+
+    def test_blocking_put_resumes_after_consumer_frees_space(self):
+        q = SmartQueue(maxsize=1)
+        q.put("first")
+        consumer_started = threading.Event()
+
+        def consume_item():
+            consumer_started.set()
+            time.sleep(0.05)
+            q.get()
+
+        consumer = threading.Thread(target=consume_item)
+        consumer.start()
+        self.assertTrue(consumer_started.wait(timeout=1))
+
+        q.put("second", timeout=2)
+
+        consumer.join(timeout=2)
+        self.assertFalse(consumer.is_alive())
+        self.assertEqual(q.get(), "second")
