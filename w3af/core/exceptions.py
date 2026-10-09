@@ -7,3 +7,7 @@ class BaseFrameworkException(Exception):
 
     def __str__(self):
         return self.value
+
+
+class BodyCutException(BaseFrameworkException):
+    """Raised when response-body extraction boundaries exceed the body."""

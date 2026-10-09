@@ -86,7 +86,7 @@ class ScanMustStopException(Exception):
         if self.errs:
             msg += " The following errors were logged:\n"
             for err in self.errs:
-                msg += "  - %s" % err
+                msg += f"  - {err}"
 
         return msg
 
@@ -128,7 +128,7 @@ class ScanMustStopByKnownReasonExc(ScanMustStopException):
     def __str__(self):
         _str = ScanMustStopException.__str__(self)
         if self.reason:
-            _str += " - Reason: %s" % self.reason
+            _str += f" - Reason: {self.reason}"
         return _str
 
 
@@ -162,10 +162,6 @@ class NoVulnerabilityFoundException(BaseFrameworkException):
 
 
 class ExploitFailedException(BaseFrameworkException):
-    pass
-
-
-class BodyCutException(BaseFrameworkException):
     pass
 
 

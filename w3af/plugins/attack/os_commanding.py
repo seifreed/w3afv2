@@ -21,12 +21,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import BaseFrameworkException, BodyCutException
-from w3af.core.controllers.misc.common_attack_methods import CommonAttackMethods
+from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
 from w3af.core.data.fuzzer.mutants.headers_mutant import HeadersMutant
 from w3af.core.data.fuzzer.utils import rand_alpha
 from w3af.core.data.kb.exec_shell import ExecShell
+from w3af.core.data.misc.response_cut import ResponseCutMixin
+from w3af.core.exceptions import BodyCutException
 from w3af.plugins.attack.payloads import shell_handler
 from w3af.plugins.attack.payloads.decorators.exec_decorator import exec_debug
 
@@ -63,10 +64,10 @@ class SeparatorExploitStrategy(ExploitStrategy):
         self._remote_os = self.vuln["os"]
 
 
-class BasicExploitStrategy(SeparatorExploitStrategy, CommonAttackMethods):
+class BasicExploitStrategy(SeparatorExploitStrategy, ResponseCutMixin):
     def __init__(self, vuln):
         SeparatorExploitStrategy.__init__(self, vuln)
-        CommonAttackMethods.__init__(self)
+        ResponseCutMixin.__init__(self)
 
     def can_exploit(self, opener):
         if "separator" not in self.vuln:
@@ -80,9 +81,9 @@ class BasicExploitStrategy(SeparatorExploitStrategy, CommonAttackMethods):
         expected_output = rand + "\n"
 
         if self._remote_os == "windows":
-            command = self.generate_command("echo %s" % rand)
+            command = self.generate_command(f"echo {rand}")
         else:
-            command = self.generate_command("/bin/echo %s" % rand)
+            command = self.generate_command(f"/bin/echo {rand}")
 
         # Lets define the result header and footer.
         http_response = self.send(command, opener)
@@ -90,9 +91,9 @@ class BasicExploitStrategy(SeparatorExploitStrategy, CommonAttackMethods):
 
     def generate_command(self, command):
         if self._remote_os == "windows":
-            command = "%s %s" % (self._cmd_separator, command)
+            command = f"{self._cmd_separator} {command}"
         else:
-            command = "%s %s" % (self._cmd_separator, command)
+            command = f"{self._cmd_separator} {command}"
 
         return command
 
@@ -129,11 +130,11 @@ class FullPathExploitStrategy(SeparatorExploitStrategy):
 
     def can_exploit(self, opener):
         rand = rand_alpha(8)
-        cmd = self.generate_command("echo %s|rev" % rand)
+        cmd = self.generate_command(f"echo {rand}|rev")
 
         # For some reason that I don't care about, rev adds a \n to the string
         # it reverses, even when I run the echo with "-n".
-        expected_output = "%s\n" % rand[::-1]
+        expected_output = f"{rand[::-1]}\n"
 
         http_response = self.send(cmd, opener)
         return expected_output == self.extract_result(http_response)
@@ -278,14 +279,14 @@ class os_commanding(AttackPlugin):
             try:
                 strategy = StrategyKlass(vuln)
             except KeyError:
-                om.out.debug("%s can not exploit %s" % (StrategyKlass, vuln))
+                om.out.debug(f"{StrategyKlass} can not exploit {vuln}")
                 continue
 
             msg = "Trying to exploit vuln %s using %s."
             om.out.debug(msg % (vuln.get_id(), strategy))
 
             if strategy.can_exploit(self._uri_opener):
-                om.out.debug("Success with strategy %s." % strategy)
+                om.out.debug(f"Success with strategy {strategy}.")
                 return strategy
 
         om.out.debug("All strategies failed!")

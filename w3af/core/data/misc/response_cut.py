@@ -1,5 +1,5 @@
 """
-CommonAttackMethods.py
+response_cut.py
 
 Copyright 2006 Andres Riancho
 
@@ -21,13 +21,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import difflib
+import logging
 import re
 
-import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import BodyCutException
+from w3af.core.exceptions import BodyCutException
+
+LOGGER = logging.getLogger(__name__)
 
 
-class CommonAttackMethods:
+class ResponseCutMixin:
 
     def __init__(self):
         self._header_length = None
@@ -234,7 +236,7 @@ class CommonAttackMethods:
 
         :return: True if the cut could be defined
         """
-        if not expected_result in body:
+        if expected_result not in body:
             # I won't be able to define the cut
             return False
 
@@ -246,9 +248,9 @@ class CommonAttackMethods:
             # Define the footer
             self._footer_length = len(body) - self._header_length - len(expected_result)
 
-            om.out.debug("Defined cut header and footer using exact match")
-            om.out.debug("Defined header length to %i" % self._header_length)
-            om.out.debug("Defined footer length to %i" % self._footer_length)
+            LOGGER.debug("Defined cut header and footer using exact match")
+            LOGGER.debug("Defined header length to %i", self._header_length)
+            LOGGER.debug("Defined footer length to %i", self._footer_length)
 
             return True
 
@@ -273,7 +275,7 @@ class CommonAttackMethods:
             raise BodyCutException(msg)
 
         if body == "":
-            om.out.debug(
+            LOGGER.debug(
                 "Called _cut() with an empty body," " returning an empty result."
             )
             return body

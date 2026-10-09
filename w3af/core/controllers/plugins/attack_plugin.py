@@ -32,14 +32,14 @@ from w3af.core.controllers.exceptions import (
     ScanMustStopByUserRequest,
     ScanMustStopException,
 )
-from w3af.core.controllers.misc.common_attack_methods import CommonAttackMethods
 from w3af.core.controllers.plugins.plugin import Plugin
 from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
+from w3af.core.data.misc.response_cut import ResponseCutMixin
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
-class AttackPlugin(Plugin, CommonAttackMethods):
+class AttackPlugin(Plugin, ResponseCutMixin):
     """
     This is the base class for attack plugins, all attack plugins should inherit
     from it and implement the following methods :
@@ -53,7 +53,7 @@ class AttackPlugin(Plugin, CommonAttackMethods):
 
     def __init__(self):
         Plugin.__init__(self)
-        CommonAttackMethods.__init__(self)
+        ResponseCutMixin.__init__(self)
 
         self._uri_opener = None
         self._footer = None
@@ -232,7 +232,7 @@ class AttackPlugin(Plugin, CommonAttackMethods):
                 generated_shells.append(s)
                 om.out.console(
                     "Vulnerability successfully exploited."
-                    " Generated shell object %s" % s
+                    f" Generated shell object {s}"
                 )
                 if self._generate_only_one:
                     # A shell was generated, I only need one point of exec.

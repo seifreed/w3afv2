@@ -379,3 +379,26 @@ reporte HTML. La suite XML no pudo recopilarse porque un test abre un fixture
 binario como UTF-8; no se atribuye al cambio. El score global sigue en
 **2.5/10**: restan dependencias de capa extensas, deuda de lint/tipos y flujos
 sin cobertura.
+
+## Avance: helper de extracción fuera de controllers
+
+`CommonAttackMethods` solo implementaba el cálculo y aplicación de cortes en
+cuerpos HTTP. Se movió a `core.data.misc.response_cut` como
+`ResponseCutMixin`; KB, resultados de explotación y plugins ya importan el
+helper desde esa capa. Los mensajes de diagnóstico usan `logging` estándar,
+`BodyCutException` vive en `core.exceptions`, y se eliminó la herencia duplicada
+de `proxy` y un `import *` sin consumidores. No se dejó alias de compatibilidad.
+
+La cobertura del módulo es **100%**: 21 pruebas pasan y el caso histórico de
+texto sin cabecera continúa omitido porque el algoritmo no lo resuelve. Cuatro
+tests de integración de los plugins fallaron al no resolver el host externo
+`fallback`; uno de esos caminos también expuso el uso legado de
+`socket.sslerror` al procesar ese error de conexión. Los módulos de producción
+tocados pasan Ruff, Black e inspección Bandit focal. Black global pasa (1968
+archivos); Ruff global reporta 1244 errores, mypy 2254 en 615 archivos y
+Bandit global 15343 Low, 960 Medium y 780 High al incluir `venv` y código
+vendorizado. `pip-audit` no halló vulnerabilidades conocidas, aunque avisó de
+entradas de caché ilegibles. Los pins de mitmproxy, `aioquic==1.2.0` y
+`urwid==4.0.13` permanecen intactos. El score global sigue en **2.5/10**:
+este movimiento retira una dependencia de controllers del flujo de KB, pero
+quedan muchos imports y los gates globales siguen fallando.

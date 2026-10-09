@@ -25,10 +25,11 @@ import copy
 import threading
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import BaseFrameworkException, BodyCutException
+from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal
 from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
 from w3af.core.data.kb.read_shell import ReadShell
+from w3af.core.exceptions import BodyCutException
 from w3af.plugins.attack.payloads.decorators.read_decorator import read_debug
 
 
@@ -131,7 +132,7 @@ class local_file_reader(AttackPlugin):
         :return : True if vuln can be exploited and the information extracted
         """
         # Check if we can apply a stricter extraction method
-        if not "passwd" in vuln_obj.get_mutant().get_token_value():
+        if "passwd" not in vuln_obj.get_mutant().get_token_value():
             return False
 
         mutant = vuln_obj.get_mutant()
@@ -264,7 +265,7 @@ class FileReaderShell(ReadShell):
             try:
                 return self._read_with_b64(filename)
             except Exception as e:
-                om.out.debug('read_with_b64 failed: "%s"' % e)
+                om.out.debug(f'read_with_b64 failed: "{e}"')
 
         return self._read_basic(filename)
 
