@@ -21,21 +21,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import gc
-import os
 import pickle
 import sys
 
+from w3af.core.profiling import is_tracemalloc_enabled
 
-def user_wants_pytracemalloc():
-    _should_profile = os.environ.get("W3AF_PYTRACEMALLOC", "0")
-
-    if _should_profile.isdigit() and int(_should_profile) == 1:
-        return True
-
-    return False
-
-
-if user_wants_pytracemalloc():
+if is_tracemalloc_enabled():
     try:
         # User's don't need this module, and installation is complex
         # http://pytracemalloc.readthedocs.org/install.html
@@ -54,7 +45,7 @@ SAVE_TRACEMALLOC_PTR = []
 
 def should_dump_tracemalloc(wrapped):
     def inner():
-        if user_wants_pytracemalloc():
+        if is_tracemalloc_enabled():
             return wrapped()
 
     return inner

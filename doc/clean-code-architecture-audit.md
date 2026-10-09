@@ -707,3 +707,21 @@ Black, Ruff focal, compilación y `git diff --check` pasan; no quedan imports de
 `controllers.ci.detect`. La puntuación global sube a **3.7/10**: se retira
 otro servicio ambiental de controllers, aunque la mayor parte de los
 acoplamientos entre capas y las gates globales permanecen.
+
+## Avance: banderas de profiling compartidas en core
+
+Los parsers consultaban tres funciones (`user_wants_cpu_profiling`,
+`user_wants_memory_profiling` y `user_wants_pytracemalloc`) definidas en
+`controllers.profiling`. Eran lecturas idénticas de variables de entorno; la
+ejecución y el volcado del profiling sí son servicios de controllers y no se
+movieron. Se consolidó la interpretación numérica de esas cuatro banderas en
+`core.profiling` (incluida `W3AF_CORE_PROFILING`), se actualizaron los parsers y
+los decoradores de profiling, y se eliminaron las funciones duplicadas sin
+aliases.
+
+Ocho tests cubren las cuatro variables con valores presentes, ausentes y
+equivalentes numéricos; `core.profiling` queda con **100% de cobertura**. Cinco
+tests de `parser_cache` pasan, Black/Ruff focal, compilación y diff check pasan,
+y no quedan referencias a las funciones antiguas. La puntuación global sube a
+**3.8/10**: se desacopla un conjunto coherente de opciones del parser, pero
+continúan numerosos imports ascendentes y las gates globales pendientes.

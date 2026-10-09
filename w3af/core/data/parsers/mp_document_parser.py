@@ -36,9 +36,6 @@ from tblib.decorators import Error
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.output_manager import log_sink_factory
 from w3af.core.controllers.profiling import start_profiling_no_core
-from w3af.core.controllers.profiling.cpu_usage import user_wants_cpu_profiling
-from w3af.core.controllers.profiling.memory_usage import user_wants_memory_profiling
-from w3af.core.controllers.profiling.pytracemalloc import user_wants_pytracemalloc
 from w3af.core.controllers.threads.decorators import apply_with_return_error
 from w3af.core.data.parsers.document_parser import DocumentParser
 from w3af.core.data.parsers.ipc.serialization import (
@@ -53,7 +50,12 @@ from w3af.core.data.parsers.ipc.serialization import (
 from w3af.core.environment import is_running_on_ci
 from w3af.core.exceptions import ScanMustStopException
 from w3af.core.process import is_main_process
-from w3af.core.profiling import is_core_profiling_enabled
+from w3af.core.profiling import (
+    is_core_profiling_enabled,
+    is_cpu_profiling_enabled,
+    is_memory_profiling_enabled,
+    is_tracemalloc_enabled,
+)
 
 # 128 MB
 DEFAULT_MEMORY_LIMIT = 128 * 1024 * 1024
@@ -90,9 +92,9 @@ class MultiProcessingDocumentParser:
     #
     # https://github.com/andresriancho/w3af/issues/9713
     PROFILING_ENABLED = (
-        user_wants_memory_profiling()
-        or user_wants_pytracemalloc()
-        or user_wants_cpu_profiling()
+        is_memory_profiling_enabled()
+        or is_tracemalloc_enabled()
+        or is_cpu_profiling_enabled()
     )
 
     # in seconds

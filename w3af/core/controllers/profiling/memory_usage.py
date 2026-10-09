@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import os
+from w3af.core.profiling import is_memory_profiling_enabled
 
 from .utils import cancel_thread, dump_data_every_thread, get_filename_fmt
 
@@ -29,18 +29,9 @@ DELAY_MINUTES = 2
 SAVE_THREAD_PTR = []
 
 
-def user_wants_memory_profiling():
-    _should_profile = os.environ.get("W3AF_MEMORY_PROFILING", "0")
-
-    if _should_profile.isdigit() and int(_should_profile) == 1:
-        return True
-
-    return False
-
-
 def should_profile_memory(wrapped):
     def inner():
-        if user_wants_memory_profiling():
+        if is_memory_profiling_enabled():
             return wrapped()
 
     return inner
