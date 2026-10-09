@@ -22,11 +22,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import random
-import re
 import unittest
 
 from w3af.core.controllers.core_helpers.not_found.fuzzy_equal_for_diff import (
     fuzzy_equal_for_diff,
+)
+
+#
+# A fixed document makes the size of the compared strings, and with it the
+# results of the comparisons, independent of the Python version
+#
+SHARED_DOCUMENT = "\n".join(
+    f"Line {i:02d} of a document which is shared by all the compared responses."
+    for i in range(40)
 )
 
 
@@ -37,7 +45,7 @@ class Test404FuzzyEqualForDiff(unittest.TestCase):
     def get_body(self, unique_parts):
         # Do not increase this 50 too much, it will exceed the xurllib max
         # HTTP response body length
-        parts = [re.__doc__]
+        parts = [SHARED_DOCUMENT]
         parts = parts * 50
 
         parts.extend(unique_parts)
