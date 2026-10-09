@@ -1079,3 +1079,17 @@ intentaba inyectar un parser retardado con mocks no funcionaba con el método
 `spawn` de Python 3.14; ahora se prueba el cortocircuito de blacklist con código
 real y sin mocks. La integración de timeout en worker queda pendiente de un test
 multiplataforma real; la puntuación global permanece en **4.9/10**.
+
+## Avance: diagnósticos de datos sin output_manager
+
+Los logs exclusivamente diagnósticos de `db.history`, `db.variant_db`,
+`db.dbms`, `dc.factory`, `fuzzer.form_filler` y `fuzzer.fuzzer` migran a
+`logging` estándar. Se eliminan seis imports directos de controllers; las
+declaraciones `core.data -> controllers` bajan de 52 a 46. Ruff y Black pasan
+en esos seis módulos. La suite combinada dio 91 passed, 1 skipped y 3 fallos
+reproducibles por separado en expectativas de orden de JSON y codificación/
+mutación de URL; sus aserciones no dependen de los mensajes de diagnóstico.
+Bandit dirigido sigue señalando 9 hallazgos en código existente de base de
+datos, y Mypy dirigido reporta 26 errores en 18 módulos. El score global sigue
+en **4.9/10**. Riesgo: los mensajes debug migrados dependen de que la aplicación
+configure los loggers estándar para que aparezcan en su salida de diagnóstico.

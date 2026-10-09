@@ -20,7 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
+import logging
+
 from w3af.core.data.dc.generic.plain import PlainContainer
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.dc.json_container import JSONContainer
@@ -29,6 +30,8 @@ from w3af.core.data.dc.urlencoded_form import URLEncodedForm
 from w3af.core.data.dc.utils.json_encoder import DateTimeJSONEncoder
 from w3af.core.data.dc.xmlrpc import XmlRpcContainer
 from w3af.core.data.parsers.utils.form_params import FormParameters
+
+LOGGER = logging.getLogger(__name__)
 
 POST_DATA_CONTAINERS = (
     MultipartContainer,
@@ -56,7 +59,7 @@ def dc_from_hdrs_post(headers, post_data):
             pass
     content_type, _ = headers.iget("content-type", "None")
     msg = 'Unknown post-data. Content-type: "%s" and/or post-data "%s"'
-    om.out.debug(msg % (content_type, post_data[:50]))
+    LOGGER.debug(msg % (content_type, post_data[:50]))
 
     return PlainContainer.from_postdata(headers, post_data)
 

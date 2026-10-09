@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import os
 import threading
 import time
@@ -29,13 +30,14 @@ from shutil import rmtree
 
 import msgpack
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.db.exceptions import DBException
 from w3af.core.data.db.where_helper import WhereHelper
 from w3af.core.data.url.HTTPRequest import HTTPRequest
 from w3af.core.data.url.HTTPResponse import HTTPResponse
 from w3af.core.filesystem import get_temp_dir
+
+LOGGER = logging.getLogger(__name__)
 
 
 def verify_has_db(meth):
@@ -284,7 +286,7 @@ class HistoryItem:
             except TraceReadException as e:
                 args = (_id, e)
                 msg = 'Failed to read trace file %s: "%s"'
-                om.out.debug(msg % args)
+                LOGGER.debug(msg % args)
 
                 time.sleep(wait_time)
 
@@ -321,7 +323,7 @@ class HistoryItem:
         except TraceReadException as e:
             msg = 'Failed to load trace %s from zip file: "%s"'
             args = (_id, e)
-            om.out.debug(msg % args)
+            LOGGER.debug(msg % args)
 
             #
             # Give the .trace file a last chance, it might be possible that when

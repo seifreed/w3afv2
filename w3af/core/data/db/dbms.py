@@ -20,13 +20,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import os
 import sqlite3
 from concurrent.futures import Future
 from functools import wraps
 from multiprocessing.dummy import Process, Queue
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.data.db.exceptions import (
     DBException,
     MalformedDBException,
@@ -34,6 +34,8 @@ from w3af.core.data.db.exceptions import (
 )
 from w3af.core.data.misc.file_utils import replace_file_special_chars
 from w3af.core.filesystem import create_temp_dir, get_temp_dir
+
+LOGGER = logging.getLogger(__name__)
 
 # Constants
 SETUP = "SETUP"
@@ -301,7 +303,7 @@ class SQLiteExecutor(Process):
                 " performance will degrade."
             )
             args = (self._in_queue.maxsize, self._current_query_num)
-            om.out.debug(msg % args)
+            LOGGER.debug(msg % args)
 
     def _report_qsize(self):
         """

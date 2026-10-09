@@ -20,16 +20,18 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import os
 from functools import cmp_to_key
 
-import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af.core.data.constants.file_templates.file_templates import (
     get_file_from_template,
 )
 from w3af.core.data.misc.decorators import Memoized
 from w3af.core.data.misc.io import NamedStringIO
+
+LOGGER = logging.getLogger(__name__)
 
 PARAM_NAME_KNOWLEDGE = {
     "John8212": [
@@ -292,7 +294,7 @@ def smart_fill(variable_name, db=PARAM_NAME_KNOWLEDGE, default="56"):
 
     else:
         msg = '[smart_fill] Failed to find a value for parameter with name "%s"'
-        om.out.debug(msg % variable_name)
+        LOGGER.debug(msg % variable_name)
 
         return default
 

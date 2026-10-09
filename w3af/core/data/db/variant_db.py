@@ -20,9 +20,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import logging
 import threading
 
-import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.db.cached_disk_dict import CachedDiskDict
@@ -30,6 +30,8 @@ from w3af.core.data.db.clean_dc import (
     clean_fuzzable_request,
     clean_fuzzable_request_form,
 )
+
+LOGGER = logging.getLogger(__name__)
 
 #
 # Limits the max number of variants we'll allow for URLs with the same path.
@@ -161,7 +163,7 @@ class VariantDB:
     def _log_return_false(self, fuzzable_request, reason):
         args = (reason, fuzzable_request)
         msg = 'VariantDB is returning False because of "%s" for "%s"'
-        om.out.debug(msg % args)
+        LOGGER.debug(msg % args)
 
     def _need_more_variants_for_uri(self, fuzzable_request):
         #

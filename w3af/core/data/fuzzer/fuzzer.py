@@ -20,7 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
+import logging
+
 import w3af.core.data.kb.config as cf
 from w3af.core.data.fuzzer.mutants.cookie_mutant import CookieMutant
 from w3af.core.data.fuzzer.mutants.filecontent_mutant import FileContentMutant
@@ -31,6 +32,8 @@ from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
 from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
 from w3af.core.data.fuzzer.mutants.urlparts_mutant import URLPartsMutant
 from w3af.core.data.fuzzer.mutants.xmlrpc_mutant import XmlRpcMutant
+
+LOGGER = logging.getLogger(__name__)
 
 ALL_MUTANTS = (
     QSMutant,
@@ -85,7 +88,7 @@ def create_mutants(
             count_data[mutant.get_mutant_type()] = 1
 
     count_summary = ", ".join(["%s: %s" % (i, j) for i, j in list(count_data.items())])
-    om.out.debug(msg % (len(result), freq, count_summary))
+    LOGGER.debug(msg % (len(result), freq, count_summary))
 
     #
     # Improvement to reduce false positives with a double check:
