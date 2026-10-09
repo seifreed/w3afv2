@@ -137,7 +137,6 @@ class TestRFI(PluginTest):
     def test_custom_web_server(self):
         RFIWebHandler.RESPONSE_BODY = '<? echo "hello world"; ?>'
         ws = HTTPServer(("127.0.0.1", 0), ".", RFIWebHandler)
-        ws.wait_for_start()
         port = ws.get_port()
 
         server_thread = threading.Thread(target=ws.serve_forever)

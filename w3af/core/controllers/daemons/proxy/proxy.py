@@ -33,6 +33,8 @@ from w3af import ROOT_PATH
 from w3af.core.controllers.daemons.proxy import ProxyHandler
 from w3af.core.controllers.exceptions import ProxyException
 
+STARTUP_FAILED = "Proxy server failed to start, the mitmproxy log has the details."
+
 
 class Proxy(Process):
     """
@@ -79,19 +81,6 @@ class Proxy(Process):
 
     CA_CERT_DIR = os.path.join(ROOT_PATH, "core/controllers/daemons/proxy/ca/")
 
-    INCORRECT_SETUP = (
-        "Your OpenSSL setup seems to be broken. The mitmproxy"
-        " library failed to create the default configuration"
-        " required to run.\n"
-        "\n"
-        'The original exception is: "%s"\n'
-        "\n"
-        "Please see this [0] github issue for potential"
-        " workarounds and help.\n"
-        "\n"
-        "[0] https://github.com/mitmproxy/mitmproxy/issues/281"
-    )
-
     def __init__(
         self,
         ip,
@@ -122,7 +111,6 @@ class Proxy(Process):
         self._port = port
         self._handler_klass = handler_klass
         self._ready = threading.Event()
-        self._startup_error = None
         self._master = None
         self._handler = None
 
@@ -150,11 +138,11 @@ class Proxy(Process):
     def get_port(self):
         return self._port
 
-    def wait_for_start(self):
-        if not self._ready.wait(timeout=30):
+    def wait_for_start(self, timeout=30):
+        if not self._ready.wait(timeout=timeout):
             raise ProxyException("Timed out while starting the proxy server.")
-        if self._startup_error is not None:
-            raise ProxyException(f"Proxy server failed to start: {self._startup_error}")
+        if not self._running:
+            raise ProxyException(STARTUP_FAILED)
 
     def _proxy_started(self, addresses):
         if addresses:
@@ -188,9 +176,10 @@ class Proxy(Process):
 
         try:
             asyncio.run(start_master())
-        except Exception as error:
-            self._startup_error = error
-            raise
+        except SystemExit:
+            # mitmproxy exits when it logs an error during startup, for
+            # example when the address is already in use
+            om.out.error(STARTUP_FAILED)
         finally:
             self._running = False
             self._ready.set()
@@ -200,5 +189,5 @@ class Proxy(Process):
         Stop the proxy.
         """
         om.out.debug("Calling stop of proxy daemon")
-        if self._master is not None:
+        if self._running:
             self._master.shutdown()

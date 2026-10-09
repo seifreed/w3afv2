@@ -38,12 +38,14 @@ class InterceptProxy(Proxy):
     DEFAULT_NO_TRAP = r".*\.(gif|jpg|png|css|js|ico|swf|axd|tif)$"
     DEFAULT_TRAP = ".*"
 
-    def __init__(self, ip, port, url_opener):
+    def __init__(self, ip, port, url_opener, ca_certs=Proxy.CA_CERT_DIR):
         """
         :param ip: IP address to bind
         :param port: Port to bind
         :param url_opener: The urlOpener that will be used to open the requests
                           that arrive from the browser
+        :param ca_certs: The directory where mitmproxy reads (or creates) the
+                         certificate authority used to intercept HTTPS
         """
         Proxy.__init__(
             self,
@@ -51,6 +53,7 @@ class InterceptProxy(Proxy):
             port,
             url_opener,
             handler_klass=InterceptProxyHandler,
+            ca_certs=ca_certs,
             name="LocalProxyThread",
         )
 
