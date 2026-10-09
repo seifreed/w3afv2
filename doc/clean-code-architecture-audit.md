@@ -1093,3 +1093,23 @@ Bandit dirigido sigue señalando 9 hallazgos en código existente de base de
 datos, y Mypy dirigido reporta 26 errores en 18 módulos. El score global sigue
 en **4.9/10**. Riesgo: los mensajes debug migrados dependen de que la aplicación
 configure los loggers estándar para que aparezcan en su salida de diagnóstico.
+
+## Avance: integración de logging estándar con OutputManager
+
+La raíz de composición `w3afCore` configura un handler para el namespace
+`w3af.core.data` después de crear el `LogSink`. Los registros estándar vuelven
+a la salida de plugins con nivel DEBUG/INFO/WARNING/ERROR; el handler consulta
+`om.out` al emitir, así que sigue el sink reemplazado en cada instancia del
+core. Una prueba con `queue.Queue` real verifica niveles e instalación
+idempotente, sin mocks. Score global: **4.9/10**; quedan pendientes las gates
+globales y deuda arquitectónica fuera de este flujo.
+
+Verificación de este avance: la suite de `output_manager` pasa 9 tests sin
+instrumentación; el test específico del puente pasa con 100% de cobertura. Al
+combinar coverage con el test multiproceso se reproduce intermitentemente un
+`PicklingError` de `spawn`; el test multiproceso aislado pasa. Black pasa en los
+1.986 archivos. Las gates globales siguen bloqueadas por deuda acumulada: Ruff
+reporta 5.449 hallazgos, Mypy 897 errores en 308 archivos, y Bandit 17.064
+hallazgos al recorrer también `venv` (781 altos, 956 medios y 15.327 bajos).
+`pip-audit` reporta `nltk==3.10.3` (`PYSEC-2026-3740`); no puede auditar el
+mitmproxy fijado desde Git porque no está publicado en PyPI.
