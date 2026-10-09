@@ -99,7 +99,7 @@ def _should_use_xml_bones(http_response):
         return False
 
     # Check that it actually has tags
-    return not http_response.get_body().count("<") < 20
+    return http_response.get_body().count("<") >= 20
 
 
 def quick_hash(text):

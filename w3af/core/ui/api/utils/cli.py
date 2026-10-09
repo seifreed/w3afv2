@@ -145,8 +145,8 @@ def process_cmd_args_config(app):
     if args.config_file:
         try:
             yaml_conf = yaml.safe_load(args.config_file)
-        except:
-            file.close(args.config_file)
+        except (yaml.YAMLError, UnicodeDecodeError):
+            args.config_file.close()
             raise ArgumentTypeError(
                 f"Error loading config file {args.config_file.name}. Please check"
                 " it exists and is a valid YAML file."
@@ -168,7 +168,7 @@ def process_cmd_args_config(app):
                 # http://flask.pocoo.org/docs/latest/config/
                 app.config[k.upper()] = yaml_conf[k]
 
-        file.close(args.config_file)
+        args.config_file.close()
 
     for i in vars(args):
         if type(vars(args)[i]).__name__ not in ("str", "int", "bool"):
@@ -176,16 +176,16 @@ def process_cmd_args_config(app):
         elif i in vars(args) and vars(args)[i]:
             app.config[i.upper()] = vars(args)[i]
 
-    for k in DEFAULTS:
-        if not k in app.config:
-            app.config[k] = DEFAULTS[k]
+    for k, default in DEFAULTS.items():
+        if k not in app.config:
+            app.config[k] = default
 
     if "PASSWORD" in app.config:
         try:
             # Check password has been specified and is a 512-bit hex string
             # (ie, that it looks like a SHA512 hash)
             int(app.config["PASSWORD"], 16) and len(app.config["PASSWORD"]) == 128
-        except:
+        except (TypeError, ValueError):
             raise ArgumentTypeError(
                 "Error: Please specify a valid"
                 " SHA512-hashed plaintext as password,"

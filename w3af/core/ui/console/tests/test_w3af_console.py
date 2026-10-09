@@ -24,17 +24,13 @@ import subprocess
 import sys
 import unittest
 
-import compiler
-
 from w3af.core.data.db.startup_cfg import StartUpConfig
 
 
 class TestW3afConsole(unittest.TestCase):
     def test_compiles(self):
-        try:
-            compiler.compile(open("w3af_console").read(), "/tmp/foo.tmp", "exec")
-        except SyntaxError as se:
-            self.assertTrue(False, f'Error in w3af_console code "{se}"')
+        with open("w3af_console") as console_script:
+            compile(console_script.read(), "w3af_console", "exec")
 
     def test_get_prompt(self):
         # We want to get the prompt, not a disclaimer message

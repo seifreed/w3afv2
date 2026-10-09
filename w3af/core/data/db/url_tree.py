@@ -63,8 +63,8 @@ class URLNode:
     def __eq__(self, other):
         return self.path == other.path
 
-    def __cmp__(self, other):
-        return cmp(self.path, other.path)
+    def __lt__(self, other):
+        return self.path < other.path
 
 
 class URLTree:

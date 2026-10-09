@@ -41,7 +41,6 @@ def start_api():
         * URL
     """
     port = get_unused_port()
-    dev_null = open(os.devnull, "w")
 
     w3af_api_path = os.path.abspath(os.path.join(ROOT_PATH, ".."))
     python_executable = sys.executable
@@ -51,15 +50,15 @@ def start_api():
         python_executable,
         "w3af_api",
         "-p",
-        sha512(api_auth[1]).hexdigest(),
+        sha512(api_auth[1].encode()).hexdigest(),
         f"127.0.0.1:{port}",
     ]
 
     process = subprocess.Popen(
         cmd,
-        stdout=dev_null,
+        stdout=subprocess.DEVNULL,
         stderr=subprocess.STDOUT,
-        preexec_fn=os.setsid,
+        start_new_session=True,
         cwd=w3af_api_path,
     )
 
@@ -71,7 +70,7 @@ def start_api():
 
         try:
             response = requests.get(api_url, auth=api_auth, verify=False)
-        except:
+        except requests.exceptions.RequestException:
             if process.pid is None and i > 25:
                 raise RuntimeError("Failed to start the REST API service")
         else:

@@ -47,7 +47,8 @@ class TestFuzzer(unittest.TestCase):
         self.cf_backup = Config(cf_singleton)
 
     def tearDown(self):
-        pass
+        cf_singleton.clear()
+        cf_singleton.update(self.cf_backup)
 
     def assertAllInstance(self, items, _type):
         for item in items:

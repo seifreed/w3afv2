@@ -29,7 +29,7 @@ def start_container(tag, command=DOCKER_RUN):
 
     try:
         container_id = subprocess.check_output(docker_run, shell=True)
-    except subprocess.CalledProcessError, cpe:
+    except subprocess.CalledProcessError as cpe:
         print(f'w3af container failed to start: "{cpe}"')
         sys.exit(1)
     else:
@@ -44,7 +44,7 @@ def stop_container(container_id):
     """
     try:
         subprocess.check_output(f"docker stop {container_id}", shell=True)
-    except subprocess.CalledProcessError, cpe:
+    except subprocess.CalledProcessError as cpe:
         print(f'w3af container failed to stop: "{cpe}"')
         sys.exit(1)
 
@@ -100,8 +100,7 @@ def connect_to_container(container_id, cmd, extra_ssh_flags=()):
     ]
 
     # Add the extra ssh flags
-    for extra_ssh_flag in extra_ssh_flags:
-        ssh_cmd.append(extra_ssh_flag)
+    ssh_cmd.extend(extra_ssh_flags)
 
     ssh_cmd.append("root@" + ip_address)
     ssh_cmd.append(cmd)
@@ -142,13 +141,13 @@ def restore_file_ownership():
         # will run w3af inside docker: sudo w3af_console_docker
         uid = int(os.getenv("SUDO_UID"))
         gid = int(os.getenv("SUDO_GID"))
-    except ValueError:
+    except (TypeError, ValueError):
         # TODO: More things to be implemented here
         return False
 
     try:
         _chown(path, uid, gid)
-    except:
+    except OSError:
         return False
 
     return True

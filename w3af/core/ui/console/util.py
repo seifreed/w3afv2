@@ -90,7 +90,7 @@ def removePrefix(s, prefix="!"):
         return s
 
 
-def suggest(tree, part, skipList=None):
+def suggest(tree, part, skipList=()):
     """
     The basic autocompletion logic.
     :param tree: dict of list to take possible completions from.
@@ -101,46 +101,16 @@ def suggest(tree, part, skipList=None):
         (currently, only lengths of p's are used).
     :author: Alexander Berezhnoy (alexander.berezhnoy |at| gmail.com)
     """
-    if skipList is None:
-        skipList = []
-    try:
-        list = list(tree.keys())
-    except:
-        list = tree
-
-    #    skipList = []
-    #    if allowSet:
-    #        chunks = [removePrefix(s) for s in part.split(',')]
-    #        if len(chunks) > 1:
-    # skipList is used to not to suggest items which are already in the set
-    #           skipList, part = chunks[:-1], chunks[-1]
-    #        else:
-    #            part = chunks[0]
-
-    completions = []
-    # if the part is the complete word from the list, we suggest syntax: space, slash or comma
-    # if part in list:
-    #   if dir:
-    #       hint = '/'
-    #   if allowSet:
-    #       hint = ','
-    #   else:
-    #       hint = ' '
-
     lp = len(part)
-    completions += [
+    completions = [
         (part, v)
-        for v in map(str, list)
+        for v in map(str, tree)
         if v.startswith(part) and v not in skipList and lp != len(v)
     ]
 
-    #    suffix = allowSet and ',' or ' '
     suffix = " "
 
-    # if not allowSet:
-    #    completions = [(p, s+' ') for (p, s) in completions]
-
-    if part in list:
+    if part in tree:
         completions.append((part, part + suffix))
     else:
         if len(completions) == 1:  # and not allowSet:

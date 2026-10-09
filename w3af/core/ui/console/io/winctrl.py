@@ -22,20 +22,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import sys
 
-try:
-    import msvcrt
-except ImportError:
-    # This only works on windows, and was PASSing before because of a bug (+x
-    # in the winctrl.py file). Pytest loads and imports this module directly
-    # import this file and builds fail.
-    #
-    # Create a fallback so pytest and pylint can import this module
-    #
-    # https://circleci.com/gh/andresriancho/w3af/1495
-    class msvcrt:
-        @staticmethod
-        def getch():
-            pass
+if sys.platform == "win32":
+    from msvcrt import getwch
+else:
+    # Fallback so this module can be imported (tests, linters) outside Windows
+    def getwch():
+        return ""
 
 
 from w3af.core.ui.console.io.common import *
@@ -56,7 +48,7 @@ win2UnixMap = {
 def read(amt):
     res = ""
     for i in range(amt):
-        res += msvcrt.getch()
+        res += getwch()
     return res
 
 

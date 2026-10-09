@@ -65,7 +65,7 @@ class profile:
                     raise BaseFrameworkException(msg % (profname, cpe))
                 except Exception as e:
                     msg = 'Unknown error in profile: "%s". Exception: "%s"'
-                    raise BaseFrameworkException(msg % (profname, e))
+                    raise BaseFrameworkException(msg % (profname, e)) from e
                 else:
                     if not self.get_name():
                         msg = (
@@ -179,11 +179,11 @@ class profile:
         """
         try:
             os.unlink(self.profile_file_name)
-        except Exception as e:
+        except OSError as e:
             msg = (
                 "An exception occurred while removing the profile." ' Exception: "%s".'
             )
-            raise BaseFrameworkException(msg % e)
+            raise BaseFrameworkException(msg % e) from e
         else:
             return True
 
@@ -205,10 +205,9 @@ class profile:
 
         try:
             shutil.copyfile(self.profile_file_name, new_profile_path_name)
-        except Exception as e:
-            msg = "An exception occurred while copying the profile. Exception:"
-            msg += f' "{e}".'
-            raise BaseFrameworkException(msg % e)
+        except OSError as e:
+            msg = f'An exception occurred while copying the profile. Exception: "{e}".'
+            raise BaseFrameworkException(msg) from e
         else:
             # Now I have to change the data inside the copied profile, to
             # reflect the changes.
@@ -472,10 +471,8 @@ class profile:
             self.profile_file_name = file_name
 
         try:
-            file_handler = open(self.profile_file_name, "w", encoding=UTF8)
-        except OSError:
-            msg = 'Failed to open profile file: "%s"'
-            raise BaseFrameworkException(msg % self.profile_file_name)
-        else:
-            with file_handler:
+            with open(self.profile_file_name, "w", encoding=UTF8) as file_handler:
                 self._config.write(file_handler)
+        except OSError as e:
+            msg = 'Failed to open profile file: "%s"'
+            raise BaseFrameworkException(msg % self.profile_file_name) from e

@@ -24,14 +24,9 @@ import base64
 import json
 
 import requests
+import urllib3
 
-# pylint: disable=E0401
-# pylint: disable=E1101
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
-
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-# pylint: enable=E0401
-# pylint: enable=E1101
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 from w3af.core.ui.api.tests.utils.integration_test import IntegrationTest
 from w3af.core.ui.api.tests.utils.test_profile import (

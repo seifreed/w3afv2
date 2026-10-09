@@ -69,13 +69,11 @@ def get_all_templates():
 
 
 def get_template_by_name(name):
-    templates = get_all_templates()
-    try:
-        template = next(t for t in templates if t.get_short_name() == name)
-    except IndexError:
-        raise Exception(f'Unknown template name "{name}".')
-    else:
-        return template
+    for template in get_all_templates():
+        if template.get_short_name() == name:
+            return template
+
+    raise ValueError(f'Unknown template name "{name}".')
 
 
 def get_template_names():

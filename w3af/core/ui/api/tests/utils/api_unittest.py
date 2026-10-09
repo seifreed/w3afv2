@@ -25,6 +25,7 @@ import hashlib
 import json
 import time
 import unittest
+from typing import ClassVar
 
 from w3af.core.ui.api import app
 from w3af.core.ui.api.db.master import SCANS
@@ -32,8 +33,8 @@ from w3af.core.ui.api.db.master import SCANS
 
 class APIUnitTest(unittest.TestCase):
     PASSWORD = "password"
-    AUTHORIZATION = base64.b64encode("{}:{}".format("admin", PASSWORD))
-    HEADERS = {
+    AUTHORIZATION = base64.b64encode(f"admin:{PASSWORD}".encode()).decode()
+    HEADERS: ClassVar[dict[str, str]] = {
         "Content-type": "application/json",
         "Accept": "application/json",
         "Authorization": f"Basic {AUTHORIZATION}",
@@ -45,7 +46,7 @@ class APIUnitTest(unittest.TestCase):
         app.testing = True
 
         # Configure authentication
-        app.config["PASSWORD"] = hashlib.sha512(self.PASSWORD).hexdigest()
+        app.config["PASSWORD"] = hashlib.sha512(self.PASSWORD.encode()).hexdigest()
         app.config["USERNAME"] = "admin"
 
         self.app = app.test_client()

@@ -35,7 +35,7 @@ def check_auth(username, password):
     """
     return (
         username == app.config["USERNAME"]
-        and sha512(password).hexdigest() == app.config["PASSWORD"]
+        and sha512(password.encode()).hexdigest() == app.config["PASSWORD"]
     )
 
 

@@ -31,9 +31,9 @@ def do_json(obj):
     json.loads(msg)
 
 
-def do_cpickle(obj):
-    msg = cPickle.dumps(obj)
-    cPickle.loads(msg)
+def do_pickle(obj):
+    msg = pickle.dumps(obj)
+    pickle.loads(msg)
 
 
 def do_ultrajson(obj):
@@ -72,12 +72,13 @@ test_objects = [
 tests = [
     ("msgpack", do_msgpack),
     ("json", do_json),
-    ("cpickle", do_cpickle),
+    ("pickle", do_pickle),
     ("ujson", do_ultrajson),
 ]
 
 if __name__ == "__main__":
     import json
+    import pickle
     import time
 
     import msgpack

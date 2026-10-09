@@ -56,7 +56,7 @@ class ScanExceptionResourceTest(APIUnitTest):
 
         expected_summary = {
             "exception": "unittest",
-            "function_name": "exception_creator",
+            "function_name": "exception_creator()",
             "href": "/scans/0/exceptions/0",
             "id": 0,
             # u'lineno': 123,
