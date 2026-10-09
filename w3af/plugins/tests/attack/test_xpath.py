@@ -21,14 +21,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from unittest.mock import MagicMock
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.kb.vuln_templates.xpath_template import XPathTemplate
 from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 
-@attr("slow")
+@pytest.mark.slow
 class TestXPathShell(PluginTest):
 
     target_url = get_moth_http("/audit/xpath/xpath-attr-single.py")
@@ -47,7 +47,7 @@ class TestXPathShell(PluginTest):
         }
     }
 
-    @attr("fails")
+    @pytest.mark.fails
     def test_find_exploit_xpath(self):
         # Run the scan
         cfg = self._run_configs["cfg"]
@@ -64,7 +64,7 @@ class TestXPathShell(PluginTest):
         vuln_to_exploit_id = vuln.get_id()
         self._exploit_xpath(vuln_to_exploit_id)
 
-    @attr("fails")
+    @pytest.mark.fails
     def test_from_template(self):
         xt = XPathTemplate()
 

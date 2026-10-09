@@ -21,12 +21,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from unittest.mock import patch
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 
-@attr("smoke")
+@pytest.mark.smoke
 class TestPHPEggs(PluginTest):
 
     target_url = "http://mock/"
@@ -85,7 +85,7 @@ class TestPHPEggs(PluginTest):
         self.assertEqual(php_version["version"], ["5.3.2", "5.3.1"])
 
 
-@attr("smoke")
+@pytest.mark.smoke
 class TestPHPEggsNoFingerprint(PluginTest):
 
     target_url = "http://mock/"

@@ -23,7 +23,7 @@ import copy
 import unittest
 from unittest.mock import MagicMock, Mock, call, patch
 
-from nose.plugins.attrib import attr
+import pytest
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
@@ -193,7 +193,7 @@ class TestHTTPvsHTTPS(PluginTest):
     }
 
     @onlyroot
-    @attr("ci_fails")
+    @pytest.mark.ci_fails
     def test_trace(self):
         cfg = self._run_configs["cfg"]
         self._scan(cfg["target"], cfg["plugins"])

@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import unittest
 from unittest.mock import Mock, patch
 
-from nose.plugins.skip import SkipTest
+from unittest import SkipTest
 
 from w3af.core.ui.gui.exception_handling.unhandled import handle_crash, set_except_hook
 

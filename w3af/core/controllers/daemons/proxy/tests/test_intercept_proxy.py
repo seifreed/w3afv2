@@ -28,7 +28,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.controllers.daemons.proxy import InterceptProxy
@@ -36,7 +36,7 @@ from w3af.core.controllers.misc.temp_dir import create_temp_dir
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 
 
-@attr("moth")
+@pytest.mark.moth
 class TestInterceptProxy(unittest.TestCase):
 
     IP = "127.0.0.2"

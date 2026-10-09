@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.core.data.dc.generic.nr_kv_container import NonRepeatKeyValueContainer
 from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
@@ -47,7 +47,7 @@ class MockVuln(Vuln):
         super().__init__(name, long_desc, severity, _id, plugin_name)
 
 
-@attr("smoke")
+@pytest.mark.smoke
 class TestVuln(unittest.TestCase):
 
     def test_from_vuln(self):

@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 import unittest
 
-from nose.plugins.attrib import attr
-from nose.plugins.skip import SkipTest
+import pytest
+from unittest import SkipTest
 
 from w3af import ROOT_PATH
 from w3af.plugins.attack.payloads.payload_handler import get_payload_list
@@ -39,7 +39,7 @@ UNABLE_TO_TEST = (
 )
 
 
-@attr("smoke")
+@pytest.mark.smoke
 class TestUnittestCoverage(unittest.TestCase):
 
     def test_payloads(self):

@@ -26,7 +26,7 @@ import unittest
 from os import listdir as orig_listdir
 from unittest.mock import patch
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.w3afCore import w3afCore
@@ -34,7 +34,7 @@ from w3af.core.controllers.w3afCore import w3afCore
 TEST_PLUGIN_NAME = "failing_spider"
 
 
-@attr("smoke")
+@pytest.mark.smoke
 class TestW3afCorePlugins(unittest.TestCase):
 
     def setUp(self):

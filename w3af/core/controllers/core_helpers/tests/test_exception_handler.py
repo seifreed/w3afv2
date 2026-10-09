@@ -26,7 +26,7 @@ import sys
 import threading
 import unittest
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.core.controllers.core_helpers.exception_handler import (
     ExceptionData,
@@ -52,7 +52,7 @@ class TestExceptionHandler(unittest.TestCase):
         self.status.set_running_plugin("phase", "plugin")
         self.status.set_current_fuzzable_request("phase", "http://www.w3af.org/")
 
-    @attr("smoke")
+    @pytest.mark.smoke
     def test_handle_one(self):
 
         try:
@@ -83,7 +83,7 @@ class TestExceptionHandler(unittest.TestCase):
         # the only way to do it without much effort
         self.assertEqual(edata.lineno, 50)
 
-    @attr("smoke")
+    @pytest.mark.smoke
     def test_handle_multiple(self):
 
         for _ in range(10):

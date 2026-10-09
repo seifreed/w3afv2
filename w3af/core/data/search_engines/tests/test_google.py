@@ -24,7 +24,7 @@ import random
 import re
 import unittest
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.core.data.search_engines.google import (
     FINISHED_OK,
@@ -48,8 +48,8 @@ URL_REGEX = re.compile(
 )
 
 
-@attr("internet")
-@attr("fails")
+@pytest.mark.internet
+@pytest.mark.fails
 class TestGoogle(unittest.TestCase):
     """
     This unittest verifies that the Google class works. Remember that this class
@@ -102,7 +102,7 @@ class BaseGoogleAPISearch(unittest.TestCase):
     @see: test_GMobileSearch, test_GStandardSearch, test_GAjaxSearch below for
           tests on these particular search implementations.
 
-    This base class is not intended to be run by nosetests.
+    This base class is not intended to be collected by pytest.
     """
 
     GoogleApiSearcher = None
@@ -115,7 +115,7 @@ class BaseGoogleAPISearch(unittest.TestCase):
     def tearDown(self):
         self.opener.end()
 
-    @attr("fails")
+    @pytest.mark.fails
     def test_len_link_results(self):
         if self.GoogleApiSearcher is None:
             return
@@ -157,7 +157,7 @@ class BaseGoogleAPISearch(unittest.TestCase):
 
         self.assertTrue(related > 5, related)
 
-    @attr("fails")
+    @pytest.mark.fails
     def test_links_results_domain(self):
         if self.GoogleApiSearcher is None:
             return
@@ -187,19 +187,19 @@ class BaseGoogleAPISearch(unittest.TestCase):
             self.assertEqual(link_domain, domain, msg)
 
 
-@attr("internet")
-@attr("fails")
+@pytest.mark.internet
+@pytest.mark.fails
 class TestGAjaxSearch(BaseGoogleAPISearch):
     GoogleApiSearcher = GAjaxSearch
 
 
-@attr("internet")
-@attr("fails")
+@pytest.mark.internet
+@pytest.mark.fails
 class TestGMobileSearch(BaseGoogleAPISearch):
     GoogleApiSearcher = GMobileSearch
 
 
-@attr("internet")
-@attr("fails")
+@pytest.mark.internet
+@pytest.mark.fails
 class TestGStandardSearch(BaseGoogleAPISearch):
     GoogleApiSearcher = GStandardSearch

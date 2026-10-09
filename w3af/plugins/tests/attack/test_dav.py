@@ -19,13 +19,13 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.core.data.kb.vuln_templates.dav_template import DAVTemplate
 from w3af.plugins.tests.helper import ExecExploitTest, PluginConfig
 
 
-@attr("smoke")
+@pytest.mark.smoke
 class TestDAVShell(ExecExploitTest):
 
     target_url = "http://moth/w3af/audit/dav/write-all/"
@@ -43,7 +43,7 @@ class TestDAVShell(ExecExploitTest):
         },
     }
 
-    @attr("ci_fails")
+    @pytest.mark.ci_fails
     def test_found_exploit_dav(self):
         # Run the scan
         cfg = self._run_configs["cfg"]
@@ -59,7 +59,7 @@ class TestDAVShell(ExecExploitTest):
         vuln_to_exploit_id = vuln.get_id()
         self._exploit_vuln(vuln_to_exploit_id, "dav")
 
-    @attr("ci_fails")
+    @pytest.mark.ci_fails
     def test_from_template(self):
         dt = DAVTemplate()
 

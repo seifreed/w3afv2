@@ -31,7 +31,7 @@ import unittest
 from io import StringIO
 from string import printable
 
-from nose.plugins.skip import SkipTest
+from unittest import SkipTest
 
 from w3af.core.controllers.core_helpers.fingerprint_404 import IS_EQUAL_RATIO
 from w3af.core.controllers.core_helpers.not_found.get_clean_body import get_clean_body
@@ -45,7 +45,7 @@ FAILED_FILENAME = "not-ex1st.html"
 
 class Test404FuzzyStringMatch(unittest.TestCase):
     """
-    This is written as a test to be able to run it easily using nosetests,
+    This is written as a test to be able to run it easily using pytest,
     but is mostly a simple check to verify the following:
 
         * fuzzy_equal is too slow

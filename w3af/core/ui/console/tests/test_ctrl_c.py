@@ -26,14 +26,14 @@ import tempfile
 import time
 import unittest
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af import ROOT_PATH
 from w3af.core.controllers.ci.moth import get_moth_http
 
 
-@attr("moth")
-@attr("fails")
+@pytest.mark.moth
+@pytest.mark.fails
 class TestHandleCtrlC(unittest.TestCase):
 
     SCRIPT = "%s/core/ui/console/tests/data/spider_long.w3af" % ROOT_PATH

@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 import unittest
 
-from nose.plugins.attrib import attr
+import pytest
 from pylint import lint
 from pylint.reporters.text import TextReporter
 
@@ -42,7 +42,7 @@ class WritableObject:
         return self.content
 
 
-@attr("smoke")
+@pytest.mark.smoke
 class PylintRunner(unittest.TestCase):
 
     maxDiff = None

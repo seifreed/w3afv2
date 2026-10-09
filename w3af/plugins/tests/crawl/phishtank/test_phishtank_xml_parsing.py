@@ -24,7 +24,7 @@ import os
 import unittest
 
 from lxml import etree
-from nose.plugins.skip import SkipTest
+from unittest import SkipTest
 
 from w3af import ROOT_PATH
 

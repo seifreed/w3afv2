@@ -59,7 +59,7 @@ dependencies:
     # test ID which was running when circleci killed the build. Using that ID
     # and the output of this tool, you'll be able to pinpoint which test was
     # using a lot of memory.
-    - python w3af/core/controllers/ci/nosetests_wrapper/show-test-ids.py
+    - python -m pytest --collect-only --doctest-modules -q -m "not ci_fails and not fails and not ci_ignore" w3af
 
     # Might need more waiting for the docker-compose up command to finish
     - w3af/tests/waitfor-test-dependencies.py
@@ -71,10 +71,10 @@ dependencies:
 
 test:
   override:
-    - w3af/core/controllers/ci/nosetests_wrapper/main.py:
+    - pytest --doctest-modules -q -m "not ci_fails and not fails and not ci_ignore" --junitxml="$CIRCLE_ARTIFACTS/pytest.xml" w3af:
         timeout: 360
 
-    - nosetests w3af/core/data/constants/tests/test_vulns.py:TestVulnsConstants.test_vuln_updated
+    - pytest -q w3af/core/data/constants/tests/test_vulns.py::TestVulnsConstants::test_vuln_updated
 
     # Dump the container logs for debugging
     - for c in `docker ps -q`; do docker logs $c > $CIRCLE_ARTIFACTS/docker-$c.log; done

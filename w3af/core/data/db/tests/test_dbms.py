@@ -26,7 +26,7 @@ import unittest
 from itertools import repeat, starmap
 from random import choice
 
-from nose.plugins.skip import SkipTest
+from unittest import SkipTest
 
 from w3af.core.controllers.exceptions import DBException, NoSuchTableException
 from w3af.core.controllers.misc.temp_dir import (

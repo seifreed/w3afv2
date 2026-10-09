@@ -19,8 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from nose.plugins.attrib import attr
-from nose.plugins.skip import SkipTest
+import pytest
+from unittest import SkipTest
 
 from w3af.plugins.attack.payloads.payload_handler import exec_payload
 from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
@@ -36,6 +36,6 @@ class test_dhcp_config_files(PayloadTestHelper):
         result = exec_payload(self.shell, "dhcp_config_files", use_api=True)
         self.assertEqual(self.EXPECTED_RESULT, result)
 
-    @attr("ci_fails")
+    @pytest.mark.ci_fails
     def test_a_positive_test(self):
         raise SkipTest("FIXME: I need a positive test.")

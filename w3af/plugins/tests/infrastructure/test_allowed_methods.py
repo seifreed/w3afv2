@@ -19,13 +19,13 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 
-@attr("smoke")
+@pytest.mark.smoke
 class TestAllowedMethods(PluginTest):
     """
     Note that this is a smoke test because the code in allowed_methods calls
@@ -70,7 +70,7 @@ class TestAllowedMethods(PluginTest):
 
         self.assertEqual(len(infos), 0, infos)
 
-    @attr("ci_fails")
+    @pytest.mark.ci_fails
     def test_modsecurity(self):
         r"""
         test_modsecurity in test_allowed_methods, test a different

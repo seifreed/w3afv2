@@ -51,7 +51,7 @@ class TestFingerprint404Perf(unittest.TestCase):
 
         This method is usually run as:
 
-            kernprof -o nose.lprof -v -l nosetests -s -v w3af/core/controllers/core_helpers/not_found/tests/test_fingerprint_404_perf.py
+            kernprof -o pytest.lprof -v -l pytest -s -v w3af/core/controllers/core_helpers/not_found/tests/test_fingerprint_404_perf.py
 
         Remember to:
 

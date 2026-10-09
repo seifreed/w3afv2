@@ -19,7 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.core.controllers.misc.get_local_ip import get_local_ip
 from w3af.plugins.attack.payloads.payload_handler import exec_payload
@@ -32,7 +32,7 @@ from w3af.plugins.tests.helper import onlyroot
 class test_w3af_agent(PayloadTestHelperExec):
 
     @onlyroot
-    @attr("ci_fails")
+    @pytest.mark.ci_fails
     def test_w3af_agent(self):
         result = exec_payload(
             self.shell, "w3af_agent", args=(get_local_ip(),), use_api=True

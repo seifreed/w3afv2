@@ -26,14 +26,14 @@ from itertools import repeat
 from multiprocessing.dummy import Pool as ThreadPool
 
 import httpretty
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 
 
-@attr("smoke")
+@pytest.mark.smoke
 class TestGetAverageRTT(unittest.TestCase):
 
     MOCK_URL = "http://www.w3af.org/"

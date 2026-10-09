@@ -25,7 +25,7 @@ import urllib.parse
 import urllib.request
 from email.header import decode_header
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
@@ -52,7 +52,7 @@ class ResponseSplittingMockResponse(MockResponse):
             return self.status, response_headers, self.body
 
 
-@attr("smoke")
+@pytest.mark.smoke
 class TestResponseSplitting(PluginTest):
 
     target_url = "http://w3af.org/?header="

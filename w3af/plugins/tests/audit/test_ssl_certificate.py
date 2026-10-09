@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af import ROOT_PATH
 from w3af.core.data.url.tests.helpers.ssl_daemon import SSLServer
@@ -72,7 +72,7 @@ class TestSSLCertificate(PluginTest):
         self.assertEqual("Self-signed SSL certificate", vuln.get_name())
         self.assertEqual(self.local_target_url % port, str(vuln.get_url()))
 
-    @attr("internet")
+    @pytest.mark.internet
     def test_ssl_certificate_yandex(self):
         cfg = self._run_configs["cfg"]
         self._scan(self.remote_url, cfg["plugins"])
@@ -91,7 +91,7 @@ class TestSSLCertificate(PluginTest):
         for estring in self.EXPECTED_STRINGS:
             self.assertIn(estring, info.get_desc())
 
-    @attr("internet")
+    @pytest.mark.internet
     def test_ssl_certificate_api_mercadopago_com(self):
         api_url = "https://api.mercadopago.com/"
 

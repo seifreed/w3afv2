@@ -25,8 +25,8 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-from nose.plugins.attrib import attr
-from nose.plugins.skip import SkipTest
+import pytest
+from unittest import SkipTest
 
 import w3af.core.data.kb.config as cf
 from w3af import ROOT_PATH
@@ -78,7 +78,7 @@ class TestWebSpider(PluginTest):
 
         self.assertEqual(found_urls, expected_urls)
 
-    @attr("smoke")
+    @pytest.mark.smoke
     def test_spider_found_urls(self):
         config = self._run_configs["basic"]
         expected_files = [

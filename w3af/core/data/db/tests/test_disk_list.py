@@ -26,7 +26,7 @@ import threading
 import unittest
 
 import msgpack
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.core.controllers.misc.temp_dir import create_temp_dir
 from w3af.core.data.db.dbms import get_default_temp_db_instance
@@ -42,7 +42,7 @@ class TestDiskList(unittest.TestCase):
     def setUp(self):
         create_temp_dir()
 
-    @attr("smoke")
+    @pytest.mark.smoke
     def test_int(self):
         dl = DiskList()
 
@@ -65,7 +65,7 @@ class TestDiskList(unittest.TestCase):
 
         self.assertEqual(str(dl), "<DiskList [1, 2, 3]>")
 
-    @attr("smoke")
+    @pytest.mark.smoke
     def test_string(self):
         dl = DiskList()
 
@@ -100,7 +100,7 @@ class TestDiskList(unittest.TestCase):
             ],
         )
 
-    @attr("smoke")
+    @pytest.mark.smoke
     def test_urlobject(self):
         dl = DiskList()
 

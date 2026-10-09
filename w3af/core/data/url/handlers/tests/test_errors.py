@@ -25,7 +25,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.controllers.misc.number_generator import consecutive_number_generator
@@ -40,7 +40,7 @@ class TestErrorHandler(unittest.TestCase):
     def setUp(self):
         consecutive_number_generator.reset()
 
-    @attr("moth")
+    @pytest.mark.moth
     def test_error_handler_id(self):
         """
         Verify that the error handler works as expected, in other words, do NOT

@@ -26,10 +26,10 @@ try:
     import msvcrt
 except ImportError:
     # This only works on windows, and was PASSing before because of a bug (+x
-    # in the winctrl.py file). Now that I've removed the +x nosetests does load/
+    # in the winctrl.py file). Pytest loads and imports this module directly
     # import this file and builds fail.
     #
-    # Create a mock just to allow nosetests/pylint to PASS
+    # Create a fallback so pytest and pylint can import this module
     #
     # https://circleci.com/gh/andresriancho/w3af/1495
     class msvcrt:

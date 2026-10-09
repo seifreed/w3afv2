@@ -25,7 +25,7 @@ import os
 import unittest
 from configparser import ConfigParser
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af import ROOT_PATH
 from w3af.core.controllers.exceptions import BaseFrameworkException
@@ -47,7 +47,7 @@ class TestCoreProfiles(unittest.TestCase):
         super().tearDown()
         self.core.worker_pool.terminate_join()
 
-    @attr("smoke")
+    @pytest.mark.smoke
     def test_use_profile(self):
         self.core.profiles.use_profile("OWASP_TOP10", workdir=".")
 
@@ -104,7 +104,7 @@ class TestCoreProfiles(unittest.TestCase):
             BaseFrameworkException, self.core.profiles.remove_profile, "not-exists"
         )
 
-    @attr("smoke")
+    @pytest.mark.smoke
     def test_use_all_profiles(self):
         """
         This test catches the errors in my profiles that generate these

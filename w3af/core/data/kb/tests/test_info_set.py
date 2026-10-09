@@ -25,7 +25,7 @@ import json
 import unittest
 from pickle import loads
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
@@ -38,7 +38,7 @@ from w3af.core.data.misc.cpickle_dumps import cpickle_dumps
 from w3af.core.data.parsers.doc.url import URL
 
 
-@attr("smoke")
+@pytest.mark.smoke
 class TestInfoSet(unittest.TestCase):
     def test_not_empty(self):
         self.assertRaises(ValueError, InfoSet, [])

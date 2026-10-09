@@ -19,7 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.plugins.attack.payloads.payload_handler import exec_payload
 from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
@@ -27,8 +27,8 @@ from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
 )
 
 
-@attr("slow")
-@attr("ci_fails")
+@pytest.mark.slow
+@pytest.mark.ci_fails
 class test_list_processes(PayloadTestHelper):
 
     EXPECTED_RESULT = set(["/sbin/getty -8 38400 tty4", "cron"])

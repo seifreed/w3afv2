@@ -24,7 +24,7 @@ import sys
 
 def is_running_tests():
     for argv in sys.argv:
-        if "nosetests" in argv:
+        if "pytest" in argv:
             return True
 
     return False

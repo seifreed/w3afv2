@@ -24,7 +24,7 @@ import subprocess
 import sys
 import tempfile
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.core.controllers.core_helpers.tests.test_profiles import assertProfilesEqual
 from w3af.core.data.db.startup_cfg import StartUpConfig
@@ -33,7 +33,7 @@ from w3af.core.ui.console.console_ui import ConsoleUI
 from w3af.core.ui.console.tests.helper import ConsoleTestHelper
 
 
-@attr("smoke")
+@pytest.mark.smoke
 class TestProfilesConsoleUI(ConsoleTestHelper):
     """
     Load profiles from the console UI.

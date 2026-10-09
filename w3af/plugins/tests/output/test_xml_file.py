@@ -27,7 +27,7 @@ import unittest
 from xml.etree import ElementTree
 
 from lxml import etree
-from nose.plugins.attrib import attr
+import pytest
 
 import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
@@ -59,7 +59,7 @@ from w3af.plugins.output.xml_file import (
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 
-@attr("smoke")
+@pytest.mark.smoke
 class TestXMLOutput(PluginTest):
 
     target_url = get_moth_http("/audit/sql_injection/where_integer_qs.py")

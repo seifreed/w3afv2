@@ -24,7 +24,7 @@ import logging
 
 
 #
-# Some magic for nosetests to support i18n
+# Some magic for test runners to support i18n
 #
 def setUpPackage():
     import builtins

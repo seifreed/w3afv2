@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 import unittest
 
-from nose.plugins.attrib import attr
+import pytest
 
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.core_helpers.target import CoreTarget
@@ -61,7 +61,7 @@ OPTION_TYPES = (
 )
 
 
-@attr("smoke")
+@pytest.mark.smoke
 class TestTarget(unittest.TestCase):
 
     def test_basic(self):

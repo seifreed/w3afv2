@@ -19,15 +19,15 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.plugins.tests.helper import PluginConfig
 
 
-@attr("functional")
-@attr("internet")
-@attr("slow")
-@attr("ci_fails")
+@pytest.mark.functional
+@pytest.mark.internet
+@pytest.mark.slow
+@pytest.mark.ci_fails
 class TestScanVulnerableSite:
 
     target_url = None

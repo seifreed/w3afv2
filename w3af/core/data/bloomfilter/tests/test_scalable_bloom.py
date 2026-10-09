@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.bloomfilter.seekfile_bloom import FileSeekBloomFilter
@@ -40,7 +40,7 @@ class WrappedFileSeekBloomFilter(GenericBloomFilter):
         self.bf = FileSeekBloomFilter(capacity, error_rate, temp_file)
 
 
-@attr("smoke")
+@pytest.mark.smoke
 class TestScalableBloomFilterLargeCmmap(GenericFilterTest):
 
     CAPACITY = 20000
@@ -71,7 +71,7 @@ class TestScalableBloomFilterLargeSeekFile(GenericFilterTest):
         )
 
 
-@attr("smoke")
+@pytest.mark.smoke
 class TestScalableBloomfilterSmallSeekFile(GenericFilterTest):
 
     CAPACITY = 500

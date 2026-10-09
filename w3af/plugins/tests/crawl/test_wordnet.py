@@ -19,7 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from nose.plugins.attrib import attr
+import pytest
 
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.ci.moth import get_moth_http
@@ -45,7 +45,7 @@ class TestWordnet(PluginTest):
         }
     }
 
-    @attr("ci_fails")
+    @pytest.mark.ci_fails
     def test_found_urls(self):
         cfg = self._run_configs["cfg"]
         self._scan(cfg["target"], cfg["plugins"])

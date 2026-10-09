@@ -24,7 +24,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.core.controllers.ci.php_moth import get_php_moth_http
 from w3af.core.controllers.daemons.webserver import HTTPServer
@@ -96,7 +96,7 @@ class TestRFI(PluginTest):
         self.assertEqual("Remote code execution", vuln.get_name())
         self.assertEqual(self.target_rce, vuln.get_url().url_string)
 
-    @attr("smoke")
+    @pytest.mark.smoke
     def test_found_rfi_with_local_server_rce(self):
         cfg = self._run_configs["local_rce"]
         self._scan(cfg["target"], cfg["plugins"])

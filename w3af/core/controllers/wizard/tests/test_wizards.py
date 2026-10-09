@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.misc.factory import factory
@@ -35,7 +35,7 @@ class test_wizards:
 
     unique_wizard_ids = []
 
-    @attr("smoke")
+    @pytest.mark.smoke
     def test_all_wizards(self):
         mod = "w3af.core.controllers.wizard.wizards.%s"
         w3af_core = w3afCore()
@@ -54,7 +54,7 @@ class test_wizards:
             wizard_inst = factory(klass, w3af_core)
             yield self._test_wizard_fail, wizard_inst
 
-    @attr("smoke")
+    @pytest.mark.smoke
     def _test_wizard_correct(self, wizard_inst):
         """
         @see test_questions.py for a complete test of questions.py and all the
@@ -76,7 +76,7 @@ class test_wizards:
                 filled_opt = self._correctly_fill_options(opt)
                 wizard_inst.set_answer(filled_opt)
 
-    @attr("smoke")
+    @pytest.mark.smoke
     def _test_wizard_fail(self, wizard_inst):
         """
         @see test_questions.py for a complete test of questions.py and all the

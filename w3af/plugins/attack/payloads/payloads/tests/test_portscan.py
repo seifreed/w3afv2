@@ -19,7 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.plugins.attack.payloads.payload_handler import exec_payload
 from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper_exec import (
@@ -32,7 +32,7 @@ class test_portscan(PayloadTestHelperExec):
     RESULT_22 = {"localhost": ["22"]}
     RESULT_23 = {"localhost": []}
 
-    @attr("ci_fails")
+    @pytest.mark.ci_fails
     def test_portscan(self):
         result = exec_payload(
             self.shell, "portscan", args=("localhost", "22"), use_api=True

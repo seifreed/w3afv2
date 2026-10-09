@@ -25,8 +25,8 @@ import unittest
 from random import choice
 
 import msgpack
-from nose.plugins.attrib import attr
-from nose.plugins.skip import SkipTest
+import pytest
+from unittest import SkipTest
 
 from w3af import ROOT_PATH
 from w3af.core.data.dc.headers import Headers
@@ -43,7 +43,7 @@ TEST_RESPONSES = {
 }
 
 
-@attr("smoke")
+@pytest.mark.smoke
 class TestHTTPResponse(unittest.TestCase):
 
     def setUp(self):

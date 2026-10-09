@@ -31,6 +31,7 @@ import urllib.request
 from functools import wraps
 
 import httpretty
+import pytest
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
@@ -50,6 +51,7 @@ os.chdir(W3AF_LOCAL_PATH)
 RE_COMPILE_TYPE = type(re.compile(""))
 
 
+@pytest.mark.moth
 class PluginTest(unittest.TestCase):
     """
     These tests can be configured using two environment variables:
@@ -65,7 +67,6 @@ class PluginTest(unittest.TestCase):
     Keep tests as ordinary unittest methods so pytest can discover them.
     """
 
-    moth = True
     MOCK_RESPONSES = []
     runconfig = {}
     kb = kb.kb
@@ -564,8 +565,7 @@ def onlyroot(meth):
         else:
             raise unittest.SkipTest("This test requires root privileges.")
 
-    test_inner_onlyroot.root = True
-    return test_inner_onlyroot
+    return pytest.mark.root(test_inner_onlyroot)
 
 
 def create_target_option_list(*target):

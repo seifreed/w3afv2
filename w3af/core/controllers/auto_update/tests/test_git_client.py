@@ -23,7 +23,7 @@ import subprocess
 import unittest
 from unittest.mock import MagicMock
 
-from nose.plugins.skip import SkipTest
+from unittest import SkipTest
 
 from w3af.core.controllers.auto_update.git_client import GitClient
 from w3af.core.controllers.auto_update.utils import get_current_branch

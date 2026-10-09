@@ -25,7 +25,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.core.controllers.ci.moth import get_moth_http, get_moth_https
 from w3af.core.controllers.ci.sqlmap_testenv import get_sqlmap_testenv_http
@@ -34,7 +34,7 @@ from w3af.core.controllers.misc.temp_dir import create_temp_dir
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 
 
-@attr("moth")
+@pytest.mark.moth
 class TestProxy(unittest.TestCase):
 
     IP = "127.0.0.1"

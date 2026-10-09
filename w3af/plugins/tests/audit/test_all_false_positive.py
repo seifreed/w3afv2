@@ -19,8 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from nose.plugins.attrib import attr
-from nose.plugins.skip import SkipTest
+import pytest
+from unittest import SkipTest
 
 from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
@@ -29,7 +29,7 @@ class TestAllFP(PluginTest):
 
     target_url = "http://moth/w3af/core/base_false_positive/"
 
-    @attr("ci_fails")
+    @pytest.mark.ci_fails
     def test_false_positive(self):
         raise SkipTest("FIXME: This test takes too long to run.")
 
@@ -48,7 +48,7 @@ class TestAllFP(PluginTest):
                 },
             }
 
-            # I tried to do this in the right way, with nosetests test
+            # I tried to do this in the right way, with pytest
             # generators, but they have a bug with unittest.TestCase
             self.setUp()
 
@@ -64,6 +64,6 @@ class TestAllFP(PluginTest):
             )
             self.assertEqual(len(infos), 0, msg_i)
 
-            # I tried to do this in the right way, with nosetests test
+            # I tried to do this in the right way, with pytest
             # generators, but they have a bug with unittest.TestCase
             self.tearDown()

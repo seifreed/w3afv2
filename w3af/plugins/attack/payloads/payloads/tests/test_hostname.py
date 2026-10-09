@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import socket
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.plugins.attack.payloads.payload_handler import exec_payload
 from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
@@ -37,7 +37,7 @@ class test_hostname(PayloadTestHelper):
         ]
     }
 
-    @attr("ci_fails")
+    @pytest.mark.ci_fails
     def test_hostname(self):
         result = exec_payload(self.shell, "hostname", use_api=True)
         self.assertEqual(self.EXPECTED_RESULT, result)

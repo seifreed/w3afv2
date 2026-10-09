@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.core.data.dc.generic.kv_container import KeyValueContainer
 from w3af.core.data.dc.generic.plain import PlainContainer
@@ -39,7 +39,7 @@ from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.HTTPRequest import HTTPRequest
 
 
-@attr("smoke")
+@pytest.mark.smoke
 class TestCreateFuzzableRequestFromParts(unittest.TestCase):
 
     def setUp(self):
@@ -218,7 +218,7 @@ class TestCreateFuzzableRequestFromParts(unittest.TestCase):
         self.assertEqual(fr.get_raw_data().get_param_names(), [])
 
 
-@attr("smoke")
+@pytest.mark.smoke
 class TestCreateFuzzableRequestRequest(unittest.TestCase):
 
     def setUp(self):

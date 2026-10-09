@@ -19,8 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from nose.plugins.attrib import attr
-from nose.plugins.skip import SkipTest
+import pytest
+from unittest import SkipTest
 
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.parsers.doc.url import URL
@@ -89,7 +89,7 @@ class TestGeneric(PluginTest):
         },
     }
 
-    @attr("smoke")
+    @pytest.mark.smoke
     def test_post_auth_xss(self):
         self._scan(self._run_config["target"], self._run_config["plugins"])
 
@@ -102,8 +102,8 @@ class TestGeneric(PluginTest):
         self.assertEqual(vuln.get_token_name(), "text")
         self.assertEqual(vuln.get_url().get_path(), "/auth/auth_1/post_auth_xss.py")
 
-    @attr("internet")
-    @attr("fails")
+    @pytest.mark.internet
+    @pytest.mark.fails
     def test_demo_testfire_net(self):
         # We don't control the demo.testfire.net domain, so we'll check if its
         # up before doing anything else

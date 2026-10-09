@@ -53,7 +53,7 @@ class TestClamAV(unittest.TestCase):
         body = base64.b64decode(
             "WDVPIVAlQEFQWzRcUFpYNTQoUF4pN0NDKTd9JEVJQ0FSLVNUQU5EQVJELUFOVElWSVJVUy1URVNU"
             "LUZJTEUhJEgrSCo="
-        )
+        ).decode("latin-1")
         url = URL("http://www.w3af.com/")
         headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, url, url, _id=1)

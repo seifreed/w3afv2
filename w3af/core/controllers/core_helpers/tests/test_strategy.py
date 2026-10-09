@@ -24,7 +24,7 @@ import re
 import subprocess
 import sys
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.core.controllers.ci.detect import is_running_on_ci
 from w3af.core.controllers.ci.moth import get_moth_http
@@ -144,8 +144,8 @@ class TestSameFuzzableRequestSet(PluginTest):
         }
     }
 
-    @attr("smoke")
-    @attr("moth")
+    @pytest.mark.smoke
+    @pytest.mark.moth
     def test_same_fr_set_object(self):
         cfg = self._run_configs["cfg"]
 

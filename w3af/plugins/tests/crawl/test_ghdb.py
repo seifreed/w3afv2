@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from unittest.mock import call, patch
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.core.data.constants import severity
 from w3af.core.data.misc.file_utils import days_since_file_update
@@ -39,7 +39,7 @@ class TestGHDB(PluginTest):
         "cfg": {"target": None, "plugins": {"crawl": (PluginConfig("ghdb"),)}}
     }
 
-    @attr("ci_fails")
+    @pytest.mark.ci_fails
     def test_ghdb_private(self):
         cfg = self._run_configs["cfg"]
 
@@ -56,7 +56,7 @@ class TestGHDB(PluginTest):
         vulns = self.kb.get("ghdb", "vuln")
         self.assertEqual(len(vulns), 0, vulns)
 
-    @attr("ci_fails")
+    @pytest.mark.ci_fails
     def test_ghdb_match(self):
 
         call_count = 0

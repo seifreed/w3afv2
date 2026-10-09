@@ -28,7 +28,7 @@ import urllib.request
 import warnings
 from multiprocessing.queues import SimpleQueue
 
-from nose.plugins.skip import SkipTest
+from unittest import SkipTest
 
 from w3af.core.data.dc.query_string import QueryString
 from w3af.core.data.dc.urlencoded_form import URLEncodedForm

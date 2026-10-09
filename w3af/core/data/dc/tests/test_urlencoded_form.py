@@ -26,7 +26,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.dc.urlencoded_form import URLEncodedForm
@@ -39,7 +39,7 @@ from w3af.core.data.parsers.utils.tests.test_form_params import (
 )
 
 
-@attr("smoke")
+@pytest.mark.smoke
 class TestURLEncodedForm(unittest.TestCase):
 
     def test_from_postdata_no_encoding(self):

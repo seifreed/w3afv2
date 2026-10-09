@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import subprocess
 import unittest
 
-from nose.plugins.attrib import attr
+import pytest
 
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.extrusion_scanning.extrusionScanner import extrusionScanner
@@ -45,7 +45,7 @@ class TestExtrusionScanner(unittest.TestCase):
         self.assertTrue(es.is_available(54545, "tcp"))
 
     @onlyroot
-    @attr("ci_fails")
+    @pytest.mark.ci_fails
     def test_scan(self):
         # FIXME: This unittest will only work in Linux
         cf.cf.save("interface", "lo")
@@ -57,6 +57,6 @@ class TestExtrusionScanner(unittest.TestCase):
 
     def test_zzz(self):
         """
-        Can't stop finding nosetests errors! It looks like SkipTest works except
+        Can't stop finding pytest errors! It looks like SkipTest works except
         in the case where it is the last test discovered!
         """

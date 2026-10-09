@@ -43,7 +43,7 @@ class TestGrepConsumer(unittest.TestCase):
 
         This method is usually run as:
 
-            kernprof -o nose.lprof -v -l nosetests -s -v w3af/core/controllers/core_helpers/consumers/tests/test_grep.py
+            kernprof -o pytest.lprof -v -l pytest -s -v w3af/core/controllers/core_helpers/consumers/tests/test_grep.py
 
         Remember to:
 

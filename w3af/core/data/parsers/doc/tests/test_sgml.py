@@ -27,8 +27,8 @@ from functools import partial
 from itertools import combinations
 from random import choice
 
-from nose.plugins.attrib import attr
-from nose.plugins.skip import SkipTest
+import pytest
+from unittest import SkipTest
 
 from w3af import ROOT_PATH
 from w3af.core.data.dc.headers import Headers
@@ -45,7 +45,7 @@ def build_http_response(url, body_content, headers=Headers()):
     return HTTPResponse(200, body_content, headers, url, url, charset="utf-8")
 
 
-@attr("smoke")
+@pytest.mark.smoke
 class TestSGMLParser(unittest.TestCase):
 
     url = URL("http://w3af.com")

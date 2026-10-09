@@ -25,7 +25,7 @@ import json
 import pickle
 import unittest
 
-from nose.plugins.attrib import attr
+import pytest
 from vulndb.db_vuln import DBVuln, Reference
 
 from w3af.core.data.dc.generic.nr_kv_container import NonRepeatKeyValueContainer
@@ -61,11 +61,11 @@ class MockInfo(Info):
         super().__init__("TestCase", desc or self.LONG_DESC, ids, "plugin_name")
 
 
-@attr("smoke")
+@pytest.mark.smoke
 class TestInfo(unittest.TestCase):
     """
     Simplest tests for info. Mainly started because of incompatibilities between
-    nosetests, doctest and "_".
+    pytest, doctest and "_".
 
     :author: Andres Riancho (andres.riancho@gmail.com)
     """

@@ -24,7 +24,7 @@ import time
 import unittest
 from unittest.mock import Mock
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.core.controllers.exceptions import HTTPRequestException, ScanMustStopException
 from w3af.core.data.parsers.doc.url import URL
@@ -43,8 +43,8 @@ from w3af.core.data.url.tests.helpers.upper_daemon import UpperDaemon
 from w3af.core.data.url.tests.test_xurllib import TimeoutTCPHandler
 
 
-@attr("moth")
-@attr("smoke")
+@pytest.mark.moth
+@pytest.mark.smoke
 class TestXUrllibTimeout(unittest.TestCase):
 
     def setUp(self):

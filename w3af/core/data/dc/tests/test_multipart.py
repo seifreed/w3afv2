@@ -24,7 +24,7 @@ import copy
 import os
 import unittest
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.core.controllers.misc.io import NamedStringIO
 from w3af.core.data.db.disk_set import DiskSet
@@ -47,7 +47,7 @@ GIF89aAAAAAAAAAAAAAAAAA;
 """
 
 
-@attr("smoke")
+@pytest.mark.smoke
 class TestMultipartContainer(unittest.TestCase):
 
     def test_multipart_post(self):

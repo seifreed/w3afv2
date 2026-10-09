@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from unittest import TestCase
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.controllers.ci.php_moth import get_php_moth_http
@@ -107,7 +107,7 @@ class TestXSS(PluginTest):
         ]
         return expected_data
 
-    @attr("smoke")
+    @pytest.mark.smoke
     def test_find_one_xss(self):
         """
         Simplest possible test to verify that we identify XSSs.
@@ -251,7 +251,7 @@ class TestXSS(PluginTest):
         severities = [v.get_severity() for v in csp_vulns]
         self.assertEqual(set(severities), {severity.MEDIUM, severity.LOW}, csp_vulns)
 
-    @attr("ci_fails")
+    @pytest.mark.ci_fails
     def test_found_xss_with_redirect(self):
         cfg = self._run_configs["cfg"]
         self._scan(self.XSS_302_URL, cfg["plugins"])

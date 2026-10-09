@@ -25,7 +25,7 @@ import unittest
 from multiprocessing.dummy import Process
 from unittest.mock import MagicMock
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.controllers.misc.factory import factory
@@ -34,7 +34,7 @@ from w3af.core.data.parsers.doc.url import URL
 from w3af.plugins.tests.helper import create_target_option_list
 
 
-@attr("moth")
+@pytest.mark.moth
 class CountTestMixin(unittest.TestCase):
     PLUGIN = "w3af.core.controllers.tests.count"
 
@@ -67,7 +67,7 @@ class CountTestMixin(unittest.TestCase):
 
 class TestW3afCorePause(CountTestMixin):
 
-    @attr("ci_fails")
+    @pytest.mark.ci_fails
     def test_pause_unpause(self):
         """
         Verify that the pause method actually works. In this case, working
@@ -100,7 +100,7 @@ class TestW3afCorePause(CountTestMixin):
 
         self.assertEqual(self.count_plugin.count, self.count_plugin.loops)
 
-    @attr("ci_fails")
+    @pytest.mark.ci_fails
     def test_pause_stop(self):
         """
         Verify that the pause method actually works. In this case, working
@@ -138,7 +138,7 @@ class TestW3afCorePause(CountTestMixin):
         # No more requests sent after pause
         self.assertEqual(self.count_plugin.count, count_after_sleep)
 
-    @attr("ci_fails")
+    @pytest.mark.ci_fails
     def test_stop(self):
         """
         Verify that the stop method actually works. In this case, working

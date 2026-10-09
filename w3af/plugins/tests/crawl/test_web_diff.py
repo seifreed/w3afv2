@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 from unittest.mock import call, patch
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af import ROOT_PATH
 from w3af.core.data.parsers.doc.url import URL
@@ -51,7 +51,7 @@ class TestWebDiff(PluginTest):
         },
     }
 
-    @attr("ci_fails")
+    @pytest.mark.ci_fails
     def test_compare(self):
         cfg = self._run_configs["basic"]
 

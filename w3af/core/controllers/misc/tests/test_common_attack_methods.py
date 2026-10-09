@@ -22,8 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-from nose.plugins.attrib import attr
-from nose.plugins.skip import SkipTest
+import pytest
+from unittest import SkipTest
 
 from w3af.core.controllers.misc.common_attack_methods import CommonAttackMethods
 
@@ -131,7 +131,7 @@ class TestCommonAttackMethods(unittest.TestCase):
         another_body = "%s%s%s" % (header, another_content, footer)
         self.assertEqual(self.cam._cut(another_body), another_content)
 
-    @attr("ci_fails")
+    @pytest.mark.ci_fails
     def test_guess_cut_no_header(self):
         """
         This one fails but I don't really have time to fix it now and it is not

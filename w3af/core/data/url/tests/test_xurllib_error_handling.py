@@ -24,7 +24,7 @@ import time
 import unittest
 from unittest.mock import Mock, call, patch
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.core.controllers.exceptions import (
     HTTPRequestException,
@@ -43,8 +43,8 @@ from w3af.plugins.tests.helper import PluginConfig, PluginTest
 TIMEOUT_SECS = 1
 
 
-@attr("moth")
-@attr("smoke")
+@pytest.mark.moth
+@pytest.mark.smoke
 class TestXUrllibDelayOnError(unittest.TestCase):
 
     def setUp(self):

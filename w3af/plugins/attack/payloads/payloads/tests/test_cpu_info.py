@@ -19,7 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.plugins.attack.payloads.payload_handler import exec_payload
 from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
@@ -27,7 +27,7 @@ from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
 )
 
 
-@attr("smoke")
+@pytest.mark.smoke
 class test_cpu_info(PayloadTestHelper):
 
     EXPECTED_RESULT = {
@@ -35,7 +35,7 @@ class test_cpu_info(PayloadTestHelper):
         "cpu_info": "AMD Phenom(tm) II X4 945 Processor",
     }
 
-    @attr("ci_fails")
+    @pytest.mark.ci_fails
     def test_cpu_info(self):
         result = exec_payload(self.shell, "cpu_info", use_api=True)
         self.assertEqual(self.EXPECTED_RESULT, result)

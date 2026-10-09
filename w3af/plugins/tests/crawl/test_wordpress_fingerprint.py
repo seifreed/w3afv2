@@ -19,7 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.core.data.misc.file_utils import days_since_file_update
 from w3af.plugins.crawl.wordpress_fingerprint import FileFingerPrint
@@ -57,7 +57,7 @@ class Testwordpress_fingerprint(PluginTest):
         },
     }
 
-    @attr("ci_fails")
+    @pytest.mark.ci_fails
     def test_find_version(self):
         cfg = self._run_configs["direct"]
         self._scan(cfg["target"], cfg["plugins"])

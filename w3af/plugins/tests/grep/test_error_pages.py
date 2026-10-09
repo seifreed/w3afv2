@@ -19,7 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from nose.plugins.attrib import attr
+import pytest
 
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.ci.moth import get_moth_http
@@ -32,8 +32,8 @@ from w3af.plugins.grep.error_pages import error_pages
 from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 
-@attr("ci_ready")
-@attr("smoke")
+@pytest.mark.ci_ready
+@pytest.mark.smoke
 class TestErrorPages(PluginTest):
 
     target_url = get_moth_http("/grep/error_pages/index.html")

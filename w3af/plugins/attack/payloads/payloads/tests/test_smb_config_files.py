@@ -19,7 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.plugins.attack.payloads.payload_handler import exec_payload
 from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
@@ -27,7 +27,7 @@ from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
 )
 
 
-@attr("fails")
+@pytest.mark.fails
 class test_smb_config_files(PayloadTestHelper):
 
     EXPECTED_RESULT = {}

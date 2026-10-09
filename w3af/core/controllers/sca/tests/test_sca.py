@@ -23,7 +23,7 @@ import os
 import unittest
 from functools import cmp_to_key
 
-from nose.plugins.skip import SkipTest
+from unittest import SkipTest
 
 from w3af.core.controllers.sca.sca import CodeSyntaxError, PhpSCA, Scope
 

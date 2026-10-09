@@ -24,7 +24,7 @@ import os
 import tempfile
 import unittest
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.controllers.misc.io import NamedStringIO
@@ -36,7 +36,7 @@ from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 
 
-@attr("moth")
+@pytest.mark.moth
 class TestMultipartPostUpload(unittest.TestCase):
     """
     In the new architecture I've been working on, the HTTP requests are almost

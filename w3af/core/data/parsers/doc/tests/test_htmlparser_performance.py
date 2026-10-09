@@ -26,7 +26,7 @@ import resource
 import time
 import unittest
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af import ROOT_PATH
 from w3af.core.data.dc.headers import Headers
@@ -44,7 +44,7 @@ class TestHTMLParserPerformance(unittest.TestCase):
         ROOT_PATH, "core", "data", "context", "tests", "samples", "django-500.html"
     )
 
-    @attr("ci_ignore")
+    @pytest.mark.ci_ignore
     def test_parse_html_performance(self):
         headers = Headers()
         headers["content-type"] = "text/html"

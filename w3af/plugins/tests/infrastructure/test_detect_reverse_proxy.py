@@ -19,7 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
@@ -36,7 +36,7 @@ class TestDetectReverseProxy(PluginTest):
         }
     }
 
-    @attr("ci_fails")
+    @pytest.mark.ci_fails
     def test_detect_reverse_proxy(self):
         cfg = self._run_configs["cfg"]
         self._scan(self.proxied_url, cfg["plugins"])
@@ -47,7 +47,7 @@ class TestDetectReverseProxy(PluginTest):
         info = infos[0]
         self.assertEqual("Reverse proxy identified", info.get_name())
 
-    @attr("ci_fails")
+    @pytest.mark.ci_fails
     def test_not_detect_reverse_proxy(self):
         cfg = self._run_configs["cfg"]
         self._scan(self.simple_url, cfg["plugins"])

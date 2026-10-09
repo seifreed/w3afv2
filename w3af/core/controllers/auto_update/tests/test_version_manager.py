@@ -24,7 +24,7 @@ import gc
 import unittest
 from unittest.mock import MagicMock
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.core.controllers.auto_update.changelog import ChangeLog
 from w3af.core.controllers.auto_update.git_client import GitClient
@@ -37,7 +37,7 @@ class TestVersionMgr(unittest.TestCase):
 
     def setUp(self):
         """
-        Given that nosetests test isolation is "incompatible" with w3af's
+        Given that pytest test isolation is "incompatible" with w3af's
         kb, cf, etc. objects, and the tests written here are overwriting
         some classes that are loaded into sys.modules and then used in other
         code sections -and tests-, I need to clean the mess after I finish.
@@ -121,7 +121,7 @@ class TestVersionMgr(unittest.TestCase):
         self.assertEqual(on_already_latest_mock.call_count, 0)
         self.assertEqual(on_update_mock.call_count, 0)
 
-    @attr("ci_fails")
+    @pytest.mark.ci_fails
     def test_update_required_not_forced(self):
         """
         Test that we check if we're on the latest version if the latest
@@ -160,7 +160,7 @@ class TestVersionMgr(unittest.TestCase):
         self.assertEqual(on_already_latest_mock.call_count, 1)
         self.assertEqual(on_update_mock.call_count, 0)
 
-    @attr("ci_fails")
+    @pytest.mark.ci_fails
     def test_update_required_outdated_not_forced(self):
         """
         Test that we check if we're on the latest version if the latest

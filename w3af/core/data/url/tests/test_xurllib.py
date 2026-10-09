@@ -29,7 +29,7 @@ from multiprocessing.dummy import Process
 from unittest.mock import patch
 
 import httpretty
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af import ROOT_PATH
 from w3af.core.controllers.ci.moth import get_moth_http, get_moth_https
@@ -50,8 +50,8 @@ from w3af.core.data.url.tests.helpers.ssl_daemon import RawSSLDaemon, SSLServer
 from w3af.core.data.url.tests.helpers.upper_daemon import UpperDaemon
 
 
-@attr("moth")
-@attr("smoke")
+@pytest.mark.moth
+@pytest.mark.smoke
 class TestXUrllib(unittest.TestCase):
 
     MOTH_MESSAGE = "<title>moth: vulnerable web application</title>"
@@ -294,8 +294,8 @@ class TestXUrllib(unittest.TestCase):
         resp = self.uri_opener.GET(url)
         self.assertEqual(resp.get_body(), Ok200Handler.body)
 
-    @attr("internet")
-    @attr("ci_fails")
+    @pytest.mark.internet
+    @pytest.mark.ci_fails
     def test_ssl_sni(self):
         """
         Test is our HTTP client supports SSL SNI

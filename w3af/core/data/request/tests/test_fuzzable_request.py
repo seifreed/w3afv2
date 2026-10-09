@@ -24,7 +24,7 @@ import copy
 import pickle
 import unittest
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af.core.data.db.disk_set import DiskSet
 from w3af.core.data.dc.factory import dc_from_form_params
@@ -40,7 +40,7 @@ from w3af.core.data.parsers.utils.form_params import FormParameters
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
 
-@attr("smoke")
+@pytest.mark.smoke
 class TestFuzzableRequest(unittest.TestCase):
 
     def setUp(self):

@@ -3,10 +3,10 @@ import subprocess
 import sys
 import unittest
 
-from nose.plugins.attrib import attr
+import pytest
 
 
-@attr("smoke")
+@pytest.mark.smoke
 class TestDependenciesInstalled(unittest.TestCase):
 
     def test_dependencies_installed(self):

@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 import unittest
 
-from nose.plugins.attrib import attr
+import pytest
 
 from w3af import ROOT_PATH
 from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
@@ -69,7 +69,7 @@ PLUGIN_TYPES = {
 }
 
 
-@attr("smoke")
+@pytest.mark.smoke
 class TestBasic(unittest.TestCase):
 
     def setUp(self):
