@@ -21,38 +21,99 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import ClassVar
 
-import pytest
+import w3af.core.data.kb.knowledge_base as kb
+from w3af.core.controllers.exceptions import RunOnce
+from w3af.core.data.kb.info import Info
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.plugins.infrastructure.detect_reverse_proxy import detect_reverse_proxy
+from w3af.plugins.tests.canned_http_server import CannedReply
+from w3af.plugins.tests.infrastructure.canned_plugin_test import (
+    CannedServerPluginTest,
+)
 
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+TARGET = FuzzableRequest(URL("http://target/"))
 
 
-class TestDetectReverseProxy(PluginTest):
+class ReverseProxyTest(CannedServerPluginTest):
+    """
+    The canned server answers each method with the reply in ``replies``, any
+    other method gets an empty 200 response.
+    """
 
-    proxied_url = "http://moth/w3af/infrastructure/detect_reverse_proxy/"
-    simple_url = "http://moth/"
+    plugin_class = detect_reverse_proxy
+    replies: ClassVar[dict[str, CannedReply]] = {}
 
-    _run_configs: ClassVar[dict] = {
-        "cfg": {
-            "target": None,
-            "plugins": {"infrastructure": (PluginConfig("detect_reverse_proxy"),)},
-        }
+    def respond(self, request):
+        return self.replies.get(request.command, CannedReply(200, {}, ""))
+
+    def discover(self):
+        self.plugin.discover(TARGET, 1)
+        return kb.kb.get("detect_reverse_proxy", "detect_reverse_proxy")
+
+    def received_methods(self):
+        return [request.command for request in self.server.requests]
+
+
+class TestViaHeader(ReverseProxyTest):
+    replies: ClassVar[dict[str, CannedReply]] = {
+        "GET": CannedReply(200, {"Via": "1.1 squid"}, "")
     }
 
-    @pytest.mark.ci_fails
-    def test_detect_reverse_proxy(self):
-        cfg = self._run_configs["cfg"]
-        self._scan(self.proxied_url, cfg["plugins"])
+    def test_detected_with_get(self):
+        infos = self.discover()
 
-        infos = self.kb.get("detect_reverse_proxy", "detect_reverse_proxy")
         self.assertEqual(len(infos), 1, infos)
+        self.assertEqual(infos[0].get_name(), "Reverse proxy identified")
+        self.assertEqual(self.received_methods(), ["GET"])
 
-        info = infos[0]
-        self.assertEqual("Reverse proxy identified", info.get_name())
+    def test_runs_once(self):
+        self.discover()
 
-    @pytest.mark.ci_fails
-    def test_not_detect_reverse_proxy(self):
-        cfg = self._run_configs["cfg"]
-        self._scan(self.simple_url, cfg["plugins"])
+        self.assertRaises(RunOnce, self.plugin.discover, TARGET, 2)
 
-        infos = self.kb.get("detect_reverse_proxy", "detect_reverse_proxy")
-        self.assertEqual(len(infos), 0, infos)
+    def test_get_is_not_sent_behind_a_transparent_proxy(self):
+        desc = "Your ISP seems to have a transparent proxy installed."
+        transparent = Info("Transparent proxy detected", desc, 1, "plugin")
+        kb.kb.append(
+            "detect_transparent_proxy", "detect_transparent_proxy", transparent
+        )
+
+        self.assertEqual(self.discover(), [])
+        self.assertEqual(self.received_methods(), ["TRACE", "TRACK"])
+
+
+class TestTraceBody(ReverseProxyTest):
+    replies: ClassVar[dict[str, CannedReply]] = {
+        "TRACE": CannedReply(
+            200,
+            {"Content-Type": "message/http"},
+            "TRACE / HTTP/1.1\nX-Forwarded-For:   10.0.0.1",
+        )
+    }
+
+    def test_detected_with_trace(self):
+        self.assertEqual(len(self.discover()), 1)
+        self.assertEqual(self.received_methods(), ["GET", "TRACE"])
+
+
+class TestTrackBody(ReverseProxyTest):
+    replies: ClassVar[dict[str, CannedReply]] = {
+        "TRACK": CannedReply(200, {}, "TRACK / HTTP/1.1\nReverse-Via : MUTUN")
+    }
+
+    def test_detected_with_track(self):
+        self.assertEqual(len(self.discover()), 1)
+        self.assertEqual(self.received_methods(), ["GET", "TRACE", "TRACK"])
+
+
+class TestNoReverseProxy(ReverseProxyTest):
+    def test_not_detected(self):
+        self.assertEqual(self.discover(), [])
+        self.assertEqual(self.received_methods(), ["GET", "TRACE", "TRACK"])
+
+    def test_depends_on_transparent_proxy_detection(self):
+        self.assertEqual(
+            self.plugin.get_plugin_deps(), ["infrastructure.detect_transparent_proxy"]
+        )
+        self.assertIn("reverse proxy", self.plugin.get_long_desc())

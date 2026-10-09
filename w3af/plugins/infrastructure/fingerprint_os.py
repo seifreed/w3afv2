@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from threading import Lock
+
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import RunOnce
@@ -39,6 +41,7 @@ class fingerprint_os(InfrastructurePlugin):
         InfrastructurePlugin.__init__(self)
 
         self._exec = True
+        self._lock = Lock()
 
     def discover(self, fuzzable_request, debugging_id):
         """
@@ -48,10 +51,13 @@ class fingerprint_os(InfrastructurePlugin):
         :param fuzzable_request: A fuzzable_request instance that contains
                                     (among other things) the URL to test.
         """
-        if not self._exec:
-            raise RunOnce()
+        # The infrastructure plugins run concurrently, the lock prevents the
+        # operating system from being fingerprinted (and reported) twice
+        with self._lock:
+            if not self._exec:
+                raise RunOnce()
 
-        self._exec = not self._find_OS(fuzzable_request)
+            self._exec = not self._find_OS(fuzzable_request)
 
     def _find_OS(self, fuzzable_request):
         """

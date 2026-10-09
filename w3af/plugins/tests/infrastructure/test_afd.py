@@ -20,8 +20,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
+import socket
+import unittest
+import urllib.parse
 from typing import ClassVar
 
+import w3af.core.data.kb.knowledge_base as kb
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.data.url.extended_urllib import ExtendedUrllib
+from w3af.plugins.infrastructure.afd import afd
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 BAD_SIG_URI = re.compile(".*(passwd|uname|passthru|xp_cmdshell|WINNT).*", re.IGNORECASE)
@@ -54,7 +62,10 @@ class TestFoundAFD(PluginTest):
         info = infos[0]
 
         self.assertEqual(info.get_name(), "Active filter detected")
-        values = [u.url_string.split("=")[1] for u in info["filtered"]]
+        values = [
+            urllib.parse.unquote_plus(u.url_string.split("=")[1])
+            for u in info["filtered"]
+        ]
 
         self.assertIn("../../../../etc/passwd", set(values), values)
 
@@ -99,7 +110,10 @@ class TestAFDShortResponses(PluginTest):
         info = infos[0]
 
         self.assertEqual(info.get_name(), "Active filter detected")
-        values = [u.url_string.split("=")[1] for u in info["filtered"]]
+        values = [
+            urllib.parse.unquote_plus(u.url_string.split("=")[1])
+            for u in info["filtered"]
+        ]
 
         self.assertIn("../../../../etc/passwd", set(values), values)
 
@@ -134,3 +148,38 @@ class TestNotFoundAFD(PluginTest):
 
         infos = self.kb.get("afd", "afd")
         self.assertEqual(len(infos), 0, infos)
+
+
+def closed_port_url():
+    with socket.socket() as sock:
+        sock.bind(("127.0.0.1", 0))
+        port = sock.getsockname()[1]
+    return URL(f"http://127.0.0.1:{port}/")
+
+
+class TestAFDUnreachable(unittest.TestCase):
+    """
+    Without the plugin URL opener proxy, which turns failed requests into 204
+    responses, the plugin itself has to handle the request errors.
+    """
+
+    def setUp(self):
+        kb.kb.cleanup()
+        self.plugin = afd()
+        self.plugin._uri_opener = ExtendedUrllib()
+        self.addCleanup(self.plugin._uri_opener.end)
+
+    def test_first_request_fails(self):
+        self.plugin.discover(FuzzableRequest(closed_port_url()), 1)
+
+        self.assertEqual(kb.kb.get("afd", "afd"), [])
+
+    def test_offending_request_fails_is_filtered(self):
+        offending_url = closed_port_url()
+
+        self.plugin._send_and_analyze("payload", offending_url, "body", "param")
+
+        self.assertEqual(self.plugin._filtered, [offending_url])
+
+    def test_long_description(self):
+        self.assertIn("active filter", self.plugin.get_long_desc())

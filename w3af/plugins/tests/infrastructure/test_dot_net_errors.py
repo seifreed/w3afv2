@@ -19,9 +19,18 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import unittest
 from typing import ClassVar
 
+import w3af.core.data.kb.knowledge_base as kb
+from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.plugins.infrastructure.dot_net_errors import dot_net_errors
+from w3af.plugins.tests.canned_http_server import CannedReply
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
+from w3af.plugins.tests.infrastructure.canned_plugin_test import (
+    CannedServerPluginTest,
+)
 
 
 class TestDotNetErrors(PluginTest):
@@ -122,3 +131,50 @@ class TestDotNetErrorsWithColonInURL(PluginTest):
 
         infos = self.kb.get("dot_net_errors", "dot_net_errors")
         self.assertEqual(len(infos), 0, infos)
+
+
+class DotNetErrorsTest(CannedServerPluginTest):
+    plugin_class = dot_net_errors
+
+    def respond(self, request):
+        body = dot_net_errors.RUNTIME_ERROR + dot_net_errors.REMOTE_MACHINE
+        return CannedReply(500, {"Content-Type": "text/html"}, body)
+
+
+class TestCustomErrorsEnabled(DotNetErrorsTest):
+    def test_error_without_details_is_not_reported(self):
+        self.plugin._send_and_check(URL("http://httpretty/sample~.aspx"))
+
+        self.assertEqual(kb.kb.get("dot_net_errors", "dot_net_errors"), [])
+
+    def test_stops_after_max_tests(self):
+        self.plugin.MAX_TESTS = 1
+        self.plugin._already_tested.add(URL("http://httpretty/first.aspx"))
+
+        self.plugin.discover(FuzzableRequest(URL("http://httpretty/second.aspx")), 1)
+
+        self.assertEqual(self.server.requests, [])
+
+
+class TestGenerateURLs(unittest.TestCase):
+    def generate(self, url):
+        return [u.url_string for u in dot_net_errors()._generate_urls(URL(url))]
+
+    def test_special_chars_before_extension(self):
+        self.assertEqual(
+            self.generate("http://httpretty/a/default.aspx"),
+            ["http://httpretty/a/default|.aspx", "http://httpretty/a/default~.aspx"],
+        )
+
+    def test_no_urls_without_filename_or_extension(self):
+        self.assertEqual(self.generate("http://httpretty/a/"), [])
+        self.assertEqual(self.generate("http://httpretty/README"), [])
+
+    def test_filenames_with_colon_can_not_be_joined(self):
+        self.assertEqual(self.generate("http://httpretty/sample:.aspx"), [])
+
+    def test_runs_after_error_pages_grep(self):
+        plugin = dot_net_errors()
+
+        self.assertEqual(plugin.get_plugin_deps(), ["grep.error_pages"])
+        self.assertIn("default~.aspx", plugin.get_long_desc())
