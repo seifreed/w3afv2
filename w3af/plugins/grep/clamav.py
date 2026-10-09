@@ -22,8 +22,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import threading
 from collections import namedtuple
+from io import BytesIO
+from urllib.parse import urlsplit
 
-import pyclamd
+from clamav_client.clamd import ClamdError, ClamdNetworkSocket, ClamdUnixSocket
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
@@ -101,7 +103,7 @@ class clamav(GrepPlugin):
             else:
                 msg = (
                     "The ClamAV plugin failed to connect to clamd using"
-                    ' the provided unix socket: "%s". Please verify your'
+                    ' the configured endpoint: "%s". Please verify your'
                     " configuration and try again."
                 )
                 om.out.error(msg % self._clamd_socket)
@@ -115,8 +117,8 @@ class clamav(GrepPlugin):
         """
         try:
             cd = self._get_connection()
-            return cd.ping() is True
-        except:
+            return cd.ping() == "PONG"
+        except (ClamdError, OSError, ValueError):
             return False
 
     def _get_connection(self):
@@ -125,7 +127,25 @@ class clamav(GrepPlugin):
                  Thought about having a connection pool, but it doesn't make
                  much sense; plus it adds complexity due to the threads.
         """
-        return pyclamd.ClamdUnixSocket(filename=self._clamd_socket)
+        address = urlsplit(self._clamd_socket)
+        if address.scheme == "tcp":
+            if (
+                address.hostname is None
+                or address.username is not None
+                or address.password is not None
+                or address.path
+                or address.query
+                or address.fragment
+            ):
+                raise ValueError("ClamAV TCP endpoint must be tcp://host[:port]")
+
+            port = address.port
+            return ClamdNetworkSocket(
+                host=address.hostname,
+                port=3310 if port is None else port,
+            )
+
+        return ClamdUnixSocket(path=self._clamd_socket)
 
     def _get_clamd_version(self):
         """
@@ -143,15 +163,17 @@ class clamav(GrepPlugin):
         :param response: The HTTP response
         :return: None
         """
-        body = str(response.get_body())
+        body = response.get_body()
+        if isinstance(body, str):
+            body = body.encode("utf-8")
 
         try:
             cd = self._get_connection()
-            result_dict = cd.scan_stream(body)
+            result_dict = cd.instream(BytesIO(body))
         except Exception as e:
             msg = (
                 "The ClamAV plugin failed to connect to clamd using"
-                ' the provided unix socket: "%s". Please verify your'
+                ' the configured endpoint: "%s". Please verify your'
                 ' configuration and try again. The exception was: "%s".'
             )
             om.out.error(msg % (self._clamd_socket, e))
@@ -199,7 +221,7 @@ class clamav(GrepPlugin):
             signature = result["stream"][1]
             found = result["stream"][0] == "FOUND"
             return ScanResult(found, signature)
-        except:
+        except (IndexError, KeyError, TypeError):
             om.out.debug("Invalid response from clamd: %s" % result)
 
     def set_options(self, options_list):
@@ -211,12 +233,8 @@ class clamav(GrepPlugin):
         """
         ol = OptionList()
 
-        d = "ClamAV daemon socket path"
-        h = (
-            "Communication with ClamAV is performed over an Unix socket, in"
-            " order to be able to use this plugin please start a clamd daemon"
-            " and provide the unix socket path."
-        )
+        d = "ClamAV daemon endpoint"
+        h = "Use a Unix socket path or a TCP endpoint such as" " tcp://localhost:3310."
         # TODO: Maybe I should change this STRING to INPUT_FILE?
         o = opt_factory("clamd_socket", self._clamd_socket, d, STRING, help=h)
         ol.add(o)
@@ -238,8 +256,8 @@ class clamav(GrepPlugin):
         sudo freshclam
         sudo service clamav-daemon start
         
-        To communicate with clamd the plugin uses an Unix socket, which can be
-        configured by the user to point to the correct location.
+        To communicate with clamd, configure a Unix socket path or a TCP
+        endpoint in the form tcp://host:port.
        
         This plugin was sponsored by http://scoresecure.com/ .
         """

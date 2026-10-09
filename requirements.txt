@@ -26,7 +26,7 @@ pebble==5.2.3
 phply==1.2.6
 psutil==7.2.2
 pyasn1==0.6.4
-pyClamd==0.4.0
+clamav-client==0.7.2
 PyGithub==2.10.0
 pyOpenSSL==26.4.0
 pyparsing==3.3.3

@@ -31,8 +31,6 @@ import urllib.request
 from functools import wraps
 
 import httpretty
-from nose.plugins.attrib import attr
-from nose.plugins.skip import SkipTest
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
@@ -52,7 +50,6 @@ os.chdir(W3AF_LOCAL_PATH)
 RE_COMPILE_TYPE = type(re.compile(""))
 
 
-@attr("moth")
 class PluginTest(unittest.TestCase):
     """
     These tests can be configured using two environment variables:
@@ -63,12 +60,12 @@ class PluginTest(unittest.TestCase):
 
     For example:
 
-        HTTP_PROXY=127.0.0.1:8080 nosetests -s w3af/plugins/tests/infrastructure/test_allowed_methods.py
+        HTTP_PROXY=127.0.0.1:8080 pytest -s w3af/plugins/tests/infrastructure/test_allowed_methods.py
 
-    Remember that nosetests can't find test generators in unittest.TestCase,
-    http://stackoverflow.com/questions/6689537/nose-test-generators-inside-class
+    Keep tests as ordinary unittest methods so pytest can discover them.
     """
 
+    moth = True
     MOCK_RESPONSES = []
     runconfig = {}
     kb = kb.kb
@@ -552,22 +549,20 @@ class ExecExploitTest(ReadExploitTest):
         self.assertIn("/etc/passwd", _help)
 
 
-@attr("root")
 def onlyroot(meth):
     """
     Function to decorate tests that should be called as root.
 
-    Raises a nose SkipTest exception if the user doesn't have root permissions.
+    Raises unittest.SkipTest if the user doesn't have root permissions.
     """
 
     @wraps(meth)
     def test_inner_onlyroot(self, *args, **kwds):
-        """Note that this method needs to start with test_ in order for nose
-        to run it!"""
+        """Keep the test name discoverable by pytest."""
         if os.geteuid() == 0 or os.getuid() == 0:
             return meth(self, *args, **kwds)
         else:
-            raise SkipTest("This test requires root privileges.")
+            raise unittest.SkipTest("This test requires root privileges.")
 
     test_inner_onlyroot.root = True
     return test_inner_onlyroot

@@ -126,7 +126,7 @@ class CrawlInfrastructure(BaseConsumer):
                     finally:
                         self._running = False
                         self.in_queue.task_done()
-                        break
+                    break
 
                 else:
                     # With specific error/success handling just for debugging
@@ -295,10 +295,13 @@ class CrawlInfrastructure(BaseConsumer):
                 # Should I continue with the crawl phase? If not, simply call
                 # terminate() to clear the input queue and put a POISON_PILL
                 # in the output queue
-                if self._should_stop_discovery():
+                should_stop = self._should_stop_discovery()
+                if should_stop:
                     self._running = False
                     self._force_consumer_to_finish()
-                    break
+
+            if should_stop:
+                break
 
     def _force_consumer_to_finish(self):
         """

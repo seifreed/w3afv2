@@ -187,7 +187,7 @@ class BaseConsumer(Process):
                     om.out.debug(msg % e)
                 finally:
                     self.in_queue.task_done()
-                    break
+                break
 
             else:
                 # pylint: disable=E1120
@@ -233,14 +233,14 @@ class BaseConsumer(Process):
 
         try:
             self._shutdown_threadpool()
-        except:
+        except Exception:
             # All the logging is done inside the method, an empty
             # except clause is acceptable in this case
             pass
 
         try:
             self._call_teardown()
-        except:
+        except Exception:
             # All the logging is done inside the method, an empty
             # except clause is acceptable in this case
             pass

@@ -78,7 +78,7 @@ class auth(BaseConsumer):
                     finally:
                         self.in_queue.task_done()
                         self.set_has_finished()
-                        break
+                    break
 
                 elif action == FORCE_LOGIN:
                     # pylint: disable=E1120

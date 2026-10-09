@@ -77,7 +77,7 @@ def _version(package_name):
 
 
 CORE_PIP_PACKAGES = [
-    PIPDependency("pyclamd", "pyClamd", _version("pyClamd")),
+    PIPDependency("clamav_client", "clamav-client", _version("clamav-client")),
     PIPDependency("github", "PyGithub", _version("PyGithub")),
     PIPDependency("git.util", "GitPython", _version("GitPython")),
     PIPDependency("phply", "phply", _version("phply")),

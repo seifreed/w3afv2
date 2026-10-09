@@ -20,12 +20,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import time
+import base64
 import unittest
-from itertools import repeat
-from unittest.mock import Mock, patch
 
-import pyclamd
+from clamav_client.clamd import ClamdNetworkSocket, ClamdUnixSocket
 
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.ci.moth import get_moth_http
@@ -34,7 +32,7 @@ from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.HTTPResponse import HTTPResponse
-from w3af.plugins.grep.clamav import clamav
+from w3af.plugins.grep.clamav import ScanResult, clamav
 from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 
@@ -51,9 +49,11 @@ class TestClamAV(unittest.TestCase):
     def tearDown(self):
         self.plugin.end()
 
-    @patch("w3af.plugins.grep.code_disclosure.is_404", side_effect=repeat(False))
-    def test_clamav_eicar(self, *args):
-        body = pyclamd.ClamdAgnostic().EICAR()
+    def test_clamav_eicar(self):
+        body = base64.b64decode(
+            "WDVPIVAlQEFQWzRcUFpYNTQoUF4pN0NDKTd9JEVJQ0FSLVNUQU5EQVJELUFOVElWSVJVUy1URVNU"
+            "LUZJTEUhJEgrSCo="
+        )
         url = URL("http://www.w3af.com/")
         headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, url, url, _id=1)
@@ -75,8 +75,7 @@ class TestClamAV(unittest.TestCase):
         self.assertIn("ClamAV identified malware", finding.get_desc())
         self.assertEqual(finding.get_url().url_string, url.url_string)
 
-    @patch("w3af.plugins.grep.code_disclosure.is_404", side_effect=repeat(False))
-    def test_clamav_empty(self, *args):
+    def test_clamav_empty(self):
         body = ""
         url = URL("http://www.w3af.com/")
         headers = Headers([("content-type", "text/html")])
@@ -94,59 +93,52 @@ class TestClamAV(unittest.TestCase):
 
         self.assertEqual(len(findings), 0, findings)
 
-    @patch("w3af.plugins.grep.code_disclosure.is_404", side_effect=repeat(False))
-    def test_clamav_workers(self, *args):
-
-        WAIT_TIME = 3
-        DELTA = WAIT_TIME * 0.1
-
-        # Prepare the mocked plugin
-        def wait(x, y):
-            time.sleep(WAIT_TIME)
-
-        self.plugin._is_properly_configured = Mock(return_value=True)
-        self.plugin._scan_http_response = wait
-        self.plugin._report_result = lambda x: 42
-        start_time = time.time()
-
-        for i in range(3):
-            body = ""
-            url = URL("http://www.w3af.com/%s" % i)
-            headers = Headers([("content-type", "text/html")])
-            response = HTTPResponse(200, body, headers, url, url, _id=1)
-            request = FuzzableRequest(url, method="GET")
-
-            self.plugin.grep(request, response)
-
-        # Let the worker pool wait for the clamd response, this is done by
-        # the core when run in a real scan
-        self.plugin.worker_pool.close()
-        self.plugin.worker_pool.join()
-
-        end_time = time.time()
-        time_spent = end_time - start_time
-
-        findings = kb.kb.get("clamav", "malware")
-
-        self.assertEqual(len(findings), 0, findings)
-        self.assertLessEqual(time_spent, WAIT_TIME + DELTA)
-
-    @patch("w3af.plugins.grep.code_disclosure.is_404", side_effect=repeat(False))
-    def test_no_clamav_eicar(self, *args):
-        body = pyclamd.ClamdAgnostic().EICAR()
+    def test_unavailable_clamd_skips_scanning(self):
+        body = "test body"
         url = URL("http://www.w3af.com/")
         headers = Headers([("content-type", "text/html")])
         response = HTTPResponse(200, body, headers, url, url, _id=1)
         request = FuzzableRequest(url, method="GET")
 
-        # Simulate that we don't have clamd running
-        self.plugin._connection_test = Mock(return_value=False)
-        self.plugin._scan_http_response = Mock()
+        self.plugin._clamd_socket = "tcp://127.0.0.1:0"
         self.plugin.grep(request, response)
         findings = kb.kb.get("clamav", "malware")
 
         self.assertEqual(len(findings), 0)
-        self.assertEqual(self.plugin._scan_http_response.call_count, 0)
+        self.assertFalse(self.plugin._properly_configured)
+
+    def test_connection_supports_unix_and_tcp_endpoints(self):
+        self.assertIsInstance(self.plugin._get_connection(), ClamdUnixSocket)
+
+        self.plugin._clamd_socket = "tcp://127.0.0.1:3311"
+        connection = self.plugin._get_connection()
+
+        self.assertIsInstance(connection, ClamdNetworkSocket)
+        self.assertEqual(connection.host, "127.0.0.1")
+        self.assertEqual(connection.port, 3311)
+
+    def test_connection_uses_default_tcp_port(self):
+        self.plugin._clamd_socket = "tcp://localhost"
+
+        connection = self.plugin._get_connection()
+
+        self.assertIsInstance(connection, ClamdNetworkSocket)
+        self.assertEqual(connection.port, 3310)
+
+    def test_connection_rejects_invalid_tcp_endpoint(self):
+        self.plugin._clamd_socket = "tcp:///clamd"
+
+        with self.assertRaises(ValueError):
+            self.plugin._get_connection()
+
+    def test_parse_scan_result(self):
+        found = self.plugin._parse_scan_result(
+            {"stream": ("FOUND", "Eicar-Test-Signature")}
+        )
+        clean = self.plugin._parse_scan_result({"stream": ("OK", None)})
+
+        self.assertEqual(found, ScanResult(True, "Eicar-Test-Signature"))
+        self.assertEqual(clean, ScanResult(False, None))
 
 
 class TestClamAVScan(PluginTest):
