@@ -1163,8 +1163,11 @@ referencias en el código del proyecto.
 
 Verificación: pasan 16 pruebas locales de blacklist, keepalive y caché; se
 excluyeron tres casos que dependen de hosts externos no disponibles. Black y
-Bandit focalizados pasan. Ruff aún encuentra 23 problemas existentes en los
-handlers (incluido un `cmp` indefinido en estadísticas de conexión), sin
-supresiones. Cuatro pruebas emiten warnings deprecados de `httpretty`. Score
+Bandit focalizados pasan. Se reemplazó el ordenamiento con `cmp` indefinido en
+las estadísticas keep-alive por una clave estándar y se añadió una regresión
+con conexiones reales. Esa prueba pasa; Ruff focalizado deja 22 problemas
+heredados en los handlers, sin supresiones. Cuatro pruebas emiten warnings
+deprecados de `httpretty`. Se mantienen los pins de mitmproxy,
+`aioquic==1.2.0` y `urwid==4.0.13` tal como los requiere el commit fijado. Score
 global: **4.9/10**; las gates globales y 21 dependencias directas siguen
 pendientes.

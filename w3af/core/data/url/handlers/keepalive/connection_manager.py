@@ -1,6 +1,6 @@
 import logging
 import time
-from functools import cmp_to_key
+from operator import attrgetter
 
 import OpenSSL
 
@@ -128,11 +128,8 @@ class ConnectionManager:
         LOGGER.debug(stats)
 
         # Connection in use time stats
-        def sort_by_time(c1, c2):
-            return cmp(c1.current_request_start, c2.current_request_start)
-
         in_use = list(self.get_all_used_for_host_port(host_port))
-        in_use.sort(key=cmp_to_key(sort_by_time))
+        in_use.sort(key=attrgetter("current_request_start"))
         top_offenders = in_use[:5]
 
         connection_info = []
