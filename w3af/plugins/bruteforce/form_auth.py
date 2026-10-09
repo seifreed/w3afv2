@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import difflib
 import time
 from copy import deepcopy
 from itertools import repeat
@@ -71,21 +72,12 @@ class form_auth(BruteforcePlugin):
 
         self._already_tested.append(mutant.get_url())
 
-        try:
-            session = self._create_new_session(mutant, debugging_id)
-        except BaseFrameworkException as bfe:
-            msg = 'Failed to create new session during form bruteforce setup: "%s"'
-            om.out.debug(msg % bfe)
-            return
+        # Creating the session and identifying the failed login pages only
+        # send HTTP requests; the url opener proxy turns any request error
+        # into a 204 response, so neither step raises.
+        session = self._create_new_session(mutant, debugging_id)
 
-        try:
-            login_failed_bodies = self._id_failed_login_pages(
-                mutant, session, debugging_id
-            )
-        except BaseFrameworkException as bfe:
-            msg = 'Failed to ID failed login page during form bruteforce setup: "%s"'
-            om.out.debug(msg % bfe)
-            return
+        login_failed_bodies = self._id_failed_login_pages(mutant, session, debugging_id)
 
         try:
             self._signature_test(mutant, session, login_failed_bodies, debugging_id)
@@ -159,14 +151,6 @@ class form_auth(BruteforcePlugin):
         )
 
         self.worker_pool.map_multi_args(self._brute_worker, args_iter, chunksize=100)
-
-    def _bruteforce_test(
-        self, mutant, login_failed_res, generator, session, debugging_id
-    ):
-        for combination in generator:
-            self._brute_worker(
-                mutant, login_failed_res, combination, session, debugging_id
-            )
 
     def _password_only_login(self, form):
         user_token, _ = form.get_login_tokens()
@@ -533,10 +517,20 @@ class FailedLoginPage:
 
         _, diff_query_a = chunked_diff(self.body_a, query)
 
-        # Had to add this in order to prevent issues with CSRF tokens, which
-        # might be part of the HTTP response body, are random (not removed by
-        # clean_body) and will "break" the diff
+        # self.diff_a_b is how two *failed* login pages differ from each other,
+        # which is the random noise (CSRF tokens, request ids, ...) that
+        # clean_body could not remove. A failed login page differs from body_a
+        # with that same noise; a successful one differs with a real message.
         if len(diff_query_a) < 64:
-            return True
+            # A short difference is a single chunk with no separators
+            # (\n \r \t < ' "), and the chunk based fuzzy_equal reports 0.0 for
+            # any two different chunks, so it can not be used here. A character
+            # level ratio tells random noise (e.g. "...password 1034" vs
+            # "...password 7365") apart from a real success message. An earlier
+            # version returned True for every short difference, which also
+            # classified short success messages as failed logins, so those
+            # credentials were never reported.
+            ratio = difflib.SequenceMatcher(None, self.diff_a_b, diff_query_a).ratio()
+            return ratio > 0.6
 
         return bool(fuzzy_equal(self.diff_a_b, diff_query_a, 0.9))

@@ -576,3 +576,53 @@ class TestFormAuthFailedLoginMatchWithCAPTCHA(GenericFormAuthTest):
         # Assert the general results
         vulns = self.kb.get("form_auth", "auth")
         self.assertEqual(len(vulns), 0)
+
+
+class TestFormAuthSignatureTestFails(GenericFormAuthTest):
+
+    target_url = "http://w3af.org/"
+    login_url = "http://w3af.org/login"
+
+    FORM = (
+        '<form method="POST" action="/login">'
+        '    <input name="username" type="text" />'
+        '    <input name="password" type="password" />'
+        '    <input name="submit" type="submit" />'
+        "</form>"
+    )
+
+    def request_callback(self, request, uri, response_headers):
+        # A completely different response body on every failed login, with no
+        # shared structure, so the failed-login signatures captured during
+        # setup never match the ones seen during the signature test and the
+        # plugin gives up before brute-forcing.
+        response_headers["content-type"] = "text/html"
+        noise = "".join(
+            random.choice("abcdefghijklmnopqrstuvwxyz\n<>") for _ in range(500)
+        )
+        return 200, response_headers, f"<html>{noise}</html>"
+
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(
+            url=target_url,
+            body=FORM,
+            status=200,
+            method="GET",
+            content_type="text/html",
+        ),
+        MockResponse(
+            url=login_url,
+            body=request_callback,
+            method="POST",
+            content_type="text/html",
+            status=200,
+        ),
+    ]
+
+    def test_signature_test_failure_reports_nothing(self):
+        random.seed(7)
+
+        self._scan(self.target_url, self.basic_config)
+
+        vulns = self.kb.get("form_auth", "auth")
+        self.assertEqual(len(vulns), 0, vulns)
