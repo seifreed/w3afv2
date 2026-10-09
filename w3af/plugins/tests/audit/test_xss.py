@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
 from unittest import TestCase
 
 import pytest
@@ -47,7 +48,7 @@ class TestXSS(PluginTest):
         f"{WAVSEP_BASE}Case16-Js2ScriptSupportingProperty.jsp"
     )
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": None,
             "plugins": {

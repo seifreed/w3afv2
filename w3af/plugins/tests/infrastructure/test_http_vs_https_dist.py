@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import copy
 import unittest
+from typing import ClassVar
 from unittest.mock import MagicMock, Mock, call, patch
 
 import pytest
@@ -40,7 +41,7 @@ class test_http_vs_https_dist(unittest.TestCase):
     """
 
     test_url = URL("http://host.tld")
-    tracedict = {
+    tracedict: ClassVar[dict] = {
         "localhost": {
             1: ("192.168.1.1", False),
             3: ("200.115.195.33", False),
@@ -185,7 +186,7 @@ class TestHTTPvsHTTPS(PluginTest):
 
     base_url = "http://moth/"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": base_url,
             "plugins": {"infrastructure": (PluginConfig("http_vs_https_dist"),)},

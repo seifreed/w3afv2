@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.plugins.attack.payloads.payload_handler import exec_payload
 from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
     PayloadTestHelper,
@@ -27,7 +29,7 @@ from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
 
 class TestHosts(PayloadTestHelper):
 
-    EXPECTED_RESULT = ["/etc/hosts"]
+    EXPECTED_RESULT: ClassVar[list] = ["/etc/hosts"]
 
     def test_hosts(self):
         result = exec_payload(self.shell, "hosts", use_api=True)

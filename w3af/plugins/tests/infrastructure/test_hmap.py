@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 import pytest
 
 from w3af.core.controllers.ci.moth import get_moth_http, get_moth_https
@@ -30,7 +32,7 @@ class TestHmap(PluginTest):
 
     base_url = get_moth_http()
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": base_url,
             "plugins": {"infrastructure": (PluginConfig("hmap"),)},

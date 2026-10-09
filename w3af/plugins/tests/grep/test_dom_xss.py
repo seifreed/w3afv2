@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 import pytest
 
 from w3af.core.controllers.ci.moth import get_moth_http
@@ -31,7 +33,7 @@ class TestDOMXSS(PluginTest):
 
     dom_xss_url = get_moth_http("/grep/dom_xss/")
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": dom_xss_url,
             "plugins": {

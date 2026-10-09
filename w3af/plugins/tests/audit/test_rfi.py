@@ -23,6 +23,7 @@ import threading
 import urllib.error
 import urllib.parse
 import urllib.request
+from typing import ClassVar
 
 import pytest
 
@@ -39,7 +40,7 @@ class TestRFI(PluginTest):
     target_read = get_php_moth_http("/audit/rfi/rfi-read.php")
     unused_port = get_unused_port()
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "remote_rce": {
             "target": target_rce + "?file=abc.txt",
             "plugins": {

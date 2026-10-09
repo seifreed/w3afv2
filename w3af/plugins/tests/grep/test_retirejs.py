@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 import unittest
+from typing import ClassVar
 
 from w3af import ROOT_PATH
 from w3af.core.filesystem import create_temp_dir
@@ -39,7 +40,7 @@ class TestRetireJSNotAnalyzeHTMLContentType(PluginTest):
 
     INDEX = '<html><script src="/js/jquery.js"></script></html>'
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse("http://httpretty/", body=INDEX, method="GET", status=200),
         MockResponse(
             "http://httpretty/js/jquery.js",
@@ -50,7 +51,7 @@ class TestRetireJSNotAnalyzeHTMLContentType(PluginTest):
         ),
     ]
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {
@@ -94,7 +95,7 @@ class TestRetireJS(PluginTest):
 
     INDEX = '<html><script src="/js/jquery.js"></script></html>'
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse("http://httpretty/", body=INDEX, method="GET", status=200),
         MockResponse(
             "http://httpretty/js/jquery.js",
@@ -105,7 +106,7 @@ class TestRetireJS(PluginTest):
         ),
     ]
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {

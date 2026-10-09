@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
 from unittest import SkipTest
 
 import pytest
@@ -34,7 +35,7 @@ class TestGeneric(PluginTest):
     base_url = get_moth_http("/auth/auth_1/")
     demo_testfire = "http://demo.testfire.net/bank/"
 
-    _run_config = {
+    _run_config: ClassVar[dict] = {
         "target": base_url,
         "plugins": {
             "crawl": (
@@ -64,7 +65,7 @@ class TestGeneric(PluginTest):
         },
     }
 
-    demo_testfire_net = {
+    demo_testfire_net: ClassVar[dict] = {
         "target": demo_testfire,
         "plugins": {
             "crawl": (

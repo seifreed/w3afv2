@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 from itertools import repeat
+from typing import ClassVar
 from unittest.mock import patch
 
 import w3af.core.data.kb.knowledge_base as kb
@@ -39,7 +40,7 @@ class TestMetaTags(PluginTest):
 
     meta_tags_url = get_moth_http("/grep/meta_tags/")
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg1": {
             "target": meta_tags_url,
             "plugins": {

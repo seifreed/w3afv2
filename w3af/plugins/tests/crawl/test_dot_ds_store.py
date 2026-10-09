@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
+from typing import ClassVar
 
 from w3af import ROOT_PATH
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
@@ -29,7 +30,7 @@ class TestDSStore(PluginTest):
 
     target_url = "http://mock"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {"crawl": (PluginConfig("dot_ds_store"),)},
@@ -40,7 +41,7 @@ class TestDSStore(PluginTest):
         os.path.join(ROOT_PATH, "plugins/tests/crawl/ds_store/DS_Store")
     ).read()
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse("http://mock/.DS_Store", DS_STORE),
         MockResponse("http://mock/other", "Secret directory"),
         MockResponse("http://mock/", "Not here", status=404),

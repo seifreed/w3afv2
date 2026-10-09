@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 import pytest
 
 from w3af.plugins.tests.helper import PluginConfig, PluginTest
@@ -28,7 +30,7 @@ class TestContentNegotiation(PluginTest):
 
     base_url = "http://moth/w3af/crawl/content_negotiation/"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": base_url,
             "plugins": {

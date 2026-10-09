@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 import pytest
 
 from w3af.core.data.misc.file_utils import days_since_file_update
@@ -31,7 +33,7 @@ class Testwordpress_fingerprint(PluginTest):
     wordpress_url = "http://wordpress/"
     moth_url = "http://moth/w3af/audit/"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "direct": {
             "target": wordpress_url,
             "plugins": {

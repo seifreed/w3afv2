@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
+from typing import ClassVar
 from unittest import SkipTest
 
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
@@ -55,7 +56,7 @@ $(function() {
 class TestWerkzeugDebuggerEnabled(PluginTest):
     target_url = "http://httpretty/"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {"infrastructure": (PluginConfig("werkzeug_debugger"),)},
@@ -73,7 +74,7 @@ class TestWerkzeugDebuggerEnabled(PluginTest):
 
             return status, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         CustomMockResponse(re.compile(".*"), body=None, method="GET", status=200)
     ]
 
@@ -94,14 +95,14 @@ class TestWerkzeugDebuggerDisabled(PluginTest):
 
     target_url = "http://httpretty/"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {"infrastructure": (PluginConfig("werkzeug_debugger"),)},
         }
     }
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             re.compile(".*"), body="Regular response", method="GET", status=200
         )
@@ -133,7 +134,7 @@ class TestWerkzeugDebuggerRealDebugger(PluginTest):
 
     target_url = "http://127.0.0.1:5000/"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {"infrastructure": (PluginConfig("werkzeug_debugger"),)},

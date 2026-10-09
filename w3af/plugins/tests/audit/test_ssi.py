@@ -23,6 +23,7 @@ import re
 import urllib.error
 import urllib.parse
 import urllib.request
+from typing import ClassVar
 
 from jinja2 import Template
 
@@ -51,7 +52,7 @@ class TestSSI(PluginTest):
 
             return self.status, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         SSIMockResponse(re.compile(".*"), body=None, method="GET", status=200)
     ]
 
@@ -82,7 +83,7 @@ class TestJinja2SSI(PluginTest):
             body = template.render()
             return self.status, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         SSIMockResponse(re.compile(".*"), body=None, method="GET", status=200)
     ]
 

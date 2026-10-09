@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.kb.vuln_templates.local_file_read_template import (
     LocalFileReadTemplate,
@@ -31,7 +33,7 @@ class TestFileReadShell(ReadExploitTest):
     target_url = get_moth_http(
         "/audit/local_file_read/" "local_file_read.py?file=section.txt"
     )
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {

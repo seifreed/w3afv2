@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 RUN_CONFIG = {
@@ -38,7 +40,7 @@ class BasicShellShockTest(PluginTest):
 
     target_url = "http://shell.com/cgi.bin"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url="http://shell.com/cgi.bin",
             body="foo bar",
@@ -60,7 +62,7 @@ class BasicNegativeShellShockTest(PluginTest):
     target_url = "http://shell.com/cgi.bin"
 
     # No headers are returned here
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url="http://shell.com/cgi.bin", body="foo bar", method="GET", status=200
         )

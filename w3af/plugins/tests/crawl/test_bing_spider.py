@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 import pytest
 
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
@@ -31,7 +33,7 @@ class TestBingSpider(PluginTest):
 
     target_url = BASE_URL
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {"crawl": (PluginConfig("bing_spider"),)},
@@ -51,7 +53,7 @@ class TestBingSpider(PluginTest):
         "",
     )
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(f"{BASE_URL}{eu}", "Response body.") for eu in EXPECTED_URLS
     ]
 

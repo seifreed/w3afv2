@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
@@ -26,7 +28,7 @@ from w3af.plugins.tests.helper import PluginConfig, PluginTest
 class TestOSCommanding(PluginTest):
     target_url = get_moth_http("/audit/os_commanding/")
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {

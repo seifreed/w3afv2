@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.controllers.ci.sqlmap_testenv import get_sqlmap_testenv_http
 from w3af.core.data.kb.vuln_templates.sql_injection_template import SQLiTemplate
@@ -30,7 +32,7 @@ class TestSQLMapShell(ReadExploitTest):
     SQLI = get_sqlmap_testenv_http("/sqlmap/mysql/get_int.php?id=2")
     BSQLI = get_sqlmap_testenv_http("/sqlmap/mysql/get_int_noerror.php?id=3")
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "sqli": {
             "target": SQLI,
             "plugins": {

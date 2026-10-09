@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 
@@ -32,7 +34,7 @@ class TestFrontpageVersion(PluginTest):
         'FPAuthorScriptUrl="/author"\n'
     )
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             "http://httpretty/_vti_inf.html",
             body=FRONTPAGE_BODY,
@@ -41,7 +43,7 @@ class TestFrontpageVersion(PluginTest):
         )
     ]
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {"infrastructure": (PluginConfig("frontpage_version"),)},

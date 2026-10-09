@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 
@@ -26,7 +28,7 @@ class TestVulnersDB(PluginTest):
 
     target_url = "http://httpretty"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             "http://httpretty/",
             body="",
@@ -42,7 +44,7 @@ class TestVulnersDB(PluginTest):
         ),
     ]
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {

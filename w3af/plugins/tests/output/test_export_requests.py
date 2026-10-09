@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
+from typing import ClassVar
 
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
@@ -30,7 +31,7 @@ class TestExportRequests(PluginTest):
 
     target_url = get_moth_http("/grep/form_autocomplete/")
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {

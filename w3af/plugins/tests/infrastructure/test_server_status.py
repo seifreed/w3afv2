@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 
@@ -26,14 +28,14 @@ class TestServerStatus(PluginTest):
 
     target_url = "http://httpretty-mock/"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             "http://httpretty-mock/server-status",
             "<dl><dt>Server Version: Apache/2.2.9 (Unix)</dt>",
         ),
     ]
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {"infrastructure": (PluginConfig("server_status"),)},

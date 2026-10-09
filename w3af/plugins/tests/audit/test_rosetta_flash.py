@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
+from typing import ClassVar
 
 from w3af.core.data.parsers.doc.url import URL
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
@@ -47,7 +48,7 @@ class TestRosettaFlash(PluginTest):
 
             return self.status, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         JSONPMockResponse(
             re.compile(".*"),
             body=None,
@@ -94,7 +95,7 @@ class TestRosettaFlashFixed(PluginTest):
 
             return self.status, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         JSONPMockResponse(
             re.compile(".*"),
             body=None,

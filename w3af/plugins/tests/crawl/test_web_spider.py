@@ -24,6 +24,7 @@ import re
 import urllib.error
 import urllib.parse
 import urllib.request
+from typing import ClassVar
 from unittest import SkipTest
 
 import pytest
@@ -47,7 +48,7 @@ class TestWebSpider(PluginTest):
 
     wivet = get_wivet_http()
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "basic": {
             "target": None,
             "plugins": {
@@ -309,7 +310,7 @@ class TestRelativePathsIn404(PluginTest):
 
     target_url = "http://mock/"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {"crawl": (PluginConfig("web_spider"),)},
@@ -323,7 +324,7 @@ class TestRelativePathsIn404(PluginTest):
     GALERIA_HTML = open(os.path.join(TEST_ROOT, "galeria-root.html")).read()
     INDEX_HTML = open(os.path.join(TEST_ROOT, "index.html")).read()
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(re.compile("http://mock/galeria/.*"), GALERIA_HTML),
         MockResponse("http://mock/", "Thanks.", method="POST"),
         MockResponse("http://mock/", INDEX_HTML),
@@ -359,7 +360,7 @@ class TestDeadLock(PluginTest):
 
     target_url = "http://mock/"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {"crawl": (PluginConfig("web_spider"),)},
@@ -372,7 +373,7 @@ class TestDeadLock(PluginTest):
 
     INDEX_HTML = open(os.path.join(TEST_ROOT, "index.html")).read()
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse("http://mock/", INDEX_HTML),
         MockResponse("http://mock/", "Thanks.", method="POST"),
     ]
@@ -391,12 +392,12 @@ class TestFormExclusions(PluginTest):
 
     target_url = "http://mock/"
 
-    scan_config = {
+    scan_config: ClassVar[dict] = {
         "target": target_url,
         "plugins": {"crawl": (PluginConfig("web_spider"),)},
     }
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             "http://mock/",
             "<html>"

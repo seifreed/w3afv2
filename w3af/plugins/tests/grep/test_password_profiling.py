@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
@@ -30,7 +32,7 @@ class TestPasswordProfiling(PluginTest):
 
     password_profiling_url = get_moth_http("/grep/password_profiling/")
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg1": {
             "target": password_profiling_url,
             "plugins": {

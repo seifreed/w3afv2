@@ -23,6 +23,7 @@ import re
 import urllib.error
 import urllib.parse
 import urllib.request
+from typing import ClassVar
 
 from w3af.plugins.audit.sqli import sqli
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
@@ -43,8 +44,8 @@ class TestGenericOnly(PluginTest):
 
             return self.status, response_headers, body
 
-    CONFIG = {"audit": (PluginConfig("generic"),)}
-    MOCK_RESPONSES = [
+    CONFIG: ClassVar[dict] = {"audit": (PluginConfig("generic"),)}
+    MOCK_RESPONSES: ClassVar[list] = [
         GenericErrorMockResponse(re.compile(".*"), body=None, method="GET", status=200)
     ]
 
@@ -77,7 +78,7 @@ class TestGenericExtensive(PluginTest):
 
             return self.status, response_headers, body
 
-    CONFIG = {
+    CONFIG: ClassVar[dict] = {
         "audit": (
             PluginConfig(
                 "generic",
@@ -85,7 +86,7 @@ class TestGenericExtensive(PluginTest):
             ),
         )
     }
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         GenericErrorMockResponse(re.compile(".*"), body=None, method="GET", status=200)
     ]
 
@@ -118,8 +119,8 @@ class TestGenericSQLInjection(PluginTest):
 
             return self.status, response_headers, body
 
-    CONFIG = {"audit": (PluginConfig("generic"), PluginConfig("sqli"))}
-    MOCK_RESPONSES = [
+    CONFIG: ClassVar[dict] = {"audit": (PluginConfig("generic"), PluginConfig("sqli"))}
+    MOCK_RESPONSES: ClassVar[list] = [
         SQLIMockResponse(re.compile(".*"), body=None, method="GET", status=200)
     ]
 

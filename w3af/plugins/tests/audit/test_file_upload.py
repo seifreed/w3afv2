@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
 from unittest.mock import patch
 
 from w3af.core.controllers.ci.php_moth import get_php_moth_http as moth
@@ -34,7 +35,7 @@ class TestFileUpload(PluginTest):
         moth("/audit/file_upload/trivial/"),
     )
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "basic": {
             "target": file_upload_url,
             "plugins": {
@@ -111,7 +112,7 @@ class TestParseOutputFromUpload(PluginTest):
 
     image_content = "PNG" + "B" * 239
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url=target_url,
             body=FORM,
@@ -135,7 +136,7 @@ class TestParseOutputFromUpload(PluginTest):
         ),
     ]
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {
@@ -188,7 +189,7 @@ class TestRegexOutputFromUpload(TestParseOutputFromUpload):
         "w3af.core.data.constants.file_templates.file_templates.rand_alpha"
     )
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url=target_url,
             body=FORM,

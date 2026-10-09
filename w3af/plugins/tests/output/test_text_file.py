@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 import re
+from typing import ClassVar
 
 import pytest
 
@@ -38,7 +39,7 @@ class TestTextFile(PluginTest):
 
     target_url = get_moth_http("/audit/sql_injection/where_integer_qs.py")
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url + "?id=3",
             "plugins": {

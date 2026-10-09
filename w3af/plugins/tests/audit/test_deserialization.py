@@ -28,6 +28,7 @@ import unittest
 import urllib.error
 import urllib.parse
 import urllib.request
+from typing import ClassVar
 
 from w3af.core.data.dc.cookie import Cookie
 from w3af.core.data.dc.urlencoded_form import URLEncodedForm
@@ -72,7 +73,7 @@ class TestDeserializePickle(PluginTest):
             body = "Message received"
             return self.status, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         DeserializeMockResponse(re.compile(".*"), body=None, method="GET", status=200)
     ]
 
@@ -107,7 +108,7 @@ class TestDeserializePickleNotBase64(PluginTest):
             body = "Message received"
             return self.status, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         DeserializeMockResponse(re.compile(".*"), body=None, method="GET", status=200)
     ]
 
@@ -148,7 +149,7 @@ class TestShouldInjectIsCalled(PluginTest):
             body = "Message received"
             return self.status, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         DeserializeMockResponse(re.compile(".*"), body=None, method="GET", status=200)
     ]
 

@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import shutil
 import tempfile
+from typing import ClassVar
 
 import pytest
 
@@ -32,7 +33,7 @@ from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
 
 class test_get_source_code(PayloadTestHelper):
 
-    EXPECTED_RESULT = {
+    EXPECTED_RESULT: ClassVar[dict] = {
         "https://moth/w3af/audit/local_file_read/local_file_read.php": (
             "/var/www/moth/w3af/audit/local_file_read/local_file_read.php",
             "tmp__random__/var/www/moth/w3af/audit/local_file_read/local_file_read.php",

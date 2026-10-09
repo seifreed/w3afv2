@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.core.data.kb.vuln_templates.eval_template import EvalTemplate
 from w3af.plugins.tests.helper import ExecExploitTest, PluginConfig
@@ -28,7 +30,7 @@ class TestEvalShell(ExecExploitTest):
 
     EVAL = get_moth_http("/audit/eval_vuln/eval_double.py?text=1")
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "eval": {
             "target": EVAL,
             "plugins": {

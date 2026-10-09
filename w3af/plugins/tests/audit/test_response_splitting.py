@@ -24,6 +24,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from email.header import decode_header
+from typing import ClassVar
 
 import pytest
 
@@ -58,10 +59,10 @@ class TestResponseSplitting(PluginTest):
     target_url = "http://w3af.org/?header="
     target_url_re = re.compile("http://w3af\\.org/\\?header=.*")
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         ResponseSplittingMockResponse(target_url_re, body="", method="GET", status=200)
     ]
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {
@@ -115,12 +116,12 @@ class TestResponseSplittingParameterModifiesResponse(PluginTest):
     target_url = "http://w3af.org/?header="
     target_url_re = re.compile("http://w3af\\.org/\\?header=.*")
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         ResponseSplittingParameterModifiesResponseMockResponse(
             target_url_re, body="", method="GET", status=200
         )
     ]
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {
@@ -170,12 +171,12 @@ class TestResponseSplittingHeader(PluginTest):
     target_url = "http://w3af.org/"
     target_url_re = re.compile("http://w3af\\.org/.*")
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         ResponseSplittingHeaderMockResponse(
             target_url_re, body="", method="GET", status=200
         )
     ]
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {

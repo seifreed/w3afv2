@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
 from unittest import TestCase
 
 from w3af.core.controllers.ci.moth import get_moth_http
@@ -70,7 +71,7 @@ class TestGlobalRedirectBasic(PluginTest):
 
     target_url = "http://httpretty"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse("http://httpretty/", '<a href="/redir?target=">redirect</a>'),
         MockResponse("http://httpretty/redir?target=", "No redirect"),
         MockResponse(
@@ -98,7 +99,7 @@ class TestGlobalRedirectBasicWithMetaRedir(PluginTest):
 
     target_url = "http://httpretty"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse("http://httpretty/", '<a href="/redir?target=">redirect</a>'),
         MockResponse(
             "http://httpretty/redir?target=",
@@ -127,7 +128,7 @@ class TestGlobalRedirectExtendedPayloadSet(PluginTest):
 
     target_url = "http://httpretty"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse("http://httpretty/", '<a href="/redir?target=">redirect</a>'),
         MockResponse(
             "http://httpretty/redir?target=",

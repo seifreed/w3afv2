@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 
@@ -26,7 +28,7 @@ class WAFTest:
     domain = "httpretty-mock"
     target_url = f"http://{domain}/"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {"infrastructure": (PluginConfig("fingerprint_WAF"),)},
@@ -37,7 +39,7 @@ class WAFTest:
 class TestFingerprintWAFIBMWebSphere(WAFTest, PluginTest):
 
     IBM_WAF = "X-Backside-Transport=1"
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(WAFTest.target_url, "Hello world", headers={"Set-Cookie": IBM_WAF})
     ]
 
@@ -63,7 +65,7 @@ class TestFingerprintWAFIBMWebSphere(WAFTest, PluginTest):
 
 class TestFingerprintWAFNone(WAFTest, PluginTest):
 
-    MOCK_RESPONSES = [MockResponse(WAFTest.target_url, "Hello world")]
+    MOCK_RESPONSES: ClassVar[list] = [MockResponse(WAFTest.target_url, "Hello world")]
 
     def test_fingerprint_waf(self):
         cfg = self._run_configs["cfg"]

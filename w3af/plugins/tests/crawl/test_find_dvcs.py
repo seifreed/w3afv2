@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
+from typing import ClassVar
 
 import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
@@ -33,7 +34,7 @@ class TestFindDVCS(PluginTest):
 
     base_url = get_w3af_moth_http("/w3af/crawl/find_dvcs/")
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": base_url,
             "plugins": {
@@ -110,7 +111,7 @@ class TestSVN(PluginTest):
 
     SECRET = "Secret contents here!"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse("http://mock/", "root"),
         MockResponse("http://mock/.svn/wc.db", WC_DB),
         MockResponse(
@@ -122,7 +123,7 @@ class TestSVN(PluginTest):
 
     target_url = "http://mock"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {

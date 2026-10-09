@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 import re
 import unittest
+from typing import ClassVar
 
 import pytest
 
@@ -41,7 +42,7 @@ class TestPykto(PluginTest):
         ROOT_PATH, "plugins", "tests", "crawl", "pykto", "scan_database.db"
     )
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": base_url,
             "plugins": {

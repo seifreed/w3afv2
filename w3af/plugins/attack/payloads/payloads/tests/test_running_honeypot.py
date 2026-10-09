@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
 from unittest import SkipTest
 
 import pytest
@@ -31,7 +32,10 @@ from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
 
 class test_running_honeypot(PayloadTestHelper):
 
-    EXPECTED_RESULT = {"is_a_honeypot": False, "running_honeypot": False}
+    EXPECTED_RESULT: ClassVar[dict] = {
+        "is_a_honeypot": False,
+        "running_honeypot": False,
+    }
 
     def test_running_honeypot(self):
         result = exec_payload(self.shell, "running_honeypot", use_api=True)

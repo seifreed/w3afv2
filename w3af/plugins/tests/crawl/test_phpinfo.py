@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
+from typing import ClassVar
 
 from w3af import ROOT_PATH
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
@@ -33,7 +34,7 @@ class TestPHPInfo516(PluginTest):
         ROOT_PATH, "plugins", "tests", "crawl", "phpinfo", "phpinfo-5.1.6.html"
     )
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             "http://httpretty/", body="index home page", method="GET", status=200
         ),
@@ -45,7 +46,7 @@ class TestPHPInfo516(PluginTest):
         ),
     ]
 
-    _run_config = {
+    _run_config: ClassVar[dict] = {
         "target": target_url,
         "plugins": {"crawl": (PluginConfig("phpinfo"),)},
     }

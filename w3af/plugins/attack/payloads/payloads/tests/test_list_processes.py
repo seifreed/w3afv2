@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 import pytest
 
 from w3af.plugins.attack.payloads.payload_handler import exec_payload
@@ -31,7 +33,7 @@ from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
 @pytest.mark.ci_fails
 class test_list_processes(PayloadTestHelper):
 
-    EXPECTED_RESULT = {"/sbin/getty -8 38400 tty4", "cron"}
+    EXPECTED_RESULT: ClassVar[set] = {"/sbin/getty -8 38400 tty4", "cron"}
 
     def test_list_processes(self):
         result = exec_payload(self.shell, "list_processes", args=(2000,), use_api=True)

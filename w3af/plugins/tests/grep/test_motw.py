@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.core.data.constants import severity
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
@@ -27,7 +29,7 @@ class TestValidMOTW(PluginTest):
 
     target_url = "http://httpretty"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             "http://httpretty/",
             body="<!-- saved from url=(0011)http://a/ -->",
@@ -36,7 +38,7 @@ class TestValidMOTW(PluginTest):
         )
     ]
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {
@@ -68,7 +70,7 @@ class TestInvalidMOTW(PluginTest):
 
     target_url = "http://httpretty"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             "http://httpretty/",
             body="<!-- saved from      url='http://a/' -->",
@@ -77,7 +79,7 @@ class TestInvalidMOTW(PluginTest):
         )
     ]
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {

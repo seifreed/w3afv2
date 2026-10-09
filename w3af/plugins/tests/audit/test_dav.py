@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 import pytest
 
 from w3af.plugins.tests.helper import PluginConfig, PluginTest
@@ -30,7 +32,7 @@ class TestDav(PluginTest):
     target_no_privs = "http://moth/w3af/audit/dav/no-privileges/"
     target_safe_all = "http://moth/w3af/audit/eval/"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": None,
             "plugins": {

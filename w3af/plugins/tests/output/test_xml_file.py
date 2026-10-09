@@ -24,6 +24,7 @@ import io
 import os
 import os.path
 import unittest
+from typing import ClassVar
 from xml.etree import ElementTree
 
 import pytest
@@ -67,7 +68,7 @@ class TestXMLOutput(PluginTest):
     FILENAME = "output-unittest.xml"
     XSD = os.path.join(ROOT_PATH, "plugins", "output", "xml_file", "report.xsd")
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url + "?id=3",
             "plugins": {
@@ -290,7 +291,7 @@ class TestXMLOutputBinary(PluginTest):
         ROOT_PATH, "plugins", "tests", "output", "data", "nsepa32.rpm"
     )
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url="http://rpm-path-binary/",
             body=open(TEST_FILE).read(),
@@ -302,7 +303,7 @@ class TestXMLOutputBinary(PluginTest):
 
     FILENAME = "output-unittest.xml"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {
@@ -346,7 +347,7 @@ class TestXML0x0B(PluginTest):
         ROOT_PATH, "plugins", "tests", "output", "data", "0x0b.html"
     )
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url="http://0x0b-path-binary/",
             body=open(TEST_FILE).read(),
@@ -358,7 +359,7 @@ class TestXML0x0B(PluginTest):
 
     FILENAME = "output-unittest.xml"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {
@@ -398,7 +399,7 @@ class TestSpecialCharacterInURL(PluginTest):
 
     target_url = "http://hello.se/%C3%93%C3%B6"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url=target_url,
             body="hi there á! /var/www/site/x.php path",
@@ -410,7 +411,7 @@ class TestSpecialCharacterInURL(PluginTest):
 
     FILENAME = "output-unittest.xml"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {

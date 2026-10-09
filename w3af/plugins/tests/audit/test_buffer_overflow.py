@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
+from typing import ClassVar
 
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
@@ -37,11 +38,11 @@ class TestBufferOverflow(PluginTest):
 
             return self.status, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         BOMockResponse(re.compile(".*"), body=None, method="GET", status=200)
     ]
 
-    _run_config = {
+    _run_config: ClassVar[dict] = {
         "target": target_url + "?buf=",
         "plugins": {
             "audit": (

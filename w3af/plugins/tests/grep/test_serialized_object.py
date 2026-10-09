@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import base64
 import unittest
+from typing import ClassVar
 
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
@@ -159,7 +160,7 @@ class TestSerializedObjectIntegration(PluginTest):
         "</form>"
     )
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(url="http://mock/", body=html, method="GET", status=200),
         MockResponse(url="http://mock/form", body="Ok", method="GET", status=200),
     ]

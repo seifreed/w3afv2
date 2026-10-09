@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
+from typing import ClassVar
 
 import pytest
 
@@ -39,7 +40,7 @@ class TestHTMLCommentsIntegration(PluginTest):
 
     target_url = "http://httpretty"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             "http://httpretty/",
             body=("<!-- secret password123 -->" '<!-- <a href="/x"></a> -->'),
@@ -48,7 +49,7 @@ class TestHTMLCommentsIntegration(PluginTest):
         )
     ]
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg1": {
             "target": target_url,
             "plugins": {

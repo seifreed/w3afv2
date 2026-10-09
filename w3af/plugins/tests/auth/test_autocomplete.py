@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import unittest
+from typing import ClassVar
 from unittest.mock import Mock
 
 from httpretty import httpretty
@@ -107,7 +108,7 @@ class TestAutocomplete(PluginTest):
     check_url = URL(target_url + "admin")
     check_string = "Logged in"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             "http://w3af.org/login_form.py",
             HTML_LOGIN_FORM,
@@ -120,7 +121,7 @@ class TestAutocomplete(PluginTest):
         MockResponse("http://w3af.org/unittest", "Success", status=200, method="GET"),
     ]
 
-    _run_config = {
+    _run_config: ClassVar[dict] = {
         "target": target_url,
         "plugins": {
             "audit": (PluginConfig("xss"),),
@@ -161,7 +162,7 @@ class TestAutocompleteInvalidCredentials(PluginTest):
     check_url = URL(target_url + "admin")
     check_string = "Logged in"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             "http://w3af.org/login_form.py",
             HTML_LOGIN_FORM,
@@ -174,7 +175,7 @@ class TestAutocompleteInvalidCredentials(PluginTest):
         MockResponse("http://w3af.org/unittest", "Success", status=200, method="GET"),
     ]
 
-    _run_config = {
+    _run_config: ClassVar[dict] = {
         "target": target_url,
         "plugins": {
             "audit": (PluginConfig("xss"),),

@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.plugins.attack.payloads.payload_handler import exec_payload
 from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
     PayloadTestHelper,
@@ -28,7 +30,7 @@ from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
 class test_domainname(PayloadTestHelper):
 
     # Note: the (none) is actually the expected result for this host
-    EXPECTED_RESULT = {"domain_name": "(none)"}
+    EXPECTED_RESULT: ClassVar[dict] = {"domain_name": "(none)"}
 
     def test_domainname(self):
         result = exec_payload(self.shell, "domainname", use_api=True)

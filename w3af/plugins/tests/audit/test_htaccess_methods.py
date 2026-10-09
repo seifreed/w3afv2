@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 RUN_CONFIG = {
@@ -38,7 +40,7 @@ class TestHTAccess(PluginTest):
 
     target_url = "http://mock/"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(target_url, "Bad credentials", method="GET", status=401),
         MockResponse(target_url, "Hidden treasure", method="POST", status=200),
     ]
@@ -60,7 +62,7 @@ class TestHTAccessFalsePositiveGeneric(PluginTest):
 
     target_url = "http://mock/"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(target_url, "Bad credentials", method="GET", status=401),
         MockResponse(target_url, "Bad credentials", method="POST", status=403),
     ]
@@ -75,7 +77,7 @@ class TestHTAccessFalsePositiveGeneric(PluginTest):
 
 class TestHTaccessCheck1915_1(TestHTAccessFalsePositiveGeneric):
     # https://github.com/andresriancho/w3af/issues/1915
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             TestHTAccessFalsePositiveGeneric.target_url,
             "Bad credentials",
@@ -87,7 +89,7 @@ class TestHTaccessCheck1915_1(TestHTAccessFalsePositiveGeneric):
 
 class TestHTaccessCheck1915_2(TestHTAccessFalsePositiveGeneric):
     # https://github.com/andresriancho/w3af/issues/1915
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             TestHTAccessFalsePositiveGeneric.target_url,
             "Bad credentials",

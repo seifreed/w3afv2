@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 import pytest
 
 from w3af.core.controllers.ci.moth import get_moth_http
@@ -32,7 +34,7 @@ class TestSQLI(PluginTest):
 
     target_url = get_moth_http("/audit/sql_injection/where_integer_qs.py")
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url + "?id=1",
             "plugins": {
@@ -60,7 +62,7 @@ class TestSQLMapTestEnv(PluginTest):
     base_path = "/sqlmap/mysql/"
     target_url = get_sqlmap_testenv_http(base_path)
 
-    config = {
+    config: ClassVar[dict] = {
         "audit": (PluginConfig("sqli"),),
         "crawl": (
             PluginConfig(
@@ -147,7 +149,7 @@ class TestSQLMapTestEnv(PluginTest):
 
 
 class WAVSEPTest(PluginTest):
-    config = {
+    config: ClassVar[dict] = {
         "audit": (PluginConfig("sqli"), PluginConfig("blind_sqli")),
         "crawl": (
             PluginConfig(

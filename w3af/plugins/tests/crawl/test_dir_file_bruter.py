@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
+from typing import ClassVar
 
 from w3af import ROOT_PATH
 from w3af.core.controllers.ci.moth import get_moth_http
@@ -36,7 +37,7 @@ class TestDirFileBruter(PluginTest):
     directory_url = get_moth_http("/crawl/dir_bruter/")
     base_url = get_moth_http()
 
-    _run_directories = {
+    _run_directories: ClassVar[dict] = {
         "target": base_url,
         "plugins": {
             "crawl": (
@@ -48,7 +49,7 @@ class TestDirFileBruter(PluginTest):
         },
     }
 
-    _run_files = {
+    _run_files: ClassVar[dict] = {
         "target": base_url,
         "plugins": {
             "crawl": (
@@ -62,7 +63,7 @@ class TestDirFileBruter(PluginTest):
         },
     }
 
-    _run_directory_files = {
+    _run_directory_files: ClassVar[dict] = {
         "target": directory_url,
         "plugins": {
             "crawl": (
@@ -77,7 +78,7 @@ class TestDirFileBruter(PluginTest):
         },
     }
 
-    _run_recursive = {
+    _run_recursive: ClassVar[dict] = {
         "target": directory_url,
         "plugins": {
             "crawl": (

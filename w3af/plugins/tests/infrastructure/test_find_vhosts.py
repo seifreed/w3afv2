@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import socketserver
+from typing import ClassVar
 
 from w3af.core.data.url.tests.helpers.upper_daemon import ThreadingUpperDaemon
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
@@ -33,7 +34,7 @@ class TestFindVhosts(PluginTest):
     #
     #       That is why we need a real server for testing.
     #
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": None,
             "plugins": {"infrastructure": (PluginConfig("find_vhosts"),)},
@@ -65,9 +66,11 @@ class TestFindVhosts(PluginTest):
 class TestFindVhostsInHTML(PluginTest):
     target_url = "http://w3af.org"
 
-    MOCK_RESPONSES = [MockResponse(target_url, '<a href="http://intranet/">x</a>')]
+    MOCK_RESPONSES: ClassVar[list] = [
+        MockResponse(target_url, '<a href="http://intranet/">x</a>')
+    ]
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {"infrastructure": (PluginConfig("find_vhosts"),)},

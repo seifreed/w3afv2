@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 import pytest
 
 from w3af.plugins.attack.payloads.payload_handler import exec_payload
@@ -29,7 +31,10 @@ from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
 
 class test_rootkit_hunter(PayloadTestHelper):
 
-    EXPECTED_RESULT = {"backdoor_files": ["/sbin/.login"], "bad_kernel_modules": []}
+    EXPECTED_RESULT: ClassVar[dict] = {
+        "backdoor_files": ["/sbin/.login"],
+        "bad_kernel_modules": [],
+    }
 
     @pytest.mark.ci_fails
     def test_rootkit_hunter(self):

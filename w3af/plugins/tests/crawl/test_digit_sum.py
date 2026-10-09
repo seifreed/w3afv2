@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
@@ -27,7 +29,7 @@ class TestDigitSum(PluginTest):
 
     target_url = get_moth_http("/crawl/digit_sum/")
 
-    _run_config = {
+    _run_config: ClassVar[dict] = {
         "target": None,
         "plugins": {
             "crawl": (

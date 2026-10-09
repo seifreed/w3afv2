@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
+from typing import ClassVar
 
 from w3af import ROOT_PATH
 from w3af.plugins.crawl.dot_listing import dot_listing
@@ -30,7 +31,7 @@ class TestDotListing(PluginTest):
 
     target_url = "http://mock"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {"crawl": (PluginConfig("dot_listing"),)},
@@ -43,7 +44,7 @@ class TestDotListing(PluginTest):
         )
     ).read()
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse("http://mock/.listing", DOT_LISTING),
         MockResponse("http://mock/wasadhiya-7.mp3", "Secret file"),
         MockResponse("http://mock/", "Not here", status=404),

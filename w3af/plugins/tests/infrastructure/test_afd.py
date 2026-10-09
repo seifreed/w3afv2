@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
+from typing import ClassVar
 
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
@@ -30,14 +31,14 @@ class TestFoundAFD(PluginTest):
 
     target_url = "http://httpretty/"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {"infrastructure": (PluginConfig("afd"),)},
         }
     }
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(target_url, "Home page"),
         MockResponse(BAD_SIG_URI, "Blocked by WAF"),
         MockResponse(re.compile(target_url + ".*"), "Another page"),
@@ -75,14 +76,14 @@ class TestAFDShortResponses(PluginTest):
 
     target_url = "http://httpretty/"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {"infrastructure": (PluginConfig("afd"),)},
         }
     }
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(target_url, "hello world"),
         MockResponse(BAD_SIG_URI, MOD_SECURITY_ANSWER, status=403),
         MockResponse(re.compile(target_url + r"\?.*"), "hello world"),
@@ -107,7 +108,7 @@ class TestFoundHttpsAFD(TestFoundAFD):
 
     target_url = "https://httpretty/"
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(target_url, "Home page"),
         MockResponse(BAD_SIG_URI, "Blocked by WAF"),
         MockResponse(re.compile(target_url + ".*"), "Another page"),
@@ -118,14 +119,14 @@ class TestNotFoundAFD(PluginTest):
 
     target_url = "http://httpretty/"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {"infrastructure": (PluginConfig("afd"),)},
         }
     }
 
-    MOCK_RESPONSES = [MockResponse(re.compile(".*"), "Static page")]
+    MOCK_RESPONSES: ClassVar[list] = [MockResponse(re.compile(".*"), "Static page")]
 
     def test_afd_not_found_http(self):
         cfg = self._run_configs["cfg"]

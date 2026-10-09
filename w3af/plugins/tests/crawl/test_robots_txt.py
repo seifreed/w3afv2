@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.core.controllers.ci.w3af_moth import get_w3af_moth_http
 from w3af.core.data.parsers.doc.url import URL
 from w3af.plugins.tests.helper import PluginConfig, PluginTest
@@ -28,7 +30,7 @@ class TestRobots(PluginTest):
 
     target_url = get_w3af_moth_http("/")
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url,
             "plugins": {"crawl": (PluginConfig("robots_txt"),)},

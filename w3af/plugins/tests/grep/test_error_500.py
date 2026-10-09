@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 import pytest
 
 from w3af.core.controllers.ci.moth import get_moth_http
@@ -30,7 +32,7 @@ class TestError500(PluginTest):
 
     error_500_url = get_moth_http("/grep/error_500/500.py?id=1")
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg1": {
             "target": error_500_url,
             "plugins": {

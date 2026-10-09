@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import json
 import os
+from typing import ClassVar
 
 import pytest
 
@@ -37,7 +38,7 @@ class TestJsonOutput(PluginTest):
 
     FILENAME = "output-unittest.json"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_url + "?id=3",
             "plugins": {

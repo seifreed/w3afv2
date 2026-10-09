@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
+from typing import ClassVar
 
 import pytest
 
@@ -35,7 +36,7 @@ class TestSSLCertificate(PluginTest):
     remote_url = "https://www.yandex.com/"
     EXPECTED_STRINGS = ("yandex.ru", "Moscow", "RU", "yandex")
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": None,
             "plugins": {

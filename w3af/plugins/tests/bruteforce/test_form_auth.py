@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 import random
+from typing import ClassVar
 
 import pytest
 
@@ -36,7 +37,7 @@ class GenericFormAuthTest(PluginTest):
     small_users_positive = os.path.join(BASE_PATH, "small-users-positive.txt")
     small_passwords = os.path.join(BASE_PATH, "small-passwords.txt")
 
-    basic_config = {
+    basic_config: ClassVar[dict] = {
         "crawl": (
             PluginConfig(
                 "web_spider",
@@ -65,7 +66,7 @@ class FormAuthTest(GenericFormAuthTest):
 
     target_web_spider_url = get_moth_http("/bruteforce/form/")
 
-    negative_test = {
+    negative_test: ClassVar[dict] = {
         "crawl": (
             PluginConfig(
                 "web_spider",
@@ -167,7 +168,7 @@ class TestFormAuthFailedLoginMatchTrivial(GenericFormAuthTest):
 
         return 200, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url=target_url,
             body=FORM,
@@ -234,7 +235,7 @@ class TestFormAuthFailedLoginMatchWithStaticLargeResponse(GenericFormAuthTest):
 
         return 200, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url=target_url,
             body=FORM,
@@ -305,7 +306,7 @@ class TestFormAuthFailedLoginMatchWithLargeRandomFailedResponse(GenericFormAuthT
 
         return 200, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url=target_url,
             body=FORM,
@@ -377,7 +378,7 @@ class TestFormAuthFailedLoginMatchWithLargeRandomFailedResponseShortSuccess(
 
         return 200, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url=target_url,
             body=FORM,
@@ -461,7 +462,7 @@ class TestFormAuthFailedLoginMatchWithCAPTCHA(GenericFormAuthTest):
 
         return 200, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url=target_url,
             body=FORM,

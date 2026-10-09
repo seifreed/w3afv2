@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
 from unittest.mock import patch
 
 import pytest
@@ -30,7 +31,7 @@ from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 class TestPHPEggs(PluginTest):
 
     target_url = "http://mock/"
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse("http://mock/?=PHPB8B5F2A0-3C92-11d3-A3A9-4C7B08C10000", "1"),
         MockResponse(
             "http://mock/?=PHPE9568F34-D428-11d2-A769-00AA001ACF42",
@@ -49,7 +50,7 @@ class TestPHPEggs(PluginTest):
         ),
     ]
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": None,
             "plugins": {"infrastructure": (PluginConfig("php_eggs"),)},
@@ -89,9 +90,9 @@ class TestPHPEggs(PluginTest):
 class TestPHPEggsNoFingerprint(PluginTest):
 
     target_url = "http://mock/"
-    MOCK_RESPONSES = [MockResponse(target_url, "Index is not empty")]
+    MOCK_RESPONSES: ClassVar[list] = [MockResponse(target_url, "Index is not empty")]
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": None,
             "plugins": {"infrastructure": (PluginConfig("php_eggs"),)},

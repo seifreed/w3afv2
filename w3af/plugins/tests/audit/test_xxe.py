@@ -23,6 +23,7 @@ import re
 import urllib.error
 import urllib.parse
 import urllib.request
+from typing import ClassVar
 from unittest.mock import patch
 from xml import sax
 
@@ -56,7 +57,7 @@ class TestXXESimple(PluginTest):
 
             return self.status, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         XXEMockResponse(re.compile(".*"), body=None, method="GET", status=200)
     ]
 
@@ -109,7 +110,7 @@ class TestXXERemoteLoading(PluginTest):
 
             return self.status, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         XXEMockResponse(re.compile(".*"), body=None, method="GET", status=200)
     ]
 
@@ -154,7 +155,7 @@ class TestXXENegativeWithError(PluginTest):
 
             return self.status, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         XXEMockResponse(re.compile(".*"), body=None, method="GET", status=200)
     ]
 
@@ -195,7 +196,7 @@ class TestXXENegativeNoError(PluginTest):
 
             return self.status, response_headers, body
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         XXEMockResponse(re.compile(".*"), body=None, method="GET", status=200)
     ]
 
@@ -243,7 +244,7 @@ class TestXXEInParameter(PluginTest):
 
             return self.status, response_headers, "Invalid XML."
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         XXEMockResponse(re.compile(".*"), body=None, method="GET", status=200)
     ]
 

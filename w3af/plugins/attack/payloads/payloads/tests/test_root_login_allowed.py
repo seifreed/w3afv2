@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.plugins.attack.payloads.payload_handler import exec_payload
 from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
     PayloadTestHelper,
@@ -27,7 +29,10 @@ from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
 
 class test_root_login_allowed(PayloadTestHelper):
 
-    EXPECTED_RESULT = {"securetty_root_login": False, "ssh_root_bruteforce": "unknown"}
+    EXPECTED_RESULT: ClassVar[dict] = {
+        "securetty_root_login": False,
+        "ssh_root_bruteforce": "unknown",
+    }
 
     def test_root_login_allowed(self):
         result = exec_payload(self.shell, "root_login_allowed", use_api=True)

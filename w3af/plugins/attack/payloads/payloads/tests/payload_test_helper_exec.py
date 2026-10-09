@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.ci.php_moth import get_php_moth_http
 from w3af.plugins.tests.helper import PluginConfig, PluginTest
@@ -28,7 +30,7 @@ class PayloadTestHelperExec(PluginTest):
 
     target_rce = get_php_moth_http("/audit/rfi/rfi-rce.php")
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "cfg": {
             "target": target_rce + "?file=section.php",
             "plugins": {

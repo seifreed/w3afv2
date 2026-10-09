@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
+from typing import ClassVar
 
 import pytest
 
@@ -30,7 +31,7 @@ class TestWordpressEnumerateUsers(PluginTest):
 
     wordpress_url = "http://wordpress/"
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "direct": {
             "target": wordpress_url,
             "plugins": {

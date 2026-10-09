@@ -19,6 +19,7 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
 from unittest import SkipTest
 
 import pytest
@@ -31,7 +32,7 @@ from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
 
 class test_ftp_config_files(PayloadTestHelper):
 
-    EXPECTED_RESULT = {}
+    EXPECTED_RESULT: ClassVar[dict] = {}
 
     def test_ftp_config_files(self):
         result = exec_payload(self.shell, "ftp_config_files", use_api=True)

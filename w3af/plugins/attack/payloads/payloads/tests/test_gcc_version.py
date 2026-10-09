@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 import pytest
 
 from w3af.plugins.attack.payloads.payload_handler import exec_payload
@@ -29,7 +31,9 @@ from w3af.plugins.attack.payloads.payloads.tests.payload_test_helper import (
 
 class test_gcc_version(PayloadTestHelper):
 
-    EXPECTED_RESULT = {"gcc_version": "4.6.3 (Ubuntu/Linaro 4.6.3-1ubuntu5)"}
+    EXPECTED_RESULT: ClassVar[dict] = {
+        "gcc_version": "4.6.3 (Ubuntu/Linaro 4.6.3-1ubuntu5)"
+    }
 
     @pytest.mark.ci_fails
     def test_gcc_version(self):

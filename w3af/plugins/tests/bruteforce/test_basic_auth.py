@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
+from typing import ClassVar
 
 import pytest
 
@@ -39,7 +40,7 @@ class TestBasicAuth(PluginTest):
     small_users_positive = os.path.join(BASE_PATH, "small-users-positive.txt")
     small_passwords = os.path.join(BASE_PATH, "small-passwords.txt")
 
-    _run_configs = {
+    _run_configs: ClassVar[dict] = {
         "positive": {
             "target": None,
             "plugins": {

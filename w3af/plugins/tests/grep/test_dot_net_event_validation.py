@@ -19,6 +19,8 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+from typing import ClassVar
+
 from w3af.core.controllers.ci.moth import get_moth_http
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
@@ -78,7 +80,7 @@ class TestEventValidationGrouping(PluginTest):
         'bxUzDQVBRPB2cN8nnSmNhVZ6WX0=" />'
     )
 
-    MOCK_RESPONSES = [
+    MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url="http://mock/",
             body='<a href="/1">1</a>' '<a href="/2">2</a>',
