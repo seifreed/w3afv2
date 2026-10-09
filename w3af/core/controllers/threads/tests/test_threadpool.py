@@ -86,17 +86,12 @@ class TestWorkerPool(unittest.TestCase):
             result = worker_pool.apply_async(func=delay)
             results.append(result)
 
+        for result in results:
+            self.assertEqual(result.get(), 0)
+
+        # The result handler consumed every result from the output queue
         pool_sizes = worker_pool.get_pool_queue_sizes()
-
-        while pool_sizes["inqueue_size"]:
-            pool_sizes = worker_pool.get_pool_queue_sizes()
-
-        # Give the result handler task inside the pool set the results on the
-        # result instances stored in the results lists
-        time.sleep(1)
-
-        # There should be no pending tasks in the output queue
-        self.assertEqual(pool_sizes["outqueue_size"], 0)
+        self.assertEqual(pool_sizes, {"inqueue_size": 0, "outqueue_size": 0})
 
         worker_pool.terminate_join()
 
