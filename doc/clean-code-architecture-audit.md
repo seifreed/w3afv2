@@ -1252,3 +1252,25 @@ en `ReadShell.download` y el formato de un mensaje de comando (apertura de
 archivo sin context manager, `except` desnudo y formato `%`). No se añadieron
 supresiones. Score global provisional: **5.3/10**; quedan 12 dependencias
 directas y las gates globales pendientes.
+
+## Avance: decoradores de shell dentro de core.data
+
+Los decoradores `read_debug` y `download_debug` se movieron desde
+`w3af.plugins.attack.payloads.decorators` a `w3af.core.data.kb.decorators`.
+Ambos shells y sus consumidores (`local_file_reader` y `sqlmap`) usan ahora el
+módulo de la capa interior; los diagnósticos pasan a `logging` estándar y
+conservan el resultado y el resumen registrado. Se eliminaron los módulos
+anteriores tras comprobar que no quedaban referencias. Los imports de
+producción `core.data -> plugins` bajan de cinco a dos; permanecen los dos usos
+funcionales de `payload_handler`.
+
+Verificación: **8 pruebas pasan** para decoradores, `ReadShell` y `ExecShell`;
+los dos tests de integración de LFI se recogen correctamente. Black y Bandit
+focalizados pasan. Ruff conserva 15 hallazgos previos al revisar también los
+dos plugins consumidores (9 en los shells y 6 en esos plugins). Mypy dirigido
+reporta tres errores transitivos en módulos importados, ninguno en
+`decorators.py`. Los dos tests de integración de LFI se ejecutaron, pero fallan
+porque el host `fallback` configurado no resuelve y Moth no está disponible;
+por ello no validan el flujo de explotación en esta máquina. Score global
+provisional: **5.4/10**; siguen pendientes dependencias de plugins, deudas
+locales de calidad y las gates globales.

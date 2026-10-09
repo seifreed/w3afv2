@@ -30,11 +30,11 @@ import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
 from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
 from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
+from w3af.core.data.kb.decorators import read_debug
 from w3af.core.data.kb.os_detection import detect_remote_os
 from w3af.core.data.kb.read_shell import ReadShell
 from w3af.core.exceptions import OSDetectionException
 from w3af.plugins.attack.db.sqlmap_wrapper import SQLMapWrapper, Target
-from w3af.plugins.attack.payloads.decorators.read_decorator import read_debug
 
 
 class sqlmap(AttackPlugin):

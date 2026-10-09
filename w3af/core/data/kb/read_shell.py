@@ -23,10 +23,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import logging
 import textwrap
 
+from w3af.core.data.kb.decorators import download_debug
 from w3af.core.data.kb.os_detection import detect_remote_os
 from w3af.core.data.kb.shell import Shell
 from w3af.core.exceptions import OSDetectionException
-from w3af.plugins.attack.payloads.decorators.download_decorator import download_debug
 
 LOGGER = logging.getLogger(__name__)
 
