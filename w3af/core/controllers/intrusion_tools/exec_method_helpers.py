@@ -20,9 +20,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import posixpath
+
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.fuzzer.utils import rand_alnum
+
+# Temporary directory on the *remote* Linux target being exploited, not a path
+# on the machine running w3af.
+REMOTE_LINUX_TEMP_DIR = posixpath.join(posixpath.sep, "tmp")
 
 
 def os_detection_exec(exec_method):
@@ -78,7 +84,7 @@ def get_remote_temp_file(exec_method):
         return _filename
 
     elif os == "linux":
-        _filename = "/tmp/" + rand_alnum(6)
+        _filename = posixpath.join(REMOTE_LINUX_TEMP_DIR, rand_alnum(6))
 
         # verify exists
         ls_res = exec_method("ls " + _filename).strip()

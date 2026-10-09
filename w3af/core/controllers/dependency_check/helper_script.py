@@ -75,7 +75,7 @@ def generate_helper_script(
             script_file.write(f"{cmd}\n")
 
     # Make it executable
-    os.chmod(script_path, 0o755)
+    os.chmod(script_path, 0o700)
 
     return script_path
 
