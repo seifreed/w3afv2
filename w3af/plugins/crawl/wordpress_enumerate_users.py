@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import re
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
@@ -155,7 +154,7 @@ class wordpress_enumerate_users(CrawlPlugin):
         i = Info("Identified WordPress user", desc, response_id, self.get_name())
         i.set_url(url)
 
-        kb.kb.append(self, "users", i)
+        self._get_knowledge_base().append(self, "users", i)
         om.out.information(i.get_desc())
 
     def get_long_desc(self):
