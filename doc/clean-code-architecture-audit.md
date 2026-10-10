@@ -4047,3 +4047,17 @@ usan `subprocess.getoutput` no identifican Linux en este macOS por la semántica
 local de `echo`, una limitación ambiental preexistente. El score sube a
 **8.9/10** en Clean Architecture y **8.8/10** global. Siguen pendientes
 URL/openers, parsers, fuzzer, `Info`, controllers y la cobertura global del 100%.
+
+## Actualización verificada: configuración explícita en URL y cleanup de tests
+
+`OpenerSettings` y `ExtendedUrllib` reciben ahora la configuración por
+constructor, y `w3afCore` les pasa la instancia propia del scan. Los tests de
+URL dejan de depender implícitamente del singleton. El test de pausa espera al
+hilo daemon después de detenerlo, evitando que un hilo acceda a un opener ya
+liberado y retenga recursos entre casos.
+
+Verificación: las suites URL pasan **338 tests**; el caso de pausa aislado y
+combinado pasa sin warnings propios. Black, Ruff, mypy y Bandit focal están
+limpios. El score sube a **9.0/10** en Clean Architecture y **8.9/10** global.
+Siguen pendientes parsers, fuzzer, `Info`, controllers y la cobertura global
+del 100%.

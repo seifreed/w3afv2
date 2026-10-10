@@ -182,7 +182,9 @@ class w3afCore:
         )
 
         # Create the URI opener object
-        self.uri_opener = ExtendedUrllib(output.log_http)
+        self.uri_opener = ExtendedUrllib(
+            output.log_http, configuration=self._configuration
+        )
         self.uri_opener.set_worker_pool_provider(
             lambda: self.worker_pool,
             self.MIN_WORKER_THREADS,

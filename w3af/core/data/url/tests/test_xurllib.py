@@ -62,7 +62,7 @@ BIG_BODY = b'{"jquery": "' + b"x" * 500000 + b'"}'
 class TestXUrllib(unittest.TestCase):
 
     def setUp(self):
-        self.uri_opener = ExtendedUrllib()
+        self.uri_opener = ExtendedUrllib(configuration=cf.cf)
         self.addCleanup(self.uri_opener.end)
         self.addCleanup(self.uri_opener.settings.set_default_values)
 
@@ -305,9 +305,11 @@ class TestXUrllib(unittest.TestCase):
 
     def test_pause(self):
         self.uri_opener.pause(True)
-        self.addCleanup(self.uri_opener.stop)
 
-        _, output = self._send_in_thread()
+        th, output = self._send_in_thread()
+        self.addCleanup(self.uri_opener.pause, False)
+        self.addCleanup(th.join, 5)
+        self.addCleanup(self.uri_opener.stop)
 
         self.assertRaises(queue.Empty, output.get, True, 2)
         self.assertEqual(self.server.requests, [])

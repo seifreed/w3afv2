@@ -32,8 +32,8 @@ from http.client import BadStatusLine
 
 import OpenSSL
 
-import w3af.core.data.kb.config as cf
 from w3af.core.data.fuzzer.utils import rand_alnum
+from w3af.core.data.kb.config import Config
 from w3af.core.data.misc.lru import SynchronizedLRUDict
 from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.data.parsers.doc.http_request_parser import http_request_parser
@@ -80,8 +80,11 @@ class ExtendedUrllib:
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self, http_log_callback=None, sleep=time.sleep):
-        self.settings = opener_settings.OpenerSettings(http_log_callback)
+    def __init__(self, http_log_callback=None, sleep=time.sleep, configuration=None):
+        self._configuration = Config() if configuration is None else configuration
+        self.settings = opener_settings.OpenerSettings(
+            http_log_callback, configuration=self._configuration
+        )
         self._sleep = sleep
         self._average_rtt_mutant = GetAverageRTTForMutant(self)
 
@@ -96,7 +99,7 @@ class ExtendedUrllib:
         # For rate limiting and timeouts
         self._rate_limiter = RateLimiter(self.settings, sleep)
         self._timeout_manager = TimeoutManager(self.settings)
-        self._size_limit_override = SizeLimitOverride(cf.cf)
+        self._size_limit_override = SizeLimitOverride(self._configuration)
         self._timeout_adjustment = TimeoutAdjustmentPolicy(
             self._timeout_manager,
             self.get_average_rtt,

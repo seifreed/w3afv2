@@ -66,7 +66,7 @@ OPTION_TYPES = (
 class TestOpenerSettings(unittest.TestCase):
 
     def setUp(self):
-        self.os = OpenerSettings()
+        self.os = OpenerSettings(configuration=cf)
 
     def test_options(self):
         opt_lst = self.os.get_options()
@@ -98,7 +98,7 @@ COOKIE_JAR = (
 class TestOpenerSettingsConfiguration(unittest.TestCase):
 
     def setUp(self):
-        self.settings = OpenerSettings()
+        self.settings = OpenerSettings(configuration=cf)
         self.addCleanup(self.settings.set_default_values)
 
     def write_file(self, contents):
@@ -269,7 +269,7 @@ class TestOpenerSettingsConfiguration(unittest.TestCase):
         self.assertNotIn("CookieHandler", self.handler_names())
 
     def test_build_openers_with_log_callback(self):
-        self.settings = OpenerSettings(http_log_callback=print)
+        self.settings = OpenerSettings(http_log_callback=print, configuration=cf)
 
         self.assertIn("HTTPLogHandler", self.handler_names())
 

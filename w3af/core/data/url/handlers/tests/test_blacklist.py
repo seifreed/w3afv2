@@ -64,7 +64,7 @@ class TestBlacklistHandler(unittest.TestCase):
     def w3af_opener(self):
         # Get an instance of the extended urllib and verify that the blacklist
         # handler still works, even when mixed with all the other handlers.
-        settings = opener_settings.OpenerSettings()
+        settings = opener_settings.OpenerSettings(configuration=cf.cf)
         settings.build_openers()
         return settings.get_custom_opener()
 

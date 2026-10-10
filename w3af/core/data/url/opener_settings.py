@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import logging
 
 from w3af.core.configurable import Configurable
-from w3af.core.data.kb.config import cf as cfg
+from w3af.core.data.kb.config import Config
 from w3af.core.data.url.authentication_settings import AuthenticationSettings
 from w3af.core.data.url.cookie_settings import CookieSettings
 from w3af.core.data.url.header_settings import HeaderSettings
@@ -45,7 +45,10 @@ class OpenerSettings(Configurable):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self, http_log_callback=None):
+    def __init__(self, http_log_callback=None, configuration=None):
+
+        self._configuration = Config() if configuration is None else configuration
+        cfg = self._configuration
 
         # Set the openers to None
         self._proxy = ProxySettings(cfg, LOGGER.debug)
@@ -193,7 +196,7 @@ class OpenerSettings(Configurable):
 
     def set_rand_user_agent(self, rand_user_agent):
         self.rand_user_agent = rand_user_agent
-        cfg.save("rand_user_agent", rand_user_agent)
+        self._configuration.save("rand_user_agent", rand_user_agent)
 
     def set_proxy(self, ip, port):
         """
@@ -226,7 +229,7 @@ class OpenerSettings(Configurable):
             self._cookie_handler,
             self._mangle_plugins,
             self._url_parameter_handler,
-            cfg.get("ignore_session_cookies"),
+            self._configuration.get("ignore_session_cookies"),
         )
 
     def get_custom_opener(self):
