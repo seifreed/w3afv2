@@ -186,7 +186,6 @@ class UserPasswordBruteforcer:
 
 
 def get_profiling_results(max_items=50):
-    # pylint: disable=E1103
     kb_data = kb.kb.raw_read("password_profiling", "password_profiling")
 
     if not kb_data:

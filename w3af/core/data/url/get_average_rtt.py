@@ -25,11 +25,8 @@ import logging
 import threading
 import time
 
-# pylint: enable=E0401
 from w3af.core.data.constants.encodings import DEFAULT_ENCODING
 from w3af.core.data.misc.encoding import smart_unicode
-
-# pylint: disable=E0401
 from w3af.core.data.misc.lru import SynchronizedLRUDict
 
 LOGGER = logging.getLogger(__name__)

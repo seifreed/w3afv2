@@ -211,7 +211,6 @@ class CoreStatus:
         """
         return self._current_fuzzable_request.get(plugin_type, None)
 
-    # pylint: disable=E0202
     def set_current_fuzzable_request(self, plugin_type, fuzzable_request):
         """
         :param fuzzable_request: The FuzzableRequest that the w3afCore is

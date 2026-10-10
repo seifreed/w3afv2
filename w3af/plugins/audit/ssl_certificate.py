@@ -396,7 +396,6 @@ class ssl_certificate(AuditPlugin):
 
         r = self._ssl_connect(domain, port, on_success=extract_cert_data)
 
-        # pylint: disable=E1101
         return r.cert, r.cert_der, r.cipher
 
     def _cert_expiration_analysis(self, domain, port, cert, cert_der, cipher):

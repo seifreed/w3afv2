@@ -26,8 +26,6 @@ import threading
 import time
 
 import w3af.core.controllers.output_manager as om
-
-# pylint: enable=E0401
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.core_helpers.consumers.base_consumer import BaseConsumer
 from w3af.core.controllers.core_helpers.status import CoreStatus
@@ -36,8 +34,6 @@ from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.db.history import HistoryItem
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.misc.encoding import smart_str_ignore
-
-# pylint: disable=E0401
 from w3af.core.data.misc.lru import SynchronizedLRUDict
 from w3af.core.data.misc.response_cache_key import ResponseCacheKeyCache
 from w3af.core.data.request.fuzzable_request import FuzzableRequest

@@ -329,7 +329,6 @@ class TestRelativePathsIn404(PluginTest):
             URL(self.target_url).url_join(end).url_string for end in expected_files
         }
 
-        # pylint: disable=E1101
         # Pylint fails to detect the object types that come out of the KB
         urls = self.kb.get_all_known_urls()
         found_urls = {str(u) for u in urls}
@@ -416,7 +415,6 @@ class TestFormExclusions(PluginTest):
             URL(self.target_url).url_join(end).url_string for end in expected_files
         }
 
-        # pylint: disable=E1101
         # Pylint fails to detect the object types that come out of the KB
         urls = self.kb.get_all_known_urls()
         found_urls = {str(u) for u in urls}

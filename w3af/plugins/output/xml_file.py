@@ -400,10 +400,8 @@ class xml_file(OutputPlugin):
         # http://flask.pocoo.org/docs/0.12/patterns/streaming/
         #
         # To prevent having the whole XML in memory
-        # pylint: disable=E1101
         report_stream = template.stream(context)
         report_stream.enable_buffering(3)
-        # pylint: enable=E1101
 
         # Write everything to a temp file, this is useful in two cases:
         #

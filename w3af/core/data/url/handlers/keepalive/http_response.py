@@ -182,9 +182,7 @@ class HTTPResponse(http.client.HTTPResponse):
             self._handler._request_closed(self._connection)
 
     def info(self):
-        # pylint: disable=E1101
         return self.headers
-        # pylint: enable=E1101
 
     def read(self, amt=None):
         """

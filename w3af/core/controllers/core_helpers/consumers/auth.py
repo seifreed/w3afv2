@@ -63,9 +63,7 @@ class auth(BaseConsumer):
             try:
                 action = self.in_queue.get(timeout=self._timeout)
             except queue.Empty:
-                # pylint: disable=E1120
                 self._login()
-                # pylint: enable=E1120
             else:
 
                 if action == POISON_PILL:
@@ -78,12 +76,10 @@ class auth(BaseConsumer):
                     break
 
                 elif action == FORCE_LOGIN:
-                    # pylint: disable=E1120
                     try:
                         self._login()
                     finally:
                         self.in_queue.task_done()
-                    # pylint: enable=E1120
 
     def _end_plugins(self):
         for plugin in self._consumer_plugins:
@@ -123,6 +119,4 @@ class auth(BaseConsumer):
         self.in_queue_put(FORCE_LOGIN)
 
     def force_login(self):
-        # pylint: disable=E1120
         self._login()
-        # pylint: enable=E1120

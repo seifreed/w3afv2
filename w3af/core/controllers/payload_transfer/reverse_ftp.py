@@ -66,7 +66,6 @@ class ReverseFTP(BasePayloadTransfer):
 
         client_socket, _addr = server_socket.accept()
 
-        # pylint: disable=E1101
         client_socket.send(data_str)
         client_socket.close()
 

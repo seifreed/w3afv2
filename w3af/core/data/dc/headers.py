@@ -122,7 +122,6 @@ class Headers(NonRepeatKeyValueContainer):
         _, sensitive_header_name = self.iget(header_name)
         del self[sensitive_header_name]
 
-    # pylint: disable=E0102
     def __setitem__(self, k, v):
         if isinstance(k, str):
             k = smart_unicode(k, encoding=self.encoding)
@@ -138,8 +137,6 @@ class Headers(NonRepeatKeyValueContainer):
             raise TypeError("Header value must be a string.")
 
         super().__setitem__(k, v)
-
-    # pylint: enable=E0102
 
     def __str__(self):
         """

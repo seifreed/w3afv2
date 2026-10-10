@@ -25,10 +25,7 @@ import logging
 import threading
 from concurrent.futures import TimeoutError
 
-# pylint: enable=E0401
 from w3af.core.data.db.disk_set import DiskSet
-
-# pylint: disable=E0401
 from w3af.core.data.misc.lru import SynchronizedLRUDict
 from w3af.core.data.parsers.document_parser import DocumentParser
 from w3af.core.data.parsers.ipc.serialization import DeserializationError

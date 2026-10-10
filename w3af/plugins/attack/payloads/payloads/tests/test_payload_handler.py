@@ -131,7 +131,6 @@ class TestPayloadHandler(unittest.TestCase):
 
 
 class FakeExecShell(ExecShell):
-    # pylint: disable=E0202
     worker_pool = None
 
     def __init__(self):

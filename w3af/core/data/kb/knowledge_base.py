@@ -37,8 +37,6 @@ from w3af.core.data.kb.info_set import InfoSet
 from w3af.core.data.kb.shell import Shell
 from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.misc.cpickle_dumps import cpickle_dumps
-
-# pylint: disable=E0401
 from w3af.core.data.misc.lru import SynchronizedLRUDict
 from w3af.core.data.misc.serialize import loads
 from w3af.core.data.parsers.doc.url import URL

@@ -196,8 +196,6 @@ class VersionMgr:
 
             callback = self.callback_onupdate_confirm
 
-            # pylint: disable=E1102
-            # pylint: disable=E1103
             msg = (
                 "Your current w3af installation is %s (%s). Do you want "
                 "to update to %s (%s)?"
@@ -242,7 +240,6 @@ class VersionMgr:
             if self._added_new_dependencies(changelog):
                 self._notify(VersionMgr.ON_UPDATE_ADDED_DEP)
 
-            # pylint: disable=E1102
             if self.callback_onupdate_show_log:
                 changelog_str = lambda: str(changelog)
                 self.callback_onupdate_show_log(

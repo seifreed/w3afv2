@@ -63,7 +63,6 @@ def get_xml_bones(document):
     document = smart_str_ignore(document, encoding=DEFAULT_ENCODING)
     etree.parse(BytesIO(document), parser)
 
-    # pylint: disable=E1101
     return "".join(parser.target.bones)
 
 

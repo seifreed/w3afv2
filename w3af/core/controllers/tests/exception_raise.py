@@ -32,7 +32,6 @@ class exception_raise(CrawlPlugin):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    # pylint: disable=E1102
     exception_to_raise = None
 
     def __init__(self):

@@ -37,13 +37,10 @@ from http.client import BadStatusLine
 
 import OpenSSL
 
-# pylint: enable=E0401
 import w3af.core.data.kb.config as cf
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.misc.encoding import smart_unicode
-
-# pylint: disable=E0401
 from w3af.core.data.misc.lru import SynchronizedLRUDict
 from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.data.parsers.doc.http_request_parser import http_request_parser
@@ -484,9 +481,7 @@ class ExtendedUrllib:
         # was already raised (see below) but we want to make sure that we
         # keep raising it until the w3afCore really stops.
         if self._stop_exception is not None:
-            # pylint: disable=E0702
             raise self._stop_exception
-            # pylint: enable=E0702
 
     def _pause_and_stop(self):
         """
@@ -1482,9 +1477,7 @@ class ExtendedUrllib:
         )
         self._stop_exception = e
 
-        # pylint: disable=E0702
         raise self._stop_exception
-        # pylint: enable=E0702
 
     def _log_successful_response(self, response):
         host = response.get_url().get_domain()

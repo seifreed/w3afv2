@@ -100,7 +100,6 @@ class KeyValueContainer(DataContainer, OrderedDict):
                     * The token path
                     * The setter to modify the value
         """
-        # pylint: disable=E1133
         for k, v in self.items():
             for idx, ele in enumerate(v):
 
@@ -108,7 +107,6 @@ class KeyValueContainer(DataContainer, OrderedDict):
 
                 if self.token_filter(token_path, ele):
                     yield k, ele, token_path, partial(v.__setitem__, idx)
-        # pylint: enable=E1133
 
     def get_short_printable_repr(self):
         """
@@ -121,13 +119,11 @@ class KeyValueContainer(DataContainer, OrderedDict):
 
         if self.get_token() is not None:
             # I want to show the token variable and value in the output
-            # pylint: disable=E1133
             for k, v in list(self.items()):
                 for ele in v:
                     if isinstance(ele, DataToken):
                         dt_str = f"{filter_non_printable(ele.get_name())}={filter_non_printable(ele.get_value())}"
                         return f"...{dt_str[: self.MAX_PRINTABLE]}..."
-            # pylint: enable=E1133
         else:
             # I'll simply show the first N parameter and values until the
             # MAX_PRINTABLE is achieved

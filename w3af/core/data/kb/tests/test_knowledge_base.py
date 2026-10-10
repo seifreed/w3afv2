@@ -711,7 +711,6 @@ class TestKnowledgeBase(unittest.TestCase):
 
         self.assertNotEqual(original_id, modified_id)
         self.assertRaises(DBException, kb.update, vuln, update_vuln)
-        # pylint: enable=E1103
 
     def test_append_uniq_group_empty_address(self):
         vuln = MockVuln()

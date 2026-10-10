@@ -106,9 +106,7 @@ class CrawlInfrastructure(BaseConsumer):
             try:
                 work_unit = self.in_queue.get(timeout=0.1)
             except queue.Empty:
-                # pylint: disable=E1120
                 self._route_all_plugin_results()
-                # pylint: enable=E1120
             else:
                 if work_unit == POISON_PILL:
 
@@ -213,9 +211,7 @@ class CrawlInfrastructure(BaseConsumer):
                 ),
                 callback=self._plugin_finished_cb,
             )
-            # pylint: disable=E1120
             self._route_all_plugin_results()
-            # pylint: enable=E1120
 
     def _run_observers(self, fuzzable_request):
         """
@@ -240,9 +236,7 @@ class CrawlInfrastructure(BaseConsumer):
         if not self._running:
             return
 
-        # pylint: disable=E1120
         self._route_plugin_results(plugin)
-        # pylint: enable=E1120
 
     @task_decorator
     def _route_all_plugin_results(self, function_id):
@@ -254,9 +248,7 @@ class CrawlInfrastructure(BaseConsumer):
             if plugin in self._disabled_plugins:
                 continue
 
-            # pylint: disable=E1120
             self._route_plugin_results(plugin)
-            # pylint: enable=E1120
 
     @task_decorator
     def _route_plugin_results(self, function_id, plugin):

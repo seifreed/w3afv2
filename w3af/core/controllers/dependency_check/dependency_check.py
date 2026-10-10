@@ -61,7 +61,6 @@ def get_missing_pip_packages(platform, dependency_set):
 
     for w3af_req in platform.PIP_PACKAGES[dependency_set]:
 
-        # pylint: disable=E1133
         for dist in distributions():
             dist_name = dist.metadata.get("Name", "")
             if canonicalize_name(w3af_req.package_name) == canonicalize_name(dist_name):
@@ -84,7 +83,6 @@ def get_missing_pip_packages(platform, dependency_set):
                     break
         else:
             failed_deps.append(w3af_req)
-        # pylint: enable=E1133
 
     return failed_deps
 
@@ -138,12 +136,10 @@ def write_instructions_to_console(
     #    Report all missing python modules
     #
     if failed_deps:
-        # pylint: disable=E1101
         msg = "Your python installation needs the following modules" " to run w3af:\n"
         msg += "    " + " ".join([fdep.module_name for fdep in failed_deps])
         print(msg)
         print("\n")
-        # pylint: enable=E1101
 
         #
         #    Report missing pip packages

@@ -69,14 +69,12 @@ class TestPasswordProfiling(PluginTest):
         cfg = self._run_configs["cfg1"]
         self._scan(cfg["target"], cfg["plugins"])
 
-        # pylint: disable=E1103
         # Pylint fails to detect the object types that come out of the KB
         collected_passwords = self.kb.raw_read(
             "password_profiling", "password_profiling"
         )
 
         collected_passwords = list(collected_passwords.keys())
-        # pylint: enable=E1103
         collected_passwords.sort(key=lambda password: password[1])
 
         self.assertIn("Moth", collected_passwords)

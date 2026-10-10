@@ -119,7 +119,6 @@ class password_profiling(GrepPlugin):
         if len(data) < 2000:
             return data
 
-        # pylint: disable=E1103
         items = list(data.items())
         items.sort(key=lambda item: item[1], reverse=True)
 
@@ -216,7 +215,6 @@ class password_profiling(GrepPlugin):
         if not profiling_data:
             return
 
-        # pylint: disable=E1103
         items = list(profiling_data.items())
         items.sort(key=lambda item: item[1], reverse=True)
         items = items[:100]

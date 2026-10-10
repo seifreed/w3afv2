@@ -170,8 +170,6 @@ class TestCrossDomainJSRaw(unittest.TestCase):
             " - http://www.w3af.com/2\n"
         )
 
-        # pylint: disable=E1103
         (info_set,) = kb.kb.get("cross_domain_js", "cross_domain_js")
         self.assertEqual(set(info_set.get_urls()), {url_1, url_2})
         self.assertEqual(info_set.get_desc(), expected_desc)
-        # pylint: enable=E1103

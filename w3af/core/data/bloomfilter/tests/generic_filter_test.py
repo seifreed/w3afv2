@@ -24,7 +24,7 @@ import random
 import string
 import unittest
 
-from w3af.core.controllers.tests.pylint_plugins.decorator import only_if_subclass
+from w3af.core.controllers.tests.decorator import only_if_subclass
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.parsers.doc.url import URL
 

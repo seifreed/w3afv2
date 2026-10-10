@@ -125,7 +125,6 @@ class StartUpConfig:
     def _get_bool_val(self, key, default=False):
         boolvals = {"false": 0, "off": 0, "no": 0, "true": 1, "on": 1, "yes": 1}
 
-        # pylint: disable=E1103
         # E1103: Instance of '_Chainmap' has no 'lower' member
         #        (but some types could not be inferred)",
         val = self._config.get(self._start_section, key, raw=True)
