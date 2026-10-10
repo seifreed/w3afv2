@@ -25,6 +25,7 @@ import unittest
 
 import yappi
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.profiling import (
     core_stats,
     cpu_usage,
@@ -84,8 +85,8 @@ class TestProfiling(unittest.TestCase):
         w3af_core = w3afCore()
 
         with environment_variables(**flags):
-            start_profiling(w3af_core)
-            stop_profiling(w3af_core)
+            start_profiling(w3af_core, om.out)
+            stop_profiling(w3af_core, om.out)
 
         for module, save_ptr in ALL_PROFILERS:
             self.assertEqual(save_ptr, [])
@@ -96,13 +97,13 @@ class TestProfiling(unittest.TestCase):
         w3af_core.status.start()
 
         with environment_variables(**ALL_FLAGS):
-            start_profiling(w3af_core)
+            start_profiling(w3af_core, om.out)
 
             for module, save_ptr in ALL_PROFILERS:
                 self.assertEqual(len(save_ptr), 1, module.__name__)
 
             self.remove_all_outputs()
-            stop_profiling(w3af_core)
+            stop_profiling(w3af_core, om.out)
 
         for module, save_ptr in ALL_PROFILERS:
             self.assertEqual(save_ptr, [], module.__name__)
@@ -112,6 +113,6 @@ class TestProfiling(unittest.TestCase):
 
     def test_stop_profiling_swallows_errors(self):
         with environment_variables(W3AF_CORE_PROFILING="1"):
-            stop_profiling(None)
+            stop_profiling(None, om.out)
 
         self.assertEqual(output_files(core_stats.PROFILING_OUTPUT_FMT), [])

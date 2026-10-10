@@ -22,8 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import logging
 
-import w3af.core.controllers.output_manager as om
-
 from .core_stats import start_core_profiling, stop_core_profiling
 from .cpu_usage import start_cpu_profiling, stop_cpu_profiling
 from .processes import start_process_dump, stop_process_dump
@@ -32,7 +30,7 @@ from .pytracemalloc import start_tracemalloc_dump, stop_tracemalloc_dump
 from .thread_activity import start_thread_stack_dump, stop_thread_stack_dump
 
 
-def start_profiling(w3af_core):
+def start_profiling(w3af_core, output):
     start_core_profiling(w3af_core)
     start_profiling_no_core()
 
@@ -45,14 +43,14 @@ def start_profiling_no_core():
     start_tracemalloc_dump()
 
 
-def stop_profiling(w3af_core):
-    om.out.debug("Called stop_profiling()")
+def stop_profiling(w3af_core, output):
+    output.debug("Called stop_profiling()")
 
     try:
         stop_core_profiling(w3af_core)
         stop_profiling_no_core()
     except Exception as e:
-        om.out.debug(f'Call to stop_profiling() failed with: "{e}"')
+        output.debug(f'Call to stop_profiling() failed with: "{e}"')
         logging.getLogger(__name__).debug("stop_profiling() failed", exc_info=True)
 
 

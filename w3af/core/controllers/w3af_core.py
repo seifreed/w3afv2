@@ -185,7 +185,7 @@ class w3afCore:
         self.status = CoreStatus(self, om.out, scans_completed=scans_completed)
         self.status.start()
 
-        start_profiling(self)
+        start_profiling(self, om.out)
 
         if not self._first_scan:
             self.cleanup()
@@ -563,7 +563,7 @@ class w3afCore:
         """
         This method is called when the process ends normally or by an error.
         """
-        stop_profiling(self)
+        stop_profiling(self, om.out)
         parser_cache.dpc.clear()
 
         try:

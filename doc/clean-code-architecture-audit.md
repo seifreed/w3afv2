@@ -2608,3 +2608,13 @@ Verificación: **62 tests pasaron** en profiling y consumidores; Ruff, Black y
 mypy están limpios. El score permanece en **6.25/10** por los globals restantes
 de UI y servicios, cobertura total no demostrada, Bandit heredado, mocks e
 integraciones Moth.
+
+## Actualización verificada: lifecycle de profiling con output explícito
+
+`start_profiling` y `stop_profiling` reciben el sink desde `w3afCore`; los
+mensajes de parada y error ya no dependen de `output_manager` global.
+
+Verificación: **3 tests pasaron** en profiling; Ruff, Black y mypy están
+limpios. El score permanece en **6.25/10** por los globals restantes de UI y
+servicios, cobertura total no demostrada, Bandit heredado, mocks e
+integraciones Moth.
