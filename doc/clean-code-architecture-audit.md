@@ -3891,3 +3891,20 @@ directa. Black, Ruff, mypy y Bandit focal están limpios. El score sube a
 **7.3/10** en Clean Architecture y **7.2/10** global. Siguen pendientes otros
 consumidores de configuración global y la validación completa de cobertura y
 gates.
+
+## Actualización verificada: detección 404 con configuración explícita
+
+`Fingerprint404` dejó de leer `cf.cf`: recibe la configuración del escaneo y
+libera su caché al cerrar el ciclo de vida. `Plugin` centraliza la llamada
+configurada a la detección 404, y `PluginInstanceFactory` entrega la
+configuración real a cada plugin; `target_validation` y los plugins afectados
+usan el mismo contrato. Los fixtures de plugins también configuran output y
+configuración reales, evitando falsos positivos por estado incompleto.
+
+Verificación: fingerprinting **30 tests**, bases y errores de plugins **28**,
+web spider/OpenAPI **22**, strategy/decorators **18 tests y 7 subtests**, y
+GHDB/Web Diff **24 tests**. Black, Ruff, mypy y Bandit focal están limpios.
+El score sube a **7.9/10** en Clean Architecture y **7.8/10** global. Siguen
+pendientes otros consumidores de configuración global, la cobertura global del
+100% y los avisos/fallos preexistentes de las gates ejecutadas sobre el árbol
+completo.

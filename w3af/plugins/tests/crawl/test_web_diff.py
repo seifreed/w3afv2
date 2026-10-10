@@ -26,6 +26,7 @@ from pathlib import Path
 from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
+import w3af.core.data.kb.config as cf
 from w3af import ROOT_PATH
 from w3af.core.controllers.core_helpers.fingerprint_404 import (
     fingerprint_404_singleton,
@@ -121,7 +122,7 @@ class TestWebDiffReport(CannedServerPluginTest):
         return CannedReply(status, {"Content-Type": content_type}, body)
 
     def setUp(self):
-        fingerprint_404_singleton(om.out, cleanup=True)
+        fingerprint_404_singleton(om.out, cf.cf, cleanup=True)
         self.addCleanup(fingerprint_404_singleton, cleanup=True)
 
         super().setUp()

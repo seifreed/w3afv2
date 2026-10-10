@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.misc.encoding import smart_str_ignore
@@ -149,7 +148,7 @@ class web_diff(CrawlPlugin):
             url = remote_directory.url_join(file_name)
             response = self._uri_opener.GET(url, cache=True)
 
-            if is_404(response, self._output):
+            if self._is_404(response):
                 self._not_exist_remote.append(url)
                 continue
 

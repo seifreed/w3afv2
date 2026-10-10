@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from itertools import repeat
 
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.controllers.threads.threadpool import one_to_many
@@ -99,7 +98,7 @@ class find_jboss(InfrastructurePlugin):
 
         for vuln_db_instance, response in response_pool:
 
-            if is_404(response, self._output):
+            if self._is_404(response):
                 continue
 
             vuln_url = base_url.url_join(vuln_db_instance["url"])

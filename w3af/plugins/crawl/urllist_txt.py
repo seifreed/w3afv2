@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.kb.info import Info
@@ -49,7 +48,7 @@ class urllist_txt(CrawlPlugin):
         urllist_url = base_url.url_join("urllist.txt")
         http_response = self._uri_opener.GET(urllist_url, cache=True)
 
-        if is_404(http_response, self._output):
+        if self._is_404(http_response):
             return
 
         if not self._is_urllist_txt(base_url, http_response.get_body()):

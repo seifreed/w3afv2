@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
@@ -46,7 +45,7 @@ class meta_generator(GrepPlugin):
         if not response.is_text_or_html():
             return
 
-        if is_404(response, self._output):
+        if self._is_404(response):
             return
 
         for generator in self._get_generators(response):

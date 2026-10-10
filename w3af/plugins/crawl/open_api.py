@@ -25,7 +25,6 @@ from itertools import repeat
 from typing import ClassVar
 
 import w3af.core.data.kb.config as cf
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.db.disk_set import DiskSet
 from w3af.core.data.dc.headers import Headers
@@ -176,7 +175,7 @@ class open_api(CrawlPlugin):
             spec_url, headers=self._header_auth, cache=False, debugging_id=debugging_id
         )
 
-        if is_404(http_response, self._output):
+        if self._is_404(http_response):
             return
 
         self._extract_api_calls_from_response(spec_url, http_response)

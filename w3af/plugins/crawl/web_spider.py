@@ -26,7 +26,6 @@ from typing import ClassVar
 
 import w3af.core.data.constants.response_codes as http_constants
 import w3af.core.data.kb.config as cf
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.db.disk_set import DiskSet
@@ -115,7 +114,7 @@ class web_spider(CrawlPlugin):
         # There are some rare cases where the application will answer with
         # the same HTTP response body for `/` and `/foobar`. This triggers an
         # issue in is_404() where `/` is marked as a 404...
-        if is_404(resp, self._output) and not self._is_target(fuzzable_request):
+        if self._is_404(resp) and not self._is_target(fuzzable_request):
             return
 
         self._extract_html_forms(resp, fuzzable_request)
@@ -270,7 +269,7 @@ class web_spider(CrawlPlugin):
             only_re_refs = set(re_refs) - set(dirs + parsed_refs)
 
             all_refs = itertools.chain(parsed_refs, re_refs)
-            resp_is_404 = is_404(resp, self._output)
+            resp_is_404 = self._is_404(resp)
 
             for ref in unique_justseen(sorted(all_refs)):
                 possibly_broken = resp_is_404 or (ref in only_re_refs)
@@ -413,7 +412,7 @@ class web_spider(CrawlPlugin):
         #       be requested with grep=True
         resp = self._uri_opener.GET(reference, cache=True, headers=headers, grep=False)
 
-        if not is_404(resp, self._output):
+        if not self._is_404(resp):
             msg = '[web_spider] Found new link "%s" at "%s"'
             args = (reference, original_response.get_url())
             self._output.debug(msg % args)

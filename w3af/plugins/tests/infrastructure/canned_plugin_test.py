@@ -23,6 +23,8 @@ import socket
 import unittest
 from typing import ClassVar
 
+import w3af.core.controllers.output_manager as om
+import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.plugins.plugin import Plugin
 from w3af.core.data.parsers.doc.url import URL
@@ -67,6 +69,8 @@ class CannedServerPluginTest(unittest.TestCase):
         self.plugin = self.plugin_class()
         self.plugin.set_url_opener(self.uri_opener)
         self.plugin.set_knowledge_base(kb.kb)
+        self.plugin.set_output(om.out)
+        self.plugin.set_configuration(cf.cf)
 
     def respond(self, request: CannedRequest) -> CannedReply:
         raise NotImplementedError

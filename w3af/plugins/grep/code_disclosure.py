@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.misc.contains_source_code import contains_source_code
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.constants import severity
@@ -53,7 +52,7 @@ class code_disclosure(GrepPlugin):
         if not response.is_text_or_html():
             return
 
-        response_is_404 = is_404(response, self._output)
+        response_is_404 = self._is_404(response)
 
         # This is a performance improvement to prevent the plugin from
         # applying contains_source_code to a 404 response that will be

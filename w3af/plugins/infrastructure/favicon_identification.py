@@ -29,7 +29,6 @@ import hashlib
 import os.path
 
 from w3af import ROOT_PATH
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.data.kb.info import Info
@@ -72,7 +71,7 @@ class favicon_identification(InfrastructurePlugin):
             smart_str_ignore(response.get_body()), usedforsecurity=False
         ).hexdigest()
 
-        if not is_404(response, self._output):
+        if not self._is_404(response):
 
             # check if MD5 is matched in database/list
             for md5part, favicon_desc in self._read_favicon_db():

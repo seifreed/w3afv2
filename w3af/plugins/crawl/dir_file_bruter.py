@@ -24,7 +24,6 @@ import os
 from itertools import repeat
 
 from w3af import ROOT_PATH
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.db.disk_set import DiskSet
 from w3af.core.data.options.opt_factory import opt_factory
@@ -161,7 +160,7 @@ class dir_file_bruter(CrawlPlugin):
         _, new_url = file_path
         http_response = self._uri_opener.GET(new_url, cache=False)
 
-        if is_404(http_response, self._output):
+        if self._is_404(http_response):
             return
 
         fr = FuzzableRequest.from_http_response(http_response)

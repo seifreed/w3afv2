@@ -26,7 +26,6 @@ import re
 from collections import namedtuple
 
 from w3af import ROOT_PATH
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.kb.info import Info
 from w3af.core.data.options.opt_factory import opt_factory
@@ -82,7 +81,7 @@ class wordpress_fingerprint(CrawlPlugin):
         wp_unique_url = domain_path.url_join("wp-login.php")
         response = self._uri_opener.GET(wp_unique_url, cache=True)
 
-        if is_404(response, self._output):
+        if self._is_404(response):
             return
 
         # It was possible to analyze wp-login.php, don't run again

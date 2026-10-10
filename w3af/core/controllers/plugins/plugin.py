@@ -28,6 +28,7 @@ from itertools import repeat
 from tblib.decorators import Error
 
 from w3af.core.configurable import Configurable
+from w3af.core.controllers.core_helpers.fingerprint_404 import is_404 as detect_404
 from w3af.core.controllers.threads.decorators import apply_with_return_error
 from w3af.core.controllers.threads.threadpool import return_args
 from w3af.core.data.kb.info_set import InfoSet
@@ -55,6 +56,7 @@ class Plugin(Configurable):
         """
         self._uri_opener = None
         self._w3af_core = None
+        self._configuration = None
         self._knowledge_base = None
         self._output = None
         self.worker_pool = None
@@ -96,6 +98,10 @@ class Plugin(Configurable):
         """
         self._w3af_core = w3af_core
 
+    def set_configuration(self, configuration):
+        """Set the scan configuration used by plugin-level helpers."""
+        self._configuration = configuration
+
     def set_knowledge_base(self, knowledge_base):
         """Set the knowledge store used by this plugin."""
         self._knowledge_base = knowledge_base
@@ -111,6 +117,18 @@ class Plugin(Configurable):
 
     def get_w3af_core(self):
         return self._w3af_core
+
+    def _is_404(self, http_response):
+        configuration = self._configuration
+        if self._w3af_core is not None:
+            configuration = self._w3af_core.configuration
+        if configuration is None:
+            raise RuntimeError("Plugin requires a configured scan configuration")
+        return detect_404(
+            http_response,
+            self._output,
+            configuration,
+        )
 
     def set_options(self, options_list):
         """

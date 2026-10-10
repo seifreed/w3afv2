@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from itertools import repeat
 from typing import ClassVar
 
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.kb.info import Info
@@ -162,7 +161,7 @@ class payment_webhook_finder(CrawlPlugin):
     def _send_request(self, functor, url, mutant):
         response = functor(mutant, cache=True)
 
-        if is_404(response, self._output):
+        if self._is_404(response):
             return
 
         # Create the fuzzable request and send it to the core

@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from guess_language import guess_language
 
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 
 UNKNOWN = "unknown"
@@ -56,7 +55,7 @@ class lang(GrepPlugin):
         if not response.is_text_or_html():
             return
 
-        if is_404(response, self._output):
+        if self._is_404(response):
             return
 
         body = response.get_clear_text_body().lower()

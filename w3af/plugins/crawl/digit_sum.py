@@ -24,7 +24,6 @@ import copy
 import re
 from itertools import repeat
 
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_not_equal
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
@@ -95,7 +94,7 @@ class digit_sum(CrawlPlugin):
         """
         response = self._uri_opener.send_mutant(fuzzable_request, cache=True)
 
-        if is_404(response, self._output):
+        if self._is_404(response):
             return
 
         # We have different cases:

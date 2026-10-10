@@ -24,7 +24,6 @@ import re
 from itertools import repeat
 
 import w3af.core.data.kb.config as cf
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.constants import severity
@@ -179,7 +178,7 @@ class phpinfo(CrawlPlugin):
 
         response = self._uri_opener.GET(php_info_url, cache=True, grep=False)
 
-        if is_404(response, self._output):
+        if self._is_404(response):
             return
 
         # Check if it is a phpinfo file

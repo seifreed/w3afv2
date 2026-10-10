@@ -26,7 +26,6 @@ import struct
 import tempfile
 from typing import ClassVar
 
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.constants import severity
@@ -145,7 +144,7 @@ class find_dvcs(CrawlPlugin):
             repo_url, binary_response=True, respect_size_limit=False, grep=False
         )
 
-        if is_404(http_response, self._output):
+        if self._is_404(http_response):
             return
 
         if http_response.get_code() in self.BAD_HTTP_CODES:

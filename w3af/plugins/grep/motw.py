@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.kb.info import Info
 
@@ -57,7 +56,7 @@ class motw(GrepPlugin):
         if self.STRING_MATCH not in body:
             return
 
-        if is_404(response, self._output):
+        if self._is_404(response):
             return
 
         motw_match = self._motw_re.search(body)

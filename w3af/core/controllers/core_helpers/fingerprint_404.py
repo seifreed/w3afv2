@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.data.kb.config as cf
 from w3af.core.controllers.core_helpers.not_found.decorators import (
     LRUCache404,
     PreventMultipleThreads,
@@ -53,13 +52,14 @@ class Fingerprint404:
 
     _instance = None
 
-    def __init__(self, output):
+    def __init__(self, output, configuration):
         #
         #   Set the opener, I need it to perform some tests and gain
         #   the knowledge about the server's 404 response bodies.
         #
         self._uri_opener = None
         self._output = output
+        self._configuration = configuration
 
         #
         #   Store the 404 responses in a dict which has normalized paths
@@ -128,7 +128,7 @@ class Fingerprint404:
         return bool(self._is_404_complex(http_response))
 
     def _is_never_404(self, domain_path):
-        never_404 = cf.cf.get("never_404")
+        never_404 = self._configuration.get("never_404")
         if never_404 is None:
             return False
         return domain_path in never_404
@@ -145,7 +145,7 @@ class Fingerprint404:
         #
         # First we handle the user configured exceptions:
         #
-        always_404 = cf.cf.get("always_404")
+        always_404 = self._configuration.get("always_404")
         if always_404 is not None and domain_path in always_404:
             return True
 
@@ -153,7 +153,7 @@ class Fingerprint404:
         # The user configured setting. "If this string is in the response,
         # then it is a 404"
         #
-        string_match_404 = cf.cf.get("string_match_404")
+        string_match_404 = self._configuration.get("string_match_404")
 
         if string_match_404 and string_match_404 in http_response:
             return True
@@ -450,6 +450,11 @@ class Fingerprint404:
     def set_url_opener(self, urlopener):
         self._uri_opener = urlopener
 
+    def cleanup(self):
+        self._404_responses.cleanup()
+        self._cached_is_404_complex.cleanup()
+        self._is_404_complex.cleanup()
+
     def _get_404_response(self, http_response, query, debugging_id):
         """
         :return: A FourOhFourResponse instance.
@@ -472,16 +477,18 @@ class Fingerprint404:
         return known_404
 
 
-def fingerprint_404_singleton(output=None, cleanup=False):
+def fingerprint_404_singleton(output=None, configuration=None, cleanup=False):
     if cleanup:
+        if Fingerprint404._instance is not None:
+            Fingerprint404._instance.cleanup()
         Fingerprint404._instance = None
         if output is None:
             return None
 
     if Fingerprint404._instance is None:
-        if output is None:
-            raise RuntimeError("Fingerprint404 requires an output sink")
-        Fingerprint404._instance = Fingerprint404(output)
+        if output is None or configuration is None:
+            raise RuntimeError("Fingerprint404 requires output and configuration")
+        Fingerprint404._instance = Fingerprint404(output, configuration)
 
     return Fingerprint404._instance
 
@@ -489,7 +496,7 @@ def fingerprint_404_singleton(output=None, cleanup=False):
 #
 # Helper function
 #
-def is_404(http_response, output):
+def is_404(http_response, output, configuration):
     # Get an instance of the 404 database
-    fp_404_db = fingerprint_404_singleton(output)
+    fp_404_db = fingerprint_404_singleton(output, configuration)
     return fp_404_db.is_404(http_response)

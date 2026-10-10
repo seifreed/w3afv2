@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import re
 from typing import ClassVar
 
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.kb.info import Info
@@ -58,7 +57,7 @@ class wordpress_fullpathdisclosure(CrawlPlugin):
         response = self._uri_opener.GET(wp_unique_url, cache=True)
 
         # If wp_unique_url is not 404, wordpress = true
-        if is_404(response, self._output):
+        if self._is_404(response):
             return
 
         # Only run once
@@ -81,7 +80,7 @@ class wordpress_fullpathdisclosure(CrawlPlugin):
         """
         wp_root_response = self._uri_opener.GET(domain_path, cache=True)
 
-        if is_404(wp_root_response, self._output):
+        if self._is_404(wp_root_response):
             return []
 
         theme_paths = []
@@ -109,7 +108,7 @@ class wordpress_fullpathdisclosure(CrawlPlugin):
             pvuln_url = domain_path.url_join(pvuln_path)
             response = self._uri_opener.GET(pvuln_url, cache=True)
 
-            if is_404(response, self._output):
+            if self._is_404(response):
                 continue
 
             response_body = response.get_body()

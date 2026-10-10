@@ -26,7 +26,6 @@ import re
 from collections import namedtuple
 
 from w3af import ROOT_PATH
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.constants import severity
@@ -172,8 +171,8 @@ class pykto(CrawlPlugin):
         function_ptr = getattr(self._uri_opener, nikto_test.method)
         http_response = function_ptr(nikto_test.uri)
 
-        if nikto_test.is_vulnerable.check(http_response) and not is_404(
-            http_response, self._output
+        if nikto_test.is_vulnerable.check(http_response) and not self._is_404(
+            http_response
         ):
 
             vdesc = (

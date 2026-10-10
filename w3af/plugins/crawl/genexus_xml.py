@@ -24,7 +24,6 @@ from xml.parsers.expat import ExpatError
 
 from defusedxml import DefusedXmlException, minidom
 
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.kb.info import Info
@@ -60,7 +59,7 @@ class genexus_xml(CrawlPlugin):
             if "</ObjLink>" not in http_response:
                 continue
 
-            if is_404(http_response, self._output):
+            if self._is_404(http_response):
                 continue
 
             # Save it to the kb!

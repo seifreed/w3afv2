@@ -27,7 +27,6 @@ from xml.parsers.expat import ExpatError
 from defusedxml import DefusedXmlException, minidom
 
 from w3af import ROOT_PATH
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.constants import severity
@@ -106,7 +105,7 @@ class ria_enumerator(CrawlPlugin):
         """
         response = self._uri_opener.GET(url, cache=True)
 
-        if is_404(response, self._output):
+        if self._is_404(response):
             return
 
         file_name = url.get_file_name()

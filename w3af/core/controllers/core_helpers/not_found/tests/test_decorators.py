@@ -114,6 +114,18 @@ class TestLRUCache404(unittest.TestCase):
             )
         )
 
+    def test_cleanup_releases_cached_responses(self):
+        detector = CountingDetector()
+        detector.query(build_response("http://w3af.org/cleanup", code=404))
+
+        detector._cached_is_404.cleanup()
+
+        self.assertEqual(len(detector._cached_is_404._is_404_by_url_lru), 0)
+        self.assertEqual(len(detector._cached_is_404._is_404_by_body_lru), 0)
+        self.assertEqual(
+            len(detector._cached_is_404._response_cache_key_cache._cache), 0
+        )
+
     def test_logs_cache_hit_rate(self):
         detector = CountingDetector()
         recorder = record_output(self)

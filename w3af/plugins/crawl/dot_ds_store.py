@@ -24,7 +24,6 @@ from io import BytesIO
 from ds_store import DSStore
 from ds_store.buddy import BuddyError
 
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.constants import severity
 from w3af.core.data.db.disk_set import DiskSet
@@ -77,7 +76,7 @@ class dot_ds_store(CrawlPlugin):
         response = self.http_get_and_parse(url, binary_response=True)
 
         # Check if it's a .DS_Store file
-        if is_404(response, self._output):
+        if self._is_404(response):
             return
 
         try:

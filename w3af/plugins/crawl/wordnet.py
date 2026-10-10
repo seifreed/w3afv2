@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from itertools import chain, repeat
 
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_not_equal
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.fuzzer.mutants.filename_mutant import FileNameMutant
@@ -71,7 +70,7 @@ class wordnet(CrawlPlugin):
         """
         response = self._uri_opener.send_mutant(mutant)
 
-        if is_404(response, self._output):
+        if self._is_404(response):
             return
 
         if fuzzy_not_equal(original_response.body, response.body, 0.85):

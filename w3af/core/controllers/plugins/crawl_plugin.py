@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.misc.safe_deepcopy import safe_deepcopy
 from w3af.core.controllers.plugins.plugin import Plugin
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
@@ -96,7 +95,7 @@ class CrawlPlugin(Plugin):
         http_response = self._uri_opener.send_mutant(fr, *args, cache=True, **kwargs)
 
         # The 204 check is because of Plugin.handle_url_error()
-        if not is_404(http_response, self._output) and http_response.get_code() != 204:
+        if not self._is_404(http_response) and http_response.get_code() != 204:
             self.output_queue.put(fr)
 
             if on_success is not None:

@@ -90,6 +90,13 @@ class LRUCache404:
 
         return result
 
+    def cleanup(self):
+        self._is_404_by_url_lru.clear()
+        self._is_404_by_body_lru.clear()
+        self._response_cache_key_cache.clear_cache()
+        self._stats_from_cache = 0.0
+        self._stats_total = 0.0
+
     def _log_stats(self, http_response):
         if self._stats_total % self.STATS_EVERY == 0:
             rate = self._stats_from_cache / self._stats_total * 100
@@ -226,6 +233,9 @@ class PreventMultipleThreads:
                 # All right! is_404 function call is complete, now let's call
                 # it again to obtain the result from the cache
                 return self._function(http_response)
+
+    def cleanup(self):
+        self._404_call_events.clear()
 
     def get_call_key(self, http_response):
         return FourOhFourResponse.normalize_path(http_response.get_uri())

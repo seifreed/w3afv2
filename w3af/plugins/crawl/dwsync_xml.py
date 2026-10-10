@@ -24,7 +24,6 @@ from xml.parsers.expat import ExpatError
 
 from defusedxml import DefusedXmlException, minidom
 
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.constants import severity
 from w3af.core.data.db.disk_set import DiskSet
@@ -70,7 +69,7 @@ class dwsync_xml(CrawlPlugin):
         dwsync_url = domain_path.url_join(self.DWSYNC)
         response = self.http_get_and_parse(dwsync_url)
 
-        if is_404(response, self._output):
+        if self._is_404(response):
             return
 
         if "</dwsync>" not in response.get_body():

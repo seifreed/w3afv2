@@ -79,7 +79,7 @@ class Generic404Test(unittest.TestCase):
 
         self.urllib = ExtendedUrllib()
 
-        self.fingerprint_404 = Fingerprint404(om.out)
+        self.fingerprint_404 = Fingerprint404(om.out, cf.cf)
         self.fingerprint_404.set_url_opener(self.urllib)
 
     def tearDown(self):
@@ -575,20 +575,23 @@ class Test404LargeResponsesReuseDiff(Generic404Test):
 class TestFingerprint404Singleton(unittest.TestCase):
 
     def tearDown(self):
-        fingerprint_404_singleton(om.out, cleanup=True)
+        fingerprint_404_singleton(cleanup=True)
 
     def test_returns_the_same_instance(self):
         self.assertIs(
-            fingerprint_404_singleton(om.out), fingerprint_404_singleton(om.out)
+            fingerprint_404_singleton(om.out, cf.cf),
+            fingerprint_404_singleton(om.out, cf.cf),
         )
 
     def test_cleanup_creates_a_new_instance(self):
-        instance = fingerprint_404_singleton(om.out)
+        instance = fingerprint_404_singleton(om.out, cf.cf)
 
-        self.assertIsNot(fingerprint_404_singleton(om.out, cleanup=True), instance)
+        self.assertIsNot(
+            fingerprint_404_singleton(om.out, cf.cf, cleanup=True), instance
+        )
 
     def test_is_404_uses_the_singleton(self):
         url = URL("http://w3af.org/missing.html")
         response = HTTPResponse(404, "Not found", Headers(), url, url)
 
-        self.assertTrue(is_404(response, om.out))
+        self.assertTrue(is_404(response, om.out, cf.cf))

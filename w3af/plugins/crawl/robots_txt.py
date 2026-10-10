@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.kb.info import Info
@@ -46,7 +45,7 @@ class robots_txt(CrawlPlugin):
         robots_url = base_url.url_join("robots.txt")
         http_response = self._uri_opener.GET(robots_url, cache=True)
 
-        if is_404(http_response, self._output):
+        if self._is_404(http_response):
             return
 
         # Send the robots.txt file to the core, even if we don't find anything

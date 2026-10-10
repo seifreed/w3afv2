@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.data.constants import severity
@@ -60,7 +59,7 @@ class server_status(InfrastructurePlugin):
         response = self._uri_opener.GET(server_status_url, cache=True)
 
         if (
-            not is_404(response, self._output)
+            not self._is_404(response)
             and response.get_code() not in list(range(400, 404))
             and "apache" in response.get_body().lower()
         ):
@@ -117,7 +116,7 @@ class server_status(InfrastructurePlugin):
                 # They are equal, request the URL and create the fuzzable
                 # requests
                 tmp_res = self._uri_opener.GET(found_url, cache=True)
-                if not is_404(tmp_res, self._output):
+                if not self._is_404(tmp_res):
                     self.output_queue.put(FuzzableRequest(found_url))
             else:
                 # This is a shared hosting server

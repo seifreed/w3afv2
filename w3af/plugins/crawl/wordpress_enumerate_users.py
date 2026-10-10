@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.kb.info import Info
 from w3af.core.exceptions import RunOnce
@@ -56,7 +55,7 @@ class wordpress_enumerate_users(CrawlPlugin):
         wp_unique_url = domain_path.url_join("wp-login.php")
         response = self._uri_opener.GET(wp_unique_url, cache=True)
 
-        if is_404(response, self._output):
+        if self._is_404(response):
             return
 
         self._enum_users(fuzzable_request)
@@ -90,7 +89,7 @@ class wordpress_enumerate_users(CrawlPlugin):
                 wp_author_url, cache=True, follow_redirects=True
             )
 
-            if is_404(response_author, self._output):
+            if self._is_404(response_author):
                 continue
 
             if response_author.was_redirected():

@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.constants import severity
@@ -76,7 +75,7 @@ class dot_listing(CrawlPlugin):
         url = domain_path.url_join(".listing")
         response = self._uri_opener.GET(url, cache=True)
 
-        if is_404(response, self._output):
+        if self._is_404(response):
             return
 
         parsed_url_set = set()

@@ -27,7 +27,6 @@ from xml.parsers.expat import ExpatError
 from defusedxml import DefusedXmlException, minidom
 
 from w3af import ROOT_PATH
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.misc.is_private_site import is_private_site
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
@@ -101,7 +100,7 @@ class ghdb(CrawlPlugin):
         for result in google_list:
             # I found a vuln in the site!
             response = self._uri_opener.GET(result.URL, cache=True)
-            if not is_404(response, self._output):
+            if not self._is_404(response):
                 desc = (
                     'ghdb plugin found a vulnerability at URL: "%s".'
                     " According to GHDB the vulnerability description"

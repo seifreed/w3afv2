@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import ClassVar
 
-from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.misc.factory import factory
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.constants.common_words import common_words
@@ -73,7 +72,7 @@ class password_profiling(GrepPlugin):
         if not self.got_lang():
             return
 
-        if is_404(response, self._output):
+        if self._is_404(response):
             return
 
         # Run the password profiling plugins

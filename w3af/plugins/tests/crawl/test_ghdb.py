@@ -28,6 +28,7 @@ from pathlib import Path
 from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
+import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.controllers.core_helpers.fingerprint_404 import (
@@ -69,7 +70,7 @@ class GHDBCrawlTest(CannedServerPluginTest):
     }
 
     def setUp(self):
-        fingerprint_404_singleton(om.out, cleanup=True)
+        fingerprint_404_singleton(om.out, cf.cf, cleanup=True)
         self.addCleanup(fingerprint_404_singleton, cleanup=True)
 
         super().setUp()
@@ -182,6 +183,7 @@ class TestGHDBDatabase(unittest.TestCase):
 
     def setUp(self):
         self.plugin = ghdb()
+        self.plugin.set_output(om.out)
         self.addCleanup(self.plugin.end)
 
     def read_ghdb_from(self, xml_content):
