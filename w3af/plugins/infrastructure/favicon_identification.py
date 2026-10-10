@@ -29,7 +29,6 @@ import hashlib
 import os.path
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.exceptions import RunOnce
@@ -86,7 +85,7 @@ class favicon_identification(InfrastructurePlugin):
                     )
                     i.set_url(favicon_url)
 
-                    kb.kb.append(self, "info", i)
+                    self._get_knowledge_base().append(self, "info", i)
                     om.out.information(i.get_desc())
                     break
             else:
@@ -109,7 +108,7 @@ class favicon_identification(InfrastructurePlugin):
                 )
                 i.set_url(favicon_url)
 
-                kb.kb.append(self, "info", i)
+                self._get_knowledge_base().append(self, "info", i)
                 om.out.information(i.get_desc())
 
     def _read_favicon_db(self):

@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import re
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.misc.decorators import runonce
@@ -91,7 +90,7 @@ class frontpage_version(InfrastructurePlugin):
             i.set_url(response.get_url())
             i["version"] = version_mo.group(1)
 
-            kb.kb.append(self, "frontpage_version", i)
+            self._get_knowledge_base().append(self, "frontpage_version", i)
             om.out.information(i.get_desc())
 
             #
@@ -147,7 +146,7 @@ class frontpage_version(InfrastructurePlugin):
         i.set_url(admin_location)
         i["FPAdminScriptUrl"] = admin_location
 
-        kb.kb.append(self, "frontpage_version", i)
+        self._get_knowledge_base().append(self, "frontpage_version", i)
         om.out.information(i.get_desc())
 
     def _analyze_author(self, response, frontpage_author):
@@ -181,7 +180,7 @@ class frontpage_version(InfrastructurePlugin):
         i.set_url(author_location)
         i["FPAuthorScriptUrl"] = author_location
 
-        kb.kb.append(self, "frontpage_version", i)
+        self._get_knowledge_base().append(self, "frontpage_version", i)
         om.out.information(i.get_desc())
 
     def get_long_desc(self):
