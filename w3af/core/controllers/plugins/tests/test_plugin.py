@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
+import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.plugins.plugin import Plugin
 from w3af.core.controllers.tests.local_http_server import (
@@ -130,6 +131,7 @@ class TestPlugin(unittest.TestCase):
 
     def test_kb_append_uniq(self):
         plugin = Plugin()
+        plugin.set_output(om.out)
         plugin.set_knowledge_base(kb.kb)
         recorder = start_recording_output()
 
@@ -145,6 +147,7 @@ class TestPlugin(unittest.TestCase):
 
     def test_kb_append_uniq_group(self):
         plugin = Plugin()
+        plugin.set_output(om.out)
         plugin.set_knowledge_base(kb.kb)
         recorder = start_recording_output()
 
@@ -159,6 +162,7 @@ class TestPlugin(unittest.TestCase):
 
     def test_kb_append(self):
         plugin = Plugin()
+        plugin.set_output(om.out)
         plugin.set_knowledge_base(kb.kb)
         recorder = start_recording_output()
 
@@ -174,6 +178,7 @@ class TestPlugin(unittest.TestCase):
 
     def test_handle_url_error_returns_no_content(self):
         plugin = Plugin()
+        plugin.set_output(om.out)
         recorder = start_recording_output()
         url = URL("http://w3af.org/")
 
@@ -187,6 +192,7 @@ class TestPlugin(unittest.TestCase):
 class TestSendMutantsInThreads(unittest.TestCase):
     def setUp(self):
         self.plugin = Plugin()
+        self.plugin.set_output(om.out)
         pool = Pool(2, worker_names="PluginTestWorker")
         self.addCleanup(pool.terminate_join)
         self.plugin.set_worker_pool(pool)
@@ -234,6 +240,7 @@ class TestUrlOpenerProxy(unittest.TestCase):
 
     def test_failed_url_request_returns_no_content(self):
         plugin = Plugin()
+        plugin.set_output(om.out)
         plugin.set_url_opener(self.uri_opener)
         start_recording_output()
 
@@ -243,6 +250,7 @@ class TestUrlOpenerProxy(unittest.TestCase):
 
     def test_failed_fuzzable_request_returns_no_content(self):
         plugin = Plugin()
+        plugin.set_output(om.out)
         plugin.set_url_opener(self.uri_opener)
         recorder = start_recording_output()
         url = self.closed_url()

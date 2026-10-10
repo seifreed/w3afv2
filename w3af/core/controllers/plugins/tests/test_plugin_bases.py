@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.fingerprint_404 import (
     fingerprint_404_singleton,
 )
@@ -158,16 +159,21 @@ class TestPluginTypes(unittest.TestCase):
 
 class TestWrappers(unittest.TestCase):
     def test_discover_wrapper_uses_a_copy(self):
-        self.assertEqual(finds_nothing().discover_wrapper(FREQ, "did"), FREQ.get_url())
+        plugin = finds_nothing()
+        plugin.set_output(om.out)
+        self.assertEqual(plugin.discover_wrapper(FREQ, "did"), FREQ.get_url())
 
     def test_crawl_discover_wrapper(self):
         start_recording_output()
+        plugin = spider()
+        plugin.set_output(om.out)
 
-        self.assertEqual(spider().discover_wrapper(FREQ, "did"), FREQ.get_url())
+        self.assertEqual(plugin.discover_wrapper(FREQ, "did"), FREQ.get_url())
 
     def test_404_detection_errors_are_logged(self):
         recorder = start_recording_output()
         plugin = failing_404_detection()
+        plugin.set_output(om.out)
 
         self.assertIsNone(plugin.grep_wrapper(FREQ, None))
         self.assertIsNone(CrawlPlugin.discover_wrapper(plugin, FREQ, "did"))
@@ -191,6 +197,7 @@ class TestCrawlHTTPGetAndParse(unittest.TestCase):
         self.addCleanup(self.site.close)
 
         self.plugin = spider()
+        self.plugin.set_output(om.out)
         self.plugin.set_url_opener(self.uri_opener)
         self.successes = []
 

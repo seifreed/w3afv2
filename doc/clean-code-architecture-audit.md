@@ -2414,3 +2414,15 @@ Verificación: **56 tests pasados** en `user_dir`, `pykto`, PHPInfo y OpenAPI;
 Ruff y Black están limpios. El score permanece en **5.75/10** por 404/UI/
 daemons aún globales, cobertura 100% no demostrada, Bandit heredado, mocks
 existentes, Moth y los orquestadores grandes.
+
+## Actualización verificada: Plugin sin fallback de output
+
+La clase base `Plugin` ya no importa ni captura `om.out` al construirse. El
+sink se configura únicamente mediante `set_output()`, que es el punto usado
+por `CorePlugins`; los tests unitarios que crean plugins directamente ahora
+declaran esa dependencia de forma explícita.
+
+Verificación: **74 tests pasados** en bases de plugins y factory; Ruff, Black y
+mypy están limpios. El score permanece en **5.75/10** por 404/UI/daemons y
+plugins attack aún globales, cobertura 100% no demostrada, Bandit heredado,
+mocks existentes, Moth y los orquestadores grandes.

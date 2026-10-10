@@ -27,7 +27,6 @@ from itertools import repeat
 
 from tblib.decorators import Error
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.configurable import Configurable
 from w3af.core.controllers.threads.decorators import apply_with_return_error
 from w3af.core.controllers.threads.threadpool import return_args
@@ -57,7 +56,7 @@ class Plugin(Configurable):
         self._uri_opener = None
         self._w3af_core = None
         self._knowledge_base = None
-        self._output = om.out
+        self._output = None
         self.worker_pool = None
 
         self.output_queue = queue.Queue()
