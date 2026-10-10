@@ -3,7 +3,6 @@
 import logging
 from contextlib import contextmanager
 
-import w3af.core.data.kb.config as cf
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.data.kb.info import Info
 from w3af.core.data.url.extended_urllib import MAX_ERROR_COUNT
@@ -12,7 +11,7 @@ from w3af.core.exceptions import ScanMustStopByUserRequest, ScanMustStopExceptio
 logger = logging.getLogger(__name__)
 
 
-def verify_target_server_up(w3af_core, output):
+def verify_target_server_up(w3af_core, output, configuration):
     """Verify that the configured targets answer HTTP requests."""
     sent_requests = 0
 
@@ -32,7 +31,7 @@ def verify_target_server_up(w3af_core, output):
         " %s\n"
     )
 
-    targets = cf.cf.get("targets")
+    targets = configuration.get("targets")
 
     while sent_requests < MAX_ERROR_COUNT * 1.5:
         for url in targets:
@@ -75,9 +74,9 @@ def _get_target(w3af_core, url, step, output, **kwargs):
         return w3af_core.uri_opener.GET(url, **kwargs)
 
 
-def replace_targets_with_redir(w3af_core, output):
+def replace_targets_with_redir(w3af_core, output, configuration):
     """Replace targets with same-domain redirect destinations."""
-    targets = cf.cf.get("targets")
+    targets = configuration.get("targets")
     new_targets = []
 
     for url in targets:
@@ -96,10 +95,10 @@ def replace_targets_with_redir(w3af_core, output):
         else:
             new_targets.append(url)
 
-    cf.cf.save("targets", new_targets)
+    configuration.save("targets", new_targets)
 
 
-def alert_if_target_is_301_all(w3af_core, knowledge_base, output):
+def alert_if_target_is_301_all(w3af_core, knowledge_base, output, configuration):
     """Report a target that redirects all traffic outside its scope."""
     site_does_redirect = False
     msg = (
@@ -119,7 +118,7 @@ def alert_if_target_is_301_all(w3af_core, knowledge_base, output):
         " vulnerabilities."
     )
 
-    targets = cf.cf.get("targets")
+    targets = configuration.get("targets")
 
     for url in targets:
         http_response = _get_target(
@@ -141,11 +140,11 @@ def alert_if_target_is_301_all(w3af_core, knowledge_base, output):
     return site_does_redirect
 
 
-def setup_404_detection(w3af_core, output):
+def setup_404_detection(w3af_core, output, configuration):
     """Initialize 404 detection for each configured target."""
     targets_with_404 = []
 
-    for url in cf.cf.get("targets"):
+    for url in configuration.get("targets"):
         response = _get_target(
             w3af_core, url, "_setup_404_detection()", output, cache=True
         )

@@ -83,7 +83,7 @@ class TeardownAuditThreadsStrategy(CoreStrategy):
     """
 
     def __init__(self, w3af_core):
-        super().__init__(w3af_core, kb, om.out)
+        super().__init__(w3af_core, kb, om.out, w3af_core.configuration)
         self.threads_at_teardown_audit = None
 
     def _teardown_audit(self, *args, **kwargs):
@@ -98,7 +98,7 @@ class FailingRouterStrategy(CoreStrategy):
     """
 
     def __init__(self, w3af_core):
-        super().__init__(w3af_core, kb, om.out)
+        super().__init__(w3af_core, kb, om.out, w3af_core.configuration)
         self.terminate_calls = 0
 
     def _fuzzable_request_router(self, *args, **kwargs):
@@ -202,7 +202,7 @@ class TestStrategy(unittest.TestCase):
     def test_strategy_verify_target_server_up(self):
         core = self.get_core(f"http://127.0.0.1:{closed_local_port()}/")
 
-        strategy = CoreStrategy(core, kb, om.out)
+        strategy = CoreStrategy(core, kb, om.out, core.configuration)
 
         try:
             strategy.start()
@@ -221,7 +221,7 @@ class TestStrategy(unittest.TestCase):
         self.redirect_location = build_location(self.server.port)
         core = self.get_core(self.server.url("/"))
 
-        strategy = CoreStrategy(core, kb, om.out)
+        strategy = CoreStrategy(core, kb, om.out, core.configuration)
         strategy.start()
 
         infos = kb.get("core", "core")
@@ -263,17 +263,19 @@ class TestStrategy(unittest.TestCase):
         core = strategy._w3af_core
         return {
             "replace_targets_with_redir()": lambda: replace_targets_with_redir(
-                core, om.out
+                core, om.out, core.configuration
             ),
             "alert_if_target_is_301_all()": lambda: alert_if_target_is_301_all(
-                core, kb, om.out
+                core, kb, om.out, core.configuration
             ),
-            "_setup_404_detection()": lambda: setup_404_detection(core, om.out),
+            "_setup_404_detection()": lambda: setup_404_detection(
+                core, om.out, core.configuration
+            ),
         }
 
     def test_target_request_failure_stops_the_scan(self):
         core = self.get_core(f"http://127.0.0.1:{closed_local_port()}/")
-        strategy = CoreStrategy(core, kb, om.out)
+        strategy = CoreStrategy(core, kb, om.out, core.configuration)
 
         for step, step_method in self.target_request_steps(strategy).items():
             with self.subTest(step=step):
@@ -285,13 +287,13 @@ class TestStrategy(unittest.TestCase):
     def test_user_stop_while_requesting_targets(self):
         self.start_server(static_page)
         core = self.get_core(self.server.url("/"))
-        strategy = CoreStrategy(core, kb, om.out)
+        strategy = CoreStrategy(core, kb, om.out, core.configuration)
 
         core.uri_opener.stop()
 
         steps = self.target_request_steps(strategy)
         steps["verify_target_server_up()"] = lambda: verify_target_server_up(
-            core, om.out
+            core, om.out, core.configuration
         )
 
         for step, step_method in steps.items():
@@ -304,4 +306,4 @@ class TestStrategy(unittest.TestCase):
 
         fingerprint_404_singleton(cleanup=True)
 
-        setup_404_detection(core, om.out)
+        setup_404_detection(core, om.out, core.configuration)

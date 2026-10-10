@@ -25,7 +25,6 @@ import queue
 import time
 from multiprocessing import TimeoutError
 
-import w3af.core.data.kb.config as cf
 from w3af.core.constants import POISON_PILL
 from w3af.core.controllers.core_helpers.consumers.audit import audit
 from w3af.core.controllers.core_helpers.consumers.auth import auth
@@ -62,10 +61,11 @@ class CoreStrategy:
     Use this strategy as a base for your experiments!
     """
 
-    def __init__(self, w3af_core, knowledge_base, output):
+    def __init__(self, w3af_core, knowledge_base, output, configuration):
         self._w3af_core = w3af_core
         self._knowledge_base = knowledge_base
         self._output = output
+        self._configuration = configuration
 
         # Consumer threads
         self._grep_consumer = None
@@ -119,10 +119,15 @@ class CoreStrategy:
         :return: No value is returned.
         """
         try:
-            verify_target_server_up(self._w3af_core, self._output)
-            replace_targets_with_redir(self._w3af_core, self._output)
+            verify_target_server_up(self._w3af_core, self._output, self._configuration)
+            replace_targets_with_redir(
+                self._w3af_core, self._output, self._configuration
+            )
             alert_if_target_is_301_all(
-                self._w3af_core, self._knowledge_base, self._output
+                self._w3af_core,
+                self._knowledge_base,
+                self._output,
+                self._configuration,
             )
 
             self._setup_grep()
@@ -132,7 +137,7 @@ class CoreStrategy:
             self._setup_bruteforce()
 
             self._setup_observers()
-            setup_404_detection(self._w3af_core, self._output)
+            setup_404_detection(self._w3af_core, self._output, self._configuration)
 
             self._seed_discovery()
 
@@ -331,7 +336,7 @@ class CoreStrategy:
                     " The scan will end and some vulnerabilities might not be"
                     " identified."
                 )
-                args = (cf.cf.get("max_scan_time"),)
+                args = (self._configuration.get("max_scan_time"),)
                 self._output.information(msg % args)
 
                 self._w3af_core.stop()
@@ -349,7 +354,7 @@ class CoreStrategy:
         :return: True if the scan has reached the `max_scan_time` - 5m.
         """
         # in minutes
-        max_scan_time = cf.cf.get("max_scan_time")
+        max_scan_time = self._configuration.get("max_scan_time")
 
         # The default is 0: no limit.
         if max_scan_time == 0:
@@ -466,7 +471,7 @@ class CoreStrategy:
             self._discovery_consumer = CrawlInfrastructure(
                 discovery_plugins,
                 self._w3af_core,
-                cf.cf.get("max_discovery_time"),
+                self._configuration.get("max_discovery_time"),
                 knowledge_base=self._knowledge_base,
                 output=self._output,
             )
@@ -543,7 +548,7 @@ class CoreStrategy:
         #    GET the initial target URLs in order to save them
         #    in a list and use them as our bootstrap URLs
         #
-        self._seed_producer.seed_output_queue(cf.cf.get("targets"))
+        self._seed_producer.seed_output_queue(self._configuration.get("targets"))
 
     def _setup_bruteforce(self):
         """

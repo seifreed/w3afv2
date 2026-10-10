@@ -3790,3 +3790,17 @@ configuraciones independientes; Black, Ruff, mypy y Bandit focal están limpios.
 El score sube a **6.7/10** en Clean Architecture, pero el global se mantiene
 en **6.6/10** hasta migrar los restantes consumidores de `cf` y demostrar los
 gates y la cobertura completos.
+
+## Actualización verificada: estrategia sin configuración global de targets
+
+`CoreStrategy` y `target_validation` ya reciben la configuración desde el core.
+Se eliminaron sus lecturas y escrituras directas de `cf.cf` para los targets,
+el límite de tiempo de scan, el tiempo máximo de discovery y la inicialización
+de la cola seed. El objeto `w3afCore` expone esa dependencia como parte de su
+composition root, y los tests low-level la reutilizan explícitamente.
+
+Verificación: la suite de strategy pasa **9 tests y 7 subtests**; Black, Ruff,
+mypy y Bandit focal están limpios. El score sube a **6.8/10** en Clean
+Architecture y **6.7/10** global. Aún quedan consumidores de configuración en
+los workers (`crawl`, `grep`, `audit`) y el cierre de los gates/cobertura
+globales.

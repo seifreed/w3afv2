@@ -124,6 +124,7 @@ class w3afCore:
         Create the URI opener.
         """
         # Make sure we get a fresh new instance of the output manager
+        self._configuration = cf
         manager, output = create_output_manager()
         configure_data_logging(output)
         register_parser_multiprocessing(manager)
@@ -169,7 +170,7 @@ class w3afCore:
         self._environment_validator = ScanEnvironmentValidator(
             self.plugins, self.target
         )
-        self.strategy = CoreStrategy(self, self.knowledge_base, output)
+        self.strategy = CoreStrategy(self, self.knowledge_base, output, cf)
         self.status = CoreStatus(
             output,
             ConsumerMetrics(self.strategy, lambda: self.worker_pool),
@@ -226,7 +227,9 @@ class w3afCore:
         # Now that we know we're going to run a new scan, overwrite the old
         # strategy which might still have data stored in it and create a new
         # one
-        self.strategy = CoreStrategy(self, self.knowledge_base, self._output)
+        self.strategy = CoreStrategy(
+            self, self.knowledge_base, self._output, self._configuration
+        )
         self.status = CoreStatus(
             self._output,
             ConsumerMetrics(self.strategy, lambda: self.worker_pool),
@@ -368,6 +371,10 @@ class w3afCore:
     @property
     def output(self):
         return self._output
+
+    @property
+    def configuration(self):
+        return self._configuration
 
     def can_cleanup(self):
         return self.status.get_simplified_status() == STOPPED
