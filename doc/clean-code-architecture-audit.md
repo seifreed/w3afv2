@@ -2148,3 +2148,17 @@ Verificación: 11 tests y 20 subtests de infraestructura, más 19 tests de
 infraestructura relacionados, pasan; Ruff, Black y mypy están limpios. El score
 permanece en **5.75/10**: aún quedan más consumidores del output global,
 cobertura global, Bandit heredado, mocks, perfilado, Moth y orquestadores.
+
+## Actualización verificada: output desacoplado en infraestructura completa
+
+El mismo sink inyectado se extendió al resto de plugins de infraestructura.
+Solo `oHmap/hmap.py` conserva output directo porque es un helper de funciones y
+clases auxiliares que no hereda de `Plugin`; no se le añadió una falsa
+dependencia de instancia. Los tests directos de `finger_bing` y
+`finger_google` también configuran explícitamente la KB real que ya recibe el
+camino de fábrica.
+
+Verificación: la suite completa de infraestructura pasa con **161 tests y 20
+subtests**; Ruff, Black y mypy están limpios. El score permanece en **5.75/10**
+por los consumidores de output restantes fuera de infraestructura, cobertura
+global, Bandit heredado, mocks, perfilado, Moth y orquestadores.

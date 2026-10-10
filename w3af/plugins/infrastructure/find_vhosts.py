@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from itertools import repeat
 from typing import ClassVar
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal
 from w3af.core.controllers.misc.is_private_site import is_private_site
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
@@ -162,7 +161,7 @@ class find_vhosts(InfrastructurePlugin):
             i.set_url(fuzzable_request.get_url())
 
             self._get_knowledge_base().append(self, "find_vhosts", i)
-            om.out.information(i.get_desc())
+            self._output.information(i.get_desc())
 
             yield domain
 
@@ -210,7 +209,7 @@ class find_vhosts(InfrastructurePlugin):
             )
 
             self._get_knowledge_base().append(self, "find_vhosts", v)
-            om.out.information(v.get_desc())
+            self._output.information(v.get_desc())
 
     def _response_is_different(
         self, vhost_response, orig_resp_body, non_existent_responses
@@ -277,7 +276,7 @@ class find_vhosts(InfrastructurePlugin):
                 http_response = self._http_get_vhost(base_url, ne_domain)
             except HTTPRequestException as e:
                 msg = "Failed to generate invalid domain fingerprint: %s"
-                om.out.debug(msg % e)
+                self._output.debug(msg % e)
             else:
                 result.append(http_response)
 

@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_not_equal
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.data.dc.headers import Headers
@@ -69,7 +68,7 @@ class domain_dot(InfrastructurePlugin):
                 headers = Headers([("Host", domain_dot)])
                 response = self._uri_opener.GET(orig_url, cache=False, headers=headers)
             except BaseFrameworkException as w3:
-                om.out.error(str(w3))
+                self._output.error(str(w3))
             else:
                 self._analyze_response(original_response, response)
 
@@ -98,7 +97,7 @@ class domain_dot(InfrastructurePlugin):
                 self.get_name(),
             )
 
-            om.out.information(desc)
+            self._output.information(desc)
             self._get_knowledge_base().append(self, "domain_dot", i)
 
     def get_long_desc(self):

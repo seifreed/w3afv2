@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import re
 import socket
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal, fuzzy_not_equal
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
@@ -91,7 +90,7 @@ class dns_wildcard(InfrastructurePlugin):
                 "An error occurred while fetching IP address URL in "
                 ' dns_wildcard plugin: "%s"'
             )
-            om.out.debug(msg % bfe)
+            self._output.debug(msg % bfe)
             return
 
         if is_no_content_response(modified_response):
@@ -110,7 +109,7 @@ class dns_wildcard(InfrastructurePlugin):
         i.set_url(modified_response.get_url())
 
         self._get_knowledge_base().append(self, "dns_wildcard", i)
-        om.out.information(i.get_desc())
+        self._output.information(i.get_desc())
 
     def _test_dns(self, original_response, dns_wildcard_url):
         """
@@ -127,7 +126,7 @@ class dns_wildcard(InfrastructurePlugin):
                 "An error occurred while fetching IP address URL in "
                 ' dns_wildcard plugin: "%s"'
             )
-            om.out.debug(msg % bfe)
+            self._output.debug(msg % bfe)
             return
 
         if fuzzy_not_equal(
@@ -148,7 +147,7 @@ class dns_wildcard(InfrastructurePlugin):
             i.set_url(dns_wildcard_url)
 
             self._get_knowledge_base().append(self, "dns_wildcard", i)
-            om.out.information(i.get_desc())
+            self._output.information(i.get_desc())
         else:
             desc = (
                 "The target site has a DNS wildcard configuration, the"
@@ -165,7 +164,7 @@ class dns_wildcard(InfrastructurePlugin):
             i.set_url(original_response.get_url())
 
             self._get_knowledge_base().append(self, "dns_wildcard", i)
-            om.out.information(i.get_desc())
+            self._output.information(i.get_desc())
 
     def get_long_desc(self):
         """

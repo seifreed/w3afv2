@@ -67,6 +67,7 @@ class TestFingerGoogle(PluginTest):
         plugin = finger_google()
         plugin.set_url_opener(self.w3afcore.uri_opener)
         plugin.set_worker_pool(self.w3afcore.worker_pool)
+        plugin.set_knowledge_base(self.kb)
 
         options = plugin.get_options()
         options["result_limit"].set_value(20)

@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import re
 import urllib.parse
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.data.constants import severity
@@ -74,7 +73,7 @@ class xssed_dot_com(InfrastructurePlugin):
         xssed_matches = self.XSSED_DOMAIN_RE.findall(response.get_body())
 
         if not xssed_matches:
-            om.out.debug(
+            self._output.debug(
                 "xssed_dot_com did not find any previously reported XSS"
                 " vulnerabilities."
             )

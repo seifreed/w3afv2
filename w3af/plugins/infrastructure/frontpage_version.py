@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
@@ -91,7 +90,7 @@ class frontpage_version(InfrastructurePlugin):
             i["version"] = version_mo.group(1)
 
             self._get_knowledge_base().append(self, "frontpage_version", i)
-            om.out.information(i.get_desc())
+            self._output.information(i.get_desc())
 
             #
             # Handle the admin.exe file
@@ -111,7 +110,7 @@ class frontpage_version(InfrastructurePlugin):
                 " found at %s (id: %s)."
             )
             msg = msg % (response.get_url(), response.id)
-            om.out.debug(msg)
+            self._output.debug(msg)
 
     def _analyze_admin(self, response, frontpage_admin):
         """
@@ -147,7 +146,7 @@ class frontpage_version(InfrastructurePlugin):
         i["FPAdminScriptUrl"] = admin_location
 
         self._get_knowledge_base().append(self, "frontpage_version", i)
-        om.out.information(i.get_desc())
+        self._output.information(i.get_desc())
 
     def _analyze_author(self, response, frontpage_author):
         """
@@ -181,7 +180,7 @@ class frontpage_version(InfrastructurePlugin):
         i["FPAuthorScriptUrl"] = author_location
 
         self._get_knowledge_base().append(self, "frontpage_version", i)
-        om.out.information(i.get_desc())
+        self._output.information(i.get_desc())
 
     def get_long_desc(self):
         """

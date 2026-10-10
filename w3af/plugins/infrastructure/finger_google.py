@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import threading
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.misc.is_private_site import is_private_site
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
@@ -109,7 +108,7 @@ class finger_google(InfrastructurePlugin):
         :param google_result: GoogleResult instance
         :return: A list of valid accounts
         """
-        om.out.debug(f"Searching for emails in: {google_result.URL}")
+        self._output.debug(f"Searching for emails in: {google_result.URL}")
 
         grep_res = google_result.URL.get_domain() == self._domain
 

@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import threading
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.misc.is_private_site import is_private_site
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
@@ -88,7 +87,7 @@ class finger_bing(InfrastructurePlugin):
 
         :return: A list of valid accounts
         """
-        om.out.debug(f"Searching for emails in: {page.URL}")
+        self._output.debug(f"Searching for emails in: {page.URL}")
 
         grep = self._domain == page.URL.get_domain()
         response = self._uri_opener.GET(page.URL, cache=True, grep=grep)

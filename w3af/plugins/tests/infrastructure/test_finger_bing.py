@@ -59,6 +59,7 @@ class TestFingerBing(PluginTest):
         plugin = finger_bing()
         plugin.set_url_opener(self.w3afcore.uri_opener)
         plugin.set_worker_pool(self.w3afcore.worker_pool)
+        plugin.set_knowledge_base(self.kb)
         return plugin
 
     def test_search_accounts_finds_domain_emails(self):

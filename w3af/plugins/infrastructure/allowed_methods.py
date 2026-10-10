@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import ClassVar
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.group_by_min_key import group_by_min_key
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
@@ -374,14 +373,14 @@ class allowed_methods(InfrastructurePlugin):
             if item_index == 0:
                 # Grouped by URLs
                 msg = 'The URL: "%s" has the following %s methods enabled:'
-                om.out.information(msg % (k, method_type))
+                self._output.information(msg % (k, method_type))
             else:
                 # Grouped by Methods
                 msg = "The methods: %s are enabled on the following URLs:"
-                om.out.information(msg % k)
+                self._output.information(msg % k)
 
             for i in result_dict[k]:
-                om.out.information("- " + i)
+                self._output.information("- " + i)
 
     def get_options(self):
         """

@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
 import w3af.plugins.infrastructure.oHmap.hmap as upstream_hmap
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
@@ -54,7 +53,7 @@ class hmap(InfrastructurePlugin):
                                     (among other things) the URL to test.
         """
         msg = "Hmap web server fingerprint is starting, this may take a while."
-        om.out.information(msg)
+        self._output.information(msg)
 
         url = fuzzable_request.get_url()
 
@@ -69,7 +68,7 @@ class hmap(InfrastructurePlugin):
             )
         except BaseFrameworkException as w3:
             msg = 'A BaseFrameworkException occurred while running hmap: "%s"'
-            om.out.error(msg % w3)
+            self._output.error(msg % w3)
             return
 
         server = results[0]
@@ -79,7 +78,7 @@ class hmap(InfrastructurePlugin):
 
         i = Info("Webserver fingerprint", desc, 1, self.get_name())
         i["server"] = server
-        om.out.information(i.get_desc())
+        self._output.information(i.get_desc())
 
         # Save the results in the KB so that other plugins can use this
         # information
@@ -97,7 +96,7 @@ class hmap(InfrastructurePlugin):
                 " fingerprinted. New fingerprints make the hmap plugin"
                 " more powerful and accurate."
             )
-            om.out.information(msg)
+            self._output.information(msg)
 
     def get_options(self):
         """

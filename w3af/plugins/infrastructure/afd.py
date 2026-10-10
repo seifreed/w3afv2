@@ -24,7 +24,6 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_not_equal
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
@@ -63,7 +62,7 @@ class afd(InfrastructurePlugin):
         try:
             filtered, not_filtered = self._send_requests(fuzzable_request, debugging_id)
         except BaseFrameworkException as bfe:
-            om.out.error(str(bfe))
+            self._output.error(str(bfe))
         else:
             self._analyze_results(filtered, not_filtered)
 
@@ -148,17 +147,17 @@ class afd(InfrastructurePlugin):
             i["filtered"] = filtered
 
             self._get_knowledge_base().append(self, "afd", i)
-            om.out.information(i.get_desc())
+            self._output.information(i.get_desc())
 
-            om.out.information("The following URLs were filtered:")
+            self._output.information("The following URLs were filtered:")
             for i in filtered:
-                om.out.information("- " + i)
+                self._output.information("- " + i)
 
             if not_filtered:
                 msg = "The following URLs passed undetected by the filter:"
-                om.out.information(msg)
+                self._output.information(msg)
                 for i in not_filtered:
-                    om.out.information("- " + i)
+                    self._output.information("- " + i)
 
         # Cleanup some memory
         self._not_filtered = []

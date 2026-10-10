@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.data.constants import severity
@@ -79,7 +78,7 @@ class zone_h(InfrastructurePlugin):
         try:
             total_attacks = int(regex_result[0][0])
         except IndexError:
-            om.out.debug(
+            self._output.debug(
                 "An error was generated during the parsing of the zone_h website."
             )
         else:
@@ -102,7 +101,7 @@ class zone_h(InfrastructurePlugin):
                 v.set_url(response.get_url())
 
                 self._get_knowledge_base().append(self, "defacements", v)
-                om.out.information(v.get_desc())
+                self._output.information(v.get_desc())
             elif total_attacks == 1:
                 desc = (
                     "The target site was defaced in the past. For more"
@@ -113,7 +112,7 @@ class zone_h(InfrastructurePlugin):
                 i.set_url(response.get_url())
 
                 self._get_knowledge_base().append(self, "defacements", i)
-                om.out.information(i.get_desc())
+                self._output.information(i.get_desc())
 
     def get_long_desc(self):
         return """

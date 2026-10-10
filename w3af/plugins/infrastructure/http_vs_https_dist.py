@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from scapy.error import Scapy_Exception
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.data.kb.info import Info
@@ -72,7 +71,7 @@ class http_vs_https_dist(InfrastructurePlugin):
             # Raised when the user has no privileges to send raw packets, and
             # also when the domain can not be resolved or resolves to an IPv6
             # address, which scapy's traceroute does not support.
-            om.out.error(TRACEROUTE_ERROR_MSG % e)
+            self._output.error(TRACEROUTE_ERROR_MSG % e)
             return
 
         self.report_routes(domain, http_port, https_port, http_troute, https_troute)
@@ -120,9 +119,9 @@ class http_vs_https_dist(InfrastructurePlugin):
         if not (last_https_ip[1] and last_http_ip[1]):
             desc = "The port '%s' is not open on target %s"
             if not last_https_ip[1]:
-                om.out.error(desc % (https_port, domain))
+                self._output.error(desc % (https_port, domain))
             if not last_http_ip[1]:
-                om.out.error(desc % (http_port, domain))
+                self._output.error(desc % (http_port, domain))
             return
 
         if http_ip_tuples != https_ip_tuples:
@@ -136,7 +135,7 @@ class http_vs_https_dist(InfrastructurePlugin):
             )
             desc %= (domain, http_port, https_port, trc1, trc2)
             self._report_info("HTTP and HTTPs hop distance", desc)
-            om.out.information(desc)
+            self._output.information(desc)
         else:
             desc = (
                 "The routes to the target's HTTP and HTTPS ports are"

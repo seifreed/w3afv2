@@ -27,7 +27,6 @@ from collections import namedtuple
 from itertools import repeat
 from typing import ClassVar
 
-import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.controllers.threads.threadpool import one_to_many
@@ -197,7 +196,7 @@ class php_eggs(InfrastructurePlugin):
                 i.set_url(query_result.egg_URL)
 
                 self._get_knowledge_base().append(self, "eggs", i)
-                om.out.information(i.get_desc())
+                self._output.information(i.get_desc())
 
             return True
 
@@ -233,7 +232,7 @@ class php_eggs(InfrastructurePlugin):
             " EGG_DB['%s'] = %r\n"
         )
         msg = msg % (self._php_version_from_powered_by(), desc_hashes)
-        om.out.information(msg)
+        self._output.information(msg)
 
     def _report_php_version(self, matching_versions, query_results):
         if len(matching_versions) > 1:
@@ -257,7 +256,7 @@ class php_eggs(InfrastructurePlugin):
         i["version"] = matching_versions
 
         self._get_knowledge_base().append(self, "version", i)
-        om.out.information(i.get_desc())
+        self._output.information(i.get_desc())
 
     def _php_version_from_powered_by(self):
         """

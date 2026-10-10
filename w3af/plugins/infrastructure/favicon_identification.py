@@ -28,7 +28,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import hashlib
 import os.path
 
-import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.misc.decorators import runonce
@@ -86,7 +85,7 @@ class favicon_identification(InfrastructurePlugin):
                     i.set_url(favicon_url)
 
                     self._get_knowledge_base().append(self, "info", i)
-                    om.out.information(i.get_desc())
+                    self._output.information(i.get_desc())
                     break
             else:
                 #
@@ -109,7 +108,7 @@ class favicon_identification(InfrastructurePlugin):
                 i.set_url(favicon_url)
 
                 self._get_knowledge_base().append(self, "info", i)
-                om.out.information(i.get_desc())
+                self._output.information(i.get_desc())
 
     def _read_favicon_db(self):
         try:
@@ -121,7 +120,7 @@ class favicon_identification(InfrastructurePlugin):
                     yield md5part, favicon_desc
         except OSError as e:
             msg = 'Failed to open the MD5 database at %s. Exception: "%s".'
-            om.out.error(msg % (self._db_file, e))
+            self._output.error(msg % (self._db_file, e))
 
     def get_long_desc(self):
         """
