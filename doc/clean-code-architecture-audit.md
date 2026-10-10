@@ -1427,13 +1427,14 @@ de reportar `B301`, `B403` y `B105` en estos recorridos. El arnés REST usa el
 certificado autofirmado generado por w3af como CA de las peticiones HTTPS,
 aplica timeout de cinco segundos y ya no desactiva la validación TLS. Los
 openers de urllib en tests también son explícitos y conservan los casos `file:`
-y de esquemas desconocidos.
+y de esquemas desconocidos. El test XML-RPC reutiliza `safe_sax.parse_string`,
+el boundary endurecido del proyecto, en lugar de importar SAX directamente.
 
 Verificación posterior: Ruff y Black pasan en los 1598 archivos, mypy pasa en
 1592 archivos, `pip-audit` no encuentra vulnerabilidades en las dependencias
 reproducibles, los tests focales de serialización/API pasan (364 y 3,
 respectivamente) y los tests de URL/opener pasan (196). Bandit baja de 141 a
-57 hallazgos y `B310` queda a cero; persisten grupos heredados de TLS,
+53 hallazgos y `B310` queda a cero; persisten grupos heredados de TLS,
 timeouts, subprocess, XML, temporales y fixtures de plataforma. No se han
 añadido supresiones.
 
