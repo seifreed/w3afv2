@@ -25,6 +25,9 @@ from functools import partial
 
 from w3af import ROOT_PATH
 from w3af.core.controllers.core_helpers.plugin_catalog import PluginCatalog
+from w3af.core.controllers.core_helpers.plugin_dependency_resolver import (
+    PluginDependencyResolver,
+)
 from w3af.core.controllers.core_helpers.plugin_instance_factory import (
     PluginInstanceFactory,
 )
@@ -232,57 +235,6 @@ class CorePlugins(PluginCatalog):
                     enabled_plugins.remove(plugin_name)
                     enabled_plugins.remove(plugin_name.replace("!", ""))
 
-    def resolve_dependencies(self):
-        for plugin_type, enabled_plugins in self._plugins_names_dict.items():
-            for plugin_name in enabled_plugins:
-
-                plugin_inst = self.get_quick_instance(plugin_type, plugin_name)
-
-                for dep in plugin_inst.get_plugin_deps():
-                    dep_plugin_type, dep_plugin_name = dep.split(".")
-
-                    if dep_plugin_name not in self._plugins_names_dict[dep_plugin_type]:
-                        self._output.information(
-                            f"Enabling {plugin_name}'s dependency {dep_plugin_name}"
-                        )
-
-                        self._plugins_names_dict[dep_plugin_type].append(
-                            dep_plugin_name
-                        )
-
-                        self.resolve_dependencies()
-
-    def order_plugins(self):
-        """
-        Makes sure that dependencies are run before the plugin that
-        required it
-        """
-        plugin_names = self._plugins_names_dict
-
-        for plugin_type, enabled_plugins in plugin_names.items():
-            for plugin_name in enabled_plugins:
-                plugin_inst = self.get_quick_instance(plugin_type, plugin_name)
-
-                for dep in plugin_inst.get_plugin_deps():
-                    dep_plugin_type, dep_name = dep.split(".")
-
-                    if dep_plugin_type != plugin_type:
-                        # We can't guarantee execution order if the plugin
-                        # dependencies are of different types
-                        continue
-
-                    plugin_index = enabled_plugins.index(plugin_name)
-                    dependency_index = enabled_plugins.index(dep_name)
-
-                    if dependency_index < plugin_index:
-                        # Everything is ok, the dependency is run before the
-                        # plugin that requires it
-                        continue
-
-                    # Switch
-                    plugin_names[plugin_type][plugin_index] = dep_name
-                    plugin_names[plugin_type][dependency_index] = plugin_name
-
     def create_instances(self):
         for plugin_type, enabled_plugins in self._plugins_names_dict.items():
             for plugin_name in enabled_plugins:
@@ -312,12 +264,17 @@ class CorePlugins(PluginCatalog):
         """
         self.expand_all()
         self.remove_exclusions()
-        self.resolve_dependencies()
+        resolver = PluginDependencyResolver(
+            self._plugins_names_dict,
+            self.get_quick_instance,
+            self._output.information,
+        )
+        resolver.resolve()
 
         # Now the self._plugins_names_dict has all the plugin names that
         # we should enable, for all types, but in the incorrect order:
         # without taking care of dependencies
-        self.order_plugins()
+        resolver.order()
         self.create_instances()
 
     def _set_plugin_generic(self, plugin_type, plugin_list):

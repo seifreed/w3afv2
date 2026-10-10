@@ -3016,3 +3016,16 @@ la suite completa de `w3afCore` conserva **17 pasados y 14 fallos históricos**.
 Black, Ruff, mypy focalizado, Bandit focalizado y `git diff --check` están
 limpios. El score permanece en **6.25/10** por la composición global, la
 serialización y la deuda de gates/cobertura aún pendientes.
+
+## Actualización verificada: resolución de dependencias de plugins separada
+
+`PluginDependencyResolver` concentra la expansión recursiva de dependencias y
+la ordenación de plugins del mismo tipo. `CorePlugins` conserva la selección,
+la creación de instancias y la inicialización del runtime, pero ya no mezcla
+esas reglas de ejecución con el catálogo.
+
+Verificación: **27 tests de plugins pasaron**; Black, Ruff, mypy focalizado,
+Bandit focalizado y `git diff --check` están limpios. La ejecución mostró 9
+warnings deprecados de dependencias externas (`ldap3`/`jsonschema`), sin
+suprimirlos. El score permanece en **6.25/10** por la composición global,
+serialización, cobertura y gates heredados aún pendientes.
