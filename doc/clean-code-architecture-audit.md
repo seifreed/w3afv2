@@ -2913,3 +2913,16 @@ fallando en `master` sin estos cambios: XXE no registra el hallazgo en este
 entorno y Moth no resuelve `php_moth-fallback`. El score permanece en
 **6.25/10** por los módulos grandes, cobertura 100% no demostrada, Bandit
 heredado y esas integraciones externas.
+
+## Actualización verificada: cálculo de ETA separado del estado del core
+
+`CoreStatus` conserva su API pública y la coordinación de logging, pero el
+cálculo matemático y el valor inmutable `Adjustment` viven ahora en
+`status_eta.py`. `EtaCalculator` no conoce `w3afCore`, consumidores, colas ni
+output, y mantiene internamente sólo el suavizado de ETA por fase.
+
+Verificación: **49 tests pasaron** en status y exception handler; Ruff, Black,
+mypy focalizado y `git diff --check` están limpios. El score permanece en
+**6.25/10**: aún quedan en `CoreStatus` el lifecycle, el acceso a consumidores,
+la serialización y las reglas de ajuste por fase, además de la deuda global de
+cobertura, Bandit e integraciones externas.

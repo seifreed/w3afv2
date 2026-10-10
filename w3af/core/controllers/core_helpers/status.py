@@ -23,16 +23,19 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import time
 from operator import xor
 
+from w3af.core.controllers.core_helpers.status_eta import (
+    AUDIT,
+    CRAWL,
+    GREP,
+    Adjustment,
+    EtaCalculator,
+)
 from w3af.core.controllers.misc.epoch_to_string import epoch_to_string
 from w3af.core.data.misc.number_generator import consecutive_number_generator
 
 PAUSED = "Paused"
 STOPPED = "Stopped"
 RUNNING = "Running"
-
-AUDIT = "audit"
-CRAWL = "crawl"
-GREP = "grep"
 
 
 class CoreStatus:
@@ -62,8 +65,7 @@ class CoreStatus:
         # where a phase means crawl/audit
         self._current_fuzzable_request = {}
 
-        # Save the latest ETA values in order to "smooth" our ETAs
-        self._eta_smooth = {AUDIT: 0, GREP: 0, CRAWL: 0}
+        self._eta_calculator = EtaCalculator()
 
     def set_w3af_core(self, w3af_core):
         self._w3af_core = w3af_core
@@ -411,86 +413,11 @@ class CoreStatus:
         :return: ETA in epoch format, None if one of the parameters is None.
         """
         if adjustment is None:
-            adjustment = Adjustment(known=1.0, unknown=1.0)
+            adjustment = Adjustment()
 
-        if output_speed == 0 and input_speed == 0:
-            # The consumer has finished
-            eta = 0.0
-
-            self.log_calculate_eta(
-                eta, input_speed, output_speed, queue_size, _type, adjustment
-            )
-
-            return eta
-
-        if output_speed == 0 and input_speed != 0:
-            # The output speed is zero, this is a very strange case... it will
-            # be impossible to calculate the ETA, just remove "I'll be there
-            # in 5 minutes" (just like the pizza delivery when you call them
-            # because you're hungry)
-            #
-            # The next time the code calls calculate_eta() the output_speed
-            # will (most likely) be different from zero and it will be possible
-            # to calculate a real ETA
-            eta = 5 * 60.0
-
-            self.log_calculate_eta(
-                eta, input_speed, output_speed, queue_size, _type, adjustment
-            )
-
-            return eta
-
-        if input_speed >= output_speed:
-            # This is a tricky case. The input speed is greater than
-            # the output speed, which means that at this rate we will
-            # never end.
-            #
-            # The good news is that this situation will eventually change,
-            # and the output speed will be greater.
-            #
-            # For this case we still want to give our best guess.
-            #
-            # The ETA will be calculated like:
-            #
-            #   ETA = T(queued) + T(new) * adjustment_ratio
-            #
-            # Where:
-            #
-            #   * T(queued) is the time it will take to consume the
-            #     already queued items.
-            #
-            #   * T(new) is the time it will take to consume the new items
-            #     that will appear in the queue while we solve T(queued)
-            #
-            #   * `adjustment_ratio` is our way of saying: we're not sure how
-            #     much time this will take, go have a coffee and come back later.
-            #     This ratio changes for crawl, audit and grep queues and should
-            #     be changed based on real scans. The best way to adjust these
-            #     values is to run scans and use scan_log_analysis.py to check
-            #     (see: show_progress_delta).
-            #
-            t_queued = (queue_size / output_speed) * adjustment.known
-            t_new = (input_speed * t_queued / output_speed) * adjustment.unknown
-            eta_minutes = t_queued + t_new
-        else:
-            # This case is easier, we have an output speed which is
-            # greater than the input speed, so we should be able to calculate
-            # the ETA using:
-            #
-            #   ETA = T(queued) + T(new)
-            #
-            # See above to understand what those are.
-            t_queued = queue_size / output_speed
-            t_new = input_speed * t_queued / output_speed
-            eta_minutes = t_queued + t_new
-            eta_minutes = eta_minutes * adjustment.known
-
-        # Smooth with average to avoid ugly spikes in the ETAs
-        eta = eta_minutes * 60
-
-        if adjustment.average:
-            eta = eta * 3 / 4 + self._eta_smooth[_type] * 1 / 4
-            self._eta_smooth[_type] = eta
+        eta = self._eta_calculator.calculate(
+            input_speed, output_speed, queue_size, _type, adjustment
+        )
 
         self.log_calculate_eta(
             eta, input_speed, output_speed, queue_size, _type, adjustment
@@ -852,35 +779,3 @@ class CoreStatus:
         status_str += "Time to complete scan: %(eta)s\n"
 
         return status_str % data
-
-
-class Adjustment:
-    def __init__(self, known=1.0, unknown=1.0, average=True):
-        """
-        Used to adjust the ETA calculations for two cases:
-
-            * known: The measured input speed is less than the measured
-                     output speed. We "know" when the scan will consume
-                     the queue and can calculated the ETA.
-
-            * unknown: The measured input speed is greater than the measured
-                       output speed. The ETA is an estimate, if we calculate
-                       as-is it would take for ever to consume the task.
-
-        :param known:
-            * Higher values of `known` INCREASE the ETA
-            * Higher values of `known` REDUCE estimated % (as shown in the
-              scan log analysis output)
-
-        :param unknown:
-            * Higher values of `known` INCREASE the ETA
-            * Higher values of `known` REDUCE estimated % (as shown in the
-              scan log analysis output)
-
-        :param average: True if the result of this calculation should be averaged
-                        with the previous result. This has the effect of removing
-                        spikes from the ETA results
-        """
-        self.known = known
-        self.unknown = unknown
-        self.average = average
