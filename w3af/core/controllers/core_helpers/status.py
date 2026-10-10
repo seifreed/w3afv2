@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import time
 from operator import xor
 
+from w3af.core.controllers.core_helpers.status_consumers import ConsumerMetrics
 from w3af.core.controllers.core_helpers.status_eta import (
     AUDIT,
     CRAWL,
@@ -46,9 +47,9 @@ class CoreStatus:
     """
 
     def __init__(self, w3af_core, output, scans_completed=0):
-        # Store the core to be able to access the queues to get status
-        self._w3af_core = w3af_core
         self._output = output
+        self._consumer_metrics = ConsumerMetrics()
+        self.set_w3af_core(w3af_core)
 
         # Init some internal values
         self._is_running = False
@@ -68,7 +69,16 @@ class CoreStatus:
         self._eta_calculator = EtaCalculator()
 
     def set_w3af_core(self, w3af_core):
-        self._w3af_core = w3af_core
+        if w3af_core is None:
+            self._consumer_metrics = ConsumerMetrics()
+            return
+
+        strategy = getattr(w3af_core, "strategy", None)
+        if strategy is None:
+            self._consumer_metrics.set_dependencies(None, None)
+            return
+
+        self._consumer_metrics.set_dependencies(strategy, lambda: w3af_core.worker_pool)
 
     def set_output(self, output):
         self._output = output
@@ -224,39 +234,22 @@ class CoreStatus:
         self._current_fuzzable_request[plugin_type] = fuzzable_request
 
     def get_crawl_input_speed(self):
-        dc = self._w3af_core.strategy.get_discovery_consumer()
-        return 0 if dc is None else dc.in_queue.get_input_rpm()
+        return self._consumer_metrics.get_input_speed(CRAWL)
 
     def get_crawl_output_speed(self):
-        dc = self._w3af_core.strategy.get_discovery_consumer()
-        return 0 if dc is None else dc.in_queue.get_output_rpm()
+        return self._consumer_metrics.get_output_speed(CRAWL)
 
     def get_crawl_qsize(self):
-        dc = self._w3af_core.strategy.get_discovery_consumer()
-        if dc is None:
-            return 0
-
-        running_tasks = dc.get_running_task_count()
-        queued_tasks = dc.in_queue.qsize()
-        return running_tasks + queued_tasks
+        return self._consumer_metrics.get_queue_size(CRAWL)
 
     def get_crawl_output_qsize(self):
-        dc = self._w3af_core.strategy.get_discovery_consumer()
-        return 0 if dc is None else dc.out_queue.qsize()
+        return self._consumer_metrics.get_output_queue_size(CRAWL)
 
     def get_crawl_processed_tasks(self):
-        dc = self._w3af_core.strategy.get_discovery_consumer()
-        return 0 if dc is None else dc.out_queue.get_processed_tasks()
+        return self._consumer_metrics.get_processed_tasks(CRAWL)
 
     def has_finished_crawl(self):
-        dc = self._w3af_core.strategy.get_discovery_consumer()
-
-        # The user never enabled crawl plugins or the scan has already finished
-        # and no crawl plugins will be run
-        if dc is None:
-            return True
-
-        return dc.has_finished()
+        return self._consumer_metrics.has_finished(CRAWL)
 
     def get_crawl_eta(self):
         if not self.has_started():
@@ -273,35 +266,19 @@ class CoreStatus:
         )
 
     def get_grep_processed_tasks(self):
-        gc = self._w3af_core.strategy.get_grep_consumer()
-        return None if gc is None else gc.in_queue.get_processed_tasks()
+        return self._consumer_metrics.get_processed_tasks(GREP)
 
     def get_grep_qsize(self):
-        gc = self._w3af_core.strategy.get_grep_consumer()
-        if gc is None:
-            return 0
-
-        running_tasks = gc.get_running_task_count()
-        queued_tasks = gc.in_queue.qsize()
-        return running_tasks + queued_tasks
+        return self._consumer_metrics.get_queue_size(GREP)
 
     def has_finished_grep(self):
-        gc = self._w3af_core.strategy.get_grep_consumer()
-
-        # The user never enabled grep plugins or the scan has already finished
-        # and no grep plugins will be run
-        if gc is None:
-            return True
-
-        return gc.has_finished()
+        return self._consumer_metrics.has_finished(GREP)
 
     def get_grep_input_speed(self):
-        gc = self._w3af_core.strategy.get_grep_consumer()
-        return 0 if gc is None else gc.in_queue.get_input_rpm()
+        return self._consumer_metrics.get_input_speed(GREP)
 
     def get_grep_output_speed(self):
-        gc = self._w3af_core.strategy.get_grep_consumer()
-        return 0 if gc is None else gc.in_queue.get_output_rpm()
+        return self._consumer_metrics.get_output_speed(GREP)
 
     def get_grep_eta(self):
         if not self.has_started():
@@ -318,35 +295,19 @@ class CoreStatus:
         )
 
     def get_audit_input_speed(self):
-        ac = self._w3af_core.strategy.get_audit_consumer()
-        return 0 if ac is None else ac.in_queue.get_input_rpm()
+        return self._consumer_metrics.get_input_speed(AUDIT)
 
     def get_audit_output_speed(self):
-        ac = self._w3af_core.strategy.get_audit_consumer()
-        return 0 if ac is None else ac.in_queue.get_output_rpm()
+        return self._consumer_metrics.get_output_speed(AUDIT)
 
     def get_audit_qsize(self):
-        ac = self._w3af_core.strategy.get_audit_consumer()
-        if ac is None:
-            return 0
-
-        running_tasks = ac.get_running_task_count()
-        queued_tasks = ac.in_queue.qsize()
-        return running_tasks + queued_tasks
+        return self._consumer_metrics.get_queue_size(AUDIT)
 
     def get_audit_processed_tasks(self):
-        ac = self._w3af_core.strategy.get_audit_consumer()
-        return 0 if ac is None else ac.in_queue.get_processed_tasks()
+        return self._consumer_metrics.get_processed_tasks(AUDIT)
 
     def has_finished_audit(self):
-        ac = self._w3af_core.strategy.get_audit_consumer()
-
-        # The user never enabled audit plugins or the scan has already finished
-        # and no audit plugins will be run
-        if ac is None:
-            return True
-
-        return ac.has_finished()
+        return self._consumer_metrics.has_finished(AUDIT)
 
     def get_audit_eta(self):
         if not self.has_started():
@@ -363,7 +324,7 @@ class CoreStatus:
         )
 
     def get_core_worker_pool_queue_size(self):
-        return self._w3af_core.worker_pool.get_inqueue().qsize()
+        return self._consumer_metrics.get_worker_pool_queue_size()
 
     def log_calculate_eta(
         self, eta, input_speed, output_speed, queue_size, _type, adjustment

@@ -162,6 +162,7 @@ class w3afCore:
         self.status = CoreStatus(self, output)
         self.target = CoreTarget()
         self.strategy = CoreStrategy(self, self.knowledge_base, output)
+        self.status.set_w3af_core(self)
 
         # Create the URI opener object
         self.uri_opener = ExtendedUrllib(output.log_http)

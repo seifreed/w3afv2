@@ -2926,3 +2926,19 @@ mypy focalizado y `git diff --check` están limpios. El score permanece en
 **6.25/10**: aún quedan en `CoreStatus` el lifecycle, el acceso a consumidores,
 la serialización y las reglas de ajuste por fase, además de la deuda global de
 cobertura, Bandit e integraciones externas.
+
+## Actualización verificada: métricas de consumidores fuera de CoreStatus
+
+`CoreStatus` ya no conserva el controlador completo para consultar consumidores
+y el worker pool. `ConsumerMetrics` concentra esas lecturas detrás de un
+proveedor de estrategia y un proveedor lazy del pool; la composición se enlaza
+después de crear `CoreStrategy`, y las copias serializables del estado quedan
+aisladas de esas dependencias runtime.
+
+Verificación: **49 tests pasaron** en status y exception handler; la suite
+completa de `w3afCore` mantiene **17 pasados y 14 fallos preexistentes** en
+manejo de excepciones y pausa/parada, reproducibles también en `c04667879`.
+Ruff, Black, mypy focalizado y `git diff --check` están limpios. El score
+permanece en **6.25/10** por el lifecycle restante, la serialización y las
+reglas de fase aún mezcladas en `CoreStatus`, cobertura 100% no demostrada,
+Bandit heredado e integraciones externas.
