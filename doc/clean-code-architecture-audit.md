@@ -3398,3 +3398,16 @@ warnings externos de `ldap3/pyasn1`; la batería focal pasó **46 tests en
 12.60 s**. Ruff, mypy focal y Bandit focal están limpios. El score se mantiene
 en **6.5/10** por cobertura global, módulos grandes y gates globales
 pendientes.
+
+## Actualización verificada: ciclo de vida del opener separado
+
+`OpenerLifecycle` concentra la construcción desde `BuiltOpeners`, el acceso al
+opener, el cierre de handlers keep-alive y la limpieza de cache. `OpenerSettings`
+conserva los métodos públicos y las propiedades privadas de recursos, pero ya
+no coordina directamente el almacenamiento y cierre de esos objetos.
+
+Verificación: la suite URL completa pasó **217 tests en 180.63 s**, con dos
+warnings externos de `ldap3/pyasn1`; la batería focal pasó **33 tests en
+3.23 s**. Ruff, mypy focal y Bandit focal están limpios. El score se mantiene
+en **6.5/10** por cobertura global, módulos grandes y gates globales
+pendientes.

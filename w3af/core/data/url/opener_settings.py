@@ -38,7 +38,7 @@ from w3af.core.data.url.authentication_settings import AuthenticationSettings
 from w3af.core.data.url.constants import MAX_HTTP_RETRIES
 from w3af.core.data.url.cookie_settings import CookieSettings
 from w3af.core.data.url.header_settings import HeaderSettings
-from w3af.core.data.url.opener_builder import OpenerBuilder
+from w3af.core.data.url.opener_lifecycle import OpenerLifecycle
 from w3af.core.data.url.proxy_settings import ProxySettings
 from w3af.core.data.url.url_parameter_settings import URLParameterSettings
 from w3af.core.exceptions import BaseFrameworkException
@@ -57,16 +57,12 @@ class OpenerSettings(Configurable):
 
         # Set the openers to None
         self._proxy = ProxySettings(cfg, LOGGER.debug)
-        self._ka_http = None
-        self._ka_https = None
         self._url_parameter = URLParameterSettings()
-        self._cache_handler = None
-        # Keep alive handlers are created on build_openers()
+        self._lifecycle = OpenerLifecycle()
 
         self._cookies = CookieSettings(cfg, LOGGER.debug)
 
         # Openers
-        self._uri_opener = None
         self._http_log_callback = http_log_callback
         self._authentication = AuthenticationSettings(cfg, self._mark_needs_update)
 
@@ -111,6 +107,22 @@ class OpenerSettings(Configurable):
     @property
     def _url_parameter_handler(self):
         return self._url_parameter.handler
+
+    @property
+    def _uri_opener(self):
+        return self._lifecycle.get_custom_opener()
+
+    @property
+    def _ka_http(self):
+        return self._lifecycle.http_handler
+
+    @property
+    def _ka_https(self):
+        return self._lifecycle.https_handler
+
+    @property
+    def _cache_handler(self):
+        return self._lifecycle.cache_handler
 
     @property
     def header_list(self):
@@ -176,10 +188,7 @@ class OpenerSettings(Configurable):
         self._headers.set_header_list(header_list)
 
     def close_connections(self):
-        handlers = (self._ka_http, self._ka_https)
-        for handler in handlers:
-            if handler is not None:
-                handler.close_all()
+        self._lifecycle.close_connections()
 
     def set_cookie_jar_file(self, cookiejar_file):
         self._cookies.set_cookie_jar_file(cookiejar_file)
@@ -240,7 +249,7 @@ class OpenerSettings(Configurable):
         self._authentication.set_ntlm_auth(url, ntlm_domain, username, password)
 
     def build_openers(self):
-        built_openers = OpenerBuilder(
+        self._lifecycle.build(
             self._http_log_callback,
             self.get_proxy(),
             self._proxy_handler,
@@ -250,14 +259,10 @@ class OpenerSettings(Configurable):
             self._mangle_plugins,
             self._url_parameter_handler,
             cfg.get("ignore_session_cookies"),
-        ).build()
-        self._uri_opener = built_openers.uri_opener
-        self._ka_http = built_openers.http_handler
-        self._ka_https = built_openers.https_handler
-        self._cache_handler = built_openers.cache_handler
+        )
 
     def get_custom_opener(self):
-        return self._uri_opener
+        return self._lifecycle.get_custom_opener()
 
     def clear_cache(self):
         """
@@ -266,11 +271,7 @@ class OpenerSettings(Configurable):
 
         :return: True if the cache was successfully cleared.
         """
-        if self._cache_handler is not None:
-            return self._cache_handler.clear()
-
-        # The is no cache, clear always is successful in this case
-        return True
+        return self._lifecycle.clear_cache()
 
     def set_mangle_plugins(self, mp):
         """
