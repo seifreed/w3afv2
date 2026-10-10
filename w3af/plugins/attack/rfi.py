@@ -24,7 +24,6 @@ import os
 import textwrap
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.daemons import webserver
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.misc.get_local_ip import get_local_ip
@@ -80,7 +79,7 @@ class rfi(AttackPlugin):
             om.out.error(msg)
             return False
 
-        rfi_vulns = kb.kb.get("rfi", "rfi")
+        rfi_vulns = self._get_knowledge_base().get("rfi", "rfi")
         if vuln_to_exploit is not None:
             rfi_vulns = [v for v in rfi_vulns if v.get_id() == vuln_to_exploit]
 
@@ -128,7 +127,7 @@ class rfi(AttackPlugin):
         :return: True if we can use the XSS vulnerabilities in the KB to
                  exploit the RFI vulnerability.
         """
-        xss_vulns = kb.kb.get("xss", "xss")
+        xss_vulns = self._get_knowledge_base().get("xss", "xss")
 
         if not xss_vulns:
             msg = (
