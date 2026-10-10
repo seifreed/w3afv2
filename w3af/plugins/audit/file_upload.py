@@ -27,7 +27,6 @@ from threading import RLock
 from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
@@ -267,7 +266,9 @@ class file_upload(AuditPlugin):
         :return: None
         """
         # Gen expr for directories where I can search for the uploaded file
-        domain_path_set = {u.get_domain_path() for u in kb.kb.get_all_known_urls()}
+        domain_path_set = {
+            u.get_domain_path() for u in self._get_knowledge_base().get_all_known_urls()
+        }
 
         msg = (
             "audit.file_upload will search for the uploaded file in %s"
