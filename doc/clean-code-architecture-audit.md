@@ -3330,3 +3330,16 @@ Verificación: la suite de plugins pasó **27 tests en 8.13 s** y
 Bandit focal están limpios; los warnings observados son externos de
 `ldap3/jsonschema`. El score se mantiene en **6.5/10** por cobertura global,
 módulos grandes y gates globales pendientes.
+
+## Actualización verificada: autenticación del opener separada
+
+`AuthenticationSettings` concentra el password manager, Basic Auth, NTLM y la
+persistencia de sus credenciales. `OpenerSettings` conserva los métodos
+públicos, handlers privados observables y la señal `need_update`, pero ya no
+mezcla esa política con cookies, proxy, cache y composición de handlers.
+
+Verificación: la suite URL completa pasó **217 tests en 181.60 s**, con dos
+warnings externos de `ldap3/pyasn1`; la batería focal pasó **46 tests**.
+Black, Ruff, mypy configurado y Bandit focal están limpios. El score se
+mantiene en **6.5/10** por cobertura global, módulos grandes y gates globales
+pendientes.

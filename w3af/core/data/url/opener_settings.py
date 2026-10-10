@@ -39,10 +39,9 @@ from w3af.core.data.options.option_types import (
     URL_LIST,
 )
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.url.authentication_settings import AuthenticationSettings
 from w3af.core.data.url.constants import MAX_HTTP_RETRIES, USER_AGENT
 from w3af.core.data.url.handlers.cookie_handler import CookieHandler
-from w3af.core.data.url.handlers.fast_basic_auth import FastHTTPBasicAuthHandler
-from w3af.core.data.url.handlers.ntlm_auth import HTTPNtlmAuthHandler
 from w3af.core.data.url.handlers.url_parameter import URLParameterHandler
 from w3af.core.data.url.opener_builder import OpenerBuilder
 from w3af.core.exceptions import BaseFrameworkException
@@ -61,14 +60,11 @@ class OpenerSettings(Configurable):
     def __init__(self, http_log_callback=None):
 
         # Set the openers to None
-        self._basic_auth_handler = None
         self._proxy_handler = None
         self._ka_http = None
         self._ka_https = None
         self._url_parameter_handler = None
-        self._ntlm_auth_handler = None
         self._cache_handler = None
-        self._password_mgr = None
         # Keep alive handlers are created on build_openers()
 
         cj = ImprovedMozillaCookieJar()
@@ -77,6 +73,7 @@ class OpenerSettings(Configurable):
         # Openers
         self._uri_opener = None
         self._http_log_callback = http_log_callback
+        self._authentication = AuthenticationSettings(cfg, self._mark_needs_update)
 
         # Some internal variables
         self.need_update = True
@@ -95,6 +92,21 @@ class OpenerSettings(Configurable):
         if cfg.get("user_agent") is None:
             # This is the first time we are executed...
             self.set_default_values()
+
+    @property
+    def _basic_auth_handler(self):
+        return self._authentication.basic_auth_handler
+
+    @property
+    def _ntlm_auth_handler(self):
+        return self._authentication.ntlm_auth_handler
+
+    @property
+    def _password_mgr(self):
+        return self._authentication.password_manager
+
+    def _mark_needs_update(self):
+        self.need_update = True
 
     def set_default_values(self):
         cfg.save("configured_timeout", 0)
@@ -298,55 +310,10 @@ class OpenerSettings(Configurable):
 
     def set_basic_auth(self, url, username, password):
         LOGGER.debug("Called set_basic_auth")
-
-        if not url:
-            if url is None:
-                raise BaseFrameworkException(
-                    "The entered basic_auth_domain" " URL is invalid!"
-                )
-            elif username or password:
-                msg = (
-                    "To properly configure the basic authentication"
-                    " settings, you should also set the auth domain. If you "
-                    " are unsure, you can set it to the target domain name"
-                    " (eg. www.target.com)"
-                )
-                raise BaseFrameworkException(msg)
-        else:
-            if self._password_mgr is None:
-                # Create a new password manager
-                self._password_mgr = urllib.request.HTTPPasswordMgrWithDefaultRealm()
-
-            # Add the username and password
-            domain = url.get_domain()
-            self._password_mgr.add_password(None, domain, username, password)
-            self._basic_auth_handler = FastHTTPBasicAuthHandler(self._password_mgr)
-
-            self.need_update = True
-
-        # Save'em!
-        cfg.save("basic_auth_passwd", password)
-        cfg.save("basic_auth_user", username)
-        cfg.save("basic_auth_domain", url)
+        self._authentication.set_basic_auth(url, username, password)
 
     def set_ntlm_auth(self, url, ntlm_domain, username, password):
-        cfg.save("ntlm_auth_passwd", password)
-        cfg.save("ntlm_auth_domain", ntlm_domain)
-        cfg.save("ntlm_auth_user", username)
-        cfg.save("ntlm_auth_url", url)
-
-        if self._password_mgr is None:
-            # create a new password manager
-            self._password_mgr = urllib.request.HTTPPasswordMgrWithDefaultRealm()
-
-        # HTTPNtmlAuthHandler expects username to have the domain name
-        # separated with a '\', so that's what we do here:
-        username = ntlm_domain + "\\" + username
-
-        self._password_mgr.add_password(None, url, username, password)
-        self._ntlm_auth_handler = HTTPNtlmAuthHandler(self._password_mgr)
-
-        self.need_update = True
+        self._authentication.set_ntlm_auth(url, ntlm_domain, username, password)
 
     def build_openers(self):
         built_openers = OpenerBuilder(
