@@ -3090,3 +3090,14 @@ Black y Ruff globales, mypy/Bandit focalizados, `pip-audit` y `git diff --check`
 siguen limpios. El score permanece en **6.25/10** por las deudas globales de
 composición, cobertura 100% no demostrada, mypy sobre el `venv` y Bandit
 heredado aún pendientes.
+
+## Actualización verificada: presentación de status separada
+
+`StatusPresenter` concentra los formatos JSON y texto largo que consumen las
+interfaces. `CoreStatus` conserva sus métodos públicos como delegaciones y
+mantiene únicamente estado, métricas y reglas de lifecycle.
+
+Verificación: **30 tests de status pasaron**; Black, Ruff, mypy focalizado,
+Bandit focalizado, `pip-audit` y `git diff --check` están limpios. El score
+permanece en **6.25/10** por la composición global, cobertura 100% no
+demostrada, mypy sobre el `venv` y Bandit heredado aún pendientes.

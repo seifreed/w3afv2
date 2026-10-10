@@ -36,6 +36,7 @@ from w3af.core.controllers.core_helpers.status_eta import (
     EtaCalculator,
 )
 from w3af.core.controllers.core_helpers.status_lifecycle import StatusLifecycle
+from w3af.core.controllers.core_helpers.status_presenter import StatusPresenter
 from w3af.core.controllers.misc.epoch_to_string import epoch_to_string
 from w3af.core.data.misc.number_generator import consecutive_number_generator
 
@@ -388,70 +389,7 @@ class CoreStatus:
         return epoch_to_string(time.time() - eta)
 
     def get_status_as_dict(self):
-        """
-        :return: The status as a dict which I can use in JSON responses
-        """
-
-        def serialize_fuzzable_request(fuzzable_request):
-            if fuzzable_request is None:
-                return fuzzable_request
-
-            return f"{fuzzable_request.get_method()} {fuzzable_request.get_uri()}"
-
-        crawl_fuzzable_request = self.get_current_fuzzable_request("crawl")
-        crawl_fuzzable_request = serialize_fuzzable_request(crawl_fuzzable_request)
-
-        audit_fuzzable_request = self.get_current_fuzzable_request("audit")
-        audit_fuzzable_request = serialize_fuzzable_request(audit_fuzzable_request)
-
-        eta_seconds = self.get_eta()
-        eta = self.epoch_eta_to_string(eta_seconds)
-        progress = self.get_progress_percentage(eta=eta_seconds)
-
-        data = {
-            "status": self.get_simplified_status(),
-            "is_paused": self.is_paused(),
-            "is_running": self.is_running(),
-            "active_plugin": {
-                "crawl": self.get_running_plugin("crawl"),
-                "audit": self.get_running_plugin("audit"),
-            },
-            "current_request": {
-                "crawl": crawl_fuzzable_request,
-                "audit": audit_fuzzable_request,
-            },
-            "queues": {
-                "crawl": {
-                    "input_speed": self.get_crawl_input_speed(),
-                    "output_speed": self.get_crawl_output_speed(),
-                    "length": self.get_crawl_qsize(),
-                    "processed_tasks": self.get_crawl_processed_tasks(),
-                },
-                "audit": {
-                    "input_speed": self.get_audit_input_speed(),
-                    "output_speed": self.get_audit_output_speed(),
-                    "length": self.get_audit_qsize(),
-                    "processed_tasks": self.get_audit_processed_tasks(),
-                },
-                "grep": {
-                    "input_speed": self.get_grep_input_speed(),
-                    "output_speed": self.get_grep_output_speed(),
-                    "length": self.get_grep_qsize(),
-                    "processed_tasks": self.get_grep_processed_tasks(),
-                },
-            },
-            "eta": {
-                "crawl": self.epoch_eta_to_string(self.get_crawl_eta()),
-                "audit": self.epoch_eta_to_string(self.get_audit_eta()),
-                "grep": self.epoch_eta_to_string(self.get_grep_eta()),
-                "all": eta,
-            },
-            "rpm": self.get_rpm(),
-            "sent_request_count": self.get_sent_request_count(),
-            "progress": progress,
-        }
-
-        return data
+        return StatusPresenter(self).as_dict()
 
     def get_progress_percentage(self, eta=None):
         """
@@ -594,53 +532,4 @@ class CoreStatus:
         return consecutive_number_generator.get()
 
     def get_long_status(self):
-        if not self.is_running():
-            return self.get_status()
-
-        eta_seconds = self.get_eta()
-
-        data = {
-            "status": self.get_status(),
-            "cin": self.get_crawl_input_speed(),
-            "cout": self.get_crawl_output_speed(),
-            "clen": self.get_crawl_qsize(),
-            "ceta": self.epoch_eta_to_string(self.get_crawl_eta()),
-            "ain": self.get_audit_input_speed(),
-            "aout": self.get_audit_output_speed(),
-            "alen": self.get_audit_qsize(),
-            "aeta": self.epoch_eta_to_string(self.get_audit_eta()),
-            "gin": self.get_grep_input_speed(),
-            "gout": self.get_grep_output_speed(),
-            "glen": self.get_grep_qsize(),
-            "geta": self.epoch_eta_to_string(self.get_grep_eta()),
-            "perc": self.get_progress_percentage(eta=eta_seconds),
-            "eta": self.epoch_eta_to_string(eta_seconds),
-            "rpm": self.get_rpm(),
-        }
-
-        status_str = "%(status)s\n"
-
-        status_str += (
-            "Crawl phase: In (%(cin).2f URLs/min)"
-            " Out (%(cout).2f URLs/min) Pending (%(clen)i URLs)"
-            " ETA (%(ceta)s)\n"
-        )
-
-        status_str += (
-            "Audit phase: In (%(ain).2f URLs/min)"
-            " Out (%(aout).2f URLs/min) Pending (%(alen)i URLs)"
-            " ETA (%(aeta)s)\n"
-        )
-
-        status_str += (
-            "Grep phase: In (%(gin).2f URLs/min)"
-            " Out (%(gout).2f URLs/min) Pending (%(glen)i URLs)"
-            " ETA (%(geta)s)\n"
-        )
-
-        status_str += "Requests per minute: %(rpm)s\n\n"
-
-        status_str += "Overall scan progress: %(perc)s%%\n"
-        status_str += "Time to complete scan: %(eta)s\n"
-
-        return status_str % data
+        return StatusPresenter(self).long_status()
