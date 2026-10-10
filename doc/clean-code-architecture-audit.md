@@ -1677,3 +1677,17 @@ Verificación: 3 tests integrados pasan, Ruff, Black y mypy pasan en el módulo
 modificado. El score sigue en **5.75/10**: quedan 70 imports directos de la KB,
 además de la cobertura, mocks, el fallo heredado de perfilado, la dependencia
 de Moth y los orquestadores grandes.
+
+## Actualización verificada: utilidades de KB y plantillas de vulnerabilidad
+
+`kb_url_extensions` recibe ahora la fuente de URLs explícitamente y
+`payment_webhook_finder` propaga su KB al filtrar extensiones y registrar
+resultados. `BaseTemplate.store_in_kb` también recibe el almacén de escritura,
+y el menú de consola lo compone con la KB real.
+
+Verificación: 13 tests focales de extensiones, plantillas y filtrado pasan,
+Ruff, Black y mypy pasan en los módulos modificados. La batería amplia sigue
+limitada por la infraestructura externa de Moth y por agotamiento de
+descriptores en el scan de webhooks. El score sigue en **5.75/10**: quedan 67
+imports directos de la KB, además de la cobertura, mocks, el fallo heredado de
+perfilado, la dependencia de Moth y los orquestadores grandes.
