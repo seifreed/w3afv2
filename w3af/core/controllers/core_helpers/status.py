@@ -21,8 +21,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import time
-from operator import xor
 
+from w3af.core.controllers.core_helpers.status_adjustments import (
+    get_audit_adjustment,
+    get_crawl_adjustment,
+    get_grep_adjustment,
+)
 from w3af.core.controllers.core_helpers.status_consumers import ConsumerMetrics
 from w3af.core.controllers.core_helpers.status_eta import (
     AUDIT,
@@ -518,104 +522,25 @@ class CoreStatus:
 
         :return: The crawl adjustment ratio to use in this run
         """
-        run_time = self.get_run_time_seconds()
-
-        #
-        # During the early phases of the scan it is easy to believe that the
-        # scan will finish soon (not many items in the queue). To prevent
-        # this we set a big adjustment ratio
-        #
-        if run_time < 60:
-            return Adjustment(known=0.5, unknown=7.5)
-
-        if run_time < 120:
-            return Adjustment(known=0.75, unknown=4.0)
-
-        return Adjustment(known=0.75, unknown=0.75)
+        return get_crawl_adjustment(self.get_run_time_seconds())
 
     def get_audit_adjustment_ratio(self):
         """
         :see: Documentation for get_crawl_adjustment_ratio
         """
-        run_time = self.get_run_time_seconds()
-
-        #
-        # We know that the crawl plugin has finished, no new items will be added
-        # to the audit queue. We can set audit adjustment ratio to zero
-        #
-        # In theory the queue's input speed should drop to zero quickly and
-        # the rate at which an unknown number of items is added to the queue
-        # should also drop. In reality this doesn't happen for at least
-        # QueueSpeedMeasurement.MAX_SECONDS_IN_THE_PAST seconds, so forcing
-        # this to zero is a really good idea
-        #
-        if self.has_finished_crawl():
-            return Adjustment(known=1.2, unknown=0)
-
-        #
-        # During the early phases of the scan it is easy to believe that the
-        # scan will finish soon (not many items in the queue). To prevent
-        # this we set a big adjustment ratio
-        #
-        if run_time < 60:
-            return Adjustment(known=1, unknown=3.0)
-
-        if run_time < 120:
-            return Adjustment(known=1, unknown=2.0)
-
-        return Adjustment(known=1.1, unknown=2.0)
+        return get_audit_adjustment(
+            self.get_run_time_seconds(), self.has_finished_crawl()
+        )
 
     def get_grep_adjustment_ratio(self):
         """
         :see: Documentation for get_crawl_adjustment_ratio
         """
-        run_time = self.get_run_time_seconds()
-
-        #
-        # When the audit and crawl plugins have finished the grep plugins need
-        # to consume the queue. No more new items will be added to the queue,
-        # so we can safely use an adjustment ratio of zero for the grep ETA
-        # because no "uncertain amount of tasks" will be added to the queue
-        #
-        # In theory the queue's input speed should drop to zero quickly and
-        # the rate at which an unknown number of items is added to the queue
-        # should also drop. In reality this doesn't happen for at least
-        # QueueSpeedMeasurement.MAX_SECONDS_IN_THE_PAST seconds, so forcing
-        # this to zero is a really good idea
-        #
-        if self.has_finished_crawl() and self.has_finished_audit():
-            return Adjustment(known=1.0, unknown=0, average=False)
-
-        #
-        # During the early phases of the scan it is easy to believe that the
-        # scan will finish soon (not many items in the queue). To prevent
-        # this we set a big adjustment ratio
-        #
-        if run_time < 30:
-            return Adjustment(known=1.0, unknown=40)
-
-        if run_time < 60:
-            return Adjustment(known=1.0, unknown=20)
-
-        if run_time < 120:
-            return Adjustment(known=1.0, unknown=10)
-
-        if run_time < 180:
-            return Adjustment(known=1.0, unknown=7.5)
-
-        #
-        # Crawl is running XOR Audit is running
-        #
-        crawl_finished = self.has_finished_crawl()
-        audit_finished = self.has_finished_audit()
-
-        if xor(crawl_finished, audit_finished):
-            return Adjustment(known=1.0, unknown=0.5, average=False)
-
-        #
-        # Crawl is running and Audit is running
-        #
-        return Adjustment(known=1.0, unknown=0.75)
+        return get_grep_adjustment(
+            self.get_run_time_seconds(),
+            self.has_finished_crawl(),
+            self.has_finished_audit(),
+        )
 
     def log_eta(self, msg):
         self._output.debug(f"[get_eta] {msg}")

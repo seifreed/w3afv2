@@ -2953,3 +2953,15 @@ Verificación: la prueba de segundo scan pasó; Black, Ruff y mypy focalizado
 están limpios. El score permanece en **6.25/10** por el lifecycle y la
 serialización aún acoplados, cobertura 100% no demostrada, Bandit heredado e
 integraciones externas.
+
+## Actualización verificada: reglas de ajuste de ETA extraídas
+
+Los umbrales de ajuste para crawl, audit y grep viven ahora en funciones puras
+de `status_adjustments.py`. `CoreStatus` conserva la API y aporta únicamente
+el tiempo de ejecución y el estado de los consumidores necesarios para elegir
+la regla.
+
+Verificación: **30 tests pasaron** en `CoreStatus`; Black, Ruff, mypy,
+Bandit focalizado y `git diff --check` están limpios. El score permanece en
+**6.25/10** por el lifecycle y la serialización aún acoplados, cobertura 100%
+no demostrada, Bandit heredado e integraciones externas.
