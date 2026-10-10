@@ -63,13 +63,13 @@ from w3af.core.data.url.http_request import HTTPRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.data.url.rate_limiter import RateLimiter
 from w3af.core.data.url.response_meta import SUCCESS, ResponseMeta
+from w3af.core.data.url.scan_request_control import ScanRequestControl
 from w3af.core.data.url.timeout_manager import TimeoutManager
 from w3af.core.data.user_agent.random_user_agent import get_random_user_agent
 from w3af.core.exceptions import (
     BaseFrameworkException,
     ScanMustStopByKnownReasonExc,
     ScanMustStopByUnknownReasonExc,
-    ScanMustStopByUserRequest,
     ScanMustStopException,
 )
 
@@ -127,9 +127,7 @@ class ExtendedUrllib:
         # User configured options (in an indirect way)
         self._grep_queue_put = None
         self._evasion_plugins = []
-        self._user_paused = False
-        self._user_stopped = False
-        self._stop_exception = None
+        self._request_control = ScanRequestControl()
 
     def get_average_rtt_for_mutant(self, *args, **kwargs):
         return self._average_rtt_mutant.get_average_rtt_for_mutant(*args, **kwargs)
@@ -142,13 +140,21 @@ class ExtendedUrllib:
         :param pause_yes_no: True if I want to pause the scan;
                              False to un-pause it.
         """
-        self._user_paused = pause_yes_no
+        self._request_control.pause(pause_yes_no)
 
     def stop(self):
         """
         Called when the user wants to finish a scan.
         """
-        self._user_stopped = True
+        self._request_control.stop()
+
+    @property
+    def _stop_exception(self):
+        return self._request_control.stop_exception
+
+    @_stop_exception.setter
+    def _stop_exception(self, exception):
+        self._request_control.stop_exception = exception
 
     def set_worker_pool_provider(self, provider, min_workers, max_workers):
         self._worker_pool_provider = provider
@@ -163,9 +169,9 @@ class ExtendedUrllib:
             - Memory debugging features
         """
         # Handle errors (HTTP timeout, etc.)
-        self._raise_if_should_stop()
+        self._request_control.raise_if_should_stop()
 
-        self._pause_and_stop()
+        self._request_control.pause_and_stop()
         self._pause_on_http_error(request)
 
         if not self.exploit_mode:
@@ -406,43 +412,11 @@ class ExtendedUrllib:
         """
         self._rate_limiter.wait()
 
-    def _raise_if_should_stop(self):
-        # There might be errors that make us stop the process, the exception
-        # was already raised (see below) but we want to make sure that we
-        # keep raising it until the w3afCore really stops.
-        if self._stop_exception is not None:
-            raise self._stop_exception
-
-    def _pause_and_stop(self):
-        """
-        This method sleeps until self._user_paused is False.
-        """
-
-        def analyze_state():
-            # This handles the case where the user pauses and then stops
-            if self._user_stopped:
-                # Raise the exception to stop the scan, this exception will be
-                # raised all the time until we un-set the self._user_stopped
-                # attribute
-                msg = "The user stopped the scan."
-                raise ScanMustStopByUserRequest(msg)
-
-            # Handle errors (HTTP timeout, etc.)
-            self._raise_if_should_stop()
-
-        while self._user_paused:
-            time.sleep(0.2)
-            analyze_state()
-
-        analyze_state()
-
     def clear(self):
         """
         Clear all status set during the scanner run
         """
-        self._user_stopped = False
-        self._user_paused = False
-        self._stop_exception = None
+        self._request_control.clear()
         self._total_requests = 0
         self.set_exploit_mode(False)
         self._last_responses.extend([ResponseMeta(True, SUCCESS)] * 100)

@@ -3116,3 +3116,15 @@ demostrada, mypy sobre el `venv` y Bandit heredado aún pendientes.
 
 Revalidación posterior: la suite core completa conserva **31/31 tests pasados**
 tras la extracción de `_run_strategy()`.
+
+## Actualización verificada: control de requests separado
+
+`ScanRequestControl` encapsula pausa, stop, excepción persistente de parada y
+reset del estado de requests. `ExtendedUrllib` conserva `pause()`, `stop()` y
+la compatibilidad observable de `_stop_exception`, pero ya no posee esa lógica
+de lifecycle directamente junto al transporte HTTP.
+
+Verificación: **56 tests de URL pasaron**; Black, Ruff, mypy focalizado, Bandit
+focalizado, `pip-audit` y `git diff --check` están limpios. El score permanece
+en **6.25/10** por la composición global, cobertura 100% no demostrada, mypy
+sobre el `venv` y Bandit heredado aún pendientes.
