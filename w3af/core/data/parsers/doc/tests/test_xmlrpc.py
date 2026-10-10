@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import html
 import unittest
-import xml.sax
 
 from w3af.core.data.dc.utils.token import DataToken
 from w3af.core.data.parsers.doc.xmlrpc import (
@@ -31,6 +30,7 @@ from w3af.core.data.parsers.doc.xmlrpc import (
     build_xmlrpc,
     parse_xmlrpc,
 )
+from w3af.core.data.parsers.utils.safe_sax import parse_string
 
 XML_WITH_FUZZABLE = """\
 <methodCall>
@@ -69,7 +69,7 @@ class TestXMLRPC(unittest.TestCase):
 
     def test_reader(self):
         handler = XmlRpcReadHandler()
-        xml.sax.parseString(XML_WITH_FUZZABLE, handler)
+        parse_string(XML_WITH_FUZZABLE, handler)
 
         EXPECTED = [("string", ["Foo bar"]), ("base64", ["Spam eggs"])]
 
@@ -77,7 +77,7 @@ class TestXMLRPC(unittest.TestCase):
 
     def test_writer(self):
         handler = XmlRpcReadHandler()
-        xml.sax.parseString(XML_WITH_FUZZABLE, handler)
+        parse_string(XML_WITH_FUZZABLE, handler)
 
         data_container = handler.get_data_container()
         payload = "<script>alert(1)</script>"
@@ -87,7 +87,7 @@ class TestXMLRPC(unittest.TestCase):
 
         fuzzed = XML_WITH_FUZZABLE.replace("Foo bar", html.escape(payload, quote=False))
 
-        xml.sax.parseString(XML_WITH_FUZZABLE, handler)
+        parse_string(XML_WITH_FUZZABLE, handler)
         self.assertEqual(handler.fuzzed_xml_string, fuzzed)
 
     def test_parse_and_build_with_tokens_and_attributes(self):
