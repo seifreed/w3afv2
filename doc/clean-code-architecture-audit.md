@@ -1992,3 +1992,13 @@ Verificación: 34 tests y 20 subtests pasan; Ruff, Black y mypy están limpios
 en los seis plugins. El score sigue en **5.75/10**: quedan 12 imports directos
 de la KB en producción, además de la cobertura, mocks, el fallo heredado de
 perfilado, la dependencia de Moth y los orquestadores grandes.
+
+## Actualización verificada: estado del servidor y hosting compartido
+
+`server_status` y `shared_hosting` consultan y escriben la KB mediante la
+dependencia de `InfrastructurePlugin`, sin imports del singleton global.
+
+Verificación: 10 tests pasan, con Ruff, Black y mypy limpios en ambos plugins.
+El score sigue en **5.75/10**: quedan 10 imports directos de la KB en
+producción, además de la cobertura, mocks, el fallo heredado de perfilado, la
+dependencia de Moth y los orquestadores grandes.
