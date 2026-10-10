@@ -203,5 +203,5 @@ class DAVShell(ExecShell):
             None,
             None,
             self.exploit_url,
-            self._output,
+            None,
         )

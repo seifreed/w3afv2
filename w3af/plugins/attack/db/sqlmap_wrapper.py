@@ -72,6 +72,9 @@ class SQLMapWrapper:
         if uri_opener is not None:
             self.start_proxy(uri_opener)
 
+    def set_output(self, output):
+        self._output = output
+
     def start_proxy(self, uri_opener):
         """
         Saves the proxy configuration to self.local_proxy_url in order for the
@@ -101,7 +104,7 @@ class SQLMapWrapper:
         return self.__class__, (
             self.target,
             None,
-            self._output,
+            None,
             self.coloring,
             self.debug,
         )

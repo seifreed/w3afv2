@@ -447,10 +447,14 @@ class TestKnowledgeBase(unittest.TestCase):
         """
         w3af_core = w3afCore()
         target = Target(URL("http://w3af.org/"))
-        sqlmap_wrapper = SQLMapWrapper(target, w3af_core.uri_opener)
+        sqlmap_wrapper = SQLMapWrapper(target, w3af_core.uri_opener, w3af_core._output)
 
         sqlmap_shell = SQLMapShell(
-            MockVuln(), w3af_core.uri_opener, w3af_core.worker_pool, sqlmap_wrapper
+            MockVuln(),
+            w3af_core.uri_opener,
+            w3af_core.worker_pool,
+            sqlmap_wrapper,
+            w3af_core._output,
         )
         kb.append("a", "b", sqlmap_shell)
 
@@ -462,6 +466,8 @@ class TestKnowledgeBase(unittest.TestCase):
         self.assertIs(unpickled_shell._uri_opener, w3af_core.uri_opener)
         self.assertIs(unpickled_shell.worker_pool, w3af_core.worker_pool)
         self.assertIs(unpickled_shell.sqlmap.proxy._uri_opener, w3af_core.uri_opener)
+        self.assertIs(unpickled_shell._output, w3af_core.output)
+        self.assertIs(unpickled_shell.sqlmap._output, w3af_core.output)
 
         w3af_core.quit()
 
@@ -473,7 +479,11 @@ class TestKnowledgeBase(unittest.TestCase):
         exploit_url = URL("http://w3af.org/")
 
         shell = DAVShell(
-            MockVuln(), w3af_core.uri_opener, w3af_core.worker_pool, exploit_url
+            MockVuln(),
+            w3af_core.uri_opener,
+            w3af_core.worker_pool,
+            exploit_url,
+            w3af_core._output,
         )
         kb.append("a", "b", shell)
 
@@ -485,6 +495,7 @@ class TestKnowledgeBase(unittest.TestCase):
         self.assertIs(unpickled_shell._uri_opener, w3af_core.uri_opener)
         self.assertIs(unpickled_shell.worker_pool, w3af_core.worker_pool)
         self.assertEqual(unpickled_shell.exploit_url, shell.exploit_url)
+        self.assertIs(unpickled_shell._output, w3af_core.output)
 
         w3af_core.quit()
 
@@ -498,7 +509,11 @@ class TestKnowledgeBase(unittest.TestCase):
         shellcode_generator = shellcodes[0][2]
 
         shell = EvalShell(
-            MockVuln(), w3af_core.uri_opener, w3af_core.worker_pool, shellcode_generator
+            MockVuln(),
+            w3af_core.uri_opener,
+            w3af_core.worker_pool,
+            shellcode_generator,
+            w3af_core._output,
         )
         kb.append("a", "b", shell)
 
@@ -523,7 +538,11 @@ class TestKnowledgeBase(unittest.TestCase):
         exploit_url = URL("http://w3af.org/")
 
         shell = FileUploadShell(
-            MockVuln(), w3af_core.uri_opener, w3af_core.worker_pool, exploit_url
+            MockVuln(),
+            w3af_core.uri_opener,
+            w3af_core.worker_pool,
+            exploit_url,
+            w3af_core._output,
         )
         kb.append("a", "b", shell)
 
@@ -548,7 +567,12 @@ class TestKnowledgeBase(unittest.TestCase):
         vuln = MockVuln()
 
         shell = FileReaderShell(
-            vuln, w3af_core.uri_opener, w3af_core.worker_pool, header_len, footer_len
+            vuln,
+            w3af_core.uri_opener,
+            w3af_core.worker_pool,
+            header_len,
+            footer_len,
+            w3af_core._output,
         )
         kb.append("a", "b", shell)
 
@@ -600,7 +624,11 @@ class TestKnowledgeBase(unittest.TestCase):
         exploit_mutant = QSMutant.create_mutants(freq, [""], [], False, {})[0]
 
         shell = RFIShell(
-            vuln, w3af_core.uri_opener, w3af_core.worker_pool, exploit_mutant
+            vuln,
+            w3af_core.uri_opener,
+            w3af_core.worker_pool,
+            exploit_mutant,
+            w3af_core._output,
         )
         kb.append("a", "b", shell)
 
@@ -661,6 +689,7 @@ class TestKnowledgeBase(unittest.TestCase):
             str_delim,
             true_cond,
             is_error_response,
+            w3af_core._output,
         )
         kb.append("a", "b", shell)
 

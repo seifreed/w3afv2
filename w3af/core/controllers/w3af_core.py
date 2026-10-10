@@ -366,6 +366,10 @@ class w3afCore:
     def worker_pool(self):
         return self._worker_pool_manager.get_pool()
 
+    @property
+    def output(self):
+        return self._output
+
     def can_cleanup(self):
         return self.status.get_simplified_status() == STOPPED
 

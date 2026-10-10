@@ -373,5 +373,5 @@ class FileReaderShell(ReadShell):
             None,
             self._header_length,
             self._footer_length,
-            self._output,
+            None,
         )

@@ -233,5 +233,5 @@ class FileUploadShell(ExecShell):
             None,
             None,
             self._exploit_url,
-            self._output,
+            None,
         )

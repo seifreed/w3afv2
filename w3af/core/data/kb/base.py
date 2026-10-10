@@ -290,6 +290,9 @@ class BasicKnowledgeBase:
 
         for shell in self.get_all_entries_of_class(Shell):
             if w3af_core is not None:
+                set_output = getattr(shell, "set_output", None)
+                if set_output is not None:
+                    set_output(w3af_core.output)
                 shell.set_url_opener(w3af_core.uri_opener)
                 shell.set_worker_pool(w3af_core.worker_pool)
                 shell.set_knowledge_base(w3af_core.knowledge_base)

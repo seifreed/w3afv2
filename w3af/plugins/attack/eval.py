@@ -191,5 +191,5 @@ class EvalShell(ExecShell):
             None,
             None,
             self.shellcode_generator,
-            self._output,
+            None,
         )

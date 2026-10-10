@@ -543,5 +543,5 @@ class RFIShell(ExecShell, PortScanShell):
             None,
             None,
             self._exploit_mutant,
-            self._output,
+            None,
         )

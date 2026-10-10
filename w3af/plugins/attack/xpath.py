@@ -484,7 +484,7 @@ class XPathReader(Shell):
             self.STR_DELIM,
             self.TRUE_COND,
             self.is_error_resp,
-            self._output,
+            None,
         )
 
 

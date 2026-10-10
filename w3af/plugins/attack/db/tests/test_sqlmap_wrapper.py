@@ -26,6 +26,7 @@ import unittest
 
 import pytest
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.ci.moth import get_moth_http, get_moth_https
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
@@ -53,7 +54,7 @@ class TestSQLMapWrapper(unittest.TestCase):
 
         self.uri_opener = ExtendedUrllib()
 
-        self.sqlmap = SQLMapWrapper(target, self.uri_opener, debug=True)
+        self.sqlmap = SQLMapWrapper(target, self.uri_opener, om.out, debug=True)
 
     def tearDown(self):
         self.uri_opener.end()
@@ -83,7 +84,7 @@ class TestSQLMapWrapper(unittest.TestCase):
 
         self.uri_opener = ExtendedUrllib()
 
-        self.sqlmap = SQLMapWrapper(target, self.uri_opener)
+        self.sqlmap = SQLMapWrapper(target, self.uri_opener, om.out)
         vulnerable = self.sqlmap.is_vulnerable()
         self.assertTrue(vulnerable, self.sqlmap.last_stdout)
 
@@ -94,7 +95,7 @@ class TestSQLMapWrapper(unittest.TestCase):
         uri = URL(not_vuln)
         target = Target(uri)
 
-        self.sqlmap = SQLMapWrapper(target, self.uri_opener)
+        self.sqlmap = SQLMapWrapper(target, self.uri_opener, om.out)
 
         vulnerable = self.sqlmap.is_vulnerable()
         self.assertFalse(vulnerable)
@@ -102,19 +103,21 @@ class TestSQLMapWrapper(unittest.TestCase):
     def test_verify_vulnerability_POST(self):
         target = Target(URL(self.SQLI_POST), self.DATA_POST)
 
-        self.sqlmap = SQLMapWrapper(target, self.uri_opener)
+        self.sqlmap = SQLMapWrapper(target, self.uri_opener, om.out)
 
         vulnerable = self.sqlmap.is_vulnerable()
         self.assertTrue(vulnerable, self.sqlmap.last_stdout)
 
     def test_wrapper_invalid_url(self):
-        self.assertRaises(TypeError, SQLMapWrapper, self.SQLI_GET, self.uri_opener)
+        self.assertRaises(
+            TypeError, SQLMapWrapper, self.SQLI_GET, self.uri_opener, om.out
+        )
 
     def test_stds(self):
         uri = URL(self.SQLI_GET)
         target = Target(uri)
 
-        self.sqlmap = SQLMapWrapper(target, self.uri_opener)
+        self.sqlmap = SQLMapWrapper(target, self.uri_opener, om.out)
 
         prms = [
             "--batch",
@@ -157,7 +160,7 @@ class TestSQLMapWrapper(unittest.TestCase):
         uri = URL(self.SQLI_GET)
         target = Target(uri)
 
-        sqlmap = SQLMapWrapper(target, self.uri_opener, coloring=True)
+        sqlmap = SQLMapWrapper(target, self.uri_opener, om.out, coloring=True)
         params = sqlmap.get_wrapper_params()
         self.assertNotIn("--disable-coloring", params)
 

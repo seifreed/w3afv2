@@ -3654,3 +3654,20 @@ macOS.
 Verificación: `CorePlugins` pasó **28 tests** y la salida real del catálogo se
 comprueba como ordenada. El score se mantiene en **6.5/10** mientras quedan
 pendientes la eliminación de singletons y la cobertura global.
+
+## Actualización verificada: dependencias runtime de shells
+
+La inyección explícita de `output` en los shells de ataque había dejado una
+regresión de persistencia: los reducers serializaban `LogSink` y su
+`multiprocessing.Queue` junto con el shell. Ahora los reducers serializan solo
+el estado persistente; `BasicKnowledgeBase.get_all_shells()` reinyecta el
+output antes del opener, el pool y la KB, y `SQLMapWrapper` restaura también su
+sink antes de recrear el proxy.
+
+Verificación: `test_knowledge_base.py` pasa **68 tests** y la batería local de
+SQLMap pasa **67 tests**, sin mocks. Ruff, Black y mypy focal están limpios.
+Los tests de ataque que requieren `moth`/`php_moth` siguen sin poder ejecutarse
+en este entorno porque esos hosts no resuelven; no se ha ocultado ese fallo.
+El score se mantiene en **6.5/10**: se cierra una regresión de boundary y
+serialización, pero siguen pendientes los singletons de composición, la
+cobertura global del 100% y la verificación completa de los gates globales.

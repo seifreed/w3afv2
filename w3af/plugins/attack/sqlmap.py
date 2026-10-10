@@ -367,8 +367,12 @@ class SQLMapShell(ReadShell):
             None,
             None,
             self.sqlmap,
-            self._output,
+            None,
         )
+
+    def set_output(self, output):
+        super().set_output(output)
+        self.sqlmap.set_output(output)
 
     def set_url_opener(self, uo):
         if uo is not None:
