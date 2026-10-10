@@ -21,16 +21,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
-import sys
 from functools import partial
 
 from w3af import ROOT_PATH
+from w3af.core.controllers.core_helpers.plugin_catalog import PluginCatalog
 from w3af.core.controllers.misc.factory import factory
-from w3af.core.controllers.misc.get_file_list import get_file_list
-from w3af.core.exceptions import BaseFrameworkException
 
 
-class CorePlugins:
+class CorePlugins(PluginCatalog):
 
     def __init__(self, w3af_core, output, output_manager):
         self._w3af_core = w3af_core
@@ -190,46 +188,6 @@ class CorePlugins:
 
         return unknown_plugins
 
-    def get_plugin_type_desc(self, plugin_type):
-        """
-        :param plugin_type: The type of plugin for which we want a description.
-        :return: A description of the plugin type passed as parameter
-        """
-        try:
-            __import__(f"w3af.plugins.{plugin_type}")
-            a_module = sys.modules[f"w3af.plugins.{plugin_type}"]
-        except Exception as e:
-            msg = 'Unknown plugin type: "%s".'
-            raise BaseFrameworkException(msg % plugin_type) from e
-        else:
-            return a_module.get_long_description()
-
-    def get_plugin_types(self):
-        """
-        :return: A list with all plugin types.
-        """
-
-        plugin_root = os.path.join(ROOT_PATH, "plugins")
-        plugin_types = os.listdir(plugin_root)
-        plugin_types = [
-            d
-            for d in plugin_types
-            if os.path.isfile(os.path.join(plugin_root, d, "__init__.py"))
-        ]
-        plugin_types = [
-            plugin_type
-            for plugin_type in plugin_types
-            if plugin_type not in {"attack", "tests"}
-        ]
-        return plugin_types
-
-    def get_plugin_list(self, plugin_type):
-        """
-        :return: A string list of the names of all available plugins by type.
-        """
-        str_plugin_list = get_file_list(os.path.join(ROOT_PATH, "plugins", plugin_type))
-        return str_plugin_list
-
     def get_plugin_inst(self, plugin_type, plugin_name):
         """
         :return: An instance of a plugin.
@@ -250,10 +208,6 @@ class CorePlugins:
             self.init_plugins()
 
         return plugin_inst
-
-    def get_quick_instance(self, plugin_type, plugin_name):
-        plugin_module = f"w3af.plugins.{plugin_type}.{plugin_name}"
-        return factory(plugin_module)
 
     def expand_all(self):
         for plugin_type, enabled_plugins in self._plugins_names_dict.items():

@@ -23,22 +23,21 @@ from typing import Any
 
 from flask import Response, jsonify
 
-import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.core_helpers.plugins import CorePlugins
+from w3af.core.controllers.core_helpers.plugin_catalog import PluginCatalog
 from w3af.core.ui.api.application import app
 from w3af.core.ui.api.utils.auth import requires_auth
 from w3af.core.ui.api.utils.error import abort
 
 
-def plugin_catalog() -> CorePlugins:
+def plugin_catalog() -> PluginCatalog:
     """
     :return: The plugin manager used to query the available plugins; it is not
              attached to any scan
     """
-    return CorePlugins(None, om.out, om.manager)
+    return PluginCatalog()
 
 
-def plugin_exists(catalog: CorePlugins, plugin_type: str, plugin_name: str) -> bool:
+def plugin_exists(catalog: PluginCatalog, plugin_type: str, plugin_name: str) -> bool:
     return plugin_type in catalog.get_plugin_types() and (
         plugin_name in catalog.get_plugin_list(plugin_type)
     )
@@ -84,7 +83,7 @@ def get_plugin(plugin_type: str, plugin_name: str) -> Response:
     )
 
 
-def plugin_type_to_json(catalog: CorePlugins, plugin_type: str) -> dict[str, Any]:
+def plugin_type_to_json(catalog: PluginCatalog, plugin_type: str) -> dict[str, Any]:
     return {
         "type": plugin_type,
         "description": catalog.get_plugin_type_desc(plugin_type).strip(),

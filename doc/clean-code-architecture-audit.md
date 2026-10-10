@@ -2862,3 +2862,15 @@ Verificación: **29 tests pasaron** en toda la suite del OutputManager; Ruff,
 Black, mypy focalizado y `git diff --check` están limpios. El score permanece
 en **6.25/10** por los globals de composición restantes, cobertura 100% no
 demostrada, Bandit heredado, mocks e integraciones Moth.
+
+## Actualización verificada: catálogo de plugins separado del runtime de scans
+
+El descubrimiento de tipos, nombres, descripciones e instancias rápidas de
+plugins vive ahora en `PluginCatalog`, una dependencia de solo lectura que no
+requiere sink ni `OutputManager`. `CorePlugins` reutiliza esa capacidad para el
+runtime de scans y el API REST deja de construirlo con dependencias globales.
+
+Verificación: **37 tests y 9 subtests pasaron** en API de plugins/perfiles y
+CorePlugins; Ruff, Black, mypy focalizado y `git diff --check` están limpios.
+El score permanece en **6.25/10** por los globals de composición restantes,
+cobertura 100% no demostrada, Bandit heredado, mocks e integraciones Moth.
