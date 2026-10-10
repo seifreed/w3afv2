@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.delay_detection.aprox_delay import AproxDelay
 from w3af.core.controllers.delay_detection.aprox_delay_controller import (
     EXPONENTIALLY,
@@ -129,11 +128,15 @@ class redos(AuditPlugin):
         #       subscribe to changes to these kb locations and perform checks
         #       on local attributes which are updated only when the kb sends
         #       us some information
-        for powered_by in kb.kb.raw_read("server_header", "powered_by_string"):
+        for powered_by in self._get_knowledge_base().raw_read(
+            "server_header", "powered_by_string"
+        ):
             if "php" in powered_by.lower():
                 return True
 
-        for preg_replace_vuln in kb.kb.get("preg_replace", "preg_replace"):
+        for preg_replace_vuln in self._get_knowledge_base().get(
+            "preg_replace", "preg_replace"
+        ):
             if preg_replace_vuln.get_url() == freq.get_url():
                 return True
 
