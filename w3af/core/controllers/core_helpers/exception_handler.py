@@ -123,7 +123,13 @@ class ExceptionHandler:
         # the way we want to.
         #
         with self._lock:
-            edata = ExceptionData(current_status, exception, tb, enabled_plugins)
+            edata = ExceptionData(
+                current_status,
+                exception,
+                tb,
+                enabled_plugins,
+                self._configuration,
+            )
 
             count = 0
             for stored_edata in self._exception_data:
@@ -282,7 +288,9 @@ class ExceptionHandler:
 
 
 class ExceptionData:
-    def __init__(self, current_status, e, tb, enabled_plugins, store_tb=True):
+    def __init__(
+        self, current_status, e, tb, enabled_plugins, configuration, store_tb=True
+    ):
         """
         :param current_status: The CoreStatus instance
         :param e: Exception instance
@@ -310,12 +318,16 @@ class ExceptionData:
         self.status = None
         self.fuzzable_request = None
 
-        self._initialize(current_status, e, tb, enabled_plugins, store_tb)
+        self._initialize(
+            current_status, e, tb, enabled_plugins, configuration, store_tb
+        )
 
-    def _initialize(self, current_status, e, tb, enabled_plugins, store_tb):
+    def _initialize(
+        self, current_status, e, tb, enabled_plugins, configuration, store_tb
+    ):
         self._initialize_from_exception(e)
-        self._initialize_from_traceback(tb, store_tb)
-        self._initialize_from_status(current_status)
+        self._initialize_from_traceback(tb, configuration, store_tb)
+        self._initialize_from_status(current_status, configuration)
         self._initialize_from_plugins(enabled_plugins)
 
     def _initialize_from_exception(self, e):
@@ -323,7 +335,7 @@ class ExceptionData:
         self.exception_msg = str(e)
         self.exception_class = e.__class__.__name__
 
-    def _initialize_from_status(self, current_status):
+    def _initialize_from_status(self, current_status, configuration):
         self.phase, self.plugin = current_status.latest_running_plugin()
 
         #
@@ -337,12 +349,14 @@ class ExceptionData:
         self.status.set_output(None)
 
         self.fuzzable_request = current_status.get_current_fuzzable_request(self.phase)
-        self.fuzzable_request = cleanup_bug_report(str(self.fuzzable_request))
+        self.fuzzable_request = cleanup_bug_report(
+            str(self.fuzzable_request), configuration
+        )
 
     def _initialize_from_plugins(self, enabled_plugins):
         self.enabled_plugins = enabled_plugins
 
-    def _initialize_from_traceback(self, tb, store_tb):
+    def _initialize_from_traceback(self, tb, configuration, store_tb):
         if store_tb:
             #
             # According to [0] it is not a good idea to keep references to tracebacks:
@@ -366,7 +380,7 @@ class ExceptionData:
             traceback_string = "".join(traceback.format_tb(tb))
             self.exception.original_traceback_string = traceback_string
 
-        self.traceback_str = cleanup_bug_report(traceback_string)
+        self.traceback_str = cleanup_bug_report(traceback_string, configuration)
 
     def get_summary(self):
         res = (

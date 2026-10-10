@@ -561,6 +561,19 @@ están limpios. El score sube a **7.5/10** en Clean Architecture y **7.4/10**
 global. Todavía quedan consumidores de configuración global en plugins,
 controladores y parsers, además de la cobertura y gates completos.
 
+## Actualización verificada: sanitización de excepciones con configuración inyectada
+
+`cleanup_bug_report()` dejó de leer `cf.cf` y recibe la configuración explícita.
+`ExceptionHandler` y `BaseConsumer` la entregan al construir `ExceptionData`,
+pero `ExceptionData` no la conserva como atributo, por lo que sus objetos
+siguen siendo serializables y no retienen el core completo.
+
+Verificación: limpieza de informes **3 tests**, manejo de excepciones **19** y
+consumidor base **23**. Black, Ruff, mypy, Bandit focal y compilación Python
+están limpios. El score sube a **7.7/10** en Clean Architecture y **7.6/10**
+global. Aún quedan accesos globales en fingerprint 404, URL/openers,
+fuzzers, parsers y plugins.
+
 ## Avance: configuración de home fuera de controllers
 
 `get_home_dir` y `HOME_DIR` son configuración de rutas de usuario, no

@@ -23,12 +23,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 import re
 
-import w3af.core.data.kb.config as cf
-
 EXPLICIT_CRASH_REPORT = os.environ.get("EXPLICIT_CRASH_REPORT", "0") == "1"
 
 
-def cleanup_bug_report(_input):
+def cleanup_bug_report(_input, configuration):
     """
     :return: A string that contains a "clean" bug report. The function will
              remove all references to the target site, operating system user
@@ -50,7 +48,7 @@ def cleanup_bug_report(_input):
     _input = re.sub(user_re, "/home/user/", _input)
     _input = re.sub(user_re_win, "C:/user/", _input)
 
-    targets = cf.cf.get("targets")
+    targets = configuration.get("targets")
     if targets is not None:
         domains = [url.get_domain() for url in targets]
         paths = [url.get_path() for url in targets if len(url.get_path()) >= 3]

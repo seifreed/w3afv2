@@ -38,7 +38,7 @@ class TestCleanupBugReport(unittest.TestCase):
             ("start C:\\Documents and Settings\\CIA\\ end", "start C:/user/ end"),
         ]
         for _input, _expected in TESTS:
-            self.assertEqual(cleanup_bug_report(_input), _expected)
+            self.assertEqual(cleanup_bug_report(_input, cf.cf), _expected)
 
     def test_url_cleanup_no_path(self):
 
@@ -50,7 +50,7 @@ class TestCleanupBugReport(unittest.TestCase):
             ],
         )
         self.assertEqual(
-            cleanup_bug_report("start http://www.target.com/ end"),
+            cleanup_bug_report("start http://www.target.com/ end", cf.cf),
             "start http://domain/ end",
         )
 
@@ -64,6 +64,6 @@ class TestCleanupBugReport(unittest.TestCase):
             ],
         )
         self.assertEqual(
-            cleanup_bug_report("start http://www.target.com/abc/def end"),
+            cleanup_bug_report("start http://www.target.com/abc/def end", cf.cf),
             "start http://domain/path/foo/def end",
         )

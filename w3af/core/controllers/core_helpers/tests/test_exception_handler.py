@@ -71,6 +71,7 @@ class TestExceptionHandler(unittest.TestCase):
                 error,
                 sys.exc_info()[2],
                 "",
+                cf.cf,
             )
 
         self.exception_handler.handle_exception_data(exception_data)
@@ -329,14 +330,14 @@ class TestExceptionData(unittest.TestCase):
 
     def test_requires_exception_instance(self):
         with self.assertRaisesRegex(TypeError, "e must be an Exception"):
-            ExceptionData(None, None, None, "")
+            ExceptionData(None, None, None, "", cf.cf)
 
     def test_requires_core_status_instance(self):
         with self.assertRaisesRegex(
             TypeError,
             "current_status must be a CoreStatus",
         ):
-            ExceptionData(None, ValueError(), None, "")
+            ExceptionData(None, ValueError(), None, "", cf.cf)
 
     def get_fuzzable_request(self):
         headers = Headers([("Hello", "World")])
@@ -357,7 +358,7 @@ class TestExceptionData(unittest.TestCase):
         status.set_current_fuzzable_request("audit", fr)
 
         exception_data = ExceptionData(
-            status, KeyError(), tb, enabled_plugins, store_tb=False
+            status, KeyError(), tb, enabled_plugins, cf.cf, store_tb=False
         )
 
         pickled_ed = dumps(exception_data)
@@ -381,7 +382,7 @@ class TestExceptionData(unittest.TestCase):
             status.set_current_fuzzable_request("audit", fr)
 
             exception_data = ExceptionData(
-                status, e, tb, enabled_plugins, store_tb=False
+                status, e, tb, enabled_plugins, cf.cf, store_tb=False
             )
 
             pickled_ed = dumps(exception_data)
@@ -405,7 +406,7 @@ class TestExceptionData(unittest.TestCase):
             status.set_current_fuzzable_request("audit", fr)
 
             exception_data = ExceptionData(
-                status, e, tb, enabled_plugins, store_tb=True
+                status, e, tb, enabled_plugins, cf.cf, store_tb=True
             )
 
             self.assertRaises(TypeError, dumps, exception_data)

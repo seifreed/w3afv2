@@ -527,7 +527,12 @@ class BaseConsumer(Process):
         status.set_current_fuzzable_request(phase, fuzzable_request)
 
         exception_data = ExceptionData(
-            status, _exception, tb, enabled_plugins, store_tb=False
+            status,
+            _exception,
+            tb,
+            enabled_plugins,
+            self._w3af_core.configuration,
+            store_tb=False,
         )
         self._out_queue.put(exception_data)
 
