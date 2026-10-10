@@ -2662,3 +2662,13 @@ Verificación: Ruff, Black, mypy, `py_compile`, `4` tests de shells y `git diff
 --check` están limpios. El test de integración del payload no inicia porque el
 entorno no resuelve `php_moth-fallback`; no hay tests dedicados del manager y
 el score permanece en **6.25/10**.
+
+## Actualización verificada: detector de blind SQLi con output explícito
+
+`BlindSqliResponseDiff` recibe ahora el sink desde `blind_sqli` y lo conserva
+para sus mensajes de diagnóstico y vulnerabilidad. El detector y su test ya no
+dependen de `output_manager` global.
+
+Verificación: **21 tests pasaron** en el detector; Ruff, Black y mypy focalizados
+están limpios. El score permanece en **6.25/10** por los globals restantes,
+cobertura 100% no demostrada, Bandit heredado, mocks e integraciones Moth.

@@ -11,6 +11,7 @@ from w3af.core.controllers.sql_tools.tests.blind_sqli_sites import (
     users_page,
     vulnerable_users,
 )
+from w3af.core.controllers.tests.recording_output import recording_output
 from w3af.core.data.constants import severity
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.data.url.tests.helpers.route_server import Response, RouteServer
@@ -31,7 +32,7 @@ class BlindSqliTestCase(unittest.TestCase):
         self.uri_opener = ExtendedUrllib()
         self.addCleanup(self.uri_opener.end)
         self.addCleanup(self.uri_opener.settings.set_default_values)
-        self.detector = BlindSqliResponseDiff(self.uri_opener)
+        self.detector = BlindSqliResponseDiff(self.uri_opener, recording_output())
         self.detector.set_debugging_id(42)
 
     def serve(self, routes):

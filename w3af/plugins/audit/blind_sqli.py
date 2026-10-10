@@ -54,7 +54,7 @@ class blind_sqli(AuditPlugin):
         #
         #    Blind SQL injection response diff
         #
-        bsqli_resp_diff = BlindSqliResponseDiff(self._uri_opener)
+        bsqli_resp_diff = BlindSqliResponseDiff(self._uri_opener, self._output)
         bsqli_resp_diff.set_eq_limit(self._eq_limit)
         bsqli_resp_diff.set_debugging_id(debugging_id)
 

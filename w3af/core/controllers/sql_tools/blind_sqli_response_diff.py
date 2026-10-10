@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import time
 from typing import ClassVar
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.diff import chunked_diff
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal
 from w3af.core.data.constants import severity
@@ -51,10 +50,11 @@ class BlindSqliResponseDiff:
     STRING_DOUBLE = "string_double"
     STATEMENT_TYPES: ClassVar[list] = [NUMERIC, STRING_SINGLE, STRING_DOUBLE]
 
-    def __init__(self, uri_opener):
+    def __init__(self, uri_opener, output):
         # User configured variables
         self._eq_limit = 0.8
         self._uri_opener = uri_opener
+        self._output = output
         self._debugging_id = None
 
     def set_eq_limit(self, eq_limit):
@@ -355,7 +355,7 @@ class BlindSqliResponseDiff:
             mutant,
         )
 
-        om.out.debug(v.get_desc())
+        self._output.debug(v.get_desc())
         self.debug(
             v.get_desc(),
             statement_type=statement_type,
@@ -404,7 +404,7 @@ class BlindSqliResponseDiff:
         log_line = " ".join(tags)
         log_line += f" {msg}"
 
-        om.out.debug(log_line)
+        self._output.debug(log_line)
 
     def equal_with_limit(self, body1, body2, compare_diff=False):
         """
