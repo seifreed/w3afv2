@@ -3042,3 +3042,16 @@ Bandit focalizado, `pip-audit` y `git diff --check` están limpios. La ejecució
 mostró 2 warnings deprecados externos de `ldap3`/`pyasn1`, sin suprimirlos. El
 score permanece en **6.25/10** por la composición global, serialización,
 cobertura y gates heredados aún pendientes.
+
+## Actualización verificada: tipos de plugins sin mapa manual
+
+`CorePlugins.set_plugins()` usa ahora el catálogo dinámico para todos los tipos
+de plugins y conserva únicamente el tratamiento especial de `evasion`. Se
+eliminó el mapa duplicado que podía quedar desincronizado con los paquetes
+descubiertos en el filesystem.
+
+Verificación: **27 tests de plugins pasaron**; Black, Ruff, mypy focalizado,
+Bandit focalizado y `git diff --check` están limpios. La ejecución mostró 9
+warnings deprecados externos (`ldap3`/`jsonschema`), sin suprimirlos. El score
+permanece en **6.25/10** por la composición global, serialización, cobertura y
+gates heredados aún pendientes.

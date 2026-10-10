@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
-from functools import partial
 
 from w3af import ROOT_PATH
 from w3af.core.controllers.core_helpers.plugin_catalog import PluginCatalog
@@ -178,19 +177,10 @@ class CorePlugins(PluginCatalog):
         # at least don't try to call the "_set_plugin_generic" method with it
         plugin_names = [pn for pn in plugin_names if pn not in unknown_plugins]
 
-        set_dict = {
-            "crawl": partial(self._set_plugin_generic, "crawl"),
-            "audit": partial(self._set_plugin_generic, "audit"),
-            "grep": partial(self._set_plugin_generic, "grep"),
-            "output": partial(self._set_plugin_generic, "output"),
-            "mangle": partial(self._set_plugin_generic, "mangle"),
-            "bruteforce": partial(self._set_plugin_generic, "bruteforce"),
-            "auth": partial(self._set_plugin_generic, "auth"),
-            "infrastructure": partial(self._set_plugin_generic, "infrastructure"),
-            "evasion": self._set_evasion_plugins,
-        }
-
-        set_dict[plugin_type](plugin_names)
+        if plugin_type == "evasion":
+            self._set_evasion_plugins(plugin_names)
+        else:
+            self._set_plugin_generic(plugin_type, plugin_names)
 
         return unknown_plugins
 
