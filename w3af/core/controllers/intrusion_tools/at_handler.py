@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.intrusion_tools.delayed_execution import delayedExecution
 from w3af.core.exceptions import BaseFrameworkException
 
@@ -33,15 +32,17 @@ class atHandler(delayedExecution):
         - restore old crontab
     """
 
-    def __init__(self, exec_method):
-        super().__init__(exec_method)
+    def __init__(self, exec_method, output):
+        super().__init__(exec_method, output)
         self._exec_method = exec_method
 
     def can_delay(self):
         """
         :return: True if the remote user can add entries to his crontab
         """
-        om.out.debug("[atHandler] Verifying if the remote user can run the at command.")
+        self._output.debug(
+            "[atHandler] Verifying if the remote user can run the at command."
+        )
         res = self._exec("at")
 
         return "Access is denied" not in res
@@ -59,7 +60,7 @@ class atHandler(delayedExecution):
 
         # Schedule the shellcode for execution
         self._exec(atCommand)
-        om.out.debug('[atHandler] Shellcode successfully added to "at" service.')
+        self._output.debug('[atHandler] Shellcode successfully added to "at" service.')
 
         return wait_time
 
@@ -73,7 +74,7 @@ class atHandler(delayedExecution):
 
             self._exec("at " + taskId + " /delete")
         except (IndexError, UnboundLocalError):
-            om.out.debug('Failed to remove task from "at" service.')
+            self._output.debug('Failed to remove task from "at" service.')
 
     def _create_at_command(self, time, command):
         """

@@ -183,7 +183,7 @@ class w3afAgentManager(Process):
             return self._agent_server.is_working()
 
     def _delayedExecution(self, command):
-        dexecf = delayedExecutionFactory(self._exec_method)
+        dexecf = delayedExecutionFactory(self._exec_method, om.out)
         dH = dexecf.get_delayed_execution_handler()
 
         if not dH.can_delay():

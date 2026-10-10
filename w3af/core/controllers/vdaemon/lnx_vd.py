@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import time
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.intrusion_tools.crontab_handler import crontabHandler
 from w3af.core.controllers.vdaemon.vdaemon import vdaemon
 from w3af.core.exceptions import BaseFrameworkException
@@ -51,23 +50,25 @@ class lnxVd(vdaemon):
 
         :return: None
         """
-        cH = crontabHandler(self._exec_method)
+        cH = crontabHandler(self._exec_method, self._output)
         if not cH.can_delay():
             msg = "[lnxVd] Failed to create cron entry."
-            om.out.debug(msg)
+            self._output.debug(msg)
             raise BaseFrameworkException(msg)
         else:
             wait_time = cH.add_to_schedule(remote_filename)
 
-            om.out.console(
+            self._output.console(
                 "Crontab entry successfully added. Waiting for shellcode execution."
             )
             time.sleep(wait_time + 3)
 
-            om.out.debug("Shellcode successfully executed, restoring old crontab.")
+            self._output.debug(
+                "Shellcode successfully executed, restoring old crontab."
+            )
             cH.restore_old_schedule()
 
-            om.out.debug("All done, check metasploit for results.")
+            self._output.debug("All done, check metasploit for results.")
 
     def get_os(self):
         return "linux"

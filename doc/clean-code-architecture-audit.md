@@ -2573,3 +2573,15 @@ Black y mypy están limpios. El score permanece en **6.25/10** porque los
 orquestadores que aún escriben directamente al singleton siguen pendientes,
 junto con cobertura 100% no demostrada, Bandit heredado, mocks e integraciones
 Moth.
+
+## Actualización verificada: scheduling y vdaemon con output explícito
+
+`delayedExecution`, `atHandler`, `crontabHandler`, los vdaemon y la fábrica de
+metasploit reciben el sink desde sus puntos de composición. Los mensajes de
+ejecución diferida, cron, `at` y transferencia de payload dejaron de depender
+del singleton; el agente conserva su sink en la composición existente.
+
+Verificación: Ruff, Black y mypy están limpios y los módulos modificados
+importan correctamente. Este checkout no contiene tests dedicados de
+scheduling/vdaemon; la cobertura de esas rutas queda pendiente y el score
+permanece en **6.25/10**.

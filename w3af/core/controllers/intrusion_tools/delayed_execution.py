@@ -20,24 +20,23 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
-
 
 class delayedExecution:
     """
     This class is a base class for crontabHandler and atHandler.
     """
 
-    def __init__(self, exec_method):
+    def __init__(self, exec_method, output):
         self._exec_method = exec_method
+        self._output = output
 
     def _exec(self, command):
         """
         A wrapper for executing commands
         """
-        om.out.debug(f'Executing: "{command}".')
+        self._output.debug(f'Executing: "{command}".')
         response = self._exec_method(*(command,))
-        om.out.debug(f'"{command}" returned "{response}".')
+        self._output.debug(f'"{command}" returned "{response}".')
 
         return response
 

@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import time
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.intrusion_tools.at_handler import atHandler
 from w3af.core.controllers.vdaemon.vdaemon import vdaemon
 
@@ -49,24 +48,26 @@ class winVd(vdaemon):
 
         This method should be implemented in winVd and winVd.
         """
-        aH = atHandler(self._exec_method)
+        aH = atHandler(self._exec_method, self._output)
         if not aH.can_delay():
-            om.out.information(
+            self._output.information(
                 "Remote user is not allowed to run at! Running command without at, this may cause a timeout."
             )
             self._exec(self._remote_filename)
         else:
             wait_time = aH.add_to_schedule(self._remote_filename)
 
-            om.out.console(
+            self._output.console(
                 '"at" entry successfully added. Waiting for shellcode execution.'
             )
             time.sleep(wait_time + 3)
 
-            om.out.console('Payload successfully executed, restoring old "at".')
+            self._output.console('Payload successfully executed, restoring old "at".')
             aH.restore_old_schedule()
 
-            om.out.debug("All done, check metasploit handler console for results.")
+            self._output.debug(
+                "All done, check metasploit handler console for results."
+            )
 
     def get_os(self):
         return "windows"

@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.intrusion_tools.delayed_execution import delayedExecution
 from w3af.core.controllers.intrusion_tools.exec_method_helpers import (
     get_remote_temp_file,
@@ -36,9 +35,9 @@ class crontabHandler(delayedExecution):
         - restore old crontab
     """
 
-    def __init__(self, exec_method):
-        super().__init__(exec_method)
-        self._cronFile = get_remote_temp_file(self._exec_method, om.out)
+    def __init__(self, exec_method, output):
+        super().__init__(exec_method, output)
+        self._cronFile = get_remote_temp_file(self._exec_method, self._output)
 
     def can_delay(self):
         """
@@ -46,12 +45,12 @@ class crontabHandler(delayedExecution):
         """
         actualCron = self._exec("crontab -l 2>&1")
         if "not allowed to use this program" in actualCron:
-            om.out.debug(
+            self._output.debug(
                 "[crontabHandler] The user has no permission to create a cron entry."
             )
             return False
         else:
-            om.out.debug("[crontabHandler] The user can create a cron entry.")
+            self._output.debug("[crontabHandler] The user can create a cron entry.")
             return True
 
     def add_to_schedule(self, command_to_exec):
@@ -84,7 +83,7 @@ class crontabHandler(delayedExecution):
         filename = command_to_exec.split(" ")[0]
         self._exec("/bin/chmod +x " + filename)
 
-        om.out.debug(
+        self._output.debug(
             'Added command: "'
             + command_to_exec
             + '" to the remote crontab of user : "'
@@ -99,7 +98,7 @@ class crontabHandler(delayedExecution):
         self._exec("/bin/echo -e " + self._oldCron + " > " + self._cronFile)
         self._exec("crontab " + self._cronFile)
         self._exec("/bin/rm " + self._cronFile)
-        om.out.debug("Successfully restored old crontab.")
+        self._output.debug("Successfully restored old crontab.")
 
     def _createCronLine(self, remoteDate, command_to_exec):
         """
