@@ -472,8 +472,8 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         pickled_obj = cpickle_dumps(value)
         t = (location_a, location_b, uniq_id, pickled_obj)
 
-        query = f"INSERT INTO {self.table_name} VALUES (?, ?, ?, ?)"
-        self.db.execute(query, t)
+        query = "INSERT INTO %s VALUES (?, ?, ?, ?)"
+        self.db.execute(query % self.table_name, t)
 
     @requires_setup
     def get(self, location_a, location_b, check_types=True):

@@ -148,7 +148,9 @@ class find_captchas(CrawlPlugin):
         for image_response in result_iter:
             if image_response.is_image():
                 img_src = image_response.get_uri()
-                img_hash = hashlib.sha1(image_response.get_raw_body()).hexdigest()
+                img_hash = hashlib.sha1(
+                    image_response.get_raw_body(), usedforsecurity=False
+                ).hexdigest()
                 res.append((img_src, img_hash, response))
 
         return res
