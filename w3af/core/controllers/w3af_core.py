@@ -52,6 +52,9 @@ from w3af.core.controllers.core_helpers.strategy_observers.thread_state_observer
     ThreadStateObserver,
 )
 from w3af.core.controllers.core_helpers.target import CoreTarget
+from w3af.core.controllers.core_helpers.worker_pool_manager import (
+    WorkerPoolManager,
+)
 from w3af.core.controllers.misc.dns_cache import enable_dns_cache
 from w3af.core.controllers.misc.epoch_to_string import epoch_to_string
 from w3af.core.controllers.misc.get_w3af_version import get_w3af_version_minimal
@@ -62,12 +65,6 @@ from w3af.core.controllers.output_manager import (
 from w3af.core.controllers.output_manager.logging_bridge import configure_data_logging
 from w3af.core.controllers.parser_worker import register_parser_multiprocessing
 from w3af.core.controllers.profiling import start_profiling, stop_profiling
-from w3af.core.controllers.threads.is_main_thread import is_main_thread
-from w3af.core.controllers.threads.monkey_patch_debug import (
-    monkey_patch_debug,
-    remove_monkey_patch_debug,
-)
-from w3af.core.controllers.threads.threadpool import Pool
 from w3af.core.data.kb import knowledge_base as kb_store
 from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.data.parsers import parser_cache
@@ -131,6 +128,12 @@ class w3afCore:
         self._output = output
         self._output_manager = manager
         self.knowledge_base = knowledge_base or kb_store.kb
+        self._worker_pool_manager = WorkerPoolManager(
+            output,
+            self.WORKER_THREADS,
+            self.WORKER_INQUEUE_MAX_SIZE,
+            self.WORKER_MAX_TASKS,
+        )
 
         # FIXME: In the future, when the output_manager is not an awful
         # singleton anymore, this line should be removed and the output_manager
@@ -177,9 +180,6 @@ class w3afCore:
 
         # Keep track of first scan to call cleanup or not
         self._first_scan = True
-
-        # Worker pool
-        self._worker_pool = None
 
     def scan_start_hook(self):
         """
@@ -344,58 +344,7 @@ class w3afCore:
 
     @property
     def worker_pool(self):
-        """
-        :return: Simple property that will always return a Pool in running state
-        """
-        if self._worker_pool is None:
-            # Should get here only on the first call to "worker_pool".
-            self._worker_pool = Pool(
-                processes=self.WORKER_THREADS,
-                worker_names="WorkerThread",
-                max_queued_tasks=self.WORKER_INQUEUE_MAX_SIZE,
-                maxtasksperchild=self.WORKER_MAX_TASKS,
-            )
-
-            msg = "Created first Worker pool for core (id: %s)"
-            self._output.debug(msg % id(self._worker_pool))
-
-            return self._worker_pool
-
-        if not self._worker_pool.is_running():
-            old_pool_id = id(self._worker_pool)
-
-            #
-            # Clean-up the old worker pool
-            #
-            # We want to do this only when running on the main thread because
-            # a call to terminate_join() from within a thread in the same worker
-            # pool will generate a dead-lock:
-            #
-            #   * terminate_join() is waiting for threads to terminate
-            #   * current thread is running terminate_join()
-            #
-            # Not terminating and joining a worker pool that has been closed will
-            # consume some resources and at the end be just a few threads doing
-            # nothing, so it is not that bad...
-            #
-            if is_main_thread():
-                self._worker_pool.terminate_join()
-
-            # Create a new one
-            self._worker_pool = Pool(
-                processes=self.WORKER_THREADS,
-                worker_names="WorkerThread",
-                max_queued_tasks=self.WORKER_INQUEUE_MAX_SIZE,
-                maxtasksperchild=self.WORKER_MAX_TASKS,
-            )
-
-            msg = (
-                "Created a new worker pool for core (id: %s) because the old"
-                " one was not in running state (id: %s)"
-            )
-            self._output.debug(msg % (id(self._worker_pool), old_pool_id))
-
-        return self._worker_pool
+        return self._worker_pool_manager.get_pool()
 
     def can_cleanup(self):
         return self.status.get_simplified_status() == STOPPED
@@ -553,24 +502,7 @@ class w3afCore:
             raise BaseFrameworkException(msg)
 
     def _terminate_worker_pool(self):
-        self._output.debug("Called _terminate_worker_pool()")
-
-        #
-        # Adding extra logging to debug issues where the call to terminate_join()
-        # takes a lot of time to run
-        #
-        monkey_patch_debug(self._output)
-
-        #
-        # The scan has ended, and we've already joined() the consumer threads
-        # from strategy (in a nice way, waiting for them to finish before
-        # returning from strategy.start call), so this terminate and join call
-        # should return really quick
-        #
-        self.worker_pool.terminate_join()
-
-        # Disable monkey-patching
-        remove_monkey_patch_debug()
+        self._worker_pool_manager.terminate()
 
     def scan_end_hook(self):
         """

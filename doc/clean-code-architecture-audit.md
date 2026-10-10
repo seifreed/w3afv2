@@ -2990,3 +2990,16 @@ Black, Ruff, mypy focalizado, Bandit focalizado y `git diff --check` están
 limpios. El score permanece en **6.25/10** por la serialización y la
 coordinación global aún pendientes, cobertura 100% no demostrada, Bandit
 heredado e integraciones externas.
+
+## Actualización verificada: lifecycle del worker pool separado
+
+`WorkerPoolManager` concentra la creación lazy, recreación tras cierre y
+terminación diagnosticada del pool. `w3afCore.worker_pool` mantiene su API y
+actúa como una fachada mínima; la composición del core ya no conoce los
+detalles de `Pool`, `is_main_thread` ni el parche temporal de logging.
+
+Verificación: **51 tests focales pasaron**, incluidos dos tests con pools reales;
+la suite completa de `w3afCore` conserva **17 pasados y 14 fallos históricos**.
+Black, Ruff, mypy focalizado, Bandit focalizado y `git diff --check` están
+limpios. El score permanece en **6.25/10** por la composición global, la
+serialización y la deuda de gates/cobertura aún pendientes.
