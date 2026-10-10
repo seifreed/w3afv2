@@ -3555,3 +3555,16 @@ warnings externos de `ldap3/pyasn1`; la batería focal pasó **12 tests en
 también pasó con `PytestUnhandledThreadExceptionWarning` tratado como error.
 El score se mantiene en **6.5/10** por cobertura global, módulos grandes y
 gates globales pendientes.
+
+## Actualización verificada: límite de tamaño encapsulado
+
+`SizeLimitOverride` encapsula la modificación temporal de `max_file_size` y su
+restauración garantizada. `ExtendedUrllib` usa la instancia inyectada durante
+GET, mientras `raise_size_limit()` se mantiene como fachada de compatibilidad;
+se eliminó el TODO que reconocía la fuga de configuración global.
+
+Verificación: la suite URL completa pasó **217 tests en 184.58 s**, con dos
+warnings externos de `ldap3/pyasn1`; la batería focal pasó **36 tests en
+126.54 s**. Ruff, mypy focal y Bandit focal están limpios. El score se mantiene
+en **6.5/10** por cobertura global, módulos grandes y gates globales
+pendientes.

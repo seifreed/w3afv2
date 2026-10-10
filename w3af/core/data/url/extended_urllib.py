@@ -28,7 +28,6 @@ import time
 import urllib.error
 import urllib.request
 import uuid
-from contextlib import contextmanager
 from http.client import BadStatusLine
 
 import OpenSSL
@@ -61,6 +60,7 @@ from w3af.core.data.url.response_history import ResponseHistory
 from w3af.core.data.url.response_success_handler import ResponseSuccessHandler
 from w3af.core.data.url.scan_request_control import ScanRequestControl
 from w3af.core.data.url.server_reachability_checker import ServerReachabilityChecker
+from w3af.core.data.url.size_limit_override import SizeLimitOverride
 from w3af.core.data.url.timeout_adjustment_policy import TimeoutAdjustmentPolicy
 from w3af.core.data.url.timeout_manager import TimeoutManager
 from w3af.core.data.url.worker_pool_adjuster import WorkerPoolAdjuster
@@ -98,6 +98,7 @@ class ExtendedUrllib:
         # For rate limiting and timeouts
         self._rate_limiter = RateLimiter(self.settings, sleep)
         self._timeout_manager = TimeoutManager(self.settings)
+        self._size_limit_override = SizeLimitOverride(cf.cf)
         self._timeout_adjustment = TimeoutAdjustmentPolicy(
             self._timeout_manager,
             self.get_average_rtt,
@@ -537,7 +538,7 @@ class ExtendedUrllib:
         )
         req = self.add_headers(req, headers)
 
-        with raise_size_limit(respect_size_limit):
+        with self._size_limit_override.apply(respect_size_limit):
             return self.send(req, grep=grep)
 
     def POST(
@@ -891,21 +892,5 @@ class ExtendedUrllib:
         self._grep_dispatcher.dispatch(request, response)
 
 
-@contextmanager
 def raise_size_limit(respect_size_limit):
-    """
-    TODO: This is an UGLY hack that allows me to download over-sized files,
-          but it shouldn't be implemented like this! It should look more
-          like the cookies attribute/parameter which uses the cookie_handler.
-    """
-    if respect_size_limit:
-        yield
-        return
-
-    original_size = cf.cf.get("max_file_size")
-    cf.cf.save("max_file_size", 10**10)
-
-    try:
-        yield
-    finally:
-        cf.cf.save("max_file_size", original_size)
+    return SizeLimitOverride(cf.cf).apply(respect_size_limit)
