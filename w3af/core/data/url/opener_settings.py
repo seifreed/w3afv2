@@ -49,7 +49,7 @@ class OpenerSettings(Configurable):
 
         # Set the openers to None
         self._proxy = ProxySettings(cfg, LOGGER.debug)
-        self._url_parameter = URLParameterSettings()
+        self._url_parameter = URLParameterSettings(cfg)
         self._lifecycle = OpenerLifecycle()
         self._request_limits = RequestLimitsSettings(cfg)
         self._defaults = OpenerDefaults(cfg)

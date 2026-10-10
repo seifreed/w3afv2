@@ -3711,6 +3711,18 @@ warnings externos de `ldap3/pyasn1`; Ruff, mypy y Bandit focal están limpios.
 El score se mantiene en **6.5/10** porque la eliminación de una API muerta no
 cierra todavía la composición global ni la cobertura completa.
 
+## Actualización verificada: configuración explícita del parámetro URL
+
+`URLParameterSettings` dejó de importar el singleton `cf` directamente. Ahora
+recibe la configuración por constructor y `OpenerSettings` le pasa su
+dependencia; la política puede probarse con una `Config` aislada sin estado
+global compartido.
+
+Verificación: la integración de URL y `OpenerSettings` pasa **28 tests**, con
+los warnings externos habituales de dependencias cuando aparecen; Ruff, mypy
+y Bandit focal están limpios. El score se mantiene en **6.5/10** porque aún
+quedan otros settings globales y la composición del core.
+
 ## Actualización verificada: eliminación de helper de logging muerto
 
 `output_manager.log_http()` no tenía consumidores de producción y solo

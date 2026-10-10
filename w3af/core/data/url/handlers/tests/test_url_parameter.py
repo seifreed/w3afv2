@@ -22,14 +22,24 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
+from w3af.core.data.kb.config import Config
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url import opener_settings
 from w3af.core.data.url.http_request import HTTPRequest
 from w3af.core.data.url.tests.helpers.certificates import server_tls_context
 from w3af.core.data.url.tests.helpers.route_server import Response, RouteServer
+from w3af.core.data.url.url_parameter_settings import URLParameterSettings
 
 
 class TestURLParameterHandler(unittest.TestCase):
+    def test_settings_use_the_injected_configuration(self):
+        configuration = Config()
+        settings = URLParameterSettings(configuration)
+
+        settings.set_url_parameter(' "tracking" ')
+
+        self.assertEqual(configuration.get("url_parameter"), "tracking")
+
     def test_handler_integration(self):
         """
         Integration test with w3af's URL opener.
