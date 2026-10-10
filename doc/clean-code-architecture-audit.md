@@ -3029,3 +3029,16 @@ Bandit focalizado y `git diff --check` están limpios. La ejecución mostró 9
 warnings deprecados de dependencias externas (`ldap3`/`jsonschema`), sin
 suprimirlos. El score permanece en **6.25/10** por la composición global,
 serialización, cobertura y gates heredados aún pendientes.
+
+## Actualización verificada: carga de perfiles descompuesta
+
+`CoreProfiles.use_profile()` ahora coordina el flujo y delega reset, target,
+settings, opciones de plugins y formateo de errores a métodos con una sola
+responsabilidad. Se conserva la API pública y el formato de advertencias para
+perfiles obsoletos.
+
+Verificación: **12 tests de perfiles pasaron**; Black, Ruff, mypy focalizado,
+Bandit focalizado, `pip-audit` y `git diff --check` están limpios. La ejecución
+mostró 2 warnings deprecados externos de `ldap3`/`pyasn1`, sin suprimirlos. El
+score permanece en **6.25/10** por la composición global, serialización,
+cobertura y gates heredados aún pendientes.

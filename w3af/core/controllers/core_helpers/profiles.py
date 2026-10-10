@@ -124,10 +124,7 @@ class CoreProfiles:
         """
         error_messages = []
 
-        # Clear all the current configuration before loading a new profile
-        self._w3af_core.plugins.zero_enabled_plugins()
-        MiscSettings().set_default_values()
-        self._w3af_core.uri_opener.settings.set_default_values()
+        self._reset_configuration()
 
         if profile_name is None:
             # If the profile name is None, I just clear the enabled plugins and
@@ -138,48 +135,92 @@ class CoreProfiles:
         # the profile does not exist
         profile_inst = profile(profile_name, workdir)
 
-        # It exists, work with it!
+        self._load_target(profile_inst)
 
-        # Set the target settings of the profile to the core
+        self._load_settings(profile_inst, error_messages)
+
+        self._load_plugin_options(profile_inst, error_messages)
+
+        if error_messages:
+            msg = self._profile_error_message(profile_name, error_messages)
+            raise BaseFrameworkException(msg)
+
+    def _reset_configuration(self):
+        """Clear the current profile values before loading a new profile."""
+        self._w3af_core.plugins.zero_enabled_plugins()
+        MiscSettings().set_default_values()
+        self._w3af_core.uri_opener.settings.set_default_values()
+
+    def _load_target(self, profile_inst):
+        """Apply the target stored in a profile to the core."""
         self._w3af_core.target.clear()
         target_options = profile_inst.get_target(self._w3af_core.target.get_options())
         self._w3af_core.target.set_options(target_options)
 
-        # Set the misc and http settings
+    def _load_settings(self, profile_inst, error_messages):
+        """Apply framework and HTTP settings, collecting profile errors."""
         try:
             profile_misc_settings = profile_inst.get_misc_settings(MiscSettings())
-        except BaseFrameworkException as e:
+        except BaseFrameworkException as exception:
             msg = (
                 "Setting the framework misc-settings raised an exception"
                 " due to unknown or invalid configuration parameters. %s"
             )
-            error_messages.append(msg % e)
+            error_messages.append(msg % exception)
         else:
-            #
-            # IGNORE the following parameters from the profile:
-            #   - misc_settings.local_ip_address
-            #
             if "local_ip_address" in profile_misc_settings:
                 local_ip = get_local_ip()
                 profile_misc_settings["local_ip_address"].set_value(local_ip)
 
-            misc_settings = MiscSettings()
-            misc_settings.set_options(profile_misc_settings)
+            MiscSettings().set_options(profile_misc_settings)
 
         try:
             http_settings = profile_inst.get_http_settings()
-        except BaseFrameworkException as e:
+        except BaseFrameworkException as exception:
             msg = (
                 "Setting the framework http-settings raised an exception"
                 " due to unknown or invalid configuration parameters. %s"
             )
-            error_messages.append(msg % e)
+            error_messages.append(msg % exception)
         else:
             self._w3af_core.uri_opener.settings.set_options(http_settings)
 
-        #
-        #    Handle plugin options
-        #
+    def _load_plugin_options(self, profile_inst, error_messages):
+        """Apply each plugin's saved options and collect stale settings."""
+        plugins = self._w3af_core.plugins
+
+        for plugin_type in plugins.get_plugin_types():
+            plugin_names = profile_inst.get_enabled_plugins(plugin_type)
+            unknown_plugins = plugins.set_plugins(
+                plugin_names, plugin_type, raise_on_error=False
+            )
+
+            for unknown_plugin in unknown_plugins:
+                msg = (
+                    'The profile references the "%s.%s" plugin which is'
+                    " unknown in the current framework version."
+                )
+                error_messages.append(msg % (plugin_type, unknown_plugin))
+
+            for plugin_name in set(plugin_names) - set(unknown_plugins):
+                try:
+                    plugin_instance = plugins.get_quick_instance(
+                        plugin_type, plugin_name
+                    )
+                    plugin_options = profile_inst.get_plugin_options(
+                        plugin_type, plugin_name, plugin_instance.get_options()
+                    )
+                    plugins.set_plugin_options(plugin_type, plugin_name, plugin_options)
+                except BaseFrameworkException as exception:
+                    msg = (
+                        'Setting the options for plugin "%s.%s" raised an'
+                        " exception due to unknown or invalid configuration"
+                        " parameters. %s"
+                    )
+                    error_messages.append(msg % (plugin_type, plugin_name, exception))
+
+    def _profile_error_message(self, profile_name, error_messages):
+        """Format the warning shown when a profile contains stale settings."""
         error_fmt = (
             "The profile you are trying to load (%s) seems to be"
             " outdated, this is a common issue which happens when the"
@@ -196,49 +237,7 @@ class CoreProfiles:
             " message. If this warning does not disappear you can"
             " manually edit the profile file to fix it."
         )
-
-        core_set_plugins = self._w3af_core.plugins.set_plugins
-
-        for plugin_type in self._w3af_core.plugins.get_plugin_types():
-            plugin_names = profile_inst.get_enabled_plugins(plugin_type)
-
-            unknown_plugins = core_set_plugins(
-                plugin_names, plugin_type, raise_on_error=False
-            )
-
-            for unknown_plugin in unknown_plugins:
-                msg = (
-                    'The profile references the "%s.%s" plugin which is'
-                    " unknown in the current framework version."
-                )
-                error_messages.append(msg % (plugin_type, unknown_plugin))
-
-            # Now we set the plugin options, which can also trigger errors with
-            # "outdated" profiles that users could have in their ~/.w3af/
-            # directory.
-            for plugin_name in set(plugin_names) - set(unknown_plugins):
-
-                try:
-                    plugin_instance = self._w3af_core.plugins.get_quick_instance(
-                        plugin_type, plugin_name
-                    )
-                    plugin_options = profile_inst.get_plugin_options(
-                        plugin_type, plugin_name, plugin_instance.get_options()
-                    )
-                    self._w3af_core.plugins.set_plugin_options(
-                        plugin_type, plugin_name, plugin_options
-                    )
-                except BaseFrameworkException as w3e:
-                    msg = (
-                        'Setting the options for plugin "%s.%s" raised an'
-                        " exception due to unknown or invalid configuration"
-                        " parameters. %s"
-                    )
-                    error_messages.append(msg % (plugin_type, plugin_name, w3e))
-
-        if error_messages:
-            msg = error_fmt % (profile_name, "\n    - ".join(error_messages))
-            raise BaseFrameworkException(msg)
+        return error_fmt % (profile_name, "\n    - ".join(error_messages))
 
     def get_profile_list(self, directory=None):
         """
