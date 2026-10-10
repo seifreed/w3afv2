@@ -20,9 +20,11 @@ Shared helpers for the grep plugin unit tests.
 """
 
 import unittest
+from queue import Queue
 
 import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
+from w3af.core.controllers.output_manager.log_sink import LogSink
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers import parser_cache
 from w3af.core.data.parsers.doc.url import URL
@@ -66,6 +68,8 @@ class GrepPluginTestCase(unittest.TestCase):
     @staticmethod
     def configure_plugin(plugin):
         plugin.set_knowledge_base(kb.kb)
+        plugin.set_configuration(cf.cf)
+        plugin.set_output(LogSink(Queue()))
         return plugin
 
     def save_config(self, name, value):

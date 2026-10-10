@@ -318,6 +318,16 @@ class TestParserCacheBehaviour(unittest.TestCase):
         self.assertEqual(len(self.dpc._cache), 0)
         self.assertEqual(len(self.dpc._can_parse_cache), 0)
 
+    def test_clear_releases_parser_state(self):
+        hash_string = get_response_unique_id(self.http_resp)
+        self.dpc._parser_finished_events[hash_string] = threading.Event()
+        self.dpc.add_to_blacklist(hash_string)
+
+        self.dpc.clear()
+
+        self.assertEqual(self.dpc._parser_finished_events, {})
+        self.assertEqual(len(self.dpc._parser_blacklist), 0)
+
 
 class TestParserCacheCleanup(unittest.TestCase):
     def test_cleanup_pool_clears_the_shared_cache(self):

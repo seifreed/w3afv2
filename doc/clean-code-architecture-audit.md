@@ -4103,3 +4103,18 @@ completar la integración porque el pool multiproceso global de Pebble tenía
 handles cerrados en este entorno. El score sube a **9.3/10** en Clean
 Architecture y **9.2/10** global. Restan `Info`, el ensamblaje global de
 `w3afCore`, la cobertura global del 100% y la verificación del pool.
+
+## Actualización verificada: limpieza completa del parser cache
+
+`ParserCache.clear` detiene los workers y libera también los eventos de parses
+pendientes y la blacklist de respuestas. Antes esos objetos quedaban asociados
+al cache global entre tests y scans, reteniendo estado y provocando resultados
+dependientes del orden. Los fixtures de grep inyectan ahora configuración y un
+`LogSink` real, incluidos los tests de formularios que construían plugins sin
+pasar por el helper común.
+
+Verificación: parser cache pasa **29 tests**, formularios grep **21 tests** y
+ramas grep **44 tests**. El proceso de ramas termina con **98.7 MB** de RSS
+máximo. Black, Ruff, mypy y Bandit focal están limpios. El score sube a
+**9.4/10** en Clean Architecture y **9.3/10** global. Restan `Info`, el
+ensamblaje global de `w3afCore` y la cobertura global del 100%.

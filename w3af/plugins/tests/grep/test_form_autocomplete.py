@@ -19,15 +19,13 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import unittest
-
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
-from w3af.core.filesystem import create_temp_dir
 from w3af.plugins.grep.form_autocomplete import form_autocomplete
+from w3af.plugins.tests.grep.grep_test_utils import GrepPluginTestCase
 
 FORM_DEFAULT = '<form action="/login"><input type="password" name="p"></form>'
 FORM_ON = (
@@ -44,15 +42,14 @@ FORM_FIELD_OFF = (
 FORM_WITHOUT_USERNAME = '<form action="/login"><input type="text" name="u"></form>'
 
 
-class TestFormAutocomplete(unittest.TestCase):
+class TestFormAutocomplete(GrepPluginTestCase):
 
     def setUp(self):
-        create_temp_dir()
-        kb.kb.cleanup()
-        self.plugin = form_autocomplete()
+        super().setUp()
+        self.plugin = self.configure_plugin(form_autocomplete())
 
     def tearDown(self):
-        kb.kb.cleanup()
+        super().tearDown()
 
     def _grep(self, body, url, content_type="text/html"):
         headers = Headers([("content-type", content_type)])
@@ -96,14 +93,13 @@ class TestFormAutocomplete(unittest.TestCase):
         self.assertEqual(0, len(kb.kb.get("form_autocomplete", "form_autocomplete")))
 
 
-class TestFormAutocompleteRaw(unittest.TestCase):
+class TestFormAutocompleteRaw(GrepPluginTestCase):
     def setUp(self):
-        create_temp_dir()
-        kb.kb.cleanup()
-        self.plugin = form_autocomplete()
+        super().setUp()
+        self.plugin = self.configure_plugin(form_autocomplete())
 
     def tearDown(self):
-        kb.kb.cleanup()
+        super().tearDown()
 
     def test_form_autocomplete_group_info_set(self):
         body = '<form action="/login"><input type="password" name="p"></form>'

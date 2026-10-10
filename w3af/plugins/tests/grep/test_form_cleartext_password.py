@@ -19,24 +19,25 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import unittest
-
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.plugins.grep.form_cleartext_password import form_cleartext_password
+from w3af.plugins.tests.grep.grep_test_utils import GrepPluginTestCase
 
 
-class TestFormCleartextPassword(unittest.TestCase):
+class TestFormCleartextPassword(GrepPluginTestCase):
 
     def setUp(self):
-        self.plugin = form_cleartext_password()
+        super().setUp()
+        self.plugin = self.configure_plugin(form_cleartext_password())
         kb.kb.clear("form_cleartext_password", "form_cleartext_password")
 
     def tearDown(self):
         self.plugin.end()
+        super().tearDown()
 
     # Vulnerable to insecure form data submission over HTTP
     def test_vs1(self, *args):

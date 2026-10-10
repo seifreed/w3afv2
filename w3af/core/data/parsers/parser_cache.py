@@ -87,6 +87,8 @@ class ParserCache(CacheStats):
         # We don't need the parsers anymore
         self._cache.clear()
         self._can_parse_cache.clear()
+        self._parser_finished_events.clear()
+        self._parser_blacklist.clear()
 
     def should_cache(self, http_response):
         """
