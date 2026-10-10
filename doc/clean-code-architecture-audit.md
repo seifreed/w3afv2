@@ -1744,3 +1744,14 @@ Verificación: 4 tests del plugin pasan, Ruff, Black y mypy pasan en el módulo
 modificado. El score sigue en **5.75/10**: quedan 60 imports directos de la KB,
 además de la cobertura, mocks, el fallo heredado de perfilado, la dependencia
 de Moth y los orquestadores grandes.
+
+## Actualización verificada: descubrimiento de Oracle
+
+`crawl.oracle_discovery` registra las aplicaciones Oracle detectadas mediante la
+KB configurada en el plugin, preservando la salida de URLs fuzzables y el
+parseo de las dos firmas de respuesta.
+
+Verificación: 3 tests del plugin pasan, Ruff, Black y mypy pasan en el módulo
+modificado. El score sigue en **5.75/10**: quedan 59 imports directos de la KB,
+además de la cobertura, mocks, el fallo heredado de perfilado, la dependencia
+de Moth y los orquestadores grandes.
