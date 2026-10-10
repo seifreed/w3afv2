@@ -3204,3 +3204,16 @@ Verificación: **56 tests de URL pasaron**; Black, Ruff, mypy focalizado, Bandit
 focalizado, `pip-audit` y `git diff --check` están limpios. El score permanece
 en **6.25/10** por la composición global, cobertura 100% no demostrada, mypy
 sobre el `venv` y Bandit heredado aún pendientes.
+
+## Actualización verificada: decodificación del cuerpo separada
+
+`ResponseBodyDecoder` concentra detección de charset en headers y meta HTML,
+decodificación con fallback y diagnóstico de respuestas sin `Content-Type`.
+`HTTPResponse` conserva estado, metadatos, serialización y su API pública, y
+mantiene el logger observable mediante una dependencia explícita de debug.
+
+Verificación: **217 tests de URL pasaron en 178.58 s**, incluidos **39 tests de
+HTTPResponse**; Black global, Ruff global, mypy focalizado, Bandit focalizado,
+`pip-audit` y `git diff --check` están limpios. El score se mantiene en
+**6.5/10** por módulos grandes, cobertura global no demostrada y gates globales
+pendientes.

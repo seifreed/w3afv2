@@ -23,22 +23,23 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import copy
 import hashlib
 import logging
-import re
 import threading
 import urllib.error
 import urllib.parse
 import urllib.request
 from collections.abc import Iterable
 
-from w3af.core.data.constants.encodings import DEFAULT_ENCODING
 from w3af.core.data.db.disk_item import DiskItem
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.misc.encoding import ESCAPED_CHAR, smart_str_ignore, smart_unicode
+from w3af.core.data.misc.encoding import smart_str_ignore, smart_unicode
 from w3af.core.data.parsers import parser_cache
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.url.response_body_decoder import (
+    DEFAULT_CHARSET,
+    ResponseBodyDecoder,
+)
 from w3af.core.exceptions import BaseFrameworkException
 
-DEFAULT_CHARSET = DEFAULT_ENCODING
 CR = "\r"
 LF = "\n"
 CRLF = CR + LF
@@ -47,10 +48,6 @@ SP = " "
 CONTENT_TYPE = "content-type"
 STATUS_LINE = "HTTP/1.1 %s %s" + CRLF
 
-CHARSET_EXTRACT_RE = re.compile(r"charset=\s*?([\w-]+)", re.IGNORECASE)
-CHARSET_META_RE = re.compile(
-    r'<meta.*?content=".*?charset=\s*?([\w-]+)".*?>', re.IGNORECASE
-)
 DEFAULT_WAIT_TIME = 0.2
 LOGGER = logging.getLogger(__name__)
 
@@ -645,108 +642,18 @@ class HTTPResponse(DiskItem):
         return self._msg
 
     def _charset_handling(self):
-        """
-        Decode the body based on the header (or metadata) encoding.
-        The implemented algorithm follows the encoding detection logic
-        used by FF:
-
-            1) First try to find a charset using the following search criteria:
-                a) Look in the CONTENT_TYPE HTTP header. Example:
-                    content-type: text/html; charset=iso-8859-1
-                b) Look in the 'meta' HTML header. Example:
-                    <meta .* content="text/html; charset=utf-8" />
-                c) Determine the charset using the chardet module (TODO)
-                d) Use the DEFAULT_CHARSET
-
-            2) Try to decode the body using the found charset. If it fails,
-            then force it to use the DEFAULT_CHARSET
-
-        Finally return the unicode (decoded) body and the used charset.
-
-        Note: If the body is already a unicode string return it as it is.
-        """
-        charset = self._charset
-        raw_body = self._raw_body
-        headers = self.get_headers()
-        content_type, _ = headers.iget(CONTENT_TYPE, None)
-
-        if isinstance(raw_body, str):
-            _body = raw_body
-            charset = charset or self.guess_charset(raw_body, headers)
-        elif content_type is None:
-            body_text = (
-                raw_body.decode(DEFAULT_CHARSET, "ignore")
-                if isinstance(raw_body, bytes)
-                else raw_body
-            )
-            if CHARSET_META_RE.search(body_text):
-                charset = self.guess_charset(raw_body, headers)
-                _body = smart_unicode(
-                    raw_body, charset, errors=ESCAPED_CHAR, on_error_guess=False
-                )
-            else:
-                _body = raw_body
-                charset = charset or DEFAULT_CHARSET
-
-            if _body:
-                msg = (
-                    "The remote web server failed to send the CONTENT_TYPE"
-                    " header in HTTP response with id %s"
-                )
-                LOGGER.debug(msg, self.id)
-
-        elif not self.is_text_or_html():
-            # Not text, save as it is.
-            _body = raw_body
-            charset = charset or DEFAULT_CHARSET
-        else:
-            # Figure out charset to work with
-            if not charset:
-                charset = self.guess_charset(raw_body, headers)
-
-            # Now that we have the charset, we use it!
-            # The return value of the decode function is a unicode string.
-            try:
-                _body = smart_unicode(
-                    raw_body, charset, errors=ESCAPED_CHAR, on_error_guess=False
-                )
-            except LookupError:
-                # Warn about a buggy charset
-                msg = (
-                    f"Charset LookupError: unknown charset: {charset}; "
-                    f"ignored and set to default: {DEFAULT_CHARSET}"
-                )
-                LOGGER.debug(msg)
-
-                # Forcing it to use the default
-                charset = DEFAULT_CHARSET
-                _body = smart_unicode(
-                    raw_body, charset, errors=ESCAPED_CHAR, on_error_guess=False
-                )
-
-        return _body, charset
+        decoder = ResponseBodyDecoder(
+            self._raw_body,
+            self._charset,
+            self.get_headers(),
+            self.is_text_or_html(),
+            self.id,
+            debug=LOGGER.debug,
+        )
+        return decoder.decode()
 
     def guess_charset(self, raw_body, headers):
-        # Start with the headers
-        content_type, _ = headers.iget(CONTENT_TYPE, None)
-        charset_mo = CHARSET_EXTRACT_RE.search(content_type or "")
-        if charset_mo:
-            # Seems like the response's headers contain a charset
-            charset = charset_mo.groups()[0].lower().strip()
-        else:
-            # Continue with the body's meta tag
-            body_text = (
-                raw_body.decode(DEFAULT_CHARSET, "ignore")
-                if isinstance(raw_body, bytes)
-                else raw_body
-            )
-            charset_mo = CHARSET_META_RE.search(body_text)
-            if charset_mo:
-                charset = charset_mo.groups()[0].lower().strip()
-            else:
-                charset = DEFAULT_CHARSET
-
-        return charset
+        return ResponseBodyDecoder.guess_charset(raw_body, headers)
 
     @property
     def content_type(self):
