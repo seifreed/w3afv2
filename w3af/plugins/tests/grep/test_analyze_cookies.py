@@ -35,6 +35,7 @@ class TestAnalyzeCookies(unittest.TestCase):
     def setUp(self):
         kb.kb.cleanup()
         self.plugin = analyze_cookies()
+        self.plugin.set_knowledge_base(kb.kb)
 
     def tearDown(self):
         self.plugin.end()

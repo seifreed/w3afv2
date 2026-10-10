@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import http.cookies
 import re
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.constants import severity
@@ -162,7 +161,7 @@ class analyze_cookies(GrepPlugin):
             i.set_cookie_string(cookie_header_value)
 
             # The cookie is invalid, this is worth mentioning ;)
-            kb.kb.append(self, "invalid-cookies", i)
+            self._get_knowledge_base().append(self, "invalid-cookies", i)
             return None
 
     def _analyze_cookie_security(
@@ -235,7 +234,7 @@ class analyze_cookies(GrepPlugin):
         # Pre-calculate to avoid CPU usage
         request_dump = smart_unicode(request.dump())
 
-        for info_set in kb.kb.get(self, "cookies"):
+        for info_set in self._get_knowledge_base().get(self, "cookies"):
             for info in info_set.infos:
                 if info.get_url().get_protocol().lower() != "https":
                     continue
@@ -269,7 +268,7 @@ class analyze_cookies(GrepPlugin):
                         v.set_url(response.get_url())
                         v.set_cookie_object(info.get_cookie_object())
 
-                        kb.kb.append(self, "secure_via_http", v)
+                        self._get_knowledge_base().append(self, "secure_via_http", v)
 
     def _match_cookie_fingerprint(self, request, response, cookie_obj):
         """
@@ -305,7 +304,7 @@ class analyze_cookies(GrepPlugin):
                 i.set_url(response.get_url())
                 i["httpd"] = system_name
 
-                kb.kb.append(self, "fingerprint", i)
+                self._get_knowledge_base().append(self, "fingerprint", i)
                 return True
         # No match was found, we store the keys so we don't try to match
         # them again against the COOKIE_FINGERPRINT
@@ -352,7 +351,7 @@ class analyze_cookies(GrepPlugin):
             v.set_url(response.get_url())
             v.set_cookie_object(cookie_obj)
 
-            kb.kb.append(self, "false_secure", v)
+            self._get_knowledge_base().append(self, "false_secure", v)
 
     def _not_secure_over_https(
         self, request, response, cookie_obj, cookie_header_value
