@@ -1447,15 +1447,15 @@ Bandit restantes, el singleton `kb` y los módulos orquestadores grandes.
 
 ## Actualización verificada: composición de la KB en consumers
 
-`seed` y `CrawlInfrastructure` ya no importan el módulo global de
-`knowledge_base`. `CoreStrategy`, que compone esos consumers, les inyecta la
-instancia de KB explícitamente; sus tests pasan la implementación real y no
+`seed`, `CrawlInfrastructure` y `CoreStrategy` ya no importan el módulo global
+de `knowledge_base`. `w3afCore`, como raíz de composición, pasa la instancia a
+`CoreStrategy`, que la reenvía a esos consumers; sus tests pasan la implementación real y no
 usan mocks. La extracción también conserva en `CoreStrategy` el registro de
 redirecciones y la recreación del producer entre scans.
 
 Verificación: 62 tests de consumers/strategy pasan con 7 subtests, la fitness
 test de capas pasa, mypy no encuentra errores y Bandit conserva 46 hallazgos,
 sin `B106`, `B107`, `B301`, `B403` ni `B310`. El score no cambia todavía:
-`CoreStrategy` sigue siendo el composition root que obtiene `kb.kb`, y quedan
+`w3afCore` sigue siendo el composition root que obtiene `kb.kb`, y quedan
 aproximadamente 100 módulos de producción que dependen directamente del
 singleton, además de los orquestadores grandes.
