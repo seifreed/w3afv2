@@ -2874,3 +2874,15 @@ Verificación: **37 tests y 9 subtests pasaron** en API de plugins/perfiles y
 CorePlugins; Ruff, Black, mypy focalizado y `git diff --check` están limpios.
 El score permanece en **6.25/10** por los globals de composición restantes,
 cobertura 100% no demostrada, Bandit heredado, mocks e integraciones Moth.
+
+## Actualización verificada: entrypoint del agente compone su sink
+
+El servidor standalone del agente deja de leer `om.out` directamente. Su
+entrypoint crea el manager y el `LogSink` mediante las fábricas explícitas y
+entrega el sink al `w3afAgentServer`; la clase servidor ya mantiene esa
+dependencia por instancia.
+
+Verificación: no existen tests dedicados del agente en este checkout; Ruff,
+Black, mypy focalizado, `py_compile` y `git diff --check` están limpios. El
+score permanece en **6.25/10** por los globals de composición restantes,
+cobertura 100% no demostrada, Bandit heredado, mocks e integraciones Moth.

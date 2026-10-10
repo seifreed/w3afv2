@@ -27,7 +27,10 @@ import threading
 from multiprocessing.dummy import Process
 from typing import ClassVar
 
-import w3af.core.controllers.output_manager as om
+from w3af.core.controllers.output_manager import (
+    fresh_output_manager_inst,
+    log_sink_factory,
+)
 from w3af.core.exceptions import BaseFrameworkException
 
 
@@ -321,7 +324,9 @@ if __name__ == "__main__":
         sys.exit(-1)
 
     ip_address = sys.argv[1]
-    agent = w3afAgentServer(ip_address, om.out, listen_port=int(sys.argv[2]))
+    output_manager = fresh_output_manager_inst()
+    output = log_sink_factory(output_manager.get_in_queue())
+    agent = w3afAgentServer(ip_address, output, listen_port=int(sys.argv[2]))
 
     try:
         agent.run()
