@@ -1788,3 +1788,14 @@ Verificación: 15 tests de estos plugins pasan, Ruff, Black y mypy pasan en los
 módulos modificados. El score sigue en **5.75/10**: quedan 52 imports directos
 de la KB, además de la cobertura, mocks, el fallo heredado de perfilado, la
 dependencia de Moth y los orquestadores grandes.
+
+## Actualización verificada: identificación Favicon y FrontPage
+
+`favicon_identification` y `frontpage_version` registran sus identificaciones
+mediante la KB configurada en los plugins, conservando las rutas por defecto y
+las bases de datos de firmas.
+
+Verificación: 9 tests de ambos plugins pasan, Ruff, Black y mypy pasan en los
+módulos modificados. El score sigue en **5.75/10**: quedan 50 imports directos
+de la KB, además de la cobertura, mocks, el fallo heredado de perfilado, la
+dependencia de Moth y los orquestadores grandes.
