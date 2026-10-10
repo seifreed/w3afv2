@@ -26,6 +26,7 @@ import unittest
 import pytest
 
 import w3af.core.data.kb.config as cf
+import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.extrusion_scanning.extrusion_scanner import extrusionScanner
 from w3af.plugins.tests.helper import onlyroot
 
@@ -36,7 +37,7 @@ class TestExtrusionScanner(unittest.TestCase):
     """
 
     def test_basic(self):
-        es = extrusionScanner(subprocess.getoutput)
+        es = extrusionScanner(subprocess.getoutput, kb.kb)
 
         self.assertTrue(es.can_scan())
 
@@ -50,7 +51,7 @@ class TestExtrusionScanner(unittest.TestCase):
         # FIXME: This unittest will only work in Linux
         cf.cf.save("interface", "lo")
         cf.cf.save("local_ip_address", "127.0.0.1")
-        es = extrusionScanner(subprocess.getoutput)
+        es = extrusionScanner(subprocess.getoutput, kb.kb)
 
         inbound_port = es.get_inbound_port()
         self.assertEqual(inbound_port, 8080)

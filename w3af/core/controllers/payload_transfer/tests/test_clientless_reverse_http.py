@@ -25,6 +25,7 @@ import tempfile
 import unittest
 
 import w3af.core.data.kb.config as cf
+import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.extrusion_scanning.extrusion_scanner import extrusionScanner
 from w3af.core.controllers.misc.get_unused_port import get_unused_port
 from w3af.core.controllers.payload_transfer.clientless_reverse_http import (
@@ -66,7 +67,7 @@ class TestClientlessReverseHTTP(unittest.TestCase):
         create_temp_dir()
         cf.cf.save("interface", "lo")
         cf.cf.save("local_ip_address", "127.0.0.1")
-        es = extrusionScanner(exec_method)
+        es = extrusionScanner(exec_method, kb.kb)
 
         inbound_port = es.get_inbound_port()
         echo_linux = ClientlessReverseHTTP(exec_method, os, inbound_port)

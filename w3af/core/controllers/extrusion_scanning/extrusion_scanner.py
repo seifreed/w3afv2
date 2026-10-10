@@ -28,7 +28,6 @@ import time
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
-import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.extrusion_scanning.server.extrusion_server import (
@@ -55,6 +54,7 @@ class extrusionScanner:
     def __init__(
         self,
         exec_method,
+        knowledge_base,
         forceReRun=False,
         tcpPortList=(25, 80, 53, 1433, 8080),
         udpPortList=(53, 69, 139, 1025),
@@ -66,6 +66,7 @@ class extrusionScanner:
                                won't fetch the results from the KB
         """
         self._exec_method = exec_method
+        self._knowledge_base = knowledge_base
         self._forceReRun = forceReRun
         self._tcp_port_list = tcpPortList
         self._udp_port_list = udpPortList
@@ -107,7 +108,7 @@ class extrusionScanner:
             return True
 
     def estimate_scan_time(self):
-        saved_results = kb.kb.raw_read("extrusionScanner", "extrusions")
+        saved_results = self._knowledge_base.raw_read("extrusionScanner", "extrusions")
         if saved_results:
             return 1
         else:
@@ -121,7 +122,9 @@ class extrusionScanner:
         if not self._forceReRun:
             # Try to return the data from the kb !
             remoteId = self._getRemoteId()
-            saved_results = kb.kb.raw_read("extrusionScanner", "extrusions")
+            saved_results = self._knowledge_base.raw_read(
+                "extrusionScanner", "extrusions"
+            )
 
             if remoteId in saved_results:
                 msg = (
@@ -197,13 +200,17 @@ class extrusionScanner:
 
                     if not self._forceReRun:
                         om.out.debug("Saving information in the kb.")
-                        saved_results = kb.kb.raw_read("extrusionScanner", "extrusions")
+                        saved_results = self._knowledge_base.raw_read(
+                            "extrusionScanner", "extrusions"
+                        )
                         if saved_results:
                             saved_results[remoteId] = port
                         else:
                             saved_results = {}
                             saved_results[remoteId] = port
-                        kb.kb.raw_write("extrusionScanner", "extrusions", saved_results)
+                        self._knowledge_base.raw_write(
+                            "extrusionScanner", "extrusions", saved_results
+                        )
 
                     return port
 

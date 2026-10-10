@@ -49,11 +49,12 @@ class vdaemon:
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self, exec_method):
+    def __init__(self, exec_method, knowledge_base):
 
         # This is the method that will be used to send the metasploit payload to
         # the remote webserver ( using echo $payload > file )
         self._exec_method = exec_method
+        self._knowledge_base = knowledge_base
 
         self._metasploit_location = cf.cf.get("msf_location")
         self._msfpayload_path = os.path.join(self._metasploit_location, "msfpayload")
@@ -215,7 +216,7 @@ class vdaemon:
         om.out.debug("Called _send_exe_to_server()")
         om.out.console("Wait while w3af uploads the payload to the remote server...")
 
-        ptf = payload_transfer_factory(self._exec_method)
+        ptf = payload_transfer_factory(self._exec_method, self._knowledge_base)
 
         # Now we get the transfer handler
         ptf.estimate_transfer_time()

@@ -94,12 +94,12 @@ class DirectoryTransferHandler:
 
 
 class TransferFactory:
-    """Mirrors payload_transfer_factory(exec_method).get_transfer_handler()."""
+    """Mirrors payload_transfer_factory(exec_method, knowledge_base)."""
 
     def __init__(self, handler=None):
         self.handler = handler
 
-    def __call__(self, exec_method):
+    def __call__(self, exec_method, knowledge_base):
         self.exec_method = exec_method
         return self
 

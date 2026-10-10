@@ -55,13 +55,14 @@ class w3afAgentManager(Process):
     internally call the run() method.
     """
 
-    def __init__(self, exec_method, ip_address, socks_port=1080):
+    def __init__(self, exec_method, ip_address, knowledge_base, socks_port=1080):
         Process.__init__(self)
         self.daemon = True
 
         #    Configuration
         self._exec_method = exec_method
         self._ip_address = ip_address
+        self._knowledge_base = knowledge_base
         self._socks_port = socks_port
 
         #    Internal
@@ -115,7 +116,7 @@ class w3afAgentManager(Process):
                 #    Now that everything is setup here, transfer the client
                 #    to the remote end and run it.
                 #
-                ptf = payload_transfer_factory(self._exec_method)
+                ptf = payload_transfer_factory(self._exec_method, self._knowledge_base)
                 transferHandler = ptf.get_transfer_handler(inbound_port)
 
                 if not transferHandler.can_transfer():
@@ -250,7 +251,7 @@ class w3afAgentManager(Process):
 
     def _get_inbound_port(self):
         # Do an extrusion scan and return the inbound open ports
-        es = extrusionScanner(self._exec_method)
+        es = extrusionScanner(self._exec_method, self._knowledge_base)
         try:
             inbound_port = es.get_inbound_port()
         except Exception as e:

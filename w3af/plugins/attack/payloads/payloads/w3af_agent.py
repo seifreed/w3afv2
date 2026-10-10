@@ -23,7 +23,9 @@ class w3af_agent(Payload):
             raise ValueError(f'Invalid IP address: "{ip_address}"')
 
         try:
-            agentManager = w3afAgentManager(self.shell.execute, ip_address)
+            agentManager = w3afAgentManager(
+                self.shell.execute, ip_address, self.shell.get_knowledge_base()
+            )
         except BaseFrameworkException as w3:
             return "Error" + str(w3)
         else:

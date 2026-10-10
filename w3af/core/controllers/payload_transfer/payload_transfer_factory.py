@@ -45,9 +45,9 @@ class payload_transfer_factory:
     function.
     """
 
-    def __init__(self, exec_method):
+    def __init__(self, exec_method, knowledge_base):
         self._exec_method = exec_method
-        self._es = extrusionScanner(exec_method)
+        self._es = extrusionScanner(exec_method, knowledge_base)
 
     def estimate_transfer_time(self):
         if self._es.can_scan():
