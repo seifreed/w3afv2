@@ -3067,3 +3067,15 @@ Bandit focalizado y `git diff --check` están limpios. La ejecución mostró 2
 warnings deprecados externos de `ldap3`/`pyasn1`, sin suprimirlos. El score
 permanece en **6.25/10** por la composición global, serialización, cobertura y
 gates heredados aún pendientes.
+
+## Actualización verificada: fixtures core con wiring real de output
+
+Las suites de excepciones y pausa/parada construyen plugins auxiliares con el
+`LogSink` real del core, igual que el camino de producción. Antes el plugin
+fallaba en `_output.debug()` antes de ejecutar su comportamiento, ocultando la
+causa de 14 fallos.
+
+Verificación: las dos suites pasaron **14 tests**; Black, Ruff, mypy focalizado,
+Bandit focalizado, `pip-audit` y `git diff --check` están limpios. El score
+permanece en **6.25/10** hasta repetir la suite core completa y resolver las
+deudas globales de cobertura y gates.
