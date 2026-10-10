@@ -2978,3 +2978,15 @@ Black, Ruff, mypy focalizado y `git diff --check` están limpios. El score
 permanece en **6.25/10** por la serialización y el lifecycle aún mezclados en
 el controlador, cobertura 100% no demostrada, Bandit heredado e integraciones
 externas.
+
+## Actualización verificada: lifecycle de scan separado
+
+`StatusLifecycle` encapsula running, pausa, inicio, parada, tiempo transcurrido
+y contador de scans. `CoreStatus` conserva sus métodos públicos y coordina el
+logging, los plugins y las métricas sin poseer ya la lógica temporal.
+
+Verificación: **50 tests pasaron** en status, exception handler y segundo scan;
+Black, Ruff, mypy focalizado, Bandit focalizado y `git diff --check` están
+limpios. El score permanece en **6.25/10** por la serialización y la
+coordinación global aún pendientes, cobertura 100% no demostrada, Bandit
+heredado e integraciones externas.

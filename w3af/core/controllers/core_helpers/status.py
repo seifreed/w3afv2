@@ -35,6 +35,7 @@ from w3af.core.controllers.core_helpers.status_eta import (
     Adjustment,
     EtaCalculator,
 )
+from w3af.core.controllers.core_helpers.status_lifecycle import StatusLifecycle
 from w3af.core.controllers.misc.epoch_to_string import epoch_to_string
 from w3af.core.data.misc.number_generator import consecutive_number_generator
 
@@ -53,13 +54,9 @@ class CoreStatus:
     def __init__(self, output, consumer_metrics=None, scans_completed=0):
         self._output = output
         self._consumer_metrics = consumer_metrics or ConsumerMetrics()
+        self._lifecycle = StatusLifecycle(scans_completed)
 
         # Init some internal values
-        self._is_running = False
-        self._paused = False
-        self._start_time_epoch = None
-        self.scans_completed = scans_completed
-
         # This indicates the plugin that is running right now for each
         # plugin_type
         self._running_plugin = {}
@@ -77,24 +74,30 @@ class CoreStatus:
     def set_output(self, output):
         self._output = output
 
+    @property
+    def scans_completed(self):
+        return self._lifecycle.scans_completed
+
+    @scans_completed.setter
+    def scans_completed(self, value):
+        self._lifecycle.scans_completed = value
+
     def pause(self, pause_yes_no):
-        self._paused = pause_yes_no
-        self._is_running = not pause_yes_no
+        self._lifecycle.pause(pause_yes_no)
         self._output.debug("The user paused / unpaused the scan.")
 
     def start(self):
-        self._is_running = True
-        self._start_time_epoch = time.time()
+        self._lifecycle.start()
 
     def stop(self):
         # Now I'm definitely not running:
-        self._is_running = False
+        self._lifecycle.stop()
 
     def get_status(self):
         """
         :return: A string representing the current w3af core status.
         """
-        if self._paused:
+        if self.is_paused():
             return PAUSED
 
         elif not self.is_running():
@@ -158,61 +161,47 @@ class CoreStatus:
         :return: If the user has called start, and then wants to know if the
         core is still working, it should call is_running() to know that.
         """
-        return self._is_running
+        return self._lifecycle.is_running()
 
     def is_paused(self):
-        return self._paused
+        return self._lifecycle.is_paused()
 
     def has_started(self):
         """
         :return: True once start() was called, the run time, ETA and progress
                  can only be calculated after that
         """
-        return self._start_time_epoch is not None
+        return self._lifecycle.has_started()
 
     def get_run_time(self):
         """
         :return: The time (in minutes) between now and the call to start().
         """
-        if self._start_time_epoch is None:
-            raise RuntimeError("Can NOT call get_run_time before start().")
-
-        diff = time.time() - self._start_time_epoch
-        return diff / 60
+        return self._lifecycle.get_run_time()
 
     def get_run_time_seconds(self):
         """
         :return: The time (in seconds) between now and the call to start().
         """
-        if self._start_time_epoch is None:
-            raise RuntimeError("Can NOT call get_run_time before start().")
-
-        return time.time() - self._start_time_epoch
+        return self._lifecycle.get_run_time_seconds()
 
     def get_scan_time(self):
         """
         :return: The scan time in a format similar to: "3h 25m 32s"
         """
-        return epoch_to_string(self._start_time_epoch)
+        return self._lifecycle.get_scan_time()
 
     def get_rpm(self):
         """
         :return: The number of HTTP requests per minute performed since the
                  start of the scan.
         """
-        if self._start_time_epoch is None:
-            raise RuntimeError("Can NOT call get_run_time before start().")
-
-        now = time.time()
-        diff = now - self._start_time_epoch
-        run_time = diff / 60.0
-        return int(consecutive_number_generator.get() / run_time)
+        return int(consecutive_number_generator.get() / self.get_run_time())
 
     def scan_finished(self):
-        self._is_running = False
+        self._lifecycle.scan_finished()
         self._running_plugin = {}
         self._current_fuzzable_request = {}
-        self.scans_completed += 1
 
     def get_current_fuzzable_request(self, plugin_type):
         """

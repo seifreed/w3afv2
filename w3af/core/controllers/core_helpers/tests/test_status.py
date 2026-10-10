@@ -146,7 +146,7 @@ class TestStatus(unittest.TestCase):
     def test_run_time_after_start(self):
         s = CoreStatus(om.out)
         s.start()
-        s._start_time_epoch -= 120
+        s._lifecycle.start_time_epoch -= 120
 
         self.assertGreaterEqual(s.get_run_time(), 2)
         self.assertGreaterEqual(s.get_run_time_seconds(), 120)
@@ -246,7 +246,7 @@ class TestStatusWithConsumers(unittest.TestCase):
         return consumer
 
     def run_for(self, seconds):
-        self.status._start_time_epoch = time.time() - seconds
+        self.status._lifecycle.start_time_epoch = time.time() - seconds
 
     def test_queue_status(self):
         crawl = self.add_crawl()
