@@ -1433,9 +1433,9 @@ Verificación posterior: Ruff y Black pasan en los 1598 archivos, mypy pasa en
 1592 archivos, `pip-audit` no encuentra vulnerabilidades en las dependencias
 reproducibles, los tests focales de serialización/API pasan (364 y 3,
 respectivamente) y los tests de URL/opener pasan (196). Bandit baja de 141 a
-58 hallazgos; solo queda un `B310` en el script de espera de dependencias y
-persisten grupos heredados de TLS, timeouts, subprocess, XML, temporales y
-fixtures de plataforma. No se han añadido supresiones.
+57 hallazgos y `B310` queda a cero; persisten grupos heredados de TLS,
+timeouts, subprocess, XML, temporales y fixtures de plataforma. No se han
+añadido supresiones.
 
 La nota revisada es **Clean Code 6.5/10**, **Clean Architecture 5/10** y
 **Global 5.75/10**: mejoran las pruebas y la higiene de seguridad, pero siguen
