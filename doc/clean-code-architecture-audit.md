@@ -1957,3 +1957,14 @@ advertencias de `ldap3`/`pyasn1` durante la suite. El score sigue en
 **5.75/10**: quedan 23 imports directos de la KB en producción, además de la
 cobertura, mocks, el fallo heredado de perfilado, la dependencia de Moth y los
 orquestadores grandes.
+
+## Actualización verificada: ataque RFI
+
+`attack.rfi` consulta sus vulnerabilidades RFI y XSS mediante la KB inyectada
+por `AttackPlugin`; el módulo ya no importa el singleton global.
+
+Verificación: Ruff, Black y mypy pasan en el módulo. Las 2 pruebas de
+explotación RFI no pudieron completar porque `php_moth-fallback` no resuelve
+en este entorno. El score sigue en **5.75/10**: quedan 22 imports directos de
+la KB en producción, además de la cobertura, mocks, el fallo heredado de
+perfilado, la dependencia de Moth y los orquestadores grandes.
