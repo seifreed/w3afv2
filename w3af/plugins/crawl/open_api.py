@@ -26,7 +26,6 @@ from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.db.disk_set import DiskSet
@@ -279,7 +278,7 @@ class open_api(CrawlPlugin):
             )
             i.set_url(http_response.get_url())
 
-            kb.kb.append(self, "open_api", i)
+            self._get_knowledge_base().append(self, "open_api", i)
             om.out.error(i.get_desc())
 
             return
@@ -297,7 +296,7 @@ class open_api(CrawlPlugin):
         )
         i.set_url(http_response.get_url())
 
-        kb.kb.append(self, "open_api", i)
+        self._get_knowledge_base().append(self, "open_api", i)
         om.out.information(i.get_desc())
 
         # Warn the user about missing credentials
@@ -317,7 +316,7 @@ class open_api(CrawlPlugin):
         )
         i.set_url(http_response.get_url())
 
-        kb.kb.append(self, "open_api", i)
+        self._get_knowledge_base().append(self, "open_api", i)
         om.out.information(i.get_desc())
 
     def _set_authentication_data(self, fuzzable_request):

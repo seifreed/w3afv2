@@ -27,7 +27,6 @@ from xml.parsers.expat import ExpatError
 from defusedxml import DefusedXmlException, minidom
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
@@ -121,7 +120,7 @@ class ghdb(CrawlPlugin):
                 v.set_url(response.get_url())
                 v.set_method("GET")
 
-                kb.kb.append(self, "vuln", v)
+                self._get_knowledge_base().append(self, "vuln", v)
                 om.out.vulnerability(v.get_desc(), severity=severity.LOW)
 
                 # Create the fuzzable requests

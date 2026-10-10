@@ -26,7 +26,6 @@ import re
 from collections import namedtuple
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.exceptions import RunOnce
@@ -188,7 +187,7 @@ class pykto(CrawlPlugin):
             v.set_uri(http_response.get_uri())
             v.set_method(nikto_test.method)
 
-            kb.kb.append(self, "vuln", v)
+            self._get_knowledge_base().append(self, "vuln", v)
             om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
             fr = FuzzableRequest.from_http_response(http_response)

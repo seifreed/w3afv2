@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_not_equal
@@ -103,7 +102,7 @@ class user_dir(CrawlPlugin):
         if fuzzy_not_equal(response_body, non_existent, 0.7):
 
             # Avoid duplicates
-            user_infos = kb.kb.get("user_dir", "users")
+            user_infos = self._get_knowledge_base().get("user_dir", "users")
             known_users = [u.get("user", None) for u in user_infos]
             if user in known_users:
                 return
@@ -161,7 +160,7 @@ class user_dir(CrawlPlugin):
             i = Info(name, desc, user_info.get_id(), self.get_name())
             i.set_url(user_info.get_url())
 
-            kb.kb.append(self, "users", i)
+            self._get_knowledge_base().append(self, "users", i)
             om.out.report_finding(i)
 
     def _create_tests(self, base_url, non_existent):
@@ -201,7 +200,7 @@ class user_dir(CrawlPlugin):
         for user in self.COMMON_USERS:
             yield self.COMMON_USER_DESC, user, self.COMMON_TAG
 
-        for email_kb in kb.kb.get("emails", "emails"):
+        for email_kb in self._get_knowledge_base().get("emails", "emails"):
             yield self.EMAIL_USER_DESC, email_kb["user"], self.EMAIL_TAG
 
     def get_plugin_deps(self):
