@@ -32,7 +32,7 @@ TEST_DEPENDENCIES = [
 
 def is_online(url, match_string):
     try:
-        content = urllib.request.urlopen(url).read()
+        content = urllib.request.build_opener().open(url, timeout=5).read()
     except urllib.error.HTTPError as e:
         content = e.read()
     except (OSError, http.client.HTTPException) as e:
