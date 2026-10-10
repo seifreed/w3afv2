@@ -1457,5 +1457,19 @@ Verificación: 62 tests de consumers/strategy pasan con 7 subtests, la fitness
 test de capas pasa, mypy no encuentra errores y Bandit conserva 46 hallazgos,
 sin `B106`, `B107`, `B301`, `B403` ni `B310`. El score no cambia todavía:
 `w3afCore` sigue siendo el composition root que obtiene `kb.kb`, y quedan
-aproximadamente 100 módulos de producción que dependen directamente del
+95 módulos de producción que dependen directamente del
 singleton, además de los orquestadores grandes.
+
+## Actualización verificada: composición de la KB en plugins
+
+`CorePlugins.get_plugin_inst()` inyecta la KB configurada por `w3afCore` en
+cada plugin creado por la aplicación. `Plugin` y `AuditPlugin` usan esa
+dependencia explícita para escribir y consultar hallazgos; ya no importan el
+módulo singleton. Un plugin creado fuera de la raíz debe configurar la KB antes
+de usar esos métodos y tiene un error explícito si no lo hace.
+
+Verificación: 94 tests de plugins pasan con 9 subtests, la fitness test de
+capas pasa, mypy no encuentra errores y Bandit permanece en 46 hallazgos. El
+score se mantiene en **5.75/10**: 95 módulos de producción todavía importan el
+singleton y la cobertura global, los mocks existentes y la deuda de los
+orquestadores siguen sin resolverse.
