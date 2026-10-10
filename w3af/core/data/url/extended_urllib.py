@@ -47,17 +47,13 @@ from w3af.core.data.parsers.doc.http_request_parser import http_request_parser
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.constants import (
     ACCEPTABLE_ERROR_RATE,
-    DEFAULT_TIMEOUT,
     ERROR_DELAY_LIMIT,
     MAX_ERROR_COUNT,
     MAX_RESPONSE_COLLECT,
-    MAX_TIMEOUT,
-    MIN_TIMEOUT,
     SOCKET_ERROR_DELAY,
     TIMEOUT_ADJUST_LIMIT,
     TIMEOUT_INCREASE_MULT,
     TIMEOUT_MULT_CONST,
-    TIMEOUT_UPDATE_ELAPSED_MIN,
 )
 from w3af.core.data.url.exceptions import ConnectionPoolException, HTTPRequestException
 from w3af.core.data.url.get_average_rtt import GetAverageRTTForMutant
@@ -66,6 +62,7 @@ from w3af.core.data.url.helpers import get_clean_body, get_exception_reason
 from w3af.core.data.url.http_request import HTTPRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.data.url.response_meta import SUCCESS, ResponseMeta
+from w3af.core.data.url.timeout_manager import TimeoutManager
 from w3af.core.data.user_agent.random_user_agent import get_random_user_agent
 from w3af.core.exceptions import (
     BaseFrameworkException,
@@ -106,8 +103,7 @@ class ExtendedUrllib:
         # For rate limiting and timeouts
         self._rate_limit_last_time_called = 0.0
         self._rate_limit_lock = threading.RLock()
-        self._adjust_timeout_lock = threading.RLock()
-        self._adjust_timeout_last_call = 0.0
+        self._timeout_manager = TimeoutManager(self.settings)
 
         # Keep track of sum(rtt) for each debugging_id
         self._rtt_sum_debugging_id = SynchronizedLRUDict(capacity=128)
@@ -120,9 +116,6 @@ class ExtendedUrllib:
         self._total_requests = 0
 
         # Timeout is kept by host
-        self._host_timeout = {}
-        self._global_timeout = DEFAULT_TIMEOUT
-
         # Used in the pause on HTTP error feature to keep track of when the
         # core slept waiting for the remote end to be reachable
         self._sleep_log = {}
@@ -204,14 +197,9 @@ class ExtendedUrllib:
         Sets the timeout to use in HTTP requests, usually called by the auto
         timeout adjust feature in extended_urllib.py
         """
-        # Set the min and max limits
-        timeout = min(MAX_TIMEOUT, timeout)
-        timeout = max(MIN_TIMEOUT, timeout)
-
         msg = "Updating socket timeout for %s from %.2f to %.2f seconds"
-        LOGGER.debug(msg % (host, self.get_timeout(host), timeout))
-
-        self._host_timeout[host] = timeout
+        LOGGER.debug(msg, host, self.get_timeout(host), timeout)
+        self._timeout_manager.set_timeout(timeout, host)
 
     def get_timeout(self, host):
         """
@@ -220,7 +208,7 @@ class ExtendedUrllib:
                  disabled, but when enabled this value will change during the
                  scan.
         """
-        return self._host_timeout.get(host, self._global_timeout)
+        return self._timeout_manager.get_timeout(host)
 
     def clear_timeout(self):
         """
@@ -229,15 +217,7 @@ class ExtendedUrllib:
 
         :return: None
         """
-        self._host_timeout = {}
-        configured_timeout = self.settings.get_configured_timeout()
-
-        if configured_timeout != 0:
-            self._global_timeout = configured_timeout
-        else:
-            # Get ready for the next scan, which we don't want to be affected
-            # by the timeout set in the previous scan
-            self._global_timeout = DEFAULT_TIMEOUT
+        self._timeout_manager.clear()
 
     def _auto_adjust_timeout(self, request):
         """
@@ -264,9 +244,8 @@ class ExtendedUrllib:
         :see: https://github.com/andresriancho/w3af/issues/8698
         :return: None, we adjust the value at the "settings" attribute
         """
-        with self._adjust_timeout_lock:
-            if not self._should_auto_adjust_timeout_now():
-                return
+        if not self._timeout_manager.should_auto_adjust(self.get_total_requests()):
+            return
 
         host = request.get_domain()
         average_rtt, num_samples = self.get_average_rtt(TIMEOUT_ADJUST_LIMIT, host)
@@ -297,18 +276,10 @@ class ExtendedUrllib:
         :param exception: The original exception that lead us here
         :return: None
         """
-        # Get current timeout
         host = request.get_domain()
-        timeout = self.get_timeout(host)
-
-        # We increase it without a limit because the limit is set in set_timeout
-        timeout *= TIMEOUT_INCREASE_MULT
-
+        timeout = self.get_timeout(host) * TIMEOUT_INCREASE_MULT
         msg = "Will increase timeout to %.2f seconds after HTTP socket error (did:%s)"
-        args = (timeout, request.debugging_id)
-        LOGGER.debug(msg % args)
-
-        # Set new timeout
+        LOGGER.debug(msg, timeout, request.debugging_id)
         self.set_timeout(timeout, host)
 
     def get_average_rtt(self, count=TIMEOUT_ADJUST_LIMIT, host=None):
@@ -337,27 +308,6 @@ class ExtendedUrllib:
         else:
             average_rtt = float(rtt_sum) / add_count
             return average_rtt, add_count
-
-    def _should_auto_adjust_timeout_now(self):
-        """
-        :return: True if we need to auto adjust the timeout now
-        """
-        if self.settings.get_configured_timeout() != 0:
-            # The user disabled the timeout auto-adjust feature
-            return False
-
-        if self.get_total_requests() == 0:
-            return False
-
-        if self.get_total_requests() % TIMEOUT_ADJUST_LIMIT != 0:
-            return False
-
-        elapsed = time.time() - self._adjust_timeout_last_call
-        if elapsed < TIMEOUT_UPDATE_ELAPSED_MIN:
-            return False
-
-        self._adjust_timeout_last_call = time.time()
-        return True
 
     def get_total_requests(self):
         """

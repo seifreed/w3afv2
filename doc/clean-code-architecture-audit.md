@@ -2080,3 +2080,17 @@ Verificación: 17 tests de estrategia, 7 subtests, Ruff, Black y mypy pasan; el
 módulo de estrategia perdió 171 líneas de responsabilidades ajenas. El score
 permanece en **5.75/10**: el router concurrente, consumidores, cobertura
 global y Bandit heredado siguen pendientes.
+
+## Actualización verificada: política de timeout separada
+
+El estado de timeout por host, los límites configurables, el autoajuste y su
+sincronización salieron de `ExtendedUrllib` y pasaron a
+`core/data/url/timeout_manager.py`. `ExtendedUrllib` conserva la medición RTT,
+el transporte y la API pública de timeout, de modo que la extracción no cambia
+los callers ni el logger usado por las pruebas.
+
+Verificación: 6 tests de timeout, 30 tests HTTP generales y 6 tests de manejo
+de errores pasan; Ruff, Black y mypy están limpios en los módulos modificados.
+El score permanece en **5.75/10**: siguen pendientes la cobertura global,
+Bandit heredado, mocks existentes, el fallo de perfilado, Moth y los
+orquestadores grandes.
