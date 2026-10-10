@@ -24,7 +24,6 @@ import re
 from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
@@ -89,7 +88,7 @@ class oracle_discovery(CrawlPlugin):
                 )
                 i.set_url(response.get_url())
 
-                kb.kb.append(self, "oracle_discovery", i)
+                self._get_knowledge_base().append(self, "oracle_discovery", i)
                 om.out.information(i.get_desc())
 
                 fr = FuzzableRequest.from_http_response(response)
