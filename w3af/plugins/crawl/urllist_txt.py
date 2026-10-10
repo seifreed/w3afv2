@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.misc.decorators import runonce
@@ -69,7 +68,7 @@ class urllist_txt(CrawlPlugin):
         i = Info("urllist.txt file", desc, http_response.id, self.get_name())
         i.set_url(urllist_url)
 
-        kb.kb.append(self, "urllist.txt", i)
+        self._get_knowledge_base().append(self, "urllist.txt", i)
         om.out.information(i.get_desc())
 
         # Even in the case where it is NOT a valid urllist.txt it might be
