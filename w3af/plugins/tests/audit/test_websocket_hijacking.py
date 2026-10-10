@@ -19,10 +19,14 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import base64
+import unittest
 from typing import ClassVar
 
+from w3af.core.controllers.websocket.utils import gen_ws_sec_key
 from w3af.core.data.kb.info import Info
 from w3af.core.data.parsers.doc.url import URL
+from w3af.plugins.audit.websocket_hijacking import websocket_hijacking
 from w3af.plugins.grep.websockets_links import WebSocketInfoSet
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
@@ -123,7 +127,7 @@ class OriginMatchBugTest(WebSocketTest):
     target_ws = "ws://websocket.com"
 
     class OriginMatchBugMock(MockResponse):
-        def matches(self, http_request, uri, response_headers):
+        def matches(self, http_request, uri):
             origin = http_request.headers.get("origin", "")
             return bool(origin.startswith(OriginMatchBugTest.target_url))
 
@@ -147,7 +151,7 @@ class OriginMatchTest(WebSocketTest):
     target_ws = "ws://websocket.com"
 
     class OriginMatchMock(MockResponse):
-        def matches(self, http_request, uri, response_headers):
+        def matches(self, http_request, uri):
             origin = http_request.headers.get("origin", "")
             return origin == OriginMatchBugTest.target_url
 
@@ -171,7 +175,7 @@ class BasicAuthWebSocketTest(WebSocketTest):
     target_ws = "ws://websocket.com"
 
     class BasicAuthMock(MockResponse):
-        def matches(self, http_request, uri, response_headers):
+        def matches(self, http_request, uri):
             authorization = http_request.headers.get("authorization", "")
             return bool(authorization)
 
@@ -211,7 +215,7 @@ class CookieAuthWebSocketTest(WebSocketTest):
                 response_headers.update({"Set-Cookie": "foo=123"})
                 return 200, response_headers, "Cookies sent"
 
-        def matches(self, http_request, uri, response_headers):
+        def matches(self, http_request, uri):
             return True
 
     MOCK_RESPONSES: ClassVar[list] = [
@@ -233,7 +237,16 @@ class OpenWebSocketsWithCrawlTest(WebSocketTest):
     target_ws_http = "http://w3af.com/echo"
     target_ws = "ws://w3af.com/echo"
 
-    INDEX_BODY = "<html>" '<a href="/ws-index">ws index</a>' "</html>"
+    INDEX_BODY = (
+        "<html>"
+        '<a href="/ws-index">ws index</a>'
+        '<a href="/slow-page">slow page</a>'
+        "</html>"
+    )
+
+    # Audited after the websocket link was grepped from /ws-index: the audit
+    # plugin can only use the KB links found before the audited page is sent.
+    SLOW_PAGE_DELAY = 2
 
     WS_BODY = (
         "<html>"
@@ -247,6 +260,13 @@ class OpenWebSocketsWithCrawlTest(WebSocketTest):
         MockResponse(url=target_url, body=INDEX_BODY, method="GET", status=200),
         MockResponse(
             url=target_url + "ws-index", body=WS_BODY, method="GET", status=200
+        ),
+        MockResponse(
+            url=target_url + "slow-page",
+            body="<html>slow</html>",
+            method="GET",
+            status=200,
+            delay=SLOW_PAGE_DELAY,
         ),
         MockResponse(
             url=target_ws_http,
@@ -265,3 +285,19 @@ class OpenWebSocketsWithCrawlTest(WebSocketTest):
         # Assert
         vulns = self.kb.get("websocket_hijacking", "websocket_hijacking")
         self.assertEqual(["Open WebSocket"], [v.get_name() for v in vulns])
+
+
+class TestWebSocketHijackingPlugin(unittest.TestCase):
+    def test_long_description_explains_the_origin_check(self):
+        self.assertIn("Origin", websocket_hijacking().get_long_desc())
+
+
+class TestWebSocketKey(unittest.TestCase):
+    def test_key_is_the_base64_text_of_sixteen_characters(self):
+        key = gen_ws_sec_key()
+
+        self.assertIsInstance(key, str)
+        self.assertEqual(16, len(base64.b64decode(key)))
+
+    def test_keys_are_different_for_every_connection(self):
+        self.assertNotEqual(gen_ws_sec_key(), gen_ws_sec_key())

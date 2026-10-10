@@ -162,7 +162,7 @@ class xss(AuditPlugin):
         if self._check_persistent_xss:
             self._xss_mutants.append((trivial_mutant, response.id))
 
-        if self._is_json_response(response):
+        if not self._can_render_html(response):
             return False
 
         if payload in response.get_body().lower():
@@ -171,17 +171,14 @@ class xss(AuditPlugin):
 
         return False
 
-    def _is_json_response(self, response):
+    def _can_render_html(self, response):
         """
-        This is something I've seen in as a false positive during my
-        assessments and is better explained in this stackoverflow question
-        https://goo.gl/BgXVJY
+        Only text and HTML responses can run the injected code. This avoids
+        false positives like the JSON responses explained in this stackoverflow
+        question https://goo.gl/BgXVJY and the errors of searching text in the
+        body of images, PDFs and other binary documents.
         """
-        ct_options, _ = response.get_headers().iget("X-Content-Type-Options", "")
-        content_type, _ = response.get_headers().iget("Content-Type", "")
-
-        # No luck exploiting this JSON XSS
-        return "application/json" in content_type and "nosniff" in ct_options
+        return response.is_text_or_html()
 
     def _search_xss(self, mutant, debugging_id):
         """
@@ -216,6 +213,9 @@ class xss(AuditPlugin):
         # Add data for the persistent xss checking
         if self._check_persistent_xss:
             self._xss_mutants.append((mutant, response.id))
+
+        if not self._can_render_html(response):
+            return
 
         with self._plugin_lock:
 
@@ -296,7 +296,7 @@ class xss(AuditPlugin):
         msg = "Analyzing HTTP response %s to verify if XSS token was persisted"
         om.out.debug(msg % response.get_uri())
 
-        if self._is_json_response(response):
+        if not self._can_render_html(response):
             return
 
         body = response.get_body()

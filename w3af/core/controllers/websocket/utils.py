@@ -40,7 +40,7 @@ from w3af.core.data.url.exceptions import HTTPRequestException
 def gen_ws_sec_key():
     _set = string.ascii_uppercase + string.digits
     key = "".join(secrets.choice(_set) for _ in range(16))
-    return base64.b64encode(key)
+    return base64.b64encode(key.encode("ascii")).decode("ascii")
 
 
 def build_ws_upgrade_request(
