@@ -92,12 +92,7 @@ class ghdb(CrawlPlugin):
 
         for gh in google_hack_set:
             search_term = f"site:{domain} {gh.search}"
-            try:
-                self._classic_worker(gh, search_term)
-            except BaseFrameworkException as w3:
-                # Google is saying: "no more automated tests".
-                om.out.error('GHDB exception: "' + str(w3) + '".')
-                break
+            self._classic_worker(gh, search_term)
 
     def _classic_worker(self, gh, search_term):
         """
@@ -139,7 +134,7 @@ class ghdb(CrawlPlugin):
                  objects.
         """
         try:
-            with open(self._ghdb_file) as ghdb_fd:
+            with open(self._ghdb_file, encoding="utf-8") as ghdb_fd:
                 ghdb_content = ghdb_fd.read()
         except OSError as e:
             msg = 'Failed to open ghdb file: "%s", error: "%s".'
@@ -231,3 +226,6 @@ class GoogleHack:
 
     def __eq__(self, other):
         return self.search == other.search
+
+    def __hash__(self):
+        return hash(self.search)

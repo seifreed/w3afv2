@@ -30,6 +30,9 @@ from w3af import ROOT_PATH
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.dc.json_container import JSONContainer
 from w3af.core.data.parsers.doc.open_api import OpenAPI
+from w3af.core.data.parsers.doc.open_api.tests.example_specifications import (
+    PetstoreSimpleModel,
+)
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.http_response import HTTPResponse
 
@@ -880,3 +883,50 @@ class TestOpenAPIMain(unittest.TestCase):
         expected_uri = "https://api.domain.com/domain/tokens"
 
         self.assertIn(expected_uri, [call.get_uri().url_string for call in api_calls])
+
+    def test_binary_response_body_is_parsed(self):
+        body = Path(self.SWAGGER_JSON).read_bytes()
+        headers = Headers([("Content-Type", "application/json")])
+        response = HTTPResponse(
+            200,
+            body,
+            headers,
+            URL("http://moth/swagger.json"),
+            URL("http://moth/swagger.json"),
+            _id=1,
+        )
+
+        self.assertIsInstance(response.body, bytes)
+        self.assertTrue(OpenAPI.can_parse(response))
+
+        parser = OpenAPI(response)
+        parser.parse()
+
+        self.assertGreater(len(parser.get_api_calls()), 0)
+
+    def test_forced_url_parts_include_the_base_path(self):
+        body = PetstoreSimpleModel.get_specification()
+        headers = Headers([("Content-Type", "application/json")])
+        response = HTTPResponse(
+            200,
+            body,
+            headers,
+            URL("http://moth/swagger.json"),
+            URL("http://moth/swagger.json"),
+            _id=1,
+        )
+
+        parser = OpenAPI(response)
+        parser.parse()
+
+        calls_with_path_parameter = [
+            call
+            for call in parser.get_api_calls()
+            if call.get_url().get_path().startswith("/api/pets/")
+        ]
+        self.assertGreater(len(calls_with_path_parameter), 0)
+
+        for call in calls_with_path_parameter:
+            url_parts = call.get_force_fuzzing_url_parts()
+            self.assertEqual(url_parts[0], ("/api/pets/", False))
+            self.assertTrue(url_parts[1][1])

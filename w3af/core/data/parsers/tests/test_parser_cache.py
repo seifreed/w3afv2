@@ -329,6 +329,36 @@ class TestParserCacheCleanup(unittest.TestCase):
         self.assertEqual(len(parser_cache.dpc._cache), 0)
 
 
+class TestWorkerFailureParsers(unittest.TestCase):
+    """
+    These parsers break the communication with the worker processes, here
+    they run in this process to verify what they do on their own.
+    """
+
+    def build_parser(self, parser_class):
+        response = _build_http_response(
+            f"<html>{parser_class.MARKER}!</html>", "text/html"
+        )
+        return parser_class(response)
+
+    def test_unloadable_parser_is_reduced_to_a_failing_loader(self):
+        parser = self.build_parser(UnloadableParser)
+
+        self.assertIsNone(parser.parse())
+
+        loader, loader_args = parser.__reduce__()
+        with self.assertRaisesRegex(ValueError, "can not be loaded"):
+            loader(*loader_args)
+
+    def test_bad_tags_parser_yields_tags_without_content(self):
+        parser = self.build_parser(BadTagsParser)
+
+        self.assertIsNone(parser.parse())
+
+        tags = list(parser.get_tags_by_filter(("html",)))
+        self.assertEqual([tag.to_dict() for tag in tags], [{}])
+
+
 def raise_on_load():
     raise ValueError("This parser can not be loaded in the main process")
 

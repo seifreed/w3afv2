@@ -27,6 +27,7 @@ from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
+from w3af.core.data.misc.encoding import smart_str_ignore
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.options.option_types import BOOL, LIST, STRING
@@ -46,9 +47,6 @@ class web_diff(CrawlPlugin):
         CrawlPlugin.__init__(self)
 
         # Internal variables
-        self._first = True
-        self._start_path = None
-
         self._not_exist_remote = []
         self._exist_remote = []
 
@@ -71,7 +69,10 @@ class web_diff(CrawlPlugin):
                                      (among other things) the URL to test.
         """
         if self._local_dir and self._remote_url_path:
-            os.path.walk(self._local_dir, self._compare_dir, None)
+            for directory, directory_names, file_names in os.walk(self._local_dir):
+                directory_names.sort()
+                self._compare_dir(directory, sorted(file_names))
+
             self._generate_report()
         else:
             msg = (
@@ -135,75 +136,63 @@ class web_diff(CrawlPlugin):
             content_stats = f"{eq_content} of {total}"
             om.out.information("Match contents: " + content_stats)
 
-    def _compare_dir(self, arg, directory, flist):
+    def _compare_dir(self, directory, file_names):
         """
-        This function is the callback function called from os.path.walk, python's
-        help says:
+        Request from the remote server each one of the files that exist in a
+        local directory and keep track of which ones exist and match.
 
-        walk(top, func, arg)
-            Directory tree walk with callback function.
-
-            For each directory in the directory tree rooted at top (including top
-            itself, but excluding '.' and '..'), call func(arg, dirname, fnames).
-            dirname is the name of the directory, and fnames a list of the names of
-            the files and subdirectories in dirname (excluding '.' and '..').  func
-            may modify the fnames list in-place (e.g. via del or slice assignment),
-            and walk will only recurse into the subdirectories whose names remain in
-            fnames; this can be used to implement a filter, or to impose a specific
-            order of visiting.  No semantics are defined for, or required of, arg,
-            beyond that arg is always passed to func.  It can be used, e.g., to pass
-            a filename pattern, or a mutable object designed to accumulate
-            statistics.  Passing None for arg is common.
-
+        :param directory: The local directory, inside of self._local_dir
+        :param file_names: The names of the files inside of the directory
         """
-        if self._first:
-            self._first = False
-            self._start_path = directory
+        remote_directory = self._remote_directory_for(directory)
 
-        relative_dir = directory.replace(self._start_path, "")
-        if relative_dir and not relative_dir.endswith("/"):
-            relative_dir += "/"
+        for file_name in file_names:
+            url = remote_directory.url_join(file_name)
+            response = self._uri_opener.GET(url, cache=True)
 
-        remote_root = self._remote_url_path
-        remote_root_with_local_path = remote_root.url_join(relative_dir)
+            if is_404(response):
+                self._not_exist_remote.append(url)
+                continue
 
-        for fname in flist:
-            if os.path.isfile(directory + os.path.sep + fname):
+            if response.is_text_or_html():
+                self.output_queue.put(FuzzableRequest(response.get_url()))
 
-                url = remote_root_with_local_path.url_join(fname)
-                response = self._uri_opener.GET(url, cache=True)
+            self._check_content(response, os.path.join(directory, file_name))
+            self._exist_remote.append(url)
 
-                if not is_404(response):
-                    if response.is_text_or_html():
-                        fr = FuzzableRequest(response.get_url())
-                        self.output_queue.put(fr)
+    def _remote_directory_for(self, directory):
+        """
+        :param directory: A local directory, inside of self._local_dir
+        :return: The URL of the remote directory that matches the local one
+        """
+        relative_dir = os.path.relpath(directory, self._local_dir)
 
-                    path = f"{directory}{os.path.sep}{fname}"
-                    self._check_content(response, path)
-                    self._exist_remote.append(url)
-                else:
-                    self._not_exist_remote.append(url)
+        if relative_dir == os.curdir:
+            return self._remote_url_path
 
-    def _check_content(self, response, file_name):
+        relative_url_path = "/".join(relative_dir.split(os.sep)) + "/"
+        return self._remote_url_path.url_join(relative_url_path)
+
+    def _check_content(self, response, file_path):
         """
         Check if the contents match.
         """
-        if self._content and file_name.count("."):
-            extension = os.path.splitext(file_name)[1].replace(".", "")
+        extension = os.path.splitext(file_path)[1][1:]
 
-            if extension in self._ban_url:
-                return
+        if not self._content or not extension or extension in self._ban_url:
+            return
 
-            try:
-                with open(file_name, "r") as local_fh:
-                    local_content = local_fh.read()
-            except OSError:
-                om.out.debug(f'Failed to open file: "{file_name}".')
-            else:
-                if local_content == response.get_body():
-                    self._eq_content.append(response.get_url())
-                else:
-                    self._not_eq_content.append(response.get_url())
+        try:
+            with open(file_path, "rb") as local_fh:
+                local_content = local_fh.read()
+        except OSError:
+            om.out.debug(f'Failed to open file: "{file_path}".')
+            return
+
+        if local_content == smart_str_ignore(response.get_body()):
+            self._eq_content.append(response.get_url())
+        else:
+            self._not_eq_content.append(response.get_url())
 
     def get_options(self):
         """

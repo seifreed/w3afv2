@@ -29,6 +29,7 @@ import signal
 import time
 import unittest
 from concurrent.futures import TimeoutError
+from queue import Queue
 
 import w3af.core.data.parsers.mp_document_parser as mp_module
 from w3af import ROOT_PATH
@@ -238,7 +239,7 @@ class TestMPDocumentParser(unittest.TestCase):
         p.start()
         p.join()
 
-        self.assertFalse(queue.get(timeout=60))
+        self.assertTrue(queue.get(timeout=60))
 
     def test_non_daemon_child_ok(self):
         """
@@ -250,7 +251,7 @@ class TestMPDocumentParser(unittest.TestCase):
         p.start()
         p.join()
 
-        self.assertFalse(queue.get(timeout=60))
+        self.assertTrue(queue.get(timeout=60))
 
     def test_dictproxy_8748(self):
         """
@@ -433,14 +434,13 @@ class TestWorkerSetup(unittest.TestCase):
 class TestMemoryLimitConfiguration(unittest.TestCase):
 
     def setUp(self):
-        previous = os.environ.pop("PARSER_MEMORY_LIMIT", None)
-        self.addCleanup(self.restore, previous)
+        self.addCleanup(self.restore, dict(os.environ))
+        os.environ.pop("PARSER_MEMORY_LIMIT", None)
 
     @staticmethod
-    def restore(previous):
-        os.environ.pop("PARSER_MEMORY_LIMIT", None)
-        if previous is not None:
-            os.environ["PARSER_MEMORY_LIMIT"] = previous
+    def restore(environment):
+        os.environ.clear()
+        os.environ.update(environment)
 
     def test_default(self):
         self.assertEqual(get_memory_limit(), DEFAULT_MEMORY_LIMIT)
@@ -468,15 +468,64 @@ class TestCleanupPool(unittest.TestCase):
         self.assertIsNone(mp_module.mp_doc_parser._pool)
 
 
+class TestMarkerParsers(unittest.TestCase):
+    """
+    The marker parsers misbehave inside of the worker processes, these tests
+    run them in this process with harmless settings.
+    """
+
+    def build_parser(self, parser_class):
+        response = _build_http_response(
+            f"<html>{parser_class.MARKER}!</html>", "text/html"
+        )
+        return parser_class(response)
+
+    def test_delayed_parser_waits_the_configured_time(self):
+        class NoDelayParser(DelayedParser):
+            DELAY_SECONDS = 0
+
+        self.assertIsNone(self.build_parser(NoDelayParser).parse())
+
+    def test_memory_parser_allocates_the_configured_memory(self):
+        class SmallMemoryParser(UseMemoryParser):
+            MEMORY_BYTES = 16
+
+        parser = self.build_parser(SmallMemoryParser)
+        parser.parse()
+
+        self.assertEqual(len(parser.memory), 16)
+
+    def test_dying_parser_exits_the_process_with_an_error_code(self):
+        exit_codes = []
+
+        class SurvivingParser(DyingParser):
+            EXIT = staticmethod(exit_codes.append)
+
+        self.build_parser(SurvivingParser).parse()
+
+        self.assertEqual(exit_codes, [1])
+
+    def test_marker_parsers_can_be_cleared(self):
+        self.assertTrue(self.build_parser(DelayedParser).clear())
+
+    def test_announce_worker_reports_to_the_log_queue(self):
+        log_queue = Queue()
+
+        announce_worker(log_queue)
+
+        self.assertEqual(log_queue.get_nowait(), "worker ready")
+
+    def test_failing_parser_raises(self):
+        with self.assertRaisesRegex(ValueError, "Broken document"):
+            self.build_parser(FailingParser).parse()
+
+
 def daemon_child(queue):
     dpc = MultiProcessingDocumentParser()
 
     try:
         dpc.start_workers()
-    except AssertionError:
         queue.put(True)
-    else:
-        queue.put(False)
     finally:
         dpc.stop_workers()
 
@@ -501,23 +550,27 @@ class _MarkerParser:
 
 class DelayedParser(_MarkerParser):
     MARKER = "DelayedParser"
+    DELAY_SECONDS = 60
 
     def parse(self):
-        time.sleep(60)
+        time.sleep(self.DELAY_SECONDS)
 
 
 class UseMemoryParser(_MarkerParser):
     MARKER = "UseMemoryParser"
+    MEMORY_BYTES = 2 * 1024 * 1024 * 1024
 
     def parse(self):
-        self.memory = bytearray(2 * 1024 * 1024 * 1024)
+        self.memory = bytearray(self.MEMORY_BYTES)
 
 
 class DyingParser(_MarkerParser):
     MARKER = "DyingParser"
 
+    EXIT = staticmethod(os._exit)
+
     def parse(self):
-        os._exit(1)
+        self.EXIT(1)
 
 
 class FailingParser(_MarkerParser):

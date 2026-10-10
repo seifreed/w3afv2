@@ -26,15 +26,10 @@ import unittest
 from typing import ClassVar
 
 from w3af import ROOT_PATH
-from w3af.core.data.parsers.doc.html import HTMLParser
+from w3af.core.data.parsers.doc.tests.test_html import RaiseHTMLParser
 from w3af.core.data.parsers.doc.tests.test_sgml import build_http_response
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.utils.form_constants import MODE_TMB
-
-
-class RaiseHTMLParser(HTMLParser):
-    def _handle_exception(self, where, ex):
-        raise ex
 
 
 class TestComplexHTMLForm(unittest.TestCase):

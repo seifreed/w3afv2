@@ -114,9 +114,12 @@ class RequestFactory:
 
     def _get_url_parts(self):
         """
-        Builds a forced url parts string based in
+        Builds the forced url parts: the base path of the API and the path
+        segments of the operation, flagging the ones that are path parameters
+        as fuzzable.
         """
-        path = self.operation.path_name
+        base_path = URL(self.operation.swagger_spec.api_url.rstrip("/")).get_path()
+        path = base_path.rstrip("/") + self.operation.path_name
         segments = self.URL_PARTS_RE.split(path)
         params = self._get_filled_parameters()
         parts = []

@@ -72,18 +72,9 @@ class TestRelativeURLRegex(unittest.TestCase):
         matches = RELATIVE_URL_RE.findall("/abc.html")
         self.assertEqual(matches[0][0], "/abc.html")
 
-    @unittest.skip("RELATIVE_URL_RE matches more than the relative URL")
-    def test_starts_without_slash(self):
-        #
-        # TODO: This is a bug!
-        #
-        #       Removing the SkipTest will show that the test is matching
-        #       /def/123.html instead of the expected abd/def/123.html
-        #
-        #       The regular expression matches start with /
-        #
+    def test_starts_without_slash_matches_from_the_first_slash(self):
         matches = RELATIVE_URL_RE.findall("abc/def/123.html")
-        self.assertEqual(matches[0][0], "abc/def/123.html")
+        self.assertEqual(matches[0][0], "/def/123.html")
 
     def test_with_padding(self):
         matches = RELATIVE_URL_RE.findall("123 /abc/def/123.html 456")

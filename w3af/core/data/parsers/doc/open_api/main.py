@@ -25,6 +25,7 @@ import logging
 
 from yaml import YAMLError, load
 
+from w3af.core.data.misc.encoding import smart_unicode
 from w3af.core.data.parsers.doc.baseparser import BaseParser
 
 #
@@ -88,8 +89,10 @@ class OpenAPI(BaseParser):
         :param http_resp: The HTTP response we want to parse
         :return: True if it seems that this page is an open api doc
         """
+        body = smart_unicode(http_resp.body)
+
         for keyword in OpenAPI.KEYWORDS:
-            if keyword in http_resp.body:
+            if keyword in body:
                 return True
 
         return False
@@ -119,7 +122,8 @@ class OpenAPI(BaseParser):
         :param http_resp: The HTTP response we want to parse
         :return: True if it seems that this response body holds JSON or YAML
         """
-        return ":" in "\n".join(http_resp.body.split("\n")[:20])
+        body = smart_unicode(http_resp.body)
+        return ":" in "\n".join(body.split("\n")[:20])
 
     @staticmethod
     def can_parse(http_resp):

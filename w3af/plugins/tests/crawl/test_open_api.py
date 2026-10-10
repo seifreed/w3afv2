@@ -22,10 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import json
 import re
 from typing import ClassVar
-from unittest.mock import patch
 
 from w3af.core.data.dc.headers import Headers
-from w3af.core.data.parsers.doc.open_api import OpenAPI
 from w3af.core.data.parsers.doc.open_api.tests.example_specifications import (
     IntParamQueryString,
     NestedModel,
@@ -181,6 +179,7 @@ class TestOpenAPINestedModelSpec(PluginTest):
                     response_body = "PostgreSQL query failed:"
                     break
 
+            response_headers.update(self.headers)
             return self.status, response_headers, response_body
 
     MOCK_RESPONSES: ClassVar[list] = [
@@ -235,7 +234,7 @@ class TestOpenAPINestedModelSpec(PluginTest):
         fuzzable_request = fuzzable_requests[0]
 
         e_url = "http://w3af.org/api/pets"
-        e_data = '{"pet": {"tag": "7", "name": "John", "id": 42}}'
+        e_data = {"pet": {"tag": "7", "name": "John", "id": 42}}
         e_headers = Headers(
             [("Content-Type", "application/json"), ("Basic", "bearer 0x12345")]
         )
@@ -243,7 +242,7 @@ class TestOpenAPINestedModelSpec(PluginTest):
         self.assertEqual(fuzzable_request.get_method(), "GET")
         self.assertEqual(fuzzable_request.get_uri().url_string, e_url)
         self.assertEqual(fuzzable_request.get_headers(), e_headers)
-        self.assertEqual(fuzzable_request.get_data(), e_data)
+        self.assertEqual(json.loads(fuzzable_request.get_data()), e_data)
 
         vulns = self.kb.get("sqli", "sqli")
         self.assertEqual(len(vulns), 2)
@@ -291,7 +290,7 @@ class TestOpenAPIRaisesWarningIfParsingError(PluginTest):
     MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             "http://w3af.org/openapi.json",
-            NestedModel().get_specification()[:-1],
+            '{"swagger": "2.0", "paths": 5}',
             content_type="application/json",
         )
     ]
@@ -299,8 +298,7 @@ class TestOpenAPIRaisesWarningIfParsingError(PluginTest):
     def test_parsing_error_raised(self):
         cfg = self._run_configs["cfg"]
 
-        with patch.object(OpenAPI, "can_parse", return_value=True):
-            self._scan(cfg["target"], cfg["plugins"])
+        self._scan(cfg["target"], cfg["plugins"])
 
         #
         # Since we configured authentication we should only get one of the Info
@@ -319,8 +317,10 @@ class TestOpenAPIRaisesWarningIfParsingError(PluginTest):
             " identify and fix any issues and try again.\n\nThe errors found by"
             " the parser were:\n"
             "\n"
-            " - The OpenAPI specification at http://w3af.org/openapi.json is not in"
-            " JSON or YAML format"
+            ' - The document at "http://w3af.org/openapi.json" is not a valid Open'
+            " API specification. The following exception was raised while parsing"
+            " the dict into a specification object:"
+            " \"'int' object has no attribute 'items'\""
         )
 
         self.assertEqual(info.get_name(), "Failed to parse Open API specification")
@@ -420,6 +420,7 @@ class TestOpenAPIFuzzURLParts(PluginTest):
                 response_body = "PostgreSQL query failed:"
                 status = 500
 
+            response_headers.update(self.headers)
             return status, response_headers, response_body
 
     MOCK_RESPONSES: ClassVar[list] = [
@@ -443,12 +444,6 @@ class TestOpenAPIFuzzURLParts(PluginTest):
     ]
 
     def test_fuzzing_parameters_in_path(self):
-        #
-        # TODO: This unittest is failing because of basePath being ignored
-        #       or incorrectly handled by the parser. Note that the request
-        #       being sent by the fuzzer goes to http://petstore.swagger.io/pets/...
-        #       instead of http://petstore.swagger.io/api/pets/...
-        #
         cfg = self._run_configs["cfg"]
         self._scan(cfg["target"], cfg["plugins"])
 
