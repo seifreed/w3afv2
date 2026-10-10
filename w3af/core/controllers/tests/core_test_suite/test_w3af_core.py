@@ -28,6 +28,10 @@ import tempfile
 import threading
 import unittest
 
+from w3af.core.controllers.core_helpers.runtime_directories import (
+    prepare_home_directory,
+    prepare_tmp_directory,
+)
 from w3af.core.controllers.tests.local_http_server import LocalHTTPServer, Reply
 from w3af.core.controllers.tests.recording_output import start_recording_output
 from w3af.core.controllers.w3af_core import w3afCore
@@ -177,7 +181,7 @@ class TestW3afCoreDirectories(unittest.TestCase):
         self.use_home_dir(os.path.join(regular_file, "w3af"))
 
         with self.assertRaises(SystemExit) as context:
-            self.core._home_directory()
+            prepare_home_directory()
 
         self.assertEqual(context.exception.code, -3)
 
@@ -191,7 +195,7 @@ class TestW3afCoreDirectories(unittest.TestCase):
         self.use_home_dir(home_dir)
 
         with self.assertRaises(SystemExit) as context:
-            self.core._home_directory()
+            prepare_home_directory()
 
         self.assertEqual(context.exception.code, -3)
 
@@ -209,6 +213,6 @@ class TestW3afCoreDirectories(unittest.TestCase):
         self.addCleanup(os.unlink, temp_dir)
 
         with self.assertRaises(SystemExit) as context:
-            self.core._tmp_directory()
+            prepare_tmp_directory()
 
         self.assertEqual(context.exception.code, -3)

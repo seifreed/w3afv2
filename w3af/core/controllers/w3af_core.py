@@ -21,9 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import errno
-import os
 import pprint
-import sys
 import threading
 import time
 import traceback
@@ -33,6 +31,10 @@ from w3af.core.controllers.core_helpers.exception_handler import ExceptionHandle
 from w3af.core.controllers.core_helpers.fingerprint_404 import fingerprint_404_singleton
 from w3af.core.controllers.core_helpers.plugins import CorePlugins
 from w3af.core.controllers.core_helpers.profiles import CoreProfiles
+from w3af.core.controllers.core_helpers.runtime_directories import (
+    prepare_home_directory,
+    prepare_tmp_directory,
+)
 from w3af.core.controllers.core_helpers.status import (
     PAUSED,
     RUNNING,
@@ -53,10 +55,6 @@ from w3af.core.controllers.core_helpers.target import CoreTarget
 from w3af.core.controllers.misc.dns_cache import enable_dns_cache
 from w3af.core.controllers.misc.epoch_to_string import epoch_to_string
 from w3af.core.controllers.misc.get_w3af_version import get_w3af_version_minimal
-from w3af.core.controllers.misc.home_dir import (
-    create_home_dir,
-    verify_dir_has_perm,
-)
 from w3af.core.controllers.output_manager import (
     fresh_output_manager_inst,
     log_sink_factory,
@@ -80,11 +78,7 @@ from w3af.core.exceptions import (
     ScanMustStopByUserRequest,
     ScanMustStopException,
 )
-from w3af.core.filesystem import (
-    TEMP_DIR,
-    create_temp_dir,
-    remove_temp_dir,
-)
+from w3af.core.filesystem import remove_temp_dir
 from w3af.core.paths import get_home_dir
 
 NO_MEMORY_MSG = (
@@ -150,8 +144,8 @@ class w3afCore:
         # Create some directories, do this every time before starting a new
         # scan and before doing any other core init because these are widely
         # used
-        self._home_directory()
-        self._tmp_directory()
+        prepare_home_directory()
+        prepare_tmp_directory()
         # We want to have only one exception handler instance during the whole
         # w3af process. The data captured by it will be cleared before starting
         # each scan, but we want to keep the same instance after a scan because
@@ -200,8 +194,8 @@ class w3afCore:
             # Create some directories, do this every time before starting a new
             # scan and before doing any other core init because these are
             # widely used
-            self._home_directory()
-            self._tmp_directory()
+            prepare_home_directory()
+            prepare_tmp_directory()
 
             enable_dns_cache()
 
@@ -617,44 +611,6 @@ class w3afCore:
 
         # Disable some internal checks so the exploits can "bend" the matrix
         self.uri_opener.set_exploit_mode(True)
-
-    def _home_directory(self):
-        """
-        Handle all the work related to creating/managing the home directory.
-        :return: None
-        """
-        home_dir = get_home_dir()
-
-        # Start by trying to create the home directory (linux: /home/user/.w3af/)
-        if not create_home_dir():
-            print(f'Failed to create the w3af home directory "{home_dir}".')
-            sys.exit(-3)
-
-        # If this fails, maybe it is because the home directory doesn't exist
-        # or simply because it ain't writable|readable by this user
-        if not verify_dir_has_perm(home_dir, perm=os.W_OK | os.R_OK, levels=1):
-            print(
-                f'Either the w3af home directory "{home_dir}" or its contents are not'
-                " writable or readable. Please set the correct permissions"
-                " and ownership. This usually happens when running w3af as"
-                ' root using "sudo".'
-            )
-            sys.exit(-3)
-
-    def _tmp_directory(self):
-        """
-        Handle the creation of the tmp directory, where a lot of stuff is stored
-        Usually it's something like /tmp/w3af/<pid>/
-        """
-        try:
-            create_temp_dir()
-        except OSError:
-            msg = (
-                f'The w3af tmp directory "{TEMP_DIR}" is not writable. Please set '
-                "the correct permissions and ownership."
-            )
-            print(msg)
-            sys.exit(-3)
 
 
 class ThreadingResourceError(Exception):
