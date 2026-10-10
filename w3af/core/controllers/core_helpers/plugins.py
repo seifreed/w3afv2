@@ -20,9 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import os
-
-from w3af import ROOT_PATH
 from w3af.core.controllers.core_helpers.plugin_catalog import PluginCatalog
 from w3af.core.controllers.core_helpers.plugin_dependency_resolver import (
     PluginDependencyResolver,
@@ -30,6 +27,7 @@ from w3af.core.controllers.core_helpers.plugin_dependency_resolver import (
 from w3af.core.controllers.core_helpers.plugin_instance_factory import (
     PluginInstanceFactory,
 )
+from w3af.core.controllers.core_helpers.plugin_selection import PluginSelection
 
 
 class CorePlugins(PluginCatalog):
@@ -39,6 +37,7 @@ class CorePlugins(PluginCatalog):
         self._output = output
         self._output_manager = output_manager
         self._plugin_instance_factory = PluginInstanceFactory(w3af_core, output)
+        self._plugin_selection = PluginSelection(self.get_plugin_list)
 
         self.initialized = False
         self._plugins_names_dict = None
@@ -52,7 +51,8 @@ class CorePlugins(PluginCatalog):
         process starts, and when the user loads a new profile.
         """
         plugin_types = self.get_plugin_types()
-        self._plugins_names_dict = {plugin_type: [] for plugin_type in plugin_types}
+        self._plugin_selection.reset(plugin_types)
+        self._plugins_names_dict = self._plugin_selection.names
         self._plugins_options = {plugin_type: {} for plugin_type in plugin_types}
         self._plugins_options["attack"] = {}
         self.plugins = {plugin_type: [] for plugin_type in plugin_types}
@@ -156,26 +156,10 @@ class CorePlugins(PluginCatalog):
                  mainly used to have some error handling related to old profiles
                  that might reference deprecated plugins.
         """
-        # Validate the input...
-        plugin_names = list(dict.fromkeys(plugin_names))
-        known_plugin_names = self.get_plugin_list(plugin_type)
-        unknown_plugins = []
-
-        for plugin_name in plugin_names:
-            if (
-                plugin_name not in known_plugin_names
-                and plugin_name.replace("!", "") not in known_plugin_names
-                and plugin_name != "all"
-            ):
-
-                if raise_on_error:
-                    raise ValueError(f"Unknown plugin {plugin_name}")
-                else:
-                    unknown_plugins.append(plugin_name)
-
-        # If we don't raise an error when an unknown plugin name is enabled,
-        # at least don't try to call the "_set_plugin_generic" method with it
-        plugin_names = [pn for pn in plugin_names if pn not in unknown_plugins]
+        unknown_plugins = self._plugin_selection.set_plugins(
+            plugin_names, plugin_type, raise_on_error
+        )
+        plugin_names = self._plugin_selection.names[plugin_type]
 
         if plugin_type == "evasion":
             self._set_evasion_plugins(plugin_names)
@@ -200,30 +184,10 @@ class CorePlugins(PluginCatalog):
         return plugin_inst
 
     def expand_all(self):
-        for plugin_type, enabled_plugins in self._plugins_names_dict.items():
-            if "all" in enabled_plugins:
-                file_list = [
-                    f
-                    for f in os.listdir(os.path.join(ROOT_PATH, "plugins", plugin_type))
-                ]
-                all_plugins = [
-                    os.path.splitext(f)[0]
-                    for f in file_list
-                    if os.path.splitext(f)[1] == ".py"
-                ]
-                all_plugins.remove("__init__")
-
-                enabled_plugins.extend(all_plugins)
-                enabled_plugins = list(set(enabled_plugins))
-                enabled_plugins.remove("all")
-                self._plugins_names_dict[plugin_type] = enabled_plugins
+        self._plugin_selection.expand_all()
 
     def remove_exclusions(self):
-        for enabled_plugins in self._plugins_names_dict.values():
-            for plugin_name in enabled_plugins[:]:
-                if plugin_name.startswith("!"):
-                    enabled_plugins.remove(plugin_name)
-                    enabled_plugins.remove(plugin_name.replace("!", ""))
+        self._plugin_selection.remove_exclusions()
 
     def create_instances(self):
         for plugin_type, enabled_plugins in self._plugins_names_dict.items():

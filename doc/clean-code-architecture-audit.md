@@ -3317,3 +3317,16 @@ política sin cambiar mensajes, excepciones ni orden de evaluación.
 Verificación: `core_test_suite` pasó **31 tests en 91.82 s**; Black, Ruff,
 mypy configurado y Bandit focal están limpios. El score se mantiene en
 **6.5/10** por cobertura global, módulos grandes y gates globales pendientes.
+
+## Actualización verificada: selección de plugins separada
+
+`PluginSelection` concentra deduplicación, validación de nombres, expansión de
+`all` y exclusiones. `CorePlugins` conserva la coordinación de fábrica,
+dependencias, opciones y mangle, manteniendo la misma referencia de selección
+que usan los consumidores internos.
+
+Verificación: la suite de plugins pasó **27 tests en 8.13 s** y
+`core_test_suite` pasó **31 tests en 90.69 s**. Black, Ruff, mypy configurado y
+Bandit focal están limpios; los warnings observados son externos de
+`ldap3/jsonschema`. El score se mantiene en **6.5/10** por cobertura global,
+módulos grandes y gates globales pendientes.
