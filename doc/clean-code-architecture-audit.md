@@ -1733,3 +1733,14 @@ Verificación: 9 tests de estos crawlers pasan, Ruff, Black y mypy pasan en los
 módulos modificados. El score sigue en **5.75/10**: quedan 61 imports directos
 de la KB, además de la cobertura, mocks, el fallo heredado de perfilado, la
 dependencia de Moth y los orquestadores grandes.
+
+## Actualización verificada: crawler de listados de directorio
+
+`crawl.dot_listing` usa la KB configurada para registrar tanto el listado
+expuesto como la fuga de usuarios y grupos, manteniendo sus dos ramas de
+detección.
+
+Verificación: 4 tests del plugin pasan, Ruff, Black y mypy pasan en el módulo
+modificado. El score sigue en **5.75/10**: quedan 60 imports directos de la KB,
+además de la cobertura, mocks, el fallo heredado de perfilado, la dependencia
+de Moth y los orquestadores grandes.
