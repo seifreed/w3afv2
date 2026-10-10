@@ -2216,3 +2216,19 @@ Verificación: **37 tests pasados** entre la base y los plugins bruteforce;
 Ruff, Black y mypy están limpios. El score permanece en **5.75/10** por los
 consumidores globales restantes, cobertura, Bandit heredado, mocks, perfilado,
 Moth y orquestadores grandes.
+
+## Actualización verificada: output desacoplado en grep
+
+Los 11 plugins grep que importaban directamente el singleton ahora usan
+`Plugin._output`: `http_auth_detect`, `password_profiling`, `lang`, `motw`,
+`websockets_links`, `clamav`, `user_defined_regex`, `cross_domain_js`,
+`http_in_body`, `vulners_db` y `retirejs`. Los `InfoSet` y helpers auxiliares
+sin ciclo de vida de plugin no recibieron una dependencia artificial.
+
+Verificación: `test_http_auth_detect` pasa con **5 tests**; los tests de
+`lang`/`motw` alcanzan **8 tests pasados** antes de que `websockets_links` falle
+por un fixture sin KB, y `password_profiling` falla porque el test espera un
+diccionario aunque la KB entrega una lista. La suite grep completa también
+queda bloqueada en integración externa. Ruff, Black y mypy están limpios. El
+score permanece en **5.75/10** por cobertura, Bandit heredado, mocks, los
+fixtures pendientes, Moth y los orquestadores grandes.
