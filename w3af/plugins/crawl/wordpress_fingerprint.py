@@ -26,7 +26,6 @@ import re
 from collections import namedtuple
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
@@ -157,7 +156,7 @@ class wordpress_fingerprint(CrawlPlugin):
                     )
                     i.set_url(install_url)
 
-                    kb.kb.append(self, "info", i)
+                    self._get_knowledge_base().append(self, "info", i)
                     om.out.information(i.get_desc())
 
                     # Send link to core
@@ -187,7 +186,7 @@ class wordpress_fingerprint(CrawlPlugin):
             )
             i.set_url(wp_readme_url)
 
-            kb.kb.append(self, "info", i)
+            self._get_knowledge_base().append(self, "info", i)
             om.out.information(i.get_desc())
 
             # Send link to core
@@ -219,7 +218,7 @@ class wordpress_fingerprint(CrawlPlugin):
             )
             i.set_url(wp_index_url)
 
-            kb.kb.append(self, "info", i)
+            self._get_knowledge_base().append(self, "info", i)
             om.out.information(i.get_desc())
 
             # Send link to core
@@ -265,7 +264,7 @@ class wordpress_fingerprint(CrawlPlugin):
                 )
                 i.set_url(test_url)
 
-                kb.kb.append(self, "info", i)
+                self._get_knowledge_base().append(self, "info", i)
                 om.out.information(i.get_desc())
 
                 # Send link to core

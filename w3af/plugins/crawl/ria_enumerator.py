@@ -27,7 +27,6 @@ from xml.parsers.expat import ExpatError
 from defusedxml import DefusedXmlException, minidom
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.exceptions import RunOnce
@@ -133,7 +132,7 @@ class ria_enumerator(CrawlPlugin):
         i = Info("Gears manifest resource", desc, response.id, self.get_name())
         i.set_url(url)
 
-        kb.kb.append(self, "gears_manifest", i)
+        self._get_knowledge_base().append(self, "gears_manifest", i)
         om.out.information(i.get_desc())
 
         fr = FuzzableRequest.from_http_response(response)
@@ -164,7 +163,7 @@ class ria_enumerator(CrawlPlugin):
                 )
                 i.set_url(response.get_url())
 
-                kb.kb.append(self, "info", i)
+                self._get_knowledge_base().append(self, "info", i)
                 om.out.information(i.get_desc())
 
             return
@@ -192,7 +191,7 @@ class ria_enumerator(CrawlPlugin):
                 v.set_url(response.get_url())
                 v.set_method("GET")
 
-                kb.kb.append(self, "vuln", v)
+                self._get_knowledge_base().append(self, "vuln", v)
                 om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
                 fr = FuzzableRequest.from_http_response(response)
@@ -209,7 +208,7 @@ class ria_enumerator(CrawlPlugin):
                 i.set_url(response.get_url())
                 i.set_method("GET")
 
-                kb.kb.append(self, "info", i)
+                self._get_knowledge_base().append(self, "info", i)
                 om.out.information(i.get_desc())
 
                 fr = FuzzableRequest.from_http_response(response)
