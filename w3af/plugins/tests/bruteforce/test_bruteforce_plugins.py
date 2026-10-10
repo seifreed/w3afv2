@@ -46,6 +46,7 @@ class TestBasicAuth(unittest.TestCase):
 
     def test_audit_skips_url_without_basic_auth(self):
         plugin = basic_auth()
+        plugin.set_knowledge_base(kb.kb)
 
         # http_auth_detect did not report this URL, so audit() returns early
         plugin.audit(FuzzableRequest(URL("http://w3af.org/not-protected/")))
@@ -64,6 +65,7 @@ class TestBasicAuth(unittest.TestCase):
         kb.kb.append("http_auth_detect", "auth", info)
 
         plugin = basic_auth()
+        plugin.set_knowledge_base(kb.kb)
         plugin._already_tested.append(url.get_domain_path())
 
         # audit() returns without bruteforcing because the URL is in the
@@ -74,6 +76,7 @@ class TestBasicAuth(unittest.TestCase):
 
     def test_end_without_findings_is_a_noop(self):
         plugin = basic_auth()
+        plugin.set_knowledge_base(kb.kb)
         plugin.end()
 
         self.assertEqual(kb.kb.get("basic_auth", "auth"), [])

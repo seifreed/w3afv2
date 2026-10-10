@@ -26,7 +26,6 @@ from copy import deepcopy
 from itertools import repeat
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.misc.diff import chunked_diff
 from w3af.core.controllers.misc.epoch_to_string import epoch_to_string
@@ -469,7 +468,7 @@ class form_auth(BruteforcePlugin):
         v["response"] = resp
         v["request"] = mutant.get_fuzzable_request()
 
-        kb.kb.append(self, "auth", v)
+        self._get_knowledge_base().append(self, "auth", v)
 
         om.out.vulnerability(desc, severity=severity.HIGH)
 
