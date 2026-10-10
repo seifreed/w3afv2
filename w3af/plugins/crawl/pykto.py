@@ -25,7 +25,6 @@ import os.path
 import re
 from collections import namedtuple
 
-import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
@@ -372,11 +371,11 @@ class NiktoTestParser:
     A parser for the nikto tests file.
     """
 
-    def __init__(self, filename, config, url, output=None):
+    def __init__(self, filename, config, url, output):
         self.filename = filename
         self.config = config
         self.url = url
-        self._output = output if output is not None else om.out
+        self._output = output
 
         self._kb_server = None
         self._junk_re = re.compile(r"JUNK\((.*?)\)")

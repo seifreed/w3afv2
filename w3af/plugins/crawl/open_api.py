@@ -223,7 +223,7 @@ class open_api(CrawlPlugin):
         self.output_queue.put(fuzzable_request)
 
     @staticmethod
-    def _is_target_domain(fuzzable_request, output=None):
+    def _is_target_domain(fuzzable_request, output):
         """
         :param fuzzable_request: The api call as a fuzzable request
         :return: True if the target domain matches

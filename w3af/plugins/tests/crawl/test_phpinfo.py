@@ -24,6 +24,7 @@ import unittest
 from pathlib import Path
 from typing import ClassVar
 
+import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
@@ -204,7 +205,7 @@ class TestPHPInfoAnalysis(unittest.TestCase):
         response = HTTPResponse(200, body, headers, url, url, _id=1)
 
         for analysis_function in ANALYSIS_FUNCTIONS:
-            analysis_function(response, kb.kb)
+            analysis_function(response, kb.kb, om.out)
 
         return {i.get_name() for i in kb.kb.get("phpinfo", "phpinfo")}
 

@@ -25,6 +25,7 @@ import tempfile
 import unittest
 from typing import ClassVar
 
+import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.controllers.threads.threadpool import Pool
 from w3af.core.data.dc.headers import Headers
@@ -201,7 +202,7 @@ class TestNiktoTestParser(unittest.TestCase):
         config = Config(["/cgi-bin/"], [], [], [], [])
         url = URL("http://moth/")
         pykto_inst = self.pykto_inst
-        nikto_parser = NiktoTestParser(pykto_inst._db_file, config, url)
+        nikto_parser = NiktoTestParser(pykto_inst._db_file, config, url, om.out)
 
         # Go through all the lines
         generator = nikto_parser.test_generator()
@@ -218,7 +219,7 @@ class TestNiktoTestParser(unittest.TestCase):
         config = Config(["/cgi-bin/"], [], [], [], [])
         url = URL("http://moth/")
         pykto_inst = self.pykto_inst
-        nikto_parser = NiktoTestParser(pykto_inst._db_file, config, url)
+        nikto_parser = NiktoTestParser(pykto_inst._db_file, config, url, om.out)
 
         line = (
             '"000003","0","1234576890ab","@CGIDIRScart32.exe","GET","200"'
@@ -255,7 +256,7 @@ class TestNiktoTestParser(unittest.TestCase):
         config = Config(["/cgi-bin/"], [], [], [], [])
         url = URL("http://moth/")
         pykto_inst = self.pykto_inst
-        nikto_parser = NiktoTestParser(pykto_inst._db_file, config, url)
+        nikto_parser = NiktoTestParser(pykto_inst._db_file, config, url, om.out)
 
         line = '"0","0","","/docs/JUNK(5)","GET","200"' ',"","","","","","",""'
         nikto_tests = [i for i in nikto_parser._parse_db_line(line)]
@@ -271,7 +272,7 @@ class TestNiktoTestParser(unittest.TestCase):
         config = Config([], [], [], [], [])
         url = URL("http://moth/")
         pykto_inst = self.pykto_inst
-        nikto_parser = NiktoTestParser(pykto_inst._db_file, config, url)
+        nikto_parser = NiktoTestParser(pykto_inst._db_file, config, url, om.out)
 
         line = '"0","0","","/docs/","GET","200"' ',"","","","","","",""'
         nikto_tests = [i for i in nikto_parser._parse_db_line(line)]
@@ -286,7 +287,7 @@ class TestNiktoTestParser(unittest.TestCase):
         config = Config(["/cgi-bin/"], [], [], [], [])
         url = URL("http://moth/")
         pykto_inst = self.pykto_inst
-        nikto_parser = NiktoTestParser(pykto_inst._db_file, config, url)
+        nikto_parser = NiktoTestParser(pykto_inst._db_file, config, url, om.out)
 
         line = '"0","0","","@CGIDIRS","GET","200"' ',"","","","","","",""'
         nikto_tests = [i for i in nikto_parser._parse_db_line(line)]
@@ -303,7 +304,7 @@ class TestNiktoTestParser(unittest.TestCase):
         config = Config(["/cgi-bin/"], admin_dirs, [], [], [])
         url = URL("http://moth/")
         pykto_inst = self.pykto_inst
-        nikto_parser = NiktoTestParser(pykto_inst._db_file, config, url)
+        nikto_parser = NiktoTestParser(pykto_inst._db_file, config, url, om.out)
 
         line = '"0","0","","@ADMIN","GET","200"' ',"","","","","","",""'
         nikto_tests = [i for i in nikto_parser._parse_db_line(line)]
@@ -319,7 +320,7 @@ class TestNiktoTestParser(unittest.TestCase):
         config = Config([], admin_dirs, [], [], users)
         url = URL("http://moth/")
         pykto_inst = self.pykto_inst
-        nikto_parser = NiktoTestParser(pykto_inst._db_file, config, url)
+        nikto_parser = NiktoTestParser(pykto_inst._db_file, config, url, om.out)
 
         line = '"0","0","","@ADMIN@USERS","GET","200"' ',"","","","","","",""'
         nikto_tests = [i for i in nikto_parser._parse_db_line(line)]
@@ -334,7 +335,7 @@ class TestNiktoTestParser(unittest.TestCase):
     def test_parse_db_line_non_ascii(self):
         config = Config(["/cgi-bin/"], [], [], [], [])
         url = URL("http://moth/")
-        nikto_parser = NiktoTestParser(self.pykto_inst._db_file, config, url)
+        nikto_parser = NiktoTestParser(self.pykto_inst._db_file, config, url, om.out)
 
         line = (
             '"006251","0","1","/administraçao.php","GET","200","","",""'
@@ -348,7 +349,7 @@ class TestNiktoTestParser(unittest.TestCase):
     def test_parse_db_line_ignores_invalid_lines(self):
         config = Config([], [], [], [], [])
         url = URL("http://moth/")
-        nikto_parser = NiktoTestParser(self.pykto_inst._db_file, config, url)
+        nikto_parser = NiktoTestParser(self.pykto_inst._db_file, config, url, om.out)
 
         short_line = '"0","0","","/docs/","GET","200"'
         space_line = '"0","0","","/a b/","GET","200","","","","","","",""'
@@ -362,7 +363,7 @@ class TestNiktoTestParser(unittest.TestCase):
     def test_parse_db_line_regex_and_status_matchers(self):
         config = Config([], [], [], [], [])
         url = URL("http://moth/")
-        nikto_parser = NiktoTestParser(self.pykto_inst._db_file, config, url)
+        nikto_parser = NiktoTestParser(self.pykto_inst._db_file, config, url, om.out)
 
         line = '"0","0","","/docs/","GET","Index of","302","","500","","Docs\r\n","",""'
         (nikto_test,) = nikto_parser._parse_db_line(line)
@@ -376,7 +377,9 @@ class TestNiktoTestParser(unittest.TestCase):
         config = Config([], [], [], [], [])
         with tempfile.TemporaryDirectory() as temp_dir:
             missing_db = os.path.join(temp_dir, "missing.db")
-            nikto_parser = NiktoTestParser(missing_db, config, URL("http://moth/"))
+            nikto_parser = NiktoTestParser(
+                missing_db, config, URL("http://moth/"), om.out
+            )
 
             self.assertEqual(list(nikto_parser.test_generator()), [])
 
@@ -392,7 +395,7 @@ class TestNiktoTestParser(unittest.TestCase):
         config = Config([], [], [], [], [])
         url = URL("http://moth/")
         pykto_inst = self.pykto_inst
-        nikto_parser = NiktoTestParser(pykto_inst._extra_db_file, config, url)
+        nikto_parser = NiktoTestParser(pykto_inst._extra_db_file, config, url, om.out)
 
         # Go through all the lines
         generator = nikto_parser.test_generator()

@@ -23,21 +23,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import csv
 import os
 
-import w3af.core.controllers.output_manager as om
-
 OS = "os"
 APPLICATION = "applications"
 DB_PATH = os.path.dirname(os.path.realpath(__file__))
 
 
-def get_users_from_csv(ident, output=None, db_path=DB_PATH):
+def get_users_from_csv(ident, output, db_path=DB_PATH):
     """
     :return: A list of users from the user dir database.
     """
     if ident not in (APPLICATION, OS):
         raise ValueError("Invalid identification")
-
-    sink = output if output is not None else om.out
 
     csv_db = os.path.join(db_path, f"{ident}.csv")
     with open(csv_db, newline="", encoding="utf-8") as file_handler:
@@ -51,7 +47,7 @@ def get_users_from_csv(ident, output=None, db_path=DB_PATH):
             except csv.Error:
                 # line contains NULL byte, and other similar things.
                 # https://github.com/andresriancho/w3af/issues/1490
-                sink.debug(
+                output.debug(
                     f'user_dir: Ignoring data with CSV error at line "{reader.line_num}"'
                 )
                 continue
@@ -65,6 +61,6 @@ def get_users_from_csv(ident, output=None, db_path=DB_PATH):
                 if csv_row[0].startswith("#"):
                     continue
 
-                sink.debug(f'Invalid user_dir input: "{csv_row!r}"')
+                output.debug(f'Invalid user_dir input: "{csv_row!r}"')
             else:
                 yield desc, user

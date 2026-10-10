@@ -24,6 +24,7 @@ from typing import ClassVar
 
 import pytest
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.data.kb.info import Info
 from w3af.plugins.crawl.user_db.user_db import APPLICATION, OS, get_users_from_csv
 from w3af.plugins.crawl.user_dir import user_dir
@@ -80,7 +81,7 @@ def test_user_dir_long_desc():
 
 
 def test_users_from_csv_reads_bundled_database():
-    users = list(get_users_from_csv(OS))
+    users = list(get_users_from_csv(OS, om.out))
 
     if not users:
         raise AssertionError
@@ -90,7 +91,7 @@ def test_users_from_csv_reads_bundled_database():
 
 def test_users_from_csv_rejects_unknown_database():
     with pytest.raises(ValueError, match="Invalid identification"):
-        list(get_users_from_csv("unknown"))
+        list(get_users_from_csv("unknown", om.out))
 
 
 def test_users_from_csv_skips_invalid_rows(tmp_path):
@@ -108,7 +109,7 @@ def test_users_from_csv_skips_invalid_rows(tmp_path):
         encoding="utf-8",
     )
 
-    users = list(get_users_from_csv(APPLICATION, db_path=tmp_path))
+    users = list(get_users_from_csv(APPLICATION, om.out, db_path=tmp_path))
 
     if users != [("Apache web server", "www")]:
         raise AssertionError

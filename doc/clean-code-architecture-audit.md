@@ -2401,3 +2401,16 @@ Verificación: **8 tests pasados** en los controladores y **38 tests pasados** e
 los cinco plugins audit afectados; Ruff, Black y mypy están limpios. El score
 permanece en **5.75/10** por 404/UI/daemons aún globales, cobertura 100% no
 demostrada, Bandit heredado, mocks existentes, Moth y los orquestadores grandes.
+
+## Actualización verificada: helpers de crawl sin fallback global
+
+Los analizadores de PHPInfo, el lector CSV de `user_dir`, `NiktoTestParser` y
+la validación de dominio de OpenAPI exigen ahora el sink de output de forma
+explícita. Se eliminaron sus imports de `output_manager` y los fallbacks al
+singleton global; los callers de producción y los tests pasan la dependencia
+real que ya posee el flujo de ejecución.
+
+Verificación: **56 tests pasados** en `user_dir`, `pykto`, PHPInfo y OpenAPI;
+Ruff y Black están limpios. El score permanece en **5.75/10** por 404/UI/
+daemons aún globales, cobertura 100% no demostrada, Bandit heredado, mocks
+existentes, Moth y los orquestadores grandes.

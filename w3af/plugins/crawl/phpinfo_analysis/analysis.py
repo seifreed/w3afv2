@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.data.constants import severity
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.vuln import Vuln
@@ -32,11 +31,7 @@ from w3af.core.data.kb.vuln import Vuln
 CURL_FILE_SUPPORT_FIXED_VERSIONS = {4: (4, 4, 4), 5: (5, 1, 6)}
 
 
-def _sink(output):
-    return output if output is not None else om.out
-
-
-def register_globals(response, knowledge_base, output=None):
+def register_globals(response, knowledge_base, output):
     regex_str = 'register_globals</td><td class="v">(On|Off)</td>'
     register_globals_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -52,7 +47,7 @@ def register_globals(response, knowledge_base, output=None):
         v.set_url(response.get_url())
 
         knowledge_base.append("phpinfo", "phpinfo", v)
-        _sink(output).vulnerability(v.get_desc(), severity=v.get_severity())
+        output.vulnerability(v.get_desc(), severity=v.get_severity())
     else:
         rg_name = "PHP register_globals: Off"
         rg_desc = "The phpinfo()::register_globals is off."
@@ -60,10 +55,10 @@ def register_globals(response, knowledge_base, output=None):
         i.set_url(response.get_url())
 
         knowledge_base.append("phpinfo", "phpinfo", i)
-        _sink(output).information(i.get_desc())
+        output.information(i.get_desc())
 
 
-def allow_url_fopen(response, knowledge_base, output=None):
+def allow_url_fopen(response, knowledge_base, output):
     regex_str = 'allow_url_fopen</td><td class="v">(On|<i>no value</i>)</td>'
     allow_url_fopen_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -75,10 +70,10 @@ def allow_url_fopen(response, knowledge_base, output=None):
     v.set_url(response.get_url())
 
     knowledge_base.append("phpinfo", "phpinfo", v)
-    _sink(output).vulnerability(v.get_desc(), severity=v.get_severity())
+    output.vulnerability(v.get_desc(), severity=v.get_severity())
 
 
-def allow_url_include(response, knowledge_base, output=None):
+def allow_url_include(response, knowledge_base, output):
     regex_str = 'allow_url_include</td><td class="v">(On|<i>no value</i>)</td>'
     allow_url_include_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -90,10 +85,10 @@ def allow_url_include(response, knowledge_base, output=None):
     v.set_url(response.get_url())
 
     knowledge_base.append("phpinfo", "phpinfo", v)
-    _sink(output).vulnerability(v.get_desc(), severity=v.get_severity())
+    output.vulnerability(v.get_desc(), severity=v.get_severity())
 
 
-def display_errors(response, knowledge_base, output=None):
+def display_errors(response, knowledge_base, output):
     regex_str = 'display_errors</td><td class="v">(On|<i>no value</i>)</td>'
     display_errors_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -105,10 +100,10 @@ def display_errors(response, knowledge_base, output=None):
     v.set_url(response.get_url())
 
     knowledge_base.append("phpinfo", "phpinfo", v)
-    _sink(output).vulnerability(v.get_desc(), severity=v.get_severity())
+    output.vulnerability(v.get_desc(), severity=v.get_severity())
 
 
-def expose_php(response, knowledge_base, output=None):
+def expose_php(response, knowledge_base, output):
     regex_str = 'expose_php</td><td class="v">(On|<i>no value</i>)</td>'
     expose_php_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -120,10 +115,10 @@ def expose_php(response, knowledge_base, output=None):
     v.set_url(response.get_url())
 
     knowledge_base.append("phpinfo", "phpinfo", v)
-    _sink(output).vulnerability(v.get_desc(), severity=v.get_severity())
+    output.vulnerability(v.get_desc(), severity=v.get_severity())
 
 
-def lowest_privilege_test(response, knowledge_base, output=None):
+def lowest_privilege_test(response, knowledge_base, output):
     regex_str = r'User/Group </td><td class="v">(.*?)\((\d.*?)\)/(\d.*?)</td>'
     lowest_privilege_test_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -160,7 +155,7 @@ def lowest_privilege_test(response, knowledge_base, output=None):
         v.set_url(response.get_url())
 
         knowledge_base.append("phpinfo", "phpinfo", v)
-        _sink(output).vulnerability(v.get_desc(), severity=v.get_severity())
+        output.vulnerability(v.get_desc(), severity=v.get_severity())
     else:
         desc = (
             "PHP seems to be running as a low privileged user."
@@ -173,10 +168,10 @@ def lowest_privilege_test(response, knowledge_base, output=None):
         i.set_url(response.get_url())
 
         knowledge_base.append("phpinfo", "phpinfo", i)
-        _sink(output).information(i.get_desc())
+        output.information(i.get_desc())
 
 
-def disable_functions(response, knowledge_base, output=None):
+def disable_functions(response, knowledge_base, output):
     regex_str = 'disable_functions</td><td class="v">(.*?)</td>'
     disable_functions_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -203,10 +198,10 @@ def disable_functions(response, knowledge_base, output=None):
     v.set_url(response.get_url())
 
     knowledge_base.append("phpinfo", "phpinfo", v)
-    _sink(output).vulnerability(v.get_desc(), severity=v.get_severity())
+    output.vulnerability(v.get_desc(), severity=v.get_severity())
 
 
-def curl_file_support(response, knowledge_base, output=None):
+def curl_file_support(response, knowledge_base, output):
     regex_str = r'<h1 class="p">PHP Version (\d+)\.(\d+)\.(\d+)'
     curl_file_support_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -235,10 +230,10 @@ def curl_file_support(response, knowledge_base, output=None):
     v.set_url(response.get_url())
 
     knowledge_base.append("phpinfo", "phpinfo", v)
-    _sink(output).vulnerability(v.get_desc(), severity=v.get_severity())
+    output.vulnerability(v.get_desc(), severity=v.get_severity())
 
 
-def cgi_force_redirect(response, knowledge_base, output=None):
+def cgi_force_redirect(response, knowledge_base, output):
     regex_str = 'cgi_force_redirect</td><td class="v">(.*?)</td>'
     cgi_force_redirect_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -256,10 +251,10 @@ def cgi_force_redirect(response, knowledge_base, output=None):
     v.set_url(response.get_url())
 
     knowledge_base.append("phpinfo", "phpinfo", v)
-    _sink(output).vulnerability(v.get_desc(), severity=v.get_severity())
+    output.vulnerability(v.get_desc(), severity=v.get_severity())
 
 
-def session_cookie_httponly(response, knowledge_base, output=None):
+def session_cookie_httponly(response, knowledge_base, output):
     regex_str = r'session\.cookie_httponly</td><td class="v">(Off|no|0)</td>'
     session_cookie_httponly_mo = re.search(
         regex_str, response.get_body(), re.IGNORECASE
@@ -279,10 +274,10 @@ def session_cookie_httponly(response, knowledge_base, output=None):
     v.set_url(response.get_url())
 
     knowledge_base.append("phpinfo", "phpinfo", v)
-    _sink(output).vulnerability(v.get_desc(), severity=v.get_severity())
+    output.vulnerability(v.get_desc(), severity=v.get_severity())
 
 
-def session_save_path(response, knowledge_base, output=None):
+def session_save_path(response, knowledge_base, output):
     regex_str = r'session\.save_path</td><td class="v">(<i>no value</i>)</td>'
     session_save_path_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -302,10 +297,10 @@ def session_save_path(response, knowledge_base, output=None):
     v.set_url(response.get_url())
 
     knowledge_base.append("phpinfo", "phpinfo", v)
-    _sink(output).vulnerability(v.get_desc(), severity=v.get_severity())
+    output.vulnerability(v.get_desc(), severity=v.get_severity())
 
 
-def session_use_trans(response, knowledge_base, output=None):
+def session_use_trans(response, knowledge_base, output):
     regex_str = r'session\.use_trans</td><td class="v">(On)</td>'
     session_use_trans_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -320,10 +315,10 @@ def session_use_trans(response, knowledge_base, output=None):
     v.set_url(response.get_url())
 
     knowledge_base.append("phpinfo", "phpinfo", v)
-    _sink(output).vulnerability(v.get_desc(), severity=v.get_severity())
+    output.vulnerability(v.get_desc(), severity=v.get_severity())
 
 
-def default_charset(response, knowledge_base, output=None):
+def default_charset(response, knowledge_base, output):
     regex_str = 'default_charset</td><td class="v">(Off|no|0)</td>'
     default_charset_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -339,10 +334,10 @@ def default_charset(response, knowledge_base, output=None):
     v.set_url(response.get_url())
 
     knowledge_base.append("phpinfo", "phpinfo", v)
-    _sink(output).vulnerability(v.get_desc(), severity=v.get_severity())
+    output.vulnerability(v.get_desc(), severity=v.get_severity())
 
 
-def enable_dl(response, knowledge_base, output=None):
+def enable_dl(response, knowledge_base, output):
     regex_str = 'enable_dl</td><td class="v">(On|Off)</td>'
     enable_dl_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -356,7 +351,7 @@ def enable_dl(response, knowledge_base, output=None):
         v.set_url(response.get_url())
 
         knowledge_base.append("phpinfo", "phpinfo", v)
-        _sink(output).vulnerability(v.get_desc(), severity=v.get_severity())
+        output.vulnerability(v.get_desc(), severity=v.get_severity())
     else:
         ed_name = "PHP enable_dl: Off"
         ed_desc = "The phpinfo()::enable_dl is off."
@@ -364,10 +359,10 @@ def enable_dl(response, knowledge_base, output=None):
         i.set_url(response.get_url())
 
         knowledge_base.append("phpinfo", "phpinfo", i)
-        _sink(output).information(i.get_desc())
+        output.information(i.get_desc())
 
 
-def memory_limit(response, knowledge_base, output=None):
+def memory_limit(response, knowledge_base, output):
     regex_str = r'memory_limit</td><td class="v">(\d.*?)</td>'
     memory_limit_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -388,10 +383,10 @@ def memory_limit(response, knowledge_base, output=None):
         v.set_url(response.get_url())
 
         knowledge_base.append("phpinfo", "phpinfo", v)
-        _sink(output).vulnerability(v.get_desc(), severity=v.get_severity())
+        output.vulnerability(v.get_desc(), severity=v.get_severity())
 
 
-def post_max_size(response, knowledge_base, output=None):
+def post_max_size(response, knowledge_base, output):
     regex_str = r'post_max_size</td><td class="v">(\d.*?)</td>'
     post_max_size_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -413,10 +408,10 @@ def post_max_size(response, knowledge_base, output=None):
     v.set_url(response.get_url())
 
     knowledge_base.append("phpinfo", "phpinfo", v)
-    _sink(output).vulnerability(v.get_desc(), severity=v.get_severity())
+    output.vulnerability(v.get_desc(), severity=v.get_severity())
 
 
-def upload_max_filesize(response, knowledge_base, output=None):
+def upload_max_filesize(response, knowledge_base, output):
     regex_str = r'upload_max_filesize</td><td class="v">(\d.*?)</td>'
     upload_max_filesize_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -438,10 +433,10 @@ def upload_max_filesize(response, knowledge_base, output=None):
     v.set_url(response.get_url())
 
     knowledge_base.append("phpinfo", "phpinfo", v)
-    _sink(output).vulnerability(v.get_desc(), severity=v.get_severity())
+    output.vulnerability(v.get_desc(), severity=v.get_severity())
 
 
-def upload_tmp_dir(response, knowledge_base, output=None):
+def upload_tmp_dir(response, knowledge_base, output):
     regex_str = 'upload_tmp_dir</td><td class="v">(<i>no value</i>)</td>'
     upload_tmp_dir_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -459,10 +454,10 @@ def upload_tmp_dir(response, knowledge_base, output=None):
     v.set_url(response.get_url())
 
     knowledge_base.append("phpinfo", "phpinfo", v)
-    _sink(output).vulnerability(v.get_desc(), severity=v.get_severity())
+    output.vulnerability(v.get_desc(), severity=v.get_severity())
 
 
-def file_uploads(response, knowledge_base, output=None):
+def file_uploads(response, knowledge_base, output):
     regex_str = 'file_uploads</td><td class="v">(On|<i>no value</i>)</td>'
     file_uploads_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -474,10 +469,10 @@ def file_uploads(response, knowledge_base, output=None):
     i.set_url(response.get_url())
 
     knowledge_base.append("phpinfo", "phpinfo", i)
-    _sink(output).information(i.get_desc())
+    output.information(i.get_desc())
 
 
-def magic_quotes_gpc(response, knowledge_base, output=None):
+def magic_quotes_gpc(response, knowledge_base, output):
     regex_str = 'magic_quotes_gpc</td><td class="v">(On|Off)</td>'
     magic_quotes_gpc_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -496,10 +491,10 @@ def magic_quotes_gpc(response, knowledge_base, output=None):
 
     i.set_url(response.get_url())
     knowledge_base.append("phpinfo", "phpinfo", i)
-    _sink(output).information(i.get_desc())
+    output.information(i.get_desc())
 
 
-def open_basedir(response, knowledge_base, output=None):
+def open_basedir(response, knowledge_base, output):
     regex_str = 'open_basedir</td><td class="v">(.*?)</td>'
     open_basedir_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -519,10 +514,10 @@ def open_basedir(response, knowledge_base, output=None):
 
     i.set_url(response.get_url())
     knowledge_base.append("phpinfo", "phpinfo", i)
-    _sink(output).information(i.get_desc())
+    output.information(i.get_desc())
 
 
-def session_hash_function(response, knowledge_base, output=None):
+def session_hash_function(response, knowledge_base, output):
     regex_str = r'session\.hash_function</td><td class="v">(.*?)</td>'
     session_hash_function_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -539,4 +534,4 @@ def session_hash_function(response, knowledge_base, output=None):
     i.set_url(response.get_url())
 
     knowledge_base.append("phpinfo", "phpinfo", i)
-    _sink(output).information(i.get_desc())
+    output.information(i.get_desc())

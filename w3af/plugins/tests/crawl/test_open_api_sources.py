@@ -27,6 +27,7 @@ from typing import ClassVar
 
 import yaml
 
+import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.misc_settings import MiscSettings
@@ -241,7 +242,7 @@ class TestOpenAPIPluginInternals(unittest.TestCase):
 
         api_call = FuzzableRequest(URL("http://w3af.org/api/pets"))
 
-        self.assertFalse(open_api._is_target_domain(api_call))
+        self.assertFalse(open_api._is_target_domain(api_call, om.out))
 
     def test_long_description_mentions_supported_files(self):
         self.assertIn("openapi.yaml", self.plugin.get_long_desc())
