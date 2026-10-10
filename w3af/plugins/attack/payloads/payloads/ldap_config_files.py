@@ -36,6 +36,6 @@ class ldap_config_files(Payload):
                 rows.append([filename, api_result[filename]])
                 rows.append([])
 
-            result_table = table(rows[:-1])
+            result_table = table(rows[:-1], self.shell._output)
             result_table.draw(80)
             return rows

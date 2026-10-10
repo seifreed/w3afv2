@@ -95,6 +95,6 @@ class apache_config_directory(Payload):
                         ]
                     )
 
-            result_table = table(rows)
+            result_table = table(rows, self.shell._output)
             result_table.draw(80)
             return rows

@@ -107,6 +107,6 @@ class tcp(Payload):
 
                 rows.append([key, local_address, rem_address, st, uid, inode])
 
-            result_table = table(rows)
+            result_table = table(rows, self.shell._output)
             result_table.draw(80)
             return rows

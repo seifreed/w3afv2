@@ -98,6 +98,6 @@ class pixy(Payload):
                 for vuln_location in api_result[vuln_type]:
                     rows.append([vuln_type, vuln_location])
 
-            result_table = table(rows)
+            result_table = table(rows, self.shell._output)
             result_table.draw(100)
             return rows

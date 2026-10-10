@@ -47,6 +47,6 @@ class get_hashes(Payload):
             for user, uhash in list(api_result.items()):
                 rows.append([user, uhash])
 
-            result_table = table(rows)
+            result_table = table(rows, self.shell._output)
             result_table.draw(80)
             return rows

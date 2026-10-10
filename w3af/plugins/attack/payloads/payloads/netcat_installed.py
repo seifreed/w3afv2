@@ -47,6 +47,6 @@ class netcat_installed(Payload):
         for key in api_result:
             rows.append([key, str(api_result[key])])
 
-        result_table = table(rows)
+        result_table = table(rows, self.shell._output)
         result_table.draw(80)
         return rows

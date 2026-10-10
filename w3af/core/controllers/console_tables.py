@@ -20,8 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
-
 
 def format_paragraph_line(text, width):
     """
@@ -70,12 +68,13 @@ class table:
     :author: Alexander Berezhnoy (alexander.berezhnoy |at| gmail.com)
     """
 
-    def __init__(self, rows):
+    def __init__(self, rows, output):
         """
         :param rows: array of arrays
         Every row is array of string (string per column)
         """
         self._rows = rows
+        self._output = output
         self._colsNum = len(self._rows[0])
         self._colsRange = list(range(self._colsNum))
         self._separator = "|"
@@ -171,7 +170,7 @@ class table:
 
     def draw_br(self, char="-"):
         ls = len(self._separator)
-        om.out.console(
+        self._output.console(
             self._separator + char * (self._tableWidth - 2 * ls) + self._separator
         )
 
@@ -190,7 +189,7 @@ class table:
         # width = sum(widthes) + (len(columns)-1)*3 + 4
         s = self._separator
         for rowNum in range(maxHeight):
-            om.out.console(
+            self._output.console(
                 s
                 + " "
                 + (" " + s + " ").join([col[rowNum] for col in columns])

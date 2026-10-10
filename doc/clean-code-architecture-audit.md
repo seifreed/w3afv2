@@ -2630,6 +2630,20 @@ Black y mypy están limpios. El score permanece en **6.25/10** por los globals
 restantes de UI y servicios, cobertura total no demostrada, Bandit heredado,
 mocks e integraciones Moth.
 
+## Actualización verificada: tablas de consola con output explícito
+
+`console_tables.table` recibe ahora el sink en su constructor y deja de
+importar `output_manager`. Se actualizaron sus composiciones de consola y los
+53 payloads que dibujan tablas para entregar `self.shell._output`, sin cambiar
+el formato ni el algoritmo de distribución de columnas.
+
+Verificación: todas las tablas construidas en payloads tienen sink explícito;
+Ruff, Black, mypy, `py_compile` y `git diff --check` globales están limpios.
+Los tests de consola pasan aisladamente; el corpus de payloads aún tiene el
+fallo macOS conocido de `/proc/sys/kernel/ostype`. El score permanece en
+**6.25/10** por los globals restantes, cobertura 100% no demostrada, Bandit
+heredado, mocks e integraciones Moth.
+
 ## Actualización verificada: menú de consola sin fallback global
 
 El menú de consola ya no importa `output_manager`: el root toma el sink

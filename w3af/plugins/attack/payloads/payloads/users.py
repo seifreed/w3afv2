@@ -45,6 +45,6 @@ class users(Payload):
                 desc = api_result[username]["desc"]
                 rows.append([username, home, shell, desc])
 
-            result_table = table(rows)
+            result_table = table(rows, self.shell._output)
             result_table.draw(80)
             return rows

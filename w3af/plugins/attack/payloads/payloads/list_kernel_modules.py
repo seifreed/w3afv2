@@ -45,6 +45,6 @@ class list_kernel_modules(Payload):
                 used = api_result[module]["used"]
                 rows.append([module, used])
 
-            result_table = table(rows)
+            result_table = table(rows, self.shell._output)
             result_table.draw(80)
             return rows

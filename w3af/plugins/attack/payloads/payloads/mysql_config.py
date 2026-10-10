@@ -35,6 +35,6 @@ class mysql_config(Payload):
                 rows.append([filename, api_result[filename]])
                 rows.append([])
 
-            result_table = table(rows[:-1])
+            result_table = table(rows[:-1], self.shell._output)
             result_table.draw(80)
             return rows

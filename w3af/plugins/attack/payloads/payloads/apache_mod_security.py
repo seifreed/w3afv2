@@ -98,6 +98,6 @@ class apache_mod_security(Payload):
             for key_name in api_result:
                 for k, v in list(api_result[key_name].items()):
                     rows.append([key_name, k])
-            result_table = table(rows)
+            result_table = table(rows, self.shell._output)
             result_table.draw(90)
             return rows

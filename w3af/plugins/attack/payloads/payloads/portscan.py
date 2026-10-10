@@ -101,6 +101,6 @@ class portscan(Payload):
                 port_list = "\n".join([str(port) for port in api_result[host]])
                 rows.append([host, port_list])
 
-            result_table = table(rows)
+            result_table = table(rows, self.shell._output)
             result_table.draw(80)
             return rows

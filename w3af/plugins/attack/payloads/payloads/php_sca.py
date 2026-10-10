@@ -144,6 +144,6 @@ class php_sca(Payload):
             for f in files:
                 rows.append([vulnty, str(f["loc"]), f["vulnsrc"], str(f["lineno"])])
 
-        restable = table(rows)
+        restable = table(rows, self.shell._output)
         restable.draw(100)
         return rows

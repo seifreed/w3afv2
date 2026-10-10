@@ -43,6 +43,6 @@ class arp_cache(Payload):
             for ip_address in api_result:
                 hw_addr, device = api_result[ip_address]
                 rows.append([ip_address, hw_addr, device])
-            result_table = table(rows)
+            result_table = table(rows, self.shell._output)
             result_table.draw(80)
             return rows

@@ -83,6 +83,6 @@ class get_source_code(Payload):
             for url, (remote_filename, local_filename) in list(api_result.items()):
                 rows.append([remote_filename, local_filename])
 
-            result_table = table(rows)
+            result_table = table(rows, self.shell._output)
             result_table.draw(140)
             return rows

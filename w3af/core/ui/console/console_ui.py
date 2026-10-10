@@ -195,7 +195,7 @@ class ConsoleUI:
         return term.terminal_size()[0]
 
     def draw_table(self, lines, header=False):
-        table = tables.table(lines)
+        table = tables.table(lines, self._output)
         table.draw(self.term_width(), header)
 
     def back(self):

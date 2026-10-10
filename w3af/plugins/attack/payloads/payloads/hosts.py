@@ -34,6 +34,6 @@ class hosts(Payload):
                 rows.append([file, api_result[file]])
                 rows.append([])
 
-            result_table = table(rows[:-1])
+            result_table = table(rows[:-1], self.shell._output)
             result_table.draw(160)
             return rows

@@ -27,6 +27,6 @@ class os_fingerprint(Payload):
         else:
             rows = []
             rows.append(["Remote OS", api_result["os"]])
-            result_table = table(rows)
+            result_table = table(rows, self.shell._output)
             result_table.draw(80)
             return rows

@@ -64,6 +64,6 @@ class firefox_stealer(Payload):
             for filename in api_result:
                 rows.append([filename, "Yes"])
 
-            result_table = table(rows)
+            result_table = table(rows, self.shell._output)
             result_table.draw(80)
             return rows

@@ -49,6 +49,6 @@ class cpu_info(Payload):
             for name in api_result:
                 rows.append([name, api_result[name]])
 
-            result_table = table(rows)
+            result_table = table(rows, self.shell._output)
             result_table.draw(80)
             return rows
