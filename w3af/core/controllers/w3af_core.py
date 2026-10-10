@@ -212,6 +212,7 @@ class w3afCore:
         # strategy which might still have data stored in it and create a new
         # one
         self.strategy = CoreStrategy(self, self.knowledge_base, self._output)
+        self.status.set_w3af_core(self)
         self.strategy.add_observer(DiskSpaceObserver())
         self.strategy.add_observer(ThreadCountObserver(self._output))
         self.strategy.add_observer(ThreadStateObserver(self._output))

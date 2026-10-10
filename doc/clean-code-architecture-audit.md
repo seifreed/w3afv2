@@ -2942,3 +2942,14 @@ Ruff, Black, mypy focalizado y `git diff --check` están limpios. El score
 permanece en **6.25/10** por el lifecycle restante, la serialización y las
 reglas de fase aún mezcladas en `CoreStatus`, cobertura 100% no demostrada,
 Bandit heredado e integraciones externas.
+
+## Actualización verificada: relink de métricas al reiniciar un scan
+
+Al reconstruir `CoreStrategy` para un segundo scan, `w3afCore` vuelve a enlazar
+las métricas de `CoreStatus` con la estrategia nueva. Así el estado no conserva
+referencias a consumidores de un scan anterior.
+
+Verificación: la prueba de segundo scan pasó; Black, Ruff y mypy focalizado
+están limpios. El score permanece en **6.25/10** por el lifecycle y la
+serialización aún acoplados, cobertura 100% no demostrada, Bandit heredado e
+integraciones externas.
