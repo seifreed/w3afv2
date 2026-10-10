@@ -24,16 +24,11 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-import w3af.core.data.kb.config as cf
 from w3af.core.configurable import Configurable
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.exceptions import BaseFrameworkException
-
-cf.cf.save("targets", [])
-cf.cf.save("target_domains", set())
-cf.cf.save("baseURLs", [])
 
 
 class CoreTarget(Configurable):
@@ -42,7 +37,9 @@ class CoreTarget(Configurable):
     configure the target settings using get_options and SetOptions.
     """
 
-    def __init__(self):
+    def __init__(self, configuration):
+        self._configuration = configuration
+
         # Set defaults for user configured variables
         self.clear()
 
@@ -61,11 +58,11 @@ class CoreTarget(Configurable):
         ]
 
     def clear(self):
-        cf.cf.save("targets", [])
-        cf.cf.save("target_os", "unknown")
-        cf.cf.save("target_framework", "unknown")
-        cf.cf.save("target_domains", set())
-        cf.cf.save("baseURLs", [])
+        self._configuration.save("targets", [])
+        self._configuration.save("target_os", "unknown")
+        self._configuration.save("target_framework", "unknown")
+        self._configuration.save("target_domains", set())
+        self._configuration.save("baseURLs", [])
 
     def get_options(self):
         """
@@ -73,7 +70,7 @@ class CoreTarget(Configurable):
         """
         ol = OptionList()
 
-        targets = ",".join(str(tar) for tar in cf.cf.get("targets"))
+        targets = ",".join(str(tar) for tar in self._configuration.get("targets"))
         d = "A comma separated list of URLs"
         o = opt_factory("target", targets, d, "url_list")
         ol.add(o)
@@ -84,8 +81,8 @@ class CoreTarget(Configurable):
         # This list "hack" has to be done because the default value is the one
         # in the first position on the list
         tmp_list = self._operating_systems[:]
-        tmp_list.remove(cf.cf.get("target_os"))
-        tmp_list.insert(0, cf.cf.get("target_os"))
+        tmp_list.remove(self._configuration.get("target_os"))
+        tmp_list.insert(0, self._configuration.get("target_os"))
         o = opt_factory("target_os", tmp_list, d, "combo", help=h)
         ol.add(o)
 
@@ -95,8 +92,8 @@ class CoreTarget(Configurable):
         # This list "hack" has to be done because the default value is the one
         # in the first position on the list
         tmp_list = self._programming_frameworks[:]
-        tmp_list.remove(cf.cf.get("target_framework"))
-        tmp_list.insert(0, cf.cf.get("target_framework"))
+        tmp_list.remove(self._configuration.get("target_framework"))
+        tmp_list.insert(0, self._configuration.get("target_framework"))
         o = opt_factory("target_framework", tmp_list, d, "combo", help=h)
         ol.add(o)
 
@@ -210,21 +207,23 @@ class CoreTarget(Configurable):
 
         # Save in the config, the target URLs, this may be useful for some
         # plugins
-        cf.cf.save("targets", target_urls)
-        cf.cf.save("target_domains", list({u.get_domain() for u in target_urls}))
-        cf.cf.save("baseURLs", [i.base_url() for i in target_urls])
+        self._configuration.save("targets", target_urls)
+        self._configuration.save(
+            "target_domains", list({u.get_domain() for u in target_urls})
+        )
+        self._configuration.save("baseURLs", [i.base_url() for i in target_urls])
 
         # Advanced target selection
         os = options_list["target_os"].get_value_str()
         if os.lower() in self._operating_systems:
-            cf.cf.save("target_os", os.lower())
+            self._configuration.save("target_os", os.lower())
         else:
             msg = 'Unknown target operating system: "%s"'
             raise BaseFrameworkException(msg % os)
 
         pf = options_list["target_framework"].get_value_str()
         if pf.lower() in self._programming_frameworks:
-            cf.cf.save("target_framework", pf.lower())
+            self._configuration.save("target_framework", pf.lower())
         else:
             msg = 'Unknown target programming framework: "%s"'
             raise BaseFrameworkException(msg % pf)
@@ -236,4 +235,6 @@ class CoreTarget(Configurable):
         return "Configure target URLs"
 
     def has_valid_configuration(self):
-        return cf.cf.get("targets") and cf.cf.get("target_domains")
+        return self._configuration.get("targets") and self._configuration.get(
+            "target_domains"
+        )

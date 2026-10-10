@@ -3777,3 +3777,16 @@ aproximadamente **500 MB de RSS**; se interrumpió esa ejecución bloqueada para
 no mezclar sus recursos con la medición. El score se mantiene en **6.5/10**:
 quedan consumidores de test del singleton y aún no se ha demostrado la
 cobertura global del 100%.
+
+## Actualización verificada: `CoreTarget` con configuración inyectada
+
+`CoreTarget` dejó de importar y mutar `cf.cf` al cargar el módulo. Ahora recibe
+una configuración explícita, y `w3afCore` la entrega desde el composition root;
+las operaciones de target leen y guardan únicamente en esa instancia. Esto
+elimina una mutación global durante imports y permite crear targets aislados.
+
+Verificación: la suite de target pasa **12 tests**, incluyendo dos
+configuraciones independientes; Black, Ruff, mypy y Bandit focal están limpios.
+El score sube a **6.7/10** en Clean Architecture, pero el global se mantiene
+en **6.6/10** hasta migrar los restantes consumidores de `cf` y demostrar los
+gates y la cobertura completos.

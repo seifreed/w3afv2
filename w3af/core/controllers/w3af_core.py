@@ -69,6 +69,7 @@ from w3af.core.controllers.output_manager.logging_bridge import configure_data_l
 from w3af.core.controllers.parser_worker import register_parser_multiprocessing
 from w3af.core.controllers.profiling import start_profiling, stop_profiling
 from w3af.core.data.kb import knowledge_base as kb_store
+from w3af.core.data.kb.config import cf
 from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.data.parsers import parser_cache
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
@@ -164,7 +165,7 @@ class w3afCore:
         # scan.
         self.profiles = CoreProfiles(self)
         self.plugins = CorePlugins(self, output, manager)
-        self.target = CoreTarget()
+        self.target = CoreTarget(cf)
         self._environment_validator = ScanEnvironmentValidator(
             self.plugins, self.target
         )
