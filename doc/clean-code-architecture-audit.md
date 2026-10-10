@@ -2630,6 +2630,19 @@ Black y mypy están limpios. El score permanece en **6.25/10** por los globals
 restantes de UI y servicios, cobertura total no demostrada, Bandit heredado,
 mocks e integraciones Moth.
 
+## Actualización verificada: menú de consola sin fallback global
+
+El menú de consola ya no importa `output_manager`: el root toma el sink
+expuesto por `w3afCore` y los menús hijos lo heredan desde su padre. Se
+mantienen las mismas firmas de los menús existentes y la composición queda en
+el borde de la UI.
+
+Verificación: **32 tests pasaron** en completion y menús; las 9 advertencias
+proceden de dependencias externas. Ruff, Black, mypy, `py_compile` y
+`git diff --check` globales están limpios. El score permanece en **6.25/10**
+por los globals restantes, cobertura 100% no demostrada, Bandit heredado,
+mocks e integraciones Moth.
+
 ## Actualización verificada: CorePlugins con manager de salida explícito
 
 `CorePlugins` recibe ahora tanto el sink como la instancia de `OutputManager`.

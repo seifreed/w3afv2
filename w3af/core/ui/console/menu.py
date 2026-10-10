@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import logging
 import pprint
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.exceptions import BaseFrameworkException
 from w3af.core.ui.console.help import HelpContainer, helpMainRepository
 from w3af.core.ui.console.history import history
@@ -46,7 +45,9 @@ class menu:
 
     def __init__(self, name, console, w3af, parent=None, output=None, **other):
         self._name = name
-        self._output = output if output is not None else om.out
+        if output is None:
+            output = parent._output if parent is not None else w3af._output
+        self._output = output
         self._history = history()
 
         self._help = HelpContainer()
