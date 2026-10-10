@@ -1722,3 +1722,14 @@ Verificación: 4 tests del plugin pasan, Ruff, Black y mypy pasan en el módulo
 modificado. El score sigue en **5.75/10**: quedan 64 imports directos de la KB,
 además de la cobertura, mocks, el fallo heredado de perfilado, la dependencia
 de Moth y los orquestadores grandes.
+
+## Actualización verificada: crawlers XML y CAPTCHA
+
+`crawl.dwsync_xml`, `crawl.genexus_xml` y `crawl.find_captchas` registran sus
+hallazgos mediante la KB configurada en cada plugin, manteniendo el parseo XML,
+la extracción de enlaces y la identificación de imágenes.
+
+Verificación: 9 tests de estos crawlers pasan, Ruff, Black y mypy pasan en los
+módulos modificados. El score sigue en **5.75/10**: quedan 61 imports directos
+de la KB, además de la cobertura, mocks, el fallo heredado de perfilado, la
+dependencia de Moth y los orquestadores grandes.
