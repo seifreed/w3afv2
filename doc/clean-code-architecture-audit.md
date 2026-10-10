@@ -3993,3 +3993,16 @@ tests**. Black, Ruff, mypy y Bandit focal están limpios. El score sube a
 **8.5/10** en Clean Architecture y **8.4/10** global. Siguen pendientes
 URL/openers, parsers, fuzzer, `Info`, controllers, HMap y la cobertura global
 del 100%.
+
+## Actualización verificada: HMap sin User-Agent global
+
+El motor upstream de HMap ya no lee `cf.cf`: el User-Agent viaja como parte de
+`Target`, con un valor standalone compatible cuando no se proporciona. El
+plugin `hmap` obtiene el valor desde la configuración inyectada del scan y lo
+entrega explícitamente al motor de fingerprinting.
+
+Verificación: la suite de HMap pasa **22 tests**. Black, Ruff, mypy y Bandit
+focal están limpios, y no quedan accesos globales de configuración en el
+plugin ni en su módulo upstream. El score sube a **8.6/10** en Clean
+Architecture y **8.5/10** global. Siguen pendientes URL/openers, parsers,
+fuzzer, `Info`, controllers y la cobertura global del 100%.

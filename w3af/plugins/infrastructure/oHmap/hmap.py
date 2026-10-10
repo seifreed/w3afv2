@@ -31,7 +31,6 @@ import time
 from collections import namedtuple
 from itertools import pairwise
 
-import w3af.core.data.kb.config as cf
 from w3af import ROOT_PATH
 from w3af.core.controllers.threads.threadpool import Pool
 from w3af.core.exceptions import BaseFrameworkException
@@ -45,7 +44,9 @@ NO_RESPONSE_CODES = ("NO_RESPONSE_CODE", "NO_RESPONSE")
 STATUS_LINE_RE = re.compile(r"^HTTP/1\.[01] [0-9]{3} [A-Z]{,10}")
 RESPONSE_LINE_RE = re.compile("(HTTP/1\\.[01]) ([0-9]{3}) ([^\r\n]*)")
 
-Target = namedtuple("Target", ["host", "port", "use_ssl", "output"])
+Target = namedtuple(
+    "Target", ["host", "port", "use_ssl", "output", "user_agent"], defaults=(None,)
+)
 
 
 class request:
@@ -59,7 +60,7 @@ class request:
         self.method = method
         self.local_uri = local_uri
         self.version = version
-        self.headers = [["User-Agent", cf.cf.get("User-Agent")]]
+        self.headers = [["User-Agent", target.user_agent or "w3af.org"]]
         self.line_joiner = "\r\n"
         self.body = ""
         self.adhoc_method_line = ""
@@ -869,8 +870,17 @@ def write_fingerprint_file(fp, server):
 # it is a "copy" of the "main" with a lot of default parameters :P
 
 
-def testServer(use_ssl, server, port, matchCount, generateFP, threads, output):
-    fp = get_fingerprint(Target(server, port, use_ssl, output), threads)
+def testServer(
+    use_ssl,
+    server,
+    port,
+    matchCount,
+    generateFP,
+    threads,
+    output,
+    user_agent="w3af.org",
+):
+    fp = get_fingerprint(Target(server, port, use_ssl, output, user_agent), threads)
     known_servers = load_known_servers(KNOWN_SERVERS_DIR)
 
     if generateFP:

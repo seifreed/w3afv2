@@ -269,6 +269,16 @@ class TestHmapConnections(unittest.TestCase):
         with self.assertRaises(BaseFrameworkException):
             upstream_hmap.request(target).submit()
 
+    def test_request_uses_explicit_user_agent(self):
+        target = upstream_hmap.Target(
+            "127.0.0.1", closed_port(), False, self.output, "custom-agent"
+        )
+
+        self.assertEqual(
+            upstream_hmap.request(target).headers[0],
+            ["User-Agent", "custom-agent"],
+        )
+
     def test_ssl_handshake_with_plain_http_server(self):
         site = HmapTestSite()
         self.addCleanup(site.stop)
