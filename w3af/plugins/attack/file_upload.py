@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
 from w3af.core.data.fuzzer.utils import rand_alpha
 from w3af.core.data.misc.io import NamedStringIO
@@ -70,7 +69,7 @@ class file_upload(AttackPlugin):
 
             # Set shell parameters
             shell_obj = FileUploadShell(
-                vuln_obj, self._uri_opener, self.worker_pool, exploit_url
+                vuln_obj, self._uri_opener, self.worker_pool, exploit_url, self._output
             )
             return shell_obj
         else:
@@ -175,10 +174,11 @@ class file_upload(AttackPlugin):
 
 class FileUploadShell(ExecShell):
 
-    def __init__(self, vuln, uri_opener, worker_pool, exploit_url):
+    def __init__(self, vuln, uri_opener, worker_pool, exploit_url, output):
         super().__init__(vuln, uri_opener, worker_pool)
 
         self._exploit_url = exploit_url
+        self._output = output
 
     def get_exploit_url(self):
         return self._exploit_url
@@ -205,20 +205,20 @@ class FileUploadShell(ExecShell):
             "File upload shell is going to delete the webshell that was"
             " uploaded before."
         )
-        om.out.debug(msg)
+        self._output.debug(msg)
         file_to_del = self.get_exploit_url().get_file_name()
 
         try:
             self.unlink(file_to_del)
         except BaseFrameworkException as e:
             msg = 'File upload shell cleanup failed with exception: "%s".'
-            om.out.error(msg % e)
+            self._output.error(msg % e)
         else:
             msg = (
                 "File upload shell cleanup complete; successfully removed"
                 f' file: "{file_to_del}".'
             )
-            om.out.debug(msg)
+            self._output.debug(msg)
 
     def get_name(self):
         return "file_upload"
@@ -228,4 +228,10 @@ class FileUploadShell(ExecShell):
         Need to define this method since the Shell class defines it, and we have
         a different number of __init__ parameters.
         """
-        return self.__class__, (self._vuln, None, None, self._exploit_url)
+        return self.__class__, (
+            self._vuln,
+            None,
+            None,
+            self._exploit_url,
+            self._output,
+        )

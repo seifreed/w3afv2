@@ -2451,3 +2451,14 @@ también conserva la dependencia explícita y ya no importa `output_manager`.
 Verificación: Ruff, Black y mypy están limpios. La suite de integración de
 `eval` no pudo validarse porque el entorno Moth configuró el host `fallback`,
 que no resuelve DNS; el score permanece en **6.25/10** hasta cubrir esa ruta.
+
+## Actualización verificada: shells DAV y file upload con output explícito
+
+Los plugins attack `dav` y `file_upload` pasan ahora su sink a los shells que
+crean. Los mensajes de subida, ejecución y limpieza usan esa dependencia, y
+las reconstrucciones por pickle conservan el contrato; ambos módulos dejaron
+de importar `output_manager`.
+
+Verificación: Ruff, Black y mypy están limpios. Las suites de integración de
+ambos plugins no se ejecutaron correctamente porque dependen del entorno Moth
+no resoluble (`fallback`); el score permanece en **6.25/10** hasta verificarlas.
