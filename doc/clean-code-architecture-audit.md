@@ -4006,3 +4006,16 @@ focal están limpios, y no quedan accesos globales de configuración en el
 plugin ni en su módulo upstream. El score sube a **8.6/10** en Clean
 Architecture y **8.5/10** global. Siguen pendientes URL/openers, parsers,
 fuzzer, `Info`, controllers y la cobertura global del 100%.
+
+## Actualización verificada: consola con configuración y output propios
+
+`rootMenu` construye `MiscSettings` con la configuración del `w3afCore`, sin
+leer `cf.cf`. Los tests de consola dejaron de drenar el manager singleton y
+usan el `OutputManager` de su core; el shell local de pruebas también recibe
+su sink explícitamente.
+
+Verificación: completion, control de scan y shell de consola pasan **43 tests**.
+Black, Ruff y mypy focal están limpios; persisten solo warnings deprecados de
+dependencias externas. El score sube a **8.7/10** en Clean Architecture y
+**8.6/10** global. Siguen pendientes URL/openers, parsers, fuzzer, `Info`,
+controllers y la cobertura global del 100%.

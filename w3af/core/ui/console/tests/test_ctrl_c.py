@@ -23,7 +23,6 @@ import sys
 import threading
 import time
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.ui.console.console_ui import ConsoleUI
 from w3af.core.ui.console.io import unixctrl
 from w3af.core.ui.console.root_menu import rootMenu, stdin_is_terminal
@@ -51,7 +50,7 @@ class TestScanControl(ConsoleTestHelper):
         super().tearDown()
 
     def _output(self):
-        om.manager.process_all_messages()
+        self.console._output_manager.process_all_messages()
         return "".join(self._captured_stdout.messages)
 
     def test_handle_scan_stop_reports_and_stops(self):
@@ -174,7 +173,7 @@ class TestScanKeypressLoop(ConsoleTestHelper):
         self.addCleanup(thread.join)
 
     def _output(self):
-        om.manager.process_all_messages()
+        self.console._output_manager.process_all_messages()
         return "".join(self._captured_stdout.messages)
 
     def test_keys_during_a_paused_scan(self):

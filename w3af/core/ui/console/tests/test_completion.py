@@ -18,7 +18,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.ui.console.console_ui import ConsoleUI
 from w3af.core.ui.console.root_menu import rootMenu
 from w3af.core.ui.console.tests.helper import ConsoleTestHelper
@@ -100,7 +99,7 @@ class TestConsoleCompletion(ConsoleTestHelper):
         config = self._config_menu()
         option_name = next(iter(config._opt_dict))
         config._cmd_help([option_name])
-        om.manager.process_all_messages()
+        self.console._output_manager.process_all_messages()
         self.assertTrue(self._captured_stdout.messages)
 
     def test_plugins_para_list(self):
@@ -134,7 +133,7 @@ class TestConsoleCompletion(ConsoleTestHelper):
             name for name, option in config._opt_dict.items() if option.get_help()
         )
         config._cmd_help([option_name])
-        om.manager.process_all_messages()
+        self.console._output_manager.process_all_messages()
         output = "".join(self._captured_stdout.messages)
         self.assertIn(config._opt_dict[option_name].get_help(), output)
 
