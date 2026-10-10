@@ -3629,3 +3629,16 @@ Verificación: la suite de plugins pasó **28 tests** con el catálogo real del
 filesystem. El score se mantiene en **6.5/10**: este avance corrige una
 invariante de selección, pero siguen pendientes los módulos grandes, los
 singletons y la cobertura/gates globales.
+
+## Actualización verificada: resolución explícita de dependencias
+
+`PluginDependencyResolver` dejó de reiniciarse recursivamente y ahora procesa
+las dependencias pendientes con una cola, evitando trabajo repetido. El orden
+por tipo usa una visita topológica estable, conserva el orden de los plugins
+independientes y detecta ciclos, dependencias del mismo tipo ausentes y
+referencias que no cumplen el formato `type.name` con errores accionables.
+
+Verificación: la suite combinada del resolvedor y `CorePlugins` pasó **32
+tests**. Ruff y Black están limpios en los módulos modificados. El score se
+mantiene en **6.5/10** hasta cerrar los límites arquitectónicos y la
+verificación global de cobertura y gates.

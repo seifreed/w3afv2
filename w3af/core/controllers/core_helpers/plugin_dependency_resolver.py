@@ -1,5 +1,6 @@
 """Resolve and order enabled plugins according to their dependencies."""
 
+from collections import deque
 from collections.abc import Callable
 from typing import Protocol
 
@@ -28,39 +29,101 @@ class PluginDependencyResolver:
 
     def resolve(self) -> None:
         """Enable every dependency required by the selected plugins."""
-        for plugin_type, enabled_plugins in self._plugin_names.items():
-            for plugin_name in enabled_plugins:
-                plugin_instance = self._instance_provider(plugin_type, plugin_name)
+        pending_plugins = deque(
+            [
+                (plugin_type, plugin_name)
+                for plugin_type, enabled_plugins in self._plugin_names.items()
+                for plugin_name in enabled_plugins
+            ]
+        )
+        resolved_plugins = set()
 
-                for dependency in plugin_instance.get_plugin_deps():
-                    dependency_type, dependency_name = dependency.split(".")
+        while pending_plugins:
+            plugin_type, plugin_name = pending_plugins.popleft()
+            plugin_key = (plugin_type, plugin_name)
+            if plugin_key in resolved_plugins:
+                continue
 
-                    if dependency_name in self._plugin_names[dependency_type]:
-                        continue
+            resolved_plugins.add(plugin_key)
+            for dependency in self._dependencies_for(plugin_type, plugin_name):
+                dependency_type, dependency_name = self._parse_dependency(dependency)
 
+                if dependency_name not in self._plugin_names[dependency_type]:
                     self._report(
                         f"Enabling {plugin_name}'s dependency {dependency_name}"
                     )
                     self._plugin_names[dependency_type].append(dependency_name)
-                    self.resolve()
+
+                pending_plugins.append((dependency_type, dependency_name))
 
     def order(self) -> None:
         """Place same-type dependencies before their dependants."""
         for plugin_type, enabled_plugins in self._plugin_names.items():
-            for plugin_name in enabled_plugins:
-                plugin_instance = self._instance_provider(plugin_type, plugin_name)
+            self._plugin_names[plugin_type] = self._order_plugin_type(
+                plugin_type, enabled_plugins
+            )
 
-                for dependency in plugin_instance.get_plugin_deps():
-                    dependency_type, dependency_name = dependency.split(".")
+    def _order_plugin_type(self, plugin_type, enabled_plugins):
+        ordered_plugins = []
+        visited_plugins = set()
+        visiting_plugins = set()
 
-                    if dependency_type != plugin_type:
-                        continue
+        for plugin_name in enabled_plugins:
+            self._visit_plugin(
+                plugin_type,
+                plugin_name,
+                enabled_plugins,
+                ordered_plugins,
+                visited_plugins,
+                visiting_plugins,
+            )
 
-                    plugin_index = enabled_plugins.index(plugin_name)
-                    dependency_index = enabled_plugins.index(dependency_name)
+        return ordered_plugins
 
-                    if dependency_index < plugin_index:
-                        continue
+    def _visit_plugin(
+        self,
+        plugin_type,
+        plugin_name,
+        enabled_plugins,
+        ordered_plugins,
+        visited_plugins,
+        visiting_plugins,
+    ):
+        if plugin_name in visited_plugins:
+            return
+        if plugin_name in visiting_plugins:
+            raise ValueError(f"Cyclic dependency involving {plugin_name}")
 
-                    enabled_plugins[plugin_index] = dependency_name
-                    enabled_plugins[dependency_index] = plugin_name
+        visiting_plugins.add(plugin_name)
+        for dependency in self._dependencies_for(plugin_type, plugin_name):
+            dependency_type, dependency_name = self._parse_dependency(dependency)
+            if dependency_type == plugin_type:
+                if dependency_name not in enabled_plugins:
+                    raise ValueError(
+                        f"Missing dependency {dependency} for {plugin_name}"
+                    )
+                self._visit_plugin(
+                    plugin_type,
+                    dependency_name,
+                    enabled_plugins,
+                    ordered_plugins,
+                    visited_plugins,
+                    visiting_plugins,
+                )
+
+        visiting_plugins.remove(plugin_name)
+        visited_plugins.add(plugin_name)
+        ordered_plugins.append(plugin_name)
+
+    def _dependencies_for(self, plugin_type, plugin_name):
+        plugin_instance = self._instance_provider(plugin_type, plugin_name)
+        return plugin_instance.get_plugin_deps()
+
+    @staticmethod
+    def _parse_dependency(dependency):
+        dependency_parts = dependency.split(".")
+        if len(dependency_parts) != 2 or not all(dependency_parts):
+            raise ValueError(
+                f"Invalid plugin dependency {dependency!r}; expected 'type.name'"
+            )
+        return dependency_parts
