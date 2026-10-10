@@ -24,6 +24,7 @@ import sys
 
 from flask import jsonify
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.status import CoreStatus
 from w3af.core.ui.api.application import app
 from w3af.core.ui.api.utils.auth import requires_auth
@@ -117,7 +118,7 @@ def exception_creator(scan_id):
     if scan_info is None:
         abort(404, "Scan not found")
 
-    current_status = FakeStatus(None)
+    current_status = FakeStatus(None, om.out)
     current_status.set_running_plugin("phase", "plugin")
     current_status.set_current_fuzzable_request("phase", "http://www.w3af.org/")
 

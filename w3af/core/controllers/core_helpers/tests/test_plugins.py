@@ -35,7 +35,7 @@ from w3af.core.exceptions import BaseFrameworkException
 class TestPluginRegistryStructure(unittest.TestCase):
 
     def test_registries_follow_plugin_package_types(self):
-        core_plugins = CorePlugins(None)
+        core_plugins = CorePlugins(None, om.out)
         plugin_types = set(core_plugins.get_plugin_types())
 
         self.assertEqual(set(core_plugins.plugins), plugin_types)
@@ -45,7 +45,7 @@ class TestPluginRegistryStructure(unittest.TestCase):
         )
 
     def test_plugin_types_omit_cache_directories(self):
-        plugin_types = CorePlugins(None).get_plugin_types()
+        plugin_types = CorePlugins(None, om.out).get_plugin_types()
 
         self.assertNotIn("__pycache__", plugin_types)
 

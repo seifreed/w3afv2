@@ -157,7 +157,7 @@ class w3afCore:
         # these here because they are used by the UIs even before starting a
         # scan.
         self.profiles = CoreProfiles(self)
-        self.plugins = CorePlugins(self)
+        self.plugins = CorePlugins(self, om.out)
         self.status = CoreStatus(self, om.out)
         self.target = CoreTarget()
         self.strategy = CoreStrategy(self, self.knowledge_base, om.out)

@@ -2361,3 +2361,17 @@ de serialización; **32 tests y 7 subtests** en consumidor base y estrategia;
 Ruff, Black y mypy están limpios. El score permanece en **5.75/10** por otros
 singletons, cobertura 100% no demostrada, Bandit heredado, mocks existentes,
 Moth y los orquestadores grandes.
+
+## Actualización verificada: factory de plugins con output explícito
+
+`CorePlugins` recibe el sink desde `w3afCore` y lo utiliza al configurar cada
+plugin y al informar dependencias habilitadas. El manager global se conserva
+solo para registrar opciones/plugins de output, que es responsabilidad propia
+de esta infraestructura; el sink de mensajes ya no se consulta desde el
+factory. También se actualizaron el catálogo API y los tests.
+
+Verificación: **95 tests pasados, 9 avisos externos y 40 subtests** en plugins
+y API, más **2 tests pasados** en los endpoints de excepciones; Ruff, Black y
+mypy están limpios. El score permanece en **5.75/10** por singletons restantes,
+cobertura 100% no demostrada, Bandit heredado, mocks existentes, Moth y los
+orquestadores grandes.

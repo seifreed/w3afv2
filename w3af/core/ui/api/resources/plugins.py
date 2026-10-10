@@ -23,6 +23,7 @@ from typing import Any
 
 from flask import Response, jsonify
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.plugins import CorePlugins
 from w3af.core.ui.api.application import app
 from w3af.core.ui.api.utils.auth import requires_auth
@@ -34,7 +35,7 @@ def plugin_catalog() -> CorePlugins:
     :return: The plugin manager used to query the available plugins; it is not
              attached to any scan
     """
-    return CorePlugins(None)
+    return CorePlugins(None, om.out)
 
 
 def plugin_exists(catalog: CorePlugins, plugin_type: str, plugin_name: str) -> bool:

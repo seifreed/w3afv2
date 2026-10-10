@@ -33,8 +33,9 @@ from w3af.core.exceptions import BaseFrameworkException
 
 class CorePlugins:
 
-    def __init__(self, w3af_core):
+    def __init__(self, w3af_core, output):
         self._w3af_core = w3af_core
+        self._output = output
 
         self.initialized = False
         self._plugins_names_dict = None
@@ -238,7 +239,7 @@ class CorePlugins:
         plugin_inst.set_worker_pool(self._w3af_core.worker_pool)
         plugin_inst.set_w3af_core(self._w3af_core)
         plugin_inst.set_knowledge_base(self._w3af_core.knowledge_base)
-        plugin_inst.set_output(om.out)
+        plugin_inst.set_output(self._output)
 
         if plugin_name in list(self._plugins_options[plugin_type].keys()):
             custom_options = self._plugins_options[plugin_type][plugin_name]
@@ -290,7 +291,7 @@ class CorePlugins:
                     dep_plugin_type, dep_plugin_name = dep.split(".")
 
                     if dep_plugin_name not in self._plugins_names_dict[dep_plugin_type]:
-                        om.out.information(
+                        self._output.information(
                             f"Enabling {plugin_name}'s dependency {dep_plugin_name}"
                         )
 
