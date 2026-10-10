@@ -27,23 +27,19 @@ from shutil import rmtree
 from typing import ClassVar
 
 from w3af.core.data.db.dbms import get_default_temp_db_instance
-from w3af.core.data.db.history_trace_serializer import (
-    HistoryTraceSerializer,
-    TraceReadException as TraceReadError,
-)
+from w3af.core.data.db.history_repository import HistoryRepository
 from w3af.core.data.db.history_trace_compressor import (
     HistoryTraceCompressor,
     PendingCompressionJob,
-    get_trace_id as _get_trace_id,
 )
-from w3af.core.data.db.history_trace_storage import (
-    HistoryTraceStorage,
-    get_zip_id_range as _get_zip_id_range,
+from w3af.core.data.db.history_trace_serializer import (
+    HistoryTraceSerializer,
+    TraceReadException,
 )
-from w3af.core.data.db.history_repository import HistoryRepository
+from w3af.core.data.db.history_trace_storage import HistoryTraceStorage
 from w3af.core.filesystem import get_temp_dir
 
-TraceReadException = TraceReadError
+__all__ = ["HistoryItem", "PendingCompressionJob", "TraceReadException"]
 
 
 def verify_has_db(meth):
@@ -335,11 +331,3 @@ class HistoryItem:
 
     def __repr__(self):
         return f"<HistoryItem {self.method} {self.url}>"
-
-
-def get_zip_id_range(zip_file):
-    return _get_zip_id_range(zip_file)
-
-
-def get_trace_id(trace_file):
-    return _get_trace_id(trace_file)
