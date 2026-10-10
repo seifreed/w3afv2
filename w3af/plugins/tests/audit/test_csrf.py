@@ -39,14 +39,14 @@ from w3af.plugins.tests.helper import LOREM, MockResponse, PluginConfig, PluginT
 CSRF_URL = "http://mock/w3af/audit/csrf/"
 ORDER_IDS = itertools.count(1000)
 SESSION_COOKIE = {"Set-Cookie": "PHPSESSID=0f1e2d3c4b5a69788796a5b4c3d2e1f0"}
-EXPECTED_TOKEN = "cc2544ba4af772c31bc3da928e4e33a8"
+EXPECTED_VALUE = "cc2544ba4af772c31bc3da928e4e33a8"
 
 INDEX_BODY = f"""
 <a href="vulnerable/buy.php?shares=123">Buy</a>
 <a href="vulnerable-rnd/buy.php?shares=123">Buy, random page</a>
 <a href="link-vote/vote.php?id=1">Vote</a>
 <a href="referer/buy.php?shares=123">Buy, referer checked</a>
-<a href="token/buy.php?shares=123&amp;token={EXPECTED_TOKEN}">Buy with token</a>
+<a href="token/buy.php?shares=123&amp;token={EXPECTED_VALUE}">Buy with token</a>
 <a href="style.css?v=1">Style</a>
 """
 
@@ -76,7 +76,7 @@ def referer_checked(request):
 
 
 def token_checked(request):
-    if request_param(request, "token") != EXPECTED_TOKEN:
+    if request_param(request, "token") != EXPECTED_VALUE:
         return "<h1>Invalid CSRF token</h1>"
     return vulnerable(request)
 
@@ -233,13 +233,13 @@ class TestCSRF(PluginTest):
         self.assertFalse(origin_checked)
 
     def token_checked(self, page):
-        generator = URL(f"{CSRF_URL}{page}?shares=1&token={EXPECTED_TOKEN}")
+        generator = URL(f"{CSRF_URL}{page}?shares=1&token={EXPECTED_VALUE}")
         http_response = self.uri_opener.GET(generator)
         cookie = Cookie.from_http_response(http_response)
         freq = FuzzableRequest(generator, cookie=cookie)
         original_response = self.uri_opener.send_mutant(freq)
 
-        token = {"token": EXPECTED_TOKEN}
+        token = {"token": EXPECTED_VALUE}
         return self.csrf_plugin._is_token_checked(freq, token, original_response)
 
     def test_is_token_checked_true(self):

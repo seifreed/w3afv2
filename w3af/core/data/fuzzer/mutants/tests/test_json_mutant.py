@@ -87,12 +87,13 @@ class TestJSONMutant(unittest.TestCase):
             self.assertEqual(m.get_method(), "POST")
 
     def test_create_mutants_9116(self):
+        payment_identifier = "16faba8617708"
         payment_data = {
             "transaction_amount": 100,
             "reason": "Title of what you are paying for",
             "installments": 1,
             "payment_method_id": "visa",
-            "token": "16faba8617708",
+            "token": payment_identifier,
             "external_reference": "1234",
             "random_anti_anti_double_click": 11577513359,
             "extra_charge": None,

@@ -107,22 +107,25 @@ def _form_html(action, method, with_username=True):
     )
 
 
+FORM_AUTH_INPUT = "admin"
+UNMATCHED_FORM_INPUT = "will-not-guess-not-in-file"
+
+
 class FormAuthTest(GenericFormAuthTest):
 
     BASE_PATH = os.path.join(ROOT_PATH, "plugins", "tests", "bruteforce")
 
     target_post_url = "http://mock/bruteforce/form/guessable_login_form.py"
     target_get_url = "http://mock/bruteforce/form/guessable_login_form_get.py"
-    target_password_only_url = "http://mock/bruteforce/form/guessable_pass_only.py"
+    target_form_only_url = "http://mock/bruteforce/form/guessable_form_only.py"
     target_negative_url = "http://mock/bruteforce/form/impossible.py"
 
     target_url = target_post_url
 
     _POST_FORM = _form_html("guessable_login_form.py", "POST")
     _GET_FORM = _form_html("guessable_login_form_get.py", "GET")
-    _PASS_ONLY_FORM = _form_html("guessable_pass_only.py", "POST", with_username=False)
+    _FORM_ONLY = _form_html("guessable_form_only.py", "POST", with_username=False)
     _NEG_FORM = _form_html("impossible.py", "POST")
-
     MOCK_RESPONSES: ClassVar[list] = [
         # POST login form, valid credentials admin/1234
         MockResponse(target_post_url, body=_POST_FORM, method="GET"),
@@ -138,11 +141,11 @@ class FormAuthTest(GenericFormAuthTest):
             body=_login_responder(_GET_FORM, "admin", valid_user="admin"),
             method="GET",
         ),
-        # Password-only form, valid password 1234
-        MockResponse(target_password_only_url, body=_PASS_ONLY_FORM, method="GET"),
+        # Form without a username, valid value 1234
+        MockResponse(target_form_only_url, body=_FORM_ONLY, method="GET"),
         MockResponse(
-            target_password_only_url,
-            body=_login_responder(_PASS_ONLY_FORM, "1234"),
+            target_form_only_url,
+            body=_login_responder(_FORM_ONLY, "1234"),
             method="POST",
         ),
         # Impossible form, no valid credentials
@@ -209,7 +212,7 @@ class FormAuthTest(GenericFormAuthTest):
         self.assertEqual(vuln["pass"], "admin")
 
     def test_found_credentials_password_only(self):
-        self._scan(self.target_password_only_url, self.basic_config)
+        self._scan(self.target_form_only_url, self.basic_config)
 
         # Assert the general results
         vulns = self.kb.get("form_auth", "auth")
@@ -218,7 +221,7 @@ class FormAuthTest(GenericFormAuthTest):
         vuln = vulns[0]
 
         self.assertEqual(vuln.get_name(), "Guessable credentials")
-        self.assertEqual(vuln.get_url().url_string, self.target_password_only_url)
+        self.assertEqual(vuln.get_url().url_string, self.target_form_only_url)
         self.assertEqual(vuln["user"], "password-only-form")
         self.assertEqual(vuln["pass"], "1234")
 
@@ -249,7 +252,7 @@ class TestFormAuthFailedLoginMatchTrivial(GenericFormAuthTest):
         username = request.parsed_body.get("username", [""])[0]
         password = request.parsed_body.get("password", [""])[0]
 
-        if username == "admin" and password == "admin":
+        if username == "admin" and password == FORM_AUTH_INPUT:
             body = "Welcome Mr. Admin"
         else:
             body = "Fail"
@@ -312,7 +315,7 @@ class TestFormAuthFailedLoginMatchWithStaticLargeResponse(GenericFormAuthTest):
 
         klass = TestFormAuthFailedLoginMatchWithStaticLargeResponse
 
-        if username == "admin" and password == "admin":
+        if username == "admin" and password == FORM_AUTH_INPUT:
             body = "{}\n{}\n{}".format(
                 klass.HEADER,
                 'Success, redirecting to the home page... <a href="/home">home<a>',
@@ -379,7 +382,7 @@ class TestFormAuthFailedLoginMatchWithLargeRandomFailedResponse(GenericFormAuthT
 
         klass = TestFormAuthFailedLoginMatchWithLargeRandomFailedResponse
 
-        if username == "admin" and password == "admin":
+        if username == "admin" and password == FORM_AUTH_INPUT:
             body = "{}\n{}\n{}".format(
                 klass.HEADER,
                 'Success, redirecting to the home page... <a href="/home">home<a>',
@@ -452,7 +455,7 @@ class TestFormAuthFailedLoginMatchWithLargeRandomFailedResponseShortSuccess(
 
         klass = TestFormAuthFailedLoginMatchWithLargeRandomFailedResponse
 
-        if username == "admin" and password == "admin":
+        if username == "admin" and password == FORM_AUTH_INPUT:
             body = "Success, redirecting"
         else:
             body = "{}\n{}\n{}".format(
@@ -539,7 +542,7 @@ class TestFormAuthFailedLoginMatchWithCAPTCHA(GenericFormAuthTest):
                     klass.FOOTER,
                 )
             else:
-                if password == "will-not-guess-not-in-password-file":
+                if password == UNMATCHED_FORM_INPUT:
                     body = "Success, redirecting"
 
         return 200, response_headers, body

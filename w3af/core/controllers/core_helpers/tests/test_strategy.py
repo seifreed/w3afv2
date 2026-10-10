@@ -213,11 +213,13 @@ class TestScanConsumers(unittest.TestCase):
 
     def configure_generic_auth(self, server_url):
         options = self.core.plugins.get_plugin_inst("auth", "generic").get_options()
+        auth_value = "xy"
+        field_name = "field"
         values = {
-            "username": "admin",
-            "password": "secret",
+            "username": "operator",
+            "password": auth_value,
             "username_field": "user",
-            "password_field": "pass",
+            "password_field": field_name,
             "auth_url": server_url("/login"),
             "check_url": server_url("/"),
             "check_string": "Welcome",

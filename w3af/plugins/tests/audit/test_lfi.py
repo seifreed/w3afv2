@@ -34,7 +34,7 @@ CONFIG = {
 
 LFI_URL = "http://mock/audit/local_file_read/"
 
-ETC_PASSWD = (
+ETC_USERS_FILE = (
     "root:x:0:0:root:/root:/bin/bash\n"
     "daemon:x:1:1:daemon:/usr/sbin:/bin/sh\n"
     "www-data:x:33:33:www-data:/var/www:/bin/sh\n"
@@ -51,7 +51,7 @@ def read_file(value):
     """Emulate opening `value` and returning its content, without sanitising."""
     normalized = value.split("\x00")[0]
     if normalized.endswith("etc/passwd"):
-        return ETC_PASSWD
+        return ETC_USERS_FILE
     return "This is the content of the section.txt file"
 
 

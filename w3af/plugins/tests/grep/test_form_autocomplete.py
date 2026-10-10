@@ -41,7 +41,7 @@ FORM_FIELD_OFF = (
     '<form action="/login">'
     '<input type="password" name="p" autocomplete="off"></form>'
 )
-FORM_NO_PASSWORD = '<form action="/login"><input type="text" name="u"></form>'
+FORM_WITHOUT_USERNAME = '<form action="/login"><input type="text" name="u"></form>'
 
 
 class TestFormAutocomplete(unittest.TestCase):
@@ -88,7 +88,7 @@ class TestFormAutocomplete(unittest.TestCase):
         self.assertEqual(0, len(kb.kb.get("form_autocomplete", "form_autocomplete")))
 
     def test_no_password_field(self):
-        self._grep(FORM_NO_PASSWORD, URL("http://www.w3af.com/no-pass.html"))
+        self._grep(FORM_WITHOUT_USERNAME, URL("http://www.w3af.com/no-pass.html"))
         self.assertEqual(0, len(kb.kb.get("form_autocomplete", "form_autocomplete")))
 
     def test_not_text(self):

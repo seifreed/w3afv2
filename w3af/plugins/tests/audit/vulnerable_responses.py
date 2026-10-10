@@ -23,7 +23,7 @@ import re
 import time
 import urllib.parse
 
-ETC_PASSWD = (
+ETC_USERS_FILE = (
     "root:x:0:0:root:/root:/bin/bash\n"
     "daemon:x:1:1:daemon:/usr/sbin:/bin/sh\n"
     "www-data:x:33:33:www-data:/var/www:/bin/sh\n"

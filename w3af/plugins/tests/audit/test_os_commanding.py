@@ -23,7 +23,7 @@ import re
 from typing import ClassVar
 
 from w3af.plugins.tests.audit.vulnerable_responses import (
-    ETC_PASSWD,
+    ETC_USERS_FILE,
     html_page,
     request_param,
     sleep_for_payload,
@@ -40,13 +40,13 @@ INDEX_BODY = """
 """
 
 COMMAND_SEPARATOR = r"(;|\||&&|\n|`)"
-CAT_PASSWD = "/bin/cat /etc/passwd"
+CAT_USERS_FILE = "/bin/cat /etc/passwd"
 PING_DELAY = r"^ping -c (\d+) localhost$"
 
 
 def run_command(command):
-    if command.startswith(CAT_PASSWD):
-        return ETC_PASSWD
+    if command.startswith(CAT_USERS_FILE):
+        return ETC_USERS_FILE
     return "index.html\nstyle.css"
 
 

@@ -36,7 +36,7 @@ from w3af.plugins.auth.generic import generic
 from w3af.plugins.tests.canned_http_server import CannedHTTPServer, CannedReply
 
 USER = "user@mail.com"
-PASSWORD = "passw0rd"
+AUTH_VALUE = "passw0rd"
 SESSION = "session=valid"
 CHECK_STRING = "Welcome back"
 
@@ -75,7 +75,7 @@ def _respond(request):
 
     if path == "/login":
         params = request.parsed_body
-        if params.get("password", [""])[0] == PASSWORD:
+        if params.get("password", [""])[0] == AUTH_VALUE:
             headers = dict(html, **{"Set-Cookie": f"{SESSION}; Path=/"})
             return CannedReply(200, headers, "Logged in")
         return CannedReply(200, html, "Invalid credentials")
@@ -134,7 +134,7 @@ class TestAuthPackage(unittest.TestCase):
 
 class TestGeneric(AuthPluginTestCase):
 
-    def _plugin(self, password=PASSWORD, auth_base=None):
+    def _plugin(self, password=AUTH_VALUE, auth_base=None):
         return self.configure(
             generic(),
             username=USER,
@@ -179,7 +179,7 @@ class TestGeneric(AuthPluginTestCase):
 
 class TestDetailed(AuthPluginTestCase):
 
-    def _plugin(self, password=PASSWORD, auth_base=None):
+    def _plugin(self, password=AUTH_VALUE, auth_base=None):
         return self.configure(
             detailed(),
             username=USER,
@@ -223,7 +223,7 @@ class TestDetailed(AuthPluginTestCase):
 
 class TestAutocomplete(AuthPluginTestCase):
 
-    def _plugin(self, form_path="/form", password=PASSWORD, form_base=None):
+    def _plugin(self, form_path="/form", password=AUTH_VALUE, form_base=None):
         return self.configure(
             autocomplete(),
             username=USER,

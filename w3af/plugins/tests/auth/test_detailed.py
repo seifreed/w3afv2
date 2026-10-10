@@ -28,7 +28,7 @@ from w3af.core.data.parsers.doc.url import URL
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 SESSION_COOKIE = "w3af_session=valid"
-VALID_PASSWORD = "passw0rd"
+VALID_AUTH_VALUE = "passw0rd"
 
 
 def _is_authenticated(request):
@@ -38,7 +38,7 @@ def _is_authenticated(request):
 def _detailed_login_post(mock_response, request, uri, response_headers):
     response_headers["content-type"] = "text/html"
     password = request.parsed_body.get("password", [""])[0]
-    if password == VALID_PASSWORD:
+    if password == VALID_AUTH_VALUE:
         response_headers["Set-Cookie"] = f"{SESSION_COOKIE}; Path=/"
         return 200, response_headers, "<html><body>Login successful</body></html>"
     return 200, response_headers, "<html><body>Invalid credentials</body></html>"

@@ -287,16 +287,16 @@ class TestSVN(PluginTest):
         )
     ).read_bytes()
 
-    SECRET = "Secret contents here!"
+    CONTENT = "Fixture contents here!"
 
     MOCK_RESPONSES: ClassVar[list] = [
         MockResponse("http://mock/", "root"),
         MockResponse("http://mock/.svn/wc.db", WC_DB),
         MockResponse(
             "http://mock/.svn/pristine/96/96acedb8cc77c893b90d1ce37c7119fd0c0fba00.svn-base",
-            SECRET,
+            CONTENT,
         ),
-        MockResponse("http://mock/seris/changelog.rst", SECRET),
+        MockResponse("http://mock/seris/changelog.rst", CONTENT),
     ]
 
     target_url = "http://mock"

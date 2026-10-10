@@ -30,7 +30,7 @@ from w3af.plugins.auth.autocomplete import autocomplete
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
 USER = "user@mail.com"
-PASS = "passw0rd"
+AUTH_VALUE = "passw0rd"
 
 HTML_LOGIN_FORM = """\
 <html>
@@ -63,7 +63,7 @@ class LoginMockResponse(MockResponse):
         if http_request.parsed_body.get("user")[0] != USER:
             return 403, response_headers, "Invalid user"
 
-        if http_request.parsed_body.get("password")[0] != PASS:
+        if http_request.parsed_body.get("password")[0] != AUTH_VALUE:
             return 403, response_headers, "Invalid password"
 
         #
@@ -128,7 +128,7 @@ class TestAutocomplete(PluginTest):
                 PluginConfig(
                     "autocomplete",
                     ("username", USER, PluginConfig.STR),
-                    ("password", PASS, PluginConfig.STR),
+                    ("password", AUTH_VALUE, PluginConfig.STR),
                     ("login_form_url", login_form_url, PluginConfig.URL),
                     ("check_url", check_url, PluginConfig.URL),
                     ("check_string", check_string, PluginConfig.STR),
@@ -185,7 +185,7 @@ class TestAutocompleteInvalidCredentials(PluginTest):
                     #
                     # The login process fails because of this invalid password
                     #
-                    ("password", PASS + "invalid", PluginConfig.STR),
+                    ("password", AUTH_VALUE + "invalid", PluginConfig.STR),
                     ("login_form_url", login_form_url, PluginConfig.URL),
                     ("check_url", check_url, PluginConfig.URL),
                     ("check_string", check_string, PluginConfig.STR),
