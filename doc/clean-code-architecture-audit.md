@@ -1799,3 +1799,15 @@ Verificación: 9 tests de ambos plugins pasan, Ruff, Black y mypy pasan en los
 módulos modificados. El score sigue en **5.75/10**: quedan 50 imports directos
 de la KB, además de la cobertura, mocks, el fallo heredado de perfilado, la
 dependencia de Moth y los orquestadores grandes.
+
+## Actualización verificada: fingerprint Hmap
+
+`infrastructure.hmap` usa la KB configurada tanto para guardar el fingerprint
+como para escribir `server_string`, manteniendo ambas operaciones en el mismo
+almacén.
+
+Verificación: 21 tests del plugin pasan, incluyendo los servidores HTTP/TLS
+locales, y Ruff, Black y mypy pasan en el módulo modificado. El score sigue en
+**5.75/10**: quedan 49 imports directos de la KB, además de la cobertura,
+mocks, el fallo heredado de perfilado, la dependencia de Moth y los
+orquestadores grandes.
