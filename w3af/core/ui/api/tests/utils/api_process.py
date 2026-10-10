@@ -30,6 +30,7 @@ import requests
 
 from w3af import ROOT_PATH
 from w3af.core.controllers.misc.get_unused_port import get_unused_port
+from w3af.core.ui.api.utils.digital_certificate import SSLCertificate
 
 # Run the REST API entry point without the w3af_api launcher, whose
 # dependency check verifies the host installation instead of the API
@@ -68,13 +69,14 @@ def start_api():
     )
 
     api_url = f"https://127.0.0.1:{port}"
+    cert_path, _ = SSLCertificate().get_cert_key("127.0.0.1")
 
     # Now we wait until the API is ready to answer requests
     for i in range(75):
         time.sleep(0.5)
 
         try:
-            response = requests.get(api_url, auth=api_auth, verify=False)
+            response = requests.get(api_url, auth=api_auth, verify=cert_path, timeout=5)
         except requests.exceptions.RequestException:
             if process.pid is None and i > 25:
                 raise RuntimeError("Failed to start the REST API service")

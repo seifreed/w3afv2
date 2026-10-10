@@ -31,6 +31,7 @@ import unittest
 import requests
 
 from w3af.core.ui.api.tests.utils.api_process import start_api
+from w3af.core.ui.api.utils.digital_certificate import SSLCertificate
 
 
 class IntegrationTest(unittest.TestCase):
@@ -39,6 +40,7 @@ class IntegrationTest(unittest.TestCase):
         logging.getLogger("requests").setLevel(logging.WARNING)
 
         self.process, self.port, self.api_url, self.api_auth = start_api()
+        self.api_cert_path, _ = SSLCertificate().get_cert_key("127.0.0.1")
         self.headers = {
             "Content-type": "application/json",
             "Accept": "application/json",
@@ -77,9 +79,7 @@ class IntegrationTest(unittest.TestCase):
         for _ in range(10):
             time.sleep(0.5)
 
-            response = requests.get(
-                f"{self.api_url}/scans/", auth=self.api_auth, verify=False
-            )
+            response = self._request("GET", f"{self.api_url}/scans/")
 
             self.assertEqual(response.status_code, 200, response.text)
             if response.json()["items"][0]["status"] != "Stopped":
@@ -95,9 +95,7 @@ class IntegrationTest(unittest.TestCase):
         for _ in range(wait_loops):
             time.sleep(0.5)
 
-            response = requests.get(
-                f"{self.api_url}/scans/", auth=self.api_auth, verify=False
-            )
+            response = self._request("GET", f"{self.api_url}/scans/")
             self.assertEqual(response.status_code, 200, response.text)
             if response.json()["items"][0]["status"] != "Running":
                 return response
@@ -109,17 +107,21 @@ class IntegrationTest(unittest.TestCase):
         :return: A string with a message I can use to debug issues, contains
                  the scan log information available in the REST API (if any)
         """
-        response = requests.get(
-            f"{self.api_url}/scans/", auth=self.api_auth, verify=False
-        )
+        response = self._request("GET", f"{self.api_url}/scans/")
         scan_id = response.json()["items"][0]["id"]
 
-        response = requests.get(
-            f"{self.api_url}/scans/{scan_id}/log",
-            auth=self.api_auth,
-            verify=False,
-        )
+        response = self._request("GET", f"{self.api_url}/scans/{scan_id}/log")
         scan_log = "\n".join([m["message"] for m in response.json()["entries"]])
 
         self.maxDiff = None
         return f"Assertion failed! The scan log contains:\n\n{scan_log}"
+
+    def _request(self, method, url, **kwargs):
+        return requests.request(
+            method,
+            url,
+            auth=self.api_auth,
+            verify=self.api_cert_path,
+            timeout=5,
+            **kwargs,
+        )

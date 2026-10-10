@@ -24,29 +24,23 @@ import base64
 import json
 from urllib.parse import urlsplit
 
-import requests
-import urllib3
-
 from w3af.core.ui.api.tests.utils.integration_test import IntegrationTest
 from w3af.core.ui.api.tests.utils.test_profile import get_test_profile
 from w3af.tests.helpers.sqli_site import SQLInjectionSite
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
 
 class APIScanTest(IntegrationTest):
 
-    def test_start_simple_scan(self):
+    def _start_simple_scan(self):
         site = SQLInjectionSite.serve_for(self)
         target_url = site.url
         profile = get_test_profile(target_url)
         data = {"scan_profile": profile, "target_urls": [target_url]}
-        response = requests.post(
+        response = self._request(
+            "POST",
             f"{self.api_url}/scans/",
-            auth=self.api_auth,
             data=json.dumps(data),
             headers=self.headers,
-            verify=False,
         )
 
         scan_id = response.json()["id"]
@@ -78,11 +72,7 @@ class APIScanTest(IntegrationTest):
         #
         # Get the detailed status
         #
-        response = requests.get(
-            f"{self.api_url}/scans/{scan_id}/status",
-            auth=self.api_auth,
-            verify=False,
-        )
+        response = self._request("GET", f"{self.api_url}/scans/{scan_id}/status")
         self.assertEqual(response.status_code, 200, response.text)
 
         json_data = response.json()
@@ -95,11 +85,7 @@ class APIScanTest(IntegrationTest):
         #
         self.wait_until_finish()
 
-        response = requests.get(
-            f"{self.api_url}/scans/{scan_id}/kb/",
-            auth=self.api_auth,
-            verify=False,
-        )
+        response = self._request("GET", f"{self.api_url}/scans/{scan_id}/kb/")
         self.assertEqual(response.status_code, 200, response.text)
 
         vuln_summaries = response.json()["items"]
@@ -113,11 +99,7 @@ class APIScanTest(IntegrationTest):
         #
         # Make sure I can access the vulnerability details
         #
-        response = requests.get(
-            f"{self.api_url}/scans/{scan_id}/kb/0",
-            auth=self.api_auth,
-            verify=False,
-        )
+        response = self._request("GET", f"{self.api_url}/scans/{scan_id}/kb/0")
         self.assertEqual(response.status_code, 200, response.text)
 
         vuln_info = response.json()
@@ -135,9 +117,7 @@ class APIScanTest(IntegrationTest):
         # Get the HTTP traffic for this vulnerability
         #
         traffic_href = vuln_info["traffic_hrefs"][0]
-        response = requests.get(
-            f"{self.api_url}{traffic_href}", auth=self.api_auth, verify=False
-        )
+        response = self._request("GET", f"{self.api_url}{traffic_href}")
 
         traffic_data = response.json()
         self.assertIn("request", traffic_data)
@@ -149,11 +129,7 @@ class APIScanTest(IntegrationTest):
         #
         # Get the scan log
         #
-        response = requests.get(
-            f"{self.api_url}/scans/{scan_id}/log",
-            auth=self.api_auth,
-            verify=False,
-        )
+        response = self._request("GET", f"{self.api_url}/scans/{scan_id}/log")
         self.assertEqual(response.status_code, 200, response.text)
 
         log_data = response.json()
@@ -171,24 +147,24 @@ class APIScanTest(IntegrationTest):
         #
         # Clear the scan results
         #
-        response = requests.delete(
-            f"{self.api_url}/scans/{scan_id}", auth=self.api_auth, verify=False
-        )
+        response = self._request("DELETE", f"{self.api_url}/scans/{scan_id}")
         self.assertEqual(response.json(), {"message": "Success"})
 
         return scan_id
+
+    def test_start_simple_scan(self):
+        self._start_simple_scan()
 
     def test_stop(self):
         site = SQLInjectionSite.serve_for(self, hold_requests=True)
         target_url = site.url
         profile = get_test_profile(target_url)
         data = {"scan_profile": profile, "target_urls": [target_url]}
-        response = requests.post(
+        response = self._request(
+            "POST",
             f"{self.api_url}/scans/",
-            auth=self.api_auth,
             data=json.dumps(data),
             headers=self.headers,
-            verify=False,
         )
 
         self.assertEqual(
@@ -204,9 +180,7 @@ class APIScanTest(IntegrationTest):
         #
         # Now stop the scan
         #
-        response = requests.get(
-            f"{self.api_url}/scans/0/stop", auth=self.api_auth, verify=False
-        )
+        response = self._request("GET", f"{self.api_url}/scans/0/stop")
         self.assertEqual(response.json(), {"message": "Stopping scan"})
         site.release()
 
@@ -214,9 +188,7 @@ class APIScanTest(IntegrationTest):
         self.wait_until_finish()
 
         # Assert that we identify the logs associated with stopping the core
-        response = requests.get(
-            f"{self.api_url}/scans/0/log", auth=self.api_auth, verify=False
-        )
+        response = self._request("GET", f"{self.api_url}/scans/0/log")
         self.assertEqual(response.status_code, 200, response.text)
 
         log_data = response.json()["entries"]
@@ -227,8 +199,8 @@ class APIScanTest(IntegrationTest):
             self.assertTrue(False, "Stop not found in log")
 
     def test_two_scans(self):
-        scan_id_0 = self.test_start_simple_scan()
-        scan_id_1 = self.test_start_simple_scan()
+        scan_id_0 = self._start_simple_scan()
+        scan_id_1 = self._start_simple_scan()
 
         self.assertEqual(scan_id_0, 0)
         self.assertEqual(scan_id_1, 1)
