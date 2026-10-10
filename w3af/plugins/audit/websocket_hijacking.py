@@ -19,7 +19,6 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.controllers.websocket.utils import (
     build_ws_upgrade_request,
@@ -64,7 +63,9 @@ class websocket_hijacking(AuditPlugin):
         :param debugging_id: A unique identifier for this call to audit()
         """
         # We can only work if there are known web sockets
-        ws_links = kb.kb.get("websockets_links", "websockets_links")
+        ws_links = self._get_knowledge_base().get(
+            "websockets_links", "websockets_links"
+        )
 
         for web_socket_info_set in ws_links:
             web_socket_url = web_socket_info_set["ws_link"]
