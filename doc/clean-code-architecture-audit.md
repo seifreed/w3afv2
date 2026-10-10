@@ -1633,3 +1633,13 @@ Verificación: 28 tests de `blind_sqli` y `sqli` pasan en la suite integrada,
 Ruff, Black y mypy pasan en el módulo modificado. El score sigue en **5.75/10**:
 quedan 74 imports directos de la KB, además de la cobertura, mocks, el fallo
 heredado de perfilado y los orquestadores grandes.
+
+## Actualización verificada: ReDoS
+
+`audit.redos` consulta los resultados de `server_header` y `preg_replace` a
+través de la KB inyectada para omitir targets ya conocidos como no vulnerables.
+
+Verificación: 2 tests de scan pasan, Ruff, Black y mypy pasan en el módulo
+modificado. El score sigue en **5.75/10**: quedan 73 imports directos de la KB,
+además de la cobertura, mocks, el fallo heredado de perfilado y los
+orquestadores grandes.
