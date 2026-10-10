@@ -106,7 +106,11 @@ class auth(BaseConsumer):
             self._output.debug(msg % args)
 
             took_line = TookLine(
-                self._w3af_core, "auth", "_login", debugging_id=debugging_id
+                self._w3af_core,
+                "auth",
+                "_login",
+                log_sink=self._output,
+                debugging_id=debugging_id,
             )
 
             try:

@@ -557,6 +557,7 @@ class CrawlInfrastructure(BaseConsumer):
             self._w3af_core,
             plugin.get_name(),
             "discover",
+            log_sink=self._output,
             debugging_id=debugging_id,
             method_params={"uri": fuzzable_request.get_uri()},
         )

@@ -118,6 +118,7 @@ class CrawlConsumerTest(unittest.TestCase):
 
     def start_consumer(self, plugins, max_discovery_time=NEVER, observer=None):
         for plugin in plugins:
+            plugin.set_output(om.out)
             self.core.plugins.plugins[plugin.get_type()].append(plugin)
 
         consumer = CrawlInfrastructure(
@@ -216,6 +217,7 @@ class TestRouting(CrawlConsumerTest):
     def test_time_limit_finishes_the_consumer(self):
         first = request("first")
         plugin = queueing_crawl()
+        plugin.set_output(om.out)
         plugin.output_queue.put(first)
         consumer = CrawlInfrastructure(
             [plugin],

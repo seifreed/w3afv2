@@ -161,6 +161,7 @@ class bruteforce(BaseConsumer):
             self._w3af_core,
             plugin.get_name(),
             "bruteforce",
+            log_sink=self._output,
             method_params={"uri": fuzzable_request.get_uri()},
         )
 

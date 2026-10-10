@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import time
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.profiling.thread_time import thread_active_time
 
 
@@ -37,9 +36,9 @@ class TookLine:
         w3af_core,
         plugin_name,
         method_name,
+        log_sink,
         debugging_id=None,
         method_params=None,
-        log_sink=None,
     ):
         """
         Write the "took X seconds" line to the debug log
@@ -51,7 +50,7 @@ class TookLine:
         :param method_params: Optional parameters sent to the plugin.method().
                               This should be a dict with parameter names as keys
                               and strings as values.
-        :param log_sink: Where the debug line is written, defaults to om.out
+        :param log_sink: Where the debug line is written
         """
         self._w3af_core = w3af_core
         self._plugin_name = plugin_name
@@ -148,5 +147,4 @@ class TookLine:
         if parentheses_data:
             msg += " ({})".format(", ".join(parentheses_data))
 
-        log_sink = om.out if self._log_sink is None else self._log_sink
-        log_sink.debug(msg)
+        self._log_sink.debug(msg)

@@ -2596,3 +2596,15 @@ Verificación: **3 tests pasaron** en la caché DNS; Ruff, Black y mypy están
 limpios. El score permanece en **6.25/10** por los globals restantes de UI y
 servicios, cobertura total no demostrada, Bandit heredado, mocks e
 integraciones Moth.
+
+## Actualización verificada: profiling de consumidores sin fallback global
+
+`TookLine` exige ahora un sink explícito y los cinco consumidores (`audit`,
+`auth`, `bruteforce`, `crawl` y `grep`) pasan su `self._output`. Los fixtures
+de consumidores también declaran el sink de sus plugins, eliminando la
+dependencia implícita del singleton en estas rutas.
+
+Verificación: **62 tests pasaron** en profiling y consumidores; Ruff, Black y
+mypy están limpios. El score permanece en **6.25/10** por los globals restantes
+de UI y servicios, cobertura total no demostrada, Bandit heredado, mocks e
+integraciones Moth.

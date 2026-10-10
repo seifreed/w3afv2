@@ -334,6 +334,7 @@ class grep(BaseConsumer):
             self._w3af_core,
             plugin_name,
             "grep",
+            log_sink=self._output,
             debugging_id=None,
             method_params={"uri": request.get_uri()},
         )
