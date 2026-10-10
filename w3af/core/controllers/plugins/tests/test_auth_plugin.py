@@ -1,5 +1,6 @@
 import unittest
 
+import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.plugins.auth_plugin import AuthPlugin
 from w3af.core.controllers.tests.recording_output import start_recording_output
@@ -15,6 +16,8 @@ LOGIN_URL = URL("http://127.0.0.1/login?next=/home")
 class unit_auth(AuthPlugin):
     def __init__(self):
         super().__init__()
+        self.set_configuration(cf.cf)
+        self.set_output(om.out)
         self.set_knowledge_base(kb)
 
     def _get_main_authentication_url(self):

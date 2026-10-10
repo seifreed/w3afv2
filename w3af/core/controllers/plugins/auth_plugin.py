@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from collections import deque
 
-import w3af.core.data.kb.config as cf
 from w3af.core.controllers.plugins.plugin import Plugin
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.kb.info import Info
@@ -122,7 +121,10 @@ class AuthPlugin(Plugin):
         :param args: The URLs to add to the audit blacklist
         :return: None
         """
-        blacklist_audit = cf.cf.get("blacklist_audit") or []
+        if self._configuration is None:
+            raise RuntimeError("AuthPlugin requires a configured scan configuration")
+
+        blacklist_audit = self._configuration.get("blacklist_audit") or []
 
         new_blacklist_audit = []
 
@@ -136,7 +138,7 @@ class AuthPlugin(Plugin):
             return
 
         blacklist_audit.extend(new_blacklist_audit)
-        cf.cf.save("blacklist_audit", blacklist_audit)
+        self._configuration.save("blacklist_audit", blacklist_audit)
 
         args = ("\n - ".join(str(u) for u in new_blacklist_audit),)
         self._output.information(self.BLACKLIST_LOGIN_URL_MESSAGE % args)

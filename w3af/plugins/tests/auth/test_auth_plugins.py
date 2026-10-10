@@ -23,6 +23,7 @@ ExtendedUrllib, to a small local web application served by CannedHTTPServer.
 import socket
 import unittest
 
+import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.parsers.doc.url import URL
@@ -126,7 +127,9 @@ class AuthPluginTestCase(unittest.TestCase):
             options[name].set_value(value)
         plugin.set_options(options)
         plugin.set_url_opener(self.uri_opener)
+        plugin.set_configuration(cf.cf)
         plugin.set_knowledge_base(kb.kb)
+        plugin.set_output(om.out)
         return plugin
 
 

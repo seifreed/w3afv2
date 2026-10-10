@@ -3922,3 +3922,16 @@ Verificación: DC edge cases, factory, file-content mutants, fuzzer y OpenAPI
 sube a **8.0/10** en Clean Architecture y **7.9/10** global. Persisten otros
 consumidores globales de configuración y todavía no está demostrada la
 cobertura global del 100%.
+
+## Actualización verificada: blacklist de autenticación con configuración inyectada
+
+`AuthPlugin` ya no importa ni modifica `cf.cf`: usa la configuración entregada
+por `PluginInstanceFactory`, con un error explícito si se intenta ejecutar sin
+composición de scan. Los tests de autenticación directa ahora conectan el
+output y la configuración reales, igual que la ruta de producción.
+
+Verificación: las suites de `AuthPlugin`, plugins de autenticación y
+autocomplete pasan **51 tests**. Black, Ruff, mypy y Bandit focal están limpios.
+El score sube a **8.1/10** en Clean Architecture y **8.0/10** global. Aún
+quedan consumidores globales en URL/openers, parsers, fuzzer, Info, controllers,
+plugins de auditoría/crawl y output, además de la cobertura global del 100%.
