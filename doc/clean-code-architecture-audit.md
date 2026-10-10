@@ -2068,3 +2068,15 @@ Verificación: 17 tests de estrategia, 7 subtests, Ruff, Black y mypy pasan en
 los módulos modificados. Persisten únicamente warnings de dependencias
 externas. El score permanece en **5.75/10**: aún quedan las validaciones de
 redirección/404, el router concurrente, Bandit heredado y la cobertura global.
+
+## Actualización verificada: validación completa de targets separada
+
+La verificación de disponibilidad HTTP, redirecciones, alertas de target y
+detección 404 salió completamente de `CoreStrategy` y quedó en
+`core_helpers/target_validation.py`. La estrategia ahora coordina consumidores
+y delega la infraestructura de targets mediante funciones explícitas.
+
+Verificación: 17 tests de estrategia, 7 subtests, Ruff, Black y mypy pasan; el
+módulo de estrategia perdió 171 líneas de responsabilidades ajenas. El score
+permanece en **5.75/10**: el router concurrente, consumidores, cobertura
+global y Bandit heredado siguen pendientes.
