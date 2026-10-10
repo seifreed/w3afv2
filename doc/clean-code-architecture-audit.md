@@ -1712,3 +1712,13 @@ Verificación: 6 tests del plugin pasan, Ruff, Black y mypy pasan en el módulo
 modificado. El score sigue en **5.75/10**: quedan 65 imports directos de la KB,
 además de la cobertura, mocks, el fallo heredado de perfilado, la dependencia
 de Moth y los orquestadores grandes.
+
+## Actualización verificada: crawler de ficheros `.DS_Store`
+
+`crawl.dot_ds_store` registra los hallazgos con la KB configurada en el plugin,
+sin cambiar el parseo binario ni el manejo de respuestas inválidas.
+
+Verificación: 4 tests del plugin pasan, Ruff, Black y mypy pasan en el módulo
+modificado. El score sigue en **5.75/10**: quedan 64 imports directos de la KB,
+además de la cobertura, mocks, el fallo heredado de perfilado, la dependencia
+de Moth y los orquestadores grandes.
