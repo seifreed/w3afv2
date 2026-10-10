@@ -1534,3 +1534,14 @@ Verificación: 53 tests de errores y ramas de grep pasan, Ruff, Black y mypy
 pasan en los módulos modificados. El score sigue en **5.75/10**: quedan 86
 imports directos de la KB, además de la deuda de cobertura, mocks y
 orquestadores grandes.
+
+## Actualización verificada: análisis de cookies
+
+`analyze_cookies` consulta y registra cookies, fingerprints y problemas de
+seguridad mediante la KB inyectada. Su suite unitaria y las ramas compartidas
+de grep configuran la implementación real de la KB en los plugins directos.
+
+Verificación: 61 tests de cookies y ramas de grep pasan, Ruff, Black y mypy
+pasan en el módulo modificado. El score sigue en **5.75/10**: quedan 85
+imports directos de la KB, además de la deuda de cobertura, mocks y
+orquestadores grandes.
