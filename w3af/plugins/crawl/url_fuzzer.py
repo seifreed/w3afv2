@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from itertools import chain, repeat
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
@@ -173,7 +172,7 @@ class url_fuzzer(CrawlPlugin):
         i = Info("Potentially interesting file", desc, response.id, self.get_name())
         i.set_url(response.get_url())
 
-        kb.kb.append(self, "files", i)
+        self._get_knowledge_base().append(self, "files", i)
         om.out.information(i.get_desc())
 
     def _mutate_domain_name(self, url):
@@ -333,7 +332,9 @@ class url_fuzzer(CrawlPlugin):
 
         :return : Sets self._head to the correct value, nothing is returned.
         """
-        allowed_methods_infos = kb.kb.get("allowed_methods", "methods")
+        allowed_methods_infos = self._get_knowledge_base().get(
+            "allowed_methods", "methods"
+        )
         allowed_methods = []
         for info in allowed_methods_infos:
             allowed_methods.extend(info["methods"])
