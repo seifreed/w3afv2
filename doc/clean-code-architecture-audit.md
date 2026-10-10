@@ -1623,3 +1623,13 @@ Verificación: 10 tests integrados pasan, Ruff, Black y mypy pasan en el módulo
 modificado. El score sigue en **5.75/10**: quedan 75 imports directos de la KB,
 además de la cobertura, mocks, el fallo heredado de perfilado y los
 orquestadores grandes.
+
+## Actualización verificada: SQLi ciega
+
+`blind_sqli` consulta los hallazgos de SQLi convencional mediante la KB
+inyectada para evitar duplicar pruebas sobre el mismo parámetro.
+
+Verificación: 28 tests de `blind_sqli` y `sqli` pasan en la suite integrada,
+Ruff, Black y mypy pasan en el módulo modificado. El score sigue en **5.75/10**:
+quedan 74 imports directos de la KB, además de la cobertura, mocks, el fallo
+heredado de perfilado y los orquestadores grandes.
