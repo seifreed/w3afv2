@@ -3055,3 +3055,15 @@ Bandit focalizado y `git diff --check` están limpios. La ejecución mostró 9
 warnings deprecados externos (`ldap3`/`jsonschema`), sin suprimirlos. El score
 permanece en **6.25/10** por la composición global, serialización, cobertura y
 gates heredados aún pendientes.
+
+## Actualización verificada: guardado de perfiles descompuesto
+
+`CoreProfiles.save_current_to_profile()` delega ahora el guardado de plugins,
+target y settings a operaciones independientes. La serialización conserva el
+orden, los nombres y las opciones existentes del formato de perfiles.
+
+Verificación: **12 tests de perfiles pasaron**; Black, Ruff, mypy focalizado,
+Bandit focalizado y `git diff --check` están limpios. La ejecución mostró 2
+warnings deprecados externos de `ldap3`/`pyasn1`, sin suprimirlos. El score
+permanece en **6.25/10** por la composición global, serialización, cobertura y
+gates heredados aún pendientes.

@@ -72,37 +72,9 @@ class CoreProfiles:
         # Open the already existing profile
         new_profile = profile(profile_name, workdir=os.path.dirname(prof_path))
 
-        # shortcut
-        w3af_plugins = self._w3af_core.plugins
-
-        # Save the enabled plugins
-        for plugin_type in w3af_plugins.get_plugin_types():
-            enabled_plugins = list(w3af_plugins.get_enabled_plugins(plugin_type))
-            new_profile.set_enabled_plugins(plugin_type, enabled_plugins)
-
-        # Save the plugin options
-        for plugin_type in w3af_plugins.get_plugin_types():
-            for plugin_name in w3af_plugins.get_enabled_plugins(plugin_type):
-                plugin_options = w3af_plugins.get_plugin_options(
-                    plugin_type, plugin_name
-                )
-                if plugin_options:
-                    new_profile.set_plugin_options(
-                        plugin_type,
-                        plugin_name,
-                        plugin_options,
-                        self_contained=self_contained,
-                    )
-
-        # Save the profile targets
-        targets = cf.cf.get("targets")
-        if targets:
-            new_profile.set_target(" , ".join(t.url_string for t in targets))
-
-        # Save the misc and http settings
-        misc_settings = MiscSettings()
-        new_profile.set_misc_settings(misc_settings.get_options())
-        new_profile.set_http_settings(self._w3af_core.uri_opener.settings.get_options())
+        self._save_plugin_configuration(new_profile, self_contained)
+        self._save_target(new_profile)
+        self._save_settings(new_profile)
 
         # Save the profile name and description
         new_profile.set_desc(prof_desc)
@@ -112,6 +84,39 @@ class CoreProfiles:
         new_profile.save(profile_name)
 
         return new_profile
+
+    def _save_plugin_configuration(self, profile_inst, self_contained):
+        """Save enabled plugins and their configured options."""
+        plugins = self._w3af_core.plugins
+
+        for plugin_type in plugins.get_plugin_types():
+            enabled_plugins = list(plugins.get_enabled_plugins(plugin_type))
+            profile_inst.set_enabled_plugins(plugin_type, enabled_plugins)
+
+        for plugin_type in plugins.get_plugin_types():
+            for plugin_name in plugins.get_enabled_plugins(plugin_type):
+                plugin_options = plugins.get_plugin_options(plugin_type, plugin_name)
+                if plugin_options:
+                    profile_inst.set_plugin_options(
+                        plugin_type,
+                        plugin_name,
+                        plugin_options,
+                        self_contained=self_contained,
+                    )
+
+    def _save_target(self, profile_inst):
+        """Save the current target list to a profile."""
+        targets = cf.cf.get("targets")
+        if targets:
+            profile_inst.set_target(" , ".join(t.url_string for t in targets))
+
+    def _save_settings(self, profile_inst):
+        """Save misc and HTTP settings to a profile."""
+        misc_settings = MiscSettings()
+        profile_inst.set_misc_settings(misc_settings.get_options())
+        profile_inst.set_http_settings(
+            self._w3af_core.uri_opener.settings.get_options()
+        )
 
     def use_profile(self, profile_name, workdir=None):
         """
