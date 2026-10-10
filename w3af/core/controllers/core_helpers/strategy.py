@@ -77,7 +77,7 @@ class CoreStrategy:
         self._bruteforce_consumer = None
 
         # Producer threads
-        self._seed_producer = seed(self._w3af_core, self._knowledge_base)
+        self._seed_producer = seed(self._w3af_core, self._knowledge_base, self._output)
 
         # Also use this method to clear observers
         self._observers = []
@@ -105,7 +105,7 @@ class CoreStrategy:
         self._bruteforce_consumer = None
 
         # Producer threads
-        self._seed_producer = seed(self._w3af_core, self._knowledge_base)
+        self._seed_producer = seed(self._w3af_core, self._knowledge_base, self._output)
 
         # Also use this method to clear observers
         self._observers = []

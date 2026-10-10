@@ -25,7 +25,6 @@ import traceback
 from multiprocessing.dummy import Process, Queue
 from queue import Empty
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.constants import POISON_PILL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.exceptions import HTTPRequestException
@@ -41,7 +40,7 @@ class seed(Process):
     requests.
     """
 
-    def __init__(self, w3af_core, knowledge_base):
+    def __init__(self, w3af_core, knowledge_base, output):
         """
         :param w3af_core: The w3af core that we'll use for status reporting
         :param knowledge_base: Store used for discovered fuzzable requests
@@ -50,6 +49,7 @@ class seed(Process):
 
         self._w3af_core = w3af_core
         self._knowledge_base = knowledge_base
+        self._output = output
 
         # See documentation in the property below
         self._out_queue = Queue()
@@ -83,7 +83,7 @@ class seed(Process):
             else:
                 self._out_queue.task_done()
 
-        om.out.debug("No more tasks in Seed consumer output queue.")
+        self._output.debug("No more tasks in Seed consumer output queue.")
 
     def seed_output_queue(self, target_urls):
         """
@@ -107,11 +107,11 @@ class seed(Process):
                 #
                 response = self._w3af_core.uri_opener.GET(url, cache=True)
             except ScanMustStopException:
-                om.out.error("The target server is unreachable. Stopping.")
+                self._output.error("The target server is unreachable. Stopping.")
                 raise
             except HTTPRequestException as hre:
                 msg = 'The target URL: "%s" is unreachable. Exception: "%s".'
-                om.out.error(msg % (url, hre))
+                self._output.error(msg % (url, hre))
             except Exception as e:
                 logger.debug(
                     "Unhandled exception in seed_output_queue()", exc_info=True
@@ -122,7 +122,7 @@ class seed(Process):
                     " debug output for more information.\n"
                     "Traceback for this error:\n%s"
                 )
-                om.out.error(msg % (url, e, traceback.format_exc()))
+                self._output.error(msg % (url, e, traceback.format_exc()))
             else:
                 _seed = FuzzableRequest(response.get_uri())
 

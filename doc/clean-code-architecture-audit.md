@@ -2337,3 +2337,14 @@ Verificación: **19 tests pasados** en la suite del handler; Ruff, Black y mypy
 están limpios. El score permanece en **5.75/10** por el singleton restante en
 `w3afCore` y otros módulos, cobertura 100% no demostrada, Bandit heredado,
 mocks existentes, Moth y los orquestadores grandes.
+
+## Actualización verificada: seed con output explícito
+
+El productor `seed` recibe el sink desde `CoreStrategy` y ya no importa el
+singleton global. Los errores de target, el vaciado de la cola y el resto del
+flujo de creación de `FuzzableRequest` conservan su comportamiento.
+
+Verificación: **14 tests pasados y 7 subtests** entre seed y estrategia; Ruff,
+Black y mypy están limpios. El score permanece en **5.75/10** por el singleton
+restante en otros módulos, cobertura 100% no demostrada, Bandit heredado,
+mocks existentes, Moth y los orquestadores grandes.

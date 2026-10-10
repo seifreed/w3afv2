@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import queue
 import unittest
 
+import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.constants import POISON_PILL
 from w3af.core.controllers.core_helpers.consumers.seed import seed
@@ -42,7 +43,7 @@ class TestSeedConsumer(unittest.TestCase):
         self.addCleanup(self.core.worker_pool.terminate_join)
         self.addCleanup(kb.kb.cleanup)
         self.recorder = start_recording_output()
-        self.consumer = seed(self.core, kb.kb)
+        self.consumer = seed(self.core, kb.kb, om.out)
 
     def errors(self):
         return self.recorder.messages_of("error")
