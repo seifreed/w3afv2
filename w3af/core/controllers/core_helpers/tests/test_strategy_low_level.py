@@ -30,6 +30,9 @@ from w3af.core.controllers.core_helpers.fingerprint_404 import (
 )
 from w3af.core.controllers.core_helpers.strategy import CoreStrategy
 from w3af.core.controllers.core_helpers.target_validation import (
+    alert_if_target_is_301_all,
+    replace_targets_with_redir,
+    setup_404_detection,
     verify_target_server_up,
 )
 from w3af.core.controllers.tests.local_http_server import (
@@ -256,10 +259,13 @@ class TestStrategy(unittest.TestCase):
         )
 
     def target_request_steps(self, strategy):
+        core = strategy._w3af_core
         return {
-            "replace_targets_with_redir()": strategy.replace_targets_with_redir,
-            "alert_if_target_is_301_all()": strategy.alert_if_target_is_301_all,
-            "_setup_404_detection()": strategy._setup_404_detection,
+            "replace_targets_with_redir()": lambda: replace_targets_with_redir(core),
+            "alert_if_target_is_301_all()": lambda: alert_if_target_is_301_all(
+                core, kb
+            ),
+            "_setup_404_detection()": lambda: setup_404_detection(core),
         }
 
     def test_target_request_failure_stops_the_scan(self):
@@ -290,8 +296,7 @@ class TestStrategy(unittest.TestCase):
     def test_404_detection_without_url_opener_uses_basic_checks(self):
         self.start_server(static_page)
         core = self.get_core(self.server.url("/"))
-        strategy = CoreStrategy(core, kb)
 
         fingerprint_404_singleton(cleanup=True)
 
-        strategy._setup_404_detection()
+        setup_404_detection(core)

@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import logging
 import queue
 import time
-from contextlib import contextmanager
 from multiprocessing import TimeoutError
 
 import w3af.core.controllers.output_manager as om
@@ -39,12 +38,10 @@ from w3af.core.controllers.core_helpers.consumers.grep import grep
 from w3af.core.controllers.core_helpers.consumers.seed import seed
 from w3af.core.controllers.core_helpers.exception_handler import ExceptionData
 from w3af.core.controllers.core_helpers.target_validation import (
+    alert_if_target_is_301_all,
+    replace_targets_with_redir,
+    setup_404_detection,
     verify_target_server_up,
-)
-from w3af.core.data.kb.info import Info
-from w3af.core.exceptions import (
-    ScanMustStopByUserRequest,
-    ScanMustStopException,
 )
 
 logger = logging.getLogger(__name__)
@@ -123,8 +120,8 @@ class CoreStrategy:
         """
         try:
             verify_target_server_up(self._w3af_core)
-            self.replace_targets_with_redir()
-            self.alert_if_target_is_301_all()
+            replace_targets_with_redir(self._w3af_core)
+            alert_if_target_is_301_all(self._w3af_core, self._knowledge_base)
 
             self._setup_grep()
             self._setup_auth()
@@ -133,7 +130,7 @@ class CoreStrategy:
             self._setup_bruteforce()
 
             self._setup_observers()
-            self._setup_404_detection()
+            setup_404_detection(self._w3af_core)
 
             self._seed_discovery()
 
@@ -448,162 +445,6 @@ class CoreStrategy:
         reach the try/except clause in w3afCore's start.
         """
         self._w3af_core.exception_handler.handle_exception_data(exception_data)
-
-    @staticmethod
-    @contextmanager
-    def _scan_must_stop_on_error(description):
-        """
-        Convert any error raised inside the block into a ScanMustStopException.
-        ScanMustStopByUserRequest is kept untouched since it is not a real
-        error: the user stopped the scan.
-
-        :param description: Describes what failed, used in the error message
-        """
-        try:
-            yield
-        except ScanMustStopByUserRequest:
-            raise
-        except Exception as e:
-            logger.debug(description, exc_info=True)
-            msg = f'{description}: "{e}" ({e.__class__.__name__})'
-            om.out.debug(msg)
-            raise ScanMustStopException(msg) from e
-
-    def _get_target(self, url, step, **kwargs):
-        """
-        Send a GET request to one of the configured targets.
-
-        :param step: The name of the scan step sending the request
-        """
-        with self._scan_must_stop_on_error(f"Exception found during {step}"):
-            return self._w3af_core.uri_opener.GET(url, **kwargs)
-
-    def replace_targets_with_redir(self):
-        """
-        The user might have configured one or more target URLs which are
-        redirecting to other parts of the application.
-
-        To prevent issues with the 404 detection we replace these URLs
-        with the 30x redirect destination.
-
-        Only replace the targets which redirect to the same domain and
-        protocol.
-
-        :return: None. The result is saved to cf.cf.get('targets')
-        """
-        targets = cf.cf.get("targets")
-        new_targets = []
-
-        for url in targets:
-            http_response = self._get_target(
-                url, "replace_targets_with_redir()", cache=False, follow_redirects=True
-            )
-            redir_uri = http_response.get_redirect_destination()
-
-            if redir_uri and not http_response.does_redirect_outside_target():
-                # Targets redirecting outside the target domain are handled
-                # by alert_if_target_is_301_all
-                new_targets.append(redir_uri)
-            else:
-                new_targets.append(url)
-
-        cf.cf.save("targets", new_targets)
-
-    def alert_if_target_is_301_all(self):
-        """
-        Alert the user when the configured target is set to a site which will
-        301 redirect all requests to https://
-
-        :see: https://github.com/andresriancho/w3af/issues/14976
-        :return: True if the site returns 301 for all resources. Also an Info
-                 instance is saved to the KB in order to alert the user.
-        """
-        site_does_redirect = False
-        msg = (
-            "The configured target domain redirects all HTTP requests to a"
-            " different location. The most common scenarios are:\n"
-            "\n"
-            "    * HTTP redirect to HTTPS\n"
-            "    * domain.com redirect to www.domain.com\n"
-            "\n"
-            "While the scan engine can identify URLs and vulnerabilities"
-            " using the current configuration, it might be wise to start"
-            " a new scan setting the target URL to the redirect target.\n"
-            "\n"
-            "Depending on multiple factors, this configuration might also"
-            " reduce the effectiveness of the scanner 404 page detection,"
-            " leading to false positives in both identified URLs and"
-            " vulnerabilities."
-        )
-
-        targets = cf.cf.get("targets")
-
-        for url in targets:
-            # We test if the target URLs are redirecting to a different protocol
-            # or domain.
-            http_response = self._get_target(
-                url, "alert_if_target_is_301_all()", cache=False
-            )
-            if http_response.does_redirect_outside_target():
-                site_does_redirect = True
-                break
-
-        if site_does_redirect:
-            name = "Target redirect"
-            info = Info(name, msg, http_response.id, name)
-            info.set_url(url)
-            info.add_to_highlight(http_response.get_redir_url().url_string)
-
-            self._knowledge_base.append_uniq("core", "core", info)
-            om.out.report_finding(info)
-
-        return site_does_redirect
-
-    def _setup_404_detection(self):
-        #
-        #    NOTE: I need to perform this test here in order to avoid some weird
-        #    thread locking that happens when the webspider calls is_404, and
-        #    because I want to initialize the is_404 database in a controlled
-        #    try/except block.
-        #
-        from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
-
-        targets_with_404 = []
-
-        for url in cf.cf.get("targets"):
-            response = self._get_target(url, "_setup_404_detection()", cache=True)
-
-            failure = (
-                "Failed to initialize the 404 detection using HTTP"
-                f' response from "{url}"'
-            )
-            with self._scan_must_stop_on_error(failure):
-                current_target_is_404 = is_404(response)
-
-            if current_target_is_404:
-                targets_with_404.append(url)
-
-        if targets_with_404:
-            urls = [f" - {u.url_string}\n" for u in targets_with_404]
-            urls = "".join(urls)
-            om.out.information(
-                "w3af identified the user-configured URLs listed"
-                " below as non-existing pages (404). This could"
-                " result in a scan with low test coverage: some"
-                " application areas might not be scanned.\n"
-                "\n"
-                "Please manually verify that these URLs exist"
-                " and, consider running a new scan with different"
-                " targets.\n"
-                "\n"
-                f"{urls}"
-                "\n"
-                "In some scenarios it might be possible to fix"
-                " this issue adding one or more target URLs to the"
-                " `never_ssl` configuration parameter in `http-settings."
-                " This will make sure that specific URLs are never"
-                " seen as non-existing (404).\n"
-            )
 
     def _setup_crawl_infrastructure(self):
         """
