@@ -3280,3 +3280,16 @@ Verificación: la suite DB completa pasó **162 tests en 5.07 s**; Black, Ruff,
 mypy con imports externos omitidos y Bandit focal están limpios. Los nombres de
 tabla y columnas se validan antes de construir SQL. El score se mantiene en
 **6.5/10** por cobertura global, módulos grandes y gates globales pendientes.
+
+## Actualización verificada: pipeline de evasión separado
+
+`RequestEvasionPipeline` concentra el orden por prioridad, la aplicación de
+plugins y el manejo de errores de transformación. `ExtendedUrllib` conserva la
+fachada pública y el flujo de envío, pero ya no mantiene directamente la
+política de evasión.
+
+Verificación: la suite URL completa pasó **217 tests en 193.30 s**, con solo
+dos warnings externos de `ldap3/pyasn1`; la batería focal pasó **55 tests y 22
+subtests**. Black, Ruff, mypy configurado y Bandit focal están limpios. El
+score se mantiene en **6.5/10** por cobertura global, módulos grandes y gates
+globales pendientes.

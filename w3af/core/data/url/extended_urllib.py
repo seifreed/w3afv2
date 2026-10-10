@@ -58,6 +58,7 @@ from w3af.core.data.url.http_error_pause_controller import HttpErrorPauseControl
 from w3af.core.data.url.http_request import HTTPRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.data.url.rate_limiter import RateLimiter
+from w3af.core.data.url.request_evasion import RequestEvasionPipeline
 from w3af.core.data.url.response_history import ResponseHistory
 from w3af.core.data.url.scan_request_control import ScanRequestControl
 from w3af.core.data.url.timeout_manager import TimeoutManager
@@ -123,7 +124,7 @@ class ExtendedUrllib:
 
         # User configured options (in an indirect way)
         self._grep_queue_put = None
-        self._evasion_plugins = []
+        self._evasion_pipeline = RequestEvasionPipeline(LOGGER.error)
         self._request_control = ScanRequestControl()
 
     def get_average_rtt_for_mutant(self, *args, **kwargs):
@@ -1141,25 +1142,14 @@ class ExtendedUrllib:
         self._grep_queue_put = grep_queue_put
 
     def set_evasion_plugins(self, evasion_plugins):
-        evasion_plugins.sort(key=lambda plugin: plugin.get_priority())
+        self._evasion_pipeline.set_plugins(evasion_plugins)
 
-        # Save the info
-        self._evasion_plugins = evasion_plugins
+    @property
+    def _evasion_plugins(self):
+        return self._evasion_pipeline.plugins
 
     def _evasion(self, request):
-        """
-        :param request: HTTPRequest instance that is going to be modified
-        by the evasion plugins
-        """
-        for eplugin in self._evasion_plugins:
-            try:
-                request = eplugin.modify_request(request)
-            except BaseFrameworkException as e:
-                msg = 'Evasion plugin "%s" failed to modify the request: "%s"'
-                args = (eplugin.get_name(), e)
-                LOGGER.error(msg % args)
-
-        return request
+        return self._evasion_pipeline.apply(request)
 
     def _grep(self, request, response):
         if self._grep_queue_put is None:
