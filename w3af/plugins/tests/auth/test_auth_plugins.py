@@ -37,6 +37,8 @@ from w3af.plugins.tests.canned_http_server import CannedHTTPServer, CannedReply
 
 USER = "user@mail.com"
 AUTH_VALUE = "passw0rd"
+INVALID_AUTH_VALUE = "invalid-credential"
+PASSWORD_FIELD = "password"
 SESSION = "session=valid"
 CHECK_STRING = "Welcome back"
 
@@ -140,7 +142,7 @@ class TestGeneric(AuthPluginTestCase):
             username=USER,
             password=password,
             username_field="username",
-            password_field="password",
+            password_field=PASSWORD_FIELD,
             auth_url=self.url("/login", auth_base),
             check_url=self.url("/check"),
             check_string=CHECK_STRING,
@@ -152,7 +154,7 @@ class TestGeneric(AuthPluginTestCase):
         self.assertTrue(plugin.has_active_session())
 
     def test_login_failure_disables_after_max_attempts(self):
-        plugin = self._plugin(password="wrong")
+        plugin = self._plugin(password=INVALID_AUTH_VALUE)
 
         for _ in range(plugin.MAX_CONSECUTIVE_FAILED_LOGIN_COUNT):
             self.assertFalse(plugin.login())
@@ -185,7 +187,7 @@ class TestDetailed(AuthPluginTestCase):
             username=USER,
             password=password,
             username_field="username",
-            password_field="password",
+            password_field=PASSWORD_FIELD,
             data_format="%u=%U&%p=%P",
             method="POST",
             auth_url=self.url("/login", auth_base),
@@ -197,7 +199,7 @@ class TestDetailed(AuthPluginTestCase):
         self.assertTrue(self._plugin().login())
 
     def test_login_failure_disables_after_max_attempts(self):
-        plugin = self._plugin(password="wrong")
+        plugin = self._plugin(password=INVALID_AUTH_VALUE)
 
         for _ in range(plugin.MAX_CONSECUTIVE_FAILED_LOGIN_COUNT):
             self.assertFalse(plugin.login())
@@ -242,7 +244,7 @@ class TestAutocomplete(AuthPluginTestCase):
         self.assertTrue(self._plugin("/two-forms").login())
 
     def test_wrong_password_fails_session_check(self):
-        self.assertFalse(self._plugin(password="wrong").login())
+        self.assertFalse(self._plugin(password=INVALID_AUTH_VALUE).login())
 
     def test_page_without_login_form(self):
         self.assertFalse(self._plugin("/no-login-form").login())
@@ -291,9 +293,9 @@ class TestAuthenticationFailureReport(AuthPluginTestCase):
         plugin = self.configure(
             generic(),
             username=USER,
-            password="wrong",
+            password=INVALID_AUTH_VALUE,
             username_field="username",
-            password_field="password",
+            password_field=PASSWORD_FIELD,
             auth_url=self.url("/login"),
             check_url=self.url("/check"),
             check_string=CHECK_STRING,

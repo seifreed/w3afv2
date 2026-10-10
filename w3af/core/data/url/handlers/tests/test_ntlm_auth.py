@@ -89,7 +89,7 @@ class TestNTLMHandler(unittest.TestCase):
         directory = tempfile.TemporaryDirectory()
         self.addCleanup(directory.cleanup)
         users = Path(directory.name, "ntlm_users")
-        users.write_text("MOTH:admin:admin\n:local:secret\n")
+        users.write_text("MOTH:fixture-user:fixture-token\n:local:local-token\n")
 
         previous = os.environ.get("NTLM_USER_FILE")
         os.environ["NTLM_USER_FILE"] = str(users)
@@ -112,10 +112,12 @@ class TestNTLMHandler(unittest.TestCase):
         else:
             os.environ["NTLM_USER_FILE"] = previous
 
-    def open(self, path, user="moth\\admin", password="admin", url=None):
+    def open(
+        self, path, user="moth\\fixture-user", credential="fixture-token", url=None
+    ):
         url = url or self.server.url(path)
         passman = urllib.request.HTTPPasswordMgrWithDefaultRealm()
-        passman.add_password(None, url, user, password)
+        passman.add_password(None, url, user, credential)
         opener = build_opener(
             CustomOpenerDirector, [HTTPHandler(), HTTPNtlmAuthHandler(passman)]
         )
@@ -123,10 +125,10 @@ class TestNTLMHandler(unittest.TestCase):
 
     def test_auth_valid_creds(self):
         response = self.open("/ntlm")
-        self.assertEqual(response.read(), b"You are moth\\admin")
+        self.assertEqual(response.read(), b"You are moth\\fixture-user")
 
     def test_auth_valid_creds_without_domain(self):
-        response = self.open("/ntlm", user="local", password="secret")
+        response = self.open("/ntlm", user="local", credential="local-token")
         self.assertTrue(response.read().startswith(b"You are "))
 
     def test_auth_invalid_creds(self):
@@ -162,7 +164,9 @@ class TestNTLMHandler(unittest.TestCase):
 
     def test_w3af_opener_authenticates(self):
         settings = opener_settings.OpenerSettings()
-        settings.set_ntlm_auth(self.server.url("/ntlm"), "moth", "admin", "admin")
+        settings.set_ntlm_auth(
+            self.server.url("/ntlm"), "moth", "fixture-user", "fixture-token"
+        )
         settings.build_openers()
 
         response = settings.get_custom_opener().open(
@@ -170,4 +174,4 @@ class TestNTLMHandler(unittest.TestCase):
         )
 
         self.assertEqual(response.code, 200)
-        self.assertEqual(response.read(), b"You are moth\\admin")
+        self.assertEqual(response.read(), b"You are moth\\fixture-user")
