@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from threading import Lock
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
@@ -97,8 +96,8 @@ class fingerprint_os(InfrastructurePlugin):
             i = Info("Operating system", desc, response_ids, self.get_name())
             i.set_url(windows_response.get_url())
 
-            kb.kb.raw_write(self, "operating_system_str", os_str)
-            kb.kb.append(self, "operating_system", i)
+            self._get_knowledge_base().raw_write(self, "operating_system_str", os_str)
+            self._get_knowledge_base().append(self, "operating_system", i)
             om.out.information(i.get_desc())
             return True
 

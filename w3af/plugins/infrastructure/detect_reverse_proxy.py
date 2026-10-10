@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import re
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
@@ -58,14 +57,18 @@ class detect_reverse_proxy(InfrastructurePlugin):
                                     (among other things) the URL to test.
         """
         # detect using GET
-        if not kb.kb.get("detect_transparent_proxy", "detect_transparent_proxy"):
+        if not self._get_knowledge_base().get(
+            "detect_transparent_proxy", "detect_transparent_proxy"
+        ):
             response = self._uri_opener.GET(fuzzable_request.get_url(), cache=True)
             if self._has_proxy_headers(response):
                 self._report_finding(response)
 
         # detect using TRACE
         # only if I wasn't able to do it with GET
-        if not kb.kb.get("detect_reverse_proxy", "detect_reverse_proxy"):
+        if not self._get_knowledge_base().get(
+            "detect_reverse_proxy", "detect_reverse_proxy"
+        ):
             response = self._uri_opener.TRACE(fuzzable_request.get_url(), cache=True)
             if self._has_proxy_content(response):
                 self._report_finding(response)
@@ -83,13 +86,17 @@ class detect_reverse_proxy(InfrastructurePlugin):
         # TRACK / HTTP/1.1
         # Reverse-Via: MUTUN ------> find this!
         # ....
-        if not kb.kb.get("detect_reverse_proxy", "detect_reverse_proxy"):
+        if not self._get_knowledge_base().get(
+            "detect_reverse_proxy", "detect_reverse_proxy"
+        ):
             response = self._uri_opener.TRACK(fuzzable_request.get_url(), cache=True)
             if self._has_proxy_content(response):
                 self._report_finding(response)
 
         # Report failure to detect reverse proxy
-        if not kb.kb.get("detect_reverse_proxy", "detect_reverse_proxy"):
+        if not self._get_knowledge_base().get(
+            "detect_reverse_proxy", "detect_reverse_proxy"
+        ):
             om.out.information(
                 "The remote web server doesn't seem to have a reverse proxy."
             )
@@ -105,7 +112,7 @@ class detect_reverse_proxy(InfrastructurePlugin):
         i = Info("Reverse proxy identified", desc, response.id, self.get_name())
         i.set_url(response.get_url())
 
-        kb.kb.append(self, "detect_reverse_proxy", i)
+        self._get_knowledge_base().append(self, "detect_reverse_proxy", i)
         om.out.information(i.get_desc())
 
     def _has_proxy_headers(self, response):

@@ -159,6 +159,7 @@ class TestFingerprintWAFSignatures(PluginTest):
         super().setUp()
         self.plugin = fingerprint_waf()
         self.plugin.set_url_opener(self.w3afcore.uri_opener)
+        self.plugin.set_knowledge_base(self.kb)
 
     def _fingerprint(self, method_name, host):
         method = getattr(self.plugin, method_name)

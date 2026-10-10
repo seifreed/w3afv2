@@ -24,7 +24,6 @@ import re
 import socket
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal, fuzzy_not_equal
@@ -110,7 +109,7 @@ class dns_wildcard(InfrastructurePlugin):
         i = Info("Default virtual host", desc, modified_response.id, self.get_name())
         i.set_url(modified_response.get_url())
 
-        kb.kb.append(self, "dns_wildcard", i)
+        self._get_knowledge_base().append(self, "dns_wildcard", i)
         om.out.information(i.get_desc())
 
     def _test_dns(self, original_response, dns_wildcard_url):
@@ -148,7 +147,7 @@ class dns_wildcard(InfrastructurePlugin):
             )
             i.set_url(dns_wildcard_url)
 
-            kb.kb.append(self, "dns_wildcard", i)
+            self._get_knowledge_base().append(self, "dns_wildcard", i)
             om.out.information(i.get_desc())
         else:
             desc = (
@@ -165,7 +164,7 @@ class dns_wildcard(InfrastructurePlugin):
             )
             i.set_url(original_response.get_url())
 
-            kb.kb.append(self, "dns_wildcard", i)
+            self._get_knowledge_base().append(self, "dns_wildcard", i)
             om.out.information(i.get_desc())
 
     def get_long_desc(self):

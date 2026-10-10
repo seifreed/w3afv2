@@ -66,6 +66,7 @@ class CannedServerPluginTest(unittest.TestCase):
 
         self.plugin = self.plugin_class()
         self.plugin.set_url_opener(self.uri_opener)
+        self.plugin.set_knowledge_base(kb.kb)
 
     def respond(self, request: CannedRequest) -> CannedReply:
         raise NotImplementedError

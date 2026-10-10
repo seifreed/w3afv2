@@ -24,7 +24,6 @@ import re
 from itertools import repeat
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
@@ -407,7 +406,7 @@ class fingerprint_waf(InfrastructurePlugin):
         i.set_url(response.get_url())
         i.set_id(response.id)
 
-        kb.kb.append(self, name, i)
+        self._get_knowledge_base().append(self, name, i)
         om.out.information(i.get_desc())
 
     def get_plugin_deps(self):

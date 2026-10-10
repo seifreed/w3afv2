@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import socket
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
@@ -73,7 +72,7 @@ class detect_transparent_proxy(InfrastructurePlugin):
             i = Info("Transparent proxy detected", desc, 1, self.get_name())
             i.set_url(fuzzable_request.get_url())
 
-            kb.kb.append(self, "detect_transparent_proxy", i)
+            self._get_knowledge_base().append(self, "detect_transparent_proxy", i)
             om.out.information(i.get_desc())
         else:
             om.out.information("Your ISP has no transparent proxy.")

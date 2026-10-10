@@ -24,7 +24,6 @@ from itertools import repeat
 from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal
 from w3af.core.controllers.misc.is_private_site import is_private_site
@@ -162,7 +161,7 @@ class find_vhosts(InfrastructurePlugin):
             )
             i.set_url(fuzzable_request.get_url())
 
-            kb.kb.append(self, "find_vhosts", i)
+            self._get_knowledge_base().append(self, "find_vhosts", i)
             om.out.information(i.get_desc())
 
             yield domain
@@ -210,7 +209,7 @@ class find_vhosts(InfrastructurePlugin):
                 fuzzable_request,
             )
 
-            kb.kb.append(self, "find_vhosts", v)
+            self._get_knowledge_base().append(self, "find_vhosts", v)
             om.out.information(v.get_desc())
 
     def _response_is_different(

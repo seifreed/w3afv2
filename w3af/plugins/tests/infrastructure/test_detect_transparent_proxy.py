@@ -55,6 +55,7 @@ class TestDetectTransparentProxy(unittest.TestCase):
     def test_every_probe_answered_is_a_transparent_proxy(self):
         address = listening_socket(self)
         plugin = detect_transparent_proxy(probe_addresses=(address, address))
+        plugin.set_knowledge_base(kb.kb)
 
         plugin.discover(FUZZABLE_REQUEST, 1)
 
@@ -66,6 +67,7 @@ class TestDetectTransparentProxy(unittest.TestCase):
     def test_unanswered_probe_means_no_proxy(self):
         address = listening_socket(self)
         plugin = detect_transparent_proxy(probe_addresses=(address, closed_address()))
+        plugin.set_knowledge_base(kb.kb)
 
         plugin.discover(FUZZABLE_REQUEST, 1)
 
@@ -75,6 +77,7 @@ class TestDetectTransparentProxy(unittest.TestCase):
 
     def test_runs_once(self):
         plugin = detect_transparent_proxy(probe_addresses=(closed_address(),))
+        plugin.set_knowledge_base(kb.kb)
 
         plugin.discover(FUZZABLE_REQUEST, 1)
 
