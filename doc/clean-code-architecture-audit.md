@@ -3528,3 +3528,16 @@ warnings externos de `ldap3/pyasn1`; la batería focal pasó **42 tests en
 144.63 s**. Ruff, mypy focal y Bandit focal están limpios. El score se mantiene
 en **6.5/10** por cobertura global, módulos grandes y gates globales
 pendientes.
+
+## Actualización verificada: estrategia de timeout separada
+
+`TimeoutAdjustmentPolicy` concentra la decisión de autoajuste por muestras RTT
+y el incremento defensivo tras errores de socket. `ExtendedUrllib` conserva
+`_auto_adjust_timeout()` y `_increase_timeout_on_error()` como fachadas, y
+`TimeoutManager` sigue siendo el dueño del estado de timeouts.
+
+Verificación: la suite URL completa pasó **217 tests en 200.17 s**, con dos
+warnings externos de `ldap3/pyasn1`; la batería focal pasó **12 tests en
+118.15 s**. Ruff, mypy focal y Bandit focal están limpios. El score se mantiene
+en **6.5/10** por cobertura global, módulos grandes y gates globales
+pendientes.

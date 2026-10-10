@@ -43,8 +43,6 @@ from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.constants import (
     MAX_ERROR_COUNT,
     TIMEOUT_ADJUST_LIMIT,
-    TIMEOUT_INCREASE_MULT,
-    TIMEOUT_MULT_CONST,
 )
 from w3af.core.data.url.exceptions import ConnectionPoolException, HTTPRequestException
 from w3af.core.data.url.failed_response_recorder import FailedResponseRecorder
@@ -62,6 +60,7 @@ from w3af.core.data.url.request_retry_handler import RequestRetryHandler
 from w3af.core.data.url.response_history import ResponseHistory
 from w3af.core.data.url.response_success_handler import ResponseSuccessHandler
 from w3af.core.data.url.scan_request_control import ScanRequestControl
+from w3af.core.data.url.timeout_adjustment_policy import TimeoutAdjustmentPolicy
 from w3af.core.data.url.timeout_manager import TimeoutManager
 from w3af.core.data.url.worker_pool_adjuster import WorkerPoolAdjuster
 from w3af.core.exceptions import (
@@ -100,6 +99,14 @@ class ExtendedUrllib:
         # For rate limiting and timeouts
         self._rate_limiter = RateLimiter(self.settings, sleep)
         self._timeout_manager = TimeoutManager(self.settings)
+        self._timeout_adjustment = TimeoutAdjustmentPolicy(
+            self._timeout_manager,
+            self.get_average_rtt,
+            self.get_total_requests,
+            self.set_timeout,
+            self.get_timeout,
+            LOGGER.debug,
+        )
 
         # Keep track of sum(rtt) for each debugging_id
         self._rtt_sum_debugging_id = SynchronizedLRUDict(capacity=128)
@@ -250,67 +257,10 @@ class ExtendedUrllib:
         self._timeout_manager.clear()
 
     def _auto_adjust_timeout(self, request):
-        """
-        By default the timeout value at OpenerSettings is set to 0, which means
-        that w3af needs to auto-adjust it based on the HTTP request/response
-        RTT. This method takes care of the process of adjusting the socket
-        timeout.
-
-        The objective of auto-adjusting the timeout is to "fail fast" on
-        requests which are going to fail anyways. In previous versions of w3af
-        the default timeout was 15 seconds, which made the scanner delay A LOT
-        on URLs which (for some reason like heavy processing on the server side)
-        failed anyways.
-
-        We calculate and adjust the new timeout every 50 successful requests.
-
-        The timeout is calculated using average(RTT) * TIMEOUT_MULT_CONST , then
-        for example if the average RTT is 0.3 seconds and the TIMEOUT_MULT_CONST
-        is at 6.5 we end up with a real socket timeout of 1.95
-
-        The TIMEOUT_MULT_CONST might be lowered by advanced users to achieve
-        faster scans in scenarios where timeouts are slowing down the scans.
-
-        :see: https://github.com/andresriancho/w3af/issues/8698
-        :return: None, we adjust the value at the "settings" attribute
-        """
-        if not self._timeout_manager.should_auto_adjust(self.get_total_requests()):
-            return
-
-        host = request.get_domain()
-        average_rtt, num_samples = self.get_average_rtt(TIMEOUT_ADJUST_LIMIT, host)
-
-        if num_samples < (TIMEOUT_ADJUST_LIMIT / 2):
-            msg = (
-                "Not enough samples collected (%s) to adjust timeout."
-                " Keeping the current value of %s seconds"
-            )
-            LOGGER.debug(msg % (num_samples, self.get_timeout(host)))
-        else:
-            timeout = average_rtt * TIMEOUT_MULT_CONST
-            self.set_timeout(timeout, host)
+        self._timeout_adjustment.adjust(request)
 
     def _increase_timeout_on_error(self, request, exception):
-        """
-        We get here when the framework found an error like connection reset,
-        socket timeout, etc.
-
-        If we got a connection reset / timeout error, then we know that we
-        have to "slow down". The remote server might be having high loads,
-        the network could be busy, etc.
-
-        We just increase the timeout to give the next connections / requests
-        more time to wait for the response.
-
-        :param request: The HTTP request that triggered the error
-        :param exception: The original exception that lead us here
-        :return: None
-        """
-        host = request.get_domain()
-        timeout = self.get_timeout(host) * TIMEOUT_INCREASE_MULT
-        msg = "Will increase timeout to %.2f seconds after HTTP socket error (did:%s)"
-        LOGGER.debug(msg, timeout, request.debugging_id)
-        self.set_timeout(timeout, host)
+        self._timeout_adjustment.increase_after_error(request, exception)
 
     def get_average_rtt(self, count=TIMEOUT_ADJUST_LIMIT, host=None):
         """
