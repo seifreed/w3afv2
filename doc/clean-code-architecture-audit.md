@@ -1691,3 +1691,14 @@ limitada por la infraestructura externa de Moth y por agotamiento de
 descriptores en el scan de webhooks. El score sigue en **5.75/10**: quedan 67
 imports directos de la KB, además de la cobertura, mocks, el fallo heredado de
 perfilado, la dependencia de Moth y los orquestadores grandes.
+
+## Actualización verificada: crawler de urllist.txt
+
+`crawl.urllist_txt` registra el hallazgo mediante la KB configurada en el
+plugin, eliminando su dependencia directa de la singleton y manteniendo la
+extracción de URLs descubiertas.
+
+Verificación: 4 tests del plugin pasan, Ruff, Black y mypy pasan en el módulo
+modificado. El score sigue en **5.75/10**: quedan 66 imports directos de la KB,
+además de la cobertura, mocks, el fallo heredado de perfilado, la dependencia
+de Moth y los orquestadores grandes.
