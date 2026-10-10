@@ -76,7 +76,7 @@ class TeardownAuditThreadsStrategy(CoreStrategy):
     """
 
     def __init__(self, w3af_core):
-        super().__init__(w3af_core)
+        super().__init__(w3af_core, kb)
         self.threads_at_teardown_audit = None
 
     def _teardown_audit(self, *args, **kwargs):
@@ -91,7 +91,7 @@ class FailingRouterStrategy(CoreStrategy):
     """
 
     def __init__(self, w3af_core):
-        super().__init__(w3af_core)
+        super().__init__(w3af_core, kb)
         self.terminate_calls = 0
 
     def _fuzzable_request_router(self, *args, **kwargs):
@@ -195,7 +195,7 @@ class TestStrategy(unittest.TestCase):
     def test_strategy_verify_target_server_up(self):
         core = self.get_core(f"http://127.0.0.1:{closed_local_port()}/")
 
-        strategy = CoreStrategy(core)
+        strategy = CoreStrategy(core, kb)
 
         try:
             strategy.start()
@@ -214,7 +214,7 @@ class TestStrategy(unittest.TestCase):
         self.redirect_location = build_location(self.server.port)
         core = self.get_core(self.server.url("/"))
 
-        strategy = CoreStrategy(core)
+        strategy = CoreStrategy(core, kb)
         strategy.start()
 
         infos = kb.get("core", "core")
@@ -261,7 +261,7 @@ class TestStrategy(unittest.TestCase):
 
     def test_target_request_failure_stops_the_scan(self):
         core = self.get_core(f"http://127.0.0.1:{closed_local_port()}/")
-        strategy = CoreStrategy(core)
+        strategy = CoreStrategy(core, kb)
 
         for step, step_method in self.target_request_steps(strategy).items():
             with self.subTest(step=step):
@@ -273,7 +273,7 @@ class TestStrategy(unittest.TestCase):
     def test_user_stop_while_requesting_targets(self):
         self.start_server(static_page)
         core = self.get_core(self.server.url("/"))
-        strategy = CoreStrategy(core)
+        strategy = CoreStrategy(core, kb)
 
         core.uri_opener.stop()
 
@@ -287,7 +287,7 @@ class TestStrategy(unittest.TestCase):
     def test_404_detection_without_url_opener_uses_basic_checks(self):
         self.start_server(static_page)
         core = self.get_core(self.server.url("/"))
-        strategy = CoreStrategy(core)
+        strategy = CoreStrategy(core, kb)
 
         fingerprint_404_singleton(cleanup=True)
 

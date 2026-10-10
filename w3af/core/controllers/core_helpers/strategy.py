@@ -28,7 +28,6 @@ from multiprocessing import TimeoutError
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.constants import POISON_PILL
 from w3af.core.controllers.core_helpers.consumers.audit import audit
 from w3af.core.controllers.core_helpers.consumers.auth import auth
@@ -65,8 +64,9 @@ class CoreStrategy:
     Use this strategy as a base for your experiments!
     """
 
-    def __init__(self, w3af_core):
+    def __init__(self, w3af_core, knowledge_base):
         self._w3af_core = w3af_core
+        self._knowledge_base = knowledge_base
 
         # Consumer threads
         self._grep_consumer = None
@@ -78,7 +78,6 @@ class CoreStrategy:
         self._bruteforce_consumer = None
 
         # Producer threads
-        self._knowledge_base = kb.kb
         self._seed_producer = seed(self._w3af_core, self._knowledge_base)
 
         # Also use this method to clear observers

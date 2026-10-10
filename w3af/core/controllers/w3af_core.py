@@ -166,7 +166,7 @@ class w3afCore:
         self.plugins = CorePlugins(self)
         self.status = CoreStatus(self)
         self.target = CoreTarget()
-        self.strategy = CoreStrategy(self)
+        self.strategy = CoreStrategy(self, kb)
 
         # Create the URI opener object
         self.uri_opener = ExtendedUrllib(om.log_http)
@@ -211,7 +211,7 @@ class w3afCore:
         # Now that we know we're going to run a new scan, overwrite the old
         # strategy which might still have data stored in it and create a new
         # one
-        self.strategy = CoreStrategy(self)
+        self.strategy = CoreStrategy(self, kb)
         self.strategy.add_observer(DiskSpaceObserver())
         self.strategy.add_observer(ThreadCountObserver())
         self.strategy.add_observer(ThreadStateObserver())
