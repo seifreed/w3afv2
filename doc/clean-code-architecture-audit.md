@@ -2991,6 +2991,19 @@ limpios. El score permanece en **6.25/10** por la serialización y la
 coordinación global aún pendientes, cobertura 100% no demostrada, Bandit
 heredado e integraciones externas.
 
+## Actualización verificada: construcción de plugins separada
+
+`PluginInstanceFactory` concentra la creación y el wiring de dependencias de
+cada plugin (`uri_opener`, worker pool, core, KB, output y opciones). `CorePlugins`
+conserva la selección, resolución de dependencias, orden y ciclo de inicialización
+sin mezclar esos detalles de construcción.
+
+Verificación: **27 tests de plugins pasaron**; Black, Ruff, mypy focalizado,
+Bandit focalizado y `git diff --check` están limpios. La ejecución mostró 9
+warnings deprecados procedentes de dependencias externas (`ldap3`/`jsonschema`),
+sin suprimirlos. El score permanece en **6.25/10** por la composición global,
+serialización, cobertura y gates heredados aún pendientes.
+
 ## Actualización verificada: lifecycle del worker pool separado
 
 `WorkerPoolManager` concentra la creación lazy, recreación tras cierre y

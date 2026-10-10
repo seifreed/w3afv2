@@ -25,7 +25,9 @@ from functools import partial
 
 from w3af import ROOT_PATH
 from w3af.core.controllers.core_helpers.plugin_catalog import PluginCatalog
-from w3af.core.controllers.misc.factory import factory
+from w3af.core.controllers.core_helpers.plugin_instance_factory import (
+    PluginInstanceFactory,
+)
 
 
 class CorePlugins(PluginCatalog):
@@ -34,6 +36,7 @@ class CorePlugins(PluginCatalog):
         self._w3af_core = w3af_core
         self._output = output
         self._output_manager = output_manager
+        self._plugin_instance_factory = PluginInstanceFactory(w3af_core, output)
 
         self.initialized = False
         self._plugins_names_dict = None
@@ -192,16 +195,10 @@ class CorePlugins(PluginCatalog):
         """
         :return: An instance of a plugin.
         """
-        plugin_inst = factory(f"w3af.plugins.{plugin_type}.{plugin_name}")
-        plugin_inst.set_url_opener(self._w3af_core.uri_opener)
-        plugin_inst.set_worker_pool(self._w3af_core.worker_pool)
-        plugin_inst.set_w3af_core(self._w3af_core)
-        plugin_inst.set_knowledge_base(self._w3af_core.knowledge_base)
-        plugin_inst.set_output(self._output)
-
-        if plugin_name in list(self._plugins_options[plugin_type].keys()):
-            custom_options = self._plugins_options[plugin_type][plugin_name]
-            plugin_inst.set_options(custom_options)
+        custom_options = self._plugins_options[plugin_type].get(plugin_name)
+        plugin_inst = self._plugin_instance_factory.create(
+            plugin_type, plugin_name, custom_options
+        )
 
         # This will init some plugins like mangle and output
         if plugin_type == "attack" and not self.initialized:
