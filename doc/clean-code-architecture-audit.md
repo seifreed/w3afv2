@@ -3733,3 +3733,15 @@ la cola de logging.
 Verificación: la suite completa de `OutputManager` pasa **31 tests**, y Black,
 Ruff y mypy focal siguen limpios. El score se mantiene en **6.5/10** hasta
 terminar la migración del singleton de composición.
+
+## Actualización verificada: blacklist HTTP con configuración explícita
+
+`BlacklistHandler` dejó de leer `cf` directamente. `OpenerSettings` conserva la
+configuración y la propaga por `OpenerLifecycle` y `OpenerBuilder` hasta el
+handler, que ahora requiere esa dependencia al construirse. La cadena HTTP
+queda más explícita y el handler puede probarse con una configuración aislada.
+
+Verificación: los tests de blacklist, opener y parámetro URL pasan **34
+tests**; Ruff, mypy y Bandit focal están limpios. El score se mantiene en
+**6.5/10** porque otros handlers y la composición del core aún dependen de
+configuración global.

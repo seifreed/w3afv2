@@ -71,7 +71,7 @@ class TestBlacklistHandler(unittest.TestCase):
     def test_blacklist_handler_block(self):
         cf.cf.save("blacklist_http_request", [self.scanner_url])
 
-        opener = urllib.request.build_opener(BlacklistHandler)
+        opener = urllib.request.build_opener(BlacklistHandler(cf.cf))
 
         request = urllib.request.Request(self.scanner_url.url_string)
         request.url_object = self.scanner_url
@@ -83,7 +83,7 @@ class TestBlacklistHandler(unittest.TestCase):
         self.assertEqual(self.sent_paths(), [])
 
     def test_blacklist_handler_pass(self):
-        opener = urllib.request.build_opener(BlacklistHandler)
+        opener = urllib.request.build_opener(BlacklistHandler(cf.cf))
 
         request = urllib.request.Request(self.scanner_url.url_string)
         request.url_object = self.scanner_url

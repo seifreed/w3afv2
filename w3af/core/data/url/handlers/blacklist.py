@@ -26,7 +26,6 @@ import logging
 import urllib.request
 import urllib.response
 
-import w3af.core.data.kb.config as cf
 from w3af.core.data.url.helpers import new_no_content_resp
 
 LOGGER = logging.getLogger(__name__)
@@ -45,7 +44,8 @@ class BlacklistHandler(urllib.request.BaseHandler):
 
     handler_order = urllib.request.HTTPErrorProcessor.handler_order - 1
 
-    def __init__(self):
+    def __init__(self, configuration):
+        self._configuration = configuration
         self._blacklist_urls = None
         self._compiled_ignore_re = None
 
@@ -54,12 +54,12 @@ class BlacklistHandler(urllib.request.BaseHandler):
         # Read the compiled regular expression to use to ignore URLs, this
         # might be None (when the user doesn't configure an ignore_regex)
         #
-        self._compiled_ignore_re = cf.cf.get("ignore_regex")
+        self._compiled_ignore_re = self._configuration.get("ignore_regex")
 
         #
         # Read the list of URLs to blacklist
         #
-        blacklist_http_request = cf.cf.get("blacklist_http_request") or []
+        blacklist_http_request = self._configuration.get("blacklist_http_request") or []
         self._blacklist_urls = {url.uri2url() for url in blacklist_http_request}
 
     def default_open(self, req):

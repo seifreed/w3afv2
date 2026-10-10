@@ -31,6 +31,7 @@ class OpenerBuilder:
 
     def __init__(
         self,
+        configuration,
         http_log_callback,
         proxy_url,
         proxy_handler,
@@ -41,6 +42,7 @@ class OpenerBuilder:
         url_parameter_handler: URLParameterHandler | None,
         ignore_session_cookies: bool,
     ):
+        self._configuration = configuration
         self._http_log_callback = http_log_callback
         self._proxy_url = proxy_url
         self._proxy_handler = proxy_handler
@@ -91,7 +93,7 @@ class OpenerBuilder:
                     else None
                 ),
                 HTTP30XHandler,
-                BlacklistHandler,
+                BlacklistHandler(self._configuration),
                 MangleHandler(self._mangle_plugins),
                 HTTPGzipProcessor,
                 self._url_parameter_handler,

@@ -6,7 +6,8 @@ from w3af.core.data.url.opener_builder import BuiltOpeners, OpenerBuilder
 class OpenerLifecycle:
     """Build, expose, close, and clear the opener resources."""
 
-    def __init__(self) -> None:
+    def __init__(self, configuration) -> None:
+        self._configuration = configuration
         self._built_openers: BuiltOpeners | None = None
 
     def build(
@@ -22,6 +23,7 @@ class OpenerLifecycle:
         ignore_session_cookies,
     ) -> None:
         self._built_openers = OpenerBuilder(
+            self._configuration,
             http_log_callback,
             proxy_url,
             proxy_handler,
