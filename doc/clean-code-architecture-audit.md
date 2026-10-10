@@ -3437,3 +3437,16 @@ warnings externos de `ldap3/pyasn1`; la batería focal del opener pasó **26
 tests**. Black, Ruff, mypy focal y Bandit focal están limpios. El score se
 mantiene en **6.5/10** por cobertura global, módulos grandes y gates globales
 pendientes.
+
+## Actualización verificada: opciones del opener separadas
+
+`OpenerOptions` concentra la construcción del `OptionList` y sus descripciones,
+tipos y valores configurados. `OpenerSettings.get_options()` conserva la API
+pública y delega en el builder, mientras `set_options()` y sus efectos de
+configuración permanecen sin cambios.
+
+Verificación: la suite URL completa pasó **217 tests en 187.24 s**, con dos
+warnings externos de `ldap3/pyasn1`; la batería focal del opener pasó **26
+tests en 0.21 s**. Black, Ruff, mypy focal y Bandit focal están limpios. El
+score se mantiene en **6.5/10** por cobertura global, módulos grandes y gates
+globales pendientes.
