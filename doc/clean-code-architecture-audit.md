@@ -1643,3 +1643,15 @@ Verificación: 2 tests de scan pasan, Ruff, Black y mypy pasan en el módulo
 modificado. El score sigue en **5.75/10**: quedan 73 imports directos de la KB,
 además de la cobertura, mocks, el fallo heredado de perfilado y los
 orquestadores grandes.
+
+## Actualización verificada: helpers de brute force
+
+`PasswordBruteforcer`, `UserPasswordBruteforcer` y
+`get_profiling_results` reciben ahora la KB explícitamente; `BruteforcePlugin`
+la propaga al crear los generadores. Se eliminaron sus consultas directas al
+singleton y se actualizaron los callers y tests reales.
+
+Verificación: 29 tests de helpers y plugins de brute force pasan, Ruff, Black y
+mypy pasan en los módulos modificados. El score sigue en **5.75/10**: quedan
+72 imports directos de la KB, además de la cobertura, mocks, el fallo heredado
+de perfilado y los orquestadores grandes.
