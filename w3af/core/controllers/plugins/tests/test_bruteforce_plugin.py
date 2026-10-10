@@ -22,6 +22,7 @@ class unit_bruteforce(BruteforcePlugin):
 
     def __init__(self):
         BruteforcePlugin.__init__(self)
+        self.set_knowledge_base(kb)
         self.tried = []
         self.audited = []
         self._lock = threading.Lock()
@@ -37,7 +38,7 @@ class unit_bruteforce(BruteforcePlugin):
             freq,
         )
         vuln["request"] = freq
-        kb.append(self.get_name(), "auth", vuln)
+        self._get_knowledge_base().append(self.get_name(), "auth", vuln)
 
     def _brute_worker(self, url, combination, debugging_id):
         with self._lock:

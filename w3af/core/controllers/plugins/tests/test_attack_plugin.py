@@ -31,6 +31,7 @@ class unit_attack(AttackPlugin):
 
     def __init__(self, outcomes=None, generate_only_one=False):
         AttackPlugin.__init__(self)
+        self.set_knowledge_base(kb)
         self.outcomes = outcomes or []
         self._generate_only_one = generate_only_one
         self.exploited = []

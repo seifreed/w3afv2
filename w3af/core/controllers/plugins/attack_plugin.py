@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import (
     ExploitFailedException,
     NoVulnerabilityFoundException,
@@ -71,7 +70,7 @@ class AttackPlugin(Plugin, ResponseCutMixin):
         vulns = []
 
         for location in self.get_kb_location():
-            vulns.extend(kb.kb.get(location, location))
+            vulns.extend(self._get_knowledge_base().get(location, location))
 
         return vulns
 
@@ -193,7 +192,7 @@ class AttackPlugin(Plugin, ResponseCutMixin):
                 raise ExploitFailedException(msg % e)
 
             if s is not None:
-                kb.kb.append(self.get_name(), "shell", s)
+                self._get_knowledge_base().append(self.get_name(), "shell", s)
                 generated_shells.append(s)
                 om.out.console(
                     "Vulnerability successfully exploited."

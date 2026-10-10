@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os.path
 from itertools import repeat
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.controllers.bruteforce.bruteforcer import (
     PasswordBruteforcer,
@@ -116,7 +115,7 @@ class BruteforcePlugin(AuditPlugin):
 
         res = []
 
-        for v in kb.kb.get(self.get_name(), "auth"):
+        for v in self._get_knowledge_base().get(self.get_name(), "auth"):
 
             if v.get_url() not in self._already_reported:
                 self._already_reported.append(v.get_url())
