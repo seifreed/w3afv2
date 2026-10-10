@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 
-import w3af.core.data.kb.config as cf
 from w3af.core.controllers.misc.get_file_list import get_file_list
 from w3af.core.controllers.misc.get_local_ip import get_local_ip
 from w3af.core.controllers.misc_settings import MiscSettings
@@ -33,8 +32,9 @@ from w3af.core.paths import get_home_dir
 
 class CoreProfiles:
 
-    def __init__(self, w3af_core):
+    def __init__(self, w3af_core, configuration=None):
         self._w3af_core = w3af_core
+        self._configuration = configuration
 
     def save_current_to_new_profile(
         self, profile_name, profile_desc="", self_contained=False
@@ -106,7 +106,7 @@ class CoreProfiles:
 
     def _save_target(self, profile_inst):
         """Save the current target list to a profile."""
-        targets = cf.cf.get("targets")
+        targets = self._configuration.get("targets")
         if targets:
             profile_inst.set_target(" , ".join(t.url_string for t in targets))
 

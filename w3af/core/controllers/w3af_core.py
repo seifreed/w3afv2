@@ -158,13 +158,13 @@ class w3afCore:
         # w3af process. The data captured by it will be cleared before starting
         # each scan, but we want to keep the same instance after a scan because
         # we'll extract info from it.
-        self.exception_handler = ExceptionHandler(output)
+        self.exception_handler = ExceptionHandler(output, self._configuration)
 
         # These are some of the most important moving parts in the w3afCore
         # they basically handle every aspect of the w3af framework. I create
         # these here because they are used by the UIs even before starting a
         # scan.
-        self.profiles = CoreProfiles(self)
+        self.profiles = CoreProfiles(self, self._configuration)
         self.plugins = CorePlugins(self, output, manager)
         self.target = CoreTarget(cf)
         self._environment_validator = ScanEnvironmentValidator(

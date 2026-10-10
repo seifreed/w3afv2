@@ -27,7 +27,6 @@ import threading
 import traceback
 from copy import copy
 
-import w3af.core.data.kb.config as cf
 from w3af.core.controllers.core_helpers.status import CoreStatus
 from w3af.core.controllers.exception_handling.cleanup_bug_report import (
     cleanup_bug_report,
@@ -68,10 +67,11 @@ class ExceptionHandler:
         HTTPRequestException,
     )
 
-    def __init__(self, output):
+    def __init__(self, output, configuration):
         self._exception_data = []
         self._lock = threading.RLock()
         self._output = output
+        self._configuration = configuration
 
         self._scan_id = None
 
@@ -114,7 +114,7 @@ class ExceptionHandler:
         if isinstance(exception, self._unhandled_exception_types()):
             raise exception.with_traceback(tb)
 
-        stop_on_first_exception = cf.cf.get("stop_on_first_exception")
+        stop_on_first_exception = self._configuration.get("stop_on_first_exception")
         if stop_on_first_exception:
             raise exception.with_traceback(tb)
 

@@ -49,7 +49,7 @@ class TestExceptionHandler(unittest.TestCase):
     EXCEPT_START = 'A "RuntimeError" exception was found'
 
     def setUp(self):
-        self.exception_handler = ExceptionHandler(om.out)
+        self.exception_handler = ExceptionHandler(om.out, cf.cf)
         self.exception_handler.clear()
 
         self.status = CoreStatus(om.out)

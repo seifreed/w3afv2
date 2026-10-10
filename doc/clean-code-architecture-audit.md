@@ -3817,3 +3817,16 @@ tests**; Black, Ruff, mypy y Bandit focal están limpios. El score sube a
 **6.9/10** en Clean Architecture y **6.8/10** global. Todavía quedan
 consumidores de configuración en otros controladores, además de la cobertura
 y los gates globales por demostrar.
+
+## Actualización verificada: perfiles y excepciones sin `cf` directo
+
+`CoreProfiles` recibe la configuración del core para guardar los targets, y
+`ExceptionHandler` recibe la misma dependencia para aplicar
+`stop_on_first_exception`. Ambos módulos dejaron de importar el singleton;
+listar perfiles sin core sigue funcionando porque no necesita configuración.
+
+Verificación: las suites de perfiles y excepciones pasan **31 tests**, con los
+dos warnings deprecados externos de `ldap3/pyasn1`; Black, Ruff, mypy y Bandit
+focal están limpios. El score sube a **7.0/10** en Clean Architecture y
+**6.9/10** global. Aún quedan settings/controladores y plugins que leen `cf`,
+y falta probar cobertura y gates a escala completa.
