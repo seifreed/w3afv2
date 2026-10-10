@@ -3240,3 +3240,18 @@ Verificación: la suite DB completa pasó **162 tests en 9.25 s**; Black, Ruff,
 mypy focalizado, Bandit focalizado y `git diff --check` están limpios. El score
 se mantiene en **6.5/10** por cobertura global, módulos grandes y gates globales
 pendientes.
+
+## Actualización verificada: compresión de trazas separada
+
+`HistoryTraceCompressor` concentra la cola compartida, la selección de lotes,
+la escritura atómica de ZIP y la eliminación de trazas ya comprimidas.
+`HistoryItem` conserva sus fachadas privadas compatibles y delega la política,
+reduciendo su mezcla de persistencia SQL, serialización y almacenamiento de
+archivos.
+
+Verificación: la suite DB completa pasó **162 tests en 6.61 s**; Black, Ruff,
+Bandit focal y mypy aislado del componente nuevo están limpios. También se
+corrigió el parseo de identificadores de archivo para rutas Windows. La
+ejecución global de mypy sigue bloqueada por imports/stubs ausentes heredados.
+El score se mantiene en **6.5/10** por cobertura global, módulos grandes y
+gates globales pendientes.

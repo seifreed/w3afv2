@@ -35,6 +35,11 @@ from w3af.core.data.db.history_trace_serializer import (
     HistoryTraceSerializer,
     TraceReadException,
 )
+from w3af.core.data.db.history_trace_compressor import (
+    HistoryTraceCompressor,
+    PendingCompressionJob,
+    get_trace_id as _get_trace_id,
+)
 from w3af.core.data.db.sql_identifier import require_safe_identifier
 from w3af.core.filesystem import get_temp_dir
 
@@ -84,15 +89,10 @@ class HistoryItem:
 
     _TMP_EXTENSION = "tmp"
 
-    _COMPRESSED_EXTENSION = "zip"
-    _COMPRESSED_FILE_BATCH = 150
-    _UNCOMPRESSED_FILES = 50
-    _COMPRESSION_LEVEL = 7
-
-    _MIN_FILE_COUNT = _COMPRESSED_FILE_BATCH + _UNCOMPRESSED_FILES
-
-    _pending_compression_jobs: ClassVar[list] = []
-    _latest_compression_job_end = 0
+    _COMPRESSED_EXTENSION = HistoryTraceCompressor._COMPRESSED_EXTENSION
+    _COMPRESSED_FILE_BATCH = HistoryTraceCompressor._COMPRESSED_FILE_BATCH
+    _UNCOMPRESSED_FILES = HistoryTraceCompressor._UNCOMPRESSED_FILES
+    _MIN_FILE_COUNT = HistoryTraceCompressor._MIN_FILE_COUNT
 
     id = None
     url = None
@@ -110,7 +110,7 @@ class HistoryItem:
     charset = None
 
     history_lock = threading.RLock()
-    compression_lock = threading.RLock()
+    compression_lock = HistoryTraceCompressor.compression_lock
 
     def __init__(self):
         self._db = get_default_temp_db_instance()
@@ -119,6 +119,7 @@ class HistoryItem:
             get_temp_dir(), self._db.get_file_name() + "_traces"
         )
         self._trace_serializer = HistoryTraceSerializer(self._MSGPACK_CANARY)
+        self._trace_compressor = HistoryTraceCompressor(self._session_dir)
 
     def get_session_dir(self):
         return self._session_dir
@@ -472,164 +473,15 @@ class HistoryItem:
             raise OSError(msg % (missing, path_fname))
 
     def _get_pending_compression_job(self):
-        with HistoryItem.compression_lock:
-            try:
-                return self._pending_compression_jobs.pop(0)
-            except IndexError:
-                return None
+        return self._trace_compressor.get_pending_job()
 
     def _queue_compression_requests(self, response_id):
-        """
-        Every N calls to save() check if there are enough files to compress in
-        the session directory and create a PendingCompressionJob instance.
+        self._trace_compressor.queue(response_id)
 
-        Save that instance in _pending_compression_jobs. The _get_pending_compression_job
-        method will be used to read jobs from that list in a thread-safe way.
-
-        :param response_id:
-        :return:
-        """
-        # Performance boost that prevents the disk access and lock from below
-        # from running on each save()
-        if response_id % 100 != 0:
-            return
-
-        with HistoryItem.compression_lock:
-            #
-            # Get the list of files to compress, checking that we have enough to
-            # proceed with compression
-            #
-            session_dir = self._session_dir
-
-            files = [f for f in os.listdir(session_dir) if f.endswith(self._EXTENSION)]
-            files = [os.path.join(session_dir, f) for f in files]
-
-            if len(files) <= HistoryItem._MIN_FILE_COUNT:
-                return
-
-            #
-            # Sort by ID and remove the last 50 from the list to avoid
-            # compression-decompression CPU waste and concurrency issues with trace
-            # files that have not yet completed writing to disk
-            #
-            files.sort(key=lambda trace_file: get_trace_id(trace_file))
-            files = files[: -self._UNCOMPRESSED_FILES]
-
-            #
-            # Compress in 150 file batches, and making sure that the filenames
-            # are numerically ordered. We need this order to have 1, 2, ... 150 in
-            # the same file. The filename will be named `1-150.zip` which will later
-            # be used to find the uncompressed trace.
-            #
-            while True:
-                current_batch_files = files[: self._COMPRESSED_FILE_BATCH]
-
-                if len(current_batch_files) != self._COMPRESSED_FILE_BATCH:
-                    # There are not enough files in this batch
-                    break
-
-                # Compress the oldest 150 files into a zip
-                start = get_trace_id(current_batch_files[0])
-                end = get_trace_id(current_batch_files[-1])
-
-                if start <= HistoryItem._latest_compression_job_end:
-                    # This check prevents overlapping PendingCompressionJob from
-                    # being added to the list by different threads
-                    break
-
-                pending_compression = PendingCompressionJob(start, end)
-                HistoryItem._latest_compression_job_end = end
-                HistoryItem._pending_compression_jobs.append(pending_compression)
-
-                # Ignore the first 150, these were already processed, and continue
-                # iterating in the while loop
-                files = files[self._COMPRESSED_FILE_BATCH :]
-
-    def _process_pending_compression(self, pending_compression):
-        """
-        Compress a PendingCompressionJob, usually the 150 oldest files in the
-        session directory together inside a zip file.
-
-        Not compressing all files because the newest ones might be read by
-        plugins and we don't want to decompress them right after compressing
-        them (waste of CPU).
-
-        :return: None
-        """
-        session_dir = self._session_dir
-        trace_range = range(pending_compression.start, pending_compression.end + 1)
-
-        files = [f"{i}.{HistoryItem._EXTENSION}" for i in trace_range]
-        files = [os.path.join(session_dir, filename) for filename in files]
-
-        #
-        # Target zip filename
-        #
-        compressed_filename = f"{pending_compression.start}-{pending_compression.end}.{self._COMPRESSED_EXTENSION}"
-        compressed_filename = os.path.join(session_dir, compressed_filename)
-
-        # To prevent race conditions between a thread that is writing the zip
-        # file and another thread that is attempting to read from it, we first
-        # write the contents of the zip file to a .tmp file, and when all the
-        # contents have been written and flushed, rename the file to a zip file
-        compressed_filename_temp = f"{compressed_filename}.{self._TMP_EXTENSION}"
-
-        #
-        # I run some tests with tarfile to check if tar + gzip or tar + bzip2
-        # were faster / better suited for this task. This is what I got when
-        # running test_save_load_compressed():
-        #
-        #   zip
-        #       150 request - responses compressed in: 125 k
-        #       Unittest run time: 0.3 seconds
-        #
-        #   tar.gz
-        #       150 request - responses compressed in: 15 k
-        #       Unittest run time: 1.6 seconds
-        #
-        #
-        #   tar.bz2
-        #       150 request - responses compressed in: 9 k
-        #       Unittest run time: 7.0 seconds
-        #
-        # Note that the unittest forces compression of 150 requests and then
-        # reads each of those compressed requests one by one from the
-        # compressed archive.
-        #
-        # Summary: If you want to change the compression algorithm make sure
-        #          that it is better than `zip`.
-        #
-        _zip = zipfile.ZipFile(
-            file=compressed_filename_temp, mode="w", compression=zipfile.ZIP_DEFLATED
-        )
-
-        for filename in files:
-            try:
-                _zip.write(
-                    filename=filename,
-                    arcname=f"{get_trace_id(filename)}.{self._EXTENSION}",
-                )
-            except OSError:
-                # The file might not exist
-                continue
-
-        _zip.close()
-
-        # Rename the file to .zip only after all the contents have been flushed
-        # to disk by .close().
-        #
-        # This prevents race conditions
-        os.rename(compressed_filename_temp, compressed_filename)
-
-        #
-        # And now remove the already compressed files
-        #
-        for filename in files:
-            try:
-                os.remove(filename)
-            except OSError:
-                # The file might not exist
-                continue
+    def _process_pending_compression(
+        self, pending_compression: PendingCompressionJob
+    ) -> None:
+        self._trace_compressor.process(pending_compression)
 
     def get_columns(self):
         return self._COLUMNS
@@ -666,18 +518,12 @@ class HistoryItem:
         return f"<HistoryItem {self.method} {self.url}>"
 
 
-def get_trace_id(trace_file):
-    return int(trace_file.rsplit("/")[-1].rsplit(".")[-2])
-
-
 def get_zip_id_range(zip_file):
-    name_ext = zip_file.rsplit("/")[-1]
+    name_ext = os.path.basename(zip_file)
     name = name_ext.split(".")[0]
     start, end = name.split("-")
     return int(start), int(end)
 
 
-class PendingCompressionJob:
-    def __init__(self, start, end):
-        self.start = start
-        self.end = end
+def get_trace_id(trace_file):
+    return _get_trace_id(trace_file)
