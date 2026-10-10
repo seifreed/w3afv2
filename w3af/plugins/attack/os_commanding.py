@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import ClassVar
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
 from w3af.core.data.fuzzer.mutants.headers_mutant import HeadersMutant
 from w3af.core.data.fuzzer.utils import rand_alpha
@@ -280,17 +279,17 @@ class os_commanding(AttackPlugin):
             try:
                 strategy = StrategyKlass(vuln)
             except KeyError:
-                om.out.debug(f"{StrategyKlass} can not exploit {vuln}")
+                self._output.debug(f"{StrategyKlass} can not exploit {vuln}")
                 continue
 
             msg = "Trying to exploit vuln %s using %s."
-            om.out.debug(msg % (vuln.get_id(), strategy))
+            self._output.debug(msg % (vuln.get_id(), strategy))
 
             if strategy.can_exploit(self._uri_opener):
-                om.out.debug(f"Success with strategy {strategy}.")
+                self._output.debug(f"Success with strategy {strategy}.")
                 return strategy
 
-        om.out.debug("All strategies failed!")
+        self._output.debug("All strategies failed!")
 
         # No strategy can exploit this vulnerability
         return False

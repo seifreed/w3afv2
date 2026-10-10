@@ -2473,3 +2473,12 @@ ya no consultan `output_manager` directamente.
 Verificación: Ruff, Black y mypy están limpios. La suite de explotación SQLMap
 requiere Moth/SQLMap testenv y queda pendiente por el host DNS no resoluble;
 el score permanece en **6.25/10** hasta cubrir esa integración.
+
+## Actualización verificada: OS Commanding sin output global
+
+La selección de estrategias de `os_commanding` usa ahora el sink del plugin
+para errores, intentos y resultado de explotación. El shell no necesitaba esa
+dependencia, por lo que no se añadió estado innecesario a su contrato.
+
+Verificación: Ruff, Black y mypy están limpios. La integración de explotación
+queda pendiente de su entorno Moth; el score permanece en **6.25/10**.
