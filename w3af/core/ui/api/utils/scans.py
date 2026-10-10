@@ -24,7 +24,6 @@ import logging
 import os
 import tempfile
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.ui.api.db.master import SCANS, ScanInfo
 
 PROFILE_EXTENSION = ".pw3af"
@@ -80,8 +79,8 @@ def start_scan_helper(scan_info: ScanInfo) -> None:
 
         # Clear all current output plugins
         # Add the REST API output plugin
-        om.manager.set_output_plugins([])
-        om.manager.set_output_plugin_inst(scan_info.output)
+        w3af_core._output_manager.set_output_plugins([])
+        w3af_core._output_manager.set_output_plugin_inst(scan_info.output)
 
         # Start the scan!
         w3af_core.verify_environment()

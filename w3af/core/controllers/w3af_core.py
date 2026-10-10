@@ -129,6 +129,7 @@ class w3afCore:
         configure_data_logging()
         register_parser_multiprocessing(manager)
         self._output = om.out
+        self._output_manager = manager
         self.knowledge_base = knowledge_base or kb_store.kb
 
         # FIXME: In the future, when the output_manager is not an awful

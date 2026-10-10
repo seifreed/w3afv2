@@ -2644,6 +2644,19 @@ fallo macOS conocido de `/proc/sys/kernel/ostype`. El score permanece en
 **6.25/10** por los globals restantes, cobertura 100% no demostrada, Bandit
 heredado, mocks e integraciones Moth.
 
+## Actualización verificada: API REST con dependencias del core
+
+Las rutas REST de scans y excepciones ya no importan `output_manager` para
+configurar la ejecución: usan el sink y el manager explícitos del
+`w3afCore` que ya poseen. El catálogo de plugins sigue siendo una composición
+independiente del endpoint.
+
+Verificación: **1 test** de excepciones y **5 tests más 6 subtests** del
+lifecycle REST pasaron; Ruff, Black, mypy, `py_compile` y `git diff --check`
+globales están limpios. El score permanece en **6.25/10** por los globals
+restantes, cobertura 100% no demostrada, Bandit heredado, mocks e
+integraciones Moth.
+
 ## Actualización verificada: menú de consola sin fallback global
 
 El menú de consola ya no importa `output_manager`: el root toma el sink
