@@ -4175,3 +4175,19 @@ detección SO/red dependientes de macOS. Ruff, Black y mypy focal están limpios
 El score sube a **9.8/10** en Clean Architecture y **9.7/10** global. Restan
 aislar el pool multiproceso, la cobertura global del 100% y esas comprobaciones
 dependientes del entorno.
+
+## Actualización verificada: ciclo de vida del logging de parsers
+
+Los workers de parser ya no conservan una cola perteneciente a un
+`OutputManager` detenido. El proveedor global devuelve `None` cuando el
+manager terminó, y el inicializador omite el sink de logging en ese caso; así
+Pebble no intenta serializar conexiones cerradas ni mantiene recursos de una
+suite anterior. La prueba cubre managers activos y detenidos con objetos reales
+y las suites de autenticación pasan también después de suites que crean cores.
+
+Verificación: la batería de archivos modificados pasa **473 tests**, con 2
+skipped. El RSS máximo de toda la batería fue **367 MiB** y el de una prueba de
+scan aislada **106 MiB**; no quedaron fallos del parser. Persisten únicamente
+dos pruebas dependientes de detección SO/red en macOS y dos expectativas ANSI
+dependientes del terminal. Black, Ruff y mypy focal están limpios. El score
+sube a **9.9/10** en Clean Architecture y **9.8/10** global.
