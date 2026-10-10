@@ -33,6 +33,9 @@ def get_parser_log_queue(output_manager):
     :return: The output manager input queue that parser worker processes write
              their log records to.
     """
+    if not output_manager.is_alive():
+        return None
+
     return output_manager.get_in_queue()
 
 
@@ -48,8 +51,10 @@ def initialize_parser_worker(log_queue):
     :param log_queue: The queue that worker log records are written to.
     :return: None
     """
-    output = LogSink(log_queue)
-    configure_data_logging(output)
+    if log_queue is not None:
+        output = LogSink(log_queue)
+        configure_data_logging(output)
+
     start_profiling_no_core()
 
 
