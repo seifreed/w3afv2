@@ -26,7 +26,6 @@ import threading
 import time
 import traceback
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.exception_handler import ExceptionHandler
 from w3af.core.controllers.core_helpers.fingerprint_404 import fingerprint_404_singleton
 from w3af.core.controllers.core_helpers.plugins import CorePlugins
@@ -125,23 +124,23 @@ class w3afCore:
         """
         # Make sure we get a fresh new instance of the output manager
         manager = fresh_output_manager_inst()
-        log_sink_factory(manager.get_in_queue())
-        configure_data_logging(om.out)
+        output = log_sink_factory(manager.get_in_queue())
+        configure_data_logging(output)
         register_parser_multiprocessing(manager)
-        self._output = om.out
+        self._output = output
         self._output_manager = manager
         self.knowledge_base = knowledge_base or kb_store.kb
 
         # FIXME: In the future, when the output_manager is not an awful
         # singleton anymore, this line should be removed and the output_manager
         # object should take a w3afCore object as a parameter in its __init__
-        om.manager.set_w3af_core(self)
+        manager.set_w3af_core(self)
 
         # This is more than just a debug message, it's a way to force the
         # output manager thread to start it's work. I would start that thread
         # on output manager instantiation but there are issues with starting
         # threads at module import time.
-        om.out.debug(f"Created new w3afCore instance: {id(self)}")
+        output.debug(f"Created new w3afCore instance: {id(self)}")
 
         # Create some directories, do this every time before starting a new
         # scan and before doing any other core init because these are widely
@@ -152,20 +151,20 @@ class w3afCore:
         # w3af process. The data captured by it will be cleared before starting
         # each scan, but we want to keep the same instance after a scan because
         # we'll extract info from it.
-        self.exception_handler = ExceptionHandler(om.out)
+        self.exception_handler = ExceptionHandler(output)
 
         # These are some of the most important moving parts in the w3afCore
         # they basically handle every aspect of the w3af framework. I create
         # these here because they are used by the UIs even before starting a
         # scan.
         self.profiles = CoreProfiles(self)
-        self.plugins = CorePlugins(self, om.out, om.manager)
-        self.status = CoreStatus(self, om.out)
+        self.plugins = CorePlugins(self, output, manager)
+        self.status = CoreStatus(self, output)
         self.target = CoreTarget()
-        self.strategy = CoreStrategy(self, self.knowledge_base, om.out)
+        self.strategy = CoreStrategy(self, self.knowledge_base, output)
 
         # Create the URI opener object
-        self.uri_opener = ExtendedUrllib(om.log_http)
+        self.uri_opener = ExtendedUrllib(output.log_http)
         self.uri_opener.set_w3af_core(self)
 
         # Keep track of first scan to call cleanup or not
@@ -184,10 +183,10 @@ class w3afCore:
         """
         # Create this again just to clear the internal states
         scans_completed = self.status.scans_completed
-        self.status = CoreStatus(self, om.out, scans_completed=scans_completed)
+        self.status = CoreStatus(self, self._output, scans_completed=scans_completed)
         self.status.start()
 
-        start_profiling(self, om.out, om.manager)
+        start_profiling(self, self._output, self._output_manager)
 
         if not self._first_scan:
             self.cleanup()
@@ -199,7 +198,7 @@ class w3afCore:
             prepare_home_directory()
             prepare_tmp_directory()
 
-            enable_dns_cache(om.out)
+            enable_dns_cache(self._output)
 
         # Reset global sequence number generator
         consecutive_number_generator.reset()
@@ -207,13 +206,13 @@ class w3afCore:
         # Now that we know we're going to run a new scan, overwrite the old
         # strategy which might still have data stored in it and create a new
         # one
-        self.strategy = CoreStrategy(self, self.knowledge_base, om.out)
+        self.strategy = CoreStrategy(self, self.knowledge_base, self._output)
         self.strategy.add_observer(DiskSpaceObserver())
-        self.strategy.add_observer(ThreadCountObserver(om.out))
-        self.strategy.add_observer(ThreadStateObserver(om.out))
+        self.strategy.add_observer(ThreadCountObserver(self._output))
+        self.strategy.add_observer(ThreadStateObserver(self._output))
 
         # Init the 404 detection for the whole framework
-        fp_404_db = fingerprint_404_singleton(om.out, cleanup=True)
+        fp_404_db = fingerprint_404_singleton(self._output, cleanup=True)
         fp_404_db.set_url_opener(self.uri_opener)
 
     def start(self):
@@ -224,7 +223,7 @@ class w3afCore:
         @raise: This method raises almost every possible exception, so please
                 do your error handling!
         """
-        om.out.debug("Called w3afCore.start()")
+        self._output.debug("Called w3afCore.start()")
 
         self.scan_start_hook()
 
@@ -237,19 +236,19 @@ class w3afCore:
                 " should never happen. Are you (UI developer) sure that"
                 " you called verify_environment() *before* start() ?"
             )
-            om.out.error(error % e)
+            self._output.error(error % e)
             raise
 
         # Let the output plugins know what kind of plugins we're
         # using during the scan
-        om.manager.log_enabled_plugins(
+        self._output_manager.log_enabled_plugins(
             self.plugins.get_all_enabled_plugins(),
             self.plugins.get_all_plugin_options(),
         )
 
         self._first_scan = False
 
-        om.out.debug(
+        self._output.debug(
             f"Starting the scan using w3af version {get_w3af_version_minimal()}"
         )
 
@@ -257,14 +256,14 @@ class w3afCore:
             self.strategy.start()
         except MemoryError:
             print(NO_MEMORY_MSG)
-            om.out.error(NO_MEMORY_MSG)
+            self._output.error(NO_MEMORY_MSG)
 
         except OSError as os_err:
             # https://github.com/andresriancho/w3af/issues/10186
             # OSError: [Errno 12] Cannot allocate memory
             if os_err.errno == errno.ENOMEM:
                 print(NO_MEMORY_MSG)
-                om.out.error(NO_MEMORY_MSG)
+                self._output.error(NO_MEMORY_MSG)
 
             # https://github.com/andresriancho/w3af/issues/9653
             # IOError: [Errno 28] No space left on device
@@ -277,7 +276,7 @@ class w3afCore:
                 msg %= get_home_dir()
 
                 print(msg)
-                om.out.error(msg)
+                self._output.error(msg)
             else:
                 raise
 
@@ -289,7 +288,7 @@ class w3afCore:
             # requested the scanner to stop. From here the code continues at the
             # "finally" clause, which simply shows a message saying that the
             # scan finished.
-            om.out.information(f"{sbur}")
+            self._output.information(f"{sbur}")
 
         except ScanMustStopByUnknownReasonExc:
             #
@@ -304,7 +303,7 @@ class w3afCore:
             error = (
                 "The following error was detected and could not be" " resolved:\n%s\n"
             )
-            om.out.error(error % wmse)
+            self._output.error(error % wmse)
 
         except Exception as e:
             msg = 'Unhandled exception "%s", traceback:\n%s'
@@ -315,14 +314,14 @@ class w3afCore:
                 e, "original_traceback_string", traceback.format_exc()
             )
 
-            om.out.error(msg % (e, traceback_string))
+            self._output.error(msg % (e, traceback_string))
             raise
 
         finally:
             time_spent = self.status.get_scan_time()
 
-            om.out.information(f"Scan finished in {time_spent}")
-            om.out.information("Stopping the core...")
+            self._output.information(f"Scan finished in {time_spent}")
+            self._output.information("Stopping the core...")
 
             self.strategy.stop()
             self.scan_end_hook()
@@ -346,7 +345,7 @@ class w3afCore:
             )
 
             msg = "Created first Worker pool for core (id: %s)"
-            om.out.debug(msg % id(self._worker_pool))
+            self._output.debug(msg % id(self._worker_pool))
 
             return self._worker_pool
 
@@ -382,7 +381,7 @@ class w3afCore:
                 "Created a new worker pool for core (id: %s) because the old"
                 " one was not in running state (id: %s)"
             )
-            om.out.debug(msg % (id(self._worker_pool), old_pool_id))
+            self._output.debug(msg % (id(self._worker_pool), old_pool_id))
 
         return self._worker_pool
 
@@ -448,7 +447,7 @@ class w3afCore:
 
         :return: None. The stop method can take some seconds to return.
         """
-        om.out.debug("The user stopped the core, finishing threads...")
+        self._output.debug("The user stopped the core, finishing threads...")
 
         # First we stop the uri opener, this will perform the following things:
         #   * Set the _user_stopped attribute to True in uri_opener
@@ -484,7 +483,7 @@ class w3afCore:
                 f"The core failed to stop in {self.STOP_TIMEOUT} seconds, forcing exit."
             )
 
-        om.out.debug(msg)
+        self._output.debug(msg)
 
         # Finally we terminate and join the worker pool
         self._terminate_worker_pool()
@@ -542,13 +541,13 @@ class w3afCore:
             raise BaseFrameworkException(msg)
 
     def _terminate_worker_pool(self):
-        om.out.debug("Called _terminate_worker_pool()")
+        self._output.debug("Called _terminate_worker_pool()")
 
         #
         # Adding extra logging to debug issues where the call to terminate_join()
         # takes a lot of time to run
         #
-        monkey_patch_debug(om.out)
+        monkey_patch_debug(self._output)
 
         #
         # The scan has ended, and we've already joined() the consumer threads
@@ -565,7 +564,7 @@ class w3afCore:
         """
         This method is called when the process ends normally or by an error.
         """
-        stop_profiling(self, om.out, om.manager)
+        stop_profiling(self, self._output, self._output_manager)
         parser_cache.dpc.clear()
 
         try:
@@ -577,8 +576,8 @@ class w3afCore:
             # Also needs to be done before target.clear() because some plugins
             # need to access the target data stored in cf
             #
-            om.out.debug("Calling end_output_plugins()")
-            om.manager.end_output_plugins()
+            self._output.debug("Calling end_output_plugins()")
+            self._output_manager.end_output_plugins()
         finally:
             self._terminate_worker_pool()
 
@@ -593,7 +592,7 @@ class w3afCore:
             # Status
             self.status.stop()
 
-        om.out.debug("scan_end_hook() completed")
+        self._output.debug("scan_end_hook() completed")
 
     def exploit_phase_prerequisites(self):
         """
@@ -601,7 +600,7 @@ class w3afCore:
         from the core during the exploitation phase. In other words, which
         internal objects do I need alive after a scan?
         """
-        om.out.debug("Setting exploit phase prerequisites")
+        self._output.debug("Setting exploit phase prerequisites")
 
         # We disable raising the exception, so we do this only once and don't
         # affect other parts of the tool such as the exploitation or manual HTTP

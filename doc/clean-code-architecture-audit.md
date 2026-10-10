@@ -2822,3 +2822,16 @@ mypy focalizado y `git diff --check` están limpios. Persisten avisos de
 deprecación en dependencias externas. El score permanece en **6.25/10** por
 los globals restantes, cobertura 100% no demostrada, Bandit heredado, mocks e
 integraciones Moth.
+
+## Actualización verificada: w3afCore usa sus dependencias de instancia
+
+El ciclo principal de `w3afCore` deja de leer `om.out`, `om.manager` y
+`om.log_http` después de construir la composición de salida. Los hooks de
+inicio, scan, parada, profiling, workers y finalización usan ahora
+`self._output` y `self._output_manager`; la fábrica global queda confinada al
+arranque de la composición.
+
+Verificación: **35 tests y 7 subtests pasaron** en lifecycle, hooks, estrategia,
+profiling e instancias múltiples. El score permanece en **6.25/10** por los
+globals restantes fuera de este composition root, cobertura 100% no demostrada,
+Bandit heredado, mocks e integraciones Moth.
