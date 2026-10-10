@@ -1580,3 +1580,14 @@ limpio con el mismo resultado (`raw_read()` devuelve una lista), por lo que se
 mantiene como deuda previa. El score sigue en **5.75/10**: quedan 79 imports
 directos de la KB, además de la cobertura, mocks, ese fallo heredado y los
 orquestadores grandes.
+
+## Actualización verificada: divulgación de rutas
+
+`path_disclosure` consulta URLs conocidas y guarda sus resultados, `webroot` y
+la lista de ficheros mediante la KB inyectada. Su fixture directo y las ramas
+adicionales usan la implementación real de la dependencia.
+
+Verificación: 42 tests de divulgación y ramas adicionales pasan, Ruff, Black y
+mypy pasan en el módulo modificado. El score sigue en **5.75/10**: quedan 78
+imports directos de la KB, además de la cobertura, mocks, el fallo heredado de
+perfilado y los orquestadores grandes.
