@@ -3306,3 +3306,14 @@ dos warnings externos de `ldap3/pyasn1`; la batería focal pasó **55 tests y 22
 subtests**. Black, Ruff, mypy configurado y Bandit focal están limpios. El
 score se mantiene en **6.5/10** por cobertura global, módulos grandes y gates
 globales pendientes.
+
+## Actualización verificada: validación de entorno separada
+
+`ScanEnvironmentValidator` concentra las precondiciones para iniciar un scan:
+plugins inicializados, target válido y al menos un tipo de plugin ejecutable.
+`w3afCore.verify_environment()` conserva la fachada pública y delega esa
+política sin cambiar mensajes, excepciones ni orden de evaluación.
+
+Verificación: `core_test_suite` pasó **31 tests en 91.82 s**; Black, Ruff,
+mypy configurado y Bandit focal están limpios. El score se mantiene en
+**6.5/10** por cobertura global, módulos grandes y gates globales pendientes.

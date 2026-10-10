@@ -33,6 +33,9 @@ from w3af.core.controllers.core_helpers.runtime_directories import (
     prepare_home_directory,
     prepare_tmp_directory,
 )
+from w3af.core.controllers.core_helpers.scan_environment_validator import (
+    ScanEnvironmentValidator,
+)
 from w3af.core.controllers.core_helpers.scan_stop_controller import (
     ScanStopController,
 )
@@ -71,7 +74,6 @@ from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.data.parsers import parser_cache
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.exceptions import (
-    BaseFrameworkException,
     ScanMustStopByUnknownReasonExc,
     ScanMustStopByUserRequest,
     ScanMustStopException,
@@ -165,6 +167,9 @@ class w3afCore:
         self.profiles = CoreProfiles(self)
         self.plugins = CorePlugins(self, output, manager)
         self.target = CoreTarget()
+        self._environment_validator = ScanEnvironmentValidator(
+            self.plugins, self.target
+        )
         self.strategy = CoreStrategy(self, self.knowledge_base, output)
         self.status = CoreStatus(
             output,
@@ -452,30 +457,7 @@ class w3afCore:
         self.uri_opener.pause(pause_yes_no)
 
     def verify_environment(self):
-        """
-        Checks if all parameters where configured correctly by the user,
-        which in this case is a mix of w3af_console, w3af_gui and the real
-        (human) user.
-        """
-        if not self.plugins.initialized:
-            msg = (
-                "You must call the plugins.init_plugins() method before"
-                " calling start()."
-            )
-            raise BaseFrameworkException(msg)
-
-        if not self.target.has_valid_configuration():
-            raise BaseFrameworkException("No target URI configured.")
-
-        if (
-            not len(self.plugins.get_enabled_plugins("audit"))
-            and not len(self.plugins.get_enabled_plugins("crawl"))
-            and not len(self.plugins.get_enabled_plugins("infrastructure"))
-            and not len(self.plugins.get_enabled_plugins("grep"))
-        ):
-
-            msg = "No audit, grep or crawl plugins configured to run."
-            raise BaseFrameworkException(msg)
+        self._environment_validator.validate()
 
     def _terminate_worker_pool(self):
         self._worker_pool_manager.terminate()
