@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.data.kb.config as cf
 from w3af.core.controllers.misc.contains_source_code import contains_source_code
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.data.constants import severity
@@ -112,7 +111,8 @@ class lfi(AuditPlugin):
         # default installs. Feel free to mail me (Andres Riancho) if you know
         # about other default files that could be installed on AIX ? Solaris ?
         # and are not /etc/passwd
-        if cf.cf.get("target_os") in {"unix", "unknown"}:
+        target_os = self.get_configuration().get("target_os")
+        if target_os in {"unix", "unknown"}:
             local_files.append("/../" * 15 + "etc/passwd")
             local_files.append("../" * 15 + "etc/passwd")
 
@@ -131,7 +131,7 @@ class lfi(AuditPlugin):
                 local_files.append("/etc/passwd%00." + extension)
                 local_files.append("/../" * 15 + "etc/passwd%00." + extension)
 
-        if cf.cf.get("target_os") in {"windows", "unknown"}:
+        if target_os in {"windows", "unknown"}:
             local_files.append("/../" * 15 + "boot.ini")
             local_files.append("../" * 15 + "boot.ini")
 

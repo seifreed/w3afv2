@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.data.kb.config as cf
 from w3af.core.controllers.delay_detection.exact_delay import ExactDelay
 from w3af.core.controllers.delay_detection.exact_delay_controller import (
     ExactDelayController,
@@ -255,7 +254,7 @@ class os_commanding(AuditPlugin):
         commands.append(Command("run type %SYSTEMROOT%\\win.ini", "windows", "run"))
 
         # Now I filter the commands based on the target_os:
-        target_os = cf.cf.get("target_os").lower()
+        target_os = self.get_configuration().get("target_os").lower()
         commands = [c for c in commands if target_os in (c.get_OS(), "unknown")]
 
         return commands
@@ -291,7 +290,7 @@ class os_commanding(AuditPlugin):
         commands.append(PingDelay("run ping -n %s localhost", "windows", "run "))
 
         # Now I filter the commands based on the target_os:
-        target_os = cf.cf.get("target_os").lower()
+        target_os = self.get_configuration().get("target_os").lower()
         commands = [c for c in commands if target_os in (c.get_OS(), "unknown")]
 
         return commands

@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import re
 from itertools import repeat
 
-import w3af.core.data.kb.config as cf
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.constants import severity
@@ -165,7 +164,7 @@ class phpinfo(CrawlPlugin):
         )
 
         if not isinstance(identified_os, str):
-            identified_os = cf.cf.get("target_os")
+            identified_os = self.get_configuration().get("target_os")
 
         return "windows" in identified_os.lower()
 

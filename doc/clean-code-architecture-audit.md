@@ -3805,6 +3805,21 @@ no mezclar sus recursos con la medición. El score se mantiene en **6.5/10**:
 quedan consumidores de test del singleton y aún no se ha demostrado la
 cobertura global del 100%.
 
+## Actualización verificada: plugins de auditoría/crawl sin configuración global
+
+`lfi`, `os_commanding`, `phpinfo` y `open_api` ya reciben la configuración
+desde `Plugin` y no importan ni consultan `cf.cf`. La detección de dominio de
+OpenAPI recibe la configuración explícitamente, y los tests que instancian
+plugins directamente la conectan como haría la composición del scan.
+
+Verificación: OpenAPI sources **10 tests**, OpenAPI **7**, PHPInfo y OS
+Commanding **12**, y LFI **1** pasan. El test WAVSEP restante no puede
+verificarse porque `wavsep-fallback` no resuelve en este entorno. Black, Ruff,
+mypy y Bandit focal están limpios. El score sube a **8.3/10** en Clean
+Architecture y **8.2/10** global. Siguen pendientes URL/openers, parsers,
+fuzzer, `Info`, controllers, HMap, plugins de output y la cobertura global del
+100%.
+
 ## Actualización verificada: `CoreTarget` con configuración inyectada
 
 `CoreTarget` dejó de importar y mutar `cf.cf` al cargar el módulo. Ahora recibe

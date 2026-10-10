@@ -176,6 +176,7 @@ class TestPHPInfoFilenames(unittest.TestCase):
 
         plugin = phpinfo()
         plugin.set_knowledge_base(kb.kb)
+        plugin.set_configuration(cf.cf)
         self.assertEqual(plugin._get_potential_phpinfos(), PHP_INFO_FILES_LOWERCASE)
 
     def test_target_os_setting_is_used_without_fingerprint(self):
@@ -183,6 +184,7 @@ class TestPHPInfoFilenames(unittest.TestCase):
 
         plugin = phpinfo()
         plugin.set_knowledge_base(kb.kb)
+        plugin.set_configuration(cf.cf)
         self.assertEqual(plugin._get_potential_phpinfos(), PHP_INFO_FILES)
 
     def test_long_desc(self):

@@ -24,7 +24,6 @@ import os.path
 from itertools import repeat
 from typing import ClassVar
 
-import w3af.core.data.kb.config as cf
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.db.disk_set import DiskSet
 from w3af.core.data.dc.headers import Headers
@@ -108,8 +107,9 @@ class open_api(CrawlPlugin):
         :return: None
         """
         if self._first_run and not self._discover_fuzzable_url_parts:
-            cf.cf.save("fuzz_url_filenames", True)
-            cf.cf.save("fuzz_url_parts", True)
+            configuration = self.get_configuration()
+            configuration.save("fuzz_url_filenames", True)
+            configuration.save("fuzz_url_parts", True)
 
     def _should_analyze(self, url):
         """
@@ -211,7 +211,9 @@ class open_api(CrawlPlugin):
         )
 
         for api_call in parser.get_api_calls():
-            if not self._is_target_domain(api_call, self._output):
+            if not self._is_target_domain(
+                api_call, self._output, self.get_configuration()
+            ):
                 continue
 
             api_call = self._set_authentication_data(api_call)
@@ -222,12 +224,12 @@ class open_api(CrawlPlugin):
         self.output_queue.put(fuzzable_request)
 
     @staticmethod
-    def _is_target_domain(fuzzable_request, output):
+    def _is_target_domain(fuzzable_request, output, configuration):
         """
         :param fuzzable_request: The api call as a fuzzable request
         :return: True if the target domain matches
         """
-        targets = cf.cf.get("targets")
+        targets = configuration.get("targets")
         if not targets:
             return False
 

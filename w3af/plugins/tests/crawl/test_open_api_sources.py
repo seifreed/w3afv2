@@ -212,6 +212,7 @@ class TestOpenAPIPluginInternals(unittest.TestCase):
         self.addCleanup(MiscSettings(cf.cf).set_default_values)
 
         self.plugin = open_api()
+        self.plugin.set_configuration(cf.cf)
         self.addCleanup(self.plugin.end)
 
     def test_common_paths_are_generated_only_once(self):
@@ -242,7 +243,7 @@ class TestOpenAPIPluginInternals(unittest.TestCase):
 
         api_call = FuzzableRequest(URL("http://w3af.org/api/pets"))
 
-        self.assertFalse(open_api._is_target_domain(api_call, om.out))
+        self.assertFalse(open_api._is_target_domain(api_call, om.out, cf.cf))
 
     def test_long_description_mentions_supported_files(self):
         self.assertIn("openapi.yaml", self.plugin.get_long_desc())
