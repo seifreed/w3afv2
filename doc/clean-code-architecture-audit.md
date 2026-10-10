@@ -3281,7 +3281,7 @@ mypy con imports externos omitidos y Bandit focal están limpios. Los nombres de
 tabla y columnas se validan antes de construir SQL. El score se mantiene en
 **6.5/10** por cobertura global, módulos grandes y gates globales pendientes.
 
-## Actualización verificada: dispatcher de grep separado
+## Actualización verificada: callback de grep aislado
 
 `GrepDispatcher` encapsula el callback opcional que conecta cada request y
 response con los consumidores de grep. `ExtendedUrllib` conserva
