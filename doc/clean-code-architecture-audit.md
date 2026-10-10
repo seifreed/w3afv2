@@ -2002,3 +2002,15 @@ Verificación: 10 tests pasan, con Ruff, Black y mypy limpios en ambos plugins.
 El score sigue en **5.75/10**: quedan 10 imports directos de la KB en
 producción, además de la cobertura, mocks, el fallo heredado de perfilado, la
 dependencia de Moth y los orquestadores grandes.
+
+## Actualización verificada: crawlers con KB inyectada
+
+`ghdb`, `open_api`, `pykto` y `user_dir` usan la KB proporcionada por
+`CrawlPlugin` para registrar hallazgos y consultar usuarios o correos, sin
+importar el singleton global.
+
+Verificación: 58 tests pasan; Ruff, Black y mypy están limpios en los cuatro
+plugins. Las advertencias restantes pertenecen a dependencias externas de
+`jsonschema`. El score sigue en **5.75/10**: quedan 6 imports directos de la KB
+en producción, además de la cobertura, mocks, el fallo heredado de perfilado,
+la dependencia de Moth y los orquestadores grandes.
