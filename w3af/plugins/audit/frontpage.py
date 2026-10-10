@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.constants import severity
@@ -118,11 +117,11 @@ class frontpage(AuditPlugin):
                 target_url, data=data, debugging_id=debugging_id
             )
         except BaseFrameworkException as e:
-            om.out.debug(f"Exception while uploading file using author.dll: {e}")
+            self._output.debug(f"Exception while uploading file using author.dll: {e}")
             return None
         else:
             if res.get_code() in [200]:
-                om.out.debug(
+                self._output.debug(
                     "frontpage plugin seems to have successfully uploaded"
                     " a file to the remote server."
                 )
@@ -143,7 +142,7 @@ class frontpage(AuditPlugin):
                 target_url, cache=False, grep=False, debugging_id=debugging_id
             )
         except BaseFrameworkException as e:
-            om.out.debug(
+            self._output.debug(
                 "Exception while verifying if the file that was uploaded"
                 f"using author.dll was there: {e}"
             )
@@ -171,7 +170,7 @@ class frontpage(AuditPlugin):
             v.set_url(target_url)
             v.set_method("POST")
 
-            om.out.vulnerability(v.get_desc(), severity=v.get_severity())
+            self._output.vulnerability(v.get_desc(), severity=v.get_severity())
             self.kb_append(self, "frontpage", v)
 
     def get_plugin_deps(self):

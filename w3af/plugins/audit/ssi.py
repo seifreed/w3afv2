@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.data.constants import severity
 from w3af.core.data.db.disk_dict import DiskDict
@@ -174,7 +173,7 @@ class ssi(AuditPlugin):
         )
 
         debugging_id = rand_alnum(8)
-        om.out.debug(f"Starting stored SSI search (did={debugging_id})")
+        self._output.debug(f"Starting stored SSI search (did={debugging_id})")
 
         #
         # TODO
@@ -190,10 +189,12 @@ class ssi(AuditPlugin):
         #
         expected_strings = list(self._expected_mutant_dict.keys())
         args = (len(expected_strings), debugging_id)
-        om.out.debug("About to create MultiIn with {} keys (did={})".format(*args))
+        self._output.debug(
+            "About to create MultiIn with {} keys (did={})".format(*args)
+        )
 
         self._persistent_multi_in = MultiIn(expected_strings)
-        om.out.debug(f"Created stored SSI MultiIn (did={debugging_id})")
+        self._output.debug(f"Created stored SSI MultiIn (did={debugging_id})")
 
         self._send_mutants_in_threads(
             self._uri_opener.send_mutant,
@@ -216,7 +217,7 @@ class ssi(AuditPlugin):
         :return: None, vulns are stored in KB
         """
         msg = "Analyzing HTTP response %s to verify if SSI string is found"
-        om.out.debug(msg % response.get_uri())
+        self._output.debug(msg % response.get_uri())
 
         for matched_expected_result in self._persistent_multi_in.query(
             response.get_body()

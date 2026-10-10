@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.data.constants import severity
 from w3af.core.data.dc.headers import Headers
@@ -83,7 +82,7 @@ class xst(AuditPlugin):
                 freq,
             )
 
-            om.out.vulnerability(v.get_desc(), severity=v.get_severity())
+            self._output.vulnerability(v.get_desc(), severity=v.get_severity())
             self.kb_append(self, "xst", v)
 
     def get_long_desc(self):

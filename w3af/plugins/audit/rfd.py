@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import codecs
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.data.constants import severity
 from w3af.core.data.fuzzer.fuzzer import create_mutants
@@ -62,7 +61,7 @@ class rfd(AuditPlugin):
             # we have the header, but was it set correctly?
             if "filename" in cd.lower():
                 # yes filename exists
-                om.out.debug(
+                self._output.debug(
                     f'URL "{freq.get_url()}" is not vulnerable to RFD because of'
                     " explicit filename in content-disposition header"
                     f", response id {orig_response.id}"
@@ -72,7 +71,7 @@ class rfd(AuditPlugin):
                 self._test(freq)
 
         elif ct in NOT_VULNERABLE_TYPES:
-            om.out.debug(
+            self._output.debug(
                 f'URL "{freq.get_url()}" is not vulnerable to RFD because'
                 f' response content-type is "{ct}" and'
                 " content-disposition header is missing,"
@@ -84,7 +83,7 @@ class rfd(AuditPlugin):
 
     def _report_vuln(self, debug_msg, freq, rid):
         debug_msg = debug_msg % (freq.get_uri(), rid)
-        om.out.debug(debug_msg)
+        self._output.debug(debug_msg)
         desc = "Reflected File Download has been " "found at: %s"
         desc = desc % freq.get_url()
         v = Vuln.from_fr(

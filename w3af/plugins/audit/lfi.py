@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.misc.contains_source_code import contains_source_code
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
@@ -274,7 +273,7 @@ class lfi(AuditPlugin):
                 " just an informational message, which might be related"
                 "  to a vulnerability and was found on response with id %s."
             )
-            om.out.debug(msg % (next(iter(res)), response.id))
+            self._output.debug(msg % (next(iter(res)), response.id))
 
         if len(res) > 1:
             msg = (
@@ -292,7 +291,7 @@ class lfi(AuditPlugin):
                 f" with id {response.id}."
             )
 
-            om.out.debug(msg)
+            self._output.debug(msg)
 
         return res
 

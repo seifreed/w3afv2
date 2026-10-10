@@ -25,7 +25,6 @@ import inspect
 import logging
 import threading
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.safe_deepcopy import safe_deepcopy
 from w3af.core.controllers.plugins.plugin import Plugin
 from w3af.core.data.fuzzer.utils import rand_alnum
@@ -75,7 +74,7 @@ class AuditPlugin(Plugin):
                 self.audit_with_copy(fuzzable_request, orig_response, debugging_id)
             except Exception as e:
                 LOGGER.debug("Audit with return vulns failed", exc_info=True)
-                om.out.error(str(e))
+                self._output.error(str(e))
             finally:
                 self._store_kb_vulns = False
 
@@ -142,7 +141,7 @@ class AuditPlugin(Plugin):
             # happens at lower layers.
             #
             # https://github.com/andresriancho/w3af/issues/8949
-            om.out.debug(f"{ffde}")
+            self._output.debug(f"{ffde}")
 
     def audit(self, freq, orig_resp, debugging_id):
         """

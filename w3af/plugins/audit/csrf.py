@@ -25,7 +25,6 @@ from collections import Counter
 from itertools import chain
 from math import log2
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.data.constants import severity
@@ -91,7 +90,7 @@ class csrf(AuditPlugin):
         #
         # TODO: This algorithm has lots of room for improvement
         if self._is_origin_checked(freq, orig_response, debugging_id):
-            om.out.debug(f"Origin for {freq.get_url()} is checked")
+            self._output.debug(f"Origin for {freq.get_url()} is checked")
             return
 
         # Does the request have CSRF token in query string or POST payload?
@@ -164,7 +163,7 @@ class csrf(AuditPlugin):
         if not freq.get_uri().has_query_string() and not freq.get_raw_data():
             return False
 
-        om.out.debug(f"{freq.get_url()} is suitable for CSRF attack")
+        self._output.debug(f"{freq.get_url()} is suitable for CSRF attack")
         return True
 
     def _is_origin_checked(self, freq, orig_response, debugging_id):
@@ -197,7 +196,7 @@ class csrf(AuditPlugin):
             if self.is_csrf_token(token.get_name(), token.get_value()):
 
                 msg = "Found CSRF token %s in parameter %s for URL %s."
-                om.out.debug(
+                self._output.debug(
                     msg % (token.get_value(), token.get_name(), freq.get_url())
                 )
 

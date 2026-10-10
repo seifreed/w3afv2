@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.data.constants import severity
 from w3af.core.data.fuzzer.fuzzer import create_mutants
@@ -66,7 +65,7 @@ class phishing_vector(AuditPlugin):
             debugging_id=debugging_id,
         )
 
-        om.out.debug(f"Finished audit.phishing_vector (did={debugging_id})")
+        self._output.debug(f"Finished audit.phishing_vector (did={debugging_id})")
 
     def _contains_payload(self, response):
         """
@@ -133,7 +132,7 @@ class phishing_vector(AuditPlugin):
             " HTTP response ID %s."
         )
         args = (response.get_uri(), response.id)
-        om.out.debug(msg % args)
+        self._output.debug(msg % args)
 
     def get_long_desc(self):
         """

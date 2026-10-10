@@ -25,7 +25,6 @@ import http.server
 import socket
 from functools import partial
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.daemons import webserver
 from w3af.core.controllers.misc.get_local_ip import get_local_ip
 from w3af.core.controllers.misc.is_private_site import is_private_site
@@ -104,7 +103,7 @@ class rfi(AuditPlugin):
             # Report error to the user only once
             if not self._error_reported:
                 self._error_reported = True
-                om.out.error(self.CONFIG_ERROR_MSG % config_message)
+                self._output.error(self.CONFIG_ERROR_MSG % config_message)
 
             # The vulnerabilities found using the w3af site are still valid
             self._report_vulns()
@@ -221,7 +220,7 @@ class rfi(AuditPlugin):
             return
 
         msg = f"RFI using local web server for URL: {freq.get_url()}"
-        om.out.debug(msg)
+        self._output.debug(msg)
 
         # Create file for remote inclusion
         php_jsp_code, rfi_data = self._create_file()
@@ -256,7 +255,7 @@ class rfi(AuditPlugin):
                 "Failed to bind to the provided listen address in the audit."
                 "rfi plugin. The address is already in use by another process."
             )
-            om.out.error(msg)
+            self._output.error(msg)
             return
 
         # Perform the real work

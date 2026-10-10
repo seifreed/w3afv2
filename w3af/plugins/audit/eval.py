@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.delay_detection.exact_delay import ExactDelay
 from w3af.core.controllers.delay_detection.exact_delay_controller import (
     ExactDelayController,
@@ -236,7 +235,7 @@ class eval(AuditPlugin):
                 ' random string: "%s" in the response body. The'
                 " vulnerability was found on response with id %s."
             )
-            om.out.debug(msg % (self._expected_result, response.id))
+            self._output.debug(msg % (self._expected_result, response.id))
             res.append(self._expected_result)
 
         return res

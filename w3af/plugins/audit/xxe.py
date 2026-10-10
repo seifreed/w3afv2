@@ -25,7 +25,6 @@ from typing import ClassVar
 
 from lxml import etree
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.data.constants import severity
 from w3af.core.data.constants.file_patterns import FILE_PATTERNS
@@ -244,7 +243,7 @@ class xxe(AuditPlugin):
                 "Failed to encode unicode original value to string"
                 ' in _parse_xml(). Exception: "%s"'
             )
-            om.out.debug(msg % e)
+            self._output.debug(msg % e)
             return None
 
         # Secure, don't introduce XXE in our XXE detection plugin ;-)
@@ -261,7 +260,7 @@ class xxe(AuditPlugin):
                 ' Exception: "%s"'
             )
             args = (original_value[:25], param_name, e)
-            om.out.debug(msg % args)
+            self._output.debug(msg % args)
             return None
 
         return xml_root

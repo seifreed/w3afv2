@@ -29,7 +29,6 @@ from pprint import pformat
 
 import OpenSSL
 
-import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.data.constants import severity
@@ -112,7 +111,7 @@ class ssl_certificate(AuditPlugin):
         cert_data = self._get_ssl_cert(domain, port)
 
         if cert_data is None:
-            om.out.debug(f"Could not negotiate SSL with {domain}:{port}")
+            self._output.debug(f"Could not negotiate SSL with {domain}:{port}")
             return
 
         cert, cert_der, cipher = cert_data
@@ -174,7 +173,7 @@ class ssl_certificate(AuditPlugin):
         ca_certs = self._ca_file if ca_certs is None else ca_certs
 
         for protocol in PROTOCOL_METHODS:
-            om.out.debug(f"Trying to connect with SSL protocol {protocol}")
+            self._output.debug(f"Trying to connect with SSL protocol {protocol}")
 
             try:
                 result = connect(
@@ -221,7 +220,7 @@ class ssl_certificate(AuditPlugin):
         except OSError as se:
             msg = 'Failed to connect to %s:%s. Socket error: "%s"'
             args = (domain, port, se)
-            om.out.debug(msg % args)
+            self._output.debug(msg % args)
             return
 
         try:
@@ -248,7 +247,7 @@ class ssl_certificate(AuditPlugin):
         except (OSError, ValueError, TypeError, AttributeError) as e:
             msg = 'Unhandled %s exception in _ssl_connect_specific_protocol(): "%s"'
             args = (e.__class__.__name__, e)
-            om.out.debug(msg % args)
+            self._output.debug(msg % args)
         else:
             result = Result()
 
@@ -331,7 +330,7 @@ class ssl_certificate(AuditPlugin):
         expire_days = (exp_date_parsed - datetime.now(timezone.utc).date()).days
 
         if expire_days > self._min_expire_days:
-            om.out.debug(f"Certificate will expire in {expire_days} days")
+            self._output.debug(f"Certificate will expire in {expire_days} days")
             return
 
         desc = f'The certificate for "{domain}" will expire soon.'

@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.controllers.sql_tools.blind_sqli_response_diff import (
     BlindSqliResponseDiff,
@@ -126,7 +125,7 @@ class blind_sqli(AuditPlugin):
                 " blind SQL injection (%s) to avoid duplicates."
             )
             args = (vuln,)
-            om.out.debug(msg % args)
+            self._output.debug(msg % args)
             return
 
         if self._has_bug(mutant):
@@ -137,7 +136,7 @@ class blind_sqli(AuditPlugin):
                 " duplicates."
             )
             args = (vuln,)
-            om.out.debug(msg % args)
+            self._output.debug(msg % args)
             return
 
         added_to_kb = self.kb_append_uniq(self, "blind_sqli", vuln)
@@ -151,7 +150,7 @@ class blind_sqli(AuditPlugin):
                 " is: %s."
             )
             args = (vuln,)
-            om.out.debug(msg % args)
+            self._output.debug(msg % args)
 
     def _generate_response_diff_tests(self, freq, bsqli_resp_diff):
         for mutant in create_mutants(

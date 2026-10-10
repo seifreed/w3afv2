@@ -26,7 +26,6 @@ from itertools import repeat
 from threading import RLock
 from typing import ClassVar
 
-import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.data.constants import severity
@@ -202,7 +201,7 @@ class file_upload(AuditPlugin):
             "audit.file_upload will search for the uploaded file in %s URLs"
             " extracted from the HTTP response body (did=%s)."
         )
-        om.out.debug(msg % args)
+        self._output.debug(msg % args)
 
         mutant_repeater = repeat(mutant)
         debugging_id_repeater = repeat(debugging_id)
@@ -275,7 +274,7 @@ class file_upload(AuditPlugin):
             " known application paths (did=%s)."
         )
         args = (len(domain_path_set), debugging_id)
-        om.out.debug(msg % args)
+        self._output.debug(msg % args)
 
         # FIXME: Note that in all cases where I'm using kb's url_object info
         # I'll be making a mistake if the audit plugin is run before all

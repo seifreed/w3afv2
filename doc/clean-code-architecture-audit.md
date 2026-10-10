@@ -2162,3 +2162,19 @@ Verificación: la suite completa de infraestructura pasa con **161 tests y 20
 subtests**; Ruff, Black y mypy están limpios. El score permanece en **5.75/10**
 por los consumidores de output restantes fuera de infraestructura, cobertura
 global, Bandit heredado, mocks, perfilado, Moth y orquestadores.
+
+## Actualización verificada: output desacoplado en audit
+
+`AuditPlugin` y los 19 plugins de audit que usaban el singleton ahora reciben
+el mismo sink mediante `Plugin._output`. Se eliminaron esos imports directos de
+`controllers.output_manager`; el helper `oHmap/hmap.py` queda fuera porque no
+es un plugin y no tiene una instancia a la que inyectar la dependencia.
+
+La suite de contrato de `Plugin` y `AuditPlugin` pasa con **34 tests y 70
+subtests**, y la suite directa de CORS pasa con **12 tests** tras configurar la
+KB real en su fixture. La ejecución completa de audit obtuvo **211 tests
+pasados, 1 omitido y 19 fallidos**: ocho fallos eran ese fixture, dos son
+escenarios locales de `file_upload` y los restantes dependen de Moth, WAVSEP,
+SSL o respuestas externas. Ruff, Black y mypy están limpios. El score permanece
+en **5.75/10** por cobertura global, Bandit heredado, mocks existentes,
+perfilado, Moth y los orquestadores grandes.

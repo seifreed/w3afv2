@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.data.constants import severity
 from w3af.core.data.fuzzer.fuzzer import create_mutants
@@ -147,7 +146,7 @@ class response_splitting(AuditPlugin):
                 " Please verify manually."
             )
             msg %= (HEADER_NAME, HEADER_VALUE)
-            om.out.information(msg)
+            self._output.information(msg)
 
             i = Info.from_mutant(
                 "Parameter modifies response headers",

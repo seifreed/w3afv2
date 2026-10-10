@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.data.constants import dbms, severity
 from w3af.core.data.fuzzer.fuzzer import create_mutants
@@ -212,12 +211,12 @@ class sqli(AuditPlugin):
         res = []
 
         for match in self._multi_in.query(response.body):
-            om.out.information(self.SQLI_MESSAGE % (match, response.id))
+            self._output.information(self.SQLI_MESSAGE % (match, response.id))
             dbms_type = next(x[1] for x in self.SQL_ERRORS_STR if x[0] == match)
             res.append((match, dbms_type))
 
         for match, _, regex_comp, dbms_type in self._multi_re.query(response.body):
-            om.out.information(self.SQLI_MESSAGE % (match.group(0), response.id))
+            self._output.information(self.SQLI_MESSAGE % (match.group(0), response.id))
             res.append((match.group(0), dbms_type))
 
         return res

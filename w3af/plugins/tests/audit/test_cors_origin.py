@@ -125,6 +125,7 @@ class TestCORSOrigin(PluginTest):
         super().setUp()
 
         self.co = cors_origin()
+        self.co.set_knowledge_base(self.kb)
 
         self.url = URL("http://moth/")
         self.origin = "http://moth/"

@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import ClassVar
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.csp.utils import site_protected_against_xss_by_csp
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.data.constants import severity
@@ -255,7 +254,7 @@ class xss(AuditPlugin):
         fuzzable_requests = self._get_knowledge_base().get_all_known_fuzzable_requests()
 
         debugging_id = rand_alnum(8)
-        om.out.debug(f"Starting stored XSS search (did={debugging_id})")
+        self._output.debug(f"Starting stored XSS search (did={debugging_id})")
 
         self._send_mutants_in_threads(
             self._uri_opener.send_mutant,
@@ -293,7 +292,7 @@ class xss(AuditPlugin):
         :return: None, Vuln (if any) are saved to the kb.
         """
         msg = "Analyzing HTTP response %s to verify if XSS token was persisted"
-        om.out.debug(msg % response.get_uri())
+        self._output.debug(msg % response.get_uri())
 
         if not self._can_render_html(response):
             return
@@ -359,7 +358,7 @@ class xss(AuditPlugin):
         v["read_payload"] = fuzzable_request
         v.add_to_highlight(mutant.get_token_payload())
 
-        om.out.vulnerability(v.get_desc())
+        self._output.vulnerability(v.get_desc())
         self.kb_append_uniq(self, "xss", v)
 
     def get_options(self):

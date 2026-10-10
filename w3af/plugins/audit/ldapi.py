@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import ClassVar
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.data.constants import severity
 from w3af.core.data.fuzzer.fuzzer import create_mutants
@@ -139,7 +138,7 @@ class ldapi(AuditPlugin):
                 ' application is (only a fragment is shown): "%s". The error'
                 " was found in response with ID %s"
             )
-            om.out.information(msg % (match_string, response.id))
+            self._output.information(msg % (match_string, response.id))
             res.append(match_string)
         return res
 
