@@ -1613,3 +1613,13 @@ Verificación: 1 test de scan pasa, Ruff, Black y mypy pasan en el módulo
 modificado. El score sigue en **5.75/10**: quedan 76 imports directos de la KB,
 además de la cobertura, mocks, el fallo heredado de perfilado y los
 orquestadores grandes.
+
+## Actualización verificada: auditoría WebSocket
+
+`audit.websocket_hijacking` obtiene los enlaces WebSocket detectados mediante la
+KB inyectada, preservando las comprobaciones de origen, cookies y autenticación.
+
+Verificación: 10 tests integrados pasan, Ruff, Black y mypy pasan en el módulo
+modificado. El score sigue en **5.75/10**: quedan 75 imports directos de la KB,
+además de la cobertura, mocks, el fallo heredado de perfilado y los
+orquestadores grandes.
