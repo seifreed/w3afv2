@@ -1545,3 +1545,14 @@ Verificación: 61 tests de cookies y ramas de grep pasan, Ruff, Black y mypy
 pasan en el módulo modificado. El score sigue en **5.75/10**: quedan 85
 imports directos de la KB, además de la deuda de cobertura, mocks y
 orquestadores grandes.
+
+## Actualización verificada: grep de respuestas y cabeceras
+
+`http_in_body`, `lang` y `strange_headers` usan la KB explícita para registrar
+o consultar información detectada. Sus fixtures unitarios se configuran con la
+KB real, igual que las ramas compartidas de grep.
+
+Verificación: 58 tests de estos plugins y ramas de grep pasan, Ruff, Black y
+mypy pasan en los módulos modificados. El score sigue en **5.75/10**: quedan
+82 imports directos de la KB, además de la deuda de cobertura, mocks y
+orquestadores grandes.
