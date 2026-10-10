@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from threading import RLock
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.data.kb.info import Info
 from w3af.core.data.url.helpers import is_no_content_response
@@ -96,11 +95,11 @@ class server_header(InfrastructurePlugin):
             om.out.information(i.get_desc())
 
             # Save the results in the KB so the user can look at it
-            kb.kb.append(self, "server", i)
+            self._get_knowledge_base().append(self, "server", i)
 
             # Also save this for easy internal use
             # other plugins can use this information
-            kb.kb.raw_write(self, "server_string", server)
+            self._get_knowledge_base().raw_write(self, "server_string", server)
         else:
             # strange !
             desc = (
@@ -112,11 +111,11 @@ class server_header(InfrastructurePlugin):
 
             # Save the results in the KB so that other plugins can use this
             # information
-            kb.kb.append(self, "omitted_server_header", i)
+            self._get_knowledge_base().append(self, "omitted_server_header", i)
 
             # Also save this for easy internal use
             # other plugins can use this information
-            kb.kb.raw_write(self, "server_string", "")
+            self._get_knowledge_base().raw_write(self, "server_string", "")
 
     def _check_x_power(self, fuzzable_request, response):
         """
@@ -149,10 +148,12 @@ class server_header(InfrastructurePlugin):
                     #
                     # But I have seen an IIS server with PHP that returns
                     # both the ASP.NET and the PHP headers
-                    kb.kb.append(self, "powered_by", i)
+                    self._get_knowledge_base().append(self, "powered_by", i)
 
                     # Save the list to the KB
-                    kb.kb.raw_write(self, "powered_by_string", list(self._x_powered))
+                    self._get_knowledge_base().raw_write(
+                        self, "powered_by_string", list(self._x_powered)
+                    )
 
     def get_long_desc(self):
         """

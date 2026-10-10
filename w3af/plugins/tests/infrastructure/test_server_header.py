@@ -98,6 +98,7 @@ class TestServerHeaderAnalysis(unittest.TestCase):
         kb.kb.cleanup()
         self.addCleanup(kb.kb.cleanup)
         self.plugin = server_header()
+        self.plugin.set_knowledge_base(kb.kb)
 
     def test_no_content_response_is_ignored(self):
         response = new_no_content_resp(URL("http://mock/"))

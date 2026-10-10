@@ -145,6 +145,7 @@ class TestPHPEggsVersionExtraction(unittest.TestCase):
         kb.kb.cleanup()
         self.addCleanup(kb.kb.cleanup)
         self.plugin = php_eggs()
+        self.plugin.set_knowledge_base(kb.kb)
         self.plugin.EGG_DB = {
             "5.3.2": dict(EGG_HASHES),
             "5.2.0": {**EGG_HASHES, "credits": md5_hash("other")},

@@ -28,7 +28,6 @@ from itertools import repeat
 from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.controllers.exceptions import NoMoreCalls
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
@@ -197,7 +196,7 @@ class php_eggs(InfrastructurePlugin):
                 )
                 i.set_url(query_result.egg_URL)
 
-                kb.kb.append(self, "eggs", i)
+                self._get_knowledge_base().append(self, "eggs", i)
                 om.out.information(i.get_desc())
 
             return True
@@ -257,7 +256,7 @@ class php_eggs(InfrastructurePlugin):
         i = Info("Fingerprinted PHP version", desc, response_ids, self.get_name())
         i["version"] = matching_versions
 
-        kb.kb.append(self, "version", i)
+        self._get_knowledge_base().append(self, "version", i)
         om.out.information(i.get_desc())
 
     def _php_version_from_powered_by(self):
@@ -265,7 +264,9 @@ class php_eggs(InfrastructurePlugin):
         :return: The PHP version sent in the X-Powered-By headers which the
                  server_header plugin saved, or "unknown"
         """
-        for powered_by in kb.kb.raw_read("server_header", "powered_by_string"):
+        for powered_by in self._get_knowledge_base().raw_read(
+            "server_header", "powered_by_string"
+        ):
             name, _, version = powered_by.partition("/")
             if "php" in name.lower() and version:
                 return version

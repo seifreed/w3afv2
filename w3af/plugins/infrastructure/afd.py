@@ -25,7 +25,6 @@ import urllib.parse
 import urllib.request
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_not_equal
@@ -148,7 +147,7 @@ class afd(InfrastructurePlugin):
             i = Info("Active filter detected", desc, 1, self.get_name())
             i["filtered"] = filtered
 
-            kb.kb.append(self, "afd", i)
+            self._get_knowledge_base().append(self, "afd", i)
             om.out.information(i.get_desc())
 
             om.out.information("The following URLs were filtered:")

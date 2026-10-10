@@ -225,6 +225,7 @@ class TestEnd(unittest.TestCase):
         kb.kb.cleanup()
         self.addCleanup(kb.kb.cleanup)
         self.plugin = allowed_methods()
+        self.plugin.set_knowledge_base(kb.kb)
 
     def test_reports_dav_methods_grouped_by_url(self):
         self.plugin._analyze_methods(URL(DAV_ROOT), ["GET", "PROPFIND"], [1])

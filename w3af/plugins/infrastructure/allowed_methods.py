@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.misc.group_by_min_key import group_by_min_key
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
@@ -267,7 +266,7 @@ class allowed_methods(InfrastructurePlugin):
             )
             i.set_url(url)
 
-            kb.kb.append(self, "custom-configuration", i)
+            self._get_knowledge_base().append(self, "custom-configuration", i)
 
             #
             # All methods will appear as enabled because of this custom
@@ -327,7 +326,7 @@ class allowed_methods(InfrastructurePlugin):
             i.set_url(url)
             i["methods"] = _allowed_methods
 
-            kb.kb.append(self, "dav-methods", i)
+            self._get_knowledge_base().append(self, "dav-methods", i)
         else:
             # Save the results in the KB so that other plugins can use this
             # information. Do not remove these information, other plugins
@@ -339,15 +338,15 @@ class allowed_methods(InfrastructurePlugin):
             i.set_url(url)
             i["methods"] = _allowed_methods
 
-            kb.kb.append(self, "methods", i)
+            self._get_knowledge_base().append(self, "methods", i)
 
     def end(self):
         """
         Print the results.
         """
         # First I get the data from the kb
-        all_info_obj = kb.kb.get("allowed_methods", "methods")
-        dav_info_obj = kb.kb.get("allowed_methods", "dav-methods")
+        all_info_obj = self._get_knowledge_base().get("allowed_methods", "methods")
+        dav_info_obj = self._get_knowledge_base().get("allowed_methods", "dav-methods")
 
         # Now I transform it to something I can use with group_by_min_key
         all_methods = []
