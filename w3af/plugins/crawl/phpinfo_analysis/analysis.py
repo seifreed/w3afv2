@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import re
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.constants import severity
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.vuln import Vuln
@@ -33,7 +32,7 @@ from w3af.core.data.kb.vuln import Vuln
 CURL_FILE_SUPPORT_FIXED_VERSIONS = {4: (4, 4, 4), 5: (5, 1, 6)}
 
 
-def register_globals(response):
+def register_globals(response, knowledge_base):
     regex_str = 'register_globals</td><td class="v">(On|Off)</td>'
     register_globals_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -48,7 +47,7 @@ def register_globals(response):
         )
         v.set_url(response.get_url())
 
-        kb.kb.append("phpinfo", "phpinfo", v)
+        knowledge_base.append("phpinfo", "phpinfo", v)
         om.out.vulnerability(v.get_desc(), severity=v.get_severity())
     else:
         rg_name = "PHP register_globals: Off"
@@ -56,11 +55,11 @@ def register_globals(response):
         i = Info(rg_name, rg_desc, response.id, "phpinfo")
         i.set_url(response.get_url())
 
-        kb.kb.append("phpinfo", "phpinfo", i)
+        knowledge_base.append("phpinfo", "phpinfo", i)
         om.out.information(i.get_desc())
 
 
-def allow_url_fopen(response):
+def allow_url_fopen(response, knowledge_base):
     regex_str = 'allow_url_fopen</td><td class="v">(On|<i>no value</i>)</td>'
     allow_url_fopen_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -71,11 +70,11 @@ def allow_url_fopen(response):
     v = Vuln("PHP allow_url_fopen: On", desc, severity.MEDIUM, response.id, "phpinfo")
     v.set_url(response.get_url())
 
-    kb.kb.append("phpinfo", "phpinfo", v)
+    knowledge_base.append("phpinfo", "phpinfo", v)
     om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
 
-def allow_url_include(response):
+def allow_url_include(response, knowledge_base):
     regex_str = 'allow_url_include</td><td class="v">(On|<i>no value</i>)</td>'
     allow_url_include_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -86,11 +85,11 @@ def allow_url_include(response):
     v = Vuln("PHP allow_url_include: On", desc, severity.MEDIUM, response.id, "phpinfo")
     v.set_url(response.get_url())
 
-    kb.kb.append("phpinfo", "phpinfo", v)
+    knowledge_base.append("phpinfo", "phpinfo", v)
     om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
 
-def display_errors(response):
+def display_errors(response, knowledge_base):
     regex_str = 'display_errors</td><td class="v">(On|<i>no value</i>)</td>'
     display_errors_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -101,11 +100,11 @@ def display_errors(response):
     v = Vuln("PHP display_errors: On", desc, severity.MEDIUM, response.id, "phpinfo")
     v.set_url(response.get_url())
 
-    kb.kb.append("phpinfo", "phpinfo", v)
+    knowledge_base.append("phpinfo", "phpinfo", v)
     om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
 
-def expose_php(response):
+def expose_php(response, knowledge_base):
     regex_str = 'expose_php</td><td class="v">(On|<i>no value</i>)</td>'
     expose_php_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -116,11 +115,11 @@ def expose_php(response):
     v = Vuln("PHP expose_php: On", desc, severity.MEDIUM, response.id, "phpinfo")
     v.set_url(response.get_url())
 
-    kb.kb.append("phpinfo", "phpinfo", v)
+    knowledge_base.append("phpinfo", "phpinfo", v)
     om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
 
-def lowest_privilege_test(response):
+def lowest_privilege_test(response, knowledge_base):
     regex_str = r'User/Group </td><td class="v">(.*?)\((\d.*?)\)/(\d.*?)</td>'
     lowest_privilege_test_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -156,7 +155,7 @@ def lowest_privilege_test(response):
         )
         v.set_url(response.get_url())
 
-        kb.kb.append("phpinfo", "phpinfo", v)
+        knowledge_base.append("phpinfo", "phpinfo", v)
         om.out.vulnerability(v.get_desc(), severity=v.get_severity())
     else:
         desc = (
@@ -169,11 +168,11 @@ def lowest_privilege_test(response):
         i = Info("PHP running as low privileged user", desc, response.id, "phpinfo")
         i.set_url(response.get_url())
 
-        kb.kb.append("phpinfo", "phpinfo", i)
+        knowledge_base.append("phpinfo", "phpinfo", i)
         om.out.information(i.get_desc())
 
 
-def disable_functions(response):
+def disable_functions(response, knowledge_base):
     regex_str = 'disable_functions</td><td class="v">(.*?)</td>'
     disable_functions_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -199,11 +198,11 @@ def disable_functions(response):
     )
     v.set_url(response.get_url())
 
-    kb.kb.append("phpinfo", "phpinfo", v)
+    knowledge_base.append("phpinfo", "phpinfo", v)
     om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
 
-def curl_file_support(response):
+def curl_file_support(response, knowledge_base):
     regex_str = r'<h1 class="p">PHP Version (\d+)\.(\d+)\.(\d+)'
     curl_file_support_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -231,11 +230,11 @@ def curl_file_support(response):
     )
     v.set_url(response.get_url())
 
-    kb.kb.append("phpinfo", "phpinfo", v)
+    knowledge_base.append("phpinfo", "phpinfo", v)
     om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
 
-def cgi_force_redirect(response):
+def cgi_force_redirect(response, knowledge_base):
     regex_str = 'cgi_force_redirect</td><td class="v">(.*?)</td>'
     cgi_force_redirect_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -252,11 +251,11 @@ def cgi_force_redirect(response):
     )
     v.set_url(response.get_url())
 
-    kb.kb.append("phpinfo", "phpinfo", v)
+    knowledge_base.append("phpinfo", "phpinfo", v)
     om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
 
-def session_cookie_httponly(response):
+def session_cookie_httponly(response, knowledge_base):
     regex_str = r'session\.cookie_httponly</td><td class="v">(Off|no|0)</td>'
     session_cookie_httponly_mo = re.search(
         regex_str, response.get_body(), re.IGNORECASE
@@ -275,11 +274,11 @@ def session_cookie_httponly(response):
     )
     v.set_url(response.get_url())
 
-    kb.kb.append("phpinfo", "phpinfo", v)
+    knowledge_base.append("phpinfo", "phpinfo", v)
     om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
 
-def session_save_path(response):
+def session_save_path(response, knowledge_base):
     regex_str = r'session\.save_path</td><td class="v">(<i>no value</i>)</td>'
     session_save_path_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -298,11 +297,11 @@ def session_save_path(response):
     )
     v.set_url(response.get_url())
 
-    kb.kb.append("phpinfo", "phpinfo", v)
+    knowledge_base.append("phpinfo", "phpinfo", v)
     om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
 
-def session_use_trans(response):
+def session_use_trans(response, knowledge_base):
     regex_str = r'session\.use_trans</td><td class="v">(On)</td>'
     session_use_trans_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -316,11 +315,11 @@ def session_use_trans(response):
     v = Vuln("PHP session_use_trans: On", desc, severity.MEDIUM, response.id, "phpinfo")
     v.set_url(response.get_url())
 
-    kb.kb.append("phpinfo", "phpinfo", v)
+    knowledge_base.append("phpinfo", "phpinfo", v)
     om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
 
-def default_charset(response):
+def default_charset(response, knowledge_base):
     regex_str = 'default_charset</td><td class="v">(Off|no|0)</td>'
     default_charset_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -335,11 +334,11 @@ def default_charset(response):
     v = Vuln("PHP default_charset: Off", desc, severity.MEDIUM, response.id, "phpinfo")
     v.set_url(response.get_url())
 
-    kb.kb.append("phpinfo", "phpinfo", v)
+    knowledge_base.append("phpinfo", "phpinfo", v)
     om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
 
-def enable_dl(response):
+def enable_dl(response, knowledge_base):
     regex_str = 'enable_dl</td><td class="v">(On|Off)</td>'
     enable_dl_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -352,7 +351,7 @@ def enable_dl(response):
         v = Vuln("PHP enable_dl: On", desc, severity.MEDIUM, response.id, "phpinfo")
         v.set_url(response.get_url())
 
-        kb.kb.append("phpinfo", "phpinfo", v)
+        knowledge_base.append("phpinfo", "phpinfo", v)
         om.out.vulnerability(v.get_desc(), severity=v.get_severity())
     else:
         ed_name = "PHP enable_dl: Off"
@@ -360,11 +359,11 @@ def enable_dl(response):
         i = Info(ed_name, ed_desc, response.id, "phpinfo")
         i.set_url(response.get_url())
 
-        kb.kb.append("phpinfo", "phpinfo", i)
+        knowledge_base.append("phpinfo", "phpinfo", i)
         om.out.information(i.get_desc())
 
 
-def memory_limit(response):
+def memory_limit(response, knowledge_base):
     regex_str = r'memory_limit</td><td class="v">(\d.*?)</td>'
     memory_limit_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -384,11 +383,11 @@ def memory_limit(response):
         v = Vuln("PHP high memory limit", desc, severity.MEDIUM, response.id, "phpinfo")
         v.set_url(response.get_url())
 
-        kb.kb.append("phpinfo", "phpinfo", v)
+        knowledge_base.append("phpinfo", "phpinfo", v)
         om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
 
-def post_max_size(response):
+def post_max_size(response, knowledge_base):
     regex_str = r'post_max_size</td><td class="v">(\d.*?)</td>'
     post_max_size_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -409,11 +408,11 @@ def post_max_size(response):
     v = Vuln("PHP high POST max size", desc, severity.LOW, response.id, "phpinfo")
     v.set_url(response.get_url())
 
-    kb.kb.append("phpinfo", "phpinfo", v)
+    knowledge_base.append("phpinfo", "phpinfo", v)
     om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
 
-def upload_max_filesize(response):
+def upload_max_filesize(response, knowledge_base):
     regex_str = r'upload_max_filesize</td><td class="v">(\d.*?)</td>'
     upload_max_filesize_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -434,11 +433,11 @@ def upload_max_filesize(response):
     v = Vuln("PHP upload_max_filesize:high", desc, severity.LOW, response.id, "phpinfo")
     v.set_url(response.get_url())
 
-    kb.kb.append("phpinfo", "phpinfo", v)
+    knowledge_base.append("phpinfo", "phpinfo", v)
     om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
 
-def upload_tmp_dir(response):
+def upload_tmp_dir(response, knowledge_base):
     regex_str = 'upload_tmp_dir</td><td class="v">(<i>no value</i>)</td>'
     upload_tmp_dir_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -455,11 +454,11 @@ def upload_tmp_dir(response):
     )
     v.set_url(response.get_url())
 
-    kb.kb.append("phpinfo", "phpinfo", v)
+    knowledge_base.append("phpinfo", "phpinfo", v)
     om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
 
-def file_uploads(response):
+def file_uploads(response, knowledge_base):
     regex_str = 'file_uploads</td><td class="v">(On|<i>no value</i>)</td>'
     file_uploads_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -470,11 +469,11 @@ def file_uploads(response):
     i = Info("PHP file_uploads: On", desc, response.id, "phpinfo")
     i.set_url(response.get_url())
 
-    kb.kb.append("phpinfo", "phpinfo", i)
+    knowledge_base.append("phpinfo", "phpinfo", i)
     om.out.information(i.get_desc())
 
 
-def magic_quotes_gpc(response):
+def magic_quotes_gpc(response, knowledge_base):
     regex_str = 'magic_quotes_gpc</td><td class="v">(On|Off)</td>'
     magic_quotes_gpc_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -492,11 +491,11 @@ def magic_quotes_gpc(response):
         i = Info("PHP magic_quotes_gpc: Off", desc, response.id, "phpinfo")
 
     i.set_url(response.get_url())
-    kb.kb.append("phpinfo", "phpinfo", i)
+    knowledge_base.append("phpinfo", "phpinfo", i)
     om.out.information(i.get_desc())
 
 
-def open_basedir(response):
+def open_basedir(response, knowledge_base):
     regex_str = 'open_basedir</td><td class="v">(.*?)</td>'
     open_basedir_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -515,11 +514,11 @@ def open_basedir(response):
         i = Info("PHP open_basedir:enabled", desc, response.id, "phpinfo")
 
     i.set_url(response.get_url())
-    kb.kb.append("phpinfo", "phpinfo", i)
+    knowledge_base.append("phpinfo", "phpinfo", i)
     om.out.information(i.get_desc())
 
 
-def session_hash_function(response):
+def session_hash_function(response, knowledge_base):
     regex_str = r'session\.hash_function</td><td class="v">(.*?)</td>'
     session_hash_function_mo = re.search(regex_str, response.get_body(), re.IGNORECASE)
 
@@ -535,5 +534,5 @@ def session_hash_function(response):
 
     i.set_url(response.get_url())
 
-    kb.kb.append("phpinfo", "phpinfo", i)
+    knowledge_base.append("phpinfo", "phpinfo", i)
     om.out.information(i.get_desc())

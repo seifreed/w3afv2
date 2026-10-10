@@ -25,7 +25,6 @@ from itertools import repeat
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
@@ -163,7 +162,9 @@ class phpinfo(CrawlPlugin):
         return PHP_INFO_FILES
 
     def _should_use_lowercase_db(self):
-        identified_os = kb.kb.raw_read("fingerprint_os", "operating_system_str")
+        identified_os = self._get_knowledge_base().raw_read(
+            "fingerprint_os", "operating_system_str"
+        )
 
         if not isinstance(identified_os, str):
             identified_os = cf.cf.get("target_os")
@@ -208,7 +209,7 @@ class phpinfo(CrawlPlugin):
         )
         v.set_url(response.get_url())
 
-        kb.kb.append(self, "phpinfo", v)
+        self._get_knowledge_base().append(self, "phpinfo", v)
         om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
         if not self._has_audited:
@@ -221,7 +222,7 @@ class phpinfo(CrawlPlugin):
         :return None
         """
         for analysis_method in ANALYSIS_FUNCTIONS:
-            analysis_method(response)
+            analysis_method(response, self._get_knowledge_base())
 
     def get_long_desc(self):
         """

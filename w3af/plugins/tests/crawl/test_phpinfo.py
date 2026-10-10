@@ -173,12 +173,16 @@ class TestPHPInfoFilenames(unittest.TestCase):
     def test_windows_fingerprint_uses_lowercase_names(self):
         kb.kb.raw_write("fingerprint_os", "operating_system_str", "Windows")
 
-        self.assertEqual(phpinfo()._get_potential_phpinfos(), PHP_INFO_FILES_LOWERCASE)
+        plugin = phpinfo()
+        plugin.set_knowledge_base(kb.kb)
+        self.assertEqual(plugin._get_potential_phpinfos(), PHP_INFO_FILES_LOWERCASE)
 
     def test_target_os_setting_is_used_without_fingerprint(self):
         cf.cf.save("target_os", "unix")
 
-        self.assertEqual(phpinfo()._get_potential_phpinfos(), PHP_INFO_FILES)
+        plugin = phpinfo()
+        plugin.set_knowledge_base(kb.kb)
+        self.assertEqual(plugin._get_potential_phpinfos(), PHP_INFO_FILES)
 
     def test_long_desc(self):
         self.assertIn("PHP Info", phpinfo().get_long_desc())
@@ -200,7 +204,7 @@ class TestPHPInfoAnalysis(unittest.TestCase):
         response = HTTPResponse(200, body, headers, url, url, _id=1)
 
         for analysis_function in ANALYSIS_FUNCTIONS:
-            analysis_function(response)
+            analysis_function(response, kb.kb)
 
         return {i.get_name() for i in kb.kb.get("phpinfo", "phpinfo")}
 
