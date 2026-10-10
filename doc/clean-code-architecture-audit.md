@@ -1811,3 +1811,14 @@ locales, y Ruff, Black y mypy pasan en el módulo modificado. El score sigue en
 **5.75/10**: quedan 49 imports directos de la KB, además de la cobertura,
 mocks, el fallo heredado de perfilado, la dependencia de Moth y los
 orquestadores grandes.
+
+## Actualización verificada: distancia de rutas HTTP/HTTPS
+
+`infrastructure.http_vs_https_dist` registra los informes de traceroute con la
+KB configurada en el plugin. Su fixture unitaria también inyecta la KB real
+para cubrir directamente las ramas de comparación y error.
+
+Verificación: 14 tests del plugin pasan, Ruff, Black y mypy pasan en el módulo
+modificado. El score sigue en **5.75/10**: quedan 48 imports directos de la KB,
+además de la cobertura, mocks, el fallo heredado de perfilado, la dependencia
+de Moth y los orquestadores grandes.
