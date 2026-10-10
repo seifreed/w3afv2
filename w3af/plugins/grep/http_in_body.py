@@ -70,7 +70,7 @@ class http_in_body(GrepPlugin):
                 )
                 i.set_uri(uri)
                 i.add_to_highlight(match.group(0))
-                self._get_knowledge_base().append(self, "request", i)
+                self._kb_append(self, "request", i)
 
             if reqres == "RESPONSE":
                 desc = "An HTTP response was found in the HTTP body of a response."
@@ -79,7 +79,7 @@ class http_in_body(GrepPlugin):
                 )
                 i.set_uri(uri)
                 i.add_to_highlight(match.group(0))
-                self._get_knowledge_base().append(self, "response", i)
+                self._kb_append(self, "response", i)
 
     def end(self):
         """

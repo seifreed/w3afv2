@@ -154,7 +154,7 @@ class wordpress_fingerprint(CrawlPlugin):
                     )
                     i.set_url(install_url)
 
-                    self._get_knowledge_base().append(self, "info", i)
+                    self._kb_append(self, "info", i)
                     self._output.information(i.get_desc())
 
                     # Send link to core
@@ -186,7 +186,7 @@ class wordpress_fingerprint(CrawlPlugin):
             )
             i.set_url(wp_readme_url)
 
-            self._get_knowledge_base().append(self, "info", i)
+            self._kb_append(self, "info", i)
             self._output.information(i.get_desc())
 
             # Send link to core
@@ -220,7 +220,7 @@ class wordpress_fingerprint(CrawlPlugin):
             )
             i.set_url(wp_index_url)
 
-            self._get_knowledge_base().append(self, "info", i)
+            self._kb_append(self, "info", i)
             self._output.information(i.get_desc())
 
             # Send link to core
@@ -268,7 +268,7 @@ class wordpress_fingerprint(CrawlPlugin):
                 )
                 i.set_url(test_url)
 
-                self._get_knowledge_base().append(self, "info", i)
+                self._kb_append(self, "info", i)
                 self._output.information(i.get_desc())
 
                 # Send link to core

@@ -265,7 +265,7 @@ class allowed_methods(InfrastructurePlugin):
             )
             i.set_url(url)
 
-            self._get_knowledge_base().append(self, "custom-configuration", i)
+            self._kb_append(self, "custom-configuration", i)
 
             #
             # All methods will appear as enabled because of this custom
@@ -325,7 +325,7 @@ class allowed_methods(InfrastructurePlugin):
             i.set_url(url)
             i["methods"] = _allowed_methods
 
-            self._get_knowledge_base().append(self, "dav-methods", i)
+            self._kb_append(self, "dav-methods", i)
         else:
             # Save the results in the KB so that other plugins can use this
             # information. Do not remove these information, other plugins
@@ -337,7 +337,7 @@ class allowed_methods(InfrastructurePlugin):
             i.set_url(url)
             i["methods"] = _allowed_methods
 
-            self._get_knowledge_base().append(self, "methods", i)
+            self._kb_append(self, "methods", i)
 
     def end(self):
         """

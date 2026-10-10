@@ -75,7 +75,7 @@ class genexus_xml(CrawlPlugin):
             i = Info(title_info, desc, http_response.id, self.get_name())
             i.set_url(genexus_url)
 
-            self._get_knowledge_base().append(self, file_name, i)
+            self._kb_append(self, file_name, i)
             self._output.information(i.get_desc())
 
             # Send the new link to the core

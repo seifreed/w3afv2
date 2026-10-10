@@ -84,7 +84,7 @@ class motw(GrepPlugin):
             i = self.create_info(desc, response, motw_match)
             i["local_machine"] = True
 
-        self._get_knowledge_base().append(self, "motw", i)
+        self._kb_append(self, "motw", i)
 
     def create_info(self, desc, response, motw_match):
         i = Info("Mark of the web", desc, response.id, self.get_name())

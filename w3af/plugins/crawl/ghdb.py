@@ -118,7 +118,7 @@ class ghdb(CrawlPlugin):
                 v.set_url(response.get_url())
                 v.set_method("GET")
 
-                self._get_knowledge_base().append(self, "vuln", v)
+                self._kb_append(self, "vuln", v)
                 self._output.vulnerability(v.get_desc(), severity=severity.LOW)
 
                 # Create the fuzzable requests

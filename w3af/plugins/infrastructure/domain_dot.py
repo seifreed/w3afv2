@@ -98,7 +98,7 @@ class domain_dot(InfrastructurePlugin):
             )
 
             self._output.information(desc)
-            self._get_knowledge_base().append(self, "domain_dot", i)
+            self._kb_append(self, "domain_dot", i)
 
     def get_long_desc(self):
         """

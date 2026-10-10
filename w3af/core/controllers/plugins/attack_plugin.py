@@ -192,7 +192,7 @@ class AttackPlugin(Plugin, ResponseCutMixin):
                 s.set_output(self._output)
                 s.set_configuration(self.get_configuration())
                 s.set_knowledge_base(self._get_knowledge_base())
-                self._get_knowledge_base().append(self.get_name(), "shell", s)
+                self._kb_append(self.get_name(), "shell", s)
                 generated_shells.append(s)
                 self._output.console(
                     "Vulnerability successfully exploited."

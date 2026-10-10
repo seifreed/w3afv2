@@ -111,7 +111,7 @@ class find_jboss(InfrastructurePlugin):
                 o = Vuln(name, desc, severity.LOW, response.id, self.get_name())
 
             o.set_url(vuln_url)
-            self._get_knowledge_base().append(self, "find_jboss", o)
+            self._kb_append(self, "find_jboss", o)
 
             self.output_queue.put(
                 FuzzableRequest(

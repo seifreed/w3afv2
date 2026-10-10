@@ -152,7 +152,7 @@ class wordpress_enumerate_users(CrawlPlugin):
         i = Info("Identified WordPress user", desc, response_id, self.get_name())
         i.set_url(url)
 
-        self._get_knowledge_base().append(self, "users", i)
+        self._kb_append(self, "users", i)
         self._output.information(i.get_desc())
 
     def get_long_desc(self):

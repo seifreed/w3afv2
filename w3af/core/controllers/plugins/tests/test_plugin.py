@@ -176,6 +176,19 @@ class TestPlugin(unittest.TestCase):
 
         self.assertEqual(len(kb.kb.get("a", "b")), 2)
         self.assertEqual(len(recorder.messages_of("vulnerability")), 2)
+
+    def test_private_kb_append_configures_without_reporting(self):
+        plugin = Plugin()
+        plugin.set_knowledge_base(kb.kb)
+        configuration = Config()
+        configuration.save("vulndb_language", "es")
+        plugin.set_configuration(configuration)
+
+        info = new_info("http://w3af.org/")
+        plugin._kb_append("a", "b", info)
+
+        self.assertEqual(info.get_vulndb_lang(), "es")
+        self.assertEqual(len(kb.kb.get("a", "b")), 1)
         stored_info = kb.kb.get("a", "b")[0]
         self.assertEqual(stored_info.get_vulndb_lang(), "es")
         self.assertNotIn("_configuration", vars(stored_info))

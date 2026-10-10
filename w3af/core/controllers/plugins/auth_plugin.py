@@ -289,7 +289,7 @@ class AuthPlugin(Plugin):
 
         i.set_uri(self._get_main_authentication_url())
 
-        self._get_knowledge_base().append("authentication", "error", i)
+        self._kb_append("authentication", "error", i)
 
     def get_type(self):
         return "auth"

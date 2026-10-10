@@ -111,7 +111,7 @@ class dwsync_xml(CrawlPlugin):
             )
             v.set_url(response.get_url())
 
-            self._get_knowledge_base().append(self, "dwsync_xml", v)
+            self._kb_append(self, "dwsync_xml", v)
             self._output.vulnerability(v.get_desc(), severity=v.get_severity())
 
             self.worker_pool.map(self.http_get_and_parse, parsed_url_list)

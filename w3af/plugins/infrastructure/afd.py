@@ -146,7 +146,7 @@ class afd(InfrastructurePlugin):
             i = Info("Active filter detected", desc, 1, self.get_name())
             i["filtered"] = filtered
 
-            self._get_knowledge_base().append(self, "afd", i)
+            self._kb_append(self, "afd", i)
             self._output.information(i.get_desc())
 
             self._output.information("The following URLs were filtered:")

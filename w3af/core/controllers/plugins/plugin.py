@@ -31,6 +31,7 @@ from w3af.core.configurable import Configurable
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404 as detect_404
 from w3af.core.controllers.threads.decorators import apply_with_return_error
 from w3af.core.controllers.threads.threadpool import return_args
+from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.url.exceptions import HTTPRequestException
@@ -214,12 +215,16 @@ class Plugin(Configurable):
         """
         kb.kb.append a vulnerability to the KB
         """
-        self._configure_info(info)
-        self._get_knowledge_base().append(location_a, location_b, info)
+        self._kb_append(location_a, location_b, info)
         self._output.report_finding(info)
 
+    def _kb_append(self, location_a, location_b, value):
+        """Store a KB value while applying scan configuration to findings."""
+        self._configure_info(value)
+        self._get_knowledge_base().append(location_a, location_b, value)
+
     def _configure_info(self, info):
-        if self._configuration is not None:
+        if self._configuration is not None and isinstance(info, Info):
             info.set_configuration(self._configuration)
 
     def __eq__(self, other):

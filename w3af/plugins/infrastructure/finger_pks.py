@@ -60,7 +60,7 @@ class finger_pks(InfrastructurePlugin):
             i["name"] = result.name
             i["url_list"] = {URL(pks_url)}
 
-            self._get_knowledge_base().append("emails", "emails", i)
+            self._kb_append("emails", "emails", i)
             self._output.information(i.get_desc())
 
     def get_long_desc(self):

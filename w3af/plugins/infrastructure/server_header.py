@@ -94,7 +94,7 @@ class server_header(InfrastructurePlugin):
             self._output.information(i.get_desc())
 
             # Save the results in the KB so the user can look at it
-            self._get_knowledge_base().append(self, "server", i)
+            self._kb_append(self, "server", i)
 
             # Also save this for easy internal use
             # other plugins can use this information
@@ -110,7 +110,7 @@ class server_header(InfrastructurePlugin):
 
             # Save the results in the KB so that other plugins can use this
             # information
-            self._get_knowledge_base().append(self, "omitted_server_header", i)
+            self._kb_append(self, "omitted_server_header", i)
 
             # Also save this for easy internal use
             # other plugins can use this information
@@ -147,7 +147,7 @@ class server_header(InfrastructurePlugin):
                     #
                     # But I have seen an IIS server with PHP that returns
                     # both the ASP.NET and the PHP headers
-                    self._get_knowledge_base().append(self, "powered_by", i)
+                    self._kb_append(self, "powered_by", i)
 
                     # Save the list to the KB
                     self._get_knowledge_base().raw_write(

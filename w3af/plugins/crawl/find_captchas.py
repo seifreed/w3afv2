@@ -64,7 +64,7 @@ class find_captchas(CrawlPlugin):
             i = Info("Captcha image detected", desc, response_ids, self.get_name())
             i.set_uri(captcha.img_src)
 
-            self._get_knowledge_base().append(self, "CAPTCHA", i)
+            self._kb_append(self, "CAPTCHA", i)
             self._output.information(i.get_desc())
 
     def _identify_captchas(self, fuzzable_request):

@@ -405,7 +405,7 @@ class fingerprint_waf(InfrastructurePlugin):
         i.set_url(response.get_url())
         i.set_id(response.id)
 
-        self._get_knowledge_base().append(self, name, i)
+        self._kb_append(self, name, i)
         self._output.information(i.get_desc())
 
     def get_plugin_deps(self):

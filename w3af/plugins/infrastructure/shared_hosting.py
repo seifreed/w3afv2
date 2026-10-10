@@ -152,7 +152,7 @@ class shared_hosting(InfrastructurePlugin):
                 v["also_in_hosting"] = results
 
                 self._output.vulnerability(desc, severity=severity.MEDIUM)
-                self._get_knowledge_base().append(self, "shared_hosting", v)
+                self._kb_append(self, "shared_hosting", v)
 
     def get_options(self):
         """

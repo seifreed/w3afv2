@@ -136,7 +136,7 @@ class find_backdoors(CrawlPlugin):
         )
         v.set_url(response.get_url())
 
-        self._get_knowledge_base().append(self, "backdoors", v)
+        self._kb_append(self, "backdoors", v)
         self._output.vulnerability(v.get_desc(), severity=v.get_severity())
 
         fr = FuzzableRequest.from_http_response(

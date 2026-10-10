@@ -139,7 +139,7 @@ class basic_auth(BruteforcePlugin):
         v["response"] = response
         v["request"] = fr
 
-        self._get_knowledge_base().append(self, "auth", v)
+        self._kb_append(self, "auth", v)
         self._output.vulnerability(v.get_desc(), severity=v.get_severity())
 
     def _configure_credentials_in_opener(self):

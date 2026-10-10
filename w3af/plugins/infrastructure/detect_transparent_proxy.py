@@ -71,7 +71,7 @@ class detect_transparent_proxy(InfrastructurePlugin):
             i = Info("Transparent proxy detected", desc, 1, self.get_name())
             i.set_url(fuzzable_request.get_url())
 
-            self._get_knowledge_base().append(self, "detect_transparent_proxy", i)
+            self._kb_append(self, "detect_transparent_proxy", i)
             self._output.information(i.get_desc())
         else:
             self._output.information("Your ISP has no transparent proxy.")

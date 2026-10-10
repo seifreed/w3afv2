@@ -130,7 +130,7 @@ class ria_enumerator(CrawlPlugin):
         i = Info("Gears manifest resource", desc, response.id, self.get_name())
         i.set_url(url)
 
-        self._get_knowledge_base().append(self, "gears_manifest", i)
+        self._kb_append(self, "gears_manifest", i)
         self._output.information(i.get_desc())
 
         fr = FuzzableRequest.from_http_response(
@@ -163,7 +163,7 @@ class ria_enumerator(CrawlPlugin):
                 )
                 i.set_url(response.get_url())
 
-                self._get_knowledge_base().append(self, "info", i)
+                self._kb_append(self, "info", i)
                 self._output.information(i.get_desc())
 
             return
@@ -191,7 +191,7 @@ class ria_enumerator(CrawlPlugin):
                 v.set_url(response.get_url())
                 v.set_method("GET")
 
-                self._get_knowledge_base().append(self, "vuln", v)
+                self._kb_append(self, "vuln", v)
                 self._output.vulnerability(v.get_desc(), severity=v.get_severity())
 
                 fr = FuzzableRequest.from_http_response(
@@ -210,7 +210,7 @@ class ria_enumerator(CrawlPlugin):
                 i.set_url(response.get_url())
                 i.set_method("GET")
 
-                self._get_knowledge_base().append(self, "info", i)
+                self._kb_append(self, "info", i)
                 self._output.information(i.get_desc())
 
                 fr = FuzzableRequest.from_http_response(

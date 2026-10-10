@@ -112,7 +112,7 @@ class dot_ds_store(CrawlPlugin):
         )
         v.set_url(response.get_url())
 
-        self._get_knowledge_base().append(self, "dot_ds_store", v)
+        self._kb_append(self, "dot_ds_store", v)
         self._output.vulnerability(v.get_desc(), severity=v.get_severity())
 
     def get_long_desc(self):

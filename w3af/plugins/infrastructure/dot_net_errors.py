@@ -132,7 +132,7 @@ class dot_net_errors(InfrastructurePlugin):
             self.get_name(),
         )
 
-        self._get_knowledge_base().append(self, "dot_net_errors", v)
+        self._kb_append(self, "dot_net_errors", v)
 
     def get_plugin_deps(self):
         """

@@ -91,7 +91,7 @@ class server_status(InfrastructurePlugin):
             i.set_url(response.get_url())
 
             self._output.information(i.get_desc())
-            self._get_knowledge_base().append(self, "server", i)
+            self._kb_append(self, "server", i)
 
     def _extract_urls(self, fuzzable_request, response):
         """
@@ -144,7 +144,7 @@ class server_status(InfrastructurePlugin):
             self._shared_hosting_hosts = list(set(self._shared_hosting_hosts))
             v["also_in_hosting"] = self._shared_hosting_hosts
 
-            self._get_knowledge_base().append(self, "shared_hosting", v)
+            self._kb_append(self, "shared_hosting", v)
             self._output.vulnerability(v.get_desc(), severity=v.get_severity())
 
             msg = (

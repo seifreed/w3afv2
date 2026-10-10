@@ -100,7 +100,7 @@ class zone_h(InfrastructurePlugin):
                 )
                 v.set_url(response.get_url())
 
-                self._get_knowledge_base().append(self, "defacements", v)
+                self._kb_append(self, "defacements", v)
                 self._output.information(v.get_desc())
             elif total_attacks == 1:
                 desc = (
@@ -111,7 +111,7 @@ class zone_h(InfrastructurePlugin):
                 i = Info("Previous defacements", desc, response.id, self.get_name())
                 i.set_url(response.get_url())
 
-                self._get_knowledge_base().append(self, "defacements", i)
+                self._kb_append(self, "defacements", i)
                 self._output.information(i.get_desc())
 
     def get_long_desc(self):

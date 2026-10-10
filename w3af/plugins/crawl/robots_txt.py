@@ -74,7 +74,7 @@ class robots_txt(CrawlPlugin):
         i = Info("robots.txt file", desc, http_response.id, self.get_name())
         i.set_url(robots_url)
 
-        self._get_knowledge_base().append(self, "robots.txt", i)
+        self._kb_append(self, "robots.txt", i)
         self._output.information(i.get_desc())
 
     def _extract_urls(self, base_url, http_response):

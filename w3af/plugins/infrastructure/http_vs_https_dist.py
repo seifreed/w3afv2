@@ -145,7 +145,7 @@ class http_vs_https_dist(InfrastructurePlugin):
 
     def _report_info(self, name, desc):
         i = Info(name, desc, 1, self.get_name())
-        self._get_knowledge_base().append(self, "http_vs_https_dist", i)
+        self._kb_append(self, "http_vs_https_dist", i)
 
     def get_options(self):
         """

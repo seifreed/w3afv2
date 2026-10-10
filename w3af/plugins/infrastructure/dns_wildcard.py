@@ -108,7 +108,7 @@ class dns_wildcard(InfrastructurePlugin):
         i = Info("Default virtual host", desc, modified_response.id, self.get_name())
         i.set_url(modified_response.get_url())
 
-        self._get_knowledge_base().append(self, "dns_wildcard", i)
+        self._kb_append(self, "dns_wildcard", i)
         self._output.information(i.get_desc())
 
     def _test_dns(self, original_response, dns_wildcard_url):
@@ -146,7 +146,7 @@ class dns_wildcard(InfrastructurePlugin):
             )
             i.set_url(dns_wildcard_url)
 
-            self._get_knowledge_base().append(self, "dns_wildcard", i)
+            self._kb_append(self, "dns_wildcard", i)
             self._output.information(i.get_desc())
         else:
             desc = (
@@ -163,7 +163,7 @@ class dns_wildcard(InfrastructurePlugin):
             )
             i.set_url(original_response.get_url())
 
-            self._get_knowledge_base().append(self, "dns_wildcard", i)
+            self._kb_append(self, "dns_wildcard", i)
             self._output.information(i.get_desc())
 
     def get_long_desc(self):

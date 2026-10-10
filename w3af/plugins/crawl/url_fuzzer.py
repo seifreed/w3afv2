@@ -172,7 +172,7 @@ class url_fuzzer(CrawlPlugin):
         i = Info("Potentially interesting file", desc, response.id, self.get_name())
         i.set_url(response.get_url())
 
-        self._get_knowledge_base().append(self, "files", i)
+        self._kb_append(self, "files", i)
         self._output.information(i.get_desc())
 
     def _mutate_domain_name(self, url):

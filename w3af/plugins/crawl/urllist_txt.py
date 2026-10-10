@@ -66,7 +66,7 @@ class urllist_txt(CrawlPlugin):
         i = Info("urllist.txt file", desc, http_response.id, self.get_name())
         i.set_url(urllist_url)
 
-        self._get_knowledge_base().append(self, "urllist.txt", i)
+        self._kb_append(self, "urllist.txt", i)
         self._output.information(i.get_desc())
 
         # Even in the case where it is NOT a valid urllist.txt it might be

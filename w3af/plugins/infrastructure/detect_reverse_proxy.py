@@ -111,7 +111,7 @@ class detect_reverse_proxy(InfrastructurePlugin):
         i = Info("Reverse proxy identified", desc, response.id, self.get_name())
         i.set_url(response.get_url())
 
-        self._get_knowledge_base().append(self, "detect_reverse_proxy", i)
+        self._kb_append(self, "detect_reverse_proxy", i)
         self._output.information(i.get_desc())
 
     def _has_proxy_headers(self, response):

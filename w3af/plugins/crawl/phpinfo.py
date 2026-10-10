@@ -208,7 +208,7 @@ class phpinfo(CrawlPlugin):
         )
         v.set_url(response.get_url())
 
-        self._get_knowledge_base().append(self, "phpinfo", v)
+        self._kb_append(self, "phpinfo", v)
         self._output.vulnerability(v.get_desc(), severity=v.get_severity())
 
         if not self._has_audited:

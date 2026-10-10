@@ -82,7 +82,7 @@ class phishtank(CrawlPlugin):
         v = Vuln("Phishing scam", desc, severity.MEDIUM, [], self.get_name())
         v.set_url(ptm.url)
 
-        self._get_knowledge_base().append(self, "phishtank", v)
+        self._kb_append(self, "phishtank", v)
         self._output.vulnerability(v.get_desc(), severity=v.get_severity())
 
     def _get_to_check(self, target_url):

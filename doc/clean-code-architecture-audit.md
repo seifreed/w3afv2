@@ -4131,3 +4131,18 @@ focal están limpios. Ya no quedan lecturas de `cf.cf` en `Info`; permanece el
 singleton únicamente en `w3afCore`. El score sube a **9.5/10** en Clean
 Architecture y **9.4/10** global. Restan las escrituras directas en KB, el
 ensamblaje global de `w3afCore` y la cobertura global del 100%.
+
+## Actualización verificada: configuración en escrituras directas de KB
+
+Las escrituras directas de los plugins pasan por un helper interno común que
+resuelve el idioma de `Info/Vuln` antes de persistir, sin convertirlas en
+`kb_append` ni emitir findings duplicados. El mismo helper acepta valores que
+no son findings, como `Shell`, sin acoplar la KB a la configuración global.
+
+Verificación: plugin, KB, `Info` y `Vuln` pasan **51 tests**. Black, Ruff y
+mypy focal están limpios. La suite combinada de controllers/KB conserva **26
+fallos preexistentes** por fixtures que dejan `_output` o `_uri_opener` sin
+configurar; el mismo resultado se reproduce en el `HEAD` anterior. El score
+sube a **9.6/10** en Clean Architecture y **9.5/10** global. Restan el
+ensamblaje global de `w3afCore`, la reparación de esas fixtures y la cobertura
+global del 100%.

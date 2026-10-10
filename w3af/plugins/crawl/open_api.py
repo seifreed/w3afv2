@@ -280,7 +280,7 @@ class open_api(CrawlPlugin):
             )
             i.set_url(http_response.get_url())
 
-            self._get_knowledge_base().append(self, "open_api", i)
+            self._kb_append(self, "open_api", i)
             self._output.error(i.get_desc())
 
             return
@@ -298,7 +298,7 @@ class open_api(CrawlPlugin):
         )
         i.set_url(http_response.get_url())
 
-        self._get_knowledge_base().append(self, "open_api", i)
+        self._kb_append(self, "open_api", i)
         self._output.information(i.get_desc())
 
         # Warn the user about missing credentials
@@ -318,7 +318,7 @@ class open_api(CrawlPlugin):
         )
         i.set_url(http_response.get_url())
 
-        self._get_knowledge_base().append(self, "open_api", i)
+        self._kb_append(self, "open_api", i)
         self._output.information(i.get_desc())
 
     def _set_authentication_data(self, fuzzable_request):

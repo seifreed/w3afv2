@@ -161,7 +161,7 @@ class analyze_cookies(GrepPlugin):
             i.set_cookie_string(cookie_header_value)
 
             # The cookie is invalid, this is worth mentioning ;)
-            self._get_knowledge_base().append(self, "invalid-cookies", i)
+            self._kb_append(self, "invalid-cookies", i)
             return None
 
     def _analyze_cookie_security(
@@ -268,7 +268,7 @@ class analyze_cookies(GrepPlugin):
                         v.set_url(response.get_url())
                         v.set_cookie_object(info.get_cookie_object())
 
-                        self._get_knowledge_base().append(self, "secure_via_http", v)
+                        self._kb_append(self, "secure_via_http", v)
 
     def _match_cookie_fingerprint(self, request, response, cookie_obj):
         """
@@ -304,7 +304,7 @@ class analyze_cookies(GrepPlugin):
                 i.set_url(response.get_url())
                 i["httpd"] = system_name
 
-                self._get_knowledge_base().append(self, "fingerprint", i)
+                self._kb_append(self, "fingerprint", i)
                 return True
         # No match was found, we store the keys so we don't try to match
         # them again against the COOKIE_FINGERPRINT
@@ -351,7 +351,7 @@ class analyze_cookies(GrepPlugin):
             v.set_url(response.get_url())
             v.set_cookie_object(cookie_obj)
 
-            self._get_knowledge_base().append(self, "false_secure", v)
+            self._kb_append(self, "false_secure", v)
 
     def _not_secure_over_https(
         self, request, response, cookie_obj, cookie_header_value

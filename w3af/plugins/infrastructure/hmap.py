@@ -84,7 +84,7 @@ class hmap(InfrastructurePlugin):
 
         # Save the results in the KB so that other plugins can use this
         # information
-        self._get_knowledge_base().append(self, "server", i)
+        self._kb_append(self, "server", i)
         self._get_knowledge_base().raw_write(self, "server_string", server)
 
         #

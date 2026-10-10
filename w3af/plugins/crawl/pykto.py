@@ -187,7 +187,7 @@ class pykto(CrawlPlugin):
             v.set_uri(http_response.get_uri())
             v.set_method(nikto_test.method)
 
-            self._get_knowledge_base().append(self, "vuln", v)
+            self._kb_append(self, "vuln", v)
             self._output.vulnerability(v.get_desc(), severity=v.get_severity())
 
             fr = FuzzableRequest.from_http_response(

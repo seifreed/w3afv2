@@ -91,7 +91,7 @@ class http_auth_detect(GrepPlugin):
             v.set_url(response.get_url())
             v.add_to_highlight(response.get_uri().url_string)
 
-            self._get_knowledge_base().append(self, "userPassUri", v)
+            self._kb_append(self, "userPassUri", v)
             self._output.vulnerability(v.get_desc(), severity=v.get_severity())
 
         #
@@ -129,7 +129,7 @@ class http_auth_detect(GrepPlugin):
                 v.set_url(response.get_url())
                 v.add_to_highlight(url.url_string)
 
-                self._get_knowledge_base().append(self, "userPassUri", v)
+                self._kb_append(self, "userPassUri", v)
                 self._output.vulnerability(v.get_desc(), severity=v.get_severity())
 
     def _url_has_auth(self, url):
@@ -162,7 +162,7 @@ class http_auth_detect(GrepPlugin):
         )
         i.set_url(response.get_url())
 
-        self._get_knowledge_base().append(self, "non_rfc_auth", i)
+        self._kb_append(self, "non_rfc_auth", i)
         self._output.information(i.get_desc())
 
     def _analyze_401(self, response):
@@ -212,7 +212,7 @@ class http_auth_detect(GrepPlugin):
         v["message"] = realm
         v.add_to_highlight(realm)
 
-        self._get_knowledge_base().append(self, "auth", v)
+        self._kb_append(self, "auth", v)
         self._output.information(v.get_desc())
 
     def get_long_desc(self):

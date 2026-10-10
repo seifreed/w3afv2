@@ -90,7 +90,7 @@ class frontpage_version(InfrastructurePlugin):
             i.set_url(response.get_url())
             i["version"] = version_mo.group(1)
 
-            self._get_knowledge_base().append(self, "frontpage_version", i)
+            self._kb_append(self, "frontpage_version", i)
             self._output.information(i.get_desc())
 
             #
@@ -146,7 +146,7 @@ class frontpage_version(InfrastructurePlugin):
         i.set_url(admin_location)
         i["FPAdminScriptUrl"] = admin_location
 
-        self._get_knowledge_base().append(self, "frontpage_version", i)
+        self._kb_append(self, "frontpage_version", i)
         self._output.information(i.get_desc())
 
     def _analyze_author(self, response, frontpage_author):
@@ -180,7 +180,7 @@ class frontpage_version(InfrastructurePlugin):
         i.set_url(author_location)
         i["FPAuthorScriptUrl"] = author_location
 
-        self._get_knowledge_base().append(self, "frontpage_version", i)
+        self._kb_append(self, "frontpage_version", i)
         self._output.information(i.get_desc())
 
     def get_long_desc(self):

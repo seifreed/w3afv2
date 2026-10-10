@@ -267,7 +267,7 @@ class error_pages(GrepPlugin):
                     i.add_to_highlight(server)
                     i.add_to_highlight(match_string)
 
-                    self._get_knowledge_base().append(self, "server", i)
+                    self._kb_append(self, "server", i)
 
                     self._already_reported_versions.append(match_string)
 

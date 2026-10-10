@@ -216,7 +216,7 @@ class find_dvcs(CrawlPlugin):
         )
         v.set_url(http_response.get_url())
 
-        self._get_knowledge_base().append(self, repo, v)
+        self._kb_append(self, repo, v)
         self._output.vulnerability(v.get_desc(), severity=v.get_severity())
 
     def git_index(self, body):

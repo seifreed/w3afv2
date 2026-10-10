@@ -160,7 +160,7 @@ class find_vhosts(InfrastructurePlugin):
             )
             i.set_url(fuzzable_request.get_url())
 
-            self._get_knowledge_base().append(self, "find_vhosts", i)
+            self._kb_append(self, "find_vhosts", i)
             self._output.information(i.get_desc())
 
             yield domain
@@ -208,7 +208,7 @@ class find_vhosts(InfrastructurePlugin):
                 fuzzable_request,
             )
 
-            self._get_knowledge_base().append(self, "find_vhosts", v)
+            self._kb_append(self, "find_vhosts", v)
             self._output.information(v.get_desc())
 
     def _response_is_different(

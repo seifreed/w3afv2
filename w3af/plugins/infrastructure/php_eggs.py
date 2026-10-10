@@ -195,7 +195,7 @@ class php_eggs(InfrastructurePlugin):
                 )
                 i.set_url(query_result.egg_URL)
 
-                self._get_knowledge_base().append(self, "eggs", i)
+                self._kb_append(self, "eggs", i)
                 self._output.information(i.get_desc())
 
             return True
@@ -255,7 +255,7 @@ class php_eggs(InfrastructurePlugin):
         i = Info("Fingerprinted PHP version", desc, response_ids, self.get_name())
         i["version"] = matching_versions
 
-        self._get_knowledge_base().append(self, "version", i)
+        self._kb_append(self, "version", i)
         self._output.information(i.get_desc())
 
     def _php_version_from_powered_by(self):

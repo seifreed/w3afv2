@@ -87,7 +87,7 @@ class oracle_discovery(CrawlPlugin):
                 )
                 i.set_url(response.get_url())
 
-                self._get_knowledge_base().append(self, "oracle_discovery", i)
+                self._kb_append(self, "oracle_discovery", i)
                 self._output.information(i.get_desc())
 
                 fr = FuzzableRequest.from_http_response(

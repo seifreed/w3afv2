@@ -273,7 +273,7 @@ class content_negotiation(CrawlPlugin):
             )
             i.set_url(response.get_url())
 
-            self._get_knowledge_base().append(self, "content_negotiation", i)
+            self._kb_append(self, "content_negotiation", i)
             self._output.information(i.get_desc())
 
             # Save the result internally

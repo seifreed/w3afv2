@@ -161,7 +161,7 @@ class AuthSessionPlugin(AuthPlugin):
 
         i.set_uri(self._get_main_authentication_url())
 
-        self._get_knowledge_base().append("authentication", "error", i)
+        self._kb_append("authentication", "error", i)
 
     def _get_invalid_session_perc(self):
         total_session_checks = self._valid_sessions_count + self._invalid_sessions_count

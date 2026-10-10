@@ -83,7 +83,7 @@ class favicon_identification(InfrastructurePlugin):
                     )
                     i.set_url(favicon_url)
 
-                    self._get_knowledge_base().append(self, "info", i)
+                    self._kb_append(self, "info", i)
                     self._output.information(i.get_desc())
                     break
             else:
@@ -106,7 +106,7 @@ class favicon_identification(InfrastructurePlugin):
                 )
                 i.set_url(favicon_url)
 
-                self._get_knowledge_base().append(self, "info", i)
+                self._kb_append(self, "info", i)
                 self._output.information(i.get_desc())
 
     def _read_favicon_db(self):

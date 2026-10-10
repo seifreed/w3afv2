@@ -122,7 +122,7 @@ class wordpress_fullpathdisclosure(CrawlPlugin):
                 )
                 i.set_url(pvuln_url)
 
-                self._get_knowledge_base().append(self, "info", i)
+                self._kb_append(self, "info", i)
                 self._output.information(i.get_desc())
                 break
 

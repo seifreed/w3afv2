@@ -106,7 +106,7 @@ class dot_listing(CrawlPlugin):
             )
             v.set_url(response.get_url())
 
-            self._get_knowledge_base().append(self, "dot_listing", v)
+            self._kb_append(self, "dot_listing", v)
             self._output.vulnerability(v.get_desc(), severity=v.get_severity())
 
             fr = FuzzableRequest(
@@ -136,7 +136,7 @@ class dot_listing(CrawlPlugin):
             )
             v.set_url(response.get_url())
 
-            self._get_knowledge_base().append(self, "dot_listing", v)
+            self._kb_append(self, "dot_listing", v)
             self._output.vulnerability(v.get_desc(), severity=v.get_severity())
 
     def _extract_info_from_listing(self, listing_file_content):

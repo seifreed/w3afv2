@@ -160,7 +160,7 @@ class strange_headers(GrepPlugin):
         i.set_url(response.get_url())
         i.add_to_highlight("content-location")
 
-        self._get_knowledge_base().append(self, "anomaly", i)
+        self._kb_append(self, "anomaly", i)
 
     def get_long_desc(self):
         """
