@@ -56,13 +56,19 @@ class ConsoleUI:
     """
 
     def __init__(
-        self, commands=None, do_upd=None, create_reporter=create_github_reporter
+        self,
+        commands=None,
+        do_upd=None,
+        create_reporter=create_github_reporter,
+        output=None,
     ):
         """
         :param commands: Commands to run before reading the user's input
         :param do_upd: Force (True) or skip (False) the update check
         :param create_reporter: Creates the bug reporter used by the
                                 bug-report menu
+        :param output: Output sink used to print messages, defaults to the
+                       global output manager
         """
         self._create_reporter = create_reporter
         if commands is None:
@@ -94,6 +100,11 @@ class ConsoleUI:
         }
 
         self.__initRoot(do_upd)
+
+        # Resolve the default output sink after __initRoot: creating the
+        # w3afCore replaces the global om.out with a fresh log sink, so an
+        # eagerly captured default would point at a stale, disconnected sink.
+        self._output = output if output is not None else om.out
 
     def __initRoot(self, do_upd):
         """
@@ -161,7 +172,7 @@ class ConsoleUI:
         try:
             self._w3af.quit()
             self._context.join()
-            om.out.console(self._random_message())
+            self._output.console(self._random_message())
             om.manager.process_all_messages()
         except KeyboardInterrupt:
             # The user might be in a hurry, and after "w3af>>> exit" he
@@ -222,7 +233,7 @@ class ConsoleUI:
             # temporary hack for exploit interaction mode
             # possibly, menu should have it's 'exit' method
             self._context = self.back()
-            om.out.console("")
+            self._output.console("")
         else:
             cmd = exit and "exit" or "back"
             self._clearLine()
@@ -256,7 +267,7 @@ class ConsoleUI:
     def _execute(self):
         line = self._getLineStr()
         term.set_raw_input_mode(False)
-        om.out.console("")
+        self._output.console("")
         if len(line) and not line.isspace():
 
             self._get_history().remember(self._line)
@@ -272,7 +283,7 @@ class ConsoleUI:
 
             except BaseFrameworkException as e:
                 menu = None
-                om.out.console(e.value)
+                self._output.console(e.value)
 
             if menu:
                 if callable(menu):

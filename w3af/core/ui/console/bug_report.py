@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.easy_contribution.github_issues import (
     MISSING_CREDENTIAL_MSG,
     OAUTH_AUTH_FAILED,
@@ -67,7 +66,7 @@ class bug_report_menu(menu):
 
     def _cmd_summary(self, params):
         summary = self._w3af.exception_handler.generate_summary_str()
-        om.out.console(summary)
+        self._output.console(summary)
 
     def _cmd_list(self, params):
         all_edata = self._w3af.exception_handler.get_unique_exceptions()
@@ -77,7 +76,7 @@ class bug_report_menu(menu):
         elif len(params) == 1 and params[0] in self._w3af.plugins.get_plugin_types():
             ptype = params[0]
         else:
-            om.out.console("Invalid parameter type, please read help:")
+            self._output.console("Invalid parameter type, please read help:")
             self._cmd_help(["list"])
             return
 
@@ -96,21 +95,25 @@ class bug_report_menu(menu):
         all_edata = self._w3af.exception_handler.get_unique_exceptions()
 
         if len(params) != 1:
-            om.out.console("The exception ID needs to be specified, please read help:")
+            self._output.console(
+                "The exception ID needs to be specified, please read help:"
+            )
             self._cmd_help(["details"])
             return
         elif not params[0].isdigit():
-            om.out.console("The exception ID needs to be an integer, please read help:")
+            self._output.console(
+                "The exception ID needs to be an integer, please read help:"
+            )
             self._cmd_help(["details"])
             return
         elif int(params[0]) > len(all_edata) - 1 or int(params[0]) < 0:
-            om.out.console("Invalid ID specified, please read help:")
+            self._output.console("Invalid ID specified, please read help:")
             self._cmd_help(["details"])
             return
         else:
             eid = int(params[0])
             edata = all_edata[eid]
-            om.out.console(str(edata))
+            self._output.console(str(edata))
 
     def _cmd_report(self, params):
         """
@@ -119,7 +122,7 @@ class bug_report_menu(menu):
         all_edata = self._w3af.exception_handler.get_unique_exceptions()
 
         if not all_edata:
-            om.out.console("There are no exceptions to report for this scan.")
+            self._output.console("There are no exceptions to report for this scan.")
             return
 
         report_bug_eids = []
@@ -128,11 +131,11 @@ class bug_report_menu(menu):
             id_list = data.split(",")
             for eid in id_list:
                 if not eid.isdigit():
-                    om.out.console("Exception IDs must be integers.")
+                    self._output.console("Exception IDs must be integers.")
                 else:
                     eid = int(eid)
                     if not eid < len(all_edata):
-                        om.out.console("Exception ID out of range.")
+                        self._output.console("Exception ID out of range.")
                     else:
                         report_bug_eids.append(eid)
 
@@ -150,16 +153,16 @@ class bug_report_menu(menu):
         """
         reporter = self._create_reporter()
         if reporter is None:
-            om.out.console(MISSING_CREDENTIAL_MSG)
+            self._output.console(MISSING_CREDENTIAL_MSG)
             return
 
         try:
             reporter.login()
         except LoginFailed:
             msg = "Failed to contact github.com. Please try again later."
-            om.out.console(msg)
+            self._output.console(msg)
         except OAuthTokenInvalid:
-            om.out.console(OAUTH_AUTH_FAILED)
+            self._output.console(OAUTH_AUTH_FAILED)
         else:
             traceback_str = edata.traceback_str
             desc = edata.get_summary()
@@ -177,7 +180,7 @@ class bug_report_menu(menu):
                 fmt = "    [%s/%s] Bug with id %s reported at %s"
                 msg = fmt % (num, total, eid, ticket_url)
 
-            om.out.console(str(msg))
+            self._output.console(str(msg))
 
     def _para_details(self, params, part):
         if len(params):

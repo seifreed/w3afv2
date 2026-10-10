@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import copy
 import textwrap
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.exceptions import BaseFrameworkException
 from w3af.core.ui.console.config import ConfigMenu
 from w3af.core.ui.console.menu import menu
@@ -165,7 +164,7 @@ class pluginsTypeMenu(menu):
         # Disabling every output plugin is allowed, but the user is warned that
         # the scan will run in blind mode
         if self._name == "output" and not enabled:
-            om.out.console(DISABLED_OUTPUT_WARNING)
+            self._output.console(DISABLED_OUTPUT_WARNING)
 
         self._w3af.plugins.set_plugins(enabled, self._name)
 
@@ -181,7 +180,7 @@ class pluginsTypeMenu(menu):
         plugin = self._w3af.plugins.get_plugin_inst(self._name, plugin_name)
         long_desc = plugin.get_long_desc()
         long_desc = textwrap.dedent(long_desc)
-        om.out.console(long_desc)
+        self._output.console(long_desc)
 
     def _para_desc(self, params, part):
         if len(params) > 0:
@@ -205,7 +204,7 @@ class pluginsTypeMenu(menu):
             plugin_names = []
 
         if len(plugin_names) == 0:
-            om.out.console("No plugins have status " + status_filter)
+            self._output.console("No plugins have status " + status_filter)
             return
 
         plugin_names.sort()

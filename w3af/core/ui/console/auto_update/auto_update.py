@@ -30,13 +30,14 @@ def ask(msg):
 
 class ConsoleUIUpdater(UIUpdater):
 
-    def __init__(self, force):
-        UIUpdater.__init__(self, force=force, ask=ask, logger=om.out.console)
+    def __init__(self, force, output=None):
+        self._output = output if output is not None else om.out
+        UIUpdater.__init__(self, force=force, ask=ask, logger=self._output.console)
 
         # Show revisions logs function
         def show_log(msg, get_logs):
             if ask(msg):
-                om.out.console(get_logs())
+                self._output.console(get_logs())
 
         # Add callbacks
         self._add_callback("callback_onupdate_confirm", ask)

@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.plugin import Plugin
 from w3af.core.exceptions import BaseFrameworkException
 from w3af.core.ui.console.menu import menu
@@ -103,7 +102,7 @@ class ConfigMenu(menu):
 
     def _cmd_set(self, params):
         if len(params) < 2:
-            om.out.console("Invalid call to set, please see the help:")
+            self._output.console("Invalid call to set, please see the help:")
             self._cmd_help(["set"])
             return
 
@@ -120,7 +119,7 @@ class ConfigMenu(menu):
             self._options[name].set_value(value)
             self._unsaved_options[name] = value
         except BaseFrameworkException as e:
-            om.out.error(str(e))
+            self._output.error(str(e))
         else:
             if value not in self._memory[name]:
                 self._memory[name].append(value)
@@ -164,14 +163,14 @@ class ConfigMenu(menu):
             )
             raise BaseFrameworkException(msg % e)
         else:
-            om.out.console("The configuration has been saved.")
+            self._output.console("The configuration has been saved.")
             self._unsaved_options = {}
 
     def _cmd_back(self, tokens):
         try:
             self._cmd_save(tokens)
         except BaseFrameworkException as e:
-            om.out.error(str(e))
+            self._output.error(str(e))
 
         return self._console.back
 
@@ -200,12 +199,12 @@ class ConfigMenu(menu):
             optName = params[0]
             if optName in self._opt_dict:
                 opt = self._opt_dict[optName]
-                om.out.console(opt.get_desc())
+                self._output.console(opt.get_desc())
                 if opt.get_help():
-                    om.out.console("")
-                    om.out.console(opt.get_help())
-                om.out.console(f"Type: {opt.get_type()}")
-                om.out.console(f'Current value is: "{opt.get_default_value()}"')
+                    self._output.console("")
+                    self._output.console(opt.get_help())
+                self._output.console(f"Type: {opt.get_type()}")
+                self._output.console(f'Current value is: "{opt.get_default_value()}"')
                 return
 
         menu._cmd_help(self, params)
