@@ -60,7 +60,12 @@ class xst(AuditPlugin):
         method = "TRACE"
         headers = Headers()
         headers["FakeHeader"] = "XST"
-        fr = FuzzableRequest(uri, method=method, headers=headers)
+        fr = FuzzableRequest(
+            uri,
+            method=method,
+            headers=headers,
+            configuration=self.get_configuration(),
+        )
 
         # send the request to the server and receive the response
         response = self._uri_opener.send_mutant(fr)

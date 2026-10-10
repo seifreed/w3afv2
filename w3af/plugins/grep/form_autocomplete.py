@@ -55,7 +55,7 @@ class form_autocomplete(GrepPlugin):
         except BaseFrameworkException:
             return
 
-        for form in doc_parser.get_forms():
+        for form in doc_parser.get_forms(self.get_configuration()):
 
             # Only analyze forms which have autocomplete enabled at <form>
             if form.get_autocomplete() is False:

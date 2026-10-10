@@ -53,7 +53,7 @@ class form_cleartext_password(GrepPlugin):
         proto = url.get_protocol()
         url_string = url.url_string
 
-        for form in dp.get_forms():
+        for form in dp.get_forms(self.get_configuration()):
 
             action = form.get_action()
             action_proto = action.get_protocol()

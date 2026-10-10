@@ -82,7 +82,10 @@ class RequestFactory:
         data_container = self.get_data_container(headers)
 
         fuzzable_request = FuzzableRequest(
-            uri, headers=headers, post_data=data_container, method=method
+            uri,
+            headers=headers,
+            post_data=data_container,
+            method=method,
         )
 
         if discover_fuzzable_headers:

@@ -193,7 +193,7 @@ class autocomplete(AuthSessionPlugin):
 
         login_form = None
 
-        for form_params in document_parser.get_forms():
+        for form_params in document_parser.get_forms(self.get_configuration()):
             #
             # Find a form that:
             #

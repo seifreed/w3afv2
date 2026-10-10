@@ -4089,3 +4089,17 @@ contrato de headers inyectados. Black, Ruff y mypy focal están limpios; el caso
 aislado de `spider_man` pasa y solo muestra dos warnings deprecados externos.
 El score sube a **9.2/10** en Clean Architecture y **9.1/10** global. Siguen
 pendientes parsers, `Info`, controllers y la cobertura global del 100%.
+
+## Actualización verificada: filtro de formularios sin singleton
+
+`SGMLParser.get_forms` y `DocumentParser.get_forms` reciben la configuración
+solo durante la consulta. La API `parser.forms` se conserva como vista sin
+filtro para callers directos, mientras que los plugins de auth, crawl y grep
+usan la configuración del scan al aplicar `form_id_list` y `form_id_action`.
+
+Verificación: HTML, WML y `DocumentParser` pasan **52 tests**. Black, Ruff y
+mypy focal están limpios. Los consumidores de formularios no pudieron
+completar la integración porque el pool multiproceso global de Pebble tenía
+handles cerrados en este entorno. El score sube a **9.3/10** en Clean
+Architecture y **9.2/10** global. Restan `Info`, el ensamblaje global de
+`w3afCore`, la cobertura global del 100% y la verificación del pool.

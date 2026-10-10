@@ -395,7 +395,7 @@ class TestHTMLParser(unittest.TestCase):
         p = RaiseHTMLParser(r)
         p.parse()
 
-        self.assertEqual(len(p.forms), 0)
+        self.assertEqual(len(p.get_forms(cf.cf)), 0)
 
     def test_form_exclude_one_of_two(self):
         user_value = '[{"action": "/foo", "method": "get"}, {"action": "/nomatch", "method": "post"}]'
@@ -417,8 +417,8 @@ class TestHTMLParser(unittest.TestCase):
         p = RaiseHTMLParser(r)
         p.parse()
 
-        self.assertEqual(len(p.forms), 1)
-        self.assertEqual(p.forms[0]._action, URL("http://w3af.com/bar"))
+        self.assertEqual(len(p.get_forms(cf.cf)), 1)
+        self.assertEqual(p.get_forms(cf.cf)[0]._action, URL("http://w3af.com/bar"))
 
     def test_form_exclude_zero_of_two(self):
         user_value = '[{"action": "/foo", "method": "post"}, {"action": "/nomatch", "method": "post"}]'
@@ -440,7 +440,7 @@ class TestHTMLParser(unittest.TestCase):
         p = RaiseHTMLParser(r)
         p.parse()
 
-        self.assertEqual(len(p.forms), 2)
+        self.assertEqual(len(p.get_forms(cf.cf)), 2)
 
     def test_form_include_zero_of_two(self):
         user_value = '[{"action": "/foo", "method": "post"}, {"action": "/nomatch", "method": "post"}]'
@@ -463,7 +463,7 @@ class TestHTMLParser(unittest.TestCase):
         p = RaiseHTMLParser(r)
         p.parse()
 
-        self.assertEqual(len(p.forms), 0)
+        self.assertEqual(len(p.get_forms(cf.cf)), 0)
 
     def test_form_include_one_of_two(self):
         user_value = '[{"action": "/foo", "method": "get"}, {"action": "/nomatch", "method": "post"}]'
@@ -486,7 +486,7 @@ class TestHTMLParser(unittest.TestCase):
         p = RaiseHTMLParser(r)
         p.parse()
 
-        self.assertEqual(len(p.forms), 1)
+        self.assertEqual(len(p.get_forms(cf.cf)), 1)
 
     def test_form_include_two_of_two(self):
         user_value = '[{"action": "/foo", "method": "get"}, {"action": "/bar", "method": "post"}]'
@@ -509,7 +509,7 @@ class TestHTMLParser(unittest.TestCase):
         p = RaiseHTMLParser(r)
         p.parse()
 
-        self.assertEqual(len(p.forms), 2)
+        self.assertEqual(len(p.get_forms(cf.cf)), 2)
 
     def test_form_include_two_of_two_one_form_id(self):
         user_value = '[{"action": "/abc.*"}]'
@@ -532,7 +532,7 @@ class TestHTMLParser(unittest.TestCase):
         p = RaiseHTMLParser(r)
         p.parse()
 
-        self.assertEqual(len(p.forms), 2)
+        self.assertEqual(len(p.get_forms(cf.cf)), 2)
 
     def test_unicodedecoreerror_ascii_url(self):
         HTML_FILE = os.path.join(

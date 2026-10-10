@@ -140,7 +140,7 @@ class web_spider(CrawlPlugin):
 
         # Create one FuzzableRequest for each form variant
         mode = self.get_configuration().get("form_fuzzing_mode")
-        for form_params in dp.get_forms():
+        for form_params in dp.get_forms(self.get_configuration()):
 
             # Form exclusion #15161
             form_id_json = form_params.get_form_id().to_json()
@@ -175,12 +175,6 @@ class web_spider(CrawlPlugin):
         configuration = self.get_configuration()
         self._target_urls = [i.uri2url() for i in configuration.get("targets")]
 
-        # The following line triggered lots of bugs when the "stop" button
-        # was pressed and the core did this: "cf.cf.save('targets', [])"
-        #
-        #     self._target_domain = cf.cf.get('targets')[0].get_domain()
-        #
-        # Changing it to something awful but bug-free.
         targets = configuration.get("targets")
         if not targets:
             return

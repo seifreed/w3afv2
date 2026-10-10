@@ -31,7 +31,6 @@ from typing import ClassVar
 
 from lxml import etree
 
-import w3af.core.data.kb.config as cf
 from w3af.core.data.constants.encodings import DEFAULT_ENCODING
 from w3af.core.data.misc.encoding import smart_unicode
 from w3af.core.data.parsers.doc.baseparser import BaseParser
@@ -480,14 +479,16 @@ class SGMLParser(BaseParser):
     #
     # Properties
     #
-    @property
-    def forms(self):
+    def get_forms(self, configuration=None):
         """
         :return: Return list of forms filtered using the form_id_list and
                  form_id_action user configuration settings.
         """
-        form_id_list = cf.cf.get("form_id_list")
-        form_id_action = cf.cf.get("form_id_action") or EXCLUDE
+        if configuration is None:
+            return self._forms
+
+        form_id_list = configuration.get("form_id_list")
+        form_id_action = configuration.get("form_id_action") or EXCLUDE
 
         if form_id_list is not None and len(form_id_list.get_form_ids()):
             filtered_forms = []
@@ -508,8 +509,9 @@ class SGMLParser(BaseParser):
 
         return self._forms
 
-    def get_forms(self):
-        return self.forms
+    @property
+    def forms(self):
+        return self.get_forms()
 
     @property
     def references(self):

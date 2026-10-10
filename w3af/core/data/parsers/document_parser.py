@@ -79,11 +79,11 @@ class DocumentParser:
 
         return False
 
-    def get_forms(self):
+    def get_forms(self, configuration=None):
         """
         :return: A list of forms.
         """
-        return self._parser.get_forms()
+        return self._parser.get_forms(configuration)
 
     def get_references(self):
         """
