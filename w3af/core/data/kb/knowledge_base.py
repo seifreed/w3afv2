@@ -400,5 +400,4 @@ class DBKnowledgeBase(BasicKnowledgeBase):
         return self.fuzzable_requests.add(fuzzable_request)
 
 
-KnowledgeBase = DBKnowledgeBase
-kb = KnowledgeBase()
+kb = DBKnowledgeBase()
