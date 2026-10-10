@@ -1470,6 +1470,18 @@ de usar esos métodos y tiene un error explícito si no lo hace.
 
 Verificación: 94 tests de plugins pasan con 9 subtests, la fitness test de
 capas pasa, mypy no encuentra errores y Bandit permanece en 46 hallazgos. El
-score se mantiene en **5.75/10**: 95 módulos de producción todavía importan el
+score se mantiene en **5.75/10**: 93 módulos de producción todavía importan el
 singleton y la cobertura global, los mocks existentes y la deuda de los
 orquestadores siguen sin resolverse.
+
+## Actualización verificada: plugins de autenticación
+
+`AuthPlugin` y `AuthSessionPlugin` reutilizan la KB explícita heredada de
+`Plugin`; ya no importan `knowledge_base` ni escriben sobre el singleton. Sus
+fixtures de test configuran la instancia real, mientras `CorePlugins` mantiene
+el cableado de los plugins de producción.
+
+Verificación: 65 tests de autenticación y bases de plugins pasan, mypy y la
+fitness test de capas pasan, y Bandit permanece en 46 hallazgos. El score sigue
+en **5.75/10** porque todavía quedan 93 imports directos de la KB y la deuda
+de cobertura y de módulos orquestadores.
