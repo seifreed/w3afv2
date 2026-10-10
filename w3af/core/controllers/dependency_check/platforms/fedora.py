@@ -22,11 +22,22 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import ClassVar
 
-from w3af.core.controllers.misc.external_process import run_process
-
 from ..requirements import CORE
 from .base_platform import Platform
+from .package_query import query_package
 from .system_info import distribution_matches
+
+NOT_INSTALLED = "is not installed"
+
+
+def classify_rpm_output(output, package_name):
+    if NOT_INSTALLED in output:
+        return False
+
+    if package_name in output:
+        return True
+
+    return None
 
 
 class Fedora(Platform):
@@ -52,22 +63,7 @@ class Fedora(Platform):
 
     @staticmethod
     def os_package_is_installed(package_name):
-        not_installed = "is not installed"
-
-        try:
-            result = run_process(["rpm", "-q", package_name])
-        except OSError:
-            # We're not on a fedora based system
-            return None
-        else:
-            dpkg_output = result.stdout
-
-            if not_installed in dpkg_output:
-                return False
-            elif package_name in dpkg_output:
-                return True
-            else:
-                return None
+        return query_package(("rpm", "-q"), package_name, classify_rpm_output)
 
     @staticmethod
     def is_current_platform():

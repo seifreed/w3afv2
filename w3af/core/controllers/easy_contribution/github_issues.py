@@ -22,11 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import hashlib
 import os
-import socket
-import ssl
 import time
 
-from github import BadCredentialsException, Github, GithubException
+from github import Auth, BadCredentialsException, Github, GithubException
 
 from w3af.core.controllers.exception_handling.helpers import get_versions
 
@@ -51,6 +49,7 @@ OAUTH_AUTH_FAILED = """Failed to authenticate with github.com , please try\
  current w3af version is outdated and is not allowed to report any new\
  issues."""
 
+GITHUB_API_URL = "https://api.github.com"
 TICKET_URL_FMT = "https://github.com/andresriancho/w3af/issues/%s"
 
 GITHUB_CREDENTIAL_ENV_VAR = "W3AF_GITHUB_OAUTH_TOKEN"
@@ -72,10 +71,6 @@ class OAuthTokenInvalid(Exception):
     pass
 
 
-class UserCredentialsInvalid(Exception):
-    pass
-
-
 class LoginFailed(Exception):
     pass
 
@@ -85,32 +80,23 @@ class NotLoggedIn(Exception):
 
 
 class GithubIssues:
-    def __init__(self, user_or_token, password=None):
-        self._user_or_token = user_or_token
-        self._password = password
+    def __init__(self, token, base_url=GITHUB_API_URL):
+        self._token = token
+        self._base_url = base_url
         self.gh = None
-        self.using_oauth = password is None
 
     def login(self):
+        self.gh = Github(auth=Auth.Token(self._token), base_url=self._base_url)
+
+        # This is just a small piece of code which sends a request to the
+        # API in order to verify if the token is fine. Doesn't really do
+        # anything with the user credentials.
         try:
-            self.gh = Github(self._user_or_token, self._password)
-        except GithubException as ex:
-            # Not sure when we get here, but just in case...
+            list(self.gh.get_user().get_repos())
+        except BadCredentialsException:
+            raise OAuthTokenInvalid("Invalid OAuth token")
+        except (OSError, GithubException) as ex:
             raise LoginFailed(str(ex))
-        else:
-            # This is just a small piece of code which sends a request to the
-            # API in order to verify if the credentials are fine. Doesn't
-            # really do anything with the user credentials.
-            try:
-                [i for i in self.gh.get_user().get_repos()]
-            except BadCredentialsException:
-                # The token and/or user provided credentials are incorrect
-                if self.using_oauth:
-                    raise OAuthTokenInvalid("Invalid OAuth token")
-                else:
-                    raise UserCredentialsInvalid("Invalid user credentials")
-            except (TimeoutError, ssl.SSLError, GithubException, socket.gaierror) as ex:
-                raise LoginFailed(str(ex))
 
         return True
 
@@ -119,7 +105,6 @@ class GithubIssues:
         summary,
         userdesc,
         tback="",
-        fname=None,
         plugins="",
         autogen=True,
         email=None,
@@ -128,22 +113,17 @@ class GithubIssues:
             raise NotLoggedIn("Please login before reporting a bug.")
 
         summary, desc = self._build_summary_and_desc(
-            summary, userdesc, tback, fname, plugins, autogen, email
+            summary, userdesc, tback, plugins, autogen, email
         )
 
         w3af_repo = self.gh.get_user("andresriancho").get_repo("w3af")
-        labels = []
-        # Github doesn't allow users that do NOT own the repository to assign
-        # labels to new issues
-        # labels = [w3af_repo.get_label('automatic-bug-report'),
-        #          w3af_repo.get_label('bug')]
 
-        issue = w3af_repo.create_issue(title=summary, body=desc, labels=labels)
+        # Github doesn't allow users that do NOT own the repository to assign
+        # labels to new issues, so none are sent
+        issue = w3af_repo.create_issue(title=summary, body=desc)
         return issue.number, TICKET_URL_FMT % issue.number
 
-    def _build_summary_and_desc(
-        self, summary, desc, tback, fname, plugins, autogen, email
-    ):
+    def _build_summary_and_desc(self, summary, desc, tback, plugins, autogen, email):
         """
         Build the formatted summary and description that will be
         part of the reported bug.
@@ -160,7 +140,7 @@ class GithubIssues:
             else:
                 # Failed... lets generate something random!
                 m = hashlib.md5(usedforsecurity=False)
-                m.update(time.ctime())
+                m.update(time.ctime().encode())
                 bug_summary = m.hexdigest()
 
         # Generate the summary string. Concat 'user_title'
@@ -178,7 +158,7 @@ class GithubIssues:
         #
         if email is not None:
             email_fmt = (
-                "\n\nThe user provided the following email address for" "contact: %s"
+                "\n\nThe user provided the following email address for contact: %s"
             )
             desc += email_fmt % email
 

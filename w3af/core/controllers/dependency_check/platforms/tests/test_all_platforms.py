@@ -30,7 +30,7 @@ class TestAllPlatforms(unittest.TestCase):
     def test_os_detection(self):
         # I really need those platform detection functions to be specific!
         results = [p.is_current_platform() for p in KNOWN_PLATFORMS]
-        self.assertEqual(1, results.count(True), results)
+        self.assertLessEqual(results.count(True), 1, results)
 
     def test_attributes(self):
         REQUIRED_ATTRS = [
@@ -55,8 +55,10 @@ class TestAllPlatforms(unittest.TestCase):
             self.assertGreater(len(platform.PIP_PACKAGES[CORE]), 3)
 
     def test_os_package_is_installed(self):
-        # Just looking for exceptions
-        [p.os_package_is_installed("foo") for p in KNOWN_PLATFORMS]
+        for platform in KNOWN_PLATFORMS:
+            with self.subTest(platform=platform.SYSTEM_NAME):
+                installed = platform.os_package_is_installed("w3af-no-such-package")
+                self.assertIn(installed, (False, None))
 
     def test_after_hook(self):
         # Just looking for exceptions

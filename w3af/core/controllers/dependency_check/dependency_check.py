@@ -23,9 +23,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import json
 import logging
 import sys
+import tempfile
 import warnings
 from importlib.metadata import distributions
-from importlib.util import find_spec
 
 from packaging.utils import canonicalize_name
 from packaging.version import Version
@@ -42,15 +42,15 @@ from w3af.core.controllers.dependency_check.platforms.base_platform import CORE
 from w3af.core.controllers.dependency_check.platforms.current_platform import (
     get_current_platform,
 )
-from w3af.core.controllers.dependency_check.utils import verify_python_version
+from w3af.core.controllers.dependency_check.utils import (
+    running_in_virtualenv,
+    verify_pip_available,
+    verify_python_version,
+)
 from w3af.core.data.db.startup_cfg import StartUpConfig
 
 verify_python_version()
-
-if find_spec("pip") is None:
-    print("We recommend you install pip before continuing.")
-    print("http://www.pip-installer.org/en/latest/installing.html")
-    sys.exit(1)
+verify_pip_available()
 
 
 def get_missing_pip_packages(platform, dependency_set):
@@ -114,18 +114,18 @@ def get_missing_external_commands(platform):
 def write_instructions_to_console(
     platform, failed_deps, os_packages, script_path, external_commands
 ):
+    print(
+        "w3af's requirements are not met, one or more third-party"
+        " libraries need to be installed.\n"
+    )
+
     #
     #    Report the missing system packages
     #
-    msg = (
-        "w3af's requirements are not met, one or more third-party"
-        " libraries need to be installed.\n\n"
-    )
-
     if os_packages:
         missing_pkgs = " ".join(os_packages)
 
-        msg += (
+        msg = (
             "On %s systems please install the following operating"
             " system packages before running the pip installer:\n"
             "    %s %s\n"
@@ -144,6 +144,7 @@ def write_instructions_to_console(
         #
         #    Report missing pip packages
         #
+        in_virtualenv = running_in_virtualenv()
         not_git_pkgs = [fdep for fdep in failed_deps if not fdep.is_git]
         git_pkgs = [fdep.git_src for fdep in failed_deps if fdep.is_git]
 
@@ -153,13 +154,15 @@ def write_instructions_to_console(
         )
 
         if not_git_pkgs:
-            cmd = generate_pip_install_non_git(platform.PIP_CMD, not_git_pkgs)
+            cmd = generate_pip_install_non_git(
+                platform.PIP_CMD, not_git_pkgs, in_virtualenv
+            )
             msg += f"    {cmd}\n"
 
         if git_pkgs:
             for missing_git_pkg in git_pkgs:
                 install_command = generate_pip_install_git(
-                    platform.PIP_CMD, missing_git_pkg
+                    platform.PIP_CMD, missing_git_pkg, in_virtualenv
                 )
                 msg += f"    {install_command}\n"
 
@@ -211,11 +214,13 @@ def dependency_check(dependency_set=CORE, exit_on_failure=True, platform=None):
     generate_requirements_txt(failed_deps)
 
     script_path = generate_helper_script(
+        tempfile.gettempdir(),
         platform.PKG_MANAGER_CMD,
         os_packages,
         platform.PIP_CMD,
         failed_deps,
         external_commands,
+        running_in_virtualenv(),
     )
 
     write_instructions_to_console(

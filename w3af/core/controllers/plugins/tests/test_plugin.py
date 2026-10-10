@@ -257,7 +257,7 @@ class TestUrlOpenerProxy(unittest.TestCase):
         plugin = Plugin()
         plugin.set_url_opener(self.uri_opener)
 
-        self.assertEqual(plugin._uri_opener.get_headers, self.uri_opener.get_headers)
+        self.assertEqual(plugin._uri_opener.get_cookies, self.uri_opener.get_cookies)
 
     def test_attributes_are_returned_as_is(self):
         plugin = Plugin()

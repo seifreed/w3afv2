@@ -21,25 +21,28 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
-import tempfile
-
-from .utils import running_in_virtualenv
 
 SCRIPT_NAME = "w3af_dependency_install.sh"
 
 
 def generate_helper_script(
-    pkg_manager_cmd, os_packages, pip_cmd, failed_deps, external_commands
+    directory,
+    pkg_manager_cmd,
+    os_packages,
+    pip_cmd,
+    failed_deps,
+    external_commands,
+    in_virtualenv,
 ):
     """
     Generates a helper script to be run by the user to install all the
     dependencies.
 
+    :param directory: Where the script is written
+    :param in_virtualenv: True if pip installs inside a virtualenv (no sudo)
     :return: The path to the script name.
     """
-    temp_dir = tempfile.gettempdir()
-
-    script_path = os.path.join(temp_dir, SCRIPT_NAME)
+    script_path = os.path.join(directory, SCRIPT_NAME)
 
     with open(script_path, "w") as script_file:
         script_file.write("#!/bin/bash\n")
@@ -57,18 +60,18 @@ def generate_helper_script(
         if failed_deps:
             script_file.write("\n")
 
-            if running_in_virtualenv():
+            if in_virtualenv:
                 script_file.write("# Run without sudo to install inside venv\n")
 
             not_git_pkgs = [fdep for fdep in failed_deps if not fdep.is_git]
             git_pkgs = [fdep.git_src for fdep in failed_deps if fdep.is_git]
 
             if not_git_pkgs:
-                cmd = generate_pip_install_non_git(pip_cmd, not_git_pkgs)
+                cmd = generate_pip_install_non_git(pip_cmd, not_git_pkgs, in_virtualenv)
                 script_file.write(f"{cmd}\n")
 
             for missing_git_pkg in git_pkgs:
-                cmd = generate_pip_install_git(pip_cmd, missing_git_pkg)
+                cmd = generate_pip_install_git(pip_cmd, missing_git_pkg, in_virtualenv)
                 script_file.write(f"{cmd}\n")
 
         for cmd in external_commands:
@@ -80,27 +83,24 @@ def generate_helper_script(
     return script_path
 
 
-def generate_pip_install_non_git(pip_cmd, not_git_pkgs):
-    if running_in_virtualenv():
-        cmd_fmt = "%s install %s"
-    else:
-        cmd_fmt = "sudo %s install %s"
+def generate_pip_install_non_git(pip_cmd, not_git_pkgs, in_virtualenv):
+    cmd_fmt = "%s install %s" if in_virtualenv else "sudo %s install %s"
 
-    install_specs = []
-    for fdep in not_git_pkgs:
-        install_specs.append(f"{fdep.package_name}=={fdep.package_version}")
+    install_specs = [
+        f"{fdep.package_name}=={fdep.package_version}" for fdep in not_git_pkgs
+    ]
 
-    cmd = cmd_fmt % (pip_cmd, " ".join(install_specs))
-    return cmd
+    return cmd_fmt % (pip_cmd, " ".join(install_specs))
 
 
-def generate_pip_install_git(pip_cmd, git_pkg):
+def generate_pip_install_git(pip_cmd, git_pkg, in_virtualenv):
     """
     :param pip_cmd: The pip command for this platform
     :param git_pkg: The name of the pip+git package
+    :param in_virtualenv: True if pip installs inside a virtualenv (no sudo)
     :return: The command to be run to install the pip+git package
     """
-    if running_in_virtualenv():
+    if in_virtualenv:
         cmd_fmt = "%s install --ignore-installed %s"
     else:
         cmd_fmt = "sudo %s install --ignore-installed %s"
