@@ -2721,3 +2721,14 @@ Verificación: **11 tests pasaron** en core stats y profiling; Ruff, Black, mypy
 `py_compile` y `git diff --check` globales están limpios. El score permanece en
 **6.25/10** por los globals restantes, cobertura 100% no demostrada, Bandit
 heredado, mocks e integraciones Moth.
+
+## Actualización verificada: monkey patch de debug con sink explícito
+
+`monkey_patch_debug` crea ahora callbacks parciales que capturan el sink
+recibido, y `w3afCore` lo entrega al activar el parche. La restauración sigue
+usando las funciones originales y el módulo deja de importar `output_manager`.
+
+Verificación: **3 tests pasaron** en el parche de debug; Ruff, Black, mypy,
+`py_compile` y `git diff --check` globales están limpios. El score permanece en
+**6.25/10** por los globals restantes, cobertura 100% no demostrada, Bandit
+heredado, mocks e integraciones Moth.

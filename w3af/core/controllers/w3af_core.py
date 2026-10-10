@@ -546,7 +546,7 @@ class w3afCore:
         # Adding extra logging to debug issues where the call to terminate_join()
         # takes a lot of time to run
         #
-        monkey_patch_debug()
+        monkey_patch_debug(om.out)
 
         #
         # The scan has ended, and we've already joined() the consumer threads

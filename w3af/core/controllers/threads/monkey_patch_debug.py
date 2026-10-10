@@ -21,23 +21,24 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import multiprocessing.util
+from functools import partial
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.threads import pool276, threadpool
 
 PATCHED_MODULES = (multiprocessing.util, threadpool, pool276)
 ORIGINAL_DEBUG = multiprocessing.util.debug
 
 
-def new_debug(msg, *args):
+def new_debug(output, msg, *args):
     om_msg = msg % args
     om_msg = f"[threadpool] {om_msg}"
-    om.out.debug(om_msg)
+    output.debug(om_msg)
 
 
-def monkey_patch_debug():
+def monkey_patch_debug(output):
+    patched_debug = partial(new_debug, output)
     for module in PATCHED_MODULES:
-        module.debug = new_debug
+        module.debug = patched_debug
 
 
 def remove_monkey_patch_debug():

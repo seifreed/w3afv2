@@ -41,10 +41,10 @@ class TestMonkeyPatchDebug(unittest.TestCase):
         self.addCleanup(remove_monkey_patch_debug)
 
     def test_patch_sends_pool_debug_to_output_manager(self):
-        monkey_patch_debug()
+        monkey_patch_debug(self.recorder)
 
         for module in (multiprocessing.util, threadpool, pool276):
-            self.assertIs(module.debug, new_debug)
+            self.assertIs(module.debug.func, new_debug)
 
         pool = Pool(1)
         pool.terminate_join()
@@ -54,12 +54,12 @@ class TestMonkeyPatchDebug(unittest.TestCase):
         self.assertIn("[threadpool] added worker", debug_messages)
 
     def test_remove_restores_original_debug(self):
-        monkey_patch_debug()
+        monkey_patch_debug(self.recorder)
         remove_monkey_patch_debug()
 
         for module in (multiprocessing.util, threadpool, pool276):
             self.assertIs(module.debug, ORIGINAL_DEBUG)
 
     def test_new_debug_formats_arguments(self):
-        new_debug("%s workers", 3)
+        new_debug(self.recorder, "%s workers", 3)
         self.assertIn("[threadpool] 3 workers", self.recorder.messages_of("debug"))
