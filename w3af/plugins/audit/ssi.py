@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import re
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.data.constants import severity
 from w3af.core.data.db.disk_dict import DiskDict
@@ -170,7 +169,9 @@ class ssi(AuditPlugin):
 
         For a working example please see moth VM.
         """
-        fuzzable_request_set = kb.kb.get_all_known_fuzzable_requests()
+        fuzzable_request_set = (
+            self._get_knowledge_base().get_all_known_fuzzable_requests()
+        )
 
         debugging_id = rand_alnum(8)
         om.out.debug(f"Starting stored SSI search (did={debugging_id})")
