@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import re
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.kb.info import Info
@@ -87,7 +86,7 @@ class motw(GrepPlugin):
             i = self.create_info(desc, response, motw_match)
             i["local_machine"] = True
 
-        kb.kb.append(self, "motw", i)
+        self._get_knowledge_base().append(self, "motw", i)
 
     def create_info(self, desc, response, motw_match):
         i = Info("Mark of the web", desc, response.id, self.get_name())
@@ -102,7 +101,7 @@ class motw(GrepPlugin):
         pretty_msg = {"motw": "The following URLs contain a MOTW:"}
 
         for motw_type, pretty in pretty_msg.items():
-            inform = list(kb.kb.get("motw", motw_type))
+            inform = list(self._get_knowledge_base().get("motw", motw_type))
 
             if inform:
                 om.out.information(pretty)

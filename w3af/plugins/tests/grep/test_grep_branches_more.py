@@ -59,12 +59,12 @@ TEST_PDF = os.path.join(
 class TestHTMLCommentsBranches(GrepPluginTestCase):
 
     def test_unparseable(self):
-        plugin = html_comments()
+        plugin = self.configure_plugin(html_comments())
         plugin.grep(make_request(), self.make_unparseable_response())
         self.assertEqual(kb.kb.get("html_comments", "interesting_comments"), [])
 
     def test_comment_sent_in_request_is_ignored(self):
-        plugin = html_comments()
+        plugin = self.configure_plugin(html_comments())
         # Interesting words are matched surrounded by spaces (" pass ")
         comment = " the pass word "
         request = make_request("http://www.w3af.com/?c=%20the%20pass%20word%20")
@@ -72,7 +72,7 @@ class TestHTMLCommentsBranches(GrepPluginTestCase):
         self.assertEqual(kb.kb.get("html_comments", "interesting_comments"), [])
 
     def test_conditional_comments_are_not_html_disclosure(self):
-        plugin = html_comments()
+        plugin = self.configure_plugin(html_comments())
         body = '<!-- [if IE] <a href="ie.html">old browser</a> -->'
         plugin.grep(make_request(), make_response(body=body))
         self.assertEqual(kb.kb.get("html_comments", "html_comment_hides_html"), [])
@@ -82,7 +82,7 @@ class TestMetaTagsBranches(GrepPluginTestCase):
 
     def test_404_and_unparseable(self):
         marker = self.mark_as_404()
-        plugin = meta_tags()
+        plugin = self.configure_plugin(meta_tags())
         body = f'<meta name="author" content="x">{marker}'
         plugin.grep(make_request(), make_response(body=body))
         plugin.grep(make_request(), self.make_unparseable_response())
@@ -90,7 +90,7 @@ class TestMetaTagsBranches(GrepPluginTestCase):
         self.assertEqual(kb.kb.get("meta_tags", "meta_tags"), [])
 
     def test_interesting_attribute_name(self):
-        plugin = meta_tags()
+        plugin = self.configure_plugin(meta_tags())
         body = '<html><meta name="" content=""><meta author="pablo"></html>'
         plugin.grep(make_request(), make_response(body=body))
         plugin.end()
@@ -103,7 +103,7 @@ class TestMetaTagsBranches(GrepPluginTestCase):
 class TestMOTWBranches(GrepPluginTestCase):
 
     def test_valid_mark_of_the_web(self):
-        plugin = motw()
+        plugin = self.configure_plugin(motw())
         body = "<!-- saved from url=(0022)http://www.w3af.com/x/ -->"
         plugin.grep(make_request(), make_response(body=body))
         plugin.end()
@@ -114,7 +114,7 @@ class TestMOTWBranches(GrepPluginTestCase):
 
     def test_malformed_mark_and_404(self):
         marker = self.mark_as_404()
-        plugin = motw()
+        plugin = self.configure_plugin(motw())
         plugin.grep(make_request(), make_response(body="saved from url=nothing"))
         body = f"<!-- saved from url=(0022)http://www.w3af.com/x/ --> {marker}"
         plugin.grep(make_request(), make_response(body=body, _id=2))
@@ -129,7 +129,7 @@ class TestPasswordProfilingBranches(GrepPluginTestCase):
 
     def test_ignored_responses(self):
         marker = self.mark_as_404()
-        plugin = password_profiling()
+        plugin = self.configure_plugin(password_profiling())
         body = "<html>Unusualword appears here</html>"
         plugin.grep(make_request(), make_response(body=body, code=404))
         plugin.grep(make_request(method="PUT"), make_response(body=body))
@@ -138,7 +138,7 @@ class TestPasswordProfilingBranches(GrepPluginTestCase):
         self.assertEqual(kb.kb.raw_read("password_profiling", "password_profiling"), {})
 
     def test_large_word_maps_are_trimmed(self):
-        plugin = password_profiling()
+        plugin = self.configure_plugin(password_profiling())
         words = " ".join(f"word{i:05d}abc" for i in range(2100))
         plugin.grep(make_request(), make_response(body=f"<html>{words}</html>"))
 
@@ -181,7 +181,7 @@ class TestPathDisclosureBranches(GrepPluginTestCase):
     BODY = "<html> /var/www/foobar/htdocs/article.php </html>"
 
     def test_shorter_match_of_reported_path_is_ignored(self):
-        plugin = path_disclosure()
+        plugin = self.configure_plugin(path_disclosure())
         plugin.grep(make_request(), make_response(body=self.BODY))
         plugin.grep(make_request(), make_response(body=self.BODY, _id=2))
         shorter = "<html> /htdocs/article.php </html>"
@@ -192,13 +192,13 @@ class TestPathDisclosureBranches(GrepPluginTestCase):
         self.assertEqual(vulns[0]["path"], "/var/www/foobar/htdocs/article.php")
 
     def test_path_sent_in_request(self):
-        plugin = path_disclosure()
+        plugin = self.configure_plugin(path_disclosure())
         url = "http://www.w3af.com/?f=/var/www/foobar/htdocs/article.php"
         plugin.grep(make_request(url), make_response(url, body=self.BODY))
         self.assertEqual(kb.kb.get("path_disclosure", "path_disclosure"), [])
 
     def test_path_equal_to_known_url_path_has_no_webroot(self):
-        plugin = path_disclosure()
+        plugin = self.configure_plugin(path_disclosure())
         disclosed = "/var/www/index.php"
         plugin.grep(make_request(), make_response(body=f"<p> {disclosed} </p>"))
 
@@ -214,7 +214,7 @@ class TestPrivateIPBranches(GrepPluginTestCase):
     TARGET = "http://10.1.2.3/"
 
     def test_requested_ip_is_ignored(self):
-        plugin = private_ip()
+        plugin = self.configure_plugin(private_ip())
         response = make_response(
             self.TARGET, body="<p>10.1.2.3</p>", headers=[("X-Via", "10.1.2.3")]
         )
@@ -224,7 +224,7 @@ class TestPrivateIPBranches(GrepPluginTestCase):
         self.assertEqual(kb.kb.get("private_ip", "HTML"), [])
 
     def test_ip_in_header_name(self):
-        plugin = private_ip()
+        plugin = self.configure_plugin(private_ip())
         response = make_response(headers=[("X-10.4.4.4", "yes")])
         plugin.grep(make_request(), response)
 
@@ -233,7 +233,7 @@ class TestPrivateIPBranches(GrepPluginTestCase):
         self.assertIn('"None" response header', infos[0].get_desc())
 
     def test_ignored_ips_in_body(self):
-        plugin = private_ip()
+        plugin = self.configure_plugin(private_ip())
         body = "<pre>X-Forwarded-For: 10.5.5.5</pre>\n<p>10.6.6.6</p>"
         url = "http://www.w3af.com/?ip=10.6.6.6"
         plugin.grep(make_request(url), make_response(url, body=body))
@@ -244,7 +244,7 @@ class TestPrivateIPBranches(GrepPluginTestCase):
 class TestSerializedObjectCache(GrepPluginTestCase):
 
     def test_cache_is_bounded(self):
-        plugin = serialized_object()
+        plugin = self.configure_plugin(serialized_object())
         for i in range(serialized_object.CACHE_MAX_SIZE + 5):
             url = f"http://www.w3af.com/?p=value-number-{i:05d}-long-enough"
             plugin.grep(make_request(url), make_response(url, _id=i + 1))
@@ -262,7 +262,7 @@ class TestSSNValidation(GrepPluginTestCase):
 
     def _grep(self, area, group_number):
         body = f"<p> {area:03d}-{group_number:02d}-1234 </p>"
-        ssn().grep(make_request(), make_response(body=body))
+        self.configure_plugin(ssn()).grep(make_request(), make_response(body=body))
         return kb.kb.get("ssn", "ssn")
 
     def test_little_odd_group(self):
@@ -287,7 +287,7 @@ class TestSSNValidation(GrepPluginTestCase):
         self.assertEqual(self._grep(unassigned, 1), [])
 
     def test_non_200(self):
-        plugin = ssn()
+        plugin = self.configure_plugin(ssn())
         body = "<p> 123-45-6789 </p>"
         plugin.grep(make_request(), make_response(body=body, code=500))
         self.assertEqual(kb.kb.get("ssn", "ssn"), [])
@@ -296,7 +296,7 @@ class TestSSNValidation(GrepPluginTestCase):
 class TestStrangeHeadersContentLocation(GrepPluginTestCase):
 
     def test_content_location_outside_3xx(self):
-        plugin = strange_headers()
+        plugin = self.configure_plugin(strange_headers())
         response = make_response(headers=[("Content-Location", "/other")])
         plugin.grep(make_request(), response)
 
@@ -305,7 +305,7 @@ class TestStrangeHeadersContentLocation(GrepPluginTestCase):
         self.assertIn("content-location", anomalies[0].get_desc())
 
     def test_content_location_in_redirect_is_fine(self):
-        plugin = strange_headers()
+        plugin = self.configure_plugin(strange_headers())
         response = make_response(code=302, headers=[("Content-Location", "/x")])
         plugin.grep(make_request(), response)
         self.assertEqual(kb.kb.get("strange_headers", "anomaly"), [])
@@ -315,7 +315,7 @@ class TestStrangeParametersBranches(GrepPluginTestCase):
 
     def setUp(self):
         super().setUp()
-        self.plugin = strange_parameters()
+        self.plugin = self.configure_plugin(strange_parameters())
 
     def _grep(self, href, request_url="http://www.w3af.com/", _id=1):
         body = f'<a href="{href}">link</a>'
@@ -348,7 +348,7 @@ class TestUserDefinedRegexBranches(GrepPluginTestCase):
         self.addCleanup(shutil.rmtree, self.directory, True)
 
     def _plugin(self, single_regex="", regex_file_path=""):
-        plugin = user_defined_regex()
+        plugin = self.configure_plugin(user_defined_regex())
         options = plugin.get_options()
         options["single_regex"].set_value(single_regex)
         options["regex_file_path"].set_value(regex_file_path)
@@ -381,7 +381,7 @@ class TestUserDefinedRegexBranches(GrepPluginTestCase):
 
     def test_invalid_regex_in_file(self):
         path = self._regex_file("(unbalanced")
-        plugin = user_defined_regex()
+        plugin = self.configure_plugin(user_defined_regex())
         options = plugin.get_options()
         options["regex_file_path"].set_value(path)
         self.assertRaises(BaseFrameworkException, plugin.set_options, options)
@@ -390,7 +390,7 @@ class TestUserDefinedRegexBranches(GrepPluginTestCase):
 class TestWebSocketsLinksEmptyScript(GrepPluginTestCase):
 
     def test_empty_script_tag(self):
-        plugin = websockets_links()
+        plugin = self.configure_plugin(websockets_links())
         body = "<html><script></script><p>ws://w3af.org/socket</p></html>"
         plugin.grep(make_request(), make_response(body=body))
         self.assertEqual(kb.kb.get("websockets_links", "websockets_links"), [])

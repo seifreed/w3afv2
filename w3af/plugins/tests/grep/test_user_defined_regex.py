@@ -34,6 +34,7 @@ class test_user_defined_regex(unittest.TestCase):
 
     def setUp(self):
         self.plugin = user_defined_regex()
+        self.plugin.set_knowledge_base(kb.kb)
 
     def test_user_defined_regex(self):
         body = '<html><head><script>xhr = new XMLHttpRequest(); xhr.open(GET, "data.txt",  true);'

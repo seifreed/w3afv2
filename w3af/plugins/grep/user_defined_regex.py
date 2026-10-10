@@ -22,7 +22,6 @@ import os
 import re
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
@@ -89,7 +88,7 @@ class user_defined_regex(GrepPlugin):
                         # so the new response id has to be saved with update()
                         updated_info = Info.from_info(info_inst)
                         updated_info.set_id(info_inst.get_id() + [response.id])
-                        kb.kb.update(info_inst, updated_info)
+                        self._get_knowledge_base().update(info_inst, updated_info)
                         info_inst = updated_info
                     else:
                         str_match = match_object.group(0)
