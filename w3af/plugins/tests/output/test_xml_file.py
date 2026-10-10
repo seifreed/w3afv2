@@ -61,6 +61,7 @@ from w3af.plugins.output.xml_file import (
     ScanInfo,
     ScanStatus,
     jinja2_attr_value_escape_filter,
+    jinja2_text_value_escape_filter,
     took,
     xml_file,
 )
@@ -1121,6 +1122,61 @@ class TestAttrValueEscapeFilter(unittest.TestCase):
 
     def test_non_string_values_are_returned_unchanged(self):
         self.assertEqual(jinja2_attr_value_escape_filter(42), 42)
+
+
+class TestEscapeFiltersWithAutoescape(unittest.TestCase):
+    """The filters run inside an autoescaping jinja2 environment; their output
+    must reach the document exactly once escaped."""
+
+    ATTR_CASES = (
+        ('<a href="x">&</a>', "&lt;a href=&quot;x&quot;&gt;&amp;&lt;/a&gt;"),
+        ("tab\there", "tab&lt;character code=&quot;0009&quot;/&gt;here"),
+        (
+            "nul\x00bell\x07",
+            (
+                "nul&lt;character code=&quot;0000&quot;/&gt;"
+                "bell&lt;character code=&quot;0007&quot;/&gt;"
+            ),
+        ),
+    )
+    TEXT_CASES = (
+        ('<a href="x">&</a>', "&lt;a href=&quot;x&quot;&gt;&amp;&lt;/a&gt;"),
+        ("tab\there", 'tab<character code="0009"/>here'),
+        ("nul\x00bell\x07", 'nul<character code="0000"/>bell<character code="0007"/>'),
+        ("line\r\nbreak", "line\r\nbreak"),
+    )
+
+    @staticmethod
+    def render(filter_name, value):
+        env = xml_file()._get_jinja2_env()
+        return env.from_string(f"<r>{{{{ v|{filter_name} }}}}</r>").render(v=value)
+
+    def test_attr_filter_output(self):
+        for raw, expected in self.ATTR_CASES:
+            self.assertEqual(jinja2_attr_value_escape_filter(raw), expected)
+
+    def test_text_filter_output(self):
+        for raw, expected in self.TEXT_CASES:
+            self.assertEqual(jinja2_text_value_escape_filter(raw), expected)
+
+    def test_attr_rendered_once_escaped_and_well_formed(self):
+        for raw, expected in self.ATTR_CASES:
+            rendered = self.render("escape_attr", raw)
+            self.assertEqual(rendered, f"<r>{expected}</r>")
+            self.assertNotIn("&amp;lt;", rendered)
+
+    def test_text_rendered_once_escaped_and_well_formed(self):
+        for raw, expected in self.TEXT_CASES:
+            rendered = self.render("escape_text", raw)
+            self.assertEqual(rendered, f"<r>{expected}</r>")
+            self.assertNotIn("&amp;lt;", rendered)
+
+    def test_injection_payload_cannot_add_elements(self):
+        payload = "</r><evil/><![CDATA[x]]>"
+        for filter_name in ("escape_attr", "escape_text"):
+            root = ElementTree.fromstring(self.render(filter_name, payload))
+            self.assertEqual([child.tag for child in root], [])
+            self.assertEqual(root.text, payload)
 
 
 class TestXMLFileEdgeCases(unittest.TestCase):

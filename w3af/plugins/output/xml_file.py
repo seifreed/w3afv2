@@ -31,7 +31,6 @@ from unicodedata import category
 
 import lz4.frame
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
-from markupsafe import Markup
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
@@ -854,6 +853,17 @@ ATTR_VALUE_ESCAPES.update(
 ATTR_VALUE_ESCAPES_IGNORE = {"\n", "\r"}
 
 
+class _PreEscaped(str):
+    """
+    A string that was already escaped by one of the filters below. Jinja2's
+    autoescape honors the ``__html__`` protocol and emits it untouched, which
+    avoids double escaping without wrapping a variable in ``Markup``.
+    """
+
+    def __html__(self):
+        return self
+
+
 def jinja2_attr_value_escape_filter(value):
     """
     This method is used to escape attribute values:
@@ -898,7 +908,7 @@ def jinja2_attr_value_escape_filter(value):
         else:
             retval += letter
 
-    return Markup(retval)
+    return _PreEscaped(retval)
 
 
 TEXT_VALUE_ESCAPES = {
@@ -962,4 +972,4 @@ def jinja2_text_value_escape_filter(value):
         else:
             retval += letter
 
-    return Markup(retval)
+    return _PreEscaped(retval)

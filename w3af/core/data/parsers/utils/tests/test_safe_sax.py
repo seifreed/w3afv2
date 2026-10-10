@@ -99,3 +99,20 @@ class TestSafeSAX(unittest.TestCase):
     def test_external_entity_is_rejected(self):
         with self.assertRaises(XMLParseError):
             parse_string(EXTERNAL_ENTITY, RecordingHandler())
+
+    def test_entity_attacks_are_rejected_for_bytes_and_files(self):
+        with self.assertRaises(XMLParseError):
+            parse_string(ENTITY_EXPANSION.encode("utf-8"), RecordingHandler())
+        with self.assertRaises(XMLParseError):
+            parse_file(io.StringIO(EXTERNAL_ENTITY), RecordingHandler())
+
+    def test_base_handler_callbacks_are_noops(self):
+        handler = ContentHandler()
+        parse_string(DOCUMENT, handler)
+        parse_string("<?pi data?><a>t</a>", handler)
+
+    def test_handler_receives_no_text_from_rejected_document(self):
+        handler = RecordingHandler()
+        with self.assertRaises(XMLParseError):
+            parse_string(ENTITY_EXPANSION, handler)
+        self.assertNotIn(("text", "lol"), handler.events)

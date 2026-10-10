@@ -21,14 +21,61 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import io
-from xml.sax.handler import ContentHandler, ErrorHandler
 
 from defusedxml import DefusedXmlException
 from defusedxml import sax as defused_sax
 
-# ContentHandler is re-exported: event handlers for the hardened parser below
-# subclass the standard library one and override only the events they need
 __all__ = ["ContentHandler", "XMLParseError", "parse_file", "parse_string"]
+
+
+class ContentHandler:
+    """
+    Base class for the event handlers fed by the hardened parser. It defines
+    every callback the expat reader may invoke as a no-op, so subclasses
+    override only the events they need.
+    """
+
+    def __init__(self):
+        self._locator = None
+
+    def setDocumentLocator(self, locator):
+        self._locator = locator
+
+    def startDocument(self):
+        """No-op"""
+
+    def endDocument(self):
+        """No-op"""
+
+    def startPrefixMapping(self, prefix, uri):
+        """No-op"""
+
+    def endPrefixMapping(self, prefix):
+        """No-op"""
+
+    def startElement(self, name, attrs):
+        """No-op"""
+
+    def endElement(self, name):
+        """No-op"""
+
+    def startElementNS(self, name, qname, attrs):
+        """No-op"""
+
+    def endElementNS(self, name, qname):
+        """No-op"""
+
+    def characters(self, content):
+        """No-op"""
+
+    def ignorableWhitespace(self, whitespace):
+        """No-op"""
+
+    def processingInstruction(self, target, data):
+        """No-op"""
+
+    def skippedEntity(self, name):
+        """No-op"""
 
 
 class XMLParseError(ValueError):
@@ -36,7 +83,13 @@ class XMLParseError(ValueError):
     features such as entity expansion or external references."""
 
 
-class _RaisingErrorHandler(ErrorHandler):
+class _RaisingErrorHandler:
+    def error(self, exception):
+        raise exception
+
+    def warning(self, exception):
+        """Warnings are not fatal"""
+
     def fatalError(self, exception):
         raise XMLParseError(str(exception)) from exception
 
