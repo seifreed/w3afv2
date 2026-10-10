@@ -56,7 +56,7 @@ class GrepConsumerTest(unittest.TestCase):
         self.recorder = start_recording_output()
 
     def start_consumer(self, plugins, observer=None):
-        consumer = grep(plugins, self.core, om.out)
+        consumer = grep(plugins, self.core, om.out, self.core.configuration)
         if observer is not None:
             consumer.add_observer(observer)
         self.core.uri_opener.set_grep_queue_put(consumer.grep)
@@ -129,7 +129,7 @@ class TestGrepConsumer(GrepConsumerTest):
         )
 
     def test_queue_sizes_are_logged_every_25_calls(self):
-        consumer = grep([recording_grep()], self.core, om.out)
+        consumer = grep([recording_grep()], self.core, om.out, self.core.configuration)
         self.addCleanup(consumer._shutdown_threadpool)
         consumer.send_poison_pill()
 
@@ -150,7 +150,7 @@ class TestRequestResponseLoading(GrepConsumerTest):
     def setUp(self):
         super().setUp()
         self.plugin = recording_grep()
-        self.consumer = grep([self.plugin], self.core, om.out)
+        self.consumer = grep([self.plugin], self.core, om.out, self.core.configuration)
         self.addCleanup(self.consumer._shutdown_threadpool)
         self.response = self.get("/stored")
 

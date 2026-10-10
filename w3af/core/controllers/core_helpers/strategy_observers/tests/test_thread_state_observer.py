@@ -242,7 +242,9 @@ class TestPoolStateThreads(unittest.TestCase):
         self.assertTrue(wait_for_message(self.recorder, text), text)
 
     def test_audit(self):
-        consumer = self.close_pool_on_cleanup(audit([], self.w3af_core, om.out))
+        consumer = self.close_pool_on_cleanup(
+            audit([], self.w3af_core, om.out, self.w3af_core.configuration)
+        )
 
         self.observer.audit(consumer)
         self.observer.audit(consumer)
@@ -257,7 +259,12 @@ class TestPoolStateThreads(unittest.TestCase):
 
     def test_grep(self):
         consumer = self.close_pool_on_cleanup(
-            grep([private_ip()], self.w3af_core, om.out)
+            grep(
+                [private_ip()],
+                self.w3af_core,
+                om.out,
+                self.w3af_core.configuration,
+            )
         )
 
         self.observer.grep(consumer)
@@ -267,7 +274,12 @@ class TestPoolStateThreads(unittest.TestCase):
     def test_crawl(self):
         consumer = self.close_pool_on_cleanup(
             CrawlInfrastructure(
-                [], self.w3af_core, 60, knowledge_base=kb, output=om.out
+                [],
+                self.w3af_core,
+                60,
+                knowledge_base=kb,
+                output=om.out,
+                configuration=self.w3af_core.configuration,
             )
         )
 

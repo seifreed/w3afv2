@@ -65,7 +65,9 @@ class TestAuditConsumer(unittest.TestCase):
         xss_instance.set_knowledge_base(w3af_core.knowledge_base)
 
         audit_plugins = [xss_instance]
-        audit_consumer = audit(audit_plugins, w3af_core, om.out)
+        audit_consumer = audit(
+            audit_plugins, w3af_core, om.out, w3af_core.configuration
+        )
         audit_consumer.start()
 
         fr = FuzzableRequest(URL(self.server.url("/?id=1")))
@@ -109,7 +111,12 @@ class TestAuditConsumerBranches(unittest.TestCase):
         self.recorder = start_recording_output()
 
     def run_audit(self, plugins, urls, observer=None):
-        consumer = audit(prepare_plugins(plugins, self.core), self.core, om.out)
+        consumer = audit(
+            prepare_plugins(plugins, self.core),
+            self.core,
+            om.out,
+            self.core.configuration,
+        )
         if observer is not None:
             consumer.add_observer(observer)
         consumer.start()

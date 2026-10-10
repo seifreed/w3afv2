@@ -474,6 +474,7 @@ class CoreStrategy:
                 self._configuration.get("max_discovery_time"),
                 knowledge_base=self._knowledge_base,
                 output=self._output,
+                configuration=self._configuration,
             )
             self._discovery_consumer.start()
 
@@ -488,7 +489,10 @@ class CoreStrategy:
 
         if grep_plugins:
             self._grep_consumer = grep(
-                grep_plugins, self._w3af_core, output=self._output
+                grep_plugins,
+                self._w3af_core,
+                output=self._output,
+                configuration=self._configuration,
             )
             self._w3af_core.uri_opener.set_grep_queue_put(self._grep_consumer.grep)
             self._grep_consumer.start()
@@ -591,6 +595,9 @@ class CoreStrategy:
 
         if audit_plugins:
             self._audit_consumer = audit(
-                audit_plugins, self._w3af_core, output=self._output
+                audit_plugins,
+                self._w3af_core,
+                output=self._output,
+                configuration=self._configuration,
             )
             self._audit_consumer.start()

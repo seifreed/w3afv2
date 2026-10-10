@@ -25,7 +25,6 @@ import sys
 import threading
 import time
 
-import w3af.core.data.kb.config as cf
 from w3af.core.controllers.core_helpers.consumers.base_consumer import BaseConsumer
 from w3af.core.controllers.core_helpers.status import CoreStatus
 from w3af.core.controllers.profiling.took_helper import TookLine
@@ -67,7 +66,7 @@ class grep(BaseConsumer):
         "set-cookie",
     )
 
-    def __init__(self, grep_plugins, w3af_core, output):
+    def __init__(self, grep_plugins, w3af_core, output, configuration):
         """
         :param grep_plugins: Instances of grep plugins in a list
         :param w3af_core: The w3af core that we'll use for status reporting
@@ -97,6 +96,7 @@ class grep(BaseConsumer):
             max_in_queue_size=max_in_queue_size,
             output=output,
         )
+        self._configuration = configuration
 
         self._already_analyzed_body = ScalableBloomFilter()
         self._already_analyzed_url = ScalableBloomFilter()
@@ -387,7 +387,7 @@ class grep(BaseConsumer):
         # goes to a grep plugin. Given that in the future the cf will be a
         # sqlite database, this is an important improvement.
         if self._target_domains is None:
-            self._target_domains = cf.cf.get("target_domains")
+            self._target_domains = self._configuration.get("target_domains")
 
         if response.get_url().get_domain() not in self._target_domains:
             self._should_grep_stats["reject-out-of-scope"] += 1

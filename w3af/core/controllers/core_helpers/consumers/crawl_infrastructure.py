@@ -25,7 +25,6 @@ import queue
 import threading
 import time
 
-import w3af.core.data.kb.config as cf
 from w3af.core.constants import POISON_PILL
 from w3af.core.controllers.core_helpers.consumers.base_consumer import (
     BaseConsumer,
@@ -62,6 +61,7 @@ class CrawlInfrastructure(BaseConsumer):
         max_discovery_time,
         knowledge_base,
         output,
+        configuration,
     ):
         """
         :param crawl_infrastructure_plugins: Instances of CrawlInfrastructure
@@ -80,6 +80,7 @@ class CrawlInfrastructure(BaseConsumer):
         )
         self._max_discovery_time = int(max_discovery_time)
         self._knowledge_base = knowledge_base
+        self._configuration = configuration
 
         # For filtering fuzzable requests found by plugins:
         self._variant_db = VariantDB()
@@ -444,7 +445,7 @@ class CrawlInfrastructure(BaseConsumer):
 
         :return: True if @FuzzableRequest is new (never seen before).
         """
-        base_urls_cf = cf.cf.get("baseURLs")
+        base_urls_cf = self._configuration.get("baseURLs")
         fr_uri = fuzzable_request.get_uri()
 
         # Is the "new" fuzzable request domain in the configured targets?

@@ -3804,3 +3804,16 @@ mypy y Bandit focal están limpios. El score sube a **6.8/10** en Clean
 Architecture y **6.7/10** global. Aún quedan consumidores de configuración en
 los workers (`crawl`, `grep`, `audit`) y el cierre de los gates/cobertura
 globales.
+
+## Actualización verificada: configuración explícita en workers de scan
+
+`CrawlInfrastructure`, `grep` y `audit` ya reciben la configuración del
+strategy. Sus lecturas de `baseURLs`, `target_domains` y `blacklist_audit`
+dejaron de depender de `cf.cf` desde los hilos consumidores; los callers de
+producción y los fixtures reales se actualizaron al mismo contrato.
+
+Verificación: las suites de consumidores, status y observers pasan **63
+tests**; Black, Ruff, mypy y Bandit focal están limpios. El score sube a
+**6.9/10** en Clean Architecture y **6.8/10** global. Todavía quedan
+consumidores de configuración en otros controladores, además de la cobertura
+y los gates globales por demostrar.

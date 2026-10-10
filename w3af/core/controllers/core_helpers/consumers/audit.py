@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import logging
 import time
 
-import w3af.core.data.kb.config as cf
 from w3af.core.controllers.core_helpers.consumers.base_consumer import (
     BaseConsumer,
     task_decorator,
@@ -42,7 +41,7 @@ class audit(BaseConsumer):
     requests.
     """
 
-    def __init__(self, audit_plugins, w3af_core, output):
+    def __init__(self, audit_plugins, w3af_core, output, configuration):
         """
         :param audit_plugins: Instances of audit plugins in a list
         :param w3af_core: The w3af core that we'll use for status reporting
@@ -57,6 +56,7 @@ class audit(BaseConsumer):
             max_in_queue_size=max_qsize,
             output=output,
         )
+        self._configuration = configuration
 
     def get_name(self):
         return "Auditor"
@@ -173,7 +173,7 @@ class audit(BaseConsumer):
         #
         # First setup the blacklist
         #
-        blacklist_urls = cf.cf.get("blacklist_audit") or []
+        blacklist_urls = self._configuration.get("blacklist_audit") or []
         blacklist_urls = {url.uri2url() for url in blacklist_urls}
 
         #
