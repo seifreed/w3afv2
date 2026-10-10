@@ -3129,6 +3129,18 @@ focalizado, `pip-audit` y `git diff --check` están limpios. El score permanece
 en **6.25/10** por la composición global, cobertura 100% no demostrada, mypy
 sobre el `venv` y Bandit heredado aún pendientes.
 
+## Actualización verificada: ciclo de parada separado
+
+`ScanStopController` concentra la solicitud de parada, la espera acotada por
+timeout, el tratamiento de `KeyboardInterrupt` y la terminación del pool.
+`w3afCore.stop()` conserva la fachada pública y entrega proveedores para el
+status y la estrategia actuales, evitando referencias obsoletas entre scans.
+
+Verificación: la suite core completa pasó **31 tests en 127.10 s**; Black,
+Ruff, mypy focalizado, Bandit focalizado y `git diff --check` están limpios.
+El score permanece en **6.25/10** por la composición global, cobertura 100% no
+demostrada, mypy sobre el `venv` y Bandit heredado aún pendientes.
+
 ## Actualización verificada: ajuste de workers separado
 
 `WorkerPoolAdjuster` concentra los límites de concurrencia, la política basada
