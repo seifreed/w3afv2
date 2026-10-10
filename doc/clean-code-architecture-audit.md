@@ -2094,3 +2094,16 @@ de errores pasan; Ruff, Black y mypy están limpios en los módulos modificados.
 El score permanece en **5.75/10**: siguen pendientes la cobertura global,
 Bandit heredado, mocks existentes, el fallo de perfilado, Moth y los
 orquestadores grandes.
+
+## Actualización verificada: rate limiting separado
+
+La política de máximo de requests por segundo salió de `ExtendedUrllib` y pasó
+a `core/data/url/rate_limiter.py`. El opener conserva la misma entrada desde
+`_before_send_hook`, el sleep inyectado y el comportamiento de configuración
+cero; el lock de pausa por errores dejó de compartir un nombre engañoso con el
+rate limiter.
+
+Verificación: 30 tests HTTP generales, 6 tests de errores y 6 tests de timeout
+pasan; Ruff, Black y mypy están limpios en los módulos modificados. El score
+permanece en **5.75/10**: siguen pendientes cobertura global, Bandit heredado,
+mocks existentes, perfilado, Moth y orquestadores grandes.

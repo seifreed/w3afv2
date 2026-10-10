@@ -61,6 +61,7 @@ from w3af.core.data.url.handlers.keepalive import URLTimeoutError
 from w3af.core.data.url.helpers import get_clean_body, get_exception_reason
 from w3af.core.data.url.http_request import HTTPRequest
 from w3af.core.data.url.http_response import HTTPResponse
+from w3af.core.data.url.rate_limiter import RateLimiter
 from w3af.core.data.url.response_meta import SUCCESS, ResponseMeta
 from w3af.core.data.url.timeout_manager import TimeoutManager
 from w3af.core.data.user_agent.random_user_agent import get_random_user_agent
@@ -101,8 +102,8 @@ class ExtendedUrllib:
         self._count_lock = threading.RLock()
 
         # For rate limiting and timeouts
-        self._rate_limit_last_time_called = 0.0
-        self._rate_limit_lock = threading.RLock()
+        self._rate_limiter = RateLimiter(self.settings, sleep)
+        self._error_pause_lock = threading.RLock()
         self._timeout_manager = TimeoutManager(self.settings)
 
         # Keep track of sum(rtt) for each debugging_id
@@ -342,7 +343,7 @@ class ExtendedUrllib:
         :see: https://github.com/andresriancho/w3af/issues/4811
         :see: https://github.com/andresriancho/w3af/issues/8852
         """
-        with self._rate_limit_lock:
+        with self._error_pause_lock:
 
             error_rate = self.get_error_rate()
             if not self._should_pause_on_http_error(error_rate):
@@ -405,26 +406,7 @@ class ExtendedUrllib:
         Makes sure that we don't send more than X HTTP requests per seconds
         :return:
         """
-        max_requests_per_second = self.settings.get_max_requests_per_second()
-
-        if max_requests_per_second <= 0:
-            return
-
-        min_interval = 1.0 / float(max_requests_per_second)
-        elapsed = time.monotonic() - self._rate_limit_last_time_called
-        left_to_wait = min_interval - elapsed
-
-        with self._rate_limit_lock:
-            if left_to_wait > 0:
-                #
-                # This is useful for debugging, but will fill the output log in most
-                # scenarios, you have been warned
-                #
-                # om.out.debug('ExtendedUrllib rate limit in place. Blocking all HTTP'
-                #             ' requests for %s seconds.' % left_to_wait)
-                self._sleep(left_to_wait)
-
-        self._rate_limit_last_time_called = time.monotonic()
+        self._rate_limiter.wait()
 
     def _raise_if_should_stop(self):
         # There might be errors that make us stop the process, the exception
