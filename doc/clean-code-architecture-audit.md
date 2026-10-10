@@ -1655,3 +1655,15 @@ Verificación: 29 tests de helpers y plugins de brute force pasan, Ruff, Black y
 mypy pasan en los módulos modificados. El score sigue en **5.75/10**: quedan
 72 imports directos de la KB, además de la cobertura, mocks, el fallo heredado
 de perfilado y los orquestadores grandes.
+
+## Actualización verificada: subida de ficheros
+
+`audit.file_upload` obtiene las rutas conocidas mediante la KB inyectada al
+plugin, eliminando su lectura directa del singleton sin alterar la búsqueda de
+ficheros subidos.
+
+Verificación: Ruff, Black y mypy pasan en el módulo modificado. Sus cuatro
+tests integrados requieren el host externo `php_moth-fallback`, que no resuelve
+en este entorno. El score sigue en **5.75/10**: quedan 71 imports directos de
+la KB, además de la cobertura, mocks, el fallo heredado de perfilado, la
+dependencia de Moth y los orquestadores grandes.
