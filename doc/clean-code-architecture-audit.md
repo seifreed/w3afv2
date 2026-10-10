@@ -1766,3 +1766,14 @@ Verificación: 10 tests de ambos crawlers pasan, Ruff, Black y mypy pasan en
 los módulos modificados. El score sigue en **5.75/10**: quedan 57 imports
 directos de la KB, además de la cobertura, mocks, el fallo heredado de
 perfilado, la dependencia de Moth y los orquestadores grandes.
+
+## Actualización verificada: detección de dominio e instalaciones JBoss
+
+`infrastructure.domain_dot` y `infrastructure.find_jboss` registran sus
+resultados mediante la KB configurada en cada plugin. El test unitario del
+camino de error de `domain_dot` también configura explícitamente la KB real.
+
+Verificación: 5 tests de ambos plugins pasan, Ruff, Black y mypy pasan en los
+módulos modificados. El score sigue en **5.75/10**: quedan 55 imports directos
+de la KB, además de la cobertura, mocks, el fallo heredado de perfilado, la
+dependencia de Moth y los orquestadores grandes.
