@@ -60,6 +60,7 @@ class TestAuditConsumer(unittest.TestCase):
         xss_instance = xss()
         xss_instance.set_url_opener(w3af_core.uri_opener)
         xss_instance.set_worker_pool(w3af_core.worker_pool)
+        xss_instance.set_knowledge_base(w3af_core.knowledge_base)
 
         audit_plugins = [xss_instance]
         audit_consumer = audit(audit_plugins, w3af_core)

@@ -25,7 +25,6 @@ import queue
 import threading
 import time
 
-import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af.core.constants import POISON_PILL
 from w3af.core.controllers.core_helpers.consumers.base_consumer import (
@@ -62,6 +61,7 @@ class CrawlInfrastructure(BaseConsumer):
         w3af_core,
         max_discovery_time,
         knowledge_base,
+        output=None,
     ):
         """
         :param crawl_infrastructure_plugins: Instances of CrawlInfrastructure
@@ -76,6 +76,7 @@ class CrawlInfrastructure(BaseConsumer):
             w3af_core,
             thread_name=self.get_name(),
             max_pool_queued_tasks=100,
+            output=output,
         )
         self._max_discovery_time = int(max_discovery_time)
         self._knowledge_base = knowledge_base
@@ -97,7 +98,7 @@ class CrawlInfrastructure(BaseConsumer):
         self.in_queue = OrderedCachedQueue(
             maxsize=10,
             name=self.get_name() + "In",
-            debug_log=om.out.debug,
+            debug_log=self._output.debug,
         )
 
     def get_name(self):
@@ -151,10 +152,10 @@ class CrawlInfrastructure(BaseConsumer):
         to_teardown = set(to_teardown) - self._disabled_plugins
 
         msg = "Starting CrawlInfra consumer _teardown() with %s plugins"
-        om.out.debug(msg % len(to_teardown))
+        self._output.debug(msg % len(to_teardown))
 
         for teardown_plugin in to_teardown:
-            om.out.debug(f"Calling {teardown_plugin.get_name()}.end()")
+            self._output.debug(f"Calling {teardown_plugin.get_name()}.end()")
             start_time = time.time()
 
             try:
@@ -193,7 +194,7 @@ class CrawlInfrastructure(BaseConsumer):
             finally:
                 self._disabled_plugins.add(teardown_plugin)
 
-        om.out.debug("Finished CrawlInfra consumer _teardown()")
+        self._output.debug("Finished CrawlInfra consumer _teardown()")
 
     @task_decorator
     def _consume(self, function_id, work_unit):
@@ -364,7 +365,7 @@ class CrawlInfrastructure(BaseConsumer):
         and reports identified URLs and fuzzable requests to the user.
         """
         if not len(self._knowledge_base.get_all_known_urls()):
-            om.out.information("No URLs found during crawl phase.")
+            self._output.information("No URLs found during crawl phase.")
             return
 
         # Sort URLs
@@ -376,21 +377,21 @@ class CrawlInfrastructure(BaseConsumer):
 
         msg = "Found %s URLs and %s different injections points."
         args = (len(tmp_url_list), len(all_known_fuzzable_requests))
-        om.out.information(msg % args)
+        self._output.information(msg % args)
 
         # print the URLs
-        om.out.information("The URL list is:")
+        self._output.information("The URL list is:")
 
         tmp_url_list = [f"- {u.url_string}" for u in tmp_url_list]
         tmp_url_list.sort()
-        list(map(om.out.information, tmp_url_list))
+        list(map(self._output.information, tmp_url_list))
 
         # Now I simply print the list that I have after the filter.
-        om.out.information("The list of fuzzable requests is:")
+        self._output.information("The list of fuzzable requests is:")
 
         tmp_fr = [f"- {fr!s}" for fr in all_known_fuzzable_requests]
         tmp_fr.sort()
-        list(map(om.out.information, tmp_fr))
+        list(map(self._output.information, tmp_fr))
 
     def _should_stop_discovery(self):
         """
@@ -410,7 +411,7 @@ class CrawlInfrastructure(BaseConsumer):
                 "Maximum crawl time limit hit, no new URLs will be"
                 " added to the queue."
             )
-            om.out.information(msg)
+            self._output.information(msg)
 
         return True
 
@@ -423,7 +424,7 @@ class CrawlInfrastructure(BaseConsumer):
             if plugin_to_remove in self._w3af_core.plugins.plugins[plugin_type]:
 
                 msg = 'The %s plugin: "%s" wont be run anymore.'
-                om.out.debug(msg % (plugin_type, plugin_to_remove.get_name()))
+                self._output.debug(msg % (plugin_type, plugin_to_remove.get_name()))
 
                 # Add it to the list of disabled plugins, and run the end()
                 # method
@@ -500,7 +501,7 @@ class CrawlInfrastructure(BaseConsumer):
                     " of another URL seen before."
                 )
                 msg %= fuzzable_request.get_uri()
-                om.out.debug(msg)
+                self._output.debug(msg)
             else:
                 msg = (
                     'Ignoring form "%s" with parameters [%s] since it is'
@@ -510,12 +511,12 @@ class CrawlInfrastructure(BaseConsumer):
                     fuzzable_request.get_uri(),
                     ", ".join(fuzzable_request.get_raw_data().get_param_names()),
                 )
-                om.out.debug(msg % args)
+                self._output.debug(msg % args)
 
             return False
 
         msg = 'New fuzzable request identified: "%s"'
-        om.out.debug(msg % fuzzable_request)
+        self._output.debug(msg % fuzzable_request)
 
         # Log the new finding to the user, without dups
         # https://github.com/andresriancho/w3af/issues/8496
@@ -523,7 +524,7 @@ class CrawlInfrastructure(BaseConsumer):
         if self._reported_found_urls.add(url):
             msg = 'New URL found by %s plugin: "%s"'
             args = (plugin.get_name(), url)
-            om.out.information(msg % args)
+            self._output.information(msg % args)
 
         return True
 
@@ -550,7 +551,7 @@ class CrawlInfrastructure(BaseConsumer):
         debugging_id = rand_alnum(8)
 
         args = (plugin.get_name(), fuzzable_request.get_uri(), debugging_id)
-        om.out.debug("{}.discover({}, did={})".format(*args))
+        self._output.debug("{}.discover({}, did={})".format(*args))
 
         took_line = TookLine(
             self._w3af_core,
@@ -570,7 +571,7 @@ class CrawlInfrastructure(BaseConsumer):
         except BaseFrameworkException as e:
             msg = 'An exception was found while running "%s" with "%s": "%s" (did: %s)'
             args = (plugin.get_name(), fuzzable_request, e, debugging_id)
-            om.out.error(msg % args)
+            self._output.error(msg % args)
         except RunOnce:
             # Some plugins are meant to be run only once
             # that is implemented by raising a RunOnce

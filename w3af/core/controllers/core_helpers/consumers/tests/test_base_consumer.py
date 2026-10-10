@@ -28,7 +28,10 @@ from w3af.core.controllers.core_helpers.consumers.tests.consumer_plugins import 
     WAIT_TIMEOUT,
     wait_until,
 )
-from w3af.core.controllers.tests.recording_output import start_recording_output
+from w3af.core.controllers.tests.recording_output import (
+    recording_output,
+    start_recording_output,
+)
 from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
@@ -293,6 +296,14 @@ class TestAbstractConsumer(unittest.TestCase):
         self.assertRaises(NotImplementedError, consumer.get_name)
         self.assertRaises(NotImplementedError, consumer._teardown)
         self.assertRaises(NotImplementedError, consumer._consume, None)
+
+    def test_output_sink_is_injected(self):
+        output = recording_output()
+        consumer = BaseConsumer(
+            [], self.core, "InjectedOutput", create_pool=False, output=output
+        )
+
+        self.assertIs(consumer._output, output)
 
     def test_poison_pill_error_is_logged(self):
         recorder = start_recording_output()

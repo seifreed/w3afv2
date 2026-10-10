@@ -25,7 +25,6 @@ import sys
 import threading
 import time
 
-import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.core_helpers.consumers.base_consumer import BaseConsumer
 from w3af.core.controllers.core_helpers.status import CoreStatus
@@ -68,7 +67,7 @@ class grep(BaseConsumer):
         "set-cookie",
     )
 
-    def __init__(self, grep_plugins, w3af_core):
+    def __init__(self, grep_plugins, w3af_core, output=None):
         """
         :param grep_plugins: Instances of grep plugins in a list
         :param w3af_core: The w3af core that we'll use for status reporting
@@ -96,6 +95,7 @@ class grep(BaseConsumer):
             thread_pool_size=thread_pool_size,
             thread_name=self.get_name(),
             max_in_queue_size=max_in_queue_size,
+            output=output,
         )
 
         self._already_analyzed_body = ScalableBloomFilter()
@@ -128,10 +128,10 @@ class grep(BaseConsumer):
         Handle POISON_PILL
         """
         msg = "Starting Grep consumer _teardown() with %s plugins"
-        om.out.debug(msg % len(self._consumer_plugins))
+        self._output.debug(msg % len(self._consumer_plugins))
 
         for plugin in self._consumer_plugins:
-            om.out.debug(f"Calling {plugin.get_name()}.end()")
+            self._output.debug(f"Calling {plugin.get_name()}.end()")
             start_time = time.time()
 
             try:
@@ -140,7 +140,7 @@ class grep(BaseConsumer):
                 logger.debug("Unhandled exception in _teardown()", exc_info=True)
                 msg = 'An exception was found while running %s.end(): "%s"'
                 args = (plugin.get_name(), exception)
-                om.out.debug(msg % args)
+                self._output.debug(msg % args)
 
                 status = FakeStatus(self._w3af_core)
                 status.set_current_fuzzable_request("grep", "n/a")
@@ -156,13 +156,13 @@ class grep(BaseConsumer):
             spent_time = time.time() - start_time
             msg = "Spent %.2f seconds running %s.end()"
             args = (spent_time, plugin.get_name())
-            om.out.debug(msg % args)
+            self._output.debug(msg % args)
 
         self._consumer_plugins = {}
         self._consumer_plugin_dict = {}
         self._response_cache_key_cache.clear_cache()
 
-        om.out.debug("Finished Grep consumer _teardown()")
+        self._output.debug("Finished Grep consumer _teardown()")
 
     def _get_request_response_from_id_impl(self, http_response_id):
         """
@@ -220,7 +220,7 @@ class grep(BaseConsumer):
             # response from disk. Timeout as a safety measure
             wait_result = event.wait(timeout=self.DESERIALIZATION_TIMEOUT)
             if not wait_result:
-                om.out.error(
+                self._output.error(
                     "There was a timeout waiting for the"
                     " deserialization of HTTP request and response"
                     f" with id {http_response_id}"
@@ -310,7 +310,7 @@ class grep(BaseConsumer):
                 " does not exist in dict."
             )
             args = (plugin_name,)
-            om.out.error(msg % args)
+            self._output.error(msg % args)
 
         return plugin
 
@@ -462,7 +462,7 @@ class grep(BaseConsumer):
 
         msg = "Grep consumer should_grep() stats: %r"
         args = (self._should_grep_stats,)
-        om.out.debug(msg % args)
+        self._output.debug(msg % args)
 
     def grep(self, request, response):
         """

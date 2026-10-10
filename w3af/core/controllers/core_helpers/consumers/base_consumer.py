@@ -82,12 +82,14 @@ class BaseConsumer(Process):
         max_pool_queued_tasks=0,
         max_in_queue_size=0,
         thread_pool_size=None,
+        output=None,
     ):
         """
         :param consumer_plugins: Instances of base_consumer plugins in a list
         :param w3af_core: The w3af core that we'll use for status reporting
         :param thread_name: How to name the current thread, eg. Auditor
         :param create_pool: True to create a worker pool for this consumer
+        :param output: Sink used for consumer diagnostics
         """
         super().__init__(name=f"{thread_name}Controller")
 
@@ -139,6 +141,7 @@ class BaseConsumer(Process):
         self._thread_name = thread_name
         self._consumer_plugins = consumer_plugins
         self._w3af_core = w3af_core
+        self._output = om.out if output is None else output
         self._observers = []
 
         self._tasks_in_progress = {}
@@ -195,12 +198,12 @@ class BaseConsumer(Process):
             " breaking out of the loop"
         )
         args = (self._thread_name, self.in_queue.qsize(), self.out_queue.qsize())
-        om.out.debug(msg % args)
+        self._output.debug(msg % args)
 
         if len(self._tasks_in_progress):
             msg = "The %s consumer has %s tasks in progress"
             args = (self._thread_name, len(self._tasks_in_progress))
-            om.out.debug(msg % args)
+            self._output.debug(msg % args)
 
         if self._threadpool is not None:
 
@@ -213,7 +216,7 @@ class BaseConsumer(Process):
                 self._threadpool.get_inqueue().qsize(),
                 self._threadpool.get_outqueue().qsize(),
             )
-            om.out.debug(msg % args)
+            self._output.debug(msg % args)
 
     def _consume_poison_pill(self):
         """
@@ -225,12 +228,12 @@ class BaseConsumer(Process):
         except Exception as e:
             logger.debug("Processing the poison pill failed", exc_info=True)
             msg = 'An exception was found while processing poison pill: "%s"'
-            om.out.debug(msg % e)
+            self._output.debug(msg % e)
         finally:
             self.in_queue.task_done()
 
     def _process_poison_pill(self):
-        om.out.debug(f"Processing POISON_PILL in {self._thread_name}")
+        self._output.debug(f"Processing POISON_PILL in {self._thread_name}")
 
         try:
             self._shutdown_threadpool()
@@ -242,7 +245,7 @@ class BaseConsumer(Process):
     def _shutdown_threadpool(self):
         if self._threadpool is None:
             msg = "%s pool is None. No shutdown required."
-            om.out.debug(msg % self._thread_name)
+            self._output.debug(msg % self._thread_name)
             return
 
         #
@@ -255,10 +258,10 @@ class BaseConsumer(Process):
         self._threadpool = None
 
         pool.close()
-        om.out.debug(f"{self._thread_name} pool is closed")
+        self._output.debug(f"{self._thread_name} pool is closed")
 
         pool.join()
-        om.out.debug(f"{self._thread_name} pool has been joined")
+        self._output.debug(f"{self._thread_name} pool has been joined")
 
     def _call_teardown(self):
         # Finish this consumer and everyone consuming the output
@@ -268,7 +271,7 @@ class BaseConsumer(Process):
             logger.debug("Consumer teardown failed", exc_info=True)
             msg = 'Exception found while calling teardown() in %s consumer: "%s"'
             args = (self.get_name(), e)
-            om.out.debug(msg % args)
+            self._output.debug(msg % args)
 
     def get_running_task_count(self):
         """
@@ -418,7 +421,7 @@ class BaseConsumer(Process):
         self.in_queue_put(POISON_PILL, force=True)
 
         msg = "Sent POISON_PILL to the %s consumer in_queue"
-        om.out.debug(msg % self._thread_name)
+        self._output.debug(msg % self._thread_name)
 
     def join(self):
         """
@@ -426,7 +429,7 @@ class BaseConsumer(Process):
         some time to process.
         """
         msg = "Called %s consumer join()"
-        om.out.debug(msg % self._thread_name)
+        self._output.debug(msg % self._thread_name)
 
         start_time = time.time()
 
@@ -434,24 +437,26 @@ class BaseConsumer(Process):
             # This return has a long history, follow it here:
             # https://github.com/andresriancho/w3af/issues/1172
             msg = "The %s consumer thread was not alive"
-            om.out.debug(msg % self._thread_name)
+            self._output.debug(msg % self._thread_name)
             return
 
         self.send_poison_pill()
 
         msg = "Calling join() on %s.in_queue (qsize:%s)"
         args = (self._thread_name, self.in_queue.qsize())
-        om.out.debug(msg % args)
+        self._output.debug(msg % args)
 
         self.in_queue.join()
 
         msg = "Successfully joined the %s consumer in_queue"
-        om.out.debug(msg % self._thread_name)
+        self._output.debug(msg % self._thread_name)
 
         self._shutdown_threadpool()
 
         spent_time = time.time() - start_time
-        om.out.debug(f"{self._thread_name} took {spent_time:.2f} seconds to join()")
+        self._output.debug(
+            f"{self._thread_name} took {spent_time:.2f} seconds to join()"
+        )
 
     def _clear_input_output_queues(self):
         #
@@ -533,4 +538,4 @@ class BaseConsumer(Process):
     def _log_end_took(self, msg_fmt, start_time, plugin):
         spent_time = time.time() - start_time
         args = (spent_time, plugin.get_name())
-        om.out.debug(msg_fmt % args)
+        self._output.debug(msg_fmt % args)

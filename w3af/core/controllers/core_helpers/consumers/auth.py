@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import logging
 import queue
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.constants import POISON_PILL
 from w3af.core.controllers.profiling.took_helper import TookLine
 from w3af.core.data.fuzzer.utils import rand_alnum
@@ -39,14 +38,18 @@ class auth(BaseConsumer):
     Thread that logins into the application every N seconds.
     """
 
-    def __init__(self, auth_plugins, w3af_core, timeout):
+    def __init__(self, auth_plugins, w3af_core, timeout, output=None):
         """
         :param auth_plugins: Instances of auth plugins in a list
         :param w3af_core: The w3af core that we'll use for status reporting
         :param timeout: The time to wait between each login check
         """
         super().__init__(
-            auth_plugins, w3af_core, thread_name=self.get_name(), create_pool=False
+            auth_plugins,
+            w3af_core,
+            thread_name=self.get_name(),
+            create_pool=False,
+            output=output,
         )
 
         self._timeout = timeout
@@ -100,7 +103,7 @@ class auth(BaseConsumer):
             args = (plugin.get_name(), plugin.get_name(), debugging_id)
             msg = "auth consumer is calling %s.has_active_session() and %s.login() (did:%s)"
 
-            om.out.debug(msg % args)
+            self._output.debug(msg % args)
 
             took_line = TookLine(
                 self._w3af_core, "auth", "_login", debugging_id=debugging_id

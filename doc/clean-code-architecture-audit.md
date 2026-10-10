@@ -2273,3 +2273,17 @@ Verificación: **30 tests pasados** en `test_xml_file`; Ruff, Black y mypy está
 limpios, y no quedan referencias a `output_manager` ni `om.out` en
 `plugins/output`. El score permanece en **5.75/10** por cobertura, Bandit
 heredado, mocks, fixtures pendientes, Moth, consumers y orquestadores grandes.
+
+## Actualización verificada: output desacoplado en consumidores
+
+`BaseConsumer` acepta ahora un sink explícito y concentra el único fallback al
+singleton global. `audit`, `auth`, `bruteforce`, `grep` y
+`CrawlInfrastructure` reutilizan ese sink en lugar de importar directamente
+`output_manager`; `CoreStrategy` lo inyecta al componerlos. La lógica de
+consumo, las colas y el ciclo de vida no cambian.
+
+Verificación: **58 tests pasados** en consumidores y estrategia, con 9 avisos
+de deprecación procedentes de dependencias externas; Ruff, Black y mypy están
+limpios. El score permanece en **5.75/10** por los consumidores y helpers aún
+globales, cobertura 100% no demostrada, Bandit heredado, mocks existentes,
+Moth y los orquestadores grandes.

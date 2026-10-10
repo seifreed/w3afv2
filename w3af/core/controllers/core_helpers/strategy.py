@@ -464,6 +464,7 @@ class CoreStrategy:
                 self._w3af_core,
                 cf.cf.get("max_discovery_time"),
                 knowledge_base=self._knowledge_base,
+                output=om.out,
             )
             self._discovery_consumer.start()
 
@@ -477,7 +478,7 @@ class CoreStrategy:
         grep_plugins = self._w3af_core.plugins.plugins["grep"]
 
         if grep_plugins:
-            self._grep_consumer = grep(grep_plugins, self._w3af_core)
+            self._grep_consumer = grep(grep_plugins, self._w3af_core, output=om.out)
             self._w3af_core.uri_opener.set_grep_queue_put(self._grep_consumer.grep)
             self._grep_consumer.start()
 
@@ -549,7 +550,9 @@ class CoreStrategy:
         bruteforce_plugins = self._w3af_core.plugins.plugins["bruteforce"]
 
         if bruteforce_plugins:
-            self._bruteforce_consumer = bruteforce(bruteforce_plugins, self._w3af_core)
+            self._bruteforce_consumer = bruteforce(
+                bruteforce_plugins, self._w3af_core, output=om.out
+            )
             self._bruteforce_consumer.start()
 
     def _setup_auth(self, timeout=5):
@@ -561,7 +564,9 @@ class CoreStrategy:
         auth_plugins = self._w3af_core.plugins.plugins["auth"]
 
         if auth_plugins:
-            self._auth_consumer = auth(auth_plugins, self._w3af_core, timeout)
+            self._auth_consumer = auth(
+                auth_plugins, self._w3af_core, timeout, output=om.out
+            )
             self._auth_consumer.start()
             self._auth_consumer.force_login()
 
@@ -574,5 +579,5 @@ class CoreStrategy:
         audit_plugins = self._w3af_core.plugins.plugins["audit"]
 
         if audit_plugins:
-            self._audit_consumer = audit(audit_plugins, self._w3af_core)
+            self._audit_consumer = audit(audit_plugins, self._w3af_core, output=om.out)
             self._audit_consumer.start()

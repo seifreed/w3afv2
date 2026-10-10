@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import logging
 import time
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.consumers.base_consumer import (
     BaseConsumer,
     task_decorator,
@@ -41,22 +40,27 @@ class bruteforce(BaseConsumer):
     by the crawl plugins and bruteforces logins by performing various requests.
     """
 
-    def __init__(self, bruteforce_plugins, w3af_core):
+    def __init__(self, bruteforce_plugins, w3af_core, output=None):
         """
         :param bruteforce_plugins: Instances of bruteforce plugins in a list
         :param w3af_core: The w3af core that we'll use for status reporting
         """
-        super().__init__(bruteforce_plugins, w3af_core, thread_name=self.get_name())
+        super().__init__(
+            bruteforce_plugins,
+            w3af_core,
+            thread_name=self.get_name(),
+            output=output,
+        )
 
     def get_name(self):
         return "Bruteforcer"
 
     def _teardown(self):
         msg = "Starting Bruteforce consumer _teardown() with %s plugins"
-        om.out.debug(msg % len(self._consumer_plugins))
+        self._output.debug(msg % len(self._consumer_plugins))
 
         for plugin in self._consumer_plugins:
-            om.out.debug(f"Calling {plugin.get_name()}.end()")
+            self._output.debug(f"Calling {plugin.get_name()}.end()")
             start_time = time.time()
 
             try:
@@ -92,7 +96,7 @@ class bruteforce(BaseConsumer):
                 msg_fmt = "Spent %.2f seconds running %s.end()"
                 self._log_end_took(msg_fmt, start_time, plugin)
 
-        om.out.debug("Finished Bruteforce consumer _teardown()")
+        self._output.debug("Finished Bruteforce consumer _teardown()")
 
     def _run_observers(self, fuzzable_request):
         """
@@ -152,7 +156,7 @@ class bruteforce(BaseConsumer):
 
         # Logging
         args = (plugin.get_name(), fuzzable_request.get_uri())
-        om.out.debug("{}.bruteforce({})".format(*args))
+        self._output.debug("{}.bruteforce({})".format(*args))
         took_line = TookLine(
             self._w3af_core,
             plugin.get_name(),

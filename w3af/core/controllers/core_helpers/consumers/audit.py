@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import logging
 import time
 
-import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.core_helpers.consumers.base_consumer import (
     BaseConsumer,
@@ -43,7 +42,7 @@ class audit(BaseConsumer):
     requests.
     """
 
-    def __init__(self, audit_plugins, w3af_core):
+    def __init__(self, audit_plugins, w3af_core, output=None):
         """
         :param audit_plugins: Instances of audit plugins in a list
         :param w3af_core: The w3af core that we'll use for status reporting
@@ -56,6 +55,7 @@ class audit(BaseConsumer):
             thread_name=self.get_name(),
             max_pool_queued_tasks=max_qsize,
             max_in_queue_size=max_qsize,
+            output=output,
         )
 
     def get_name(self):
@@ -63,10 +63,10 @@ class audit(BaseConsumer):
 
     def _teardown(self):
         msg = "Starting Audit consumer _teardown() with %s plugins"
-        om.out.debug(msg % len(self._consumer_plugins))
+        self._output.debug(msg % len(self._consumer_plugins))
 
         for plugin in self._consumer_plugins:
-            om.out.debug(f"Calling {plugin.get_name()}.end()")
+            self._output.debug(f"Calling {plugin.get_name()}.end()")
             start_time = time.time()
 
             try:
@@ -100,7 +100,7 @@ class audit(BaseConsumer):
                 msg_fmt = "Spent %.2f seconds running %s.end()"
                 self._log_end_took(msg_fmt, start_time, plugin)
 
-        om.out.debug("Finished Audit consumer _teardown()")
+        self._output.debug("Finished Audit consumer _teardown()")
 
     def get_original_response(self, fuzzable_request):
         plugin = self._consumer_plugins[0]
@@ -186,7 +186,7 @@ class audit(BaseConsumer):
                 "%s was included in the audit blacklist, the scan engine"
                 " is NOT going to perform fuzzing on this URL"
             )
-            om.out.debug(msg % url)
+            self._output.debug(msg % url)
             return False
 
         return True
@@ -218,7 +218,7 @@ class audit(BaseConsumer):
         use in the future.
         """
         args = (plugin.get_name(), debugging_id, fuzzable_request.get_uri())
-        om.out.debug('{}.audit(did="{}", uri="{}")'.format(*args))
+        self._output.debug('{}.audit(did="{}", uri="{}")'.format(*args))
 
         took_line = TookLine(
             self._w3af_core,
