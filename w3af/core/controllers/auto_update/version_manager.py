@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from datetime import datetime
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.auto_update.git_client import GitClient, GitClientError
 from w3af.core.controllers.auto_update.utils import (
     get_commit_id_date,
@@ -82,7 +81,7 @@ class VersionMgr:
     HEAD = "HEAD"
     BACK = "BACK"
 
-    def __init__(self, localpath=W3AF_LOCAL_PATH, log=None, start_cfg=None):
+    def __init__(self, localpath=W3AF_LOCAL_PATH, *, log, start_cfg=None):
         """
         w3af version manager class. Handles the logic concerning the
         automatic update/commit process of the code.
@@ -95,7 +94,6 @@ class VersionMgr:
         self._client = GitClient(localpath)
         self._client.add_observer(self._client_progress)
 
-        log = log if log is not None else om.out.console
         self._log = log
 
         # Set default events

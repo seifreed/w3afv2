@@ -58,7 +58,7 @@ class TestVersionMgr(unittest.TestCase):
         self.start_cfg = StartUpConfig(self._path("startup.conf"))
         self.log = CallRecorder()
         self.vmgr = VersionMgr(
-            self.local.working_tree_dir, self.log, start_cfg=self.start_cfg
+            self.local.working_tree_dir, log=self.log, start_cfg=self.start_cfg
         )
 
         self.on_update_check = CallRecorder()
@@ -204,7 +204,7 @@ class TestVersionMgr(unittest.TestCase):
         self.addCleanup(gc.enable)
 
         vmgr = VersionMgr(
-            self.local.working_tree_dir, self.log, start_cfg=self.start_cfg
+            self.local.working_tree_dir, log=self.log, start_cfg=self.start_cfg
         )
         vmgr_ref = weakref.ref(vmgr)
         del vmgr

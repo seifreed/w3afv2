@@ -2618,3 +2618,14 @@ Verificación: **3 tests pasaron** en profiling; Ruff, Black y mypy están
 limpios. El score permanece en **6.25/10** por los globals restantes de UI y
 servicios, cobertura total no demostrada, Bandit heredado, mocks e
 integraciones Moth.
+
+## Actualización verificada: auto-update sin fallback global
+
+`VersionMgr` exige ahora el logger explícito como argumento keyword-only. La
+UI de consola ya lo compone con `self._output.console`, por lo que el gestor
+de versiones dejó de importar o consultar `output_manager` global.
+
+Verificación: **17 tests pasaron** en version manager y auto-update; Ruff,
+Black y mypy están limpios. El score permanece en **6.25/10** por los globals
+restantes de UI y servicios, cobertura total no demostrada, Bandit heredado,
+mocks e integraciones Moth.
