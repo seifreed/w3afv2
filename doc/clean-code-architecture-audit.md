@@ -2462,3 +2462,14 @@ de importar `output_manager`.
 Verificación: Ruff, Black y mypy están limpios. Las suites de integración de
 ambos plugins no se ejecutaron correctamente porque dependen del entorno Moth
 no resoluble (`fallback`); el score permanece en **6.25/10** hasta verificarlas.
+
+## Actualización verificada: SQLMap con output explícito
+
+`SQLMapWrapper`, `RunFunctor`, `SQLMapShell` y el plugin `sqlmap` comparten
+ahora el sink inyectado. Los mensajes del proceso externo, errores de
+inicialización, detección de sistema operativo y reconstrucciones por pickle
+ya no consultan `output_manager` directamente.
+
+Verificación: Ruff, Black y mypy están limpios. La suite de explotación SQLMap
+requiere Moth/SQLMap testenv y queda pendiente por el host DNS no resoluble;
+el score permanece en **6.25/10** hasta cubrir esa integración.

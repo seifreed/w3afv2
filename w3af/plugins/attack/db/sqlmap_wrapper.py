@@ -27,7 +27,6 @@ import sys
 import tempfile
 from importlib.resources import files
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.daemons.proxy import Proxy
 from w3af.core.controllers.misc.external_process import PIPE, start_process
 from w3af.core.data.parsers.doc.url import URL
@@ -54,12 +53,13 @@ class SQLMapWrapper:
         "establish SSL connection",
     )
 
-    def __init__(self, target, uri_opener, coloring=False, debug=False):
+    def __init__(self, target, uri_opener, output, coloring=False, debug=False):
         if not isinstance(target, Target):
             fmt = "Invalid type %s for target parameter in SQLMapWrapper ctor."
             raise TypeError(fmt % type(target))
 
         self.debug = debug
+        self._output = output
         self.target = target
         self.coloring = coloring
         self.last_command = None
@@ -98,7 +98,13 @@ class SQLMapWrapper:
         from the kb we call "shell.set_url_opener(w3af_core.uri_opener)",
         which then calls start_proxy(uri_opener) in order to restore the opener
         """
-        return self.__class__, (self.target, None, self.coloring, self.debug)
+        return self.__class__, (
+            self.target,
+            None,
+            self._output,
+            self.coloring,
+            self.debug,
+        )
 
     def cleanup(self):
         self.proxy.stop()
@@ -163,7 +169,7 @@ class SQLMapWrapper:
                     "The operating system is running low on memory and"
                     " failed to start the sqlmap process."
                 )
-                om.out.error(msg)
+                self._output.error(msg)
 
                 # This tells the rest of the world that the command failed
                 self.last_command = None
@@ -197,9 +203,9 @@ class SQLMapWrapper:
 
         self.last_stdout, self.last_stderr = process.communicate()
 
-        om.out.debug(f"[sqlmap_wrapper] {self.last_command}")
+        self._output.debug(f"[sqlmap_wrapper] {self.last_command}")
         for line in self.last_stdout.split("\n"):
-            om.out.debug(f"[sqlmap_wrapper] {line}")
+            self._output.debug(f"[sqlmap_wrapper] {line}")
 
         return self.last_command, self.last_stdout, self.last_stderr
 

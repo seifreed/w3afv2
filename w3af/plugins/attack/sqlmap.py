@@ -26,7 +26,6 @@ import select
 import textwrap
 from multiprocessing.dummy import Process
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
 from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
 from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
@@ -78,7 +77,11 @@ class sqlmap(AttackPlugin):
         if self._verify_vuln(vuln_obj):
             # Create the shell object
             shell_obj = SQLMapShell(
-                vuln_obj, self._uri_opener, self.worker_pool, self._sqlmap
+                vuln_obj,
+                self._uri_opener,
+                self.worker_pool,
+                self._sqlmap,
+                self._output,
             )
             return shell_obj
         else:
@@ -98,7 +101,7 @@ class sqlmap(AttackPlugin):
                 " by w3af's sqlmap wrapper because it can only handle"
                 " query string and url-encoded post data parameters."
             )
-            om.out.console(msg % (mutant.get_url(),))
+            self._output.console(msg % (mutant.get_url(),))
             return False
 
         orig_value = mutant.get_token().get_original_value()
@@ -118,7 +121,7 @@ class sqlmap(AttackPlugin):
             target = Target(mutant.get_uri(), post_data)
 
             try:
-                sqlmap = SQLMapWrapper(target, self._uri_opener)
+                sqlmap = SQLMapWrapper(target, self._uri_opener, self._output)
             except TypeError:
                 issue_url = "https://github.com/andresriancho/w3af/issues/6439"
                 msg = (
@@ -126,7 +129,7 @@ class sqlmap(AttackPlugin):
                     " just found one of them. For more information please"
                     " visit %s ."
                 )
-                om.out.console(msg % issue_url)
+                self._output.console(msg % issue_url)
                 return False
 
             try:
@@ -153,7 +156,7 @@ class sqlmap(AttackPlugin):
                     " visit %s and add the steps required to reproduce this"
                     " issue which will help us debug and fix it."
                 )
-                om.out.console(msg % issue_url)
+                self._output.console(msg % issue_url)
                 return False
 
             if is_vuln:
@@ -188,13 +191,14 @@ class sqlmap(AttackPlugin):
 
 
 class RunFunctor(Process):
-    def __init__(self, functor, params):
+    def __init__(self, functor, params, output):
         super().__init__()
         self.daemon = True
         self.name = "SQLMapWrapper"
 
         self.functor = functor
         self.params = params
+        self._output = output
         self.user_input = queue.Queue()
 
         class FakeProcess:
@@ -208,12 +212,12 @@ class RunFunctor(Process):
 
         if process is None:
             # Something really bad happen with sqlmap
-            om.out.console("Failed to start the sqlmap subprocess")
+            self._output.console("Failed to start the sqlmap subprocess")
             return
 
         self.process = process
 
-        om.out.information(f"Wrapped SQLMap command: {cmd}")
+        self._output.information(f"Wrapped SQLMap command: {cmd}")
 
         try:
             while process.poll() is None:
@@ -221,22 +225,23 @@ class RunFunctor(Process):
 
                 if read_ready:
                     line = process.stdout.read(1)
-                    om.out.console(line, new_line=False)
+                    self._output.console(line, new_line=False)
 
         except KeyboardInterrupt:
-            om.out.information("Terminating SQLMap after Ctrl+C.")
+            self._output.information("Terminating SQLMap after Ctrl+C.")
             process.terminate()
 
         final_content = process.stdout.read()
-        om.out.console(final_content, new_line=False)
+        self._output.console(final_content, new_line=False)
 
 
 class SQLMapShell(ReadShell):
 
     ALIAS = ("dbs", "tables", "users", "dump")
 
-    def __init__(self, vuln, uri_opener, worker_pool, sqlmap):
+    def __init__(self, vuln, uri_opener, worker_pool, sqlmap, output):
         self.sqlmap = sqlmap
+        self._output = output
         super().__init__(vuln, uri_opener, worker_pool)
 
     def specific_user_input(self, command, params, return_err=True):
@@ -267,7 +272,7 @@ class SQLMapShell(ReadShell):
         if functor is not None:
             # TODO: I run this in a different thread in order to be able to
             #       (in the future) handle stdin and all other UI inputs.
-            sqlmap_thread = RunFunctor(functor, params)
+            sqlmap_thread = RunFunctor(functor, params, self._output)
             sqlmap_thread.start()
             sqlmap_thread.join()
 
@@ -300,12 +305,12 @@ class SQLMapShell(ReadShell):
         """
         try:
             self._rOS = detect_remote_os(self.read)
-            om.out.debug(
+            self._output.debug(
                 f"Identified remote OS as {self._rOS.title()}, "
                 f'returning "{self._rOS}".'
             )
         except OSDetectionException as osde:
-            om.out.debug(f"{osde}")
+            self._output.debug(f"{osde}")
             self._rOS = "unknown"
 
         # TODO: Could we determine this by calling some payloads?
@@ -357,7 +362,13 @@ class SQLMapShell(ReadShell):
         Need to define this method since the Shell class defines it, and we have
         a different number of __init__ parameters.
         """
-        return self.__class__, (self._vuln, None, None, self.sqlmap)
+        return self.__class__, (
+            self._vuln,
+            None,
+            None,
+            self.sqlmap,
+            self._output,
+        )
 
     def set_url_opener(self, uo):
         if uo is not None:
