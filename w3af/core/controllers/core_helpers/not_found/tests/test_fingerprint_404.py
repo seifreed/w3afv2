@@ -21,9 +21,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import hashlib
 import os
-import random
 import re
+import secrets
 import unittest
 
 import w3af.core.data.kb.config as cf
@@ -54,14 +55,16 @@ class Generic404Test(unittest.TestCase):
     def get_body(self, unique_parts):
         # Do not increase this 30 too much, it will exceed the xurllib max
         # HTTP response body length (max_file_size)
-        parts = [re.__doc__, random.__doc__, unittest.__doc__]
+        parts = [re.__doc__, secrets.__doc__, unittest.__doc__]
         parts = parts * 30
 
         parts.extend(unique_parts)
 
-        rnd = random.Random()
-        rnd.seed(1)
-        rnd.shuffle(parts)
+        parts = sorted(
+            enumerate(parts),
+            key=lambda item: hashlib.sha256(f"1:{item[0]}:{item[1]}".encode()).digest(),
+        )
+        parts = [part for _, part in parts]
 
         body = "\n".join(parts)
 
@@ -138,7 +141,7 @@ class Test404FalsePositiveLargeResponsesRandomShort(Generic404Test):
         unique_parts = [
             "The request failed",
             "Come back later",
-            f"{random.randint(1, 99999)}",
+            f"{secrets.randbelow(99999) + 1}",
         ]
         return self.get_body(unique_parts)
 

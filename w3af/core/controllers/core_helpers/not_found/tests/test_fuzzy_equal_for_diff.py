@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import random
+import hashlib
 import unittest
 
 from w3af.core.controllers.core_helpers.not_found.fuzzy_equal_for_diff import (
@@ -47,9 +47,11 @@ class Test404FuzzyEqualForDiff(unittest.TestCase):
 
         parts.extend(unique_parts)
 
-        rnd = random.Random()
-        rnd.seed(1)
-        rnd.shuffle(parts)
+        parts = sorted(
+            enumerate(parts),
+            key=lambda item: hashlib.sha256(f"1:{item[0]}:{item[1]}".encode()).digest(),
+        )
+        parts = [part for _, part in parts]
 
         body = "\n".join(parts)
 

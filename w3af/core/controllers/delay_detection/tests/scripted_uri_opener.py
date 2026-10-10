@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import random
+import secrets
 
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.url.get_average_rtt import GetAverageRTTForMutant
@@ -29,7 +29,9 @@ from w3af.core.data.url.http_response import HTTPResponse
 
 def scripted_wait_times(wanted_delays, rand_range=(0, 0)):
     for delay_secs in wanted_delays:
-        yield delay_secs + random.randint(*rand_range) / 10.0
+        low, high = rand_range
+        random_delay = secrets.randbelow(high - low + 1) + low
+        yield delay_secs + random_delay / 10.0
 
 
 class ScriptedUriOpener:

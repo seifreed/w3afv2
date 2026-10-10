@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import itertools
-import random
+import secrets
 import string
 import threading
 import unittest
@@ -69,11 +69,11 @@ class TestDiskList(unittest.TestCase):
             _ = dl.append(i)
 
         for _ in range(1000 // 2):
-            r = random.randint(0, 1000 - 1)
+            r = secrets.randbelow(1000)
             self.assertEqual(r in dl, True)
 
         for _ in range(1000 // 2):
-            r = random.randint(1000, 1000 * 2)
+            r = secrets.randbelow(1001) + 1000
             self.assertEqual(r in dl, False)
 
     def test_to_unicode(self):
@@ -89,7 +89,7 @@ class TestDiskList(unittest.TestCase):
         dl = DiskList()
 
         for i in range(1000):
-            rnd = "".join(random.choice(string.ascii_letters) for i in range(40))
+            rnd = "".join(secrets.choice(string.ascii_letters) for i in range(40))
             _ = dl.append(rnd)
 
         self.assertEqual(rnd in dl, True)

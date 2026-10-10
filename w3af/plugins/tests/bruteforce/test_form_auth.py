@@ -20,8 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
-import random
 import re
+import secrets
 import urllib.parse
 from typing import ClassVar
 
@@ -388,7 +388,7 @@ class TestFormAuthFailedLoginMatchWithLargeRandomFailedResponse(GenericFormAuthT
         else:
             body = "{}\n{}\n{}".format(
                 klass.HEADER,
-                f"Invalid username / password {random.randint(1, 10000)}",
+                f"Invalid username / password {secrets.randbelow(10000) + 1}",
                 klass.FOOTER,
             )
 
@@ -412,9 +412,6 @@ class TestFormAuthFailedLoginMatchWithLargeRandomFailedResponse(GenericFormAuthT
     ]
 
     def test_found_credentials(self):
-        # Controls the numbers generated in the request_callback
-        random.seed(1)
-
         self._scan(self.target_url, self.basic_config)
 
         # Assert the general results
@@ -460,7 +457,7 @@ class TestFormAuthFailedLoginMatchWithLargeRandomFailedResponseShortSuccess(
         else:
             body = "{}\n{}\n{}".format(
                 klass.HEADER,
-                f"Invalid username / password {random.randint(1, 10000)}",
+                f"Invalid username / password {secrets.randbelow(10000) + 1}",
                 klass.FOOTER,
             )
 
@@ -484,9 +481,6 @@ class TestFormAuthFailedLoginMatchWithLargeRandomFailedResponseShortSuccess(
     ]
 
     def test_found_credentials(self):
-        # Controls the numbers generated in the request_callback
-        random.seed(1)
-
         self._scan(self.target_url, self.basic_config)
 
         # Assert the general results
@@ -530,7 +524,7 @@ class TestFormAuthFailedLoginMatchWithCAPTCHA(GenericFormAuthTest):
 
         body = "{}\n{}\n{}".format(
             klass.HEADER,
-            f"Invalid username / password {random.randint(1, 10000)}",
+            f"Invalid username / password {secrets.randbelow(10000) + 1}",
             klass.FOOTER,
         )
 
@@ -541,7 +535,7 @@ class TestFormAuthFailedLoginMatchWithCAPTCHA(GenericFormAuthTest):
             if captcha_count > 2:
                 body = "{}\n{}\n{}".format(
                     klass.HEADER,
-                    f"Now you need to complete a CAPTCHA {random.randint(1, 10000)}",
+                    f"Now you need to complete a CAPTCHA {secrets.randbelow(10000) + 1}",
                     klass.FOOTER,
                 )
             else:
@@ -568,9 +562,6 @@ class TestFormAuthFailedLoginMatchWithCAPTCHA(GenericFormAuthTest):
     ]
 
     def test_not_found_credentials(self):
-        # Controls the numbers generated in the request_callback
-        random.seed(1)
-
         self._scan(self.target_url, self.basic_config)
 
         # Assert the general results
@@ -598,7 +589,7 @@ class TestFormAuthSignatureTestFails(GenericFormAuthTest):
         # plugin gives up before brute-forcing.
         response_headers["content-type"] = "text/html"
         noise = "".join(
-            random.choice("abcdefghijklmnopqrstuvwxyz\n<>") for _ in range(500)
+            secrets.choice("abcdefghijklmnopqrstuvwxyz\n<>") for _ in range(500)
         )
         return 200, response_headers, f"<html>{noise}</html>"
 
@@ -620,8 +611,6 @@ class TestFormAuthSignatureTestFails(GenericFormAuthTest):
     ]
 
     def test_signature_test_failure_reports_nothing(self):
-        random.seed(7)
-
         self._scan(self.target_url, self.basic_config)
 
         vulns = self.kb.get("form_auth", "auth")

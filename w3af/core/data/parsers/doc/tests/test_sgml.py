@@ -26,7 +26,7 @@ import unittest
 from functools import partial
 from itertools import combinations
 from pathlib import Path
-from random import choice
+from secrets import choice
 
 import pytest
 

@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import cProfile
 import os
-import random
+import secrets
 import unittest
 from pathlib import Path
 
@@ -59,7 +59,12 @@ class test_all(unittest.TestCase):
         body = Path(file_path).read_bytes().decode("latin-1")
         hdrs = Headers(list({"Content-Type": "image/png"}.items()))
         response = HTTPResponse(
-            200, body, hdrs, self.url_inst, self.url_inst, _id=random.randint(1, 5000)
+            200,
+            body,
+            hdrs,
+            self.url_inst,
+            self.url_inst,
+            _id=secrets.randbelow(5000) + 1,
         )
         request = FuzzableRequest(self.url_inst)
 
@@ -78,7 +83,12 @@ class test_all(unittest.TestCase):
         # Here is the change from the previous test:
         hdrs = Headers(list({"Content-Type": "text/html"}.items()))
         response = HTTPResponse(
-            200, body, hdrs, self.url_inst, self.url_inst, _id=random.randint(1, 5000)
+            200,
+            body,
+            hdrs,
+            self.url_inst,
+            self.url_inst,
+            _id=secrets.randbelow(5000) + 1,
         )
         request = FuzzableRequest(self.url_inst)
 
@@ -133,7 +143,7 @@ class test_all(unittest.TestCase):
                         hdrs,
                         URL(self.url_str + str(counter)),
                         URL(self.url_str + str(counter)),
-                        _id=random.randint(1, 5000),
+                        _id=secrets.randbelow(5000) + 1,
                     )
 
                     request = FuzzableRequest(self.url_inst)

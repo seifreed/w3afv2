@@ -3,8 +3,8 @@
 import getopt
 import hashlib
 import os
-import random
 import sys
+from secrets import randbelow
 
 from jinja2 import Template
 
@@ -210,17 +210,15 @@ def get_probabilistic_count(count):
     decimal_part = count - integer
     decimal_part *= 100
 
-    print((random.randint(0, 100), decimal_part))
-    if random.randint(0, 100) > decimal_part:
+    random_value = randbelow(101)
+    print((random_value, decimal_part))
+    if random_value > decimal_part:
         return integer + 1
 
     return integer
 
 
 def generate_site(pages, parameters_per_page, forms, form_params, output):
-
-    random.seed(1)
-
     generate_index_html(output)
 
     for page_num in range(pages):
@@ -241,13 +239,13 @@ def generate_site(pages, parameters_per_page, forms, form_params, output):
         #
         # Where will this page link to?
         #
-        href_num_1 = random.randint(0, pages)
+        href_num_1 = randbelow(pages + 1)
         page_path_1 = generate_page_path(href_num_1)
         page_filename_1 = generate_page_filename(href_num_1)
         qs_1 = get_query_string_for_page(href_num_1, parameters_per_page)
         href_1 = build_href(page_path_1, page_filename_1, qs_1)
 
-        href_num_2 = random.randint(0, pages)
+        href_num_2 = randbelow(pages + 1)
         page_path_2 = generate_page_path(href_num_2)
         page_filename_2 = generate_page_filename(href_num_2)
         qs_2 = get_query_string_for_page(href_num_2, parameters_per_page)
@@ -264,7 +262,7 @@ def generate_site(pages, parameters_per_page, forms, form_params, output):
         generated_forms = []
 
         for form_num in range(int(forms_i)):
-            action_num = random.randint(0, pages)
+            action_num = randbelow(pages + 1)
 
             form_path = generate_page_path(action_num)
             form_filename = generate_page_filename(action_num)

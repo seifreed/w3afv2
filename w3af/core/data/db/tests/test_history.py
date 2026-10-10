@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os.path
-import random
+import secrets
 import shutil
 import unittest
 import zipfile
@@ -64,7 +64,7 @@ class TestHistoryItem(unittest.TestCase):
         self.assertEqual(h1._db, h2._db)
 
     def test_find(self):
-        find_id = random.randint(1, 499)
+        find_id = secrets.randbelow(499) + 1
         url = URL("http://w3af.org/a/b/foobar.php?foo=123")
         tag_value = rand_alnum(10)
 
@@ -119,7 +119,7 @@ class TestHistoryItem(unittest.TestCase):
         self.assertFalse(h3.mark)
 
     def test_save_load(self):
-        i = random.randint(1, 499)
+        i = secrets.randbelow(499) + 1
         url = URL("http://w3af.com/a/b/c.php")
         request = HTTPRequest(url, data="a=1")
 
@@ -231,7 +231,7 @@ class TestHistoryItem(unittest.TestCase):
         HistoryItem().init()
 
     def test_tag(self):
-        tag_id = random.randint(501, 999)
+        tag_id = secrets.randbelow(499) + 501
         tag_value = rand_alnum(10)
         url = URL("http://w3af.org/a/b/c.php")
 

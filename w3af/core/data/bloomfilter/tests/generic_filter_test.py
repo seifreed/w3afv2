@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import random
+import secrets
 import string
 import unittest
 
@@ -36,9 +36,7 @@ class GenericFilterTest(unittest.TestCase):
     filter = None
 
     def setUp(self):
-        # Init the seed to something fixed in order to have always the same
-        # "random" numbers used.
-        random.seed(20)
+        pass
 
     @only_if_subclass
     def test_bloom_int(self):
@@ -57,7 +55,7 @@ class GenericFilterTest(unittest.TestCase):
             self.assertIn(i, self.filter)
 
         for i in range(self.CAPACITY // 2):
-            r = random.randint(self.CAPACITY, self.CAPACITY * 2)
+            r = secrets.randbelow(self.CAPACITY + 1) + self.CAPACITY
             self.assertNotIn(r, self.filter)
 
     @only_if_subclass
@@ -65,7 +63,7 @@ class GenericFilterTest(unittest.TestCase):
         randomly_generated_strings = []
 
         for _ in range(self.CAPACITY):
-            rnd = "".join(random.choice(string.ascii_letters) for i in range(40))
+            rnd = "".join(secrets.choice(string.ascii_letters) for i in range(40))
             randomly_generated_strings.append(rnd)
             self.filter.add(rnd)
 
