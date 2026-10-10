@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import copy
-import pickle
 import unittest
 import urllib.error
 import urllib.parse
@@ -30,6 +29,7 @@ import pytest
 
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.dc.urlencoded_form import URLEncodedForm
+from w3af.core.data.misc.serialize import dumps, loads
 from w3af.core.data.parsers.utils.form_constants import INPUT_TYPE_TEXT
 from w3af.core.data.parsers.utils.tests.test_form_params import (
     create_form_params_helper,
@@ -162,8 +162,8 @@ class TestURLEncodedForm(unittest.TestCase):
         form = URLEncodedForm.from_postdata(headers, post_data)
         form.set_token(("a", 0))
 
-        pickled_form = pickle.dumps(form)
-        unpickled_form = pickle.loads(pickled_form)
+        pickled_form = dumps(form)
+        unpickled_form = loads(pickled_form)
 
         self.assertEqual(form, unpickled_form)
         self.assertEqual(form.get_token(), unpickled_form.get_token())

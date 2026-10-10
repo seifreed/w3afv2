@@ -20,11 +20,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import copy
-import pickle
 import unittest
 
 from w3af.core.data.dc.json_container import JSONContainer
 from w3af.core.data.dc.utils.token import DataToken
+from w3af.core.data.misc.serialize import dumps, loads
 
 STRING = '"abc"'
 NUMBER = "1"
@@ -191,7 +191,7 @@ class TestJSONContainer(unittest.TestCase):
         e_headers = [("Content-Type", "application/json")]
         self.assertEqual(original.get_headers(), e_headers)
 
-        clone = pickle.loads(pickle.dumps(original))
+        clone = loads(dumps(original))
         self.assertEqual(original, clone)
         self.assertEqual(clone.get_headers(), e_headers)
 
@@ -201,7 +201,7 @@ class TestJSONContainer(unittest.TestCase):
         e_headers = [("Content-Type", "application/vnd.w3af+json")]
         self.assertEqual(original.get_headers(), e_headers)
 
-        clone = pickle.loads(pickle.dumps(original))
+        clone = loads(dumps(original))
         self.assertEqual(original, clone)
         self.assertEqual(clone.get_headers(), e_headers)
 
@@ -211,6 +211,6 @@ class TestJSONContainer(unittest.TestCase):
         e_headers = [("Content-Type", "application/json"), ("X-Foo-Header", "Bar")]
         self.assertEqual(original.get_headers(), e_headers)
 
-        clone = pickle.loads(pickle.dumps(original))
+        clone = loads(dumps(original))
         self.assertEqual(original, clone)
         self.assertEqual(clone.get_headers(), e_headers)

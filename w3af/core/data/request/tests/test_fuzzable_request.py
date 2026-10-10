@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import copy
-import pickle
 import unittest
 
 import pytest
@@ -35,6 +34,7 @@ from w3af.core.data.dc.query_string import QueryString
 from w3af.core.data.dc.urlencoded_form import URLEncodedForm
 from w3af.core.data.dc.utils.multipart import multipart_encode
 from w3af.core.data.misc.encoding import smart_unicode
+from w3af.core.data.misc.serialize import dumps, loads
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.utils.form_params import FormParameters
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
@@ -283,7 +283,7 @@ class TestFuzzableRequest(unittest.TestCase):
     def test_pickle(self):
         fr = self.create_simple_fuzzable_request()
 
-        unpickled_fr = pickle.loads(pickle.dumps(fr))
+        unpickled_fr = loads(dumps(fr))
         self.assertEqual(fr, unpickled_fr)
 
     def test_deepcopy(self):

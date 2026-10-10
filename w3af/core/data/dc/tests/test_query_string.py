@@ -20,10 +20,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import copy
-import pickle
 import unittest
 
 from w3af.core.data.dc.query_string import QueryString
+from w3af.core.data.misc.serialize import dumps, loads
 
 
 class TestQueryString(unittest.TestCase):
@@ -73,8 +73,8 @@ class TestQueryString(unittest.TestCase):
         dc = QueryString([("a", ["1"])])
         dc.set_token(("a", 0))
 
-        pickled_qs = pickle.dumps(dc)
-        unpickled_qs = pickle.loads(pickled_qs)
+        pickled_qs = dumps(dc)
+        unpickled_qs = loads(pickled_qs)
 
         self.assertEqual(dc, unpickled_qs)
         self.assertEqual(list(dc.keys()), list(unpickled_qs.keys()))

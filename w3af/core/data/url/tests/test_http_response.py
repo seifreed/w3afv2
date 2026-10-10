@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import hashlib
-import pickle
 import unittest
 import urllib.error
 import urllib.request
@@ -30,6 +29,7 @@ import pytest
 
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.misc.encoding import ESCAPED_CHAR, smart_unicode
+from w3af.core.data.misc.serialize import dumps, loads
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.http_response import (
     DEFAULT_CHARSET,
@@ -223,8 +223,8 @@ class TestHTTPResponse(unittest.TestCase):
         headers = Headers([("Content-Type", "text/html")])
         resp = self.create_resp(headers, html)
 
-        pickled_resp = pickle.dumps(resp)
-        unpickled_resp = pickle.loads(pickled_resp)
+        pickled_resp = dumps(resp)
+        unpickled_resp = loads(pickled_resp)
 
         self.assertEqual(unpickled_resp, resp)
 

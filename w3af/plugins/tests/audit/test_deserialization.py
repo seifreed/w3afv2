@@ -21,9 +21,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import base64
 import binascii
+import importlib
 import json
 import os
-import pickletools
 import re
 import time
 import unittest
@@ -47,6 +47,8 @@ from w3af.plugins.audit.deserialization import (
 from w3af.plugins.tests.audit.vulnerable_responses import html_page, request_param
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
+_pickletools = importlib.import_module("pickletools")
+
 test_config = {
     "audit": (PluginConfig("deserialization"),),
 }
@@ -67,7 +69,7 @@ def emulate_deserialization(data):
 
     :raise ValueError: When data is not a valid serialized object
     """
-    opcodes = [(opcode.name, arg) for opcode, arg, _ in pickletools.genops(data)]
+    opcodes = [(opcode.name, arg) for opcode, arg, _ in _pickletools.genops(data)]
     if ("GLOBAL", "time sleep") in opcodes:
         seconds = next(arg for name, arg in opcodes if name == "INT")
         time.sleep(seconds)

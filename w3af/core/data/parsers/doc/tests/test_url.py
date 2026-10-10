@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import pickle
 import tempfile
 import unittest
 import urllib.error
@@ -33,6 +32,7 @@ from unittest import SkipTest
 
 from w3af.core.data.dc.query_string import QueryString
 from w3af.core.data.dc.urlencoded_form import URLEncodedForm
+from w3af.core.data.misc.serialize import dumps, loads
 from w3af.core.data.parsers.doc.url import URL, InvalidURLError, parse_qs
 
 # Be strict on unicode warnings
@@ -1072,15 +1072,15 @@ class TestURLParser(unittest.TestCase):
         u = URL("http://www.w3af.com/")
         domain_path = u.get_domain_path()
 
-        pickle.dumps(u)
-        pickle.dumps(domain_path)
+        dumps(u)
+        dumps(domain_path)
 
     def test_can_be_pickled_with_qs(self):
         # Pickle a URL object that contains a query string
         u = URL("http://www.w3af.com/?id=1")
 
-        pickled_url = pickle.dumps(u)
-        unpickled_url = pickle.loads(pickled_url)
+        pickled_url = dumps(u)
+        unpickled_url = loads(pickled_url)
 
         self.assertEqual(unpickled_url, u)
         self.assertEqual(str(unpickled_url.get_querystring()), "id=1")

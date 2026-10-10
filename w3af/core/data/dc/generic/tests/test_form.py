@@ -21,13 +21,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import copy
-import pickle
 import unittest
 
 import pytest
 
 from w3af.core.data.dc.generic.form import Form
 from w3af.core.data.dc.utils.token import DataToken
+from w3af.core.data.misc.serialize import dumps, loads
 from w3af.core.data.parsers.utils.form_constants import INPUT_TYPE_PASSWD
 from w3af.core.data.parsers.utils.form_params import FormParameters
 
@@ -153,7 +153,7 @@ class TestForm(unittest.TestCase):
 
         form = Form(form_params)
 
-        pickled_form = pickle.loads(pickle.dumps(form))
+        pickled_form = loads(dumps(form))
 
         self.assertEqual(list(pickled_form.items()), list(form.items()))
 
@@ -165,7 +165,7 @@ class TestForm(unittest.TestCase):
         form = Form(form_params)
         form["xyz"] = ["1", "2"]
 
-        pickled_form = pickle.loads(pickle.dumps(form))
+        pickled_form = loads(dumps(form))
 
         self.assertEqual(list(pickled_form.items()), list(form.items()))
 

@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import pickle
 import unittest
 
 from w3af.core.data.fuzzer.mutants.urlparts_mutant import (
@@ -28,6 +27,7 @@ from w3af.core.data.fuzzer.mutants.urlparts_mutant import (
     URLPartsContainer,
     URLPartsMutant,
 )
+from w3af.core.data.misc.serialize import dumps, loads
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
@@ -57,7 +57,7 @@ class TestURLPartsMutant(unittest.TestCase):
 
     def test_pickle(self):
         divided_path = URLPartsContainer("/", "ping!", "/bar")
-        loaded_dp = pickle.loads(pickle.dumps(divided_path))
+        loaded_dp = loads(dumps(divided_path))
 
         self.assertEqual(loaded_dp, divided_path)
         self.assertEqual(loaded_dp.url_start, divided_path.url_start)

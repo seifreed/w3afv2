@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import copy
 import json
-import pickle
 import unittest
 
 import pytest
@@ -32,6 +31,7 @@ from w3af.core.data.dc.generic.nr_kv_container import NonRepeatKeyValueContainer
 from w3af.core.data.dc.query_string import QueryString
 from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
 from w3af.core.data.kb.info import Info
+from w3af.core.data.misc.serialize import dumps
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 
@@ -137,7 +137,7 @@ class TestInfo(unittest.TestCase):
         self.assertIn("\n\nThis information was", i.get_desc())
 
     def test_pickleable(self):
-        pickle.dumps(MockInfo())
+        dumps(MockInfo())
 
     def test_data_container_default(self):
         """

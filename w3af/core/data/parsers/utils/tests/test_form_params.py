@@ -20,11 +20,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import copy
-import pickle
 import time
 import unittest
 
 from w3af.core.data.misc.io import NamedStringIO
+from w3af.core.data.misc.serialize import dumps, loads
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.utils.form_constants import (
     INPUT_TYPE_RADIO,
@@ -498,7 +498,7 @@ class TestFormParams(unittest.TestCase):
     def test_pickle(self):
         form = create_form_params_helper(form_with_radio + form_with_checkbox)
 
-        pickled_form_params = pickle.loads(pickle.dumps(form))
+        pickled_form_params = loads(dumps(form))
 
         self.assertEqual(list(pickled_form_params.items()), list(form.items()))
         self.assertIsNot(form, copy)

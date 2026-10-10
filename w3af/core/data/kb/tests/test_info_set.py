@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import copy
 import json
 import unittest
-from pickle import loads
 
 import pytest
 
@@ -35,6 +34,7 @@ from w3af.core.data.kb.tests.test_info import (
     MockInfo,
 )
 from w3af.core.data.misc.cpickle_dumps import cpickle_dumps
+from w3af.core.data.misc.serialize import loads as deserialize
 from w3af.core.data.parsers.doc.url import URL
 
 
@@ -175,7 +175,7 @@ class TestInfoSet(unittest.TestCase):
         iset1 = InfoSet([i])
 
         pickled_iset1 = cpickle_dumps(iset1)
-        iset1_clone = loads(pickled_iset1)
+        iset1_clone = deserialize(pickled_iset1)
 
         self.assertEqual(iset1.get_uniq_id(), iset1_clone.get_uniq_id())
 

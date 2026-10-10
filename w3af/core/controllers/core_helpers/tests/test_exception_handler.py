@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import os
-import pickle
 import sys
 import threading
 import unittest
@@ -38,6 +37,7 @@ from w3af.core.controllers.core_helpers.status import CoreStatus
 from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.dc.generic.kv_container import KeyValueContainer
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.misc.serialize import dumps, loads
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.exceptions import ScanMustStopException
@@ -359,8 +359,8 @@ class TestExceptionData(unittest.TestCase):
             status, KeyError(), tb, enabled_plugins, store_tb=False
         )
 
-        pickled_ed = pickle.dumps(exception_data)
-        unpickled_ed = pickle.loads(pickled_ed)
+        pickled_ed = dumps(exception_data)
+        unpickled_ed = loads(pickled_ed)
 
         self.assertEqual(exception_data.to_json(), unpickled_ed.to_json())
 
@@ -383,8 +383,8 @@ class TestExceptionData(unittest.TestCase):
                 status, e, tb, enabled_plugins, store_tb=False
             )
 
-            pickled_ed = pickle.dumps(exception_data)
-            unpickled_ed = pickle.loads(pickled_ed)
+            pickled_ed = dumps(exception_data)
+            unpickled_ed = loads(pickled_ed)
 
             self.assertEqual(exception_data.to_json(), unpickled_ed.to_json())
 
@@ -407,4 +407,4 @@ class TestExceptionData(unittest.TestCase):
                 status, e, tb, enabled_plugins, store_tb=True
             )
 
-            self.assertRaises(TypeError, pickle.dumps, exception_data)
+            self.assertRaises(TypeError, dumps, exception_data)
