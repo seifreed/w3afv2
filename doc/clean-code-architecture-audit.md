@@ -2245,3 +2245,16 @@ Verificación: **63 tests y 9 subtests** de las bases pasan; Ruff, Black y mypy
 están limpios. El score permanece en **5.75/10** por cobertura, Bandit
 heredado, mocks, fixtures de tests pendientes, Moth, consumidores de output
 restantes y orquestadores grandes.
+
+## Actualización verificada: output desacoplado en XML
+
+`xml_file` ya no importa el singleton de output. Sus métodos usan
+`self._output`, el decorador `took` registra tiempos solo cuando recibe un
+plugin con sink, y `Finding` recibe el sink explícitamente para informar
+errores de transacciones HTTP. Así también quedan desacoplados los helpers que
+antes ocultaban una dependencia global.
+
+Verificación: **30 tests pasados** en `test_xml_file`; Ruff, Black y mypy están
+limpios, y no quedan referencias a `output_manager` ni `om.out` en
+`plugins/output`. El score permanece en **5.75/10** por cobertura, Bandit
+heredado, mocks, fixtures pendientes, Moth, consumers y orquestadores grandes.

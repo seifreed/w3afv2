@@ -796,7 +796,7 @@ class TestFinding(XMLNodeGeneratorTest):
 
         x = xml_file()
 
-        finding = Finding(x._get_jinja2_env(), vuln)
+        finding = Finding(x._get_jinja2_env(), vuln, x._output)
         xml = finding.to_string()
 
         expected = (
@@ -854,7 +854,7 @@ class TestFinding(XMLNodeGeneratorTest):
 
         x = xml_file()
 
-        finding = Finding(x._get_jinja2_env(), vuln)
+        finding = Finding(x._get_jinja2_env(), vuln, x._output)
         xml = finding.to_string()
 
         self.assertNotIn("such as <, & and > which MUST", xml)
@@ -888,7 +888,7 @@ class TestFinding(XMLNodeGeneratorTest):
 
         x = xml_file()
 
-        finding = Finding(x._get_jinja2_env(), vuln)
+        finding = Finding(x._get_jinja2_env(), vuln, x._output)
         xml = finding.to_string()
 
         self.assertNotIn("unicode control characters such as \f and \x09", xml)
@@ -922,7 +922,7 @@ class TestFinding(XMLNodeGeneratorTest):
 
         x = xml_file()
 
-        finding = Finding(x._get_jinja2_env(), vuln)
+        finding = Finding(x._get_jinja2_env(), vuln, x._output)
         xml = finding.to_string()
 
         self.assertNotIn(name, xml)
@@ -937,7 +937,7 @@ class TestFinding(XMLNodeGeneratorTest):
 
         x = xml_file()
 
-        finding = Finding(x._get_jinja2_env(), vuln)
+        finding = Finding(x._get_jinja2_env(), vuln, x._output)
         xml = finding.to_string()
 
         self.assertIn("á", xml)
@@ -970,7 +970,7 @@ class TestFinding(XMLNodeGeneratorTest):
 
         x = xml_file()
 
-        finding = Finding(x._get_jinja2_env(), vuln)
+        finding = Finding(x._get_jinja2_env(), vuln, x._output)
         xml = finding.to_string()
 
         expected = (
@@ -1230,7 +1230,8 @@ class TestXMLFileEdgeCases(unittest.TestCase):
     def test_finding_with_missing_http_transaction(self):
         vuln = MockVuln(_id=4242)
 
-        xml = Finding(xml_file()._get_jinja2_env(), vuln).to_string()
+        plugin = xml_file()
+        xml = Finding(plugin._get_jinja2_env(), vuln, plugin._output).to_string()
 
         self.assertIn("<vulnerability", xml)
         self.assertIn("<http-transactions>\n    </http-transactions>", xml)

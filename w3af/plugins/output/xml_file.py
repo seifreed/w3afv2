@@ -32,7 +32,6 @@ from unicodedata import category
 import lz4.frame
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
-import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af import ROOT_PATH
 from w3af.core.controllers.misc import get_w3af_version
@@ -71,10 +70,12 @@ def took(func):
 
         # Log things which take more than 0.5 seconds
         if spent > 0.5:
-            msg = "[xml_file.flush()] %s took %.2f seconds to run."
-            function_name = func.__name__
-            args = (function_name, spent)
-            om.out.debug(msg % args)
+            output = getattr(args[0], "_output", None)
+            if output is not None:
+                msg = "[xml_file.flush()] %s took %.2f seconds to run."
+                function_name = func.__name__
+                args = (function_name, spent)
+                output.debug(msg % args)
 
         return result
 
@@ -202,7 +203,7 @@ class xml_file(OutputPlugin):
             #
             # Just "ignore" this call to flush and write the XML in the next call
             msg = 'xml_file.flush() failed to add scan status to context: "%s"'
-            om.out.debug(msg % rte)
+            self._output.debug(msg % rte)
             return
 
         self._add_root_info_to_context(context)
@@ -232,23 +233,27 @@ class xml_file(OutputPlugin):
 
     @took
     def _add_scan_status_to_context(self, context):
-        om.out.debug("[xml_file.flush()] _add_scan_status_to_context() start")
+        self._output.debug("[xml_file.flush()] _add_scan_status_to_context() start")
 
         status = self.get_w3af_core().status.get_status_as_dict()
-        om.out.debug("[xml_file.flush()] _add_scan_status_to_context() read status")
+        self._output.debug(
+            "[xml_file.flush()] _add_scan_status_to_context() read status"
+        )
 
         all_known_urls = self._get_knowledge_base().get_all_known_urls()
         total_urls = len(all_known_urls)
-        om.out.debug("[xml_file.flush()] _add_scan_status_to_context() read total_urls")
+        self._output.debug(
+            "[xml_file.flush()] _add_scan_status_to_context() read total_urls"
+        )
 
         known_urls = self._get_known_urls(all_known_urls)
-        om.out.debug(
+        self._output.debug(
             "[xml_file.flush()] _add_scan_status_to_context() read generated URLTree"
         )
 
         scan_status = ScanStatus(self._jinja2_env, status, total_urls, known_urls)
         context.scan_status = scan_status.to_string()
-        om.out.debug("[xml_file.flush()] _add_scan_status_to_context() rendered")
+        self._output.debug("[xml_file.flush()] _add_scan_status_to_context() rendered")
 
     def _get_known_urls(self, all_known_urls):
         """
@@ -281,7 +286,7 @@ class xml_file(OutputPlugin):
 
         processed_uniq_ids = []
 
-        om.out.debug("[xml_file.flush()] Starting findings()")
+        self._output.debug("[xml_file.flush()] Starting findings()")
         start = time.time()
 
         #
@@ -316,7 +321,7 @@ class xml_file(OutputPlugin):
         msg = "[xml_file.flush()] findings() processed %s cached nodes in %.2f seconds"
         spent = time.time() - start
         args = (len(processed_uniq_ids), spent)
-        om.out.debug(msg % args)
+        self._output.debug(msg % args)
 
         start = time.time()
 
@@ -331,7 +336,7 @@ class xml_file(OutputPlugin):
         ):
             uniq_id = finding.get_uniq_id()
             processed_uniq_ids.append(uniq_id)
-            node = Finding(self._jinja2_env, finding).to_string()
+            node = Finding(self._jinja2_env, finding, self._output).to_string()
             cache.save_finding_to_cache(uniq_id, node)
 
             new_findings += 1
@@ -341,7 +346,7 @@ class xml_file(OutputPlugin):
         msg = "[xml_file.flush()] findings() processed %s new findings in %.2f seconds"
         spent = time.time() - start
         args = (new_findings, spent)
-        om.out.debug(msg % args)
+        self._output.debug(msg % args)
 
         start = time.time()
 
@@ -360,7 +365,7 @@ class xml_file(OutputPlugin):
         msg = "[xml_file.flush()] findings() evicted %s findings from cache in %.2f seconds"
         spent = time.time() - start
         args = (evicted_findings, spent)
-        om.out.debug(msg % args)
+        self._output.debug(msg % args)
 
     @took
     def _add_findings_to_context(self, context):
@@ -393,7 +398,7 @@ class xml_file(OutputPlugin):
         Write xml report to the file by rendering the context
         :return: None
         """
-        om.out.debug("[xml_file.flush()] Starting _write_context_to_file()")
+        self._output.debug("[xml_file.flush()] Starting _write_context_to_file()")
 
         template = self._jinja2_env.get_template("root.tpl")
 
@@ -416,7 +421,7 @@ class xml_file(OutputPlugin):
         with NamedTemporaryFile(
             delete=False, prefix="w3af-xml-output", suffix=".xml"
         ) as tempfh:
-            om.out.debug(
+            self._output.debug(
                 "[xml_file.flush()] write_context_to_file() created"
                 " template.stream and NamedTemporaryFile"
             )
@@ -427,7 +432,7 @@ class xml_file(OutputPlugin):
                 tempfh.write(report_section.encode(DEFAULT_ENCODING))
 
         try:
-            om.out.debug(
+            self._output.debug(
                 "[xml_file.flush()] write_context_to_file() starting to"
                 " copy temp file to destination"
             )
@@ -437,17 +442,19 @@ class xml_file(OutputPlugin):
 
             shutil.copyfile(tempfh.name, report_file_name)
 
-            om.out.debug(
+            self._output.debug(
                 "[xml_file.flush()] write_context_to_file() finished copy" " operation."
             )
 
             stat_info = os.stat(report_file_name)
-            om.out.debug(f"The XML output file size is {stat_info.st_size} bytes.")
+            self._output.debug(
+                f"The XML output file size is {stat_info.st_size} bytes."
+            )
 
         finally:
             os.remove(tempfh.name)
 
-        om.out.debug("[xml_file.flush()] write_context_to_file() finished")
+        self._output.debug("[xml_file.flush()] write_context_to_file() finished")
 
     def get_long_desc(self):
         """
@@ -774,13 +781,14 @@ class ScanStatus(XMLNode):
 class Finding(XMLNode):
     TEMPLATE = "finding.tpl"
 
-    def __init__(self, jinja2_env, info):
+    def __init__(self, jinja2_env, info, output):
         """
         Represents a finding in the w3af framework, which will be serialized
         as an XML node
         """
         super().__init__(jinja2_env)
         self._info = info
+        self._output = output
 
     def to_string(self):
         info = self._info
@@ -820,7 +828,7 @@ class Finding(XMLNode):
                     " transaction list."
                 )
                 args = (transaction, e, context.name)
-                om.out.error(msg % args)
+                self._output.error(msg % args)
                 continue
             else:
                 context.http_transactions.append(xml)
