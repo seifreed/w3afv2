@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import socket
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.misc.is_private_site import is_private_site
@@ -132,7 +131,7 @@ class shared_hosting(InfrastructurePlugin):
                     f" address ({ip_address}):\n"
                 )
 
-                domain_list = kb.kb.raw_read(self, "domains")
+                domain_list = self._get_knowledge_base().raw_read(self, "domains")
 
                 for url in results:
                     domain = url.get_domain()
@@ -140,7 +139,7 @@ class shared_hosting(InfrastructurePlugin):
 
                     domain_list.append(domain)
 
-                kb.kb.raw_write(self, "domains", domain_list)
+                self._get_knowledge_base().raw_write(self, "domains", domain_list)
 
                 v = Vuln.from_fr(
                     "Shared hosting",
@@ -154,7 +153,7 @@ class shared_hosting(InfrastructurePlugin):
                 v["also_in_hosting"] = results
 
                 om.out.vulnerability(desc, severity=severity.MEDIUM)
-                kb.kb.append(self, "shared_hosting", v)
+                self._get_knowledge_base().append(self, "shared_hosting", v)
 
     def get_options(self):
         """

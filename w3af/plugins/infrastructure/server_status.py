@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import re
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.misc.decorators import runonce
@@ -94,7 +93,7 @@ class server_status(InfrastructurePlugin):
             i.set_url(response.get_url())
 
             om.out.information(i.get_desc())
-            kb.kb.append(self, "server", i)
+            self._get_knowledge_base().append(self, "server", i)
 
     def _extract_urls(self, fuzzable_request, response):
         """
@@ -141,7 +140,7 @@ class server_status(InfrastructurePlugin):
             self._shared_hosting_hosts = list(set(self._shared_hosting_hosts))
             v["also_in_hosting"] = self._shared_hosting_hosts
 
-            kb.kb.append(self, "shared_hosting", v)
+            self._get_knowledge_base().append(self, "shared_hosting", v)
             om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
             msg = (
