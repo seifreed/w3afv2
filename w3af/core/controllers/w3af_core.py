@@ -265,6 +265,24 @@ class w3afCore:
         )
 
         try:
+            self._run_strategy()
+
+        finally:
+            time_spent = self.status.get_scan_time()
+
+            self._output.information(f"Scan finished in {time_spent}")
+            self._output.information("Stopping the core...")
+
+            self.strategy.stop()
+            self.scan_end_hook()
+
+            # Make sure this line is the last one. This avoids race conditions
+            # https://github.com/andresriancho/w3af/issues/1487
+            self.status.scan_finished()
+
+    def _run_strategy(self):
+        """Run the strategy and translate expected scan-level failures."""
+        try:
             self.strategy.start()
         except MemoryError:
             print(NO_MEMORY_MSG)
@@ -328,19 +346,6 @@ class w3afCore:
 
             self._output.error(msg % (e, traceback_string))
             raise
-
-        finally:
-            time_spent = self.status.get_scan_time()
-
-            self._output.information(f"Scan finished in {time_spent}")
-            self._output.information("Stopping the core...")
-
-            self.strategy.stop()
-            self.scan_end_hook()
-
-            # Make sure this line is the last one. This avoids race conditions
-            # https://github.com/andresriancho/w3af/issues/1487
-            self.status.scan_finished()
 
     @property
     def worker_pool(self):

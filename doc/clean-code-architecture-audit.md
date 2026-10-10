@@ -3101,3 +3101,15 @@ Verificación: **30 tests de status pasaron**; Black, Ruff, mypy focalizado,
 Bandit focalizado, `pip-audit` y `git diff --check` están limpios. El score
 permanece en **6.25/10** por la composición global, cobertura 100% no
 demostrada, mypy sobre el `venv` y Bandit heredado aún pendientes.
+
+## Actualización verificada: política de errores del scan separada
+
+`w3afCore.start()` delega ahora la ejecución de estrategia y la traducción de
+errores esperados a `_run_strategy()`. El método público conserva la
+preparación, el `finally` de cierre y la API existente; los mensajes y
+excepciones se mantienen sin cambios.
+
+Verificación: **10 tests de excepciones pasaron**; Black, Ruff, mypy
+focalizado, Bandit focalizado, `pip-audit` y `git diff --check` están limpios.
+El score permanece en **6.25/10** por la composición global, cobertura 100% no
+demostrada, mypy sobre el `venv` y Bandit heredado aún pendientes.
