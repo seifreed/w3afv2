@@ -73,6 +73,7 @@ class TestW3afCorePlugins(unittest.TestCase):
             "infrastructure",
         }
         self.assertEqual(set(plugin_types), expected)
+        self.assertEqual(plugin_types, sorted(plugin_types))
 
     def test_get_plugin_list_audit(self):
         plugin_list = self.core.plugins.get_plugin_list("audit")

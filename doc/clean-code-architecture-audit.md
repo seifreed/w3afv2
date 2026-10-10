@@ -3642,3 +3642,15 @@ Verificación: la suite combinada del resolvedor y `CorePlugins` pasó **32
 tests**. Ruff y Black están limpios en los módulos modificados. El score se
 mantiene en **6.5/10** hasta cerrar los límites arquitectónicos y la
 verificación global de cobertura y gates.
+
+## Actualización verificada: catálogo de plugins determinista
+
+`PluginCatalog.get_plugin_types()` ordena los tipos descubiertos antes de
+publicarlos. Esto elimina una dependencia accidental del orden de
+`os.listdir()` y hace que la selección, la resolución de dependencias y las
+interfaces que enumeran plugins observen el mismo orden en Windows, Linux y
+macOS.
+
+Verificación: `CorePlugins` pasó **28 tests** y la salida real del catálogo se
+comprueba como ordenada. El score se mantiene en **6.5/10** mientras quedan
+pendientes la eliminación de singletons y la cobertura global.

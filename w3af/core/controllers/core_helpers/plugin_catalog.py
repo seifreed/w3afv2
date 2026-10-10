@@ -29,11 +29,11 @@ class PluginCatalog:
             for plugin_type in plugin_types
             if os.path.isfile(os.path.join(plugin_root, plugin_type, "__init__.py"))
         ]
-        return [
+        return sorted(
             plugin_type
             for plugin_type in plugin_types
             if plugin_type not in {"attack", "tests"}
-        ]
+        )
 
     def get_plugin_list(self, plugin_type):
         return get_file_list(os.path.join(ROOT_PATH, "plugins", plugin_type))
