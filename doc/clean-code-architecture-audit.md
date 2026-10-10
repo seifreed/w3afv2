@@ -1485,3 +1485,17 @@ Verificación: 65 tests de autenticación y bases de plugins pasan, mypy y la
 fitness test de capas pasan, y Bandit permanece en 46 hallazgos. El score sigue
 en **5.75/10** porque todavía quedan 93 imports directos de la KB y la deuda
 de cobertura y de módulos orquestadores.
+
+## Actualización verificada: plugins de ataque y fuerza bruta
+
+`AttackPlugin` y `BruteforcePlugin` ahora reciben la KB a través de `Plugin` y
+usan `_get_knowledge_base()` para consultar vulnerabilidades, registrar shells
+y devolver hallazgos de autenticación. El contenedor existente ya configura la
+dependencia para los plugins de producción; los fixtures directos también la
+configuran explícitamente.
+
+Verificación: 32 tests de ataque y fuerza bruta pasan con 9 subtests, Ruff,
+Black y mypy pasan, la fitness test de capas pasa y Bandit permanece en 46
+hallazgos. El score sigue en **5.75/10**: quedan 91 imports directos de la KB,
+además de la cobertura global, los mocks existentes y los módulos orquestadores
+grandes.
