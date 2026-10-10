@@ -2014,3 +2014,19 @@ plugins. Las advertencias restantes pertenecen a dependencias externas de
 `jsonschema`. El score sigue en **5.75/10**: quedan 6 imports directos de la KB
 en producción, además de la cobertura, mocks, el fallo heredado de perfilado,
 la dependencia de Moth y los orquestadores grandes.
+
+## Actualización verificada: KB explícita en infraestructura y core
+
+`extrusionScanner`, la fábrica de transferencias, `vdaemon`, `w3afAgent` y los
+shells reciben la KB explícitamente desde el contexto de explotación. Los
+analizadores de `phpinfo` también reciben su almacén como argumento, y
+`w3afCore` admite una KB inyectada manteniendo `w3afCore()` como entrada
+compatible.
+
+Verificación: 26 tests de core y `phpinfo`, más 21 tests de `ExecShell`, pasan;
+Ruff, Black y mypy están limpios en los módulos modificados. El recuento de
+imports directos de la KB en producción es **0**. Persisten fallos ambientales
+en pruebas de extrusión/transferencia que dependen de detección del OS,
+servicios locales o `php_moth-fallback`; el score sigue en **5.75/10** por la
+cobertura, mocks heredados, el fallo de perfilado, la dependencia de Moth y los
+orquestadores grandes.
