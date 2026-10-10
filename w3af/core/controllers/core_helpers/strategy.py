@@ -38,8 +38,10 @@ from w3af.core.controllers.core_helpers.consumers.crawl_infrastructure import (
 from w3af.core.controllers.core_helpers.consumers.grep import grep
 from w3af.core.controllers.core_helpers.consumers.seed import seed
 from w3af.core.controllers.core_helpers.exception_handler import ExceptionData
+from w3af.core.controllers.core_helpers.target_validation import (
+    verify_target_server_up,
+)
 from w3af.core.data.kb.info import Info
-from w3af.core.data.url.extended_urllib import MAX_ERROR_COUNT
 from w3af.core.exceptions import (
     ScanMustStopByUserRequest,
     ScanMustStopException,
@@ -120,7 +122,7 @@ class CoreStrategy:
         :return: No value is returned.
         """
         try:
-            self.verify_target_server_up()
+            verify_target_server_up(self._w3af_core)
             self.replace_targets_with_redir()
             self.alert_if_target_is_301_all()
 
@@ -446,61 +448,6 @@ class CoreStrategy:
         reach the try/except clause in w3afCore's start.
         """
         self._w3af_core.exception_handler.handle_exception_data(exception_data)
-
-    def verify_target_server_up(self):
-        """
-        Well, it is more common than expected that the user configures a target
-        which is offline, is not a web server, etc. So we're going to verify
-        all that before even starting our work, and provide a nice error message
-        so that users can change their config if needed.
-
-        Note that we send MAX_ERROR_COUNT tests to the remote end in order to
-        trigger any errors in the remote end and have the Extended URL Library
-        error handle return errors.
-
-        :raises: A friendly exception with lots of details of what could have
-                 happen.
-        """
-        sent_requests = 0
-
-        msg = (
-            "The remote web server is not answering our HTTP requests,"
-            " multiple errors have been found while trying to GET a response"
-            " from the server.\n"
-            "\n"
-            "In most cases this means that the configured target is"
-            " incorrect, the port is closed, there is a firewall blocking"
-            " our packets or there is no HTTP daemon listening on that"
-            " port.\n"
-            "\n"
-            "Please verify your target configuration and try again. The"
-            " tested targets were:\n"
-            "\n"
-            " %s\n"
-        )
-
-        targets = cf.cf.get("targets")
-
-        while sent_requests < MAX_ERROR_COUNT * 1.5:
-            for url in targets:
-                try:
-                    self._w3af_core.uri_opener.GET(url, cache=False)
-                except ScanMustStopByUserRequest:
-                    # Not a real error, the user stopped the scan
-                    raise
-                except Exception as e:
-                    logger.debug(
-                        "Unhandled exception in verify_target_server_up()",
-                        exc_info=True,
-                    )
-                    dbg = 'Exception found during verify_target_server_up: "%s"'
-                    om.out.debug(dbg % e)
-
-                    target_list = "\n".join(f" - {url}\n" for url in targets)
-
-                    raise ScanMustStopException(msg % target_list)
-                else:
-                    sent_requests += 1
 
     @staticmethod
     @contextmanager

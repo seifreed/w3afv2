@@ -29,6 +29,9 @@ from w3af.core.controllers.core_helpers.fingerprint_404 import (
     fingerprint_404_singleton,
 )
 from w3af.core.controllers.core_helpers.strategy import CoreStrategy
+from w3af.core.controllers.core_helpers.target_validation import (
+    verify_target_server_up,
+)
 from w3af.core.controllers.tests.local_http_server import (
     LocalHTTPServer,
     Reply,
@@ -278,7 +281,7 @@ class TestStrategy(unittest.TestCase):
         core.uri_opener.stop()
 
         steps = self.target_request_steps(strategy)
-        steps["verify_target_server_up()"] = strategy.verify_target_server_up
+        steps["verify_target_server_up()"] = lambda: verify_target_server_up(core)
 
         for step, step_method in steps.items():
             with self.subTest(step=step):
