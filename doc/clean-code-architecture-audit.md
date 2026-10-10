@@ -2641,3 +2641,13 @@ Verificación: Ruff, Black y mypy están limpios; **5 tests pasaron y 2 fueron
 omitidos** en el bloque relacionado. Tres fixtures locales fallan en macOS
 porque simulan Linux y usan `/etc/passwd`, echo remoto y reverse HTTP; el
 score permanece en **6.25/10**.
+
+## Actualización verificada: w3afAgent server con output explícito
+
+`w3afAgentServer`, `ConnectionManager`, `TCPRelay` y `PipeThread` reciben el
+sink desde el manager o el entrypoint CLI. Los logs de sockets, conexiones,
+relays y parada ya no consultan `output_manager` dentro del servidor.
+
+Verificación: Ruff, Black, mypy y `py_compile` están limpios. Este checkout no
+contiene tests específicos del agente; la cobertura de sus rutas queda
+pendiente y el score permanece en **6.25/10**.

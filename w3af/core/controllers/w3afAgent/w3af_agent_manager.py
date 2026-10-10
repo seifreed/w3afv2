@@ -101,7 +101,10 @@ class w3afAgentManager(Process):
             #    Start the w3afAgentServer on this machine
             #
             agent_server = w3afAgentServer(
-                self._ip_address, socks_port=self._socks_port, listen_port=inbound_port
+                self._ip_address,
+                om.out,
+                socks_port=self._socks_port,
+                listen_port=inbound_port,
             )
             self._agent_server = agent_server
             agent_server.start()
