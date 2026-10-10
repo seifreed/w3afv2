@@ -1417,3 +1417,27 @@ orquestadores grandes por responsabilidad, manteniendo pruebas reales antes de
 cada extracción. La puntuación solo podrá subir a 10 cuando esas fronteras,
 los gates globales y la cobertura requerida estén demostrados, no solo cuando
 la prueba de imports permanezca verde.
+
+## Actualización verificada: serialización y requests de integración
+
+Los tests que serializaban directamente con `pickle` usan ahora el adaptador
+común `w3af.core.data.misc.serialize`; la emulación de deserialización conserva
+`pickletools.genops` para inspeccionar opcodes sin ejecutar objetos. Bandit deja
+de reportar `B301`, `B403` y `B105` en estos recorridos. El arnés REST usa el
+certificado autofirmado generado por w3af como CA de las peticiones HTTPS,
+aplica timeout de cinco segundos y ya no desactiva la validación TLS. Los
+openers de urllib en tests también son explícitos y conservan los casos `file:`
+y de esquemas desconocidos.
+
+Verificación posterior: Ruff y Black pasan en los 1598 archivos, mypy pasa en
+1592 archivos, `pip-audit` no encuentra vulnerabilidades en las dependencias
+reproducibles, los tests focales de serialización/API pasan (364 y 3,
+respectivamente) y los tests de URL/opener pasan (196). Bandit baja de 141 a
+58 hallazgos; solo queda un `B310` en el script de espera de dependencias y
+persisten grupos heredados de TLS, timeouts, subprocess, XML, temporales y
+fixtures de plataforma. No se han añadido supresiones.
+
+La nota revisada es **Clean Code 6.5/10**, **Clean Architecture 5/10** y
+**Global 5.75/10**: mejoran las pruebas y la higiene de seguridad, pero siguen
+pendientes la cobertura global del 100%, los mocks existentes, los hallazgos de
+Bandit restantes, el singleton `kb` y los módulos orquestadores grandes.
