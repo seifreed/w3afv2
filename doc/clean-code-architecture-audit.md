@@ -1980,3 +1980,15 @@ en producción y fixtures modificados. El score sigue en **5.75/10**: quedan
 18 imports directos de la KB en producción, además de la cobertura, mocks, el
 fallo heredado de perfilado, la dependencia de Moth y los orquestadores
 grandes.
+
+## Actualización verificada: detectores de red y WAF
+
+`detect_reverse_proxy`, `detect_transparent_proxy`, `dns_wildcard`,
+`find_vhosts`, `fingerprint_os` y `fingerprint_waf` usan la KB inyectada por
+`InfrastructurePlugin`. El fixture HTTP compartido y las instancias manuales
+de tests configuran ahora explícitamente esa dependencia.
+
+Verificación: 34 tests y 20 subtests pasan; Ruff, Black y mypy están limpios
+en los seis plugins. El score sigue en **5.75/10**: quedan 12 imports directos
+de la KB en producción, además de la cobertura, mocks, el fallo heredado de
+perfilado, la dependencia de Moth y los orquestadores grandes.
