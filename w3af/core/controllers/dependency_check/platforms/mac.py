@@ -25,11 +25,13 @@ from typing import ClassVar
 
 from w3af.core.controllers.dependency_check.pip_dependency import PIPDependency
 from w3af.core.controllers.dependency_check.platforms.base_platform import Platform
+from w3af.core.controllers.dependency_check.platforms.package_query import (
+    query_package,
+)
 from w3af.core.controllers.dependency_check.requirements import (
     CORE,
     CORE_PIP_PACKAGES,
 )
-from w3af.core.controllers.misc.external_process import run_process
 
 TWO_PYTHON_MSG = """\
 It seems that your system has two different python installations: One provided
@@ -43,10 +45,31 @@ ports Python by using the following command:
     sudo port select --set python python314
 """
 
-TRACEROUTE_SCAPY_MSG = """\
-Tried to import traceroute from scapy.all and found an OSError including the
-message "Device not configured".
-"""
+MACPORTS_PREFIX = "/opt/"
+NOT_INSTALLED = "None of the specified ports are installed"
+INSTALLED = "The following ports are currently installed"
+
+
+def classify_port_output(output, package_name):
+    if NOT_INSTALLED in output:
+        return False
+
+    if INSTALLED in output:
+        return True
+
+    return None
+
+
+def two_python_warning(executable):
+    """
+    :return: A message for the user when the python executable is not the one
+             provided by MacPorts (which keeps the dependencies installed
+             under /opt/local), None otherwise.
+    """
+    if executable.startswith(MACPORTS_PREFIX):
+        return None
+
+    return TWO_PYTHON_MSG % executable
 
 
 class MacOSX(Platform):
@@ -82,23 +105,9 @@ class MacOSX(Platform):
 
     @staticmethod
     def os_package_is_installed(package_name):
-        not_installed = "None of the specified ports are installed"
-        installed = "The following ports are currently installed"
-
-        try:
-            result = run_process(["port", "-v", "installed", package_name])
-        except OSError:
-            # We're not on a mac based system
-            return None
-        else:
-            port_output = result.stdout
-
-            if not_installed in port_output:
-                return False
-            elif installed in port_output:
-                return True
-            else:
-                return None
+        return query_package(
+            ("port", "-v", "installed"), package_name, classify_port_output
+        )
 
     @staticmethod
     def after_hook():
@@ -106,21 +115,6 @@ class MacOSX(Platform):
         #
         # We need to warn the user about this situation and let him know how to
         # fix. See: http://stackoverflow.com/questions/118813/
-        if sys.executable.startswith("/opt/"):
-            # MacPorts Python keeps installed dependencies under /opt/local.
-            pass
-        else:
-            print(TWO_PYTHON_MSG % sys.executable)
-
-        # check if scapy is correctly installed/working on OSX
-        try:
-            import scapy.all
-
-            if not callable(scapy.all.traceroute):
-                return
-        except ImportError:
-            # The user just needs to work on his dependencies.
-            pass
-        except OSError as ose:
-            if "Device not configured" in str(ose):
-                print(TRACEROUTE_SCAPY_MSG)
+        warning = two_python_warning(sys.executable)
+        if warning:
+            print(warning)

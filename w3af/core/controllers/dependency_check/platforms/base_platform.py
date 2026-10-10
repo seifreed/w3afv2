@@ -20,12 +20,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from typing import Any, ClassVar
+from typing import ClassVar
 
 from w3af.core.controllers.dependency_check.pip_dependency import PIPDependency
 
-from ..external.retirejs import retirejs_is_installed
+from ..external.retirejs import RETIREJS_COMMAND, retirejs_is_installed
 from ..requirements import CORE, CORE_PIP_PACKAGES
+
+RETIREJS_INSTALL_COMMANDS = ["npm install -g retire@2.0.3", "npm update -g retire"]
 
 
 class Platform:
@@ -51,19 +53,8 @@ class Platform:
         pass
 
     @staticmethod
-    def get_missing_external_commands():
-        instructions = []
-
-        for handler in Platform.EXTERNAL_COMMAND_HANDLERS:
-            instructions.extend(handler.__func__())
-
-        return instructions
-
-    @staticmethod
-    def retirejs_handler():
-        if retirejs_is_installed():
+    def get_missing_external_commands(retirejs_command=RETIREJS_COMMAND):
+        if retirejs_is_installed(retirejs_command):
             return []
 
-        return ["npm install -g retire@2.0.3", "npm update -g retire"]
-
-    EXTERNAL_COMMAND_HANDLERS: ClassVar[list[Any]] = [retirejs_handler]
+        return list(RETIREJS_INSTALL_COMMANDS)

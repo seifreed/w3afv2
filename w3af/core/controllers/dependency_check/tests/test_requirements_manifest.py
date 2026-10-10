@@ -18,6 +18,12 @@ class TestRequirementsManifest(unittest.TestCase):
             requirements.PINNED_VERSIONS["pygithub"],
         )
 
+    def test_unpinned_package_is_rejected(self):
+        with self.assertRaises(RuntimeError) as context:
+            requirements._version("package-that-is-not-in-the-manifest")
+
+        self.assertIn("must be pinned", str(context.exception))
+
     def test_all_dependency_checker_packages_are_pinned(self):
         for dependency in requirements.CORE_PIP_PACKAGES:
             with self.subTest(package=dependency.package_name):

@@ -20,34 +20,37 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import shutil
-
 from w3af.core.controllers.misc.external_process import run_process
 
 SUPPORTED_RETIREJS = "2."
+RETIREJS_COMMAND = ("retire",)
 
 
-def retirejs_is_installed():
+def is_supported_version(version):
     """
-    :return: True if retirejs is installed and we were able to parse the version.
+    :param version: The output of retire --version
+    :return: True if it has the format 2.6.0, a version we support.
     """
-    path_to_retire = shutil.which("retire")
-    if path_to_retire is None:
+    version = version.strip()
+
+    # Just check that the version has the format 1.6.0
+    if len(version.split(".")) != 3:
         return False
 
+    return version.startswith(SUPPORTED_RETIREJS)
+
+
+def retirejs_is_installed(command=RETIREJS_COMMAND):
+    """
+    :param command: The program (and arguments) that run retirejs
+    :return: True if retirejs is installed and we were able to parse the version.
+    """
     try:
-        result = run_process([path_to_retire, "--version"])
+        result = run_process([*command, "--version"])
     except OSError:
         return False
 
     if result.returncode != 0:
         return False
 
-    version = result.stdout.strip()
-    version_split = version.split(".")
-
-    # Just check that the version has the format 1.6.0
-    if len(version_split) != 3:
-        return False
-
-    return version.startswith(SUPPORTED_RETIREJS)
+    return is_supported_version(result.stdout)

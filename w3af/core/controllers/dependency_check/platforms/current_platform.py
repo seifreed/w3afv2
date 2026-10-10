@@ -20,43 +20,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from .centos import CentOS
-from .centos65 import CentOS65
-from .debian76 import Debian76
-from .debian78 import Debian78
-from .debian80 import Debian80
 from .default import DefaultPlatform
-from .elementary_os02 import ElementaryOS02
 from .fedora import Fedora
-from .kali import Kali
-from .kali2 import Kali2
 from .mac import MacOSX
-from .openbsd import OpenBSD5
-from .suse import SuSE
-from .ubuntu1204 import Ubuntu1204
-from .ubuntu1404 import Ubuntu1404
-from .ubuntu1410 import Ubuntu1410
-from .ubuntu1604 import Ubuntu1604
-from .ubuntu1804 import Ubuntu1804
 
 KNOWN_PLATFORMS = [
-    CentOS65,
-    CentOS,
-    Debian76,
-    Debian78,
-    Debian80,
-    ElementaryOS02,
     Fedora,
-    Kali,
-    Kali2,
     MacOSX,
-    OpenBSD5,
-    SuSE,
-    Ubuntu1204,
-    Ubuntu1404,
-    Ubuntu1410,
-    Ubuntu1604,
-    Ubuntu1804,
 ]
 
 
