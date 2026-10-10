@@ -43,12 +43,19 @@ class PluginSelection:
                 continue
 
             enabled_plugins.extend(self._plugin_list_provider(plugin_type))
-            self.names[plugin_type] = list(set(enabled_plugins))
+            self.names[plugin_type] = list(dict.fromkeys(enabled_plugins))
             self.names[plugin_type].remove("all")
 
     def remove_exclusions(self) -> None:
-        for enabled_plugins in self.names.values():
-            for plugin_name in enabled_plugins[:]:
-                if plugin_name.startswith("!"):
-                    enabled_plugins.remove(plugin_name)
-                    enabled_plugins.remove(plugin_name.replace("!", ""))
+        for plugin_type, enabled_plugins in self.names.items():
+            excluded_plugins = {
+                plugin_name[1:]
+                for plugin_name in enabled_plugins
+                if plugin_name.startswith("!")
+            }
+            self.names[plugin_type] = [
+                plugin_name
+                for plugin_name in enabled_plugins
+                if not plugin_name.startswith("!")
+                and plugin_name not in excluded_plugins
+            ]

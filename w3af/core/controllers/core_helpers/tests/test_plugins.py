@@ -248,6 +248,10 @@ class TestW3afCorePlugins(unittest.TestCase):
         self.core.plugins.init_plugins()
 
         self.assertEqual(
+            self.core.plugins.get_enabled_plugins("crawl"),
+            self.core.plugins.get_plugin_list("crawl"),
+        )
+        self.assertEqual(
             set(self.core.plugins.get_enabled_plugins("crawl")),
             set(self.core.plugins.get_plugin_list("crawl")),
         )
@@ -256,6 +260,12 @@ class TestW3afCorePlugins(unittest.TestCase):
             len(set(self.core.plugins.get_enabled_plugins("crawl"))),
             len(set(self.core.plugins.get_plugin_list("crawl"))),
         )
+
+    def test_exclusion_without_all_disables_the_plugin(self):
+        self.core.plugins.set_plugins(["!web_spider"], "crawl")
+        self.core.plugins.init_plugins()
+
+        self.assertEqual(self.core.plugins.get_enabled_plugins("crawl"), [])
 
     def test_enable_all_but_web_spider(self):
         enabled = ["all", "!web_spider"]

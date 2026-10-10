@@ -3616,3 +3616,16 @@ un singleton global. Black, Ruff, mypy focal, Bandit focal, `pip-audit` y
 `git diff --check` están limpios. Permanecen dos warnings externos de
 `ldap3/pyasn1`; el score se mantiene en **6.5/10** por cobertura global,
 módulos grandes y gates globales pendientes.
+
+## Actualización verificada: selección determinista de plugins
+
+`PluginSelection` ya no convierte la expansión de `all` en un `set`, por lo que
+conserva el orden del catálogo y hace reproducible la creación de instancias.
+La eliminación de exclusiones se expresa como una transformación de listas,
+tolera una exclusión sin `all` y elimina de forma consistente el plugin
+excluido sin lanzar `ValueError` por una segunda eliminación.
+
+Verificación: la suite de plugins pasó **28 tests** con el catálogo real del
+filesystem. El score se mantiene en **6.5/10**: este avance corrige una
+invariante de selección, pero siguen pendientes los módulos grandes, los
+singletons y la cobertura/gates globales.
