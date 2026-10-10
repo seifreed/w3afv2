@@ -18,9 +18,9 @@ class OutputManagerLogHandler(logging.Handler):
 
 def configure_data_logging(output) -> None:
     logger = logging.getLogger("w3af.core.data")
-    if not any(
-        isinstance(handler, OutputManagerLogHandler) for handler in logger.handlers
-    ):
-        logger.addHandler(OutputManagerLogHandler(output))
+    for handler in logger.handlers[:]:
+        if isinstance(handler, OutputManagerLogHandler):
+            logger.removeHandler(handler)
+    logger.addHandler(OutputManagerLogHandler(output))
     logger.setLevel(logging.DEBUG)
     logger.propagate = False

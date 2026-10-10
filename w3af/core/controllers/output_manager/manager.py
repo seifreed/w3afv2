@@ -51,12 +51,9 @@ def start_thread_on_demand(func):
     """
 
     @wraps(func)
-    def od_wrapper(*args, **kwds):
-        from w3af.core.controllers import output_manager
-
-        manager = output_manager.manager
+    def od_wrapper(manager, *args, **kwds):
         if manager.is_alive():
-            return func(*args, **kwds)
+            return func(manager, *args, **kwds)
 
         with OutputManager.start_lock:
             try:
@@ -73,7 +70,7 @@ def start_thread_on_demand(func):
                 # https://github.com/andresriancho/w3af/issues/5354
                 pass
 
-        return func(*args, **kwds)
+        return func(manager, *args, **kwds)
 
     return od_wrapper
 

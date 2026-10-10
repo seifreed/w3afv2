@@ -60,3 +60,27 @@ class TestOutputManagerLoggingBridge(unittest.TestCase):
             logger.setLevel(previous_level)
             logger.propagate = previous_propagate
             om.out = previous_output
+
+    def test_reconfiguring_logging_uses_the_new_output_sink(self):
+        logger = logging.getLogger("w3af.core.data")
+        previous_handlers = logger.handlers[:]
+        previous_level = logger.level
+        previous_propagate = logger.propagate
+        first_messages = queue.Queue()
+        second_messages = queue.Queue()
+
+        try:
+            configure_data_logging(om.log_sink_factory(first_messages))
+            configure_data_logging(om.log_sink_factory(second_messages))
+
+            logger.error("message for the second sink")
+
+            self.assertEqual(
+                second_messages.get(timeout=1),
+                (("error", "message for the second sink"), {}),
+            )
+            self.assertTrue(first_messages.empty())
+        finally:
+            logger.handlers[:] = previous_handlers
+            logger.setLevel(previous_level)
+            logger.propagate = previous_propagate

@@ -2835,3 +2835,18 @@ Verificación: **35 tests y 7 subtests pasaron** en lifecycle, hooks, estrategia
 profiling e instancias múltiples. El score permanece en **6.25/10** por los
 globals restantes fuera de este composition root, cobertura 100% no demostrada,
 Bandit heredado, mocks e integraciones Moth.
+
+## Actualización verificada: decorador interno del OutputManager sin singleton
+
+`start_thread_on_demand` usa ahora la instancia `OutputManager` recibida por el
+método decorado para comprobar y arrancar el proceso. Se elimina la importación
+dinámica del módulo global desde el decorador sin cambiar la sincronización de
+`process_all_messages` ni `log_enabled_plugins`. Además, el bridge de logging
+reemplaza su handler cuando cambia el sink, evitando que una nueva instancia de
+`w3afCore` escriba en la cola de una instancia anterior.
+
+Verificación: **29 tests pasaron** en la suite del OutputManager, incluyendo la
+regresión de cambio de sink; Ruff, Black, mypy focalizado y `git diff --check`
+están limpios. El score permanece en **6.25/10** por los globals de sinks y
+composition roots restantes, cobertura 100% no demostrada, Bandit heredado,
+mocks e integraciones Moth.
