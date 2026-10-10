@@ -1499,3 +1499,14 @@ Black y mypy pasan, la fitness test de capas pasa y Bandit permanece en 46
 hallazgos. El score sigue en **5.75/10**: quedan 91 imports directos de la KB,
 además de la cobertura global, los mocks existentes y los módulos orquestadores
 grandes.
+
+## Actualización verificada: implementaciones de fuerza bruta
+
+`basic_auth` y `form_auth` también usan la KB inyectada por `Plugin` para
+consultar endpoints protegidos y registrar credenciales encontradas. Los tests
+directos de `basic_auth` configuran la KB real; la suite integrada de formularios
+continúa usando el contenedor de plugins.
+
+Verificación: 19 tests de fuerza bruta pasan, Ruff, Black y mypy pasan en los
+módulos modificados. El score sigue en **5.75/10**: quedan 89 imports directos
+de la KB, junto con la deuda de cobertura, mocks y orquestadores grandes.
