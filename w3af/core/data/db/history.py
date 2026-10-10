@@ -29,13 +29,13 @@ from functools import wraps
 from shutil import rmtree
 from typing import ClassVar
 
-import msgpack
-
 from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.db.exceptions import DBException
+from w3af.core.data.db.history_trace_serializer import (
+    HistoryTraceSerializer,
+    TraceReadException,
+)
 from w3af.core.data.db.sql_identifier import require_safe_identifier
-from w3af.core.data.url.http_request import HTTPRequest
-from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.filesystem import get_temp_dir
 
 LOGGER = logging.getLogger(__name__)
@@ -118,6 +118,7 @@ class HistoryItem:
         self._session_dir = os.path.join(
             get_temp_dir(), self._db.get_file_name() + "_traces"
         )
+        self._trace_serializer = HistoryTraceSerializer(self._MSGPACK_CANARY)
 
     def get_session_dir(self):
         return self._session_dir
@@ -242,30 +243,7 @@ class HistoryItem:
         return self._load_from_string(serialized_req_res)
 
     def _load_from_string(self, serialized_req_res):
-        try:
-            data = msgpack.loads(serialized_req_res, use_list=True)
-        except ValueError:
-            # ValueError: Extra data. returned when msgpack finds invalid
-            # data in the file
-            raise TraceReadException(f"Failed to load {serialized_req_res}")
-
-        try:
-            request_dict, response_dict, canary = data
-        except TypeError:
-            # https://github.com/andresriancho/w3af/issues/1101
-            # 'NoneType' object is not iterable
-            raise TraceReadException(
-                f"Not all components found in {serialized_req_res}"
-            )
-
-        if not canary == self._MSGPACK_CANARY:
-            # read failed, most likely because the file write is not
-            # complete but for some reason it was a valid msgpack file
-            raise TraceReadException(f"Invalid canary in {serialized_req_res}")
-
-        request = HTTPRequest.from_dict(request_dict)
-        response = HTTPResponse.from_dict(response_dict)
-        return request, response
+        return self._trace_serializer.deserialize(serialized_req_res)
 
     def _load_from_trace_file_concurrent(self, _id):
         """
@@ -452,8 +430,7 @@ class HistoryItem:
         #
         path_fname = self._get_trace_filename_for_id(self.id)
 
-        data = (self.request.to_dict(), self.response.to_dict(), self._MSGPACK_CANARY)
-        msgpack_data = msgpack.dumps(data)
+        msgpack_data = self._trace_serializer.serialize(self.request, self.response)
 
         try:
             with open(path_fname, "wb") as req_res:
@@ -698,10 +675,6 @@ def get_zip_id_range(zip_file):
     name = name_ext.split(".")[0]
     start, end = name.split("-")
     return int(start), int(end)
-
-
-class TraceReadException(Exception):
-    pass
 
 
 class PendingCompressionJob:

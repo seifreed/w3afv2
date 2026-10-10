@@ -3229,3 +3229,14 @@ Verificación: la suite URL pasó **217 tests en 182.31 s**, con solo **2
 warnings externos** de `ldap3/pyasn1`; Black, Ruff, mypy focalizado, Bandit
 focalizado, `pip-audit` y `git diff --check` están limpios. El score se mantiene
 en **6.5/10** por cobertura global, módulos grandes y gates globales pendientes.
+
+## Actualización verificada: codec de trazas separado
+
+`HistoryTraceSerializer` encapsula el formato msgpack, el canary y la
+reconstrucción de `HTTPRequest`/`HTTPResponse`. `HistoryItem` conserva la API de
+DB, archivos y compresión, pero ya no mezcla esas operaciones con el codec HTTP.
+
+Verificación: la suite DB completa pasó **162 tests en 9.25 s**; Black, Ruff,
+mypy focalizado, Bandit focalizado y `git diff --check` están limpios. El score
+se mantiene en **6.5/10** por cobertura global, módulos grandes y gates globales
+pendientes.
