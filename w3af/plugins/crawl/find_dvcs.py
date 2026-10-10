@@ -27,7 +27,6 @@ import tempfile
 from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
@@ -217,7 +216,7 @@ class find_dvcs(CrawlPlugin):
         )
         v.set_url(http_response.get_url())
 
-        kb.kb.append(self, repo, v)
+        self._get_knowledge_base().append(self, repo, v)
         om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
     def git_index(self, body):
