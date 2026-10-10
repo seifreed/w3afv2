@@ -26,6 +26,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import w3af.core.data.kb.config as cf
 from w3af.core.controllers.misc_settings import MiscSettings
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
@@ -242,7 +243,7 @@ class TestProfileSettings(ProfileTestCase):
         self.assertEqual(loaded["words"].get_value(), ["a", "b"])
 
     def test_misc_settings(self):
-        misc_settings = MiscSettings()
+        misc_settings = MiscSettings(cf.cf)
         options = misc_settings.get_options()
         options["fuzzed_files_extension"].set_value("jpg")
 

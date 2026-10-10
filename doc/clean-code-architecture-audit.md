@@ -3830,3 +3830,18 @@ dos warnings deprecados externos de `ldap3/pyasn1`; Black, Ruff, mypy y Bandit
 focal están limpios. El score sube a **7.0/10** en Clean Architecture y
 **6.9/10** global. Aún quedan settings/controladores y plugins que leen `cf`,
 y falta probar cobertura y gates a escala completa.
+
+## Actualización verificada: `MiscSettings` sin inicialización global
+
+`MiscSettings` ahora recibe la configuración explícitamente y deja de crear una
+instancia global durante la importación del módulo. `w3afCore`, perfiles, la
+consola y los fixtures de tests construyen el objeto con su configuración
+propia, evitando mutaciones implícitas del singleton compartido.
+
+Verificación: settings, persistencia de perfiles y `VariantDB` pasan **61
+tests**; el flujo OpenAPI pasa **10 tests**. Este último mantiene warnings
+externos de `swagger`/`jsonschema`, sin errores reproducibles del
+`OutputManager` en ejecución aislada. Black, Ruff, mypy y Bandit focal están
+limpios. El score sube a **7.1/10** en Clean Architecture y **7.0/10** global.
+Aún quedan consumidores de `cf` en controladores y datos, y no se ha cerrado la
+validación global de cobertura ni todos los gates del repositorio.

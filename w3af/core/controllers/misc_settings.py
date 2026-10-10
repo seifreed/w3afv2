@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from vulndb import DBVuln
 
-import w3af.core.data.kb.config as cf
 from w3af.core.configurable import Configurable
 from w3af.core.controllers.misc.get_local_ip import get_local_ip
 from w3af.core.controllers.misc.get_net_iface import get_net_iface
@@ -52,45 +51,46 @@ class MiscSettings(Configurable):
     configure w3af settings using get_options and SetOptions.
     """
 
-    def __init__(self):
+    def __init__(self, configuration):
         """
         Set the defaults and save them to the config dict.
         """
+        self._configuration = configuration
         if not self.is_configured():
             # It's the first time I'm run
             self.set_default_values()
 
     def is_configured(self):
-        return cf.cf.get("fuzz_cookies") is not None
+        return self._configuration.get("fuzz_cookies") is not None
 
     def set_default_values(self):
         """
         Load all the default settings
         :return: None
         """
-        cf.cf.save("fuzz_cookies", False)
-        cf.cf.save("fuzz_form_files", True)
-        cf.cf.save("fuzzed_files_extension", "gif")
-        cf.cf.save("fuzz_url_filenames", False)
-        cf.cf.save("fuzz_url_parts", False)
-        cf.cf.save("fuzzable_headers", [])
+        self._configuration.save("fuzz_cookies", False)
+        self._configuration.save("fuzz_form_files", True)
+        self._configuration.save("fuzzed_files_extension", "gif")
+        self._configuration.save("fuzz_url_filenames", False)
+        self._configuration.save("fuzz_url_parts", False)
+        self._configuration.save("fuzzable_headers", [])
 
-        cf.cf.save("form_fuzzing_mode", "tmb")
+        self._configuration.save("form_fuzzing_mode", "tmb")
 
-        cf.cf.save("path_max_variants", PATH_MAX_VARIANTS)
-        cf.cf.save("params_max_variants", PARAMS_MAX_VARIANTS)
-        cf.cf.save("max_equal_form_variants", MAX_EQUAL_FORM_VARIANTS)
+        self._configuration.save("path_max_variants", PATH_MAX_VARIANTS)
+        self._configuration.save("params_max_variants", PARAMS_MAX_VARIANTS)
+        self._configuration.save("max_equal_form_variants", MAX_EQUAL_FORM_VARIANTS)
 
-        cf.cf.save("max_discovery_time", 120)
-        cf.cf.save("max_scan_time", 240)
+        self._configuration.save("max_discovery_time", 120)
+        self._configuration.save("max_scan_time", 240)
 
-        cf.cf.save("msf_location", "/opt/metasploit3/bin/")
+        self._configuration.save("msf_location", "/opt/metasploit3/bin/")
 
         #
         # The network interface configuration (for advanced exploits)
         #
         ifname = get_net_iface()
-        cf.cf.save("interface", ifname)
+        self._configuration.save("interface", ifname)
 
         #
         # This doesn't send any packets, and gives you a nice default
@@ -102,19 +102,19 @@ class MiscSettings(Configurable):
         if not local_address:
             local_address = "127.0.0.1"  # do'h!
 
-        cf.cf.save("local_ip_address", local_address)
-        cf.cf.save("stop_on_first_exception", False)
+        self._configuration.save("local_ip_address", local_address)
+        self._configuration.save("stop_on_first_exception", False)
 
         # Blacklists
-        cf.cf.save("blacklist_http_request", [])
-        cf.cf.save("blacklist_audit", [])
+        self._configuration.save("blacklist_http_request", [])
+        self._configuration.save("blacklist_audit", [])
 
         # Form exclusion via IDs
-        cf.cf.save("form_id_list", FormIDMatcherList("[]"))
-        cf.cf.save("form_id_action", EXCLUDE)
+        self._configuration.save("form_id_list", FormIDMatcherList("[]"))
+        self._configuration.save("form_id_action", EXCLUDE)
 
         # Language to use when reading from vulndb
-        cf.cf.save("vulndb_language", DBVuln.DEFAULT_LANG)
+        self._configuration.save("vulndb_language", DBVuln.DEFAULT_LANG)
 
     def get_options(self):
         """
@@ -128,7 +128,7 @@ class MiscSettings(Configurable):
         d = "Indicates if w3af plugins will use cookies as a fuzzable parameter"
         opt = opt_factory(
             "fuzz_cookies",
-            cf.cf.get("fuzz_cookies"),
+            self._configuration.get("fuzz_cookies"),
             d,
             BOOL,
             tabid="Fuzzer parameters",
@@ -146,7 +146,7 @@ class MiscSettings(Configurable):
         )
         opt = opt_factory(
             "fuzz_form_files",
-            cf.cf.get("fuzz_form_files"),
+            self._configuration.get("fuzz_form_files"),
             d,
             BOOL,
             tabid="Fuzzer parameters",
@@ -167,7 +167,7 @@ class MiscSettings(Configurable):
         )
         opt = opt_factory(
             "fuzz_url_filenames",
-            cf.cf.get("fuzz_url_filenames"),
+            self._configuration.get("fuzz_url_filenames"),
             d,
             BOOL,
             help=h,
@@ -187,7 +187,7 @@ class MiscSettings(Configurable):
         )
         opt = opt_factory(
             "fuzz_url_parts",
-            cf.cf.get("fuzz_url_parts"),
+            self._configuration.get("fuzz_url_parts"),
             desc,
             BOOL,
             help=h,
@@ -198,7 +198,7 @@ class MiscSettings(Configurable):
         desc = "Indicates the extension to use when fuzzing file content"
         opt = opt_factory(
             "fuzzed_files_extension",
-            cf.cf.get("fuzzed_files_extension"),
+            self._configuration.get("fuzzed_files_extension"),
             desc,
             STRING,
             tabid="Fuzzer parameters",
@@ -208,7 +208,7 @@ class MiscSettings(Configurable):
         desc = "A list with all fuzzable header names"
         opt = opt_factory(
             "fuzzable_headers",
-            cf.cf.get("fuzzable_headers"),
+            self._configuration.get("fuzzable_headers"),
             desc,
             LIST,
             tabid="Fuzzer parameters",
@@ -243,7 +243,7 @@ class MiscSettings(Configurable):
         )
         opt = opt_factory(
             "stop_on_first_exception",
-            cf.cf.get("stop_on_first_exception"),
+            self._configuration.get("stop_on_first_exception"),
             desc,
             BOOL,
             help=h,
@@ -260,7 +260,7 @@ class MiscSettings(Configurable):
         )
         opt = opt_factory(
             "max_discovery_time",
-            cf.cf.get("max_discovery_time"),
+            self._configuration.get("max_discovery_time"),
             desc,
             INT,
             help=h,
@@ -275,7 +275,7 @@ class MiscSettings(Configurable):
         )
         opt = opt_factory(
             "max_scan_time",
-            cf.cf.get("max_scan_time"),
+            self._configuration.get("max_scan_time"),
             desc,
             INT,
             help=h,
@@ -293,7 +293,7 @@ class MiscSettings(Configurable):
         )
         opt = opt_factory(
             "path_max_variants",
-            cf.cf.get("path_max_variants"),
+            self._configuration.get("path_max_variants"),
             desc,
             INT,
             help=h,
@@ -311,7 +311,7 @@ class MiscSettings(Configurable):
         )
         opt = opt_factory(
             "params_max_variants",
-            cf.cf.get("params_max_variants"),
+            self._configuration.get("params_max_variants"),
             desc,
             INT,
             help=h,
@@ -328,7 +328,7 @@ class MiscSettings(Configurable):
         )
         opt = opt_factory(
             "max_equal_form_variants",
-            cf.cf.get("max_equal_form_variants"),
+            self._configuration.get("max_equal_form_variants"),
             desc,
             INT,
             help=h,
@@ -344,14 +344,18 @@ class MiscSettings(Configurable):
             " connections, etc."
         )
         opt = opt_factory(
-            "interface", cf.cf.get("interface"), desc, STRING, tabid="Network settings"
+            "interface",
+            self._configuration.get("interface"),
+            desc,
+            STRING,
+            tabid="Network settings",
         )
         ol.add(opt)
 
         desc = "Local IP address to use when doing reverse connections"
         opt = opt_factory(
             "local_ip_address",
-            cf.cf.get("local_ip_address"),
+            self._configuration.get("local_ip_address"),
             desc,
             STRING,
             tabid="Network settings",
@@ -368,7 +372,7 @@ class MiscSettings(Configurable):
         )
         opt = opt_factory(
             "blacklist_http_request",
-            cf.cf.get("blacklist_http_request"),
+            self._configuration.get("blacklist_http_request"),
             desc,
             URL_LIST,
             help=h,
@@ -384,7 +388,7 @@ class MiscSettings(Configurable):
         )
         opt = opt_factory(
             "blacklist_audit",
-            cf.cf.get("blacklist_audit"),
+            self._configuration.get("blacklist_audit"),
             desc,
             URL_LIST,
             help=h,
@@ -403,7 +407,7 @@ class MiscSettings(Configurable):
         )
         opt = opt_factory(
             "form_id_list",
-            cf.cf.get("form_id_list"),
+            self._configuration.get("form_id_list"),
             desc,
             FORM_ID_LIST,
             help=h,
@@ -420,8 +424,8 @@ class MiscSettings(Configurable):
 
         form_id_actions = [EXCLUDE, INCLUDE]
         tmp_list = form_id_actions[:]
-        tmp_list.remove(cf.cf.get("form_id_action"))
-        tmp_list.insert(0, cf.cf.get("form_id_action"))
+        tmp_list.remove(self._configuration.get("form_id_action"))
+        tmp_list.insert(0, self._configuration.get("form_id_action"))
 
         opt = opt_factory(
             "form_id_action", tmp_list, desc, COMBO, help=h, tabid="Exclusions"
@@ -433,10 +437,14 @@ class MiscSettings(Configurable):
         #
         desc = (
             "Full path of Metasploit framework binary directory ({} in "
-            "most linux installs)".format(cf.cf.get("msf_location"))
+            "most linux installs)".format(self._configuration.get("msf_location"))
         )
         opt = opt_factory(
-            "msf_location", cf.cf.get("msf_location"), desc, STRING, tabid="Metasploit"
+            "msf_location",
+            self._configuration.get("msf_location"),
+            desc,
+            STRING,
+            tabid="Metasploit",
         )
         ol.add(opt)
 
@@ -498,9 +506,4 @@ class MiscSettings(Configurable):
         )
 
         for name in to_save:
-            cf.cf.save(name, options_list[name].get_value())
-
-
-# This is an undercover call to __init__ :) , so I can set all default
-# parameters. TODO: FIXME: This is awful programming.
-MiscSettings()
+            self._configuration.save(name, options_list[name].get_value())

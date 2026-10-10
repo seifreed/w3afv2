@@ -26,6 +26,7 @@ import sys
 import time
 from multiprocessing.dummy import Process
 
+import w3af.core.data.kb.config as cf
 import w3af.core.ui.console.io.console as term
 from w3af.core.controllers.console_tables import table
 from w3af.core.controllers.misc.get_w3af_version import get_w3af_version
@@ -80,7 +81,7 @@ class rootMenu(menu):
             {
                 "plugins": pluginsMenu,
                 "target": (ConfigMenu, self._w3af.target),
-                "misc-settings": (ConfigMenu, MiscSettings()),
+                "misc-settings": (ConfigMenu, MiscSettings(cf.cf)),
                 "http-settings": (ConfigMenu, self._w3af.uri_opener.settings),
                 "profiles": ProfilesMenu,
                 "bug-report": (bug_report_menu, create_reporter),

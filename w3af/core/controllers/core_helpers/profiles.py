@@ -112,7 +112,7 @@ class CoreProfiles:
 
     def _save_settings(self, profile_inst):
         """Save misc and HTTP settings to a profile."""
-        misc_settings = MiscSettings()
+        misc_settings = MiscSettings(self._configuration)
         profile_inst.set_misc_settings(misc_settings.get_options())
         profile_inst.set_http_settings(
             self._w3af_core.uri_opener.settings.get_options()
@@ -153,7 +153,7 @@ class CoreProfiles:
     def _reset_configuration(self):
         """Clear the current profile values before loading a new profile."""
         self._w3af_core.plugins.zero_enabled_plugins()
-        MiscSettings().set_default_values()
+        MiscSettings(self._configuration).set_default_values()
         self._w3af_core.uri_opener.settings.set_default_values()
 
     def _load_target(self, profile_inst):
@@ -165,7 +165,9 @@ class CoreProfiles:
     def _load_settings(self, profile_inst, error_messages):
         """Apply framework and HTTP settings, collecting profile errors."""
         try:
-            profile_misc_settings = profile_inst.get_misc_settings(MiscSettings())
+            profile_misc_settings = profile_inst.get_misc_settings(
+                MiscSettings(self._configuration)
+            )
         except BaseFrameworkException as exception:
             msg = (
                 "Setting the framework misc-settings raised an exception"
@@ -177,7 +179,7 @@ class CoreProfiles:
                 local_ip = get_local_ip()
                 profile_misc_settings["local_ip_address"].set_value(local_ip)
 
-            MiscSettings().set_options(profile_misc_settings)
+            MiscSettings(self._configuration).set_options(profile_misc_settings)
 
         try:
             http_settings = profile_inst.get_http_settings()

@@ -78,7 +78,7 @@ class PluginTest(unittest.TestCase):
     def setUp(self):
         self.kb.cleanup()
         self.w3afcore = w3afCore()
-        self.misc_settings = MiscSettings()
+        self.misc_settings = MiscSettings(cf.cf)
 
         self.request_callback_call_count = 0
         self.request_callback_match = 0

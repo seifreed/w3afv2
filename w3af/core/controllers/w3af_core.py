@@ -62,6 +62,7 @@ from w3af.core.controllers.core_helpers.worker_pool_manager import (
 )
 from w3af.core.controllers.misc.dns_cache import enable_dns_cache
 from w3af.core.controllers.misc.get_w3af_version import get_w3af_version_minimal
+from w3af.core.controllers.misc_settings import MiscSettings
 from w3af.core.controllers.output_manager import (
     create_output_manager,
 )
@@ -125,6 +126,7 @@ class w3afCore:
         """
         # Make sure we get a fresh new instance of the output manager
         self._configuration = cf
+        self._misc_settings = MiscSettings(self._configuration)
         manager, output = create_output_manager()
         configure_data_logging(output)
         register_parser_multiprocessing(manager)

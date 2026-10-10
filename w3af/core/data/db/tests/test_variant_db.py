@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
+import w3af.core.data.kb.config as cf
 from w3af.core.controllers.misc_settings import MiscSettings
 from w3af.core.data.db.clean_dc import (
     FILENAME_PLACEHOLDER,
@@ -55,7 +56,7 @@ def fr(url):
 class TestVariantDB(unittest.TestCase):
 
     def setUp(self):
-        MiscSettings().set_default_values()
+        MiscSettings(cf.cf).set_default_values()
         create_temp_dir()
         self.vdb = VariantDB()
 

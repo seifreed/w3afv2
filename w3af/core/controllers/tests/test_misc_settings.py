@@ -23,6 +23,7 @@ import unittest
 
 import pytest
 
+import w3af.core.data.kb.config as cf
 from w3af.core.controllers.misc_settings import MiscSettings
 from w3af.core.data.options.option_types import (
     BOOL,
@@ -62,7 +63,7 @@ OPTION_TYPES = (
 @pytest.mark.smoke
 class TestMiscSettings(unittest.TestCase):
     def test_basic(self):
-        opt_lst = MiscSettings().get_options()
+        opt_lst = MiscSettings(cf.cf).get_options()
 
         for opt in opt_lst:
             self.assertIn(opt.get_type(), OPTION_TYPES)

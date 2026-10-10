@@ -209,7 +209,7 @@ class TestOpenAPIPluginInternals(unittest.TestCase):
     def setUp(self):
         kb.kb.cleanup()
         self.addCleanup(kb.kb.cleanup)
-        self.addCleanup(MiscSettings().set_default_values)
+        self.addCleanup(MiscSettings(cf.cf).set_default_values)
 
         self.plugin = open_api()
         self.addCleanup(self.plugin.end)
