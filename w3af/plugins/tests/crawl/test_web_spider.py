@@ -283,6 +283,7 @@ class TestWebSpiderWithoutTargets:
         cf.cf.save("targets", [])
         try:
             spider = web_spider()
+            spider.set_configuration(cf.cf)
             spider._handle_first_run()
         finally:
             cf.cf.save("targets", previous)

@@ -3935,3 +3935,17 @@ autocomplete pasan **51 tests**. Black, Ruff, mypy y Bandit focal están limpios
 El score sube a **8.1/10** en Clean Architecture y **8.0/10** global. Aún
 quedan consumidores globales en URL/openers, parsers, fuzzer, Info, controllers,
 plugins de auditoría/crawl y output, además de la cobertura global del 100%.
+
+## Actualización verificada: `web_spider` sin configuración global
+
+`web_spider` obtiene `targets`, `form_fuzzing_mode` e `ignore_regex` desde la
+configuración inyectada en `Plugin`; desaparecieron sus accesos directos a
+`cf.cf`. El accessor común valida que un plugin fuera de la composition root
+no ejecute lógica dependiente del scan sin configuración.
+
+Verificación: web spider, OpenAPI sources y plugin base pasan **43 tests**, con
+los warnings externos conocidos de `swagger/jsonschema`. Black, Ruff, mypy y
+Bandit focal están limpios. El score sube a **8.2/10** en Clean Architecture y
+**8.1/10** global. Siguen pendientes URL/openers, parsers, fuzzer, `Info`,
+controllers y plugins de auditoría/output, además de la cobertura global del
+100%.

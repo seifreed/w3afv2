@@ -121,10 +121,8 @@ class AuthPlugin(Plugin):
         :param args: The URLs to add to the audit blacklist
         :return: None
         """
-        if self._configuration is None:
-            raise RuntimeError("AuthPlugin requires a configured scan configuration")
-
-        blacklist_audit = self._configuration.get("blacklist_audit") or []
+        configuration = self.get_configuration()
+        blacklist_audit = configuration.get("blacklist_audit") or []
 
         new_blacklist_audit = []
 
@@ -138,7 +136,7 @@ class AuthPlugin(Plugin):
             return
 
         blacklist_audit.extend(new_blacklist_audit)
-        self._configuration.save("blacklist_audit", blacklist_audit)
+        configuration.save("blacklist_audit", blacklist_audit)
 
         args = ("\n - ".join(str(u) for u in new_blacklist_audit),)
         self._output.information(self.BLACKLIST_LOGIN_URL_MESSAGE % args)

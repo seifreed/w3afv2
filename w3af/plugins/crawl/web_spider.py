@@ -25,7 +25,6 @@ import re
 from typing import ClassVar
 
 import w3af.core.data.constants.response_codes as http_constants
-import w3af.core.data.kb.config as cf
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.db.disk_set import DiskSet
@@ -125,7 +124,7 @@ class web_spider(CrawlPlugin):
         :param fuzzable_request: The fuzzable_request to query if is in the target
         :return: True if the URI for the fuzzable_request was set by the user as target
         """
-        return fuzzable_request.get_uri() in cf.cf.get("targets")
+        return fuzzable_request.get_uri() in self.get_configuration().get("targets")
 
     def _extract_html_forms(self, resp, fuzzable_req):
         """
@@ -140,7 +139,7 @@ class web_spider(CrawlPlugin):
             return
 
         # Create one FuzzableRequest for each form variant
-        mode = cf.cf.get("form_fuzzing_mode")
+        mode = self.get_configuration().get("form_fuzzing_mode")
         for form_params in dp.get_forms():
 
             # Form exclusion #15161
@@ -169,7 +168,8 @@ class web_spider(CrawlPlugin):
 
         # I have to set some variables, in order to be able to code
         # the "only_forward" feature
-        self._target_urls = [i.uri2url() for i in cf.cf.get("targets")]
+        configuration = self.get_configuration()
+        self._target_urls = [i.uri2url() for i in configuration.get("targets")]
 
         # The following line triggered lots of bugs when the "stop" button
         # was pressed and the core did this: "cf.cf.save('targets', [])"
@@ -177,7 +177,7 @@ class web_spider(CrawlPlugin):
         #     self._target_domain = cf.cf.get('targets')[0].get_domain()
         #
         # Changing it to something awful but bug-free.
-        targets = cf.cf.get("targets")
+        targets = configuration.get("targets")
         if not targets:
             return
 
@@ -594,7 +594,7 @@ class web_spider(CrawlPlugin):
 
         :return: None
         """
-        cf.cf.save("ignore_regex", self._compiled_ignore_re)
+        self.get_configuration().save("ignore_regex", self._compiled_ignore_re)
 
     def get_long_desc(self):
         """

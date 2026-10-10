@@ -102,6 +102,11 @@ class Plugin(Configurable):
         """Set the scan configuration used by plugin-level helpers."""
         self._configuration = configuration
 
+    def get_configuration(self):
+        if self._configuration is None:
+            raise RuntimeError("Plugin requires a configured scan configuration")
+        return self._configuration
+
     def set_knowledge_base(self, knowledge_base):
         """Set the knowledge store used by this plugin."""
         self._knowledge_base = knowledge_base
@@ -119,11 +124,9 @@ class Plugin(Configurable):
         return self._w3af_core
 
     def _is_404(self, http_response):
-        configuration = self._configuration
+        configuration = self.get_configuration()
         if self._w3af_core is not None:
             configuration = self._w3af_core.configuration
-        if configuration is None:
-            raise RuntimeError("Plugin requires a configured scan configuration")
         return detect_404(
             http_response,
             self._output,
