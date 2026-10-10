@@ -1,7 +1,6 @@
 import http.client
 
 from w3af.core.data.constants.response_codes import NO_CONTENT
-from w3af.core.data.kb.config import cf
 
 from .utils import debug
 
@@ -15,8 +14,9 @@ class HTTPResponse(http.client.HTTPResponse):
     # 4) handle cases where the remote server returns two content-length
     #    headers
 
-    def __init__(self, sock, debuglevel=0, method=None):
+    def __init__(self, sock, debuglevel=0, method=None, configuration=None):
         http.client.HTTPResponse.__init__(self, sock, debuglevel, method=method)
+        self._configuration = configuration
         self.fileno = sock.fileno
         self.code = None
         self._handler = None  # inserted by the handler later
@@ -58,7 +58,11 @@ class HTTPResponse(http.client.HTTPResponse):
         if self.fp is None:
             return b""
 
-        max_file_size = cf.get("max_file_size") or None
+        max_file_size = (
+            self._configuration.get("max_file_size")
+            if self._configuration is not None
+            else None
+        ) or None
         if max_file_size and self.length is not None and self.length > max_file_size:
             self.status = NO_CONTENT
             self.reason = "No Content"  # Reason-Phrase

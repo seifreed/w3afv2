@@ -54,8 +54,8 @@ class OpenerBuilder:
         self._ignore_session_cookies = ignore_session_cookies
 
     def build(self) -> BuiltOpeners:
-        http_handler = HTTPHandler()
-        https_handler = HTTPSHandler(self._proxy_url)
+        http_handler = HTTPHandler(self._configuration)
+        https_handler = HTTPSHandler(self._proxy_url, self._configuration)
         cache_handler = CacheHandler()
         handlers = self._build_handlers(
             http_handler,

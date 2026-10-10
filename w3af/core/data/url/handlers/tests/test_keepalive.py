@@ -89,7 +89,7 @@ def sequence(*replies):
 
 class OpenerTestCase(unittest.TestCase):
     def setUp(self):
-        self.use_handler(HTTPHandler())
+        self.use_handler(HTTPHandler(cf))
 
     def use_handler(self, handler):
         # The pool only reuses connections once it is full, a single
@@ -333,7 +333,7 @@ class TestHTTPKeepAlive(OpenerTestCase):
 
 class TestHTTPSKeepAlive(OpenerTestCase):
     def setUp(self):
-        self.use_handler(HTTPSHandler(":"))
+        self.use_handler(HTTPSHandler(":", cf))
 
     def test_persistent_https_connection(self):
         server = self.serve(
@@ -390,7 +390,7 @@ class TestHTTPSProxy(OpenerTestCase):
     def setUp(self):
         self.proxy = ConnectProxy(refuse={"127.0.0.1:1"}).start()
         self.addCleanup(self.proxy.stop)
-        self.use_handler(HTTPSHandler(f"{LOCALHOST}:{self.proxy.port}"))
+        self.use_handler(HTTPSHandler(f"{LOCALHOST}:{self.proxy.port}", cf))
 
     def test_https_through_connect_proxy(self):
         server = self.serve(

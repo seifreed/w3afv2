@@ -73,7 +73,8 @@ class URLTimeoutError(urllib.error.URLError):
 
 class KeepAliveHandler:
 
-    def __init__(self):
+    def __init__(self, configuration=None):
+        self._configuration = configuration
         # Create the connection pool instance
         #
         # Note: In the initial code this connection manager was created at
@@ -370,20 +371,24 @@ class KeepAliveHandler:
 
 
 class HTTPHandler(KeepAliveHandler, urllib.request.HTTPHandler):
-    def __init__(self):
-        KeepAliveHandler.__init__(self)
+    def __init__(self, configuration=None):
+        KeepAliveHandler.__init__(self, configuration)
         urllib.request.HTTPHandler.__init__(self, debuglevel=0)
 
     def http_open(self, req):
         return self.do_open_keepalive(req)
 
     def get_connection(self, request):
-        return HTTPConnection(request.host, timeout=request.get_timeout())
+        return HTTPConnection(
+            request.host,
+            timeout=request.get_timeout(),
+            configuration=self._configuration,
+        )
 
 
 class HTTPSHandler(KeepAliveHandler, urllib.request.HTTPSHandler):
-    def __init__(self, proxy):
-        KeepAliveHandler.__init__(self)
+    def __init__(self, proxy, configuration=None):
+        KeepAliveHandler.__init__(self, configuration)
         urllib.request.HTTPSHandler.__init__(self, debuglevel=0)
 
         self._proxy = proxy
@@ -407,7 +412,14 @@ class HTTPSHandler(KeepAliveHandler, urllib.request.HTTPSHandler):
         if self._proxy and use_proxy:
             proxy_host, proxy_port = self._proxy.split(":")
             return ProxyHTTPSConnection(
-                proxy_host, proxy_port, timeout=request.get_timeout()
+                proxy_host,
+                proxy_port,
+                timeout=request.get_timeout(),
+                configuration=self._configuration,
             )
         else:
-            return HTTPSConnection(request.host, timeout=request.get_timeout())
+            return HTTPSConnection(
+                request.host,
+                timeout=request.get_timeout(),
+                configuration=self._configuration,
+            )

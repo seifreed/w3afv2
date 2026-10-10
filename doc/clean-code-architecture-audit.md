@@ -3745,3 +3745,19 @@ Verificación: los tests de blacklist, opener y parámetro URL pasan **34
 tests**; Ruff, mypy y Bandit focal están limpios. El score se mantiene en
 **6.5/10** porque otros handlers y la composición del core aún dependen de
 configuración global.
+
+## Actualización verificada: límite de respuesta sin singleton en keep-alive
+
+`keepalive.HTTPResponse` dejó de importar la configuración global para decidir
+si descarta un cuerpo demasiado grande. `OpenerBuilder` propaga la
+configuración al handler y a las conexiones HTTP, HTTPS y HTTPS sobre proxy;
+cada respuesta consulta esa dependencia explícita. Los handlers aislados sin
+configuración conservan el comportamiento de no aplicar un límite, mientras
+que el camino real del opener mantiene el valor configurado.
+
+Verificación: los tests de keep-alive, mangle y handlers relacionados pasan
+**81 tests**; `OpenerSettings` y `ExtendedUrllib` pasan **56 tests**. La suite
+keep-alive medida con `/usr/bin/time -l` alcanza **96 MB de RSS máximo**, sin
+acumulación visible. Black, Ruff, mypy y Bandit focal están limpios. El score
+se mantiene en **6.5/10**: la causa de cientos de MiB estaba en el pool de
+salida y los diccionarios XML, ya corregidos en avances anteriores.
