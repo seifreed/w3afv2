@@ -209,7 +209,7 @@ class TestScanConsumers(unittest.TestCase):
             self.configure_generic_auth(server.url)
 
         self.core.plugins.init_plugins()
-        self.recorder = start_recording_output()
+        self.recorder = start_recording_output(self.core._output_manager)
 
     def configure_generic_auth(self, server_url):
         options = self.core.plugins.get_plugin_inst("auth", "generic").get_options()
