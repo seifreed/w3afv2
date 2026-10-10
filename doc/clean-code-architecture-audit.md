@@ -1379,7 +1379,7 @@ cableados desde ese módulo; la consola sigue importando la `Shell` de datos
 para sus comprobaciones `isinstance`, que siguen siendo válidas porque los
 shells cableados son subclases de la de datos.
 
-## Estado: 10/10, sin deuda de capas
+## Estado previo: 10/10, no confirmado
 
 La fitness test `w3af/tests/test_architecture_layers.py` afirma ahora cero
 infracciones (ya no hay lista `KNOWN_DEBT` ni mecanismo de ratchet, al no
@@ -1391,3 +1391,29 @@ errores propios en los módulos tocados. En esta máquina persisten tres fallos
 previos en `test_mp_document_parser` (los tests multiproceso que dependen de
 parches que no se propagan con el método de arranque `spawn` de macOS),
 idénticos antes y después del cambio.
+
+## Revisión verificada: 2026-10-10
+
+La puntuación anterior de 10/10 no se considera válida como puntuación global:
+la fitness test solo verifica una regla de imports de producción y no acredita
+Clean Code, cobertura, seguridad ni ausencia de responsabilidades concentradas.
+La evidencia actual produce esta línea base:
+
+| Dimensión | Nota | Evidencia pendiente |
+| --- | ---: | --- |
+| Clean Code | 6/10 | Bandit global aún tiene 141 hallazgos y no se ha demostrado cobertura global del 100%. |
+| Clean Architecture | 5/10 | La dirección estática de capas pasa, pero `kb` sigue siendo un singleton usado desde 100 módulos de producción, `w3af_core.py` tiene 687 líneas y `extended_urllib.py` 1536. |
+| Global | 5.5/10 | La media de las dos dimensiones. |
+
+En esta revisión se verificó que Ruff y Black pasan en los 1598 archivos, mypy
+pasa usando la configuración del proyecto, `pip-audit` no encuentra
+vulnerabilidades, la fitness test de capas pasa y las suites focales ejecutadas
+después de los cambios pasan. El comando literal `mypy .` también inspecciona
+`venv/bin/activate_this.py`, un artefacto no versionado que falla por APIs
+antiguas; no se ha alterado el entorno generado para ocultar ese resultado.
+
+El siguiente objetivo de arquitectura es reducir el singleton y separar los
+orquestadores grandes por responsabilidad, manteniendo pruebas reales antes de
+cada extracción. La puntuación solo podrá subir a 10 cuando esas fronteras,
+los gates globales y la cobertura requerida estén demostrados, no solo cuando
+la prueba de imports permanezca verde.
