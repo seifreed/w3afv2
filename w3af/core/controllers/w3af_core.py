@@ -29,6 +29,7 @@ import time
 import traceback
 
 import w3af.core.controllers.output_manager as om
+import w3af.core.data.kb.knowledge_base as kb_store
 from w3af.core.controllers.core_helpers.exception_handler import ExceptionHandler
 from w3af.core.controllers.core_helpers.fingerprint_404 import fingerprint_404_singleton
 from w3af.core.controllers.core_helpers.plugins import CorePlugins
@@ -70,7 +71,6 @@ from w3af.core.controllers.threads.monkey_patch_debug import (
     remove_monkey_patch_debug,
 )
 from w3af.core.controllers.threads.threadpool import Pool
-from w3af.core.data.kb.knowledge_base import kb
 from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.data.parsers import parser_cache
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
@@ -124,7 +124,7 @@ class w3afCore:
     STOP_TIMEOUT = 10
     STOP_LOOP_DELAY = 0.5
 
-    def __init__(self):
+    def __init__(self, knowledge_base: kb_store.DBKnowledgeBase | None = None):
         """
         Init some variables and files.
         Create the URI opener.
@@ -134,7 +134,7 @@ class w3afCore:
         log_sink_factory(manager.get_in_queue())
         configure_data_logging()
         register_parser_multiprocessing()
-        self.knowledge_base = kb
+        self.knowledge_base = knowledge_base or kb_store.kb
 
         # FIXME: In the future, when the output_manager is not an awful
         # singleton anymore, this line should be removed and the output_manager
