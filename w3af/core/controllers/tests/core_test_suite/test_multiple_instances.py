@@ -56,7 +56,9 @@ class TestW3afCore(unittest.TestCase):
         """
         instances = []
         for _ in range(5):
-            instances.append(w3afCore())
+            instance = w3afCore()
+            instances.append(instance)
+            self.addCleanup(instance.quit)
 
     def test_multiple_instances_in_different_dummy_processes(self):
         """

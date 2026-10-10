@@ -66,7 +66,10 @@ from w3af.core.controllers.misc_settings import MiscSettings
 from w3af.core.controllers.output_manager import (
     create_output_manager,
 )
-from w3af.core.controllers.output_manager.logging_bridge import configure_data_logging
+from w3af.core.controllers.output_manager.logging_bridge import (
+    configure_data_logging,
+    remove_data_logging,
+)
 from w3af.core.controllers.parser_worker import register_parser_multiprocessing
 from w3af.core.controllers.profiling import start_profiling, stop_profiling
 from w3af.core.data.kb import knowledge_base as kb_store
@@ -411,7 +414,6 @@ class w3afCore:
 
         # Stop the parser subprocess
         parser_cache.dpc.clear()
-        self._output_manager.stop()
 
         # Remove the xurllib cache, bloom filters, DiskLists, etc.
         #
@@ -451,6 +453,9 @@ class w3afCore:
         """
         self.stop()
         self.uri_opener.end()
+
+        remove_data_logging(self._output)
+        self._output_manager.stop()
 
         # Remove the xurllib cache, bloom filters, DiskLists, etc.
         #

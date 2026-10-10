@@ -6,6 +6,7 @@ import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.output_manager.logging_bridge import (
     OutputManagerLogHandler,
     configure_data_logging,
+    remove_data_logging,
 )
 
 
@@ -65,9 +66,9 @@ class TestOutputManagerLoggingBridge(unittest.TestCase):
         previous_handlers = logger.handlers[:]
         previous_level = logger.level
         previous_propagate = logger.propagate
+        previous_output = om.out
         first_messages = queue.Queue()
         second_messages = queue.Queue()
-        previous_output = om.out
 
         try:
             configure_data_logging(om.log_sink_factory(first_messages))
@@ -80,6 +81,31 @@ class TestOutputManagerLoggingBridge(unittest.TestCase):
                 (("error", "message for the second sink"), {}),
             )
             self.assertTrue(first_messages.empty())
+        finally:
+            logger.handlers[:] = previous_handlers
+            logger.setLevel(previous_level)
+            logger.propagate = previous_propagate
+            om.out = previous_output
+
+    def test_remove_data_logging_removes_the_selected_sink(self):
+        logger = logging.getLogger("w3af.core.data")
+        previous_handlers = logger.handlers[:]
+        previous_level = logger.level
+        previous_propagate = logger.propagate
+        previous_output = om.out
+        first_messages = queue.Queue()
+        second_messages = queue.Queue()
+        first = om.log_sink_factory(first_messages)
+        second = om.log_sink_factory(second_messages)
+
+        try:
+            configure_data_logging(first)
+            configure_data_logging(second)
+            remove_data_logging(first)
+
+            handlers = logger.handlers
+            self.assertEqual(len(handlers), 1)
+            self.assertIs(handlers[0]._output, second)
         finally:
             logger.handlers[:] = previous_handlers
             logger.setLevel(previous_level)

@@ -4019,3 +4019,17 @@ Black, Ruff y mypy focal están limpios; persisten solo warnings deprecados de
 dependencias externas. El score sube a **8.7/10** en Clean Architecture y
 **8.6/10** global. Siguen pendientes URL/openers, parsers, fuzzer, `Info`,
 controllers y la cobertura global del 100%.
+
+## Actualización verificada: ciclo de vida del output manager en tests
+
+`w3afCore.quit()` ahora desconecta el bridge de logging y detiene su
+`OutputManager`, evitando que cada core de test retenga su cola y worker pool.
+`cleanup()` conserva el manager reutilizable para permitir una segunda scan del
+mismo core. El test de múltiples instancias libera explícitamente los cinco
+cores que crea.
+
+Verificación: la suite de `output_manager` pasa **33 tests** con RSS máximo de
+aproximadamente **98 MB**; los tests focales del core pasan **7 tests**. Black,
+Ruff y mypy focal están limpios. El score sube a **8.8/10** en Clean
+Architecture y **8.7/10** global. Siguen pendientes URL/openers, parsers,
+fuzzer, `Info`, controllers y la cobertura global del 100%.

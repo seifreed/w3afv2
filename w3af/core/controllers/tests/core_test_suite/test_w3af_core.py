@@ -75,6 +75,13 @@ class TestW3afCore(unittest.TestCase):
     def test_plugins_must_be_initialized(self):
         self.assert_environment_error("You must call the plugins.init_plugins()")
 
+    def test_quit_stops_output_manager(self):
+        self.assertTrue(self.core._output_manager.is_alive())
+
+        self.core.quit()
+
+        self.assertFalse(self.core._output_manager.is_alive())
+
     def test_target_is_required(self):
         self.core.plugins.initialized = True
         self.assert_environment_error("No target URI configured.")

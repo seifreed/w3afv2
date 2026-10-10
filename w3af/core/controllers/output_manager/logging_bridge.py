@@ -24,3 +24,11 @@ def configure_data_logging(output) -> None:
     logger.addHandler(OutputManagerLogHandler(output))
     logger.setLevel(logging.DEBUG)
     logger.propagate = False
+
+
+def remove_data_logging(output) -> None:
+    """Remove the data logger handler associated with ``output``."""
+    logger = logging.getLogger("w3af.core.data")
+    for handler in logger.handlers[:]:
+        if isinstance(handler, OutputManagerLogHandler) and handler._output is output:
+            logger.removeHandler(handler)
