@@ -2232,3 +2232,16 @@ diccionario aunque la KB entrega una lista. La suite grep completa también
 queda bloqueada en integración externa. Ruff, Black y mypy están limpios. El
 score permanece en **5.75/10** por cobertura, Bandit heredado, mocks, los
 fixtures pendientes, Moth y los orquestadores grandes.
+
+## Actualización verificada: bases de plugin usan el sink
+
+`Plugin` reporta hallazgos y errores a través de `self._output`, y
+`AttackPlugin`, `CrawlPlugin`, `GrepPlugin` e `InfrastructurePlugin` ya no
+importan el singleton para sus mensajes. El único acceso restante en este
+núcleo es la inicialización por defecto de `Plugin._output`; el factory puede
+reemplazarlo mediante `set_output()`.
+
+Verificación: **63 tests y 9 subtests** de las bases pasan; Ruff, Black y mypy
+están limpios. El score permanece en **5.75/10** por cobertura, Bandit
+heredado, mocks, fixtures de tests pendientes, Moth, consumidores de output
+restantes y orquestadores grandes.

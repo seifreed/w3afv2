@@ -173,7 +173,7 @@ class Plugin(Configurable):
         )
 
         if added_to_kb:
-            om.out.report_finding(info)
+            self._output.report_finding(info)
 
         return added_to_kb
 
@@ -186,14 +186,14 @@ class Plugin(Configurable):
         )
 
         if created:
-            om.out.report_finding(info_set.first_info)
+            self._output.report_finding(info_set.first_info)
 
     def kb_append(self, location_a, location_b, info):
         """
         kb.kb.append a vulnerability to the KB
         """
         self._get_knowledge_base().append(location_a, location_b, info)
-        om.out.report_finding(info)
+        self._output.report_finding(info)
 
     def __eq__(self, other):
         """
@@ -242,7 +242,7 @@ class Plugin(Configurable):
             debugging_id = kwds.get("debugging_id", "unknown")
             msg = "send_mutants_in_threads will send %s HTTP requests (did:%s)"
             args = (num_tasks, debugging_id)
-            om.out.debug(msg % args)
+            self._output.debug(msg % args)
 
         # You can use this code to debug issues that happen in threads, by
         # simply not using them:
@@ -289,7 +289,7 @@ class Plugin(Configurable):
             ' Generated 204 "No Content" response (id:%s)'
         )
         args = (self.get_name(), uri, http_exception, no_content_resp.id)
-        om.out.error(msg % args)
+        self._output.error(msg % args)
 
         return False, no_content_resp
 

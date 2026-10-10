@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.misc.safe_deepcopy import safe_deepcopy
 from w3af.core.controllers.plugins.plugin import Plugin
@@ -47,7 +46,9 @@ class CrawlPlugin(Plugin):
         :param fuzzable_request: The target to use for infrastructure plugins.
         :param debugging_id: A unique identifier for this call to discover()
         """
-        om.out.debug(f'[{self.get_name()}] Crawling "{fuzzable_request.get_uri()}"')
+        self._output.debug(
+            f'[{self.get_name()}] Crawling "{fuzzable_request.get_uri()}"'
+        )
 
         # I copy the fuzzable request, to avoid cross plugin contamination
         # in other words, if one plugin modified the fuzzable request object
@@ -62,7 +63,7 @@ class CrawlPlugin(Plugin):
             # happens at lower layers.
             #
             # https://github.com/andresriancho/w3af/issues/8949
-            om.out.debug(f"{ffde}")
+            self._output.debug(f"{ffde}")
 
     def crawl(self, fuzzable_request, debugging_id):
         """

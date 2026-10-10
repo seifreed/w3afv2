@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.plugin import Plugin
 from w3af.core.exceptions import FourOhFourDetectionException
 
@@ -57,7 +56,7 @@ class GrepPlugin(Plugin):
             # happens at lower layers.
             #
             # https://github.com/andresriancho/w3af/issues/8949
-            om.out.debug(f"{ffde}")
+            self._output.debug(f"{ffde}")
 
     def grep(self, fuzzable_request, response):
         """

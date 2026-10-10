@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.plugin import Plugin
 from w3af.core.data.misc.response_cut import ResponseCutMixin
 from w3af.core.data.parsers.doc.url import URL
@@ -146,7 +145,7 @@ class AttackPlugin(Plugin, ResponseCutMixin):
             msg = fmt % " or ".join(self.get_kb_location())
             raise NoVulnerabilityFoundException(msg)
 
-        om.out.information(self.get_name() + " exploit plugin is starting.")
+        self._output.information(self.get_name() + " exploit plugin is starting.")
         generated_shells = []
 
         for vuln in self.get_exploitable_vulns():
@@ -163,7 +162,7 @@ class AttackPlugin(Plugin, ResponseCutMixin):
                     '%s plugin can NOT exploit vulnerability with id "%s" as'
                     " it doesn't have an URL."
                 )
-                om.out.debug(msg % (self.get_name(), vuln.get_id()))
+                self._output.debug(msg % (self.get_name(), vuln.get_id()))
                 continue
 
             if not isinstance(vuln.get_method(), str):
@@ -171,7 +170,7 @@ class AttackPlugin(Plugin, ResponseCutMixin):
                     '%s plugin can NOT exploit vulnerability with id "%s" as'
                     " it doesn't have an HTTP method."
                 )
-                om.out.debug(msg % (self.get_name(), vuln.get_id()))
+                self._output.debug(msg % (self.get_name(), vuln.get_id()))
                 continue
 
             # Try to get a shell using a vuln
@@ -193,7 +192,7 @@ class AttackPlugin(Plugin, ResponseCutMixin):
                 s.set_knowledge_base(self._get_knowledge_base())
                 self._get_knowledge_base().append(self.get_name(), "shell", s)
                 generated_shells.append(s)
-                om.out.console(
+                self._output.console(
                     "Vulnerability successfully exploited."
                     f" Generated shell object {s}"
                 )
