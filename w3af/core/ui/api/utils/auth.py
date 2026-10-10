@@ -27,7 +27,7 @@ from hmac import compare_digest
 
 from flask import request
 
-from w3af.core.ui.api import app
+from w3af.core.ui.api.application import app
 from w3af.core.ui.api.utils.error import abort
 
 

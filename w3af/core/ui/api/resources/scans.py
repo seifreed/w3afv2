@@ -28,7 +28,7 @@ from w3af.core.controllers.core_helpers.status import RUNNING, STOPPED
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.ui.api import app
+from w3af.core.ui.api.application import app
 from w3af.core.ui.api.db.master import SCANS, ScanInfo
 from w3af.core.ui.api.utils.auth import requires_auth
 from w3af.core.ui.api.utils.error import abort

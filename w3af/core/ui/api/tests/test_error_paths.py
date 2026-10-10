@@ -24,7 +24,7 @@ import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.ui.api import app
+from w3af.core.ui.api.application import app
 from w3af.core.ui.api.db.master import SCANS, ScanInfo
 from w3af.core.ui.api.resources.error_handlers import error_500_handler
 from w3af.core.ui.api.tests.utils.api_unittest import APIUnitTest

@@ -26,7 +26,7 @@ from flask import jsonify
 
 from w3af.core.data.db.exceptions import DBException
 from w3af.core.data.db.history import HistoryItem
-from w3af.core.ui.api import app
+from w3af.core.ui.api.application import app
 from w3af.core.ui.api.utils.auth import requires_auth
 from w3af.core.ui.api.utils.error import abort
 from w3af.core.ui.api.utils.scans import get_scan_info_from_id

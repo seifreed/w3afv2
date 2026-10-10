@@ -25,7 +25,7 @@ from flask import Response, jsonify, request
 from w3af.core.controllers.core_helpers.profiles import CoreProfiles
 from w3af.core.controllers.misc.home_dir import create_home_dir
 from w3af.core.data.profile.profile import profile as Profile
-from w3af.core.ui.api import app
+from w3af.core.ui.api.application import app
 from w3af.core.ui.api.resources.plugins import plugin_catalog, plugin_exists
 from w3af.core.ui.api.utils.auth import requires_auth
 from w3af.core.ui.api.utils.error import abort

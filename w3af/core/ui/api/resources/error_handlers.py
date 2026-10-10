@@ -27,7 +27,7 @@ from os.path import basename
 
 from flask import jsonify
 
-from w3af.core.ui.api import app
+from w3af.core.ui.api.application import app
 from w3af.core.ui.api.utils.auth import requires_auth
 
 LOGGER = logging.getLogger(__name__)

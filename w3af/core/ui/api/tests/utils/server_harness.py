@@ -30,7 +30,7 @@ import time
 import unittest
 from collections.abc import Callable, Sequence
 
-from w3af.core.ui.api import app
+from w3af.core.ui.api.application import app
 from w3af.core.ui.api.tests.utils.api_unittest import AUTHORIZATION, PASSWORD
 from w3af.tests.helpers.home_dir import use_temporary_home
 

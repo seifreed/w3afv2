@@ -28,7 +28,7 @@ import time
 import unittest
 from types import MappingProxyType
 
-from w3af.core.ui.api import app
+from w3af.core.ui.api.application import app
 from w3af.core.ui.api.db.master import SCANS
 
 USERNAME = "admin"

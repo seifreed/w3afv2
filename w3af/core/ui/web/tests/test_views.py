@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import re
 from html.parser import HTMLParser
 
-from w3af.core.ui.api import app
+from w3af.core.ui.api.application import app
 from w3af.core.ui.api.tests.utils.api_unittest import APIUnitTest
 from w3af.core.ui.web.views import CONTENT_SECURITY_POLICY, blueprint, register
 

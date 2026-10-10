@@ -24,7 +24,7 @@ import webbrowser
 from argparse import ArgumentTypeError
 from collections.abc import Sequence
 
-from w3af.core.ui.api import app
+from w3af.core.ui.api.application import app
 from w3af.core.ui.api.utils import cli
 from w3af.core.ui.api.utils.mp_flask import create_server, server_url
 from w3af.core.ui.web.views import UI_PREFIX, register

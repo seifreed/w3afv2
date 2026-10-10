@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from w3af.core.ui.api import app
+from w3af.core.ui.api.application import app
 
 
 @app.after_request

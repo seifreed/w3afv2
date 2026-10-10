@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from flask import jsonify
 
 import w3af.core.data.kb.knowledge_base as kb
-from w3af.core.ui.api import app
+from w3af.core.ui.api.application import app
 from w3af.core.ui.api.resources.traffic import encode_message
 from w3af.core.ui.api.utils.auth import requires_auth
 from w3af.core.ui.api.utils.error import abort
