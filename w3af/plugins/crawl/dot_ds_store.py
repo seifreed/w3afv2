@@ -25,7 +25,6 @@ from ds_store import DSStore
 from ds_store.buddy import BuddyError
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.constants import severity
@@ -115,7 +114,7 @@ class dot_ds_store(CrawlPlugin):
         )
         v.set_url(response.get_url())
 
-        kb.kb.append(self, "dot_ds_store", v)
+        self._get_knowledge_base().append(self, "dot_ds_store", v)
         om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
     def get_long_desc(self):
