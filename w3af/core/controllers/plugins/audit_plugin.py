@@ -26,7 +26,6 @@ import logging
 import threading
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import FourOhFourDetectionException
 from w3af.core.controllers.misc.safe_deepcopy import safe_deepcopy
 from w3af.core.controllers.plugins.plugin import Plugin
@@ -180,7 +179,7 @@ class AuditPlugin(Plugin):
 
         query_location_tuple = (varname, mutant.get_url())
 
-        for vuln in kb.kb.get_iter(pname, kb_varname):
+        for vuln in self._get_knowledge_base().get_iter(pname, kb_varname):
             vuln_location_tuple = (vuln.get_token_name(), vuln.get_url())
 
             if vuln_location_tuple == query_location_tuple:

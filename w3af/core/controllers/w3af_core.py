@@ -151,6 +151,7 @@ class w3afCore:
         # used
         self._home_directory()
         self._tmp_directory()
+        self.knowledge_base = kb
 
         # We want to have only one exception handler instance during the whole
         # w3af process. The data captured by it will be cleared before starting
@@ -166,7 +167,7 @@ class w3afCore:
         self.plugins = CorePlugins(self)
         self.status = CoreStatus(self)
         self.target = CoreTarget()
-        self.strategy = CoreStrategy(self, kb)
+        self.strategy = CoreStrategy(self, self.knowledge_base)
 
         # Create the URI opener object
         self.uri_opener = ExtendedUrllib(om.log_http)
@@ -211,7 +212,7 @@ class w3afCore:
         # Now that we know we're going to run a new scan, overwrite the old
         # strategy which might still have data stored in it and create a new
         # one
-        self.strategy = CoreStrategy(self, kb)
+        self.strategy = CoreStrategy(self, self.knowledge_base)
         self.strategy.add_observer(DiskSpaceObserver())
         self.strategy.add_observer(ThreadCountObserver())
         self.strategy.add_observer(ThreadStateObserver())
@@ -417,7 +418,7 @@ class w3afCore:
         self.exception_handler.clear()
 
         # Clean all data that is stored in the kb
-        kb.cleanup()
+        self.knowledge_base.cleanup()
 
         # Stop the parser subprocess
         parser_cache.dpc.clear()

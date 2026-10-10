@@ -28,7 +28,6 @@ from itertools import repeat
 from tblib.decorators import Error
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.configurable import Configurable
 from w3af.core.controllers.threads.decorators import apply_with_return_error
 from w3af.core.controllers.threads.threadpool import return_args
@@ -57,6 +56,7 @@ class Plugin(Configurable):
         """
         self._uri_opener = None
         self._w3af_core = None
+        self._knowledge_base = None
         self.worker_pool = None
 
         self.output_queue = queue.Queue()
@@ -95,6 +95,15 @@ class Plugin(Configurable):
         :return: None
         """
         self._w3af_core = w3af_core
+
+    def set_knowledge_base(self, knowledge_base):
+        """Set the knowledge store used by this plugin."""
+        self._knowledge_base = knowledge_base
+
+    def _get_knowledge_base(self):
+        if self._knowledge_base is None:
+            raise RuntimeError("Plugin knowledge base has not been configured")
+        return self._knowledge_base
 
     def get_w3af_core(self):
         return self._w3af_core
@@ -154,7 +163,7 @@ class Plugin(Configurable):
         """
         kb.kb.append_uniq a vulnerability to the KB
         """
-        added_to_kb = kb.kb.append_uniq(
+        added_to_kb = self._get_knowledge_base().append_uniq(
             location_a, location_b, info, filter_by=filter_by
         )
 
@@ -167,7 +176,7 @@ class Plugin(Configurable):
         """
         kb.kb.append_uniq_group a vulnerability to the KB
         """
-        info_set, created = kb.kb.append_uniq_group(
+        info_set, created = self._get_knowledge_base().append_uniq_group(
             location_a, location_b, info, group_klass=group_klass
         )
 
@@ -178,7 +187,7 @@ class Plugin(Configurable):
         """
         kb.kb.append a vulnerability to the KB
         """
-        kb.kb.append(location_a, location_b, info)
+        self._get_knowledge_base().append(location_a, location_b, info)
         om.out.report_finding(info)
 
     def __eq__(self, other):

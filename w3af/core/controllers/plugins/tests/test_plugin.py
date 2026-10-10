@@ -130,6 +130,7 @@ class TestPlugin(unittest.TestCase):
 
     def test_kb_append_uniq(self):
         plugin = Plugin()
+        plugin.set_knowledge_base(kb.kb)
         recorder = start_recording_output()
 
         self.assertTrue(
@@ -144,6 +145,7 @@ class TestPlugin(unittest.TestCase):
 
     def test_kb_append_uniq_group(self):
         plugin = Plugin()
+        plugin.set_knowledge_base(kb.kb)
         recorder = start_recording_output()
 
         for url in ("http://w3af.org/1", "http://w3af.org/2"):
@@ -157,6 +159,7 @@ class TestPlugin(unittest.TestCase):
 
     def test_kb_append(self):
         plugin = Plugin()
+        plugin.set_knowledge_base(kb.kb)
         recorder = start_recording_output()
 
         plugin.kb_append("a", "b", new_info("http://w3af.org/"))
@@ -164,6 +167,10 @@ class TestPlugin(unittest.TestCase):
 
         self.assertEqual(len(kb.kb.get("a", "b")), 2)
         self.assertEqual(len(recorder.messages_of("vulnerability")), 2)
+
+    def test_kb_methods_require_explicit_knowledge_base(self):
+        with self.assertRaisesRegex(RuntimeError, "has not been configured"):
+            Plugin().kb_append("a", "b", new_info("http://w3af.org/"))
 
     def test_handle_url_error_returns_no_content(self):
         plugin = Plugin()

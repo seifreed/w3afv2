@@ -163,6 +163,7 @@ class TestAuditPluginBase(unittest.TestCase):
 
     def test_kb_append_outside_audit_return_vulns(self):
         plugin = appends_vulns()
+        plugin.set_knowledge_base(kb)
         start_recording_output()
 
         plugin.audit_with_copy(self.freq, None, "did")
@@ -172,6 +173,7 @@ class TestAuditPluginBase(unittest.TestCase):
 
     def test_kb_append_while_returning_vulns(self):
         plugin = appends_vulns()
+        plugin.set_knowledge_base(kb)
         start_recording_output()
         plugin._store_kb_vulns = True
 
@@ -185,6 +187,7 @@ class TestAuditPluginBase(unittest.TestCase):
         uri_opener = ExtendedUrllib()
         self.addCleanup(uri_opener.end)
         plugin = appends_vulns()
+        plugin.set_knowledge_base(kb)
         plugin.set_url_opener(uri_opener)
         start_recording_output()
 
@@ -206,6 +209,7 @@ class TestAuditPluginBase(unittest.TestCase):
 
     def test_has_bug(self):
         plugin = appends_vulns()
+        plugin.set_knowledge_base(kb)
         mutant = qs_mutant()
         start_recording_output()
 
