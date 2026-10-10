@@ -1777,3 +1777,14 @@ Verificación: 5 tests de ambos plugins pasan, Ruff, Black y mypy pasan en los
 módulos modificados. El score sigue en **5.75/10**: quedan 55 imports directos
 de la KB, además de la cobertura, mocks, el fallo heredado de perfilado, la
 dependencia de Moth y los orquestadores grandes.
+
+## Actualización verificada: reporters de infraestructura
+
+`dot_net_errors`, `finger_pks` y `zone_h` registran sus resultados mediante la
+KB configurada en cada plugin, preservando sus ramas de errores ASP.NET,
+hallazgos PGP y defacements históricos.
+
+Verificación: 15 tests de estos plugins pasan, Ruff, Black y mypy pasan en los
+módulos modificados. El score sigue en **5.75/10**: quedan 52 imports directos
+de la KB, además de la cobertura, mocks, el fallo heredado de perfilado, la
+dependencia de Moth y los orquestadores grandes.
