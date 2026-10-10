@@ -24,7 +24,6 @@ import re
 from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
@@ -125,7 +124,7 @@ class wordpress_fullpathdisclosure(CrawlPlugin):
                 )
                 i.set_url(pvuln_url)
 
-                kb.kb.append(self, "info", i)
+                self._get_knowledge_base().append(self, "info", i)
                 om.out.information(i.get_desc())
                 break
 
