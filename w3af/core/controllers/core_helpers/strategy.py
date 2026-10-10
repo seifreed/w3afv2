@@ -78,7 +78,8 @@ class CoreStrategy:
         self._bruteforce_consumer = None
 
         # Producer threads
-        self._seed_producer = seed(self._w3af_core)
+        self._knowledge_base = kb.kb
+        self._seed_producer = seed(self._w3af_core, self._knowledge_base)
 
         # Also use this method to clear observers
         self._observers = []
@@ -106,7 +107,7 @@ class CoreStrategy:
         self._bruteforce_consumer = None
 
         # Producer threads
-        self._seed_producer = seed(self._w3af_core)
+        self._seed_producer = seed(self._w3af_core, self._knowledge_base)
 
         # Also use this method to clear observers
         self._observers = []
@@ -607,7 +608,7 @@ class CoreStrategy:
             info.set_url(url)
             info.add_to_highlight(http_response.get_redir_url().url_string)
 
-            kb.kb.append_uniq("core", "core", info)
+            self._knowledge_base.append_uniq("core", "core", info)
             om.out.report_finding(info)
 
         return site_does_redirect
@@ -672,7 +673,10 @@ class CoreStrategy:
             discovery_plugins.extend(crawl_plugins)
 
             self._discovery_consumer = CrawlInfrastructure(
-                discovery_plugins, self._w3af_core, cf.cf.get("max_discovery_time")
+                discovery_plugins,
+                self._w3af_core,
+                cf.cf.get("max_discovery_time"),
+                knowledge_base=self._knowledge_base,
             )
             self._discovery_consumer.start()
 

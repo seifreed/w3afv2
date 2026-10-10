@@ -40,6 +40,7 @@ from w3af.core.controllers.core_helpers.status import (
     CoreStatus,
 )
 from w3af.core.controllers.w3af_core import w3afCore
+from w3af.core.data.kb.knowledge_base import kb
 from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
@@ -217,7 +218,7 @@ class TestStatusWithConsumers(unittest.TestCase):
         self.status.start()
 
     def add_crawl(self):
-        consumer = CrawlInfrastructure([], self.core, 0)
+        consumer = CrawlInfrastructure([], self.core, 0, knowledge_base=kb)
         self.core.strategy._discovery_consumer = self.track(consumer)
         return consumer
 

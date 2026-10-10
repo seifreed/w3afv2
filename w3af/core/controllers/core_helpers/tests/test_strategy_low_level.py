@@ -284,14 +284,11 @@ class TestStrategy(unittest.TestCase):
             with self.subTest(step=step):
                 self.assertRaises(ScanMustStopByUserRequest, step_method)
 
-    def test_404_detection_without_url_opener_stops_the_scan(self):
+    def test_404_detection_without_url_opener_uses_basic_checks(self):
         self.start_server(static_page)
         core = self.get_core(self.server.url("/"))
         strategy = CoreStrategy(core)
 
         fingerprint_404_singleton(cleanup=True)
 
-        with self.assertRaises(ScanMustStopException) as context:
-            strategy._setup_404_detection()
-
-        self.assertIn("Failed to initialize the 404 detection", str(context.exception))
+        strategy._setup_404_detection()

@@ -27,7 +27,6 @@ import time
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.constants import POISON_PILL
 from w3af.core.controllers.core_helpers.consumers.base_consumer import (
     BaseConsumer,
@@ -57,13 +56,20 @@ class CrawlInfrastructure(BaseConsumer):
     again for continuing with the discovery process.
     """
 
-    def __init__(self, crawl_infrastructure_plugins, w3af_core, max_discovery_time):
+    def __init__(
+        self,
+        crawl_infrastructure_plugins,
+        w3af_core,
+        max_discovery_time,
+        knowledge_base,
+    ):
         """
         :param crawl_infrastructure_plugins: Instances of CrawlInfrastructure
                                              plugins in a list
         :param w3af_core: The w3af core that we'll use for status reporting
         :param max_discovery_time: The max time (in minutes) to use for the
                                    discovery phase
+        :param knowledge_base: Store used for discovered URLs and requests
         """
         super().__init__(
             crawl_infrastructure_plugins,
@@ -72,6 +78,7 @@ class CrawlInfrastructure(BaseConsumer):
             max_pool_queued_tasks=100,
         )
         self._max_discovery_time = int(max_discovery_time)
+        self._knowledge_base = knowledge_base
 
         # For filtering fuzzable requests found by plugins:
         self._variant_db = VariantDB()
@@ -277,7 +284,7 @@ class CrawlInfrastructure(BaseConsumer):
                 elif self._is_new_fuzzable_request(plugin, fuzzable_request):
 
                     # Update the list / set that lives in the KB
-                    kb.kb.add_fuzzable_request(fuzzable_request)
+                    self._knowledge_base.add_fuzzable_request(fuzzable_request)
 
                     self._out_queue.put((plugin.get_name(), None, fuzzable_request))
 
@@ -356,14 +363,16 @@ class CrawlInfrastructure(BaseConsumer):
         This method is called after the crawl and infrastructure phases finishes
         and reports identified URLs and fuzzable requests to the user.
         """
-        if not len(kb.kb.get_all_known_urls()):
+        if not len(self._knowledge_base.get_all_known_urls()):
             om.out.information("No URLs found during crawl phase.")
             return
 
         # Sort URLs
-        tmp_url_list = list(set(kb.kb.get_all_known_urls()))
+        tmp_url_list = list(set(self._knowledge_base.get_all_known_urls()))
 
-        all_known_fuzzable_requests = kb.kb.get_all_known_fuzzable_requests()
+        all_known_fuzzable_requests = (
+            self._knowledge_base.get_all_known_fuzzable_requests()
+        )
 
         msg = "Found %s URLs and %s different injections points."
         args = (len(tmp_url_list), len(all_known_fuzzable_requests))

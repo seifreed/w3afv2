@@ -26,7 +26,6 @@ from multiprocessing.dummy import Process, Queue
 from queue import Empty
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.constants import POISON_PILL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.exceptions import HTTPRequestException
@@ -42,13 +41,15 @@ class seed(Process):
     requests.
     """
 
-    def __init__(self, w3af_core):
+    def __init__(self, w3af_core, knowledge_base):
         """
         :param w3af_core: The w3af core that we'll use for status reporting
+        :param knowledge_base: Store used for discovered fuzzable requests
         """
         super().__init__(name=f"{self.get_name()}Controller")
 
         self._w3af_core = w3af_core
+        self._knowledge_base = knowledge_base
 
         # See documentation in the property below
         self._out_queue = Queue()
@@ -129,6 +130,6 @@ class seed(Process):
                     self._out_queue.put((None, None, _seed))
 
                     # Update the set that lives in the KB
-                    kb.kb.add_fuzzable_request(_seed)
+                    self._knowledge_base.add_fuzzable_request(_seed)
 
         self._out_queue.put(POISON_PILL)

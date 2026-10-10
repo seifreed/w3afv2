@@ -119,7 +119,9 @@ class CrawlConsumerTest(unittest.TestCase):
         for plugin in plugins:
             self.core.plugins.plugins[plugin.get_type()].append(plugin)
 
-        consumer = CrawlInfrastructure(plugins, self.core, max_discovery_time)
+        consumer = CrawlInfrastructure(
+            plugins, self.core, max_discovery_time, knowledge_base=kb.kb
+        )
         if observer is not None:
             consumer.add_observer(observer)
         consumer.start()
@@ -210,7 +212,9 @@ class TestRouting(CrawlConsumerTest):
         first = request("first")
         plugin = queueing_crawl()
         plugin.output_queue.put(first)
-        consumer = CrawlInfrastructure([plugin], self.core, max_discovery_time=0)
+        consumer = CrawlInfrastructure(
+            [plugin], self.core, max_discovery_time=0, knowledge_base=kb.kb
+        )
         consumer.in_queue_put(request("a"))
         consumer.in_queue_put(request("b"))
 
@@ -308,7 +312,7 @@ class TestPluginErrors(CrawlConsumerTest):
 
     def test_remove_unknown_plugin(self):
         plugin = run_once_crawl()
-        consumer = CrawlInfrastructure([plugin], self.core, NEVER)
+        consumer = CrawlInfrastructure([plugin], self.core, NEVER, knowledge_base=kb.kb)
         self.addCleanup(consumer._shutdown_threadpool)
 
         consumer._remove_discovery_plugin(plugin)

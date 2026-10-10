@@ -42,7 +42,7 @@ class TestSeedConsumer(unittest.TestCase):
         self.addCleanup(self.core.worker_pool.terminate_join)
         self.addCleanup(kb.kb.cleanup)
         self.recorder = start_recording_output()
-        self.consumer = seed(self.core)
+        self.consumer = seed(self.core, kb.kb)
 
     def errors(self):
         return self.recorder.messages_of("error")
