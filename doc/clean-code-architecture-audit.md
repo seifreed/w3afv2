@@ -1522,3 +1522,15 @@ Verificación: 16 tests de detección y fuerza bruta pasan, Ruff, Black y mypy
 pasan en el módulo modificado. El score sigue en **5.75/10**: quedan 88
 imports directos de la KB, además de la deuda de cobertura, mocks y
 orquestadores grandes.
+
+## Actualización verificada: plugins de errores HTTP
+
+`error_500` y `error_pages` consultan y registran hallazgos mediante la KB
+inyectada, sin importar el singleton. El fixture común de grep configura la
+KB real en las instancias directas, incluidos los casos de ramas compartidas;
+la ruta integrada conserva la composición del contenedor.
+
+Verificación: 53 tests de errores y ramas de grep pasan, Ruff, Black y mypy
+pasan en los módulos modificados. El score sigue en **5.75/10**: quedan 86
+imports directos de la KB, además de la deuda de cobertura, mocks y
+orquestadores grandes.
