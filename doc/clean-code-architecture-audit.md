@@ -2630,6 +2630,18 @@ Black y mypy están limpios. El score permanece en **6.25/10** por los globals
 restantes de UI y servicios, cobertura total no demostrada, Bandit heredado,
 mocks e integraciones Moth.
 
+## Actualización verificada: CorePlugins con manager de salida explícito
+
+`CorePlugins` recibe ahora tanto el sink como la instancia de `OutputManager`.
+La configuración de plugins de salida ya no importa ni consulta el módulo
+global; `w3afCore`, la API y los tests entregan ambas dependencias al componerlo.
+
+Verificación: **27 tests pasaron** en CorePlugins; las 9 advertencias proceden
+de dependencias externas (`ldap3`/`jsonschema`), no del cambio. Ruff, Black,
+mypy, `py_compile` y `git diff --check` globales están limpios. El score
+permanece en **6.25/10** por los globals restantes, cobertura 100% no
+demostrada, Bandit heredado, mocks e integraciones Moth.
+
 ## Actualización verificada: extrusion y payload transfer con output explícito
 
 `payload_transfer_factory`, `EchoLinux`, `EchoWindows`, `extrusionScanner` y

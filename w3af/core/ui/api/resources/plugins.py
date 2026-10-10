@@ -35,7 +35,7 @@ def plugin_catalog() -> CorePlugins:
     :return: The plugin manager used to query the available plugins; it is not
              attached to any scan
     """
-    return CorePlugins(None, om.out)
+    return CorePlugins(None, om.out, om.manager)
 
 
 def plugin_exists(catalog: CorePlugins, plugin_type: str, plugin_name: str) -> bool:

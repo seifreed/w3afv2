@@ -24,7 +24,6 @@ import os
 import sys
 from functools import partial
 
-import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.controllers.misc.factory import factory
 from w3af.core.controllers.misc.get_file_list import get_file_list
@@ -33,9 +32,10 @@ from w3af.core.exceptions import BaseFrameworkException
 
 class CorePlugins:
 
-    def __init__(self, w3af_core, output):
+    def __init__(self, w3af_core, output, output_manager):
         self._w3af_core = w3af_core
         self._output = output
+        self._output_manager = output_manager
 
         self.initialized = False
         self._plugins_names_dict = None
@@ -64,7 +64,7 @@ class CorePlugins:
         If they don't do it, an exception is raised.
         """
         # This is inited before all, to have a full logging support.
-        om.manager.set_output_plugins(self._plugins_names_dict["output"])
+        self._output_manager.set_output_plugins(self._plugins_names_dict["output"])
 
         # Create an instance of each requested plugin and add it to the plugin
         # list. Plugins are added taking care of plugin dependencies and
@@ -95,7 +95,7 @@ class CorePlugins:
         :return: No value is returned.
         """
         if plugin_type.lower() == "output":
-            om.manager.set_plugin_options(plugin_name, plugin_options)
+            self._output_manager.set_plugin_options(plugin_name, plugin_options)
 
         # Save the options, even if they are invalid. This is a good idea
         # because:
