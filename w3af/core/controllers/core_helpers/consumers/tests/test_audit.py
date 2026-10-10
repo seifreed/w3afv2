@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import re
 import unittest
 
+import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.consumers.audit import audit
@@ -63,7 +64,7 @@ class TestAuditConsumer(unittest.TestCase):
         xss_instance.set_knowledge_base(w3af_core.knowledge_base)
 
         audit_plugins = [xss_instance]
-        audit_consumer = audit(audit_plugins, w3af_core)
+        audit_consumer = audit(audit_plugins, w3af_core, om.out)
         audit_consumer.start()
 
         fr = FuzzableRequest(URL(self.server.url("/?id=1")))
@@ -107,7 +108,7 @@ class TestAuditConsumerBranches(unittest.TestCase):
         self.recorder = start_recording_output()
 
     def run_audit(self, plugins, urls, observer=None):
-        consumer = audit(prepare_plugins(plugins, self.core), self.core)
+        consumer = audit(prepare_plugins(plugins, self.core), self.core, om.out)
         if observer is not None:
             consumer.add_observer(observer)
         consumer.start()

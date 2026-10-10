@@ -2375,3 +2375,17 @@ y API, más **2 tests pasados** en los endpoints de excepciones; Ruff, Black y
 mypy están limpios. El score permanece en **5.75/10** por singletons restantes,
 cobertura 100% no demostrada, Bandit heredado, mocks existentes, Moth y los
 orquestadores grandes.
+
+## Actualización verificada: consumidores sin fallback global
+
+`BaseConsumer` y sus cinco consumidores concretos (`audit`, `auth`,
+`bruteforce`, `grep` y `CrawlInfrastructure`) exigen ahora el sink en su
+constructor. Se actualizaron todos los callers del repositorio, incluido el
+teardown de `grep` y el `FakeStatus` usado por `OutputManager`; ya no queda un
+fallback a `om.out` en este límite de ejecución.
+
+Verificación: **95 tests pasados** en consumidores, estado y observadores;
+`OutputManager` y el caso de error de `grep` también pasan (**9 tests** en
+total); Ruff, Black y mypy están limpios. El score permanece en **5.75/10** por
+404/UI/daemons aún globales, cobertura 100% no demostrada, Bandit heredado,
+mocks existentes, Moth y los orquestadores grandes.

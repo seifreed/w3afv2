@@ -40,7 +40,7 @@ class bruteforce(BaseConsumer):
     by the crawl plugins and bruteforces logins by performing various requests.
     """
 
-    def __init__(self, bruteforce_plugins, w3af_core, output=None):
+    def __init__(self, bruteforce_plugins, w3af_core, output):
         """
         :param bruteforce_plugins: Instances of bruteforce plugins in a list
         :param w3af_core: The w3af core that we'll use for status reporting

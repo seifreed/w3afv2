@@ -67,7 +67,7 @@ class grep(BaseConsumer):
         "set-cookie",
     )
 
-    def __init__(self, grep_plugins, w3af_core, output=None):
+    def __init__(self, grep_plugins, w3af_core, output):
         """
         :param grep_plugins: Instances of grep plugins in a list
         :param w3af_core: The w3af core that we'll use for status reporting
@@ -142,7 +142,7 @@ class grep(BaseConsumer):
                 args = (plugin.get_name(), exception)
                 self._output.debug(msg % args)
 
-                status = FakeStatus(self._w3af_core)
+                status = FakeStatus(self._w3af_core, self._output)
                 status.set_current_fuzzable_request("grep", "n/a")
                 status.set_running_plugin("grep", plugin.get_name(), log=True)
 

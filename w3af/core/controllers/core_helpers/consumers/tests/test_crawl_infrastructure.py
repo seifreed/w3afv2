@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import re
 import unittest
 
+import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.constants import POISON_PILL
@@ -120,7 +121,11 @@ class CrawlConsumerTest(unittest.TestCase):
             self.core.plugins.plugins[plugin.get_type()].append(plugin)
 
         consumer = CrawlInfrastructure(
-            plugins, self.core, max_discovery_time, knowledge_base=kb.kb
+            plugins,
+            self.core,
+            max_discovery_time,
+            knowledge_base=kb.kb,
+            output=om.out,
         )
         if observer is not None:
             consumer.add_observer(observer)
@@ -213,7 +218,11 @@ class TestRouting(CrawlConsumerTest):
         plugin = queueing_crawl()
         plugin.output_queue.put(first)
         consumer = CrawlInfrastructure(
-            [plugin], self.core, max_discovery_time=0, knowledge_base=kb.kb
+            [plugin],
+            self.core,
+            max_discovery_time=0,
+            knowledge_base=kb.kb,
+            output=om.out,
         )
         consumer.in_queue_put(request("a"))
         consumer.in_queue_put(request("b"))
@@ -312,7 +321,9 @@ class TestPluginErrors(CrawlConsumerTest):
 
     def test_remove_unknown_plugin(self):
         plugin = run_once_crawl()
-        consumer = CrawlInfrastructure([plugin], self.core, NEVER, knowledge_base=kb.kb)
+        consumer = CrawlInfrastructure(
+            [plugin], self.core, NEVER, knowledge_base=kb.kb, output=om.out
+        )
         self.addCleanup(consumer._shutdown_threadpool)
 
         consumer._remove_discovery_plugin(plugin)

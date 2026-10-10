@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import threading
 import unittest
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.constants import POISON_PILL
 from w3af.core.controllers.core_helpers.consumers.base_consumer import BaseConsumer
 from w3af.core.controllers.core_helpers.consumers.tests.consumer_plugins import (
@@ -50,6 +51,7 @@ class TeardownCountingConsumer(BaseConsumer):
             "TestConsumer",
             create_pool=create_pool,
             thread_pool_size=thread_pool_size,
+            output=om.out,
         )
         self.teardown_calls = 0
         self.consumed = []
@@ -78,7 +80,7 @@ class NamelessFailingTeardownConsumer(BaseConsumer):
     """
 
     def __init__(self, w3af_core):
-        super().__init__([], w3af_core, "Nameless", create_pool=False)
+        super().__init__([], w3af_core, "Nameless", create_pool=False, output=om.out)
 
     def _teardown(self):
         raise ValueError("teardown failed")
@@ -291,7 +293,9 @@ class TestAbstractConsumer(unittest.TestCase):
         self.core.worker_pool.terminate_join()
 
     def test_abstract_methods(self):
-        consumer = BaseConsumer([], self.core, "Abstract", create_pool=False)
+        consumer = BaseConsumer(
+            [], self.core, "Abstract", create_pool=False, output=om.out
+        )
 
         self.assertRaises(NotImplementedError, consumer.get_name)
         self.assertRaises(NotImplementedError, consumer._teardown)

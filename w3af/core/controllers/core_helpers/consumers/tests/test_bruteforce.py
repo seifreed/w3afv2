@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import re
 import unittest
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.constants import POISON_PILL
 from w3af.core.controllers.core_helpers.consumers.bruteforce import bruteforce
 from w3af.core.controllers.core_helpers.consumers.tests.consumer_plugins import (
@@ -47,7 +48,7 @@ class TestBruteforceConsumer(unittest.TestCase):
         self.recorder = start_recording_output()
 
     def run_bruteforce(self, plugins, observer=None):
-        consumer = bruteforce(prepare_plugins(plugins, self.core), self.core)
+        consumer = bruteforce(prepare_plugins(plugins, self.core), self.core, om.out)
         if observer is not None:
             consumer.add_observer(observer)
         consumer.start()

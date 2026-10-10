@@ -42,7 +42,7 @@ class audit(BaseConsumer):
     requests.
     """
 
-    def __init__(self, audit_plugins, w3af_core, output=None):
+    def __init__(self, audit_plugins, w3af_core, output):
         """
         :param audit_plugins: Instances of audit plugins in a list
         :param w3af_core: The w3af core that we'll use for status reporting

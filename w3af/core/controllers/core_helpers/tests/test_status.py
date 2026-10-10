@@ -219,18 +219,20 @@ class TestStatusWithConsumers(unittest.TestCase):
         self.status.start()
 
     def add_crawl(self):
-        consumer = CrawlInfrastructure([], self.core, 0, knowledge_base=kb)
+        consumer = CrawlInfrastructure(
+            [], self.core, 0, knowledge_base=kb, output=om.out
+        )
         self.core.strategy._discovery_consumer = self.track(consumer)
         return consumer
 
     def add_audit(self):
-        consumer = audit([], self.core)
+        consumer = audit([], self.core, om.out)
         self.core.strategy._audit_consumer = self.track(consumer)
         return consumer
 
     def add_grep(self):
         private_ip = self.core.plugins.get_plugin_inst("grep", "private_ip")
-        consumer = grep([private_ip], self.core)
+        consumer = grep([private_ip], self.core, om.out)
         self.core.strategy._grep_consumer = self.track(consumer)
         return consumer
 

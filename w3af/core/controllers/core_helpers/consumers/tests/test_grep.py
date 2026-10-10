@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import threading
 import unittest
 
+import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.consumers.grep import grep
@@ -55,7 +56,7 @@ class GrepConsumerTest(unittest.TestCase):
         self.recorder = start_recording_output()
 
     def start_consumer(self, plugins, observer=None):
-        consumer = grep(plugins, self.core)
+        consumer = grep(plugins, self.core, om.out)
         if observer is not None:
             consumer.add_observer(observer)
         self.core.uri_opener.set_grep_queue_put(consumer.grep)
@@ -128,7 +129,7 @@ class TestGrepConsumer(GrepConsumerTest):
         )
 
     def test_queue_sizes_are_logged_every_25_calls(self):
-        consumer = grep([recording_grep()], self.core)
+        consumer = grep([recording_grep()], self.core, om.out)
         self.addCleanup(consumer._shutdown_threadpool)
         consumer.send_poison_pill()
 
@@ -149,7 +150,7 @@ class TestRequestResponseLoading(GrepConsumerTest):
     def setUp(self):
         super().setUp()
         self.plugin = recording_grep()
-        self.consumer = grep([self.plugin], self.core)
+        self.consumer = grep([self.plugin], self.core, om.out)
         self.addCleanup(self.consumer._shutdown_threadpool)
         self.response = self.get("/stored")
 

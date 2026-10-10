@@ -28,7 +28,6 @@ from functools import wraps
 from multiprocessing.dummy import Process
 from queue import Empty
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.constants import POISON_PILL
 from w3af.core.controllers.core_helpers.exception_handler import ExceptionData
 from w3af.core.controllers.core_helpers.status import CoreStatus
@@ -78,11 +77,11 @@ class BaseConsumer(Process):
         consumer_plugins,
         w3af_core,
         thread_name,
+        output,
         create_pool=True,
         max_pool_queued_tasks=0,
         max_in_queue_size=0,
         thread_pool_size=None,
-        output=None,
     ):
         """
         :param consumer_plugins: Instances of base_consumer plugins in a list
@@ -141,7 +140,7 @@ class BaseConsumer(Process):
         self._thread_name = thread_name
         self._consumer_plugins = consumer_plugins
         self._w3af_core = w3af_core
-        self._output = om.out if output is None else output
+        self._output = output
         self._observers = []
 
         self._tasks_in_progress = {}

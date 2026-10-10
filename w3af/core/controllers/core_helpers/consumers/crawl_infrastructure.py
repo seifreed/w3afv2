@@ -61,7 +61,7 @@ class CrawlInfrastructure(BaseConsumer):
         w3af_core,
         max_discovery_time,
         knowledge_base,
-        output=None,
+        output,
     ):
         """
         :param crawl_infrastructure_plugins: Instances of CrawlInfrastructure

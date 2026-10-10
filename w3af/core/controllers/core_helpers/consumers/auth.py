@@ -38,7 +38,7 @@ class auth(BaseConsumer):
     Thread that logins into the application every N seconds.
     """
 
-    def __init__(self, auth_plugins, w3af_core, timeout, output=None):
+    def __init__(self, auth_plugins, w3af_core, timeout, output):
         """
         :param auth_plugins: Instances of auth plugins in a list
         :param w3af_core: The w3af core that we'll use for status reporting

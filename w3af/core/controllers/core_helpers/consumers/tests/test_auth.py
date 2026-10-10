@@ -19,6 +19,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.consumers.auth import auth
 from w3af.core.controllers.core_helpers.consumers.tests.consumer_plugins import (
     WAIT_TIMEOUT,
@@ -38,12 +39,12 @@ class TestAuthConsumer(unittest.TestCase):
         self.addCleanup(self.core.worker_pool.terminate_join)
 
     def start_consumer(self, plugins, timeout):
-        consumer = auth(plugins, self.core, timeout)
+        consumer = auth(plugins, self.core, timeout, om.out)
         consumer.start()
         return consumer
 
     def test_name(self):
-        consumer = auth([], self.core, NEVER)
+        consumer = auth([], self.core, NEVER, om.out)
         self.assertEqual(consumer.get_name(), "Authenticator")
 
     def test_login_after_timeout(self):
@@ -70,7 +71,7 @@ class TestAuthConsumer(unittest.TestCase):
 
     def test_force_login_with_active_session(self):
         plugin = counting_auth(active_session=True)
-        consumer = auth([plugin], self.core, NEVER)
+        consumer = auth([plugin], self.core, NEVER, om.out)
 
         consumer.force_login()
 
@@ -78,7 +79,7 @@ class TestAuthConsumer(unittest.TestCase):
         self.assertFalse(consumer.has_pending_work())
 
     def test_login_errors_are_reported(self):
-        consumer = auth([crashing_auth()], self.core, NEVER)
+        consumer = auth([crashing_auth()], self.core, NEVER, om.out)
 
         consumer.force_login()
 
