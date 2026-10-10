@@ -1929,3 +1929,18 @@ de dependencias externas durante la carga de configuración. El score sigue en
 **5.75/10**: quedan 29 imports directos de la KB en producción, además de la
 cobertura, mocks, el fallo heredado de perfilado, la dependencia de Moth y los
 orquestadores grandes.
+
+## Actualización verificada: contexto de KB para payloads
+
+Los shells generados por `AttackPlugin` reciben la KB de la exploración y la
+transmiten a los payloads. La KB se descarta en la representación serializada
+del shell y se reinyecta al recuperarlo con el core; Apache, SVN, descarga de
+fuentes y PHP SCA ya no consultan el singleton global.
+
+Verificación: 42 tests unitarios y 9 subtests de shells, `AttackPlugin` y
+payloads base pasan; Ruff, Black y mypy pasan en los módulos modificados. Las
+5 pruebas end-to-end de payloads no pudieron iniciar porque el host Moth
+`fallback` no resuelve en este entorno. El score sigue en **5.75/10**:
+quedan 24 imports directos de la KB en producción, además de la cobertura,
+mocks, el fallo heredado de perfilado, la dependencia de Moth y los
+orquestadores grandes.
