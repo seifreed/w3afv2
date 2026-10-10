@@ -3113,3 +3113,6 @@ Verificación: **10 tests de excepciones pasaron**; Black, Ruff, mypy
 focalizado, Bandit focalizado, `pip-audit` y `git diff --check` están limpios.
 El score permanece en **6.25/10** por la composición global, cobertura 100% no
 demostrada, mypy sobre el `venv` y Bandit heredado aún pendientes.
+
+Revalidación posterior: la suite core completa conserva **31/31 tests pasados**
+tras la extracción de `_run_strategy()`.
