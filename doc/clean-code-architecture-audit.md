@@ -2503,3 +2503,12 @@ sin importar `output_manager`.
 
 Verificación: Ruff, Black y mypy están limpios. La suite de integración queda
 pendiente por el entorno Moth no resoluble; el score permanece en **6.25/10**.
+
+## Actualización verificada: RFI con output explícito
+
+El plugin `rfi` usa el sink inyectado para configuración, XSS, servidor local y
+errores de explotación. `RFIShell` recibe el mismo sink para su limpieza y lo
+conserva en la reconstrucción; `PortScanShell` no recibe estado que no utiliza.
+
+Verificación: Ruff, Black y mypy están limpios. La integración RFI queda
+pendiente por Moth no resoluble; el score permanece en **6.25/10**.

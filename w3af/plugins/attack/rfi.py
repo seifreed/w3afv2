@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 import textwrap
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.daemons import webserver
 from w3af.core.controllers.misc.get_local_ip import get_local_ip
 from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
@@ -76,7 +75,7 @@ class rfi(AttackPlugin):
                 " an HTTP server that can be reached by the vulnerable Web"
                 " application."
             )
-            om.out.error(msg)
+            self._output.error(msg)
             return False
 
         rfi_vulns = self._get_knowledge_base().get("rfi", "rfi")
@@ -101,7 +100,7 @@ class rfi(AttackPlugin):
                 " bind an HTTP server that can be reached by the"
                 " vulnerable Web application."
             )
-            om.out.error(msg)
+            self._output.error(msg)
             return False
 
         if self._listen_address and self._listen_port:
@@ -117,7 +116,7 @@ class rfi(AttackPlugin):
                     "Failed to start the local web server to exploit the"
                     ' RFI vulnerability, the exception was: "%s".'
                 )
-                om.out.error(msg % se)
+                self._output.error(msg % se)
                 return False
 
         return True
@@ -135,7 +134,7 @@ class rfi(AttackPlugin):
                 " exploit the RFI bug, but no XSS was found. The exploit"
                 " will use a local web server."
             )
-            om.out.console(msg)
+            self._output.console(msg)
 
         #
         # I have some XSS vulns, lets see if they have what we need
@@ -171,7 +170,7 @@ class rfi(AttackPlugin):
                 " capabilities was found. The exploit will use a local"
                 " web server."
             )
-            om.out.console(msg)
+            self._output.console(msg)
 
         return False
 
@@ -205,7 +204,11 @@ class rfi(AttackPlugin):
 
             # Create the shell object
             shell_obj = RFIShell(
-                vuln_obj, self._uri_opener, self.worker_pool, self._exploit_mutant
+                vuln_obj,
+                self._uri_opener,
+                self.worker_pool,
+                self._exploit_mutant,
+                self._output,
             )
             return shell_obj
 
@@ -475,9 +478,10 @@ class RFIShell(ExecShell, PortScanShell):
     the RFI and a XSS vulnerability was actually found.
     """
 
-    def __init__(self, vuln, uri_opener, worker_pool, exploit_mutant):
+    def __init__(self, vuln, uri_opener, worker_pool, exploit_mutant, output):
         PortScanShell.__init__(self, vuln, uri_opener, worker_pool, exploit_mutant)
         ExecShell.__init__(self, vuln, uri_opener, worker_pool)
+        self._output = output
 
     @exec_debug
     def execute(self, command):
@@ -508,14 +512,14 @@ class RFIShell(ExecShell, PortScanShell):
         """
         Finish execution, clean-up, remove file.
         """
-        om.out.debug("Remote file inclusion shell is cleaning up.")
+        self._output.debug("Remote file inclusion shell is cleaning up.")
         try:
             self._rm_file(self._exploit_mutant.get_token_value())
         except BaseFrameworkException as e:
             msg = "Remote file inclusion shell cleanup failed with exception: %s"
-            om.out.error(msg % e)
+            self._output.error(msg % e)
         else:
-            om.out.debug("Remote file inclusion shell cleanup complete.")
+            self._output.debug("Remote file inclusion shell cleanup complete.")
 
     def get_name(self):
         return "RFIShell"
@@ -534,4 +538,10 @@ class RFIShell(ExecShell, PortScanShell):
         """
         @see: Shell.__reduce__ to understand why this is required.
         """
-        return self.__class__, (self._vuln, None, None, self._exploit_mutant)
+        return self.__class__, (
+            self._vuln,
+            None,
+            None,
+            self._exploit_mutant,
+            self._output,
+        )
