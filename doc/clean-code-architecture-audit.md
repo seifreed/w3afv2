@@ -1667,3 +1667,13 @@ tests integrados requieren el host externo `php_moth-fallback`, que no resuelve
 en este entorno. El score sigue en **5.75/10**: quedan 71 imports directos de
 la KB, además de la cobertura, mocks, el fallo heredado de perfilado, la
 dependencia de Moth y los orquestadores grandes.
+
+## Actualización verificada: SSI persistente
+
+`audit.ssi` obtiene las solicitudes conocidas desde la KB inyectada al cerrar
+el plugin, conservando los casos de SSI reflejado y persistente.
+
+Verificación: 3 tests integrados pasan, Ruff, Black y mypy pasan en el módulo
+modificado. El score sigue en **5.75/10**: quedan 70 imports directos de la KB,
+además de la cobertura, mocks, el fallo heredado de perfilado, la dependencia
+de Moth y los orquestadores grandes.
