@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from flask import jsonify
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.ui.api.application import app
 from w3af.core.ui.api.utils.auth import requires_auth
 from w3af.core.ui.api.utils.error import abort
@@ -42,5 +41,5 @@ def get_url_list(scan_id):
     if scan_info is None:
         abort(404, "Scan not found")
 
-    data = [str(u) for u in kb.kb.get_all_known_urls()]
+    data = [str(u) for u in scan_info.w3af_core.knowledge_base.get_all_known_urls()]
     return jsonify({"items": data})

@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from flask import jsonify, request
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.ui.api.application import app
 from w3af.core.ui.api.utils.auth import requires_auth
 from w3af.core.ui.api.utils.error import abort
@@ -58,8 +57,9 @@ def list_kb(scan_id):
         abort(404, "Scan not found")
 
     data = []
+    knowledge_base = scan_info.w3af_core.knowledge_base
 
-    for finding_id, finding in enumerate(kb.kb.get_all_findings()):
+    for finding_id, finding in enumerate(knowledge_base.get_all_findings()):
         if matches_filter(finding, request):
             data.append(finding_to_json(finding, scan_id, finding_id))
 
@@ -79,7 +79,8 @@ def get_kb(scan_id, vulnerability_id):
     if scan_info is None:
         abort(404, "Scan not found")
 
-    for finding_id, finding in enumerate(kb.kb.get_all_findings()):
+    knowledge_base = scan_info.w3af_core.knowledge_base
+    for finding_id, finding in enumerate(knowledge_base.get_all_findings()):
         if vulnerability_id == finding_id:
             return jsonify(finding_to_json(finding, scan_id, finding_id, detailed=True))
 
