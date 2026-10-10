@@ -3359,3 +3359,15 @@ warnings externos de `ldap3/pyasn1`; la batería focal pasó **46 tests en
 de `mitmproxy`, no disponible en PyPI. El score se mantiene en **6.5/10** por
 cobertura global, módulos grandes y los hallazgos heredados fuera de este
 avance.
+
+## Actualización verificada: proxy del opener separado
+
+`ProxySettings` concentra la validación del puerto, la persistencia de la
+dirección, la creación del `ProxyHandler` y la lectura de la configuración.
+`OpenerSettings` conserva `set_proxy()`, `get_proxy()`, `_proxy_handler` y el
+flujo hacia `OpenerBuilder`, pero deja de poseer la política del proxy.
+
+Verificación: la suite URL completa pasó **217 tests en 199.56 s**, con dos
+warnings externos de `ldap3/pyasn1`; la batería focal del opener pasó **26
+tests**. Ruff, mypy focal y Bandit focal están limpios. El score se mantiene en
+**6.5/10** por cobertura global, módulos grandes y gates globales pendientes.

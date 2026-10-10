@@ -21,9 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import logging
-import urllib.error
-import urllib.parse
-import urllib.request
 
 from w3af.core.configurable import Configurable
 from w3af.core.data.kb.config import cf as cfg
@@ -42,6 +39,7 @@ from w3af.core.data.url.constants import MAX_HTTP_RETRIES, USER_AGENT
 from w3af.core.data.url.cookie_settings import CookieSettings
 from w3af.core.data.url.handlers.url_parameter import URLParameterHandler
 from w3af.core.data.url.opener_builder import OpenerBuilder
+from w3af.core.data.url.proxy_settings import ProxySettings
 from w3af.core.exceptions import BaseFrameworkException
 
 USER_AGENT_HEADER = "User-Agent"
@@ -58,7 +56,7 @@ class OpenerSettings(Configurable):
     def __init__(self, http_log_callback=None):
 
         # Set the openers to None
-        self._proxy_handler = None
+        self._proxy = ProxySettings(cfg, LOGGER.debug)
         self._ka_http = None
         self._ka_https = None
         self._url_parameter_handler = None
@@ -105,6 +103,10 @@ class OpenerSettings(Configurable):
     @property
     def _cookie_handler(self):
         return self._cookies.cookie_handler
+
+    @property
+    def _proxy_handler(self):
+        return self._proxy.proxy_handler
 
     def _mark_needs_update(self):
         self.need_update = True
@@ -188,7 +190,6 @@ class OpenerSettings(Configurable):
                 handler.close_all()
 
     def set_cookie_jar_file(self, cookiejar_file):
-        LOGGER.debug("Called set_cookie_jar_file")
         self._cookies.set_cookie_jar_file(cookiejar_file)
 
     def get_cookies(self):
@@ -226,7 +227,6 @@ class OpenerSettings(Configurable):
         cfg.save("user_agent", user_agent)
 
     def set_rand_user_agent(self, rand_user_agent):
-        LOGGER.debug("Called set_rand_user_agent")
         self.rand_user_agent = rand_user_agent
         cfg.save("rand_user_agent", rand_user_agent)
 
@@ -239,32 +239,10 @@ class OpenerSettings(Configurable):
 
         :return: None
         """
-        LOGGER.debug("Called set_proxy(%s, %s)", ip, port)
-
-        if not ip:
-            #    The user doesn't want a proxy anymore
-            cfg.save("proxy_address", "")
-            cfg.save("proxy_port", port)
-            self._proxy_handler = None
-            return
-
-        if port > 65535 or port < 1:
-            #    The user entered something invalid
-            self._proxy_handler = None
-            raise BaseFrameworkException("Invalid port number: " + str(port))
-
-        #
-        #    Great, we have all valid information.
-        #
-        cfg.save("proxy_address", ip)
-        cfg.save("proxy_port", port)
-
-        proxy_url = f"http://{ip}:{port}"
-        proxy_map = {"http": proxy_url}
-        self._proxy_handler = urllib.request.ProxyHandler(proxy_map)
+        self._proxy.set_proxy(ip, port)
 
     def get_proxy(self):
-        return cfg.get("proxy_address") + ":" + str(cfg.get("proxy_port"))
+        return self._proxy.get_proxy()
 
     def set_basic_auth(self, url, username, password):
         LOGGER.debug("Called set_basic_auth")
