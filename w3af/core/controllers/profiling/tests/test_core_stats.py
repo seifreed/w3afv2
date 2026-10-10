@@ -24,6 +24,7 @@ import multiprocessing
 import queue
 import unittest
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.profiling import core_stats
 from w3af.core.controllers.profiling.core_stats import (
     dump_data,
@@ -59,7 +60,7 @@ class TestCoreStats(unittest.TestCase):
         return w3af_core
 
     def test_dump_data_of_started_scan_has_all_the_stats(self):
-        dump_data(self.started_core())
+        dump_data(self.started_core(), om.manager)
 
         data = read_json_output(core_stats.PROFILING_OUTPUT_FMT)
         self.assertNotIn("Exception", data)
@@ -71,7 +72,7 @@ class TestCoreStats(unittest.TestCase):
         self.assertIn("hit_rate", data["Cache stats"])
 
     def test_dump_data_of_not_started_scan_saves_the_exception(self):
-        dump_data(w3afCore())
+        dump_data(w3afCore(), om.manager)
 
         data = read_json_output(core_stats.PROFILING_OUTPUT_FMT)
         self.assertIn("get_run_time before start", data["Exception"])
@@ -108,8 +109,8 @@ class TestCoreStats(unittest.TestCase):
 
     def test_profiling_disabled_does_nothing(self):
         with environment_variables(W3AF_CORE_PROFILING="0"):
-            start_core_profiling(self.started_core())
-            stop_core_profiling(self.started_core())
+            start_core_profiling(self.started_core(), om.manager)
+            stop_core_profiling(self.started_core(), om.manager)
 
         self.assertEqual(core_stats.SAVE_THREAD_PTR, [])
         self.assertEqual(output_files(core_stats.PROFILING_OUTPUT_FMT), [])
@@ -118,13 +119,13 @@ class TestCoreStats(unittest.TestCase):
         w3af_core = self.started_core()
 
         with environment_variables(W3AF_CORE_PROFILING="1"):
-            start_core_profiling(w3af_core)
+            start_core_profiling(w3af_core, om.manager)
 
             self.assertEqual(len(core_stats.SAVE_THREAD_PTR), 1)
             self.assertEqual(len(output_files(core_stats.PROFILING_OUTPUT_FMT)), 1)
 
             remove_output_files(core_stats.PROFILING_OUTPUT_FMT)
-            stop_core_profiling(w3af_core)
+            stop_core_profiling(w3af_core, om.manager)
 
         self.assertEqual(core_stats.SAVE_THREAD_PTR, [])
         data = read_json_output(core_stats.PROFILING_OUTPUT_FMT)

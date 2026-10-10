@@ -2709,3 +2709,15 @@ pasaron** en la inicialización del core. Ruff, Black, mypy, `py_compile` y
 `git diff --check` globales están limpios. El score permanece en **6.25/10**
 por los globals restantes, cobertura 100% no demostrada, Bandit heredado,
 mocks e integraciones Moth.
+
+## Actualización verificada: profiling de core con manager explícito
+
+`core_stats` recibe ahora el `OutputManager` para medir el tamaño de su cola;
+el lifecycle de profiling lo propaga al timer y a la captura final. Se elimina
+la consulta directa al módulo global desde `core_stats`, manteniendo el resto
+de métricas y el comportamiento de plataformas sin `qsize`.
+
+Verificación: **11 tests pasaron** en core stats y profiling; Ruff, Black, mypy,
+`py_compile` y `git diff --check` globales están limpios. El score permanece en
+**6.25/10** por los globals restantes, cobertura 100% no demostrada, Bandit
+heredado, mocks e integraciones Moth.

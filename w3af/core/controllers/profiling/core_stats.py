@@ -29,7 +29,6 @@ import threading
 import traceback
 from functools import partial
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.profiling import is_core_profiling_enabled
 
@@ -41,26 +40,26 @@ SAVE_THREAD_PTR: list[threading.Timer] = []
 
 
 def should_profile_core(wrapped):
-    def inner(w3af_core):
+    def inner(w3af_core, output_manager):
         if is_core_profiling_enabled():
-            return wrapped(w3af_core)
+            return wrapped(w3af_core, output_manager)
 
     return inner
 
 
 @should_profile_core
-def start_core_profiling(w3af_core):
+def start_core_profiling(w3af_core, output_manager):
     """
     If the environment variable W3AF_PROFILING is set to 1, then we start
     the CPU and memory profiling.
 
     :return: None
     """
-    dd_partial = partial(dump_data, w3af_core)
+    dd_partial = partial(dump_data, w3af_core, output_manager)
     dump_data_every_thread(dd_partial, DELAY_MINUTES, SAVE_THREAD_PTR)
 
 
-def dump_data(w3af_core):
+def dump_data(w3af_core, output_manager):
     s = w3af_core.status
     try:
         data = {
@@ -76,7 +75,7 @@ def dump_data(w3af_core):
             "Grep input queue size": s.get_audit_qsize(),
             "Core worker pool input queue size": s.get_core_worker_pool_queue_size(),
             "Output manager input queue size": get_queue_size(
-                om.manager.get_in_queue()
+                output_manager.get_in_queue()
             ),
             "Cache stats": get_parser_cache_stats(),
         }
@@ -94,12 +93,12 @@ def dump_data(w3af_core):
 
 
 @should_profile_core
-def stop_core_profiling(w3af_core):
+def stop_core_profiling(w3af_core, output_manager):
     """
     Save profiling information (if available)
     """
     cancel_thread(SAVE_THREAD_PTR)
-    dump_data(w3af_core)
+    dump_data(w3af_core, output_manager)
 
 
 def get_queue_size(queue):

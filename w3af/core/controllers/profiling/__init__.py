@@ -30,8 +30,8 @@ from .pytracemalloc import start_tracemalloc_dump, stop_tracemalloc_dump
 from .thread_activity import start_thread_stack_dump, stop_thread_stack_dump
 
 
-def start_profiling(w3af_core, output):
-    start_core_profiling(w3af_core)
+def start_profiling(w3af_core, output, output_manager):
+    start_core_profiling(w3af_core, output_manager)
     start_profiling_no_core()
 
 
@@ -43,11 +43,11 @@ def start_profiling_no_core():
     start_tracemalloc_dump()
 
 
-def stop_profiling(w3af_core, output):
+def stop_profiling(w3af_core, output, output_manager):
     output.debug("Called stop_profiling()")
 
     try:
-        stop_core_profiling(w3af_core)
+        stop_core_profiling(w3af_core, output_manager)
         stop_profiling_no_core()
     except Exception as e:
         output.debug(f'Call to stop_profiling() failed with: "{e}"')
