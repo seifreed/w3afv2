@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.auto_update.ui_wrapper import UIUpdater
 
 
@@ -30,8 +29,8 @@ def ask(msg):
 
 class ConsoleUIUpdater(UIUpdater):
 
-    def __init__(self, force, output=None):
-        self._output = output if output is not None else om.out
+    def __init__(self, force, output):
+        self._output = output
         UIUpdater.__init__(self, force=force, ask=ask, logger=self._output.console)
 
         # Show revisions logs function

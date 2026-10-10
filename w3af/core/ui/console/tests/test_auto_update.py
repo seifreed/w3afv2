@@ -55,7 +55,7 @@ class TestConsoleUIUpdater(ConsoleTestHelper):
         self.assertFalse(ask("Update?"))
 
     def test_show_log_when_the_user_wants_it(self):
-        updater = ConsoleUIUpdater(force=False)
+        updater = ConsoleUIUpdater(force=False, output=om.out)
         show_log = updater._callbacks["callback_onupdate_show_log"]
 
         self.answer("y")
@@ -63,7 +63,7 @@ class TestConsoleUIUpdater(ConsoleTestHelper):
         self.assertIn("commit abc: fix", self.output())
 
     def test_log_is_not_shown_when_declined(self):
-        updater = ConsoleUIUpdater(force=False)
+        updater = ConsoleUIUpdater(force=False, output=om.out)
         show_log = updater._callbacks["callback_onupdate_show_log"]
 
         self.answer("n")
@@ -71,8 +71,10 @@ class TestConsoleUIUpdater(ConsoleTestHelper):
         self.assertNotIn("commit abc: fix", self.output())
 
     def test_update_confirmation_asks_the_user(self):
-        updater = ConsoleUIUpdater(force=False)
+        updater = ConsoleUIUpdater(force=False, output=om.out)
         self.assertIs(updater._callbacks["callback_onupdate_confirm"], ask)
 
     def test_update_output_needs_no_handling(self):
-        self.assertIsNone(ConsoleUIUpdater(force=False)._handle_update_output("x"))
+        self.assertIsNone(
+            ConsoleUIUpdater(force=False, output=om.out)._handle_update_output("x")
+        )

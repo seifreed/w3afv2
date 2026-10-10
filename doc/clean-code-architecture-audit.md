@@ -2722,6 +2722,17 @@ Verificación: **11 tests pasaron** en core stats y profiling; Ruff, Black, mypy
 **6.25/10** por los globals restantes, cobertura 100% no demostrada, Bandit
 heredado, mocks e integraciones Moth.
 
+## Actualización verificada: ConsoleUIUpdater con output explícito
+
+`ConsoleUIUpdater` ya no importa ni usa `output_manager` como fallback. El
+root `ConsoleUI` y los tests le entregan explícitamente el sink que debe usar,
+manteniendo la composición de UI en el borde de la aplicación.
+
+Verificación: **6 tests pasaron** en el updater; Ruff, Black, mypy, `py_compile`
+y `git diff --check` globales están limpios. El score permanece en **6.25/10**
+por los globals restantes, cobertura 100% no demostrada, Bandit heredado,
+mocks e integraciones Moth.
+
 ## Actualización verificada: monkey patch de debug con sink explícito
 
 `monkey_patch_debug` crea ahora callbacks parciales que capturan el sink

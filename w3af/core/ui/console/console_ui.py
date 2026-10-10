@@ -110,7 +110,7 @@ class ConsoleUI:
         """
         Root menu init routine.
         """
-        cons_upd = ConsoleUIUpdater(force=do_upd)
+        cons_upd = ConsoleUIUpdater(force=do_upd, output=om.out)
         cons_upd.update()
         # Core initialization
         self._w3af = w3afCore()
