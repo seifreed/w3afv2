@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.kb.info import Info
@@ -104,13 +103,13 @@ class motw(GrepPlugin):
             inform = list(self._get_knowledge_base().get("motw", motw_type))
 
             if inform:
-                om.out.information(pretty)
+                self._output.information(pretty)
                 for i in inform:
                     if "local_machine" not in i:
-                        om.out.information(f"- {i.get_url()}")
+                        self._output.information(f"- {i.get_url()}")
                     else:
                         msg = "- %s [Executed in Local machine context]"
-                        om.out.information(msg % i.get_url())
+                        self._output.information(msg % i.get_url())
 
     def get_long_desc(self):
         """

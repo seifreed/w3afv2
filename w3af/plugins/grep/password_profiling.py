@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import ClassVar
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.misc.factory import factory
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
@@ -220,12 +219,12 @@ class password_profiling(GrepPlugin):
         items.sort(key=lambda item: item[1], reverse=True)
         items = items[:100]
 
-        om.out.information("Password profiling TOP 100:")
+        self._output.information("Password profiling TOP 100:")
 
         for i, (password, repetitions) in enumerate(items):
             msg = " - [%s] %s with %s repetitions"
             args = (i + 1, password, repetitions)
-            om.out.information(msg % args)
+            self._output.information(msg % args)
 
     def get_plugin_deps(self):
         """

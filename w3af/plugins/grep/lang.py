@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from guess_language import guess_language
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 
@@ -81,7 +80,7 @@ class lang(GrepPlugin):
                         " first 25 HTTP responses, not enough text to make"
                         " a good analysis."
                     )
-                    om.out.debug(msg)
+                    self._output.debug(msg)
 
                     # unknown means I'll stop testing because I don't
                     # have any idea about the target's language
@@ -93,7 +92,7 @@ class lang(GrepPlugin):
                 self._exec = False
 
                 msg = 'The page is written in: "%s".'
-                om.out.information(msg % guessed_lang)
+                self._output.information(msg % guessed_lang)
                 self._get_knowledge_base().raw_write(self, "lang", guessed_lang)
 
     def get_long_desc(self):

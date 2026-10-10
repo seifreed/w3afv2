@@ -27,7 +27,6 @@ from urllib.parse import urlsplit
 
 from clamav_client.clamd import ClamdError, ClamdNetworkSocket, ClamdUnixSocket
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.kb.info import Info
 from w3af.core.data.options.opt_factory import opt_factory
@@ -97,7 +96,7 @@ class clamav(GrepPlugin):
 
             if self._connection_test():
                 msg = "Using %s for scanning HTTP response bodies."
-                om.out.information(msg % self._get_clamd_version())
+                self._output.information(msg % self._get_clamd_version())
                 self._properly_configured = True
 
             else:
@@ -106,7 +105,7 @@ class clamav(GrepPlugin):
                     ' the configured endpoint: "%s". Please verify your'
                     " configuration and try again."
                 )
-                om.out.error(msg % self._clamd_socket)
+                self._output.error(msg % self._clamd_socket)
                 self._properly_configured = False
 
             return self._properly_configured
@@ -176,7 +175,7 @@ class clamav(GrepPlugin):
                 ' the configured endpoint: "%s". Please verify your'
                 ' configuration and try again. The exception was: "%s".'
             )
-            om.out.error(msg % (self._clamd_socket, e))
+            self._output.error(msg % (self._clamd_socket, e))
             self._properly_configured = False
             result = None
         else:
@@ -222,7 +221,7 @@ class clamav(GrepPlugin):
             found = result["stream"][0] == "FOUND"
             return ScanResult(found, signature)
         except (IndexError, KeyError, TypeError):
-            om.out.debug(f"Invalid response from clamd: {result}")
+            self._output.debug(f"Invalid response from clamd: {result}")
 
     def set_options(self, options_list):
         self._clamd_socket = options_list["clamd_socket"].get_value()

@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.constants import severity
 from w3af.core.data.kb.info import Info
@@ -93,7 +92,7 @@ class http_auth_detect(GrepPlugin):
             v.add_to_highlight(response.get_uri().url_string)
 
             self._get_knowledge_base().append(self, "userPassUri", v)
-            om.out.vulnerability(v.get_desc(), severity=v.get_severity())
+            self._output.vulnerability(v.get_desc(), severity=v.get_severity())
 
         #
         #   Analyze the HTTP response body
@@ -103,7 +102,7 @@ class http_auth_detect(GrepPlugin):
             document_parser = parser_cache.dpc.get_document_parser_for(response)
         except BaseFrameworkException as e:
             msg = 'Failed to find a suitable document parser. Exception: "%s"'
-            om.out.debug(msg % e)
+            self._output.debug(msg % e)
         else:
             parsed_references, re_references = document_parser.get_references()
             url_list.extend(parsed_references)
@@ -131,7 +130,7 @@ class http_auth_detect(GrepPlugin):
                 v.add_to_highlight(url.url_string)
 
                 self._get_knowledge_base().append(self, "userPassUri", v)
-                om.out.vulnerability(v.get_desc(), severity=v.get_severity())
+                self._output.vulnerability(v.get_desc(), severity=v.get_severity())
 
     def _url_has_auth(self, url):
         if "@" not in url.url_string:
@@ -164,7 +163,7 @@ class http_auth_detect(GrepPlugin):
         i.set_url(response.get_url())
 
         self._get_knowledge_base().append(self, "non_rfc_auth", i)
-        om.out.information(i.get_desc())
+        self._output.information(i.get_desc())
 
     def _analyze_401(self, response):
         """
@@ -214,7 +213,7 @@ class http_auth_detect(GrepPlugin):
         v.add_to_highlight(realm)
 
         self._get_knowledge_base().append(self, "auth", v)
-        om.out.information(v.get_desc())
+        self._output.information(v.get_desc())
 
     def get_long_desc(self):
         """

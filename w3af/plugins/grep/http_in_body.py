@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.kb.info import Info
 from w3af.core.data.quick_match.multi_re import MultiRE
@@ -92,10 +91,10 @@ class http_in_body(GrepPlugin):
         for info_type in ["request", "response"]:
             if self._get_knowledge_base().get("http_in_body", info_type):
 
-                om.out.information(msg % info_type)
+                self._output.information(msg % info_type)
 
                 for i in self._get_knowledge_base().get("http_in_body", info_type):
-                    om.out.information(item_fmt % (i.get_uri(), i.get_id()))
+                    self._output.information(item_fmt % (i.get_uri(), i.get_id()))
 
     def get_long_desc(self):
         """

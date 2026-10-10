@@ -25,7 +25,6 @@ import json
 import os
 import tempfile
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.external_process import (
     DEVNULL,
     ExecutableNotFoundError,
@@ -191,10 +190,10 @@ class retirejs(GrepPlugin):
                     "Failed to download the retirejs database, unexpected"
                     " HTTP response code %s"
                 )
-                om.out.error(msg % http_response.get_code())
+                self._output.error(msg % http_response.get_code())
                 return
 
-            om.out.debug("Successfully downloaded the latest retirejs DB")
+            self._output.debug("Successfully downloaded the latest retirejs DB")
 
             with tempfile.NamedTemporaryFile(
                 dir=get_temp_dir(),
@@ -235,13 +234,13 @@ class retirejs(GrepPlugin):
             try:
                 result = run_process(cmd, stdout=retire_version_fd, stderr=DEVNULL)
             except ExecutableNotFoundError:
-                om.out.error(
+                self._output.error(
                     "retire.js is not installed. Disabling grep.retirejs plugin."
                 )
                 return False
             if result.returncode != 0:
                 msg = "Unexpected retire.js exit code. Disabling grep.retirejs plugin."
-                om.out.error(msg)
+                self._output.error(msg)
                 return False
 
         with open(retire_version_fd.name) as version_out:
@@ -249,10 +248,10 @@ class retirejs(GrepPlugin):
         self._remove_file(retire_version_fd.name)
 
         if current_retire_version.startswith(self.RETIRE_VERSION):
-            om.out.debug("Using a supported retirejs version")
+            self._output.debug("Using a supported retirejs version")
             return True
 
-        om.out.error("Please install a supported retirejs version (2.x)")
+        self._output.error("Please install a supported retirejs version (2.x)")
         return False
 
     def _retire_smoke_test(self):
@@ -279,7 +278,9 @@ class retirejs(GrepPlugin):
         except ExecutableNotFoundError:
             self._remove_file(output_file.name)
             self._remove_file(check_file.name)
-            om.out.error("retire.js is not installed. Disabling grep.retirejs plugin.")
+            self._output.error(
+                "retire.js is not installed. Disabling grep.retirejs plugin."
+            )
             return False
 
         self._remove_file(output_file.name)
@@ -287,11 +288,11 @@ class retirejs(GrepPlugin):
 
         if process.returncode != 0:
             msg = "Unexpected retire.js exit code. Disabling grep.retirejs plugin."
-            om.out.error(msg)
+            self._output.error(msg)
             return False
 
         else:
-            om.out.debug("retire.js returned the expected exit code.")
+            self._output.debug("retire.js returned the expected exit code.")
             return True
 
     def _should_analyze(self, response):
@@ -373,7 +374,7 @@ class retirejs(GrepPlugin):
             ).returncode
         except ProcessTimeoutError:
             # The process timed out and the returncode was never set
-            om.out.debug(f"The retirejs process for batch {batch} timeout out")
+            self._output.debug(f"The retirejs process for batch {batch} timeout out")
             return {}
 
         # retirejs will return code != 0 when a vulnerability is found
@@ -387,7 +388,7 @@ class retirejs(GrepPlugin):
                 file_contents = output_fh.read()
         except OSError:
             msg = "Failed to read retirejs output file at %s"
-            om.out.debug(msg % json_file.name)
+            self._output.debug(msg % json_file.name)
 
             self._remove_file(json_file.name)
             return {}
@@ -400,7 +401,7 @@ class retirejs(GrepPlugin):
                 ' Exception is "%s" and file content: "%s..."'
             )
             args = (e, file_contents[:20])
-            om.out.debug(msg % args)
+            self._output.debug(msg % args)
 
             self._remove_file(json_file.name)
             return {}
@@ -450,7 +451,7 @@ class retirejs(GrepPlugin):
             if batch_filename == finding_file:
                 break
         else:
-            om.out.debug("Batch filename mismatch in retirejs.")
+            self._output.debug("Batch filename mismatch in retirejs.")
             return
 
         for json_result in results:
@@ -469,7 +470,7 @@ class retirejs(GrepPlugin):
         vulnerabilities = json_result.get("vulnerabilities", [])
 
         if version is None or component is None:
-            om.out.debug(
+            self._output.debug(
                 "The retirejs generated JSON document is invalid."
                 " Either the version or the component attribute is"
                 " missing. Will ignore this result and continue with"
@@ -478,7 +479,7 @@ class retirejs(GrepPlugin):
             return
 
         if not vulnerabilities:
-            om.out.debug(
+            self._output.debug(
                 "The retirejs generated JSON document is invalid. No"
                 " vulnerabilities were found. Will ignore this result"
                 " and continue with the next."

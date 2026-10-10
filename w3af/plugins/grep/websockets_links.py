@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
@@ -90,7 +89,7 @@ class websockets_links(GrepPlugin):
                 " dynamically created using javascript. Manual inspection"
                 " of the page source is recommended."
             )
-            om.out.debug(msg % url)
+            self._output.debug(msg % url)
 
         for ws_link in ws_links:
             desc = 'The URL: "%s" uses HTML5 websocket "%s"'

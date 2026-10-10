@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 import re
 
-import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.kb.info import Info
@@ -109,7 +108,7 @@ class user_defined_regex(GrepPlugin):
                         )
                         info_inst.set_url(response.get_url())
 
-                        om.out.information(desc)
+                        self._output.information(desc)
 
                         self.kb_append_uniq(
                             self, "user_defined_regex", info_inst, "URL"

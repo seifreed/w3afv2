@@ -26,7 +26,6 @@ import re
 
 import vulners
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.kb.info_set import InfoSet
@@ -193,7 +192,7 @@ class vulners_db(GrepPlugin):
                 "Failed to download the Vulners regex rules table, unexpected"
                 " HTTP response code %s"
             )
-            om.out.error(msg % http_response.get_code())
+            self._output.error(msg % http_response.get_code())
             return
 
         json_table = http_response.get_raw_body()
@@ -223,7 +222,7 @@ class vulners_db(GrepPlugin):
         except vulners.VulnersError as e:
             # The Vulners API requires an API key
             msg = 'Failed to initialize Vulners API: "%s"'
-            om.out.error(msg % e)
+            self._output.error(msg % e)
 
     def check_vulners(self, software_name, software_version, check_type):
         """
@@ -240,7 +239,7 @@ class vulners_db(GrepPlugin):
             return self._vulnerability_cache[cache_key]
 
         args = (software_name, software_version, check_type)
-        om.out.debug("Detected {} version {} (check type: {})".format(*args))
+        self._output.debug("Detected {} version {} (check type: {})".format(*args))
 
         if check_type == "cpe":
             software = f"{software_name}:{software_version}"
@@ -255,7 +254,7 @@ class vulners_db(GrepPlugin):
             )
         except vulners.VulnersError as e:
             msg = 'Failed to make Vulners API request: "%s"'
-            om.out.error(msg % e)
+            self._output.error(msg % e)
             # Don't cache, maybe next time API will answer correctly.
             return []
 
