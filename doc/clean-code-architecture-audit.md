@@ -1556,3 +1556,14 @@ Verificación: 58 tests de estos plugins y ramas de grep pasan, Ruff, Black y
 mypy pasan en los módulos modificados. El score sigue en **5.75/10**: quedan
 82 imports directos de la KB, además de la deuda de cobertura, mocks y
 orquestadores grandes.
+
+## Actualización verificada: MOTW y regex configurable
+
+`motw` y `user_defined_regex` usan la KB inyectada para registrar y actualizar
+hallazgos. Las pruebas unitarias y las ramas adicionales de grep configuran la
+dependencia real también en helpers que crean plugins directamente.
+
+Verificación: 35 tests de estos plugins y ramas adicionales pasan, Ruff, Black
+y mypy pasan en los módulos modificados. El score sigue en **5.75/10**: quedan
+80 imports directos de la KB, además de la deuda de cobertura, mocks y
+orquestadores grandes.
