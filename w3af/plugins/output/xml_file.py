@@ -34,7 +34,6 @@ from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
-import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.controllers.misc import get_w3af_version
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
@@ -238,7 +237,7 @@ class xml_file(OutputPlugin):
         status = self.get_w3af_core().status.get_status_as_dict()
         om.out.debug("[xml_file.flush()] _add_scan_status_to_context() read status")
 
-        all_known_urls = kb.kb.get_all_known_urls()
+        all_known_urls = self._get_knowledge_base().get_all_known_urls()
         total_urls = len(all_known_urls)
         om.out.debug("[xml_file.flush()] _add_scan_status_to_context() read total_urls")
 
@@ -302,7 +301,9 @@ class xml_file(OutputPlugin):
         # which would be incorrect because some items are modified in the
         # KB (which changes their uniq id)
         #
-        for uniq_id in kb.kb.get_all_uniq_ids_iter(include_ids=cached_nodes):
+        for uniq_id in self._get_knowledge_base().get_all_uniq_ids_iter(
+            include_ids=cached_nodes
+        ):
             node = cache.get_node_from_cache(uniq_id)
 
             # cached_nodes can be (), this means that get_all_uniq_ids_iter()
@@ -325,7 +326,9 @@ class xml_file(OutputPlugin):
         #
         new_findings = 0
 
-        for finding in kb.kb.get_all_findings_iter(exclude_ids=cached_nodes):
+        for finding in self._get_knowledge_base().get_all_findings_iter(
+            exclude_ids=cached_nodes
+        ):
             uniq_id = finding.get_uniq_id()
             processed_uniq_ids.append(uniq_id)
             node = Finding(self._jinja2_env, finding).to_string()

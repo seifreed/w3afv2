@@ -121,6 +121,7 @@ class OutputManager(Process):
         # Internal variables
         self.in_queue = SilentJoinableQueue(ctx=multiprocessing.get_context())
         self._w3af_core = None
+        self._knowledge_base = None
         self._flush_timeout = flush_timeout
         self._last_output_flush = None
         self._is_shutting_down = False
@@ -128,6 +129,10 @@ class OutputManager(Process):
 
     def set_w3af_core(self, w3af_core):
         self._w3af_core = w3af_core
+        self.set_knowledge_base(w3af_core.knowledge_base)
+
+    def set_knowledge_base(self, knowledge_base):
+        self._knowledge_base = knowledge_base
 
     def get_worker_pool(self):
         return Pool(
@@ -495,6 +500,8 @@ class OutputManager(Process):
     def _get_plugin_instance(self, plugin_name):
         plugin = factory(f"w3af.plugins.output.{plugin_name}")
         plugin.set_w3af_core(self._w3af_core)
+        if self._knowledge_base is not None:
+            plugin.set_knowledge_base(self._knowledge_base)
 
         if plugin_name in list(self._plugin_options.keys()):
             plugin.set_options(self._plugin_options[plugin_name])

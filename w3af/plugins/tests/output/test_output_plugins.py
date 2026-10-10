@@ -231,6 +231,7 @@ class TestFileExportErrors(unittest.TestCase):
 
     def test_csv_file(self):
         plugin = csv_file()
+        plugin.set_knowledge_base(kb.kb)
         plugin.output_file = self.unwritable
         plugin.end()
         self.assertTrue(Path(self.unwritable).is_dir())
@@ -238,6 +239,7 @@ class TestFileExportErrors(unittest.TestCase):
 
     def test_export_requests(self):
         plugin = export_requests()
+        plugin.set_knowledge_base(kb.kb)
         plugin.output_file = self.unwritable
         plugin.end()
         self.assertTrue(Path(self.unwritable).is_dir())
@@ -245,6 +247,7 @@ class TestFileExportErrors(unittest.TestCase):
 
     def test_json_file(self):
         plugin = json_file()
+        plugin.set_knowledge_base(kb.kb)
         plugin.output_file = self.unwritable
         plugin.end()
         self.assertTrue(Path(self.unwritable).is_dir())
@@ -269,6 +272,7 @@ class TestJsonFileFindings(unittest.TestCase):
         kb.kb.append("plugin", "location", InfoSet([info]))
 
         plugin = json_file()
+        plugin.set_knowledge_base(kb.kb)
         plugin.output_file = self.output_file
         plugin.end()
 
@@ -287,6 +291,7 @@ class TestEmailReport(unittest.TestCase):
         self.addCleanup(self.smtp_server.stop)
 
         self.plugin = email_report()
+        self.plugin.set_knowledge_base(kb.kb)
         options = self.plugin.get_options()
         options["smtpServer"].set_value("127.0.0.1")
         options["smtpPort"].set_value(self.smtp_server.port)

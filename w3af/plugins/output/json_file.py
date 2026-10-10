@@ -27,7 +27,6 @@ import time
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.misc import get_w3af_version
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
 from w3af.core.data.options.opt_factory import opt_factory
@@ -100,12 +99,16 @@ class json_file(OutputPlugin):
                 return None
 
         findings = [
-            _f for _f in [_get_desc(x) for x in kb.kb.get_all_findings_iter()] if _f
+            _f
+            for _f in [
+                _get_desc(x) for x in self._get_knowledge_base().get_all_findings_iter()
+            ]
+            if _f
         ]
-        known_urls = [str(x) for x in kb.kb.get_all_known_urls()]
+        known_urls = [str(x) for x in self._get_knowledge_base().get_all_known_urls()]
 
         items = []
-        for info in kb.kb.get_all_findings_iter():
+        for info in self._get_knowledge_base().get_all_findings_iter():
             post_data = info.get_mutant().get_data().encode("utf-8")
             item = {
                 "Severity": info.get_severity(),

@@ -23,7 +23,6 @@ from email.mime.text import MIMEText
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
@@ -94,7 +93,7 @@ class email_report(OutputPlugin):
         # Only vulnerabilities are sent via email, the info objects we don't
         # care about in this output plugin. Modify this, or add a configuration
         # setting if you do.
-        vulns = kb.kb.get_all_vulns()
+        vulns = self._get_knowledge_base().get_all_vulns()
 
         for v in vulns:
             data += v.get_desc() + "\n"

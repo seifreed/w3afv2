@@ -30,7 +30,6 @@ import markdown
 from jinja2 import Environment, FileSystemLoader, StrictUndefined, select_autoescape
 
 import w3af.core.data.kb.config as cf
-import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
 from w3af.core.data.db.disk_list import DiskList
@@ -185,12 +184,12 @@ class html_file(OutputPlugin):
             target_domain = target_domains[0]
 
         enabled_plugins = self._enabled_plugins
-        findings = kb.kb.get_all_findings_iter()
+        findings = self._get_knowledge_base().get_all_findings_iter()
         debug_log = (
             (timestamp, level, smart_unicode(message))
             for (timestamp, level, message) in self._additional_info
         )
-        known_urls = kb.kb.get_all_known_urls()
+        known_urls = self._get_knowledge_base().get_all_known_urls()
 
         context = {
             "target_urls": target_urls,

@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
@@ -54,7 +53,9 @@ class export_requests(OutputPlugin):
         """
         Exports a list of fuzzable requests to the user configured file.
         """
-        fuzzable_request_set = kb.kb.get_all_known_fuzzable_requests()
+        fuzzable_request_set = (
+            self._get_knowledge_base().get_all_known_fuzzable_requests()
+        )
 
         filename = os.path.expanduser(self.output_file)
 

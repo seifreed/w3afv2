@@ -25,7 +25,6 @@ import csv
 import os
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
@@ -70,7 +69,7 @@ class csv_file(OutputPlugin):
                     quoting=csv.QUOTE_MINIMAL,
                 )
 
-                for info in kb.kb.get_all_findings_iter():
+                for info in self._get_knowledge_base().get_all_findings_iter():
                     post_data = info.get_mutant().get_data().encode("utf-8")
                     row = [
                         info.get_severity(),

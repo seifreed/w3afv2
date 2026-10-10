@@ -134,6 +134,7 @@ class w3afCore:
         log_sink_factory(manager.get_in_queue())
         configure_data_logging()
         register_parser_multiprocessing()
+        self.knowledge_base = kb
 
         # FIXME: In the future, when the output_manager is not an awful
         # singleton anymore, this line should be removed and the output_manager
@@ -151,8 +152,6 @@ class w3afCore:
         # used
         self._home_directory()
         self._tmp_directory()
-        self.knowledge_base = kb
-
         # We want to have only one exception handler instance during the whole
         # w3af process. The data captured by it will be cleared before starting
         # each scan, but we want to keep the same instance after a scan because

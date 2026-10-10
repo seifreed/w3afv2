@@ -148,6 +148,7 @@ class TestXMLOutput(PluginTest):
 
         plugin_instance = xml_file()
         plugin_instance.set_w3af_core(w3af_core)
+        plugin_instance.set_knowledge_base(kb.kb)
 
         # https://github.com/andresriancho/w3af/issues/12924
         plugin_instance.error("\0")
@@ -204,6 +205,7 @@ class TestNoDuplicate(unittest.TestCase):
         # Setup the plugin
         plugin_instance = xml_file()
         plugin_instance.set_w3af_core(self.w3af_core)
+        plugin_instance.set_knowledge_base(kb.kb)
 
         # Set the output file for the unittest
         ol = OptionList()
@@ -1089,6 +1091,7 @@ class TestFindingsCache(XMLNodeGeneratorTest):
         kb.kb.append("a", "b", vuln1)
 
         x = xml_file()
+        x.set_knowledge_base(kb.kb)
         list(x.findings())
 
         self.assertEqual(cache.list(), [vuln1.get_uniq_id()])

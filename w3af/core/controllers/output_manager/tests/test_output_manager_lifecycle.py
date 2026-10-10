@@ -37,6 +37,7 @@ from w3af.core.controllers.output_manager.manager import OutputManager
 from w3af.core.controllers.tests.recording_output import recording_output
 from w3af.core.controllers.threads.silent_joinable_queue import SilentJoinableQueue
 from w3af.core.data.kb.info import Info
+from w3af.core.data.kb.knowledge_base import kb
 from w3af.plugins.output.console import console
 
 WAIT_SECONDS = 10
@@ -202,6 +203,7 @@ class TestOutputManagerPlugins(unittest.TestCase):
         with tempfile.TemporaryDirectory() as output_dir:
             export_options = self.export_requests_options(output_dir)
             manager = OutputManager()
+            manager.set_knowledge_base(kb)
             manager.set_plugin_options("export_requests", export_options)
             manager.set_output_plugins(["console", "export_requests"])
 
@@ -213,6 +215,7 @@ class TestOutputManagerPlugins(unittest.TestCase):
 
     def export_requests_options(self, output_dir):
         manager = OutputManager()
+        manager.set_knowledge_base(kb)
         manager.set_output_plugins(["export_requests"])
         (plugin,) = manager.get_output_plugin_inst()
         options = plugin.get_options()
