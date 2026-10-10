@@ -2030,3 +2030,17 @@ en pruebas de extrusión/transferencia que dependen de detección del OS,
 servicios locales o `php_moth-fallback`; el score sigue en **5.75/10** por la
 cobertura, mocks heredados, el fallo de perfilado, la dependencia de Moth y los
 orquestadores grandes.
+
+## Validación global posterior
+
+Ruff, Black y mypy pasan en todo el repositorio (`1598`, `1598` y `1592`
+archivos respectivamente). `pip-audit` no encuentra vulnerabilidades conocidas;
+el único paquete no auditable es el pin de desarrollo `mitmproxy`
+`13.0.0.dev0`. `bandit -r w3af` sigue reportando 46 hallazgos, principalmente
+en tests heredados y procesos deliberadamente ejecutados por ellos, sin que se
+hayan suprimido.
+
+La corrida completa de `pytest --cov=w3af --cov-fail-under=100 -q` fue
+interrumpida en aproximadamente el 76% después de varios fallos de integración
+y bloqueos ambientales, por lo que no se considera una validación aprobada ni
+permite afirmar cobertura global. El score permanece en **5.75/10**.
