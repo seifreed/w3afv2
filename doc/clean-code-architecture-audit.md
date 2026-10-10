@@ -3343,3 +3343,19 @@ warnings externos de `ldap3/pyasn1`; la batería focal pasó **46 tests**.
 Black, Ruff, mypy configurado y Bandit focal están limpios. El score se
 mantiene en **6.5/10** por cobertura global, módulos grandes y gates globales
 pendientes.
+
+## Actualización verificada: cookies del opener separadas
+
+`CookieSettings` concentra la cookie jar por defecto, la carga de ficheros
+Netscape, la persistencia de configuración, la limpieza y el acceso a cookies.
+`OpenerSettings` conserva la fachada pública, el handler interno usado por
+`OpenerBuilder` y los mensajes de error existentes, pero deja de mezclar esta
+política con autenticación, proxy y composición de handlers.
+
+Verificación: la suite URL completa pasó **217 tests en 183.33 s**, con dos
+warnings externos de `ldap3/pyasn1`; la batería focal pasó **46 tests en
+12.52 s**. Black, Ruff, mypy configurado y Bandit focal están limpios.
+`pip-audit` no encontró vulnerabilidades y mantiene únicamente el skip conocido
+de `mitmproxy`, no disponible en PyPI. El score se mantiene en **6.5/10** por
+cobertura global, módulos grandes y los hallazgos heredados fuera de este
+avance.

@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import http.cookiejar
 import logging
 import urllib.error
 import urllib.parse
@@ -28,7 +27,6 @@ import urllib.request
 
 from w3af.core.configurable import Configurable
 from w3af.core.data.kb.config import cf as cfg
-from w3af.core.data.misc.cookie_jar import ImprovedMozillaCookieJar
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.options.option_types import (
@@ -41,7 +39,7 @@ from w3af.core.data.options.option_types import (
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.authentication_settings import AuthenticationSettings
 from w3af.core.data.url.constants import MAX_HTTP_RETRIES, USER_AGENT
-from w3af.core.data.url.handlers.cookie_handler import CookieHandler
+from w3af.core.data.url.cookie_settings import CookieSettings
 from w3af.core.data.url.handlers.url_parameter import URLParameterHandler
 from w3af.core.data.url.opener_builder import OpenerBuilder
 from w3af.core.exceptions import BaseFrameworkException
@@ -67,8 +65,7 @@ class OpenerSettings(Configurable):
         self._cache_handler = None
         # Keep alive handlers are created on build_openers()
 
-        cj = ImprovedMozillaCookieJar()
-        self._cookie_handler = CookieHandler(cj)
+        self._cookies = CookieSettings(cfg, LOGGER.debug)
 
         # Openers
         self._uri_opener = None
@@ -104,6 +101,10 @@ class OpenerSettings(Configurable):
     @property
     def _password_mgr(self):
         return self._authentication.password_manager
+
+    @property
+    def _cookie_handler(self):
+        return self._cookies.cookie_handler
 
     def _mark_needs_update(self):
         self.need_update = True
@@ -188,59 +189,16 @@ class OpenerSettings(Configurable):
 
     def set_cookie_jar_file(self, cookiejar_file):
         LOGGER.debug("Called set_cookie_jar_file")
-
-        if not cookiejar_file:
-            return
-
-        cj = ImprovedMozillaCookieJar()
-
-        try:
-            cj.load(cookiejar_file)
-        except http.cookiejar.LoadError as cle:
-            if "invalid Netscape format cookies file" in str(cle):
-                docs_url = (
-                    "http://docs.w3af.org/en/latest/"
-                    "authentication.html#setting-http-cookie"
-                )
-
-                msg = (
-                    "The supplied cookiejar file is not in Netscape format"
-                    " please review our documentation at %s to better"
-                    " understand the required format."
-                )
-
-                raise BaseFrameworkException(msg % docs_url)
-            else:
-                msg = 'Error while loading cookiejar file. Description: "%s".'
-                raise BaseFrameworkException(msg % cle)
-        except OSError:
-            msg = "The specified cookie jar file does not exist."
-            raise BaseFrameworkException(msg)
-        else:
-            self._cookie_handler = CookieHandler(cj)
-            cfg.save("cookie_jar_file", cookiejar_file)
-
-            if not len(cj):
-                msg = (
-                    "Did not load any cookies from the cookie jar file."
-                    " This usually happens when there are no cookies in"
-                    " the file, the cookies have expired or the file is not"
-                    " in the expected format."
-                )
-                raise BaseFrameworkException(msg)
-            else:
-                LOGGER.debug("Loaded the following cookies:")
-                for c in cj:
-                    LOGGER.debug("%s", c)
+        self._cookies.set_cookie_jar_file(cookiejar_file)
 
     def get_cookies(self):
         """
         :return: The cookies that were collected during this scan.
         """
-        return self._cookie_handler.default_cookiejar
+        return self._cookies.get_cookies()
 
     def clear_cookies(self):
-        self._cookie_handler.clear_cookies()
+        self._cookies.clear_cookies()
 
     def set_configured_timeout(self, timeout):
         """
