@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 import time
 
-import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
 from w3af.core.data.constants import severity
@@ -111,7 +110,7 @@ class text_file(OutputPlugin):
                 "An exception was raised while trying to write to the output"
                 ' file "%s", error: "%s". Disabling output to this file.'
             )
-            om.out.error(
+            self._output.error(
                 msg % (self._output_file_name, e), ignore_plugins={self.get_name()}
             )
 
@@ -139,7 +138,7 @@ class text_file(OutputPlugin):
                 "An exception was raised while trying to write to the output"
                 ' file "%s", error: "%s". Disabling output to this file.'
             )
-            om.out.error(
+            self._output.error(
                 msg % (self._http_file_name, e), ignore_plugins={self.get_name()}
             )
 

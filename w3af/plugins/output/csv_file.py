@@ -24,7 +24,6 @@ import base64
 import csv
 import os
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
@@ -84,7 +83,7 @@ class csv_file(OutputPlugin):
                     csv_writer.writerow(row)
         except OSError as ioe:
             msg = 'Failed to open the output file for writing: "%s"'
-            om.out.error(msg % ioe)
+            self._output.error(msg % ioe)
 
     def get_long_desc(self):
         """

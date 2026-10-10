@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import smtplib
 from email.mime.text import MIMEText
 
-import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
 from w3af.core.data.options.opt_factory import opt_factory
@@ -112,7 +111,7 @@ class email_report(OutputPlugin):
                 "The SMTP settings in email_report plugin seem to be"
                 ' incorrect. Original error: "%s".'
             )
-            om.out.error(msg % e)
+            self._output.error(msg % e)
 
     def get_long_desc(self):
         return """

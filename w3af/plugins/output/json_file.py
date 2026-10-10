@@ -25,7 +25,6 @@ import json
 import os
 import time
 
-import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.misc import get_w3af_version
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
@@ -145,7 +144,7 @@ class json_file(OutputPlugin):
                 json.dump(res, output_handler, indent=4)
         except OSError as ioe:
             msg = 'Failed to open the output file for writing: "%s"'
-            om.out.error(msg % ioe)
+            self._output.error(msg % ioe)
 
     def get_long_desc(self):
         """

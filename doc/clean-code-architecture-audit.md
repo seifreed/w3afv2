@@ -2178,3 +2178,18 @@ escenarios locales de `file_upload` y los restantes dependen de Moth, WAVSEP,
 SSL o respuestas externas. Ruff, Black y mypy están limpios. El score permanece
 en **5.75/10** por cobertura global, Bandit heredado, mocks existentes,
 perfilado, Moth y los orquestadores grandes.
+
+## Actualización verificada: output desacoplado en exportadores
+
+Los cinco exportadores de fichero que todavía importaban directamente el
+singleton (`csv_file`, `email_report`, `export_requests`, `json_file` y
+`text_file`) ahora publican sus errores mediante `Plugin._output`. `xml_file`
+queda pendiente porque su logging también vive en el decorador `took` y en la
+clase auxiliar `Finding`, que no son instancias de plugin y necesitan un
+contrato propio.
+
+Verificación: 38 tests y 6 subtests de output pasan para las rutas afectadas;
+fallan únicamente 2 aserciones ANSI de `console`, fuera del diff. Ruff, Black y
+mypy están limpios. El score permanece en **5.75/10** por el resto de
+consumidores globales, cobertura, Bandit heredado, mocks, perfilado, Moth y
+los orquestadores.

@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
@@ -66,7 +65,7 @@ class export_requests(OutputPlugin):
                 )
         except OSError as ioe:
             msg = 'Failed to open the output file for writing: "%s"'
-            om.out.error(msg % ioe)
+            self._output.error(msg % ioe)
 
     def set_options(self, option_list):
         """
