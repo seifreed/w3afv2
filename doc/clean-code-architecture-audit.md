@@ -1944,3 +1944,16 @@ payloads base pasan; Ruff, Black y mypy pasan en los módulos modificados. Las
 quedan 24 imports directos de la KB en producción, además de la cobertura,
 mocks, el fallo heredado de perfilado, la dependencia de Moth y los
 orquestadores grandes.
+
+## Actualización verificada: shell handler explícito
+
+`shell_handler.get_webshells` y `get_shell_code` reciben la KB como dependencia
+obligatoria. Los attack plugins `file_upload`, `dav`, `rfi` y `eval` la pasan
+desde su contexto de plugin, eliminando el último import global de esta ruta.
+
+Verificación: 77 tests de `shell_handler` y persistencia de KB pasan; mypy,
+Ruff y Black pasan en los consumidores modificados. Persisten únicamente dos
+advertencias de `ldap3`/`pyasn1` durante la suite. El score sigue en
+**5.75/10**: quedan 23 imports directos de la KB en producción, además de la
+cobertura, mocks, el fallo heredado de perfilado, la dependencia de Moth y los
+orquestadores grandes.
