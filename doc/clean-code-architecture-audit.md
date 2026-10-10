@@ -2629,3 +2629,15 @@ Verificación: **17 tests pasaron** en version manager y auto-update; Ruff,
 Black y mypy están limpios. El score permanece en **6.25/10** por los globals
 restantes de UI y servicios, cobertura total no demostrada, Bandit heredado,
 mocks e integraciones Moth.
+
+## Actualización verificada: extrusion y payload transfer con output explícito
+
+`payload_transfer_factory`, `EchoLinux`, `EchoWindows`, `extrusionScanner` y
+`extrusionServer` reciben el sink desde composición. `Shell.set_output()` cablea
+la factoría mediante `partial`, manteniendo la capa de datos libre de
+`output_manager`; vdaemon y w3afAgent pasan el sink a la factoría.
+
+Verificación: Ruff, Black y mypy están limpios; **5 tests pasaron y 2 fueron
+omitidos** en el bloque relacionado. Tres fixtures locales fallan en macOS
+porque simulan Linux y usan `/etc/passwd`, echo remoto y reverse HTTP; el
+score permanece en **6.25/10**.

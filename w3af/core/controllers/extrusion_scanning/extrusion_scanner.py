@@ -26,7 +26,6 @@ import socket
 import threading
 import time
 
-import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af import ROOT_PATH
 from w3af.core.controllers.extrusion_scanning.server.extrusion_server import (
@@ -55,6 +54,7 @@ class extrusionScanner:
         self,
         exec_method,
         knowledge_base,
+        output,
         forceReRun=False,
         tcpPortList=(25, 80, 53, 1433, 8080),
         udpPortList=(53, 69, 139, 1025),
@@ -67,22 +67,23 @@ class extrusionScanner:
         """
         self._exec_method = exec_method
         self._knowledge_base = knowledge_base
+        self._output = output
         self._forceReRun = forceReRun
         self._tcp_port_list = tcpPortList
         self._udp_port_list = udpPortList
 
-        os = os_detection_exec(exec_method, om.out)
+        os = os_detection_exec(exec_method, self._output)
         if os == "windows":
-            self._transferHandler = EchoWindows(exec_method, os)
+            self._transferHandler = EchoWindows(exec_method, os, output)
         elif os == "linux":
-            self._transferHandler = EchoLinux(exec_method, os)
+            self._transferHandler = EchoLinux(exec_method, os, output)
 
     def _getRemoteId(self):
         """
         Runs some commands on the remote host, concatenates outputs and creates
         a hash of the results. This will be an unique identifier for the host.
         """
-        om.out.debug("Creating a remote server fingerprint.")
+        self._output.debug("Creating a remote server fingerprint.")
         r = self._exec("ipconfig /all")
         r += self._exec("ifconfig")
         r += self._exec("uname -a")
@@ -132,14 +133,16 @@ class extrusionScanner:
                     '- Selecting port "%s" for inbound connections from the'
                     " compromised server to w3af."
                 )
-                om.out.information(msg % saved_results[remoteId])
+                self._output.information(msg % saved_results[remoteId])
                 return saved_results[remoteId]
 
-        om.out.information(
+        self._output.information(
             "Please wait some seconds while w3af performs an extrusion scan."
         )
 
-        es = extrusionServer(self._tcp_port_list, self._udp_port_list)
+        es = extrusionServer(
+            self._tcp_port_list, self._udp_port_list, output=self._output
+        )
         if not es.can_sniff():
             msg = "The user running w3af can't sniff on the specified"
             msg += " interface. Hints: Are you root? Does this interface"
@@ -157,7 +160,7 @@ class extrusionScanner:
             self._execExtrusionClient(interpreter, remoteFilename)
 
             res = es.get_result()
-            om.out.information("Finished extrusion scan.")
+            self._output.information("Finished extrusion scan.")
 
             if not res:
                 msg = "No inbound ports have been found. Maybe the extrusion"
@@ -166,14 +169,14 @@ class extrusionScanner:
             else:
                 host = res[0][0]
                 msg = 'The remote host: "%s" can connect to w3af with these ports:'
-                om.out.information(msg % host)
+                self._output.information(msg % host)
                 port = None
                 portList = []
                 for x in res:
                     if x[0] == host:
                         port = x[1]
                         protocol = x[2]
-                        om.out.information("- " + str(port) + "/" + protocol)
+                        self._output.information("- " + str(port) + "/" + protocol)
                         portList.append((port, protocol))
 
                 localPorts = []
@@ -186,9 +189,9 @@ class extrusionScanner:
                 else:
                     msg = "The following ports are not bound to a local process"
                     msg += " and can be used by w3af:"
-                    om.out.information(msg)
+                    self._output.information(msg)
                     for lp, proto in localPorts:
-                        om.out.information("- " + str(lp) + "/" + proto)
+                        self._output.information("- " + str(lp) + "/" + proto)
 
                         # Selecting the highest port
                         if desiredProtocol.upper() == proto.upper():
@@ -196,10 +199,10 @@ class extrusionScanner:
 
                     msg = 'Selecting port "%s/%s" for inbound connections from'
                     msg += " the compromised server to w3af."
-                    om.out.information(msg % (port, proto))
+                    self._output.information(msg % (port, proto))
 
                     if not self._forceReRun:
-                        om.out.debug("Saving information in the kb.")
+                        self._output.debug("Saving information in the kb.")
                         saved_results = self._knowledge_base.raw_read(
                             "extrusionScanner", "extrusions"
                         )
@@ -216,7 +219,7 @@ class extrusionScanner:
 
     def _sendExtrusionClient(self):
         interpreter, extrusionClient, extension = self._selectExtrusionClient()
-        remoteFilename = get_remote_temp_file(self._exec_method, om.out)
+        remoteFilename = get_remote_temp_file(self._exec_method, self._output)
         remoteFilename += "." + extension
 
         # do the transfer
@@ -228,9 +231,9 @@ class extrusionScanner:
         """
         A wrapper for executing commands
         """
-        om.out.debug("Executing: " + command)
+        self._output.debug("Executing: " + command)
         response = self._exec_method(*(command,))
-        om.out.debug('"' + command + '" returned: ' + response)
+        self._output.debug('"' + command + '" returned: ' + response)
         return response
 
     def can_scan(self):
@@ -297,4 +300,4 @@ class extrusionScanner:
         if "OK." not in res:
             raise BaseFrameworkException("The extrusion client failed to execute.")
         else:
-            om.out.debug("The extrusion client run as expected.")
+            self._output.debug("The extrusion client run as expected.")

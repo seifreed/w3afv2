@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import time
 from operator import itemgetter
 
-import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af.core.exceptions import BaseFrameworkException
 
@@ -36,7 +35,7 @@ class extrusionServer:
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self, tcp_ports, udp_ports, host=None, iface=None):
+    def __init__(self, tcp_ports, udp_ports, output, host=None, iface=None):
         """
         If you don't know what the IP address used by the remote host is
         (the one that's running the extrusionClient) you can just say None
@@ -48,6 +47,7 @@ class extrusionServer:
         :param iface: The interface where scapy is going to listen for packets
         """
         self._host = host
+        self._output = output
         self._udp_ports = udp_ports
         self._tcp_ports = tcp_ports
         self._sniffing = False
@@ -94,7 +94,7 @@ class extrusionServer:
         filter = " or ".join(["port " + str(p) for p in all_ports])
 
         msg = "ExtrusionServer listening on interface: %s"
-        om.out.information(msg % self._iface)
+        self._output.information(msg % self._iface)
 
         self._sniffing = True
         try:
@@ -106,7 +106,7 @@ class extrusionServer:
             )
             msg %= self._iface
 
-            om.out.error(msg)
+            self._output.error(msg)
             raise BaseFrameworkException(msg)
 
         else:
@@ -165,7 +165,7 @@ class extrusionServer:
                     possible_hosts[p[IP].src] = 1
 
         for p in possible_packets:
-            om.out.debug("[extrusionServer] Possible packet: " + p.summary())
+            self._output.debug("[extrusionServer] Possible packet: " + p.summary())
 
         # Now get the one that has more probability of being the one... and
         # report the list of ports
@@ -184,13 +184,13 @@ class extrusionServer:
                     _tuple = (p[IP].src, p[TCP].dport, "TCP")
                     if _tuple not in good_ports:
                         good_ports.append(_tuple)
-                        om.out.debug("[extrusionServer] Adding " + str(_tuple))
+                        self._output.debug("[extrusionServer] Adding " + str(_tuple))
 
                 if p.haslayer(UDP):
                     _tuple = (p[IP].src, p[UDP].dport, "UDP")
                     if _tuple not in good_ports:
                         good_ports.append(_tuple)
-                        om.out.debug("[extrusionServer] Adding " + str(_tuple))
+                        self._output.debug("[extrusionServer] Adding " + str(_tuple))
 
         return good_ports
 
@@ -230,13 +230,13 @@ class extrusionServer:
         remote host to connect back to the extrusionServer.
         """
         if not packets:
-            om.out.debug("No packets captured by scapy.")
+            self._output.debug("No packets captured by scapy.")
             return []
         else:
             msg = "Analyzing packets captured by scapy. The packets are:"
-            om.out.debug(msg)
+            self._output.debug(msg)
             for pkt in packets:
-                om.out.debug(str(pkt.summary()))
+                self._output.debug(str(pkt.summary()))
 
             if self._host is None:
                 return self._analyze_packets_no_host(packets)

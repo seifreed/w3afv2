@@ -24,6 +24,7 @@ import subprocess
 import tempfile
 import unittest
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.payload_transfer.echo_linux import EchoLinux
 
 
@@ -32,7 +33,7 @@ class TestEchoLinux(unittest.TestCase):
     def test_upload_file(self):
         exec_method = subprocess.getoutput
         os = "linux"
-        echo_linux = EchoLinux(exec_method, os)
+        echo_linux = EchoLinux(exec_method, os, om.out)
 
         self.assertTrue(echo_linux.can_transfer())
 

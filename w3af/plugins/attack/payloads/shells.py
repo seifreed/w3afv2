@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+from functools import partial
+
 from w3af.core.controllers.intrusion_tools.exec_method_helpers import os_detection_exec
 from w3af.core.controllers.payload_transfer.payload_transfer_factory import (
     payload_transfer_factory,
@@ -38,6 +40,9 @@ class Shell(_Shell):
 
     def set_output(self, output):
         self._output = output
+        self._payload_transfer_factory = partial(
+            payload_transfer_factory, output=output
+        )
 
 
 class ReadShell(_ReadShell, Shell):

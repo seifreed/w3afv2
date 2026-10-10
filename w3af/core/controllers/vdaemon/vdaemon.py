@@ -218,7 +218,9 @@ class vdaemon:
             "Wait while w3af uploads the payload to the remote server..."
         )
 
-        ptf = payload_transfer_factory(self._exec_method, self._knowledge_base)
+        ptf = payload_transfer_factory(
+            self._exec_method, self._knowledge_base, self._output
+        )
 
         # Now we get the transfer handler
         ptf.estimate_transfer_time()

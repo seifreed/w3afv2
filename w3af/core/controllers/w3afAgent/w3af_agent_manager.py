@@ -116,7 +116,9 @@ class w3afAgentManager(Process):
                 #    Now that everything is setup here, transfer the client
                 #    to the remote end and run it.
                 #
-                ptf = payload_transfer_factory(self._exec_method, self._knowledge_base)
+                ptf = payload_transfer_factory(
+                    self._exec_method, self._knowledge_base, om.out
+                )
                 transferHandler = ptf.get_transfer_handler(inbound_port)
 
                 if not transferHandler.can_transfer():
@@ -251,7 +253,7 @@ class w3afAgentManager(Process):
 
     def _get_inbound_port(self):
         # Do an extrusion scan and return the inbound open ports
-        es = extrusionScanner(self._exec_method, self._knowledge_base)
+        es = extrusionScanner(self._exec_method, self._knowledge_base, om.out)
         try:
             inbound_port = es.get_inbound_port()
         except Exception as e:

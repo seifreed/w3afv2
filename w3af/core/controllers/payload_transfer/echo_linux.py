@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import time
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.payload_transfer.base_payload_transfer import (
     BasePayloadTransfer,
 )
@@ -34,10 +33,11 @@ class EchoLinux(BasePayloadTransfer):
     the "echo" command.
     """
 
-    def __init__(self, exec_method, os):
+    def __init__(self, exec_method, os, output):
         super().__init__(exec_method, os)
         self._exec_method = exec_method
         self._os = os
+        self._output = output
         self._step = 30
 
     def can_transfer(self):
@@ -49,7 +49,9 @@ class EchoLinux(BasePayloadTransfer):
         # Check if echo exists and works as expected
         res = self._exec_method("/bin/echo -n 'w3af'")
         if "w3af" != res:
-            om.out.debug('Remote server returned: "' + res + '" when expecting "w3af".')
+            self._output.debug(
+                'Remote server returned: "' + res + '" when expecting "w3af".'
+            )
             return False
         else:
             return True
@@ -67,7 +69,9 @@ class EchoLinux(BasePayloadTransfer):
         requestTime = after - before
         timeTaken = round(requestTime * numberOfRequests)
 
-        om.out.debug('The file transfer will take "' + str(timeTaken) + '" seconds.')
+        self._output.debug(
+            'The file transfer will take "' + str(timeTaken) + '" seconds.'
+        )
         return int(timeTaken)
 
     def transfer(self, data_str, destination):

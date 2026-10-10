@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.extrusion_scanning.extrusion_scanner import extrusionScanner
 from w3af.core.controllers.intrusion_tools.exec_method_helpers import os_detection_exec
 from w3af.core.controllers.payload_transfer.clientless_reverse_http import (
@@ -45,9 +44,10 @@ class payload_transfer_factory:
     function.
     """
 
-    def __init__(self, exec_method, knowledge_base):
+    def __init__(self, exec_method, knowledge_base, output):
         self._exec_method = exec_method
-        self._es = extrusionScanner(exec_method, knowledge_base)
+        self._output = output
+        self._es = extrusionScanner(exec_method, knowledge_base, output)
 
     def estimate_transfer_time(self):
         if self._es.can_scan():
@@ -65,13 +65,13 @@ class payload_transfer_factory:
         :return: An object with a "transfer" method, which can be called by the
                  user in order to upload files.
         """
-        os = os_detection_exec(self._exec_method, om.out)
+        os = os_detection_exec(self._exec_method, self._output)
         if os == "windows":
-            echo_transfer = EchoWindows(self._exec_method, os)
+            echo_transfer = EchoWindows(self._exec_method, os, self._output)
         elif os == "linux":
-            echo_transfer = EchoLinux(self._exec_method, os)
+            echo_transfer = EchoLinux(self._exec_method, os, self._output)
         else:
-            echo_transfer = EchoLinux(self._exec_method, os)
+            echo_transfer = EchoLinux(self._exec_method, os, self._output)
 
         to_test = [echo_transfer]
         try:
@@ -83,7 +83,7 @@ class payload_transfer_factory:
                 "methods can be used. Trying inband echo transfer method."
                 ' Error: "%s"'
             )
-            om.out.error(msg % w3)
+            self._output.error(msg % w3)
         else:
             to_test.append(ReverseFTP(self._exec_method, os, inbound_port))
             if os == "windows":
@@ -91,7 +91,7 @@ class payload_transfer_factory:
                 pass
             elif os == "linux":
                 reverse = ClientlessReverseHTTP(
-                    self._exec_method, os, inbound_port, om.out
+                    self._exec_method, os, inbound_port, self._output
                 )
                 to_test.append(reverse)
 
@@ -100,17 +100,17 @@ class payload_transfer_factory:
 
         for method in to_test:
 
-            om.out.debug(
+            self._output.debug(
                 f'Testing if "{method}" is able to transfer a file to the '
                 "compromised host."
             )
             if method.can_transfer():
-                om.out.debug(
+                self._output.debug(
                     f"{method} is able to transfer a file to the compromised" " host."
                 )
                 return method
             else:
-                om.out.debug(
+                self._output.debug(
                     f"{method} *FAILED* to transfer a file to the" " compromised host."
                 )
 
