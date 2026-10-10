@@ -2899,3 +2899,17 @@ ExtendedUrllib; Ruff, Black, mypy focalizado y `git diff --check` están limpios
 El score permanece en **6.25/10** por los demás módulos grandes y deuda
 arquitectónica histórica, cobertura 100% no demostrada, Bandit heredado,
 mocks e integraciones Moth.
+
+## Actualización verificada: tests de auditoría sin unittest.mock
+
+Los tests de subida de ficheros ya usan los cuerpos reales de los `POST` del
+servidor HTTP de prueba para confirmar el contenido subido y derivan el nombre
+real del multipart para el caso regex. El test XXE remoto responde según la
+carga remota recibida; se eliminan los imports y parches de `unittest.mock`.
+
+Verificación: **2 tests de subida pasaron**; Black, Ruff, mypy focalizado y
+`git diff --check` están limpios. Los tests XXE y los escenarios Moth siguen
+fallando en `master` sin estos cambios: XXE no registra el hallazgo en este
+entorno y Moth no resuelve `php_moth-fallback`. El score permanece en
+**6.25/10** por los módulos grandes, cobertura 100% no demostrada, Bandit
+heredado y esas integraciones externas.

@@ -19,11 +19,34 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import re
+from threading import Lock
 from typing import ClassVar
-from unittest.mock import patch
 
 from w3af.core.controllers.ci.php_moth import get_php_moth_http as moth
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
+
+
+class UploadedFileResponse(MockResponse):
+    uploaded_request_bodies: ClassVar[list[bytes]] = []
+    uploaded_request_lock: ClassVar[Lock] = Lock()
+
+    def get_response(self, http_request, uri, response_headers):
+        response_headers.update(self.headers)
+
+        if http_request.command == "POST":
+            with type(self).uploaded_request_lock:
+                type(self).uploaded_request_bodies.append(http_request.body)
+            body = self.body
+            filename_match = re.search(rb'filename="([^"]+)"', http_request.body)
+            if filename_match is not None and isinstance(body, str):
+                filename = filename_match.group(1).decode("ascii")
+                body = body.replace("mockname.png", filename)
+        else:
+            with type(self).uploaded_request_lock:
+                body = b"".join(type(self).uploaded_request_bodies).decode("latin-1")
+
+        return self.status, response_headers, body
 
 
 class TestFileUpload(PluginTest):
@@ -110,8 +133,6 @@ class TestParseOutputFromUpload(PluginTest):
 
     RESULT = """Thanks for uploading your file to <a href='/uploads1/foo.png'>x</a>"""
 
-    image_content = "PNG" + "B" * 239
-
     MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url=target_url,
@@ -120,17 +141,17 @@ class TestParseOutputFromUpload(PluginTest):
             method="GET",
             status=200,
         ),
-        MockResponse(
+        UploadedFileResponse(
             url=target_url + "upload",
             body=RESULT,
             content_type="text/html",
             method="POST",
             status=200,
         ),
-        MockResponse(
+        UploadedFileResponse(
             url=target_url + "uploads1/foo.png",
-            body=image_content,
-            content_type="image/png",
+            body=None,
+            content_type="text/plain",
             method="GET",
             status=200,
         ),
@@ -155,10 +176,7 @@ class TestParseOutputFromUpload(PluginTest):
     def test_parse_response(self):
         cfg = self._run_configs["cfg"]
 
-        with patch("w3af.core.data.fuzzer.utils.rand_alnum") as rand_alnum_mock:
-            rand_alnum_mock.return_value = "B" * 239
-
-            self._scan(cfg["target"], cfg["plugins"])
+        self._scan(cfg["target"], cfg["plugins"])
 
         fu_vulns = self.kb.get("file_upload", "file_upload")
         self.assertEqual(1, len(fu_vulns))
@@ -182,13 +200,6 @@ class TestRegexOutputFromUpload(TestParseOutputFromUpload):
 
     RESULT = "Thanks for uploading your file to <pre>../../hackable/uploads/mockname.png</pre>"
 
-    FILE_CONTENT_RAND = "w3af.core.data.fuzzer.utils.rand_alnum"
-    IMAGE_CONTENT = "PNG" + "B" * 239
-
-    FILENAME_RAND_ALPHA = (
-        "w3af.core.data.constants.file_templates.file_templates.rand_alpha"
-    )
-
     MOCK_RESPONSES: ClassVar[list] = [
         MockResponse(
             url=target_url,
@@ -197,31 +208,25 @@ class TestRegexOutputFromUpload(TestParseOutputFromUpload):
             method="GET",
             status=200,
         ),
-        MockResponse(
+        UploadedFileResponse(
             url=target_url + "upload",
             body=RESULT,
             content_type="text/html",
             method="POST",
             status=200,
         ),
-        MockResponse(
-            url=target_url + "hackable/uploads/mockname.png",
-            body=IMAGE_CONTENT,
-            content_type="image/png",
+        UploadedFileResponse(
+            url=re.compile(r".*/hackable/uploads/[A-Za-z0-9]+\.png$"),
+            body=None,
+            content_type="text/plain",
             method="GET",
             status=200,
         ),
     ]
 
     def test_parse_response(self):
-        with patch(self.FILENAME_RAND_ALPHA) as rand_alpha_mock:
-            rand_alpha_mock.return_value = "mockname"
-
-            with patch(self.FILE_CONTENT_RAND) as rand_alnum_mock:
-                rand_alnum_mock.return_value = "B" * 239
-
-                cfg = self._run_configs["cfg"]
-                self._scan(cfg["target"], cfg["plugins"])
+        cfg = self._run_configs["cfg"]
+        self._scan(cfg["target"], cfg["plugins"])
 
         fu_vulns = self.kb.get("file_upload", "file_upload")
         self.assertEqual(1, len(fu_vulns))

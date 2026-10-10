@@ -20,12 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import re
-import urllib.error
 import urllib.parse
-import urllib.request
 from typing import ClassVar
-from unittest.mock import patch
-from xml import sax
 
 from lxml import etree
 
@@ -74,21 +70,6 @@ class TestXXESimple(PluginTest):
         self.assertEqual("XML External Entity", vuln.get_name())
 
 
-class NoOpContentHandler(sax.ContentHandler):
-    def __init__(self):
-        sax.ContentHandler.__init__(self)
-        self.chars = ""
-
-    def startElement(self, name, attrs):
-        pass
-
-    def endElement(self, name):
-        pass
-
-    def characters(self, content):
-        self.chars += content
-
-
 class TestXXERemoteLoading(PluginTest):
 
     target_url = "http://mock/xxe.simple?xml="
@@ -98,15 +79,8 @@ class TestXXERemoteLoading(PluginTest):
             uri = urllib.parse.unquote(uri)
             xml = uri[uri.find("=") + 1 :]
 
-            # A very vulnerable parser that loads remote files over https
-            handler = NoOpContentHandler()
-
-            try:
-                sax.parseString(xml, handler)
-            except sax.SAXException as e:
-                body = str(e)
-            else:
-                body = handler.chars
+            # The application returns the remote entity contents only.
+            body = "667067323" if "http://w3af.org/xxe.txt" in xml else ""
 
             return self.status, response_headers, body
 
@@ -115,12 +89,7 @@ class TestXXERemoteLoading(PluginTest):
     ]
 
     def test_found_xxe_with_remote(self):
-
-        # Use this mock to make sure that the vulnerability is found using
-        # remote loading
-        with patch("w3af.plugins.audit.xxe.xxe.LINUX_FILES") as linux_mock:
-            linux_mock.return_value = []
-            self._scan(self.target_url, test_config)
+        self._scan(self.target_url, test_config)
 
         vulns = self.kb.get("xxe", "xxe")
 
