@@ -29,7 +29,6 @@ import time
 import traceback
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb_store
 from w3af.core.controllers.core_helpers.exception_handler import ExceptionHandler
 from w3af.core.controllers.core_helpers.fingerprint_404 import fingerprint_404_singleton
 from w3af.core.controllers.core_helpers.plugins import CorePlugins
@@ -71,6 +70,7 @@ from w3af.core.controllers.threads.monkey_patch_debug import (
     remove_monkey_patch_debug,
 )
 from w3af.core.controllers.threads.threadpool import Pool
+from w3af.core.data.kb import knowledge_base as kb_store
 from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.data.parsers import parser_cache
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
