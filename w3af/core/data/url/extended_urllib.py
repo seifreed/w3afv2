@@ -47,10 +47,8 @@ from w3af.core.data.parsers.doc.http_request_parser import http_request_parser
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.constants import (
     ACCEPTABLE_ERROR_RATE,
-    ERROR_DELAY_LIMIT,
     MAX_ERROR_COUNT,
     MAX_RESPONSE_COLLECT,
-    SOCKET_ERROR_DELAY,
     TIMEOUT_ADJUST_LIMIT,
     TIMEOUT_INCREASE_MULT,
     TIMEOUT_MULT_CONST,
@@ -59,6 +57,7 @@ from w3af.core.data.url.exceptions import ConnectionPoolException, HTTPRequestEx
 from w3af.core.data.url.get_average_rtt import GetAverageRTTForMutant
 from w3af.core.data.url.handlers.keepalive import URLTimeoutError
 from w3af.core.data.url.helpers import get_clean_body, get_exception_reason
+from w3af.core.data.url.http_error_pause_controller import HttpErrorPauseController
 from w3af.core.data.url.http_request import HTTPRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.data.url.rate_limiter import RateLimiter
@@ -105,7 +104,6 @@ class ExtendedUrllib:
 
         # For rate limiting and timeouts
         self._rate_limiter = RateLimiter(self.settings, sleep)
-        self._error_pause_lock = threading.RLock()
         self._timeout_manager = TimeoutManager(self.settings)
 
         # Keep track of sum(rtt) for each debugging_id
@@ -121,8 +119,12 @@ class ExtendedUrllib:
         # Timeout is kept by host
         # Used in the pause on HTTP error feature to keep track of when the
         # core slept waiting for the remote end to be reachable
-        self._sleep_log = {}
-        self._clear_sleep_log()
+        self._error_pause_controller = HttpErrorPauseController(
+            self.get_error_rate,
+            self.get_total_requests,
+            self._sleep,
+            LOGGER.debug,
+        )
 
         # User configured options (in an indirect way)
         self._grep_queue_put = None
@@ -172,7 +174,7 @@ class ExtendedUrllib:
         self._request_control.raise_if_should_stop()
 
         self._request_control.pause_and_stop()
-        self._pause_on_http_error(request)
+        self._error_pause_controller.pause_on_error(request)
 
         if not self.exploit_mode:
             self._rate_limit()
@@ -321,89 +323,9 @@ class ExtendedUrllib:
         """
         return self._total_requests
 
-    def _pause_on_http_error(self, request):
-        """
-        This method will pause all scan threads for an increasing period of time
-        based on the HTTP error rate. HTTP errors are timeouts, network
-        unreachable, etc. things like 404, 403, 500 are NOT considered errors.
-
-        The objective of this method is to give the remote server, or local
-        connection, the chance to recover from their errors without killing the
-        w3af scan.
-
-        When the error rate is lower than 5% nothing is done. We accept some
-        errors.
-
-        If error rate is higher we delay the threads for some time, give the
-        remote server/local connection time to recover, and then continue with
-        the scan as usual.
-
-        The error rate is multiplied by SOCKET_ERROR_DELAY to get the real delay
-        time in seconds.
-
-        The error rate starts at zero, so no delay is added at the beginning
-
-        :return: None, but might delay the requests which go out to the network
-        :see: https://github.com/andresriancho/w3af/issues/4811
-        :see: https://github.com/andresriancho/w3af/issues/8852
-        """
-        with self._error_pause_lock:
-
-            error_rate = self.get_error_rate()
-            if not self._should_pause_on_http_error(error_rate):
-                return
-
-            pending_pause, lower_error_rate = self._has_pending_pause(error_rate)
-            if not pending_pause:
-                return
-
-            # Logging
-            error_sleep = SOCKET_ERROR_DELAY * error_rate
-            msg = (
-                "Sleeping for %s seconds before sending HTTP request to"
-                ' "%s" (did:%s) after receiving URL/socket error. The ExtendedUrllib'
-                " error rate is at %s%%"
-            )
-            args = (error_sleep, request.url_object, request.debugging_id, error_rate)
-            LOGGER.debug(msg % args)
-
-            # The actual delay
-            self._sleep(error_sleep)
-
-            # Record this delay
-            self._sleep_log[lower_error_rate] = True
-
-            # Clear if needed
-            if self.get_total_requests() % 100 == 0:
-                self._clear_sleep_log()
-
-    def _clear_sleep_log(self):
-        self._sleep_log = {}
-
-        step = ACCEPTABLE_ERROR_RATE * 2
-        data = [(i, False) for i in range(0, 110, step)]
-
-        self._sleep_log.update(data)
-
-    def _has_pending_pause(self, error_rate):
-        """
-        :param error_rate: The current error rate
-        :return: (False if we don't need to sleep/delay,
-                  The rounded error rate used to query the sleep log)
-        """
-        step = ACCEPTABLE_ERROR_RATE * 2
-        lower_error_rate = divmod(error_rate, step)[0] * step
-        return not self._sleep_log[lower_error_rate], lower_error_rate
-
-    def _should_pause_on_http_error(self, error_rate):
-        """
-        :param error_rate: The current error rate
-        :return: True if we should analyze enter the pause on error
-        """
-        if error_rate <= ACCEPTABLE_ERROR_RATE:
-            return False
-
-        return self.get_total_requests() % ERROR_DELAY_LIMIT == 0
+    @property
+    def _sleep_log(self):
+        return self._error_pause_controller.sleep_log
 
     def _rate_limit(self):
         """

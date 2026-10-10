@@ -3128,3 +3128,15 @@ Verificación: **56 tests de URL pasaron**; Black, Ruff, mypy focalizado, Bandit
 focalizado, `pip-audit` y `git diff --check` están limpios. El score permanece
 en **6.25/10** por la composición global, cobertura 100% no demostrada, mypy
 sobre el `venv` y Bandit heredado aún pendientes.
+
+## Actualización verificada: backoff de errores HTTP separado
+
+`HttpErrorPauseController` encapsula el lock, buckets de error, pausas
+progresivas y reset periódico del backoff. `ExtendedUrllib` conserva el estado
+observable de `_sleep_log` y la política de timing, pero ya no mezcla esta
+coordinación con la construcción y envío de requests.
+
+Verificación: **56 tests de URL pasaron**; Black, Ruff, mypy focalizado, Bandit
+focalizado, `pip-audit` y `git diff --check` están limpios. El score permanece
+en **6.25/10** por la composición global, cobertura 100% no demostrada, mypy
+sobre el `venv` y Bandit heredado aún pendientes.
