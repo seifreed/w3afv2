@@ -1702,3 +1702,13 @@ Verificación: 4 tests del plugin pasan, Ruff, Black y mypy pasan en el módulo
 modificado. El score sigue en **5.75/10**: quedan 66 imports directos de la KB,
 además de la cobertura, mocks, el fallo heredado de perfilado, la dependencia
 de Moth y los orquestadores grandes.
+
+## Actualización verificada: crawler de robots.txt
+
+`crawl.robots_txt` registra los hallazgos mediante la KB configurada en el
+plugin, manteniendo la extracción y el envío de URLs permitidas al núcleo.
+
+Verificación: 6 tests del plugin pasan, Ruff, Black y mypy pasan en el módulo
+modificado. El score sigue en **5.75/10**: quedan 65 imports directos de la KB,
+además de la cobertura, mocks, el fallo heredado de perfilado, la dependencia
+de Moth y los orquestadores grandes.
