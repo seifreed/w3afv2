@@ -401,6 +401,7 @@ class w3afCore:
 
         # Stop the parser subprocess
         parser_cache.dpc.clear()
+        self._output_manager.stop()
 
         # Remove the xurllib cache, bloom filters, DiskLists, etc.
         #

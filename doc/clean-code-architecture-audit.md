@@ -3671,3 +3671,17 @@ en este entorno porque esos hosts no resuelven; no se ha ocultado ese fallo.
 El score se mantiene en **6.5/10**: se cierra una regresión de boundary y
 serialización, pero siguen pendientes los singletons de composición, la
 cobertura global del 100% y la verificación completa de los gates globales.
+
+## Actualización verificada: lifecycle explícito del OutputManager
+
+El cierre del gestor de salida estaba duplicado en el reemplazo del singleton y
+en los tests. `OutputManager.stop()` concentra ahora el envío del sentinel, el
+`join()` y la liberación idempotente del pool; `fresh_output_manager_inst()` y
+`w3afCore.quit()` usan el mismo contrato. Esto evita que una instancia de core
+dependa de la siguiente para liberar su hilo de salida.
+
+Verificación: la suite de lifecycle del `OutputManager` pasa con el caso nuevo
+de doble cierre; Black y Ruff globales, mypy focal y Bandit focal permanecen
+limpios. El score se mantiene en **6.5/10** porque el singleton de módulo aún
+existe para los consumidores de test y la cobertura/gates globales siguen sin
+estar demostrados al 100%.

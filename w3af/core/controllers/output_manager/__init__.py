@@ -18,8 +18,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from w3af.core.constants import POISON_PILL
-
 from .log_sink import LogSink
 from .manager import OutputManager
 
@@ -39,10 +37,7 @@ def fresh_output_manager_inst():
     #
     #   Stop the old instance thread
     #
-    if manager.is_alive():
-        manager.in_queue.put(POISON_PILL)
-        manager.join()
-    manager.close_worker_pool()
+    manager.stop()
 
     #
     #   Create the new instance

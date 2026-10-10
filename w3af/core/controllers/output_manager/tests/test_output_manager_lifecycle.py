@@ -105,6 +105,16 @@ class TestOutputManagerRun(unittest.TestCase):
         self.assertFalse(manager.is_alive())
         self.assertTrue(manager._worker_pool.is_closed())
 
+    def test_stop_is_idempotent(self):
+        manager = self.started_manager()
+        manager.flush_plugin_output()
+
+        manager.stop()
+        manager.stop()
+
+        self.assertFalse(manager.is_alive())
+        self.assertTrue(manager._worker_pool.is_closed())
+
     def test_messages_reach_every_plugin_even_when_one_fails(self):
         failing = EventfulOutput(failure=RuntimeError("information failed"))
         recorder = EventfulOutput()

@@ -159,6 +159,14 @@ class OutputManager(Process):
             if not self.is_alive():
                 super().start()
 
+    def stop(self):
+        """Stop the manager and release all resources it owns."""
+        if self.is_alive():
+            self.in_queue.put(POISON_PILL)
+            self.join()
+
+        self.close_worker_pool()
+
     def run(self):
         """
         This method is one of the most important ones in the class, since it
