@@ -3384,3 +3384,17 @@ warnings externos de `ldap3/pyasn1`; la batería focal pasó **27 tests en
 1.29 s**. Ruff, mypy focal y Bandit focal están limpios. El score se mantiene
 en **6.5/10** por cobertura global, módulos grandes y gates globales
 pendientes.
+
+## Actualización verificada: headers del opener separados
+
+`HeaderSettings` concentra la lista de headers, la carga del fichero de
+headers, el logging y la sustitución del User-Agent. `OpenerSettings` conserva
+`header_list` con getter/setter, `set_headers_file()`, `set_header_list()` y
+`set_user_agent()` para los consumidores existentes, pero deja de poseer esa
+política directamente.
+
+Verificación: la suite URL completa pasó **217 tests en 179.42 s**, con dos
+warnings externos de `ldap3/pyasn1`; la batería focal pasó **46 tests en
+12.60 s**. Ruff, mypy focal y Bandit focal están limpios. El score se mantiene
+en **6.5/10** por cobertura global, módulos grandes y gates globales
+pendientes.

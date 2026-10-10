@@ -35,14 +35,14 @@ from w3af.core.data.options.option_types import (
 )
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.authentication_settings import AuthenticationSettings
-from w3af.core.data.url.constants import MAX_HTTP_RETRIES, USER_AGENT
+from w3af.core.data.url.constants import MAX_HTTP_RETRIES
 from w3af.core.data.url.cookie_settings import CookieSettings
+from w3af.core.data.url.header_settings import HeaderSettings
 from w3af.core.data.url.opener_builder import OpenerBuilder
 from w3af.core.data.url.proxy_settings import ProxySettings
 from w3af.core.data.url.url_parameter_settings import URLParameterSettings
 from w3af.core.exceptions import BaseFrameworkException
 
-USER_AGENT_HEADER = "User-Agent"
 LOGGER = logging.getLogger(__name__)
 
 
@@ -78,7 +78,7 @@ class OpenerSettings(Configurable):
 
         #   which basically is the UA for IE8 running in Windows 7, plus our
         #   website :)
-        self.header_list = [(USER_AGENT_HEADER, USER_AGENT)]
+        self._headers = HeaderSettings(cfg, LOGGER.debug)
 
         # By default, don't mangle any request/responses
         self._mangle_plugins = []
@@ -111,6 +111,14 @@ class OpenerSettings(Configurable):
     @property
     def _url_parameter_handler(self):
         return self._url_parameter.handler
+
+    @property
+    def header_list(self):
+        return self._headers.header_list
+
+    @header_list.setter
+    def header_list(self, header_list):
+        self._headers.header_list = header_list
 
     def _mark_needs_update(self):
         self.need_update = True
@@ -157,25 +165,7 @@ class OpenerSettings(Configurable):
                              specified
         :return: No value is returned.
         """
-        if not headers_file:
-            return
-
-        try:
-            with open(headers_file) as f:
-                lines = f.readlines()
-        except OSError as e:
-            msg = 'Unable to open headers file: "%s"'
-            raise BaseFrameworkException(msg % headers_file) from e
-
-        header_list = []
-        for line in lines:
-            header_name = line.split(":")[0]
-            header_value = ":".join(line.split(":")[1:])
-            header_value = header_value.strip()
-            header_list.append((header_name, header_value))
-
-        self.set_header_list(header_list)
-        cfg.save("headers_file", headers_file)
+        self._headers.set_headers_file(headers_file)
 
     def set_header_list(self, header_list):
         """
@@ -183,9 +173,7 @@ class OpenerSettings(Configurable):
                             to every request.
         :return: nothing
         """
-        for h, v in header_list:
-            self.header_list.append((h, v))
-            LOGGER.debug('Added the following header: "%s: %s"', h, v)
+        self._headers.set_header_list(header_list)
 
     def close_connections(self):
         handlers = (self._ka_http, self._ka_https)
@@ -224,11 +212,7 @@ class OpenerSettings(Configurable):
         return cfg.get("configured_timeout")
 
     def set_user_agent(self, user_agent):
-        self.header_list = [
-            i for i in self.header_list if i[0].lower() != USER_AGENT_HEADER.lower()
-        ]
-        self.header_list.append((USER_AGENT_HEADER, user_agent))
-        cfg.save("user_agent", user_agent)
+        self._headers.set_user_agent(user_agent)
 
     def set_rand_user_agent(self, rand_user_agent):
         self.rand_user_agent = rand_user_agent
