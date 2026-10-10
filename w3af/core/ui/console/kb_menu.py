@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.kb.vuln_templates.utils import (
     get_template_by_name,
@@ -48,15 +47,15 @@ class kbMenu(menu):
         # Key of the data type => (KB getter, (column names), (column getters))k
         self.__getters = {
             "vulns": (
-                kb.kb.get_all_vulns,
+                self._w3af.knowledge_base.get_all_vulns,
                 ["Vulnerability", "Description"],
             ),
             "info": (
-                kb.kb.get_all_infos,
+                self._w3af.knowledge_base.get_all_infos,
                 ["Info", "Description"],
             ),
             "shells": (
-                kb.kb.get_all_shells,
+                self._w3af.knowledge_base.get_all_shells,
                 ["Shells", "Description"],
             ),
         }
@@ -111,7 +110,12 @@ class kbMenu(menu):
         # plugins, misc-settings, etc.
         template_inst = get_template_by_name(template_name)
         template_menu = StoreOnBackConfigMenu(
-            template_name, self._console, self._w3af, self, template_inst, kb.kb
+            template_name,
+            self._console,
+            self._w3af,
+            self,
+            template_inst,
+            self._w3af.knowledge_base,
         )
 
         # Note: The data is stored in the KB when the user does a "back"

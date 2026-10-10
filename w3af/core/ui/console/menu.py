@@ -24,7 +24,6 @@ import logging
 import pprint
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.ui.console.help import HelpContainer, helpMainRepository
 from w3af.core.ui.console.history import history
@@ -214,7 +213,10 @@ class menu:
         if not len(params):
             raise BaseFrameworkException("Variable is expected")
 
-        small_locals = {"kb": kb, "w3af_core": self._w3af}
+        small_locals = {
+            "kb": self._w3af.knowledge_base,
+            "w3af_core": self._w3af,
+        }
         small_globals = {}
 
         eval_variable = " ".join(params)
