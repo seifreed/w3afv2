@@ -40,20 +40,11 @@ from w3af.core.data.options.option_types import (
 )
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.constants import MAX_HTTP_RETRIES, USER_AGENT
-from w3af.core.data.url.director import CustomOpenerDirector, build_opener
-from w3af.core.data.url.handlers.blacklist import BlacklistHandler
-from w3af.core.data.url.handlers.cache import CacheHandler
 from w3af.core.data.url.handlers.cookie_handler import CookieHandler
-from w3af.core.data.url.handlers.errors import ErrorHandler, NoOpErrorHandler
 from w3af.core.data.url.handlers.fast_basic_auth import FastHTTPBasicAuthHandler
-from w3af.core.data.url.handlers.gzip_handler import HTTPGzipProcessor
-from w3af.core.data.url.handlers.http_log import HTTPLogHandler
-from w3af.core.data.url.handlers.keepalive import HTTPHandler, HTTPSHandler
-from w3af.core.data.url.handlers.mangle import MangleHandler
-from w3af.core.data.url.handlers.normalize import NormalizeHandler
 from w3af.core.data.url.handlers.ntlm_auth import HTTPNtlmAuthHandler
-from w3af.core.data.url.handlers.redirect import HTTP30XHandler
 from w3af.core.data.url.handlers.url_parameter import URLParameterHandler
+from w3af.core.data.url.opener_builder import OpenerBuilder
 from w3af.core.exceptions import BaseFrameworkException
 
 USER_AGENT_HEADER = "User-Agent"
@@ -358,45 +349,21 @@ class OpenerSettings(Configurable):
         self.need_update = True
 
     def build_openers(self):
-        # Instantiate the handlers passing the proxy as parameter
-        self._ka_http = HTTPHandler()
-        self._ka_https = HTTPSHandler(self.get_proxy())
-        self._cache_handler = CacheHandler()
-
-        # Prepare the list of handlers
-        handlers = []
-        for handler in [
+        built_openers = OpenerBuilder(
+            self._http_log_callback,
+            self.get_proxy(),
             self._proxy_handler,
             self._basic_auth_handler,
             self._ntlm_auth_handler,
             self._cookie_handler,
-            NormalizeHandler,
-            self._ka_http,
-            self._ka_https,
-            (
-                HTTPLogHandler(self._http_log_callback)
-                if self._http_log_callback is not None
-                else None
-            ),
-            HTTP30XHandler,
-            BlacklistHandler,
-            MangleHandler(self._mangle_plugins),
-            HTTPGzipProcessor,
+            self._mangle_plugins,
             self._url_parameter_handler,
-            self._cache_handler,
-            ErrorHandler,
-            NoOpErrorHandler,
-        ]:
-            if handler:
-                handlers.append(handler)
-
-        if cfg.get("ignore_session_cookies"):
-            handlers.remove(self._cookie_handler)
-
-        self._uri_opener = build_opener(CustomOpenerDirector, handlers)
-
-        # Prevent the urllib from putting his user-agent header
-        self._uri_opener.addheaders = [("Accept", "*/*")]
+            cfg.get("ignore_session_cookies"),
+        ).build()
+        self._uri_opener = built_openers.uri_opener
+        self._ka_http = built_openers.http_handler
+        self._ka_https = built_openers.https_handler
+        self._cache_handler = built_openers.cache_handler
 
     def get_custom_opener(self):
         return self._uri_opener

@@ -3144,6 +3144,18 @@ focalizado, `pip-audit` y `git diff --check` están limpios. El score permanece
 en **6.25/10** por la composición global, cobertura 100% no demostrada, mypy
 sobre el `venv` y Bandit heredado aún pendientes.
 
+## Actualización verificada: construcción de handlers separada
+
+`OpenerBuilder` concentra la composición concreta de handlers urllib y devuelve
+los recursos de runtime que necesita `OpenerSettings`. La clase de configuración
+conserva opciones, persistencia y ciclo público, sin mezclar esas reglas con la
+instanciación del pipeline de transporte.
+
+Verificación: la suite completa de URL pasó **217 tests en 192.06 s**; Black
+global, Ruff global, mypy focalizado, Bandit focalizado, `pip-audit` y
+`git diff --check` están limpios. El score se mantiene en **6.5/10** por los
+módulos grandes, cobertura global no demostrada y gates globales pendientes.
+
 ## Actualización verificada: historial de respuestas separado
 
 `ResponseHistory` concentra la ventana de respuestas, cálculo de RTT, tasa de
