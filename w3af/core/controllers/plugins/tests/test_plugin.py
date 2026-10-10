@@ -32,6 +32,7 @@ from w3af.core.controllers.tests.local_http_server import (
 )
 from w3af.core.controllers.tests.recording_output import start_recording_output
 from w3af.core.controllers.threads.threadpool import Pool
+from w3af.core.data.kb.config import Config
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
 from w3af.core.data.options.option_list import OptionList
@@ -164,13 +165,20 @@ class TestPlugin(unittest.TestCase):
         plugin = Plugin()
         plugin.set_output(om.out)
         plugin.set_knowledge_base(kb.kb)
+        configuration = Config()
+        configuration.save("vulndb_language", "es")
+        plugin.set_configuration(configuration)
         recorder = start_recording_output()
 
-        plugin.kb_append("a", "b", new_info("http://w3af.org/"))
+        info = new_info("http://w3af.org/")
+        plugin.kb_append("a", "b", info)
         plugin.kb_append("a", "b", new_info("http://w3af.org/"))
 
         self.assertEqual(len(kb.kb.get("a", "b")), 2)
         self.assertEqual(len(recorder.messages_of("vulnerability")), 2)
+        stored_info = kb.kb.get("a", "b")[0]
+        self.assertEqual(stored_info.get_vulndb_lang(), "es")
+        self.assertNotIn("_configuration", vars(stored_info))
 
     def test_kb_methods_require_explicit_knowledge_base(self):
         with self.assertRaisesRegex(RuntimeError, "has not been configured"):

@@ -188,6 +188,7 @@ class Plugin(Configurable):
         """
         kb.kb.append_uniq a vulnerability to the KB
         """
+        self._configure_info(info)
         added_to_kb = self._get_knowledge_base().append_uniq(
             location_a, location_b, info, filter_by=filter_by
         )
@@ -201,6 +202,7 @@ class Plugin(Configurable):
         """
         kb.kb.append_uniq_group a vulnerability to the KB
         """
+        self._configure_info(info)
         info_set, created = self._get_knowledge_base().append_uniq_group(
             location_a, location_b, info, group_klass=group_klass
         )
@@ -212,8 +214,13 @@ class Plugin(Configurable):
         """
         kb.kb.append a vulnerability to the KB
         """
+        self._configure_info(info)
         self._get_knowledge_base().append(location_a, location_b, info)
         self._output.report_finding(info)
+
+    def _configure_info(self, info):
+        if self._configuration is not None:
+            info.set_configuration(self._configuration)
 
     def __eq__(self, other):
         """

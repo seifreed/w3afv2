@@ -24,7 +24,6 @@ import uuid
 
 from vulndb import DBVuln
 
-import w3af.core.data.kb.config as cf
 from w3af.core.data.constants.severity import INFORMATION
 from w3af.core.data.constants.vulns import VULNS
 from w3af.core.data.fuzzer.mutants.empty_mutant import EmptyMutant
@@ -39,7 +38,9 @@ class Info(dict):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self, name, desc, response_ids, plugin_name, vulndb_id=None):
+    def __init__(
+        self, name, desc, response_ids, plugin_name, vulndb_id=None, configuration=None
+    ):
         """
         :param name: The vulnerability name, will be checked against the values
                      in core.data.constants.vulns.
@@ -66,6 +67,10 @@ class Info(dict):
         self._plugin_name = None
         self._vulndb_id = None
         self._vulndb = None
+        self._vulndb_language = DBVuln.DEFAULT_LANG
+
+        if configuration is not None:
+            self.set_configuration(configuration)
 
         # Set the values provided by the user
         self.set_vulndb_id(vulndb_id)
@@ -81,7 +86,9 @@ class Info(dict):
         self._uniq_id = str(uuid.uuid4())
 
     @classmethod
-    def from_mutant(cls, name, desc, response_ids, plugin_name, mutant):
+    def from_mutant(
+        cls, name, desc, response_ids, plugin_name, mutant, configuration=None
+    ):
         """
         :return: An info instance with the proper data set based on the values
                  taken from the mutant.
@@ -89,13 +96,19 @@ class Info(dict):
         if not isinstance(mutant, Mutant):
             raise TypeError("Mutant expected in from_mutant.")
 
-        inst = cls(name, desc, response_ids, plugin_name)
+        inst = cls(
+            name,
+            desc,
+            response_ids,
+            plugin_name,
+            configuration=configuration,
+        )
         inst.set_mutant(mutant)
 
         return inst
 
     @classmethod
-    def from_fr(cls, name, desc, response_ids, plugin_name, freq):
+    def from_fr(cls, name, desc, response_ids, plugin_name, freq, configuration=None):
         """
         :return: An info instance with the proper data set based on the values
                  taken from the fuzzable request.
@@ -105,7 +118,14 @@ class Info(dict):
 
         mutant = EmptyMutant(freq)
 
-        return Info.from_mutant(name, desc, response_ids, plugin_name, mutant)
+        return Info.from_mutant(
+            name,
+            desc,
+            response_ids,
+            plugin_name,
+            mutant,
+            configuration=configuration,
+        )
 
     @classmethod
     def from_info(cls, other_info):
@@ -121,6 +141,7 @@ class Info(dict):
         plugin_name = other_info.get_plugin_name()
 
         inst = cls(name, desc, response_ids, plugin_name)
+        inst.set_vulndb_language(other_info.get_vulndb_lang())
         inst._string_matches = other_info.get_to_highlight()
         inst._mutant = other_info.get_mutant()
         inst._uniq_id = other_info.get_uniq_id()
@@ -257,6 +278,17 @@ class Info(dict):
     def get_vulndb_id(self):
         return self._vulndb_id
 
+    def set_configuration(self, configuration):
+        """Resolve the scan language without retaining the configuration."""
+        self.set_vulndb_language(
+            configuration.get("vulndb_language") or DBVuln.DEFAULT_LANG
+        )
+
+    def set_vulndb_language(self, language):
+        if language != self._vulndb_language:
+            self._vulndb = None
+        self._vulndb_language = language or DBVuln.DEFAULT_LANG
+
     def set_vulndb_id(self, vulndb_id):
         if vulndb_id is None:
             self._vulndb_id = None
@@ -278,7 +310,7 @@ class Info(dict):
         :return: The language code (es, en, etc.) to use when reading from
                  the vulnerability database.
         """
-        return cf.cf.get("vulndb_language") or DBVuln.DEFAULT_LANG
+        return self._vulndb_language
 
     def has_db_details(self):
         """

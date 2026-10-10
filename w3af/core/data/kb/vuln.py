@@ -33,7 +33,16 @@ class Vuln(Info):
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self, name, desc, severity, response_ids, plugin_name, vulndb_id=None):
+    def __init__(
+        self,
+        name,
+        desc,
+        severity,
+        response_ids,
+        plugin_name,
+        vulndb_id=None,
+        configuration=None,
+    ):
         """
         :param name: The vulnerability name, will be checked against the values
                      in core.data.constants.vulns.
@@ -46,7 +55,15 @@ class Vuln(Info):
 
         :see: https://github.com/vulndb/data
         """
-        Info.__init__(self, name, desc, response_ids, plugin_name, vulndb_id=vulndb_id)
+        Info.__init__(
+            self,
+            name,
+            desc,
+            response_ids,
+            plugin_name,
+            vulndb_id=vulndb_id,
+            configuration=configuration,
+        )
 
         self._severity = None
         self.set_severity(severity)

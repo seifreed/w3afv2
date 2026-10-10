@@ -4118,3 +4118,16 @@ ramas grep **44 tests**. El proceso de ramas termina con **98.7 MB** de RSS
 máximo. Black, Ruff, mypy y Bandit focal están limpios. El score sube a
 **9.4/10** en Clean Architecture y **9.3/10** global. Restan `Info`, el
 ensamblaje global de `w3afCore` y la cobertura global del 100%.
+
+## Actualización verificada: idioma de `Info` sin configuración global
+
+`Info` y `Vuln` reciben una configuración opcional y conservan únicamente el
+idioma ya resuelto; nunca mantienen una referencia a `Config`. Los helpers de
+persistencia del plugin aplican la configuración del scan antes de guardar o
+reportar el hallazgo, y los clones de `Info` preservan ese idioma.
+
+Verificación: KB/plugin e `Info`/`Vuln` pasan **50 tests**; Black, Ruff y mypy
+focal están limpios. Ya no quedan lecturas de `cf.cf` en `Info`; permanece el
+singleton únicamente en `w3afCore`. El score sube a **9.5/10** en Clean
+Architecture y **9.4/10** global. Restan las escrituras directas en KB, el
+ensamblaje global de `w3afCore` y la cobertura global del 100%.

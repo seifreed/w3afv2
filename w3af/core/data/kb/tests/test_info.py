@@ -30,6 +30,7 @@ from vulndb.db_vuln import DBVuln, Reference
 from w3af.core.data.dc.generic.nr_kv_container import NonRepeatKeyValueContainer
 from w3af.core.data.dc.query_string import QueryString
 from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
+from w3af.core.data.kb.config import Config
 from w3af.core.data.kb.info import Info
 from w3af.core.data.misc.serialize import dumps
 from w3af.core.data.parsers.doc.url import URL
@@ -213,6 +214,21 @@ class TestInfo(unittest.TestCase):
     def test_vulndb_id_not_set(self):
         i = Info("TestCase", MockInfo.LONG_DESC, 1, "plugin_name")
         self.assertFalse(i.has_db_details())
+
+    def test_configuration_sets_language_without_retaining_configuration(self):
+        configuration = Config()
+        configuration.save("vulndb_language", "es")
+
+        info = Info(
+            "TestCase",
+            MockInfo.LONG_DESC,
+            1,
+            "plugin_name",
+            configuration=configuration,
+        )
+
+        self.assertEqual(info.get_vulndb_lang(), "es")
+        self.assertNotIn("_configuration", vars(info))
 
     def test_vulndb_id_set(self):
         # The vulndb_id overrides the 'Blind SQL injection vulnerability' name
