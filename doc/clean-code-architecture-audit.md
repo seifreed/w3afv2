@@ -1968,3 +1968,15 @@ explotación RFI no pudieron completar porque `php_moth-fallback` no resuelve
 en este entorno. El score sigue en **5.75/10**: quedan 22 imports directos de
 la KB en producción, además de la cobertura, mocks, el fallo heredado de
 perfilado, la dependencia de Moth y los orquestadores grandes.
+
+## Actualización verificada: infraestructura HTTP y PHP
+
+`afd`, `allowed_methods`, `php_eggs` y `server_header` escriben y leen la KB
+mediante la dependencia configurada en `InfrastructurePlugin`; sus fixtures
+aislados también la inyectan explícitamente.
+
+Verificación: 29 tests de los cuatro plugins pasan, y Ruff, Black y mypy pasan
+en producción y fixtures modificados. El score sigue en **5.75/10**: quedan
+18 imports directos de la KB en producción, además de la cobertura, mocks, el
+fallo heredado de perfilado, la dependencia de Moth y los orquestadores
+grandes.
