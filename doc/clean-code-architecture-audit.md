@@ -3079,3 +3079,14 @@ Verificación: las dos suites pasaron **14 tests**; Black, Ruff, mypy focalizado
 Bandit focalizado, `pip-audit` y `git diff --check` están limpios. El score
 permanece en **6.25/10** hasta repetir la suite core completa y resolver las
 deudas globales de cobertura y gates.
+
+## Actualización verificada: suite core completa recuperada
+
+La suite `w3af/core/controllers/tests/core_test_suite` pasa ahora completa:
+**31 tests en 2m14s**. El problema era el wiring incompleto de los plugins de
+prueba, no el manejo de excepciones ni el lifecycle de pausa/parada en runtime.
+
+Black y Ruff globales, mypy/Bandit focalizados, `pip-audit` y `git diff --check`
+siguen limpios. El score permanece en **6.25/10** por las deudas globales de
+composición, cobertura 100% no demostrada, mypy sobre el `venv` y Bandit
+heredado aún pendientes.
