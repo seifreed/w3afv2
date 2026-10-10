@@ -89,7 +89,9 @@ class ExtendedUrllib:
         self.settings = opener_settings.OpenerSettings(http_log_callback)
         self._sleep = sleep
         self._opener = None
-        self._w3af_core = None
+        self._worker_pool_provider = None
+        self._min_worker_threads = None
+        self._max_worker_threads = None
         self._average_rtt_mutant = GetAverageRTTForMutant(self)
 
         # In exploit mode we disable some timeout/delay/error handling stuff
@@ -148,14 +150,10 @@ class ExtendedUrllib:
         """
         self._user_stopped = True
 
-    def set_w3af_core(self, w3af_core):
-        self._w3af_core = w3af_core
-
-    def get_w3af_core(self):
-        return self._w3af_core
-
-    def has_w3af_core(self):
-        return self._w3af_core is not None
+    def set_worker_pool_provider(self, provider, min_workers, max_workers):
+        self._worker_pool_provider = provider
+        self._min_worker_threads = min_workers
+        self._max_worker_threads = max_workers
 
     def _before_send_hook(self, request):
         """
@@ -947,9 +945,8 @@ class ExtendedUrllib:
             )
 
     def _decrease_worker_pool_size(self):
-        w3af_core = self.get_w3af_core()
-        worker_pool = w3af_core.worker_pool
-        min_workers = w3af_core.MIN_WORKER_THREADS
+        worker_pool = self._worker_pool_provider()
+        min_workers = self._min_worker_threads
 
         error_rate = self.get_error_rate()
 
@@ -962,9 +959,8 @@ class ExtendedUrllib:
         LOGGER.debug(msg % (new_worker_count, error_rate))
 
     def _increase_worker_pool_size(self):
-        w3af_core = self.get_w3af_core()
-        worker_pool = w3af_core.worker_pool
-        max_workers = w3af_core.MAX_WORKER_THREADS
+        worker_pool = self._worker_pool_provider()
+        max_workers = self._max_worker_threads
 
         error_rate = self.get_error_rate()
 
@@ -994,7 +990,7 @@ class ExtendedUrllib:
         Increase or decrease the worker pool size
         :return: None
         """
-        if not self.has_w3af_core():
+        if self._worker_pool_provider is None:
             return
 
         if not self._should_adjust_workers():

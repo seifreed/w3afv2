@@ -74,15 +74,6 @@ class TestExtendedUrllibAPI(unittest.TestCase):
     def url(self, path="/"):
         return URL(self.server.url(path))
 
-    def test_w3af_core(self):
-        self.assertFalse(self.uri_opener.has_w3af_core())
-
-        w3af_core = w3afCore()
-        self.uri_opener.set_w3af_core(w3af_core)
-
-        self.assertTrue(self.uri_opener.has_w3af_core())
-        self.assertIs(self.uri_opener.get_w3af_core(), w3af_core)
-
     def test_restart(self):
         self.uri_opener.stop()
         self.uri_opener.restart()
@@ -243,7 +234,7 @@ class TestWorkerPoolSize(unittest.TestCase):
 
     def test_increase_without_errors(self):
         start = self.worker_pool.get_worker_count()
-        self.uri_opener.set_w3af_core(self.w3af_core)
+        self.configure_worker_pool()
 
         with self.assertLogs(LOGGER_NAME, "DEBUG") as logs:
             self.uri_opener.GET(URL(self.server.url()))
@@ -258,7 +249,7 @@ class TestWorkerPoolSize(unittest.TestCase):
 
         # These errors happen before the core is set, no adjustments yet
         self.fail(3)
-        self.uri_opener.set_w3af_core(self.w3af_core)
+        self.configure_worker_pool()
 
         with self.assertLogs(LOGGER_NAME, "DEBUG") as logs:
             self.uri_opener.GET(URL(self.server.url()))
@@ -279,13 +270,20 @@ class TestWorkerPoolSize(unittest.TestCase):
         start = self.worker_pool.get_worker_count()
 
         self.fail(2)
-        self.uri_opener.set_w3af_core(self.w3af_core)
+        self.configure_worker_pool()
 
         with self.assertLogs(LOGGER_NAME, "DEBUG") as logs:
             self.uri_opener.GET(URL(self.server.url()))
 
         self.assertEqual(self.adjustments(logs), [])
         self.assertEqual(self.worker_pool.get_worker_count(), start)
+
+    def configure_worker_pool(self):
+        self.uri_opener.set_worker_pool_provider(
+            lambda: self.worker_pool,
+            self.w3af_core.MIN_WORKER_THREADS,
+            self.w3af_core.MAX_WORKER_THREADS,
+        )
 
 
 class TestHandlerErrors(unittest.TestCase):

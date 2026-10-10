@@ -165,7 +165,11 @@ class w3afCore:
 
         # Create the URI opener object
         self.uri_opener = ExtendedUrllib(output.log_http)
-        self.uri_opener.set_w3af_core(self)
+        self.uri_opener.set_worker_pool_provider(
+            lambda: self.worker_pool,
+            self.MIN_WORKER_THREADS,
+            self.MAX_WORKER_THREADS,
+        )
 
         # Keep track of first scan to call cleanup or not
         self._first_scan = True

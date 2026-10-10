@@ -2886,3 +2886,16 @@ Verificación: no existen tests dedicados del agente en este checkout; Ruff,
 Black, mypy focalizado, `py_compile` y `git diff --check` están limpios. El
 score permanece en **6.25/10** por los globals de composición restantes,
 cobertura 100% no demostrada, Bandit heredado, mocks e integraciones Moth.
+
+## Actualización verificada: ExtendedUrllib desacoplado de w3afCore
+
+`ExtendedUrllib` ya no guarda ni expone un `w3afCore` completo. El controlador
+inyecta únicamente un proveedor de pool y sus límites para el ajuste dinámico
+de workers; la capa de datos conserva el pool lazy y deja de depender de
+constantes y estado del controller.
+
+Verificación: **62 tests pasaron** en API, errores, reintentos y timeout de
+ExtendedUrllib; Ruff, Black, mypy focalizado y `git diff --check` están limpios.
+El score permanece en **6.25/10** por los demás módulos grandes y deuda
+arquitectónica histórica, cobertura 100% no demostrada, Bandit heredado,
+mocks e integraciones Moth.
