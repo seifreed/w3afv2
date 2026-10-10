@@ -1833,3 +1833,14 @@ Verificación: 21 tests del crawler y sus parsers pasan, Ruff, Black y mypy
 pasan en el módulo modificado. El score sigue en **5.75/10**: quedan 47
 imports directos de la KB, además de la cobertura, mocks, el fallo heredado de
 perfilado, la dependencia de Moth y los orquestadores grandes.
+
+## Actualización verificada: fuzzing de URLs
+
+`crawl.url_fuzzer` consulta los métodos permitidos y registra los archivos
+interesantes mediante la KB configurada en el plugin, preservando sus
+mutaciones y el filtrado de respuestas.
+
+Verificación: 3 tests del plugin pasan, Ruff, Black y mypy pasan en el módulo
+modificado. El score sigue en **5.75/10**: quedan 46 imports directos de la KB,
+además de la cobertura, mocks, el fallo heredado de perfilado, la dependencia
+de Moth y los orquestadores grandes.
