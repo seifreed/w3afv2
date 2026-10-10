@@ -35,9 +35,9 @@ from w3af.core.data.options.option_types import (
 )
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.authentication_settings import AuthenticationSettings
-from w3af.core.data.url.constants import MAX_HTTP_RETRIES
 from w3af.core.data.url.cookie_settings import CookieSettings
 from w3af.core.data.url.header_settings import HeaderSettings
+from w3af.core.data.url.opener_defaults import OpenerDefaults
 from w3af.core.data.url.opener_lifecycle import OpenerLifecycle
 from w3af.core.data.url.proxy_settings import ProxySettings
 from w3af.core.data.url.request_limits_settings import RequestLimitsSettings
@@ -60,6 +60,7 @@ class OpenerSettings(Configurable):
         self._url_parameter = URLParameterSettings()
         self._lifecycle = OpenerLifecycle()
         self._request_limits = RequestLimitsSettings(cfg)
+        self._defaults = OpenerDefaults(cfg)
 
         self._cookies = CookieSettings(cfg, LOGGER.debug)
 
@@ -137,35 +138,7 @@ class OpenerSettings(Configurable):
         self.need_update = True
 
     def set_default_values(self):
-        cfg.save("configured_timeout", 0)
-        cfg.save("headers_file", "")
-        cfg.save("cookie_jar_file", "")
-        cfg.save("user_agent", "w3af.org")
-        cfg.save("rand_user_agent", False)
-
-        cfg.save("proxy_address", "")
-        cfg.save("proxy_port", 8080)
-
-        cfg.save("basic_auth_passwd", "")
-        cfg.save("basic_auth_user", "")
-        cfg.save("basic_auth_domain", "")
-
-        cfg.save("ntlm_auth_domain", "")
-        cfg.save("ntlm_auth_user", "")
-        cfg.save("ntlm_auth_passwd", "")
-        cfg.save("ntlm_auth_url", "")
-
-        cfg.save("ignore_session_cookies", False)
-        cfg.save("max_file_size", 400000)
-        cfg.save("max_http_retries", MAX_HTTP_RETRIES)
-        cfg.save("max_requests_per_second", 0)
-
-        cfg.save("url_parameter", "")
-
-        # 404 settings
-        cfg.save("never_404", [])
-        cfg.save("always_404", [])
-        cfg.save("string_match_404", "")
+        self._defaults.apply()
 
     def set_headers_file(self, headers_file):
         """

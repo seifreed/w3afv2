@@ -3425,3 +3425,15 @@ warnings externos de `ldap3/pyasn1`; la batería focal pasó **62 tests en
 125.51 s**. Ruff, mypy focal y Bandit focal están limpios. El score se
 mantiene en **6.5/10** por cobertura global, módulos grandes y gates globales
 pendientes.
+
+## Actualización verificada: defaults del opener separados
+
+`OpenerDefaults` concentra la persistencia de todos los valores iniciales del
+opener. `OpenerSettings` conserva `set_default_values()` como fachada pública y
+mantiene el mismo orden, nombres y valores de configuración.
+
+Verificación: la suite URL completa pasó **217 tests en 191.04 s**, con dos
+warnings externos de `ldap3/pyasn1`; la batería focal del opener pasó **26
+tests**. Black, Ruff, mypy focal y Bandit focal están limpios. El score se
+mantiene en **6.5/10** por cobertura global, módulos grandes y gates globales
+pendientes.
