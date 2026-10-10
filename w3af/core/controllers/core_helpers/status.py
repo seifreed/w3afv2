@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import time
 from operator import xor
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.epoch_to_string import epoch_to_string
 from w3af.core.data.misc.number_generator import consecutive_number_generator
 
@@ -43,9 +42,10 @@ class CoreStatus:
     calling the different methods to (get) the information required.
     """
 
-    def __init__(self, w3af_core, scans_completed=0):
+    def __init__(self, w3af_core, output, scans_completed=0):
         # Store the core to be able to access the queues to get status
         self._w3af_core = w3af_core
+        self._output = output
 
         # Init some internal values
         self._is_running = False
@@ -68,10 +68,13 @@ class CoreStatus:
     def set_w3af_core(self, w3af_core):
         self._w3af_core = w3af_core
 
+    def set_output(self, output):
+        self._output = output
+
     def pause(self, pause_yes_no):
         self._paused = pause_yes_no
         self._is_running = not pause_yes_no
-        om.out.debug("The user paused / unpaused the scan.")
+        self._output.debug("The user paused / unpaused the scan.")
 
     def start(self):
         self._is_running = True
@@ -385,7 +388,7 @@ class CoreStatus:
             run_time,
         )
 
-        om.out.debug(msg % args)
+        self._output.debug(msg % args)
 
     def calculate_eta(
         self, input_speed, output_speed, queue_size, _type, adjustment=None
@@ -596,7 +599,9 @@ class CoreStatus:
         if progress == 100 and self.any_consumer_running():
             progress = 99
 
-        om.out.debug(f"The scan will finish in {eta:.2f} seconds ({progress}% done)")
+        self._output.debug(
+            f"The scan will finish in {eta:.2f} seconds ({progress}% done)"
+        )
 
         return progress
 
@@ -725,7 +730,7 @@ class CoreStatus:
         return Adjustment(known=1.0, unknown=0.75)
 
     def log_eta(self, msg):
-        om.out.debug(f"[get_eta] {msg}")
+        self._output.debug(f"[get_eta] {msg}")
 
     def get_eta(self):
         """

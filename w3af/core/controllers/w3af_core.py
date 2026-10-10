@@ -158,7 +158,7 @@ class w3afCore:
         # scan.
         self.profiles = CoreProfiles(self)
         self.plugins = CorePlugins(self)
-        self.status = CoreStatus(self)
+        self.status = CoreStatus(self, om.out)
         self.target = CoreTarget()
         self.strategy = CoreStrategy(self, self.knowledge_base, om.out)
 
@@ -182,7 +182,7 @@ class w3afCore:
         """
         # Create this again just to clear the internal states
         scans_completed = self.status.scans_completed
-        self.status = CoreStatus(self, scans_completed=scans_completed)
+        self.status = CoreStatus(self, om.out, scans_completed=scans_completed)
         self.status.start()
 
         start_profiling(self)

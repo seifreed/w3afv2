@@ -523,7 +523,7 @@ class BaseConsumer(Process):
         _except_type, _except_class, tb = sys.exc_info()
         enabled_plugins = pprint_plugins(self._w3af_core)
 
-        status = CoreStatus(self._w3af_core)
+        status = CoreStatus(self._w3af_core, self._output)
         status.set_running_plugin(phase, plugin_name, log=False)
         status.set_current_fuzzable_request(phase, fuzzable_request)
 

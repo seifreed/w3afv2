@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 import sys
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.status import CoreStatus
 from w3af.core.controllers.easy_contribution.github_issues import (
     GITHUB_CREDENTIAL_ENV_VAR,
@@ -81,7 +82,7 @@ class TestConsoleBugReport(ConsoleTestHelper):
         super().tearDown()
 
     def _store_exception(self, console, phase, plugin, failure):
-        status = CoreStatus(console._w3af)
+        status = CoreStatus(console._w3af, om.out)
         status.set_running_plugin(phase, plugin)
         status.set_current_fuzzable_request(phase, "http://target.example/")
 

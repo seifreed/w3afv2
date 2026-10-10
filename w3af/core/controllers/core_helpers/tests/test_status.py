@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import time
 import unittest
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.consumers.audit import audit
 from w3af.core.controllers.core_helpers.consumers.crawl_infrastructure import (
     CrawlInfrastructure,
@@ -57,7 +58,7 @@ class TestStatus(unittest.TestCase):
     def test_simple(self):
         core = w3afCore()
         self.addCleanup(core.worker_pool.terminate_join)
-        s = CoreStatus(core)
+        s = CoreStatus(core, om.out)
 
         self.assertEqual(s.get_status(), STOPPED)
 
@@ -92,7 +93,7 @@ class TestStatus(unittest.TestCase):
         self.assertFalse(s.is_running())
 
     def test_has_started(self):
-        s = CoreStatus(None)
+        s = CoreStatus(None, om.out)
         self.assertFalse(s.has_started())
 
         s.start()
@@ -101,7 +102,7 @@ class TestStatus(unittest.TestCase):
 
     def test_queue_status_not_started(self):
         core = w3afCore()
-        s = CoreStatus(core)
+        s = CoreStatus(core, om.out)
 
         self.assertEqual(s.get_crawl_input_speed(), 0)
         self.assertEqual(s.get_crawl_output_speed(), 0)
@@ -120,14 +121,14 @@ class TestStatus(unittest.TestCase):
     def test_starting_scan_status(self):
         core = w3afCore()
         self.addCleanup(core.worker_pool.terminate_join)
-        s = CoreStatus(core)
+        s = CoreStatus(core, om.out)
         s.start()
 
         self.assertEqual(s.get_status(), "Starting scan.")
         self.assertEqual(s.get_simplified_status(), RUNNING)
 
     def test_simplified_status(self):
-        s = CoreStatus(None)
+        s = CoreStatus(None, om.out)
         self.assertEqual(s.get_simplified_status(), STOPPED)
 
         s.pause(True)
@@ -135,14 +136,14 @@ class TestStatus(unittest.TestCase):
         self.assertEqual(s.get_simplified_status(), PAUSED)
 
     def test_run_time_requires_start(self):
-        s = CoreStatus(None)
+        s = CoreStatus(None, om.out)
 
         for method in (s.get_run_time, s.get_run_time_seconds, s.get_rpm):
             with self.assertRaisesRegex(RuntimeError, "before start"):
                 method()
 
     def test_run_time_after_start(self):
-        s = CoreStatus(None)
+        s = CoreStatus(None, om.out)
         s.start()
         s._start_time_epoch -= 120
 
@@ -155,7 +156,7 @@ class TestStatus(unittest.TestCase):
         self.assertEqual(s.get_sent_request_count(), consecutive_number_generator.get())
 
     def test_scan_finished(self):
-        s = CoreStatus(None, scans_completed=1)
+        s = CoreStatus(None, om.out, scans_completed=1)
         s.start()
         s.set_running_plugin("crawl", "web_spider")
         s.set_current_fuzzable_request("crawl", "fr")
@@ -168,7 +169,7 @@ class TestStatus(unittest.TestCase):
         self.assertEqual(s.scans_completed, 2)
 
     def test_epoch_eta_to_string(self):
-        s = CoreStatus(None)
+        s = CoreStatus(None, om.out)
 
         self.assertIsNone(s.epoch_eta_to_string(None))
         self.assertEqual(s.epoch_eta_to_string(61), "1 minute 1 second")
@@ -177,7 +178,7 @@ class TestStatus(unittest.TestCase):
 class TestCalculateETA(unittest.TestCase):
 
     def setUp(self):
-        self.status = CoreStatus(None)
+        self.status = CoreStatus(None, om.out)
         self.status.start()
 
     def test_finished_consumer(self):
@@ -214,7 +215,7 @@ class TestStatusWithConsumers(unittest.TestCase):
     def setUp(self):
         self.core = w3afCore()
         self.addCleanup(self.core.worker_pool.terminate_join)
-        self.status = CoreStatus(self.core)
+        self.status = CoreStatus(self.core, om.out)
         self.status.start()
 
     def add_crawl(self):

@@ -2348,3 +2348,16 @@ Verificación: **14 tests pasados y 7 subtests** entre seed y estrategia; Ruff,
 Black y mypy están limpios. El score permanece en **5.75/10** por el singleton
 restante en otros módulos, cobertura 100% no demostrada, Bandit heredado,
 mocks existentes, Moth y los orquestadores grandes.
+
+## Actualización verificada: CoreStatus con output explícito
+
+`CoreStatus` recibe el sink y `w3afCore`/`BaseConsumer` lo propagan al crear
+estados. `ExceptionData` ahora conserva una copia sanitizada del estado, sin
+referencias al core ni al sink, para mantener la serialización entre procesos
+sin mutar el estado vivo del escaneo.
+
+Verificación: **49 tests pasados** en estado y excepciones, incluidos los casos
+de serialización; **32 tests y 7 subtests** en consumidor base y estrategia;
+Ruff, Black y mypy están limpios. El score permanece en **5.75/10** por otros
+singletons, cobertura 100% no demostrada, Bandit heredado, mocks existentes,
+Moth y los orquestadores grandes.

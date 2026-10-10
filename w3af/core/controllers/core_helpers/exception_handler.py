@@ -25,6 +25,7 @@ import secrets
 import tempfile
 import threading
 import traceback
+from copy import copy
 
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.core_helpers.status import CoreStatus
@@ -331,8 +332,9 @@ class ExceptionData:
         # references to a w3afCore instance, which points to a Pool instance
         # that is NOT serializable.
         #
-        self.status = current_status
+        self.status = copy(current_status)
         self.status.set_w3af_core(None)
+        self.status.set_output(None)
 
         self.fuzzable_request = current_status.get_current_fuzzable_request(self.phase)
         self.fuzzable_request = cleanup_bug_report(str(self.fuzzable_request))
