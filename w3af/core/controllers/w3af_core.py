@@ -207,8 +207,8 @@ class w3afCore:
         # one
         self.strategy = CoreStrategy(self, self.knowledge_base, om.out)
         self.strategy.add_observer(DiskSpaceObserver())
-        self.strategy.add_observer(ThreadCountObserver())
-        self.strategy.add_observer(ThreadStateObserver())
+        self.strategy.add_observer(ThreadCountObserver(om.out))
+        self.strategy.add_observer(ThreadStateObserver(om.out))
 
         # Init the 404 detection for the whole framework
         fp_404_db = fingerprint_404_singleton(cleanup=True)

@@ -92,7 +92,7 @@ class TestInspectDataToLog(unittest.TestCase):
     def setUp(self):
         self.pool = Pool(processes=1, worker_names="WorkerThread")
         self.addCleanup(self.pool.terminate_join)
-        self.observer = ThreadStateObserver()
+        self.observer = ThreadStateObserver(om.out)
         self.recorder = record_output(self)
 
     def debug_messages(self):
@@ -196,7 +196,7 @@ class TestAddThreadStack(unittest.TestCase):
     def test_without_long_running_workers(self):
         inspect_data = self.pool.inspect_threads()
 
-        result = ThreadStateObserver().add_thread_stack(inspect_data)
+        result = ThreadStateObserver(om.out).add_thread_stack(inspect_data)
 
         self.assertIs(result, inspect_data)
         self.assertTrue(all("trace" not in state for state in result))
@@ -213,7 +213,7 @@ class TestAddThreadStack(unittest.TestCase):
         self.pool.apply_async(func=wait_for_release)
         started.wait(WAIT_TIMEOUT)
 
-        inspect_data = QuickThreadStateObserver().add_thread_stack(
+        inspect_data = QuickThreadStateObserver(om.out).add_thread_stack(
             self.pool.inspect_threads()
         )
 
@@ -230,7 +230,7 @@ class TestPoolStateThreads(unittest.TestCase):
     def setUp(self):
         self.w3af_core = w3afCore()
         self.addCleanup(self.w3af_core.worker_pool.terminate_join)
-        self.observer = QuickThreadStateObserver()
+        self.observer = QuickThreadStateObserver(om.out)
         self.addCleanup(self.observer.end)
         self.recorder = record_output(self)
 
@@ -275,4 +275,4 @@ class TestPoolStateThreads(unittest.TestCase):
         self.assertEqual(len(alive_threads_named("WorkerPoolStateObserver")), 1)
 
     def test_end_without_threads(self):
-        ThreadStateObserver().end()
+        ThreadStateObserver(om.out).end()

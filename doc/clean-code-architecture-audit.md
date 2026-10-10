@@ -2313,3 +2313,15 @@ Verificación: **9 tests pasados y 7 subtests** en la estrategia de bajo nivel;
 Ruff, Black y mypy están limpios. El score permanece en **5.75/10** por el
 singleton restante en otros helpers y UI, cobertura 100% no demostrada, Bandit
 heredado, mocks existentes, Moth y los orquestadores grandes.
+
+## Actualización verificada: observadores con output explícito
+
+`ThreadCountObserver` y `ThreadStateObserver` reciben el sink en su constructor
+y ya no importan `output_manager`. `w3afCore` lo entrega al crear los
+observadores, y los tests usan el sink real del entorno de prueba. Se conserva
+la periodicidad, el análisis de pools y la señal de finalización de sus hilos.
+
+Verificación: **22 tests pasados y 7 subtests** entre observadores y estrategia;
+Ruff, Black y mypy están limpios. El score permanece en **5.75/10** por el
+singleton restante en `w3afCore` y otros módulos, cobertura 100% no demostrada,
+Bandit heredado, mocks existentes, Moth y los orquestadores grandes.

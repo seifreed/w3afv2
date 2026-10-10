@@ -26,7 +26,6 @@ import threading
 import time
 import traceback
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.data.misc.encoding import smart_unicode
 
 from .strategy_observer import StrategyObserver
@@ -48,8 +47,9 @@ class ThreadStateObserver(StrategyObserver):
         r" started daemon .*?\)>>"
     )
 
-    def __init__(self):
+    def __init__(self, output):
         super().__init__()
+        self._output = output
 
         self._stop = threading.Event()
         self._threads_lock = threading.Lock()
@@ -314,7 +314,7 @@ class ThreadStateObserver(StrategyObserver):
         return value_str
 
     def write_to_log(self, message):
-        om.out.debug(message)
+        self._output.debug(message)
 
     def clean_function_name(self, function_name):
         if self.DISCOVER_WORKER_RE.search(function_name):

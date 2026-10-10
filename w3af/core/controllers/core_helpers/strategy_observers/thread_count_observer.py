@@ -23,8 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import threading
 import time
 
-import w3af.core.controllers.output_manager as om
-
 from .strategy_observer import StrategyObserver
 
 
@@ -38,8 +36,9 @@ class ThreadCountObserver(StrategyObserver):
 
     ANALYZE_EVERY = 30
 
-    def __init__(self):
+    def __init__(self, output):
         super().__init__()
+        self._output = output
         self.last_call = 0
 
     def log_thread_count(self, *args):
@@ -51,6 +50,6 @@ class ThreadCountObserver(StrategyObserver):
         self.last_call = current_time
 
         active_threads = threading.active_count()
-        om.out.debug(f"The framework has {active_threads} active threads.")
+        self._output.debug(f"The framework has {active_threads} active threads.")
 
     crawl = audit = bruteforce = grep = log_thread_count

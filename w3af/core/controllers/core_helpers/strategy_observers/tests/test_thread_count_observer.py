@@ -42,7 +42,7 @@ class TestThreadCountObserver(unittest.TestCase):
         ]
 
     def test_logs_the_active_threads_once_every_period(self):
-        observer = ThreadCountObserver()
+        observer = ThreadCountObserver(om.out)
 
         observer.crawl(None, None)
         observer.audit(None, None)
