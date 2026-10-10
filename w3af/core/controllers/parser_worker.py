@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from functools import partial
 
-from w3af.core.controllers.output_manager import log_sink_factory
+from w3af.core.controllers.output_manager.log_sink import LogSink
 from w3af.core.controllers.output_manager.logging_bridge import configure_data_logging
 from w3af.core.controllers.profiling import start_profiling_no_core
 from w3af.core.data.parsers.mp_document_parser import configure_multiprocessing
@@ -48,7 +48,7 @@ def initialize_parser_worker(log_queue):
     :param log_queue: The queue that worker log records are written to.
     :return: None
     """
-    output = log_sink_factory(log_queue)
+    output = LogSink(log_queue)
     configure_data_logging(output)
     start_profiling_no_core()
 

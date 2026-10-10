@@ -31,7 +31,10 @@ from io import StringIO
 import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.constants import POISON_PILL
-from w3af.core.controllers.output_manager import fresh_output_manager_inst
+from w3af.core.controllers.output_manager import (
+    create_output_manager,
+    fresh_output_manager_inst,
+)
 from w3af.core.controllers.output_manager.log_sink import LogSink
 from w3af.core.controllers.output_manager.manager import OutputManager
 from w3af.core.controllers.tests.recording_output import recording_output
@@ -88,6 +91,12 @@ def information(message):
 
 
 class TestOutputManagerRun(unittest.TestCase):
+    def test_create_output_manager_owns_matching_sink(self):
+        manager, output = create_output_manager()
+
+        self.addCleanup(manager.stop)
+        self.assertIs(output.om_queue, manager.get_in_queue())
+
     def started_manager(self, *plugins, flush_timeout=OutputManager.FLUSH_TIMEOUT):
         manager = OutputManager(flush_timeout=flush_timeout)
         for plugin in plugins:

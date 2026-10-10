@@ -3685,3 +3685,16 @@ de doble cierre; Black y Ruff globales, mypy focal y Bandit focal permanecen
 limpios. El score se mantiene en **6.5/10** porque el singleton de módulo aún
 existe para los consumidores de test y la cobertura/gates globales siguen sin
 estar demostrados al 100%.
+
+## Actualización verificada: fábrica de output sin estado global
+
+Se añadió `create_output_manager()`, que devuelve un `OutputManager` y su
+`LogSink` enlazados por la misma cola, sin mutar el estado del módulo. El
+agent server usa esta composición y cierra su manager en `finally`; el
+bootstrap del parser crea directamente su sink local. `fresh_output_manager_inst`
+se conserva temporalmente para los tests que aún ejercitan el singleton.
+
+Verificación: la suite de `OutputManager` pasa **31 tests** y Ruff, mypy y
+Bandit focal están limpios. El score se mantiene en **6.5/10**: el siguiente
+paso es migrar `w3afCore` y sus tests al runtime explícito antes de eliminar el
+singleton del módulo.

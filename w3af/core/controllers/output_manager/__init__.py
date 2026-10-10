@@ -22,6 +22,14 @@ from .log_sink import LogSink
 from .manager import OutputManager
 
 
+def create_output_manager() -> tuple[OutputManager, LogSink]:
+    """Create an independently owned output manager and sink."""
+    output_manager = OutputManager()
+    output_manager.start()
+    output = LogSink(output_manager.get_in_queue())
+    return output_manager, output
+
+
 def log_http(request, response):
     out.log_http(request, response)
 
