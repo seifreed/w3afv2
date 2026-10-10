@@ -1915,3 +1915,17 @@ Ruff, Black y mypy pasan en los tres recursos modificados. El score sigue en
 **5.75/10**: quedan 32 imports directos de la KB en producción, además de la
 cobertura, mocks, el fallo heredado de perfilado, la dependencia de Moth y los
 orquestadores grandes.
+
+## Actualización verificada: menús de consola
+
+Los menús de KB, explotación y el comando `print` usan la KB del
+`w3af_core` recibido por `rootMenu`. Se eliminan sus tres imports del singleton
+global sin cambiar la navegación, el listado de hallazgos, la explotación
+masiva ni la finalización del comando `print`.
+
+Verificación: 38 tests de menús, explotación y teclas pasan; Ruff, Black y
+mypy pasan en los tres módulos modificados. Las advertencias observadas son
+de dependencias externas durante la carga de configuración. El score sigue en
+**5.75/10**: quedan 29 imports directos de la KB en producción, además de la
+cobertura, mocks, el fallo heredado de perfilado, la dependencia de Moth y los
+orquestadores grandes.
