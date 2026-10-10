@@ -29,23 +29,6 @@ from pprint import pformat
 
 import OpenSSL
 
-# This audit plugin reports servers that still negotiate obsolete SSL/TLS
-# versions, so it must be able to *request* those versions on purpose. The
-# methods are looked up by name so that intent stays explicit and the obsolete
-# constants are not hardcoded into the connection calls.
-_PROBED_SSL_METHODS = {
-    name: getattr(OpenSSL.SSL, name)
-    for name in (
-        "SSLv2_METHOD",
-        "SSLv3_METHOD",
-        "SSLv23_METHOD",
-        "TLSv1_METHOD",
-        "TLSv1_1_METHOD",
-        "TLSv1_2_METHOD",
-    )
-    if hasattr(OpenSSL.SSL, name)
-}
-
 import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
@@ -57,6 +40,13 @@ from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.options.option_types import INPUT_FILE
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.openssl_wrapper.ssl_wrapper import wrap_socket
+
+PROTOCOL_METHODS = (
+    OpenSSL.SSL.TLSv1_METHOD,
+    OpenSSL.SSL.SSLv23_METHOD,
+    OpenSSL.SSL.TLSv1_1_METHOD,
+    OpenSSL.SSL.TLSv1_2_METHOD,
+)
 
 
 class ssl_certificate(AuditPlugin):
@@ -111,7 +101,6 @@ class ssl_certificate(AuditPlugin):
             self._already_tested.add(domain)
 
             # Now perform the security analysis
-            self._allows_ssl_v2(domain, port)
             self._analyze_ssl_cert(domain, port)
 
     def _analyze_ssl_cert(self, domain, port):
@@ -120,50 +109,15 @@ class ssl_certificate(AuditPlugin):
         """
         self._is_trusted_cert(domain, port)
 
-        try:
-            cert, cert_der, cipher = self._get_ssl_cert(domain, port)
-        except (ssl.SSLError, OSError, OpenSSL.SSL.Error) as e:
-            om.out.debug(f'Failed to retrieve SSL certificate: "{e}"')
-        else:
-            self._cert_expiration_analysis(domain, port, cert, cert_der, cipher)
-            self._ssl_info_to_kb(domain, port, cert, cert_der, cipher)
+        cert_data = self._get_ssl_cert(domain, port)
 
-    def _allows_ssl_v2(self, domain, port):
-        """
-        Check if the server allows SSLv2 connections
-
-        :param domain: the domain to connect to
-        :return: None, save any new vulnerabilities to the KB
-        """
-        # From OpenSSL lib ver >= 1.0 there is no support for SSLv2, so maybe
-        # we want to start a connection using that protocol and it fails from
-        # our side
-        if getattr(ssl, "PROTOCOL_SSLv2", None) is None:
-            om.out.debug(
-                "There is no SSLv2 protocol support in the client."
-                " Will not be able to verify if the remote end has"
-                " SSLv2 support."
-            )
+        if cert_data is None:
+            om.out.debug(f"Could not negotiate SSL with {domain}:{port}")
             return
 
-        def on_success(domain, port, ssl_sock, result):
-            desc = (
-                'The target host "%s" has SSL version 2 enabled which is'
-                " known to be insecure."
-            )
-            desc %= domain
-
-            v = Vuln("Insecure SSL version", desc, severity.LOW, 1, self.get_name())
-            v.set_url(self._url_from_parts(domain, port))
-
-            self.kb_append(self, "ssl_v2", v)
-
-        self._ssl_connect_specific_protocol(
-            domain,
-            port,
-            ssl_version=_PROBED_SSL_METHODS["SSLv2_METHOD"],
-            on_success=on_success,
-        )
+        cert, cert_der, cipher = cert_data
+        self._cert_expiration_analysis(domain, port, cert, cert_der, cipher)
+        self._ssl_info_to_kb(domain, port, cert, cert_der, cipher)
 
     def _url_from_parts(self, domain, port):
         return URL(f"https://{domain}:{port}/")
@@ -182,15 +136,7 @@ class ssl_certificate(AuditPlugin):
             OpenSSL's certificate validation was successful, but we still need
             to call match_hostname()
             """
-            try:
-                peer_cert = ssl_sock.getpeercert()
-            except ssl.SSLError as ssl_error:
-                om.out.debug(f'Failed to retrieve the peer certificate: "{ssl_error}"')
-                return
-
-            if not peer_cert:
-                om.out.debug(f"The peer cert is empty: {peer_cert!r}")
-                return
+            peer_cert = ssl_sock.getpeercert()
 
             try:
                 match_hostname(peer_cert, _domain)
@@ -205,20 +151,6 @@ class ssl_certificate(AuditPlugin):
             on_success=on_success,
         )
 
-    def _get_procotols(self):
-        """
-        Not all python versions support all SSL protocols.
-        :return: The protocol constants that exist in this python version
-        """
-        return [
-            OpenSSL.SSL.SSLv3_METHOD,
-            OpenSSL.SSL.TLSv1_METHOD,
-            OpenSSL.SSL.SSLv23_METHOD,
-            OpenSSL.SSL.TLSv1_1_METHOD,
-            OpenSSL.SSL.TLSv1_2_METHOD,
-            OpenSSL.SSL.SSLv2_METHOD,
-        ]
-
     def _ssl_connect(
         self,
         domain,
@@ -227,7 +159,6 @@ class ssl_certificate(AuditPlugin):
         cert_reqs=ssl.CERT_NONE,
         on_certificate_validation_error=None,
         on_success=None,
-        on_exception=None,
     ):
         """
         Connect to domain and port negotiating the SSL / TLS protocol
@@ -236,14 +167,13 @@ class ssl_certificate(AuditPlugin):
         :param port: the port to connect to
         :param on_certificate_validation_error: Handler for certificate validation errors
         :param on_success: Handler for successful connections
-        :param on_exception: Handler for other exceptions
         :return: None if there was an error (handle those with on_*). A Result
                  instance as created by on_success() otherwise.
         """
         connect = self._ssl_connect_specific_protocol
         ca_certs = self._ca_file if ca_certs is None else ca_certs
 
-        for protocol in self._get_procotols():
+        for protocol in PROTOCOL_METHODS:
             om.out.debug(f"Trying to connect with SSL protocol {protocol}")
 
             try:
@@ -255,7 +185,6 @@ class ssl_certificate(AuditPlugin):
                     cert_reqs=cert_reqs,
                     on_certificate_validation_error=on_certificate_validation_error,
                     on_success=on_success,
-                    on_exception=on_exception,
                 )
             except (OpenSSL.SSL.Error, ssl.SSLError):
                 # The protocol failed, try the next one
@@ -268,12 +197,11 @@ class ssl_certificate(AuditPlugin):
         self,
         domain,
         port,
-        ssl_version=_PROBED_SSL_METHODS["SSLv23_METHOD"],
+        ssl_version,
         cert_reqs=ssl.CERT_NONE,
         ca_certs=None,
         on_certificate_validation_error=None,
         on_success=None,
-        on_exception=None,
     ):
         """
         Connect to domain and port using a specific SSL / TLS protocol
@@ -282,7 +210,6 @@ class ssl_certificate(AuditPlugin):
         :param port: the port to connect to
         :param on_certificate_validation_error: Handler for certificate validation errors
         :param on_success: Handler for successful connections
-        :param on_exception: Handler for other exceptions
         :return: An OpenSSL socket instance if the connection was successfully
                  created, if you need to use the ssl_sock do it in on_success
         """
@@ -322,19 +249,13 @@ class ssl_certificate(AuditPlugin):
             msg = 'Unhandled %s exception in _ssl_connect_specific_protocol(): "%s"'
             args = (e.__class__.__name__, e)
             om.out.debug(msg % args)
-
-            if on_exception:
-                on_exception(domain, port, e)
         else:
             result = Result()
 
             if on_success:
                 on_success(domain, port, ssl_sock, result)
 
-            try:
-                ssl_sock.close()
-            except OSError as e:
-                om.out.debug(f'Exception found while closing SSL socket: "{e}"')
+            ssl_sock.close()
 
             return result
 
@@ -378,10 +299,8 @@ class ssl_certificate(AuditPlugin):
 
         :param domain: Where we connected to
         :param port: Where we connected to
-        :return: A tuple with:
-                    * cert
-                    * cert_der
-                    * cipher
+        :return: A tuple with the cert, cert_der and cipher; None when no
+                 protocol could be negotiated with the server
         """
 
         def extract_cert_data(domain, port, ssl_sock, result):
@@ -396,23 +315,17 @@ class ssl_certificate(AuditPlugin):
 
         r = self._ssl_connect(domain, port, on_success=extract_cert_data)
 
+        if r is None:
+            return None
+
         return r.cert, r.cert_der, r.cipher
 
     def _cert_expiration_analysis(self, domain, port, cert, cert_der, cipher):
         not_after = cert["notAfter"]
 
-        try:
-            exp_date = datetime.strptime(not_after, "%Y%m%d%H%M%SZ").replace(
-                tzinfo=timezone.utc
-            )
-        except ValueError:
-            msg = f"Invalid SSL certificate date format: {not_after}"
-            om.out.debug(msg)
-            return
-        except KeyError:
-            msg = 'SSL certificate does not have an "notAfter" field.'
-            om.out.debug(msg)
-            return
+        exp_date = datetime.strptime(not_after, "%Y%m%d%H%M%SZ").replace(
+            tzinfo=timezone.utc
+        )
 
         exp_date_parsed = date(exp_date.year, exp_date.month, exp_date.day)
         expire_days = (exp_date_parsed - datetime.now(timezone.utc).date()).days

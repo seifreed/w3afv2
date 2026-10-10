@@ -100,10 +100,14 @@ class rfi(AuditPlugin):
         # Sanity check required for #2 technique
         config_ok, config_message = self._correctly_configured()
 
-        if not config_ok and not self._error_reported:
+        if not config_ok:
             # Report error to the user only once
-            self._error_reported = True
-            om.out.error(self.CONFIG_ERROR_MSG % config_message)
+            if not self._error_reported:
+                self._error_reported = True
+                om.out.error(self.CONFIG_ERROR_MSG % config_message)
+
+            # The vulnerabilities found using the w3af site are still valid
+            self._report_vulns()
             return
 
         # 2- create a request that will include a file from a local web server
@@ -206,75 +210,57 @@ class rfi(AuditPlugin):
         :return: None, everything is saved to the kb
         """
         #
-        # The listen address is an empty string when I have no default route
-        #
         # Only work if:
         #   - The listen address is private and the target address is private
         #   - The listen address is public and the target address is public
         #
-        if not self._listen_address:
-            return
-
         is_listen_priv = is_private_site(self._listen_address)
         is_target_priv = is_private_site(freq.get_url().get_domain())
 
-        if (is_listen_priv and is_target_priv) or not (
-            is_listen_priv or is_target_priv
-        ):
+        if is_listen_priv != is_target_priv:
+            return
 
-            msg = f"RFI using local web server for URL: {freq.get_url()}"
-            om.out.debug(msg)
+        msg = f"RFI using local web server for URL: {freq.get_url()}"
+        om.out.debug(msg)
 
-            try:
-                # Create file for remote inclusion
-                php_jsp_code, rfi_data = self._create_file()
+        # Create file for remote inclusion
+        php_jsp_code, rfi_data = self._create_file()
 
-                # Setup the web server handler to return always the same
-                # response body. This is important for the test, since it might
-                # be the case that the web application prepends/appends
-                # something to the URL being included, and we don't want to fail
-                # there!
-                #
-                # Also, this allows us to remove the payloads we sent with \0
-                # which tried to achieve the same result.
-                RFIWebHandler.RESPONSE_BODY = php_jsp_code
+        # Setup the web server handler to return always the same
+        # response body. This is important for the test, since it might
+        # be the case that the web application prepends/appends
+        # something to the URL being included, and we don't want to fail
+        # there!
+        #
+        # Also, this allows us to remove the payloads we sent with \0
+        # which tried to achieve the same result.
+        RFIWebHandler.RESPONSE_BODY = php_jsp_code
 
-                # Start web server
-                #
-                # No real webroot is required since the custom handler returns
-                # always the same HTTP response body
-                webroot = "."
-                webserver.start_webserver(
-                    self._listen_address, self._listen_port, webroot, RFIWebHandler
-                )
+        # No real webroot is required since the custom handler returns
+        # always the same HTTP response body
+        webroot = "."
 
-                # Perform the real work
-                self._test_inclusion(freq, rfi_data, orig_response, debugging_id)
-            except OSError as se:
-                errorcode = se[0]
-                if errorcode == errno.EADDRINUSE:
-                    # We can't use this address because it is already in use
-                    self._listen_address = None
+        try:
+            webserver.start_webserver(
+                self._listen_address, self._listen_port, webroot, RFIWebHandler
+            )
+        except OSError as os_error:
+            if os_error.errno != errno.EADDRINUSE:
+                raise
 
-                    # Let the user know
-                    msg = (
-                        "Failed to bind to the provided listen address in the audit."
-                        "rfi plugin. The address is already in use by another process."
-                    )
-                    om.out.error(msg)
+            # We can't use this address because it is already in use
+            self._listen_address = None
 
-            except (
-                BaseFrameworkException,
-                ValueError,
-                TypeError,
-                AttributeError,
-                RuntimeError,
-            ) as e:
-                msg = (
-                    "An error occurred while running local web server for"
-                    ' the remote file inclusion (rfi) plugin: "%s"'
-                )
-                om.out.error(msg % e)
+            # Let the user know
+            msg = (
+                "Failed to bind to the provided listen address in the audit."
+                "rfi plugin. The address is already in use by another process."
+            )
+            om.out.error(msg)
+            return
+
+        # Perform the real work
+        self._test_inclusion(freq, rfi_data, orig_response, debugging_id)
 
     def _w3af_site_test_inclusion(self, freq, orig_response, debugging_id):
         """
@@ -533,18 +519,10 @@ class RFIWebHandler(http.server.BaseHTTPRequestHandler):
     RESPONSE_BODY = None
 
     def do_GET(self):
-        try:
-            self.send_response(200)
-            self.send_header("Content-type", "text/html")
-            self.end_headers()
-            self.wfile.write(self.RESPONSE_BODY)
-        except OSError as e:
-            om.out.debug(f'[RFIWebHandler] Exception: "{e}".')
-        finally:
-            # Clean up
-            self.close_connection = 1
-            self.rfile.close()
-            self.wfile.close()
+        self.send_response(200)
+        self.send_header("Content-type", "text/html")
+        self.end_headers()
+        self.wfile.write(self.RESPONSE_BODY.encode("utf-8"))
 
     def log_message(self, fmt, *args):
         """
