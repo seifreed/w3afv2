@@ -3541,3 +3541,17 @@ warnings externos de `ldap3/pyasn1`; la batería focal pasó **12 tests en
 118.15 s**. Ruff, mypy focal y Bandit focal están limpios. El score se mantiene
 en **6.5/10** por cobertura global, módulos grandes y gates globales
 pendientes.
+
+## Actualización verificada: comprobación de alcanzabilidad separada
+
+`ServerReachabilityChecker` concentra el probe de la URL raíz tras fallos
+consecutivos: timeout defensivo, headers, request sin retries y clasificación de
+excepciones. `ExtendedUrllib._server_root_path_is_reachable()` queda como
+fachada para `ResponseHistory.should_stop_scan()`.
+
+Verificación: la suite URL completa pasó **217 tests en 182.90 s**, con dos
+warnings externos de `ldap3/pyasn1`; la batería focal pasó **12 tests en
+113.18 s**. Ruff, mypy focal y Bandit focal están limpios. La suite completa
+también pasó con `PytestUnhandledThreadExceptionWarning` tratado como error.
+El score se mantiene en **6.5/10** por cobertura global, módulos grandes y
+gates globales pendientes.

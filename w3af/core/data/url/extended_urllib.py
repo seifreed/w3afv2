@@ -60,14 +60,13 @@ from w3af.core.data.url.request_retry_handler import RequestRetryHandler
 from w3af.core.data.url.response_history import ResponseHistory
 from w3af.core.data.url.response_success_handler import ResponseSuccessHandler
 from w3af.core.data.url.scan_request_control import ScanRequestControl
+from w3af.core.data.url.server_reachability_checker import ServerReachabilityChecker
 from w3af.core.data.url.timeout_adjustment_policy import TimeoutAdjustmentPolicy
 from w3af.core.data.url.timeout_manager import TimeoutManager
 from w3af.core.data.url.worker_pool_adjuster import WorkerPoolAdjuster
 from w3af.core.exceptions import (
-    BaseFrameworkException,
     ScanMustStopByKnownReasonExc,
     ScanMustStopByUnknownReasonExc,
-    ScanMustStopException,
 )
 
 from . import opener_settings
@@ -160,6 +159,13 @@ class ExtendedUrllib:
             self._handle_error_count_exceeded,
             self._worker_pool_adjuster.adjust,
             self._retry,
+        )
+        self._reachability_checker = ServerReachabilityChecker(
+            self.get_timeout,
+            self.set_timeout,
+            self.add_headers,
+            self.send,
+            LOGGER.debug,
         )
         self._request_control = ScanRequestControl()
 
@@ -812,57 +818,7 @@ class ExtendedUrllib:
         )
 
     def _server_root_path_is_reachable(self, request):
-        """
-        Sends an HTTP GET to the server's root path to verify that it's
-        reachable from our location.
-
-        :param request: The original HTTP request
-        :return: True if we were able to get a response
-        """
-        uri = request.get_uri()
-        root_url = uri.base_url()
-        host = uri.get_domain()
-
-        # We drastically increase the timeout for this request. What
-        # could have happen is that w3af lowered the timeout for HTTP
-        # responses in a very aggressive way and then sent many HTTP
-        # requests at the same time. Those requests failed due to the
-        # aggressive timeout which lead to multiple sequential failures
-        #
-        # When multiple failures are detected, w3af tries to check if
-        # the remote site is still up using this method. If we don't
-        # increase the timeout like this we'll still use the incorrectly
-        # set timeout, which would (one more time) trigger an error.
-        # Sadly this time the error would be fatal since the scan would
-        # stop.
-        timeout = self.get_timeout(host) * 4
-        self.set_timeout(timeout, host)
-
-        req = HTTPRequest(
-            root_url,
-            cookies=True,
-            cache=False,
-            error_handling=False,
-            method="GET",
-            retries=0,
-            timeout=timeout,
-        )
-        req = self.add_headers(req)
-
-        try:
-            self.send(req, grep=False)
-        except HTTPRequestException as e:
-            msg = 'Remote URL %s is UNREACHABLE due to: "%s"'
-            LOGGER.debug(msg % (root_url, e))
-            return False
-        except (BaseFrameworkException, ScanMustStopException, OSError) as e:
-            msg = 'Internal error makes URL %s UNREACHABLE due to: "%s"'
-            LOGGER.debug(msg % (root_url, e))
-            return False
-        else:
-            msg = "Remote URL %s is reachable"
-            LOGGER.debug(msg % root_url)
-            return True
+        return self._reachability_checker.check(request)
 
     def get_error_rate(self):
         """
