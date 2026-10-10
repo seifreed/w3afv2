@@ -24,7 +24,6 @@ import os.path
 from itertools import chain
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.misc.make_leet import make_leet
 from w3af.core.data.misc.iterables import unique_everseen
 
@@ -37,7 +36,7 @@ class PasswordBruteforcer:
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self, url):
+    def __init__(self, url, knowledge_base):
         self.passwd_file = os.path.join(
             os.path.dirname(os.path.realpath(__file__)), "passwords.txt"
         )
@@ -46,6 +45,7 @@ class PasswordBruteforcer:
         self.profiling_number = 50
 
         self._url = url
+        self._knowledge_base = knowledge_base
 
     def generator(self):
         """
@@ -68,7 +68,9 @@ class PasswordBruteforcer:
         yield self._url.get_root_domain()
 
         if self.use_profiling:
-            yield from get_profiling_results(self.profiling_number)
+            yield from get_profiling_results(
+                self._knowledge_base, self.profiling_number
+            )
 
     def _read_pwd_file(self):
         with open(self.passwd_file) as passwd_fh:
@@ -84,7 +86,7 @@ class UserPasswordBruteforcer:
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self, url):
+    def __init__(self, url, knowledge_base):
         # Config params for user generation
         self.users_file = os.path.join(
             os.path.dirname(os.path.realpath(__file__)), "users.txt"
@@ -105,9 +107,10 @@ class UserPasswordBruteforcer:
 
         # Internal variables
         self._url = url
+        self._knowledge_base = knowledge_base
 
     def _new_password_bruteforcer(self):
-        pbf = PasswordBruteforcer(self._url)
+        pbf = PasswordBruteforcer(self._url, self._knowledge_base)
         pbf.passwd_file = self.passwd_file
         pbf.l337_p4sswd = self.l337_p4sswd
         pbf.use_profiling = self.use_profiling
@@ -151,21 +154,23 @@ class UserPasswordBruteforcer:
         yield self._url.get_domain()
 
         if self.use_emails:
-            emails = kb.kb.get("emails", "emails")
+            emails = self._knowledge_base.get("emails", "emails")
             for user in [v["user"] for v in emails]:
                 yield user
 
-            emails = kb.kb.get("emails", "emails")
+            emails = self._knowledge_base.get("emails", "emails")
             for user in [v["mail"] for v in emails]:
                 yield user
 
         if self.use_SVN_users:
-            users = kb.kb.get("svn_users", "users")
+            users = self._knowledge_base.get("svn_users", "users")
             for user in [v["user"] for v in users]:
                 yield user
 
         if self.use_profiling:
-            for user in get_profiling_results(self.profiling_number):
+            for user in get_profiling_results(
+                self._knowledge_base, self.profiling_number
+            ):
                 yield user
 
     def _combo(self):
@@ -185,8 +190,8 @@ class UserPasswordBruteforcer:
                     yield user, passwd
 
 
-def get_profiling_results(max_items=50):
-    kb_data = kb.kb.raw_read("password_profiling", "password_profiling")
+def get_profiling_results(knowledge_base, max_items=50):
+    kb_data = knowledge_base.raw_read("password_profiling", "password_profiling")
 
     if not kb_data:
         msg = (
