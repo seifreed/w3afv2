@@ -31,7 +31,6 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import uuid
-from collections import deque
 from contextlib import contextmanager
 from http.client import BadStatusLine
 
@@ -47,7 +46,6 @@ from w3af.core.data.parsers.doc.http_request_parser import http_request_parser
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.constants import (
     MAX_ERROR_COUNT,
-    MAX_RESPONSE_COLLECT,
     TIMEOUT_ADJUST_LIMIT,
     TIMEOUT_INCREASE_MULT,
     TIMEOUT_MULT_CONST,
@@ -60,7 +58,7 @@ from w3af.core.data.url.http_error_pause_controller import HttpErrorPauseControl
 from w3af.core.data.url.http_request import HTTPRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.data.url.rate_limiter import RateLimiter
-from w3af.core.data.url.response_meta import SUCCESS, ResponseMeta
+from w3af.core.data.url.response_history import ResponseHistory
 from w3af.core.data.url.scan_request_control import ScanRequestControl
 from w3af.core.data.url.timeout_manager import TimeoutManager
 from w3af.core.data.url.worker_pool_adjuster import WorkerPoolAdjuster
@@ -93,10 +91,9 @@ class ExtendedUrllib:
         # In exploit mode we disable some timeout/delay/error handling stuff
         self.exploit_mode = False
 
-        # For error handling, the first "last response" is set to SUCCESS to
-        # allow the _should_stop_scan method to match it's "SFFFF...FFF" pattern
-        self._last_responses = deque(maxlen=MAX_RESPONSE_COLLECT)
-        self._last_responses.extend([ResponseMeta(True, SUCCESS)] * 100)
+        # For error handling, the history starts with successful responses so
+        # the unreachable-server pattern can be detected from the first errors.
+        self._response_history = ResponseHistory()
         self._count_lock = threading.RLock()
 
         # For rate limiting and timeouts
@@ -294,23 +291,7 @@ class ExtendedUrllib:
                              the number of successful responses, which contain
                              an RTT, and were used to calculate the average RTT)
         """
-        rtt_sum = 0.0
-        add_count = 0
-        last_n_responses = list(self._last_responses)[-count:]
-
-        for response_meta in last_n_responses:
-            if host is not None and response_meta.host != host:
-                continue
-
-            if response_meta.rtt is not None:
-                rtt_sum += response_meta.rtt
-                add_count += 1
-
-        if not add_count:
-            return None, 0
-        else:
-            average_rtt = float(rtt_sum) / add_count
-            return average_rtt, add_count
+        return self._response_history.get_average_rtt(count, host)
 
     def get_total_requests(self):
         """
@@ -337,7 +318,7 @@ class ExtendedUrllib:
         self._request_control.clear()
         self._total_requests = 0
         self.set_exploit_mode(False)
-        self._last_responses.extend([ResponseMeta(True, SUCCESS)] * 100)
+        self._response_history.reset()
 
     def end(self):
         """
@@ -993,7 +974,7 @@ class ExtendedUrllib:
 
     def _log_failed_response(self, request, exception, original_url):
         """
-        Add the failed response to the self._last_responses log, and if we got a
+        Add the failed response to the response history, and if we got a
         lot of failures raise a "ScanMustStopException" subtype.
 
         :param exception: Exception object.
@@ -1020,8 +1001,7 @@ class ExtendedUrllib:
             msg = "Traceback for this error: %s"
             LOGGER.debug(msg % traceback.format_exc())
 
-        # Now we save the error to self._last_responses for tracking and
-        # statistics
+        # Save the error for tracking and statistics.
         reason = get_exception_reason(exception)
         reason = reason or str(exception)
 
@@ -1030,7 +1010,7 @@ class ExtendedUrllib:
         # The HTTP request failed, this most likely means that we received a
         # timeout or some other network / protocol error.
         #
-        # We want to save the ResponseMeta with some RTT that indicates that
+        # We want to save response metadata with some RTT that indicates that
         # this (potential) timeout happen. Se we get the current timeout and
         # use it as the RTT parameter
         #
@@ -1040,69 +1020,15 @@ class ExtendedUrllib:
         # errors into account when calculating the RTT
         rtt = self.get_timeout(host)
 
-        self._last_responses.append(ResponseMeta(False, reason, host=host, rtt=rtt))
+        self._response_history.record_failure(reason, host, rtt)
 
         self._log_error_rate()
 
     def _should_stop_scan(self, request):
-        """
-        If the last MAX_ERROR_COUNT - 1 responses are errors then we check if
-        the remote server root path is still reachable. If it is, we add
-        (True, SUCCESS) to the last responses and continue; else we return False
-        because we're in a case where:
-              * The user's connection is dead
-              * The remote server is unreachable
-
-        :return: True if we should stop the scan due to too many consecutive
-                 errors being received from the server.
-
-        :see: https://github.com/andresriancho/w3af/issues/8698
-        """
-        #
-        # We're looking for this pattern in the last_responses:
-        #   True, False, False, False, ..., False
-        #
-        # Which means that at some point we were able to reach the remote server
-        # but now we're having problems doing so and need to check if the remote
-        # server is still reachable.
-        #
-        # Any other patterns we don't care in this method:
-        #   False, True, False, True, False, True
-        #       Unstable connection, _pause_on_http_error should help with it
-        #
-        #   True, True, True, False, False, False, ..., False
-        #       Looks like the remote server is unreachable and we're going
-        #       towards the pattern we look for, but nothing to do here for now
-        #
-        #   False, True, True, True, True, ..., True
-        #       A server error and then it recovered, keep scanning.
-        #
-        # Note that we can only find the desired pattern if we lock the write
-        # and check access to the _last_responses, otherwise the threads will
-        # "break" it
-        # The deque starts full of successful responses and is never
-        # emptied, so it always holds at least MAX_ERROR_COUNT items
-        last_n_responses = list(self._last_responses)[-MAX_ERROR_COUNT:]
-        first_result = last_n_responses[0]
-        last_n_without_first = last_n_responses[1:]
-
-        all_following_failed = True
-
-        for response_meta in last_n_without_first:
-            if response_meta.successful:
-                all_following_failed = False
-                break
-
-        if first_result.successful and all_following_failed:
-            # Found the pattern we were looking for, stop the scan unless the
-            # remote server is reachable. We don't need to add (True, SUCCESS)
-            # to the last_responses manually since _server_root_path_is_reachable
-            # uses _send which (on success) calls _log_successful_response
-            return not self._server_root_path_is_reachable(request)
-
-        # If we don't find the pattern we look for, then we just continue with
-        # the scan as usual
-        return False
+        """Return whether consecutive failures indicate an unreachable server."""
+        return self._response_history.should_stop_scan(
+            lambda: self._server_root_path_is_reachable(request)
+        )
 
     def _server_root_path_is_reachable(self, request):
         """
@@ -1161,16 +1087,7 @@ class ExtendedUrllib:
         """
         :return: The error rate as an integer 0-100
         """
-        # Never empty, see _should_stop_scan
-        last_responses = list(self._last_responses)
-        total_failed = 0.0
-        total = len(last_responses)
-
-        for response_meta in last_responses:
-            if not response_meta.successful:
-                total_failed += 1
-
-        return int((total_failed / total) * 100)
+        return self._response_history.get_error_rate()
 
     def _log_error_rate(self):
         """
@@ -1204,12 +1121,7 @@ class ExtendedUrllib:
             e = ScanMustStopByKnownReasonExc(msg % args, reason=reason_msg)
 
         else:
-            last_errors = []
-            last_n_responses = list(self._last_responses)[-MAX_ERROR_COUNT:]
-
-            for response_meta in last_n_responses:
-                last_errors.append(response_meta.message)
-
+            last_errors = self._response_history.get_recent_messages(MAX_ERROR_COUNT)
             e = ScanMustStopByUnknownReasonExc(msg % args, errs=last_errors)
 
         LOGGER.debug(
@@ -1223,9 +1135,7 @@ class ExtendedUrllib:
 
     def _log_successful_response(self, response):
         host = response.get_url().get_domain()
-        self._last_responses.append(
-            ResponseMeta(True, SUCCESS, rtt=response.get_wait_time(), host=host)
-        )
+        self._response_history.record_success(host, response.get_wait_time())
 
     def set_grep_queue_put(self, grep_queue_put):
         self._grep_queue_put = grep_queue_put

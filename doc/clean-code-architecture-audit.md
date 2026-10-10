@@ -2,7 +2,7 @@
 
 Fecha: 2026-10-09
 
-## Resultado
+## Línea base
 
 | Dimensión | Nota | Confianza |
 | --- | ---: | --- |
@@ -16,6 +16,21 @@ proyecto deben estar aplicadas de forma coherente, las dependencias deben tener
 dirección explícita y verificable, y las rutas críticas deben contar con pruebas
 de comportamiento completas. El inventario dinámico de plugins y el código
 vendorizado requieren una revisión separada antes de cerrar la puntuación.
+
+## Estado actual verificado
+
+| Dimensión | Nota | Confianza |
+| --- | ---: | --- |
+| Clean Code | 6.5/10 | Alta |
+| Clean Architecture | 6.5/10 | Media |
+| Global | 6.5/10 | Media |
+
+La puntuación sube porque Ruff y Black globales pasan, `pip-audit` no encuentra
+vulnerabilidades conocidas y la producción de `core.data` ya no importa
+`controllers`; las referencias restantes están en tests. No es 10/10: siguen
+existiendo módulos grandes, singletons, cobertura 100% no demostrada, mypy
+global con errores en `venv/bin/activate_this.py` y Bandit global contaminado
+por `venv`, vendor, extras y tests.
 
 ## Hallazgos
 
@@ -103,7 +118,7 @@ vendorizado requieren una revisión separada antes de cerrar la puntuación.
   caracteres. El encoder multipart conserva texto al serializar nombres y
   valores, en lugar de interpolar la representación `b'...'`.
 
-## Revisión actualizada
+## Revisión histórica (antes de los avances posteriores)
 
 La puntuación global permanece en **2.5/10** (Clean Code 3/10, Clean Architecture
 2/10). Se trasladaron errores DB a la capa de datos, el parser URL y la KB
@@ -3128,6 +3143,19 @@ Verificación: **56 tests de URL pasaron**; Black, Ruff, mypy focalizado, Bandit
 focalizado, `pip-audit` y `git diff --check` están limpios. El score permanece
 en **6.25/10** por la composición global, cobertura 100% no demostrada, mypy
 sobre el `venv` y Bandit heredado aún pendientes.
+
+## Actualización verificada: historial de respuestas separado
+
+`ResponseHistory` concentra la ventana de respuestas, cálculo de RTT, tasa de
+errores y detección del patrón de servidor inalcanzable. `ExtendedUrllib`
+conserva sus métodos observables y delega el estado, reduciendo la mezcla entre
+transporte HTTP y métricas de salud.
+
+Verificación: **61 tests URL pasaron**, incluidos **5 tests unitarios nuevos**;
+Black global, Ruff global, mypy focalizado, Bandit focalizado, `pip-audit` y
+`git diff --check` están limpios. El estado actual queda en **6.5/10**; aún
+faltan cobertura 100% global, mypy global fuera del `venv` y Bandit global sin
+hallazgos heredados.
 
 ## Actualización verificada: ciclo de parada separado
 
