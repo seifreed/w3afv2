@@ -28,7 +28,6 @@ import secrets
 import unittest
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.config as cf
 from w3af.core.controllers.core_helpers.fingerprint_404 import (
     Fingerprint404,
     fingerprint_404_singleton,
@@ -37,6 +36,7 @@ from w3af.core.controllers.core_helpers.fingerprint_404 import (
 from w3af.core.controllers.misc.fuzzy_string_cmp import MAX_FUZZY_LENGTH
 from w3af.core.controllers.tests.local_http_server import LocalHTTPServer, Reply
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.config import Config
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.data.url.helpers import new_no_content_resp
@@ -79,7 +79,7 @@ class Generic404Test(unittest.TestCase):
 
         self.urllib = ExtendedUrllib()
 
-        self.fingerprint_404 = Fingerprint404(om.out, cf.cf)
+        self.fingerprint_404 = Fingerprint404(om.out, cf)
         self.fingerprint_404.set_url_opener(self.urllib)
 
     def tearDown(self):
@@ -443,8 +443,8 @@ class Test404UserConfiguration(Generic404Test):
         return Reply(status=404, body="Not found")
 
     def configure(self, name, value, default):
-        cf.cf.save(name, value)
-        self.addCleanup(cf.cf.save, name, default)
+        cf.save(name, value)
+        self.addCleanup(cf.save, name, default)
 
     def build_response(self, path, code=200, body="Some content"):
         url = self.target_url(path)
@@ -579,19 +579,20 @@ class TestFingerprint404Singleton(unittest.TestCase):
 
     def test_returns_the_same_instance(self):
         self.assertIs(
-            fingerprint_404_singleton(om.out, cf.cf),
-            fingerprint_404_singleton(om.out, cf.cf),
+            fingerprint_404_singleton(om.out, cf),
+            fingerprint_404_singleton(om.out, cf),
         )
 
     def test_cleanup_creates_a_new_instance(self):
-        instance = fingerprint_404_singleton(om.out, cf.cf)
+        instance = fingerprint_404_singleton(om.out, cf)
 
-        self.assertIsNot(
-            fingerprint_404_singleton(om.out, cf.cf, cleanup=True), instance
-        )
+        self.assertIsNot(fingerprint_404_singleton(om.out, cf, cleanup=True), instance)
 
     def test_is_404_uses_the_singleton(self):
         url = URL("http://w3af.org/missing.html")
         response = HTTPResponse(404, "Not found", Headers(), url, url)
 
-        self.assertTrue(is_404(response, om.out, cf.cf))
+        self.assertTrue(is_404(response, om.out, cf))
+
+
+cf = Config()

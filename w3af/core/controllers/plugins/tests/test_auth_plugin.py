@@ -1,10 +1,10 @@
 import unittest
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.config as cf
 from w3af.core.controllers.plugins.auth_plugin import AuthPlugin
 from w3af.core.controllers.tests.recording_output import start_recording_output
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.config import Config
 from w3af.core.data.kb.knowledge_base import kb
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.helpers import new_no_content_resp
@@ -16,7 +16,7 @@ LOGIN_URL = URL("http://127.0.0.1/login?next=/home")
 class unit_auth(AuthPlugin):
     def __init__(self):
         super().__init__()
-        self.set_configuration(cf.cf)
+        self.set_configuration(cf)
         self.set_output(om.out)
         self.set_knowledge_base(kb)
 
@@ -35,9 +35,9 @@ class AuthPluginTestCase(unittest.TestCase):
         kb.cleanup()
         self.addCleanup(kb.cleanup)
 
-        previous_blacklist = cf.cf.get("blacklist_audit")
-        cf.cf.save("blacklist_audit", [])
-        self.addCleanup(cf.cf.save, "blacklist_audit", previous_blacklist)
+        previous_blacklist = cf.get("blacklist_audit")
+        cf.save("blacklist_audit", [])
+        self.addCleanup(cf.save, "blacklist_audit", previous_blacklist)
 
     @staticmethod
     def authentication_errors():
@@ -65,7 +65,7 @@ class TestAuditBlacklist(AuthPluginTestCase):
             URL("http://127.0.0.1/login?next=/home"), URL("http://127.0.0.1/auth")
         )
 
-        blacklist = [str(url) for url in cf.cf.get("blacklist_audit")]
+        blacklist = [str(url) for url in cf.get("blacklist_audit")]
         self.assertEqual(blacklist, ["http://127.0.0.1/login", "http://127.0.0.1/auth"])
         message = recorder.messages_of("information")[0]
         self.assertIn(" - http://127.0.0.1/login\n - http://127.0.0.1/auth", message)
@@ -77,15 +77,15 @@ class TestAuditBlacklist(AuthPluginTestCase):
 
         plugin._configure_audit_blacklist(URL("http://127.0.0.1/login?again=1"))
 
-        self.assertEqual(len(cf.cf.get("blacklist_audit")), 1)
+        self.assertEqual(len(cf.get("blacklist_audit")), 1)
         self.assertEqual(len(recorder.messages_of("information")), 1)
 
     def test_missing_blacklist_is_created(self):
-        cf.cf.save("blacklist_audit", None)
+        cf.save("blacklist_audit", None)
 
         unit_auth()._configure_audit_blacklist(URL("http://127.0.0.1/login"))
 
-        self.assertEqual(len(cf.cf.get("blacklist_audit")), 1)
+        self.assertEqual(len(cf.get("blacklist_audit")), 1)
 
 
 class TestHttpResponseLog(AuthPluginTestCase):
@@ -258,3 +258,6 @@ class TestKnowledgeBaseReport(AuthPluginTestCase):
         )
 
         self.assertEqual(self.authentication_errors()[0].get_id(), [11])
+
+
+cf = Config()

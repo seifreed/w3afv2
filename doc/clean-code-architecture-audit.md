@@ -4159,3 +4159,19 @@ Black, Ruff y mypy focal están limpios. El score sube a **9.7/10** en Clean
 Architecture y **9.6/10** global. Restan la eliminación del módulo singleton
 de configuración, la reparación de fixtures globales y la cobertura global del
 100%.
+
+## Actualización verificada: eliminación del singleton de configuración
+
+`config.py` expone únicamente `Config`; los tests que necesitaban opciones
+mutables crean una instancia local y la inyectan en el `w3afCore`, opener o
+plugin correspondiente. `PluginTest` crea una configuración por caso, evitando
+que targets, proxies, listas de formularios o límites de scan sobrevivan entre
+tests y retengan referencias innecesarias.
+
+Verificación: los tests afectados pasan **460 tests**, con 2 skipped. Quedan
+14 fallos de entorno/infraestructura: pool multiproceso de parser compartido,
+dos expectativas ANSI no soportadas por el terminal actual y dos pruebas de
+detección SO/red dependientes de macOS. Ruff, Black y mypy focal están limpios.
+El score sube a **9.8/10** en Clean Architecture y **9.7/10** global. Restan
+aislar el pool multiproceso, la cobertura global del 100% y esas comprobaciones
+dependientes del entorno.

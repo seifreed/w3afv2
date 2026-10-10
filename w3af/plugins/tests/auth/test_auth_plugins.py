@@ -24,8 +24,8 @@ import socket
 import unittest
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
+from w3af.core.data.kb.config import Config
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.exceptions import BaseFrameworkException
@@ -103,14 +103,14 @@ class AuthPluginTestCase(unittest.TestCase):
         create_temp_dir()
         kb.kb.cleanup()
 
-        previous_blacklist = cf.cf.get("blacklist_audit")
-        self.addCleanup(cf.cf.save, "blacklist_audit", previous_blacklist)
+        previous_blacklist = cf.get("blacklist_audit")
+        self.addCleanup(cf.save, "blacklist_audit", previous_blacklist)
 
         self.server = CannedHTTPServer(_respond)
         self.server.start()
         self.addCleanup(self.server.stop)
 
-        self.uri_opener = ExtendedUrllib()
+        self.uri_opener = ExtendedUrllib(configuration=cf)
         self.addCleanup(self.uri_opener.end)
 
         self.base = f"http://127.0.0.1:{self.server.port}"
@@ -127,7 +127,7 @@ class AuthPluginTestCase(unittest.TestCase):
             options[name].set_value(value)
         plugin.set_options(options)
         plugin.set_url_opener(self.uri_opener)
-        plugin.set_configuration(cf.cf)
+        plugin.set_configuration(cf)
         plugin.set_knowledge_base(kb.kb)
         plugin.set_output(om.out)
         return plugin
@@ -242,7 +242,7 @@ class TestAutocomplete(AuthPluginTestCase):
     def test_login_success(self):
         plugin = self._plugin()
         self.assertTrue(plugin.login())
-        self.assertIn(self.url("/login"), cf.cf.get("blacklist_audit"))
+        self.assertIn(self.url("/login"), cf.get("blacklist_audit"))
 
     def test_login_success_with_two_login_forms(self):
         self.assertTrue(self._plugin("/two-forms").login())
@@ -311,3 +311,6 @@ class TestAuthenticationFailureReport(AuthPluginTestCase):
         errors = kb.kb.get("authentication", "error")
         self.assertEqual(len(errors), 1)
         self.assertEqual(errors[0].get_uri(), self.url("/login"))
+
+
+cf = Config()

@@ -28,13 +28,13 @@ from urllib.parse import parse_qs, unquote_plus, urlsplit
 
 import pytest
 
-import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.misc.factory import factory
 from w3af.core.controllers.tests.grep_exception_raise import GrepFailureError
 from w3af.core.controllers.tests.local_http_server import LocalHTTPServer, Reply
 from w3af.core.controllers.tests.recording_output import start_recording_output
 from w3af.core.controllers.w3af_core import w3afCore
+from w3af.core.data.kb.config import Config
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.ui.console.console_ui import ConsoleUI
 from w3af.plugins.tests.helper import (
@@ -189,10 +189,10 @@ class TestScanConsumers(unittest.TestCase):
 
     def setUp(self):
         kb.kb.cleanup()
-        self.max_scan_time = cf.cf.get("max_scan_time")
-        self.addCleanup(cf.cf.save, "max_scan_time", self.max_scan_time)
+        self.max_scan_time = cf.get("max_scan_time")
+        self.addCleanup(cf.save, "max_scan_time", self.max_scan_time)
 
-        self.core = w3afCore()
+        self.core = w3afCore(configuration=cf)
         self.addCleanup(self.core.quit)
 
     def start_scan(self, responder, plugins):
@@ -236,7 +236,7 @@ class TestScanConsumers(unittest.TestCase):
         self.core.plugins._plugins_names_dict["grep"] = [plugin_inst.get_name()]
 
     def test_grep_auth_and_bruteforce_consumers(self):
-        cf.cf.save("max_scan_time", 0)
+        cf.save("max_scan_time", 0)
 
         self.start_scan(
             LoginSite(),
@@ -261,7 +261,7 @@ class TestScanConsumers(unittest.TestCase):
         self.assertEqual(kb.kb.get("authentication", "error"), [])
 
     def test_scan_stops_at_max_scan_time(self):
-        cf.cf.save("max_scan_time", 0.02)
+        cf.save("max_scan_time", 0.02)
 
         self.start_scan(endless_site, {"crawl": ["web_spider"]})
 
@@ -270,3 +270,6 @@ class TestScanConsumers(unittest.TestCase):
 
         messages = " ".join(self.recorder.messages_of("information"))
         self.assertIn("The scan has reached the maximum scan time of 0.02", messages)
+
+
+cf = Config()

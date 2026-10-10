@@ -25,8 +25,8 @@ import urllib.parse
 from pathlib import Path
 from typing import ClassVar
 
-import w3af.core.data.kb.config as cf
 from w3af import ROOT_PATH
+from w3af.core.data.kb.config import Config
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.utils.form_constants import EXCLUDE
 from w3af.core.data.parsers.utils.form_id_matcher_list import FormIDMatcherList
@@ -279,14 +279,14 @@ class TestWebSpiderWithoutTargets:
         spider.end()
 
     def test_first_run_without_targets(self):
-        previous = cf.cf.get("targets")
-        cf.cf.save("targets", [])
+        previous = cf.get("targets")
+        cf.save("targets", [])
         try:
             spider = web_spider()
-            spider.set_configuration(cf.cf)
+            spider.set_configuration(cf)
             spider._handle_first_run()
         finally:
-            cf.cf.save("targets", previous)
+            cf.save("targets", previous)
 
         if spider._target_urls != []:
             raise AssertionError
@@ -412,8 +412,8 @@ class TestFormExclusions(PluginTest):
 
     def test_form_exclusions(self):
         user_value = '[{"action": "/out.*"}]'
-        cf.cf.save("form_id_list", FormIDMatcherList(user_value))
-        cf.cf.save("form_id_action", EXCLUDE)
+        self.w3afcore.configuration.save("form_id_list", FormIDMatcherList(user_value))
+        self.w3afcore.configuration.save("form_id_action", EXCLUDE)
 
         self._scan(self.scan_config["target"], self.scan_config["plugins"])
 
@@ -430,5 +430,8 @@ class TestFormExclusions(PluginTest):
         self.assertEqual(found_urls, expected_urls)
 
         # revert any changes to the default so we don't affect other tests
-        cf.cf.save("form_id_list", FormIDMatcherList("[]"))
-        cf.cf.save("form_id_action", EXCLUDE)
+        self.w3afcore.configuration.save("form_id_list", FormIDMatcherList("[]"))
+        self.w3afcore.configuration.save("form_id_action", EXCLUDE)
+
+
+cf = Config()

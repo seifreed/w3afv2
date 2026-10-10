@@ -22,10 +22,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import w3af.core.data.kb.config as cf
 from w3af.core.controllers.exception_handling.cleanup_bug_report import (
     cleanup_bug_report,
 )
+from w3af.core.data.kb.config import Config
 from w3af.core.data.parsers.doc.url import URL
 
 
@@ -38,32 +38,35 @@ class TestCleanupBugReport(unittest.TestCase):
             ("start C:\\Documents and Settings\\CIA\\ end", "start C:/user/ end"),
         ]
         for _input, _expected in TESTS:
-            self.assertEqual(cleanup_bug_report(_input, cf.cf), _expected)
+            self.assertEqual(cleanup_bug_report(_input, cf), _expected)
 
     def test_url_cleanup_no_path(self):
 
         target_url = URL("http://www.target.com/")
-        cf.cf.save(
+        cf.save(
             "targets",
             [
                 target_url,
             ],
         )
         self.assertEqual(
-            cleanup_bug_report("start http://www.target.com/ end", cf.cf),
+            cleanup_bug_report("start http://www.target.com/ end", cf),
             "start http://domain/ end",
         )
 
     def test_url_cleanup_with_path(self):
 
         target_url = URL("http://www.target.com/abc/")
-        cf.cf.save(
+        cf.save(
             "targets",
             [
                 target_url,
             ],
         )
         self.assertEqual(
-            cleanup_bug_report("start http://www.target.com/abc/def end", cf.cf),
+            cleanup_bug_report("start http://www.target.com/abc/def end", cf),
             "start http://domain/path/foo/def end",
         )
+
+
+cf = Config()

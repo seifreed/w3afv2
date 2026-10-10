@@ -18,7 +18,6 @@ from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
 from w3af.core.data.fuzzer.mutants.urlparts_mutant import URLPartsMutant
 from w3af.core.data.fuzzer.utils import create_format_string, rand_number
 from w3af.core.data.kb.config import Config
-from w3af.core.data.kb.config import cf as cf_singleton
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
@@ -180,3 +179,6 @@ class TestURLPartsMutant(unittest.TestCase):
         mutant = self.build_mutants()[0]
 
         self.assertRaises(ValueError, mutant.set_url, URL("http://w3af.org/"))
+
+
+cf_singleton = Config()

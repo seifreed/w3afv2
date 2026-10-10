@@ -23,7 +23,6 @@ import threading
 import unittest
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.consumers.grep import grep
 from w3af.core.controllers.core_helpers.consumers.tests.consumer_plugins import (
@@ -35,6 +34,7 @@ from w3af.core.controllers.core_helpers.consumers.tests.consumer_plugins import 
 from w3af.core.controllers.tests.local_http_server import LocalHTTPServer, Reply
 from w3af.core.controllers.tests.recording_output import start_recording_output
 from w3af.core.controllers.w3af_core import w3afCore
+from w3af.core.data.kb.config import Config
 from w3af.core.data.parsers.doc.url import URL
 
 
@@ -48,11 +48,11 @@ class GrepConsumerTest(unittest.TestCase):
     def setUp(self):
         self.server = LocalHTTPServer(body_per_path).start()
         self.addCleanup(self.server.close)
-        self.core = w3afCore()
+        self.core = w3afCore(configuration=cf)
         self.addCleanup(self.core.worker_pool.terminate_join)
         self.addCleanup(kb.kb.cleanup)
-        cf.cf.save("target_domains", {"127.0.0.1"})
-        self.addCleanup(cf.cf.save, "target_domains", set())
+        cf.save("target_domains", {"127.0.0.1"})
+        self.addCleanup(cf.save, "target_domains", set())
         self.recorder = start_recording_output()
 
     def start_consumer(self, plugins, observer=None):
@@ -223,3 +223,6 @@ class TestRequestResponseLoading(GrepConsumerTest):
                 )
             ],
         )
+
+
+cf = Config()

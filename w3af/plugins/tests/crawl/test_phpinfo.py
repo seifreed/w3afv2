@@ -25,10 +25,10 @@ from pathlib import Path
 from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.config import Config
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.plugins.crawl.phpinfo import (
@@ -169,22 +169,22 @@ class TestPHPInfoFilenames(unittest.TestCase):
     def setUp(self):
         kb.kb.cleanup()
         self.addCleanup(kb.kb.cleanup)
-        self.addCleanup(cf.cf.save, "target_os", cf.cf.get("target_os"))
+        self.addCleanup(cf.save, "target_os", cf.get("target_os"))
 
     def test_windows_fingerprint_uses_lowercase_names(self):
         kb.kb.raw_write("fingerprint_os", "operating_system_str", "Windows")
 
         plugin = phpinfo()
         plugin.set_knowledge_base(kb.kb)
-        plugin.set_configuration(cf.cf)
+        plugin.set_configuration(cf)
         self.assertEqual(plugin._get_potential_phpinfos(), PHP_INFO_FILES_LOWERCASE)
 
     def test_target_os_setting_is_used_without_fingerprint(self):
-        cf.cf.save("target_os", "unix")
+        cf.save("target_os", "unix")
 
         plugin = phpinfo()
         plugin.set_knowledge_base(kb.kb)
-        plugin.set_configuration(cf.cf)
+        plugin.set_configuration(cf)
         self.assertEqual(plugin._get_potential_phpinfos(), PHP_INFO_FILES)
 
     def test_long_desc(self):
@@ -283,3 +283,6 @@ class TestPHPInfoAnalysis(unittest.TestCase):
             kb.kb.cleanup()
             row = f'<h1 class="p">PHP Version {version}</h1>'
             self.assertEqual(self.findings(row), findings, version)
+
+
+cf = Config()

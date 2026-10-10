@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import unittest
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.fingerprint_404 import (
     fingerprint_404_singleton,
@@ -30,6 +29,7 @@ from w3af.core.controllers.core_helpers.fingerprint_404 import (
 from w3af.core.controllers.tests.local_http_server import closed_local_port
 from w3af.core.controllers.tests.recording_output import start_recording_output
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.config import Config
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
@@ -57,8 +57,8 @@ class Test404Errors(unittest.TestCase):
         kb.kb.cleanup()
         self.plugin = meta_tags()
         self.plugin.set_output(om.out)
-        self.plugin.set_configuration(cf.cf)
-        self.fingerprint_404 = fingerprint_404_singleton(om.out, cf.cf, cleanup=True)
+        self.plugin.set_configuration(cf)
+        self.fingerprint_404 = fingerprint_404_singleton(om.out, cf, cleanup=True)
 
     def tearDown(self):
         kb.kb.cleanup()
@@ -107,3 +107,6 @@ class Test404Errors(unittest.TestCase):
             self.assertEqual(str(e), msg)
         else:
             self.assertTrue(False, "Expected exception, success found!")
+
+
+cf = Config()

@@ -33,6 +33,3 @@ class Config(dict):
         This method saves the variable_name value to a dict.
         """
         self[variable_name] = value
-
-
-cf = Config()

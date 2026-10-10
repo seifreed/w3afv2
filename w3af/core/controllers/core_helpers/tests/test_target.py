@@ -26,7 +26,6 @@ import unittest
 
 import pytest
 
-import w3af.core.data.kb.config as cf
 from w3af.core.controllers.core_helpers.target import CoreTarget
 from w3af.core.data.kb.config import Config
 from w3af.core.data.options.opt_factory import opt_factory
@@ -70,7 +69,7 @@ OPTION_TYPES = (
 class TestTarget(unittest.TestCase):
 
     def test_basic(self):
-        opt_lst = CoreTarget(cf.cf).get_options()
+        opt_lst = CoreTarget(cf).get_options()
 
         for opt in opt_lst:
             self.assertIn(opt.get_type(), OPTION_TYPES)
@@ -86,16 +85,16 @@ class TestTarget(unittest.TestCase):
             self.assertIsInstance(opt.get_value_str(), str)
 
     def test_configuration_is_injected(self):
-        cf.cf.save("targets", ["global"])
+        cf.save("targets", ["global"])
         injected_configuration = Config()
 
         CoreTarget(injected_configuration)
 
         self.assertEqual(injected_configuration.get("targets"), [])
-        self.assertEqual(cf.cf.get("targets"), ["global"])
+        self.assertEqual(cf.get("targets"), ["global"])
 
     def test_verify_url(self):
-        ctarget = CoreTarget(cf.cf)
+        ctarget = CoreTarget(cf)
 
         self.assertRaises(
             BaseFrameworkException,
@@ -117,13 +116,13 @@ class TestTarget(unittest.TestCase):
         ctarget = self.set_target(f"file://{target_file}")
 
         self.assertEqual(
-            cf.cf.get("targets"),
+            cf.get("targets"),
             [
                 URL_KLASS("http://127.0.0.1:8000/1"),
                 URL_KLASS("http://127.0.0.1:8000/2"),
             ],
         )
-        self.assertEqual(cf.cf.get("target_domains"), ["127.0.0.1"])
+        self.assertEqual(cf.get("target_domains"), ["127.0.0.1"])
         self.assertTrue(ctarget.has_valid_configuration())
 
     def test_missing_target_file(self):
@@ -149,7 +148,7 @@ class TestTarget(unittest.TestCase):
             self.set_target("http://127.0.0.1:8000/,http://localhost:8000/")
 
     def test_set_target_os_and_framework(self):
-        ctarget = CoreTarget(cf.cf)
+        ctarget = CoreTarget(cf)
         options = ctarget.get_options()
         options["target"].set_value("http://127.0.0.1:8000/")
         options["target_os"].set_value("unix")
@@ -157,32 +156,32 @@ class TestTarget(unittest.TestCase):
 
         ctarget.set_options(options)
 
-        self.assertEqual(cf.cf.get("target_os"), "unix")
-        self.assertEqual(cf.cf.get("target_framework"), "php")
+        self.assertEqual(cf.get("target_os"), "unix")
+        self.assertEqual(cf.get("target_framework"), "php")
         self.assertEqual(ctarget.get_options()["target_os"].get_value_str(), "unix")
 
     def test_unknown_target_os(self):
         options = self.options_with("target_os", "solaris")
 
         with self.assertRaisesRegex(BaseFrameworkException, "operating system"):
-            CoreTarget(cf.cf).set_options(options)
+            CoreTarget(cf).set_options(options)
 
     def test_unknown_target_framework(self):
         options = self.options_with("target_framework", "cobol")
 
         with self.assertRaisesRegex(BaseFrameworkException, "programming framework"):
-            CoreTarget(cf.cf).set_options(options)
+            CoreTarget(cf).set_options(options)
 
     def test_name_description_and_empty_configuration(self):
-        ctarget = CoreTarget(cf.cf)
+        ctarget = CoreTarget(cf)
 
         self.assertEqual(ctarget.get_name(), "target_settings")
         self.assertEqual(ctarget.get_desc(), "Configure target URLs")
         self.assertFalse(ctarget.has_valid_configuration())
 
     def setUp(self):
-        CoreTarget(cf.cf).clear()
-        self.addCleanup(CoreTarget(cf.cf).clear)
+        CoreTarget(cf).clear()
+        self.addCleanup(CoreTarget(cf).clear)
 
     def make_temp_dir(self):
         temp_dir = tempfile.mkdtemp()
@@ -196,7 +195,7 @@ class TestTarget(unittest.TestCase):
         return target_file
 
     def set_target(self, target):
-        ctarget = CoreTarget(cf.cf)
+        ctarget = CoreTarget(cf)
         options = ctarget.get_options()
         options["target"].set_value(target)
         ctarget.set_options(options)
@@ -208,10 +207,13 @@ class TestTarget(unittest.TestCase):
                  combo_value, as an option list built outside CoreTarget would
         """
         options = OptionList()
-        for option in CoreTarget(cf.cf).get_options():
+        for option in CoreTarget(cf).get_options():
             if option.get_name() == combo_name:
                 option = opt_factory(combo_name, [combo_value], "", "combo")
             options.add(option)
 
         options["target"].set_value("http://127.0.0.1:8000/")
         return options
+
+
+cf = Config()

@@ -23,8 +23,8 @@ import unittest
 from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
+from w3af.core.data.kb.config import Config
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.utils.form_params import FormParameters
 from w3af.plugins.auth.autocomplete import autocomplete
@@ -226,12 +226,12 @@ class TestAutocompleteAuthenticationFailure(unittest.TestCase):
     )
 
     def setUp(self):
-        blacklist_audit = list(cf.cf.get("blacklist_audit") or [])
-        self.addCleanup(cf.cf.save, "blacklist_audit", blacklist_audit)
+        blacklist_audit = list(cf.get("blacklist_audit") or [])
+        self.addCleanup(cf.save, "blacklist_audit", blacklist_audit)
 
     def test_consecutive_authentication_failure(self):
         plugin = autocomplete()
-        plugin.set_configuration(cf.cf)
+        plugin.set_configuration(cf)
         plugin.set_output(om.out)
         plugin.set_knowledge_base(kb.kb)
         kb.kb.cleanup()
@@ -266,7 +266,7 @@ class TestAutocompleteAuthenticationFailure(unittest.TestCase):
 
     def test_mixed_authentication_results(self):
         plugin = autocomplete()
-        plugin.set_configuration(cf.cf)
+        plugin.set_configuration(cf)
         plugin.set_output(om.out)
         kb.kb.cleanup()
 
@@ -285,7 +285,7 @@ class TestAutocompleteAuthenticationFailure(unittest.TestCase):
 
     def test_mixed_authentication_results_fail_fail_success(self):
         plugin = autocomplete()
-        plugin.set_configuration(cf.cf)
+        plugin.set_configuration(cf)
         plugin.set_output(om.out)
         kb.kb.cleanup()
 
@@ -303,3 +303,6 @@ class TestAutocompleteAuthenticationFailure(unittest.TestCase):
 
         infos = kb.kb.get("authentication", "error")
         self.assertEqual(len(infos), 0)
+
+
+cf = Config()

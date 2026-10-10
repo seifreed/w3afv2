@@ -24,7 +24,7 @@ import os
 import tempfile
 import unittest
 
-from w3af.core.data.kb.config import cf
+from w3af.core.data.kb.config import Config
 from w3af.core.data.options.option_types import (
     BOOL,
     COMBO,
@@ -308,3 +308,6 @@ class TestOpenerSettingsConfiguration(unittest.TestCase):
         self.assertEqual(cf.get("basic_auth_domain"), URLParser("http://w3af.org/"))
         self.assertEqual(self.settings.get_proxy(), "127.0.0.1:3128")
         self.assertEqual(cf.get("url_parameter"), "sid=1")
+
+
+cf = Config()

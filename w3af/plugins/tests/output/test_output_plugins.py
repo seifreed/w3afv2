@@ -27,10 +27,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
-import w3af.core.data.kb.config as cf
+import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.data.constants import severity
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.config import Config
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
 from w3af.core.data.kb.vuln import Vuln
@@ -61,8 +62,8 @@ VULN_DESC = "A vulnerability was identified in the application under test"
 
 
 def _save_config(test_case, name, value):
-    test_case.addCleanup(cf.cf.save, name, cf.cf.get(name))
-    cf.cf.save(name, value)
+    test_case.addCleanup(cf.save, name, cf.get(name))
+    cf.save(name, value)
 
 
 def _temp_dir(test_case):
@@ -231,6 +232,8 @@ class TestFileExportErrors(unittest.TestCase):
     def test_csv_file(self):
         plugin = csv_file()
         plugin.set_knowledge_base(kb.kb)
+        plugin.set_configuration(cf)
+        plugin.set_output(om.out)
         plugin.output_file = self.unwritable
         plugin.end()
         self.assertTrue(Path(self.unwritable).is_dir())
@@ -239,6 +242,8 @@ class TestFileExportErrors(unittest.TestCase):
     def test_export_requests(self):
         plugin = export_requests()
         plugin.set_knowledge_base(kb.kb)
+        plugin.set_configuration(cf)
+        plugin.set_output(om.out)
         plugin.output_file = self.unwritable
         plugin.end()
         self.assertTrue(Path(self.unwritable).is_dir())
@@ -247,6 +252,8 @@ class TestFileExportErrors(unittest.TestCase):
     def test_json_file(self):
         plugin = json_file()
         plugin.set_knowledge_base(kb.kb)
+        plugin.set_configuration(cf)
+        plugin.set_output(om.out)
         plugin.output_file = self.unwritable
         plugin.end()
         self.assertTrue(Path(self.unwritable).is_dir())
@@ -272,6 +279,8 @@ class TestJsonFileFindings(unittest.TestCase):
 
         plugin = json_file()
         plugin.set_knowledge_base(kb.kb)
+        plugin.set_configuration(cf)
+        plugin.set_output(om.out)
         plugin.output_file = self.output_file
         plugin.end()
 
@@ -291,6 +300,8 @@ class TestEmailReport(unittest.TestCase):
 
         self.plugin = email_report()
         self.plugin.set_knowledge_base(kb.kb)
+        self.plugin.set_configuration(cf)
+        self.plugin.set_output(om.out)
         options = self.plugin.get_options()
         options["smtpServer"].set_value("127.0.0.1")
         options["smtpPort"].set_value(self.smtp_server.port)
@@ -373,6 +384,7 @@ class TestTextFile(unittest.TestCase):
         self.output_file = os.path.join(self.directory, "output.txt")
         self.http_file = os.path.join(self.directory, "output-http.txt")
         self.plugin = text_file()
+        self.plugin.set_output(om.out)
 
     def _configure(self, output_file, http_file):
         options = self.plugin.get_options()
@@ -444,3 +456,6 @@ class TestTextFile(unittest.TestCase):
 
     def test_long_desc(self):
         self.assertIn("text file", self.plugin.get_long_desc())
+
+
+cf = Config()

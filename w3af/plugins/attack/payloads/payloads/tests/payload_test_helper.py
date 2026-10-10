@@ -21,8 +21,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import ClassVar
 
-import w3af.core.data.kb.config as cf
 from w3af.core.controllers.ci.moth import get_moth_http
+from w3af.core.data.kb.config import Config
 from w3af.plugins.tests.helper import PluginConfig, PluginTest
 
 
@@ -78,9 +78,12 @@ class PayloadTestHelper(PluginTest):
 
     def setUp(self):
         super().setUp()
-        cf.cf.save("target_os", "unix")
+        cf.save("target_os", "unix")
         self.shell = self._get_shell()
 
     def tearDown(self):
         super().tearDown()
-        cf.cf.save("target_os", "unknown")
+        cf.save("target_os", "unknown")
+
+
+cf = Config()

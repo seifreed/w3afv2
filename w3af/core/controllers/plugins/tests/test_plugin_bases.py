@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import unittest
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.config as cf
 from w3af.core.controllers.core_helpers.fingerprint_404 import (
     fingerprint_404_singleton,
 )
@@ -36,6 +35,7 @@ from w3af.core.controllers.plugins.output_plugin import OutputPlugin
 from w3af.core.controllers.tests.local_http_server import LocalHTTPServer, Reply
 from w3af.core.controllers.tests.recording_output import start_recording_output
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.config import Config
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.options.option_types import BOOL
@@ -191,7 +191,7 @@ class TestCrawlHTTPGetAndParse(unittest.TestCase):
         create_temp_dir()
         self.uri_opener = ExtendedUrllib()
         self.addCleanup(self.uri_opener.end)
-        fingerprint_404_singleton(om.out, cf.cf, cleanup=True).set_url_opener(
+        fingerprint_404_singleton(om.out, cf, cleanup=True).set_url_opener(
             self.uri_opener
         )
         self.addCleanup(fingerprint_404_singleton, cleanup=True)
@@ -201,7 +201,7 @@ class TestCrawlHTTPGetAndParse(unittest.TestCase):
 
         self.plugin = spider()
         self.plugin.set_output(om.out)
-        self.plugin.set_configuration(cf.cf)
+        self.plugin.set_configuration(cf)
         self.plugin.set_url_opener(self.uri_opener)
         self.successes = []
 
@@ -336,3 +336,6 @@ class TestOutputPlugin(unittest.TestCase):
 
     def test_create_plugin_info_without_plugins(self):
         self.assertEqual(OutputPlugin()._create_plugin_info("audit", [], {}), "")
+
+
+cf = Config()

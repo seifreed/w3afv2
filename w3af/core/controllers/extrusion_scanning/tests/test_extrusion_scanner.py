@@ -26,9 +26,9 @@ import unittest
 import pytest
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.extrusion_scanning.extrusion_scanner import extrusionScanner
+from w3af.core.data.kb.config import Config
 from w3af.plugins.tests.helper import onlyroot
 
 
@@ -38,7 +38,7 @@ class TestExtrusionScanner(unittest.TestCase):
     """
 
     def test_basic(self):
-        es = extrusionScanner(subprocess.getoutput, kb.kb, om.out, cf.cf)
+        es = extrusionScanner(subprocess.getoutput, kb.kb, om.out, cf)
 
         self.assertTrue(es.can_scan())
 
@@ -50,9 +50,9 @@ class TestExtrusionScanner(unittest.TestCase):
     @pytest.mark.ci_fails
     def test_scan(self):
         # FIXME: This unittest will only work in Linux
-        cf.cf.save("interface", "lo")
-        cf.cf.save("local_ip_address", "127.0.0.1")
-        es = extrusionScanner(subprocess.getoutput, kb.kb, om.out, cf.cf)
+        cf.save("interface", "lo")
+        cf.save("local_ip_address", "127.0.0.1")
+        es = extrusionScanner(subprocess.getoutput, kb.kb, om.out, cf)
 
         inbound_port = es.get_inbound_port()
         self.assertEqual(inbound_port, 8080)
@@ -62,3 +62,6 @@ class TestExtrusionScanner(unittest.TestCase):
         Can't stop finding pytest errors! It looks like SkipTest works except
         in the case where it is the last test discovered!
         """
+
+
+cf = Config()

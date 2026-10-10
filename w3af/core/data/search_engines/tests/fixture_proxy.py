@@ -24,7 +24,7 @@ import http.server
 import threading
 import urllib.parse
 
-import w3af.core.data.kb.config as cf
+from w3af.core.data.kb.config import Config
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.data.url.opener_settings import OpenerSettings
 from w3af.core.filesystem import create_temp_dir
@@ -83,7 +83,7 @@ class FixtureProxy:
         # The proxy settings live in the global configuration: restore them so
         # later openers do not keep sending requests to this stopped proxy
         for name, value in self._previous_proxy:
-            cf.cf.save(name, value)
+            cf.save(name, value)
 
     def query(self, index=-1):
         return dict(urllib.parse.parse_qsl(self.requests[index].query))
@@ -96,7 +96,7 @@ class FixtureProxy:
 
         settings = OpenerSettings()
         self._previous_proxy = [
-            (name, cf.cf.get(name)) for name in ("proxy_address", "proxy_port")
+            (name, cf.get(name)) for name in ("proxy_address", "proxy_port")
         ]
         options = settings.get_options()
         options["proxy_address"].set_value("127.0.0.1")
@@ -106,3 +106,6 @@ class FixtureProxy:
         uri_opener = ExtendedUrllib()
         uri_opener.settings = settings
         return uri_opener
+
+
+cf = Config()

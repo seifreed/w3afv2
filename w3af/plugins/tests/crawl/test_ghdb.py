@@ -28,13 +28,13 @@ from pathlib import Path
 from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.controllers.core_helpers.fingerprint_404 import (
     fingerprint_404_singleton,
 )
 from w3af.core.data.constants import severity
+from w3af.core.data.kb.config import Config
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.exceptions import BaseFrameworkException
@@ -70,7 +70,7 @@ class GHDBCrawlTest(CannedServerPluginTest):
     }
 
     def setUp(self):
-        fingerprint_404_singleton(om.out, cf.cf, cleanup=True)
+        fingerprint_404_singleton(om.out, cf, cleanup=True)
         self.addCleanup(fingerprint_404_singleton, cleanup=True)
 
         super().setUp()
@@ -255,3 +255,6 @@ class TestGHDBDatabase(unittest.TestCase):
 
     def test_long_description_credits_exploit_db(self):
         self.assertIn("Exploit-DB", self.plugin.get_long_desc())
+
+
+cf = Config()

@@ -29,7 +29,6 @@ import unittest
 import pytest
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.config as cf
 from w3af.core.controllers.core_helpers.exception_handler import (
     ExceptionData,
     ExceptionHandler,
@@ -38,6 +37,7 @@ from w3af.core.controllers.core_helpers.status import CoreStatus
 from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.dc.generic.kv_container import KeyValueContainer
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.config import Config
 from w3af.core.data.misc.serialize import dumps, loads
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
@@ -49,7 +49,7 @@ class TestExceptionHandler(unittest.TestCase):
     EXCEPT_START = 'A "RuntimeError" exception was found'
 
     def setUp(self):
-        self.exception_handler = ExceptionHandler(om.out, cf.cf)
+        self.exception_handler = ExceptionHandler(om.out, cf)
         self.exception_handler.clear()
 
         self.status = CoreStatus(om.out)
@@ -71,7 +71,7 @@ class TestExceptionHandler(unittest.TestCase):
                 error,
                 sys.exc_info()[2],
                 "",
-                cf.cf,
+                cf,
             )
 
         self.exception_handler.handle_exception_data(exception_data)
@@ -259,8 +259,8 @@ class TestExceptionHandler(unittest.TestCase):
         self.assertEqual(self.exception_handler.get_all_exceptions(), [])
 
     def test_stop_on_first_exception_raises(self):
-        cf.cf.save("stop_on_first_exception", True)
-        self.addCleanup(cf.cf.save, "stop_on_first_exception", False)
+        cf.save("stop_on_first_exception", True)
+        self.addCleanup(cf.save, "stop_on_first_exception", False)
 
         with self.assertRaisesRegex(RuntimeError, "first"):
             self.handle_runtime_error("first")
@@ -330,14 +330,14 @@ class TestExceptionData(unittest.TestCase):
 
     def test_requires_exception_instance(self):
         with self.assertRaisesRegex(TypeError, "e must be an Exception"):
-            ExceptionData(None, None, None, "", cf.cf)
+            ExceptionData(None, None, None, "", cf)
 
     def test_requires_core_status_instance(self):
         with self.assertRaisesRegex(
             TypeError,
             "current_status must be a CoreStatus",
         ):
-            ExceptionData(None, ValueError(), None, "", cf.cf)
+            ExceptionData(None, ValueError(), None, "", cf)
 
     def get_fuzzable_request(self):
         headers = Headers([("Hello", "World")])
@@ -358,7 +358,7 @@ class TestExceptionData(unittest.TestCase):
         status.set_current_fuzzable_request("audit", fr)
 
         exception_data = ExceptionData(
-            status, KeyError(), tb, enabled_plugins, cf.cf, store_tb=False
+            status, KeyError(), tb, enabled_plugins, cf, store_tb=False
         )
 
         pickled_ed = dumps(exception_data)
@@ -382,7 +382,7 @@ class TestExceptionData(unittest.TestCase):
             status.set_current_fuzzable_request("audit", fr)
 
             exception_data = ExceptionData(
-                status, e, tb, enabled_plugins, cf.cf, store_tb=False
+                status, e, tb, enabled_plugins, cf, store_tb=False
             )
 
             pickled_ed = dumps(exception_data)
@@ -406,7 +406,10 @@ class TestExceptionData(unittest.TestCase):
             status.set_current_fuzzable_request("audit", fr)
 
             exception_data = ExceptionData(
-                status, e, tb, enabled_plugins, cf.cf, store_tb=True
+                status, e, tb, enabled_plugins, cf, store_tb=True
             )
 
             self.assertRaises(TypeError, dumps, exception_data)
+
+
+cf = Config()

@@ -24,9 +24,9 @@ import unittest
 from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.plugins.plugin import Plugin
+from w3af.core.data.kb.config import Config
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.plugins.tests.canned_http_server import (
@@ -62,7 +62,7 @@ class CannedServerPluginTest(unittest.TestCase):
         self.server.start()
         self.addCleanup(self.server.stop)
 
-        self.uri_opener = ExtendedUrllib()
+        self.uri_opener = ExtendedUrllib(configuration=cf)
         self.uri_opener.settings.set_proxy(self.server.host, self.server.port)
         self.addCleanup(self.uri_opener.end)
 
@@ -70,7 +70,10 @@ class CannedServerPluginTest(unittest.TestCase):
         self.plugin.set_url_opener(self.uri_opener)
         self.plugin.set_knowledge_base(kb.kb)
         self.plugin.set_output(om.out)
-        self.plugin.set_configuration(cf.cf)
+        self.plugin.set_configuration(cf)
 
     def respond(self, request: CannedRequest) -> CannedReply:
         raise NotImplementedError
+
+
+cf = Config()

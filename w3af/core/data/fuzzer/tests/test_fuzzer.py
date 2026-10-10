@@ -33,7 +33,6 @@ from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
 from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
 from w3af.core.data.fuzzer.mutants.xmlrpc_mutant import XmlRpcMutant
 from w3af.core.data.kb.config import Config
-from w3af.core.data.kb.config import cf as cf_singleton
 from w3af.core.data.parsers.doc.tests.test_xmlrpc import XML_WITH_FUZZABLE
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.utils.form_params import FormParameters
@@ -141,7 +140,7 @@ class TestFuzzer(unittest.TestCase):
         url = URL("http://moth/?id=1")
         # No headers in the original request
         # headers = Headers([('Referer', 'http://moths/')])
-        freq = FuzzableRequest(url)
+        freq = FuzzableRequest(url, configuration=cf_singleton)
         mutants = create_mutants(freq, self.payloads, configuration=cf_singleton)
 
         expected_urls = [
@@ -424,3 +423,6 @@ class TestFuzzer(unittest.TestCase):
             "http://moth/foo/def?id=1",
         ]
         self.assertEqual(generated_uris, expected_uris)
+
+
+cf_singleton = Config()

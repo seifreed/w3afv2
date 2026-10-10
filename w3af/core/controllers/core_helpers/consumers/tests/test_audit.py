@@ -23,7 +23,6 @@ import re
 import unittest
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.consumers.audit import audit
 from w3af.core.controllers.core_helpers.consumers.tests.consumer_plugins import (
@@ -36,6 +35,7 @@ from w3af.core.controllers.core_helpers.consumers.tests.consumer_plugins import 
 from w3af.core.controllers.tests.local_http_server import LocalHTTPServer, Reply
 from w3af.core.controllers.tests.recording_output import start_recording_output
 from w3af.core.controllers.w3af_core import w3afCore
+from w3af.core.data.kb.config import Config
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.exceptions import ScanMustStopException
@@ -55,7 +55,7 @@ class TestAuditConsumer(unittest.TestCase):
         kb.kb.cleanup()
 
     def test_teardown_with_must_stop_exception(self):
-        w3af_core = w3afCore()
+        w3af_core = w3afCore(configuration=cf)
         recorder = start_recording_output()
 
         xss_instance = xss()
@@ -105,7 +105,7 @@ class TestAuditConsumerBranches(unittest.TestCase):
     def setUp(self):
         self.server = LocalHTTPServer(hello_world).start()
         self.addCleanup(self.server.close)
-        self.core = w3afCore()
+        self.core = w3afCore(configuration=cf)
         self.addCleanup(self.core.worker_pool.terminate_join)
         self.addCleanup(kb.kb.cleanup)
         self.recorder = start_recording_output()
@@ -154,8 +154,8 @@ class TestAuditConsumerBranches(unittest.TestCase):
 
     def test_blacklisted_url_is_not_audited(self):
         url = self.server.url("/blacklisted")
-        cf.cf.save("blacklist_audit", [URL(url)])
-        self.addCleanup(cf.cf.save, "blacklist_audit", [])
+        cf.save("blacklist_audit", [URL(url)])
+        self.addCleanup(cf.save, "blacklist_audit", [])
         plugin = recording_audit()
 
         self.run_audit([plugin], [url])
@@ -190,3 +190,6 @@ class TestAuditConsumerBranches(unittest.TestCase):
             reported_errors(consumer),
             [("audit._run_observers()", "audit observer failed")],
         )
+
+
+cf = Config()

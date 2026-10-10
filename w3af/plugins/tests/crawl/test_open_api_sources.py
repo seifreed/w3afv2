@@ -28,9 +28,9 @@ from typing import ClassVar
 import yaml
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.misc_settings import MiscSettings
+from w3af.core.data.kb.config import Config
 from w3af.core.data.parsers.doc.open_api.tests.example_specifications import (
     NestedModel,
     PetstoreSimpleModel,
@@ -209,10 +209,10 @@ class TestOpenAPIPluginInternals(unittest.TestCase):
     def setUp(self):
         kb.kb.cleanup()
         self.addCleanup(kb.kb.cleanup)
-        self.addCleanup(MiscSettings(cf.cf).set_default_values)
+        self.addCleanup(MiscSettings(cf).set_default_values)
 
         self.plugin = open_api()
-        self.plugin.set_configuration(cf.cf)
+        self.plugin.set_configuration(cf)
         self.addCleanup(self.plugin.end)
 
     def test_common_paths_are_generated_only_once(self):
@@ -233,17 +233,20 @@ class TestOpenAPIPluginInternals(unittest.TestCase):
 
         self.plugin._enable_file_name_fuzzing()
 
-        self.assertTrue(cf.cf.get("fuzz_url_filenames"))
-        self.assertTrue(cf.cf.get("fuzz_url_parts"))
+        self.assertTrue(cf.get("fuzz_url_filenames"))
+        self.assertTrue(cf.get("fuzz_url_parts"))
 
     def test_api_call_without_configured_targets_is_out_of_scope(self):
-        previous_targets = cf.cf.get("targets")
-        self.addCleanup(cf.cf.save, "targets", previous_targets)
-        cf.cf.save("targets", [])
+        previous_targets = cf.get("targets")
+        self.addCleanup(cf.save, "targets", previous_targets)
+        cf.save("targets", [])
 
         api_call = FuzzableRequest(URL("http://w3af.org/api/pets"))
 
-        self.assertFalse(open_api._is_target_domain(api_call, om.out, cf.cf))
+        self.assertFalse(open_api._is_target_domain(api_call, om.out, cf))
 
     def test_long_description_mentions_supported_files(self):
         self.assertIn("openapi.yaml", self.plugin.get_long_desc())
+
+
+cf = Config()

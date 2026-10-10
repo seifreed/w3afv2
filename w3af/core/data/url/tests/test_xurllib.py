@@ -27,11 +27,11 @@ from multiprocessing.dummy import Process
 
 import pytest
 
-import w3af.core.data.kb.config as cf
 from w3af import ROOT_PATH
 from w3af.core.controllers.misc.get_unused_port import get_unused_port
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.dc.urlencoded_form import URLEncodedForm
+from w3af.core.data.kb.config import Config
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.constants import MAX_ERROR_COUNT
 from w3af.core.data.url.exceptions import HTTPRequestException
@@ -62,7 +62,7 @@ BIG_BODY = b'{"jquery": "' + b"x" * 500000 + b'"}'
 class TestXUrllib(unittest.TestCase):
 
     def setUp(self):
-        self.uri_opener = ExtendedUrllib(configuration=cf.cf)
+        self.uri_opener = ExtendedUrllib(configuration=cf)
         self.addCleanup(self.uri_opener.end)
         self.addCleanup(self.uri_opener.settings.set_default_values)
 
@@ -104,7 +104,7 @@ class TestXUrllib(unittest.TestCase):
         )
 
         self.assertEqual(http_response.get_raw_body(), BIG_BODY)
-        self.assertEqual(cf.cf.get("max_file_size"), 400000)
+        self.assertEqual(cf.get("max_file_size"), 400000)
 
     def test_size_limit_is_restored_when_request_fails(self):
         url = URL(f"http://127.0.0.1:{closed_port()}/")
@@ -112,7 +112,7 @@ class TestXUrllib(unittest.TestCase):
         self.assertRaises(
             HTTPRequestException, self.uri_opener.GET, url, respect_size_limit=False
         )
-        self.assertEqual(cf.cf.get("max_file_size"), 400000)
+        self.assertEqual(cf.get("max_file_size"), 400000)
 
     def test_cache(self):
         url = URL(self.server.url())
@@ -408,3 +408,6 @@ class TestXUrllib(unittest.TestCase):
         elapsed_time = time.monotonic() - start_time
         self.assertGreaterEqual(elapsed_time, min_elapsed)
         self.assertEqual(len(self.server.requests), 2)
+
+
+cf = Config()

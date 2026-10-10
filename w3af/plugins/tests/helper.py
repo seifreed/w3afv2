@@ -32,7 +32,6 @@ import pytest
 import requests
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.fingerprint_404 import (
     fingerprint_404_singleton,
@@ -42,6 +41,7 @@ from w3af.core.controllers.misc.home_dir import W3AF_LOCAL_PATH
 from w3af.core.controllers.misc_settings import MiscSettings
 from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.fuzzer.utils import rand_alnum
+from w3af.core.data.kb.config import Config
 from w3af.core.data.kb.info_set import InfoSet
 from w3af.core.data.kb.read_shell import ReadShell
 from w3af.core.data.options.opt_factory import opt_factory
@@ -77,8 +77,9 @@ class PluginTest(unittest.TestCase):
 
     def setUp(self):
         self.kb.cleanup()
-        self.w3afcore = w3afCore()
-        self.misc_settings = MiscSettings(cf.cf)
+        self.configuration = Config()
+        self.w3afcore = w3afCore(configuration=self.configuration)
+        self.misc_settings = MiscSettings(self.configuration)
 
         self.request_callback_call_count = 0
         self.request_callback_match = 0
@@ -580,9 +581,10 @@ def configure_never_404(test_case, *urls):
     so the 404 detection treats them as existing resources, and restore the
     previous value when the test finishes.
     """
-    previous = cf.cf.get("never_404")
-    test_case.addCleanup(cf.cf.save, "never_404", previous)
-    cf.cf.save("never_404", [url.get_domain_path() for url in urls])
+    configuration = test_case.w3afcore.configuration
+    previous = configuration.get("never_404")
+    test_case.addCleanup(configuration.save, "never_404", previous)
+    configuration.save("never_404", [url.get_domain_path() for url in urls])
 
 
 def create_target_option_list(*target):

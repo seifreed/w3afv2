@@ -27,11 +27,11 @@ from pathlib import Path
 
 import pytest
 
-import w3af.core.data.kb.config as cf
 from w3af import ROOT_PATH
 from w3af.core.data.dc.factory import dc_from_form_params
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.dc.urlencoded_form import URLEncodedForm
+from w3af.core.data.kb.config import Config
 from w3af.core.data.parsers.doc.html import HTMLParser
 from w3af.core.data.parsers.doc.tests.data.constants import (
     A_LINK_ABSOLUTE,
@@ -372,12 +372,12 @@ class TestHTMLParser(unittest.TestCase):
 
     def tearDown(self):
         # set the defaults back
-        cf.cf.save("form_id_list", FormIDMatcherList("[]"))
-        cf.cf.save("form_id_action", EXCLUDE)
+        cf.save("form_id_list", FormIDMatcherList("[]"))
+        cf.save("form_id_action", EXCLUDE)
 
     def test_form_exclude_two_of_two(self):
         user_value = '[{"action": "/foo", "method": "get"}, {"action": "/bar", "method": "post"}]'
-        cf.cf.save("form_id_list", FormIDMatcherList(user_value))
+        cf.save("form_id_list", FormIDMatcherList(user_value))
 
         body = """
         <html>
@@ -395,11 +395,11 @@ class TestHTMLParser(unittest.TestCase):
         p = RaiseHTMLParser(r)
         p.parse()
 
-        self.assertEqual(len(p.get_forms(cf.cf)), 0)
+        self.assertEqual(len(p.get_forms(cf)), 0)
 
     def test_form_exclude_one_of_two(self):
         user_value = '[{"action": "/foo", "method": "get"}, {"action": "/nomatch", "method": "post"}]'
-        cf.cf.save("form_id_list", FormIDMatcherList(user_value))
+        cf.save("form_id_list", FormIDMatcherList(user_value))
 
         body = """
         <html>
@@ -417,12 +417,12 @@ class TestHTMLParser(unittest.TestCase):
         p = RaiseHTMLParser(r)
         p.parse()
 
-        self.assertEqual(len(p.get_forms(cf.cf)), 1)
-        self.assertEqual(p.get_forms(cf.cf)[0]._action, URL("http://w3af.com/bar"))
+        self.assertEqual(len(p.get_forms(cf)), 1)
+        self.assertEqual(p.get_forms(cf)[0]._action, URL("http://w3af.com/bar"))
 
     def test_form_exclude_zero_of_two(self):
         user_value = '[{"action": "/foo", "method": "post"}, {"action": "/nomatch", "method": "post"}]'
-        cf.cf.save("form_id_list", FormIDMatcherList(user_value))
+        cf.save("form_id_list", FormIDMatcherList(user_value))
 
         body = """
         <html>
@@ -440,12 +440,12 @@ class TestHTMLParser(unittest.TestCase):
         p = RaiseHTMLParser(r)
         p.parse()
 
-        self.assertEqual(len(p.get_forms(cf.cf)), 2)
+        self.assertEqual(len(p.get_forms(cf)), 2)
 
     def test_form_include_zero_of_two(self):
         user_value = '[{"action": "/foo", "method": "post"}, {"action": "/nomatch", "method": "post"}]'
-        cf.cf.save("form_id_list", FormIDMatcherList(user_value))
-        cf.cf.save("form_id_action", INCLUDE)
+        cf.save("form_id_list", FormIDMatcherList(user_value))
+        cf.save("form_id_action", INCLUDE)
 
         body = """
         <html>
@@ -463,12 +463,12 @@ class TestHTMLParser(unittest.TestCase):
         p = RaiseHTMLParser(r)
         p.parse()
 
-        self.assertEqual(len(p.get_forms(cf.cf)), 0)
+        self.assertEqual(len(p.get_forms(cf)), 0)
 
     def test_form_include_one_of_two(self):
         user_value = '[{"action": "/foo", "method": "get"}, {"action": "/nomatch", "method": "post"}]'
-        cf.cf.save("form_id_list", FormIDMatcherList(user_value))
-        cf.cf.save("form_id_action", INCLUDE)
+        cf.save("form_id_list", FormIDMatcherList(user_value))
+        cf.save("form_id_action", INCLUDE)
 
         body = """
         <html>
@@ -486,12 +486,12 @@ class TestHTMLParser(unittest.TestCase):
         p = RaiseHTMLParser(r)
         p.parse()
 
-        self.assertEqual(len(p.get_forms(cf.cf)), 1)
+        self.assertEqual(len(p.get_forms(cf)), 1)
 
     def test_form_include_two_of_two(self):
         user_value = '[{"action": "/foo", "method": "get"}, {"action": "/bar", "method": "post"}]'
-        cf.cf.save("form_id_list", FormIDMatcherList(user_value))
-        cf.cf.save("form_id_action", INCLUDE)
+        cf.save("form_id_list", FormIDMatcherList(user_value))
+        cf.save("form_id_action", INCLUDE)
 
         body = """
         <html>
@@ -509,12 +509,12 @@ class TestHTMLParser(unittest.TestCase):
         p = RaiseHTMLParser(r)
         p.parse()
 
-        self.assertEqual(len(p.get_forms(cf.cf)), 2)
+        self.assertEqual(len(p.get_forms(cf)), 2)
 
     def test_form_include_two_of_two_one_form_id(self):
         user_value = '[{"action": "/abc.*"}]'
-        cf.cf.save("form_id_list", FormIDMatcherList(user_value))
-        cf.cf.save("form_id_action", INCLUDE)
+        cf.save("form_id_list", FormIDMatcherList(user_value))
+        cf.save("form_id_action", INCLUDE)
 
         body = """
         <html>
@@ -532,7 +532,7 @@ class TestHTMLParser(unittest.TestCase):
         p = RaiseHTMLParser(r)
         p.parse()
 
-        self.assertEqual(len(p.get_forms(cf.cf)), 2)
+        self.assertEqual(len(p.get_forms(cf)), 2)
 
     def test_unicodedecoreerror_ascii_url(self):
         HTML_FILE = os.path.join(
@@ -588,3 +588,6 @@ class TestHTMLParserTextarea(unittest.TestCase):
         parser.parse()
 
         self.assertEqual(dict(parser.get_forms()[0]), {})
+
+
+cf = Config()

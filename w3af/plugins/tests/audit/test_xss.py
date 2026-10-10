@@ -29,7 +29,7 @@ from w3af.core.data.constants import severity
 from w3af.core.data.context.context.css import ALL_CONTEXTS as ALL_CSS_CONTEXTS
 from w3af.core.data.context.context.html import ALL_CONTEXTS as ALL_HTML_CONTEXTS
 from w3af.core.data.context.context.javascript import ALL_CONTEXTS as ALL_JS_CONTEXTS
-from w3af.core.data.kb.config import cf
+from w3af.core.data.kb.config import Config
 from w3af.plugins.audit.xss import xss
 from w3af.plugins.tests.audit.vulnerable_xss import (
     EchoPage,
@@ -469,13 +469,13 @@ class TestXSSFileUpload(XssPluginTest):
         https://github.com/andresriancho/w3af/issues/3149
         """
         # Set the value to False (True is the default)
-        cf.save("fuzz_form_files", False)
+        self.w3afcore.configuration.save("fuzz_form_files", False)
 
         try:
             self.scan_file_upload_fuzz_files()
         finally:
             # Restore the default
-            cf.save("fuzz_form_files", True)
+            self.w3afcore.configuration.save("fuzz_form_files", True)
 
         xss_vulns = self.kb.get("xss", "xss")
         self.assertEqual(len(xss_vulns), 0, xss_vulns)
@@ -561,3 +561,6 @@ class TestXSSPayloadsBreak(TestCase):
             if not payload_broke_context:
                 klass_name = context.__class__.__name__
                 self.assertTrue(False, f"No XSS payload breaks {klass_name}")
+
+
+cf = Config()

@@ -29,7 +29,7 @@ import unittest
 
 import OpenSSL
 
-from w3af.core.data.kb.config import cf
+from w3af.core.data.kb.config import Config
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.director import CustomOpenerDirector, build_opener
 from w3af.core.data.url.exceptions import ConnectionPoolException, HTTPRequestException
@@ -700,3 +700,6 @@ class TestConnectionManager(unittest.TestCase):
         self.cm.cleanup_broken_connections()
 
         self.assertEqual(self.cm.get_all(), {idle_start, busy, unmoved, recent})
+
+
+cf = Config()

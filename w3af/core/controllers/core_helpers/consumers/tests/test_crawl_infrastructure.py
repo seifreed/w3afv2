@@ -24,7 +24,6 @@ import re
 import unittest
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.constants import POISON_PILL
 from w3af.core.controllers.core_helpers.consumers.crawl_infrastructure import (
@@ -46,6 +45,7 @@ from w3af.core.controllers.tests.local_http_server import LocalHTTPServer, Reply
 from w3af.core.controllers.tests.recording_output import start_recording_output
 from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.dc.headers import Headers
+from w3af.core.data.kb.config import Config
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.plugins.tests.helper import PluginConfig, PluginTest
@@ -108,11 +108,11 @@ class TestTimeLimit(PluginTest):
 
 class CrawlConsumerTest(unittest.TestCase):
     def setUp(self):
-        self.core = w3afCore()
+        self.core = w3afCore(configuration=cf)
         self.addCleanup(self.core.worker_pool.terminate_join)
         self.core.status.start()
-        cf.cf.save("baseURLs", [URL(BASE)])
-        self.addCleanup(cf.cf.save, "baseURLs", [])
+        cf.save("baseURLs", [URL(BASE)])
+        self.addCleanup(cf.save, "baseURLs", [])
         self.addCleanup(kb.kb.cleanup)
         self.recorder = start_recording_output()
 
@@ -339,3 +339,6 @@ class TestPluginErrors(CrawlConsumerTest):
 
         self.assertEqual(consumer._disabled_plugins, set())
         self.assertFalse(hasattr(plugin, "end_calls"))
+
+
+cf = Config()
