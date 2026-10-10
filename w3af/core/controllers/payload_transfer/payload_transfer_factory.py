@@ -90,7 +90,9 @@ class payload_transfer_factory:
                 # FIXME: Need to add something here!
                 pass
             elif os == "linux":
-                reverse = ClientlessReverseHTTP(self._exec_method, os, inbound_port)
+                reverse = ClientlessReverseHTTP(
+                    self._exec_method, os, inbound_port, om.out
+                )
                 to_test.append(reverse)
 
             # Test the fastest first and return the fastest one...

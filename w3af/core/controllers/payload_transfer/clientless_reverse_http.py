@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 
-import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.daemons import webserver
 from w3af.core.controllers.intrusion_tools.exec_method_helpers import (
@@ -46,11 +45,12 @@ class ClientlessReverseHTTP(BasePayloadTransfer):
         - lynx
     """
 
-    def __init__(self, exec_method, os, inbound_port):
+    def __init__(self, exec_method, os, inbound_port, output):
         super().__init__(exec_method, os)
         self._exec_method = exec_method
         self._os = os
         self._inbound_port = inbound_port
+        self._output = output
         self._command = None
 
     def can_transfer(self):
@@ -72,7 +72,7 @@ class ClientlessReverseHTTP(BasePayloadTransfer):
                         "test_string\n", get_remote_temp_file(self._exec_method)
                     )
                 except (OSError, BaseFrameworkException) as exc:
-                    om.out.debug(f"Transfer method {fetcher} failed: {exc}")
+                    self._output.debug(f"Transfer method {fetcher} failed: {exc}")
                     continue
 
         return False
@@ -106,7 +106,10 @@ class ClientlessReverseHTTP(BasePayloadTransfer):
         # Start a web server on the inbound port and create the file that
         # will be fetched by the compromised host
         webserver.start_webserver(
-            cf.cf.get("local_ip_address"), self._inbound_port, get_temp_dir()
+            cf.cf.get("local_ip_address"),
+            self._inbound_port,
+            get_temp_dir(),
+            self._output,
         )
 
         cmd_to_run = cmd_templates[self._command] % (

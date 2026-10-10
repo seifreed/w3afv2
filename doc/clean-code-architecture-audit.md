@@ -2525,3 +2525,15 @@ Verificación: Ruff, Black y mypy están limpios; **14 tests pasaron** en shells
 y payloads. Un test adicional no es portable en macOS porque el fixture
 existente lee `/proc`, que solo existe en Linux; el score permanece en
 **6.25/10**.
+
+## Actualización verificada: webserver y reverse HTTP con output explícito
+
+El daemon HTTP recibe el sink al construirse y `WebHandler` ya no importa
+`output_manager`. RFI y la transferencia reverse HTTP pasan la dependencia a
+la fábrica del servidor; los tests y el factory mantienen explícito el punto
+de composición.
+
+Verificación: Ruff, Black y mypy están limpios; **25 tests pasaron y 1 fue
+omitido** en webserver, reverse HTTP y RFI. El test restante de transferencia
+no es portable en macOS porque ejecuta comandos locales con un fixture que
+simula Linux; el score permanece en **6.25/10**.

@@ -29,6 +29,7 @@ import unittest
 import urllib.error
 import urllib.request
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.daemons.webserver import (
     HTTPServer,
     WebHandler,
@@ -62,7 +63,7 @@ class TestWebserver(unittest.TestCase):
         self.addCleanup(shutil.rmtree, self.webroot)
 
         self.port = get_unused_port()
-        self.server = start_webserver(IP, self.port, self.webroot)
+        self.server = start_webserver(IP, self.port, self.webroot, om.out)
 
     def url(self, path):
         return f"http://{IP}:{self.port}/{path}"
@@ -108,13 +109,13 @@ class TestWebserver(unittest.TestCase):
         self.assertFalse(is_running(IP, get_unused_port()))
 
     def test_start_webserver_returns_running_instance(self):
-        self.assertIs(start_webserver(IP, self.port, self.webroot), self.server)
+        self.assertIs(start_webserver(IP, self.port, self.webroot, om.out), self.server)
 
     def test_idle_server_shuts_down_and_restarts(self):
         self.assertTrue(wait_until_down(self.server))
         self.assertFalse(is_running(IP, self.port))
 
-        restarted = start_webserver(IP, self.port, self.webroot)
+        restarted = start_webserver(IP, self.port, self.webroot, om.out)
 
         self.assertIsNot(restarted, self.server)
         self.assertTrue(is_running(IP, self.port))
@@ -126,7 +127,7 @@ class TestWebserver(unittest.TestCase):
 class TestWebserverHandlerError(unittest.TestCase):
 
     def test_handler_exception_is_logged(self):
-        server = HTTPServer((IP, 0), tempfile.gettempdir(), FailingHandler)
+        server = HTTPServer((IP, 0), tempfile.gettempdir(), FailingHandler, om.out)
         thread = threading.Thread(target=server.serve_forever, daemon=True)
         logger_name = "w3af.core.controllers.daemons.webserver"
 

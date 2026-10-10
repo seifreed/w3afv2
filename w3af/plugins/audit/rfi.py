@@ -241,7 +241,11 @@ class rfi(AuditPlugin):
 
         try:
             webserver.start_webserver(
-                self._listen_address, self._listen_port, webroot, RFIWebHandler
+                self._listen_address,
+                self._listen_port,
+                webroot,
+                self._output,
+                RFIWebHandler,
             )
         except OSError as os_error:
             if os_error.errno != errno.EADDRINUSE:

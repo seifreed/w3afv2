@@ -28,8 +28,6 @@ import select
 import socket
 import threading
 
-import w3af.core.controllers.output_manager as om
-
 LOGGER = logging.getLogger(__name__)
 
 # Created servers
@@ -60,9 +58,10 @@ class HTTPServer(http.server.HTTPServer):
     itself down when no request arrives within the poll interval.
     """
 
-    def __init__(self, server_address, webroot, RequestHandlerClass):
+    def __init__(self, server_address, webroot, RequestHandlerClass, output):
         http.server.HTTPServer.__init__(self, server_address, RequestHandlerClass)
         self.webroot = webroot
+        self.output = output
         self.__is_shut_down = threading.Event()
         self.__shutdown_request = False
 
@@ -138,10 +137,10 @@ class WebHandler(http.server.BaseHTTPRequestHandler):
         to the om.
         """
         message = f"webserver.py: {self.address_string()} - {fmt % args}"
-        om.out.debug(message)
+        self.server.output.debug(message)
 
 
-def start_webserver(ip, port, webroot, handler=WebHandler):
+def start_webserver(ip, port, webroot, output, handler=WebHandler):
     """Create a http server daemon. The returned instance is unique for <ip>
     and <port>.
 
@@ -153,7 +152,7 @@ def start_webserver(ip, port, webroot, handler=WebHandler):
     web_server = _get_inst(ip, port)
 
     if web_server is None or web_server.is_down():
-        web_server = HTTPServer((ip, port), webroot, handler)
+        web_server = HTTPServer((ip, port), webroot, handler, output)
         _servers[(ip, port)] = web_server
 
         # Start server!

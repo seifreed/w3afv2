@@ -109,7 +109,7 @@ class rfi(AttackPlugin):
             webroot_path = os.path.join(get_home_dir(), "webroot")
             try:
                 webserver.start_webserver(
-                    self._listen_address, self._listen_port, webroot_path
+                    self._listen_address, self._listen_port, webroot_path, self._output
                 )
             except OSError as se:
                 msg = (

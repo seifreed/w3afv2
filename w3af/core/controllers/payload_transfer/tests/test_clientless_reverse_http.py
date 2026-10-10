@@ -24,6 +24,7 @@ import subprocess
 import tempfile
 import unittest
 
+import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.extrusion_scanning.extrusion_scanner import extrusionScanner
@@ -45,7 +46,7 @@ class TestClientlessReverseHTTP(unittest.TestCase):
         cf.cf.save("interface", "lo")
         cf.cf.save("local_ip_address", "127.0.0.1")
         inbound_port = get_unused_port()
-        echo_linux = ClientlessReverseHTTP(exec_method, os, inbound_port)
+        echo_linux = ClientlessReverseHTTP(exec_method, os, inbound_port, om.out)
 
         self.assertTrue(echo_linux.can_transfer())
 
@@ -70,7 +71,7 @@ class TestClientlessReverseHTTP(unittest.TestCase):
         es = extrusionScanner(exec_method, kb.kb)
 
         inbound_port = es.get_inbound_port()
-        echo_linux = ClientlessReverseHTTP(exec_method, os, inbound_port)
+        echo_linux = ClientlessReverseHTTP(exec_method, os, inbound_port, om.out)
 
         self.assertTrue(echo_linux.can_transfer())
 

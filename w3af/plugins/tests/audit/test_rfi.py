@@ -28,6 +28,7 @@ from typing import ClassVar
 
 import pytest
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.daemons import webserver
 from w3af.core.controllers.daemons.webserver import HTTPServer
 from w3af.core.controllers.misc.get_unused_port import get_unused_port
@@ -176,7 +177,7 @@ class TestRFI(PluginTest):
         self.assertEqual([], self.kb.get("rfi", "rfi"))
 
     def test_local_server_is_not_used_when_listen_port_is_taken(self):
-        busy_server = HTTPServer((LOCAL_ADDRESS, 0), ".", RFIWebHandler)
+        busy_server = HTTPServer((LOCAL_ADDRESS, 0), ".", RFIWebHandler, om.out)
         self.addCleanup(busy_server.server_close)
         self.unused_port = busy_server.get_port()
 
@@ -190,7 +191,7 @@ class TestRFIWebServer(unittest.TestCase):
 
     def test_custom_web_server(self):
         RFIWebHandler.RESPONSE_BODY = '<? echo "hello world"; ?>'
-        ws = HTTPServer((LOCAL_ADDRESS, 0), ".", RFIWebHandler)
+        ws = HTTPServer((LOCAL_ADDRESS, 0), ".", RFIWebHandler, om.out)
         port = ws.get_port()
 
         server_thread = threading.Thread(target=ws.serve_forever)
@@ -226,6 +227,7 @@ class TestRFIPlugin(unittest.TestCase):
 
     def setUp(self):
         self.plugin = rfi()
+        self.plugin.set_output(om.out)
 
     def configure(self, listen_address, listen_port, use_w3af_site):
         options = self.plugin.get_options()
@@ -240,7 +242,7 @@ class TestRFIPlugin(unittest.TestCase):
 
     def test_running_local_server_is_a_valid_configuration(self):
         port = get_unused_port()
-        webserver.start_webserver(LOCAL_ADDRESS, port, ".", RFIWebHandler)
+        webserver.start_webserver(LOCAL_ADDRESS, port, ".", om.out, RFIWebHandler)
 
         self.configure(LOCAL_ADDRESS, port, use_w3af_site=False)
 
