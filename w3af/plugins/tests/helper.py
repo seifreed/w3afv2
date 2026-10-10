@@ -136,6 +136,11 @@ class PluginTest(unittest.TestCase):
         fingerprint_404_singleton(cleanup=True)
 
         if self.canned_server is not None:
+            # set_proxy() persists proxy_address/proxy_port into the process-wide
+            # config singleton, so without this reset a later test that builds a
+            # fresh w3afCore() would still route its traffic through this (now
+            # stopped) canned server and fail.
+            self.w3afcore.uri_opener.settings.set_proxy("", 0)
             self.canned_server.stop()
 
     def assert_all_get_desc_work(self):
