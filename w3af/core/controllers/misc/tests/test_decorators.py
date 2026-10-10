@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import unittest
 
 from w3af.core.controllers.misc.decorators import retry, runonce
+from w3af.core.controllers.tests.recording_output import recording_output
 
 
 class AlreadyRan(Exception):
@@ -76,11 +77,19 @@ class TestRetry(unittest.TestCase):
 
     def test_succeeds_after_failures(self):
         flaky = Flaky(failures=2)
+        output = recording_output()
 
-        result = retry(3, delay=0, log_msg="retrying")(flaky)()
+        result = retry(3, delay=0, log_msg="retrying", output=output)(flaky)()
 
         self.assertEqual(result, "ok")
         self.assertEqual(flaky.calls, 3)
+        self.assertEqual(
+            output.messages, [("debug", "retrying"), ("debug", "retrying")]
+        )
+
+    def test_log_message_requires_output(self):
+        with self.assertRaisesRegex(ValueError, "'output' is required"):
+            retry(2, delay=0, log_msg="retrying")
 
     def test_reraises_last_exception(self):
         flaky = Flaky(failures=5)

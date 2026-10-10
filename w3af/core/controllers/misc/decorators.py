@@ -23,8 +23,6 @@ import math
 import time
 from functools import wraps
 
-import w3af.core.controllers.output_manager as om
-
 
 def runonce(exc_class=Exception):
     """
@@ -48,7 +46,15 @@ def runonce(exc_class=Exception):
     return runonce_meth
 
 
-def retry(tries, delay=1, backoff=2, exc_class=None, err_msg="", log_msg=None):
+def retry(
+    tries,
+    delay=1,
+    backoff=2,
+    exc_class=None,
+    err_msg="",
+    log_msg=None,
+    output=None,
+):
     """
     Retries a function or method if an exception was raised.
 
@@ -71,6 +77,9 @@ def retry(tries, delay=1, backoff=2, exc_class=None, err_msg="", log_msg=None):
 
     if delay < 0:
         raise ValueError("'delay' must be non negative.")
+
+    if log_msg is not None and output is None:
+        raise ValueError("'output' is required when 'log_msg' is set.")
 
     def deco_retry(f):
 
@@ -95,7 +104,7 @@ def retry(tries, delay=1, backoff=2, exc_class=None, err_msg="", log_msg=None):
                 mdelay *= backoff
 
                 if log_msg is not None:
-                    om.out.debug(log_msg)
+                    output.debug(log_msg)
 
         return f_retry
 

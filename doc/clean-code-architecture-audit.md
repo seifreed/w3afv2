@@ -2672,3 +2672,15 @@ dependen de `output_manager` global.
 Verificación: **21 tests pasaron** en el detector; Ruff, Black y mypy focalizados
 están limpios. El score permanece en **6.25/10** por los globals restantes,
 cobertura 100% no demostrada, Bandit heredado, mocks e integraciones Moth.
+
+## Actualización verificada: decorator retry sin output global
+
+`retry` conserva sus reintentos sin depender de `output_manager`; cuando se
+configura `log_msg`, exige ahora un sink explícito y registra directamente en
+él. El único uso productivo de logging no existía; el test cubre el contrato y
+los decorators restantes no cambian.
+
+Verificación: **10 tests pasaron** en decorators; Ruff, Black, mypy y
+`git diff --check` globales están limpios. El score permanece en **6.25/10**
+por los globals restantes, cobertura 100% no demostrada, Bandit heredado,
+mocks e integraciones Moth.
