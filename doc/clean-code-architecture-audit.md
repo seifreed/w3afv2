@@ -3462,3 +3462,16 @@ Verificación: la suite URL completa pasó **217 tests en 180.29 s**, con dos
 warnings externos de `ldap3/pyasn1`; la batería focal del opener pasó **26
 tests**. Ruff, mypy focal y Bandit focal están limpios. El score se mantiene en
 **6.5/10** por cobertura global, módulos grandes y gates globales pendientes.
+
+## Actualización verificada: preparación de requests separada
+
+`RequestPreparer` concentra la aplicación de headers configurados y por
+request, el User-Agent aleatorio y la validación de protocolos HTTP. `ExtendedUrllib`
+conserva `add_headers()` y `assert_allowed_proto()` como fachadas, pero deja de
+mezclar esa preparación con el envío y manejo de errores.
+
+Verificación: la suite URL completa pasó **217 tests en 187.14 s**, con dos
+warnings externos de `ldap3/pyasn1`; la batería focal pasó **50 tests en
+43.87 s**. Ruff, mypy focal y Bandit focal están limpios. El score se mantiene
+en **6.5/10** por cobertura global, módulos grandes y gates globales
+pendientes.

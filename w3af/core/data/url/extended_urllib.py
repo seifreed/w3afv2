@@ -60,11 +60,11 @@ from w3af.core.data.url.http_request import HTTPRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.data.url.rate_limiter import RateLimiter
 from w3af.core.data.url.request_evasion import RequestEvasionPipeline
+from w3af.core.data.url.request_preparer import RequestPreparer
 from w3af.core.data.url.response_history import ResponseHistory
 from w3af.core.data.url.scan_request_control import ScanRequestControl
 from w3af.core.data.url.timeout_manager import TimeoutManager
 from w3af.core.data.url.worker_pool_adjuster import WorkerPoolAdjuster
-from w3af.core.data.user_agent.random_user_agent import get_random_user_agent
 from w3af.core.exceptions import (
     BaseFrameworkException,
     ScanMustStopByKnownReasonExc,
@@ -126,6 +126,7 @@ class ExtendedUrllib:
         # User configured options (in an indirect way)
         self._grep_dispatcher = GrepDispatcher()
         self._evasion_pipeline = RequestEvasionPipeline(LOGGER.error)
+        self._request_preparer = RequestPreparer(self.settings)
         self._request_control = ScanRequestControl()
 
     def get_average_rtt_for_mutant(self, *args, **kwargs):
@@ -743,28 +744,10 @@ class ExtendedUrllib:
         return self._rtt_sum_debugging_id.get(debugging_id, default=None)
 
     def add_headers(self, req, headers=None):
-        """
-        Add all custom Headers() if they exist
-        """
-        headers = headers or Headers()
-
-        for h, v in self.settings.header_list:
-            req.add_header(h, v)
-
-        for h, v in headers.items():
-            req.add_header(h, v)
-
-        if self.settings.rand_user_agent is True:
-            req.add_header("User-Agent", get_random_user_agent())
-
-        return req
+        return self._request_preparer.add_headers(req, headers)
 
     def assert_allowed_proto(self, req):
-        full_url = req.get_full_url().lower()
-
-        if not full_url.startswith("http"):
-            msg = 'Unsupported URL: "%s"'
-            raise HTTPRequestException(msg % req.get_full_url(), request=req)
+        self._request_preparer.assert_allowed_proto(req)
 
     def send(self, req, grep=True):
         """
