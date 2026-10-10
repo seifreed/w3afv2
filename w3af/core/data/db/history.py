@@ -20,11 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import logging
 import os
 import threading
-import time
-import zipfile
 from functools import wraps
 from shutil import rmtree
 from typing import ClassVar
@@ -33,17 +30,21 @@ from w3af.core.data.db.dbms import get_default_temp_db_instance
 from w3af.core.data.db.exceptions import DBException
 from w3af.core.data.db.history_trace_serializer import (
     HistoryTraceSerializer,
-    TraceReadException,
+    TraceReadException as TraceReadError,
 )
 from w3af.core.data.db.history_trace_compressor import (
     HistoryTraceCompressor,
     PendingCompressionJob,
     get_trace_id as _get_trace_id,
 )
+from w3af.core.data.db.history_trace_storage import (
+    HistoryTraceStorage,
+    get_zip_id_range as _get_zip_id_range,
+)
 from w3af.core.data.db.sql_identifier import require_safe_identifier
 from w3af.core.filesystem import get_temp_dir
 
-LOGGER = logging.getLogger(__name__)
+TraceReadException = TraceReadError
 
 
 def verify_has_db(meth):
@@ -119,6 +120,9 @@ class HistoryItem:
             get_temp_dir(), self._db.get_file_name() + "_traces"
         )
         self._trace_serializer = HistoryTraceSerializer(self._MSGPACK_CANARY)
+        self._trace_storage = HistoryTraceStorage(
+            self._session_dir, self._trace_serializer
+        )
         self._trace_compressor = HistoryTraceCompressor(self._session_dir)
 
     def get_session_dir(self):
@@ -223,122 +227,25 @@ class HistoryItem:
         self.response_size = int(row[11])
 
     def _get_trace_filename_for_id(self, _id):
-        return os.path.join(self._session_dir, f"{_id}.{self._EXTENSION}")
+        return self._trace_storage.get_trace_filename(_id)
 
     def _load_from_trace_file(self, _id):
-        """
-        Load a request/response from a trace file on disk. This is the
-        simplest implementation, without any retries for concurrency issues.
-
-        :param _id: The request-response ID
-        :return: A tuple containing request and response instances
-        """
-        file_name = self._get_trace_filename_for_id(_id)
-
-        if not os.path.exists(file_name):
-            raise TraceReadException(f"Trace file {file_name} does not exist")
-
-        # The file exists, but the contents might not be all on-disk yet
-        with open(file_name, "rb") as trace_file:
-            serialized_req_res = trace_file.read()
-        return self._load_from_string(serialized_req_res)
+        return self._trace_storage.load_from_trace_file(_id)
 
     def _load_from_string(self, serialized_req_res):
-        return self._trace_serializer.deserialize(serialized_req_res)
+        return self._trace_storage.load_from_string(serialized_req_res)
 
     def _load_from_trace_file_concurrent(self, _id):
-        """
-        Load a request/response from a trace file on disk, using retries
-        and error handling to make sure all concurrency issues are handled.
-
-        :param _id: The request-response ID
-        :return: A tuple containing request and response instances
-        """
-        wait_time = 0.05
-
-        #
-        # Retry the read a few times to handle concurrency issues
-        #
-        for _ in range(int(1 / wait_time)):
-            try:
-                return self._load_from_trace_file(_id)
-            except TraceReadException as e:
-                args = (_id, e)
-                msg = 'Failed to read trace file %s: "%s"'
-                LOGGER.debug(msg % args)
-
-                time.sleep(wait_time)
-
-        msg = 'Timeout expecting trace file "%s" to be ready'
-        file_name = self._get_trace_filename_for_id(_id)
-        raise DBException(msg % file_name)
+        return self._trace_storage.load_from_trace_file_concurrent(_id)
 
     def load_from_file(self, _id):
-        """
-        Loads a request/response from a trace file on disk. Two different
-        options exist:
-
-            * The file is compressed inside a zip
-            * The file is uncompressed in a trace
-
-        :param _id: The request-response ID
-        :return: A tuple containing request and response instances
-        """
-        file_name = self._get_trace_filename_for_id(_id)
-
-        if not os.path.exists(file_name):
-            #
-            # The trace file doesn't exist, try to find the zip file where the
-            # compressed file lives and read it from there
-            #
-            try:
-                return self._load_from_zip(_id)
-            except TraceReadException as e:
-                msg = 'Failed to load trace %s from zip file: "%s"'
-                LOGGER.debug(msg % (_id, e))
-
-            #
-            # Give the .trace file a last chance, it might be possible that
-            # it was written to disk while we were reading the zip files
-            #
-            if not os.path.exists(file_name):
-                raise TraceReadException(f"No zip nor trace file for ID {_id}")
-
-        return self._load_from_trace_file_concurrent(_id)
+        return self._trace_storage.load_from_file(_id)
 
     def _load_from_zip(self, _id):
-        files = os.listdir(self.get_session_dir())
-        files = [f for f in files if f.endswith(self._COMPRESSED_EXTENSION)]
-
-        for zip_file in files:
-            start, end = get_zip_id_range(zip_file)
-
-            if start <= _id <= end:
-                return self._load_from_zip_file(_id, zip_file)
-
-        raise TraceReadException(f"No zip file contains {_id}")
+        return self._trace_storage.load_from_zip(_id)
 
     def _load_from_zip_file(self, _id, zip_file):
-        try:
-            _zip = zipfile.ZipFile(os.path.join(self.get_session_dir(), zip_file))
-        except zipfile.BadZipfile:
-            # We get here when the zip file has an invalid format
-            #
-            # This is most likely because one thread is writing to disk and
-            # another is trying to read from it
-            msg = "Zip file %s has an invalid format"
-            args = (zip_file,)
-            raise TraceReadException(msg % args)
-
-        try:
-            serialized_req_res = _zip.read(f"{_id}.{self._EXTENSION}")
-        except KeyError:
-            # We get here when the zip file doesn't contain the trace file
-            msg = "Zip file %s does not contain ID %s"
-            args = (zip_file, _id)
-            raise TraceReadException(msg % args)
-
-        return self._load_from_string(serialized_req_res)
+        return self._trace_storage.load_from_zip_file(_id, zip_file)
 
     @verify_has_db
     def load(self, _id, retry=True):
@@ -426,19 +333,7 @@ class HistoryItem:
         self._db.execute(sql % self._DATA_TABLE, values)
         self.id = self.response.get_id()
 
-        #
-        # Save raw data to file
-        #
-        path_fname = self._get_trace_filename_for_id(self.id)
-
-        msgpack_data = self._trace_serializer.serialize(self.request, self.response)
-
-        try:
-            with open(path_fname, "wb") as req_res:
-                req_res.write(msgpack_data)
-        except OSError:
-            self._raise_if_trace_directory_missing(path_fname)
-            raise
+        self._trace_storage.save_trace(self.request, self.response, self.id)
 
         response_id = resp.get_id()
         self._queue_compression_requests(response_id)
@@ -452,25 +347,7 @@ class HistoryItem:
 
     @staticmethod
     def _raise_if_trace_directory_missing(path_fname):
-        """
-        Find the first directory in the trace file path which does not exist
-        and raise an OSError naming it.
-
-        :see: https://github.com/andresriancho/w3af/issues/9022
-        """
-        missing = None
-        directory = os.path.dirname(path_fname)
-
-        while directory and not os.path.exists(directory):
-            missing = directory
-            directory = os.path.dirname(directory)
-
-        if missing is not None:
-            msg = (
-                'Directory does not exist: "%s" while trying to'
-                ' write DB history to "%s"'
-            )
-            raise OSError(msg % (missing, path_fname))
+        HistoryTraceStorage._raise_if_trace_directory_missing(path_fname)
 
     def _get_pending_compression_job(self):
         return self._trace_compressor.get_pending_job()
@@ -519,10 +396,7 @@ class HistoryItem:
 
 
 def get_zip_id_range(zip_file):
-    name_ext = os.path.basename(zip_file)
-    name = name_ext.split(".")[0]
-    start, end = name.split("-")
-    return int(start), int(end)
+    return _get_zip_id_range(zip_file)
 
 
 def get_trace_id(trace_file):

@@ -3255,3 +3255,16 @@ corrigió el parseo de identificadores de archivo para rutas Windows. La
 ejecución global de mypy sigue bloqueada por imports/stubs ausentes heredados.
 El score se mantiene en **6.5/10** por cobertura global, módulos grandes y
 gates globales pendientes.
+
+## Actualización verificada: almacenamiento de trazas separado
+
+`HistoryTraceStorage` concentra la escritura de `.trace`, las lecturas con
+reintentos, la búsqueda y lectura de ZIP y el tratamiento de archivos
+incompletos. `HistoryItem` mantiene las fachadas observables y la coordinación
+con la fila SQL y el compresor, sin conservar detalles de formato de archivo.
+
+Verificación: la suite DB completa pasó **162 tests en 5.06 s**; Black, Ruff,
+Bandit focal y `pip-audit` están limpios. Mypy del alcance con imports externos
+omitidos también está limpio; la ejecución global sigue limitada por
+dependencias/stubs heredados. El score se mantiene en **6.5/10** por cobertura
+global, módulos grandes y gates globales pendientes.
