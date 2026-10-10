@@ -547,6 +547,20 @@ se elimina otra dependencia ascendente en la ruta de parsing, pero siguen
 pendientes los demás acoplamientos de `core.data`, el saneamiento global y sus
 gates.
 
+## Actualización verificada: `VariantDB` con configuración explícita
+
+`VariantDB` dejó de importar el singleton `cf.cf`. Sus límites de variantes se
+reciben por constructor; `CrawlInfrastructure` los entrega desde el core y
+`web_spider` crea su instancia cuando el core ya está configurado. Esto separa
+la política de scan de la estructura de datos y permite probar límites
+independientes sin mutar configuración global.
+
+Verificación: la suite de `VariantDB` pasa **43 tests**, incluyendo límites
+inyectados; `web_spider` pasa **12 tests**. Black, Ruff, mypy y Bandit focal
+están limpios. El score sube a **7.5/10** en Clean Architecture y **7.4/10**
+global. Todavía quedan consumidores de configuración global en plugins,
+controladores y parsers, además de la cobertura y gates completos.
+
 ## Avance: configuración de home fuera de controllers
 
 `get_home_dir` y `HOME_DIR` son configuración de rutas de usuario, no

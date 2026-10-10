@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import logging
 import threading
 
-import w3af.core.data.kb.config as cf
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.db.cached_disk_dict import CachedDiskDict
 from w3af.core.data.db.clean_dc import (
@@ -114,7 +113,7 @@ class VariantDB:
 
     MAX_IN_MEMORY = 50
 
-    def __init__(self):
+    def __init__(self, configuration):
         self._variants = CachedDiskDict(
             max_in_memory=self.MAX_IN_MEMORY, table_prefix="variant_db"
         )
@@ -123,9 +122,9 @@ class VariantDB:
             max_in_memory=self.MAX_IN_MEMORY, table_prefix="variant_db_form"
         )
 
-        self.params_max_variants = cf.cf.get("params_max_variants")
-        self.path_max_variants = cf.cf.get("path_max_variants")
-        self.max_equal_form_variants = cf.cf.get("max_equal_form_variants")
+        self.params_max_variants = configuration.get("params_max_variants")
+        self.path_max_variants = configuration.get("path_max_variants")
+        self.max_equal_form_variants = configuration.get("max_equal_form_variants")
 
         self._db_lock = threading.RLock()
 

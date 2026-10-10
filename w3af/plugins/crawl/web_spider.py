@@ -65,7 +65,7 @@ class web_spider(CrawlPlugin):
         self._target_urls = []
         self._target_domain = None
         self._already_filled_form = ScalableBloomFilter()
-        self._variant_db = VariantDB()
+        self._variant_db = None
 
         # User configured variables
         self._ignore_regex = ""
@@ -354,7 +354,15 @@ class web_spider(CrawlPlugin):
         # core will dismiss anyway
         #
         fuzzable_request = FuzzableRequest(ref)
-        return bool(self._variant_db.append(fuzzable_request))
+        return bool(self._get_variant_db().append(fuzzable_request))
+
+    def _get_variant_db(self):
+        if self._variant_db is None:
+            w3af_core = self.get_w3af_core()
+            if w3af_core is None:
+                raise RuntimeError("web_spider requires a configured w3af core")
+            self._variant_db = VariantDB(w3af_core.configuration)
+        return self._variant_db
 
     def _extract_links_and_verify(self, resp, fuzzable_req):
         """
@@ -475,7 +483,8 @@ class web_spider(CrawlPlugin):
                 self._output.information(f"- {broken} [ referenced from: {where} ]")
 
         self._broken_links.cleanup()
-        self._variant_db.cleanup()
+        if self._variant_db is not None:
+            self._variant_db.cleanup()
 
     def _is_forward(self, reference):
         """

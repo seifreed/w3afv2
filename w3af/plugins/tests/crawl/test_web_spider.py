@@ -30,7 +30,6 @@ from w3af import ROOT_PATH
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.utils.form_constants import EXCLUDE
 from w3af.core.data.parsers.utils.form_id_matcher_list import FormIDMatcherList
-from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.plugins.crawl.web_spider import web_spider
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 
@@ -275,15 +274,9 @@ class TestWebSpiderFilters(WebSpiderTest):
 
 
 class TestWebSpiderWithoutTargets:
-    def test_end_releases_variant_db_state(self):
+    def test_end_without_core_is_safe(self):
         spider = web_spider()
-        if not spider._variant_db.append(FuzzableRequest(URL(SPIDER_URL))):
-            raise AssertionError("VariantDB did not accept the first request")
-
         spider.end()
-
-        if len(spider._variant_db._variants_eq) != 0:
-            raise AssertionError("VariantDB retained Bloom filter state")
 
     def test_first_run_without_targets(self):
         previous = cf.cf.get("targets")

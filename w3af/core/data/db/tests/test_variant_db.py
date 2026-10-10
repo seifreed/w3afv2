@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-import w3af.core.data.kb.config as cf
 from w3af.core.controllers.misc_settings import MiscSettings
 from w3af.core.data.db.clean_dc import (
     FILENAME_PLACEHOLDER,
@@ -42,6 +41,7 @@ from w3af.core.data.dc.generic.kv_container import KeyValueContainer
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.dc.json_container import JSONContainer
 from w3af.core.data.fuzzer.utils import rand_alnum
+from w3af.core.data.kb.config import Config
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.utils.form_params import FormParameters
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
@@ -56,9 +56,10 @@ def fr(url):
 class TestVariantDB(unittest.TestCase):
 
     def setUp(self):
-        MiscSettings(cf.cf).set_default_values()
+        self.configuration = Config()
+        MiscSettings(self.configuration).set_default_values()
         create_temp_dir()
-        self.vdb = VariantDB()
+        self.vdb = VariantDB(self.configuration)
 
     def test_db_int(self):
         url_fmt = "http://w3af.org/foo.htm?id=%s"
@@ -69,6 +70,14 @@ class TestVariantDB(unittest.TestCase):
 
         extra_url = URL(url_fmt % (PARAMS_MAX_VARIANTS + 1,))
         self.assertFalse(self.vdb.append(fr(extra_url)))
+
+    def test_uses_injected_variant_limits(self):
+        self.configuration.save("params_max_variants", 1)
+        variant_db = VariantDB(self.configuration)
+        self.addCleanup(variant_db.cleanup)
+
+        self.assertTrue(variant_db.append(fr(URL("http://w3af.org/foo.htm?id=1"))))
+        self.assertFalse(variant_db.append(fr(URL("http://w3af.org/foo.htm?id=2"))))
 
     def test_cleanup_releases_all_state(self):
         self.assertTrue(self.vdb.append(fr(URL("http://w3af.org/foo.htm"))))
