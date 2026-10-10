@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from itertools import repeat
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.misc.decorators import runonce
@@ -113,7 +112,7 @@ class find_jboss(InfrastructurePlugin):
                 o = Vuln(name, desc, severity.LOW, response.id, self.get_name())
 
             o.set_url(vuln_url)
-            kb.kb.append(self, "find_jboss", o)
+            self._get_knowledge_base().append(self, "find_jboss", o)
 
             self.output_queue.put(FuzzableRequest(response.get_uri()))
 

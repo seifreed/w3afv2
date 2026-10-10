@@ -95,6 +95,7 @@ class TestDomainDotRequestError(unittest.TestCase):
     def test_error_is_reported(self):
         kb.kb.cleanup()
         plugin = domain_dot()
+        plugin.set_knowledge_base(kb.kb)
         plugin._uri_opener = ExtendedUrllib()
         self.addCleanup(plugin._uri_opener.end)
 

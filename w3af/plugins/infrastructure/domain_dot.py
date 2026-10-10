@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_not_equal
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
@@ -100,7 +99,7 @@ class domain_dot(InfrastructurePlugin):
             )
 
             om.out.information(desc)
-            kb.kb.append(self, "domain_dot", i)
+            self._get_knowledge_base().append(self, "domain_dot", i)
 
     def get_long_desc(self):
         """
