@@ -31,8 +31,9 @@ class recording_output(OutputPlugin):
     can assert on what the framework logged through the output manager.
     """
 
-    def __init__(self):
+    def __init__(self, manager=None):
         OutputPlugin.__init__(self)
+        self._manager = manager
         self.messages = []
 
     def debug(self, message, new_line=True):
@@ -55,16 +56,16 @@ class recording_output(OutputPlugin):
         :return: The messages of the given kind, after the output manager
                  processed every message that was queued before this call.
         """
-        om.manager.process_all_messages()
+        (self._manager or om.manager).process_all_messages()
         return [message for msg_kind, message in self.messages if msg_kind == kind]
 
 
-def start_recording_output():
+def start_recording_output(manager=None):
     """
     Registers a recording_output instance in the current output manager.
 
     :return: The recording_output instance
     """
-    recorder = recording_output()
-    om.manager.set_output_plugin_inst(recorder)
+    recorder = recording_output(manager)
+    (manager or om.manager).set_output_plugin_inst(recorder)
     return recorder

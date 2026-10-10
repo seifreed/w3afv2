@@ -3761,3 +3761,19 @@ keep-alive medida con `/usr/bin/time -l` alcanza **96 MB de RSS máximo**, sin
 acumulación visible. Black, Ruff, mypy y Bandit focal están limpios. El score
 se mantiene en **6.5/10**: la causa de cientos de MiB estaba en el pool de
 salida y los diccionarios XML, ya corregidos en avances anteriores.
+
+## Actualización verificada: core sin recrear el singleton de output
+
+`w3afCore` ahora compone su `OutputManager` y `LogSink` mediante
+`create_output_manager()`, y sus tests registran el recorder en el manager
+propio del core. Esto evita que crear un core reemplace el estado global de
+otro test y deja el ownership del hilo de output en la instancia que lo usa.
+
+Verificación: los tests aislados de construcción, validación y excepciones del
+core pasan **3 tests**; Black, Ruff, mypy y Bandit focal están limpios. La
+suite completa del core no pudo terminar porque ya había varias ejecuciones
+antiguas de pytest activas en el workspace, incluida una suite de output con
+aproximadamente **500 MB de RSS**; se interrumpió esa ejecución bloqueada para
+no mezclar sus recursos con la medición. El score se mantiene en **6.5/10**:
+quedan consumidores de test del singleton y aún no se ha demostrado la
+cobertura global del 100%.

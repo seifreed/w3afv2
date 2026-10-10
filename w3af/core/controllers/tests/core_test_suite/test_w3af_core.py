@@ -85,7 +85,7 @@ class TestW3afCore(unittest.TestCase):
         self.assert_environment_error("No audit, grep or crawl plugins configured")
 
     def test_start_reports_environment_errors(self):
-        recorder = start_recording_output()
+        recorder = start_recording_output(self.core._output_manager)
 
         self.assertRaises(BaseFrameworkException, self.core.start)
 
@@ -128,7 +128,7 @@ class TestW3afCore(unittest.TestCase):
         self.assertFalse(self.core.status.is_paused())
 
     def stop_running_core(self):
-        recorder = start_recording_output()
+        recorder = start_recording_output(self.core._output_manager)
         self.core.STOP_TIMEOUT = 1
         self.core.STOP_LOOP_DELAY = 0.1
         self.core.status.start()

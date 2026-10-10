@@ -28,7 +28,6 @@ from multiprocessing.dummy import Process
 
 import pytest
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.factory import factory
 from w3af.core.controllers.tests.local_http_server import LocalHTTPServer, Reply
 from w3af.core.controllers.w3af_core import w3afCore
@@ -58,7 +57,7 @@ class CountTestMixin(unittest.TestCase):
         plugin_inst = factory(self.PLUGIN)
         plugin_inst.set_url_opener(self.w3afcore.uri_opener)
         plugin_inst.set_worker_pool(self.w3afcore.worker_pool)
-        plugin_inst.set_output(om.out)
+        plugin_inst.set_output(self.w3afcore.output)
 
         self.w3afcore.plugins.plugins["crawl"] = [plugin_inst]
         self.w3afcore.plugins._plugins_names_dict["crawl"] = ["count"]

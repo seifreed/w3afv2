@@ -63,8 +63,7 @@ from w3af.core.controllers.core_helpers.worker_pool_manager import (
 from w3af.core.controllers.misc.dns_cache import enable_dns_cache
 from w3af.core.controllers.misc.get_w3af_version import get_w3af_version_minimal
 from w3af.core.controllers.output_manager import (
-    fresh_output_manager_inst,
-    log_sink_factory,
+    create_output_manager,
 )
 from w3af.core.controllers.output_manager.logging_bridge import configure_data_logging
 from w3af.core.controllers.parser_worker import register_parser_multiprocessing
@@ -124,8 +123,7 @@ class w3afCore:
         Create the URI opener.
         """
         # Make sure we get a fresh new instance of the output manager
-        manager = fresh_output_manager_inst()
-        output = log_sink_factory(manager.get_in_queue())
+        manager, output = create_output_manager()
         configure_data_logging(output)
         register_parser_multiprocessing(manager)
         self._output = output

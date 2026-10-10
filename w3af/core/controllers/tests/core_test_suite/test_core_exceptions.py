@@ -24,7 +24,6 @@ import functools
 import threading
 import unittest
 
-import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.misc.factory import factory
 from w3af.core.controllers.tests.local_http_server import LocalHTTPServer, Reply
@@ -78,7 +77,7 @@ class TestCoreExceptions(unittest.TestCase):
         """
         self.server = LocalHTTPServer(static_page).start()
         self.w3afcore = w3afCore()
-        self.recorder = start_recording_output()
+        self.recorder = start_recording_output(self.w3afcore._output_manager)
 
         target_opts = create_target_option_list(URL(self.server.url("/")))
         self.w3afcore.target.set_options(target_opts)
@@ -86,7 +85,7 @@ class TestCoreExceptions(unittest.TestCase):
         plugin_inst = factory(self.PLUGIN)
         plugin_inst.set_url_opener(self.w3afcore.uri_opener)
         plugin_inst.set_worker_pool(self.w3afcore.worker_pool)
-        plugin_inst.set_output(om.out)
+        plugin_inst.set_output(self.w3afcore.output)
 
         self.w3afcore.plugins.plugins["crawl"] = [plugin_inst]
         self.w3afcore.plugins._plugins_names_dict["crawl"] = ["exception_raise"]
