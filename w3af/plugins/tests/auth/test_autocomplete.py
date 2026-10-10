@@ -198,7 +198,7 @@ class TestAutocompleteInvalidCredentials(PluginTest):
     def test_handle_invalid_credentials(self):
         self._scan(self._run_config["target"], self._run_config["plugins"])
 
-        infos = kb.kb.get("authentication", "error")
+        infos = self.kb.get("authentication", "error")
 
         self.assertEqual(len(infos), 1)
         info = infos[0]

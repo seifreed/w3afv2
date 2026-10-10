@@ -72,8 +72,8 @@ from w3af.core.controllers.output_manager.logging_bridge import (
 )
 from w3af.core.controllers.parser_worker import register_parser_multiprocessing
 from w3af.core.controllers.profiling import start_profiling, stop_profiling
-from w3af.core.data.kb import knowledge_base as kb_store
 from w3af.core.data.kb.config import Config
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.data.parsers import parser_cache
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
@@ -124,7 +124,7 @@ class w3afCore:
 
     def __init__(
         self,
-        knowledge_base: kb_store.DBKnowledgeBase | None = None,
+        knowledge_base: DBKnowledgeBase | None = None,
         configuration: Config | None = None,
     ):
         """
@@ -139,7 +139,9 @@ class w3afCore:
         register_parser_multiprocessing(manager)
         self._output = output
         self._output_manager = manager
-        self.knowledge_base = knowledge_base or kb_store.kb
+        self.knowledge_base = (
+            DBKnowledgeBase() if knowledge_base is None else knowledge_base
+        )
         self._worker_pool_manager = WorkerPoolManager(
             output,
             self.WORKER_THREADS,

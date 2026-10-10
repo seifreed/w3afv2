@@ -35,7 +35,6 @@ from w3af.core.controllers.core_helpers.runtime_directories import (
 from w3af.core.controllers.tests.local_http_server import LocalHTTPServer, Reply
 from w3af.core.controllers.tests.recording_output import start_recording_output
 from w3af.core.controllers.w3af_core import w3afCore
-from w3af.core.data.kb.knowledge_base import kb
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.exceptions import BaseFrameworkException
 from w3af.core.filesystem import get_temp_dir
@@ -51,7 +50,6 @@ def linked_site(method, path):
 class TestW3afCore(unittest.TestCase):
 
     def setUp(self):
-        kb.cleanup()
         self.server = LocalHTTPServer(linked_site).start()
         self.addCleanup(self.server.close)
 
@@ -82,6 +80,14 @@ class TestW3afCore(unittest.TestCase):
         self.core.configuration.save("test_value", "first")
 
         self.assertIsNone(other_core.configuration.get("test_value"))
+
+    def test_knowledge_base_is_local_to_core_instance(self):
+        other_core = w3afCore()
+        self.addCleanup(other_core.quit)
+
+        self.core.knowledge_base.raw_write("test", "value", "first")
+
+        self.assertEqual(other_core.knowledge_base.raw_read("test", "value"), [])
 
     def test_quit_stops_output_manager(self):
         self.assertTrue(self.core._output_manager.is_alive())
@@ -120,13 +126,17 @@ class TestW3afCore(unittest.TestCase):
 
         self.assertTrue(self.core.can_cleanup())
         self.assertFalse(self.core.can_stop())
-        first_scan_urls = {u.url_string for u in kb.get_all_known_urls()}
+        first_scan_urls = {
+            u.url_string for u in self.core.knowledge_base.get_all_known_urls()
+        }
         self.assertIn(self.server.url("/linked"), first_scan_urls)
 
         self.core.exception_handler.get_all_exceptions().append("old exception")
         self.run_scan()
 
-        second_scan_urls = {u.url_string for u in kb.get_all_known_urls()}
+        second_scan_urls = {
+            u.url_string for u in self.core.knowledge_base.get_all_known_urls()
+        }
         self.assertEqual(second_scan_urls, first_scan_urls)
         self.assertEqual(self.core.exception_handler.get_all_exceptions(), [])
         self.assertEqual(self.core.status.scans_completed, 2)

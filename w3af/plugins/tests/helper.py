@@ -32,7 +32,6 @@ import pytest
 import requests
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.fingerprint_404 import (
     fingerprint_404_singleton,
 )
@@ -43,6 +42,7 @@ from w3af.core.controllers.w3af_core import w3afCore
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.kb.config import Config
 from w3af.core.data.kb.info_set import InfoSet
+from w3af.core.data.kb.knowledge_base import DBKnowledgeBase
 from w3af.core.data.kb.read_shell import ReadShell
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
@@ -71,14 +71,15 @@ class PluginTest(unittest.TestCase):
     """
 
     MOCK_RESPONSES: ClassVar[list["MockResponse"]] = []
-    kb = kb.kb
     target_url: str | None = None
     base_path: str | None = None
 
     def setUp(self):
-        self.kb.cleanup()
+        self.kb = DBKnowledgeBase()
         self.configuration = Config()
-        self.w3afcore = w3afCore(configuration=self.configuration)
+        self.w3afcore = w3afCore(
+            knowledge_base=self.kb, configuration=self.configuration
+        )
         self.misc_settings = MiscSettings(self.configuration)
 
         self.request_callback_call_count = 0
