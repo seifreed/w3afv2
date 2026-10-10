@@ -1877,3 +1877,13 @@ Verificación: 4 tests del plugin pasan, Ruff, Black y mypy pasan en el módulo
 modificado. El score sigue en **5.75/10**: quedan 43 imports directos de la KB,
 además de la cobertura, mocks, el fallo heredado de perfilado, la dependencia
 de Moth y los orquestadores grandes.
+
+## Actualización verificada: enumeración de usuarios WordPress
+
+`crawl.wordpress_enumerate_users` registra los usuarios descubiertos mediante
+la KB configurada en el plugin, conservando la detección por `author=ID`.
+
+Verificación: 3 tests del plugin pasan, Ruff, Black y mypy pasan en el módulo
+modificado. El score sigue en **5.75/10**: quedan 42 imports directos de la KB,
+además de la cobertura, mocks, el fallo heredado de perfilado, la dependencia
+de Moth y los orquestadores grandes.
