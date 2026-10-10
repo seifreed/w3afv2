@@ -1903,3 +1903,15 @@ Black y mypy pasan en los módulos modificados. El score sigue en **5.75/10**:
 quedan 35 imports directos de la KB en producción, además de la cobertura,
 mocks, el fallo heredado de perfilado, la dependencia de Moth y los
 orquestadores grandes.
+
+## Actualización verificada: recursos de la API
+
+Los recursos de URLs, solicitudes fuzzables y hallazgos consultan la KB del
+`w3afCore` asociado al `scan_id` validado. Esto elimina el singleton global de
+la capa HTTP y mantiene los datos ligados al contexto de cada exploración.
+
+Verificación: 14 tests de las rutas de API pasan, incluidos 11 subtests, y
+Ruff, Black y mypy pasan en los tres recursos modificados. El score sigue en
+**5.75/10**: quedan 32 imports directos de la KB en producción, además de la
+cobertura, mocks, el fallo heredado de perfilado, la dependencia de Moth y los
+orquestadores grandes.
