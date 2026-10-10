@@ -27,7 +27,6 @@ from shutil import rmtree
 from typing import ClassVar
 
 from w3af.core.data.db.dbms import get_default_temp_db_instance
-from w3af.core.data.db.exceptions import DBException
 from w3af.core.data.db.history_trace_serializer import (
     HistoryTraceSerializer,
     TraceReadException as TraceReadError,
@@ -41,7 +40,7 @@ from w3af.core.data.db.history_trace_storage import (
     HistoryTraceStorage,
     get_zip_id_range as _get_zip_id_range,
 )
-from w3af.core.data.db.sql_identifier import require_safe_identifier
+from w3af.core.data.db.history_repository import HistoryRepository
 from w3af.core.filesystem import get_temp_dir
 
 TraceReadException = TraceReadError
@@ -119,6 +118,13 @@ class HistoryItem:
         self._session_dir = os.path.join(
             get_temp_dir(), self._db.get_file_name() + "_traces"
         )
+        self._history_repository = HistoryRepository(
+            self._db,
+            self._DATA_TABLE,
+            self._COLUMNS,
+            self._PRIMARY_KEY_COLUMNS,
+            self._INDEX_COLUMNS,
+        )
         self._trace_serializer = HistoryTraceSerializer(self._MSGPACK_CANARY)
         self._trace_storage = HistoryTraceStorage(
             self._session_dir, self._trace_serializer
@@ -142,14 +148,7 @@ class HistoryItem:
         Init history table and indexes.
         """
         with self.history_lock:
-            tablename = self.get_table_name()
-            if not self._db.table_exists(tablename):
-
-                pk_cols = self.get_primary_key_columns()
-                idx_cols = self.get_index_columns()
-
-                self._db.create_table(tablename, self.get_columns(), pk_cols).result()
-                self._db.create_index(tablename, idx_cols).result()
+            self._history_repository.init()
 
     def get_response(self):
         resp = self._response
@@ -184,23 +183,7 @@ class HistoryItem:
                             example [("alias", "abc", "=")]
         :return: A list with the HistoryItem instances that match
         """
-        select_all = "SELECT * FROM %s"
-        sql = select_all % self._DATA_TABLE
-
-        conditions = [
-            f"{require_safe_identifier(column)} {operator} ?"
-            for column, _, operator in search_data
-        ]
-        if conditions:
-            sql += " WHERE " + " AND ".join(conditions)
-
-        values = [value for _, value, _ in search_data]
-
-        try:
-            rows = self._db.select(sql, values)
-        except DBException:
-            msg = "You performed an invalid search. Please verify your syntax."
-            raise DBException(msg)
+        rows = self._history_repository.find(search_data)
 
         result = []
         for row in rows:
@@ -252,43 +235,9 @@ class HistoryItem:
         """
         Load data from DB by ID
         """
-        sql = "SELECT * FROM %s WHERE id = ? "
-        try:
-            row = self._db.select_one(sql % self._DATA_TABLE, (_id,))
-        except DBException as dbe:
-            msg = (
-                'An unexpected error occurred while searching for id "%s"'
-                ' in table "%s". Original exception: "%s".'
-            )
-            raise DBException(msg % (_id, self._DATA_TABLE, dbe))
-
-        if row is not None:
-            self._load_from_row(row)
-            return True
-
-        if not retry:
-            #
-            # This is the second time load() is called and we end up
-            # here, raise an exception and finish our pain.
-            #
-            msg = (
-                'An internal error occurred while searching for id "%s",'
-                " even after commit/retry"
-            )
-            raise DBException(msg % _id)
-
-        #
-        # The request/response with _id is not in the DB!
-        # Lets do some error handling and try again!
-        #
-        # According to sqlite3 documentation this db.commit()
-        # might fix errors like [0] but it can degrade performance due
-        # to disk IO
-        #
-        # [0] https://sourceforge.net/apps/trac/w3af/ticket/164352 ,
-        #
-        self._db.commit()
-        return self.load(_id=_id, retry=False)
+        row = self._history_repository.load(_id, retry)
+        self._load_from_row(row)
+        return True
 
     @verify_has_db
     def read(self, _id):
@@ -324,13 +273,7 @@ class HistoryItem:
             int(self.request.get_uri().has_query_string()),
         ]
 
-        sql = (
-            "INSERT INTO %s "
-            "(id, url, code, tag, mark, info, time, msg, content_type, "
-            "charset, method, response_size, codef, alias, has_qs) "
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
-        )
-        self._db.execute(sql % self._DATA_TABLE, values)
+        self._history_repository.insert(values)
         self.id = self.response.get_id()
 
         self._trace_storage.save_trace(self.request, self.response, self.id)
@@ -380,8 +323,7 @@ class HistoryItem:
         # Remove the table if it still exists, I verify if it exists
         # before removing it in order to allow clear() to be called more than
         # once in a consecutive way
-        if self._db.table_exists(self.get_table_name()):
-            self._db.clear_table(self.get_table_name()).result()
+        self._history_repository.clear()
 
         self._db = None
 

@@ -3268,3 +3268,15 @@ Bandit focal y `pip-audit` están limpios. Mypy del alcance con imports externos
 omitidos también está limpio; la ejecución global sigue limitada por
 dependencias/stubs heredados. El score se mantiene en **6.5/10** por cobertura
 global, módulos grandes y gates globales pendientes.
+
+## Actualización verificada: repositorio SQL de histórico separado
+
+`HistoryRepository` concentra la creación de tabla e índice, búsquedas seguras,
+carga con reintento, inserción y limpieza de metadatos SQL. `HistoryItem` queda
+como entidad que mapea filas y coordina el repositorio con el almacenamiento de
+trazas y la compresión.
+
+Verificación: la suite DB completa pasó **162 tests en 5.07 s**; Black, Ruff,
+mypy con imports externos omitidos y Bandit focal están limpios. Los nombres de
+tabla y columnas se validan antes de construir SQL. El score se mantiene en
+**6.5/10** por cobertura global, módulos grandes y gates globales pendientes.
