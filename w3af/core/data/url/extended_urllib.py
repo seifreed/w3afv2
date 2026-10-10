@@ -46,7 +46,6 @@ from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.data.parsers.doc.http_request_parser import http_request_parser
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.constants import (
-    ACCEPTABLE_ERROR_RATE,
     MAX_ERROR_COUNT,
     MAX_RESPONSE_COLLECT,
     TIMEOUT_ADJUST_LIMIT,
@@ -64,6 +63,7 @@ from w3af.core.data.url.rate_limiter import RateLimiter
 from w3af.core.data.url.response_meta import SUCCESS, ResponseMeta
 from w3af.core.data.url.scan_request_control import ScanRequestControl
 from w3af.core.data.url.timeout_manager import TimeoutManager
+from w3af.core.data.url.worker_pool_adjuster import WorkerPoolAdjuster
 from w3af.core.data.user_agent.random_user_agent import get_random_user_agent
 from w3af.core.exceptions import (
     BaseFrameworkException,
@@ -88,9 +88,6 @@ class ExtendedUrllib:
         self.settings = opener_settings.OpenerSettings(http_log_callback)
         self._sleep = sleep
         self._opener = None
-        self._worker_pool_provider = None
-        self._min_worker_threads = None
-        self._max_worker_threads = None
         self._average_rtt_mutant = GetAverageRTTForMutant(self)
 
         # In exploit mode we disable some timeout/delay/error handling stuff
@@ -109,12 +106,13 @@ class ExtendedUrllib:
         # Keep track of sum(rtt) for each debugging_id
         self._rtt_sum_debugging_id = SynchronizedLRUDict(capacity=128)
 
-        # Avoid multiple consecutive calls to reduce the worker pool size
-        self._last_call_to_adjust_workers = None
-        self._should_adjust_workers_lock = threading.RLock()
-
         # For timeout auto adjust and general stats
         self._total_requests = 0
+
+        self._worker_pool_adjuster = WorkerPoolAdjuster(
+            self.get_error_rate,
+            LOGGER.debug,
+        )
 
         # Timeout is kept by host
         # Used in the pause on HTTP error feature to keep track of when the
@@ -159,9 +157,7 @@ class ExtendedUrllib:
         self._request_control.stop_exception = exception
 
     def set_worker_pool_provider(self, provider, min_workers, max_workers):
-        self._worker_pool_provider = provider
-        self._min_worker_threads = min_workers
-        self._max_worker_threads = max_workers
+        self._worker_pool_adjuster.configure(provider, min_workers, max_workers)
 
     def _before_send_hook(self, request):
         """
@@ -840,84 +836,6 @@ class ExtendedUrllib:
                 req, res, grep, original_url, original_url_inst
             )
 
-    def _decrease_worker_pool_size(self):
-        worker_pool = self._worker_pool_provider()
-        min_workers = self._min_worker_threads
-
-        error_rate = self.get_error_rate()
-
-        # Note that we decrease by two here, and increase by one below
-        new_worker_count = worker_pool.get_worker_count() - 2
-        new_worker_count = max(new_worker_count, min_workers)
-
-        worker_pool.set_worker_count(new_worker_count)
-        msg = "Decreased the worker pool size to %s (error rate: %i%%)"
-        LOGGER.debug(msg % (new_worker_count, error_rate))
-
-    def _increase_worker_pool_size(self):
-        worker_pool = self._worker_pool_provider()
-        max_workers = self._max_worker_threads
-
-        error_rate = self.get_error_rate()
-
-        # Note that we increase by one here, and decrease by two above
-        new_worker_count = worker_pool.get_worker_count() + 1
-        new_worker_count = min(new_worker_count, max_workers)
-
-        worker_pool.set_worker_count(new_worker_count)
-        msg = "Increased the worker pool size to %s (error rate: %i%%)"
-        LOGGER.debug(msg % (new_worker_count, error_rate))
-
-    def _should_increase_worker_pool(self):
-        """
-        We want to be very strict here, do not increase the worker pool
-        size when there are "some errors". Just increase when there are
-        "almost no errors"
-        """
-        error_rate = self.get_error_rate()
-        return error_rate < ACCEPTABLE_ERROR_RATE / 4.0
-
-    def _should_decrease_worker_pool_size(self):
-        error_rate = self.get_error_rate()
-        return error_rate >= ACCEPTABLE_ERROR_RATE / 2.0
-
-    def _handle_worker_pool_size(self):
-        """
-        Increase or decrease the worker pool size
-        :return: None
-        """
-        if self._worker_pool_provider is None:
-            return
-
-        if not self._should_adjust_workers():
-            return
-
-        if self._should_decrease_worker_pool_size():
-            self._decrease_worker_pool_size()
-
-        elif self._should_increase_worker_pool():
-            self._increase_worker_pool_size()
-
-    def _should_adjust_workers(self):
-        """
-        :return: True if we should decrease the number of workers. The
-                 idea behind this is to give the framework time to adjust
-                 to the new thread pool size.
-
-                 We usually see ~10 ConnectionPoolExceptions being raised
-                 at the same time, thus we only want to react to the first
-                 one and give the framework time to see what happens.
-        """
-        with self._should_adjust_workers_lock:
-            if (
-                self._last_call_to_adjust_workers is None
-                or (time.time() - self._last_call_to_adjust_workers) >= 45
-            ):
-                self._last_call_to_adjust_workers = time.time()
-                return True
-
-            return False
-
     def _handle_send_socket_error(self, req, exception, grep, original_url):
         """
         This error handling is separated from the other because we want to have
@@ -958,7 +876,7 @@ class ExtendedUrllib:
             if self._should_stop_scan(req):
                 self._handle_error_count_exceeded(exception)
 
-        self._handle_worker_pool_size()
+        self._worker_pool_adjuster.adjust()
 
         # Then retry!
         req._original_url = original_url
@@ -1023,7 +941,7 @@ class ExtendedUrllib:
         # Clear the log of failed requests; this request is DONE!
         self._log_successful_response(http_resp)
         self._track_rtt(res, req.debugging_id)
-        self._handle_worker_pool_size()
+        self._worker_pool_adjuster.adjust()
 
         if grep:
             self._grep(req, http_resp)

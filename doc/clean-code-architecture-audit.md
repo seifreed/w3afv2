@@ -3129,6 +3129,18 @@ focalizado, `pip-audit` y `git diff --check` están limpios. El score permanece
 en **6.25/10** por la composición global, cobertura 100% no demostrada, mypy
 sobre el `venv` y Bandit heredado aún pendientes.
 
+## Actualización verificada: ajuste de workers separado
+
+`WorkerPoolAdjuster` concentra los límites de concurrencia, la política basada
+en tasa de errores y la cadencia de 45 segundos. `ExtendedUrllib` conserva la
+API pública de configuración y delega el ajuste sin mezclar esta política con
+el transporte HTTP.
+
+Verificación: **56 tests de URL pasaron**; Black, Ruff, mypy focalizado,
+Bandit focalizado, `pip-audit` y `git diff --check` están limpios. El score
+permanece en **6.25/10** por la composición global, cobertura 100% no
+demostrada, mypy sobre el `venv` y Bandit heredado aún pendientes.
+
 ## Actualización verificada: backoff de errores HTTP separado
 
 `HttpErrorPauseController` encapsula el lock, buckets de error, pausas
