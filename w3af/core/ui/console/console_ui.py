@@ -28,7 +28,6 @@ import traceback
 
 from termcolor import colored
 
-import w3af.core.controllers.output_manager as om
 import w3af.core.ui.console.io.console as term
 from w3af.core.controllers import console_tables as tables
 from w3af.core.controllers.w3af_core import w3afCore
@@ -99,21 +98,18 @@ class ConsoleUI:
             "^E": self._toLineEnd,
         }
 
-        self.__initRoot(do_upd)
+        self.__initRoot(do_upd, output)
 
-        # Resolve the default output sink after __initRoot: creating the
-        # w3afCore replaces the global om.out with a fresh log sink, so an
-        # eagerly captured default would point at a stale, disconnected sink.
-        self._output = output if output is not None else om.out
-
-    def __initRoot(self, do_upd):
+    def __initRoot(self, do_upd, output):
         """
         Root menu init routine.
         """
-        cons_upd = ConsoleUIUpdater(force=do_upd, output=om.out)
-        cons_upd.update()
         # Core initialization
         self._w3af = w3afCore()
+        self._output_manager = self._w3af._output_manager
+        self._output = output if output is not None else self._w3af._output
+        cons_upd = ConsoleUIUpdater(force=do_upd, output=self._output)
+        cons_upd.update()
         self._w3af.plugins.set_plugins(["console"], "output")
 
     def accept_disclaimer(self, startup_cfg=None, ask_user=input):
@@ -163,7 +159,7 @@ class ConsoleUI:
             self._executePending()
 
             while self._active:
-                self._handleKey(term.getch())
+                self._handleKey(term.getch(self._output_manager))
 
             term.set_raw_input_mode(False)
         except KeyboardInterrupt:
@@ -173,7 +169,7 @@ class ConsoleUI:
             self._w3af.quit()
             self._context.join()
             self._output.console(self._random_message())
-            om.manager.process_all_messages()
+            self._output_manager.process_all_messages()
         except KeyboardInterrupt:
             # The user might be in a hurry, and after "w3af>>> exit" he
             # might also press Ctrl+C like seen here:
@@ -358,23 +354,23 @@ class ConsoleUI:
         if prefix != "":
             self._paste(prefix)
         elif len(completions) > 0:
-            term.writeln()
+            term.writeln(self._output_manager)
             for variant in [c[1] for c in completions]:
-                term.write(variant + " ")
-            term.writeln()
+                term.write(self._output_manager, variant + " ")
+            term.writeln(self._output_manager)
 
             self._showPrompt()
 
             self._showLine()
         else:
-            term.bell()
+            term.bell(self._output_manager)
 
     def _onLeft(self):
         if self._position > 0:
             self._position -= 1
             term.moveBack()
         else:
-            term.bell()
+            term.bell(self._output_manager)
 
     def _onRight(self):
         self._moveForward()
@@ -386,7 +382,7 @@ class ConsoleUI:
         if new_line is not None:
             self._setLine(new_line)
         else:
-            term.bell()
+            term.bell(self._output_manager)
 
     def _onDown(self):
         history = self._get_history()
@@ -394,13 +390,13 @@ class ConsoleUI:
         if new_line is not None:
             self._setLine(new_line)
         else:
-            term.bell()
+            term.bell(self._output_manager)
 
     def _setLine(self, line):
         term.moveBack(self._position)
-        term.write(" " * len(self._line))
+        term.write(self._output_manager, " " * len(self._line))
         term.moveBack(len(self._line))
-        term.write("".join(line))
+        term.write(self._output_manager, "".join(line))
         self._line = line
         self._position = len(line)
 
@@ -426,7 +422,7 @@ class ConsoleUI:
         try:
             result = shlex.split(line)
         except ValueError as ve:
-            term.write(str(ve) + "\n")
+            term.write(self._output_manager, str(ve) + "\n")
             return []
         else:
             return result
@@ -437,25 +433,25 @@ class ConsoleUI:
             self._line.insert(self._position, c)
             self._position += 1
 
-        term.write(text)
-        term.write("".join(tail))
+        term.write(self._output_manager, text)
+        term.write(self._output_manager, "".join(tail))
         term.moveBack(len(tail))
 
     def _showPrompt(self):
         prompt = colored(self._context.get_path() + ">>> ", "blue")
-        term.write(prompt)
+        term.write(self._output_manager, prompt)
 
     def _showLine(self):
         strLine = self._getLineStr()
-        term.write(strLine)
+        term.write(self._output_manager, strLine)
         self._moveDelta(self._position - len(strLine))
 
     def _moveForward(self, steps=1):
         for _ in range(steps):
             if self._position == len(self._line):
-                term.bell()
+                term.bell(self._output_manager)
                 return
-            term.write(self._line[self._position])
+            term.write(self._output_manager, self._line[self._position])
             self._position += 1
 
     def _moveDelta(self, steps):
@@ -471,7 +467,7 @@ class ConsoleUI:
         """
         strLine = self._getLineStr()
         toWrite = strLine[self._position :]
-        term.write(toWrite)
+        term.write(self._output_manager, toWrite)
         if retainPosition:
             term.moveBack(len(toWrite))
 

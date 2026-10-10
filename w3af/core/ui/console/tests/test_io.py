@@ -28,6 +28,7 @@ import time
 import unittest
 from contextlib import redirect_stdout
 
+import w3af.core.controllers.output_manager as om
 import w3af.core.ui.console.io.console as term
 from w3af.core.ui.console.io import unixctrl
 from w3af.core.ui.console.io.common import (
@@ -91,16 +92,16 @@ class TestUnixTTY(unittest.TestCase):
 
     def test_getch_reads_control_codes_and_sequences(self):
         self.type_keys("a")
-        self.assertEqual(term.getch(), "a")
+        self.assertEqual(term.getch(om.manager), "a")
 
         self.tty.send("\x01")  # Ctrl+A
-        self.assertEqual(term.getch(), "^A")
+        self.assertEqual(term.getch(om.manager), "^A")
 
         self.tty.send(KEY_UP)
-        self.assertEqual(term.getch(), KEY_UP)
+        self.assertEqual(term.getch(om.manager), KEY_UP)
 
         self.tty.send(HOME_SEQUENCE)
-        self.assertEqual(term.getch(), KEY_HOME)
+        self.assertEqual(term.getch(om.manager), KEY_HOME)
 
     def test_getch_retries_after_an_interrupt(self):
         unixctrl.set_raw_input_mode(True)
@@ -118,13 +119,13 @@ class TestUnixTTY(unittest.TestCase):
         typist.start()
         self.addCleanup(typist.join)
 
-        self.assertEqual(term.getch(), "x")
+        self.assertEqual(term.getch(om.manager), "x")
 
     def test_getch_discards_unknown_escape_sequences(self):
         # An escape sequence longer than LONGEST_SEQUENCE is dropped, then the
         # following real keystroke is returned
         self.type_keys("\x1b" + "[" * unixctrl.LONGEST_SEQUENCE + "z")
-        self.assertEqual(term.getch(), "z")
+        self.assertEqual(term.getch(om.manager), "z")
 
     def test_terminal_size_of_a_real_tty(self):
         termios.tcsetwinsize(self.tty.slave, (24, 100))
@@ -149,10 +150,10 @@ class TestTerminalOutput(unittest.TestCase):
     def test_output_helpers_write_escape_codes(self):
         written = io.StringIO()
         with redirect_stdout(written):
-            term.write("hi")
-            term.write("")  # empty strings are skipped
-            term.writeln("line")
-            term.bell()
+            term.write(om.manager, "hi")
+            term.write(om.manager, "")  # empty strings are skipped
+            term.writeln(om.manager, "line")
+            term.bell(om.manager)
             term.moveBack(3)
             term.moveBack(0)  # non-positive moves write nothing
             term.clearScreen()

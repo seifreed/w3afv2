@@ -24,7 +24,6 @@ import importlib
 import os
 import sys
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.ui.console.io.common import (
     KEY_BACKSPACE,
     KEY_DOWN,
@@ -72,7 +71,7 @@ CTRL_CODES.remove(9)
 CTRL_CODES.remove(13)
 
 
-def sync_with_om(func):
+def sync_with_output_manager(func):
     """
     Given that the output manager has been migrated into a producer/consumer
     model, the messages that are sent to it are added to a Queue and printed
@@ -81,38 +80,38 @@ def sync_with_om(func):
     with unordered messages printed to the console.
     """
 
-    def om_wrapper(*args, **kwds):
-        om.manager.process_all_messages()
-        return func(*args, **kwds)
+    def output_manager_wrapper(output_manager, *args, **kwds):
+        output_manager.process_all_messages()
+        return func(output_manager, *args, **kwds)
 
-    return om_wrapper
+    return output_manager_wrapper
 
 
-@sync_with_om
-def write(s):
+@sync_with_output_manager
+def write(output_manager, s):
     if len(s):
         sys.stdout.write(s)
 
 
-@sync_with_om
-def writeln(s=""):
+@sync_with_output_manager
+def writeln(output_manager, s=""):
     sys.stdout.write(s + "\n\r")
 
 
-@sync_with_om
-def bell():
+@sync_with_output_manager
+def bell(output_manager):
     sys.stdout.write("\x07")
 
 
-@sync_with_om
-def getch(buf=None):
+@sync_with_output_manager
+def getch(output_manager, buf=None):
     try:
         ch = read(1)
     except KeyboardInterrupt:
-        return getch(buf)
+        return getch(output_manager, buf)
     if ch == SEQ_PREFIX:
         buf = [ch]
-        result = getch(buf)
+        result = getch(output_manager, buf)
     elif buf is not None:
         buf.append(ch)
         strval = "".join(buf)
@@ -120,9 +119,9 @@ def getch(buf=None):
         if posixVal:
             return posixVal
         elif len(buf) > LONGEST_SEQUENCE:
-            return getch()
+            return getch(output_manager)
         else:
-            return getch(buf)
+            return getch(output_manager, buf)
     elif len(ch) and ord(ch) in CTRL_CODES:
         result = "^" + chr(ord(ch) + 64)
     else:

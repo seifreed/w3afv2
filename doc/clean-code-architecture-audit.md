@@ -2809,3 +2809,16 @@ Verificación: **3 tests pasaron** en el parche de debug; Ruff, Black, mypy,
 `py_compile` y `git diff --check` globales están limpios. El score permanece en
 **6.25/10** por los globals restantes, cobertura 100% no demostrada, Bandit
 heredado, mocks e integraciones Moth.
+
+## Actualización verificada: I/O de consola con manager explícito
+
+Las operaciones sincronizadas de `console.py` (`write`, `writeln`, `bell` y
+`getch`) reciben ahora el `OutputManager` de forma explícita. `ConsoleUI` lo
+obtiene del `w3afCore` que compone y lo propaga a cada operación; el módulo de
+I/O y la UI ya no consultan el manager global para sincronizar mensajes.
+
+Verificación: **172 tests pasaron** en toda la suite de consola; Ruff, Black,
+mypy focalizado y `git diff --check` están limpios. Persisten avisos de
+deprecación en dependencias externas. El score permanece en **6.25/10** por
+los globals restantes, cobertura 100% no demostrada, Bandit heredado, mocks e
+integraciones Moth.
