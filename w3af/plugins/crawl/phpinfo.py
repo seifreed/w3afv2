@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import re
 from itertools import repeat
 
-import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
@@ -210,7 +209,7 @@ class phpinfo(CrawlPlugin):
         v.set_url(response.get_url())
 
         self._get_knowledge_base().append(self, "phpinfo", v)
-        om.out.vulnerability(v.get_desc(), severity=v.get_severity())
+        self._output.vulnerability(v.get_desc(), severity=v.get_severity())
 
         if not self._has_audited:
             self._has_audited = True
@@ -222,7 +221,7 @@ class phpinfo(CrawlPlugin):
         :return None
         """
         for analysis_method in ANALYSIS_FUNCTIONS:
-            analysis_method(response, self._get_knowledge_base())
+            analysis_method(response, self._get_knowledge_base(), self._output)
 
     def get_long_desc(self):
         """

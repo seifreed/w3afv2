@@ -26,7 +26,6 @@ from xml.parsers.expat import ExpatError
 
 from defusedxml import DefusedXmlException, minidom
 
-import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.misc.decorators import runonce
@@ -73,7 +72,7 @@ class ghdb(CrawlPlugin):
                 'There is no point in searching google for "site:%s".'
                 " Google does not index private pages."
             )
-            om.out.information(msg % domain)
+            self._output.information(msg % domain)
             return
 
         self._do_clasic_GHDB(domain)
@@ -121,7 +120,7 @@ class ghdb(CrawlPlugin):
                 v.set_method("GET")
 
                 self._get_knowledge_base().append(self, "vuln", v)
-                om.out.vulnerability(v.get_desc(), severity=severity.LOW)
+                self._output.vulnerability(v.get_desc(), severity=severity.LOW)
 
                 # Create the fuzzable requests
                 fr = FuzzableRequest(response.get_url())
@@ -153,7 +152,7 @@ class ghdb(CrawlPlugin):
                     "There is a corrupt signature in the GHDB. The error was"
                     ' found in the following XML code: "%s".'
                 )
-                om.out.debug(msg % signature.toxml())
+                self._output.debug(msg % signature.toxml())
                 continue
 
             try:
@@ -164,7 +163,7 @@ class ghdb(CrawlPlugin):
                     "There is a corrupt signature in the GHDB. No query "
                     ' string was found in the following XML code: "%s".'
                 )
-                om.out.debug(msg % signature.toxml())
+                self._output.debug(msg % signature.toxml())
                 continue
 
             try:

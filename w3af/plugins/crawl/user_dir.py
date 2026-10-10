@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import ClassVar
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_not_equal
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
@@ -161,7 +160,7 @@ class user_dir(CrawlPlugin):
             i.set_url(user_info.get_url())
 
             self._get_knowledge_base().append(self, "users", i)
-            om.out.report_finding(i)
+            self._output.report_finding(i)
 
     def _create_tests(self, base_url, non_existent):
         """
@@ -194,7 +193,7 @@ class user_dir(CrawlPlugin):
         :return: All usernames collected by other plugins and from DBs
         """
         for tag in {OS, APPLICATION}:
-            for user_desc, user in get_users_from_csv(tag):
+            for user_desc, user in get_users_from_csv(tag, output=self._output):
                 yield user_desc, user, tag
 
         for user in self.COMMON_USERS:

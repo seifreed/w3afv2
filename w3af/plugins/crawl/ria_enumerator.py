@@ -26,7 +26,6 @@ from xml.parsers.expat import ExpatError
 
 from defusedxml import DefusedXmlException, minidom
 
-import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.misc.decorators import runonce
@@ -112,7 +111,7 @@ class ria_enumerator(CrawlPlugin):
 
         file_name = url.get_file_name()
 
-        om.out.debug(f"Checking response for {response} in ria_enumerator.")
+        self._output.debug(f"Checking response for {response} in ria_enumerator.")
 
         self._analyze_gears_manifest(url, response, file_name)
         self._analyze_crossdomain_clientaccesspolicy(url, response, file_name)
@@ -133,7 +132,7 @@ class ria_enumerator(CrawlPlugin):
         i.set_url(url)
 
         self._get_knowledge_base().append(self, "gears_manifest", i)
-        om.out.information(i.get_desc())
+        self._output.information(i.get_desc())
 
         fr = FuzzableRequest.from_http_response(response)
         self.output_queue.put(fr)
@@ -164,7 +163,7 @@ class ria_enumerator(CrawlPlugin):
                 i.set_url(response.get_url())
 
                 self._get_knowledge_base().append(self, "info", i)
-                om.out.information(i.get_desc())
+                self._output.information(i.get_desc())
 
             return
 
@@ -192,7 +191,7 @@ class ria_enumerator(CrawlPlugin):
                 v.set_method("GET")
 
                 self._get_knowledge_base().append(self, "vuln", v)
-                om.out.vulnerability(v.get_desc(), severity=v.get_severity())
+                self._output.vulnerability(v.get_desc(), severity=v.get_severity())
 
                 fr = FuzzableRequest.from_http_response(response)
                 self.output_queue.put(fr)
@@ -209,7 +208,7 @@ class ria_enumerator(CrawlPlugin):
                 i.set_method("GET")
 
                 self._get_knowledge_base().append(self, "info", i)
-                om.out.information(i.get_desc())
+                self._output.information(i.get_desc())
 
                 fr = FuzzableRequest.from_http_response(response)
                 self.output_queue.put(fr)

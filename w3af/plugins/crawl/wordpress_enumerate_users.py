@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.kb.info import Info
@@ -155,7 +154,7 @@ class wordpress_enumerate_users(CrawlPlugin):
         i.set_url(url)
 
         self._get_knowledge_base().append(self, "users", i)
-        om.out.information(i.get_desc())
+        self._output.information(i.get_desc())
 
     def get_long_desc(self):
         """

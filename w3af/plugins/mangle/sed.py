@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.mangle_plugin import ManglePlugin
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.misc.encoding import smart_str_ignore, smart_unicode
@@ -102,7 +101,7 @@ class sed(ManglePlugin):
                 "Your header modifications created an invalid header"
                 " string that could NOT be parsed back to a Header object."
             )
-            om.out.error(error)
+            self._output.error(error)
         else:
             response.set_headers(mangled_header)
 

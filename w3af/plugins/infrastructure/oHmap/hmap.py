@@ -101,6 +101,10 @@ class request:
             raise BaseFrameworkException(msg % (host, port, e)) from e
 
     def submit(self):
+        # ponytail: om.out — no injection point here. This standalone
+        # fingerprinting library builds ``request`` instances from a dozen
+        # free functions reached via ``testServer``; there is no plugin
+        # ``self._output`` to thread through the chain.
         om.out.debug("hmap is sending: " + str(self))
 
         wait_time = 1
@@ -151,6 +155,8 @@ def read_until_closed(s):
         if not data and not isinstance(e, TimeoutError):
             raise
 
+        # ponytail: om.out — no injection point here (standalone library
+        # free function, no plugin sink available).
         om.out.debug(f'hmap stopped reading from the server: "{e}"')
 
     return data
