@@ -52,6 +52,7 @@ from w3af.core.data.url.constants import (
 )
 from w3af.core.data.url.exceptions import ConnectionPoolException, HTTPRequestException
 from w3af.core.data.url.get_average_rtt import GetAverageRTTForMutant
+from w3af.core.data.url.grep_dispatcher import GrepDispatcher
 from w3af.core.data.url.handlers.keepalive import URLTimeoutError
 from w3af.core.data.url.helpers import get_clean_body, get_exception_reason
 from w3af.core.data.url.http_error_pause_controller import HttpErrorPauseController
@@ -123,7 +124,7 @@ class ExtendedUrllib:
         )
 
         # User configured options (in an indirect way)
-        self._grep_queue_put = None
+        self._grep_dispatcher = GrepDispatcher()
         self._evasion_pipeline = RequestEvasionPipeline(LOGGER.error)
         self._request_control = ScanRequestControl()
 
@@ -1139,7 +1140,7 @@ class ExtendedUrllib:
         self._response_history.record_success(host, response.get_wait_time())
 
     def set_grep_queue_put(self, grep_queue_put):
-        self._grep_queue_put = grep_queue_put
+        self._grep_dispatcher.set_callback(grep_queue_put)
 
     def set_evasion_plugins(self, evasion_plugins):
         self._evasion_pipeline.set_plugins(evasion_plugins)
@@ -1152,10 +1153,7 @@ class ExtendedUrllib:
         return self._evasion_pipeline.apply(request)
 
     def _grep(self, request, response):
-        if self._grep_queue_put is None:
-            return
-
-        self._grep_queue_put(request, response)
+        self._grep_dispatcher.dispatch(request, response)
 
 
 @contextmanager
