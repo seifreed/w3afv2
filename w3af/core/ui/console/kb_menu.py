@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.data.kb.vuln_templates.utils import (
     get_template_by_name,
     get_template_names,
@@ -79,9 +78,9 @@ class kbMenu(menu):
                     desc = self.__getters[p]
                     self._list_objects(desc[1:], desc[0]())
                 else:
-                    om.out.console(f"Type {p} is unknown")
+                    self._output.console(f"Type {p} is unknown")
         else:
-            om.out.console("Parameter type is missing, see the help:")
+            self._output.console("Parameter type is missing, see the help:")
             self._cmd_help(["list"])
 
     def _para_list(self, params, part):
@@ -92,18 +91,18 @@ class kbMenu(menu):
 
     def _cmd_add(self, params):
         if len(params) == 0:
-            om.out.console('Parameter "type" is missing, see the help:')
+            self._output.console('Parameter "type" is missing, see the help:')
             self._cmd_help(["add"])
             return
 
         if len(params) > 1:
-            om.out.console("Only one parameter is accepted, see the help:")
+            self._output.console("Only one parameter is accepted, see the help:")
             self._cmd_help(["add"])
             return
 
         template_name = params[0]
         if template_name not in get_template_names():
-            om.out.console(f"Type {template_name} is unknown")
+            self._output.console(f"Type {template_name} is unknown")
             return
 
         # Now we use the fact that templates are configurable just like
@@ -138,12 +137,12 @@ class StoreOnBackConfigMenu(ConfigMenu):
         try:
             self._cmd_save(tokens)
         except (ValueError, BaseFrameworkException) as e:
-            om.out.error(str(e))
+            self._output.error(str(e))
             return self._console.back
 
         # The template validates its configuration when it is saved
         self._configurable.store_in_kb(self._knowledge_base)
         vuln_name = self._configurable.get_vulnerability_name()
-        om.out.console(f'Stored "{vuln_name}" in the knowledge base.')
+        self._output.console(f'Stored "{vuln_name}" in the knowledge base.')
 
         return self._console.back

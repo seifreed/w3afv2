@@ -26,7 +26,6 @@ import sys
 import time
 from multiprocessing.dummy import Process
 
-import w3af.core.controllers.output_manager as om
 import w3af.core.ui.console.io.console as term
 from w3af.core.controllers.console_tables import table
 from w3af.core.controllers.misc.get_w3af_version import get_w3af_version
@@ -115,7 +114,7 @@ class rootMenu(menu):
         # let the core thread start
         scan_started = self.wait_for_start(self._scan_thread)
         if not scan_started:
-            om.out.console("The scan failed to start.")
+            self._output.console("The scan failed to start.")
             self._w3af.stop()
             return
 
@@ -144,7 +143,7 @@ class rootMenu(menu):
         return False
 
     def handle_scan_stop(self, *args):
-        om.out.console("User pressed Ctrl+C, stopping scan.")
+        self._output.console("User pressed Ctrl+C, stopping scan.")
         self._w3af.stop()
 
     def _cmd_cleanup(self, params):
@@ -166,9 +165,9 @@ class rootMenu(menu):
             self._w3af.verify_environment()
             self._w3af.start()
         except BaseFrameworkException as w3:
-            om.out.error(str(w3))
+            self._output.error(str(w3))
         except ScanMustStopException as w3:
-            om.out.error(str(w3))
+            self._output.error(str(w3))
         except Exception:
             self._w3af.stop()
             raise
@@ -221,7 +220,7 @@ class rootMenu(menu):
             term.set_raw_input_mode(False)
 
     def _default_during_scan_handler(self):
-        om.out.console(
+        self._output.console(
             "Unknown key. The following commands are allowed during"
             " the scan:\n\n"
             "  (P) pause the scan\n"
@@ -235,32 +234,32 @@ class rootMenu(menu):
 
     def _pause_scan(self):
         if self._w3af.status.is_paused():
-            om.out.console("The scan is already paused.")
+            self._output.console("The scan is already paused.")
             return
 
         self._w3af.pause(True)
-        om.out.console("The scan was paused.")
+        self._output.console("The scan was paused.")
 
     def _resume_scan(self):
         if not self._w3af.status.is_paused():
-            om.out.console("The scan is running. Can not resume.")
+            self._output.console("The scan is running. Can not resume.")
             return
 
         self._w3af.pause(False)
-        om.out.console("The scan was resumed.")
+        self._output.console("The scan was resumed.")
 
     def _show_status(self):
         # Get the information and print it to the console
         status_information_str = self._w3af.status.get_long_status()
         t = table([(status_information_str,)])
         t.draw(term.terminal_size()[0])
-        om.out.console("")
+        self._output.console("")
 
     def _cmd_version(self, params):
         """
         Show the w3af version and exit
         """
-        om.out.console(get_w3af_version())
+        self._output.console(get_w3af_version())
 
     def join(self):
         """

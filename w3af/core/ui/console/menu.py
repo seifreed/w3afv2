@@ -44,8 +44,9 @@ class menu:
     :author: Alexander Berezhnoy (alexander.berezhnoy |at| gmail.com)
     """
 
-    def __init__(self, name, console, w3af, parent=None, **other):
+    def __init__(self, name, console, w3af, parent=None, output=None, **other):
         self._name = name
+        self._output = output if output is not None else om.out
         self._history = history()
 
         self._help = HelpContainer()
@@ -201,9 +202,9 @@ class menu:
             if short is None:
                 raise BaseFrameworkException(f"No help for '{subj}'")
 
-            om.out.console(short)
+            self._output.console(short)
             if full:
-                om.out.console(full)
+                self._output.console(full)
 
     def _cmd_keys(self, params=None):
         table = self._keysHelp.get_plain_help_table()
@@ -226,11 +227,11 @@ class menu:
             )
         except Exception:
             LOGGER.debug("Failed to evaluate %r", eval_variable, exc_info=True)
-            om.out.console("Unknown variable.")
+            self._output.console("Unknown variable.")
         else:
             pp = pprint.PrettyPrinter(indent=4)
             output = pp.pformat(res)
-            om.out.console(output)
+            self._output.console(output)
 
     def _para_help(self, params, part):
         if len(params) == 0:
