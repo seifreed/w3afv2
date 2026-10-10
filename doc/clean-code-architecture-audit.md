@@ -1855,3 +1855,14 @@ Verificación: 16 tests de XSS pasan, Ruff, Black y mypy pasan en el módulo
 modificado. El score sigue en **5.75/10**: quedan 45 imports directos de la KB,
 además de la cobertura, mocks, el fallo heredado de perfilado, la dependencia
 de Moth y los orquestadores grandes.
+
+## Actualización verificada: negociación de contenido
+
+`crawl.content_negotiation` registra la detección de negociación HTTP mediante
+la KB configurada en el plugin, conservando la cola de bruteforce y el control
+de reintentos.
+
+Verificación: 5 tests del plugin pasan, Ruff, Black y mypy pasan en el módulo
+modificado. El score sigue en **5.75/10**: quedan 44 imports directos de la KB,
+además de la cobertura, mocks, el fallo heredado de perfilado, la dependencia
+de Moth y los orquestadores grandes.
