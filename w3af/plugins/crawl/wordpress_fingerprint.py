@@ -158,7 +158,9 @@ class wordpress_fingerprint(CrawlPlugin):
                     self._output.information(i.get_desc())
 
                     # Send link to core
-                    fr = FuzzableRequest(response.get_uri())
+                    fr = FuzzableRequest(
+                        response.get_uri(), configuration=self.get_configuration()
+                    )
                     self.output_queue.put(fr)
 
     def _fingerprint_readme(self, domain_path, wp_unique_url, response):
@@ -188,7 +190,9 @@ class wordpress_fingerprint(CrawlPlugin):
             self._output.information(i.get_desc())
 
             # Send link to core
-            fr = FuzzableRequest(response.get_uri())
+            fr = FuzzableRequest(
+                response.get_uri(), configuration=self.get_configuration()
+            )
             self.output_queue.put(fr)
 
     def _fingerprint_meta(self, domain_path, wp_unique_url, response):
@@ -220,7 +224,9 @@ class wordpress_fingerprint(CrawlPlugin):
             self._output.information(i.get_desc())
 
             # Send link to core
-            fr = FuzzableRequest(response.get_uri())
+            fr = FuzzableRequest(
+                response.get_uri(), configuration=self.get_configuration()
+            )
             self.output_queue.put(fr)
 
     def _fingerprint_data(self, domain_path, wp_unique_url, response):
@@ -266,7 +272,9 @@ class wordpress_fingerprint(CrawlPlugin):
                 self._output.information(i.get_desc())
 
                 # Send link to core
-                fr = FuzzableRequest(response.get_uri())
+                fr = FuzzableRequest(
+                    response.get_uri(), configuration=self.get_configuration()
+                )
                 self.output_queue.put(fr)
 
                 break

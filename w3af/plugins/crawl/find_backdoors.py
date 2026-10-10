@@ -139,7 +139,9 @@ class find_backdoors(CrawlPlugin):
         self._get_knowledge_base().append(self, "backdoors", v)
         self._output.vulnerability(v.get_desc(), severity=v.get_severity())
 
-        fr = FuzzableRequest.from_http_response(response)
+        fr = FuzzableRequest.from_http_response(
+            response, configuration=self.get_configuration()
+        )
         self.output_queue.put(fr)
 
     def _match_signature(self, response):

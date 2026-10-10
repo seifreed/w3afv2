@@ -157,7 +157,11 @@ class web_spider(CrawlPlugin):
                 # Now data_container is one of Multipart of URLEncoded form
                 # instances, which is a DataContainer. Much better than the
                 # FormParameters instance we had before in form_params_variant
-                r = FuzzableRequest.from_form(data_container, headers=headers)
+                r = FuzzableRequest.from_form(
+                    data_container,
+                    headers=headers,
+                    configuration=self.get_configuration(),
+                )
                 self.output_queue.put(r)
 
     def _handle_first_run(self):
@@ -352,7 +356,7 @@ class web_spider(CrawlPlugin):
         # leads to extra HTTP requests for URLs which we already checked and the
         # core will dismiss anyway
         #
-        fuzzable_request = FuzzableRequest(ref)
+        fuzzable_request = FuzzableRequest(ref, configuration=self.get_configuration())
         return bool(self._get_variant_db().append(fuzzable_request))
 
     def _get_variant_db(self):
@@ -417,7 +421,11 @@ class web_spider(CrawlPlugin):
             args = (reference, original_response.get_url())
             self._output.debug(msg % args)
 
-            fuzz_req = FuzzableRequest(reference, headers=headers)
+            fuzz_req = FuzzableRequest(
+                reference,
+                headers=headers,
+                configuration=self.get_configuration(),
+            )
 
             # These next steps are simple, but actually allows me to set the
             # referer and cookie for the FuzzableRequest instances I'm sending

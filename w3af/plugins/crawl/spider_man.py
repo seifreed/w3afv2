@@ -186,7 +186,10 @@ class LoggingHandler(ProxyHandler):
                 http_response = self._create_terminate_response(http_request)
             else:
                 # Send the request to the core
-                freq = FuzzableRequest.from_http_request(http_request)
+                freq = FuzzableRequest.from_http_request(
+                    http_request,
+                    configuration=self.parent_process.plugin.get_configuration(),
+                )
                 self.parent_process.plugin.send_fuzzable_request_to_core(freq)
 
                 # Send the request to the remote webserver

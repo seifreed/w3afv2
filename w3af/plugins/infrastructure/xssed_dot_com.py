@@ -126,7 +126,7 @@ class xssed_dot_com(InfrastructurePlugin):
             # XSS plugin enabled because it will re-test this and
             # possibly confirm the vulnerability
             #
-            fr = FuzzableRequest(xss_url)
+            fr = FuzzableRequest(xss_url, configuration=self.get_configuration())
             self.output_queue.put(fr)
 
             # Save the vuln to the KB and print to output

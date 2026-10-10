@@ -109,7 +109,9 @@ class dot_listing(CrawlPlugin):
             self._get_knowledge_base().append(self, "dot_listing", v)
             self._output.vulnerability(v.get_desc(), severity=v.get_severity())
 
-            fr = FuzzableRequest(response.get_url())
+            fr = FuzzableRequest(
+                response.get_url(), configuration=self.get_configuration()
+            )
             self.output_queue.put(fr)
 
         real_users = {u for u in users if not u.isdigit()}

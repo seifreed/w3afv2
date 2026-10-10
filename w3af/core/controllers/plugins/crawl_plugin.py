@@ -89,7 +89,7 @@ class CrawlPlugin(Plugin):
 
         :return: The http response that was generated as a response to "GET url"
         """
-        fr = FuzzableRequest(url, method="GET")
+        fr = FuzzableRequest(url, method="GET", configuration=self.get_configuration())
 
         on_success = kwargs.pop("on_success", None)
         http_response = self._uri_opener.send_mutant(fr, *args, cache=True, **kwargs)
@@ -113,7 +113,7 @@ class CrawlPlugin(Plugin):
         :param kwargs: kwargs for send_mutant
         :return: The HTTP response
         """
-        fr = FuzzableRequest(url, method="GET")
+        fr = FuzzableRequest(url, method="GET", configuration=self.get_configuration())
 
         on_success = kwargs.pop("on_success", None)
         http_response = self._uri_opener.send_mutant(fr, *args, cache=True, **kwargs)

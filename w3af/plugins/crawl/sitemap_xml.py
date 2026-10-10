@@ -58,7 +58,9 @@ class sitemap_xml(CrawlPlugin):
             return
 
         # Send response to core
-        fr = FuzzableRequest.from_http_response(response)
+        fr = FuzzableRequest.from_http_response(
+            response, configuration=self.get_configuration()
+        )
         self.output_queue.put(fr)
 
         self._output.debug("Parsing xml file with xml.dom.minidom.")

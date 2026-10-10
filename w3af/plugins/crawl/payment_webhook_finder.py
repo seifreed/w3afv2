@@ -165,7 +165,9 @@ class payment_webhook_finder(CrawlPlugin):
             return
 
         # Create the fuzzable request and send it to the core
-        fr = FuzzableRequest.from_http_response(response)
+        fr = FuzzableRequest.from_http_response(
+            response, configuration=self.get_configuration()
+        )
         self.output_queue.put(fr)
 
         #

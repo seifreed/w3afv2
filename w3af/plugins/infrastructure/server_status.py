@@ -98,7 +98,9 @@ class server_status(InfrastructurePlugin):
         Extract information from the server-status page and send FuzzableRequest
         instances to the core.
         """
-        self.output_queue.put(FuzzableRequest(response.get_url()))
+        self.output_queue.put(
+            FuzzableRequest(response.get_url(), configuration=self.get_configuration())
+        )
 
         # Now really parse the file and create custom made fuzzable requests
         regex = "<td>.*?<td nowrap>(.*?)</td><td nowrap>.*? (.*?) HTTP/1"
@@ -117,7 +119,11 @@ class server_status(InfrastructurePlugin):
                 # requests
                 tmp_res = self._uri_opener.GET(found_url, cache=True)
                 if not self._is_404(tmp_res):
-                    self.output_queue.put(FuzzableRequest(found_url))
+                    self.output_queue.put(
+                        FuzzableRequest(
+                            found_url, configuration=self.get_configuration()
+                        )
+                    )
             else:
                 # This is a shared hosting server
                 self._shared_hosting_hosts.append(domain)

@@ -113,7 +113,11 @@ class find_jboss(InfrastructurePlugin):
             o.set_url(vuln_url)
             self._get_knowledge_base().append(self, "find_jboss", o)
 
-            self.output_queue.put(FuzzableRequest(response.get_uri()))
+            self.output_queue.put(
+                FuzzableRequest(
+                    response.get_uri(), configuration=self.get_configuration()
+                )
+            )
 
     def send_request(self, base_url, vuln_db_instance):
         vuln_url = base_url.url_join(vuln_db_instance["url"])

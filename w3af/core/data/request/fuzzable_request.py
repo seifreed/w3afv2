@@ -26,7 +26,6 @@ from collections.abc import Iterable
 from itertools import chain
 from urllib.parse import quote, quote_plus, unquote
 
-import w3af.core.data.kb.config as cf
 from w3af.core.data.db.disk_item import DiskItem
 from w3af.core.data.dc.cookie import Cookie
 from w3af.core.data.dc.factory import dc_from_hdrs_post
@@ -72,6 +71,7 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         "_cookie",
         "_force_fuzzing_headers",
         "_force_fuzzing_url_parts",
+        "_fuzzable_headers",
         "_headers",
         "_method",
         "_post_data",
@@ -80,8 +80,22 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         "_url",
     )
 
-    def __init__(self, uri, method="GET", headers=None, cookie=None, post_data=None):
+    def __init__(
+        self,
+        uri,
+        method="GET",
+        headers=None,
+        cookie=None,
+        post_data=None,
+        configuration=None,
+    ):
         super().__init__()
+
+        self._fuzzable_headers = tuple(
+            configuration.get("fuzzable_headers") or []
+            if configuration is not None
+            else ()
+        )
 
         # Note: Do not check for the URI/Headers type here, since I'm doing it
         # in set_uri() and set_headers() already.
@@ -120,6 +134,7 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         return state
 
     def __setstate__(self, state):
+        state.setdefault("_fuzzable_headers", ())
         [setattr(self, k, v) for k, v in state.items()]
 
     def get_default_headers(self):
@@ -135,12 +150,13 @@ class FuzzableRequest(RequestMixIn, DiskItem):
                  FuzzableRequest instance to the default headers. Any specific
                  headers override the default (empty) ones.
         """
-        fuzzable_headers = cf.cf.get("fuzzable_headers") or []
-        req_headers = [(h, "") for h in fuzzable_headers]
+        req_headers = [(h, "") for h in self._fuzzable_headers]
         return Headers(init_val=req_headers)
 
     @classmethod
-    def from_parts(cls, url, method="GET", post_data=None, headers=None):
+    def from_parts(
+        cls, url, method="GET", post_data=None, headers=None, configuration=None
+    ):
         """
         :return: An instance of FuzzableRequest from the provided parameters.
         """
@@ -153,20 +169,31 @@ class FuzzableRequest(RequestMixIn, DiskItem):
         elif isinstance(post_data, str):
             post_data = dc_from_hdrs_post(headers, post_data)
 
-        return cls(url, method=method, headers=headers, post_data=post_data)
+        return cls(
+            url,
+            method=method,
+            headers=headers,
+            post_data=post_data,
+            configuration=configuration,
+        )
 
     @classmethod
-    def from_http_response(cls, http_response):
+    def from_http_response(cls, http_response, configuration=None):
         """
         :return: An instance of FuzzableRequest using the URL and cookie from
                  the http_response. The method used is "GET", and no post_data
                  is set.
         """
         cookie = Cookie.from_http_response(http_response)
-        return cls(http_response.get_uri(), method="GET", cookie=cookie)
+        return cls(
+            http_response.get_uri(),
+            method="GET",
+            cookie=cookie,
+            configuration=configuration,
+        )
 
     @classmethod
-    def from_http_request(cls, request):
+    def from_http_request(cls, request, configuration=None):
         """
         :param request: The instance we'll use as base
         :return: An instance of FuzzableRequest based on a urllib2 HTTP request
@@ -184,23 +211,30 @@ class FuzzableRequest(RequestMixIn, DiskItem):
             method=request.get_method(),
             headers=headers,
             post_data=post_data,
+            configuration=configuration,
         )
 
     @classmethod
-    def from_form(cls, form, headers=None):
+    def from_form(cls, form, headers=None, configuration=None):
         if form.get_method().upper() == "POST":
             r = cls(
                 form.get_action(),
                 method=form.get_method(),
                 headers=headers,
                 post_data=form,
+                configuration=configuration,
             )
         else:
             # The default is a GET request
             form_action = form.get_action()
             form_action.querystring = form
 
-            r = cls(form_action, method=form.get_method(), headers=headers)
+            r = cls(
+                form_action,
+                method=form.get_method(),
+                headers=headers,
+                configuration=configuration,
+            )
 
         return r
 

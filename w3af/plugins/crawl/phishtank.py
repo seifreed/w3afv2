@@ -70,7 +70,7 @@ class phishtank(CrawlPlugin):
             return
 
         for ptm in pt_matches:
-            fr = FuzzableRequest(ptm.url)
+            fr = FuzzableRequest(ptm.url, configuration=self.get_configuration())
             self.output_queue.put(fr)
 
         desc = (

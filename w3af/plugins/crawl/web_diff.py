@@ -153,7 +153,11 @@ class web_diff(CrawlPlugin):
                 continue
 
             if response.is_text_or_html():
-                self.output_queue.put(FuzzableRequest(response.get_url()))
+                self.output_queue.put(
+                    FuzzableRequest(
+                        response.get_url(), configuration=self.get_configuration()
+                    )
+                )
 
             self._check_content(response, os.path.join(directory, file_name))
             self._exist_remote.append(url)

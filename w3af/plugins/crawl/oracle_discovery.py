@@ -90,7 +90,9 @@ class oracle_discovery(CrawlPlugin):
                 self._get_knowledge_base().append(self, "oracle_discovery", i)
                 self._output.information(i.get_desc())
 
-                fr = FuzzableRequest.from_http_response(response)
+                fr = FuzzableRequest.from_http_response(
+                    response, configuration=self.get_configuration()
+                )
                 self.output_queue.put(fr)
 
                 break

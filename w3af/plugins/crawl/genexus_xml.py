@@ -79,7 +79,9 @@ class genexus_xml(CrawlPlugin):
             self._output.information(i.get_desc())
 
             # Send the new link to the core
-            self.output_queue.put(FuzzableRequest(genexus_url))
+            self.output_queue.put(
+                FuzzableRequest(genexus_url, configuration=self.get_configuration())
+            )
 
             # Parse the XML, and potentially send more links to core
             self._parse_xml(http_response, file_name, base_url)

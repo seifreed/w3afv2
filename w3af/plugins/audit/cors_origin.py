@@ -101,7 +101,9 @@ class cors_origin(AuditPlugin):
         for origin in origin_list:
 
             # Build request
-            forged_req = build_cors_request(url, origin)
+            forged_req = build_cors_request(
+                url, origin, configuration=self.get_configuration()
+            )
 
             # Send forged request and retrieve response information
             response = self._uri_opener.send_mutant(

@@ -72,7 +72,7 @@ def retrieve_cors_header(response, key):
     return None
 
 
-def build_cors_request(url, origin_header_value):
+def build_cors_request(url, origin_header_value, configuration=None):
     """
     Method to generate a "GET" CORS HTTP request based on input context.
 
@@ -87,5 +87,7 @@ def build_cors_request(url, origin_header_value):
     if origin_header_value is not None:
         headers["Origin"] = origin_header_value.strip()
 
-    forged_req = FuzzableRequest(url, "GET", headers=headers)
+    forged_req = FuzzableRequest(
+        url, "GET", headers=headers, configuration=configuration
+    )
     return forged_req

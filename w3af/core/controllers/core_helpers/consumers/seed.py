@@ -124,7 +124,10 @@ class seed(Process):
                 )
                 self._output.error(msg % (url, e, traceback.format_exc()))
             else:
-                _seed = FuzzableRequest(response.get_uri())
+                _seed = FuzzableRequest(
+                    response.get_uri(),
+                    configuration=self._w3af_core.configuration,
+                )
 
                 if in_scope(_seed):
                     self._out_queue.put((None, None, _seed))

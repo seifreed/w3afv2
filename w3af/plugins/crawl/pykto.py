@@ -190,7 +190,9 @@ class pykto(CrawlPlugin):
             self._get_knowledge_base().append(self, "vuln", v)
             self._output.vulnerability(v.get_desc(), severity=v.get_severity())
 
-            fr = FuzzableRequest.from_http_response(http_response)
+            fr = FuzzableRequest.from_http_response(
+                http_response, configuration=self.get_configuration()
+            )
             self.output_queue.put(fr)
 
     def get_options(self):

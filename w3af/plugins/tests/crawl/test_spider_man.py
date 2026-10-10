@@ -32,6 +32,7 @@ from mitmproxy.test import tflow
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.get_unused_port import get_unused_port
+from w3af.core.data.kb.config import Config
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.plugins.crawl.spider_man import (
     TERMINATE_FAVICON_URL,
@@ -204,6 +205,7 @@ class TestLoggingHandlerUnreachableSite(unittest.TestCase):
 
         plugin = spider_man()
         plugin.set_output(om.out)
+        plugin.set_configuration(Config())
         proxy = LoggingProxy(
             "127.0.0.1",
             0,

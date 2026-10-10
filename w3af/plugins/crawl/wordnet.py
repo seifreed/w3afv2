@@ -83,7 +83,9 @@ class wordnet(CrawlPlugin):
 
             if fuzzy_not_equal(response.body, rand_response.body, 0.85):
 
-                fr = FuzzableRequest(response.get_uri())
+                fr = FuzzableRequest(
+                    response.get_uri(), configuration=self.get_configuration()
+                )
                 self.output_queue.put(fr)
 
     def _generate_mutants(self, fuzzable_request):

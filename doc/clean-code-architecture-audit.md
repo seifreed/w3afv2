@@ -4075,3 +4075,17 @@ no consumía CPU en este entorno y fue interrumpida. Black, Ruff, mypy y Bandit
 focal están limpios. El score sube a **9.1/10** en Clean Architecture y
 **9.0/10** global. Siguen pendientes parsers, `FuzzableRequest`, `Info`,
 controllers y la cobertura global del 100%.
+
+## Actualización verificada: configuración explícita en `FuzzableRequest`
+
+`FuzzableRequest` ya no consulta `cf.cf` al construir sus headers por defecto.
+Recibe la configuración en sus factories y conserva únicamente la tupla de
+headers resuelta, sin mantener una referencia al objeto de configuración. Los
+callers de plugins y consumidores pasan la configuración del scan; el test del
+proxy de `spider_man` quedó configurado con un `Config` real.
+
+Verificación: requests y CORS pasan **61 tests**, incluido un test nuevo del
+contrato de headers inyectados. Black, Ruff y mypy focal están limpios; el caso
+aislado de `spider_man` pasa y solo muestra dos warnings deprecados externos.
+El score sube a **9.2/10** en Clean Architecture y **9.1/10** global. Siguen
+pendientes parsers, `Info`, controllers y la cobertura global del 100%.

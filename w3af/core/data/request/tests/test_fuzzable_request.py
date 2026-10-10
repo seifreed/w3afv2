@@ -33,6 +33,7 @@ from w3af.core.data.dc.multipart_container import MultipartContainer
 from w3af.core.data.dc.query_string import QueryString
 from w3af.core.data.dc.urlencoded_form import URLEncodedForm
 from w3af.core.data.dc.utils.multipart import multipart_encode
+from w3af.core.data.kb.config import Config
 from w3af.core.data.misc.encoding import smart_unicode
 from w3af.core.data.misc.serialize import dumps, loads
 from w3af.core.data.parsers.doc.url import URL
@@ -45,6 +46,13 @@ class TestFuzzableRequest(unittest.TestCase):
 
     def setUp(self):
         self.url = URL("http://w3af.com/a/b/c.php")
+
+    def test_default_headers_use_injected_configuration(self):
+        configuration = Config({"fuzzable_headers": ["X-Test-Header"]})
+
+        request = FuzzableRequest(self.url, configuration=configuration)
+
+        self.assertEqual(request.get_headers().iget("X-Test-Header")[0], "")
 
     def test_dump_case01(self):
         expected = "GET http://w3af.com/a/b/c.php HTTP/1.1\r\nHello: World\r\n\r\na=b"

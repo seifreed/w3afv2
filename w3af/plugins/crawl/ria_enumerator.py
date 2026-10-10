@@ -133,7 +133,9 @@ class ria_enumerator(CrawlPlugin):
         self._get_knowledge_base().append(self, "gears_manifest", i)
         self._output.information(i.get_desc())
 
-        fr = FuzzableRequest.from_http_response(response)
+        fr = FuzzableRequest.from_http_response(
+            response, configuration=self.get_configuration()
+        )
         self.output_queue.put(fr)
 
     def _analyze_crossdomain_clientaccesspolicy(self, url, response, file_name):
@@ -192,7 +194,9 @@ class ria_enumerator(CrawlPlugin):
                 self._get_knowledge_base().append(self, "vuln", v)
                 self._output.vulnerability(v.get_desc(), severity=v.get_severity())
 
-                fr = FuzzableRequest.from_http_response(response)
+                fr = FuzzableRequest.from_http_response(
+                    response, configuration=self.get_configuration()
+                )
                 self.output_queue.put(fr)
 
             else:
@@ -209,7 +213,9 @@ class ria_enumerator(CrawlPlugin):
                 self._get_knowledge_base().append(self, "info", i)
                 self._output.information(i.get_desc())
 
-                fr = FuzzableRequest.from_http_response(response)
+                fr = FuzzableRequest.from_http_response(
+                    response, configuration=self.get_configuration()
+                )
                 self.output_queue.put(fr)
 
     def get_options(self):

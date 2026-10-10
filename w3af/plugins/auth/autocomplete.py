@@ -136,7 +136,9 @@ class autocomplete(AuthSessionPlugin):
         #
         # Transform to a fuzzable request and send to the wire
         #
-        fuzzable_request = FuzzableRequest.from_form(form)
+        fuzzable_request = FuzzableRequest.from_form(
+            form, configuration=self.get_configuration()
+        )
 
         # Request errors are converted into a 204 response by the URL opener
         # proxy (UrlOpenerProxy), so they surface as a failed session check.

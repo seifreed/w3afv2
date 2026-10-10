@@ -163,7 +163,9 @@ class dir_file_bruter(CrawlPlugin):
         if self._is_404(http_response):
             return
 
-        fr = FuzzableRequest.from_http_response(http_response)
+        fr = FuzzableRequest.from_http_response(
+            http_response, configuration=self.get_configuration()
+        )
         self.output_queue.put(fr)
 
     def end(self):

@@ -196,7 +196,9 @@ class archive_dot_org(CrawlPlugin):
             )
             self._output.debug(msg % url)
 
-            fr = FuzzableRequest(response.get_uri())
+            fr = FuzzableRequest(
+                response.get_uri(), configuration=self.get_configuration()
+            )
             self.output_queue.put(fr)
         else:
             msg = (

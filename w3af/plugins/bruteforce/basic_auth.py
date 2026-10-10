@@ -103,7 +103,12 @@ class basic_auth(BruteforcePlugin):
         auth = f"Basic {encoded}"
         headers = Headers([("Authorization", auth)])
 
-        fr = FuzzableRequest(url, headers=headers, method="GET")
+        fr = FuzzableRequest(
+            url,
+            headers=headers,
+            method="GET",
+            configuration=self.get_configuration(),
+        )
 
         # The url opener proxy turns any request error into a 204 response, so
         # send_mutant does not raise.

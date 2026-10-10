@@ -220,7 +220,9 @@ class open_api(CrawlPlugin):
             self.output_queue.put(api_call)
 
     def _send_spec_to_core(self, spec_url):
-        fuzzable_request = FuzzableRequest(spec_url, method="GET")
+        fuzzable_request = FuzzableRequest(
+            spec_url, method="GET", configuration=self.get_configuration()
+        )
         self.output_queue.put(fuzzable_request)
 
     @staticmethod

@@ -194,7 +194,9 @@ class find_dvcs(CrawlPlugin):
         # After performing the checks (404, redirects, body is not empty, body
         # can be parsed, body actually had filenames inside) send the URL to the
         # core
-        fr = FuzzableRequest(repo_url, method="GET")
+        fr = FuzzableRequest(
+            repo_url, method="GET", configuration=self.get_configuration()
+        )
         self.output_queue.put(fr)
 
         # Now we send this finding to the report for manual analysis

@@ -182,6 +182,7 @@ class grep(BaseConsumer):
             request.get_method(),
             request.get_data() or "",
             headers_inst,
+            configuration=self._w3af_core.configuration,
         )
 
         return request, response
