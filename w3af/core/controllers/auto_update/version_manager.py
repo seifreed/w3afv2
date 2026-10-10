@@ -241,7 +241,10 @@ class VersionMgr:
                 self._notify(VersionMgr.ON_UPDATE_ADDED_DEP)
 
             if self.callback_onupdate_show_log:
-                changelog_str = lambda: str(changelog)
+
+                def changelog_str():
+                    return str(changelog)
+
                 self.callback_onupdate_show_log(
                     "Do you want to see a change log?", changelog_str
                 )

@@ -128,7 +128,10 @@ class ssn(GrepPlugin):
         even_two = range(10, 100, 2)  # (10-98 even only)
         even_three = range(2, 10, 2)
         odd_four = range(11, 100, 2)  # (11-99 odd only)
-        le_group = lambda x: x <= group
+
+        def le_group(value):
+            return value <= group
+
         is_ssn = False
 
         # For little odds (odds between 1 and 9)

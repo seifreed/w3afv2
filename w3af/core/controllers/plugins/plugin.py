@@ -135,7 +135,9 @@ class Plugin(Configurable):
             tmp = self.__doc__.replace("    ", "")
 
             res = "".join(
-                l for l in tmp.split("\n") if l != "" and not l.startswith(":")
+                line
+                for line in tmp.split("\n")
+                if line != "" and not line.startswith(":")
             )
         else:
             res = "No description available for this plugin."

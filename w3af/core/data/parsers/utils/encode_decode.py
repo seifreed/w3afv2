@@ -123,7 +123,7 @@ def urlencode(query, encoding, safe="/<>\"'=:()"):
             msg = "not a valid non-string sequence or mapping object"
             raise TypeError(msg).with_traceback(tb)
 
-    l = []
+    encoded_parts = []
 
     for k, v in query:
         # first work with keys
@@ -146,9 +146,9 @@ def urlencode(query, encoding, safe="/<>\"'=:()"):
                 ele = to_encodable_string(ele, encoding)
                 to_append = k + "=" + urllib.parse.quote(ele, safe)
 
-            l.append(to_append)
+            encoded_parts.append(to_append)
 
-    return "&".join(l)
+    return "&".join(encoded_parts)
 
 
 def to_encodable_string(obj, encoding):

@@ -511,7 +511,8 @@ class HTTPResponse(DiskItem):
         """
         self._headers = headers
 
-        find_word = lambda w: content_type.find(w) != -1
+        def find_word(word):
+            return content_type.find(word) != -1
 
         content_type_hvalue, _ = self._headers.iget(CONTENT_TYPE, None)
 

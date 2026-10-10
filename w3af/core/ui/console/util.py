@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import builtins as _builtins
+
 
 def mapDict(fun, dct):
     for p in dct:
@@ -115,8 +117,6 @@ def suggest(tree, part, skipList=()):
 # is typed by the local operator who already drives w3af, so it is evaluated
 # in a restricted namespace. Resolved through the builtins table so the intent
 # (an operator REPL, not deserialization of untrusted data) is explicit.
-import builtins as _builtins
-
 _evaluate_expression = _builtins.eval
 
 

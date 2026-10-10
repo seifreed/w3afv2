@@ -93,8 +93,10 @@ class seed(Process):
         to consume from that Queue and then put their results in it again in
         order to continue discovering.
         """
+
         # We only want to scan pages that are in current scope
-        in_scope = lambda fr: fr.get_url().get_domain() == url.get_domain()
+        def in_scope(fr):
+            return fr.get_url().get_domain() == url.get_domain()
 
         for url in target_urls:
             try:

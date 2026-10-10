@@ -1,6 +1,4 @@
-from flask import Flask
-
-app = Flask("w3af")
+from .application import app
 
 from . import middlewares, resources
 

@@ -91,10 +91,10 @@ class pluginsMenu(menu):
             subMenu._list(params[1:])
 
     def _para_list(self, params, part):
-        l = len(params)
-        if l == 0:
+        params_length = len(params)
+        if params_length == 0:
             return suggest(list(self._children.keys()), part)
-        if l == 1:
+        if params_length == 1:
             return suggest(["all", "enabled", "disabled"], part)
         return []
 

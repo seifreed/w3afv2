@@ -312,7 +312,7 @@ class ConnectionManager(threading.Thread):
 
         # Command used.
         req["command"] = ord(data[1])
-        if not req["command"] in COMMANDS:
+        if req["command"] not in COMMANDS:
             raise Request_Unknown_Command(req)
 
         # Address of the remote peer.

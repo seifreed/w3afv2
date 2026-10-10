@@ -33,7 +33,27 @@ from w3af.core.data.dc.factory import dc_from_form_params
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.dc.urlencoded_form import URLEncodedForm
 from w3af.core.data.parsers.doc.html import HTMLParser
-from w3af.core.data.parsers.doc.tests.data.constants import *
+from w3af.core.data.parsers.doc.tests.data.constants import (
+    A_LINK_ABSOLUTE,
+    FORM_METHOD_GET,
+    FORM_METHOD_POST,
+    FORM_MULTILINE_TAGS,
+    FORM_WITHOUT_ACTION,
+    FORM_WITHOUT_METHOD,
+    HTML_DOC,
+    INPUT_CHECKBOX_WITH_NAME,
+    INPUT_FILE_WITH_NAME,
+    INPUT_HIDDEN,
+    INPUT_RADIO_WITH_NAME,
+    INPUT_SUBMIT_WITH_NAME,
+    INPUT_TEXT_WITH_ID,
+    INPUT_TEXT_WITH_NAME,
+    SELECT_WITH_ID,
+    SELECT_WITH_NAME,
+    TEXTAREA_WITH_ID_AND_DATA,
+    TEXTAREA_WITH_NAME_AND_DATA,
+    TEXTAREA_WITH_NAME_EMPTY,
+)
 from w3af.core.data.parsers.doc.tests.test_sgml import build_http_response
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.exceptions import ParserException

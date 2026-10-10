@@ -28,8 +28,6 @@ import traceback
 
 from termcolor import colored
 
-LOGGER = logging.getLogger(__name__)
-
 import w3af.core.controllers.output_manager as om
 import w3af.core.ui.console.io.console as term
 from w3af.core.controllers import console_tables as tables
@@ -45,6 +43,8 @@ from w3af.core.ui.console.bug_report import create_github_reporter
 from w3af.core.ui.console.history import historyTable
 from w3af.core.ui.console.root_menu import rootMenu
 from w3af.core.ui.console.util import commonPrefix
+
+LOGGER = logging.getLogger(__name__)
 
 
 class ConsoleUI:

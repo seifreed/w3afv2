@@ -448,7 +448,7 @@ class SGMLParser(BaseParser):
             and not value.startswith("callto:")
             and not value.startswith("mailto:")
             and not value.startswith("data:image/")
-            and not value in self.APACHE_INDEXING
+            and value not in self.APACHE_INDEXING
         )
 
     def _find_references(self, tag, tag_name, attrs):

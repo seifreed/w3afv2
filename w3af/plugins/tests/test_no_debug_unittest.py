@@ -51,7 +51,7 @@ class TestNoDebugUnittest(unittest.TestCase):
             os.path.join(ROOT_PATH, "plugins", "tests")
         ):
 
-            if not unittest_file.endswith(".py") or not "test_" in unittest_file:
+            if not unittest_file.endswith(".py") or "test_" not in unittest_file:
                 continue
 
             test_code = Path(unittest_file).read_text()

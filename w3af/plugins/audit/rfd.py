@@ -123,7 +123,7 @@ class rfd(AuditPlugin):
                 continue
 
             # is it JSONP?
-            if body[rpos + len(EXEC_MARKER)] == "(" and not '"' in body[:rpos]:
+            if body[rpos + len(EXEC_MARKER)] == "(" and '"' not in body[:rpos]:
                 # we've reflected as JSONP callback
                 self._report_vuln(
                     "%s is vulnerable, to RFD because even if"
@@ -161,7 +161,7 @@ class rfd(AuditPlugin):
 
             fne = filtered + escaped
 
-            if not '"' in filtered:
+            if '"' not in filtered:
                 if not all(char in fne for char in SHELL_CHARS):
                     self._report_vuln(
                         "%s is vulnerable to RFD because"

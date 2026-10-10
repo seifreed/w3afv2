@@ -131,7 +131,10 @@ class HTMLParser(SGMLParser):
 
     def _form_elems_generic_handler(self, tag, tag_name, attrs):
         side = "inside" if self._inside_form else "outside"
-        default = lambda *args: None
+
+        def default(*args):
+            return None
+
         handler = f"_handle_{tag_name}_tag_{side}_form"
         meth = getattr(self, handler, default)
         meth(tag, tag_name, attrs)

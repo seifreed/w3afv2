@@ -186,7 +186,10 @@ class html_file(OutputPlugin):
 
         enabled_plugins = self._enabled_plugins
         findings = kb.kb.get_all_findings_iter()
-        debug_log = ((t, l, smart_unicode(m)) for (t, l, m) in self._additional_info)
+        debug_log = (
+            (timestamp, level, smart_unicode(message))
+            for (timestamp, level, message) in self._additional_info
+        )
         known_urls = kb.kb.get_all_known_urls()
 
         context = {

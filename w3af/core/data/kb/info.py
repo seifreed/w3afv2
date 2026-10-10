@@ -423,7 +423,9 @@ class Info(dict):
         dist = 0
         res = []
         last_in_seq = seq[-1]
-        is_last_in_seq = lambda num: num == last_in_seq
+
+        def is_last_in_seq(num):
+            return num == last_in_seq
 
         for num in seq[1:]:
             # Is it a new sub-sequence?

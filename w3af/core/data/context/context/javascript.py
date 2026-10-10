@@ -93,7 +93,9 @@ def get_js_context_iter(data, payload):
 
     # We replace the "context breaking payload" with an innocent string
     data = data.replace(payload, CONTEXT_DETECTOR)
-    untidy = lambda text: text.replace(CONTEXT_DETECTOR, payload)
+
+    def untidy(text):
+        return text.replace(CONTEXT_DETECTOR, payload)
 
     inside_string = False
     escape_next = False

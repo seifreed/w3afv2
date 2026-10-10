@@ -263,7 +263,7 @@ class TestBasic(unittest.TestCase):
                 # and that the corresponding attrs are there
                 for attr in ALL_TYPES_ATTRS:
                     msg = f"Plugin {plugin.get_name()} doesn't have attribute {attr}: {dir(plugin)!r}"
-                    self.assertTrue(getattr(plugin, attr, False) != False, msg)
+                    self.assertTrue(getattr(plugin, attr, False), msg)
 
                 # Verify that the current plugin, and not the parent, defined
                 # the required methods

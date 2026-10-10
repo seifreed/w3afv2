@@ -376,7 +376,7 @@ class rfi(AuditPlugin):
             for error in self.RFI_ERRORS:
                 if (
                     error in response
-                    and not error in mutant.get_original_response_body()
+                    and error not in mutant.get_original_response_body()
                 ):
                     desc = (
                         "A potential remote file inclusion vulnerability"

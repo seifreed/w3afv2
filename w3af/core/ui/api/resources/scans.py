@@ -58,10 +58,10 @@ def start_scan():
         - The URL to the newly created scan (eg. /scans/1)
         - The newly created scan ID (eg. 1)
     """
-    if not request.json or not "scan_profile" in request.json:
+    if not request.json or "scan_profile" not in request.json:
         abort(400, "Expected scan_profile in JSON object")
 
-    if not request.json or not "target_urls" in request.json:
+    if not request.json or "target_urls" not in request.json:
         abort(400, "Expected target_urls in JSON object")
 
     scan_profile = request.json["scan_profile"]

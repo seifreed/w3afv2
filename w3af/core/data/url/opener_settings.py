@@ -717,7 +717,10 @@ class OpenerSettings(Configurable):
         :param options_list: An OptionList with the option objects for a plugin.
         :return: No value is returned.
         """
-        get_opt_value = lambda n: options_list[n].get_value()
+
+        def get_opt_value(name):
+            return options_list[name].get_value()
+
         self.set_configured_timeout(get_opt_value("timeout"))
 
         # Only apply changes if they exist

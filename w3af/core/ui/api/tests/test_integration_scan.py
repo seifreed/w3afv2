@@ -27,11 +27,11 @@ from urllib.parse import urlsplit
 import requests
 import urllib3
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
 from w3af.core.ui.api.tests.utils.integration_test import IntegrationTest
 from w3af.core.ui.api.tests.utils.test_profile import get_test_profile
 from w3af.tests.helpers.sqli_site import SQLInjectionSite
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class APIScanTest(IntegrationTest):

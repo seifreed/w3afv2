@@ -84,7 +84,7 @@ class user_defined_regex(GrepPlugin):
                     # because the info_inst is an empty dict {}
                     # which evaluates to false
                     # but an info object is not the same as None
-                    if not info_inst is None:
+                    if info_inst is not None:
                         # The knowledge base stores a copy of the finding,
                         # so the new response id has to be saved with update()
                         updated_info = Info.from_info(info_inst)

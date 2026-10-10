@@ -30,12 +30,12 @@ from swagger_spec_validator.common import SwaggerValidationError
 from yaml import SafeLoader, YAMLError, load
 
 from w3af.core.data.parsers.doc.open_api.parameters import ParameterHandler
+from w3af.core.data.parsers.doc.open_api.relaxed_spec import RelaxedSpec
 
 # Open API specifications are downloaded from the scan target, so they must be
 # loaded with a safe loader: yaml.Loader / yaml.CLoader instantiate arbitrary
 # Python objects from tags such as "!!python/object/apply".
 SPEC_LOADER = SafeLoader
-from w3af.core.data.parsers.doc.open_api.relaxed_spec import RelaxedSpec
 
 # Errors raised by bravado-core and our own code while processing a malformed
 # Open API specification

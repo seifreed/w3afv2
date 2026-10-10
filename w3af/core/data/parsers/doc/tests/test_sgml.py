@@ -33,7 +33,18 @@ import pytest
 from w3af import ROOT_PATH
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.sgml import SGMLParser, Tag
-from w3af.core.data.parsers.doc.tests.data.constants import *
+from w3af.core.data.parsers.doc.tests.data.constants import (
+    A_LINK_ABSOLUTE,
+    BASE_TAG,
+    HTML_DOC,
+    INPUT_CHECKBOX_WITH_NAME,
+    INPUT_HIDDEN,
+    META_REFRESH,
+    META_REFRESH_WITH_URL,
+    META_REFRESH_WITH_URL_AND_QUOTES,
+    SELECT_WITH_NAME,
+    TEXTAREA_WITH_ID_AND_DATA,
+)
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.parsers.exceptions import ParserException
 from w3af.core.data.url.http_response import HTTPResponse
