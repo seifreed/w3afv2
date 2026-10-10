@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
 from w3af.core.exceptions import BaseFrameworkException
 from w3af.plugins.attack.payloads import shell_handler
@@ -69,7 +68,11 @@ class eval(AttackPlugin):
         if self._verify_vuln(vuln_obj):
             # Create the shell object
             shell_obj = EvalShell(
-                vuln_obj, self._uri_opener, self.worker_pool, self._shellcode_generator
+                vuln_obj,
+                self._uri_opener,
+                self.worker_pool,
+                self._shellcode_generator,
+                self._output,
             )
             return shell_obj
         else:
@@ -106,14 +109,14 @@ class eval(AttackPlugin):
                     "An error occurred while trying to exploit the eval()"
                     ' vulnerability. Original exception: "%s".'
                 )
-                om.out.debug(msg % w3)
+                self._output.debug(msg % w3)
             else:
                 if shell_handler.SHELL_IDENTIFIER in http_res.get_body():
                     msg = (
                         "Successfully exploited eval() vulnerability using"
                         f' the following code snippet: "{code[:35]}...".'
                     )
-                    om.out.debug(msg)
+                    self._output.debug(msg)
                     self._shellcode_generator = shellcode_generator
                     return True
 
@@ -142,10 +145,11 @@ class eval(AttackPlugin):
 
 class EvalShell(ExecShell):
 
-    def __init__(self, vuln, uri_opener, worker_pool, shellcode_generator):
+    def __init__(self, vuln, uri_opener, worker_pool, shellcode_generator, output):
         super().__init__(vuln, uri_opener, worker_pool)
 
         self.shellcode_generator = shellcode_generator
+        self._output = output
 
     @exec_debug
     def execute(self, command):
@@ -169,7 +173,7 @@ class EvalShell(ExecShell):
                 " vulnerability (sending command %s). Original exception:"
                 ' "%s".'
             )
-            om.out.debug(msg % (command, w3))
+            self._output.debug(msg % (command, w3))
             return "Unexpected error, please try again."
         else:
             return shell_handler.extract_result(response.get_body())
@@ -182,4 +186,10 @@ class EvalShell(ExecShell):
         Need to define this method since the Shell class defines it, and we have
         a different number of __init__ parameters.
         """
-        return self.__class__, (self._vuln, None, None, self.shellcode_generator)
+        return self.__class__, (
+            self._vuln,
+            None,
+            None,
+            self.shellcode_generator,
+            self._output,
+        )

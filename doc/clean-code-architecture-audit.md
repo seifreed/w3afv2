@@ -2441,3 +2441,13 @@ generación 404, bases de plugins y estrategia; Ruff, Black y mypy están
 limpios. El score actualizado es **6.25/10**: quedan plugins attack, UI,
 daemons y otros servicios globales, cobertura 100% no demostrada, Bandit
 heredado, mocks existentes, Moth y los orquestadores grandes.
+
+## Actualización verificada: attack eval con output explícito
+
+El plugin attack `eval` usa su sink inyectado tanto durante la verificación de
+la vulnerabilidad como dentro de `EvalShell`; la reconstrucción del shell
+también conserva la dependencia explícita y ya no importa `output_manager`.
+
+Verificación: Ruff, Black y mypy están limpios. La suite de integración de
+`eval` no pudo validarse porque el entorno Moth configuró el host `fallback`,
+que no resuelve DNS; el score permanece en **6.25/10** hasta cubrir esa ruta.
