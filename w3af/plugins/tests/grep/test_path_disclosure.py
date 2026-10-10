@@ -36,6 +36,7 @@ class TestPathDisclosure(unittest.TestCase):
         kb.kb.cleanup()
 
         self.plugin = path_disclosure()
+        self.plugin.set_knowledge_base(kb.kb)
         self.url = URL("http://www.w3af.com/foo/bar.py")
         self.header = Headers([("content-type", "text/html")])
         self.request = FuzzableRequest(self.url, method="GET")

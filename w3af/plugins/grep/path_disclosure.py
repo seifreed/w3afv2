@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.constants import severity
 from w3af.core.data.constants.common_directories import get_common_directories
@@ -129,7 +128,7 @@ class path_disclosure(GrepPlugin):
             return True
 
         # https://github.com/andresriancho/w3af/issues/6640
-        url_list = kb.kb.get_all_known_urls()
+        url_list = self._get_knowledge_base().get_all_known_urls()
 
         for url in url_list:
             path_and_file = url.get_path()
@@ -221,8 +220,10 @@ class path_disclosure(GrepPlugin):
         If a path disclosure was found, I can create a list of full paths to
         all URLs ever visited. This method updates that list.
         """
-        path_disc_vulns = kb.kb.get("path_disclosure", "path_disclosure")
-        url_list = kb.kb.get_all_known_urls()
+        path_disc_vulns = self._get_knowledge_base().get(
+            "path_disclosure", "path_disclosure"
+        )
+        url_list = self._get_knowledge_base().get_all_known_urls()
 
         # Now I find the longest match between one of the URLs that w3af has
         # discovered, and one of the path disclosure strings that this plugin
@@ -268,8 +269,8 @@ class path_disclosure(GrepPlugin):
             remote_locations.append(webroot + remote_path)
         remote_locations = list(set(remote_locations))
 
-        kb.kb.raw_write(self, "list_files", remote_locations)
-        kb.kb.raw_write(self, "webroot", webroot)
+        self._get_knowledge_base().raw_write(self, "list_files", remote_locations)
+        self._get_knowledge_base().raw_write(self, "webroot", webroot)
 
     def end(self):
         self._reported.cleanup()
