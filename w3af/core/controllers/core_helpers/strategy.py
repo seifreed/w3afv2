@@ -25,7 +25,6 @@ import queue
 import time
 from multiprocessing import TimeoutError
 
-import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af.core.constants import POISON_PILL
 from w3af.core.controllers.core_helpers.consumers.audit import audit
@@ -63,9 +62,10 @@ class CoreStrategy:
     Use this strategy as a base for your experiments!
     """
 
-    def __init__(self, w3af_core, knowledge_base):
+    def __init__(self, w3af_core, knowledge_base, output):
         self._w3af_core = w3af_core
         self._knowledge_base = knowledge_base
+        self._output = output
 
         # Consumer threads
         self._grep_consumer = None
@@ -138,7 +138,7 @@ class CoreStrategy:
 
         except Exception as e:
             logger.debug("Unhandled exception in start()", exc_info=True)
-            om.out.debug(f'strategy.start() found exception "{e}"')
+            self._output.debug(f'strategy.start() found exception "{e}"')
 
             try:
                 # Terminate the consumers, exceptions at this level stop the scan
@@ -164,7 +164,7 @@ class CoreStrategy:
 
     def stop(self):
         self.terminate()
-        om.out.debug("strategy.stop() completed")
+        self._output.debug("strategy.stop() completed")
 
     def pause(self, pause_yes_no):
         # FIXME: Consumers should have something to do with this, most likely
@@ -184,10 +184,10 @@ class CoreStrategy:
 
             if consumer_inst is None:
                 msg = "%s consumer is None. Skipping call to terminate()"
-                om.out.debug(msg % consumer)
+                self._output.debug(msg % consumer)
                 continue
 
-            om.out.debug(f"Calling terminate() on {consumer} consumer")
+            self._output.debug(f"Calling terminate() on {consumer} consumer")
             start = time.time()
 
             # Set it immediately to None to avoid any race conditions where
@@ -202,7 +202,9 @@ class CoreStrategy:
             consumer_inst.terminate()
 
             spent = time.time() - start
-            om.out.debug(f"terminate() on {consumer} consumer took {spent:.2f} seconds")
+            self._output.debug(
+                f"terminate() on {consumer} consumer took {spent:.2f} seconds"
+            )
 
         # The observers run their own (non-daemon) threads, which need to be
         # stopped before set_consumers_to_none() forgets about them
@@ -216,7 +218,7 @@ class CoreStrategy:
         finish the consumers that generate URLs and then the ones that consume
         them.
         """
-        om.out.debug("Joining all consumers (teardown phase)")
+        self._output.debug("Joining all consumers (teardown phase)")
 
         self._teardown_crawl_infrastructure()
 
@@ -309,7 +311,7 @@ class CoreStrategy:
             )
 
             if route_result is None:
-                om.out.debug(
+                self._output.debug(
                     "The fuzzable request router loop will break."
                     " The scan will stop after all consumers complete"
                     " their teardown() process."
@@ -328,7 +330,7 @@ class CoreStrategy:
                     " identified."
                 )
                 args = (cf.cf.get("max_scan_time"),)
-                om.out.information(msg % args)
+                self._output.information(msg % args)
 
                 self._w3af_core.stop()
                 break
@@ -385,7 +387,7 @@ class CoreStrategy:
                     # This consumer is saying that it doesn't have any
                     # pending or in progress work
                     finished.add(url_producer)
-                    om.out.debug(
+                    self._output.debug(
                         f"Producer {url_producer.get_name()} has finished (empty queue)"
                     )
             else:
@@ -396,7 +398,7 @@ class CoreStrategy:
 
                     msg = "Producer %s has finished (poison pill received, queue size: %s)"
                     args = (url_producer.get_name(), url_producer.out_queue.qsize())
-                    om.out.debug(msg % args)
+                    self._output.debug(msg % args)
 
                 elif isinstance(result_item, ExceptionData):
                     self._handle_consumer_exception(result_item)
@@ -464,7 +466,7 @@ class CoreStrategy:
                 self._w3af_core,
                 cf.cf.get("max_discovery_time"),
                 knowledge_base=self._knowledge_base,
-                output=om.out,
+                output=self._output,
             )
             self._discovery_consumer.start()
 
@@ -478,19 +480,21 @@ class CoreStrategy:
         grep_plugins = self._w3af_core.plugins.plugins["grep"]
 
         if grep_plugins:
-            self._grep_consumer = grep(grep_plugins, self._w3af_core, output=om.out)
+            self._grep_consumer = grep(
+                grep_plugins, self._w3af_core, output=self._output
+            )
             self._w3af_core.uri_opener.set_grep_queue_put(self._grep_consumer.grep)
             self._grep_consumer.start()
 
     def _teardown_grep(self):
-        om.out.debug("Called strategy._teardown_grep()")
+        self._output.debug("Called strategy._teardown_grep()")
 
         if self._grep_consumer is not None:
             self._grep_consumer.join()
             self._grep_consumer = None
 
     def _teardown_audit(self):
-        om.out.debug("Called strategy._teardown_audit()")
+        self._output.debug("Called strategy._teardown_audit()")
 
         if self._audit_consumer is not None:
             # Wait for all the in_queue items to get() from the queue
@@ -498,28 +502,28 @@ class CoreStrategy:
             self._audit_consumer = None
 
     def _teardown_auth(self):
-        om.out.debug("Called strategy._teardown_auth()")
+        self._output.debug("Called strategy._teardown_auth()")
 
         if self._auth_consumer is not None:
             self._auth_consumer.join()
             self._auth_consumer = None
 
     def _teardown_bruteforce(self):
-        om.out.debug("Called strategy._teardown_bruteforce()")
+        self._output.debug("Called strategy._teardown_bruteforce()")
 
         if self._bruteforce_consumer is not None:
             self._bruteforce_consumer.join()
             self._bruteforce_consumer = None
 
     def _teardown_crawl_infrastructure(self):
-        om.out.debug("Called strategy._teardown_crawl_infrastructure()")
+        self._output.debug("Called strategy._teardown_crawl_infrastructure()")
 
         if self._discovery_consumer is not None:
             self._discovery_consumer.join()
             self._discovery_consumer = None
 
     def _teardown_observers(self):
-        om.out.debug("Called strategy._teardown_observers()")
+        self._output.debug("Called strategy._teardown_observers()")
 
         for observer in self._observers:
             observer.end()
@@ -551,7 +555,7 @@ class CoreStrategy:
 
         if bruteforce_plugins:
             self._bruteforce_consumer = bruteforce(
-                bruteforce_plugins, self._w3af_core, output=om.out
+                bruteforce_plugins, self._w3af_core, output=self._output
             )
             self._bruteforce_consumer.start()
 
@@ -565,7 +569,7 @@ class CoreStrategy:
 
         if auth_plugins:
             self._auth_consumer = auth(
-                auth_plugins, self._w3af_core, timeout, output=om.out
+                auth_plugins, self._w3af_core, timeout, output=self._output
             )
             self._auth_consumer.start()
             self._auth_consumer.force_login()
@@ -574,10 +578,12 @@ class CoreStrategy:
         """
         Starts the audit plugin consumer
         """
-        om.out.debug("Called _setup_audit()")
+        self._output.debug("Called _setup_audit()")
 
         audit_plugins = self._w3af_core.plugins.plugins["audit"]
 
         if audit_plugins:
-            self._audit_consumer = audit(audit_plugins, self._w3af_core, output=om.out)
+            self._audit_consumer = audit(
+                audit_plugins, self._w3af_core, output=self._output
+            )
             self._audit_consumer.start()

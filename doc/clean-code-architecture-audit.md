@@ -2287,3 +2287,16 @@ de deprecación procedentes de dependencias externas; Ruff, Black y mypy están
 limpios. El score permanece en **5.75/10** por los consumidores y helpers aún
 globales, cobertura 100% no demostrada, Bandit heredado, mocks existentes,
 Moth y los orquestadores grandes.
+
+## Actualización verificada: output desacoplado en CoreStrategy
+
+`CoreStrategy` recibe ahora el sink como dependencia obligatoria y lo propaga a
+los consumidores que compone. `w3afCore` queda como composition root para el
+output global; el orquestador ya no importa `output_manager` ni decide qué
+singleton usar. Se actualizaron sus subclases y construcciones de test.
+
+Verificación: **25 tests pasados y 7 subtests** en estrategia, crawl y grep;
+Ruff, Black y mypy están limpios. El score permanece en **5.75/10** por el
+singleton todavía presente en `w3afCore` y otros módulos, cobertura 100% no
+demostrada, Bandit heredado, mocks existentes, Moth y los orquestadores aún
+grandes.
