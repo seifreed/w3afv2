@@ -34,6 +34,10 @@ class Shell(_Shell):
     """Data-layer Shell wired with the plugins-layer payload handler."""
 
     _payload_handler = payload_handler
+    _output = None
+
+    def set_output(self, output):
+        self._output = output
 
 
 class ReadShell(_ReadShell, Shell):

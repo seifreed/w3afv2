@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import tempfile
 from typing import ClassVar
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.console_tables import table
 from w3af.core.controllers.sca.sca import PhpSCA
 from w3af.core.data.constants import severity
@@ -95,7 +94,7 @@ class php_sca(Payload):
 
         # Error handling
         if isinstance(files, str):
-            om.out.console(files)
+            self.shell._output.console(files)
             return {}
 
         # Was able to download files
@@ -113,7 +112,7 @@ class php_sca(Payload):
                 RuntimeError,
             ) as e:
                 msg = 'The PHP SCA failed with an unhandled exception: "%s".'
-                om.out.console(msg % e)
+                self.shell._output.console(msg % e)
                 return {}
 
             for vulnty, funcs in vulns.items():

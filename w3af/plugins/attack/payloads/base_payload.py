@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import textwrap
 from functools import wraps
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.threads.threadpool import return_args
 from w3af.core.exceptions import BaseFrameworkException
 from w3af.plugins.attack.payloads import payload_handler
@@ -92,7 +91,7 @@ class Payload:
                     ' ("%s") which is failing because there are no shells'
                     " that support the required system calls."
                 )
-                om.out.console(msg)
+                self.shell._output.console(msg)
 
                 # TODO: Should I raise an exception here?
                 return msg % (self, payload_name)

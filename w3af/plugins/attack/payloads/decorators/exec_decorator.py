@@ -22,8 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from functools import wraps
 
-import w3af.core.controllers.output_manager as om
-
 
 def exec_debug(fn):
 
@@ -44,7 +42,7 @@ def exec_debug(fn):
         msg = f'exec("{command}", {exec_result}) == {len(exec_result)} bytes'
 
         #   Print the message to the debug output
-        om.out.debug(msg)
+        self._output.debug(msg)
 
         #   Return the result
         return result

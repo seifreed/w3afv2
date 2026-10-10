@@ -1,6 +1,5 @@
 import re
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.console_tables import table
 from w3af.plugins.attack.payloads.base_payload import Payload
 
@@ -47,7 +46,7 @@ class list_processes(Payload):
             #   "progress bar"
             stat_count -= 1
             if stat_count == 0:
-                om.out.console(".", new_line=False)
+                self.shell._output.console(".", new_line=False)
                 stat_count = 400
             #   end "progress bar"
 
@@ -65,7 +64,7 @@ class list_processes(Payload):
                     cmd = "[kernel process]"
 
                 result[pid] = {"name": name, "state": state, "cmd": cmd}
-                om.out.console("+", new_line=False)
+                self.shell._output.console("+", new_line=False)
 
         return result
 

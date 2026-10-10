@@ -2512,3 +2512,16 @@ conserva en la reconstrucción; `PortScanShell` no recibe estado que no utiliza.
 
 Verificación: Ruff, Black y mypy están limpios. La integración RFI queda
 pendiente por Moth no resoluble; el score permanece en **6.25/10**.
+
+## Actualización verificada: payloads con shell output-injected
+
+El shell cableado por la capa de plugins expone `set_output()`, y
+`AttackPlugin` lo aplica antes de guardar cada shell en la KB. El decorador de
+ejecución y los payloads que muestran progreso o errores usan el sink del shell
+en lugar de importar `output_manager`; la capa de datos sigue sin depender de
+infraestructura.
+
+Verificación: Ruff, Black y mypy están limpios; **14 tests pasaron** en shells
+y payloads. Un test adicional no es portable en macOS porque el fixture
+existente lee `/proc`, que solo existe en Linux; el score permanece en
+**6.25/10**.

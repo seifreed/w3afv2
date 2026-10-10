@@ -1,6 +1,5 @@
 import os
 
-import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.controllers.console_tables import table
 from w3af.core.controllers.threads.threadpool import return_args
@@ -17,7 +16,7 @@ class rootkit_hunter(Payload):
         #   "progress bar"
         self.k -= 1
         if self.k == 0:
-            om.out.console(".", new_line=False)
+            self.shell._output.console(".", new_line=False)
             self.k = 400
         #   end "progress bar"
 
