@@ -54,6 +54,7 @@ class Shell(ExploitResult):
         self.set_worker_pool(worker_pool)
         self._vuln = vuln
         self._knowledge_base = None
+        self._configuration = None
 
         self._rOS = None
         self._rSystem = None
@@ -82,6 +83,9 @@ class Shell(ExploitResult):
 
     def set_knowledge_base(self, knowledge_base):
         self._knowledge_base = knowledge_base
+
+    def set_configuration(self, configuration):
+        self._configuration = configuration
 
     def get_knowledge_base(self):
         return self._knowledge_base

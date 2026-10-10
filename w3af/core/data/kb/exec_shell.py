@@ -157,9 +157,11 @@ class ExecShell(Shell):
 
             # Get the fastest transfer method
             try:
-                ptf = self._payload_transfer_factory(
-                    self.execute, self.get_knowledge_base()
-                )
+                transfer_args = (self.execute, self.get_knowledge_base())
+                transfer_kwargs = {}
+                if self._configuration is not None:
+                    transfer_kwargs["configuration"] = self._configuration
+                ptf = self._payload_transfer_factory(*transfer_args, **transfer_kwargs)
                 self._transfer_handler = ptf.get_transfer_handler()
             except BaseFrameworkException as e:
                 return f"{e}"

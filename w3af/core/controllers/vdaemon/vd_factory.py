@@ -26,7 +26,7 @@ from w3af.core.controllers.vdaemon.win_vd import winVd
 from w3af.core.exceptions import BaseFrameworkException
 
 
-def get_virtual_daemon(exec_method, knowledge_base, output):
+def get_virtual_daemon(exec_method, knowledge_base, output, configuration):
     """
     Uses the exec_method to run remote commands and determine what's the
     remote OS is, and based on that info, it returns the corresponding virtual
@@ -36,10 +36,10 @@ def get_virtual_daemon(exec_method, knowledge_base, output):
 
     if os == "windows":
         output.debug("Identified remote OS as Windows, returning winVd object.")
-        return winVd(exec_method, knowledge_base, output)
+        return winVd(exec_method, knowledge_base, output, configuration)
     elif os == "linux":
         output.debug("Identified remote OS as Linux, returning lnxVd object.")
-        return lnxVd(exec_method, knowledge_base, output)
+        return lnxVd(exec_method, knowledge_base, output, configuration)
     else:
         raise BaseFrameworkException(
             "Failed to get a virtual daemon for the remote OS: " + os

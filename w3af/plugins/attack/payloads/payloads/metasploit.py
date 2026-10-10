@@ -22,7 +22,10 @@ class metasploit(Payload):
     def api_execute(self, msf_args):
         try:
             vd = get_virtual_daemon(
-                self.shell.execute, self.shell.get_knowledge_base(), self.shell._output
+                self.shell.execute,
+                self.shell.get_knowledge_base(),
+                self.shell._output,
+                self.shell._configuration,
             )
         except BaseFrameworkException as w3:
             return f"Error, {w3}"

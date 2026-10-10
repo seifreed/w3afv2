@@ -4033,3 +4033,17 @@ aproximadamente **98 MB**; los tests focales del core pasan **7 tests**. Black,
 Ruff y mypy focal están limpios. El score sube a **8.8/10** en Clean
 Architecture y **8.7/10** global. Siguen pendientes URL/openers, parsers,
 fuzzer, `Info`, controllers y la cobertura global del 100%.
+
+## Actualización verificada: configuración explícita en transferencia de payloads
+
+`vdaemon`, `payload_transfer_factory`, `extrusionScanner`, `extrusionServer` y
+`ClientlessReverseHTTP` reciben la configuración del scan por constructor. Los
+payloads de metasploit y w3afAgent la obtienen del shell, y `AttackPlugin` la
+inyecta al crear cada shell. Estos módulos ya no leen `cf.cf` en runtime.
+
+Verificación: payload handler, shells, extrusion y transferencia pasan **51
+tests**; Black, Ruff y mypy focal están limpios. Dos tests de integración que
+usan `subprocess.getoutput` no identifican Linux en este macOS por la semántica
+local de `echo`, una limitación ambiental preexistente. El score sube a
+**8.9/10** en Clean Architecture y **8.8/10** global. Siguen pendientes
+URL/openers, parsers, fuzzer, `Info`, controllers y la cobertura global del 100%.

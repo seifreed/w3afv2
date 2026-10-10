@@ -55,7 +55,13 @@ class w3afAgentManager(Process):
     """
 
     def __init__(
-        self, exec_method, ip_address, knowledge_base, output, socks_port=1080
+        self,
+        exec_method,
+        ip_address,
+        knowledge_base,
+        output,
+        configuration,
+        socks_port=1080,
     ):
         Process.__init__(self)
         self.daemon = True
@@ -65,6 +71,7 @@ class w3afAgentManager(Process):
         self._ip_address = ip_address
         self._knowledge_base = knowledge_base
         self._output = output
+        self._configuration = configuration
         self._socks_port = socks_port
 
         #    Internal
@@ -122,7 +129,10 @@ class w3afAgentManager(Process):
                 #    to the remote end and run it.
                 #
                 ptf = payload_transfer_factory(
-                    self._exec_method, self._knowledge_base, self._output
+                    self._exec_method,
+                    self._knowledge_base,
+                    self._output,
+                    self._configuration,
                 )
                 transferHandler = ptf.get_transfer_handler(inbound_port)
 
@@ -258,7 +268,12 @@ class w3afAgentManager(Process):
 
     def _get_inbound_port(self):
         # Do an extrusion scan and return the inbound open ports
-        es = extrusionScanner(self._exec_method, self._knowledge_base, self._output)
+        es = extrusionScanner(
+            self._exec_method,
+            self._knowledge_base,
+            self._output,
+            self._configuration,
+        )
         try:
             inbound_port = es.get_inbound_port()
         except Exception as e:

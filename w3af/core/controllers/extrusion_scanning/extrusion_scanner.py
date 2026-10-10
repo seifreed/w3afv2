@@ -26,7 +26,6 @@ import socket
 import threading
 import time
 
-import w3af.core.data.kb.config as cf
 from w3af import ROOT_PATH
 from w3af.core.controllers.extrusion_scanning.server.extrusion_server import (
     extrusionServer,
@@ -55,6 +54,7 @@ class extrusionScanner:
         exec_method,
         knowledge_base,
         output,
+        configuration,
         forceReRun=False,
         tcpPortList=(25, 80, 53, 1433, 8080),
         udpPortList=(53, 69, 139, 1025),
@@ -68,6 +68,7 @@ class extrusionScanner:
         self._exec_method = exec_method
         self._knowledge_base = knowledge_base
         self._output = output
+        self._configuration = configuration
         self._forceReRun = forceReRun
         self._tcp_port_list = tcpPortList
         self._udp_port_list = udpPortList
@@ -141,7 +142,10 @@ class extrusionScanner:
         )
 
         es = extrusionServer(
-            self._tcp_port_list, self._udp_port_list, output=self._output
+            self._tcp_port_list,
+            self._udp_port_list,
+            output=self._output,
+            configuration=self._configuration,
         )
         if not es.can_sniff():
             msg = "The user running w3af can't sniff on the specified"
@@ -280,10 +284,10 @@ class extrusionScanner:
 
     def _execExtrusionClient(self, interpreter, remoteFilename):
 
-        local_address = cf.cf.get("local_ip_address")
+        local_address = self._configuration.get("local_ip_address")
         if local_address is None:
             raise BaseFrameworkException(
-                "Invalid environment: no local address found in cf."
+                "Invalid environment: no local address found in configuration."
             )
 
         cmd_fmt = "%s %s %s %s %s"

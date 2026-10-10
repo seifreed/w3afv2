@@ -38,7 +38,7 @@ class TestExtrusionScanner(unittest.TestCase):
     """
 
     def test_basic(self):
-        es = extrusionScanner(subprocess.getoutput, kb.kb, om.out)
+        es = extrusionScanner(subprocess.getoutput, kb.kb, om.out, cf.cf)
 
         self.assertTrue(es.can_scan())
 
@@ -52,7 +52,7 @@ class TestExtrusionScanner(unittest.TestCase):
         # FIXME: This unittest will only work in Linux
         cf.cf.save("interface", "lo")
         cf.cf.save("local_ip_address", "127.0.0.1")
-        es = extrusionScanner(subprocess.getoutput, kb.kb, om.out)
+        es = extrusionScanner(subprocess.getoutput, kb.kb, om.out, cf.cf)
 
         inbound_port = es.get_inbound_port()
         self.assertEqual(inbound_port, 8080)

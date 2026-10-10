@@ -24,7 +24,6 @@ import os
 import tempfile
 import time
 
-import w3af.core.data.kb.config as cf
 from w3af.core.controllers.intrusion_tools.exec_method_helpers import (
     get_remote_temp_file,
 )
@@ -48,15 +47,16 @@ class vdaemon:
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self, exec_method, knowledge_base, output):
+    def __init__(self, exec_method, knowledge_base, output, configuration):
 
         # This is the method that will be used to send the metasploit payload to
         # the remote webserver ( using echo $payload > file )
         self._exec_method = exec_method
         self._knowledge_base = knowledge_base
         self._output = output
+        self._configuration = configuration
 
-        self._metasploit_location = cf.cf.get("msf_location")
+        self._metasploit_location = configuration.get("msf_location")
         self._msfpayload_path = os.path.join(self._metasploit_location, "msfpayload")
         self._msfcli_path = os.path.join(self._metasploit_location, "msfcli")
 
@@ -219,7 +219,10 @@ class vdaemon:
         )
 
         ptf = payload_transfer_factory(
-            self._exec_method, self._knowledge_base, self._output
+            self._exec_method,
+            self._knowledge_base,
+            self._output,
+            self._configuration,
         )
 
         # Now we get the transfer handler

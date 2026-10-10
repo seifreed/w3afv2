@@ -190,6 +190,7 @@ class AttackPlugin(Plugin, ResponseCutMixin):
 
             if s is not None:
                 s.set_output(self._output)
+                s.set_configuration(self.get_configuration())
                 s.set_knowledge_base(self._get_knowledge_base())
                 self._get_knowledge_base().append(self.get_name(), "shell", s)
                 generated_shells.append(s)

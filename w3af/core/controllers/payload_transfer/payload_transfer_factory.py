@@ -44,10 +44,11 @@ class payload_transfer_factory:
     function.
     """
 
-    def __init__(self, exec_method, knowledge_base, output):
+    def __init__(self, exec_method, knowledge_base, output, configuration):
         self._exec_method = exec_method
         self._output = output
-        self._es = extrusionScanner(exec_method, knowledge_base, output)
+        self._es = extrusionScanner(exec_method, knowledge_base, output, configuration)
+        self._configuration = configuration
 
     def estimate_transfer_time(self):
         if self._es.can_scan():
@@ -91,7 +92,11 @@ class payload_transfer_factory:
                 pass
             elif os == "linux":
                 reverse = ClientlessReverseHTTP(
-                    self._exec_method, os, inbound_port, self._output
+                    self._exec_method,
+                    os,
+                    inbound_port,
+                    self._output,
+                    self._configuration,
                 )
                 to_test.append(reverse)
 

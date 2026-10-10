@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import time
 from operator import itemgetter
 
-import w3af.core.data.kb.config as cf
 from w3af.core.exceptions import BaseFrameworkException
 
 
@@ -35,7 +34,9 @@ class extrusionServer:
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self, tcp_ports, udp_ports, output, host=None, iface=None):
+    def __init__(
+        self, tcp_ports, udp_ports, output, configuration, host=None, iface=None
+    ):
         """
         If you don't know what the IP address used by the remote host is
         (the one that's running the extrusionClient) you can just say None
@@ -48,6 +49,7 @@ class extrusionServer:
         """
         self._host = host
         self._output = output
+        self._configuration = configuration
         self._udp_ports = udp_ports
         self._tcp_ports = tcp_ports
         self._sniffing = False
@@ -56,7 +58,7 @@ class extrusionServer:
         if iface is not None:
             self._iface = iface
         else:
-            cf_iface = cf.cf.get("interface")
+            cf_iface = self._configuration.get("interface")
             if cf_iface is not None:
                 self._iface = cf_iface
             else:
