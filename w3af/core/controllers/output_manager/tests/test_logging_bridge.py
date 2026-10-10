@@ -67,6 +67,7 @@ class TestOutputManagerLoggingBridge(unittest.TestCase):
         previous_propagate = logger.propagate
         first_messages = queue.Queue()
         second_messages = queue.Queue()
+        previous_output = om.out
 
         try:
             configure_data_logging(om.log_sink_factory(first_messages))
@@ -83,3 +84,4 @@ class TestOutputManagerLoggingBridge(unittest.TestCase):
             logger.handlers[:] = previous_handlers
             logger.setLevel(previous_level)
             logger.propagate = previous_propagate
+            om.out = previous_output

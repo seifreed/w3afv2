@@ -123,6 +123,8 @@ class TestOutputManagerRun(unittest.TestCase):
 
         self.assertFalse(manager.is_alive())
         self.assertTrue(manager._worker_pool.is_closed())
+        self.assertTrue(manager.in_queue._closed)
+        self.assertTrue(manager.in_queue._joincancelled)
 
     def test_messages_reach_every_plugin_even_when_one_fails(self):
         failing = EventfulOutput(failure=RuntimeError("information failed"))

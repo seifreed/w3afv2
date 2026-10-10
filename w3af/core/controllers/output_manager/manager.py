@@ -166,6 +166,8 @@ class OutputManager(Process):
             self.join()
 
         self.close_worker_pool()
+        self.in_queue.cancel_join_thread()
+        self.in_queue.close()
 
     def run(self):
         """
