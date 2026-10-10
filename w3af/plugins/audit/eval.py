@@ -174,7 +174,9 @@ class eval(AuditPlugin):
         if self._has_bug(mutant):
             return
 
-        ed_inst = ExactDelayController(mutant, delay_obj, self._uri_opener)
+        ed_inst = ExactDelayController(
+            mutant, delay_obj, self._uri_opener, self._output
+        )
         ed_inst.set_debugging_id(debugging_id)
         success, responses = ed_inst.delay_is_controlled()
 

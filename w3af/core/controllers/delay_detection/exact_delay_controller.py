@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from typing import ClassVar
 
 from w3af.core.controllers.delay_detection.exact_delay import ExactDelay
-from w3af.core.controllers.output_manager import out
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.helpers import new_no_content_resp
 
@@ -51,7 +50,7 @@ class ExactDelayController:
     #
     DELAY_SECONDS: ClassVar[list] = [8, 4, 9, 5, 14]
 
-    def __init__(self, mutant, delay_obj, uri_opener):
+    def __init__(self, mutant, delay_obj, uri_opener, output):
         """
         :param mutant: The mutant that will be sent (one or more times) to the
                        remote server in order to detect the time delay.
@@ -68,6 +67,7 @@ class ExactDelayController:
 
         self.delay_obj = delay_obj
         self.uri_opener = uri_opener
+        self._output = output
         self._debugging_id = None
 
     def set_debugging_id(self, debugging_id):
@@ -192,7 +192,7 @@ class ExactDelayController:
             response.get_wait_time(),
             response.id,
         )
-        out.debug(msg % args)
+        self._output.debug(msg % args)
 
     def delay_for(self, delay, original_wait_time, grep, reverse=False):
         """
@@ -281,7 +281,7 @@ class ExactDelayController:
                 "[id: %s] HTTP response delay was %.2f."
                 " (lower, expected, upper): %.2f, %.2f, %.2f."
             )
-            out.debug(msg % args)
+            self._output.debug(msg % args)
 
             return True, new_no_content_resp(self.mutant.get_uri())
 
@@ -293,7 +293,7 @@ class ExactDelayController:
             "[id: %s] HTTP response delay was %.2f."
             " (lower, expected, upper): %.2f, %.2f, %.2f."
         )
-        out.debug(msg % args)
+        self._output.debug(msg % args)
 
         if current_response_wait_time > lower_bound:
             return True, response

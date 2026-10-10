@@ -201,7 +201,7 @@ class deserialization(AuditPlugin):
         if self._has_bug(mutant):
             return
 
-        ed = ExactDelayController(mutant, delay_obj, self._uri_opener)
+        ed = ExactDelayController(mutant, delay_obj, self._uri_opener, self._output)
         ed.set_debugging_id(debugging_id)
         success, responses = ed.delay_is_controlled()
 

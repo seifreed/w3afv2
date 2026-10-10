@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
@@ -94,47 +93,47 @@ class web_diff(CrawlPlugin):
                 "The following files exist in the local directory and in the"
                 " remote server:"
             )
-            om.out.information(msg)
+            self._output.information(msg)
             for file_name in self._exist_remote:
-                om.out.information("- " + file_name)
+                self._output.information("- " + file_name)
 
         if len(self._eq_content):
             msg = (
                 "The following files exist in the local directory and in the"
                 " remote server and their contents match:"
             )
-            om.out.information(msg)
+            self._output.information(msg)
             for file_name in self._eq_content:
-                om.out.information("- " + file_name)
+                self._output.information("- " + file_name)
 
         if len(self._not_exist_remote):
             msg = (
                 "The following files exist in the local directory and do NOT"
                 " exist in the remote server:"
             )
-            om.out.information(msg)
+            self._output.information(msg)
             for file_name in self._not_exist_remote:
-                om.out.information("- " + file_name)
+                self._output.information("- " + file_name)
 
         if len(self._not_eq_content):
             msg = (
                 "The following files exist in the local directory and in the"
                 " remote server but their contents don't match:"
             )
-            om.out.information(msg)
+            self._output.information(msg)
             for file_name in self._not_eq_content:
-                om.out.information("- " + file_name)
+                self._output.information("- " + file_name)
 
         exist = len(self._exist_remote)
         total = len(self._exist_remote) + len(self._not_exist_remote)
         file_stats = f"{exist} of {total}"
-        om.out.information("Match files: " + file_stats)
+        self._output.information("Match files: " + file_stats)
 
         if self._content:
             eq_content = len(self._eq_content)
             total = len(self._eq_content) + len(self._not_eq_content)
             content_stats = f"{eq_content} of {total}"
-            om.out.information("Match contents: " + content_stats)
+            self._output.information("Match contents: " + content_stats)
 
     def _compare_dir(self, directory, file_names):
         """
@@ -186,7 +185,7 @@ class web_diff(CrawlPlugin):
             with open(file_path, "rb") as local_fh:
                 local_content = local_fh.read()
         except OSError:
-            om.out.debug(f'Failed to open file: "{file_path}".')
+            self._output.debug(f'Failed to open file: "{file_path}".')
             return
 
         if local_content == smart_str_ignore(response.get_body()):

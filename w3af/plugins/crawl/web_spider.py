@@ -24,7 +24,6 @@ import itertools
 import re
 from typing import ClassVar
 
-import w3af.core.controllers.output_manager as om
 import w3af.core.data.constants.response_codes as http_constants
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
@@ -147,7 +146,7 @@ class web_spider(CrawlPlugin):
 
             # Form exclusion #15161
             form_id_json = form_params.get_form_id().to_json()
-            om.out.debug(f'A new form was found! Form-id is: "{form_id_json}"')
+            self._output.debug(f'A new form was found! Form-id is: "{form_id_json}"')
 
             if not self._should_analyze_url(form_params.get_action()):
                 continue
@@ -254,7 +253,7 @@ class web_spider(CrawlPlugin):
         try:
             doc_parser = parser_cache.dpc.get_document_parser_for(resp)
         except BaseFrameworkException as w3:
-            om.out.debug(
+            self._output.debug(
                 "Failed to find a suitable document parser. " f'Exception "{w3}"'
             )
         else:
@@ -286,14 +285,14 @@ class web_spider(CrawlPlugin):
         if ref.get_domain() != self._target_domain:
             msg = "web_spider will ignore %s (different domain name)"
             args = (ref.get_domain(),)
-            om.out.debug(msg % args)
+            self._output.debug(msg % args)
             return False
 
         # Filter the URL according to the configured regular expressions
         if not self._compiled_follow_re.match(ref.url_string):
             msg = "web_spider will ignore %s (not match follow regex)"
             args = (ref.url_string,)
-            om.out.debug(msg % args)
+            self._output.debug(msg % args)
             return False
 
         if self._compiled_ignore_re is not None and self._compiled_ignore_re.match(
@@ -301,20 +300,20 @@ class web_spider(CrawlPlugin):
         ):
             msg = "web_spider will ignore %s (match ignore regex)"
             args = (ref.url_string,)
-            om.out.debug(msg % args)
+            self._output.debug(msg % args)
             return False
 
         if self._has_ignored_extension(ref):
             msg = "web_spider will ignore %s (match ignore extensions)"
             args = (ref.url_string,)
-            om.out.debug(msg % args)
+            self._output.debug(msg % args)
             return False
 
         # Implementing only forward
         if self._only_forward and not self._is_forward(ref):
             msg = "web_spider will ignore %s (is not forward)"
             args = (ref.url_string,)
-            om.out.debug(msg % args)
+            self._output.debug(msg % args)
             return False
 
         return True
@@ -409,7 +408,7 @@ class web_spider(CrawlPlugin):
         if not is_404(resp):
             msg = '[web_spider] Found new link "%s" at "%s"'
             args = (reference, original_response.get_url())
-            om.out.debug(msg % args)
+            self._output.debug(msg % args)
 
             fuzz_req = FuzzableRequest(reference, headers=headers)
 
@@ -468,12 +467,12 @@ class web_spider(CrawlPlugin):
         """
         if len(self._broken_links):
 
-            om.out.information(
+            self._output.information(
                 "The following is a list of broken links that"
                 " were found by the web_spider plugin:"
             )
             for broken, where in unique_justseen(self._broken_links.ordered_iter()):
-                om.out.information(f"- {broken} [ referenced from: {where} ]")
+                self._output.information(f"- {broken} [ referenced from: {where} ]")
 
         self._broken_links.cleanup()
 

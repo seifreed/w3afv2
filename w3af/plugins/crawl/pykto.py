@@ -146,7 +146,7 @@ class pykto(CrawlPlugin):
 
         for db_file in [self._db_file, self._extra_db_file]:
 
-            parser = NiktoTestParser(db_file, config, url)
+            parser = NiktoTestParser(db_file, config, url, self._output)
 
             # Send the requests using threads:
             self.worker_pool.map_multi_args(
@@ -188,7 +188,7 @@ class pykto(CrawlPlugin):
             v.set_method(nikto_test.method)
 
             self._get_knowledge_base().append(self, "vuln", v)
-            om.out.vulnerability(v.get_desc(), severity=v.get_severity())
+            self._output.vulnerability(v.get_desc(), severity=v.get_severity())
 
             fr = FuzzableRequest.from_http_response(http_response)
             self.output_queue.put(fr)
@@ -372,10 +372,11 @@ class NiktoTestParser:
     A parser for the nikto tests file.
     """
 
-    def __init__(self, filename, config, url):
+    def __init__(self, filename, config, url, output=None):
         self.filename = filename
         self.config = config
         self.url = url
+        self._output = output if output is not None else om.out
 
         self._kb_server = None
         self._junk_re = re.compile(r"JUNK\((.*?)\)")
@@ -394,7 +395,7 @@ class NiktoTestParser:
                 db_lines = db_file.readlines()
         except OSError as e:
             msg = 'Failed to open the scan database. Exception: "%s".'
-            om.out.error(msg % e)
+            self._output.error(msg % e)
             return
 
         for line in db_lines:

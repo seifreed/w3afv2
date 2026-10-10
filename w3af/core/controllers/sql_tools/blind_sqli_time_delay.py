@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import ClassVar
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.delay_detection.exact_delay import ExactDelay
 from w3af.core.controllers.delay_detection.exact_delay_controller import (
     ExactDelayController,
@@ -98,8 +97,9 @@ class BlindSQLTimeDelay:
         # TODO: https://github.com/andresriancho/w3af/issues/12385
     ]
 
-    def __init__(self, uri_opener):
+    def __init__(self, uri_opener, output):
         self._uri_opener = uri_opener
+        self._output = output
         self._debugging_id = None
 
     def set_debugging_id(self, debugging_id):
@@ -115,7 +115,7 @@ class BlindSQLTimeDelay:
         @mutant: The mutant object that I have to inject to
         :return: A vulnerability object or None if nothing is found
         """
-        ed = ExactDelayController(mutant, delay_obj, self._uri_opener)
+        ed = ExactDelayController(mutant, delay_obj, self._uri_opener, self._output)
         ed.set_debugging_id(self.get_debugging_id())
         success, responses = ed.delay_is_controlled()
 
@@ -136,7 +136,7 @@ class BlindSQLTimeDelay:
                 mutant,
             )
 
-            om.out.debug(v.get_desc())
+            self._output.debug(v.get_desc())
 
             return v
 

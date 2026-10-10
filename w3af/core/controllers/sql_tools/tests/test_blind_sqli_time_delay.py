@@ -2,6 +2,7 @@ import unittest
 
 import pytest
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.delay_detection.exact_delay import ExactDelay
 from w3af.core.controllers.delay_detection.exact_delay_controller import (
     ExactDelayController,
@@ -24,7 +25,7 @@ class BlindSQLTimeDelayTestCase(unittest.TestCase):
         self.uri_opener = ExtendedUrllib()
         self.addCleanup(self.uri_opener.end)
         self.addCleanup(self.uri_opener.settings.set_default_values)
-        self.detector = BlindSQLTimeDelay(self.uri_opener)
+        self.detector = BlindSQLTimeDelay(self.uri_opener, om.out)
         self.detector.set_debugging_id(7)
 
 
@@ -33,7 +34,7 @@ class TestBlindSQLTimeDelayConfiguration(BlindSQLTimeDelayTestCase):
         self.assertEqual(self.detector.get_debugging_id(), 7)
 
     def test_debugging_id_is_unset_by_default(self):
-        self.assertIsNone(BlindSQLTimeDelay(self.uri_opener).get_debugging_id())
+        self.assertIsNone(BlindSQLTimeDelay(self.uri_opener, om.out).get_debugging_id())
 
     def test_repr_includes_the_debugging_id(self):
         self.assertEqual(repr(self.detector), "<BlindSQLTimeDelay did=7>")

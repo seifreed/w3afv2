@@ -25,7 +25,6 @@ import os
 import re
 from collections import namedtuple
 
-import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
@@ -157,7 +156,7 @@ class wordpress_fingerprint(CrawlPlugin):
                     i.set_url(install_url)
 
                     self._get_knowledge_base().append(self, "info", i)
-                    om.out.information(i.get_desc())
+                    self._output.information(i.get_desc())
 
                     # Send link to core
                     fr = FuzzableRequest(response.get_uri())
@@ -187,7 +186,7 @@ class wordpress_fingerprint(CrawlPlugin):
             i.set_url(wp_readme_url)
 
             self._get_knowledge_base().append(self, "info", i)
-            om.out.information(i.get_desc())
+            self._output.information(i.get_desc())
 
             # Send link to core
             fr = FuzzableRequest(response.get_uri())
@@ -219,7 +218,7 @@ class wordpress_fingerprint(CrawlPlugin):
             i.set_url(wp_index_url)
 
             self._get_knowledge_base().append(self, "info", i)
-            om.out.information(i.get_desc())
+            self._output.information(i.get_desc())
 
             # Send link to core
             fr = FuzzableRequest(response.get_uri())
@@ -265,7 +264,7 @@ class wordpress_fingerprint(CrawlPlugin):
                 i.set_url(test_url)
 
                 self._get_knowledge_base().append(self, "info", i)
-                om.out.information(i.get_desc())
+                self._output.information(i.get_desc())
 
                 # Send link to core
                 fr = FuzzableRequest(response.get_uri())
@@ -278,7 +277,7 @@ class wordpress_fingerprint(CrawlPlugin):
         :return: Parse the XML and return a list of fingerprints.
         """
         wp_handler = WPVersionsHandler()
-        om.out.debug("Starting the wordpress fingerprint xml parsing. ")
+        self._output.debug("Starting the wordpress fingerprint xml parsing. ")
 
         try:
             with open(
@@ -293,7 +292,7 @@ class wordpress_fingerprint(CrawlPlugin):
             msg = 'XML parsing error in wordpress version DB, exception: "%s".'
             raise BaseFrameworkException(msg % e) from e
 
-        om.out.debug("Finished xml parsing. ")
+        self._output.debug("Finished xml parsing. ")
 
         return wp_handler.fingerprints
 

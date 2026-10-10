@@ -2389,3 +2389,15 @@ Verificación: **95 tests pasados** en consumidores, estado y observadores;
 total); Ruff, Black y mypy están limpios. El score permanece en **5.75/10** por
 404/UI/daemons aún globales, cobertura 100% no demostrada, Bandit heredado,
 mocks existentes, Moth y los orquestadores grandes.
+
+## Actualización verificada: detección de retrasos con output explícito
+
+`ExactDelayController` y `BlindSQLTimeDelay` reciben el sink desde los plugins
+audit y dejan de importar el output global. Se actualizaron sus siete callers,
+incluido el camino de blind SQL, y los tests de controlador. La lógica de
+timeouts, payloads reversos y clasificación de respuestas no cambia.
+
+Verificación: **8 tests pasados** en los controladores y **38 tests pasados** en
+los cinco plugins audit afectados; Ruff, Black y mypy están limpios. El score
+permanece en **5.75/10** por 404/UI/daemons aún globales, cobertura 100% no
+demostrada, Bandit heredado, mocks existentes, Moth y los orquestadores grandes.

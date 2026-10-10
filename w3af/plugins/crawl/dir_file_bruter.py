@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 from itertools import repeat
 
-import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
@@ -149,7 +148,7 @@ class dir_file_bruter(CrawlPlugin):
                 new_url = base_path.url_join(line)
             except ValueError as ve:
                 msg = 'The "%s" line at "%s" generated an invalid URL: %s'
-                om.out.debug(msg % (line, file_name, ve))
+                self._output.debug(msg % (line, file_name, ve))
             else:
                 yield line, new_url
 

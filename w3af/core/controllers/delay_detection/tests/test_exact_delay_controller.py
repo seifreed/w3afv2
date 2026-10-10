@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import unittest
 from typing import ClassVar
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.delay_detection.exact_delay import ExactDelay
 from w3af.core.controllers.delay_detection.exact_delay_controller import (
     ExactDelayController,
@@ -79,7 +80,7 @@ class TestExactDelay(unittest.TestCase):
             mutant.set_dc(url.querystring)
             mutant.set_token(("id", 0))
 
-            ed = ExactDelayController(mutant, delay_obj, uri_opener)
+            ed = ExactDelayController(mutant, delay_obj, uri_opener, om.out)
             controlled, _responses = ed.delay_is_controlled()
             self.assertEqual(expected_result, controlled, delays)
 
@@ -97,7 +98,7 @@ class TestExactDelay(unittest.TestCase):
             mutant.set_dc(url.querystring)
             mutant.set_token(("id", 0))
 
-            ed = ExactDelayController(mutant, delay_obj, uri_opener)
+            ed = ExactDelayController(mutant, delay_obj, uri_opener, om.out)
             controlled, _responses = ed.delay_is_controlled()
 
             # This is where we change from test_delay_controlled, the basic

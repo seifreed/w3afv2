@@ -25,7 +25,6 @@ import time
 import traceback
 from multiprocessing.dummy import Process
 
-import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.controllers.daemons.proxy import Proxy, ProxyHandler
 from w3af.core.controllers.daemons.proxy.templates.utils import render
@@ -87,7 +86,7 @@ class spider_man(CrawlPlugin):
             " proxy settings and navigate the target site.\nTo exit spider_man"
             f" plugin please navigate to {TERMINATE_URL} ."
         )
-        om.out.information(msg)
+        self._output.information(msg)
 
         self._proxy.run()
 
@@ -96,7 +95,7 @@ class spider_man(CrawlPlugin):
 
         if self._first_captured_request:
             self._first_captured_request = False
-            om.out.information(
+            self._output.information(
                 "The spider_man plugin processed the first HTTP" " request."
             )
 
@@ -174,7 +173,7 @@ class LoggingHandler(ProxyHandler):
 
         uri = http_request.get_uri()
         msg = "[spider_man] Handling request: %s %s"
-        om.out.debug(msg % (http_request.get_method(), uri))
+        self.parent_process.plugin._output.debug(msg % (http_request.get_method(), uri))
 
         grep = uri.get_domain() == self.parent_process.target_domain
 
@@ -214,7 +213,7 @@ class LoggingHandler(ProxyHandler):
                 " it during the rest of the scan process in order to"
                 " maintain the session."
             )
-            om.out.information(msg % cookie_value)
+            self.parent_process.plugin._output.information(msg % cookie_value)
 
         # Send the response (success|error) to the browser
         flow.response = self._to_mitmproxy_response(http_response)
@@ -252,7 +251,9 @@ class LoggingHandler(ProxyHandler):
         return http_request.get_uri() == TERMINATE_URL
 
     def _terminate(self):
-        om.out.information("The user terminated the spider_man session.")
+        self.parent_process.plugin._output.information(
+            "The user terminated the spider_man session."
+        )
 
         def stop(after):
             time.sleep(after)

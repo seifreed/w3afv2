@@ -24,7 +24,6 @@ import os.path
 from itertools import repeat
 from typing import ClassVar
 
-import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
@@ -195,7 +194,7 @@ class open_api(CrawlPlugin):
         if not OpenAPI.can_parse(http_response):
             return
 
-        om.out.debug(f"OpenAPI parser is about to parse {spec_url}")
+        self._output.debug(f"OpenAPI parser is about to parse {spec_url}")
 
         parser = OpenAPI(
             http_response,
@@ -208,12 +207,12 @@ class open_api(CrawlPlugin):
         self._report_to_kb_if_needed(http_response, parser)
         self._send_spec_to_core(spec_url)
 
-        om.out.debug(
+        self._output.debug(
             f"OpenAPI parser identified {len(parser.get_api_calls())} API calls"
         )
 
         for api_call in parser.get_api_calls():
-            if not self._is_target_domain(api_call):
+            if not self._is_target_domain(api_call, self._output):
                 continue
 
             api_call = self._set_authentication_data(api_call)
@@ -224,7 +223,7 @@ class open_api(CrawlPlugin):
         self.output_queue.put(fuzzable_request)
 
     @staticmethod
-    def _is_target_domain(fuzzable_request):
+    def _is_target_domain(fuzzable_request, output=None):
         """
         :param fuzzable_request: The api call as a fuzzable request
         :return: True if the target domain matches
@@ -239,7 +238,7 @@ class open_api(CrawlPlugin):
         if target_domain == api_call_domain:
             return True
 
-        om.out.debug(
+        output.debug(
             "The OpenAPI specification has operations which point"
             f" to a domain ({api_call_domain}) outside the defined target ({target_domain})."
             " Ignoring the operation to prevent scanning out of scope"
@@ -279,7 +278,7 @@ class open_api(CrawlPlugin):
             i.set_url(http_response.get_url())
 
             self._get_knowledge_base().append(self, "open_api", i)
-            om.out.error(i.get_desc())
+            self._output.error(i.get_desc())
 
             return
 
@@ -297,7 +296,7 @@ class open_api(CrawlPlugin):
         i.set_url(http_response.get_url())
 
         self._get_knowledge_base().append(self, "open_api", i)
-        om.out.information(i.get_desc())
+        self._output.information(i.get_desc())
 
         # Warn the user about missing credentials
         if self._query_string_auth or self._header_auth:
@@ -317,7 +316,7 @@ class open_api(CrawlPlugin):
         i.set_url(http_response.get_url())
 
         self._get_knowledge_base().append(self, "open_api", i)
-        om.out.information(i.get_desc())
+        self._output.information(i.get_desc())
 
     def _set_authentication_data(self, fuzzable_request):
         """
@@ -428,7 +427,7 @@ class open_api(CrawlPlugin):
 
         ext = os.path.splitext(self._custom_spec_location)[1][1:].lower()
         if ext not in ("yaml", "json"):
-            om.out.error(
+            self._output.error(
                 "Skip loading custom API spec "
                 f"because of unknown file extension: {ext}"
             )

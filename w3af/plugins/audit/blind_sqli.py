@@ -69,7 +69,7 @@ class blind_sqli(AuditPlugin):
         #
         #    Blind SQL injection time delays
         #
-        bsqli_time_delay = BlindSQLTimeDelay(self._uri_opener)
+        bsqli_time_delay = BlindSQLTimeDelay(self._uri_opener, self._output)
         bsqli_time_delay.set_debugging_id(debugging_id)
 
         test_iterator = self._generate_delay_tests(freq, bsqli_time_delay)
