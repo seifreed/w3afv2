@@ -48,8 +48,8 @@ def initialize_parser_worker(log_queue):
     :param log_queue: The queue that worker log records are written to.
     :return: None
     """
-    log_sink_factory(log_queue)
-    configure_data_logging()
+    output = log_sink_factory(log_queue)
+    configure_data_logging(output)
     start_profiling_no_core()
 
 

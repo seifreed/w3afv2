@@ -34,8 +34,8 @@ class TestOutputManagerLoggingBridge(unittest.TestCase):
         om.out = om.log_sink_factory(messages)
 
         try:
-            configure_data_logging()
-            configure_data_logging()
+            configure_data_logging(om.out)
+            configure_data_logging(om.out)
 
             self.assertEqual(
                 sum(

@@ -126,7 +126,7 @@ class w3afCore:
         # Make sure we get a fresh new instance of the output manager
         manager = fresh_output_manager_inst()
         log_sink_factory(manager.get_in_queue())
-        configure_data_logging()
+        configure_data_logging(om.out)
         register_parser_multiprocessing(manager)
         self._output = om.out
         self._output_manager = manager

@@ -2656,6 +2656,20 @@ fallo macOS conocido de `/proc/sys/kernel/ostype`. El score permanece en
 **6.25/10** por los globals restantes, cobertura 100% no demostrada, Bandit
 heredado, mocks e integraciones Moth.
 
+## Actualización verificada: cierre de globals de servicios y UI
+
+Desde la última evaluación se eliminaron dependencias globales adicionales en
+tablas de consola, API REST, hmap y el bridge de logging. Los sinks/managers
+viajan desde `w3afCore`, la UI o el plugin hasta el punto que los consume; los
+payloads de tablas fueron actualizados de forma mecánica y revisados.
+
+Verificación acumulada del bloque: hmap (**21 tests**), API REST (**1 test + 6
+subtests**), tablas/menús de consola (**32 tests aislados**) y bridge/parser
+(**40 tests**). Ruff, Black, mypy, `py_compile` y `git diff --check` están
+limpios. El score conservador permanece en **6.25/10** por los globals de
+composición aún deliberados, cobertura 100% no demostrada, Bandit heredado,
+mocks e integraciones Moth.
+
 ## Actualización verificada: API REST con dependencias del core
 
 Las rutas REST de scans y excepciones ya no importan `output_manager` para

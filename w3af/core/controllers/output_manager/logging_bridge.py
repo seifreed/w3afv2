@@ -1,24 +1,26 @@
 import logging
 
-import w3af.core.controllers.output_manager as om
-
 
 class OutputManagerLogHandler(logging.Handler):
+    def __init__(self, output):
+        super().__init__()
+        self._output = output
+
     def emit(self, record: logging.LogRecord) -> None:
         message = record.getMessage()
         if record.levelno >= logging.ERROR:
-            om.out.error(message)
+            self._output.error(message)
         elif record.levelno >= logging.INFO:
-            om.out.information(message)
+            self._output.information(message)
         else:
-            om.out.debug(message)
+            self._output.debug(message)
 
 
-def configure_data_logging() -> None:
+def configure_data_logging(output) -> None:
     logger = logging.getLogger("w3af.core.data")
     if not any(
         isinstance(handler, OutputManagerLogHandler) for handler in logger.handlers
     ):
-        logger.addHandler(OutputManagerLogHandler())
+        logger.addHandler(OutputManagerLogHandler(output))
     logger.setLevel(logging.DEBUG)
     logger.propagate = False
