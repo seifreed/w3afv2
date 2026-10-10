@@ -3475,3 +3475,17 @@ warnings externos de `ldap3/pyasn1`; la batería focal pasó **50 tests en
 43.87 s**. Ruff, mypy focal y Bandit focal están limpios. El score se mantiene
 en **6.5/10** por cobertura global, módulos grandes y gates globales
 pendientes.
+
+## Actualización verificada: respuestas exitosas separadas
+
+`ResponseSuccessHandler` concentra el formateo del log, conversión a
+`HTTPResponse`, metadatos de cache/debugging, registro de RTT, ajuste de
+workers y dispatch de grep. `ExtendedUrllib` conserva
+`_handle_send_success()` y el flujo de envío, pero deja de mezclar esa
+responsabilidad con la clasificación de errores y reintentos.
+
+Verificación: la suite URL completa pasó **217 tests en 184.04 s**, con dos
+warnings externos de `ldap3/pyasn1`; la batería focal pasó **56 tests en
+62.79 s**. Ruff, mypy focal y Bandit focal están limpios. El score se mantiene
+en **6.5/10** por cobertura global, módulos grandes y gates globales
+pendientes.

@@ -28,7 +28,6 @@ import threading
 import time
 import traceback
 import urllib.error
-import urllib.parse
 import urllib.request
 import uuid
 from contextlib import contextmanager
@@ -57,11 +56,11 @@ from w3af.core.data.url.handlers.keepalive import URLTimeoutError
 from w3af.core.data.url.helpers import get_clean_body, get_exception_reason
 from w3af.core.data.url.http_error_pause_controller import HttpErrorPauseController
 from w3af.core.data.url.http_request import HTTPRequest
-from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.data.url.rate_limiter import RateLimiter
 from w3af.core.data.url.request_evasion import RequestEvasionPipeline
 from w3af.core.data.url.request_preparer import RequestPreparer
 from w3af.core.data.url.response_history import ResponseHistory
+from w3af.core.data.url.response_success_handler import ResponseSuccessHandler
 from w3af.core.data.url.scan_request_control import ScanRequestControl
 from w3af.core.data.url.timeout_manager import TimeoutManager
 from w3af.core.data.url.worker_pool_adjuster import WorkerPoolAdjuster
@@ -127,6 +126,13 @@ class ExtendedUrllib:
         self._grep_dispatcher = GrepDispatcher()
         self._evasion_pipeline = RequestEvasionPipeline(LOGGER.error)
         self._request_preparer = RequestPreparer(self.settings)
+        self._response_success_handler = ResponseSuccessHandler(
+            LOGGER.debug,
+            self._log_successful_response,
+            self._track_rtt,
+            self._worker_pool_adjuster.adjust,
+            self._grep,
+        )
         self._request_control = ScanRequestControl()
 
     def get_average_rtt_for_mutant(self, *args, **kwargs):
@@ -849,70 +855,9 @@ class ExtendedUrllib:
         return self._retry(req, grep, exception)
 
     def _handle_send_success(self, req, res, grep, original_url, original_url_inst):
-        """
-        Handle the case in "def _send" where the request was successful and
-        we were able to get a valid HTTP response.
-
-        :return: An HTTPResponse object.
-        """
-        #
-        # Everything went well!
-        #
-
-        rdata = req.get_data()
-
-        if not rdata:
-            args = (req.get_method(), urllib.parse.unquote_plus(original_url), res.code)
-
-            msg = '%s %s returned HTTP code "%s"'
-            msg %= args
-
-        else:
-            printable_data = urllib.parse.unquote_plus(smart_unicode(rdata))
-            if len(rdata) > 75:
-                printable_data = f"{printable_data[:75]}..."
-                printable_data = printable_data.replace("\n", " ")
-                printable_data = printable_data.replace("\r", " ")
-
-            args = (req.get_method(), original_url, printable_data, res.code)
-
-            msg = '%s %s with data: "%s" returned HTTP code "%s"'
-            msg %= args
-
-        from_cache = hasattr(res, "from_cache") and res.from_cache
-
-        http_resp = HTTPResponse.from_httplib_resp(
-            res,
-            original_url=original_url_inst,
-            binary_response=req.with_binary_response(),
+        return self._response_success_handler.handle(
+            req, res, grep, original_url, original_url_inst
         )
-        http_resp.set_id(res.id)
-        http_resp.set_from_cache(from_cache)
-        http_resp.set_debugging_id(req.debugging_id)
-
-        args = (
-            res.id,
-            from_cache,
-            grep,
-            http_resp.get_wait_time(),
-            http_resp.get_body_length(),
-            req.debugging_id,
-        )
-        flags = " (id:%s, from_cache:%i, grep:%i, rtt:%.2f, body:%s, did:%s)"
-        flags %= args
-
-        msg += flags
-        LOGGER.debug(msg)
-
-        # Clear the log of failed requests; this request is DONE!
-        self._log_successful_response(http_resp)
-        self._track_rtt(res, req.debugging_id)
-        self._worker_pool_adjuster.adjust()
-
-        if grep:
-            self._grep(req, http_resp)
-
-        return http_resp
 
     def _retry(self, req, grep, url_error):
         """
