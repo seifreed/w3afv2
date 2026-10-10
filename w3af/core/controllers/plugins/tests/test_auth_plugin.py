@@ -13,6 +13,10 @@ LOGIN_URL = URL("http://127.0.0.1/login?next=/home")
 
 
 class unit_auth(AuthPlugin):
+    def __init__(self):
+        super().__init__()
+        self.set_knowledge_base(kb)
+
     def _get_main_authentication_url(self):
         return LOGIN_URL
 

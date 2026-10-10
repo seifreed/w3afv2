@@ -16,6 +16,10 @@ LOGGED_OUT = "Please login"
 
 
 class unit_session_auth(AuthSessionPlugin):
+    def __init__(self):
+        super().__init__()
+        self.set_knowledge_base(kb)
+
     def _get_main_authentication_url(self):
         return self.check_url
 

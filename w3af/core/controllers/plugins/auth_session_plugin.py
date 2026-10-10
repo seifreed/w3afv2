@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import logging
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.plugins.auth_plugin import AuthPlugin
 from w3af.core.data.kb.info import Info
 from w3af.core.data.misc.encoding import smart_str_ignore
@@ -162,7 +161,7 @@ class AuthSessionPlugin(AuthPlugin):
 
         i.set_uri(self._get_main_authentication_url())
 
-        kb.kb.append("authentication", "error", i)
+        self._get_knowledge_base().append("authentication", "error", i)
 
     def _get_invalid_session_perc(self):
         total_session_checks = self._valid_sessions_count + self._invalid_sessions_count
