@@ -12,12 +12,11 @@ from w3af.core.controllers.output_manager.logging_bridge import (
 class TestOutputManagerLoggingBridge(unittest.TestCase):
     def test_http_logger_uses_the_current_output_sink(self):
         previous_output = om.out
-        log_http = om.log_http
         messages = queue.Queue()
         om.out = om.log_sink_factory(messages)
 
         try:
-            log_http("request", "response")
+            om.out.log_http("request", "response")
             self.assertEqual(
                 messages.get(timeout=1), (("log_http", "request", "response"), {})
             )

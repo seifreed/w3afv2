@@ -3710,3 +3710,14 @@ Verificación: la batería focal de URL pasa **56 tests**, con solo los dos
 warnings externos de `ldap3/pyasn1`; Ruff, mypy y Bandit focal están limpios.
 El score se mantiene en **6.5/10** porque la eliminación de una API muerta no
 cierra todavía la composición global ni la cobertura completa.
+
+## Actualización verificada: eliminación de helper de logging muerto
+
+`output_manager.log_http()` no tenía consumidores de producción y solo
+delegaba en el sink global. Se eliminó junto con su uso de test; el contrato
+verificado ahora es `LogSink.log_http()`, que es el objeto que realmente posee
+la cola de logging.
+
+Verificación: la suite completa de `OutputManager` pasa **31 tests**, y Black,
+Ruff y mypy focal siguen limpios. El score se mantiene en **6.5/10** hasta
+terminar la migración del singleton de composición.

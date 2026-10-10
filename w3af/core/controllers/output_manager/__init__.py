@@ -30,10 +30,6 @@ def create_output_manager() -> tuple[OutputManager, LogSink]:
     return output_manager, output
 
 
-def log_http(request, response):
-    out.log_http(request, response)
-
-
 def fresh_output_manager_inst():
     """
     Creates a new "manager" instance at the module level.
