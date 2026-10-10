@@ -2549,3 +2549,14 @@ Verificación: **31 tests pasaron** en proxy, interceptación, Xurllib y
 spider_man; Ruff, Black y mypy están limpios. Persisten los límites globales
 de UI, servicios y composición, además de cobertura total no demostrada,
 Bandit heredado y las integraciones Moth; el score permanece en **6.25/10**.
+
+## Actualización verificada: bruteforce con output explícito
+
+`PasswordBruteforcer`, `UserPasswordBruteforcer` y `get_profiling_results`
+reciben ahora el sink desde `BruteforcePlugin`. Los diagnósticos de combos
+inválidos y profiling vacío ya no consultan `output_manager` global.
+
+Verificación: **20 tests pasaron** en los generadores y el plugin bruteforce;
+Ruff, Black y mypy están limpios. El score permanece en **6.25/10** por los
+servicios restantes, cobertura 100% no demostrada, Bandit heredado, mocks,
+Moth y los orquestadores grandes.

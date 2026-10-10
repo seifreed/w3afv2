@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os.path
 from itertools import chain
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.make_leet import make_leet
 from w3af.core.data.misc.iterables import unique_everseen
 
@@ -36,7 +35,7 @@ class PasswordBruteforcer:
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self, url, knowledge_base):
+    def __init__(self, url, knowledge_base, output):
         self.passwd_file = os.path.join(
             os.path.dirname(os.path.realpath(__file__)), "passwords.txt"
         )
@@ -46,6 +45,7 @@ class PasswordBruteforcer:
 
         self._url = url
         self._knowledge_base = knowledge_base
+        self._output = output
 
     def generator(self):
         """
@@ -69,7 +69,7 @@ class PasswordBruteforcer:
 
         if self.use_profiling:
             yield from get_profiling_results(
-                self._knowledge_base, self.profiling_number
+                self._knowledge_base, self.profiling_number, self._output
             )
 
     def _read_pwd_file(self):
@@ -86,7 +86,7 @@ class UserPasswordBruteforcer:
     :author: Andres Riancho (andres.riancho@gmail.com)
     """
 
-    def __init__(self, url, knowledge_base):
+    def __init__(self, url, knowledge_base, output):
         # Config params for user generation
         self.users_file = os.path.join(
             os.path.dirname(os.path.realpath(__file__)), "users.txt"
@@ -108,9 +108,10 @@ class UserPasswordBruteforcer:
         # Internal variables
         self._url = url
         self._knowledge_base = knowledge_base
+        self._output = output
 
     def _new_password_bruteforcer(self):
-        pbf = PasswordBruteforcer(self._url, self._knowledge_base)
+        pbf = PasswordBruteforcer(self._url, self._knowledge_base, self._output)
         pbf.passwd_file = self.passwd_file
         pbf.l337_p4sswd = self.l337_p4sswd
         pbf.use_profiling = self.use_profiling
@@ -169,7 +170,7 @@ class UserPasswordBruteforcer:
 
         if self.use_profiling:
             for user in get_profiling_results(
-                self._knowledge_base, self.profiling_number
+                self._knowledge_base, self.profiling_number, self._output
             ):
                 yield user
 
@@ -185,12 +186,12 @@ class UserPasswordBruteforcer:
                 try:
                     user, passwd = line.strip().split(self.combo_separator)
                 except ValueError:
-                    om.out.debug(f'Invalid combo entry: "{line}"')
+                    self._output.debug(f'Invalid combo entry: "{line}"')
                 else:
                     yield user, passwd
 
 
-def get_profiling_results(knowledge_base, max_items=50):
+def get_profiling_results(knowledge_base, max_items, output):
     kb_data = knowledge_base.raw_read("password_profiling", "password_profiling")
 
     if not kb_data:
@@ -199,7 +200,7 @@ def get_profiling_results(knowledge_base, max_items=50):
             " the bruteforce process, please try to enable crawl.web_spider"
             " and grep.password_profiling plugins and try again."
         )
-        om.out.debug(msg)
+        output.debug(msg)
         return []
 
     else:

@@ -25,6 +25,7 @@ import unittest
 
 import pytest
 
+import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.bruteforce.bruteforcer import (
     PasswordBruteforcer,
@@ -44,7 +45,8 @@ class TestPasswordBruteforcer(unittest.TestCase):
 
         try:
             self.assertEqual(
-                get_profiling_results(kb.kb, max_items=2), ["most_common", "middle"]
+                get_profiling_results(kb.kb, max_items=2, output=om.out),
+                ["most_common", "middle"],
             )
         finally:
             if existing_data:
@@ -56,7 +58,7 @@ class TestPasswordBruteforcer(unittest.TestCase):
     def test_contains(self):
         url = URL("http://www.w3af.org/")
 
-        pwd_bf = PasswordBruteforcer(url, kb.kb)
+        pwd_bf = PasswordBruteforcer(url, kb.kb, om.out)
 
         self.assertTrue("password" in pwd_bf.generator())
         self.assertTrue("123456" in pwd_bf.generator())
@@ -72,7 +74,7 @@ class TestUserPasswordBruteforcer(unittest.TestCase):
     def test_bruteforcer_default(self):
         url = URL("http://www.w3af.org/")
 
-        bf = UserPasswordBruteforcer(url, kb.kb)
+        bf = UserPasswordBruteforcer(url, kb.kb, om.out)
 
         expected_combinations = [
             ("prueba1", "123abc"),
@@ -109,7 +111,7 @@ class TestUserPasswordBruteforcer(unittest.TestCase):
 
         url = URL("http://www.w3af.org/")
 
-        bf = UserPasswordBruteforcer(url, kb.kb)
+        bf = UserPasswordBruteforcer(url, kb.kb, om.out)
         bf.combo_file = combo_filename
         bf.combo_separator = ":"
 
