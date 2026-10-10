@@ -1602,3 +1602,14 @@ Verificación: 3 tests integrados pasan, Ruff, Black y mypy pasan en el módulo
 modificado. El score sigue en **5.75/10**: quedan 77 imports directos de la KB,
 además de la cobertura, mocks, el fallo heredado de perfilado y los
 orquestadores grandes.
+
+## Actualización verificada: auditoría FrontPage
+
+`audit.frontpage` consulta mediante la KB inyectada tanto la versión detectada
+como los hallazgos previos, conservando el flujo integrado de subida y
+verificación.
+
+Verificación: 1 test de scan pasa, Ruff, Black y mypy pasan en el módulo
+modificado. El score sigue en **5.75/10**: quedan 76 imports directos de la KB,
+además de la cobertura, mocks, el fallo heredado de perfilado y los
+orquestadores grandes.
