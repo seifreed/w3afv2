@@ -77,7 +77,7 @@ class dot_ds_store(CrawlPlugin):
         response = self.http_get_and_parse(url, binary_response=True)
 
         # Check if it's a .DS_Store file
-        if is_404(response):
+        if is_404(response, self._output):
             return
 
         try:

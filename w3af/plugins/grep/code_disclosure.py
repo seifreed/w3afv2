@@ -53,7 +53,7 @@ class code_disclosure(GrepPlugin):
         if not response.is_text_or_html():
             return
 
-        response_is_404 = is_404(response)
+        response_is_404 = is_404(response, self._output)
 
         # This is a performance improvement to prevent the plugin from
         # applying contains_source_code to a 404 response that will be

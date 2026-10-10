@@ -228,7 +228,7 @@ class content_negotiation(CrawlPlugin):
             full_url = base_url.url_join(alternate)
             response = self._uri_opener.GET(full_url)
 
-            if not is_404(response):
+            if not is_404(response, self._output):
                 yield FuzzableRequest(full_url)
 
     def _verify_content_neg_enabled(self, fuzzable_request):

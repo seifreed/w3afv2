@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.not_found.generate_404 import (
     generate_404_filename,
     get_url_for_404_request,
@@ -103,7 +104,7 @@ class TestSend404(unittest.TestCase):
         url_404 = URL(f"http://127.0.0.1:{closed_local_port()}/iK2ZW")
 
         with self.assertRaises(FourOhFourDetectionException) as context:
-            send_404(self.uri_opener, url_404, debugging_id="did404")
+            send_404(self.uri_opener, url_404, debugging_id="did404", output=om.out)
 
         self.assertIn("Exception found while detecting 404", str(context.exception))
         self.assertIn("did404", str(context.exception))
@@ -113,7 +114,9 @@ class TestSend404(unittest.TestCase):
             return Reply(status=404, body="Not here")
 
         with LocalHTTPServer(respond) as server:
-            response = send_404(self.uri_opener, URL(server.url("/iK2ZW")))
+            response = send_404(
+                self.uri_opener, URL(server.url("/iK2ZW")), output=om.out
+            )
 
         self.assertEqual(response.get_code(), 404)
         self.assertEqual(response.get_body(), "Not here")

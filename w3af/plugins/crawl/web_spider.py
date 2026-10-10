@@ -115,7 +115,7 @@ class web_spider(CrawlPlugin):
         # There are some rare cases where the application will answer with
         # the same HTTP response body for `/` and `/foobar`. This triggers an
         # issue in is_404() where `/` is marked as a 404...
-        if is_404(resp) and not self._is_target(fuzzable_request):
+        if is_404(resp, self._output) and not self._is_target(fuzzable_request):
             return
 
         self._extract_html_forms(resp, fuzzable_request)
@@ -270,7 +270,7 @@ class web_spider(CrawlPlugin):
             only_re_refs = set(re_refs) - set(dirs + parsed_refs)
 
             all_refs = itertools.chain(parsed_refs, re_refs)
-            resp_is_404 = is_404(resp)
+            resp_is_404 = is_404(resp, self._output)
 
             for ref in unique_justseen(sorted(all_refs)):
                 possibly_broken = resp_is_404 or (ref in only_re_refs)
@@ -405,7 +405,7 @@ class web_spider(CrawlPlugin):
         #       be requested with grep=True
         resp = self._uri_opener.GET(reference, cache=True, headers=headers, grep=False)
 
-        if not is_404(resp):
+        if not is_404(resp, self._output):
             msg = '[web_spider] Found new link "%s" at "%s"'
             args = (reference, original_response.get_url())
             self._output.debug(msg % args)

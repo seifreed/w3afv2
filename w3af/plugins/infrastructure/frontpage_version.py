@@ -54,7 +54,7 @@ class frontpage_version(InfrastructurePlugin):
             response = self._uri_opener.GET(frontpage_info_url, cache=True)
 
             # Check if it's a Frontpage Info file
-            if not is_404(response):
+            if not is_404(response, self._output):
                 fr = FuzzableRequest(response.get_uri())
                 self.output_queue.put(fr)
 

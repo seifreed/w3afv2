@@ -161,7 +161,7 @@ class dir_file_bruter(CrawlPlugin):
         _, new_url = file_path
         http_response = self._uri_opener.GET(new_url, cache=False)
 
-        if is_404(http_response):
+        if is_404(http_response, self._output):
             return
 
         fr = FuzzableRequest.from_http_response(http_response)

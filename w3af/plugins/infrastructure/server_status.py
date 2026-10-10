@@ -60,7 +60,7 @@ class server_status(InfrastructurePlugin):
         response = self._uri_opener.GET(server_status_url, cache=True)
 
         if (
-            not is_404(response)
+            not is_404(response, self._output)
             and response.get_code() not in list(range(400, 404))
             and "apache" in response.get_body().lower()
         ):
@@ -117,7 +117,7 @@ class server_status(InfrastructurePlugin):
                 # They are equal, request the URL and create the fuzzable
                 # requests
                 tmp_res = self._uri_opener.GET(found_url, cache=True)
-                if not is_404(tmp_res):
+                if not is_404(tmp_res, self._output):
                     self.output_queue.put(FuzzableRequest(found_url))
             else:
                 # This is a shared hosting server

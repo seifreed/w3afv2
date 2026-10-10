@@ -46,7 +46,7 @@ class robots_txt(CrawlPlugin):
         robots_url = base_url.url_join("robots.txt")
         http_response = self._uri_opener.GET(robots_url, cache=True)
 
-        if is_404(http_response):
+        if is_404(http_response, self._output):
             return
 
         # Send the robots.txt file to the core, even if we don't find anything

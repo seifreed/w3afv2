@@ -76,7 +76,7 @@ class dot_listing(CrawlPlugin):
         url = domain_path.url_join(".listing")
         response = self._uri_opener.GET(url, cache=True)
 
-        if is_404(response):
+        if is_404(response, self._output):
             return
 
         parsed_url_set = set()

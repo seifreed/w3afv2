@@ -172,7 +172,9 @@ class pykto(CrawlPlugin):
         function_ptr = getattr(self._uri_opener, nikto_test.method)
         http_response = function_ptr(nikto_test.uri)
 
-        if nikto_test.is_vulnerable.check(http_response) and not is_404(http_response):
+        if nikto_test.is_vulnerable.check(http_response) and not is_404(
+            http_response, self._output
+        ):
 
             vdesc = (
                 'pykto plugin found a vulnerability at URL: "%s".'

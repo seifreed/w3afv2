@@ -56,7 +56,7 @@ class lang(GrepPlugin):
         if not response.is_text_or_html():
             return
 
-        if is_404(response):
+        if is_404(response, self._output):
             return
 
         body = response.get_clear_text_body().lower()

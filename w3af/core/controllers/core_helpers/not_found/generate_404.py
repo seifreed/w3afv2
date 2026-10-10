@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import itertools
 import string
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.decorators import retry
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.misc.deterministic_random import get_deterministic_random
@@ -249,7 +248,9 @@ def grouper(iterable, n, fillvalue=None):
     return itertools.zip_longest(*args, fillvalue=fillvalue)
 
 
-def send_request_generate_404(uri_opener, http_response, debugging_id, exclude=None):
+def send_request_generate_404(
+    uri_opener, http_response, debugging_id, output, exclude=None
+):
     exclude = [] if exclude is None else exclude
 
     #
@@ -262,7 +263,9 @@ def send_request_generate_404(uri_opener, http_response, debugging_id, exclude=N
         if url_404.url_string not in exclude:
             break
 
-    response_404 = send_404(uri_opener, url_404, debugging_id=debugging_id)
+    response_404 = send_404(
+        uri_opener, url_404, debugging_id=debugging_id, output=output
+    )
     return FourOhFourResponse.from_http_response(response_404)
 
 
@@ -291,7 +294,7 @@ def get_url_for_404_request(http_response, seed=1):
 
 
 @retry(tries=2, delay=0.5, backoff=2)
-def send_404(uri_opener, url_404, debugging_id=None):
+def send_404(uri_opener, url_404, output, debugging_id=None):
     """
     Sends a GET request to url404.
 
@@ -307,11 +310,11 @@ def send_404(uri_opener, url_404, debugging_id=None):
     except HTTPRequestException as hre:
         message = 'Exception found while detecting 404: "%s" (did:%s)'
         args = (hre, debugging_id)
-        om.out.debug(message % args)
+        output.debug(message % args)
         raise FourOhFourDetectionException(message % args)
     else:
         msg = "Received response for 404 URL %s (id:%s, did:%s, len:%s)"
         args = (url_404, response.id, debugging_id, len(response.body))
-        om.out.debug(msg % args)
+        output.debug(msg % args)
 
     return response

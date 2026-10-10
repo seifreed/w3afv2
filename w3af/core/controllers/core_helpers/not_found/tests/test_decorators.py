@@ -60,7 +60,7 @@ class CountingDetector:
 
     def __init__(self):
         self.calls = 0
-        self._cached_is_404 = StatsEveryCallLRUCache404(self._is_404)
+        self._cached_is_404 = StatsEveryCallLRUCache404(self._is_404, om.out)
 
     def _is_404(self, http_response, query):
         self.calls += 1
@@ -158,7 +158,7 @@ class BlockingDetector:
         self.calls = 0
         self.started = threading.Event()
         self.release = threading.Event()
-        self.is_404 = wrapper_class(self._is_404)
+        self.is_404 = wrapper_class(self._is_404, om.out)
 
     def _is_404(self, http_response):
         self.calls += 1

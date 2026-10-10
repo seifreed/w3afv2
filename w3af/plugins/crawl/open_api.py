@@ -176,7 +176,7 @@ class open_api(CrawlPlugin):
             spec_url, headers=self._header_auth, cache=False, debugging_id=debugging_id
         )
 
-        if is_404(http_response):
+        if is_404(http_response, self._output):
             return
 
         self._extract_api_calls_from_response(spec_url, http_response)

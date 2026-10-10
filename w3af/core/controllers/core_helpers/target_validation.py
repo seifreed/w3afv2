@@ -155,7 +155,7 @@ def setup_404_detection(w3af_core, output):
             f' response from "{url}"'
         )
         with _scan_must_stop_on_error(failure, output):
-            current_target_is_404 = is_404(response)
+            current_target_is_404 = is_404(response, output)
 
         if current_target_is_404:
             targets_with_404.append(url)

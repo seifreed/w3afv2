@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.core_helpers.not_found.decorators import (
     LRUCache404,
@@ -54,12 +53,13 @@ class Fingerprint404:
 
     _instance = None
 
-    def __init__(self):
+    def __init__(self, output):
         #
         #   Set the opener, I need it to perform some tests and gain
         #   the knowledge about the server's 404 response bodies.
         #
         self._uri_opener = None
+        self._output = output
 
         #
         #   Store the 404 responses in a dict which has normalized paths
@@ -76,8 +76,8 @@ class Fingerprint404:
         #   The results of the complex 404 detection are cached, and only
         #   one thread runs it at the same time for each normalized path
         #
-        self._is_404_complex = PreventMultipleThreads(self._query_cached_is_404)
-        self._cached_is_404_complex = LRUCache404(self._is_404_complex_impl)
+        self._is_404_complex = PreventMultipleThreads(self._query_cached_is_404, output)
+        self._cached_is_404_complex = LRUCache404(self._is_404_complex_impl, output)
 
     def is_404(self, http_response):
         """
@@ -230,7 +230,7 @@ class Fingerprint404:
                 debugging_id,
                 known_404.id,
             )
-            om.out.debug(msg % args)
+            self._output.debug(msg % args)
             return False
 
         # Since the fuzzy_equal function is CPU-intensive we want to
@@ -249,7 +249,7 @@ class Fingerprint404:
                 debugging_id,
                 known_404.id,
             )
-            om.out.debug(msg % args)
+            self._output.debug(msg % args)
             return False
 
         # This is the simplest case. If they are 100% equal, no matter how
@@ -267,7 +267,7 @@ class Fingerprint404:
                 debugging_id,
                 known_404.id,
             )
-            om.out.debug(msg % args)
+            self._output.debug(msg % args)
             return True
 
         is_fuzzy_equal = fuzzy_equal(known_404.body, query.body, IS_EQUAL_RATIO)
@@ -286,7 +286,7 @@ class Fingerprint404:
                 IS_EQUAL_RATIO,
                 known_404.id,
             )
-            om.out.debug(msg % args)
+            self._output.debug(msg % args)
             return False
 
         if len(query.body) < MAX_FUZZY_LENGTH:
@@ -327,7 +327,7 @@ class Fingerprint404:
                 IS_EQUAL_RATIO,
                 known_404.id,
             )
-            om.out.debug(msg % args)
+            self._output.debug(msg % args)
             return True
 
         else:
@@ -376,7 +376,11 @@ class Fingerprint404:
             # Send exclude=[known_404_1.url] to prevent the function from sending
             # an HTTP request to the same forced 404 URL
             known_404_2 = send_request_generate_404(
-                self._uri_opener, http_response, debugging_id, exclude=[known_404_1.url]
+                self._uri_opener,
+                http_response,
+                debugging_id,
+                self._output,
+                exclude=[known_404_1.url],
             )
 
             known_404_1.diff, _ = chunked_diff(known_404_1.body, known_404_2.body)
@@ -417,7 +421,7 @@ class Fingerprint404:
                     ]
                 ),
             )
-            om.out.debug(msg % args)
+            self._output.debug(msg % args)
             return False
 
         msg = (
@@ -440,7 +444,7 @@ class Fingerprint404:
                 ]
             ),
         )
-        om.out.debug(msg % args)
+        self._output.debug(msg % args)
         return True
 
     def set_url_opener(self, urlopener):
@@ -461,16 +465,23 @@ class Fingerprint404:
             return FourOhFourResponse.loads(serialized_known_404)
 
         known_404 = send_request_generate_404(
-            self._uri_opener, http_response, debugging_id
+            self._uri_opener, http_response, debugging_id, self._output
         )
 
         self._404_responses[query.normalized_path] = known_404.dumps()
         return known_404
 
 
-def fingerprint_404_singleton(cleanup=False):
-    if Fingerprint404._instance is None or cleanup:
-        Fingerprint404._instance = Fingerprint404()
+def fingerprint_404_singleton(output=None, cleanup=False):
+    if cleanup:
+        Fingerprint404._instance = None
+        if output is None:
+            return None
+
+    if Fingerprint404._instance is None:
+        if output is None:
+            raise RuntimeError("Fingerprint404 requires an output sink")
+        Fingerprint404._instance = Fingerprint404(output)
 
     return Fingerprint404._instance
 
@@ -478,7 +489,7 @@ def fingerprint_404_singleton(cleanup=False):
 #
 # Helper function
 #
-def is_404(http_response):
+def is_404(http_response, output):
     # Get an instance of the 404 database
-    fp_404_db = fingerprint_404_singleton()
+    fp_404_db = fingerprint_404_singleton(output)
     return fp_404_db.is_404(http_response)

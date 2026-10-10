@@ -2426,3 +2426,18 @@ Verificación: **74 tests pasados** en bases de plugins y factory; Ruff, Black y
 mypy están limpios. El score permanece en **5.75/10** por 404/UI/daemons y
 plugins attack aún globales, cobertura 100% no demostrada, Bandit heredado,
 mocks existentes, Moth y los orquestadores grandes.
+
+## Actualización verificada: detector 404 con output explícito
+
+`Fingerprint404`, `LRUCache404`, `PreventMultipleThreads` y la generación de
+respuestas 404 reciben el sink por composición. `is_404` ya no crea ni usa un
+detector con output global; todos los consumidores de crawl, grep e
+infrastructure pasan `self._output`, y `w3afCore` inicializa el singleton con
+el sink de la ejecución actual. El cleanup puede liberar el singleton sin
+crear una instancia incompleta.
+
+Verificación: **86 tests pasados y 7 subtests** en detector, decoradores,
+generación 404, bases de plugins y estrategia; Ruff, Black y mypy están
+limpios. El score actualizado es **6.25/10**: quedan plugins attack, UI,
+daemons y otros servicios globales, cobertura 100% no demostrada, Bandit
+heredado, mocks existentes, Moth y los orquestadores grandes.

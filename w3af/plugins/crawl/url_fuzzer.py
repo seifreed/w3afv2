@@ -146,7 +146,7 @@ class url_fuzzer(CrawlPlugin):
         """
         response = self._uri_opener.GET(mutant, cache=True, headers=self._headers)
 
-        if is_404(response):
+        if is_404(response, self._output):
             return
 
         if response.get_code() in (403, 401, 301, 302, 500, 400):

@@ -162,7 +162,7 @@ class payment_webhook_finder(CrawlPlugin):
     def _send_request(self, functor, url, mutant):
         response = functor(mutant, cache=True)
 
-        if is_404(response):
+        if is_404(response, self._output):
             return
 
         # Create the fuzzable request and send it to the core

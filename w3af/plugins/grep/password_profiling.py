@@ -73,7 +73,7 @@ class password_profiling(GrepPlugin):
         if not self.got_lang():
             return
 
-        if is_404(response):
+        if is_404(response, self._output):
             return
 
         # Run the password profiling plugins

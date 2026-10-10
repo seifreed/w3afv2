@@ -190,7 +190,7 @@ class TestCrawlHTTPGetAndParse(unittest.TestCase):
         create_temp_dir()
         self.uri_opener = ExtendedUrllib()
         self.addCleanup(self.uri_opener.end)
-        fingerprint_404_singleton(cleanup=True).set_url_opener(self.uri_opener)
+        fingerprint_404_singleton(om.out, cleanup=True).set_url_opener(self.uri_opener)
         self.addCleanup(fingerprint_404_singleton, cleanup=True)
 
         self.site = LocalHTTPServer(site_with_pages).start()

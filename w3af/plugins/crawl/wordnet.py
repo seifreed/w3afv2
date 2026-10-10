@@ -71,7 +71,7 @@ class wordnet(CrawlPlugin):
         """
         response = self._uri_opener.send_mutant(mutant)
 
-        if is_404(response):
+        if is_404(response, self._output):
             return
 
         if fuzzy_not_equal(original_response.body, response.body, 0.85):

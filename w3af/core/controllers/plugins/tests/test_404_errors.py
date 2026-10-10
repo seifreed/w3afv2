@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
+import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.fingerprint_404 import (
     fingerprint_404_singleton,
@@ -54,7 +55,8 @@ class Test404Errors(unittest.TestCase):
         create_temp_dir()
         kb.kb.cleanup()
         self.plugin = meta_tags()
-        self.fingerprint_404 = fingerprint_404_singleton(cleanup=True)
+        self.plugin.set_output(om.out)
+        self.fingerprint_404 = fingerprint_404_singleton(om.out, cleanup=True)
 
     def tearDown(self):
         kb.kb.cleanup()

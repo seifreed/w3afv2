@@ -82,7 +82,7 @@ class wordpress_fingerprint(CrawlPlugin):
         wp_unique_url = domain_path.url_join("wp-login.php")
         response = self._uri_opener.GET(wp_unique_url, cache=True)
 
-        if is_404(response):
+        if is_404(response, self._output):
             return
 
         # It was possible to analyze wp-login.php, don't run again

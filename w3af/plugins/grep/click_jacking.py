@@ -71,7 +71,7 @@ class click_jacking(GrepPlugin):
         if not self._response_will_be_rendered(response):
             return
 
-        if is_404(response):
+        if is_404(response, self._output):
             return
 
         self._total_http_request_count += 1

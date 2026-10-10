@@ -106,7 +106,7 @@ class ria_enumerator(CrawlPlugin):
         """
         response = self._uri_opener.GET(url, cache=True)
 
-        if is_404(response):
+        if is_404(response, self._output):
             return
 
         file_name = url.get_file_name()

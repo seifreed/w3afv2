@@ -58,7 +58,7 @@ class wordpress_fullpathdisclosure(CrawlPlugin):
         response = self._uri_opener.GET(wp_unique_url, cache=True)
 
         # If wp_unique_url is not 404, wordpress = true
-        if is_404(response):
+        if is_404(response, self._output):
             return
 
         # Only run once
@@ -81,7 +81,7 @@ class wordpress_fullpathdisclosure(CrawlPlugin):
         """
         wp_root_response = self._uri_opener.GET(domain_path, cache=True)
 
-        if is_404(wp_root_response):
+        if is_404(wp_root_response, self._output):
             return []
 
         theme_paths = []
@@ -109,7 +109,7 @@ class wordpress_fullpathdisclosure(CrawlPlugin):
             pvuln_url = domain_path.url_join(pvuln_path)
             response = self._uri_opener.GET(pvuln_url, cache=True)
 
-            if is_404(response):
+            if is_404(response, self._output):
                 continue
 
             response_body = response.get_body()

@@ -55,7 +55,7 @@ class sitemap_xml(CrawlPlugin):
         if "</urlset>" not in response:
             return
 
-        if is_404(response):
+        if is_404(response, self._output):
             return
 
         # Send response to core

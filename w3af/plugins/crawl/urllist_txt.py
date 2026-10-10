@@ -49,7 +49,7 @@ class urllist_txt(CrawlPlugin):
         urllist_url = base_url.url_join("urllist.txt")
         http_response = self._uri_opener.GET(urllist_url, cache=True)
 
-        if is_404(http_response):
+        if is_404(http_response, self._output):
             return
 
         if not self._is_urllist_txt(base_url, http_response.get_body()):

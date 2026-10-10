@@ -190,7 +190,7 @@ class archive_dot_org(CrawlPlugin):
 
         response = self._uri_opener.GET(url, cache=True)
 
-        if not is_404(response):
+        if not is_404(response, self._output):
             msg = (
                 'The URL: "%s" was found at archive.org and is'
                 " STILL AVAILABLE in the target site."

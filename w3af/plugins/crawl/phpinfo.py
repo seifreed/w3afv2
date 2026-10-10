@@ -179,7 +179,7 @@ class phpinfo(CrawlPlugin):
 
         response = self._uri_opener.GET(php_info_url, cache=True, grep=False)
 
-        if is_404(response):
+        if is_404(response, self._output):
             return
 
         # Check if it is a phpinfo file

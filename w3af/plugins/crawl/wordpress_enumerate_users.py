@@ -56,7 +56,7 @@ class wordpress_enumerate_users(CrawlPlugin):
         wp_unique_url = domain_path.url_join("wp-login.php")
         response = self._uri_opener.GET(wp_unique_url, cache=True)
 
-        if is_404(response):
+        if is_404(response, self._output):
             return
 
         self._enum_users(fuzzable_request)
@@ -90,7 +90,7 @@ class wordpress_enumerate_users(CrawlPlugin):
                 wp_author_url, cache=True, follow_redirects=True
             )
 
-            if is_404(response_author):
+            if is_404(response_author, self._output):
                 continue
 
             if response_author.was_redirected():

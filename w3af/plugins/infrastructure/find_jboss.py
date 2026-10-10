@@ -99,7 +99,7 @@ class find_jboss(InfrastructurePlugin):
 
         for vuln_db_instance, response in response_pool:
 
-            if is_404(response):
+            if is_404(response, self._output):
                 continue
 
             vuln_url = base_url.url_join(vuln_db_instance["url"])

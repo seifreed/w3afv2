@@ -95,7 +95,7 @@ class digit_sum(CrawlPlugin):
         """
         response = self._uri_opener.send_mutant(fuzzable_request, cache=True)
 
-        if is_404(response):
+        if is_404(response, self._output):
             return
 
         # We have different cases:

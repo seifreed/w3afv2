@@ -57,7 +57,7 @@ class motw(GrepPlugin):
         if self.STRING_MATCH not in body:
             return
 
-        if is_404(response):
+        if is_404(response, self._output):
             return
 
         motw_match = self._motw_re.search(body)

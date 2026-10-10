@@ -145,7 +145,7 @@ class find_dvcs(CrawlPlugin):
             repo_url, binary_response=True, respect_size_limit=False, grep=False
         )
 
-        if is_404(http_response):
+        if is_404(http_response, self._output):
             return
 
         if http_response.get_code() in self.BAD_HTTP_CODES:

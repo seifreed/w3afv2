@@ -64,7 +64,7 @@ class cache_control(GrepPlugin):
         if response.body == "":
             return
 
-        if is_404(response):
+        if is_404(response, self._output):
             return
 
         self._total_count += 1

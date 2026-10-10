@@ -211,7 +211,7 @@ class w3afCore:
         self.strategy.add_observer(ThreadStateObserver(om.out))
 
         # Init the 404 detection for the whole framework
-        fp_404_db = fingerprint_404_singleton(cleanup=True)
+        fp_404_db = fingerprint_404_singleton(om.out, cleanup=True)
         fp_404_db.set_url_opener(self.uri_opener)
 
     def start(self):

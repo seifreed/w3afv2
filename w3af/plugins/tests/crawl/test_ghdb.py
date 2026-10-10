@@ -27,6 +27,7 @@ import urllib.parse
 from pathlib import Path
 from typing import ClassVar
 
+import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.controllers.core_helpers.fingerprint_404 import (
@@ -68,7 +69,7 @@ class GHDBCrawlTest(CannedServerPluginTest):
     }
 
     def setUp(self):
-        fingerprint_404_singleton(cleanup=True)
+        fingerprint_404_singleton(om.out, cleanup=True)
         self.addCleanup(fingerprint_404_singleton, cleanup=True)
 
         super().setUp()

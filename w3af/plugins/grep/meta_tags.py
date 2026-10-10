@@ -80,7 +80,7 @@ class meta_tags(GrepPlugin):
         if not response.is_text_or_html():
             return
 
-        if is_404(response):
+        if is_404(response, self._output):
             return
 
         try:

@@ -60,7 +60,7 @@ class genexus_xml(CrawlPlugin):
             if "</ObjLink>" not in http_response:
                 continue
 
-            if is_404(http_response):
+            if is_404(http_response, self._output):
                 continue
 
             # Save it to the kb!

@@ -101,7 +101,7 @@ class ghdb(CrawlPlugin):
         for result in google_list:
             # I found a vuln in the site!
             response = self._uri_opener.GET(result.URL, cache=True)
-            if not is_404(response):
+            if not is_404(response, self._output):
                 desc = (
                     'ghdb plugin found a vulnerability at URL: "%s".'
                     " According to GHDB the vulnerability description"

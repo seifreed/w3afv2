@@ -70,7 +70,7 @@ class dwsync_xml(CrawlPlugin):
         dwsync_url = domain_path.url_join(self.DWSYNC)
         response = self.http_get_and_parse(dwsync_url)
 
-        if is_404(response):
+        if is_404(response, self._output):
             return
 
         if "</dwsync>" not in response.get_body():

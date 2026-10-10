@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import threading
 import time
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.misc.lru import SynchronizedLRUDict
 from w3af.core.data.misc.response_cache_key import ResponseCacheKeyCache, quick_hash
@@ -42,8 +41,9 @@ class LRUCache404:
     MAX_IN_MEMORY_RESULTS = 5000
     STATS_EVERY = 50
 
-    def __init__(self, _function):
+    def __init__(self, _function, output):
         self._function = _function
+        self._output = output
 
         # The performance impact of storing many items in memory is low: the
         # keys for these caches are hashes and the values are booleans. The
@@ -93,7 +93,7 @@ class LRUCache404:
     def _log_stats(self, http_response):
         if self._stats_total % self.STATS_EVERY == 0:
             rate = self._stats_from_cache / self._stats_total * 100
-            om.out.debug(f"The 404 cache has a {rate:.2f} % hit rate")
+            self._output.debug(f"The 404 cache has a {rate:.2f} % hit rate")
 
     def _log_success(self, http_response, result, cache_name):
         self._stats_from_cache += 1
@@ -113,7 +113,7 @@ class LRUCache404:
             is_is_not,
             cache_name,
         )
-        om.out.debug(msg % args)
+        self._output.debug(msg % args)
 
         return False
 
@@ -161,8 +161,9 @@ class PreventMultipleThreads:
     # in seconds
     TIMEOUT = 240.0
 
-    def __init__(self, _function):
+    def __init__(self, _function, output):
         self._function = _function
+        self._output = output
         self._404_call_events = {}
 
     def __call__(self, http_response):
@@ -200,7 +201,7 @@ class PreventMultipleThreads:
                 "Waited %.2f seconds in PreventMultipleThreads for event %s"
                 " and normalized path %s (did:%s)"
             )
-            om.out.debug(msg % msg_args)
+            self._output.debug(msg % msg_args)
 
             if not wait_result:
                 # Something really bad happen. The is_404() function should
@@ -219,7 +220,7 @@ class PreventMultipleThreads:
                     " This error is very rare and should be manually analyzed."
                 )
                 args = (self.TIMEOUT, http_response.get_uri())
-                om.out.error(msg % args)
+                self._output.error(msg % args)
                 return True
             else:
                 # All right! is_404 function call is complete, now let's call

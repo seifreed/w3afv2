@@ -72,7 +72,7 @@ class favicon_identification(InfrastructurePlugin):
             smart_str_ignore(response.get_body()), usedforsecurity=False
         ).hexdigest()
 
-        if not is_404(response):
+        if not is_404(response, self._output):
 
             # check if MD5 is matched in database/list
             for md5part, favicon_desc in self._read_favicon_db():
