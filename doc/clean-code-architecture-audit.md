@@ -2044,3 +2044,15 @@ La corrida completa de `pytest --cov=w3af --cov-fail-under=100 -q` fue
 interrumpida en aproximadamente el 76% después de varios fallos de integración
 y bloqueos ambientales, por lo que no se considera una validación aprobada ni
 permite afirmar cobertura global. El score permanece en **5.75/10**.
+
+## Actualización verificada: directorios de runtime separados
+
+La preparación del directorio home y del directorio temporal salió de
+`w3afCore` y pasó a `core_helpers/runtime_directories.py`. El core conserva la
+coordinación del ciclo de vida, mientras el helper concentra creación,
+permisos y errores del entorno.
+
+Verificación: 15 tests del core pasan; Ruff, Black y mypy están limpios en el
+helper, el core y sus tests. El score permanece en **5.75/10**: la mejora es
+local y siguen pendientes cobertura global, hallazgos de Bandit, mocks
+heredados, perfilado, Moth y otros orquestadores grandes.
