@@ -808,7 +808,3 @@ class ExtendedUrllib:
 
     def _grep(self, request, response):
         self._grep_dispatcher.dispatch(request, response)
-
-
-def raise_size_limit(respect_size_limit):
-    return SizeLimitOverride(cf.cf).apply(respect_size_limit)

@@ -3698,3 +3698,15 @@ Verificación: la suite de `OutputManager` pasa **31 tests** y Ruff, mypy y
 Bandit focal están limpios. El score se mantiene en **6.5/10**: el siguiente
 paso es migrar `w3afCore` y sus tests al runtime explícito antes de eliminar el
 singleton del módulo.
+
+## Actualización verificada: eliminación de fachada URL sin callers
+
+Se eliminó `ExtendedUrllib.raise_size_limit()`, una API legacy que recreaba el
+override contra el singleton global de configuración. La ruta activa usa
+`self._size_limit_override`, creado una sola vez para el opener; la búsqueda
+estructural no encontró callers de la fachada eliminada.
+
+Verificación: la batería focal de URL pasa **56 tests**, con solo los dos
+warnings externos de `ldap3/pyasn1`; Ruff, mypy y Bandit focal están limpios.
+El score se mantiene en **6.5/10** porque la eliminación de una API muerta no
+cierra todavía la composición global ni la cobertura completa.
