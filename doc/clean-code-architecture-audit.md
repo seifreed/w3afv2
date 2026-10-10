@@ -2056,3 +2056,15 @@ Verificación: 15 tests del core pasan; Ruff, Black y mypy están limpios en el
 helper, el core y sus tests. El score permanece en **5.75/10**: la mejora es
 local y siguen pendientes cobertura global, hallazgos de Bandit, mocks
 heredados, perfilado, Moth y otros orquestadores grandes.
+
+## Actualización verificada: disponibilidad del target separada
+
+La verificación HTTP inicial de los targets salió de `CoreStrategy` y pasó a
+`core_helpers/target_validation.py`. La estrategia conserva la coordinación
+del scan y delega esta operación de infraestructura, sin duplicar una fachada
+para mantener la API antigua.
+
+Verificación: 17 tests de estrategia, 7 subtests, Ruff, Black y mypy pasan en
+los módulos modificados. Persisten únicamente warnings de dependencias
+externas. El score permanece en **5.75/10**: aún quedan las validaciones de
+redirección/404, el router concurrente, Bandit heredado y la cobertura global.
