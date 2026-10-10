@@ -22,17 +22,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 import time
-import traceback
-import warnings
 from http.cookiejar import Cookie, LoadError, MozillaCookieJar
 
 # The header every Netscape cookie file starts with (http.cookiejar keeps its
 # own copy of this regular expression private)
 NETSCAPE_MAGIC_RE = re.compile("#( Netscape)? HTTP Cookie File", re.IGNORECASE)
-
-
-def _warn_unhandled_exception():
-    warnings.warn(f"http.cookiejar bug!\n{traceback.format_exc()}", stacklevel=2)
 
 
 class ImprovedMozillaCookieJar(MozillaCookieJar):
@@ -140,7 +134,6 @@ class ImprovedMozillaCookieJar(MozillaCookieJar):
         except OSError:
             raise
         except Exception as e:
-            _warn_unhandled_exception()
             raise LoadError(
                 f"invalid Netscape format cookies file {filename!r}: {line!r}"
             ) from e

@@ -3217,3 +3217,15 @@ HTTPResponse**; Black global, Ruff global, mypy focalizado, Bandit focalizado,
 `pip-audit` y `git diff --check` están limpios. El score se mantiene en
 **6.5/10** por módulos grandes, cobertura global no demostrada y gates globales
 pendientes.
+
+## Actualización verificada: errores de cookie sin warnings
+
+`ImprovedMozillaCookieJar` convierte ahora los formatos inválidos directamente
+en `LoadError` encadenado, sin emitir una advertencia duplicada ni exponer un
+traceback como warning al usuario. El test exige explícitamente cero warnings
+para ese contrato.
+
+Verificación: la suite URL pasó **217 tests en 182.31 s**, con solo **2
+warnings externos** de `ldap3/pyasn1`; Black, Ruff, mypy focalizado, Bandit
+focalizado, `pip-audit` y `git diff --check` están limpios. El score se mantiene
+en **6.5/10** por cobertura global, módulos grandes y gates globales pendientes.

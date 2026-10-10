@@ -115,4 +115,4 @@ class TestImprovedMozillaCookieJar(unittest.TestCase):
             with self.assertRaisesRegex(LoadError, "invalid Netscape format"):
                 self.load(path)
 
-        self.assertIn("http.cookiejar bug!", str(caught[0].message))
+        self.assertEqual(caught, [])
