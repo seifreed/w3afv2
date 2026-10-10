@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.controllers.sql_tools.blind_sqli_response_diff import (
     BlindSqliResponseDiff,
@@ -240,7 +239,7 @@ class blind_sqli(AuditPlugin):
         :return: True if there IS a reported SQL injection for this
                  URL/parameter combination.
         """
-        for sql_injection in kb.kb.get_iter("sqli", "sqli"):
+        for sql_injection in self._get_knowledge_base().get_iter("sqli", "sqli"):
             if sql_injection.get_url() != mutant.get_url():
                 continue
 
