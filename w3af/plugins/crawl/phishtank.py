@@ -25,7 +25,6 @@ import os.path
 import socket
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
 from w3af.core.controllers.misc.decorators import runonce
@@ -84,7 +83,7 @@ class phishtank(CrawlPlugin):
         v = Vuln("Phishing scam", desc, severity.MEDIUM, [], self.get_name())
         v.set_url(ptm.url)
 
-        kb.kb.append(self, "phishtank", v)
+        self._get_knowledge_base().append(self, "phishtank", v)
         om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
     def _get_to_check(self, target_url):

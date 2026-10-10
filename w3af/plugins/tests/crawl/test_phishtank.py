@@ -67,6 +67,7 @@ class TestPhishtank(unittest.TestCase):
 
     def crawl(self, url, phishtank_db=LOCAL_PHISHTANK_DB):
         plugin = phishtank(phishtank_db=phishtank_db)
+        plugin.set_knowledge_base(kb.kb)
         plugin.crawl(FuzzableRequest(url), "debugging-id")
         return plugin
 
