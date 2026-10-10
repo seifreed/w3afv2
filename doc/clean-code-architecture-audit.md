@@ -4146,3 +4146,16 @@ configurar; el mismo resultado se reproduce en el `HEAD` anterior. El score
 sube a **9.6/10** en Clean Architecture y **9.5/10** global. Restan el
 ensamblaje global de `w3afCore`, la reparación de esas fixtures y la cobertura
 global del 100%.
+
+## Actualización verificada: configuración aislada por `w3afCore`
+
+`w3afCore` acepta una `Config` explícita y crea una configuración local cuando
+no se proporciona. Target, strategy, opener, perfiles y plugins reciben esa
+misma instancia, pero dos cores nuevos ya no comparten el estado mutable del
+singleton `cf`.
+
+Verificación: core, excepciones e instancias múltiples pasan **27 tests**.
+Black, Ruff y mypy focal están limpios. El score sube a **9.7/10** en Clean
+Architecture y **9.6/10** global. Restan la eliminación del módulo singleton
+de configuración, la reparación de fixtures globales y la cobertura global del
+100%.

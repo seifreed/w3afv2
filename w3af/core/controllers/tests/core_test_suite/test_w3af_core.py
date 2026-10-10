@@ -75,6 +75,14 @@ class TestW3afCore(unittest.TestCase):
     def test_plugins_must_be_initialized(self):
         self.assert_environment_error("You must call the plugins.init_plugins()")
 
+    def test_configuration_is_local_to_core_instance(self):
+        other_core = w3afCore()
+        self.addCleanup(other_core.quit)
+
+        self.core.configuration.save("test_value", "first")
+
+        self.assertIsNone(other_core.configuration.get("test_value"))
+
     def test_quit_stops_output_manager(self):
         self.assertTrue(self.core._output_manager.is_alive())
 

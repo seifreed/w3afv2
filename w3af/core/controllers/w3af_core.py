@@ -73,7 +73,7 @@ from w3af.core.controllers.output_manager.logging_bridge import (
 from w3af.core.controllers.parser_worker import register_parser_multiprocessing
 from w3af.core.controllers.profiling import start_profiling, stop_profiling
 from w3af.core.data.kb import knowledge_base as kb_store
-from w3af.core.data.kb.config import cf
+from w3af.core.data.kb.config import Config
 from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.data.parsers import parser_cache
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
@@ -122,13 +122,17 @@ class w3afCore:
     STOP_TIMEOUT = 10
     STOP_LOOP_DELAY = 0.5
 
-    def __init__(self, knowledge_base: kb_store.DBKnowledgeBase | None = None):
+    def __init__(
+        self,
+        knowledge_base: kb_store.DBKnowledgeBase | None = None,
+        configuration: Config | None = None,
+    ):
         """
         Init some variables and files.
         Create the URI opener.
         """
         # Make sure we get a fresh new instance of the output manager
-        self._configuration = cf
+        self._configuration = Config() if configuration is None else configuration
         self._misc_settings = MiscSettings(self._configuration)
         manager, output = create_output_manager()
         configure_data_logging(output)
@@ -171,11 +175,13 @@ class w3afCore:
         # scan.
         self.profiles = CoreProfiles(self, self._configuration)
         self.plugins = CorePlugins(self, output, manager)
-        self.target = CoreTarget(cf)
+        self.target = CoreTarget(self._configuration)
         self._environment_validator = ScanEnvironmentValidator(
             self.plugins, self.target
         )
-        self.strategy = CoreStrategy(self, self.knowledge_base, output, cf)
+        self.strategy = CoreStrategy(
+            self, self.knowledge_base, output, self._configuration
+        )
         self.status = CoreStatus(
             output,
             ConsumerMetrics(self.strategy, lambda: self.worker_pool),
@@ -428,7 +434,7 @@ class w3afCore:
         # going to start a new scan to the same target, and he wants the proxy,
         # timeout and other configs to remain configured as he did it the first
         # time.
-        # reload(cf)
+        # Configuration is intentionally preserved for the next scan.
 
         # It is also a feature to keep the misc settings from the last run, this
         # means that we don't cleanup the misc settings.
@@ -498,7 +504,7 @@ class w3afCore:
             # data from the history in their end() method.
             #
             # Also needs to be done before target.clear() because some plugins
-            # need to access the target data stored in cf
+            # need to access the target data stored in the configuration
             #
             self._output.debug("Calling end_output_plugins()")
             self._output_manager.end_output_plugins()

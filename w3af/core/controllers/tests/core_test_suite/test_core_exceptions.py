@@ -24,7 +24,6 @@ import functools
 import threading
 import unittest
 
-import w3af.core.data.kb.config as cf
 from w3af.core.controllers.misc.factory import factory
 from w3af.core.controllers.tests.local_http_server import LocalHTTPServer, Reply
 from w3af.core.controllers.tests.recording_output import start_recording_output
@@ -132,9 +131,11 @@ class TestCoreExceptions(unittest.TestCase):
         self.assertIn(message, self.recorder.messages_of("information"))
 
     def stop_on_first_exception(self):
-        previous = cf.cf.get("stop_on_first_exception")
-        self.addCleanup(cf.cf.save, "stop_on_first_exception", previous)
-        cf.cf.save("stop_on_first_exception", True)
+        previous = self.w3afcore.configuration.get("stop_on_first_exception")
+        self.addCleanup(
+            self.w3afcore.configuration.save, "stop_on_first_exception", previous
+        )
+        self.w3afcore.configuration.save("stop_on_first_exception", True)
 
     def test_memory_error(self):
         self.exception_plugin.exception_to_raise = MemoryError
