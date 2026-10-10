@@ -87,7 +87,11 @@ class eval(AttackPlugin):
 
         # I get a list of tuples with code and extension to use
         null_command = ""
-        shell_code_list = shell_handler.get_shell_code(extension, null_command)
+        shell_code_list = shell_handler.get_shell_code(
+            extension,
+            null_command,
+            knowledge_base=self._get_knowledge_base(),
+        )
 
         for code, real_extension, shellcode_generator in shell_code_list:
             # Prepare for exploitation...

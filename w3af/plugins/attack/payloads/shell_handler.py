@@ -24,7 +24,6 @@ import base64
 import functools
 import os.path
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.controllers.exceptions import BaseFrameworkException
 
@@ -35,7 +34,7 @@ SHELL_IDENTIFIER = SHELL_IDENTIFIER_1 + SHELL_IDENTIFIER_2
 CMD_TO_RUN_CONSTANT = "__CMD_TO_RUN__"
 
 
-def get_webshells(extension, force_extension=False):
+def get_webshells(extension, force_extension=False, *, knowledge_base):
     """
     This method returns a webshell content to be used in exploits, based on
     the extension, or based on the x-powered-by header.
@@ -44,14 +43,14 @@ def get_webshells(extension, force_extension=False):
     "infrastructure.server_header" if they want to use the complete power of
     this function.
     """
-    return _get_file_list("webshell", extension, force_extension)
+    return _get_file_list("webshell", extension, force_extension, knowledge_base)
 
 
 def cmd_replace(shellcode_content, _command):
     return shellcode_content.replace(CMD_TO_RUN_CONSTANT, _command)
 
 
-def get_shell_code(extension, command, force_extension=False):
+def get_shell_code(extension, command, force_extension=False, *, knowledge_base):
     """
     Similar to get_webshells but returns a code that when it is evaluated runs
     `command` in the operating system.
@@ -71,7 +70,7 @@ def get_shell_code(extension, command, force_extension=False):
               A function that generates new shellcodes based on a command)
     """
     result = []
-    shellcodes = _get_file_list("code", extension, force_extension)
+    shellcodes = _get_file_list("code", extension, force_extension, knowledge_base)
 
     for file_content, real_extension in shellcodes:
         custom_replacer = functools.partial(cmd_replace, file_content)
@@ -106,7 +105,7 @@ def extract_result(body):
     return result
 
 
-def _get_file_list(type_of_list, extension, force_extension=False):
+def _get_file_list(type_of_list, extension, force_extension, knowledge_base):
     """
     :param type_of_list: Indicates what type of list to return, options:
         - code
@@ -126,7 +125,9 @@ def _get_file_list(type_of_list, extension, force_extension=False):
         real_extension = extension
         known_framework.append((filename, real_extension))
     else:
-        powered_by_header_list = kb.kb.raw_read("server_header", "powered_by_string")
+        powered_by_header_list = knowledge_base.raw_read(
+            "server_header", "powered_by_string"
+        )
 
         file_list = [x for x in os.listdir(path) if x.startswith(type_of_list)]
         file_name = f"{type_of_list}.{extension}"

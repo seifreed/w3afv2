@@ -230,7 +230,9 @@ class rfi(AttackPlugin):
         extension = vuln.get_url().get_extension()
 
         # I get a list of tuples with file_content and extension to use
-        shell_list = shell_handler.get_webshells(extension)
+        shell_list = shell_handler.get_webshells(
+            extension, knowledge_base=self._get_knowledge_base()
+        )
 
         for file_content, real_extension in shell_list:
             #

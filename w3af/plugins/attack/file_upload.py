@@ -134,7 +134,9 @@ class file_upload(AttackPlugin):
         """
         :yield: Tuples with file_content and file_name for web shells.
         """
-        for shell_str, orig_extension in shell_handler.get_webshells(extension):
+        for shell_str, orig_extension in shell_handler.get_webshells(
+            extension, knowledge_base=self._get_knowledge_base()
+        ):
             # If the webshell was webshell.php this will return a file_name
             # containing kgiwjxh.php (8 rand and the extension)
             file_name = f"{rand_alpha(8)}.{orig_extension}"

@@ -414,6 +414,7 @@ class TestKnowledgeBase(unittest.TestCase):
         class FakeCore:
             worker_pool = Pool(1)
             uri_opener = ExtendedUrllib()
+            knowledge_base = kb
 
         core = FakeCore()
         original_shell = Shell(MockVuln(), core.uri_opener, core.worker_pool)
@@ -493,7 +494,7 @@ class TestKnowledgeBase(unittest.TestCase):
         """
         w3af_core = w3afCore()
 
-        shellcodes = get_shell_code("php", "ls")
+        shellcodes = get_shell_code("php", "ls", knowledge_base=kb)
         shellcode_generator = shellcodes[0][2]
 
         shell = EvalShell(
