@@ -3,7 +3,6 @@
 import logging
 from contextlib import contextmanager
 
-import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.data.kb.info import Info
@@ -13,7 +12,7 @@ from w3af.core.exceptions import ScanMustStopByUserRequest, ScanMustStopExceptio
 logger = logging.getLogger(__name__)
 
 
-def verify_target_server_up(w3af_core):
+def verify_target_server_up(w3af_core, output):
     """Verify that the configured targets answer HTTP requests."""
     sent_requests = 0
 
@@ -47,7 +46,7 @@ def verify_target_server_up(w3af_core):
                     exc_info=True,
                 )
                 dbg = 'Exception found during verify_target_server_up: "%s"'
-                om.out.debug(dbg % e)
+                output.debug(dbg % e)
 
                 target_list = "\n".join(f" - {url}\n" for url in targets)
 
@@ -57,7 +56,7 @@ def verify_target_server_up(w3af_core):
 
 
 @contextmanager
-def _scan_must_stop_on_error(description):
+def _scan_must_stop_on_error(description, output):
     """Convert an unexpected target error into a scan-stop exception."""
     try:
         yield
@@ -66,17 +65,17 @@ def _scan_must_stop_on_error(description):
     except Exception as e:
         logger.debug(description, exc_info=True)
         msg = f'{description}: "{e}" ({e.__class__.__name__})'
-        om.out.debug(msg)
+        output.debug(msg)
         raise ScanMustStopException(msg) from e
 
 
-def _get_target(w3af_core, url, step, **kwargs):
+def _get_target(w3af_core, url, step, output, **kwargs):
     """Send a GET request and normalize unexpected target failures."""
-    with _scan_must_stop_on_error(f"Exception found during {step}"):
+    with _scan_must_stop_on_error(f"Exception found during {step}", output):
         return w3af_core.uri_opener.GET(url, **kwargs)
 
 
-def replace_targets_with_redir(w3af_core):
+def replace_targets_with_redir(w3af_core, output):
     """Replace targets with same-domain redirect destinations."""
     targets = cf.cf.get("targets")
     new_targets = []
@@ -86,6 +85,7 @@ def replace_targets_with_redir(w3af_core):
             w3af_core,
             url,
             "replace_targets_with_redir()",
+            output,
             cache=False,
             follow_redirects=True,
         )
@@ -99,7 +99,7 @@ def replace_targets_with_redir(w3af_core):
     cf.cf.save("targets", new_targets)
 
 
-def alert_if_target_is_301_all(w3af_core, knowledge_base):
+def alert_if_target_is_301_all(w3af_core, knowledge_base, output):
     """Report a target that redirects all traffic outside its scope."""
     site_does_redirect = False
     msg = (
@@ -123,7 +123,7 @@ def alert_if_target_is_301_all(w3af_core, knowledge_base):
 
     for url in targets:
         http_response = _get_target(
-            w3af_core, url, "alert_if_target_is_301_all()", cache=False
+            w3af_core, url, "alert_if_target_is_301_all()", output, cache=False
         )
         if http_response.does_redirect_outside_target():
             site_does_redirect = True
@@ -136,23 +136,25 @@ def alert_if_target_is_301_all(w3af_core, knowledge_base):
         info.add_to_highlight(http_response.get_redir_url().url_string)
 
         knowledge_base.append_uniq("core", "core", info)
-        om.out.report_finding(info)
+        output.report_finding(info)
 
     return site_does_redirect
 
 
-def setup_404_detection(w3af_core):
+def setup_404_detection(w3af_core, output):
     """Initialize 404 detection for each configured target."""
     targets_with_404 = []
 
     for url in cf.cf.get("targets"):
-        response = _get_target(w3af_core, url, "_setup_404_detection()", cache=True)
+        response = _get_target(
+            w3af_core, url, "_setup_404_detection()", output, cache=True
+        )
 
         failure = (
             "Failed to initialize the 404 detection using HTTP"
             f' response from "{url}"'
         )
-        with _scan_must_stop_on_error(failure):
+        with _scan_must_stop_on_error(failure, output):
             current_target_is_404 = is_404(response)
 
         if current_target_is_404:
@@ -160,7 +162,7 @@ def setup_404_detection(w3af_core):
 
     if targets_with_404:
         urls = "".join(f" - {u.url_string}\n" for u in targets_with_404)
-        om.out.information(
+        output.information(
             "w3af identified the user-configured URLs listed"
             " below as non-existing pages (404). This could"
             " result in a scan with low test coverage: some"

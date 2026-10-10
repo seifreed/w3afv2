@@ -262,11 +262,13 @@ class TestStrategy(unittest.TestCase):
     def target_request_steps(self, strategy):
         core = strategy._w3af_core
         return {
-            "replace_targets_with_redir()": lambda: replace_targets_with_redir(core),
-            "alert_if_target_is_301_all()": lambda: alert_if_target_is_301_all(
-                core, kb
+            "replace_targets_with_redir()": lambda: replace_targets_with_redir(
+                core, om.out
             ),
-            "_setup_404_detection()": lambda: setup_404_detection(core),
+            "alert_if_target_is_301_all()": lambda: alert_if_target_is_301_all(
+                core, kb, om.out
+            ),
+            "_setup_404_detection()": lambda: setup_404_detection(core, om.out),
         }
 
     def test_target_request_failure_stops_the_scan(self):
@@ -288,7 +290,9 @@ class TestStrategy(unittest.TestCase):
         core.uri_opener.stop()
 
         steps = self.target_request_steps(strategy)
-        steps["verify_target_server_up()"] = lambda: verify_target_server_up(core)
+        steps["verify_target_server_up()"] = lambda: verify_target_server_up(
+            core, om.out
+        )
 
         for step, step_method in steps.items():
             with self.subTest(step=step):
@@ -300,4 +304,4 @@ class TestStrategy(unittest.TestCase):
 
         fingerprint_404_singleton(cleanup=True)
 
-        setup_404_detection(core)
+        setup_404_detection(core, om.out)

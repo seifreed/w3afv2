@@ -2300,3 +2300,16 @@ Ruff, Black y mypy están limpios. El score permanece en **5.75/10** por el
 singleton todavía presente en `w3afCore` y otros módulos, cobertura 100% no
 demostrada, Bandit heredado, mocks existentes, Moth y los orquestadores aún
 grandes.
+
+## Actualización verificada: validación de targets sin singleton
+
+Los helpers `verify_target_server_up`, `replace_targets_with_redir`,
+`alert_if_target_is_301_all` y `setup_404_detection` reciben ahora el sink de
+salida de `CoreStrategy`. También lo usan sus context managers internos para
+diagnósticos, avisos y hallazgos, eliminando la dependencia global de
+`target_validation` sin tocar la política de red ni el manejo de excepciones.
+
+Verificación: **9 tests pasados y 7 subtests** en la estrategia de bajo nivel;
+Ruff, Black y mypy están limpios. El score permanece en **5.75/10** por el
+singleton restante en otros helpers y UI, cobertura 100% no demostrada, Bandit
+heredado, mocks existentes, Moth y los orquestadores grandes.

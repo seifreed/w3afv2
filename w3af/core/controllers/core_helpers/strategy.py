@@ -119,9 +119,11 @@ class CoreStrategy:
         :return: No value is returned.
         """
         try:
-            verify_target_server_up(self._w3af_core)
-            replace_targets_with_redir(self._w3af_core)
-            alert_if_target_is_301_all(self._w3af_core, self._knowledge_base)
+            verify_target_server_up(self._w3af_core, self._output)
+            replace_targets_with_redir(self._w3af_core, self._output)
+            alert_if_target_is_301_all(
+                self._w3af_core, self._knowledge_base, self._output
+            )
 
             self._setup_grep()
             self._setup_auth()
@@ -130,7 +132,7 @@ class CoreStrategy:
             self._setup_bruteforce()
 
             self._setup_observers()
-            setup_404_detection(self._w3af_core)
+            setup_404_detection(self._w3af_core, self._output)
 
             self._seed_discovery()
 
