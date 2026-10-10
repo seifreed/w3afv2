@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import re
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.constants import severity
@@ -58,7 +57,7 @@ class http_auth_detect(GrepPlugin):
             # Doing this after the other if in order to be faster.
             already_reported = [
                 i.get_url().get_domain_path()
-                for i in kb.kb.get("http_auth_detect", "auth")
+                for i in self._get_knowledge_base().get("http_auth_detect", "auth")
             ]
             if response.get_url().get_domain_path() not in already_reported:
 
@@ -93,7 +92,7 @@ class http_auth_detect(GrepPlugin):
             v.set_url(response.get_url())
             v.add_to_highlight(response.get_uri().url_string)
 
-            kb.kb.append(self, "userPassUri", v)
+            self._get_knowledge_base().append(self, "userPassUri", v)
             om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
         #
@@ -131,7 +130,7 @@ class http_auth_detect(GrepPlugin):
                 v.set_url(response.get_url())
                 v.add_to_highlight(url.url_string)
 
-                kb.kb.append(self, "userPassUri", v)
+                self._get_knowledge_base().append(self, "userPassUri", v)
                 om.out.vulnerability(v.get_desc(), severity=v.get_severity())
 
     def _url_has_auth(self, url):
@@ -164,7 +163,7 @@ class http_auth_detect(GrepPlugin):
         )
         i.set_url(response.get_url())
 
-        kb.kb.append(self, "non_rfc_auth", i)
+        self._get_knowledge_base().append(self, "non_rfc_auth", i)
         om.out.information(i.get_desc())
 
     def _analyze_401(self, response):
@@ -214,7 +213,7 @@ class http_auth_detect(GrepPlugin):
         v["message"] = realm
         v.add_to_highlight(realm)
 
-        kb.kb.append(self, "auth", v)
+        self._get_knowledge_base().append(self, "auth", v)
         om.out.information(v.get_desc())
 
     def get_long_desc(self):

@@ -37,6 +37,7 @@ class test_http_auth_detect(unittest.TestCase):
         self.headers = Headers(list({"content-type": "text/html"}.items()))
         self.request = FuzzableRequest(self.url, method="GET")
         self.plugin = http_auth_detect()
+        self.plugin.set_knowledge_base(kb.kb)
         kb.kb.cleanup()
 
     def tearDown(self):
