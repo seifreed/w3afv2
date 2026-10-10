@@ -54,6 +54,8 @@ class CachedDiskDict:
 
     def cleanup(self):
         self._disk_dict.cleanup()
+        self._in_memory.clear()
+        self._access_count.clear()
 
     def _get_table_prefix(self, table_prefix):
         if table_prefix is None:

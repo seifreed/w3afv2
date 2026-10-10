@@ -70,6 +70,15 @@ class TestVariantDB(unittest.TestCase):
         extra_url = URL(url_fmt % (PARAMS_MAX_VARIANTS + 1,))
         self.assertFalse(self.vdb.append(fr(extra_url)))
 
+    def test_cleanup_releases_all_state(self):
+        self.assertTrue(self.vdb.append(fr(URL("http://w3af.org/foo.htm"))))
+
+        self.vdb.cleanup()
+
+        self.assertEqual(len(self.vdb._variants_eq), 0)
+        self.assertEqual(self.vdb._variants._in_memory, {})
+        self.assertEqual(self.vdb._variants_form._in_memory, {})
+
     def test_db_int_int(self):
         url_fmt = "http://w3af.org/foo.htm?id=%s&bar=1"
 

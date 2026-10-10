@@ -475,6 +475,7 @@ class web_spider(CrawlPlugin):
                 self._output.information(f"- {broken} [ referenced from: {where} ]")
 
         self._broken_links.cleanup()
+        self._variant_db.cleanup()
 
     def _is_forward(self, reference):
         """

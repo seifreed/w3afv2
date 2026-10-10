@@ -132,6 +132,7 @@ class VariantDB:
     def cleanup(self):
         self._variants.cleanup()
         self._variants_form.cleanup()
+        self._variants_eq.filters.clear()
 
     def append(self, fuzzable_request):
         """

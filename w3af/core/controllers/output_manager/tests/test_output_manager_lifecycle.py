@@ -152,6 +152,15 @@ class TestOutputManagerRun(unittest.TestCase):
 
         self.assertFalse(manager.is_alive())
 
+    def test_closed_queue_reader_stops_the_manager(self):
+        manager = OutputManager()
+        manager.in_queue._reader.close()
+
+        manager.start()
+        manager.join(WAIT_SECONDS)
+
+        self.assertFalse(manager.is_alive())
+
     def test_messages_are_dropped_while_plugins_end(self):
         recorder = EventfulOutput()
         recorder.release_end.clear()

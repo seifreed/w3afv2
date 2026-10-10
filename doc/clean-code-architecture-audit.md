@@ -3845,3 +3845,22 @@ externos de `swagger`/`jsonschema`, sin errores reproducibles del
 limpios. El score sube a **7.1/10** en Clean Architecture y **7.0/10** global.
 Aún quedan consumidores de `cf` en controladores y datos, y no se ha cerrado la
 validación global de cobertura ni todos los gates del repositorio.
+
+## Actualización verificada: liberar `VariantDB` y cerrar la cola de output
+
+`web_spider.end()` ahora libera también su `VariantDB`, que podía conservar
+filtros Bloom y cachés entre scans. `CachedDiskDict.cleanup()` vacía sus
+estructuras en memoria y `VariantDB.cleanup()` libera el Bloom filter. Además,
+el bucle de `OutputManager` trata el cierre del descriptor de la cola como un
+teardown normal, evitando la traza `OSError: handle is closed` al terminar las
+suites.
+
+Verificación: `VariantDB` pasa **42 tests**, el ciclo de vida de
+`OutputManager` **20 tests** y `web_spider` **12 tests** sin la excepción de
+cierre. Una medición puntual de la suite web alcanzó **138 MB de RSS máximo**;
+el proceso de medición quedó afectado por ejecuciones antiguas de pytest que
+siguen activas en el workspace, por lo que no uso esa cifra como comparación
+directa. Black, Ruff, mypy y Bandit focal están limpios. El score sube a
+**7.3/10** en Clean Architecture y **7.2/10** global. Siguen pendientes otros
+consumidores de configuración global y la validación completa de cobertura y
+gates.

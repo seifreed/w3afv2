@@ -186,6 +186,11 @@ class OutputManager(Process):
                 # was received, so there is no task to mark as done
                 break
 
+            except OSError:
+                # The queue's reader can be closed during process teardown.
+                # No work unit was received, so there is no task to mark done.
+                break
+
             if work_unit == POISON_PILL:
                 # This is added at fresh_output_manager_inst
                 self.in_queue.task_done()
