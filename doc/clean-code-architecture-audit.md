@@ -2651,3 +2651,14 @@ relays y parada ya no consultan `output_manager` dentro del servidor.
 Verificación: Ruff, Black, mypy y `py_compile` están limpios. Este checkout no
 contiene tests específicos del agente; la cobertura de sus rutas queda
 pendiente y el score permanece en **6.25/10**.
+
+## Actualización verificada: w3afAgent manager con output explícito
+
+`w3afAgentManager` recibe ahora el sink desde el payload `w3af_agent` y usa
+`self._output` para sus logs y para componer el servidor, la transferencia y
+la ejecución diferida. El manager ya no importa `output_manager`.
+
+Verificación: Ruff, Black, mypy, `py_compile`, `4` tests de shells y `git diff
+--check` están limpios. El test de integración del payload no inicia porque el
+entorno no resuelve `php_moth-fallback`; no hay tests dedicados del manager y
+el score permanece en **6.25/10**.
