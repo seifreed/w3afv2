@@ -3502,3 +3502,16 @@ warnings externos de `ldap3/pyasn1`; la batería focal pasó **42 tests en
 163.31 s**. Ruff, mypy focal y Bandit focal están limpios. El score se mantiene
 en **6.5/10** por cobertura global, módulos grandes y gates globales
 pendientes.
+
+## Actualización verificada: registro de errores separado
+
+`FailedResponseRecorder` concentra normalización del error, filtrado de
+tracebacks ruidosos, cálculo de razón, registro de RTT y actualización del
+historial de fallos. `ExtendedUrllib` conserva `_log_failed_response()` y la
+decisión de reintentar o detener el scan permanece en el coordinador.
+
+Verificación: la suite URL completa pasó **217 tests en 178.54 s**, con dos
+warnings externos de `ldap3/pyasn1`; la batería focal pasó **42 tests en
+150.82 s**. Ruff, mypy focal y Bandit focal están limpios. El score se mantiene
+en **6.5/10** por cobertura global, módulos grandes y gates globales
+pendientes.

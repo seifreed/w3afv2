@@ -23,10 +23,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import functools
 import http.client
 import logging
-import socket
 import threading
 import time
-import traceback
 import urllib.error
 import urllib.request
 import uuid
@@ -38,7 +36,6 @@ import OpenSSL
 import w3af.core.data.kb.config as cf
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.fuzzer.utils import rand_alnum
-from w3af.core.data.misc.encoding import smart_unicode
 from w3af.core.data.misc.lru import SynchronizedLRUDict
 from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.data.parsers.doc.http_request_parser import http_request_parser
@@ -50,6 +47,7 @@ from w3af.core.data.url.constants import (
     TIMEOUT_MULT_CONST,
 )
 from w3af.core.data.url.exceptions import ConnectionPoolException, HTTPRequestException
+from w3af.core.data.url.failed_response_recorder import FailedResponseRecorder
 from w3af.core.data.url.get_average_rtt import GetAverageRTTForMutant
 from w3af.core.data.url.grep_dispatcher import GrepDispatcher
 from w3af.core.data.url.handlers.keepalive import URLTimeoutError
@@ -137,6 +135,12 @@ class ExtendedUrllib:
         self._retry_handler = RequestRetryHandler(
             self.send,
             self.get_timeout,
+            LOGGER.debug,
+        )
+        self._failed_response_recorder = FailedResponseRecorder(
+            self._response_history,
+            self.get_timeout,
+            self._log_error_rate,
             LOGGER.debug,
         )
         self._request_control = ScanRequestControl()
@@ -869,56 +873,7 @@ class ExtendedUrllib:
         return self._retry_handler.retry(req, grep, url_error)
 
     def _log_failed_response(self, request, exception, original_url):
-        """
-        Add the failed response to the response history, and if we got a
-        lot of failures raise a "ScanMustStopException" subtype.
-
-        :param exception: Exception object.
-        """
-        # Log the exception
-        msg = 'Failed to HTTP "%s" "%s". Reason: "%s", going to retry (did:%s)'
-
-        original_url = smart_unicode(original_url)
-        args = (request.get_method(), original_url, exception, request.debugging_id)
-
-        LOGGER.debug(msg % args)
-
-        # Don't make a lot of noise on URLTimeoutError which is pretty common
-        # and properly handled by this library
-        no_traceback_for = (
-            URLTimeoutError,
-            ConnectionPoolException,
-            BadStatusLine,
-            socket.error,
-            OpenSSL.SSL.SysCallError,
-            OpenSSL.SSL.ZeroReturnError,
-        )
-        if not isinstance(exception, no_traceback_for):
-            msg = "Traceback for this error: %s"
-            LOGGER.debug(msg % traceback.format_exc())
-
-        # Save the error for tracking and statistics.
-        reason = get_exception_reason(exception)
-        reason = reason or str(exception)
-
-        host = request.get_domain()
-
-        # The HTTP request failed, this most likely means that we received a
-        # timeout or some other network / protocol error.
-        #
-        # We want to save response metadata with some RTT that indicates that
-        # this (potential) timeout happen. Se we get the current timeout and
-        # use it as the RTT parameter
-        #
-        # This is not perfect, BUT is better than not specifying any RTT.
-        #
-        # Specifying the `rtt` here will allow `get_average_rtt` to take these
-        # errors into account when calculating the RTT
-        rtt = self.get_timeout(host)
-
-        self._response_history.record_failure(reason, host, rtt)
-
-        self._log_error_rate()
+        self._failed_response_recorder.record(request, exception, original_url)
 
     def _should_stop_scan(self, request):
         """Return whether consecutive failures indicate an unreachable server."""
