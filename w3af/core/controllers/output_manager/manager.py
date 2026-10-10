@@ -118,14 +118,16 @@ class OutputManager(Process):
         # Internal variables
         self.in_queue = SilentJoinableQueue(ctx=multiprocessing.get_context())
         self._w3af_core = None
+        self._output = None
         self._knowledge_base = None
         self._flush_timeout = flush_timeout
         self._last_output_flush = None
         self._is_shutting_down = False
         self._worker_pool = self.get_worker_pool()
 
-    def set_w3af_core(self, w3af_core):
+    def set_w3af_core(self, w3af_core, output):
         self._w3af_core = w3af_core
+        self._output = output
         self.set_knowledge_base(w3af_core.knowledge_base)
 
     def set_knowledge_base(self, knowledge_base):
@@ -241,15 +243,13 @@ class OutputManager(Process):
         # and the output manager calls flush() for a second time while
         # we're still running the first call, just ignore.
         if o_plugin.is_running_flush:
-            import w3af.core.controllers.output_manager as om
-
             msg = (
                 "The %s plugin is still running flush(), the output"
                 " manager will not call flush() again to give the"
                 " plugin time to finish."
             )
             args = (o_plugin.get_name(),)
-            om.out.debug(msg % args)
+            LOGGER.debug(msg % args)
             return
 
         #
@@ -271,9 +271,7 @@ class OutputManager(Process):
             spent_time = time.time() - start_time
             args = (o_plugin.get_name(), spent_time)
 
-            import w3af.core.controllers.output_manager as om
-
-            om.out.debug("{}.flush() took {:.2f}s to run".format(*args))
+            LOGGER.debug("{}.flush() took {:.2f}s to run".format(*args))
 
     def _handle_output_plugin_exception(self, o_plugin, exception):
         if self._w3af_core is None:
@@ -288,13 +286,12 @@ class OutputManager(Process):
         # FIXME: I need to import this here because of the awful
         #        singletons I use all over the framework. If imported
         #        at the top, they will generate circular import errors
-        import w3af.core.controllers.output_manager as om
         from w3af.core.controllers.core_helpers.status import CoreStatus
 
         class FakeStatus(CoreStatus):
             pass
 
-        status = FakeStatus(self._w3af_core, om.out)
+        status = FakeStatus(self._w3af_core, self._output)
         status.set_current_fuzzable_request("output", "n/a")
         status.set_running_plugin("output", o_plugin.get_name(), log=False)
 

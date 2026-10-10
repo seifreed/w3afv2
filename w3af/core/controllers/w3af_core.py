@@ -134,7 +134,7 @@ class w3afCore:
         # FIXME: In the future, when the output_manager is not an awful
         # singleton anymore, this line should be removed and the output_manager
         # object should take a w3afCore object as a parameter in its __init__
-        manager.set_w3af_core(self)
+        manager.set_w3af_core(self, output)
 
         # This is more than just a debug message, it's a way to force the
         # output manager thread to start it's work. I would start that thread

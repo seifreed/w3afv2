@@ -2850,3 +2850,15 @@ regresión de cambio de sink; Ruff, Black, mypy focalizado y `git diff --check`
 están limpios. El score permanece en **6.25/10** por los globals de sinks y
 composition roots restantes, cobertura 100% no demostrada, Bandit heredado,
 mocks e integraciones Moth.
+
+## Actualización verificada: OutputManager sin imports globales en runtime
+
+Los diagnósticos internos de flush usan el logger del módulo y el manejo de
+excepciones de plugins recibe el sink al enlazar explícitamente
+`OutputManager.set_w3af_core(core, output)`. Se eliminan los imports dinámicos
+de `output_manager` desde la implementación del manager.
+
+Verificación: **29 tests pasaron** en toda la suite del OutputManager; Ruff,
+Black, mypy focalizado y `git diff --check` están limpios. El score permanece
+en **6.25/10** por los globals de composición restantes, cobertura 100% no
+demostrada, Bandit heredado, mocks e integraciones Moth.
