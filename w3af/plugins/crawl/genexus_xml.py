@@ -25,7 +25,6 @@ from xml.parsers.expat import ExpatError
 from defusedxml import DefusedXmlException, minidom
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.misc.decorators import runonce
@@ -78,7 +77,7 @@ class genexus_xml(CrawlPlugin):
             i = Info(title_info, desc, http_response.id, self.get_name())
             i.set_url(genexus_url)
 
-            kb.kb.append(self, file_name, i)
+            self._get_knowledge_base().append(self, file_name, i)
             om.out.information(i.get_desc())
 
             # Send the new link to the core

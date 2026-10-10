@@ -25,7 +25,6 @@ from collections import namedtuple
 from functools import partial
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 import w3af.core.data.parsers.document_parser as DocumentParser
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
@@ -66,7 +65,7 @@ class find_captchas(CrawlPlugin):
             i = Info("Captcha image detected", desc, response_ids, self.get_name())
             i.set_uri(captcha.img_src)
 
-            kb.kb.append(self, "CAPTCHA", i)
+            self._get_knowledge_base().append(self, "CAPTCHA", i)
             om.out.information(i.get_desc())
 
     def _identify_captchas(self, fuzzable_request):
