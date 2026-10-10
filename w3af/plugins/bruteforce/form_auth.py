@@ -25,7 +25,6 @@ import time
 from copy import deepcopy
 from itertools import repeat
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.diff import chunked_diff
 from w3af.core.controllers.misc.epoch_to_string import epoch_to_string
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal
@@ -82,24 +81,24 @@ class form_auth(BruteforcePlugin):
             self._signature_test(mutant, session, login_failed_bodies, debugging_id)
         except BaseFrameworkException as bfe:
             msg = 'Signature test failed during form bruteforce setup: "%s"'
-            om.out.debug(msg % bfe)
+            self._output.debug(msg % bfe)
             return
 
         user_token, pass_token = mutant.get_dc().get_login_tokens()
 
         # Let the user know what we are doing
         msg = 'Found a user login form. The form action is: "%s"'
-        om.out.information(msg % mutant.get_url())
+        self._output.information(msg % mutant.get_url())
 
         if user_token is not None:
             msg = 'The username field to be used is: "%s"'
-            om.out.information(msg % user_token.get_name())
+            self._output.information(msg % user_token.get_name())
 
         msg = 'The password field to be used is: "%s"'
-        om.out.information(msg % pass_token.get_name())
+        self._output.information(msg % pass_token.get_name())
 
         msg = 'Starting form authentication bruteforce on URL: "%s"'
-        om.out.information(msg % mutant.get_url())
+        self._output.information(msg % mutant.get_url())
 
         start = time.time()
 
@@ -117,7 +116,7 @@ class form_auth(BruteforcePlugin):
 
         msg = 'Finished bruteforcing "%s" (spent %s)'
         args = (mutant.get_url(), took_str)
-        om.out.information(msg % args)
+        self._output.information(msg % args)
 
     def _create_new_session(self, mutant, debugging_id):
         """
@@ -424,7 +423,7 @@ class form_auth(BruteforcePlugin):
         potential_captcha_page = FailedLoginPage(body_1, body_2)
 
         if self._matches_any_failed_page(body, [potential_captcha_page]):
-            om.out.debug(
+            self._output.debug(
                 "The form brute-force plugin detected a response"
                 " that might indicate that a user exists or CAPTCHA"
                 " protection is present. Please manually review HTTP"
@@ -470,7 +469,7 @@ class form_auth(BruteforcePlugin):
 
         self._get_knowledge_base().append(self, "auth", v)
 
-        om.out.vulnerability(desc, severity=severity.HIGH)
+        self._output.vulnerability(desc, severity=severity.HIGH)
 
     def end(self):
         self._found = set()

@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import base64
 import time
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.epoch_to_string import epoch_to_string
 from w3af.core.controllers.plugins.bruteforce_plugin import BruteforcePlugin
 from w3af.core.data.constants import severity
@@ -65,7 +64,7 @@ class basic_auth(BruteforcePlugin):
 
         # Let the user know what we are doing
         msg = 'Starting basic authentication bruteforce on "%s"'
-        om.out.information(msg % domain_path)
+        self._output.information(msg % domain_path)
         start = time.time()
 
         up_generator = self._create_user_pass_generator(domain_path)
@@ -78,7 +77,7 @@ class basic_auth(BruteforcePlugin):
         took_str = epoch_to_string(start)
         msg = 'Finished basic authentication bruteforce on "%s" (spent %s)'
         args = (domain_path, took_str)
-        om.out.information(msg % args)
+        self._output.information(msg % args)
 
     def _brute_worker(self, url, combination, debugging_id):
         """
@@ -136,7 +135,7 @@ class basic_auth(BruteforcePlugin):
         v["request"] = fr
 
         self._get_knowledge_base().append(self, "auth", v)
-        om.out.vulnerability(v.get_desc(), severity=v.get_severity())
+        self._output.vulnerability(v.get_desc(), severity=v.get_severity())
 
     def _configure_credentials_in_opener(self):
         """

@@ -2205,3 +2205,14 @@ Verificación: **70 tests pasados y 1 omitido** en la suite auth y bases de
 plugin; Ruff, Black y mypy están limpios. El score permanece en **5.75/10** por
 los consumidores globales restantes, cobertura, Bandit heredado, mocks,
 perfilado, Moth y orquestadores grandes.
+
+## Actualización verificada: output desacoplado en bruteforce
+
+`basic_auth` y `form_auth` dejaron de importar el singleton de output y usan el
+sink de `Plugin` heredado a través de `BruteforcePlugin` y `AuditPlugin`. No se
+alteraron los workers, la generación de credenciales ni el reporte en KB.
+
+Verificación: **37 tests pasados** entre la base y los plugins bruteforce;
+Ruff, Black y mypy están limpios. El score permanece en **5.75/10** por los
+consumidores globales restantes, cobertura, Bandit heredado, mocks, perfilado,
+Moth y orquestadores grandes.
