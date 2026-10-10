@@ -3908,3 +3908,17 @@ El score sube a **7.9/10** en Clean Architecture y **7.8/10** global. Siguen
 pendientes otros consumidores de configuración global, la cobertura global del
 100% y los avisos/fallos preexistentes de las gates ejecutadas sobre el árbol
 completo.
+
+## Actualización verificada: extensión de ficheros fuzzados sin configuración global
+
+`FileDataToken` y el rellenado automático de formularios ya no importan `cf.cf`.
+La extensión se propaga desde `fuzzer_config` al contenedor multipart, incluido
+su `smart_fill()` y su serialización; los formularios genéricos conservan
+`gif` como valor por defecto explícito.
+
+Verificación: DC edge cases, factory, file-content mutants, fuzzer y OpenAPI
+ pasan **89 tests**, con **7 subtests** y los warnings externos de
+`jsonschema/swagger`. Black, Ruff, mypy y Bandit focal están limpios. El score
+sube a **8.0/10** en Clean Architecture y **7.9/10** global. Persisten otros
+consumidores globales de configuración y todavía no está demostrada la
+cobertura global del 100%.

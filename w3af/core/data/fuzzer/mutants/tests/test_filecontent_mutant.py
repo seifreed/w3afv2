@@ -184,3 +184,19 @@ class TestFileContentMutant(unittest.TestCase):
         self.assertEqual(file_payload_def, str_file)
 
         self.assertIn(f'name="image"; filename="{name_abc}"', generated_data[0])
+
+    def test_generate_uses_configured_extension(self):
+        fuzzer_config = {"fuzz_form_files": True, "fuzzed_files_extension": "txt"}
+        form_params = FormParameters()
+        form_params.set_method("POST")
+        form_params.set_action(self.url)
+        form_params.add_field_by_attr_items([("name", "file"), ("type", "file")])
+        form = MultipartContainer(form_params)
+        freq = FuzzableRequest.from_form(form)
+
+        generated_mutants = FileContentMutant.create_mutants(
+            freq, self.payloads[:1], [], False, fuzzer_config
+        )
+
+        generated_file = generated_mutants[0].get_dc()["file"][0].get_value()
+        self.assertTrue(generated_file.name.endswith(".txt"))

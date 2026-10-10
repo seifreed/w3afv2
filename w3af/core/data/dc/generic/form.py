@@ -89,6 +89,9 @@ class Form(KeyValueContainer):
         """
         return default
 
+    def get_default_file_extension(self):
+        return "gif"
+
     def is_login_form(self):
         return self.form_params.is_login_form()
 
@@ -178,7 +181,11 @@ class Form(KeyValueContainer):
             # to go through the form validations
             if var_name in file_variables:
                 file_name = self.get_file_name(var_name, None)
-                setter(smart_fill_file(var_name, file_name))
+                setter(
+                    smart_fill_file(
+                        var_name, file_name, self.get_default_file_extension()
+                    )
+                )
 
             #   Fill only if the parameter does NOT have a value set.
             #

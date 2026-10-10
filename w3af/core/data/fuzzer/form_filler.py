@@ -24,7 +24,6 @@ import logging
 import os
 from functools import cmp_to_key
 
-import w3af.core.data.kb.config as cf
 from w3af.core.data.constants.file_templates.file_templates import (
     get_file_from_template,
 )
@@ -300,14 +299,14 @@ def smart_fill(variable_name, db=PARAM_NAME_KNOWLEDGE, default="56"):
 
 
 @Memoized
-def smart_fill_file(var_name, file_name):
+def smart_fill_file(var_name, file_name, default_extension="gif"):
     """
     This function will return a NamedStringIO, ready to use in multipart forms.
 
     The contents of the file and its extension are carefully chosen to try to
     go through any form filters the web application might be implementing.
     """
-    extension = guess_extension(var_name, file_name)
+    extension = guess_extension(var_name, file_name, default_extension)
     _, file_content, file_name = get_file_from_template(extension)
 
     # I have to create the NamedStringIO with a "name",
@@ -315,7 +314,7 @@ def smart_fill_file(var_name, file_name):
     return NamedStringIO(file_content, name=file_name)
 
 
-def guess_extension(var_name, file_name):
+def guess_extension(var_name, file_name, default_extension="gif"):
     """
     Guess the extension based on the var_name and file_name.
     """
@@ -330,4 +329,4 @@ def guess_extension(var_name, file_name):
         return guessed_extension
 
     # Oops!
-    return cf.cf.get("fuzzed_files_extension", "gif")
+    return default_extension

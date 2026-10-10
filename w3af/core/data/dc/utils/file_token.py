@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.data.kb.config as cf
 from w3af.core.data.constants.file_templates.file_templates import (
     get_template_with_payload,
 )
@@ -29,10 +28,8 @@ from w3af.core.data.misc.io import NamedStringIO
 
 
 class FileDataToken(DataToken):
-    def __init__(self, name, value, filename, path):
+    def __init__(self, name, value, filename, path, default_extension="gif"):
         super().__init__(name, value, path)
-
-        default_extension = cf.cf.get("fuzzed_files_extension", "gif")
 
         if filename is None:
             extension = default_extension
@@ -72,7 +69,13 @@ class FileDataToken(DataToken):
         Need to specify this because there is also a __reduce__ in DataToken
         and the FileDataToken implementation takes +1 parameter
         """
-        args = (self._name, self._value, self._filename, self._path)
+        args = (
+            self._name,
+            self._value,
+            self._filename,
+            self._path,
+            self._extension,
+        )
         return (
             self.__class__,
             args,

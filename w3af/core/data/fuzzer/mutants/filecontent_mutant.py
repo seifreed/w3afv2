@@ -66,7 +66,9 @@ class FileContentMutant(PostDataMutant):
 
         # Only forms have file variables
         form = freq.get_raw_data()
-        multipart_container = OnlyTokenFilesMultipartContainer(form)
+        multipart_container = OnlyTokenFilesMultipartContainer(
+            form, fuzzer_config["fuzzed_files_extension"]
+        )
         freq.set_data(multipart_container)
 
         res = cls._create_mutants_worker(
@@ -84,6 +86,20 @@ class OnlyTokenFilesMultipartContainer(MultipartContainer):
     way to abstract the fact that payloads are sent in the content of a file.
     """
 
+    def __init__(self, form_params=None, default_extension="gif"):
+        super().__init__(form_params)
+        self._default_extension = default_extension
+
+    def get_default_file_extension(self):
+        return self._default_extension
+
+    def __reduce__(self):
+        return (
+            self.__class__,
+            (self.form_params, self._default_extension),
+            {"token": self.token},
+        )
+
     def set_token(self, token_path):
         """
         Modified to pass the filename to the FileDataToken
@@ -97,7 +113,9 @@ class OnlyTokenFilesMultipartContainer(MultipartContainer):
                 else:
                     if key in self.get_file_vars():
                         fname = self.get_file_name(key)
-                        token = FileDataToken(key, val, fname, ipath)
+                        token = FileDataToken(
+                            key, val, fname, ipath, self._default_extension
+                        )
                     else:
                         token = DataToken(key, val, ipath)
 
