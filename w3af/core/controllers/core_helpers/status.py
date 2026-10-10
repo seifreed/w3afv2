@@ -50,10 +50,9 @@ class CoreStatus:
     calling the different methods to (get) the information required.
     """
 
-    def __init__(self, w3af_core, output, scans_completed=0):
+    def __init__(self, output, consumer_metrics=None, scans_completed=0):
         self._output = output
-        self._consumer_metrics = ConsumerMetrics()
-        self.set_w3af_core(w3af_core)
+        self._consumer_metrics = consumer_metrics or ConsumerMetrics()
 
         # Init some internal values
         self._is_running = False
@@ -72,17 +71,8 @@ class CoreStatus:
 
         self._eta_calculator = EtaCalculator()
 
-    def set_w3af_core(self, w3af_core):
-        if w3af_core is None:
-            self._consumer_metrics = ConsumerMetrics()
-            return
-
-        strategy = getattr(w3af_core, "strategy", None)
-        if strategy is None:
-            self._consumer_metrics.set_dependencies(None, None)
-            return
-
-        self._consumer_metrics.set_dependencies(strategy, lambda: w3af_core.worker_pool)
+    def detach_runtime_dependencies(self):
+        self._consumer_metrics = ConsumerMetrics()
 
     def set_output(self, output):
         self._output = output

@@ -82,7 +82,7 @@ class TestConsoleBugReport(ConsoleTestHelper):
         super().tearDown()
 
     def _store_exception(self, console, phase, plugin, failure):
-        status = CoreStatus(console._w3af, om.out)
+        status = CoreStatus(om.out)
         status.set_running_plugin(phase, plugin)
         status.set_current_fuzzable_request(phase, "http://target.example/")
 

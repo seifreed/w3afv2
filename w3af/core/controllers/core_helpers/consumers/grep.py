@@ -142,7 +142,7 @@ class grep(BaseConsumer):
                 args = (plugin.get_name(), exception)
                 self._output.debug(msg % args)
 
-                status = FakeStatus(self._w3af_core, self._output)
+                status = FakeStatus(self._output)
                 status.set_current_fuzzable_request("grep", "n/a")
                 status.set_running_plugin("grep", plugin.get_name(), log=True)
 

@@ -291,7 +291,7 @@ class OutputManager(Process):
         class FakeStatus(CoreStatus):
             pass
 
-        status = FakeStatus(self._w3af_core, self._output)
+        status = FakeStatus(self._output)
         status.set_current_fuzzable_request("output", "n/a")
         status.set_running_plugin("output", o_plugin.get_name(), log=False)
 

@@ -2965,3 +2965,16 @@ Verificación: **30 tests pasaron** en `CoreStatus`; Black, Ruff, mypy,
 Bandit focalizado y `git diff --check` están limpios. El score permanece en
 **6.25/10** por el lifecycle y la serialización aún acoplados, cobertura 100%
 no demostrada, Bandit heredado e integraciones externas.
+
+## Actualización verificada: CoreStatus recibe métricas por composición
+
+`CoreStatus` ya no acepta ni conserva un `w3afCore`. Recibe `ConsumerMetrics`
+cuando necesita consultar consumidores y usa un adaptador vacío para estados
+efímeros, como los datos serializables de excepciones. `w3afCore` compone la
+estrategia y el proveedor lazy del worker pool antes de crear el estado.
+
+Verificación: **50 tests pasaron** en status, exception handler y segundo scan;
+Black, Ruff, mypy focalizado y `git diff --check` están limpios. El score
+permanece en **6.25/10** por la serialización y el lifecycle aún mezclados en
+el controlador, cobertura 100% no demostrada, Bandit heredado e integraciones
+externas.

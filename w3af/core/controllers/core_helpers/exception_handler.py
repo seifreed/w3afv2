@@ -333,7 +333,7 @@ class ExceptionData:
         # that is NOT serializable.
         #
         self.status = copy(current_status)
-        self.status.set_w3af_core(None)
+        self.status.detach_runtime_dependencies()
         self.status.set_output(None)
 
         self.fuzzable_request = current_status.get_current_fuzzable_request(self.phase)

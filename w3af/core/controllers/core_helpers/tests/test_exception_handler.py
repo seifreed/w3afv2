@@ -52,7 +52,7 @@ class TestExceptionHandler(unittest.TestCase):
         self.exception_handler = ExceptionHandler(om.out)
         self.exception_handler.clear()
 
-        self.status = CoreStatus(None, om.out)
+        self.status = CoreStatus(om.out)
         self.status.set_running_plugin("phase", "plugin")
         self.status.set_current_fuzzable_request("phase", "http://www.w3af.org/")
 
@@ -352,7 +352,7 @@ class TestExceptionData(unittest.TestCase):
 
         core = w3afCore()
         self.addCleanup(core.worker_pool.terminate_join)
-        status = CoreStatus(core, om.out)
+        status = CoreStatus(om.out)
         status.set_running_plugin("audit", "sqli", log=False)
         status.set_current_fuzzable_request("audit", fr)
 
@@ -376,7 +376,7 @@ class TestExceptionData(unittest.TestCase):
 
             core = w3afCore()
             self.addCleanup(core.worker_pool.terminate_join)
-            status = CoreStatus(core, om.out)
+            status = CoreStatus(om.out)
             status.set_running_plugin("audit", "sqli", log=False)
             status.set_current_fuzzable_request("audit", fr)
 
@@ -400,7 +400,7 @@ class TestExceptionData(unittest.TestCase):
 
             core = w3afCore()
             self.addCleanup(core.worker_pool.terminate_join)
-            status = CoreStatus(core, om.out)
+            status = CoreStatus(om.out)
             status.set_running_plugin("audit", "sqli", log=False)
             status.set_current_fuzzable_request("audit", fr)
 

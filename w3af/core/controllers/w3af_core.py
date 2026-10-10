@@ -40,6 +40,7 @@ from w3af.core.controllers.core_helpers.status import (
     STOPPED,
     CoreStatus,
 )
+from w3af.core.controllers.core_helpers.status_consumers import ConsumerMetrics
 from w3af.core.controllers.core_helpers.strategy import CoreStrategy
 from w3af.core.controllers.core_helpers.strategy_observers.disk_space_observer import (
     DiskSpaceObserver,
@@ -159,10 +160,12 @@ class w3afCore:
         # scan.
         self.profiles = CoreProfiles(self)
         self.plugins = CorePlugins(self, output, manager)
-        self.status = CoreStatus(self, output)
         self.target = CoreTarget()
         self.strategy = CoreStrategy(self, self.knowledge_base, output)
-        self.status.set_w3af_core(self)
+        self.status = CoreStatus(
+            output,
+            ConsumerMetrics(self.strategy, lambda: self.worker_pool),
+        )
 
         # Create the URI opener object
         self.uri_opener = ExtendedUrllib(output.log_http)
@@ -188,8 +191,6 @@ class w3afCore:
         """
         # Create this again just to clear the internal states
         scans_completed = self.status.scans_completed
-        self.status = CoreStatus(self, self._output, scans_completed=scans_completed)
-        self.status.start()
 
         start_profiling(self, self._output, self._output_manager)
 
@@ -212,7 +213,12 @@ class w3afCore:
         # strategy which might still have data stored in it and create a new
         # one
         self.strategy = CoreStrategy(self, self.knowledge_base, self._output)
-        self.status.set_w3af_core(self)
+        self.status = CoreStatus(
+            self._output,
+            ConsumerMetrics(self.strategy, lambda: self.worker_pool),
+            scans_completed=scans_completed,
+        )
+        self.status.start()
         self.strategy.add_observer(DiskSpaceObserver())
         self.strategy.add_observer(ThreadCountObserver(self._output))
         self.strategy.add_observer(ThreadStateObserver(self._output))
