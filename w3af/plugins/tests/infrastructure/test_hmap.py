@@ -31,6 +31,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import ClassVar
 
 import w3af.plugins.infrastructure.oHmap.hmap as upstream_hmap
+from w3af.core.controllers.tests.recording_output import recording_output
 from w3af.core.exceptions import BaseFrameworkException
 from w3af.plugins.infrastructure.hmap import hmap
 from w3af.plugins.tests.canned_http_server import CERT_FILE, KEY_FILE
@@ -259,8 +260,11 @@ class TestHmapPlugin(unittest.TestCase):
 
 
 class TestHmapConnections(unittest.TestCase):
+    def setUp(self):
+        self.output = recording_output()
+
     def test_connection_refused(self):
-        target = upstream_hmap.Target("127.0.0.1", closed_port(), False)
+        target = upstream_hmap.Target("127.0.0.1", closed_port(), False, self.output)
 
         with self.assertRaises(BaseFrameworkException):
             upstream_hmap.request(target).submit()
@@ -268,7 +272,7 @@ class TestHmapConnections(unittest.TestCase):
     def test_ssl_handshake_with_plain_http_server(self):
         site = HmapTestSite()
         self.addCleanup(site.stop)
-        target = upstream_hmap.Target("127.0.0.1", site.port, True)
+        target = upstream_hmap.Target("127.0.0.1", site.port, True, self.output)
 
         with self.assertRaisesRegex(BaseFrameworkException, "SSL connection failed"):
             upstream_hmap.request(target).get_connection()
@@ -276,7 +280,7 @@ class TestHmapConnections(unittest.TestCase):
     def test_reset_connections_give_an_empty_response(self):
         server = ResettingServer()
         self.addCleanup(server.stop)
-        target = upstream_hmap.Target("127.0.0.1", server.port, False)
+        target = upstream_hmap.Target("127.0.0.1", server.port, False, self.output)
 
         res = upstream_hmap.request(target).submit()
 

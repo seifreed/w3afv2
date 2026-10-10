@@ -65,6 +65,7 @@ class hmap(InfrastructurePlugin):
                 1,
                 self._gen_fp,
                 self._threads,
+                self._output,
             )
         except BaseFrameworkException as w3:
             msg = 'A BaseFrameworkException occurred while running hmap: "%s"'

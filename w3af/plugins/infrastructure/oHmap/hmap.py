@@ -31,7 +31,6 @@ import time
 from collections import namedtuple
 from itertools import pairwise
 
-import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af import ROOT_PATH
 from w3af.core.controllers.threads.threadpool import Pool
@@ -46,7 +45,7 @@ NO_RESPONSE_CODES = ("NO_RESPONSE_CODE", "NO_RESPONSE")
 STATUS_LINE_RE = re.compile(r"^HTTP/1\.[01] [0-9]{3} [A-Z]{,10}")
 RESPONSE_LINE_RE = re.compile("(HTTP/1\\.[01]) ([0-9]{3}) ([^\r\n]*)")
 
-Target = namedtuple("Target", ["host", "port", "use_ssl"])
+Target = namedtuple("Target", ["host", "port", "use_ssl", "output"])
 
 
 class request:
@@ -56,6 +55,7 @@ class request:
 
     def __init__(self, target, method="GET", local_uri="/", version="1.0"):
         self.target = target
+        self._output = target.output
         self.method = method
         self.local_uri = local_uri
         self.version = version
@@ -101,11 +101,7 @@ class request:
             raise BaseFrameworkException(msg % (host, port, e)) from e
 
     def submit(self):
-        # ponytail: om.out — no injection point here. This standalone
-        # fingerprinting library builds ``request`` instances from a dozen
-        # free functions reached via ``testServer``; there is no plugin
-        # ``self._output`` to thread through the chain.
-        om.out.debug("hmap is sending: " + str(self))
+        self._output.debug("hmap is sending: " + str(self))
 
         wait_time = 1
 
@@ -114,10 +110,10 @@ class request:
 
             try:
                 s.send(str(self).encode("utf-8"))
-                data = read_until_closed(s)
+                data = read_until_closed(s, self._output)
             except OSError as e:
                 msg = 'hmap failed to exchange data with the server: "%s"'
-                om.out.debug(msg % e)
+                self._output.debug(msg % e)
 
                 # Try again
                 time.sleep(wait_time)
@@ -127,7 +123,7 @@ class request:
                 s.close()
 
             msg = f'hmap received: "{repr(data)[1:-1][:40]}..."'
-            om.out.debug(msg)
+            self._output.debug(msg)
             return response(data.decode("latin-1"))
 
         # Something happen... we just return an empty response
@@ -137,7 +133,7 @@ class request:
         self.headers.append([name, data])
 
 
-def read_until_closed(s):
+def read_until_closed(s, output):
     """
     :return: The bytes received until the server closes the connection, or
              until it stops sending data for SOCKET_TIMEOUT seconds.
@@ -155,9 +151,7 @@ def read_until_closed(s):
         if not data and not isinstance(e, TimeoutError):
             raise
 
-        # ponytail: om.out — no injection point here (standalone library
-        # free function, no plugin sink available).
-        om.out.debug(f'hmap stopped reading from the server: "{e}"')
+        output.debug(f'hmap stopped reading from the server: "{e}"')
 
     return data
 
@@ -875,8 +869,8 @@ def write_fingerprint_file(fp, server):
 # it is a "copy" of the "main" with a lot of default parameters :P
 
 
-def testServer(use_ssl, server, port, matchCount, generateFP, threads):
-    fp = get_fingerprint(Target(server, port, use_ssl), threads)
+def testServer(use_ssl, server, port, matchCount, generateFP, threads, output):
+    fp = get_fingerprint(Target(server, port, use_ssl, output), threads)
     known_servers = load_known_servers(KNOWN_SERVERS_DIR)
 
     if generateFP:

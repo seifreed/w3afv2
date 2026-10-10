@@ -2597,6 +2597,18 @@ limpios. El score permanece en **6.25/10** por los globals restantes de UI y
 servicios, cobertura total no demostrada, Bandit heredado, mocks e
 integraciones Moth.
 
+## Actualización verificada: hmap con output explícito
+
+El plugin `hmap` entrega su sink a `testServer`; este lo propaga mediante
+`Target` hasta cada `request` y `read_until_closed`. La librería de
+fingerprinting ya no importa `output_manager` ni conserva el shortcut de
+standalone; se mantiene intacta la lógica de sondas y fingerprinting.
+
+Verificación: **21 tests pasaron** en hmap; Ruff, Black, mypy, `py_compile` y
+`git diff --check` globales están limpios. El score permanece en **6.25/10**
+por los globals de composición/UI restantes, cobertura 100% no demostrada,
+Bandit heredado, mocks e integraciones Moth.
+
 ## Actualización verificada: profiling de consumidores sin fallback global
 
 `TookLine` exige ahora un sink explícito y los cinco consumidores (`audit`,
