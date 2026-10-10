@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 import w3af.plugins.infrastructure.oHmap.hmap as upstream_hmap
 from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
 from w3af.core.controllers.misc.decorators import runonce
@@ -84,8 +83,8 @@ class hmap(InfrastructurePlugin):
 
         # Save the results in the KB so that other plugins can use this
         # information
-        kb.kb.append(self, "server", i)
-        kb.kb.raw_write(self, "server_string", server)
+        self._get_knowledge_base().append(self, "server", i)
+        self._get_knowledge_base().raw_write(self, "server_string", server)
 
         #
         # Fingerprint file generated (this is independent from the results)
