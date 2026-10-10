@@ -3489,3 +3489,16 @@ warnings externos de `ldap3/pyasn1`; la batería focal pasó **56 tests en
 62.79 s**. Ruff, mypy focal y Bandit focal están limpios. El score se mantiene
 en **6.5/10** por cobertura global, módulos grandes y gates globales
 pendientes.
+
+## Actualización verificada: política de retry separada
+
+`RequestRetryHandler` concentra decremento de reintentos, actualización de
+timeout, forzado de conexión nueva, reenvío y error final. `ExtendedUrllib`
+conserva `_retry()` como fachada y mantiene separado el manejo de errores, el
+registro de historial y la decisión de detener el scan.
+
+Verificación: la suite URL completa pasó **217 tests en 184.55 s**, con dos
+warnings externos de `ldap3/pyasn1`; la batería focal pasó **42 tests en
+163.31 s**. Ruff, mypy focal y Bandit focal están limpios. El score se mantiene
+en **6.5/10** por cobertura global, módulos grandes y gates globales
+pendientes.

@@ -59,6 +59,7 @@ from w3af.core.data.url.http_request import HTTPRequest
 from w3af.core.data.url.rate_limiter import RateLimiter
 from w3af.core.data.url.request_evasion import RequestEvasionPipeline
 from w3af.core.data.url.request_preparer import RequestPreparer
+from w3af.core.data.url.request_retry_handler import RequestRetryHandler
 from w3af.core.data.url.response_history import ResponseHistory
 from w3af.core.data.url.response_success_handler import ResponseSuccessHandler
 from w3af.core.data.url.scan_request_control import ScanRequestControl
@@ -132,6 +133,11 @@ class ExtendedUrllib:
             self._track_rtt,
             self._worker_pool_adjuster.adjust,
             self._grep,
+        )
+        self._retry_handler = RequestRetryHandler(
+            self.send,
+            self.get_timeout,
+            LOGGER.debug,
         )
         self._request_control = ScanRequestControl()
 
@@ -860,47 +866,7 @@ class ExtendedUrllib:
         )
 
     def _retry(self, req, grep, url_error):
-        """
-        Try to send the request again while doing some error handling.
-        """
-        req.retries_left -= 1
-
-        if req.retries_left > 0:
-            msg = 'Re-sending request "%s" (did:%s) after initial exception: "%s"'
-            args = (req, req.debugging_id, url_error)
-            LOGGER.debug(msg % args)
-
-            #
-            # Before sending it again we update the timeout, which could have
-            # changed because of the error we just found
-            #
-            host = req.host
-            req.set_timeout(self.get_timeout(host))
-
-            #
-            # And for retries we force a new connection to be used to increase
-            # the chances of successfully retrieving a response
-            #
-            # TCP/IP connections are closed every time they receive an error and
-            # shouldn't be used anymore to send any HTTP requests. That is
-            # responsibility of the keepalive.handler code. So it should never
-            # happen, even without the next line of code, that a connection that
-            # triggered a timeout is re-used. The next line is to be 100% sure
-            #
-            req.set_new_connection(True)
-
-            return self.send(req, grep=grep)
-
-        else:
-            # Please note that I'm raising HTTPRequestException and not a
-            # ScanMustStopException (or subclasses) since I don't want the
-            # scan to stop because of a single HTTP request failing.
-            #
-            # Actually we get here if one request fails three times to be sent
-            # but that might be because of the http request itself and not a
-            # fault of the framework/server/network.
-            error_str = get_exception_reason(url_error) or str(url_error)
-            raise HTTPRequestException(error_str, request=req)
+        return self._retry_handler.retry(req, grep, url_error)
 
     def _log_failed_response(self, request, exception, original_url):
         """
