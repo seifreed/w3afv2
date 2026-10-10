@@ -197,7 +197,7 @@ class w3afCore:
             prepare_home_directory()
             prepare_tmp_directory()
 
-            enable_dns_cache()
+            enable_dns_cache(om.out)
 
         # Reset global sequence number generator
         consecutive_number_generator.reset()

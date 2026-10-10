@@ -23,19 +23,20 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import socket
 import unittest
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc import dns_cache
 from w3af.core.controllers.misc.dns_cache import enable_dns_cache
 
 
 class TestDNSCache(unittest.TestCase):
     def test_enable_replaces_getaddrinfo(self):
-        enable_dns_cache()
-        enable_dns_cache()
+        enable_dns_cache(om.out)
+        enable_dns_cache(om.out)
 
-        self.assertIs(socket.getaddrinfo, dns_cache._caching_getaddrinfo)
+        self.assertIs(socket.getaddrinfo.func, dns_cache._caching_getaddrinfo)
 
     def test_second_query_is_served_from_cache(self):
-        enable_dns_cache()
+        enable_dns_cache(om.out)
 
         first = socket.getaddrinfo("localhost", 80)
         second = socket.getaddrinfo("localhost", 80)
@@ -46,7 +47,7 @@ class TestDNSCache(unittest.TestCase):
         )
 
     def test_keyword_arguments_are_part_of_the_key(self):
-        enable_dns_cache()
+        enable_dns_cache(om.out)
 
         tcp = socket.getaddrinfo("localhost", 80, type=socket.SOCK_STREAM)
         udp = socket.getaddrinfo("localhost", 80, type=socket.SOCK_DGRAM)

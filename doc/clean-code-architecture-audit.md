@@ -2585,3 +2585,14 @@ Verificación: Ruff, Black y mypy están limpios y los módulos modificados
 importan correctamente. Este checkout no contiene tests dedicados de
 scheduling/vdaemon; la cobertura de esas rutas queda pendiente y el score
 permanece en **6.25/10**.
+
+## Actualización verificada: DNS cache con output explícito
+
+`enable_dns_cache` crea ahora un wrapper parcial que captura el sink recibido;
+las respuestas DNS cacheadas ya no consultan `output_manager` global. El core
+inyecta el sink al activar la caché y el test verifica el callable envuelto.
+
+Verificación: **3 tests pasaron** en la caché DNS; Ruff, Black y mypy están
+limpios. El score permanece en **6.25/10** por los globals restantes de UI y
+servicios, cobertura total no demostrada, Bandit heredado, mocks e
+integraciones Moth.

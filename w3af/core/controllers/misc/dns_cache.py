@@ -21,15 +21,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import socket
+from functools import partial
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.data.misc.lru import SynchronizedLRUDict
 
 _resolve = socket.getaddrinfo
 _dns_cache = SynchronizedLRUDict(200)
 
 
-def _caching_getaddrinfo(*args, **kwargs):
+def _caching_getaddrinfo(output, *args, **kwargs):
     query = (args, frozenset(kwargs.items()))
 
     try:
@@ -37,11 +37,11 @@ def _caching_getaddrinfo(*args, **kwargs):
     except KeyError:
         res = _resolve(*args, **kwargs)
         _dns_cache[query] = res
-        om.out.debug(f"DNS response from DNS server for domain: {args[0]}")
+        output.debug(f"DNS response from DNS server for domain: {args[0]}")
         return res
 
 
-def enable_dns_cache():
+def enable_dns_cache(output):
     """
     DNS cache trick
 
@@ -59,5 +59,5 @@ def enable_dns_cache():
     #  Copyright 2003 - 2004 Tor Hveem - <tor@bash.no>
     #  Copyright 2004 Omar Kilani for tinysofa - <http://www.tinysofa.org>
     """
-    om.out.debug("Enabling _dns_cache()")
-    socket.getaddrinfo = _caching_getaddrinfo
+    output.debug("Enabling _dns_cache()")
+    socket.getaddrinfo = partial(_caching_getaddrinfo, output)
