@@ -67,6 +67,7 @@ class test_http_vs_https_dist(unittest.TestCase):
     def setUp(self):
         kb.kb.cleanup()
         self.plugininst = hvshsdist.http_vs_https_dist()
+        self.plugininst.set_knowledge_base(kb.kb)
 
     def _different_route_traces(self):
         """

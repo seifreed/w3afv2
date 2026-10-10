@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from scapy.error import Scapy_Exception
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
@@ -147,7 +146,7 @@ class http_vs_https_dist(InfrastructurePlugin):
 
     def _report_info(self, name, desc):
         i = Info(name, desc, 1, self.get_name())
-        kb.kb.append(self, "http_vs_https_dist", i)
+        self._get_knowledge_base().append(self, "http_vs_https_dist", i)
 
     def get_options(self):
         """
