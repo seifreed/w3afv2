@@ -2482,3 +2482,14 @@ dependencia, por lo que no se añadió estado innecesario a su contrato.
 
 Verificación: Ruff, Black y mypy están limpios. La integración de explotación
 queda pendiente de su entorno Moth; el score permanece en **6.25/10**.
+
+## Actualización verificada: XPath con output explícito
+
+El plugin `xpath` y `XPathReader` reciben el sink desde la factoría de plugins.
+Los diagnósticos de delimitador, detección de respuestas, extracción de XML y
+caracteres ya no usan el singleton; la reconstrucción del shell conserva el
+sink junto al resto de su estado operativo.
+
+Verificación: Ruff, Black y mypy están limpios. La suite de integración XPath
+queda pendiente por la dependencia Moth no resoluble; el score permanece en
+**6.25/10**.

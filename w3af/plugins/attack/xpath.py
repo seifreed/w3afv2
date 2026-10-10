@@ -25,7 +25,6 @@ import re
 import textwrap
 from secrets import randbelow
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
 from w3af.core.controllers.threads.threadpool import return_args
 from w3af.core.exceptions import BaseFrameworkException
@@ -103,6 +102,7 @@ class xpath(AttackPlugin):
                 self.STR_DELIM,
                 self.TRUE_COND,
                 is_error_resp,
+                self._output,
             )
             return shell_obj
 
@@ -183,7 +183,7 @@ class xpath(AttackPlugin):
                 true_resp = self._uri_opener.send_mutant(mutant_true)
                 false_resp = self._uri_opener.send_mutant(mutant_false)
             except BaseFrameworkException as e:
-                om.out.debug(f'Error "{e}"')
+                self._output.debug(f'Error "{e}"')
             else:
                 if is_error_resp(false_resp.get_body()) and not is_error_resp(
                     true_resp.get_body()
@@ -206,7 +206,7 @@ class xpath(AttackPlugin):
         mutant = vuln.get_mutant()
         mutant.set_token_value(vuln.get_mutant().get_token_original_value())
 
-        om.out.debug("Testing if body dynamically changes.")
+        self._output.debug("Testing if body dynamically changes.")
         try:
             base_res = self._uri_opener.send_mutant(mutant)
 
@@ -217,7 +217,7 @@ class xpath(AttackPlugin):
                 ).ratio()
 
         except BaseFrameworkException as e:
-            om.out.debug(f'Error "{e}"')
+            self._output.debug(f'Error "{e}"')
         except RuntimeError as rte:
             issue = "https://github.com/andresriancho/w3af/issues/5278"
 
@@ -232,7 +232,7 @@ class xpath(AttackPlugin):
                 " %s\n\n"
             )
 
-            om.out.console(msg % (issue, rte))
+            self._output.console(msg % (issue, rte))
         else:
             # use_difflib = (diff_ratio / count) < THRESHOLD
             # FIXME: I'm not using difflib since it doesn't work well in my
@@ -259,11 +259,19 @@ class xpath(AttackPlugin):
 class XPathReader(Shell):
 
     def __init__(
-        self, vuln, uri_opener, worker_pool, str_delim, true_xpath, is_error_resp
+        self,
+        vuln,
+        uri_opener,
+        worker_pool,
+        str_delim,
+        true_xpath,
+        is_error_resp,
+        output,
     ):
         self.STR_DELIM = str_delim
         self.TRUE_COND = true_xpath
         self.is_error_resp = is_error_resp
+        self._output = output
 
         super().__init__(vuln, uri_opener, worker_pool)
 
@@ -337,7 +345,7 @@ class XPathReader(Shell):
         :return: The length of the data to retrieve or self.max_data_len if the
         XML is too long. In the case of an error, None is returned.
         """
-        om.out.debug(f"Finding XML data length (max: {self.max_data_len})")
+        self._output.debug(f"Finding XML data length (max: {self.max_data_len})")
 
         maxl = self.max_data_len
         minl = 1
@@ -345,10 +353,10 @@ class XPathReader(Shell):
         while True:
 
             mid = (maxl + minl) / 2
-            om.out.debug(f"MAX:{maxl}, MID:{mid}, MIN:{minl}")
+            self._output.debug(f"MAX:{maxl}, MID:{mid}, MIN:{minl}")
 
             if self._verify_data_len_eq(mid):
-                om.out.debug(f"Response Length FOUND!: {mid} ")
+                self._output.debug(f"Response Length FOUND!: {mid} ")
                 return mid
 
             else:
@@ -451,9 +459,9 @@ class XPathReader(Shell):
             dresp = self._uri_opener.send_mutant(mutant)
 
             if not self.is_error_resp(dresp.get_body()):
-                om.out.console(f'Character found: "{hexcar}"')
+                self._output.console(f'Character found: "{hexcar}"')
                 return hexcar
-        om.out.console("Character NOT found!")
+        self._output.console("Character NOT found!")
         return None
 
     def get_name(self):
@@ -476,6 +484,7 @@ class XPathReader(Shell):
             self.STR_DELIM,
             self.TRUE_COND,
             self.is_error_resp,
+            self._output,
         )
 
 
