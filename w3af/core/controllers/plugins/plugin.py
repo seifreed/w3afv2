@@ -57,6 +57,7 @@ class Plugin(Configurable):
         self._uri_opener = None
         self._w3af_core = None
         self._knowledge_base = None
+        self._output = om.out
         self.worker_pool = None
 
         self.output_queue = queue.Queue()
@@ -99,6 +100,10 @@ class Plugin(Configurable):
     def set_knowledge_base(self, knowledge_base):
         """Set the knowledge store used by this plugin."""
         self._knowledge_base = knowledge_base
+
+    def set_output(self, output):
+        """Set the output sink used by this plugin."""
+        self._output = output
 
     def _get_knowledge_base(self):
         if self._knowledge_base is None:

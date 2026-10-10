@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import re
 from itertools import repeat
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.data.fuzzer.utils import rand_alpha
@@ -107,7 +106,7 @@ class fingerprint_waf(InfrastructurePlugin):
         """
         Try to verify if Airlock is present.
         """
-        om.out.debug("detect Airlock")
+        self._output.debug("detect Airlock")
         response = self._uri_opener.GET(fuzzable_request.get_url(), cache=True)
         for header_name in list(response.get_headers().keys()):
             if header_name.lower() == "set-cookie":
@@ -122,7 +121,7 @@ class fingerprint_waf(InfrastructurePlugin):
         """
         Try to verify if Barracuda is present.
         """
-        om.out.debug("detect Barracuda")
+        self._output.debug("detect Barracuda")
         response = self._uri_opener.GET(fuzzable_request.get_url(), cache=True)
         for header_name in list(response.get_headers().keys()):
             if header_name.lower() == "set-cookie":
@@ -138,7 +137,7 @@ class fingerprint_waf(InfrastructurePlugin):
         """
         Try to verify if CloudFlare Web Application Firewall is present.
         """
-        om.out.debug("detect CloudFlare")
+        self._output.debug("detect CloudFlare")
         response = self._uri_opener.GET(fuzzable_request.get_url(), cache=True)
         for header_name in list(response.get_headers().keys()):
             if header_name.lower() == "set-cookie":
@@ -153,7 +152,7 @@ class fingerprint_waf(InfrastructurePlugin):
         """
         Try to verify if dotDefender is present.
         """
-        om.out.debug("detect dotDefender")
+        self._output.debug("detect dotDefender")
         response = self._uri_opener.GET(fuzzable_request.get_url(), cache=True)
         for header_name in list(response.get_headers().keys()):
             if header_name.lower() == "set-cookie":
@@ -168,7 +167,7 @@ class fingerprint_waf(InfrastructurePlugin):
         """
         Try to verify if Deny All rWeb is present.
         """
-        om.out.debug("detect Deny All")
+        self._output.debug("detect Deny All")
         response = self._uri_opener.GET(fuzzable_request.get_url(), cache=True)
         for header_name in list(response.get_headers().keys()):
             if header_name.lower() == "set-cookie":
@@ -184,7 +183,7 @@ class fingerprint_waf(InfrastructurePlugin):
         """
         Try to verify if F5 ASM (also TrafficShield) is present.
         """
-        om.out.debug("detect F5 ASM or TrafficShield")
+        self._output.debug("detect F5 ASM or TrafficShield")
         response = self._uri_opener.GET(fuzzable_request.get_url(), cache=True)
         for header_name in list(response.get_headers().keys()):
             if header_name.lower() == "set-cookie":
@@ -204,7 +203,7 @@ class fingerprint_waf(InfrastructurePlugin):
         Ref: Hacking Exposed - Web Application
 
         """
-        om.out.debug("detect the older version F5 TrafficShield")
+        self._output.debug("detect the older version F5 TrafficShield")
         response = self._uri_opener.GET(fuzzable_request.get_url(), cache=True)
         for header_name in list(response.get_headers().keys()):
             if header_name.lower() == "set-cookie":
@@ -219,7 +218,7 @@ class fingerprint_waf(InfrastructurePlugin):
         """
         Try to verify if FortiWeb is present.
         """
-        om.out.debug("detect FortiWeb")
+        self._output.debug("detect FortiWeb")
         response = self._uri_opener.GET(fuzzable_request.get_url(), cache=True)
         for header_name in list(response.get_headers().keys()):
             if header_name.lower() == "set-cookie":
@@ -234,7 +233,7 @@ class fingerprint_waf(InfrastructurePlugin):
         """
         Try to verify if Incapsula is present.
         """
-        om.out.debug("detect FortiWeb")
+        self._output.debug("detect FortiWeb")
         response = self._uri_opener.GET(fuzzable_request.get_url(), cache=True)
         for header_name in list(response.get_headers().keys()):
             if header_name.lower() == "set-cookie":
@@ -249,7 +248,7 @@ class fingerprint_waf(InfrastructurePlugin):
         """
         Try to verify if IBM WebSphere DataPower is present.
         """
-        om.out.debug("detect IBM WebSphere")
+        self._output.debug("detect IBM WebSphere")
         response = self._uri_opener.GET(fuzzable_request.get_url(), cache=True)
         for header_name in list(response.get_headers().keys()):
             if header_name.lower() == "set-cookie":
@@ -264,7 +263,7 @@ class fingerprint_waf(InfrastructurePlugin):
         """
         Try to verify if Profense is present.
         """
-        om.out.debug("detect Profense")
+        self._output.debug("detect Profense")
         response = self._uri_opener.GET(fuzzable_request.get_url(), cache=True)
         for header_name in list(response.get_headers().keys()):
             if header_name.lower() == "set-cookie":
@@ -284,7 +283,7 @@ class fingerprint_waf(InfrastructurePlugin):
         Ref: Hacking Exposed - Web Application
 
         """
-        om.out.debug("detect TEROS")
+        self._output.debug("detect TEROS")
         response = self._uri_opener.GET(fuzzable_request.get_url(), cache=True)
         for header_name in list(response.get_headers().keys()):
             if header_name.lower() == "set-cookie":
@@ -301,7 +300,7 @@ class fingerprint_waf(InfrastructurePlugin):
         Ref: Hacking Exposed - Web Application
 
         """
-        om.out.debug("detect NetContinuum")
+        self._output.debug("detect NetContinuum")
         response = self._uri_opener.GET(fuzzable_request.get_url(), cache=True)
         for header_name in list(response.get_headers().keys()):
             if header_name.lower() == "set-cookie":
@@ -316,7 +315,7 @@ class fingerprint_waf(InfrastructurePlugin):
         """
         Try to verify if BinarySec is present.
         """
-        om.out.debug("detect BinarySec")
+        self._output.debug("detect BinarySec")
         response = self._uri_opener.GET(fuzzable_request.get_url(), cache=True)
         for header_name in list(response.get_headers().keys()):
             if header_name.lower() == "server":
@@ -331,7 +330,7 @@ class fingerprint_waf(InfrastructurePlugin):
         """
         Try to verify if HyperGuard is present.
         """
-        om.out.debug("detect HyperGuard")
+        self._output.debug("detect HyperGuard")
         response = self._uri_opener.GET(fuzzable_request.get_url(), cache=True)
         for header_name in list(response.get_headers().keys()):
             if header_name.lower() == "set-cookie":
@@ -407,7 +406,7 @@ class fingerprint_waf(InfrastructurePlugin):
         i.set_id(response.id)
 
         self._get_knowledge_base().append(self, name, i)
-        om.out.information(i.get_desc())
+        self._output.information(i.get_desc())
 
     def get_plugin_deps(self):
         """

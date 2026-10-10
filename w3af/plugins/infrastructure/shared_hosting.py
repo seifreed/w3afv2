@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import socket
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.misc.is_private_site import is_private_site
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
@@ -68,7 +67,7 @@ class shared_hosting(InfrastructurePlugin):
                 "shared_hosting plugin is not checking for subdomains for"
                 f' domain: "{domain}" because it is a private address.'
             )
-            om.out.debug(msg)
+            self._output.debug(msg)
             return False
 
         return True
@@ -80,7 +79,7 @@ class shared_hosting(InfrastructurePlugin):
         try:
             addrinfo = socket.getaddrinfo(domain, 0)
         except (OSError, UnicodeError):
-            om.out.error(f'Failed to resolve address: "{domain}"')
+            self._output.error(f'Failed to resolve address: "{domain}"')
             return []
 
         ip_address_list = [info[4][0] for info in addrinfo]
@@ -152,7 +151,7 @@ class shared_hosting(InfrastructurePlugin):
 
                 v["also_in_hosting"] = results
 
-                om.out.vulnerability(desc, severity=severity.MEDIUM)
+                self._output.vulnerability(desc, severity=severity.MEDIUM)
                 self._get_knowledge_base().append(self, "shared_hosting", v)
 
     def get_options(self):

@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from threading import Lock
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.data.kb.info import Info
@@ -98,7 +97,7 @@ class fingerprint_os(InfrastructurePlugin):
 
             self._get_knowledge_base().raw_write(self, "operating_system_str", os_str)
             self._get_knowledge_base().append(self, "operating_system", i)
-            om.out.information(i.get_desc())
+            self._output.information(i.get_desc())
             return True
 
         return False

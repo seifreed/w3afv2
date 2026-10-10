@@ -2136,3 +2136,15 @@ tests de excepciones/adaptadores, 33 tests de proxy/404, 21 y 48 tests de
 plugins pasan; Ruff, Black y mypy están limpios. El score provisional permanece
 en **5.75/10** hasta resolver cobertura global, Bandit heredado, mocks
 existentes, perfilado, Moth y los orquestadores grandes.
+
+## Actualización verificada: sink de salida inyectado en infraestructura
+
+`Plugin` expone ahora `set_output()` y `CorePlugins` cablea el sink al crear
+instancias. `server_status`, `fingerprint_os`, `fingerprint_waf`,
+`detect_reverse_proxy`, `shared_hosting` y `server_header` usan esa dependencia
+en lugar de importar directamente el singleton `controllers.output_manager`.
+
+Verificación: 11 tests y 20 subtests de infraestructura, más 19 tests de
+infraestructura relacionados, pasan; Ruff, Black y mypy están limpios. El score
+permanece en **5.75/10**: aún quedan más consumidores del output global,
+cobertura global, Bandit heredado, mocks, perfilado, Moth y orquestadores.

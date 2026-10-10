@@ -238,6 +238,7 @@ class CorePlugins:
         plugin_inst.set_worker_pool(self._w3af_core.worker_pool)
         plugin_inst.set_w3af_core(self._w3af_core)
         plugin_inst.set_knowledge_base(self._w3af_core.knowledge_base)
+        plugin_inst.set_output(om.out)
 
         if plugin_name in list(self._plugins_options[plugin_type].keys()):
             custom_options = self._plugins_options[plugin_type][plugin_name]

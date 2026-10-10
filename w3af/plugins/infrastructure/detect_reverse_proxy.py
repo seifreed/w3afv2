@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import re
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.data.kb.info import Info
@@ -97,7 +96,7 @@ class detect_reverse_proxy(InfrastructurePlugin):
         if not self._get_knowledge_base().get(
             "detect_reverse_proxy", "detect_reverse_proxy"
         ):
-            om.out.information(
+            self._output.information(
                 "The remote web server doesn't seem to have a reverse proxy."
             )
 
@@ -113,7 +112,7 @@ class detect_reverse_proxy(InfrastructurePlugin):
         i.set_url(response.get_url())
 
         self._get_knowledge_base().append(self, "detect_reverse_proxy", i)
-        om.out.information(i.get_desc())
+        self._output.information(i.get_desc())
 
     def _has_proxy_headers(self, response):
         """

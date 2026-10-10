@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from threading import RLock
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.data.kb.info import Info
 from w3af.core.data.url.helpers import is_no_content_response
@@ -92,7 +91,7 @@ class server_header(InfrastructurePlugin):
             i["server"] = server
             i.add_to_highlight(header_name + ":")
 
-            om.out.information(i.get_desc())
+            self._output.information(i.get_desc())
 
             # Save the results in the KB so the user can look at it
             self._get_knowledge_base().append(self, "server", i)
@@ -107,7 +106,7 @@ class server_header(InfrastructurePlugin):
             )
             i = Info("Omitted server header", desc, response.id, self.get_name())
 
-            om.out.information(i.get_desc())
+            self._output.information(i.get_desc())
 
             # Save the results in the KB so that other plugins can use this
             # information
@@ -138,7 +137,7 @@ class server_header(InfrastructurePlugin):
                     i["powered_by"] = powered_by
                     i.add_to_highlight(header_name + ":")
 
-                    om.out.information(i.get_desc())
+                    self._output.information(i.get_desc())
 
                     # Save the results in the KB so that other plugins can
                     # use this information. Before knowing that some servers
