@@ -26,7 +26,6 @@ import tempfile
 import threading
 import traceback
 
-import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.core_helpers.status import CoreStatus
 from w3af.core.controllers.exception_handling.cleanup_bug_report import (
@@ -68,9 +67,10 @@ class ExceptionHandler:
         HTTPRequestException,
     )
 
-    def __init__(self):
+    def __init__(self, output):
         self._exception_data = []
         self._lock = threading.RLock()
+        self._output = output
 
         self._scan_id = None
 
@@ -139,14 +139,14 @@ class ExceptionHandler:
                     " The scan will continue but some vulnerabilities might"
                     " not be identified."
                 )
-                om.out.error(msg)
+                self._output.error(msg)
 
         filename = self.write_crash_file(edata)
 
-        om.out.debug(f'Logged "{edata.get_exception_class()}" to "{filename}"')
+        self._output.debug(f'Logged "{edata.get_exception_class()}" to "{filename}"')
 
         # Also send to the output plugins so they can store it the right way
-        om.out.log_crash(edata.get_details())
+        self._output.log_crash(edata.get_details())
 
     def _unhandled_exception_types(self):
         if debug_enabled():

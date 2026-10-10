@@ -150,7 +150,7 @@ class w3afCore:
         # w3af process. The data captured by it will be cleared before starting
         # each scan, but we want to keep the same instance after a scan because
         # we'll extract info from it.
-        self.exception_handler = ExceptionHandler()
+        self.exception_handler = ExceptionHandler(om.out)
 
         # These are some of the most important moving parts in the w3afCore
         # they basically handle every aspect of the w3af framework. I create

@@ -2325,3 +2325,15 @@ Verificación: **22 tests pasados y 7 subtests** entre observadores y estrategia
 Ruff, Black y mypy están limpios. El score permanece en **5.75/10** por el
 singleton restante en `w3afCore` y otros módulos, cobertura 100% no demostrada,
 Bandit heredado, mocks existentes, Moth y los orquestadores grandes.
+
+## Actualización verificada: ExceptionHandler con output explícito
+
+`ExceptionHandler` recibe el sink desde `w3afCore` y usa esa dependencia para
+errores, trazas y crash reports. Sus consumidores siguen llamando al handler
+sin acoplarse al sistema de output, y la semántica de reelevar excepciones no
+ha cambiado.
+
+Verificación: **19 tests pasados** en la suite del handler; Ruff, Black y mypy
+están limpios. El score permanece en **5.75/10** por el singleton restante en
+`w3afCore` y otros módulos, cobertura 100% no demostrada, Bandit heredado,
+mocks existentes, Moth y los orquestadores grandes.

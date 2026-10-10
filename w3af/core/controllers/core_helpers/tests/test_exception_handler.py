@@ -28,6 +28,7 @@ import unittest
 
 import pytest
 
+import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.core_helpers.exception_handler import (
     ExceptionData,
@@ -48,7 +49,7 @@ class TestExceptionHandler(unittest.TestCase):
     EXCEPT_START = 'A "RuntimeError" exception was found'
 
     def setUp(self):
-        self.exception_handler = ExceptionHandler()
+        self.exception_handler = ExceptionHandler(om.out)
         self.exception_handler.clear()
 
         self.status = CoreStatus(None)
