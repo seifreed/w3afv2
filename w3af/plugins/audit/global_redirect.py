@@ -131,7 +131,7 @@ class global_redirect(AuditPlugin):
         :param payloads: The payloads as strings
         :param debugging_id: A unique identifier for this call to audit()
         """
-        mutants = create_mutants(freq, payloads)
+        mutants = create_mutants(freq, payloads, configuration=self.get_configuration())
 
         self._send_mutants_in_threads(
             self._uri_opener.send_mutant,

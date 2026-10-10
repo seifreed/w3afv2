@@ -71,6 +71,7 @@ class generic(AuditPlugin):
                 "",
             ],
             orig_resp=original_response,
+            configuration=self.get_configuration(),
         )
 
         original_response_repeat = repeat(original_response)

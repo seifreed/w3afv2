@@ -163,7 +163,12 @@ class sqli(AuditPlugin):
         :param orig_response: The HTTP response associated with the fuzzable request
         :param debugging_id: A unique identifier for this call to audit()
         """
-        mutants = create_mutants(freq, self.SQLI_STRINGS, orig_resp=orig_response)
+        mutants = create_mutants(
+            freq,
+            self.SQLI_STRINGS,
+            orig_resp=orig_response,
+            configuration=self.get_configuration(),
+        )
 
         self._send_mutants_in_threads(
             self._uri_opener.send_mutant,

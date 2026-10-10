@@ -64,7 +64,10 @@ class lfi(AuditPlugin):
         :param debugging_id: A unique identifier for this call to audit()
         """
         mutants = create_mutants(
-            freq, self.get_lfi_tests(freq), orig_resp=orig_response
+            freq,
+            self.get_lfi_tests(freq),
+            orig_resp=orig_response,
+            configuration=self.get_configuration(),
         )
 
         self._send_mutants_in_threads(

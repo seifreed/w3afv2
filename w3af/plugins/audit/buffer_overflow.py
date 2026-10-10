@@ -110,7 +110,12 @@ class buffer_overflow(AuditPlugin):
         :param orig_response: The HTTP response associated with the fuzzable request
         :param debugging_id: A unique identifier for this call to audit()
         """
-        mutants = create_mutants(freq, self.BUFFER_TESTS, orig_resp=orig_response)
+        mutants = create_mutants(
+            freq,
+            self.BUFFER_TESTS,
+            orig_resp=orig_response,
+            configuration=self.get_configuration(),
+        )
         args = list(zip(repeat(self._send_request), mutants, repeat(debugging_id)))
 
         for result in self.worker_pool.imap_unordered(apply_with_return_error, args):

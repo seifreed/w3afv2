@@ -109,7 +109,10 @@ class file_upload(AuditPlugin):
                 # Only file handlers are passed to the create_mutants functions
                 named_stringio = NamedStringIO(file_content, file_name)
                 mutants = create_mutants(
-                    freq, [named_stringio], fuzzable_param_list=[file_parameter]
+                    freq,
+                    [named_stringio],
+                    fuzzable_param_list=[file_parameter],
+                    configuration=self.get_configuration(),
                 )
 
                 for mutant in mutants:

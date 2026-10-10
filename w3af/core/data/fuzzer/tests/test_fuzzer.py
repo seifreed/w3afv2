@@ -67,7 +67,9 @@ class TestFuzzer(unittest.TestCase):
 
         url = URL("http://moth/?id=1")
         freq = FuzzableRequest(url)
-        generated_mutants = create_mutants(freq, self.payloads)
+        generated_mutants = create_mutants(
+            freq, self.payloads, configuration=cf_singleton
+        )
 
         expected_urls = ["http://moth/?id=abc", "http://moth/?id=def"]
         generated_urls = [m.get_uri().url_string for m in generated_mutants]
@@ -110,7 +112,9 @@ class TestFuzzer(unittest.TestCase):
 
         url = URL(initial_url % "")
         freq = FuzzableRequest(url)
-        generated_mutants = create_mutants(freq, self.payloads)
+        generated_mutants = create_mutants(
+            freq, self.payloads, configuration=cf_singleton
+        )
 
         decoded_url = (
             "http://w3af.org/"
@@ -138,7 +142,7 @@ class TestFuzzer(unittest.TestCase):
         # No headers in the original request
         # headers = Headers([('Referer', 'http://moths/')])
         freq = FuzzableRequest(url)
-        mutants = create_mutants(freq, self.payloads)
+        mutants = create_mutants(freq, self.payloads, configuration=cf_singleton)
 
         expected_urls = [
             "http://moth/?id=abc",
@@ -176,7 +180,9 @@ class TestFuzzer(unittest.TestCase):
         # With headers
         headers = Headers([("Referer", "http://moths/"), ("Foo", "Bar")])
         freq = FuzzableRequest(url, headers=headers)
-        generated_mutants = create_mutants(freq, self.payloads)
+        generated_mutants = create_mutants(
+            freq, self.payloads, configuration=cf_singleton
+        )
 
         expected_urls = [
             "http://moth/?id=abc",
@@ -212,7 +218,9 @@ class TestFuzzer(unittest.TestCase):
         url = URL("http://moth/?id=1")
         # But there is no cookie
         freq = FuzzableRequest(url)
-        generated_mutants = create_mutants(freq, self.payloads)
+        generated_mutants = create_mutants(
+            freq, self.payloads, configuration=cf_singleton
+        )
 
         expected_urls = ["http://moth/?id=abc", "http://moth/?id=def"]
         generated_urls = [m.get_uri().url_string for m in generated_mutants]
@@ -241,7 +249,7 @@ class TestFuzzer(unittest.TestCase):
         # And now there is a cookie
         cookie = Cookie("foo=bar")
         freq = FuzzableRequest(url, cookie=cookie)
-        mutants = create_mutants(freq, self.payloads)
+        mutants = create_mutants(freq, self.payloads, configuration=cf_singleton)
 
         expected_urls = [
             "http://moth/?id=abc",
@@ -267,7 +275,9 @@ class TestFuzzer(unittest.TestCase):
 
         url = URL("http://moth/")
         freq = FuzzableRequest(url)
-        generated_mutants = create_mutants(freq, self.payloads)
+        generated_mutants = create_mutants(
+            freq, self.payloads, configuration=cf_singleton
+        )
 
         self.assertEqual(generated_mutants, [])
 
@@ -281,7 +291,9 @@ class TestFuzzer(unittest.TestCase):
 
         url = URL("http://moth/foo.htm?id=1")
         freq = FuzzableRequest(url)
-        generated_mutants = create_mutants(freq, self.payloads)
+        generated_mutants = create_mutants(
+            freq, self.payloads, configuration=cf_singleton
+        )
 
         expected_urls = [
             "http://moth/foo.htm?id=abc",
@@ -394,7 +406,9 @@ class TestFuzzer(unittest.TestCase):
 
         url = URL("http://moth/foo/bar.htm?id=1")
         freq = FuzzableRequest(url)
-        generated_mutants = create_mutants(freq, self.payloads)
+        generated_mutants = create_mutants(
+            freq, self.payloads, configuration=cf_singleton
+        )
 
         generated_uris = [m.get_uri().url_string for m in generated_mutants]
         expected_uris = [

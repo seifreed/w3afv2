@@ -155,6 +155,7 @@ class deserialization(AuditPlugin):
             [
                 "",
             ],
+            configuration=self.get_configuration(),
         ):
             for language, payload in self._get_payloads():
                 if not self._should_inject(mutant, language):

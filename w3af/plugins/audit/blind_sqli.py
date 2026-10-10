@@ -158,6 +158,7 @@ class blind_sqli(AuditPlugin):
             [
                 "",
             ],
+            configuration=self.get_configuration(),
         ):
 
             if self._has_sql_injection(mutant):
@@ -185,6 +186,7 @@ class blind_sqli(AuditPlugin):
             [
                 "",
             ],
+            configuration=self.get_configuration(),
         ):
 
             if self._has_sql_injection(mutant):

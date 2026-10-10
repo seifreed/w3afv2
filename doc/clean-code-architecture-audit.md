@@ -4061,3 +4061,17 @@ combinado pasa sin warnings propios. Black, Ruff, mypy y Bandit focal están
 limpios. El score sube a **9.0/10** en Clean Architecture y **8.9/10** global.
 Siguen pendientes parsers, fuzzer, `Info`, controllers y la cobertura global
 del 100%.
+
+## Actualización verificada: configuración explícita en el fuzzer
+
+`create_mutants` ya no lee `cf.cf` al crear mutantes. Los plugins de auditoría
+le pasan su configuración de scan y los tests que cambian opciones usan una
+configuración explícita. La configuración por defecto queda aislada en un
+`Config` local cuando se usa la función directamente.
+
+Verificación: la suite unitaria del fuzzer pasa **30 tests**; una muestra de
+auditorías pasó **13 tests** antes de quedar bloqueada por una integración que
+no consumía CPU en este entorno y fue interrumpida. Black, Ruff, mypy y Bandit
+focal están limpios. El score sube a **9.1/10** en Clean Architecture y
+**9.0/10** global. Siguen pendientes parsers, `FuzzableRequest`, `Info`,
+controllers y la cobertura global del 100%.

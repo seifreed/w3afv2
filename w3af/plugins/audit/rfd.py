@@ -107,7 +107,12 @@ class rfd(AuditPlugin):
         payload2 = EXEC_MARKER + "".join(ESCAPE_CHARS)
         payloads = payload1, payload2
 
-        mutants = create_mutants(freq, payloads, mutant_tuple=(QSMutant,))
+        mutants = create_mutants(
+            freq,
+            payloads,
+            mutant_tuple=(QSMutant,),
+            configuration=self.get_configuration(),
+        )
 
         for mutant in mutants:
             response = self._uri_opener.send_mutant(mutant)

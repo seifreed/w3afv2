@@ -62,6 +62,7 @@ class redos(AuditPlugin):
             [
                 "",
             ],
+            configuration=self.get_configuration(),
         ):
             for delay_obj in self.get_delays():
                 yield mutant, delay_obj, debugging_id

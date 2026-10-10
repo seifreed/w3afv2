@@ -75,7 +75,11 @@ class rosetta_flash(AuditPlugin):
         # Note that we're only creating QS mutants, since that's a requirement
         # to be able to "host" the reflected Flash in the vulnerable site
         mutants = create_mutants(
-            freq, [self.FLASH], orig_resp=orig_response, mutant_tuple=[QSMutant]
+            freq,
+            [self.FLASH],
+            orig_resp=orig_response,
+            mutant_tuple=[QSMutant],
+            configuration=self.get_configuration(),
         )
 
         self._send_mutants_in_threads(

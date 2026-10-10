@@ -220,7 +220,13 @@ class csrf(AuditPlugin):
         # trivial validations)
         #
         # Only create mutants that modify the token parameter name
-        mutants = create_mutants(freq, [token_value[::-1]], False, token_pname_lst)
+        mutants = create_mutants(
+            freq,
+            [token_value[::-1]],
+            False,
+            token_pname_lst,
+            configuration=self.get_configuration(),
+        )
 
         for mutant in mutants:
             mutant_response = self._uri_opener.send_mutant(mutant)

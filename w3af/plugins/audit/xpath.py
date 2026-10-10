@@ -85,7 +85,10 @@ class xpath(AuditPlugin):
         :param debugging_id: A unique identifier for this call to audit()
         """
         mutants = create_mutants(
-            freq, self.XPATH_TEST_PAYLOADS, orig_resp=orig_response
+            freq,
+            self.XPATH_TEST_PAYLOADS,
+            orig_resp=orig_response,
+            configuration=self.get_configuration(),
         )
 
         self._send_mutants_in_threads(

@@ -89,10 +89,19 @@ class os_commanding(AuditPlugin):
 
         # Create the mutants, notice that we use append=False (default) and
         # True to have better coverage.
-        mutants = create_mutants(freq, only_command_strings, orig_resp=orig_response)
+        mutants = create_mutants(
+            freq,
+            only_command_strings,
+            orig_resp=orig_response,
+            configuration=self.get_configuration(),
+        )
         mutants.extend(
             create_mutants(
-                freq, only_command_strings, orig_resp=orig_response, append=True
+                freq,
+                only_command_strings,
+                orig_resp=orig_response,
+                append=True,
+                configuration=self.get_configuration(),
             )
         )
 
@@ -177,6 +186,7 @@ class os_commanding(AuditPlugin):
             [
                 "",
             ],
+            configuration=self.get_configuration(),
         )
         fake_mutants.extend(
             create_mutants(
@@ -185,6 +195,7 @@ class os_commanding(AuditPlugin):
                     "",
                 ],
                 append=True,
+                configuration=self.get_configuration(),
             )
         )
 

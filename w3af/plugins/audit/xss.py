@@ -91,7 +91,9 @@ class xss(AuditPlugin):
         :param orig_response: The HTTP response associated with the fuzzable request
         :param debugging_id: A unique identifier for this call to audit()
         """
-        fake_mutants = create_mutants(freq, [""])
+        fake_mutants = create_mutants(
+            freq, [""], configuration=self.get_configuration()
+        )
 
         # Before we run each fake mutant check in a different thread using the
         # worker_pool, but this lead to a strange dead-lock
@@ -192,6 +194,7 @@ class xss(AuditPlugin):
             mutant.get_fuzzable_request(),
             xss_strings,
             fuzzable_param_list=fuzzable_params,
+            configuration=self.get_configuration(),
         )
 
         self._send_mutants_in_threads(

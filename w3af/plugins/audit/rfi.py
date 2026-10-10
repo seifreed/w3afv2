@@ -291,7 +291,12 @@ class rfi(AuditPlugin):
         :return: None, vulnerabilities are stored in the KB in _analyze_result
         """
         rfi_url_list = self._mutate_rfi_urls(rfi_data.rfi_url)
-        mutants = create_mutants(freq, rfi_url_list, orig_resp=orig_response)
+        mutants = create_mutants(
+            freq,
+            rfi_url_list,
+            orig_resp=orig_response,
+            configuration=self.get_configuration(),
+        )
 
         analyze_result_par = partial(self._analyze_result, rfi_data)
 

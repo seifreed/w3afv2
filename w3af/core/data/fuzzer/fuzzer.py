@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import logging
 
-import w3af.core.data.kb.config as cf
 from w3af.core.data.fuzzer.mutants.cookie_mutant import CookieMutant
 from w3af.core.data.fuzzer.mutants.filecontent_mutant import FileContentMutant
 from w3af.core.data.fuzzer.mutants.filename_mutant import FileNameMutant
@@ -32,6 +31,7 @@ from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
 from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
 from w3af.core.data.fuzzer.mutants.urlparts_mutant import URLPartsMutant
 from w3af.core.data.fuzzer.mutants.xmlrpc_mutant import XmlRpcMutant
+from w3af.core.data.kb.config import Config
 
 LOGGER = logging.getLogger(__name__)
 
@@ -55,6 +55,7 @@ def create_mutants(
     fuzzable_param_list=None,
     orig_resp=None,
     mutant_tuple=ALL_MUTANTS,
+    configuration=None,
 ):
     """
     :param freq: A fuzzable request with a DataContainer inside.
@@ -70,7 +71,8 @@ def create_mutants(
     """
     fuzzable_param_list = fuzzable_param_list or []
     result = []
-    fuzzer_config = _get_fuzzer_config()
+    configuration = Config() if configuration is None else configuration
+    fuzzer_config = _get_fuzzer_config(configuration)
 
     for mutant_kls in mutant_tuple:
         new_mutants = mutant_kls.create_mutants(
@@ -132,15 +134,14 @@ CONF_KEYS = [
 ]
 
 
-def _get_fuzzer_config():
+def _get_fuzzer_config(configuration):
     """
     :return: This function verifies the configuration, and creates a map of
              things that can be fuzzed.
     """
-    config = cf.cf
     fuzzer_config = {}
 
     for conf_name, default in CONF_KEYS:
-        fuzzer_config[conf_name] = config.get(conf_name, default)
+        fuzzer_config[conf_name] = configuration.get(conf_name, default)
 
     return fuzzer_config

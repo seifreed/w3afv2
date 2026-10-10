@@ -62,7 +62,7 @@ class memcachei(AuditPlugin):
         """
         Uses the batch injection technique to find memcache injections
         """
-        mutants = create_mutants(freq, [""])
+        mutants = create_mutants(freq, [""], configuration=self.get_configuration())
 
         self._send_mutants_in_threads(
             self._analyze_echo,

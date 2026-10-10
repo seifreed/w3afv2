@@ -125,7 +125,12 @@ class eval(AuditPlugin):
         """
         print_strings = [pstr % (self._rnd,) for pstr in self.PRINT_STRINGS]
 
-        mutants = create_mutants(freq, print_strings, orig_resp=orig_response)
+        mutants = create_mutants(
+            freq,
+            print_strings,
+            orig_resp=orig_response,
+            configuration=self.get_configuration(),
+        )
 
         self._send_mutants_in_threads(
             self._uri_opener.send_mutant,
@@ -151,6 +156,7 @@ class eval(AuditPlugin):
             [
                 "",
             ],
+            configuration=self.get_configuration(),
         ):
             #
             # Don't try to find an eval() using a time delay method if we already found
