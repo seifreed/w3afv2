@@ -37,9 +37,9 @@ from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.authentication_settings import AuthenticationSettings
 from w3af.core.data.url.constants import MAX_HTTP_RETRIES, USER_AGENT
 from w3af.core.data.url.cookie_settings import CookieSettings
-from w3af.core.data.url.handlers.url_parameter import URLParameterHandler
 from w3af.core.data.url.opener_builder import OpenerBuilder
 from w3af.core.data.url.proxy_settings import ProxySettings
+from w3af.core.data.url.url_parameter_settings import URLParameterSettings
 from w3af.core.exceptions import BaseFrameworkException
 
 USER_AGENT_HEADER = "User-Agent"
@@ -59,7 +59,7 @@ class OpenerSettings(Configurable):
         self._proxy = ProxySettings(cfg, LOGGER.debug)
         self._ka_http = None
         self._ka_https = None
-        self._url_parameter_handler = None
+        self._url_parameter = URLParameterSettings()
         self._cache_handler = None
         # Keep alive handlers are created on build_openers()
 
@@ -107,6 +107,10 @@ class OpenerSettings(Configurable):
     @property
     def _proxy_handler(self):
         return self._proxy.proxy_handler
+
+    @property
+    def _url_parameter_handler(self):
+        return self._url_parameter.handler
 
     def _mark_needs_update(self):
         self.need_update = True
@@ -308,14 +312,7 @@ class OpenerSettings(Configurable):
         return cfg.get("max_http_retries")
 
     def set_url_parameter(self, url_param):
-        # Do some input cleanup/validation
-        url_param = url_param.replace("'", "")
-        url_param = url_param.replace('"', "")
-        url_param = url_param.lstrip().rstrip()
-
-        if url_param:
-            cfg.save("url_parameter", url_param)
-            self._url_parameter_handler = URLParameterHandler(url_param)
+        self._url_parameter.set_url_parameter(url_param)
 
     def get_options(self):
         """

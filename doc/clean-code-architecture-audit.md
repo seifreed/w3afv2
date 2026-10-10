@@ -3371,3 +3371,16 @@ Verificación: la suite URL completa pasó **217 tests en 199.56 s**, con dos
 warnings externos de `ldap3/pyasn1`; la batería focal del opener pasó **26
 tests**. Ruff, mypy focal y Bandit focal están limpios. El score se mantiene en
 **6.5/10** por cobertura global, módulos grandes y gates globales pendientes.
+
+## Actualización verificada: parámetro de URL separado
+
+`URLParameterSettings` concentra la limpieza, persistencia y creación del
+`URLParameterHandler`. `OpenerSettings` conserva `set_url_parameter()` y
+`_url_parameter_handler` para los consumidores existentes, pero ya no mezcla
+esta política con el resto de configuración del opener.
+
+Verificación: la suite URL completa pasó **217 tests en 193.86 s**, con dos
+warnings externos de `ldap3/pyasn1`; la batería focal pasó **27 tests en
+1.29 s**. Ruff, mypy focal y Bandit focal están limpios. El score se mantiene
+en **6.5/10** por cobertura global, módulos grandes y gates globales
+pendientes.
