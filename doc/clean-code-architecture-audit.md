@@ -1591,3 +1591,14 @@ Verificación: 42 tests de divulgación y ramas adicionales pasan, Ruff, Black y
 mypy pasan en el módulo modificado. El score sigue en **5.75/10**: quedan 78
 imports directos de la KB, además de la cobertura, mocks, el fallo heredado de
 perfilado y los orquestadores grandes.
+
+## Actualización verificada: auditoría genérica
+
+`audit.generic` consulta los hallazgos existentes mediante la KB inyectada al
+finalizar, manteniendo intacta la deduplicación de errores y el reporte de
+vulnerabilidades.
+
+Verificación: 3 tests integrados pasan, Ruff, Black y mypy pasan en el módulo
+modificado. El score sigue en **5.75/10**: quedan 77 imports directos de la KB,
+además de la cobertura, mocks, el fallo heredado de perfilado y los
+orquestadores grandes.
