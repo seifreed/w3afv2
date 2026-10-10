@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from collections import deque
 
-import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.plugins.plugin import Plugin
 from w3af.core.data.fuzzer.utils import rand_alnum
@@ -140,7 +139,7 @@ class AuthPlugin(Plugin):
         cf.cf.save("blacklist_audit", blacklist_audit)
 
         args = ("\n - ".join(str(u) for u in new_blacklist_audit),)
-        om.out.information(self.BLACKLIST_LOGIN_URL_MESSAGE % args)
+        self._output.information(self.BLACKLIST_LOGIN_URL_MESSAGE % args)
 
     def _log_http_response(self, http_response):
         if is_no_content_response(http_response):
@@ -157,13 +156,13 @@ class AuthPlugin(Plugin):
         self._log_messages.append(message)
 
         formatted_message = self._format_message(message)
-        om.out.debug(formatted_message)
+        self._output.debug(formatted_message)
 
     def _log_error(self, message):
         self._log_messages.append(message)
 
         # Send the message to the output without adding any formatting
-        om.out.error(message)
+        self._output.error(message)
 
         # This is here just for me to be able to quickly find all the activity
         # of a specific auth plugin by grepping by its name

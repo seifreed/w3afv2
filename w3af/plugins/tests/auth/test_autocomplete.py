@@ -230,6 +230,7 @@ class TestAutocompleteAuthenticationFailure(unittest.TestCase):
 
     def test_consecutive_authentication_failure(self):
         plugin = autocomplete()
+        plugin.set_knowledge_base(kb.kb)
         kb.kb.cleanup()
 
         for i in range(autocomplete.MAX_CONSECUTIVE_FAILED_LOGIN_COUNT - 1):

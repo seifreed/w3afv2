@@ -126,6 +126,7 @@ class AuthPluginTestCase(unittest.TestCase):
             options[name].set_value(value)
         plugin.set_options(options)
         plugin.set_url_opener(self.uri_opener)
+        plugin.set_knowledge_base(kb.kb)
         return plugin
 
 

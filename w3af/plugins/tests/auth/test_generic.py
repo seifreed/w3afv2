@@ -173,7 +173,7 @@ class TestGeneric(PluginTest):
         except (HTTPRequestException, ConnectionPoolException) as e:
             raise SkipTest("demo.testfire.net is unreachable!") from e
         else:
-            if "Online Banking Login" not in res.body:
+            if b"Online Banking Login" not in res.get_body():
                 raise SkipTest("demo.testfire.net has changed!")
 
         self._scan(self.demo_testfire_net["target"], self.demo_testfire_net["plugins"])

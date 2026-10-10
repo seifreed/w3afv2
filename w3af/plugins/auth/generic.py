@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from urllib.parse import urlencode
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.plugins.auth_session_plugin import AuthSessionPlugin
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
@@ -69,7 +68,7 @@ class generic(AuthSessionPlugin):
         self._configure_audit_blacklist(self.auth_url)
 
         msg = f"Logging into the application using {self.username}"
-        om.out.debug(msg)
+        self._output.debug(msg)
 
         #
         # Send the auth HTTP request

@@ -2193,3 +2193,15 @@ fallan únicamente 2 aserciones ANSI de `console`, fuera del diff. Ruff, Black y
 mypy están limpios. El score permanece en **5.75/10** por el resto de
 consumidores globales, cobertura, Bandit heredado, mocks, perfilado, Moth y
 los orquestadores.
+
+## Actualización verificada: output desacoplado en autenticación
+
+`AuthPlugin` y `auth.generic` dejaron de importar el singleton de output y usan
+el sink heredado de `Plugin`. También se corrigieron dos fixtures unitarios que
+creaban plugins sin configurar la KB, y la comprobación del demo externo ahora
+compara el tipo de datos real antes de decidir si debe omitirse.
+
+Verificación: **70 tests pasados y 1 omitido** en la suite auth y bases de
+plugin; Ruff, Black y mypy están limpios. El score permanece en **5.75/10** por
+los consumidores globales restantes, cobertura, Bandit heredado, mocks,
+perfilado, Moth y orquestadores grandes.
