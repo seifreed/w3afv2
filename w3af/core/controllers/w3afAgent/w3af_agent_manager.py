@@ -134,7 +134,7 @@ class w3afAgentManager(Process):
                         + '" seconds.'
                     )
 
-                    filename = get_remote_temp_file(self._exec_method)
+                    filename = get_remote_temp_file(self._exec_method, om.out)
                     filename += "." + extension
 
                     #    Upload the file and check integrity

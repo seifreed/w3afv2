@@ -69,7 +69,8 @@ class ClientlessReverseHTTP(BasePayloadTransfer):
                 try:
                     # Lets test if the transfer method works.
                     return self.transfer(
-                        "test_string\n", get_remote_temp_file(self._exec_method)
+                        "test_string\n",
+                        get_remote_temp_file(self._exec_method, self._output),
                     )
                 except (OSError, BaseFrameworkException) as exc:
                     self._output.debug(f"Transfer method {fetcher} failed: {exc}")

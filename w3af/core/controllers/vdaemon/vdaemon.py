@@ -235,7 +235,7 @@ class vdaemon:
                 'The payload transfer will take "' + str(estimatedTime) + '" seconds.'
             )
 
-            self._remote_filename = get_remote_temp_file(self._exec_method)
+            self._remote_filename = get_remote_temp_file(self._exec_method, om.out)
             om.out.debug(
                 'Starting payload upload, remote filename is: "'
                 + self._remote_filename

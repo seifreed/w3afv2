@@ -65,7 +65,7 @@ class payload_transfer_factory:
         :return: An object with a "transfer" method, which can be called by the
                  user in order to upload files.
         """
-        os = os_detection_exec(self._exec_method)
+        os = os_detection_exec(self._exec_method, om.out)
         if os == "windows":
             echo_transfer = EchoWindows(self._exec_method, os)
         elif os == "linux":

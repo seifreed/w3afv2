@@ -2560,3 +2560,16 @@ Verificación: **20 tests pasaron** en los generadores y el plugin bruteforce;
 Ruff, Black y mypy están limpios. El score permanece en **6.25/10** por los
 servicios restantes, cobertura 100% no demostrada, Bandit heredado, mocks,
 Moth y los orquestadores grandes.
+
+## Actualización verificada: helpers de ejecución con output explícito
+
+`os_detection_exec` y `get_remote_temp_file` reciben el sink de sus callers;
+los mensajes de detección de sistema operativo ya no dependen de
+`output_manager`. Se actualizaron transferencia, extrusion, vdaemon, agente y
+los handlers de ejecución diferida, además de sus tests.
+
+Verificación: **6 tests pasaron y 2 fueron omitidos** en los helpers; Ruff,
+Black y mypy están limpios. El score permanece en **6.25/10** porque los
+orquestadores que aún escriben directamente al singleton siguen pendientes,
+junto con cobertura 100% no demostrada, Bandit heredado, mocks e integraciones
+Moth.

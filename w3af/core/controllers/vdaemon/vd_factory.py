@@ -33,7 +33,7 @@ def get_virtual_daemon(exec_method, knowledge_base):
     remote OS is, and based on that info, it returns the corresponding virtual
     daemon.
     """
-    os = os_detection_exec(exec_method)
+    os = os_detection_exec(exec_method, om.out)
 
     if os == "windows":
         om.out.debug("Identified remote OS as Windows, returning winVd object.")

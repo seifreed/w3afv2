@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import posixpath
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.exceptions import BaseFrameworkException
 
@@ -31,7 +30,7 @@ from w3af.core.exceptions import BaseFrameworkException
 REMOTE_LINUX_TEMP_DIR = posixpath.join(posixpath.sep, "tmp")
 
 
-def os_detection_exec(exec_method):
+def os_detection_exec(exec_method, output):
     """
     Uses the exec_method to run remote commands and determine what's the
     remote OS is and returns a string with 'windows' or 'linux' or raises
@@ -44,7 +43,7 @@ def os_detection_exec(exec_method):
         pass
     else:
         if "w3af" in linux1 and linux2.count(":") > 3:
-            om.out.debug('Identified remote OS as Linux, returning "linux".')
+            output.debug('Identified remote OS as Linux, returning "linux".')
             return "linux"
 
     try:
@@ -55,20 +54,20 @@ def os_detection_exec(exec_method):
         pass
     else:
         if "[fonts]" in win1 and "ECHO" in win2:
-            om.out.debug('Identified remote OS as Windows, returning "windows".')
+            output.debug('Identified remote OS as Windows, returning "windows".')
             return "windows"
 
     raise BaseFrameworkException("Failed to get/identify the remote OS.")
 
 
-def get_remote_temp_file(exec_method):
+def get_remote_temp_file(exec_method, output):
     """
     :return: The name of a file in the remote file system that the user that I'm
              executing commands with can write, read and execute. The normal
              responses for this are files in /tmp/ or %TEMP% depending on the
              remote OS.
     """
-    os = os_detection_exec(exec_method)
+    os = os_detection_exec(exec_method, output)
     if os == "windows":
         _filename = exec_method("echo %TEMP%").strip() + "\\"
         _filename += rand_alnum(6)
@@ -79,7 +78,7 @@ def get_remote_temp_file(exec_method):
             return _filename
         else:
             # Shit, the file exists, run again and see what we can do
-            return get_remote_temp_file(exec_method)
+            return get_remote_temp_file(exec_method, output)
 
         return _filename
 
@@ -92,7 +91,7 @@ def get_remote_temp_file(exec_method):
             return _filename
         else:
             # Shit, the file exists, run again and see what we can do
-            return get_remote_temp_file(exec_method)
+            return get_remote_temp_file(exec_method, output)
 
     else:
         msg = "Failed to create filename for a temporary file in the remote host."

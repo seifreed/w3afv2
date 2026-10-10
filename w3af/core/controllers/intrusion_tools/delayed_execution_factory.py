@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.intrusion_tools.at_handler import atHandler
 from w3af.core.controllers.intrusion_tools.crontab_handler import crontabHandler
 from w3af.core.controllers.intrusion_tools.exec_method_helpers import os_detection_exec
@@ -35,7 +36,7 @@ class delayedExecutionFactory:
         self._exec_method = exec_method
 
     def get_delayed_execution_handler(self):
-        os = os_detection_exec(self._exec_method)
+        os = os_detection_exec(self._exec_method, om.out)
         if os == "windows":
             return atHandler(self._exec_method)
         elif os == "linux":

@@ -23,6 +23,7 @@ import subprocess
 import sys
 import unittest
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.intrusion_tools.exec_method_helpers import (
     get_remote_temp_file,
     os_detection_exec,
@@ -68,35 +69,39 @@ class TestExecHelpers(unittest.TestCase):
 
     @unittest.skipUnless(sys.platform.startswith("linux"), "Needs a Linux host")
     def test_os_detection_exec_local_linux(self):
-        self.assertEqual(os_detection_exec(subprocess.getoutput), "linux")
+        self.assertEqual(os_detection_exec(subprocess.getoutput, om.out), "linux")
 
     @unittest.skipUnless(sys.platform.startswith("linux"), "Needs a Linux host")
     def test_get_remote_temp_file_local_linux(self):
-        tempfile = get_remote_temp_file(subprocess.getoutput)
+        tempfile = get_remote_temp_file(subprocess.getoutput, om.out)
         self.assertTrue(tempfile.startswith("/tmp/"))
 
     def test_os_detection_exec_linux(self):
-        os = os_detection_exec(RemoteShell(LINUX_SHELL))
+        os = os_detection_exec(RemoteShell(LINUX_SHELL), om.out)
         self.assertEqual(os, "linux")
 
     def test_os_detection_exec_windows(self):
         exec_method = RemoteShell(WINDOWS_SHELL)
-        os = os_detection_exec(exec_method)
+        os = os_detection_exec(exec_method, om.out)
         self.assertEqual(os, "windows")
         self.assertEqual(len(exec_method.executed), 4)
 
     def test_os_detection_exec_unknown(self):
         exec_method = RemoteShell({})
-        self.assertRaises(BaseFrameworkException, os_detection_exec, exec_method)
+        self.assertRaises(
+            BaseFrameworkException, os_detection_exec, exec_method, om.out
+        )
 
     def test_get_remote_temp_file_linux(self):
-        tempfile = get_remote_temp_file(RemoteShell(LINUX_SHELL))
+        tempfile = get_remote_temp_file(RemoteShell(LINUX_SHELL), om.out)
         self.assertTrue(tempfile.startswith("/tmp/"))
 
     def test_get_remote_temp_file_windows(self):
-        tempfile = get_remote_temp_file(RemoteShell(WINDOWS_SHELL))
+        tempfile = get_remote_temp_file(RemoteShell(WINDOWS_SHELL), om.out)
         self.assertTrue(tempfile.startswith("C:\\Windows\\Temp\\"))
 
     def test_get_remote_temp_file_unknown(self):
         exec_method = RemoteShell({})
-        self.assertRaises(BaseFrameworkException, get_remote_temp_file, exec_method)
+        self.assertRaises(
+            BaseFrameworkException, get_remote_temp_file, exec_method, om.out
+        )

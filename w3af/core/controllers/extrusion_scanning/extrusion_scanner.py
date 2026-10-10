@@ -71,7 +71,7 @@ class extrusionScanner:
         self._tcp_port_list = tcpPortList
         self._udp_port_list = udpPortList
 
-        os = os_detection_exec(exec_method)
+        os = os_detection_exec(exec_method, om.out)
         if os == "windows":
             self._transferHandler = EchoWindows(exec_method, os)
         elif os == "linux":
@@ -216,7 +216,7 @@ class extrusionScanner:
 
     def _sendExtrusionClient(self):
         interpreter, extrusionClient, extension = self._selectExtrusionClient()
-        remoteFilename = get_remote_temp_file(self._exec_method)
+        remoteFilename = get_remote_temp_file(self._exec_method, om.out)
         remoteFilename += "." + extension
 
         # do the transfer
