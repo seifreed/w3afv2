@@ -1047,7 +1047,7 @@ class TestURLParser(unittest.TestCase):
             file_path.write_text("local file", encoding="utf-8")
             url = URL(file_path.as_uri())
 
-            with urllib.request.urlopen(url.url_string) as response:
+            with urllib.request.build_opener().open(url.url_string) as response:
                 self.assertEqual(response.read(), b"local file")
 
     #

@@ -73,7 +73,7 @@ class TestWebserver(unittest.TestCase):
 
     def test_get_404(self):
         with self.assertRaises(urllib.error.HTTPError) as error:
-            urllib.request.urlopen(self.url("missing.txt"))
+            urllib.request.build_opener().open(self.url("missing.txt"))
 
         self.assertEqual(error.exception.code, 404)
 
@@ -87,7 +87,7 @@ class TestWebserver(unittest.TestCase):
     def test_get_exists_with_known_content_type(self):
         self.create_file("foofile.txt")
 
-        response = urllib.request.urlopen(self.url("foofile.txt"))
+        response = urllib.request.build_opener().open(self.url("foofile.txt"))
 
         self.assertEqual(response.read().decode("utf-8"), TEST_STRING)
         self.assertEqual(response.headers["Content-type"], "text/plain")
@@ -95,7 +95,7 @@ class TestWebserver(unittest.TestCase):
     def test_get_exists_with_unknown_content_type(self):
         self.create_file("foofile.w3afunknown")
 
-        response = urllib.request.urlopen(self.url("foofile.w3afunknown"))
+        response = urllib.request.build_opener().open(self.url("foofile.w3afunknown"))
 
         self.assertEqual(response.read().decode("utf-8"), TEST_STRING)
         self.assertEqual(response.headers["Content-type"], "text/html")

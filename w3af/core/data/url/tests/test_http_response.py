@@ -351,7 +351,7 @@ class TestHTTPResponseAPI(unittest.TestCase):
     def test_from_httplib_resp_without_original_url(self):
         server = RouteServer.serve_for(self, {"/": Response(200, "hello")})
 
-        with urllib.request.urlopen(server.url()) as httplib_resp:
+        with urllib.request.build_opener().open(server.url()) as httplib_resp:
             resp = HTTPResponse.from_httplib_resp(httplib_resp)
 
         self.assertEqual(resp.get_code(), 200)
@@ -363,7 +363,7 @@ class TestHTTPResponseAPI(unittest.TestCase):
         server = RouteServer.serve_for(self, {})
 
         with self.assertRaises(urllib.error.HTTPError) as raised:
-            urllib.request.urlopen(server.url("/missing"))
+            urllib.request.build_opener().open(server.url("/missing"))
 
         error = raised.exception
         self.addCleanup(error.close)

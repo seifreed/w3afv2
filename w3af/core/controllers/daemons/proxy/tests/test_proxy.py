@@ -104,7 +104,10 @@ class TestProxy(unittest.TestCase):
 
     def assert_same_as_direct(self, url, context=None):
         proxy_resp = self.proxy_opener.open(url)
-        direct_resp = urllib.request.urlopen(url, context=context)
+        direct_opener = urllib.request.build_opener(
+            urllib.request.HTTPSHandler(context=context)
+        )
+        direct_resp = direct_opener.open(url)
 
         self.assertEqual(direct_resp.read(), proxy_resp.read())
         self.assertEqual(
