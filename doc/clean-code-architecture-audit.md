@@ -3515,3 +3515,16 @@ warnings externos de `ldap3/pyasn1`; la batería focal pasó **42 tests en
 150.82 s**. Ruff, mypy focal y Bandit focal están limpios. El score se mantiene
 en **6.5/10** por cobertura global, módulos grandes y gates globales
 pendientes.
+
+## Actualización verificada: política de errores de request separada
+
+`RequestErrorHandler` concentra clasificación socket/urllib, respeto de
+`error_handling`, registro sincronizado del fallo, umbral de parada, ajuste de
+workers y reenvío. `ExtendedUrllib` conserva las fachadas privadas, incluida
+`_generic_send_error_handler`, requerida por un consumidor indirecto.
+
+Verificación: la suite URL completa pasó **217 tests en 182.93 s**, con dos
+warnings externos de `ldap3/pyasn1`; la batería focal pasó **42 tests en
+144.63 s**. Ruff, mypy focal y Bandit focal están limpios. El score se mantiene
+en **6.5/10** por cobertura global, módulos grandes y gates globales
+pendientes.

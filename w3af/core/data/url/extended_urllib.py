@@ -55,6 +55,7 @@ from w3af.core.data.url.helpers import get_clean_body, get_exception_reason
 from w3af.core.data.url.http_error_pause_controller import HttpErrorPauseController
 from w3af.core.data.url.http_request import HTTPRequest
 from w3af.core.data.url.rate_limiter import RateLimiter
+from w3af.core.data.url.request_error_handler import RequestErrorHandler
 from w3af.core.data.url.request_evasion import RequestEvasionPipeline
 from w3af.core.data.url.request_preparer import RequestPreparer
 from w3af.core.data.url.request_retry_handler import RequestRetryHandler
@@ -142,6 +143,16 @@ class ExtendedUrllib:
             self.get_timeout,
             self._log_error_rate,
             LOGGER.debug,
+        )
+        self._error_handler = RequestErrorHandler(
+            LOGGER.debug,
+            self._increase_timeout_on_error,
+            self._count_lock,
+            self._log_failed_response,
+            self._should_stop_scan,
+            self._handle_error_count_exceeded,
+            self._worker_pool_adjuster.adjust,
+            self._retry,
         )
         self._request_control = ScanRequestControl()
 
@@ -819,50 +830,19 @@ class ExtendedUrllib:
             )
 
     def _handle_send_socket_error(self, req, exception, grep, original_url):
-        """
-        This error handling is separated from the other because we want to have
-        better handling for:
-            * Connection timeouts
-            * Connection resets
-            * Network problems (network connection goes down for some seconds)
-
-        Our strategy for handling these errors is simple
-        """
-        self._increase_timeout_on_error(req, exception)
-
-        return self._generic_send_error_handler(req, exception, grep, original_url)
+        return self._error_handler.handle_socket_error(
+            req, exception, grep, original_url
+        )
 
     def _handle_send_urllib_error(self, req, exception, grep, original_url):
-        """
-        I get to this section of the code if a 400 error is returned
-        also possible when a proxy is configured and not available
-        also possible when auth credentials are wrong for the URI
-        """
-        return self._generic_send_error_handler(req, exception, grep, original_url)
+        return self._error_handler.handle_urllib_error(
+            req, exception, grep, original_url
+        )
 
     def _generic_send_error_handler(self, req, exception, grep, original_url):
-        if not req.error_handling:
-            msg = (
-                'Raising HTTP error "%s" "%s" failed reason: "%s".'
-                " Error handling was disabled for this request (did:%s)."
-            )
-            args = (req.get_method(), original_url, exception, req.debugging_id)
-            LOGGER.debug(msg % args)
-
-            error_str = get_exception_reason(exception) or str(exception)
-            raise HTTPRequestException(error_str, request=req)
-
-        with self._count_lock:
-            self._log_failed_response(req, exception, original_url)
-
-            if self._should_stop_scan(req):
-                self._handle_error_count_exceeded(exception)
-
-        self._worker_pool_adjuster.adjust()
-
-        # Then retry!
-        req._original_url = original_url
-        return self._retry(req, grep, exception)
+        return self._error_handler._handle_generic_error(
+            req, exception, grep, original_url
+        )
 
     def _handle_send_success(self, req, res, grep, original_url, original_url_inst):
         return self._response_success_handler.handle(
