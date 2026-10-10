@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import ClassVar
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.constants import severity
@@ -133,7 +132,7 @@ class dot_net_errors(InfrastructurePlugin):
             self.get_name(),
         )
 
-        kb.kb.append(self, "dot_net_errors", v)
+        self._get_knowledge_base().append(self, "dot_net_errors", v)
 
     def get_plugin_deps(self):
         """

@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
@@ -62,7 +61,7 @@ class finger_pks(InfrastructurePlugin):
             i["name"] = result.name
             i["url_list"] = {URL(pks_url)}
 
-            kb.kb.append("emails", "emails", i)
+            self._get_knowledge_base().append("emails", "emails", i)
             om.out.information(i.get_desc())
 
     def get_long_desc(self):

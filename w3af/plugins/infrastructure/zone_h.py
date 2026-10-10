@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import re
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
@@ -102,7 +101,7 @@ class zone_h(InfrastructurePlugin):
                 )
                 v.set_url(response.get_url())
 
-                kb.kb.append(self, "defacements", v)
+                self._get_knowledge_base().append(self, "defacements", v)
                 om.out.information(v.get_desc())
             elif total_attacks == 1:
                 desc = (
@@ -113,7 +112,7 @@ class zone_h(InfrastructurePlugin):
                 i = Info("Previous defacements", desc, response.id, self.get_name())
                 i.set_url(response.get_url())
 
-                kb.kb.append(self, "defacements", i)
+                self._get_knowledge_base().append(self, "defacements", i)
                 om.out.information(i.get_desc())
 
     def get_long_desc(self):
