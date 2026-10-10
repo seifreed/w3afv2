@@ -36,6 +36,7 @@ from w3af.core.data.parsers.doc.html import HTMLParser
 from w3af.core.data.parsers.doc.tests.data.constants import *
 from w3af.core.data.parsers.doc.tests.test_sgml import build_http_response
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.data.parsers.exceptions import ParserException
 from w3af.core.data.parsers.utils.form_constants import EXCLUDE, INCLUDE
 from w3af.core.data.parsers.utils.form_id_matcher_list import FormIDMatcherList
 from w3af.core.data.parsers.utils.form_params import (
@@ -54,6 +55,17 @@ class RaiseHTMLParser(HTMLParser):
 class TestHTMLParser(unittest.TestCase):
 
     url = URL("http://w3af.com")
+
+    def test_tag_handling_errors_are_surfaced_by_the_raise_parser(self):
+        class BrokenFormParser(RaiseHTMLParser):
+            def _handle_form_tag_start(self, tag, tag_name, attrs):
+                raise ValueError("broken form")
+
+        body = "<html><body><form action='/x'></form></body></html>"
+        resp = build_http_response(self.url, body)
+
+        with self.assertRaisesRegex(ParserException, "broken form"):
+            BrokenFormParser(resp).parse()
 
     def test_forms(self):
         body = HTML_DOC % {

@@ -19,109 +19,236 @@ along with w3af; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
+import json
+import os
+import tempfile
+import unittest
+import urllib.parse
+from pathlib import Path
 from typing import ClassVar
-from unittest.mock import call, patch
 
-import pytest
-
+import w3af.core.data.kb.knowledge_base as kb
+from w3af import ROOT_PATH
+from w3af.core.controllers.core_helpers.fingerprint_404 import (
+    fingerprint_404_singleton,
+)
+from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.constants import severity
-from w3af.core.data.misc.file_utils import days_since_file_update
 from w3af.core.data.parsers.doc.url import URL
-from w3af.core.data.search_engines.google import GoogleResult
-from w3af.plugins.crawl.ghdb import GoogleHack, google
-from w3af.plugins.tests.helper import PluginConfig, PluginTest
+from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.plugins.crawl.ghdb import GoogleHack, ghdb
+from w3af.plugins.tests.canned_http_server import CannedReply
+from w3af.plugins.tests.infrastructure.canned_plugin_test import (
+    CannedServerPluginTest,
+)
+
+FIXTURES_DIR = os.path.join(ROOT_PATH, "plugins", "tests", "crawl", "ghdb")
+SIGNATURES_FILE = os.path.join(FIXTURES_DIR, "signatures.xml")
+DROPPER_FILE = os.path.join(FIXTURES_DIR, "dropper.xml")
+
+# A public IP address: it is not a private site, and it does not need DNS
+PUBLIC_TARGET = "http://8.8.8.8/"
+
+HTML = {"Content-Type": "text/html"}
 
 
-class TestGHDB(PluginTest):
+class GHDBCrawlTest(CannedServerPluginTest):
+    """
+    Runs the ghdb plugin against a canned Google (AJAX API and web pages) and
+    a canned target site. The URL each search term finds is in FOUND_BY_TERM.
+    """
 
-    private_url = "http://moth/"
+    plugin_class = ghdb
 
-    _run_configs: ClassVar[dict] = {
-        "cfg": {"target": None, "plugins": {"crawl": (PluginConfig("ghdb"),)}}
+    ghdb_file = SIGNATURES_FILE
+
+    FOUND_BY_TERM: ClassVar[dict] = {
+        "needle": [PUBLIC_TARGET + "leaked/"],
+        "ghost": [PUBLIC_TARGET + "gone/"],
     }
 
-    @pytest.mark.ci_fails
-    def test_ghdb_private(self):
-        cfg = self._run_configs["cfg"]
+    def setUp(self):
+        fingerprint_404_singleton(cleanup=True)
+        self.addCleanup(fingerprint_404_singleton, cleanup=True)
 
-        with patch("w3af.plugins.crawl.web_diff.om.out") as om_mock:
-            self._scan(self.private_url, cfg["plugins"])
+        super().setUp()
+        self.plugin._ghdb_file = self.ghdb_file
 
-            msg = (
-                'There is no point in searching google for "site:moth".'
-                " Google doesn't index private pages."
-            )
+    def respond(self, request):
+        uri = urllib.parse.urlsplit(request.uri)
 
-            self.assertIn(call.information(msg), om_mock.mock_calls)
+        if uri.hostname == "ajax.googleapis.com":
+            return self.respond_ajax_search(uri)
 
-        vulns = self.kb.get("ghdb", "vuln")
-        self.assertEqual(len(vulns), 0, vulns)
+        if uri.hostname == "www.google.com":
+            return CannedReply(200, HTML, "<html><body>no results</body></html>")
 
-    @pytest.mark.ci_fails
+        return self.respond_target_site(request.path)
+
+    def respond_ajax_search(self, uri):
+        query = dict(urllib.parse.parse_qsl(uri.query))
+        term = query["q"].rpartition(" ")[2]
+
+        results = []
+        if query["start"] == "0":
+            results = [{"url": url} for url in self.FOUND_BY_TERM.get(term, [])]
+
+        body = json.dumps({"responseStatus": 200, "responseData": {"results": results}})
+        return CannedReply(200, {"Content-Type": "application/json"}, body)
+
+    def respond_target_site(self, path):
+        if path in ("/", "/leaked/"):
+            return CannedReply(200, HTML, "leaked sensitive information")
+
+        return CannedReply(404, HTML, "Not found")
+
+    def crawl(self, url=PUBLIC_TARGET):
+        self.plugin.crawl(FuzzableRequest(URL(url)), "debugging-id")
+
+    def requested_hosts(self):
+        return {urllib.parse.urlsplit(r.uri).hostname for r in self.server.requests}
+
+    def found_urls(self):
+        urls = set()
+        while not self.plugin.output_queue.empty():
+            urls.add(self.plugin.output_queue.get().get_url().url_string)
+        return urls
+
+
+class TestGHDBMatch(GHDBCrawlTest):
+
     def test_ghdb_match(self):
-        pmodule = "w3af.plugins.crawl.ghdb.%s"
-        with (
-            patch(pmodule % "is_private_site") as private_site_mock,
-            patch.object(google, "get_n_results") as google_mock_method,
-        ):
-            # Mock
-            private_site_mock.return_value = False
+        self.crawl()
 
-            google_result = GoogleResult(URL("http://moth/w3af/crawl/ghdb/"))
-            google_mock_method.side_effect = (
-                [
-                    [],
-                ]
-                * 50
-                + [
-                    [
-                        google_result,
-                    ]
-                ]
-                + [
-                    [],
-                ]
-                * 50000
-            )
-
-            # Scan
-            cfg = self._run_configs["cfg"]
-            self._scan(self.private_url, cfg["plugins"])
-
-        # Assert
-        vulns = self.kb.get("ghdb", "vuln")
+        vulns = kb.kb.get("ghdb", "vuln")
         self.assertEqual(len(vulns), 1, vulns)
 
         vuln = vulns[0]
-        self.assertEqual(vuln.get_url().url_string, "http://moth/w3af/crawl/ghdb/")
+        self.assertEqual(vuln.get_url().url_string, PUBLIC_TARGET + "leaked/")
         self.assertEqual(vuln.get_severity(), severity.MEDIUM)
         self.assertEqual(vuln.get_name(), "Google hack database match")
+        self.assertIn("A needle in a haystack", vuln.get_desc(with_id=False))
+
+    def test_matching_page_is_sent_to_the_core(self):
+        self.crawl()
+
+        self.assertEqual(self.found_urls(), {PUBLIC_TARGET + "leaked/"})
+
+    def test_every_valid_signature_is_searched(self):
+        self.crawl()
+
+        searched_terms = {
+            dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(r.uri).query))["q"]
+            for r in self.server.requests
+            if "ajax.googleapis.com" in r.uri
+        }
+        self.assertEqual(
+            searched_terms,
+            {
+                "site:8.8.8.8 needle",
+                "site:8.8.8.8 ghost",
+                "site:8.8.8.8 nodesc",
+            },
+        )
+
+
+class TestGHDBPrivateSite(GHDBCrawlTest):
+
+    def test_ghdb_private(self):
+        self.crawl("http://127.0.0.1/")
+
+        self.assertEqual(kb.kb.get("ghdb", "vuln"), [])
+        self.assertEqual(self.server.requests, [])
+
+
+class TestGHDBRequestFailure(GHDBCrawlTest):
+
+    ghdb_file = DROPPER_FILE
+
+    FOUND_BY_TERM: ClassVar[dict] = {"dropper": [PUBLIC_TARGET + "dead/"]}
+
+    def respond_target_site(self, path):
+        raise ConnectionResetError
+
+    def test_result_that_can_not_be_requested_is_not_reported(self):
+        self.crawl()
+
+        self.assertEqual(kb.kb.get("ghdb", "vuln"), [])
+        self.assertEqual(self.found_urls(), set())
+
+
+class TestGHDBDatabase(unittest.TestCase):
+
+    def setUp(self):
+        self.plugin = ghdb()
+        self.addCleanup(self.plugin.end)
+
+    def read_ghdb_from(self, xml_content):
+        ghdb_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(ghdb_dir.cleanup)
+
+        ghdb_path = os.path.join(ghdb_dir.name, "ghdb.xml")
+        Path(ghdb_path).write_text(xml_content, encoding="utf-8")
+
+        self.plugin._ghdb_file = ghdb_path
+        return self.plugin._read_ghdb()
 
     def test_xml_parsing(self):
-        ghdb_inst = self.w3afcore.plugins.get_plugin_inst("crawl", "ghdb")
-
-        ghdb_set = ghdb_inst._read_ghdb()
+        ghdb_set = self.plugin._read_ghdb()
 
         self.assertGreater(len(ghdb_set), 300)
 
         for ghdb_inst in ghdb_set:
             self.assertIsInstance(ghdb_inst, GoogleHack)
 
-    def test_too_old_xml(self):
-        ghdb_inst = self.w3afcore.plugins.get_plugin_inst("crawl", "ghdb")
+    def test_corrupt_signatures_are_skipped(self):
+        self.plugin._ghdb_file = SIGNATURES_FILE
 
-        ghdb_file = ghdb_inst._ghdb_file
-        is_older = days_since_file_update(ghdb_file, 30)
+        google_hacks = self.plugin._read_ghdb()
 
-        msg = (
-            "The GHDB database is too old, please update it by running the"
-            " following command:"
-            "\n"
-            "<secret wget-command>\n"
-            'git commit -m "Update GHDB" w3af/plugins/crawl/ghdb/GHDB.xml\n'
-            "git push\n"
-            "\n"
-            "Also remember to run this unittest again to verify that the"
-            " downloaded file can be parsed by the plugin."
+        self.assertEqual(
+            [(gh.search, gh.desc) for gh in google_hacks],
+            [
+                ("needle", "A needle in a haystack"),
+                ("ghost", "A page that no longer exists"),
+                ("nodesc", "No description provided by GHDB."),
+            ],
         )
-        self.assertFalse(is_older, msg)
+
+    def test_missing_database_raises(self):
+        self.plugin._ghdb_file = os.path.join(FIXTURES_DIR, "missing.xml")
+
+        with self.assertRaises(BaseFrameworkException):
+            self.plugin._read_ghdb()
+
+    def test_malformed_database_raises(self):
+        with self.assertRaises(BaseFrameworkException):
+            self.read_ghdb_from("<searchEngineSignature><signature>")
+
+    def test_database_with_entities_is_rejected(self):
+        xml_content = (
+            '<?xml version="1.0"?><!DOCTYPE bomb [<!ENTITY a "aaaa">]>'
+            "<searchEngineSignature>&a;</searchEngineSignature>"
+        )
+
+        with self.assertRaises(BaseFrameworkException):
+            self.read_ghdb_from(xml_content)
+
+    def test_google_hacks_with_the_same_search_are_equal(self):
+        first = GoogleHack("inurl:admin", "Admin pages")
+        second = GoogleHack("inurl:admin", "Another description")
+
+        self.assertEqual(first, second)
+        self.assertEqual(len({first, second}), 1)
+
+    def test_result_limit_option_round_trip(self):
+        options = self.plugin.get_options()
+        self.assertEqual(options["result_limit"].get_value(), 300)
+
+        options["result_limit"].set_value(25)
+        self.plugin.set_options(options)
+
+        self.assertEqual(self.plugin.get_options()["result_limit"].get_value(), 25)
+
+    def test_long_description_credits_exploit_db(self):
+        self.assertIn("Exploit-DB", self.plugin.get_long_desc())
