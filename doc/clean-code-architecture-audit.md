@@ -1887,3 +1887,19 @@ Verificación: 3 tests del plugin pasan, Ruff, Black y mypy pasan en el módulo
 modificado. El score sigue en **5.75/10**: quedan 42 imports directos de la KB,
 además de la cobertura, mocks, el fallo heredado de perfilado, la dependencia
 de Moth y los orquestadores grandes.
+
+## Actualización verificada: composición de los outputs
+
+Los seis outputs que exportan hallazgos, URLs o solicitudes (`csv_file`,
+`email_report`, `export_requests`, `html_file`, `json_file` y `xml_file`) reciben
+la KB desde `OutputManager` y ya no importan el singleton global. La inicialización
+de `w3afCore` publica la KB antes de construir la composición del output; los
+tests aislados pueden inyectar la misma dependencia explícitamente.
+
+Verificación: 108 tests del ciclo del `OutputManager` y de los outputs pasan,
+incluidos 6 subtests; 2 tests de color de consola siguen fallando por la
+configuración de colores del entorno, sin relación con este cambio. Ruff,
+Black y mypy pasan en los módulos modificados. El score sigue en **5.75/10**:
+quedan 35 imports directos de la KB en producción, además de la cobertura,
+mocks, el fallo heredado de perfilado, la dependencia de Moth y los
+orquestadores grandes.
