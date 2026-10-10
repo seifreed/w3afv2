@@ -3411,3 +3411,17 @@ warnings externos de `ldap3/pyasn1`; la batería focal pasó **33 tests en
 3.23 s**. Ruff, mypy focal y Bandit focal están limpios. El score se mantiene
 en **6.5/10** por cobertura global, módulos grandes y gates globales
 pendientes.
+
+## Actualización verificada: límites de request separados
+
+`RequestLimitsSettings` concentra la validación y persistencia del timeout,
+tamaño máximo, reintentos y rate limit. `OpenerSettings` conserva todas las
+fachadas existentes, incluido el nombre histórico `get_max_retrys()`, para que
+`ExtendedUrllib`, `TimeoutManager` y `RateLimiter` sigan consumiendo la misma
+API.
+
+Verificación: la suite URL completa pasó **217 tests en 181.08 s**, con dos
+warnings externos de `ldap3/pyasn1`; la batería focal pasó **62 tests en
+125.51 s**. Ruff, mypy focal y Bandit focal están limpios. El score se
+mantiene en **6.5/10** por cobertura global, módulos grandes y gates globales
+pendientes.

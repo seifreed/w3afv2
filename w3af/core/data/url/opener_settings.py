@@ -40,8 +40,8 @@ from w3af.core.data.url.cookie_settings import CookieSettings
 from w3af.core.data.url.header_settings import HeaderSettings
 from w3af.core.data.url.opener_lifecycle import OpenerLifecycle
 from w3af.core.data.url.proxy_settings import ProxySettings
+from w3af.core.data.url.request_limits_settings import RequestLimitsSettings
 from w3af.core.data.url.url_parameter_settings import URLParameterSettings
-from w3af.core.exceptions import BaseFrameworkException
 
 LOGGER = logging.getLogger(__name__)
 
@@ -59,6 +59,7 @@ class OpenerSettings(Configurable):
         self._proxy = ProxySettings(cfg, LOGGER.debug)
         self._url_parameter = URLParameterSettings()
         self._lifecycle = OpenerLifecycle()
+        self._request_limits = RequestLimitsSettings(cfg)
 
         self._cookies = CookieSettings(cfg, LOGGER.debug)
 
@@ -203,22 +204,13 @@ class OpenerSettings(Configurable):
         self._cookies.clear_cookies()
 
     def set_configured_timeout(self, timeout):
-        """
-        :param timeout: User configured timeout setting. 0 means enable the auto
-                        timeout adjust feature.
-        :return: None
-        """
-        if timeout < 0 or timeout > 30:
-            err = "The timeout parameter should be between 0 and 30 seconds."
-            raise BaseFrameworkException(err)
-
-        cfg.save("configured_timeout", timeout)
+        self._request_limits.set_configured_timeout(timeout)
 
     def get_configured_timeout(self):
         """
         :return: The user configured setting for timeout
         """
-        return cfg.get("configured_timeout")
+        return self._request_limits.get_configured_timeout()
 
     def set_user_agent(self, user_agent):
         self._headers.set_user_agent(user_agent)
@@ -282,19 +274,19 @@ class OpenerSettings(Configurable):
         self._mangle_plugins = mp
 
     def set_max_file_size(self, max_file_size):
-        cfg.save("max_file_size", max_file_size)
+        self._request_limits.set_max_file_size(max_file_size)
 
     def set_max_http_retries(self, retry_num):
-        cfg.save("max_http_retries", retry_num)
+        self._request_limits.set_max_http_retries(retry_num)
 
     def set_max_requests_per_second(self, max_requests_per_second):
-        cfg.save("max_requests_per_second", max_requests_per_second)
+        self._request_limits.set_max_requests_per_second(max_requests_per_second)
 
     def get_max_requests_per_second(self):
-        return cfg.get("max_requests_per_second")
+        return self._request_limits.get_max_requests_per_second()
 
     def get_max_retrys(self):
-        return cfg.get("max_http_retries")
+        return self._request_limits.get_max_retrys()
 
     def set_url_parameter(self, url_param):
         self._url_parameter.set_url_parameter(url_param)
