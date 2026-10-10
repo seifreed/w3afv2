@@ -127,7 +127,7 @@ class w3afCore:
         manager = fresh_output_manager_inst()
         log_sink_factory(manager.get_in_queue())
         configure_data_logging()
-        register_parser_multiprocessing()
+        register_parser_multiprocessing(manager)
         self.knowledge_base = knowledge_base or kb_store.kb
 
         # FIXME: In the future, when the output_manager is not an awful

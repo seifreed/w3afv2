@@ -20,19 +20,20 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.controllers.output_manager as om
+from functools import partial
+
 from w3af.core.controllers.output_manager import log_sink_factory
 from w3af.core.controllers.output_manager.logging_bridge import configure_data_logging
 from w3af.core.controllers.profiling import start_profiling_no_core
 from w3af.core.data.parsers.mp_document_parser import configure_multiprocessing
 
 
-def get_parser_log_queue():
+def get_parser_log_queue(output_manager):
     """
     :return: The output manager input queue that parser worker processes write
              their log records to.
     """
-    return om.manager.get_in_queue()
+    return output_manager.get_in_queue()
 
 
 def initialize_parser_worker(log_queue):
@@ -52,11 +53,12 @@ def initialize_parser_worker(log_queue):
     start_profiling_no_core()
 
 
-def register_parser_multiprocessing():
+def register_parser_multiprocessing(output_manager):
     """
     Wire the multiprocessing document parser to the controllers-layer
     collaborators that bootstrap its worker processes.
 
     :return: None
     """
-    configure_multiprocessing(get_parser_log_queue, initialize_parser_worker)
+    log_queue_provider = partial(get_parser_log_queue, output_manager)
+    configure_multiprocessing(log_queue_provider, initialize_parser_worker)

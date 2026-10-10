@@ -2696,3 +2696,16 @@ Verificación: **10 tests pasaron** en decorators; Ruff, Black, mypy y
 `git diff --check` globales están limpios. El score permanece en **6.25/10**
 por los globals restantes, cobertura 100% no demostrada, Bandit heredado,
 mocks e integraciones Moth.
+
+## Actualización verificada: parser worker con manager explícito
+
+`parser_worker` ya no importa el módulo global `output_manager` para localizar
+la cola de logs. `w3afCore` entrega su `OutputManager` al registrar el
+bootstrap, y el provider de cola se captura con `partial` antes de pasarlo a la
+capa de parsers.
+
+Verificación: **38 tests pasaron** en multiprocessing de parsers y **11 tests
+pasaron** en la inicialización del core. Ruff, Black, mypy, `py_compile` y
+`git diff --check` globales están limpios. El score permanece en **6.25/10**
+por los globals restantes, cobertura 100% no demostrada, Bandit heredado,
+mocks e integraciones Moth.
