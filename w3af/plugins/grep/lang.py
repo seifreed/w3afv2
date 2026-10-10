@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from guess_language import guess_language
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 
@@ -71,7 +70,7 @@ class lang(GrepPlugin):
         with self._plugin_lock:
             if guessed_lang == UNKNOWN:
                 # None means "I'm still trying"
-                kb.kb.raw_write(self, "lang", None)
+                self._get_knowledge_base().raw_write(self, "lang", None)
 
                 # Keep running until self._tries_left is zero
                 self._tries_left -= 1
@@ -86,7 +85,7 @@ class lang(GrepPlugin):
 
                     # unknown means I'll stop testing because I don't
                     # have any idea about the target's language
-                    kb.kb.raw_write(self, "lang", "unknown")
+                    self._get_knowledge_base().raw_write(self, "lang", "unknown")
 
                     self._exec = False
             else:
@@ -95,7 +94,7 @@ class lang(GrepPlugin):
 
                 msg = 'The page is written in: "%s".'
                 om.out.information(msg % guessed_lang)
-                kb.kb.raw_write(self, "lang", guessed_lang)
+                self._get_knowledge_base().raw_write(self, "lang", guessed_lang)
 
     def get_long_desc(self):
         """

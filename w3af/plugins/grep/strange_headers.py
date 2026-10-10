@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
@@ -161,7 +160,7 @@ class strange_headers(GrepPlugin):
         i.set_url(response.get_url())
         i.add_to_highlight("content-location")
 
-        kb.kb.append(self, "anomaly", i)
+        self._get_knowledge_base().append(self, "anomaly", i)
 
     def get_long_desc(self):
         """

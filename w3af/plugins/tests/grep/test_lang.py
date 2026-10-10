@@ -49,6 +49,7 @@ class TestLang(unittest.TestCase):
         create_temp_dir()
         kb.kb.cleanup()
         self.plugin = lang()
+        self.plugin.set_knowledge_base(kb.kb)
         self.url = URL("http://www.w3af.com/")
         self.request = FuzzableRequest(self.url)
 
