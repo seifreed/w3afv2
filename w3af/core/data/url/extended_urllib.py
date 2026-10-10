@@ -60,6 +60,7 @@ from w3af.core.data.url.response_history import ResponseHistory
 from w3af.core.data.url.response_success_handler import ResponseSuccessHandler
 from w3af.core.data.url.scan_request_control import ScanRequestControl
 from w3af.core.data.url.server_reachability_checker import ServerReachabilityChecker
+from w3af.core.data.url.session_lifecycle import SessionLifecycle
 from w3af.core.data.url.size_limit_override import SizeLimitOverride
 from w3af.core.data.url.timeout_adjustment_policy import TimeoutAdjustmentPolicy
 from w3af.core.data.url.timeout_manager import TimeoutManager
@@ -84,7 +85,6 @@ class ExtendedUrllib:
     def __init__(self, http_log_callback=None, sleep=time.sleep):
         self.settings = opener_settings.OpenerSettings(http_log_callback)
         self._sleep = sleep
-        self._opener = None
         self._average_rtt_mutant = GetAverageRTTForMutant(self)
 
         # In exploit mode we disable some timeout/delay/error handling stuff
@@ -169,6 +169,18 @@ class ExtendedUrllib:
             LOGGER.debug,
         )
         self._request_control = ScanRequestControl()
+        self._session_lifecycle = SessionLifecycle(
+            lambda: self.settings,
+            self._request_control,
+            self._response_history,
+            self._reset_total_requests,
+            lambda: self.set_exploit_mode(False),
+            self.clear_timeout,
+        )
+
+    @property
+    def _opener(self):
+        return self._session_lifecycle.opener
 
     def get_average_rtt_for_mutant(self, *args, **kwargs):
         return self._average_rtt_mutant.get_average_rtt_for_mutant(*args, **kwargs)
@@ -299,38 +311,19 @@ class ExtendedUrllib:
         self._rate_limiter.wait()
 
     def clear(self):
-        """
-        Clear all status set during the scanner run
-        """
-        self._request_control.clear()
-        self._total_requests = 0
-        self.set_exploit_mode(False)
-        self._response_history.reset()
+        self._session_lifecycle.clear()
 
     def end(self):
-        """
-        This method is called when the ExtendedUrllib is not going to be used
-        anymore.
-        """
-        self._opener = None
-
-        self.clear()
-        self.clear_timeout()
-
-        self.settings.clear_cookies()
-        self.settings.clear_cache()
-        self.settings.close_connections()
+        self._session_lifecycle.end()
 
     def restart(self):
-        self.end()
+        self._session_lifecycle.restart()
 
     def setup(self):
-        if self.settings.need_update or self._opener is None:
-            self.settings.need_update = False
-            self.settings.build_openers()
-            self._opener = self.settings.get_custom_opener()
+        self._session_lifecycle.setup()
 
-            self.clear_timeout()
+    def _reset_total_requests(self):
+        self._total_requests = 0
 
     def get_cookies(self):
         """

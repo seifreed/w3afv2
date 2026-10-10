@@ -3568,3 +3568,25 @@ warnings externos de `ldap3/pyasn1`; la batería focal pasó **36 tests en
 126.54 s**. Ruff, mypy focal y Bandit focal están limpios. El score se mantiene
 en **6.5/10** por cobertura global, módulos grandes y gates globales
 pendientes.
+
+## Actualización verificada: ciclo de sesión separado
+
+`SessionLifecycle` concentra la creación y liberación del opener, la limpieza
+del estado de escaneo y el reinicio de la sesión. `ExtendedUrllib` conserva la
+API pública y la propiedad privada `_opener`, incluida la reasignación dinámica
+de `settings` que usan los consumidores de proxy.
+
+Verificación: la suite URL completa pasó **218 tests en 182.82 s**, con dos
+warnings externos de `ldap3/pyasn1`; la batería focal de API y proxy pasó **25
+tests en 16.86 s**. Ruff, mypy focal y Bandit focal están limpios. El score se
+mantiene en **6.5/10** por cobertura global, módulos grandes y gates globales
+pendientes.
+
+## Revisión de regresión y memoria
+
+La revisión del corte no encontró una fuga por request. `ResponseHistory` está
+limitado a 100 entradas, los mapas de RTT a 128 y el pool keep-alive a 50
+conexiones por host. Una prueba con servidor HTTP real y 500 requests, seguida
+de `gc.collect()`, observó **113 KiB** de crecimiento trazado y **0.8 MiB** de
+RSS máximo; los límites internos permanecieron en `100` y `128`. No se añade
+un cambio especulativo al pool ni al almacenamiento de respuestas.
