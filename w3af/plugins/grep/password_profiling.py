@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.misc.factory import factory
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
@@ -82,13 +81,13 @@ class password_profiling(GrepPlugin):
         data = self._run_plugins(response)
 
         with self._plugin_lock:
-            old_data = kb.kb.raw_read(self, self.get_name())
+            old_data = self._get_knowledge_base().raw_read(self, self.get_name())
 
             new_data = self.merge_maps(old_data, data, request, self.captured_lang)
             new_data = self._trim_data(new_data)
 
             # save the updated map
-            kb.kb.raw_write(self, self.get_name(), new_data)
+            self._get_knowledge_base().raw_write(self, self.get_name(), new_data)
 
     def got_lang(self):
         """
@@ -98,13 +97,15 @@ class password_profiling(GrepPlugin):
         :return: True if we were able to get the language from the lang plugin
         """
         if self._need_init:
-            captured_lang = kb.kb.raw_read("lang", "lang")
+            captured_lang = self._get_knowledge_base().raw_read("lang", "lang")
             if captured_lang is None or captured_lang == []:
                 # The lang plugin is still trying to identify the language
                 return False
             else:
                 self.captured_lang = captured_lang
-                kb.kb.raw_write(self.get_name(), self.get_name(), {})
+                self._get_knowledge_base().raw_write(
+                    self.get_name(), self.get_name(), {}
+                )
                 self._need_init = False
                 return True
 
@@ -210,7 +211,7 @@ class password_profiling(GrepPlugin):
         """
         This method is called when the plugin wont be used anymore.
         """
-        profiling_data = kb.kb.raw_read(self, self.get_name())
+        profiling_data = self._get_knowledge_base().raw_read(self, self.get_name())
 
         if not profiling_data:
             return
