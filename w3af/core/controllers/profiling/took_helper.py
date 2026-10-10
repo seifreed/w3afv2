@@ -22,20 +22,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import time
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.profiling.thread_time import (
-    CPU_TIME_IS_ACTIVE,
-    thread_active_time,
-)
+from w3af.core.controllers.profiling.thread_time import thread_active_time
 
 
 class TimeStamp:
     def __init__(self):
-        if CPU_TIME_IS_ACTIVE:
-            self.thread_cpu_time = thread_active_time()
-            self.wall_time = time.time()
-        else:
-            self.thread_cpu_time = None
-            self.wall_time = time.time()
+        self.thread_cpu_time = thread_active_time()
+        self.wall_time = time.time()
 
 
 class TookLine:
@@ -123,11 +116,10 @@ class TookLine:
             parentheses_data.append(msg)
 
         #
-        #   Only show the CPU time for this thread if the method to extract that data
-        #   is available in this system AND if it is worth it: short execution times will
-        #   never be investigated
+        #   Only show the CPU time for this thread if it is worth it: short
+        #   execution times will never be investigated
         #
-        if CPU_TIME_IS_ACTIVE and spent_wall_time >= 0.2:
+        if spent_wall_time >= 0.2:
             #
             # Note to self: if the % of CPU time is high then the plugin is CPU-bound
             #               and can be improved by changing the algorithms used,

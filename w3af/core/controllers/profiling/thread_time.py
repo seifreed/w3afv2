@@ -40,8 +40,6 @@ on Linux, macOS and Windows, so it replaces the old Linux-only getrusage()
 implementation and works on every platform w3af supports.
 """
 
-__all__ = ("CPU_TIME_IS_ACTIVE", "thread_active_time")
-
-CPU_TIME_IS_ACTIVE = True
+__all__ = ("thread_active_time",)
 
 thread_active_time = time.thread_time

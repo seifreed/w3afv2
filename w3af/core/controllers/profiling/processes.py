@@ -62,39 +62,11 @@ def dump_processes():
     data = {}
 
     for child in multiprocessing.active_children():
-        pid = child._popen.pid
-        child_data = {
+        data[child.pid] = {
             "name": child.name,
             "daemon": child.daemon,
             "exitcode": child.exitcode,
-            "target": child._target.__name__,
-            "args": [],
-            "kwargs": {},
         }
-
-        for arg in child._args:
-            try:
-                json.dumps(arg)
-            except (TypeError, UnicodeDecodeError):
-                try:
-                    child_data["args"].append(arg.__class__.__name__)
-                except AttributeError:
-                    child_data["args"].append("undefined")
-            else:
-                child_data["args"].append(arg)
-
-        for key, value in child._kwargs.items():
-            try:
-                json.dumps(value)
-            except (TypeError, UnicodeDecodeError):
-                try:
-                    child_data["kwargs"][key] = value.__class__.__name__
-                except AttributeError:
-                    child_data["kwargs"][key] = "undefined"
-            else:
-                child_data["kwargs"][key] = value
-
-        data[pid] = child_data
 
     with open(output_file, "w") as output_fh:
         json.dump(data, output_fh, indent=4)

@@ -75,7 +75,9 @@ def dump_data(w3af_core):
             "Audit input queue size": s.get_audit_qsize(),
             "Grep input queue size": s.get_audit_qsize(),
             "Core worker pool input queue size": s.get_core_worker_pool_queue_size(),
-            "Output manager input queue size": om.manager.get_in_queue().qsize(),
+            "Output manager input queue size": get_queue_size(
+                om.manager.get_in_queue()
+            ),
             "Cache stats": get_parser_cache_stats(),
         }
     except Exception as e:
@@ -100,6 +102,17 @@ def stop_core_profiling(w3af_core):
     dump_data(w3af_core)
 
 
+def get_queue_size(queue):
+    """
+    :return: The queue size, None in platforms where it is not implemented
+             for multiprocessing queues (for example macOS)
+    """
+    try:
+        return queue.qsize()
+    except NotImplementedError:
+        return None
+
+
 def get_parser_cache_stats():
     from w3af.core.data.parsers import parser_cache
     from w3af.core.data.parsers.mp_document_parser import mp_doc_parser
@@ -114,8 +127,8 @@ def get_parser_cache_stats():
 
     if mp_doc_parser._pool is not None:
         r["Parser pool worker size"] = mp_doc_parser._pool._context.workers
-        r["Parser pool input queue size"] = (
-            mp_doc_parser._pool._context.task_queue.qsize()
+        r["Parser pool input queue size"] = get_queue_size(
+            mp_doc_parser._pool._context.task_queue
         )
     else:
         r["Parser pool worker size"] = 0

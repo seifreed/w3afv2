@@ -22,22 +22,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import gc
 import os
-import sys
 import tempfile
 import threading
+import tracemalloc
 
 from w3af.core.data.misc.serialize import dump
 from w3af.core.profiling import is_tracemalloc_enabled
-
-if is_tracemalloc_enabled():
-    try:
-        # User's don't need this module, and installation is complex
-        # http://pytracemalloc.readthedocs.org/install.html
-        import tracemalloc
-    except ImportError as ie:
-        print(f"Failed to import tracemalloc: {ie}")
-        sys.exit(-1)
-
 
 from .utils import cancel_thread, dump_data_every_thread, get_filename_fmt
 

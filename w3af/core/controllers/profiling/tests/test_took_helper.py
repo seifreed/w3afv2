@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import queue
+import time
 import unittest
 
 from w3af.core.controllers.output_manager.log_sink import LogSink
@@ -65,4 +66,27 @@ class TestTookHelper(unittest.TestCase):
             sent_message,
             r'^plugin_name.method_name\(test="yes",did="ML7aEYsa"\)'
             r" took \d+\.\d{2}s to run \(1.80s \d+% sending HTTP requests\)$",
+        )
+
+    def test_took_with_cpu_bound_work(self):
+        w3af_core = w3afCore()
+        messages = queue.Queue()
+        took_line = TookLine(
+            w3af_core,
+            "plugin_name",
+            "method_name",
+            log_sink=LogSink(messages),
+        )
+
+        busy_until = time.thread_time() + 0.3
+        while time.thread_time() < busy_until:
+            pass
+
+        took_line.send()
+
+        (_method, sent_message), _kwargs = messages.get(timeout=1)
+        self.assertRegex(
+            sent_message,
+            r"^plugin_name.method_name\(\) took \d+\.\d{2}s to run"
+            r" \(\d+\.\d{2}s \d+% consuming CPU cycles\)$",
         )

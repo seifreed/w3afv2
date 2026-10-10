@@ -22,31 +22,37 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import json
 import os
-import sys
 import tempfile
 import threading
 
+import psutil
+
 from .utils import cancel_thread, dump_data_every_thread, get_filename_fmt
-from .utils.ps_mem import cmd_with_count, get_memory_usage
 
 PROFILING_OUTPUT_FMT = os.path.join(tempfile.gettempdir(), "w3af-%s-%s.psutil")
 DELAY_MINUTES = 2
 SAVE_PSUTIL_PTR: list[threading.Timer] = []
+
+PROCESS_ATTRIBUTES = (
+    "pid",
+    "name",
+    "ppid",
+    "status",
+    "io_counters",
+    "num_threads",
+    "cpu_times",
+    "cpu_percent",
+    "memory_info",
+    "memory_percent",
+    "exe",
+    "cmdline",
+)
 
 
 def user_wants_psutil():
     _should_profile = os.environ.get("W3AF_PSUTILS", "0")
 
     return bool(_should_profile.isdigit() and int(_should_profile) == 1)
-
-
-if user_wants_psutil():
-    try:
-        # User's don't need this module
-        import psutil
-    except ImportError as ie:
-        print(f"Failed to import psutil: {ie}")
-        sys.exit(-1)
 
 
 def should_dump_psutil(wrapped):
@@ -69,56 +75,73 @@ def start_psutil_dump():
     dump_data_every_thread(dump_psutil, DELAY_MINUTES, SAVE_PSUTIL_PTR)
 
 
+def as_plain_data(value):
+    """
+    :return: A dict for named tuples (psutil's result type), anything else
+             is returned untouched
+    """
+    if hasattr(value, "_asdict"):
+        return dict(value._asdict())
+
+    return value
+
+
+def get_processes_info():
+    """
+    :return: A dict with the pid as key and the attributes psutil supports in
+             this platform as values
+    """
+    attributes = [name for name in PROCESS_ATTRIBUTES if hasattr(psutil.Process, name)]
+    process_info = {}
+
+    for proc in psutil.process_iter(attrs=attributes):
+        pinfo = {name: as_plain_data(value) for name, value in proc.info.items()}
+        process_info[pinfo["pid"]] = pinfo
+
+    return process_info
+
+
+def get_process_memory(proc):
+    """
+    :param proc: A psutil.Process instance
+    :return: The memory used by the process, None if it does not exist anymore
+    """
+    try:
+        memory = proc.memory_info()
+        command_line = " ".join(proc.cmdline())
+    except psutil.NoSuchProcess:
+        return None
+
+    return {
+        "RSS": memory.rss,
+        "VMS": memory.vms,
+        "Command line": command_line,
+    }
+
+
+def get_memory_usage():
+    """
+    :return: The memory used by this process and all its children
+    """
+    current = psutil.Process()
+    processes = [current, *current.children(recursive=True)]
+    usage = [get_process_memory(proc) for proc in processes]
+
+    return [memory for memory in usage if memory is not None]
+
+
 def dump_psutil():
     """
     Dumps operating system information to file
     """
     output_file = PROFILING_OUTPUT_FMT % get_filename_fmt()
 
-    process_info = {}
-    for proc in psutil.process_iter():
-        try:
-            pinfo = proc.as_dict(
-                attrs=[
-                    "pid",
-                    "name",
-                    "parent",
-                    "status",
-                    "io_counters",
-                    "num_threads",
-                    "cpu_times",
-                    "cpu_percent",
-                    "memory_info_ex",
-                    "memory_percent",
-                    "exe",
-                    "cmdline",
-                ]
-            )
-        except psutil.NoSuchProcess:
-            pass
-        else:
-            for info_name, info_data in pinfo.items():
-                if hasattr(info_data, "_asdict"):
-                    pinfo[info_name] = dict(info_data._asdict())
-                else:
-                    pinfo[info_name] = info_data
+    netinfo = {
+        nic: as_plain_data(counters)
+        for nic, counters in psutil.net_io_counters(pernic=True).items()
+    }
 
-            process_info[pinfo["pid"]] = pinfo
-
-    netinfo = psutil.net_io_counters(pernic=True)
-    for key, value in netinfo.items():
-        netinfo[key] = value._asdict()
-
-    # Get the memory usage from ps_mem
-    pids_to_show = []
-    for pid, pinfo in process_info.items():
-        exe = str(pinfo["exe"])
-        if "python" in exe and "w3af" in exe:
-            pids_to_show.append(pid)
-
-    ps_mem_data = ps_mem_to_json(*get_memory_usage(pids_to_show, True))
-
-    du_data = psutil.disk_usage(os.path.expanduser("~/.w3af"))
+    du_data = psutil.disk_usage(tempfile.gettempdir())
     disk_usage = {
         "total": get_human_readable_size(du_data.total),
         "free": get_human_readable_size(du_data.free),
@@ -127,14 +150,14 @@ def dump_psutil():
 
     # Merge all the data here
     psutil_data = {
-        "CPU": psutil.cpu_times()._asdict(),
-        "Load average": os.getloadavg(),
-        "Virtual memory": psutil.virtual_memory()._asdict(),
-        "Swap memory": psutil.swap_memory()._asdict(),
+        "CPU": as_plain_data(psutil.cpu_times()),
+        "Load average": psutil.getloadavg(),
+        "Virtual memory": as_plain_data(psutil.virtual_memory()),
+        "Swap memory": as_plain_data(psutil.swap_memory()),
         "Network": netinfo,
-        "Processes": process_info,
-        "ps_mem": ps_mem_data,
-        "Disk IO counters": psutil.disk_io_counters(),
+        "Processes": get_processes_info(),
+        "Process memory": get_memory_usage(),
+        "Disk IO counters": as_plain_data(psutil.disk_io_counters()),
         "Disk usage": disk_usage,
         "Thread CPU usage": get_threads_cpu_percent(),
     }
@@ -143,37 +166,16 @@ def dump_psutil():
         json.dump(psutil_data, output_fh, indent=4, sort_keys=True)
 
 
-def ps_mem_to_json(sorted_cmds, shareds, count, total):
-    result = []
-
-    for cmd in sorted_cmds:
-        private = cmd[1] - shareds[cmd[0]]
-        shared = shareds[cmd[0]]
-        ram_used = cmd[1]
-        cmd_count = cmd_with_count(cmd[0], count[cmd[0]])
-
-        result.append(
-            {
-                "Private": private,
-                "Shared": shared,
-                "Total RAM used": ram_used,
-                "Command line": cmd_count,
-            }
-        )
-
-    return result
-
-
 def get_threads_cpu_percent(interval=0.1):
     proc = psutil.Process()
 
-    # https://circleci.com/gh/andresriancho/w3af/1927
-    total_percent = proc.get_cpu_percent(interval=interval)
+    total_percent = proc.cpu_percent(interval=interval)
 
-    total_time = sum(proc.cpu_times())
+    process_times = proc.cpu_times()
+    total_time = process_times.user + process_times.system
 
     result = {}
-    for thread in proc.get_threads():
+    for thread in proc.threads():
         thread_time = thread.system_time + thread.user_time
         thread_percent = total_percent * (thread_time / total_time)
         result[thread.id] = {
@@ -194,9 +196,11 @@ def stop_psutil_dump():
 
 
 def get_human_readable_size(num):
-    exp_str = [(0, "B"), (10, "KB"), (20, "MB"), (30, "GB"), (40, "TB"), (50, "PB")]
+    units = ["B", "KB", "MB", "GB", "TB", "PB"]
+    value = float(num)
     i = 0
-    while i + 1 < len(exp_str) and num >= (2 ** exp_str[i + 1][0]):
+    while value >= 1024 and i + 1 < len(units):
+        value /= 1024
         i += 1
-        rounded_val = round(float(num) / 2 ** exp_str[i][0], 2)
-    return f"{int(rounded_val)} {exp_str[i][1]}"
+
+    return f"{int(value)} {units[i]}"
