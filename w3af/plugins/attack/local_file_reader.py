@@ -24,7 +24,6 @@ import base64
 import copy
 import threading
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal
 from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
 from w3af.core.data.kb.decorators import read_debug
@@ -77,6 +76,7 @@ class local_file_reader(AttackPlugin):
                 self.worker_pool,
                 self._header_length,
                 self._footer_length,
+                self._output,
             )
 
             return shell_obj
@@ -113,7 +113,7 @@ class local_file_reader(AttackPlugin):
             response_a = self._uri_opener.send_mutant(orig_mutant)
             response_b = self._uri_opener.send_mutant(copy_mutant)
         except BaseFrameworkException as e:
-            om.out.error(str(e))
+            self._output.error(str(e))
             return False
         else:
             return bool(
@@ -141,7 +141,7 @@ class local_file_reader(AttackPlugin):
             response_a = self._uri_opener.send_mutant(mutant)
             response_b = self._uri_opener.send_mutant(mutant)
         except BaseFrameworkException as e:
-            om.out.error(str(e))
+            self._output.error(str(e))
             return False
 
         try:
@@ -149,7 +149,7 @@ class local_file_reader(AttackPlugin):
                 response_a.get_body(), response_b.get_body()
             )
         except ValueError as ve:
-            om.out.error(str(ve))
+            self._output.error(str(ve))
             return False
         else:
             return cut
@@ -192,10 +192,11 @@ class FileReaderShell(ReadShell):
 
     NOT_EXISTS_FILE = "not_exist0.txt"
 
-    def __init__(self, vuln, url_opener, worker_pool, header_len, footer_len):
+    def __init__(self, vuln, url_opener, worker_pool, header_len, footer_len, output):
         super().__init__(vuln, url_opener, worker_pool)
 
         self.set_cut(header_len, footer_len)
+        self._output = output
 
         self._initialized = False
         self._init_lock = threading.RLock()
@@ -237,17 +238,17 @@ class FileReaderShell(ReadShell):
             response = self._read_with_b64("/etc/passwd")
         except (BaseFrameworkException, BodyCutException) as e:
             msg = "Not using base64 wrapper for reading because of " 'exception: "%s"'
-            om.out.debug(msg % e)
+            self._output.debug(msg % e)
         else:
             if "root:" in response or "/bin/" in response:
-                om.out.debug("Using base64 wrapper for reading.")
+                self._output.debug("Using base64 wrapper for reading.")
                 self._use_base64_wrapper = True
             else:
                 msg = (
                     "Not using base64 wrapper for reading because response"
                     ' did not match "root:" or "/bin/".'
                 )
-                om.out.debug(msg)
+                self._output.debug(msg)
 
     @read_debug
     def read(self, filename):
@@ -265,7 +266,7 @@ class FileReaderShell(ReadShell):
             try:
                 return self._read_with_b64(filename)
             except (BaseFrameworkException, BodyCutException) as e:
-                om.out.debug(f'read_with_b64 failed: "{e}"')
+                self._output.debug(f'read_with_b64 failed: "{e}"')
 
         return self._read_basic(filename)
 
@@ -372,4 +373,5 @@ class FileReaderShell(ReadShell):
             None,
             self._header_length,
             self._footer_length,
+            self._output,
         )

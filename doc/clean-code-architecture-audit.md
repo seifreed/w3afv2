@@ -2493,3 +2493,13 @@ sink junto al resto de su estado operativo.
 Verificación: Ruff, Black y mypy están limpios. La suite de integración XPath
 queda pendiente por la dependencia Moth no resoluble; el score permanece en
 **6.25/10**.
+
+## Actualización verificada: Local File Reader con output explícito
+
+`local_file_reader` y `FileReaderShell` reciben el sink desde la factoría. Los
+errores de lectura, selección del wrapper base64 y fallos de extracción usan
+esa dependencia; la reconstrucción del shell conserva sus offsets y el sink,
+sin importar `output_manager`.
+
+Verificación: Ruff, Black y mypy están limpios. La suite de integración queda
+pendiente por el entorno Moth no resoluble; el score permanece en **6.25/10**.
