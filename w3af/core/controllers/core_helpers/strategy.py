@@ -245,8 +245,9 @@ class CoreStrategy:
             self.get_bruteforce_consumer(),
         ]
 
-        consumers = [c for c in consumers if c is not None]
-        [c.in_queue.clear() for c in consumers]
+        consumers = [consumer for consumer in consumers if consumer is not None]
+        for consumer in consumers:
+            consumer.in_queue.clear()
 
     def add_observer(self, observer):
         self._observers.append(observer)
@@ -456,8 +457,7 @@ class CoreStrategy:
         infrastructure_plugins = self._w3af_core.plugins.plugins["infrastructure"]
 
         if crawl_plugins or infrastructure_plugins:
-            discovery_plugins = infrastructure_plugins
-            discovery_plugins.extend(crawl_plugins)
+            discovery_plugins = infrastructure_plugins + crawl_plugins
 
             self._discovery_consumer = CrawlInfrastructure(
                 discovery_plugins,

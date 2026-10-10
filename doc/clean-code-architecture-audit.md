@@ -2107,3 +2107,16 @@ Verificación: 30 tests HTTP generales, 6 tests de errores y 6 tests de timeout
 pasan; Ruff, Black y mypy están limpios en los módulos modificados. El score
 permanece en **5.75/10**: siguen pendientes cobertura global, Bandit heredado,
 mocks existentes, perfilado, Moth y orquestadores grandes.
+
+## Actualización verificada: configuración de consumers sin mutación
+
+`CoreStrategy` ahora crea una lista nueva al combinar plugins de crawl e
+infraestructura, evitando que un scan modifique la configuración persistente de
+`CorePlugins` y acumule plugins en scans posteriores. La limpieza de colas usa
+un bucle explícito en lugar de una comprensión empleada solo por efectos
+laterales.
+
+Verificación: 9 tests de estrategia y 7 subtests de bajo nivel, además de 4
+tests de estrategia integrada, pasan; Ruff, Black y mypy están limpios en el
+módulo modificado. El score permanece en **5.75/10** por cobertura global,
+Bandit heredado, mocks existentes, perfilado, Moth y orquestadores grandes.
