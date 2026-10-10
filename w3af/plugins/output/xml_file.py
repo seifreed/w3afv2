@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import base64
 import os
 import shutil
-import sys
 import time
 from functools import wraps
 from tempfile import NamedTemporaryFile
@@ -853,14 +852,6 @@ ATTR_VALUE_ESCAPES = {
     "\t": "    ",
 }
 
-ATTR_VALUE_ESCAPES.update(
-    {
-        chr(i): f"&lt;character code=&quot;{i:04x}&quot;/&gt;"
-        for i in range(sys.maxunicode)
-        if is_unicode_escape(i)
-    }
-)
-
 ATTR_VALUE_ESCAPES_IGNORE = {"\n", "\r"}
 
 
@@ -913,7 +904,11 @@ def jinja2_attr_value_escape_filter(value):
             retval += letter
             continue
 
-        escape = ATTR_VALUE_ESCAPES.get(letter, None)
+        escape = _get_escape(
+            letter,
+            ATTR_VALUE_ESCAPES,
+            "&lt;character code=&quot;%04x&quot;/&gt;",
+        )
         if escape is not None:
             retval += escape
         else:
@@ -932,15 +927,14 @@ TEXT_VALUE_ESCAPES = {
     "\t": "    ",
 }
 
-TEXT_VALUE_ESCAPES.update(
-    {
-        chr(i): f'<character code="{i:04x}"/>'
-        for i in range(sys.maxunicode)
-        if is_unicode_escape(i)
-    }
-)
-
 TEXT_VALUE_ESCAPES_IGNORE = {"\n", "\r"}
+
+
+def _get_escape(letter, escapes, unicode_escape_template):
+    codepoint = ord(letter)
+    if is_unicode_escape(codepoint):
+        return unicode_escape_template % codepoint
+    return escapes.get(letter)
 
 
 def jinja2_text_value_escape_filter(value):
@@ -977,7 +971,7 @@ def jinja2_text_value_escape_filter(value):
             retval += letter
             continue
 
-        escape = TEXT_VALUE_ESCAPES.get(letter, None)
+        escape = _get_escape(letter, TEXT_VALUE_ESCAPES, '<character code="%04x"/>')
         if escape is not None:
             retval += escape
         else:

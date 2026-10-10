@@ -33,12 +33,10 @@ from http.client import BadStatusLine
 import OpenSSL
 
 import w3af.core.data.kb.config as cf
-from w3af.core.data.dc.headers import Headers
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.misc.lru import SynchronizedLRUDict
 from w3af.core.data.misc.number_generator import consecutive_number_generator
 from w3af.core.data.parsers.doc.http_request_parser import http_request_parser
-from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.constants import (
     MAX_ERROR_COUNT,
     TIMEOUT_ADJUST_LIMIT,
@@ -50,8 +48,8 @@ from w3af.core.data.url.grep_dispatcher import GrepDispatcher
 from w3af.core.data.url.handlers.keepalive import URLTimeoutError
 from w3af.core.data.url.helpers import get_clean_body, get_exception_reason
 from w3af.core.data.url.http_error_pause_controller import HttpErrorPauseController
-from w3af.core.data.url.http_request import HTTPRequest
 from w3af.core.data.url.rate_limiter import RateLimiter
+from w3af.core.data.url.request_builder import RequestBuilder
 from w3af.core.data.url.request_error_handler import RequestErrorHandler
 from w3af.core.data.url.request_evasion import RequestEvasionPipeline
 from w3af.core.data.url.request_preparer import RequestPreparer
@@ -133,6 +131,12 @@ class ExtendedUrllib:
         self._grep_dispatcher = GrepDispatcher()
         self._evasion_pipeline = RequestEvasionPipeline(LOGGER.error)
         self._request_preparer = RequestPreparer(self.settings)
+        self._request_builder = RequestBuilder(
+            lambda: self.settings,
+            self.setup,
+            self.get_timeout,
+            self.add_headers,
+        )
         self._response_success_handler = ResponseSuccessHandler(
             LOGGER.debug,
             self._log_successful_response,
@@ -493,43 +497,22 @@ class ExtendedUrllib:
 
         :return: An HTTPResponse object.
         """
-        headers = headers or Headers()
-
-        if not isinstance(uri, URL):
-            raise TypeError(
-                "The uri parameter of ExtendedUrllib.GET() must be" " of url.URL type."
-            )
-
-        if not isinstance(headers, Headers):
-            raise TypeError(
-                "The header parameter of ExtendedUrllib.GET() must"
-                " be of Headers type."
-            )
-
-        # Validate what I'm sending, init the library (if needed)
-        self.setup()
-
-        host = uri.get_domain()
-        timeout = self.get_timeout(host) if timeout is None else timeout
-
-        req = HTTPRequest(
+        req = self._request_builder.build_get(
             uri,
-            cookies=cookies,
-            session=session,
-            cache=cache,
-            data=data,
-            error_handling=error_handling,
-            method="GET",
-            retries=self.settings.get_max_retrys(),
-            timeout=timeout,
-            new_connection=new_connection,
-            follow_redirects=follow_redirects,
-            use_basic_auth=use_basic_auth,
-            use_proxy=use_proxy,
-            debugging_id=debugging_id,
-            binary_response=binary_response,
+            data,
+            headers,
+            cache,
+            cookies,
+            session,
+            error_handling,
+            timeout,
+            follow_redirects,
+            use_basic_auth,
+            use_proxy,
+            debugging_id,
+            new_connection,
+            binary_response,
         )
-        req = self.add_headers(req, headers)
 
         with self._size_limit_override.apply(respect_size_limit):
             return self.send(req, grep=grep)
@@ -564,59 +547,20 @@ class ExtendedUrllib:
         :see: The GET() for documentation on the other parameters
         :return: An HTTPResponse object.
         """
-        headers = headers or Headers()
-
-        if not isinstance(uri, URL):
-            raise TypeError(
-                "The uri parameter of ExtendedUrllib.POST() must"
-                f" be of url.URL type. Got {type(uri)} instead."
-            )
-
-        if not isinstance(headers, Headers):
-            raise TypeError(
-                "The header parameter of ExtendedUrllib.POST() must"
-                " be of Headers type."
-            )
-
-        #    Validate what I'm sending, init the library (if needed)
-        self.setup()
-
-        # follow_redirects is ignored because according to the RFC browsers
-        # should not follow 30x redirects on POST
-
-        #
-        #    Create and send the request
-        #
-        #    Please note that the cache=False overrides the user setting
-        #    since we *never* want to return cached responses for POST
-        #    requests.
-        #
-        #    Data containers (forms, JSON, etc.) are serialized, raw bodies
-        #    are sent as they are.
-        #
-        if not isinstance(data, (str, bytes)):
-            data = str(data)
-
-        host = uri.get_domain()
-        timeout = self.get_timeout(host) if timeout is None else timeout
-
-        req = HTTPRequest(
+        req = self._request_builder.build_post(
             uri,
-            data=data,
-            cookies=cookies,
-            session=session,
-            cache=False,
-            error_handling=error_handling,
-            method="POST",
-            retries=self.settings.get_max_retrys(),
-            timeout=timeout,
-            new_connection=new_connection,
-            use_basic_auth=use_basic_auth,
-            use_proxy=use_proxy,
-            debugging_id=debugging_id,
-            binary_response=binary_response,
+            data,
+            headers,
+            cookies,
+            session,
+            error_handling,
+            timeout,
+            use_basic_auth,
+            use_proxy,
+            debugging_id,
+            new_connection,
+            binary_response,
         )
-        req = self.add_headers(req, headers)
 
         return self.send(req, grep=grep)
 
@@ -652,42 +596,23 @@ class ExtendedUrllib:
             :return: An HTTPResponse object that's the result of sending
                      the request with a method different from GET or POST.
             """
-            headers = headers or Headers()
-
-            if not isinstance(uri, URL):
-                raise TypeError(
-                    "The uri parameter of any_method must be" " of url.URL type."
-                )
-
-            if not isinstance(headers, Headers):
-                raise TypeError(
-                    "The headers parameter of any_method must be" " of Headers type."
-                )
-
-            uri_opener.setup()
-
-            max_retries = uri_opener.settings.get_max_retrys()
-
-            host = uri.get_domain()
-            timeout = uri_opener.get_timeout(host) if timeout is None else timeout
-            req = HTTPRequest(
+            req = uri_opener._request_builder.build_custom(
+                method,
                 uri,
                 data,
-                cookies=cookies,
-                session=session,
-                cache=cache,
-                method=method,
-                error_handling=error_handling,
-                retries=max_retries,
-                timeout=timeout,
-                new_connection=new_connection,
-                use_basic_auth=use_basic_auth,
-                follow_redirects=follow_redirects,
-                use_proxy=use_proxy,
-                debugging_id=debugging_id,
-                binary_response=binary_response,
+                headers,
+                cache,
+                cookies,
+                session,
+                error_handling,
+                timeout,
+                use_basic_auth,
+                use_proxy,
+                follow_redirects,
+                debugging_id,
+                new_connection,
+                binary_response,
             )
-            req = uri_opener.add_headers(req, headers or {})
             return uri_opener.send(req, grep=grep)
 
         method_partial = functools.partial(any_method, self, method_name)

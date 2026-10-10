@@ -157,7 +157,12 @@ class TestExtendedUrllibAPI(unittest.TestCase):
     def test_any_method(self):
         put = self.uri_opener.PUT
 
-        response = put(self.url("/echo"), data="a=1", headers=Headers([("X", "y")]))
+        response = put(
+            self.url("/echo"),
+            data="a=1",
+            headers=Headers([("X", "y")]),
+            timeout=1,
+        )
 
         self.assertEqual(put.__doc__, "Send PUT HTTP request")
         self.assertEqual(response.get_code(), 200)
@@ -166,6 +171,12 @@ class TestExtendedUrllibAPI(unittest.TestCase):
         self.assertEqual(request.method, "PUT")
         self.assertEqual(request.body, b"a=1")
         self.assertEqual(request.headers["X"], "y")
+
+    def test_post_serializes_non_text_data(self):
+        response = self.uri_opener.POST(self.url("/echo"), data=123, cache=False)
+
+        self.assertIn("123", response.get_body())
+        self.assertEqual(self.server.requests[-1].body, b"123")
 
     def test_rtt_by_debugging_id(self):
         self.assertIsNone(self.uri_opener.get_rtt_for_debugging_id(None))

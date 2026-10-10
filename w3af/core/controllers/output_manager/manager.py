@@ -123,7 +123,8 @@ class OutputManager(Process):
         self._flush_timeout = flush_timeout
         self._last_output_flush = None
         self._is_shutting_down = False
-        self._worker_pool = self.get_worker_pool()
+        self._worker_pool_closed = False
+        self._worker_pool = None
 
     def set_w3af_core(self, w3af_core, output):
         self._w3af_core = w3af_core
@@ -134,11 +135,14 @@ class OutputManager(Process):
         self._knowledge_base = knowledge_base
 
     def get_worker_pool(self):
-        return Pool(
-            self.WORKER_THREADS,
-            worker_names="OutputManagerWorkerThread",
-            max_queued_tasks=self.WORKER_THREADS * 10,
-        )
+        if self._worker_pool is None and not self._worker_pool_closed:
+            self._worker_pool = Pool(
+                self.WORKER_THREADS,
+                worker_names="OutputManagerWorkerThread",
+                max_queued_tasks=self.WORKER_THREADS * 10,
+            )
+
+        return self._worker_pool
 
     def get_in_queue(self):
         """
@@ -199,6 +203,17 @@ class OutputManager(Process):
             # we flush the output (if needed)
             self.flush_plugin_output()
 
+        self.close_worker_pool()
+
+    def close_worker_pool(self):
+        """Release worker threads owned by this manager."""
+        if self._worker_pool_closed:
+            return
+
+        self._worker_pool_closed = True
+        if self._worker_pool is not None and not self._worker_pool.is_closed():
+            self._worker_pool.terminate_join()
+
     def flush_plugin_output(self):
         """
         Call flush() on all plugins so they write their data to the external
@@ -214,11 +229,11 @@ class OutputManager(Process):
         :see: https://github.com/andresriancho/w3af/issues/6726
         :return: None
         """
-        if not self.should_flush():
+        if self._is_shutting_down or not self.should_flush():
             return
 
-        pool = self._worker_pool
-        if pool.is_closed():
+        pool = self.get_worker_pool()
+        if pool is None or pool.is_closed():
             return
 
         self.update_last_output_flush()
@@ -318,8 +333,10 @@ class OutputManager(Process):
         self.process_all_messages()
 
         # Wait for any calls to flush() which might be running
-        self._worker_pool.close()
-        self._worker_pool.join()
+        if self._worker_pool is not None:
+            self._worker_pool.close()
+            self._worker_pool.join()
+        self._worker_pool_closed = True
 
         # Now call end() on all plugins
         self.__end_output_plugins_impl()
@@ -495,6 +512,7 @@ class OutputManager(Process):
     def _get_plugin_instance(self, plugin_name):
         plugin = factory(f"w3af.plugins.output.{plugin_name}")
         plugin.set_w3af_core(self._w3af_core)
+        plugin.set_output(self._output)
         if self._knowledge_base is not None:
             plugin.set_knowledge_base(self._knowledge_base)
 

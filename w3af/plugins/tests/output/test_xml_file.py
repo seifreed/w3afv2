@@ -36,6 +36,7 @@ from xml.etree import ElementTree
 import pytest
 from lxml import etree
 
+import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
 from w3af.core.controllers.w3af_core import w3afCore
@@ -54,6 +55,8 @@ from w3af.core.data.url.http_request import HTTPRequest
 from w3af.core.data.url.http_response import HTTPResponse
 from w3af.core.filesystem import create_temp_dir, remove_temp_dir
 from w3af.plugins.output.xml_file import (
+    ATTR_VALUE_ESCAPES,
+    TEXT_VALUE_ESCAPES,
     CachedXMLNode,
     Finding,
     FindingsCache,
@@ -66,6 +69,12 @@ from w3af.plugins.output.xml_file import (
     xml_file,
 )
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
+
+
+def xml_file_with_output():
+    plugin = xml_file()
+    plugin.set_output(om.out)
+    return plugin
 
 
 def _sql_injectable_page(mock, http_request, uri, headers):
@@ -146,7 +155,7 @@ class TestXMLOutput(PluginTest):
         w3af_core = w3afCore()
         w3af_core.status.start()
 
-        plugin_instance = xml_file()
+        plugin_instance = xml_file_with_output()
         plugin_instance.set_w3af_core(w3af_core)
         plugin_instance.set_knowledge_base(kb.kb)
 
@@ -203,7 +212,7 @@ class TestNoDuplicate(unittest.TestCase):
         self.assertEqual(len(kb.kb.get_all_vulns()), 1)
 
         # Setup the plugin
-        plugin_instance = xml_file()
+        plugin_instance = xml_file_with_output()
         plugin_instance.set_w3af_core(self.w3af_core)
         plugin_instance.set_knowledge_base(kb.kb)
 
@@ -507,7 +516,7 @@ class TestHTTPTransaction(XMLNodeGeneratorTest):
         h1.response = res
         h1.save()
 
-        x = xml_file()
+        x = xml_file_with_output()
         http_transaction = HTTPTransaction(x._get_jinja2_env(), _id)
         xml = http_transaction.to_string()
 
@@ -549,7 +558,7 @@ class TestHTTPTransaction(XMLNodeGeneratorTest):
         h1.response = res
         h1.save()
 
-        x = xml_file()
+        x = xml_file_with_output()
         http_transaction = HTTPTransaction(x._get_jinja2_env(), _id)
 
         self.assertIsNone(http_transaction.get_node_from_cache())
@@ -615,7 +624,7 @@ class TestScanInfo(XMLNodeGeneratorTest):
         options_dict = w3af_core.plugins.get_all_plugin_options()
         scan_target = "https://w3af.org"
 
-        x = xml_file()
+        x = xml_file_with_output()
 
         scan_info = ScanInfo(
             x._get_jinja2_env(), scan_target, plugins_dict, options_dict
@@ -686,7 +695,7 @@ class TestScanStatus(XMLNodeGeneratorTest):
 
         total_urls = 150
 
-        x = xml_file()
+        x = xml_file_with_output()
 
         scan_status = ScanStatus(x._get_jinja2_env(), status, total_urls, known_urls)
         xml = scan_status.to_string()
@@ -794,7 +803,7 @@ class TestFinding(XMLNodeGeneratorTest):
         h1.response = res
         h1.save()
 
-        x = xml_file()
+        x = xml_file_with_output()
 
         finding = Finding(x._get_jinja2_env(), vuln, x._output)
         xml = finding.to_string()
@@ -852,7 +861,7 @@ class TestFinding(XMLNodeGeneratorTest):
         h1.response = res
         h1.save()
 
-        x = xml_file()
+        x = xml_file_with_output()
 
         finding = Finding(x._get_jinja2_env(), vuln, x._output)
         xml = finding.to_string()
@@ -886,7 +895,7 @@ class TestFinding(XMLNodeGeneratorTest):
         h1.response = res
         h1.save()
 
-        x = xml_file()
+        x = xml_file_with_output()
 
         finding = Finding(x._get_jinja2_env(), vuln, x._output)
         xml = finding.to_string()
@@ -920,7 +929,7 @@ class TestFinding(XMLNodeGeneratorTest):
         h1.response = res
         h1.save()
 
-        x = xml_file()
+        x = xml_file_with_output()
 
         finding = Finding(x._get_jinja2_env(), vuln, x._output)
         xml = finding.to_string()
@@ -935,7 +944,7 @@ class TestFinding(XMLNodeGeneratorTest):
         vuln = MockVuln(name="á")
         vuln.set_id([])
 
-        x = xml_file()
+        x = xml_file_with_output()
 
         finding = Finding(x._get_jinja2_env(), vuln, x._output)
         xml = finding.to_string()
@@ -968,7 +977,7 @@ class TestFinding(XMLNodeGeneratorTest):
         h1.response = res
         h1.save()
 
-        x = xml_file()
+        x = xml_file_with_output()
 
         finding = Finding(x._get_jinja2_env(), vuln, x._output)
         xml = finding.to_string()
@@ -1090,7 +1099,7 @@ class TestFindingsCache(XMLNodeGeneratorTest):
         #
         kb.kb.append("a", "b", vuln1)
 
-        x = xml_file()
+        x = xml_file_with_output()
         x.set_knowledge_base(kb.kb)
         list(x.findings())
 
@@ -1118,6 +1127,10 @@ class TestFindingsCache(XMLNodeGeneratorTest):
 
 
 class TestAttrValueEscapeFilter(unittest.TestCase):
+    def test_escape_tables_only_contain_fixed_replacements(self):
+        self.assertEqual(len(ATTR_VALUE_ESCAPES), 5)
+        self.assertEqual(len(TEXT_VALUE_ESCAPES), 5)
+
     def test_invalid_ascii(self):
         result = jinja2_attr_value_escape_filter("é")
 
@@ -1155,7 +1168,7 @@ class TestEscapeFiltersWithAutoescape(unittest.TestCase):
 
     @staticmethod
     def render(filter_name, value):
-        env = xml_file()._get_jinja2_env()
+        env = xml_file_with_output()._get_jinja2_env()
         return env.from_string(f"<r>{{{{ v|{filter_name} }}}}</r>").render(v=value)
 
     def test_attr_filter_output(self):
@@ -1209,10 +1222,20 @@ class TestXMLFileEdgeCases(unittest.TestCase):
 
         self.assertEqual(slow(21), 42)
 
+        class SlowObject:
+            _output = om.out
+
+            @took
+            def slow(self, value):
+                time.sleep(0.6)
+                return value * 2
+
+        self.assertEqual(SlowObject().slow(21), 42)
+
     def test_flush_before_scan_start_writes_nothing(self):
         output_file = os.path.join(self.output_dir, "report.xml")
 
-        plugin = xml_file()
+        plugin = xml_file_with_output()
         plugin.set_w3af_core(w3afCore())
         options = plugin.get_options()
         options["output_file"].set_value(output_file)
@@ -1224,13 +1247,13 @@ class TestXMLFileEdgeCases(unittest.TestCase):
         self.assertIn("output_file", plugin.get_long_desc())
 
     def test_cached_node_requires_a_cache_key(self):
-        node = CachedXMLNode(xml_file()._get_jinja2_env())
+        node = CachedXMLNode(xml_file_with_output()._get_jinja2_env())
         self.assertRaises(NotImplementedError, node.get_cache_key)
 
     def test_finding_with_missing_http_transaction(self):
         vuln = MockVuln(_id=4242)
 
-        plugin = xml_file()
+        plugin = xml_file_with_output()
         xml = Finding(plugin._get_jinja2_env(), vuln, plugin._output).to_string()
 
         self.assertIn("<vulnerability", xml)

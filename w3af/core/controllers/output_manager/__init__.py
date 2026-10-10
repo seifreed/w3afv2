@@ -42,6 +42,7 @@ def fresh_output_manager_inst():
     if manager.is_alive():
         manager.in_queue.put(POISON_PILL)
         manager.join()
+    manager.close_worker_pool()
 
     #
     #   Create the new instance

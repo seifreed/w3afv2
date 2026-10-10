@@ -3590,3 +3590,29 @@ conexiones por host. Una prueba con servidor HTTP real y 500 requests, seguida
 de `gc.collect()`, observó **113 KiB** de crecimiento trazado y **0.8 MiB** de
 RSS máximo; los límites internos permanecieron en `100` y `128`. No se añade
 un cambio especulativo al pool ni al almacenamiento de respuestas.
+
+## Actualización verificada: regresión de memoria durante tests
+
+La subida grande de RAM no venía de una fuga por request. Había dos picos
+independientes:
+
+- `OutputManager` creaba siempre un pool de 10 workers al construirse, aunque
+  no se usara, y los managers reemplazados no siempre liberaban sus hilos.
+  El pool ahora se crea bajo demanda y se cierra al recibir `POISON_PILL`, al
+  terminar los plugins y al reemplazar el manager.
+- `xml_file` materializaba dos diccionarios para todos los valores de
+  `sys.maxunicode`, más de un millón de entradas por tabla. Las sustituciones
+  de caracteres de control ahora se calculan bajo demanda; las tablas globales
+  conservan únicamente las cinco sustituciones fijas.
+
+El test que activa todos los plugins de salida bajó de **508 MiB** a **87 MiB**
+de RSS máximo. La suite de `OutputManager` bajó de **491 MiB** a **92 MiB**.
+La batería combinada de URL, `OutputManager` y XML pasó **279 tests en 193.60
+s**, con **190 MiB** de RSS máximo, frente a **~572 MiB** antes del arreglo.
+
+También se completó la inyección del sink de salida al crear plugins desde el
+manager, necesaria para que `xml_file` use el contrato actual sin depender de
+un singleton global. Black, Ruff, mypy focal, Bandit focal, `pip-audit` y
+`git diff --check` están limpios. Permanecen dos warnings externos de
+`ldap3/pyasn1`; el score se mantiene en **6.5/10** por cobertura global,
+módulos grandes y gates globales pendientes.

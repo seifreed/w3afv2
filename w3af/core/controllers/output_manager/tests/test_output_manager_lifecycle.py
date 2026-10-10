@@ -98,10 +98,12 @@ class TestOutputManagerRun(unittest.TestCase):
 
     def test_poison_pill_stops_the_manager(self):
         manager = self.started_manager()
+        manager.flush_plugin_output()
 
         stop(manager)
 
         self.assertFalse(manager.is_alive())
+        self.assertTrue(manager._worker_pool.is_closed())
 
     def test_messages_reach_every_plugin_even_when_one_fails(self):
         failing = EventfulOutput(failure=RuntimeError("information failed"))
@@ -270,6 +272,7 @@ class TestOutputManagerModule(unittest.TestCase):
 
     def test_fresh_instance_stops_the_running_one(self):
         running = OutputManager()
+        running.flush_plugin_output()
         running.start()
         om.manager = running
 
@@ -277,6 +280,7 @@ class TestOutputManagerModule(unittest.TestCase):
         stop(fresh)
 
         self.assertFalse(running.is_alive())
+        self.assertTrue(running._worker_pool.is_closed())
         self.assertIsNot(fresh, running)
         self.assertIs(om.manager, fresh)
 
