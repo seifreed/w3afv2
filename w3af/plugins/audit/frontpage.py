@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
@@ -55,7 +54,9 @@ class frontpage(AuditPlugin):
         if self._author_url is not None:
             return self._author_url
 
-        for info in kb.kb.get("frontpage_version", "frontpage_version"):
+        for info in self._get_knowledge_base().get(
+            "frontpage_version", "frontpage_version"
+        ):
             author_url = info.get("FPAuthorScriptUrl", None)
             if author_url is not None:
                 self._author_url = author_url
@@ -76,7 +77,7 @@ class frontpage(AuditPlugin):
             return
 
         # Only identify one vulnerability of this type
-        if kb.kb.get(self, "frontpage"):
+        if self._get_knowledge_base().get(self, "frontpage"):
             return
 
         domain_path = freq.get_url().get_domain_path()
