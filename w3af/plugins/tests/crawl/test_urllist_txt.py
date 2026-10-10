@@ -94,4 +94,5 @@ class TestURLListTxtIsHTML(PluginTest):
 
 
 def test_urllist_txt_long_desc():
-    assert "urllist.txt" in urllist_txt().get_long_desc()
+    if "urllist.txt" not in urllist_txt().get_long_desc():
+        raise AssertionError

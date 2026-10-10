@@ -204,7 +204,8 @@ class TestSGMLParser(unittest.TestCase):
                 il = s.islower()
             else:
                 il = all(k.islower() for k in s)
-            assert il, f"'{s}' is not lowered-case"
+            if not il:
+                raise AssertionError(f"'{s}' is not lowered-case")
             return il
 
         def start_wrapper(orig_start, tag):

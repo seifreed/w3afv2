@@ -23,4 +23,5 @@ from w3af.plugins import infrastructure
 
 
 def test_infrastructure_plugin_type_description():
-    assert "Web Application Firewalls" in infrastructure.get_long_description()
+    if "Web Application Firewalls" not in infrastructure.get_long_description():
+        raise AssertionError

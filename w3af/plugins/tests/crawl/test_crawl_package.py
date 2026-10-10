@@ -23,4 +23,5 @@ from w3af.plugins import crawl
 
 
 def test_crawl_plugin_type_description():
-    assert "identify new URLs" in crawl.get_long_description()
+    if "identify new URLs" not in crawl.get_long_description():
+        raise AssertionError

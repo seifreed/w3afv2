@@ -252,7 +252,8 @@ class XMLParser:
         elif tag == "body":
             content_encoding = attrib["content-encoding"]
 
-            assert content_encoding == "base64"
+            if content_encoding != "base64":
+                raise AssertionError
             self._inside_body = True
 
         elif tag == "http-response":
@@ -264,8 +265,10 @@ class XMLParser:
             data = "".join(self._data_parts)
 
             data_decoded = base64.b64decode(data).decode("utf-8")
-            assert "syntax error" in data_decoded, data_decoded
-            assert "near" in data_decoded, data_decoded
+            if "syntax error" not in data_decoded:
+                raise AssertionError(data_decoded)
+            if "near" not in data_decoded:
+                raise AssertionError(data_decoded)
 
             self._data_parts = []
 
@@ -468,7 +471,8 @@ class TestSpecialCharacterInURL(PluginTest):
 class XMLNodeGeneratorTest(unittest.TestCase):
     def assertValidXML(self, xml):
         etree.fromstring(xml)
-        assert "escape_attr" not in xml
+        if "escape_attr" in xml:
+            raise AssertionError
 
 
 class TestHTTPTransaction(XMLNodeGeneratorTest):

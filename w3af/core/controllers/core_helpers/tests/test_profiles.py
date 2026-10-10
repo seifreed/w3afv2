@@ -303,4 +303,5 @@ def assertProfileOptionsPreserved(
             saved_value = saved.get(section_name, orig_name)
             msg = 'The "%s" option of the "%s" section changed from' ' "%s" to "%s"'
             args = (orig_name, section_name, orig_value, saved_value)
-            assert saved_value == orig_value, msg % args
+            if saved_value != orig_value:
+                raise AssertionError(msg % args)

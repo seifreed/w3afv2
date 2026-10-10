@@ -75,14 +75,17 @@ class TestUserDir(PluginTest):
 
 
 def test_user_dir_long_desc():
-    assert "home directories" in user_dir().get_long_desc()
+    if "home directories" not in user_dir().get_long_desc():
+        raise AssertionError
 
 
 def test_users_from_csv_reads_bundled_database():
     users = list(get_users_from_csv(OS))
 
-    assert users
-    assert all(isinstance(user, str) for _, user in users)
+    if not users:
+        raise AssertionError
+    if not all(isinstance(user, str) for _, user in users):
+        raise AssertionError
 
 
 def test_users_from_csv_rejects_unknown_database():
@@ -107,4 +110,5 @@ def test_users_from_csv_skips_invalid_rows(tmp_path):
 
     users = list(get_users_from_csv(APPLICATION, db_path=tmp_path))
 
-    assert users == [("Apache web server", "www")]
+    if users != [("Apache web server", "www")]:
+        raise AssertionError

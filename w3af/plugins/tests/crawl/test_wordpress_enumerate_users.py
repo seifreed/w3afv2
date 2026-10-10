@@ -96,4 +96,5 @@ class TestWordpressEnumerateUsersNoWordpress(PluginTest):
 
 
 def test_wordpress_enumerate_users_long_desc():
-    assert "?author=ID" in wordpress_enumerate_users().get_long_desc()
+    if "?author=ID" not in wordpress_enumerate_users().get_long_desc():
+        raise AssertionError

@@ -121,4 +121,5 @@ class TestWordpressPathDisclosureNoWordpress(PluginTest):
 
 
 def test_wordpress_fullpathdisclosure_long_desc():
-    assert "WordPress" in wordpress_fullpathdisclosure().get_long_desc()
+    if "WordPress" not in wordpress_fullpathdisclosure().get_long_desc():
+        raise AssertionError

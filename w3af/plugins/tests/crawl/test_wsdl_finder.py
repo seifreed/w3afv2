@@ -89,5 +89,7 @@ class TestWSDLFinder(PluginTest):
 def test_wsdl_finder_metadata():
     plugin = wsdl_finder()
 
-    assert plugin.get_plugin_deps() == ["grep.wsdl_greper"]
-    assert "?WSDL" in plugin.get_long_desc()
+    if plugin.get_plugin_deps() != ["grep.wsdl_greper"]:
+        raise AssertionError
+    if "?WSDL" not in plugin.get_long_desc():
+        raise AssertionError

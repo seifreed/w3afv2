@@ -283,11 +283,14 @@ class TestWebSpiderWithoutTargets:
         finally:
             cf.cf.save("targets", previous)
 
-        assert spider._target_urls == []
-        assert spider._target_domain is None
+        if spider._target_urls != []:
+            raise AssertionError
+        if spider._target_domain is not None:
+            raise AssertionError
 
     def test_long_desc(self):
-        assert "only_forward" in web_spider().get_long_desc()
+        if "only_forward" not in web_spider().get_long_desc():
+            raise AssertionError
 
 
 class TestRelativePathsIn404(PluginTest):

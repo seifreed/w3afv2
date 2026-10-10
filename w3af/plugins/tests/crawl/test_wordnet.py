@@ -108,23 +108,30 @@ class TestSearchWordnet:
         wn = wordnet()
         wn_result = wn._search_wn("blue")
 
-        assert len(wn_result) == wn._wordnet_results
-        assert "red" in wn_result
+        if len(wn_result) != wn._wordnet_results:
+            raise AssertionError
+        if "red" not in wn_result:
+            raise AssertionError
 
     def test_search_excludes_the_searched_word(self):
         wn = wordnet()
         wn._wordnet_results = 100
 
-        assert "show" not in wn._search_wn("show")
+        if "show" in wn._search_wn("show"):
+            raise AssertionError
 
     def test_search_ignores_numbers_and_empty_words(self):
         wn = wordnet()
 
-        assert wn._search_wn("") == []
-        assert wn._search_wn("1234") == []
+        if wn._search_wn("") != []:
+            raise AssertionError
+        if wn._search_wn("1234") != []:
+            raise AssertionError
 
     def test_search_unknown_word(self):
-        assert wordnet()._search_wn("xyzzyq") == []
+        if wordnet()._search_wn("xyzzyq") != []:
+            raise AssertionError
 
     def test_long_desc(self):
-        assert "wordnet database" in wordnet().get_long_desc()
+        if "wordnet database" not in wordnet().get_long_desc():
+            raise AssertionError

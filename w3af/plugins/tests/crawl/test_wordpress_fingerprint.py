@@ -154,12 +154,14 @@ class TestWordpressFingerprintNoWordpress(PluginTest):
 class TestWordpressVersionsDatabase:
     def test_xml_parsing_case01(self):
         wp_fingerprints = wordpress_fingerprint()._get_wp_fingerprints()
-        assert len(wp_fingerprints) > 20
+        if len(wp_fingerprints) <= 20:
+            raise AssertionError
 
         wp_file_fp = FileFingerPrint(
             "layout2b.css", "baec6b6ccbf71d8dced9f1bf67c751e1", "0.71-gold"
         )
-        assert wp_file_fp in wp_fingerprints
+        if wp_file_fp not in wp_fingerprints:
+            raise AssertionError
 
     def _plugin_with_versions_xml(self, path):
         plugin = wordpress_fingerprint()
@@ -186,4 +188,5 @@ class TestWordpressVersionsDatabase:
             plugin._get_wp_fingerprints()
 
     def test_long_desc(self):
-        assert "fingerprinting" in wordpress_fingerprint().get_long_desc()
+        if "fingerprinting" not in wordpress_fingerprint().get_long_desc():
+            raise AssertionError

@@ -105,5 +105,7 @@ class TestURLFuzzerWithHead(PluginTest):
 def test_url_fuzzer_metadata():
     plugin = url_fuzzer()
 
-    assert plugin.get_plugin_deps() == ["infrastructure.allowed_methods"]
-    assert "fuzz_images" in plugin.get_long_desc()
+    if plugin.get_plugin_deps() != ["infrastructure.allowed_methods"]:
+        raise AssertionError
+    if "fuzz_images" not in plugin.get_long_desc():
+        raise AssertionError
