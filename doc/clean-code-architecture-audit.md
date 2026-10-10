@@ -1755,3 +1755,14 @@ Verificación: 3 tests del plugin pasan, Ruff, Black y mypy pasan en el módulo
 modificado. El score sigue en **5.75/10**: quedan 59 imports directos de la KB,
 además de la cobertura, mocks, el fallo heredado de perfilado, la dependencia
 de Moth y los orquestadores grandes.
+
+## Actualización verificada: crawlers de backdoors y PhishTank
+
+`crawl.find_backdoors` y `crawl.phishtank` registran los hallazgos mediante la
+KB configurada en cada plugin. El helper unitario de PhishTank también inyecta
+la KB real cuando crea el plugin directamente.
+
+Verificación: 10 tests de ambos crawlers pasan, Ruff, Black y mypy pasan en
+los módulos modificados. El score sigue en **5.75/10**: quedan 57 imports
+directos de la KB, además de la cobertura, mocks, el fallo heredado de
+perfilado, la dependencia de Moth y los orquestadores grandes.
