@@ -29,7 +29,7 @@ from w3af.core.data.kb.vuln_templates.dav_template import DAVTemplate
 class DAVTemplateTest(unittest.TestCase):
     def test_store_in_kb(self):
         dt = DAVTemplate()
-        dt.store_in_kb()
+        dt.store_in_kb(kb)
 
         stored_data = kb.get(*dt.get_kb_location())
 

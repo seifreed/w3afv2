@@ -98,7 +98,7 @@ class BaseTemplateTest(unittest.TestCase):
     def test_store_in_kb(self):
         template = configure(EvalTemplate())
 
-        template.store_in_kb()
+        template.store_in_kb(kb)
 
         (stored,) = kb.get(*template.get_kb_location())
         self.assertEqual(stored.get_token_name(), "id")

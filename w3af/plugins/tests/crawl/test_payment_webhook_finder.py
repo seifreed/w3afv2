@@ -121,11 +121,13 @@ class TestPaymentWebHookFinderExtensions(unittest.TestCase):
 
     def test_all_extensions_for_small_sites(self):
         plugin = payment_webhook_finder()
+        plugin.set_knowledge_base(kb.kb)
 
         self.assertEqual(plugin._get_extensions_for_fuzzing(), plugin._exts)
 
     def test_extensions_filtered_by_site_extensions(self):
         fill_kb_with_cgi_urls("http://httpretty/", kb.kb.add_url)
         plugin = payment_webhook_finder()
+        plugin.set_knowledge_base(kb.kb)
 
         self.assertEqual(plugin._get_extensions_for_fuzzing(), {"cgi"})

@@ -106,7 +106,7 @@ class TestSQLMapShell(ReadExploitTest):
         options["vulnerable_parameter"].set_value("id")
         sqlit.set_options(options)
 
-        sqlit.store_in_kb()
+        sqlit.store_in_kb(self.kb)
         vuln = self.kb.get(*sqlit.get_kb_location())[0]
         vuln_to_exploit_id = vuln.get_id()
 

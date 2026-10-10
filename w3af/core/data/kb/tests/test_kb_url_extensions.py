@@ -33,7 +33,7 @@ class TestKBURLExtensions(unittest.TestCase):
         self.addCleanup(kb.cleanup)
 
     def test_no_urls(self):
-        self.assertEqual(get_url_extensions_from_kb(), set())
+        self.assertEqual(get_url_extensions_from_kb(kb), set())
 
     def test_extensions(self):
         for url in (
@@ -44,4 +44,4 @@ class TestKBURLExtensions(unittest.TestCase):
         ):
             kb.add_url(URL(url))
 
-        self.assertEqual(get_url_extensions_from_kb(), {"php", "js", ""})
+        self.assertEqual(get_url_extensions_from_kb(kb), {"php", "js", ""})

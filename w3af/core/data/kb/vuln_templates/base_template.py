@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.configurable import Configurable
 from w3af.core.data.constants import severity
 from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
@@ -122,13 +121,13 @@ class BaseTemplate(Configurable):
             # https://github.com/andresriancho/w3af/issues/4310
             raise ValueError(f'The vulnerable parameter "{ke}" was not found')
 
-    def store_in_kb(self):
+    def store_in_kb(self, knowledge_base):
         """
         :return: None, just stores the configured vulnerability to the KB.
         """
         kb_loc_a, kb_loc_b = self.get_kb_location()
         created_vulnerability = self.create_vuln()
-        kb.kb.append(kb_loc_a, kb_loc_b, created_vulnerability)
+        knowledge_base.append(kb_loc_a, kb_loc_b, created_vulnerability)
 
     def get_vuln_id(self):
         return consecutive_number_generator.inc()

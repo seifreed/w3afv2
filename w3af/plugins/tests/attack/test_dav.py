@@ -69,7 +69,7 @@ class TestDAVShell(ExecExploitTest):
         options["url"].set_value("http://moth/w3af/audit/dav/write-all/")
         dt.set_options(options)
 
-        dt.store_in_kb()
+        dt.store_in_kb(self.kb)
         vuln = self.kb.get(*dt.get_kb_location())[0]
         vuln_to_exploit_id = vuln.get_id()
 

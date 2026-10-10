@@ -78,7 +78,7 @@ class TestFileUploadShell(ExecExploitTest):
         options["vulnerable_parameter"].set_value("uploadedfile")
         fut.set_options(options)
 
-        fut.store_in_kb()
+        fut.store_in_kb(self.kb)
         vuln = self.kb.get(*fut.get_kb_location())[0]
         vuln_to_exploit_id = vuln.get_id()
 
@@ -99,7 +99,7 @@ class TestFileUploadShell(ExecExploitTest):
         options["vulnerable_parameter"].set_value("uploadedfile")
         fut.set_options(options)
 
-        fut.store_in_kb()
+        fut.store_in_kb(self.kb)
         vuln = self.kb.get(*fut.get_kb_location())[0]
         vuln_to_exploit_id = vuln.get_id()
 

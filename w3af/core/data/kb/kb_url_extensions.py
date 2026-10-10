@@ -20,10 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.data.kb.knowledge_base as kb
 
-
-def get_url_extensions_from_kb():
+def get_url_extensions_from_kb(knowledge_base):
     """
     :return: A set with all the URL filename extensions that have been found
              during the scan. This is useful to reduce the number of HTTP
@@ -34,7 +32,7 @@ def get_url_extensions_from_kb():
              and decide that it won't perform URL brute-forcing for php extensions.
     """
     all_extensions = set()
-    all_urls = kb.kb.get_all_known_urls()
+    all_urls = knowledge_base.get_all_known_urls()
 
     for url in all_urls:
         all_extensions.add(url.get_extension())

@@ -111,7 +111,7 @@ class TestOSCommandingShell(ExecExploitTest):
         options["separator"].set_value("")
         osct.set_options(options)
 
-        osct.store_in_kb()
+        osct.store_in_kb(self.kb)
         vuln = self.kb.get(*osct.get_kb_location())[0]
         vuln_to_exploit_id = vuln.get_id()
 

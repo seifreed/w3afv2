@@ -24,7 +24,6 @@ from itertools import repeat
 from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
@@ -144,10 +143,13 @@ class payment_webhook_finder(CrawlPlugin):
 
         :return: A set containing the extensions to use during fuzzing
         """
-        if len(kb.kb.get_all_known_urls()) < self.MIN_URL_COUNT_FOR_EXTENSION_FILTER:
+        if (
+            len(self._get_knowledge_base().get_all_known_urls())
+            < self.MIN_URL_COUNT_FOR_EXTENSION_FILTER
+        ):
             return self._exts
 
-        site_url_extensions = get_url_extensions_from_kb()
+        site_url_extensions = get_url_extensions_from_kb(self._get_knowledge_base())
         return site_url_extensions.intersection(self._exts)
 
     def _send_requests(self, url, mutant):
@@ -177,7 +179,7 @@ class payment_webhook_finder(CrawlPlugin):
         i = Info("Potentially interesting URL", desc, response.id, self.get_name())
         i.set_url(response.get_url())
 
-        kb.kb.append_uniq(self, "url", i, filter_by="URL")
+        self._get_knowledge_base().append_uniq(self, "url", i, filter_by="URL")
         om.out.information(i.get_desc())
 
     def _test_once_filter(self, mutated_url_path_generator):

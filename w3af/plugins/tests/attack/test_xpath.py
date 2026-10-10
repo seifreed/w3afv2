@@ -75,7 +75,7 @@ class TestXPathShell(PluginTest):
         options["vulnerable_parameter"].set_value("text")
         xt.set_options(options)
 
-        xt.store_in_kb()
+        xt.store_in_kb(self.kb)
         vuln = self.kb.get(*xt.get_kb_location())[0]
         vuln_to_exploit_id = vuln.get_id()
 

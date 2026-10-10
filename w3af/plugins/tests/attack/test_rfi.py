@@ -74,7 +74,7 @@ class TestRFI(ExecExploitTest):
         options["vulnerable_parameter"].set_value("file")
         rfit.set_options(options)
 
-        rfit.store_in_kb()
+        rfit.store_in_kb(self.kb)
         vuln = self.kb.get(*rfit.get_kb_location())[0]
         vuln_to_exploit_id = vuln.get_id()
 

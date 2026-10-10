@@ -65,7 +65,7 @@ class TestEvalShell(ExecExploitTest):
         options["vulnerable_parameter"].set_value("text")
         et.set_options(options)
 
-        et.store_in_kb()
+        et.store_in_kb(self.kb)
         vuln = self.kb.get(*et.get_kb_location())[0]
         vuln_to_exploit_id = vuln.get_id()
 

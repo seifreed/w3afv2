@@ -111,7 +111,7 @@ class kbMenu(menu):
         # plugins, misc-settings, etc.
         template_inst = get_template_by_name(template_name)
         template_menu = StoreOnBackConfigMenu(
-            template_name, self._console, self._w3af, self, template_inst
+            template_name, self._console, self._w3af, self, template_inst, kb.kb
         )
 
         # Note: The data is stored in the KB when the user does a "back"
@@ -126,6 +126,10 @@ class kbMenu(menu):
 
 
 class StoreOnBackConfigMenu(ConfigMenu):
+    def __init__(self, name, console, w3af, parent, configurable, knowledge_base):
+        super().__init__(name, console, w3af, parent, configurable)
+        self._knowledge_base = knowledge_base
+
     def _cmd_back(self, tokens):
         try:
             self._cmd_save(tokens)
@@ -134,7 +138,7 @@ class StoreOnBackConfigMenu(ConfigMenu):
             return self._console.back
 
         # The template validates its configuration when it is saved
-        self._configurable.store_in_kb()
+        self._configurable.store_in_kb(self._knowledge_base)
         vuln_name = self._configurable.get_vulnerability_name()
         om.out.console(f'Stored "{vuln_name}" in the knowledge base.')
 
