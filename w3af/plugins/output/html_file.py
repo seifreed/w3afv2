@@ -29,7 +29,6 @@ import time
 import markdown
 from jinja2 import Environment, FileSystemLoader, StrictUndefined, select_autoescape
 
-import w3af.core.data.kb.config as cf
 from w3af import ROOT_PATH
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
 from w3af.core.data.db.disk_list import DiskList
@@ -175,11 +174,12 @@ class html_file(OutputPlugin):
             * Get the debug data
             * Send all the data to jinja2 for rendering the template
         """
-        target_urls = [t.url_string for t in cf.cf.get("targets")]
+        configuration = self.get_configuration()
+        target_urls = [t.url_string for t in configuration.get("targets")]
 
         target_domain = "unknown"
 
-        target_domains = cf.cf.get("target_domains")
+        target_domains = configuration.get("target_domains")
         if target_domains and len(target_domains) > 0:
             target_domain = target_domains[0]
 

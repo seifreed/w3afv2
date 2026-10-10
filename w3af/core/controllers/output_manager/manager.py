@@ -528,6 +528,8 @@ class OutputManager(Process):
         plugin = factory(f"w3af.plugins.output.{plugin_name}")
         plugin.set_w3af_core(self._w3af_core)
         plugin.set_output(self._output)
+        if self._w3af_core is not None:
+            plugin.set_configuration(self._w3af_core.configuration)
         if self._knowledge_base is not None:
             plugin.set_knowledge_base(self._knowledge_base)
 

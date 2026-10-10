@@ -25,7 +25,6 @@ import json
 import os
 import time
 
-import w3af.core.data.kb.config as cf
 from w3af.core.controllers.misc import get_w3af_version
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
 from w3af.core.data.options.opt_factory import opt_factory
@@ -83,11 +82,13 @@ class json_file(OutputPlugin):
         """
         self.output_file = os.path.expanduser(self.output_file)
 
-        target_urls = [t.url_string for t in cf.cf.get("targets")]
+        configuration = self.get_configuration()
+        target_urls = [t.url_string for t in configuration.get("targets")]
 
         target_domain = "unknown"
-        if cf.cf.get("target_domains"):
-            target_domain = cf.cf.get("target_domains")[0]
+        target_domains = configuration.get("target_domains")
+        if target_domains:
+            target_domain = target_domains[0]
 
         enabled_plugins = self._enabled_plugins
 

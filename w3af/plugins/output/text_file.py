@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 import time
 
-import w3af.core.data.kb.config as cf
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
 from w3af.core.data.constants import severity
 from w3af.core.data.constants.encodings import UTF8
@@ -251,7 +250,8 @@ class text_file(OutputPlugin):
             )
 
         # And now the target information
-        str_targets = ", ".join(u.url_string for u in cf.cf.get("targets"))
+        targets = self.get_configuration().get("targets")
+        str_targets = ", ".join(u.url_string for u in targets)
         to_print += "target\n"
         to_print += "    set target " + str_targets + "\n"
         to_print += "    back"

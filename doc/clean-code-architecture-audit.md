@@ -3980,3 +3980,16 @@ mypy y Bandit focal están limpios. El score sube a **8.4/10** en Clean
 Architecture y **8.3/10** global. El riesgo residual es que los procesos de
 pytest antiguos ya existentes en el workspace siguen consumiendo memoria hasta
 que se cierren externamente.
+
+## Actualización verificada: plugins de output sin configuración global
+
+`email_report`, `html_file`, `json_file`, `text_file` y `xml_file` ya obtienen
+targets y dominios desde la configuración inyectada. `OutputManager` entrega
+esa dependencia al crear los plugins, manteniendo la configuración fuera de
+los módulos de reporting y eliminando sus imports de `cf.cf`.
+
+Verificación: las suites de los cinco plugins y `OutputManager` pasan **69
+tests**. Black, Ruff, mypy y Bandit focal están limpios. El score sube a
+**8.5/10** en Clean Architecture y **8.4/10** global. Siguen pendientes
+URL/openers, parsers, fuzzer, `Info`, controllers, HMap y la cobertura global
+del 100%.

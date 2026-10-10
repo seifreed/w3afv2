@@ -31,7 +31,6 @@ from unicodedata import category
 import lz4.frame
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
-import w3af.core.data.kb.config as cf
 from w3af import ROOT_PATH
 from w3af.core.controllers.misc import get_w3af_version
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
@@ -223,7 +222,8 @@ class xml_file(OutputPlugin):
     @took
     def _add_scan_info_to_context(self, context):
         if self._scan_targets is None:
-            self._scan_targets = ",".join([t.url_string for t in cf.cf.get("targets")])
+            targets = self.get_configuration().get("targets")
+            self._scan_targets = ",".join(t.url_string for t in targets)
 
         scan_info = ScanInfo(
             self._jinja2_env, self._scan_targets, self._plugins_dict, self._options_dict

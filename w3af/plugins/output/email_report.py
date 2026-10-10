@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import smtplib
 from email.mime.text import MIMEText
 
-import w3af.core.data.kb.config as cf
 from w3af.core.controllers.plugins.output_plugin import OutputPlugin
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
@@ -51,7 +50,7 @@ class email_report(OutputPlugin):
         self.fromAddr = ""
 
     def log_enabled_plugins(self, plugins_dict, options_dict):
-        self.targets = cf.cf.get("targets")
+        self.targets = self.get_configuration().get("targets")
 
     def set_options(self, option_list):
         self.smtpServer = option_list["smtpServer"].get_value()

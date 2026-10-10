@@ -157,6 +157,7 @@ class TestXMLOutput(PluginTest):
 
         plugin_instance = xml_file_with_output()
         plugin_instance.set_w3af_core(w3af_core)
+        plugin_instance.set_configuration(w3af_core.configuration)
         plugin_instance.set_knowledge_base(kb.kb)
 
         # https://github.com/andresriancho/w3af/issues/12924
@@ -214,6 +215,7 @@ class TestNoDuplicate(unittest.TestCase):
         # Setup the plugin
         plugin_instance = xml_file_with_output()
         plugin_instance.set_w3af_core(self.w3af_core)
+        plugin_instance.set_configuration(self.w3af_core.configuration)
         plugin_instance.set_knowledge_base(kb.kb)
 
         # Set the output file for the unittest
@@ -1236,7 +1238,9 @@ class TestXMLFileEdgeCases(unittest.TestCase):
         output_file = os.path.join(self.output_dir, "report.xml")
 
         plugin = xml_file_with_output()
-        plugin.set_w3af_core(w3afCore())
+        w3af_core = w3afCore()
+        plugin.set_w3af_core(w3af_core)
+        plugin.set_configuration(w3af_core.configuration)
         options = plugin.get_options()
         options["output_file"].set_value(output_file)
         plugin.set_options(options)
