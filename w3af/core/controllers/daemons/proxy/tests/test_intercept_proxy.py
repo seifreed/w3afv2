@@ -29,6 +29,7 @@ import unittest
 import urllib.error
 import urllib.request
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.daemons.proxy import InterceptProxy
 from w3af.core.controllers.tests.local_http_server import LocalHTTPServer, Reply
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
@@ -61,7 +62,7 @@ class TestInterceptProxy(unittest.TestCase):
         ca_dir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, ca_dir)
 
-        self._proxy = InterceptProxy(IP, 0, ExtendedUrllib(), ca_certs=ca_dir)
+        self._proxy = InterceptProxy(IP, 0, ExtendedUrllib(), om.out, ca_certs=ca_dir)
         self._proxy.start()
         self._proxy.wait_for_start()
         self.addCleanup(self._proxy.join, 5)

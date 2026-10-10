@@ -30,6 +30,7 @@ from typing import ClassVar
 
 from mitmproxy.test import tflow
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.get_unused_port import get_unused_port
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.plugins.crawl.spider_man import (
@@ -202,8 +203,14 @@ class TestLoggingHandlerUnreachableSite(unittest.TestCase):
         self.addCleanup(uri_opener.end)
 
         plugin = spider_man()
+        plugin.set_output(om.out)
         proxy = LoggingProxy(
-            "127.0.0.1", 0, uri_opener, plugin=plugin, target_domain="127.0.0.1"
+            "127.0.0.1",
+            0,
+            uri_opener,
+            om.out,
+            plugin=plugin,
+            target_domain="127.0.0.1",
         )
         handler = LoggingHandler(None, uri_opener, proxy)
 

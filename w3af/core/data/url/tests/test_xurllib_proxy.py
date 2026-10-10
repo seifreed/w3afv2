@@ -23,6 +23,7 @@ import unittest
 
 import pytest
 
+import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.daemons.proxy import Proxy, ProxyHandler
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
@@ -47,7 +48,7 @@ class TestExtendedUrllibProxy(unittest.TestCase):
         # Start the proxy daemon
         proxy_opener = ExtendedUrllib()
         self.addCleanup(proxy_opener.end)
-        self._proxy = Proxy("127.0.0.1", 0, proxy_opener, ProxyHandler)
+        self._proxy = Proxy("127.0.0.1", 0, proxy_opener, om.out, ProxyHandler)
         self._proxy.start()
         self._proxy.wait_for_start()
         self.addCleanup(self._proxy.stop)

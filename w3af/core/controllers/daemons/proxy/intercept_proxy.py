@@ -38,7 +38,7 @@ class InterceptProxy(Proxy):
     DEFAULT_NO_TRAP = r".*\.(gif|jpg|png|css|js|ico|swf|axd|tif)$"
     DEFAULT_TRAP = ".*"
 
-    def __init__(self, ip, port, url_opener, ca_certs=Proxy.CA_CERT_DIR):
+    def __init__(self, ip, port, url_opener, output, ca_certs=Proxy.CA_CERT_DIR):
         """
         :param ip: IP address to bind
         :param port: Port to bind
@@ -52,6 +52,7 @@ class InterceptProxy(Proxy):
             ip,
             port,
             url_opener,
+            output,
             handler_klass=InterceptProxyHandler,
             ca_certs=ca_certs,
             name="LocalProxyThread",

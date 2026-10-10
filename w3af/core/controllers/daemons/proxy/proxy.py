@@ -28,7 +28,6 @@ from multiprocessing.dummy import Process
 from mitmproxy import options
 from mitmproxy.tools.dump import DumpMaster
 
-import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.controllers.daemons.proxy import ProxyHandler
 from w3af.core.exceptions import ProxyException
@@ -42,11 +41,11 @@ class Proxy(Process):
     plugins.
 
     You should create a proxy instance like this:
-        ws = Proxy('127.0.0.1', 8080, url_opener)
+        ws = Proxy('127.0.0.1', 8080, url_opener, output)
 
     Or like this, if you want to override the proxy handler (most times you
     want to do it!):
-        ws = Proxy('127.0.0.1', 8080, url_opener, proxy_handler=ph)
+        ws = Proxy('127.0.0.1', 8080, url_opener, output, handler_klass=ph)
 
     If the IP:Port is already in use, an exception will be raised while
     creating the ws instance.
@@ -86,6 +85,7 @@ class Proxy(Process):
         ip,
         port,
         uri_opener,
+        output,
         handler_klass=ProxyHandler,
         ca_certs=CA_CERT_DIR,
         name="ProxyThread",
@@ -95,6 +95,7 @@ class Proxy(Process):
         :param port: Port to bind
         :param uri_opener: The uri_opener that will be used to open
                            the requests that arrive from the browser
+        :param output: The sink used for proxy lifecycle messages
         :param handler_klass: A class that will know how to handle
                               requests from the browser
         """
@@ -105,6 +106,7 @@ class Proxy(Process):
         # Internal vars
         self._running = False
         self._uri_opener = uri_opener
+        self._output = output
         self._ca_certs = ca_certs
         self._host = ip
         self._requested_port = port
@@ -170,7 +172,7 @@ class Proxy(Process):
             self._handler = self._handler_klass(self._master, self._uri_opener, self)
             self._master.addons.add(self._handler)
             args = (self._host, self._requested_port, self._handler.__class__.__name__)
-            om.out.debug("Proxy server listening on {}:{} using {}".format(*args))
+            self._output.debug("Proxy server listening on {}:{} using {}".format(*args))
             self._running = True
             await self._master.run()
 
@@ -179,7 +181,7 @@ class Proxy(Process):
         except SystemExit:
             # mitmproxy exits when it logs an error during startup, for
             # example when the address is already in use
-            om.out.error(STARTUP_FAILED)
+            self._output.error(STARTUP_FAILED)
         finally:
             self._running = False
             self._ready.set()
@@ -188,6 +190,6 @@ class Proxy(Process):
         """
         Stop the proxy.
         """
-        om.out.debug("Calling stop of proxy daemon")
+        self._output.debug("Calling stop of proxy daemon")
         if self._running:
             self._master.shutdown()

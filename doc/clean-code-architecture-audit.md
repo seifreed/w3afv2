@@ -2537,3 +2537,15 @@ Verificación: Ruff, Black y mypy están limpios; **25 tests pasaron y 1 fue
 omitido** en webserver, reverse HTTP y RFI. El test restante de transferencia
 no es portable en macOS porque ejecuta comandos locales con un fixture que
 simula Linux; el score permanece en **6.25/10**.
+
+## Actualización verificada: proxy con output explícito
+
+`Proxy`, `InterceptProxy` y `LoggingProxy` reciben el sink de su composición;
+los mensajes de arranque, error y parada ya no importan `output_manager`. Se
+actualizaron SQLMap, spider_man y todos los callers de tests para conservar el
+flujo real de salida.
+
+Verificación: **31 tests pasaron** en proxy, interceptación, Xurllib y
+spider_man; Ruff, Black y mypy están limpios. Persisten los límites globales
+de UI, servicios y composición, además de cobertura total no demostrada,
+Bandit heredado y las integraciones Moth; el score permanece en **6.25/10**.

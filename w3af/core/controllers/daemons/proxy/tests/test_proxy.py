@@ -29,6 +29,7 @@ import unittest
 import urllib.error
 import urllib.request
 
+import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.controllers.daemons.proxy import Proxy, ProxyHandler
 from w3af.core.controllers.tests.local_http_server import LocalHTTPServer, Reply
@@ -89,7 +90,7 @@ class TestProxy(unittest.TestCase):
         self.addCleanup(self.tls_upstream.close)
 
         self._proxy = Proxy(
-            IP, 0, ExtendedUrllib(), ProxyHandler, ca_certs=temp_ca_dir(self)
+            IP, 0, ExtendedUrllib(), om.out, ProxyHandler, ca_certs=temp_ca_dir(self)
         )
         self._proxy.start()
         self._proxy.wait_for_start()
@@ -171,7 +172,7 @@ class TestProxy(unittest.TestCase):
 class TestProxyStartup(unittest.TestCase):
 
     def test_wait_for_start_times_out(self):
-        proxy = Proxy(IP, 0, ExtendedUrllib())
+        proxy = Proxy(IP, 0, ExtendedUrllib(), om.out)
 
         with self.assertRaisesRegex(ProxyException, "Timed out"):
             proxy.wait_for_start(timeout=0.01)
@@ -179,7 +180,11 @@ class TestProxyStartup(unittest.TestCase):
     def test_address_in_use(self):
         with LocalHTTPServer(upstream_responder) as upstream:
             proxy = Proxy(
-                IP, upstream.port, ExtendedUrllib(), ca_certs=temp_ca_dir(self)
+                IP,
+                upstream.port,
+                ExtendedUrllib(),
+                om.out,
+                ca_certs=temp_ca_dir(self),
             )
             proxy.start()
 

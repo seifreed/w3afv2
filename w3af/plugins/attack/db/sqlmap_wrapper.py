@@ -82,7 +82,7 @@ class SQLMapWrapper:
         """
         host = "127.0.0.1"
 
-        self.proxy = Proxy(host, 0, uri_opener, name="SQLMapWrapperProxy")
+        self.proxy = Proxy(host, 0, uri_opener, self._output, name="SQLMapWrapperProxy")
         self.proxy.start()
         self.proxy.wait_for_start()
 
