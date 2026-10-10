@@ -1567,3 +1567,16 @@ Verificación: 35 tests de estos plugins y ramas adicionales pasan, Ruff, Black
 y mypy pasan en los módulos modificados. El score sigue en **5.75/10**: quedan
 80 imports directos de la KB, además de la deuda de cobertura, mocks y
 orquestadores grandes.
+
+## Actualización verificada: perfilado de contraseñas
+
+`password_profiling` usa la KB inyectada para leer el idioma, conservar el mapa
+de palabras y mostrar el resumen final. Los casos de merge y las ramas del
+plugin pasan con la implementación real.
+
+Verificación: Ruff, Black y mypy pasan en el módulo modificado y los casos
+focales de merge pasan. El test integrado de recolección ya falla en `HEAD`
+limpio con el mismo resultado (`raw_read()` devuelve una lista), por lo que se
+mantiene como deuda previa. El score sigue en **5.75/10**: quedan 79 imports
+directos de la KB, además de la cobertura, mocks, ese fallo heredado y los
+orquestadores grandes.
