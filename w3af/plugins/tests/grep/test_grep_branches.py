@@ -66,7 +66,7 @@ class TestAnalyzeCookiesBranches(GrepPluginTestCase):
 
     def setUp(self):
         super().setUp()
-        self.plugin = analyze_cookies()
+        self.plugin = self.configure_plugin(analyze_cookies())
 
     def tearDown(self):
         self.plugin.end()
@@ -117,7 +117,7 @@ class TestCacheControlBranches(GrepPluginTestCase):
 
     def setUp(self):
         super().setUp()
-        self.plugin = cache_control()
+        self.plugin = self.configure_plugin(cache_control())
 
     def _grep(self, response):
         self.plugin.grep(make_request(response.get_url()), response)
@@ -158,7 +158,7 @@ class TestClickJackingBranches(GrepPluginTestCase):
 
     def setUp(self):
         super().setUp()
-        self.plugin = click_jacking()
+        self.plugin = self.configure_plugin(click_jacking())
 
     def _grep(self, response, method="GET"):
         self.plugin.grep(make_request(response.get_url(), method=method), response)
@@ -214,7 +214,7 @@ class TestMaxReportsLimit(GrepPluginTestCase):
     """
 
     def _assert_limited(self, plugin_klass, kb_key):
-        plugin = plugin_klass()
+        plugin = self.configure_plugin(plugin_klass())
         for i in range(MAX_REPORTS + 5):
             url = f"https://www.w3af.com/{i}"
             plugin.grep(make_request(url), make_response(url, _id=i + 1))
@@ -239,7 +239,7 @@ class TestCodeDisclosureBranches(GrepPluginTestCase):
 
     def test_404_code_disclosure_reported_once(self):
         marker = self.mark_as_404()
-        plugin = code_disclosure()
+        plugin = self.configure_plugin(code_disclosure())
         body = f"<html>{marker} <?php echo $secret; ?></html>"
 
         plugin.grep(make_request(), make_response(body=body, _id=1))
@@ -252,7 +252,7 @@ class TestCodeDisclosureBranches(GrepPluginTestCase):
         )
 
     def test_not_text(self):
-        plugin = code_disclosure()
+        plugin = self.configure_plugin(code_disclosure())
         plugin.grep(make_request(), make_response(content_type="image/png"))
         self.assertEqual(kb.kb.get("code_disclosure", "code_disclosure"), [])
 
@@ -262,7 +262,7 @@ class TestCrossDomainJSBranches(GrepPluginTestCase):
     SCRIPT = '<script src="https://evil.example/x.js"></script>'
 
     def test_plugin_disabled_without_trusted_domain_file(self):
-        plugin = cross_domain_js()
+        plugin = self.configure_plugin(cross_domain_js())
         options = plugin.get_options()
         options["secure_js_file"].set_value("")
         plugin.set_options(options)
@@ -273,13 +273,13 @@ class TestCrossDomainJSBranches(GrepPluginTestCase):
         self.assertEqual(kb.kb.get("cross_domain_js", "cross_domain_js"), [])
 
     def test_not_text(self):
-        plugin = cross_domain_js()
+        plugin = self.configure_plugin(cross_domain_js())
         response = make_response(body=self.SCRIPT, content_type="image/png")
         plugin.grep(make_request(), response)
         self.assertEqual(kb.kb.get("cross_domain_js", "cross_domain_js"), [])
 
     def test_invalid_script_src(self):
-        plugin = cross_domain_js()
+        plugin = self.configure_plugin(cross_domain_js())
         body = '<script src="http://[::1"></script>'
         plugin.grep(make_request(), make_response(body=body))
         self.assertEqual(kb.kb.get("cross_domain_js", "cross_domain_js"), [])
@@ -288,7 +288,7 @@ class TestCrossDomainJSBranches(GrepPluginTestCase):
 class TestCSPSharedVulnerability(GrepPluginTestCase):
 
     def test_vulnerability_shared_by_several_urls(self):
-        plugin = csp()
+        plugin = self.configure_plugin(csp())
         policy = ("Content-Security-Policy", "default-src *")
         for i in (1, 2):
             url = f"http://www.w3af.com/{i}"
@@ -304,7 +304,7 @@ class TestCSPSharedVulnerability(GrepPluginTestCase):
 class TestErrorPagesBranches(GrepPluginTestCase):
 
     def test_same_url_reported_once(self):
-        plugin = error_pages()
+        plugin = self.configure_plugin(error_pages())
         body = error_pages.ERROR_PAGES[0]
         plugin.grep(make_request(), make_response(body=body, _id=1))
         plugin.grep(make_request(), make_response(body=body, _id=2))
@@ -313,7 +313,7 @@ class TestErrorPagesBranches(GrepPluginTestCase):
         self.assertEqual(len(kb.kb.get("error_pages", "error_page")), 1)
 
     def test_url_with_other_finding_is_not_reported(self):
-        plugin = error_pages()
+        plugin = self.configure_plugin(error_pages())
         plugin.grep(make_request(), make_response(body=error_pages.ERROR_PAGES[0]))
 
         other = Info("Other finding", "Some other finding description", 9, "x")
@@ -324,7 +324,7 @@ class TestErrorPagesBranches(GrepPluginTestCase):
         self.assertEqual(kb.kb.get("error_pages", "error_page"), [])
 
     def test_version_numbers_in_error_pages(self):
-        plugin = error_pages()
+        plugin = self.configure_plugin(error_pages())
         body = "<html><address>Apache/2.2.22 (Ubuntu) Server</address></html>"
         plugin.grep(make_request(), make_response(body=body, code=404, _id=1))
         plugin.grep(make_request(), make_response(body=body, code=500, _id=2))
@@ -334,7 +334,7 @@ class TestErrorPagesBranches(GrepPluginTestCase):
         self.assertIn("Apache/2.2.22", servers[0].get_desc())
 
     def test_not_text(self):
-        plugin = error_pages()
+        plugin = self.configure_plugin(error_pages())
         body = error_pages.ERROR_PAGES[0]
         response = make_response(body=body, content_type="image/png")
         plugin.grep(make_request(), response)
@@ -345,7 +345,7 @@ class TestErrorPagesBranches(GrepPluginTestCase):
 class TestGetEmailsBranches(GrepPluginTestCase):
 
     def test_sent_and_duplicated_emails_are_skipped(self):
-        plugin = get_emails()
+        plugin = self.configure_plugin(get_emails())
         body = (
             '<a href="mailto:echo@w3af.com">x</a>' '<a href="mailto:a@w3af.com">y</a>'
         )
@@ -358,7 +358,7 @@ class TestGetEmailsBranches(GrepPluginTestCase):
         self.assertEqual(emails, {"a@w3af.com"})
 
     def test_unparseable(self):
-        plugin = get_emails()
+        plugin = self.configure_plugin(get_emails())
         response = make_response(body="\x00", content_type="foo/bar")
         plugin.grep(make_request(), response)
         self.assertEqual(kb.kb.get("emails", "emails"), [])
@@ -369,7 +369,7 @@ class TestHashAnalysis(GrepPluginTestCase):
     MD5 = "cdf13c6f85b216a18665e7bba74cc1a7"
 
     def test_hash_found_after_other_words(self):
-        plugin = hash_analysis()
+        plugin = self.configure_plugin(hash_analysis())
         body = f"<html><body>The password hash is {self.MD5} ok</body></html>"
         plugin.grep(make_request(), make_response(body=body))
         plugin.grep(make_request(), make_response(body=body, _id=2))
@@ -379,7 +379,7 @@ class TestHashAnalysis(GrepPluginTestCase):
         self.assertIn("MD5", findings[0].get_desc())
 
     def test_non_hash_tokens_are_ignored(self):
-        plugin = hash_analysis()
+        plugin = self.configure_plugin(hash_analysis())
         not_hex = "z" * 32
         repeated = "2222222222222222222aaaaaaaaaaaaa"
         letters_only = "abcdefabcdefabcdefabcdefabcdefab"
@@ -390,7 +390,7 @@ class TestHashAnalysis(GrepPluginTestCase):
         self.assertEqual(kb.kb.get("hash_analysis", "hash_analysis"), [])
 
     def test_not_text(self):
-        plugin = hash_analysis()
+        plugin = self.configure_plugin(hash_analysis())
         response = make_response(body=self.MD5, content_type="image/png")
         plugin.grep(make_request(), response)
         self.assertEqual(kb.kb.get("hash_analysis", "hash_analysis"), [])
@@ -402,7 +402,7 @@ class TestHashAnalysis(GrepPluginTestCase):
 class TestHttpAuthDetectBranches(GrepPluginTestCase):
 
     def test_credentials_in_url(self):
-        plugin = http_auth_detect()
+        plugin = self.configure_plugin(http_auth_detect())
         url = "http://user:pass@www.w3af.com/"
         plugin.grep(make_request(url), make_response(url))
 
@@ -411,12 +411,12 @@ class TestHttpAuthDetectBranches(GrepPluginTestCase):
         self.assertIn("user and password in the URI", vulns[0].get_desc())
 
     def test_unparseable_body(self):
-        plugin = http_auth_detect()
+        plugin = self.configure_plugin(http_auth_detect())
         plugin.grep(make_request(), self.make_unparseable_response())
         self.assertEqual(kb.kb.get("http_auth_detect", "userPassUri"), [])
 
     def test_ntlm_over_https(self):
-        plugin = http_auth_detect()
+        plugin = self.configure_plugin(http_auth_detect())
         response = make_response(
             HTTPS, code=401, headers=[("WWW-Authenticate", "NTLM")]
         )
@@ -431,7 +431,7 @@ class TestHttpAuthDetectBranches(GrepPluginTestCase):
 class TestLangBranches(GrepPluginTestCase):
 
     def test_gives_up_after_too_many_unknown_pages(self):
-        plugin = lang()
+        plugin = self.configure_plugin(lang())
         for i in range(plugin._tries_left):
             plugin.grep(make_request(), make_response(body="1234", _id=i + 1))
 
@@ -444,7 +444,7 @@ class TestLangBranches(GrepPluginTestCase):
 
     def test_404_pages_are_ignored(self):
         marker = self.mark_as_404()
-        plugin = lang()
+        plugin = self.configure_plugin(lang())
         plugin.grep(make_request(), make_response(body=f"<html>{marker}</html>"))
         self.assertEqual(kb.kb.raw_read("lang", "lang"), [])
 
@@ -455,37 +455,37 @@ class TestSimpleGuards(GrepPluginTestCase):
     """
 
     def test_credit_cards_non_200(self):
-        plugin = credit_cards()
+        plugin = self.configure_plugin(credit_cards())
         response = make_response(body="3566 0020 2036 0505", code=500)
         plugin.grep(make_request(), response)
         self.assertEqual(kb.kb.get("credit_cards", "credit_cards"), [])
 
     def test_keys_non_200(self):
-        plugin = keys()
+        plugin = self.configure_plugin(keys())
         response = make_response(body="-----BEGIN RSA PRIVATE KEY-----", code=500)
         plugin.grep(make_request(), response)
         self.assertEqual(kb.kb.get("keys", "keys"), [])
 
     def test_wsdl_non_200(self):
-        plugin = wsdl_greper()
+        plugin = self.configure_plugin(wsdl_greper())
         body = "<definitions xmlns:soap='http://schemas.xmlsoap.org/wsdl/'>"
         plugin.grep(make_request(), make_response(body=body, code=500))
         self.assertEqual(kb.kb.get("wsdl_greper", "wsdl"), [])
 
     def test_strange_reason_unknown_code(self):
-        plugin = strange_reason()
+        plugin = self.configure_plugin(strange_reason())
         plugin.grep(make_request(), make_response(code=299))
         self.assertEqual(kb.kb.get("strange_reason", "strange_reason"), [])
 
     def test_meta_generator_404(self):
         marker = self.mark_as_404()
-        plugin = meta_generator()
+        plugin = self.configure_plugin(meta_generator())
         body = f'<html><meta name="generator" content="Joomla"/>{marker}</html>'
         plugin.grep(make_request(), make_response(body=body))
         self.assertEqual(kb.kb.get("meta_generator", "meta_generator"), [])
 
     def test_symfony_detection_is_remembered(self):
-        plugin = symfony()
+        plugin = self.configure_plugin(symfony())
         form = '<form><input name="x" /></form>'
         first = make_response(body=form, headers=[("Set-Cookie", "symfony=1")])
         plugin.grep(make_request(), first)
@@ -497,6 +497,6 @@ class TestSimpleGuards(GrepPluginTestCase):
         self.assertEqual(len(kb.kb.get("symfony", "symfony")), 2)
 
     def test_form_autocomplete_unparseable(self):
-        plugin = form_autocomplete()
+        plugin = self.configure_plugin(form_autocomplete())
         plugin.grep(make_request(), self.make_unparseable_response())
         self.assertEqual(kb.kb.get("form_autocomplete", "form_autocomplete"), [])

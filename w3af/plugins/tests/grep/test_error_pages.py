@@ -75,6 +75,7 @@ class TestErrorPages(PluginTest):
     def test_found_vuln_max_reports(self):
         kb.kb.cleanup()
         plugin = error_pages()
+        plugin.set_knowledge_base(kb.kb)
 
         body = plugin.ERROR_PAGES[5]
         headers = Headers(list({"content-type": "text/html"}.items()))
@@ -95,6 +96,7 @@ class TestErrorPages(PluginTest):
     def test_found_vuln_max_reports_two_different(self):
         kb.kb.cleanup()
         plugin = error_pages()
+        plugin.set_knowledge_base(kb.kb)
 
         body = plugin.ERROR_PAGES[5]
         headers = Headers(list({"content-type": "text/html"}.items()))

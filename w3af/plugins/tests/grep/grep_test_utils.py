@@ -63,6 +63,11 @@ class GrepPluginTestCase(unittest.TestCase):
     def tearDown(self):
         kb.kb.cleanup()
 
+    @staticmethod
+    def configure_plugin(plugin):
+        plugin.set_knowledge_base(kb.kb)
+        return plugin
+
     def save_config(self, name, value):
         self.addCleanup(cf.cf.save, name, cf.cf.get(name))
         cf.cf.save(name, value)

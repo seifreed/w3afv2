@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.constants import severity
 from w3af.core.data.db.disk_set import DiskSet
@@ -107,7 +106,7 @@ class error_500(GrepPlugin):
         """
         all_vuln_ids = set()
 
-        for info in kb.kb.get_all_findings_iter():
+        for info in self._get_knowledge_base().get_all_findings_iter():
             for _id in info.get_id():
                 all_vuln_ids.add(_id)
 

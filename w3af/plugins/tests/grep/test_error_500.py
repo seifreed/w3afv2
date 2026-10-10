@@ -36,6 +36,7 @@ class TestError500(unittest.TestCase):
         create_temp_dir()
         kb.kb.cleanup()
         self.plugin = error_500()
+        self.plugin.set_knowledge_base(kb.kb)
         self.url = URL("http://www.w3af.com/500.py?id=1")
         self.request = FuzzableRequest(self.url)
 

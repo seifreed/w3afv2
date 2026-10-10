@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.db.disk_list import DiskList
 from w3af.core.data.kb.info import Info
@@ -224,7 +223,7 @@ class error_pages(GrepPlugin):
         This method is called when the plugin wont be used anymore.
         """
         for title, desc, _id, url, highlight in self._potential_vulns:
-            for info in kb.kb.get_all_findings_iter():
+            for info in self._get_knowledge_base().get_all_findings_iter():
                 # This makes sure that if the sqli plugin found a vulnerability
                 # in the same URL as we found a detailed error, we won't report
                 # the detailed error.
@@ -268,7 +267,7 @@ class error_pages(GrepPlugin):
                     i.add_to_highlight(server)
                     i.add_to_highlight(match_string)
 
-                    kb.kb.append(self, "server", i)
+                    self._get_knowledge_base().append(self, "server", i)
 
                     self._already_reported_versions.append(match_string)
 
