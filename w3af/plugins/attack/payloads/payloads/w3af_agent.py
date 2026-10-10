@@ -1,6 +1,6 @@
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.w3afAgent.w3af_agent_manager import w3afAgentManager
 from w3af.core.data.misc.ip_address import is_ip_address
+from w3af.core.exceptions import BaseFrameworkException
 from w3af.plugins.attack.payloads.base_payload import Payload
 
 

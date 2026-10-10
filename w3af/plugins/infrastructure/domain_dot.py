@@ -21,11 +21,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_not_equal
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.info import Info
+from w3af.core.exceptions import BaseFrameworkException
 
 
 class domain_dot(InfrastructurePlugin):

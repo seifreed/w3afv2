@@ -30,10 +30,10 @@ import pytest
 
 from w3af.core.controllers.daemons import webserver
 from w3af.core.controllers.daemons.webserver import HTTPServer
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.misc.get_unused_port import get_unused_port
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.exceptions import BaseFrameworkException
 from w3af.plugins.audit.rfi import RFIWebHandler, rfi
 from w3af.plugins.tests.audit.vulnerable_inclusion import (
     IncludePage,

@@ -26,7 +26,7 @@ import traceback
 import warnings
 
 from w3af import ROOT_PATH
-from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.exceptions import BaseFrameworkException
 
 
 def factory(module_name, *args):

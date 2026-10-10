@@ -23,11 +23,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from threading import Lock
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.data.kb.info import Info
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.exceptions import RunOnce
 
 
 class fingerprint_os(InfrastructurePlugin):

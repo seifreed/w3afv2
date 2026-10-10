@@ -23,8 +23,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import posixpath
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.fuzzer.utils import rand_alnum
+from w3af.core.exceptions import BaseFrameworkException
 
 # Temporary directory on the *remote* Linux target being exploited, not a path
 # on the machine running w3af.

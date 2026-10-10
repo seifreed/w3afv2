@@ -28,8 +28,8 @@ import pytest
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.plugins import CorePlugins
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.w3af_core import w3afCore
+from w3af.core.exceptions import BaseFrameworkException
 
 
 class TestPluginRegistryStructure(unittest.TestCase):

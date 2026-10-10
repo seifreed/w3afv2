@@ -31,9 +31,9 @@ import urllib.request
 
 from w3af import ROOT_PATH
 from w3af.core.controllers.daemons.proxy import Proxy, ProxyHandler
-from w3af.core.controllers.exceptions import ProxyException
 from w3af.core.controllers.tests.local_http_server import LocalHTTPServer, Reply
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
+from w3af.core.exceptions import ProxyException
 from w3af.core.filesystem import create_temp_dir
 
 IP = "127.0.0.1"

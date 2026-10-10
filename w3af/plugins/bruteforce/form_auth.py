@@ -26,7 +26,6 @@ from copy import deepcopy
 from itertools import repeat
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.misc.diff import chunked_diff
 from w3af.core.controllers.misc.epoch_to_string import epoch_to_string
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal
@@ -37,6 +36,7 @@ from w3af.core.data.fuzzer.mutants.postdata_mutant import PostDataMutant
 from w3af.core.data.fuzzer.mutants.querystring_mutant import QSMutant
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.kb.vuln import Vuln
+from w3af.core.exceptions import BaseFrameworkException
 
 
 class form_auth(BruteforcePlugin):

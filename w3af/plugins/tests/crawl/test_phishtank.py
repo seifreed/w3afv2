@@ -26,10 +26,10 @@ from pathlib import Path
 
 import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.constants.severity import MEDIUM
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.exceptions import BaseFrameworkException
 from w3af.plugins.crawl.phishtank import PHISHTANK_DB, phishtank
 
 LOCAL_PHISHTANK_DB = os.path.join(

@@ -31,11 +31,11 @@ import os.path
 import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
-from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.data.kb.info import Info
 from w3af.core.data.misc.encoding import smart_str_ignore
+from w3af.core.exceptions import RunOnce
 
 
 class favicon_identification(InfrastructurePlugin):

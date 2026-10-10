@@ -23,12 +23,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import re
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.mangle_plugin import ManglePlugin
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.misc.encoding import smart_str_ignore, smart_unicode
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
+from w3af.core.exceptions import BaseFrameworkException
 
 
 class sed(ManglePlugin):

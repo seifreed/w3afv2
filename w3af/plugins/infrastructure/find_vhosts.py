@@ -24,7 +24,6 @@ from itertools import repeat
 from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal
 from w3af.core.controllers.misc.is_private_site import is_private_site
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
@@ -39,6 +38,7 @@ from w3af.core.data.misc.ip_address import is_ip_address
 from w3af.core.data.parsers import parser_cache
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.helpers import is_no_content_response
+from w3af.core.exceptions import BaseFrameworkException
 
 
 class find_vhosts(InfrastructurePlugin):

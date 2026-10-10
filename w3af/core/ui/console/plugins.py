@@ -24,7 +24,7 @@ import copy
 import textwrap
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.exceptions import BaseFrameworkException
 from w3af.core.ui.console.config import ConfigMenu
 from w3af.core.ui.console.menu import menu
 from w3af.core.ui.console.util import suggest

@@ -29,7 +29,6 @@ from pathlib import Path
 
 import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.constants import severity
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.info import Info
@@ -39,7 +38,7 @@ from w3af.core.data.options.output_file_option import DEV_NULL
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.http_request import HTTPRequest
 from w3af.core.data.url.http_response import HTTPResponse
-from w3af.core.exceptions import ScanMustStopByKnownReasonExc
+from w3af.core.exceptions import BaseFrameworkException, ScanMustStopByKnownReasonExc
 from w3af.core.filesystem import create_temp_dir
 from w3af.plugins import output
 from w3af.plugins.output.console import catch_ioerror, console

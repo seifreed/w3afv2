@@ -24,7 +24,6 @@ import os
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
-from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.misc.encoding import smart_str_ignore
@@ -34,6 +33,7 @@ from w3af.core.data.options.option_types import BOOL, LIST, STRING
 from w3af.core.data.options.option_types import URL as URL_OPTION_TYPE
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.exceptions import BaseFrameworkException, RunOnce
 
 
 class web_diff(CrawlPlugin):

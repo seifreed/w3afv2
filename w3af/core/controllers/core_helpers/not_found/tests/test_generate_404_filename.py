@@ -28,7 +28,6 @@ from w3af.core.controllers.core_helpers.not_found.generate_404 import (
     get_url_for_404_request,
     send_404,
 )
-from w3af.core.controllers.exceptions import FourOhFourDetectionException
 from w3af.core.controllers.tests.local_http_server import (
     LocalHTTPServer,
     Reply,
@@ -38,6 +37,7 @@ from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.data.url.http_response import HTTPResponse
+from w3af.core.exceptions import FourOhFourDetectionException
 
 
 class TestGenerate404Filename(unittest.TestCase):

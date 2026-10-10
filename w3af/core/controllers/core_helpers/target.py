@@ -26,10 +26,10 @@ import urllib.request
 
 import w3af.core.data.kb.config as cf
 from w3af.core.configurable import Configurable
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.exceptions import BaseFrameworkException
 
 cf.cf.save("targets", [])
 cf.cf.save("target_domains", set())

@@ -23,11 +23,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import os
 
 import w3af.core.data.kb.config as cf
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.misc.get_file_list import get_file_list
 from w3af.core.controllers.misc.get_local_ip import get_local_ip
 from w3af.core.controllers.misc_settings import MiscSettings
 from w3af.core.data.profile.profile import profile
+from w3af.core.exceptions import BaseFrameworkException
 from w3af.core.paths import get_home_dir
 
 

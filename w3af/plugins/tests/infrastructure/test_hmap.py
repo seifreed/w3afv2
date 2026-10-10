@@ -31,7 +31,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import ClassVar
 
 import w3af.plugins.infrastructure.oHmap.hmap as upstream_hmap
-from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.exceptions import BaseFrameworkException
 from w3af.plugins.infrastructure.hmap import hmap
 from w3af.plugins.tests.canned_http_server import CERT_FILE, KEY_FILE
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest

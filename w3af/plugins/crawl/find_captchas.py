@@ -26,10 +26,10 @@ from functools import partial
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.parsers.document_parser as DocumentParser
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.db.disk_set import DiskSet
 from w3af.core.data.kb.info import Info
+from w3af.core.exceptions import BaseFrameworkException
 
 CaptchaInfo = namedtuple("CaptchaInfo", ["img_src", "http_responses"])
 

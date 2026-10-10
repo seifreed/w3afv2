@@ -28,7 +28,6 @@ from collections import namedtuple
 import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
-from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.kb.info import Info
 from w3af.core.data.options.opt_factory import opt_factory
@@ -40,6 +39,7 @@ from w3af.core.data.parsers.utils.safe_sax import (
     parse_file,
 )
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.exceptions import BaseFrameworkException, RunOnce
 
 
 class wordpress_fingerprint(CrawlPlugin):

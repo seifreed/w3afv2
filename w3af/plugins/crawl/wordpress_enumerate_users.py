@@ -24,9 +24,9 @@ import re
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
-from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.kb.info import Info
+from w3af.core.exceptions import RunOnce
 
 
 class wordpress_enumerate_users(CrawlPlugin):

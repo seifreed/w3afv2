@@ -29,7 +29,6 @@ from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
-from w3af.core.controllers.exceptions import NoMoreCalls
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.controllers.threads.threadpool import one_to_many
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
@@ -37,6 +36,7 @@ from w3af.core.data.kb.info import Info
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.options.option_types import INPUT_FILE
+from w3af.core.exceptions import NoMoreCalls
 
 
 class php_eggs(InfrastructurePlugin):

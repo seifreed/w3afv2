@@ -22,13 +22,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
-from w3af.core.controllers.exceptions import (
-    BaseFrameworkException,
-    FourOhFourDetectionException,
-)
 from w3af.core.controllers.misc.safe_deepcopy import safe_deepcopy
 from w3af.core.controllers.plugins.plugin import Plugin
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.exceptions import (
+    BaseFrameworkException,
+    FourOhFourDetectionException,
+)
 
 
 class CrawlPlugin(Plugin):

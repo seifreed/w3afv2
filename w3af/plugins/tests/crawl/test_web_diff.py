@@ -29,9 +29,9 @@ from w3af import ROOT_PATH
 from w3af.core.controllers.core_helpers.fingerprint_404 import (
     fingerprint_404_singleton,
 )
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.exceptions import BaseFrameworkException
 from w3af.plugins.crawl.web_diff import web_diff
 from w3af.plugins.tests.canned_http_server import CannedReply
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest

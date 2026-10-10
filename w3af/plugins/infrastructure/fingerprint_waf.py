@@ -24,11 +24,11 @@ import re
 from itertools import repeat
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.data.fuzzer.utils import rand_alpha
 from w3af.core.data.kb.info import Info
+from w3af.core.exceptions import RunOnce
 
 
 class fingerprint_waf(InfrastructurePlugin):

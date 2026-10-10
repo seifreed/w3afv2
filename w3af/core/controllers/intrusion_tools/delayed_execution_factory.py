@@ -20,10 +20,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.intrusion_tools.at_handler import atHandler
 from w3af.core.controllers.intrusion_tools.crontab_handler import crontabHandler
 from w3af.core.controllers.intrusion_tools.exec_method_helpers import os_detection_exec
+from w3af.core.exceptions import BaseFrameworkException
 
 
 class delayedExecutionFactory:

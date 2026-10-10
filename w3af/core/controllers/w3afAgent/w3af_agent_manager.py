@@ -28,7 +28,6 @@ from multiprocessing.dummy import Process
 
 import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.extrusion_scanning.extrusion_scanner import extrusionScanner
 from w3af.core.controllers.intrusion_tools.delayed_execution_factory import (
     delayedExecutionFactory,
@@ -40,6 +39,7 @@ from w3af.core.controllers.payload_transfer.payload_transfer_factory import (
     payload_transfer_factory,
 )
 from w3af.core.controllers.w3afAgent.server.w3af_agent_server import w3afAgentServer
+from w3af.core.exceptions import BaseFrameworkException
 
 # The agent must accept connections from the compromised host, so it
 # deliberately listens on every local interface.

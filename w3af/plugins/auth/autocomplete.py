@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.auth_session_plugin import AuthSessionPlugin
 from w3af.core.data.dc.factory import dc_from_form_params
 from w3af.core.data.options.opt_factory import opt_factory
@@ -30,6 +29,7 @@ from w3af.core.data.options.option_types import URL as URL_OPT
 from w3af.core.data.parsers import parser_cache
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.exceptions import BaseFrameworkException
 
 # Credentials are supplied by the user through the plugin options.
 UNCONFIGURED = ""

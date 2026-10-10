@@ -21,15 +21,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import (
-    ExploitFailedException,
-    NoVulnerabilityFoundException,
-)
 from w3af.core.controllers.plugins.plugin import Plugin
 from w3af.core.data.misc.response_cut import ResponseCutMixin
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.exceptions import (
+    ExploitFailedException,
+    NoVulnerabilityFoundException,
     ScanMustStopByUnknownReasonExc,
     ScanMustStopByUserRequest,
     ScanMustStopException,

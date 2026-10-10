@@ -28,13 +28,12 @@ from w3af.core.controllers.core_helpers.exception_handler import ExceptionData
 from w3af.core.controllers.core_helpers.strategy_observers.strategy_observer import (
     StrategyObserver,
 )
-from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.controllers.plugins.auth_plugin import AuthPlugin
 from w3af.core.controllers.plugins.bruteforce_plugin import BruteforcePlugin
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
-from w3af.core.exceptions import ScanMustStopException
+from w3af.core.exceptions import BaseFrameworkException, RunOnce, ScanMustStopException
 
 WAIT_TIMEOUT = 10
 

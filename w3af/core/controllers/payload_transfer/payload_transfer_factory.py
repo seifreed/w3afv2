@@ -21,7 +21,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.extrusion_scanning.extrusion_scanner import extrusionScanner
 from w3af.core.controllers.intrusion_tools.exec_method_helpers import os_detection_exec
 from w3af.core.controllers.payload_transfer.clientless_reverse_http import (
@@ -30,6 +29,7 @@ from w3af.core.controllers.payload_transfer.clientless_reverse_http import (
 from w3af.core.controllers.payload_transfer.echo_linux import EchoLinux
 from w3af.core.controllers.payload_transfer.echo_windows import EchoWindows
 from w3af.core.controllers.payload_transfer.reverse_ftp import ReverseFTP
+from w3af.core.exceptions import BaseFrameworkException
 
 
 class payload_transfer_factory:

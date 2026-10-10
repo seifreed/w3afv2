@@ -24,7 +24,7 @@ import logging
 import pprint
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.exceptions import BaseFrameworkException
 from w3af.core.ui.console.help import HelpContainer, helpMainRepository
 from w3af.core.ui.console.history import history
 from w3af.core.ui.console.util import (

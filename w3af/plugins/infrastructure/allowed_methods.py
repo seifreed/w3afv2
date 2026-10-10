@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.misc.group_by_min_key import group_by_min_key
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
@@ -32,6 +31,7 @@ from w3af.core.data.kb.info import Info
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.url.exceptions import HTTPRequestException
+from w3af.core.exceptions import RunOnce
 
 
 class allowed_methods(InfrastructurePlugin):

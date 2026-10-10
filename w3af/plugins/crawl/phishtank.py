@@ -26,7 +26,6 @@ import socket
 
 import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
-from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.constants import severity
@@ -35,6 +34,7 @@ from w3af.core.data.misc.ip_address import is_ip_address
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.quick_match.multi_in import MultiIn
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.exceptions import BaseFrameworkException, RunOnce
 
 PHISHTANK_DB = os.path.join(ROOT_PATH, "plugins", "crawl", "phishtank", "index.csv")
 

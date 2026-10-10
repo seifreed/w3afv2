@@ -28,7 +28,6 @@ import pytest
 
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.core_helpers.target import CoreTarget
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.options.option_types import (
@@ -47,6 +46,7 @@ from w3af.core.data.options.option_types import (
     URL_LIST,
 )
 from w3af.core.data.parsers.doc.url import URL as URL_KLASS
+from w3af.core.exceptions import BaseFrameworkException
 
 OPTION_TYPES = (
     BOOL,

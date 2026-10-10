@@ -31,7 +31,7 @@ from mitmproxy.tools.dump import DumpMaster
 import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.controllers.daemons.proxy import ProxyHandler
-from w3af.core.controllers.exceptions import ProxyException
+from w3af.core.exceptions import ProxyException
 
 STARTUP_FAILED = "Proxy server failed to start, the mitmproxy log has the details."
 

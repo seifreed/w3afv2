@@ -24,14 +24,14 @@ import itertools
 import string
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import (
-    FourOhFourDetectionException,
-)
 from w3af.core.controllers.misc.decorators import retry
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.misc.deterministic_random import get_deterministic_random
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.data.url.not_found_response import FourOhFourResponse
+from w3af.core.exceptions import (
+    FourOhFourDetectionException,
+)
 
 
 def should_flip(index, seed):

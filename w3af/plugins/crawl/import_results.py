@@ -26,7 +26,6 @@ from lxml import etree
 from lxml.etree import XMLSyntaxError
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.options.opt_factory import opt_factory
@@ -34,6 +33,7 @@ from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.options.option_types import INPUT_FILE
 from w3af.core.data.parsers.doc.http_request_parser import http_request_parser
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.exceptions import BaseFrameworkException, RunOnce
 
 
 class import_results(CrawlPlugin):

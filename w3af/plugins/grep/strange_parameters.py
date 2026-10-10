@@ -26,7 +26,6 @@ import urllib.parse
 import urllib.request
 from typing import ClassVar
 
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.constants import severity
@@ -34,6 +33,7 @@ from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.misc.encoding import smart_unicode
 from w3af.core.data.parsers import parser_cache
+from w3af.core.exceptions import BaseFrameworkException
 
 
 class strange_parameters(GrepPlugin):

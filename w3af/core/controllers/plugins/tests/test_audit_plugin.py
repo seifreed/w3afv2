@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import unittest
 
-from w3af.core.controllers.exceptions import FourOhFourDetectionException
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.controllers.tests.recording_output import start_recording_output
 from w3af.core.controllers.w3af_core import w3afCore
@@ -37,6 +36,7 @@ from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.data.url.tests.helpers.raw_handlers import TimeoutTCPHandler
 from w3af.core.data.url.tests.helpers.upper_daemon import UpperDaemon
+from w3af.core.exceptions import FourOhFourDetectionException
 from w3af.plugins.audit.sqli import sqli
 from w3af.tests.helpers.sqli_site import INTEGER_FORM, STRING_QS, SQLInjectionSite
 

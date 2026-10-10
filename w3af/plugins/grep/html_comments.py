@@ -23,12 +23,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import re
 from typing import ClassVar
 
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.info_set import InfoSet
 from w3af.core.data.parsers import parser_cache
 from w3af.core.data.quick_match.multi_in import MultiIn
+from w3af.core.exceptions import BaseFrameworkException
 
 
 class html_comments(GrepPlugin):

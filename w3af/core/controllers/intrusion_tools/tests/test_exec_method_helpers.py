@@ -23,11 +23,11 @@ import subprocess
 import sys
 import unittest
 
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.intrusion_tools.exec_method_helpers import (
     get_remote_temp_file,
     os_detection_exec,
 )
+from w3af.core.exceptions import BaseFrameworkException
 
 LINUX_SHELL = {
     "echo -n w3af": "w3af",

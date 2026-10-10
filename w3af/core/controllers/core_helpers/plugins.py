@@ -26,9 +26,9 @@ from functools import partial
 
 import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.misc.factory import factory
 from w3af.core.controllers.misc.get_file_list import get_file_list
+from w3af.core.exceptions import BaseFrameworkException
 
 
 class CorePlugins:

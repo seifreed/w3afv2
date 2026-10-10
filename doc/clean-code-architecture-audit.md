@@ -2120,3 +2120,19 @@ Verificación: 9 tests de estrategia y 7 subtests de bajo nivel, además de 4
 tests de estrategia integrada, pasan; Ruff, Black y mypy están limpios en el
 módulo modificado. El score permanece en **5.75/10** por cobertura global,
 Bandit heredado, mocks existentes, perfilado, Moth y orquestadores grandes.
+
+## Actualización verificada: excepciones fuera de controllers
+
+Las excepciones compartidas (`RunOnce`, `NoMoreCalls`, `ProxyException`,
+`NoVulnerabilityFoundException`, `ExploitFailedException` y
+`FourOhFourDetectionException`) pasaron a `core/exceptions.py`. Se actualizaron
+150 imports en código y tests, se eliminaron las referencias a
+`core.controllers.exceptions` y se borró ese módulo, sin alias de
+compatibilidad. Plugins, datos, UI y controllers dependen ahora de la capa
+común de excepciones en lugar de que plugins dependan del orquestador.
+
+Verificación: compilación completa, 1348 tests de plugins recolectados, 63
+tests de excepciones/adaptadores, 33 tests de proxy/404, 21 y 48 tests de
+plugins pasan; Ruff, Black y mypy están limpios. El score provisional permanece
+en **5.75/10** hasta resolver cobertura global, Bandit heredado, mocks
+existentes, perfilado, Moth y los orquestadores grandes.

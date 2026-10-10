@@ -28,7 +28,6 @@ import w3af.core.controllers.output_manager as om
 import w3af.core.data.constants.response_codes as http_constants
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.db.disk_set import DiskSet
@@ -44,6 +43,7 @@ from w3af.core.data.options.option_types import BOOL, LIST, REGEX
 from w3af.core.data.parsers import parser_cache
 from w3af.core.data.parsers.utils.header_link_extract import headers_url_generator
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.exceptions import BaseFrameworkException
 
 
 class web_spider(CrawlPlugin):

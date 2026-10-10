@@ -25,10 +25,6 @@ import unittest
 from w3af.core.controllers.core_helpers.fingerprint_404 import (
     fingerprint_404_singleton,
 )
-from w3af.core.controllers.exceptions import (
-    BaseFrameworkException,
-    FourOhFourDetectionException,
-)
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.controllers.plugins.evasion_plugin import EvasionPlugin
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
@@ -45,6 +41,10 @@ from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
 from w3af.core.data.url.http_response import HTTPResponse
+from w3af.core.exceptions import (
+    BaseFrameworkException,
+    FourOhFourDetectionException,
+)
 from w3af.core.filesystem import create_temp_dir
 
 FREQ = FuzzableRequest(URL("http://127.0.0.1/"))

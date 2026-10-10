@@ -27,13 +27,13 @@ from w3af.core.controllers.cors.utils import (
     provides_cors_features,
     retrieve_cors_header,
 )
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.data.constants import severity
 from w3af.core.data.kb.info_set import InfoSet
 from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
+from w3af.core.exceptions import BaseFrameworkException
 
 ACAO = ACCESS_CONTROL_ALLOW_ORIGIN
 ACAM = ACCESS_CONTROL_ALLOW_METHODS

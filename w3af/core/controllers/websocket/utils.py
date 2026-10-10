@@ -24,9 +24,6 @@ import base64
 import secrets
 import string
 
-from w3af.core.controllers.exceptions import (
-    BaseFrameworkException,
-)
 from w3af.core.data.constants.websockets import (
     DEFAULT_PROTOCOL_VERSION,
     WEBSOCKET_UPGRADE_HEADERS,
@@ -35,6 +32,9 @@ from w3af.core.data.dc.headers import Headers
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.exceptions import HTTPRequestException
+from w3af.core.exceptions import (
+    BaseFrameworkException,
+)
 
 
 def gen_ws_sec_key():

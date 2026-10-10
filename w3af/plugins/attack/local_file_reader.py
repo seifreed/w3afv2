@@ -25,11 +25,10 @@ import copy
 import threading
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal
 from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
 from w3af.core.data.kb.decorators import read_debug
-from w3af.core.exceptions import BodyCutException
+from w3af.core.exceptions import BaseFrameworkException, BodyCutException
 from w3af.plugins.attack.payloads.shells import ReadShell
 
 

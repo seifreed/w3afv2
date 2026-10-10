@@ -26,9 +26,9 @@ from typing import ClassVar
 import pytest
 
 import w3af.core.data.kb.knowledge_base as kb
-from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.exceptions import RunOnce
 from w3af.plugins.infrastructure.allowed_methods import allowed_methods
 from w3af.plugins.tests.canned_http_server import CannedReply
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest

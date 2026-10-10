@@ -25,7 +25,6 @@ import os
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af.core.controllers.daemons import webserver
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.intrusion_tools.exec_method_helpers import (
     get_remote_temp_file,
 )
@@ -33,6 +32,7 @@ from w3af.core.controllers.payload_transfer.base_payload_transfer import (
     BasePayloadTransfer,
 )
 from w3af.core.data.fuzzer.utils import rand_alpha
+from w3af.core.exceptions import BaseFrameworkException
 from w3af.core.filesystem import get_temp_dir
 
 

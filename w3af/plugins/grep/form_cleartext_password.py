@@ -20,12 +20,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.constants import severity
 from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.parsers import parser_cache
 from w3af.core.data.parsers.utils.form_constants import INPUT_TYPE_PASSWD
+from w3af.core.exceptions import BaseFrameworkException
 
 
 class form_cleartext_password(GrepPlugin):

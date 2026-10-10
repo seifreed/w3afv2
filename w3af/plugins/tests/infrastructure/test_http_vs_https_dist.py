@@ -28,9 +28,9 @@ from scapy.error import Scapy_Exception
 
 import w3af.core.data.kb.knowledge_base as kb
 import w3af.plugins.infrastructure.http_vs_https_dist as hvshsdist
-from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.exceptions import RunOnce
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 from w3af.plugins.tests.text_file_log import TextFileLog
 

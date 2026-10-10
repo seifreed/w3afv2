@@ -25,9 +25,9 @@ import unittest
 
 import w3af.core.data.kb.config as cf
 import w3af.core.data.kb.knowledge_base as kb
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
+from w3af.core.exceptions import BaseFrameworkException
 from w3af.core.filesystem import create_temp_dir
 from w3af.plugins import auth
 from w3af.plugins.auth.autocomplete import autocomplete

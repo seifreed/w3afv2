@@ -24,11 +24,11 @@ import re
 from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.kb.info import Info
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.exceptions import RunOnce
 
 
 class oracle_discovery(CrawlPlugin):

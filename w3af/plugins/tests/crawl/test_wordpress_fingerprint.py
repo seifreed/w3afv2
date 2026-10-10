@@ -26,7 +26,7 @@ from typing import ClassVar
 
 import pytest
 
-from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.exceptions import BaseFrameworkException
 from w3af.plugins.crawl.wordpress_fingerprint import (
     FileFingerPrint,
     wordpress_fingerprint,

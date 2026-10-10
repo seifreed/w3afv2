@@ -26,8 +26,8 @@ from pathlib import Path
 
 import w3af.core.data.kb.knowledge_base as kb
 from w3af import ROOT_PATH
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.exceptions import BaseFrameworkException
 from w3af.plugins.grep.html_comments import html_comments
 from w3af.plugins.grep.meta_tags import meta_tags
 from w3af.plugins.grep.motw import motw

@@ -21,8 +21,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import FourOhFourDetectionException
 from w3af.core.controllers.plugins.plugin import Plugin
+from w3af.core.exceptions import FourOhFourDetectionException
 
 
 class GrepPlugin(Plugin):

@@ -34,8 +34,8 @@ from itertools import pairwise
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af import ROOT_PATH
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.threads.threadpool import Pool
+from w3af.core.exceptions import BaseFrameworkException
 
 KNOWN_SERVERS_DIR = os.path.join(
     ROOT_PATH, "plugins", "infrastructure", "oHmap", "known.servers"

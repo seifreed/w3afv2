@@ -25,13 +25,13 @@ import urllib.parse
 import urllib.request
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_not_equal
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.data.fuzzer.utils import rand_alnum
 from w3af.core.data.kb.info import Info
 from w3af.core.data.parsers.doc.url import URL
+from w3af.core.exceptions import BaseFrameworkException, RunOnce
 
 
 class afd(InfrastructurePlugin):

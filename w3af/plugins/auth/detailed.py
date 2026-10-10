@@ -22,10 +22,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from urllib.parse import quote_plus
 
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.auth_session_plugin import AuthSessionPlugin
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
+from w3af.core.exceptions import BaseFrameworkException
 
 # Credentials are supplied by the user through the plugin options.
 UNCONFIGURED = ""

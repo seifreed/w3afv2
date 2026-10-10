@@ -24,12 +24,12 @@ from collections import namedtuple
 from typing import ClassVar
 
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.constants import severity
 from w3af.core.data.db.disk_list import DiskList
 from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.parsers import parser_cache
+from w3af.core.exceptions import BaseFrameworkException
 
 CacheSettings = namedtuple("CacheSettings", ["type", "value"])
 

@@ -25,7 +25,7 @@ from operator import itemgetter
 
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
-from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.exceptions import BaseFrameworkException
 
 
 class extrusionServer:

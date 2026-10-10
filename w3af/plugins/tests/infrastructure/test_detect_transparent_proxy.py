@@ -23,9 +23,9 @@ import socket
 import unittest
 
 import w3af.core.data.kb.knowledge_base as kb
-from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.exceptions import RunOnce
 from w3af.plugins.infrastructure.detect_transparent_proxy import (
     detect_transparent_proxy,
 )

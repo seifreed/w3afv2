@@ -28,7 +28,7 @@ from multiprocessing.dummy import Process
 from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import BaseFrameworkException
+from w3af.core.exceptions import BaseFrameworkException
 
 
 class ConnectionManager(Process):

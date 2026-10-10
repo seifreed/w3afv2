@@ -9,6 +9,37 @@ class BaseFrameworkException(Exception):
         return self.value
 
 
+class RunOnce(Exception):
+    """Signal that a plugin should not be called again."""
+
+    def __init__(self, value=""):
+        super().__init__()
+        self.value = str(value)
+
+    def __str__(self):
+        return self.value
+
+
+class NoMoreCalls(RunOnce):
+    """Signal that a plugin has no more work to perform."""
+
+
+class ProxyException(BaseFrameworkException):
+    """Raised when the framework proxy cannot be started or used."""
+
+
+class NoVulnerabilityFoundException(BaseFrameworkException):
+    """Raised when an exploit has no matching vulnerability."""
+
+
+class ExploitFailedException(BaseFrameworkException):
+    """Raised when an exploit cannot complete successfully."""
+
+
+class FourOhFourDetectionException(BaseFrameworkException):
+    """Raised when the framework cannot build a 404 fingerprint."""
+
+
 class BodyCutException(BaseFrameworkException):
     """Raised when response-body extraction boundaries exceed the body."""
 

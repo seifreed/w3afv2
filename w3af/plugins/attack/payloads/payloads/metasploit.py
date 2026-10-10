@@ -1,5 +1,5 @@
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.vdaemon.vd_factory import get_virtual_daemon
+from w3af.core.exceptions import BaseFrameworkException
 from w3af.plugins.attack.payloads.base_payload import Payload
 
 

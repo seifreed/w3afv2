@@ -24,13 +24,13 @@ import re
 import socket
 
 import w3af.core.controllers.output_manager as om
-from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.misc.fuzzy_string_cmp import fuzzy_equal, fuzzy_not_equal
 from w3af.core.controllers.plugins.infrastructure_plugin import InfrastructurePlugin
 from w3af.core.data.dc.headers import Headers
 from w3af.core.data.kb.info import Info
 from w3af.core.data.url.helpers import is_no_content_response
+from w3af.core.exceptions import BaseFrameworkException, RunOnce
 
 
 class dns_wildcard(InfrastructurePlugin):

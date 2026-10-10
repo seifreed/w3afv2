@@ -28,7 +28,6 @@ from collections import namedtuple
 import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
-from w3af.core.controllers.exceptions import RunOnce
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
 from w3af.core.data.constants import severity
@@ -39,6 +38,7 @@ from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.options.option_types import BOOL, INPUT_FILE, LIST
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
+from w3af.core.exceptions import RunOnce
 
 
 class pykto(CrawlPlugin):

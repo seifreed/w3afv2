@@ -29,7 +29,6 @@ import time
 import w3af.core.controllers.output_manager as om
 import w3af.core.data.kb.config as cf
 from w3af import ROOT_PATH
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.extrusion_scanning.server.extrusion_server import (
     extrusionServer,
 )
@@ -39,6 +38,7 @@ from w3af.core.controllers.intrusion_tools.exec_method_helpers import (
 )
 from w3af.core.controllers.payload_transfer.echo_linux import EchoLinux
 from w3af.core.controllers.payload_transfer.echo_windows import EchoWindows
+from w3af.core.exceptions import BaseFrameworkException
 
 
 class extrusionScanner:

@@ -29,7 +29,6 @@ import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.controllers.daemons.proxy import Proxy, ProxyHandler
 from w3af.core.controllers.daemons.proxy.templates.utils import render
-from w3af.core.controllers.exceptions import BaseFrameworkException, RunOnce
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.constants import ports
@@ -39,6 +38,7 @@ from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.http_response import HTTPResponse
+from w3af.core.exceptions import BaseFrameworkException, RunOnce
 
 # Cohny changed the original http://w3af/spider_man?terminate
 # to http://127.7.7.7/spider_man?terminate because in Opera we got

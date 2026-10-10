@@ -25,7 +25,6 @@ from typing import ClassVar
 
 from tblib.decorators import Error
 
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.audit_plugin import AuditPlugin
 from w3af.core.controllers.threads.decorators import apply_with_return_error
 from w3af.core.data.constants import severity
@@ -33,7 +32,7 @@ from w3af.core.data.fuzzer.fuzzer import create_mutants
 from w3af.core.data.kb.info import Info
 from w3af.core.data.kb.vuln import Vuln
 from w3af.core.data.quick_match.multi_in import MultiIn
-from w3af.core.exceptions import ScanMustStopException
+from w3af.core.exceptions import BaseFrameworkException, ScanMustStopException
 
 
 class buffer_overflow(AuditPlugin):

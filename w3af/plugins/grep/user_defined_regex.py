@@ -23,12 +23,12 @@ import re
 
 import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.controllers.plugins.grep_plugin import GrepPlugin
 from w3af.core.data.kb.info import Info
 from w3af.core.data.options.opt_factory import opt_factory
 from w3af.core.data.options.option_list import OptionList
 from w3af.core.data.options.option_types import INPUT_FILE, REGEX
+from w3af.core.exceptions import BaseFrameworkException
 
 
 class user_defined_regex(GrepPlugin):

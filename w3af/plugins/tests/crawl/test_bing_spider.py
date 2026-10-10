@@ -21,10 +21,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from typing import ClassVar
 
-from w3af.core.controllers.exceptions import BaseFrameworkException
 from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.extended_urllib import ExtendedUrllib
+from w3af.core.exceptions import BaseFrameworkException
 from w3af.plugins.crawl.bing_spider import bing_spider
 from w3af.plugins.tests.helper import MockResponse, PluginConfig, PluginTest
 from w3af.plugins.tests.search_engine_pages import bing_search_response

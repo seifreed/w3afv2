@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import queue
 import re
 
-from w3af.core.controllers.exceptions import ProxyException
+from w3af.core.exceptions import ProxyException
 
 from .intercept_handler import InterceptProxyHandler
 from .proxy import Proxy

@@ -1,9 +1,5 @@
 import unittest
 
-from w3af.core.controllers.exceptions import (
-    ExploitFailedException,
-    NoVulnerabilityFoundException,
-)
 from w3af.core.controllers.plugins.attack_plugin import AttackPlugin
 from w3af.core.controllers.tests.recording_output import start_recording_output
 from w3af.core.data.constants import severity
@@ -14,6 +10,8 @@ from w3af.core.data.parsers.doc.url import URL
 from w3af.core.data.request.fuzzable_request import FuzzableRequest
 from w3af.core.data.url.exceptions import HTTPRequestException
 from w3af.core.exceptions import (
+    ExploitFailedException,
+    NoVulnerabilityFoundException,
     ScanMustStopByUnknownReasonExc,
     ScanMustStopByUserRequest,
     ScanMustStopException,
