@@ -2246,6 +2246,21 @@ están limpios. El score permanece en **5.75/10** por cobertura, Bandit
 heredado, mocks, fixtures de tests pendientes, Moth, consumidores de output
 restantes y orquestadores grandes.
 
+## Actualización verificada: output desacoplado en crawl
+
+17 plugins de crawl que no mezclan helpers con ciclo de vida propio ahora usan
+`Plugin._output`: `archive_dot_org`, `content_negotiation`, `dot_ds_store`,
+`dot_listing`, `dwsync_xml`, `find_backdoors`, `find_captchas`, `find_dvcs`,
+`genexus_xml`, `import_results`, `oracle_discovery`,
+`payment_webhook_finder`, `phishtank`, `robots_txt`, `sitemap_xml`,
+`url_fuzzer` y `urllist_txt`. Los módulos crawl que mezclan parsers o proxies
+auxiliares quedan para un tratamiento explícito posterior.
+
+Verificación: **95 tests pasados** en los módulos afectados; Ruff, Black y
+mypy están limpios, y esos 17 archivos ya no importan `output_manager`. El
+score permanece en **5.75/10** por cobertura, Bandit heredado, mocks, fixtures
+pendientes, Moth, consumidores de output restantes y orquestadores grandes.
+
 ## Actualización verificada: output desacoplado en XML
 
 `xml_file` ya no importa el singleton de output. Sus métodos usan

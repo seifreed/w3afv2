@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 from itertools import chain, repeat
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
@@ -173,7 +172,7 @@ class url_fuzzer(CrawlPlugin):
         i.set_url(response.get_url())
 
         self._get_knowledge_base().append(self, "files", i)
-        om.out.information(i.get_desc())
+        self._output.information(i.get_desc())
 
     def _mutate_domain_name(self, url):
         """

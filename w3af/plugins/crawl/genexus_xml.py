@@ -24,7 +24,6 @@ from xml.parsers.expat import ExpatError
 
 from defusedxml import DefusedXmlException, minidom
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
@@ -78,7 +77,7 @@ class genexus_xml(CrawlPlugin):
             i.set_url(genexus_url)
 
             self._get_knowledge_base().append(self, file_name, i)
-            om.out.information(i.get_desc())
+            self._output.information(i.get_desc())
 
             # Send the new link to the core
             self.output_queue.put(FuzzableRequest(genexus_url))
@@ -87,13 +86,13 @@ class genexus_xml(CrawlPlugin):
             self._parse_xml(http_response, file_name, base_url)
 
     def _parse_xml(self, http_response, file_name, base_url):
-        om.out.debug("Parsing xml file with xml.dot.minidom.")
+        self._output.debug("Parsing xml file with xml.dot.minidom.")
         try:
             dom = minidom.parseString(http_response.get_body().strip())
         except (ExpatError, DefusedXmlException) as e:
             msg = 'Error while parsing "%s": "%s"'
             args = (http_response.get_url(), e)
-            om.out.debug(msg % args)
+            self._output.debug(msg % args)
             return
 
         raw_url_list = dom.getElementsByTagName("ObjLink")
@@ -105,10 +104,10 @@ class genexus_xml(CrawlPlugin):
                 url = base_url.url_join(url)
             except ValueError as ve:
                 msg = '"%s" file had an invalid URL "%s"'
-                om.out.debug(msg % (file_name, ve))
+                self._output.debug(msg % (file_name, ve))
             except (IndexError, AttributeError):
                 msg = '"%s" file had an invalid format'
-                om.out.debug(msg % file_name)
+                self._output.debug(msg % file_name)
             else:
                 parsed_url_list.append(url)
 

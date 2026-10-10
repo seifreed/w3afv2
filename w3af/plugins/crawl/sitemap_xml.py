@@ -24,7 +24,6 @@ from xml.parsers.expat import ExpatError
 
 from defusedxml import DefusedXmlException, minidom
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
@@ -63,13 +62,13 @@ class sitemap_xml(CrawlPlugin):
         fr = FuzzableRequest.from_http_response(response)
         self.output_queue.put(fr)
 
-        om.out.debug("Parsing xml file with xml.dom.minidom.")
+        self._output.debug("Parsing xml file with xml.dom.minidom.")
         try:
             dom = minidom.parseString(response.get_body())
         except (ExpatError, DefusedXmlException) as e:
             msg = 'Exception while parsing sitemap.xml from %s: "%s"'
             args = (response.get_url(), e)
-            om.out.debug(msg % args)
+            self._output.debug(msg % args)
             return
 
         parsed_url_list = []
@@ -81,7 +80,7 @@ class sitemap_xml(CrawlPlugin):
             except (IndexError, AttributeError) as e:
                 msg = "Sitemap file at %s has an invalid format: %s"
                 args = (response.get_url(), e)
-                om.out.debug(msg % args)
+                self._output.debug(msg % args)
                 continue
 
             try:
@@ -89,7 +88,7 @@ class sitemap_xml(CrawlPlugin):
             except ValueError as ve:
                 msg = 'Sitemap file at %s has an invalid URL: "%s"'
                 args = (response.get_url(), ve)
-                om.out.debug(msg % args)
+                self._output.debug(msg % args)
                 continue
             else:
                 parsed_url_list.append(url)

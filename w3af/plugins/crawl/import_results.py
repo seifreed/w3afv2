@@ -25,7 +25,6 @@ import base64
 from lxml import etree
 from lxml.etree import XMLSyntaxError
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.options.opt_factory import opt_factory
@@ -76,7 +75,7 @@ class import_results(CrawlPlugin):
                 lines = file_handler.readlines()
         except OSError as e:
             msg = 'An error was found while trying to read "%s": "%s".'
-            om.out.error(msg % (self._input_base64, e))
+            self._output.error(msg % (self._input_base64, e))
             return
 
         for line in lines:
@@ -89,7 +88,7 @@ class import_results(CrawlPlugin):
             try:
                 fuzzable_request = FuzzableRequest.from_base64(line)
             except (ValueError, BaseFrameworkException):
-                om.out.debug(f'Invalid import_results input: "{line!r}"')
+                self._output.debug(f'Invalid import_results input: "{line!r}"')
             else:
                 self.output_queue.put(fuzzable_request)
 
@@ -107,7 +106,7 @@ class import_results(CrawlPlugin):
                 "An error was found while trying to read the Burp log"
                 ' file (%s): "%s".'
             )
-            om.out.error(msg % (self._input_burp, e))
+            self._output.error(msg % (self._input_burp, e))
         else:
             for fr in fuzzable_request_list:
                 self.output_queue.put(fr)
@@ -128,7 +127,7 @@ class import_results(CrawlPlugin):
                 "The Burp input file is not a valid XML document. The"
                 ' parser error is: "%s"'
             )
-            om.out.error(msg % xse)
+            self._output.error(msg % xse)
             return []
 
     def get_options(self):

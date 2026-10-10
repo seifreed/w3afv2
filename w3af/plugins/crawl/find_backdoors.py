@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
 
-import w3af.core.controllers.output_manager as om
 from w3af import CRAWL_PATH
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
@@ -138,7 +137,7 @@ class find_backdoors(CrawlPlugin):
         v.set_url(response.get_url())
 
         self._get_knowledge_base().append(self, "backdoors", v)
-        om.out.vulnerability(v.get_desc(), severity=v.get_severity())
+        self._output.vulnerability(v.get_desc(), severity=v.get_severity())
 
         fr = FuzzableRequest.from_http_response(response)
         self.output_queue.put(fr)

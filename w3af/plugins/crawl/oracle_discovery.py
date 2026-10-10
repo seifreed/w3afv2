@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import re
 from typing import ClassVar
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.kb.info import Info
@@ -89,7 +88,7 @@ class oracle_discovery(CrawlPlugin):
                 i.set_url(response.get_url())
 
                 self._get_knowledge_base().append(self, "oracle_discovery", i)
-                om.out.information(i.get_desc())
+                self._output.information(i.get_desc())
 
                 fr = FuzzableRequest.from_http_response(response)
                 self.output_queue.put(fr)
@@ -103,7 +102,7 @@ class oracle_discovery(CrawlPlugin):
                 ' the response body is: "%s".'
             )
             body_start = response.get_body()[:50]
-            om.out.debug(msg % (response.get_url(), body_start))
+            self._output.debug(msg % (response.get_url(), body_start))
 
     def get_long_desc(self):
         """

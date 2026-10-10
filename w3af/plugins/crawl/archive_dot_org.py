@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 import re
 from itertools import repeat
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.misc.is_private_site import is_private_site
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
@@ -76,7 +75,7 @@ class archive_dot_org(CrawlPlugin):
                 'There is no point in searching archive.org for "%s"'
                 " because it is a private site that will never be indexed."
             )
-            om.out.information(msg % domain)
+            self._output.information(msg % domain)
             raise RunOnce(msg)
 
         # Initial check to verify if domain in archive
@@ -87,7 +86,7 @@ class archive_dot_org(CrawlPlugin):
         if self.NOT_IN_ARCHIVE in http_response.body:
             msg = 'There is no point in searching archive.org for "%s"'
             msg += " because they are not indexing this site."
-            om.out.information(msg % domain)
+            self._output.information(msg % domain)
             raise RunOnce(msg)
 
         references = self._spider_archive(
@@ -109,11 +108,11 @@ class archive_dot_org(CrawlPlugin):
         real_urls = list({self._archived_url(url) for url in references})
 
         if len(real_urls):
-            om.out.debug("Archive.org cached the following pages:")
+            self._output.debug("Archive.org cached the following pages:")
             for u in real_urls:
-                om.out.debug(f"- {u}")
+                self._output.debug(f"- {u}")
         else:
-            om.out.debug("Archive.org did not find any pages.")
+            self._output.debug("Archive.org did not find any pages.")
 
         # Verify if they exist in the target site and add them to
         # the result if they do. Send the requests using threads:
@@ -151,7 +150,7 @@ class archive_dot_org(CrawlPlugin):
             else:
                 msg = "Some sections of the archive.org site were not analyzed"
                 msg += " because of the configured max_depth."
-                om.out.debug(msg)
+                self._output.debug(msg)
 
         args = zip(url_list, repeat(max_depth), repeat(domain))
         self.worker_pool.map_multi_args(spider_worker, args)
@@ -196,7 +195,7 @@ class archive_dot_org(CrawlPlugin):
                 'The URL: "%s" was found at archive.org and is'
                 " STILL AVAILABLE in the target site."
             )
-            om.out.debug(msg % url)
+            self._output.debug(msg % url)
 
             fr = FuzzableRequest(response.get_uri())
             self.output_queue.put(fr)
@@ -205,7 +204,7 @@ class archive_dot_org(CrawlPlugin):
                 'The URL: "%s" was found at archive.org and was'
                 " DELETED from the target site."
             )
-            om.out.debug(msg % url)
+            self._output.debug(msg % url)
 
     def get_options(self):
         """

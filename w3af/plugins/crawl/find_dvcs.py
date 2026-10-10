@@ -26,7 +26,6 @@ import struct
 import tempfile
 from typing import ClassVar
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
@@ -173,7 +172,7 @@ class find_dvcs(CrawlPlugin):
             #
             # Log in order to be able to improve the framework.
             args = (e, repo_get_files.__name__, repo_url)
-            om.out.debug(
+            self._output.debug(
                 'Got a "{}" exception while running "{}" on "{}"'.format(*args)
             )
             return
@@ -217,7 +216,7 @@ class find_dvcs(CrawlPlugin):
         v.set_url(http_response.get_url())
 
         self._get_knowledge_base().append(self, repo, v)
-        om.out.vulnerability(v.get_desc(), severity=v.get_severity())
+        self._output.vulnerability(v.get_desc(), severity=v.get_severity())
 
     def git_index(self, body):
         """
@@ -377,7 +376,7 @@ class find_dvcs(CrawlPlugin):
             query_result = conn.execute(query).fetchall()
         except sqlite3.Error as e:
             msg = 'Failed to extract filenames from wc.db file. The exception was: "%s"'
-            om.out.debug(msg % e)
+            self._output.debug(msg % e)
         else:
             for path, svn_path in query_result:
                 filenames.add(path)

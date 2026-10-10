@@ -24,7 +24,6 @@ import csv
 import os.path
 import socket
 
-import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.controllers.misc.decorators import runonce
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
@@ -84,7 +83,7 @@ class phishtank(CrawlPlugin):
         v.set_url(ptm.url)
 
         self._get_knowledge_base().append(self, "phishtank", v)
-        om.out.vulnerability(v.get_desc(), severity=v.get_severity())
+        self._output.vulnerability(v.get_desc(), severity=v.get_severity())
 
     def _get_to_check(self, target_url):
         """
@@ -130,7 +129,7 @@ class phishtank(CrawlPlugin):
         pt_matches = []
         self._multi_in = MultiIn(to_check)
 
-        om.out.debug("Starting the phishtank CSV parsing.")
+        self._output.debug("Starting the phishtank CSV parsing.")
 
         try:
             with open(self._phishtank_db) as phishtank_db_fd:
@@ -149,7 +148,7 @@ class phishtank(CrawlPlugin):
             msg = 'Failed to open phishtank database: "%s", exception: "%s".'
             raise BaseFrameworkException(msg % (self._phishtank_db, e)) from e
 
-        om.out.debug("Finished CSV parsing.")
+        self._output.debug("Finished CSV parsing.")
 
         return pt_matches
 

@@ -24,7 +24,6 @@ from xml.parsers.expat import ExpatError
 
 from defusedxml import DefusedXmlException, minidom
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.constants import severity
@@ -77,13 +76,13 @@ class dwsync_xml(CrawlPlugin):
         if "</dwsync>" not in response.get_body():
             return
 
-        om.out.debug(f"Parsing dwsync.xml file at {dwsync_url}")
+        self._output.debug(f"Parsing dwsync.xml file at {dwsync_url}")
 
         try:
             dom = minidom.parseString(response.get_body())
         except (ExpatError, DefusedXmlException) as e:
             msg = 'Exception while parsing dwsync.xml file at %s : "%s"'
-            om.out.debug(msg % (dwsync_url, e))
+            self._output.debug(msg % (dwsync_url, e))
             return
 
         parsed_url_list = set()
@@ -93,7 +92,7 @@ class dwsync_xml(CrawlPlugin):
                 url = domain_path.url_join(file_entry.getAttribute("name"))
             except ValueError as ve:
                 msg = 'dwsync file had an invalid URL: "%s"'
-                om.out.debug(msg % ve)
+                self._output.debug(msg % ve)
             else:
                 parsed_url_list.add(url)
 
@@ -114,7 +113,7 @@ class dwsync_xml(CrawlPlugin):
             v.set_url(response.get_url())
 
             self._get_knowledge_base().append(self, "dwsync_xml", v)
-            om.out.vulnerability(v.get_desc(), severity=v.get_severity())
+            self._output.vulnerability(v.get_desc(), severity=v.get_severity())
 
             self.worker_pool.map(self.http_get_and_parse, parsed_url_list)
 

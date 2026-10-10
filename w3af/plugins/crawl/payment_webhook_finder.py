@@ -23,7 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 from itertools import repeat
 from typing import ClassVar
 
-import w3af.core.controllers.output_manager as om
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
 from w3af.core.data.bloomfilter.scalable_bloom import ScalableBloomFilter
@@ -180,7 +179,7 @@ class payment_webhook_finder(CrawlPlugin):
         i.set_url(response.get_url())
 
         self._get_knowledge_base().append_uniq(self, "url", i, filter_by="URL")
-        om.out.information(i.get_desc())
+        self._output.information(i.get_desc())
 
     def _test_once_filter(self, mutated_url_path_generator):
         for mutated_url_path in mutated_url_path_generator:

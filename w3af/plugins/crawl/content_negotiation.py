@@ -25,7 +25,6 @@ import queue
 import re
 from itertools import repeat
 
-import w3af.core.controllers.output_manager as om
 from w3af import ROOT_PATH
 from w3af.core.controllers.core_helpers.fingerprint_404 import is_404
 from w3af.core.controllers.plugins.crawl_plugin import CrawlPlugin
@@ -276,14 +275,14 @@ class content_negotiation(CrawlPlugin):
             i.set_url(response.get_url())
 
             self._get_knowledge_base().append(self, "content_negotiation", i)
-            om.out.information(i.get_desc())
+            self._output.information(i.get_desc())
 
             # Save the result internally
             self._content_negotiation_enabled = True
             return self._content_negotiation_enabled
 
         msg = "The remote Web server has Content Negotiation disabled"
-        om.out.information(msg)
+        self._output.information(msg)
 
         # I want to perform this test a couple of times... so I only
         # return False if that "couple of times" is empty
