@@ -1,6 +1,5 @@
 import re
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.console_tables import table
 from w3af.plugins.attack.payloads.base_payload import Payload
 
@@ -45,7 +44,9 @@ class svn_config_files(Payload):
         for directory in apache_config_directory:
             yield directory + "mods-enabled/dav_svn.conf"
 
-        for folder in kb.kb.raw_read("password_profiling", "password_profiling"):
+        for folder in self._knowledge_base.raw_read(
+            "password_profiling", "password_profiling"
+        ):
             yield "/srv/svn/" + folder.lower() + "/conf/svnserve.conf"
             yield "/srv/svn/" + folder.lower() + "/conf/passwd"
 

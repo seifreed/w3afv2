@@ -23,7 +23,6 @@ import tempfile
 from typing import ClassVar
 
 import w3af.core.controllers.output_manager as om
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.console_tables import table
 from w3af.core.controllers.sca.sca import PhpSCA
 from w3af.core.data.constants import severity
@@ -86,7 +85,7 @@ class php_sca(Payload):
                 v["os"] = "unix"
                 v["separator"] = ""
 
-                kb.kb.append(*args)
+                self._knowledge_base.append(*args)
 
         if not localtmpdir:
             localtmpdir = tempfile.mkdtemp()

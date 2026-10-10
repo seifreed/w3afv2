@@ -156,6 +156,7 @@ class TestExploit(AttackPluginTestCase):
         shells = unit_attack([shell, None]).exploit()
 
         self.assertEqual(shells, [shell])
+        self.assertIs(shell.get_knowledge_base(), kb)
         self.assertEqual(kb.get("unit_attack", "shell"), [shell])
         self.assertTrue(
             any(

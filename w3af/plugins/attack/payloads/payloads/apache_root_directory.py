@@ -1,6 +1,5 @@
 import re
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.console_tables import table
 from w3af.plugins.attack.payloads.base_payload import Payload
 
@@ -43,8 +42,9 @@ class apache_root_directory(Payload):
                 if parse_config_file(file_content) != "":
                     directory.append(parse_config_file(file_content) + "/")
 
-        if kb.kb.raw_read("pathdisclosure", "webroot"):
-            directory.append(kb.kb.raw_read("pathdisclosure", "webroot"))
+        webroot = self._knowledge_base.raw_read("pathdisclosure", "webroot")
+        if webroot:
+            directory.append(webroot)
 
         # perform some normalization and filtering
         directory = [p.replace("//", "/") for p in directory if p != ""]

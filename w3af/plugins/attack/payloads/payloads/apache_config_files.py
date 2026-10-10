@@ -1,4 +1,3 @@
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.console_tables import table
 from w3af.plugins.attack.payloads.base_payload import Payload
 
@@ -27,7 +26,7 @@ class apache_config_files(Payload):
                 for filename in files:
                     yield directory + filename
 
-                profiled_words_list = kb.kb.raw_read(
+                profiled_words_list = self._knowledge_base.raw_read(
                     "password_profiling", "password_profiling"
                 )
                 domain_name = self.exec_payload("domainname")["domain_name"]

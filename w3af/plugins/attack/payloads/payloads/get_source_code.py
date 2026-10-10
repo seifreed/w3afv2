@@ -1,6 +1,5 @@
 import os
 
-import w3af.core.data.kb.knowledge_base as kb
 from w3af.core.controllers.console_tables import table
 from w3af.plugins.attack.payloads.base_payload import Payload
 
@@ -32,7 +31,7 @@ class get_source_code(Payload):
         apache_root_directory = self.exec_payload("apache_root_directory")
         webroot_list = apache_root_directory["apache_root_directory"]
 
-        url_list = kb.kb.get_all_known_urls()
+        url_list = self._knowledge_base.get_all_known_urls()
 
         for webroot in webroot_list:
             for url in url_list:

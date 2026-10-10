@@ -51,6 +51,7 @@ class Payload:
     def __init__(self, shell_obj):
         self.shell = shell_obj
         self.worker_pool = self.shell.worker_pool
+        self._knowledge_base = self.shell.get_knowledge_base()
 
     def can_run(self):
         """

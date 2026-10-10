@@ -53,6 +53,7 @@ class Shell(ExploitResult):
         self.set_url_opener(uri_opener)
         self.set_worker_pool(worker_pool)
         self._vuln = vuln
+        self._knowledge_base = None
 
         self._rOS = None
         self._rSystem = None
@@ -78,6 +79,12 @@ class Shell(ExploitResult):
 
     def set_worker_pool(self, worker_pool):
         self.worker_pool = worker_pool
+
+    def set_knowledge_base(self, knowledge_base):
+        self._knowledge_base = knowledge_base
+
+    def get_knowledge_base(self):
+        return self._knowledge_base
 
     def help(self, command):
         """

@@ -292,6 +292,7 @@ class BasicKnowledgeBase:
             if w3af_core is not None:
                 shell.set_url_opener(w3af_core.uri_opener)
                 shell.set_worker_pool(w3af_core.worker_pool)
+                shell.set_knowledge_base(w3af_core.knowledge_base)
 
             all_shells.append(shell)
 
