@@ -55,6 +55,13 @@ class TestPluginRegistryStructure(unittest.TestCase):
 
         self.assertNotIn("__pycache__", plugin_types)
 
+    def test_external_plugin_names_are_set_through_the_registry_api(self):
+        core_plugins = CorePlugins(None, om.out, om.manager)
+
+        core_plugins.set_enabled_plugin_names("crawl", ["custom_crawl"])
+
+        self.assertEqual(core_plugins.get_enabled_plugins("crawl"), ["custom_crawl"])
+
 
 @pytest.mark.smoke
 class TestW3afCorePlugins(unittest.TestCase):

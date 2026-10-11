@@ -60,7 +60,7 @@ class CountTestMixin(unittest.TestCase):
         plugin_inst.set_output(self.w3afcore.output)
 
         self.w3afcore.plugins.set_plugin_instances("crawl", [plugin_inst])
-        self.w3afcore.plugins._plugins_names_dict["crawl"] = ["count"]
+        self.w3afcore.plugins.set_enabled_plugin_names("crawl", ["count"])
         self.count_plugin = plugin_inst
 
         # Verify env and start the scan

@@ -7677,3 +7677,14 @@ el core y sus caches. La regresión comprueba el caso real con
 
 Verificación: el test de regresión y la batería combinada de core y profiling
 pasan (**28 tests**); Black y Ruff pasan en los archivos modificados.
+
+## Actualización verificada: encapsulación de nombres de plugins inyectados
+
+Los fixtures que inyectan plugins de integración que no existen en el catálogo
+ya no escriben `_plugins_names_dict` directamente. `CorePlugins` expone una
+operación explícita para sincronizar esos nombres con las instancias externas,
+y una prueba verifica el contrato observable sin conocer el almacenamiento
+interno.
+
+Verificación: la batería de estrategia, excepciones, pausa y plugins pasa; no
+quedan accesos externos a `_plugins_names_dict` en producción ni tests.

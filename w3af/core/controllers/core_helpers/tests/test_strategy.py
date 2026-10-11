@@ -238,7 +238,7 @@ class TestScanConsumers(unittest.TestCase):
         plugin_inst.set_url_opener(self.core.uri_opener)
         plugin_inst.set_worker_pool(self.core.worker_pool)
         self.core.plugins.set_plugin_instances("grep", [plugin_inst])
-        self.core.plugins._plugins_names_dict["grep"] = [plugin_inst.get_name()]
+        self.core.plugins.set_enabled_plugin_names("grep", [plugin_inst.get_name()])
 
     def test_grep_auth_and_bruteforce_consumers(self):
         cf.save("max_scan_time", 0)

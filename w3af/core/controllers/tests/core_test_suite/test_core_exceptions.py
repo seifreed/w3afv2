@@ -87,7 +87,7 @@ class TestCoreExceptions(unittest.TestCase):
         plugin_inst.set_output(self.w3afcore.output)
 
         self.w3afcore.plugins.set_plugin_instances("crawl", [plugin_inst])
-        self.w3afcore.plugins._plugins_names_dict["crawl"] = ["exception_raise"]
+        self.w3afcore.plugins.set_enabled_plugin_names("crawl", ["exception_raise"])
         self.exception_plugin = plugin_inst
 
         # Verify env and start the scan

@@ -80,6 +80,12 @@ class CorePlugins(PluginCatalog):
         """Replace the active instances for a plugin type."""
         self._plugins[plugin_type] = plugins
 
+    def set_enabled_plugin_names(
+        self, plugin_type: str, plugin_names: list[str]
+    ) -> None:
+        """Set names for externally supplied plugin instances."""
+        self._plugins_names_dict[plugin_type] = list(plugin_names)
+
     def init_plugins(self):
         """
         The user interfaces should run this method *before* calling start().
