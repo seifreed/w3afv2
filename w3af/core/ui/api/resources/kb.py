@@ -20,11 +20,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from flask import jsonify, request
+from flask import Response, jsonify, request, stream_with_context
 
 from w3af.core.ui.api.application import app
 from w3af.core.ui.api.utils.auth import requires_auth
 from w3af.core.ui.api.utils.error import abort
+from w3af.core.ui.api.utils.json_stream import stream_json_items
 from w3af.core.ui.api.utils.scans import get_scan_info_from_id
 
 
@@ -56,14 +57,17 @@ def list_kb(scan_id):
     if scan_info is None:
         abort(404, "Scan not found")
 
-    data = []
     knowledge_base = scan_info.w3af_core.knowledge_base
 
-    for finding_id, finding in enumerate(knowledge_base.get_all_findings()):
-        if matches_filter(finding, request):
-            data.append(finding_to_json(finding, scan_id, finding_id))
+    def findings():
+        for finding_id, finding in enumerate(knowledge_base.get_all_findings_iter()):
+            if matches_filter(finding, request):
+                yield finding_to_json(finding, scan_id, finding_id)
 
-    return jsonify({"items": data})
+    return Response(
+        stream_with_context(stream_json_items(findings())),
+        mimetype="application/json",
+    )
 
 
 @app.route("/scans/<int:scan_id>/kb/<int:vulnerability_id>", methods=["GET"])
@@ -80,7 +84,7 @@ def get_kb(scan_id, vulnerability_id):
         abort(404, "Scan not found")
 
     knowledge_base = scan_info.w3af_core.knowledge_base
-    for finding_id, finding in enumerate(knowledge_base.get_all_findings()):
+    for finding_id, finding in enumerate(knowledge_base.get_all_findings_iter()):
         if vulnerability_id == finding_id:
             return jsonify(finding_to_json(finding, scan_id, finding_id, detailed=True))
 

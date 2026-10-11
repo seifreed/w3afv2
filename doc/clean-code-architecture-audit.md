@@ -4785,3 +4785,16 @@ contrato de claves y un documento JSON válido con un pico de memoria acotado.
 Verificación: **3 tests** del exportador JSON pasan; Black, Ruff, mypy y Bandit
 focales pasan. El score global continúa en **9.99/10**, con los gates heredados,
 el fallback standalone y otros módulos grandes todavía pendientes.
+
+## Actualización verificada: respuestas API sin listas intermedias
+
+Las rutas de URLs, peticiones fuzzables y hallazgos de la API ya no convierten
+los iterables de la KB en listas Python antes de responder. Un iterador JSON
+compartido escribe `{"items": [...]}` por fragmentos, manteniendo el contrato
+HTTP y reteniendo únicamente el elemento actual. El endpoint de detalle de la
+KB también usa el iterador para evitar cargar todos los hallazgos al buscar uno.
+
+Verificación: **5 tests** de las rutas API y del helper de streaming pasan;
+Black, Ruff, mypy y Bandit focales pasan. El score global continúa en **9.99/10**,
+con los gates heredados, el fallback standalone y otros módulos grandes todavía
+pendientes.

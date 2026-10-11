@@ -20,12 +20,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 """
 
-from flask import jsonify
+from flask import Response
 
 from w3af.core.ui.api.application import app
 from w3af.core.ui.api.resources.traffic import encode_message
 from w3af.core.ui.api.utils.auth import requires_auth
 from w3af.core.ui.api.utils.error import abort
+from w3af.core.ui.api.utils.json_stream import stream_json_items
 from w3af.core.ui.api.utils.scans import get_scan_info_from_id
 
 
@@ -42,10 +43,9 @@ def get_fuzzable_request_list(scan_id):
     if scan_info is None:
         abort(404, "Scan not found")
 
-    data = []
     knowledge_base = scan_info.w3af_core.knowledge_base
-
-    for fuzzable_request in knowledge_base.get_all_known_fuzzable_requests():
-        data.append(encode_message(fuzzable_request.dump()))
-
-    return jsonify({"items": data})
+    requests = (
+        encode_message(fuzzable_request.dump())
+        for fuzzable_request in knowledge_base.get_all_known_fuzzable_requests()
+    )
+    return Response(stream_json_items(requests), mimetype="application/json")
